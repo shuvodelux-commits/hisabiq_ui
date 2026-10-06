@@ -7,6 +7,7 @@ import { ProductThumb } from '../components/ProductThumb';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { AddProductDialog } from '../components/products/AddProductDialog';
+import { ProductSettings } from '../components/products/ProductSettings';
 import { productCategories, products as seed } from '../data/products';
 import type { Product } from '../types/erp';
 import { formatStock, stockStatus, type StockStatus } from '../utils/units';
@@ -20,8 +21,10 @@ const statusMeta: Record<StockStatus, {label: string;tone: StatusTone;}> = {
 };
 
 type StockFilter = 'all' | 'low' | 'out';
+type ProductView = 'list' | 'settings';
 
 export function Products() {
+  const [view, setView] = useState<ProductView>('list');
   const [list, setList] = useState<Product[]>(seed);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
@@ -55,10 +58,10 @@ export function Products() {
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
         title="Products"
-        titleBn="পণ্য তালিকা"
-        description="Stock, units and prices for everything you sell."
-        actions={
-        <>
+        titleBn="পণ্য"
+        description={view === 'list' ? 'Stock, units and prices for everything you sell.' : 'Categories, units, brands and defaults used across the product module.'}
+        actions={view === 'list' ? (
+          <>
             <Button variant="outline" size="sm" onClick={() => toast('Exported products.xlsx')}>
               <Download className="size-4" /> Export
             </Button>
@@ -66,9 +69,27 @@ export function Products() {
               <Plus className="size-4" /> Add product
             </Button>
           </>
-        } />
+        ) : undefined} />
       
 
+      <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 scrollbar-thin" role="tablist">
+        {([
+          ['list', 'Product list', 'পণ্য তালিকা'],
+          ['settings', 'Product settings', 'পণ্য সেটিংস']
+        ] as Array<[ProductView, string, string]>).map(([id, label, bn]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={view === id}
+            onClick={() => setView(id)}
+            className={`-mb-px flex shrink-0 items-baseline gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'border-teal-600 text-ink' : 'border-transparent text-ink-500 hover:text-ink'}`}>
+            {label} <span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>
+          </button>
+        ))}
+      </div>
+
+      {view === 'list' && (
+        <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((s) =>
         <div key={s.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
@@ -224,6 +245,15 @@ export function Products() {
           <span>Prices include VAT where applicable</span>
         </div>
       </div>
+
+        </>
+      )}
+
+      {view === 'settings' && (
+        <div className="overflow-hidden rounded-xl border border-ink-100 bg-white shadow-card">
+          <ProductSettings />
+        </div>
+      )}
 
       <AddProductDialog
         open={dialogOpen}
