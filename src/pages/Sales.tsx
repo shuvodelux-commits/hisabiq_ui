@@ -13,6 +13,7 @@ import {
   Plus,
   Printer,
   Search,
+  ShieldCheck,
   Trash2,
   UserRound
 } from 'lucide-react';
@@ -102,6 +103,9 @@ function InvoiceActions({
           )}
           <button className={itemClass} onClick={() => { close(); onReturn(); }}>
             <CornerUpLeft className="size-4 text-ink-400" /> Return items
+          </button>
+          <button className={itemClass} onClick={() => { close(); navigate(`/app/warranty?invoice=${invoice.invoice}`); }}>
+            <ShieldCheck className="size-4 text-ink-400" /> Receive warranty
           </button>
           {invoice.partyId && (
             <button className={itemClass} onClick={() => { close(); navigate(`/app/parties?id=${invoice.partyId}`); }}>
@@ -247,6 +251,9 @@ function InvoiceDialog({
               </Button>
               <Button variant="outline" onClick={() => onReturn(invoice)}>
                 <CornerUpLeft className="size-4" /> Return
+              </Button>
+              <Button variant="outline" onClick={() => navigate(`/app/warranty?invoice=${invoice.invoice}`)}>
+                <ShieldCheck className="size-4" /> Warranty
               </Button>
               {invoice.due > 0 && <Button onClick={() => onPayment(invoice)}><Banknote className="size-4" /> Take payment</Button>}
             </DialogFooter>
