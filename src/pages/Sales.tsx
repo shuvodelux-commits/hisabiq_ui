@@ -821,6 +821,7 @@ export function Sales() {
               {label}
               {id === 'sales' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{invoices.length}</span>}
               {id === 'returns' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{returns.length}</span>}
+              {id === 'credits' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{credits.filter((credit) => credit.balance > 0).length}</span>}
               {id === 'drafts' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{salesDrafts.length + saleTemplates.length}</span>}
             </button>
           ))}
@@ -994,6 +995,29 @@ export function Sales() {
                             <TableCell className="py-2 pl-3">
                               <p className="font-medium text-ink">{line.name}</p>
                               <p className="text-[11px] text-ink-400">{invoice.invoice}</p>
+                              {qty > 0 && (
+                                <div className="mt-2 max-w-[260px] space-y-1.5">
+                                  <FormSelect
+                                    value={returnReason[line.id] ?? 'Customer return'}
+                                    onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
+                                    options={['Customer return', 'Damaged', 'Wrong item', 'Warranty claim']}
+                                  />
+                                  {line.serials?.length ? (
+                                    <>
+                                      <Input
+                                        value={returnSerials[line.id] ?? ''}
+                                        onChange={(event) => setReturnSerials((value) => ({ ...value, [line.id]: event.target.value }))}
+                                        placeholder="Returned serial, comma separated"
+                                        className="h-8"
+                                      />
+                                      <p className="text-[10.5px] text-ink-400">Sold serials: {line.serials.join(', ')}</p>
+                                    </>
+                                  ) : null}
+                                  {(returnReason[line.id] ?? 'Customer return') === 'Warranty claim' && (
+                                    <p className="text-[10.5px] text-teal-700">This return will be available for warranty intake.</p>
+                                  )}
+                                </div>
+                              )}
                             </TableCell>
                             <TableCell className="py-2">{invoiceQty(line)}</TableCell>
                             <TableCell className="py-2">
@@ -1007,6 +1031,9 @@ export function Sales() {
                                 />
                                 <span className="w-10 text-[11px] text-ink-400">{line.unit}</span>
                               </div>
+                              <p className={`mt-1 text-[10.5px] ${qty > returnLimit(line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
+                                max {returnLimit(line)} {line.unit}
+                              </p>
                             </TableCell>
                             <TableCell className="py-2 pr-3 text-right font-medium">{qty > 0 ? taka(qty * line.price) : '—'}</TableCell>
                           </TableRow>
@@ -1077,6 +1104,93 @@ export function Sales() {
               ))}
             </TableBody>
           </Table>
+        )}
+
+
+        {tab === 'credits' && (
+          <div>
+            <div className="flex flex-col gap-2 border-b border-ink-100 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[13px] font-medium text-ink">Customer payments & credit <span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span></p>
+                <p className="mt-0.5 text-[11px] text-ink-500">Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.</p>
+              </div>
+              <Button size="sm" onClick={() => setCustomerPaymentOpen(true)}>
+                <Plus className="size-4" /> Receive customer payment
+              </Button>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="h-9 pl-4 text-xs">Customer</TableHead>
+                  <TableHead className="h-9 text-xs">Source</TableHead>
+                  <TableHead className="h-9 text-xs">Updated</TableHead>
+                  <TableHead className="h-9 text-right text-xs">Credit balance</TableHead>
+                  <TableHead className="h-9 text-xs">Status</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {credits.map((credit) => (
+                  <TableRow key={credit.id} className="text-[13px]">
+                    <TableCell className="py-2 pl-4">
+                      <p className="font-medium text-ink">{credit.customer}</p>
+                      <p className="text-[11px] text-ink-400">{credit.id}</p>
+                    </TableCell>
+                    <TableCell className="py-2 text-ink-600">{credit.source}</TableCell>
+                    <TableCell className="py-2 text-ink-500">{credit.updatedAt}</TableCell>
+                    <TableCell className="py-2 text-right font-medium">{taka(credit.balance)}</TableCell>
+                    <TableCell className="py-2">
+                      <StatusBadge tone={credit.balance > 0 ? 'teal' : 'neutral'} dot={credit.balance > 0}>
+                        {credit.balance > 0 ? 'Available' : 'Settled'}
+                      </StatusBadge>
+                    </TableCell>
+                    <TableCell className="py-2 pr-4 text-right">
+                      <FloatingPanel
+                        label={`Credit actions for ${credit.customer}`}
+                        width={220}
+                        trigger={({ toggle, open }) => (
+                          <button
+                            onClick={toggle}
+                            aria-expanded={open}
+                            aria-label={`Actions for ${credit.customer} credit`}
+                            className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
+                            <MoreHorizontal className="size-4" />
+                          </button>
+                        )}>
+                        {(close) => (
+                          <div className="py-1">
+                            <button
+                              disabled={credit.balance <= 0}
+                              onClick={() => { close(); setCreditAction({ credit, mode: 'apply' }); }}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-ink-300">
+                              <FileText className="size-4 text-ink-400" /> Apply to invoice
+                            </button>
+                            <button
+                              disabled={credit.balance <= 0}
+                              onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-ink-300">
+                              <Banknote className="size-4 text-ink-400" /> Refund credit
+                            </button>
+                            <button
+                              onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <BookOpen className="size-4 text-ink-400" /> Customer ledger
+                            </button>
+                          </div>
+                        )}
+                      </FloatingPanel>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-4 py-2.5 text-xs text-ink-500">
+              <span>Total customer credit {taka(creditTotal)}</span>
+              <span>Credit can settle invoice due or be refunded from a selected account</span>
+            </div>
+          </div>
         )}
 
         {tab === 'drafts' && (
@@ -1152,6 +1266,21 @@ export function Sales() {
         invoice={paymentTarget}
         onClose={() => setPaymentTarget(null)}
         onSave={savePayment}
+      />
+
+      <CustomerPaymentDialog
+        open={customerPaymentOpen}
+        customers={customerNames.filter((customer) => customer !== 'Walk-in customer')}
+        onClose={() => setCustomerPaymentOpen(false)}
+        onSave={receiveCustomerPayment}
+      />
+
+      <CreditActionDialog
+        action={creditAction}
+        invoices={invoices}
+        onClose={() => setCreditAction(null)}
+        onApply={applyCustomerCredit}
+        onRefund={refundCustomerCredit}
       />
     </div>
   );
