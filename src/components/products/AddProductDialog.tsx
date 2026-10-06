@@ -10,6 +10,7 @@ import { PhotoUploader } from './PhotoUploader';
 import { productCategories } from '../../data/products';
 import type { Product } from '../../types/erp';
 import { taka } from '../../utils/currency';
+import { toBasePrice, toBaseQuantity } from '../../utils/productEntry';
 
 type AddProductDialogProps = {
   open: boolean;
@@ -36,7 +37,7 @@ function MoneyInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="relative">
       <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-      <Input {...props} inputMode="decimal" className="pl-7 text-right tabular-nums" />
+      <Input {...props} inputMode="decimal" className="pl-7 text-right" />
     </div>);
 
 }
@@ -67,12 +68,13 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
   const f = parseFloat(factor) || 1;
   const selectedSellUnit = units.includes(sellUnit) ? sellUnit : unit;
   const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : unit;
-  const toBase = (qty: string, u: string) => (parseFloat(qty) || 0) * (multiUnit && u === altUnit ? f : 1);
-  const toBasePrice = (amount: string, u: string) => (parseFloat(amount) || 0) / (multiUnit && u === altUnit ? f : 1);
+  const normalizedAltUnit = multiUnit && altUnit ? altUnit : undefined;
+  const stockToBase = (qty: string, selectedUnit: string) => toBaseQuantity(qty, selectedUnit, unit, normalizedAltUnit, f);
+  const priceToBase = (amount: string, selectedUnit: string) => toBasePrice(amount, selectedUnit, unit, normalizedAltUnit, f);
   const sellNum = parseFloat(sell) || 0;
   const buyNum = parseFloat(buy) || 0;
-  const sellBase = toBasePrice(sell, selectedSellUnit);
-  const buyBase = toBasePrice(buy, selectedBuyUnit);
+  const sellBase = priceToBase(sell, selectedSellUnit);
+  const buyBase = priceToBase(buy, selectedBuyUnit);
   const margin = sellBase > 0 && buyBase > 0 ? (sellBase - buyBase) / sellBase * 100 : null;
   const autoAltSell = sellBase > 0 && multiUnit ? sellBase * f : 0;
 
@@ -103,8 +105,8 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
       image: photos[0],
       unit,
       altUnit: multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
-      stock: toBase(openingQty, openingUnit),
-      minStock: toBase(minQty, minUnit),
+      stock: stockToBase(openingQty, openingUnit),
+      minStock: stockToBase(minQty, minUnit),
       sellPrice: sellBase,
       purchasePrice: buyBase,
       active: true
@@ -145,13 +147,13 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                 setUnit(next);
               }} options={baseUnits} />
             </Field>
-            <Field label="Selling price" bn="বিক্রয় মূল্য" hint={sellNum && selectedSellUnit !== unit ? `Saved as ${taka(sellBase, sellBase % 1 ? 2 : 0)} / ${unit} base` : 'Enter the price in whichever configured unit you normally use.'}>
+            <Field label="Selling price" bn="বিক্রয় মূল্য" hint={sellNum && selectedSellUnit !== unit ? `${taka(sellNum, sellNum % 1 ? 2 : 0)} / ${selectedSellUnit} → ${taka(sellBase, sellBase % 1 ? 2 : 0)} / ${unit} automatically` : 'Enter the price in whichever configured unit you normally use. HisabIQ converts it automatically.'}>
               <div className="flex gap-2">
                 <div className="min-w-0 flex-1"><MoneyInput value={sell} onChange={(e) => setSell(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" /></div>
                 <FormSelect value={selectedSellUnit} onChange={(e) => setSellUnit(e.target.value)} options={units} className="w-28 shrink-0" />
               </div>
             </Field>
-            <Field label="Purchase price" bn="ক্রয় মূল্য" hint={buyNum && selectedBuyUnit !== unit ? `Saved as ${taka(buyBase, buyBase % 1 ? 2 : 0)} / ${unit} base` : 'Optional. This can use a different unit from the selling price.'}>
+            <Field label="Purchase price" bn="ক্রয় মূল্য" hint={buyNum && selectedBuyUnit !== unit ? `${taka(buyNum, buyNum % 1 ? 2 : 0)} / ${selectedBuyUnit} → ${taka(buyBase, buyBase % 1 ? 2 : 0)} / ${unit} automatically` : 'Optional. Choose the unit used on the supplier memo; HisabIQ converts it automatically.'}>
               <div className="flex gap-2">
                 <div className="min-w-0 flex-1"><MoneyInput value={buy} onChange={(e) => setBuy(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" /></div>
                 <FormSelect value={selectedBuyUnit} onChange={(e) => setBuyUnit(e.target.value)} options={units} className="w-28 shrink-0" />
@@ -222,7 +224,7 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                       aria-label="Conversion factor"
                       value={factor}
                       onChange={(e) => setFactor(e.target.value.replace(/[^\d.]/g, ''))}
-                      className="h-9 w-20 bg-white text-right font-medium tabular-nums"
+                      className="h-9 w-20 bg-white text-right font-medium"
                       inputMode="decimal" />
                     
                         <span className="font-medium">{unit}</span>
@@ -242,7 +244,7 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Field label="Opening stock" bn="শুরুর স্টক">
                       <div className="flex gap-2">
-                        <Input value={openingQty} onChange={(e) => setOpeningQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right tabular-nums" inputMode="decimal" />
+                        <Input value={openingQty} onChange={(e) => setOpeningQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
                         <FormSelect value={units.includes(openingUnit) ? openingUnit : unit} onChange={(e) => setOpeningUnit(e.target.value)} options={units} className="w-28 shrink-0" />
                       </div>
                     </Field>
