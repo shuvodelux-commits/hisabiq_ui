@@ -536,14 +536,19 @@ export function Sales() {
   const [tab, setTab] = useState<Tab>('sales');
   const [invoices, setInvoices] = useState<SalesInvoice[]>(seedInvoices);
   const [returns, setReturns] = useState<SalesReturn[]>(seedReturns);
+  const [credits, setCredits] = useState<CustomerCredit[]>(seedCredits);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('All status');
   const [method, setMethod] = useState('All payments');
   const [detail, setDetail] = useState<SalesInvoice | null>(null);
   const [paymentTarget, setPaymentTarget] = useState<SalesInvoice | null>(null);
+  const [customerPaymentOpen, setCustomerPaymentOpen] = useState(false);
+  const [creditAction, setCreditAction] = useState<{ credit: CustomerCredit; mode: 'apply' | 'refund' } | null>(null);
   const [returnCustomer, setReturnCustomer] = useState('Rahman Hardware');
   const [returnInvoiceIds, setReturnInvoiceIds] = useState<string[]>([]);
   const [returnQty, setReturnQty] = useState<Record<string, string>>({});
+  const [returnReason, setReturnReason] = useState<Record<string, string>>({});
+  const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
 
   const customerNames = useMemo(
@@ -571,23 +576,38 @@ export function Sales() {
   const receivedTotal = invoices.reduce((sum, invoice) => sum + invoice.paid, 0);
   const dueTotal = invoices.reduce((sum, invoice) => sum + invoice.due, 0);
   const returnTotal = returns.reduce((sum, item) => sum + item.amount, 0);
+  const creditTotal = credits.reduce((sum, item) => sum + item.balance, 0);
 
   const summary = [
     { label: 'Sales · Oct', value: taka(salesTotal), sub: `${invoices.length} invoices` },
     { label: 'Received · Oct', value: taka(receivedTotal), sub: 'Cash, bank & mobile' },
     { label: 'Outstanding due', value: taka(dueTotal), sub: 'Customer receivable · বাকি', tone: 'text-danger' },
-    { label: 'Sales returns', value: taka(returnTotal), sub: `${returns.length} return memos`, tone: 'text-warning' }
+    { label: 'Sales returns', value: taka(returnTotal), sub: `${returns.length} return memos · credit ${taka(creditTotal)}`, tone: 'text-warning' }
   ];
 
   const customerInvoices = invoices.filter((invoice) => invoice.party === returnCustomer);
   const selectedReturnInvoices = invoices.filter((invoice) => returnInvoiceIds.includes(invoice.id));
   const selectedReturnLines = selectedReturnInvoices.flatMap((invoice) => invoice.lines.map((line) => ({ invoice, line })));
   const returnAmount = selectedReturnLines.reduce((sum, item) => sum + (parseFloat(returnQty[item.line.id] ?? '') || 0) * item.line.price, 0);
+  const returnIssues = selectedReturnLines.flatMap(({ line }) => {
+    const qty = parseFloat(returnQty[line.id] ?? '') || 0;
+    if (qty <= 0) return [];
+    const issues: string[] = [];
+    if (qty > returnLimit(line)) issues.push(`${line.name}: maximum return is ${returnLimit(line)} ${line.unit}.`);
+    if (line.serials?.length) {
+      const serials = (returnSerials[line.id] ?? '').split(',').map((value) => value.trim()).filter(Boolean);
+      if (!serials.length) issues.push(`${line.name}: select or enter the returned serial number.`);
+      if (serials.some((serial) => !line.serials?.includes(serial))) issues.push(`${line.name}: one or more serial numbers do not belong to this sale.`);
+    }
+    return issues;
+  });
 
   const openReturn = (invoice: SalesInvoice) => {
     setReturnCustomer(invoice.party);
     setReturnInvoiceIds([invoice.id]);
     setReturnQty({});
+    setReturnReason({});
+    setReturnSerials({});
     setDetail(null);
     setTab('return');
   };
@@ -618,9 +638,88 @@ export function Sales() {
     toast.success('Payment saved', { description: `${invoice.invoice} · ${taka(amount)}` });
   };
 
+  const receiveCustomerPayment = (draft: CustomerPaymentDraft) => {
+    const amount = parseFloat(draft.amount) || 0;
+    if (amount <= 0) return;
+    let remainder = amount;
+
+    if (draft.allocation === 'Settle oldest due') {
+      setInvoices((items) => items.map((invoice) => {
+        if (invoice.party !== draft.customer || invoice.due <= 0 || remainder <= 0) return invoice;
+        const applied = Math.min(invoice.due, remainder);
+        remainder -= applied;
+        const paid = invoice.paid + applied;
+        const due = Math.max(invoice.total - paid, 0);
+        return {
+          ...invoice,
+          paid,
+          due,
+          method: draft.method,
+          status: due === 0 ? 'Paid' : 'Partial',
+          payments: [...invoice.payments, {
+            id: `${invoice.id}-customer-${Date.now()}`,
+            method: draft.method,
+            amount: applied,
+            ...(draft.account.trim() ? { account: draft.account.trim() } : {})
+          }]
+        };
+      }));
+    }
+
+    if (draft.allocation === 'Keep as customer credit') remainder = amount;
+    if (remainder > 0) {
+      setCredits((items) => {
+        const existing = items.find((credit) => credit.customer === draft.customer);
+        if (existing) return items.map((credit) => credit.id === existing.id ? {
+          ...credit,
+          balance: credit.balance + remainder,
+          source: draft.allocation === 'Keep as customer credit' ? 'Customer payment' : 'Payment remainder',
+          updatedAt: '01 Oct 2026'
+        } : credit);
+        return [{
+          id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`,
+          customer: draft.customer,
+          balance: remainder,
+          source: draft.allocation === 'Keep as customer credit' ? 'Customer payment' : 'Payment remainder',
+          updatedAt: '01 Oct 2026'
+        }, ...items];
+      });
+    }
+
+    toast.success('Customer payment saved', {
+      description: remainder > 0 ? `${taka(amount - remainder)} settled · ${taka(remainder)} credit` : `${taka(amount)} settled against due invoices`
+    });
+  };
+
+  const applyCustomerCredit = (credit: CustomerCredit, invoiceId: string, amount: number) => {
+    setInvoices((items) => items.map((invoice) => {
+      if (invoice.id !== invoiceId) return invoice;
+      const paid = Math.min(invoice.total, invoice.paid + amount);
+      const due = Math.max(invoice.total - paid, 0);
+      return {
+        ...invoice,
+        paid,
+        due,
+        status: due === 0 ? 'Paid' : 'Partial',
+        payments: [...invoice.payments, { id: `${invoice.id}-credit-${Date.now()}`, method: 'Cash', amount, account: 'Customer credit' }]
+      };
+    }));
+    setCredits((items) => items.map((item) => item.id === credit.id ? { ...item, balance: Math.max(item.balance - amount, 0), source: `Applied to invoice`, updatedAt: '01 Oct 2026' } : item));
+    toast.success('Customer credit applied', { description: `${credit.customer} · ${taka(amount)}` });
+  };
+
+  const refundCustomerCredit = (credit: CustomerCredit, amount: number, method: PaymentMethod, account: string) => {
+    setCredits((items) => items.map((item) => item.id === credit.id ? { ...item, balance: Math.max(item.balance - amount, 0), source: `Refunded by ${method}`, updatedAt: '01 Oct 2026' } : item));
+    toast.success('Customer credit refunded', { description: `${credit.customer} · ${taka(amount)}${account.trim() ? ` · ${account.trim()}` : ''}` });
+  };
+
   const completeReturn = () => {
     if (!returnInvoiceIds.length || returnAmount <= 0) {
       toast.error('Select invoice items and enter return quantity');
+      return;
+    }
+    if (returnIssues.length) {
+      toast.error('Check return quantities and serial numbers', { description: returnIssues[0] });
       return;
     }
     const selected = selectedReturnInvoices;
@@ -631,15 +730,44 @@ export function Sales() {
       invoices: selected.map((invoice) => invoice.invoice),
       items: selectedReturnLines
         .filter(({ line }) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0)
-        .map(({ line }) => `${line.name} · ${returnQty[line.id]} ${line.unit}`)
+        .map(({ line }) => {
+          const reason = returnReason[line.id] ?? 'Customer return';
+          const serial = (returnSerials[line.id] ?? '').trim();
+          return `${line.name} · ${returnQty[line.id]} ${line.unit} · ${reason}${serial ? ` · SN ${serial}` : ''}`;
+        })
         .join(', '),
       amount: returnAmount,
       settlement: returnSettlement
     };
     setReturns((items) => [newReturn, ...items]);
-    setInvoices((items) => items.map((invoice) => returnInvoiceIds.includes(invoice.id) ? { ...invoice, status: 'Part returned' } : invoice));
+
+    if (returnSettlement === 'Customer credit') {
+      setCredits((items) => {
+        const existing = items.find((credit) => credit.customer === returnCustomer);
+        if (existing) return items.map((credit) => credit.id === existing.id ? { ...credit, balance: credit.balance + returnAmount, source: newReturn.id, updatedAt: newReturn.date } : credit);
+        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, customer: returnCustomer, balance: returnAmount, source: newReturn.id, updatedAt: newReturn.date }, ...items];
+      });
+    }
+
+    let remainingAdjustment = returnSettlement === 'Adjust due' ? returnAmount : 0;
+    setInvoices((items) => items.map((invoice) => {
+      if (!returnInvoiceIds.includes(invoice.id)) return invoice;
+      const returnedLines = invoice.lines.filter((line) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0);
+      const fullReturn = returnedLines.length === invoice.lines.length && invoice.lines.every((line) => (parseFloat(returnQty[line.id] ?? '') || 0) >= returnLimit(line));
+      let due = invoice.due;
+      let total = invoice.total;
+      if (returnSettlement === 'Adjust due' && remainingAdjustment > 0) {
+        const applied = Math.min(due, remainingAdjustment);
+        remainingAdjustment -= applied;
+        due = Math.max(due - applied, 0);
+        total = Math.max(total - applied, invoice.paid);
+      }
+      return { ...invoice, total, due, status: fullReturn ? 'Returned' : 'Part returned' };
+    }));
     setReturnInvoiceIds([]);
     setReturnQty({});
+    setReturnReason({});
+    setReturnSerials({});
     setTab('returns');
     toast.success(`${newReturn.id} saved`, { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
@@ -648,6 +776,7 @@ export function Sales() {
     ['sales', 'Sales', 'Invoice list & management'],
     ['return', 'Sales return', 'Batch return across customer invoices'],
     ['returns', 'Return history', 'Completed sales returns'],
+    ['credits', 'Customer credit', 'Payments, settlements and refunds'],
     ['drafts', 'Drafts & templates', 'Continue or reuse sales']
   ];
 
