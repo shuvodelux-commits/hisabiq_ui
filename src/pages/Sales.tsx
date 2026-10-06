@@ -750,27 +750,38 @@ export function Sales() {
     };
     setReturns((items) => [newReturn, ...items]);
 
-    if (returnSettlement === 'Customer credit') {
+    const dueAdjustments = new Map<string, number>();
+    let remainingAdjustment = returnSettlement === 'Adjust due' ? returnAmount : 0;
+    if (returnSettlement === 'Adjust due') {
+      for (const invoice of selectedReturnInvoices) {
+        if (remainingAdjustment <= 0) break;
+        const applied = Math.min(invoice.due, remainingAdjustment);
+        if (applied > 0) dueAdjustments.set(invoice.id, applied);
+        remainingAdjustment -= applied;
+      }
+    }
+
+    const creditFromReturn = returnSettlement === 'Customer credit'
+      ? returnAmount
+      : returnSettlement === 'Adjust due'
+        ? Math.max(returnAmount - selectedReturnDue, 0)
+        : 0;
+
+    if (creditFromReturn > 0) {
       setCredits((items) => {
         const existing = items.find((credit) => credit.customer === returnCustomer);
-        if (existing) return items.map((credit) => credit.id === existing.id ? { ...credit, balance: credit.balance + returnAmount, source: newReturn.id, updatedAt: newReturn.date } : credit);
-        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, customer: returnCustomer, balance: returnAmount, source: newReturn.id, updatedAt: newReturn.date }, ...items];
+        if (existing) return items.map((credit) => credit.id === existing.id ? { ...credit, balance: credit.balance + creditFromReturn, source: newReturn.id, updatedAt: newReturn.date } : credit);
+        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, customer: returnCustomer, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
       });
     }
 
-    let remainingAdjustment = returnSettlement === 'Adjust due' ? returnAmount : 0;
     setInvoices((items) => items.map((invoice) => {
       if (!returnInvoiceIds.includes(invoice.id)) return invoice;
       const returnedLines = invoice.lines.filter((line) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0);
       const fullReturn = returnedLines.length === invoice.lines.length && invoice.lines.every((line) => (parseFloat(returnQty[line.id] ?? '') || 0) >= returnLimit(line));
-      let due = invoice.due;
-      let total = invoice.total;
-      if (returnSettlement === 'Adjust due' && remainingAdjustment > 0) {
-        const applied = Math.min(due, remainingAdjustment);
-        remainingAdjustment -= applied;
-        due = Math.max(due - applied, 0);
-        total = Math.max(total - applied, invoice.paid);
-      }
+      const applied = dueAdjustments.get(invoice.id) ?? 0;
+      const due = Math.max(invoice.due - applied, 0);
+      const total = applied > 0 ? Math.max(invoice.total - applied, invoice.paid) : invoice.total;
       return { ...invoice, total, due, status: fullReturn ? 'Returned' : 'Part returned' };
     }));
     setReturnInvoiceIds([]);
@@ -1060,6 +1071,13 @@ export function Sales() {
                         onChange={(event) => setReturnSettlement(event.target.value as SalesReturn['settlement'])}
                         options={['Adjust due', 'Customer credit', 'Cash refund']}
                       />
+                      <span className="mt-1 block text-[10.5px] font-normal text-ink-400">
+                        {returnSettlement === 'Adjust due'
+                          ? `Selected invoice due ${taka(selectedReturnDue)}. Any extra return value becomes customer credit.`
+                          : returnSettlement === 'Customer credit'
+                            ? 'Keep the full return value on the customer account.'
+                            : 'Refund the return value from cash or another payment account.'}
+                      </span>
                     </label>
                     <div className="rounded-lg bg-ink-50 px-3 py-2">
                       <p className="text-[11px] text-ink-400">Return amount</p>
