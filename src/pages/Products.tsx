@@ -58,7 +58,7 @@ export function Products() {
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
         title="Products"
-        titleBn="পণ্য"
+        titleBn="পণ্য তালিকা"
         description={view === 'list' ? 'Stock, units and prices for everything you sell.' : 'Categories, units, brands and defaults used across the product module.'}
         actions={view === 'list' ? (
           <>
@@ -94,7 +94,7 @@ export function Products() {
         {summary.map((s) =>
         <div key={s.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{s.label}</p>
-            <p className={`mt-0.5 text-lg font-semibold tabular-nums ${s.tone ?? 'text-ink'}`}>{s.value}</p>
+            <p className={`mt-0.5 text-lg font-semibold ${s.tone ?? 'text-ink'}`}>{s.value}</p>
             <p className="text-[11px] text-ink-400">{s.sub}</p>
           </div>
         )}
@@ -107,7 +107,7 @@ export function Products() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search name, SKU, বাংলা…"
+              placeholder="Search name, বাংলা, SKU…"
               aria-label="Search products"
               className="h-8 w-full rounded-md border border-ink-100 pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
             
@@ -165,23 +165,23 @@ export function Products() {
               const s = stockStatus(p);
               return (
                 <TableRow key={p.id} className="text-[13px]">
-                  <TableCell className="py-2 pl-4 tabular-nums text-ink-400">{i + 1}.</TableCell>
+                  <TableCell className="py-2 pl-4 text-ink-400">{i + 1}.</TableCell>
                   <TableCell className="py-2">
                     <div className="flex items-center gap-2.5">
                       <ProductThumb src={p.image} size={34} />
                       <div className="min-w-0">
                         <p className="truncate font-medium text-ink">{p.name}</p>
                         <p className="truncate text-[11px] text-ink-500">
-                          {p.sku}
-                          {p.nameBn && <span className="font-bn"> · {p.nameBn}</span>}
+                          {p.nameBn && <span className="font-bn">{p.nameBn}</span>}
+                          {p.nameBn ? ' · ' : ''}{p.sku}
                         </p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="py-2 text-ink-600">{p.category}</TableCell>
-                  <TableCell className={`py-2 text-right tabular-nums font-medium ${s === 'low' ? 'text-warning' : s === 'out' ? 'text-danger' : 'text-ink'}`}>
+                  <TableCell className={`py-2 text-right font-medium ${s === 'low' ? 'text-warning' : s === 'out' ? 'text-danger' : 'text-ink'}`}>
                     {formatStock(p)}
-                    <span className="block text-[11px] font-normal text-ink-400">min {p.minStock.toLocaleString('en-IN')} {p.unit}</span>
+                    <span className="block text-[11px] font-normal text-ink-400">min {formatStock({ ...p, stock: p.minStock })}</span>
                   </TableCell>
                   <TableCell className="py-2 text-ink-600">
                     {p.altUnit ?
@@ -193,10 +193,10 @@ export function Products() {
                     p.unit
                     }
                   </TableCell>
-                  <TableCell className="py-2 text-right tabular-nums text-ink-600">
+                  <TableCell className="py-2 text-right text-ink-600">
                     {taka(p.purchasePrice, p.purchasePrice % 1 ? 2 : 0)}
                   </TableCell>
-                  <TableCell className="py-2 text-right tabular-nums font-medium text-ink">
+                  <TableCell className="py-2 text-right font-medium text-ink">
                     {taka(p.sellPrice, p.sellPrice % 1 ? 2 : 0)}
                     <span className="font-normal text-ink-400">/{p.unit}</span>
                     {p.altUnit &&
@@ -209,7 +209,7 @@ export function Products() {
                     <StatusBadge tone={statusMeta[s].tone} dot>{statusMeta[s].label}</StatusBadge>
                   </TableCell>
                   <TableCell className="py-2 pr-4">
-                    <button aria-label={`Actions for ${p.name}`} className="rounded-md p-1 text-ink-400 hover:bg-ink-50 hover:text-ink">
+                    <button type="button" aria-label={`Actions for ${p.name}`} className="rounded-md p-1 text-ink-400 hover:bg-ink-50 hover:text-ink">
                       <MoreHorizontal className="size-4" />
                     </button>
                   </TableCell>
