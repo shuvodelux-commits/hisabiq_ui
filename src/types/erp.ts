@@ -128,6 +128,13 @@ export type SalesReturn = {
   refundAccount?: string;
 };
 
+export type SalePresetLine = {
+  productId: string;
+  qty: string;
+  unit: string;
+  price: number;
+};
+
 export type SaleTemplate = {
   id: string;
   name: string;
@@ -135,6 +142,7 @@ export type SaleTemplate = {
   items: number;
   total: number;
   lastUsed: string;
+  lines: SalePresetLine[];
 };
 
 export type CustomerCredit = {
