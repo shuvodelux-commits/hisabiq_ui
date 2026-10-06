@@ -4,7 +4,8 @@ import {
   compoundBaseQuantity,
   compoundLineTotal,
   formatCompoundQuantity,
-  normalizeCompoundQuantity
+  normalizeCompoundQuantity,
+  parseCompoundQuantity
 } from '../src/utils/posQuantity.ts';
 
 test('converts compound quantity to base units', () => {
@@ -27,5 +28,17 @@ test('normalizes an overflowing smaller-unit quantity', () => {
   assert.deepEqual(normalizeCompoundQuantity('1', '15', 10), {
     primaryQty: '2',
     secondaryQty: '5'
+  });
+});
+
+test('parses compound historical sale quantities', () => {
+  assert.deepEqual(parseCompoundQuantity('3 Box 6 Pcs', 'Box', 'Pcs'), {
+    primaryQty: '3', secondaryQty: '6', usesAlternate: true
+  });
+  assert.deepEqual(parseCompoundQuantity('1 Box', 'Box', 'Pcs'), {
+    primaryQty: '1', secondaryQty: '', usesAlternate: true
+  });
+  assert.deepEqual(parseCompoundQuantity('12', 'Box', 'Pcs'), {
+    primaryQty: '12', secondaryQty: '', usesAlternate: false
   });
 });
