@@ -63,7 +63,7 @@ function PanelContent({ widget }: {widget: DashboardWidget;}) {
         <Panel
           title="Recent sales"
           subtitle="Today and yesterday"
-          actions={<Link to="/app/pos" className="text-xs font-medium text-teal-700 hover:underline">Open POS</Link>}
+          actions={<div className="flex items-center gap-3"><Link to="/app/sales" className="text-xs font-medium text-teal-700 hover:underline">Manage sales</Link><Link to="/app/pos" className="text-xs font-medium text-ink-500 hover:underline">New sale</Link></div>}
           className="h-full"
           bodyClassName="">
           
