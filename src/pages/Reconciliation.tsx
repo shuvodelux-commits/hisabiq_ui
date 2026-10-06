@@ -244,12 +244,33 @@ export function Reconciliation() {
   const matchedCount = accountStatement.filter((item) => item.status === 'Matched').length;
   const reviewCount = accountStatement.filter((item) => item.status === 'Review').length;
   const unmatchedCount = accountStatement.filter((item) => item.status === 'Unmatched').length;
-  const statementClosing = account.balance + (accountId === 'acc-bank-dbbl' ? 1250 : 0);
-  const difference = statementClosing - account.balance;
+
+  const initialDifference = seedStatement
+    .filter((item) => item.accountId === accountId && (item.status === 'Review' || item.status === 'Unmatched'))
+    .reduce((sum, item) => {
+      const sign = item.direction === 'in' ? 1 : -1;
+      if (item.status === 'Unmatched' || !item.suggestedErpId) return sum + sign * item.amount;
+      const candidate = seedErp.find((entry) => entry.id === item.suggestedErpId);
+      if (!candidate) return sum + sign * item.amount;
+      return sum + sign * (item.amount - candidate.amount);
+    }, 0);
+
+  const erpAdjustment = erp
+    .filter((item) => item.accountId === accountId)
+    .reduce((sum, item) => {
+      const seed = seedErp.find((entry) => entry.id === item.id);
+      const sign = item.direction === 'in' ? 1 : -1;
+      return sum + sign * (item.amount - (seed?.amount ?? 0));
+    }, 0);
+
+  const statementClosing = account.balance + initialDifference;
+  const erpClosing = account.balance + erpAdjustment;
+  const difference = statementClosing - erpClosing;
+  const canFinish = reviewCount === 0 && unmatchedCount === 0 && Math.abs(difference) < 0.005;
 
   const summary = [
     { label: 'Statement closing', value: taka(statementClosing), sub: statementFile[accountId] ?? 'No statement uploaded' },
-    { label: 'ERP balance', value: taka(account.balance), sub: account.detail ?? account.type },
+    { label: 'ERP balance', value: taka(erpClosing), sub: account.detail ?? account.type },
     { label: 'Matched', value: `${matchedCount}/${accountStatement.length}`, sub: `${reviewCount} review · ${unmatchedCount} unmatched`, tone: 'text-success' },
     { label: 'Difference', value: taka(Math.abs(difference)), sub: difference === 0 ? 'Fully reconciled' : 'Needs reconciliation', tone: difference === 0 ? 'text-success' : 'text-danger' }
   ];
@@ -373,7 +394,19 @@ export function Reconciliation() {
         </div>
 
         {tab === 'reconcile' && (
-          <div className="grid min-h-[620px] lg:grid-cols-2">
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 bg-ink-50/40 px-3 py-2">
+              <p className="text-[11.5px] text-ink-500">
+                {matchedCount} matched · {reviewCount} review · {unmatchedCount} unmatched
+              </p>
+              <Button
+                size="sm"
+                disabled={!canFinish}
+                onClick={() => toast.success('Reconciliation completed', { description: `${account.name} · statement and ERP balances agree` })}>
+                <CheckCircle2 className="size-4" /> Finish reconciliation
+              </Button>
+            </div>
+            <div className="grid min-h-[620px] lg:grid-cols-2">
             <section className="border-b border-ink-100 lg:border-b-0 lg:border-r">
               <div className="flex flex-col gap-2 border-b border-ink-100 p-3 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
@@ -503,7 +536,8 @@ export function Reconciliation() {
                 </div>
               )}
             </section>
-          </div>
+            </div>
+          </>
         )}
 
         {tab === 'history' && (
