@@ -214,6 +214,9 @@ function InvoiceDialog({
                 <ReceiptPreview
                   invoice={invoice.invoice}
                   customer={invoice.party === 'Walk-in customer' ? undefined : invoice.party}
+                  customerPhone={invoice.phone}
+                  guardianName={invoice.guardianName}
+                  customerAddress={invoice.address}
                   lines={invoice.lines.map((line) => ({
                     name: line.name,
                     qty: invoiceQty(line),
