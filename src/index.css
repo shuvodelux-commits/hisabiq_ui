@@ -1,0 +1,85 @@
+/* --- MANAGED FONT IMPORTS START (do not edit manually) --- */
+/* INTERNAL USE NAME: Heading */
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* INTERNAL USE NAME: Mono */
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* --- MANAGED FONT IMPORTS END --- */
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+
+/* @import url() FONT IMPORTS MUST ALWAYS BE AT THE VERY TOP OF THIS FILE, ABOVE THE TAILWIND IMPORTS — DO NOT DELETE THIS COMMENT */
+
+/* CRITICAL: THE FOLLOWING TAILWIND IMPORTS MUST NEVER BE DELETED OR REORDERED — DO NOT DELETE THIS COMMENT */
+@import './_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9/index.css';
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* END TAILWIND IMPORTS — ALL OTHER CSS MUST GO BELOW THIS LINE */
+
+/* HisabIQ tokens — Ink neutrals + Ledger Teal accent */
+:root {
+  --background: #ffffff;
+  --foreground: #0b1a2c;
+  --card: #ffffff;
+  --card-foreground: #0b1a2c;
+  --popover: #ffffff;
+  --popover-foreground: #0b1a2c;
+  --primary: #0d7c74;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f4f7;
+  --secondary-foreground: #0b1a2c;
+  --muted: #f3f5f8;
+  --muted-foreground: #5a6b80;
+  --accent: #eaf6f4;
+  --accent-foreground: #0a625c;
+  --destructive: #c0362c;
+  --destructive-foreground: #c0362c;
+  --border: #e3e8ee;
+  --input: #dbe2ea;
+  --ring: #14998f;
+  --chart-1: #0d7c74;
+  --chart-2: #0b1a2c;
+  --chart-3: #3dd6b5;
+  --chart-4: #b45309;
+  --chart-5: #8a9bb0;
+  --radius: 0.625rem;
+  --sidebar: #f7f9fb;
+  --sidebar-foreground: #0b1a2c;
+  --sidebar-primary: #0d7c74;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaf6f4;
+  --sidebar-accent-foreground: #0a625c;
+  --sidebar-border: #e3e8ee;
+  --sidebar-ring: #14998f;
+}
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Geist', 'Hind Siliguri', system-ui, sans-serif;
+    font-feature-settings: 'tnum' 1;
+  }
+}
+@layer utilities {
+  .font-bn {
+    font-family: 'Hind Siliguri', 'Geist', system-ui, sans-serif;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #d5dde6;
+    border-radius: 999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
