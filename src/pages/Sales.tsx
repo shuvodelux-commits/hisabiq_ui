@@ -545,6 +545,8 @@ export function Sales() {
   const [invoices, setInvoices] = useState<SalesInvoice[]>(seedInvoices);
   const [returns, setReturns] = useState<SalesReturn[]>(seedReturns);
   const [credits, setCredits] = useState<CustomerCredit[]>(seedCredits);
+  const [drafts, setDrafts] = useState(salesDrafts);
+  const [templates, setTemplates] = useState(saleTemplates);
   const [query, setQuery] = useState('');
   const [customerFilter, setCustomerFilter] = useState('All customers');
   const [status, setStatus] = useState('All status');
@@ -868,7 +870,7 @@ export function Sales() {
               {id === 'sales' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{invoices.length}</span>}
               {id === 'returns' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{returns.length}</span>}
               {id === 'credits' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{credits.filter((credit) => credit.balance > 0).length}</span>}
-              {id === 'drafts' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{salesDrafts.length + saleTemplates.length}</span>}
+              {id === 'drafts' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{drafts.length + templates.length}</span>}
             </button>
           ))}
         </div>
@@ -1343,10 +1345,10 @@ export function Sales() {
                   <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileClock className="size-4 text-teal-700" /> Draft sales <span className="font-bn text-[11px] font-normal text-ink-400">· খসড়া</span></p>
                   <p className="mt-0.5 text-[11px] text-ink-500">Continue, edit, duplicate or archive a held sale.</p>
                 </div>
-                <StatusBadge tone="teal">{salesDrafts.length}</StatusBadge>
+                <StatusBadge tone="teal">{drafts.length}</StatusBadge>
               </div>
               <div className="divide-y divide-ink-100">
-                {salesDrafts.map((draft) => (
+                {drafts.map((draft) => (
                   <div key={draft.id} className="p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -1371,7 +1373,11 @@ export function Sales() {
                             <button onClick={() => { close(); toast(`${draft.label} duplicated`); navigate('/app/pos'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Copy className="size-4 text-ink-400" /> Duplicate
                             </button>
-                            <button onClick={() => { close(); toast.error(`${draft.label} archived`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
+                            <button onClick={() => {
+                              close();
+                              setDrafts((items) => items.filter((item) => item.id !== draft.id));
+                              toast.error(`${draft.label} archived`);
+                            }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
                               <Trash2 className="size-4" /> Archive
                             </button>
                           </div>
@@ -1389,10 +1395,20 @@ export function Sales() {
                   <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> Sale templates <span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span></p>
                   <p className="mt-0.5 text-[11px] text-ink-500">Reuse common carts without recreating every line.</p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => toast('Save current POS cart as template')}><Plus className="size-3.5" /> Template</Button>
+                <Button size="sm" variant="outline" onClick={() => {
+                  const next = {
+                    id: `t${Date.now()}`,
+                    name: `Sale template ${templates.length + 1}`,
+                    items: 0,
+                    total: 0,
+                    lastUsed: 'Not used yet'
+                  };
+                  setTemplates((items) => [next, ...items]);
+                  toast.success(`${next.name} created`);
+                }}><Plus className="size-3.5" /> Template</Button>
               </div>
               <div className="divide-y divide-ink-100">
-                {saleTemplates.map((template) => (
+                {templates.map((template) => (
                   <div key={template.id} className="p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -1414,10 +1430,19 @@ export function Sales() {
                             <button onClick={() => { close(); toast(`Editing ${template.name}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Pencil className="size-4 text-ink-400" /> Edit template
                             </button>
-                            <button onClick={() => { close(); toast(`${template.name} duplicated`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <button onClick={() => {
+                              close();
+                              const copy = { ...template, id: `t${Date.now()}`, name: `${template.name} copy`, lastUsed: 'Not used yet' };
+                              setTemplates((items) => [copy, ...items]);
+                              toast.success(`${template.name} duplicated`);
+                            }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Copy className="size-4 text-ink-400" /> Duplicate
                             </button>
-                            <button onClick={() => { close(); toast.error(`${template.name} deleted`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
+                            <button onClick={() => {
+                              close();
+                              setTemplates((items) => items.filter((item) => item.id !== template.id));
+                              toast.error(`${template.name} deleted`);
+                            }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
                               <Trash2 className="size-4" /> Delete
                             </button>
                           </div>
