@@ -199,3 +199,51 @@ export type DashboardWidget = {
   kind: 'metric' | 'panel';
   visible: boolean;
 };
+
+export type WarrantyStatus =
+  | 'Received'
+  | 'Checking'
+  | 'Sent to supplier'
+  | 'Waiting supplier'
+  | 'Received from supplier'
+  | 'Ready for customer'
+  | 'Resolved'
+  | 'Rejected';
+
+export type WarrantyRoute = 'In-house' | 'Supplier' | 'Manufacturer';
+
+export type WarrantyEvent = {
+  id: string;
+  date: string;
+  title: string;
+  note?: string;
+};
+
+export type WarrantyReplacement = {
+  product: string;
+  serial?: string;
+  givenAt: string;
+  returnedAt?: string;
+};
+
+export type WarrantyCase = {
+  id: string;
+  receivedAt: string;
+  customer: string;
+  customerId?: string;
+  phone?: string;
+  invoice: string;
+  productId: string;
+  product: string;
+  serial?: string;
+  issue: string;
+  status: WarrantyStatus;
+  route: WarrantyRoute;
+  supplier?: string;
+  supplierRef?: string;
+  expectedDate?: string;
+  resolution?: 'Repair' | 'Replace' | 'Refund' | 'Rejected';
+  replacement?: WarrantyReplacement;
+  note?: string;
+  events: WarrantyEvent[];
+};
