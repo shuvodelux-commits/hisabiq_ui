@@ -5,6 +5,7 @@ import {
   ShoppingCart,
   FileText,
   ShieldCheck,
+  Landmark,
   Package,
   Users,
   ReceiptText,
@@ -25,6 +26,7 @@ const nav = [
   { to: '/app/parties', label: 'Parties & Ledger', bn: 'পার্টি ও খাতা', icon: Users },
   { to: '/app/purchases', label: 'Purchases', bn: 'ক্রয়', icon: ReceiptText },
   { to: '/app/expenses', label: 'Expenses', bn: 'খরচ', icon: Wallet },
+  { to: '/app/reconciliation', label: 'Reconciliation', bn: 'হিসাব মিলানো', icon: Landmark },
   { to: '/app/reports', label: 'Reports & Finance', bn: 'রিপোর্ট', icon: PieChart }
 ];
 
