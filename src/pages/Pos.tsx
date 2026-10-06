@@ -9,7 +9,7 @@ import { CheckoutPanel } from '../components/pos/CheckoutPanel';
 import { DraftsMenu } from '../components/pos/DraftsMenu';
 import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine } from '../components/brand/ReceiptPreview';
-import { demoCart, usePosCart, type CartLine } from '../hooks/usePosCart';
+import { usePosCart, type CartLine } from '../hooks/usePosCart';
 import { products } from '../data/products';
 import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
