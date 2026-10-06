@@ -69,7 +69,7 @@ ref)
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         onKeyDown={onKeyDown}
-        placeholder="Add product… name, SKU or বাংলা"
+        placeholder="Add product… name or বাংলা"
         className="h-10 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 pr-12 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
       
       <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-ink-200 bg-white px-1.5 text-[10px] text-ink-500">
@@ -99,11 +99,11 @@ ref)
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] font-medium text-ink">{p.name}</p>
                   <p className="truncate text-[11px] text-ink-500">
-                    {p.sku} · <span className="font-bn">{p.nameBn}</span>
+                    <span className="font-bn">{p.nameBn}</span>{p.nameBn ? ' · ' : ''}{p.category}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[13px] font-medium tabular-nums text-ink">
+                  <p className="text-[13px] font-medium text-ink">
                     {taka(p.sellPrice, p.sellPrice % 1 ? 2 : 0)}
                     <span className="font-normal text-ink-400">/{p.unit}</span>
                   </p>
