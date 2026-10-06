@@ -365,7 +365,7 @@ export function Sales() {
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
 
   const customerNames = useMemo(
-    () => Array.from(new Set(invoices.filter((invoice) => invoice.party !== 'Walk-in customer').map((invoice) => invoice.party))),
+    () => Array.from(new Set(invoices.map((invoice) => invoice.party))),
     [invoices]
   );
 
@@ -403,7 +403,7 @@ export function Sales() {
   const returnAmount = selectedReturnLines.reduce((sum, item) => sum + (parseFloat(returnQty[item.line.id] ?? '') || 0) * item.line.price, 0);
 
   const openReturn = (invoice: SalesInvoice) => {
-    if (invoice.party !== 'Walk-in customer') setReturnCustomer(invoice.party);
+    setReturnCustomer(invoice.party);
     setReturnInvoiceIds([invoice.id]);
     setReturnQty({});
     setDetail(null);
