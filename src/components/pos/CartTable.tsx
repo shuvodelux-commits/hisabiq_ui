@@ -5,22 +5,23 @@ import { ProductCombobox } from './ProductCombobox';
 import { ProductThumb } from '../ProductThumb';
 import type { CartLine } from '../../hooks/usePosCart';
 import type { Product } from '../../types/erp';
-import { unitsFor } from '../../utils/units';
+import { formatStock, unitsFor } from '../../utils/units';
 import { formatNumber } from '../../utils/currency';
+import { compoundLineTotal } from '../../utils/posQuantity';
 
 type CartTableProps = {
   lines: CartLine[];
   lastAdded: string | null;
   onAdd: (p: Product) => void;
-  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'unit' | 'price'>>) => void;
+  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price'>>) => void;
   onRemove: (key: string) => void;
   searchRef: React.RefObject<HTMLInputElement>;
 };
 
-const grid = 'grid grid-cols-[24px_minmax(120px,1fr)_72px_116px_96px_100px_28px] items-center gap-2';
+const grid = 'grid min-w-[820px] grid-cols-[24px_minmax(180px,1fr)_168px_108px_96px_104px_28px] items-center gap-2';
 
 const cellInput =
-'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm tabular-nums text-ink hover:border-ink-100 focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20';
+'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-ink-100 focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20';
 
 export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchRef }: CartTableProps) {
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -41,7 +42,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
   };
 
   return (
-    <div className="rounded-xl border border-ink-100 bg-white shadow-card">
+    <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white shadow-card">
       <div className={`${grid} border-b border-ink-100 px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400`}>
         <span className="text-right">#</span>
         <span>Product</span>
@@ -55,8 +56,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
       <div className="divide-y divide-ink-100">
         <AnimatePresence initial={false}>
           {lines.map((l, i) => {
-            const qty = parseFloat(l.qty) || 0;
-            const price = parseFloat(l.price) || 0;
+            const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
+            const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
             const units = unitsFor(l.product);
             return (
               <motion.div
@@ -74,10 +75,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                   <div className="min-w-0">
                     <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
                     <p className="truncate text-[11px] text-ink-500">
-                      {l.product.sku}
-                      {l.product.altUnit &&
-                      <> · 1 {l.product.altUnit.unit} = {l.product.altUnit.factor} {l.product.unit}</>
-                      }
+                      {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
+                      {l.product.category} · Stock {formatStock(l.product)}
                     </p>
                   </div>
                 </div>
@@ -123,7 +122,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                   
                 </div>
                 <span className="text-right text-sm font-semibold tabular-nums text-ink">
-                  ৳{formatNumber(qty * price, qty * price % 1 ? 2 : 0)}
+                  ৳{formatNumber(lineTotal, lineTotal % 1 ? 2 : 0)}
                 </span>
                 <button
                   onClick={() => onRemove(l.key)}
@@ -137,16 +136,6 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
           })}
         </AnimatePresence>
 
-        {/* Inline add row */}
-        <div className={`${grid} bg-ink-50/40 px-3 py-2`}>
-          <span className="text-right text-sm tabular-nums text-teal-600">{lines.length + 1}.</span>
-          <ProductCombobox ref={searchRef} onSelect={onAdd} />
-          <span className="pr-2 text-right text-sm text-ink-300">Qty</span>
-          <span className="px-2 text-sm text-ink-300">Unit</span>
-          <span className="pr-2 text-right text-sm text-ink-300">Price</span>
-          <span className="text-right text-sm text-ink-300">Total</span>
-          <span />
-        </div>
       </div>
 
       {lines.length === 0 &&
