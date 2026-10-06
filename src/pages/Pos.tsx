@@ -14,7 +14,6 @@ import { products } from '../data/products';
 import { salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
-import { priceFor } from '../utils/units';
 import type { SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -43,12 +42,15 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
     const qty = unit === product.unit
       ? String(sourceLine.returnableQuantity ?? (parseFloat(sourceLine.quantity) || 1))
       : String(parseFloat(sourceLine.quantity) || 1);
+    const historicalPrice = unit === product.unit
+      ? sourceLine.price
+      : sourceLine.price * (product.altUnit?.factor ?? 1);
     return [{
       key: `source-${sourceLine.id}`,
       product,
       qty,
       unit,
-      price: String(priceFor(product, unit))
+      price: String(historicalPrice)
     }];
   });
 }
