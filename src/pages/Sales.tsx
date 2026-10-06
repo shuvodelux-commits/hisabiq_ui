@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  ArrowDownToLine,
   Banknote,
   BookOpen,
   Copy,
@@ -545,6 +546,7 @@ export function Sales() {
   const [returns, setReturns] = useState<SalesReturn[]>(seedReturns);
   const [credits, setCredits] = useState<CustomerCredit[]>(seedCredits);
   const [query, setQuery] = useState('');
+  const [customerFilter, setCustomerFilter] = useState('All customers');
   const [status, setStatus] = useState('All status');
   const [method, setMethod] = useState('All payments');
   const [detail, setDetail] = useState<SalesInvoice | null>(null);
@@ -569,6 +571,7 @@ export function Sales() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return invoices.filter((invoice) => {
+      if (customerFilter !== 'All customers' && invoice.party !== customerFilter) return false;
       if (status !== 'All status' && invoice.status !== status) return false;
       if (method !== 'All payments' && !invoice.payments.some((payment) => payment.method === method) && invoice.method !== method) return false;
       if (!q) return true;
@@ -580,7 +583,7 @@ export function Sales() {
         ...invoice.lines.map((line) => line.name)
       ].some((value) => value.toLowerCase().includes(q));
     });
-  }, [invoices, method, query, status]);
+  }, [customerFilter, invoices, method, query, status]);
 
   const salesTotal = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
   const receivedTotal = invoices.reduce((sum, invoice) => sum + invoice.paid, 0);
@@ -884,7 +887,13 @@ export function Sales() {
                 />
               </div>
               <FormSelect
-                className="w-full lg:w-40"
+                className="w-full lg:w-44"
+                value={customerFilter}
+                onChange={(event) => setCustomerFilter(event.target.value)}
+                options={['All customers', ...customerNames]}
+              />
+              <FormSelect
+                className="w-full lg:w-36"
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
                 options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned']}
@@ -895,7 +904,9 @@ export function Sales() {
                 onChange={(event) => setMethod(event.target.value)}
                 options={['All payments', ...paymentMethods]}
               />
-              <Button variant="outline" size="sm" onClick={() => toast('Sales list refreshed')}>Refresh</Button>
+              <Button variant="outline" size="sm" onClick={() => toast('Sales list exported')}>
+                <ArrowDownToLine className="size-4" /> Export
+              </Button>
             </div>
 
             <Table>
@@ -920,7 +931,13 @@ export function Sales() {
                       <span className="block text-[11px] text-ink-400">{invoice.date} · {invoice.time}</span>
                     </TableCell>
                     <TableCell className="py-2">
-                      <p className="font-medium text-ink">{invoice.party}</p>
+                      {invoice.partyId ? (
+                        <button
+                          onClick={(event) => { event.stopPropagation(); navigate(`/app/parties?id=${invoice.partyId}`); }}
+                          className="font-medium text-teal-700 hover:underline">
+                          {invoice.party}
+                        </button>
+                      ) : <p className="font-medium text-ink">{invoice.party}</p>}
                       <p className="text-[11px] text-ink-400">{invoice.phone ?? 'No phone'}</p>
                     </TableCell>
                     <TableCell className="max-w-[270px] py-2 text-ink-600">
@@ -949,7 +966,7 @@ export function Sales() {
               <div className="px-4 py-10 text-center">
                 <p className="font-medium text-ink">No sales match</p>
                 <p className="mt-1 text-sm text-ink-500">Try another invoice, customer, phone or filter.</p>
-                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setStatus('All status'); setMethod('All payments'); }}>Clear filters</Button>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}>Clear filters</Button>
               </div>
             )}
 
