@@ -553,6 +553,7 @@ export function Sales() {
   const [returnCustomer, setReturnCustomer] = useState('Rahman Hardware');
   const [returnInvoiceIds, setReturnInvoiceIds] = useState<string[]>([]);
   const [returnQty, setReturnQty] = useState<Record<string, string>>({});
+  const [returnPrice, setReturnPrice] = useState<Record<string, string>>({});
   const [returnReason, setReturnReason] = useState<Record<string, string>>({});
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
@@ -597,7 +598,11 @@ export function Sales() {
   const selectedReturnDue = customerInvoices.filter((invoice) => returnInvoiceIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoice.due, 0);
   const selectedReturnInvoices = invoices.filter((invoice) => returnInvoiceIds.includes(invoice.id));
   const selectedReturnLines = selectedReturnInvoices.flatMap((invoice) => invoice.lines.map((line) => ({ invoice, line })));
-  const returnAmount = selectedReturnLines.reduce((sum, item) => sum + (parseFloat(returnQty[item.line.id] ?? '') || 0) * item.line.price, 0);
+  const returnPriceFor = (line: SalesInvoice['lines'][number]) => {
+    const raw = returnPrice[line.id];
+    return raw === undefined || raw === '' ? line.price : parseFloat(raw) || 0;
+  };
+  const returnAmount = selectedReturnLines.reduce((sum, item) => sum + (parseFloat(returnQty[item.line.id] ?? '') || 0) * returnPriceFor(item.line), 0);
   const returnIssues = selectedReturnLines.flatMap(({ line }) => {
     const qty = parseFloat(returnQty[line.id] ?? '') || 0;
     if (qty <= 0) return [];
@@ -615,6 +620,7 @@ export function Sales() {
     setReturnCustomer(invoice.party);
     setReturnInvoiceIds([invoice.id]);
     setReturnQty({});
+    setReturnPrice({});
     setReturnReason({});
     setReturnSerials({});
     setDetail(null);
@@ -1069,7 +1075,20 @@ export function Sales() {
                                 max {returnLimit(line)} {line.unit}
                               </p>
                             </TableCell>
-                            <TableCell className="py-2 pr-3 text-right font-medium">{qty > 0 ? taka(qty * line.price) : '—'}</TableCell>
+                            <TableCell className="py-2 pr-3">
+                              <div className="ml-auto w-28">
+                                <Input
+                                  value={returnPrice[line.id] ?? String(line.price)}
+                                  onChange={(event) => setReturnPrice((value) => ({ ...value, [line.id]: event.target.value.replace(/[^\d.]/g, '') }))}
+                                  inputMode="decimal"
+                                  className="h-8 text-right"
+                                  aria-label={`Return price for ${line.name}`}
+                                />
+                                <p className="mt-1 text-right text-[10.5px] text-ink-400">
+                                  {qty > 0 ? taka(qty * returnPriceFor(line)) : `/${line.unit}`}
+                                </p>
+                              </div>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -1186,6 +1205,7 @@ export function Sales() {
                             setReturnCustomer(item.customer);
                             setReturnInvoiceIds([]);
                             setReturnQty({});
+                            setReturnPrice({});
                             setReturnReason({});
                             setReturnSerials({});
                             setTab('return');
