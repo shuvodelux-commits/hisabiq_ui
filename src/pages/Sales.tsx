@@ -237,6 +237,12 @@ function InvoiceDialog({
               <Button variant="outline" onClick={() => toast.success('Invoice sent to printer')}>
                 <Printer className="size-4" /> Print
               </Button>
+              <Button variant="outline" onClick={() => navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`)}>
+                <Copy className="size-4" /> Duplicate
+              </Button>
+              <Button variant="outline" onClick={() => navigate(`/app/pos?mode=edit&invoice=${invoice.invoice}`)}>
+                <Pencil className="size-4" /> Edit
+              </Button>
               <Button variant="outline" onClick={() => onReturn(invoice)}>
                 <CornerUpLeft className="size-4" /> Return
               </Button>
