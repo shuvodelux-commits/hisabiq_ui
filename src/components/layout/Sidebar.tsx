@@ -6,21 +6,23 @@ import {
   Package,
   Users,
   ReceiptText,
+  WalletCards,
   PieChart,
   Palette,
   Settings,
-  ChevronsUpDown } from
-'lucide-react';
+  ChevronsUpDown
+} from 'lucide-react';
 import { LogoLockup } from '../brand/Logo';
 
 const nav = [
-{ to: '/app/dashboard', label: 'Dashboard', bn: 'ড্যাশবোর্ড', icon: LayoutDashboard },
-{ to: '/app/pos', label: 'POS / Sales', bn: 'বিক্রি', icon: ShoppingCart, hint: 'F1' },
-{ to: '/app/products', label: 'Products', bn: 'পণ্য', icon: Package },
-{ to: '/app/parties', label: 'Parties & Ledger', bn: 'পার্টি ও খাতা', icon: Users },
-{ to: '/app/purchases', label: 'Purchases & Expenses', bn: 'ক্রয় ও খরচ', icon: ReceiptText },
-{ to: '/app/reports', label: 'Reports & Finance', bn: 'রিপোর্ট', icon: PieChart }];
-
+  { to: '/app/dashboard', label: 'Dashboard', bn: 'ড্যাশবোর্ড', icon: LayoutDashboard },
+  { to: '/app/pos', label: 'POS / Sales', bn: 'বিক্রি', icon: ShoppingCart, hint: 'F1' },
+  { to: '/app/products', label: 'Products', bn: 'পণ্য', icon: Package },
+  { to: '/app/parties', label: 'Parties & Ledger', bn: 'পার্টি ও খাতা', icon: Users },
+  { to: '/app/purchases', label: 'Purchases', bn: 'ক্রয়', icon: ReceiptText },
+  { to: '/app/expenses', label: 'Expenses', bn: 'খরচ', icon: WalletCards },
+  { to: '/app/reports', label: 'Reports & Finance', bn: 'রিপোর্ট', icon: PieChart }
+];
 
 export function Sidebar() {
   return (
@@ -44,39 +46,35 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-0.5 px-3" aria-label="Main">
         <p className="px-2 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wider text-ink-400">Workspace</p>
-        {nav.map(({ to, label, bn, icon: Icon, hint }) =>
-        <NavLink
-          key={to}
-          to={to}
-          className={({ isActive }) =>
-          `group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13px] transition-colors ${
-          isActive ?
-          'bg-white font-medium text-ink shadow-card ring-1 ring-ink-100' :
-          'text-ink-600 hover:bg-white/70 hover:text-ink'}`
-
-          }>
-          
-            {({ isActive }) =>
-          <>
+        {nav.map(({ to, label, bn, icon: Icon, hint }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              `group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13px] transition-colors ${
+                isActive
+                  ? 'bg-white font-medium text-ink shadow-card ring-1 ring-ink-100'
+                  : 'text-ink-600 hover:bg-white/70 hover:text-ink'
+              }`
+            }>
+            {({ isActive }) => (
+              <>
                 <Icon className={`size-4 ${isActive ? 'text-teal-600' : 'text-ink-400 group-hover:text-ink-600'}`} aria-hidden="true" />
                 <span className="flex-1 leading-tight">
                   <span className="block">{label}</span>
                   <span className="font-bn block text-[10.5px] font-normal text-ink-400">{bn}</span>
                 </span>
-                {hint &&
-            <kbd className="rounded border border-ink-100 bg-white px-1 text-[10px] text-ink-400">{hint}</kbd>
-            }
+                {hint && <kbd className="rounded border border-ink-100 bg-white px-1 text-[10px] text-ink-400">{hint}</kbd>}
               </>
-          }
+            )}
           </NavLink>
-        )}
+        ))}
       </nav>
 
       <div className="space-y-0.5 border-t border-ink-100 p-3">
         <Link
           to="/"
           className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13px] text-ink-600 hover:bg-white/70 hover:text-ink">
-          
           <Palette className="size-4 text-ink-400" aria-hidden="true" />
           Brand guide
         </Link>
@@ -85,8 +83,8 @@ export function Sidebar() {
           Settings
         </button>
       </div>
-    </aside>);
-
+    </aside>
+  );
 }
 
 export const mobileNav = nav;
