@@ -804,6 +804,7 @@ export function Sales() {
     }));
     setReturnInvoiceIds([]);
     setReturnQty({});
+    setReturnPrice({});
     setReturnReason({});
     setReturnSerials({});
     setReturnRefundMethod('Cash');
@@ -977,6 +978,9 @@ export function Sales() {
                     setReturnCustomer(event.target.value);
                     setReturnInvoiceIds([]);
                     setReturnQty({});
+                    setReturnPrice({});
+                    setReturnReason({});
+                    setReturnSerials({});
                   }}
                   options={customerNames}
                 />
@@ -996,6 +1000,9 @@ export function Sales() {
                         onChange={(event) => {
                           setReturnInvoiceIds((ids) => event.target.checked ? [...ids, invoice.id] : ids.filter((id) => id !== invoice.id));
                           setReturnQty({});
+                          setReturnPrice({});
+                          setReturnReason({});
+                          setReturnSerials({});
                         }}
                         className="size-4 rounded border-ink-300 text-teal-600 focus:ring-teal-500"
                       />
