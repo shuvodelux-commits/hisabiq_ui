@@ -84,7 +84,7 @@ function InvoiceActions({
         </button>
       )}>
       {(close) => (
-        <div className="py-1">
+        <div className="py-1" onClick={(event) => event.stopPropagation()}>
           <button className={itemClass} onClick={() => { close(); onView(); }}>
             <FileText className="size-4 text-ink-400" /> View invoice
           </button>
@@ -458,7 +458,7 @@ function CreditActionDialog({
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
   const [account, setAccount] = useState('');
-  const selectedInvoice = dueInvoices.find((invoice) => invoice.id === invoiceId) ?? dueInvoices[0] ?? null;
+  const selectedInvoice = dueInvoices.find((invoice) => invoice.invoice === invoiceId) ?? dueInvoices[0] ?? null;
   const maxAmount = credit ? Math.min(credit.balance, action?.mode === 'apply' ? selectedInvoice?.due ?? 0 : credit.balance) : 0;
   const amountNumber = parseFloat(amount) || 0;
 
@@ -485,9 +485,9 @@ function CreditActionDialog({
                   Due invoice
                   <FormSelect
                     className="mt-1"
-                    value={selectedInvoice?.id ?? ''}
+                    value={selectedInvoice?.invoice ?? ''}
                     onChange={(event) => { setInvoiceId(event.target.value); setAmount(''); }}
-                    options={dueInvoices.map((invoice) => invoice.id)}
+                    options={dueInvoices.map((invoice) => invoice.invoice)}
                   />
                 </label>
                 {selectedInvoice && (
@@ -723,6 +723,7 @@ export function Sales() {
         ...invoice,
         paid,
         due,
+        method: 'Customer Credit',
         status: due === 0 ? 'Paid' : 'Partial',
         payments: [...invoice.payments, { id: `${invoice.id}-credit-${Date.now()}`, method: 'Customer Credit', amount, account: 'Customer credit' }]
       };
