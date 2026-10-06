@@ -222,6 +222,7 @@ function InvoiceDialog({
                   paid={invoice.paid}
                   due={invoice.due}
                   method={invoice.payments.length > 1 ? 'Multiple' : invoice.method}
+                  dateTime={`${invoice.date}, ${invoice.time}`}
                 />
               </div>
             </div>
