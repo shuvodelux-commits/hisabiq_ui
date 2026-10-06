@@ -2,10 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowDownToLine,
-  ArrowRight,
   CheckCircle2,
   Clock3,
-  Copy,
   FileText,
   MoreHorizontal,
   PackageCheck,
@@ -72,15 +70,24 @@ function WarrantyBadge({ status }: { status: WarrantyStatus }) {
   return <StatusBadge tone={statusTone[status]} dot>{statusLabels[status]}</StatusBadge>;
 }
 
-function nextAction(status: WarrantyStatus) {
-  switch (status) {
-    case 'Received': return { label: 'Start checking', next: 'Checking' as WarrantyStatus, icon: Wrench };
-    case 'Checking': return { label: 'Send to supplier', next: 'Sent to supplier' as WarrantyStatus, icon: Send };
-    case 'Sent to supplier': return { label: 'Mark waiting', next: 'Waiting supplier' as WarrantyStatus, icon: Clock3 };
-    case 'Waiting supplier': return { label: 'Receive from supplier', next: 'Received from supplier' as WarrantyStatus, icon: PackageCheck };
-    case 'Received from supplier': return { label: 'Ready for customer', next: 'Ready for customer' as WarrantyStatus, icon: CheckCircle2 };
-    case 'Ready for customer': return { label: 'Complete warranty', next: 'Resolved' as WarrantyStatus, icon: CheckCircle2 };
-    default: return null;
+function nextAction(item: WarrantyCase) {
+  switch (item.status) {
+    case 'Received':
+      return { label: 'Start checking', next: 'Checking' as WarrantyStatus, icon: Wrench };
+    case 'Checking':
+      return item.route === 'In-house'
+        ? { label: 'Ready for customer', next: 'Ready for customer' as WarrantyStatus, icon: CheckCircle2 }
+        : { label: item.route === 'Manufacturer' ? 'Send to manufacturer' : 'Send to supplier', next: 'Sent to supplier' as WarrantyStatus, icon: Send };
+    case 'Sent to supplier':
+      return { label: 'Mark waiting', next: 'Waiting supplier' as WarrantyStatus, icon: Clock3 };
+    case 'Waiting supplier':
+      return { label: item.route === 'Manufacturer' ? 'Receive from manufacturer' : 'Receive from supplier', next: 'Received from supplier' as WarrantyStatus, icon: PackageCheck };
+    case 'Received from supplier':
+      return { label: 'Ready for customer', next: 'Ready for customer' as WarrantyStatus, icon: CheckCircle2 };
+    case 'Ready for customer':
+      return { label: 'Complete warranty', next: 'Resolved' as WarrantyStatus, icon: CheckCircle2 };
+    default:
+      return null;
   }
 }
 
@@ -98,7 +105,7 @@ function WarrantyActions({
   onTemporaryReplacement: (item: WarrantyCase) => void;
 }) {
   const navigate = useNavigate();
-  const action = nextAction(item.status);
+  const action = nextAction(item);
   const itemClass = 'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
 
   return (
@@ -164,7 +171,7 @@ function WarrantyDetailDialog({
   onReject: (item: WarrantyCase) => void;
 }) {
   const navigate = useNavigate();
-  const action = item ? nextAction(item.status) : null;
+  const action = item ? nextAction(item) : null;
 
   return (
     <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
@@ -283,7 +290,7 @@ function IntakeDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (item: WarrantyCase) => void;
 }) {
-  const customerInvoices = salesInvoices.filter((invoice) => invoice.party !== 'Walk-in customer');
+  const customerInvoices = salesInvoices;
   const [invoiceNo, setInvoiceNo] = useState(customerInvoices[0]?.invoice ?? '');
   const selectedInvoice = customerInvoices.find((invoice) => invoice.invoice === invoiceNo) ?? customerInvoices[0];
   const [productId, setProductId] = useState(selectedInvoice?.lines[0]?.productId ?? products[0].id);
@@ -367,17 +374,18 @@ function IntakeDialog({
           </label>
           <label className="text-[12px] font-medium text-ink">
             Product
-            <FormSelect
-              className="mt-1"
-              value={selectedLine?.productId ?? ''}
-              onChange={(event) => {
-                const line = selectedInvoice?.lines.find((item) => item.productId === event.target.value);
-                setProductId(event.target.value);
-                setSerial(line?.serials?.[0] ?? '');
-              }}
-              options={selectedInvoice?.lines.map((line) => line.productId) ?? []}
-            />
-            {selectedLine && <span className="mt-1 block text-[10.5px] font-normal text-ink-400">{selectedLine.name}</span>}
+            <div className="relative mt-1">
+              <select
+                value={selectedLine?.productId ?? ''}
+                onChange={(event) => {
+                  const line = selectedInvoice?.lines.find((item) => item.productId === event.target.value);
+                  setProductId(event.target.value);
+                  setSerial(line?.serials?.[0] ?? '');
+                }}
+                className="h-9 w-full appearance-none rounded-md border border-input bg-white px-3 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20">
+                {selectedInvoice?.lines.map((line) => <option key={line.id} value={line.productId}>{line.name}</option>)}
+              </select>
+            </div>
           </label>
           <label className="text-[12px] font-medium text-ink">
             Serial number
@@ -528,7 +536,7 @@ export function Warranty() {
   };
 
   const advance = (item: WarrantyCase) => {
-    const action = nextAction(item.status);
+    const action = nextAction(item);
     if (!action) return;
     if (action.next === 'Resolved' && item.replacement && !item.replacement.returnedAt) {
       toast.error('Collect the temporary replacement before closing this warranty');
