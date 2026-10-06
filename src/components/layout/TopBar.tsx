@@ -168,7 +168,7 @@ export function TopBar() {
                     <Icon className="size-4 text-ink-400" /> <span className="font-bn">{label}</span>
                   </button>
               )}
-                <Link to="/" onClick={close} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
+                <Link to="/design-system" onClick={close} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
                   <Palette className="size-4 text-ink-400" /> Brand guide
                 </Link>
                 <div className="my-1 h-px bg-ink-100" />
