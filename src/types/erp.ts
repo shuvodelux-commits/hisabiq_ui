@@ -251,3 +251,53 @@ export type WarrantyCase = {
   note?: string;
   events: WarrantyEvent[];
 };
+
+
+export type ReconciliationAccount = {
+  id: string;
+  name: string;
+  type: 'Bank' | 'Mobile Banking' | 'Cash';
+  balance: number;
+  detail?: string;
+};
+
+export type ReconciliationStatus = 'Matched' | 'Review' | 'Unmatched' | 'Ignored';
+
+export type StatementTransaction = {
+  id: string;
+  accountId: string;
+  date: string;
+  description: string;
+  reference?: string;
+  amount: number;
+  direction: 'in' | 'out';
+  status: ReconciliationStatus;
+  suggestedErpId?: string;
+  matchedErpId?: string;
+  confidence?: number;
+};
+
+export type ErpReconciliationTransaction = {
+  id: string;
+  accountId: string;
+  date: string;
+  type: 'Sale payment' | 'Purchase payment' | 'Expense' | 'Transfer' | 'Customer payment' | 'Other';
+  party: string;
+  partyId?: string;
+  reference: string;
+  amount: number;
+  direction: 'in' | 'out';
+};
+
+export type ReconciliationHistory = {
+  id: string;
+  accountId: string;
+  accountName: string;
+  period: string;
+  statementFile: string;
+  statementClosing: number;
+  erpClosing: number;
+  matched: number;
+  review: number;
+  status: 'Completed' | 'In progress';
+};
