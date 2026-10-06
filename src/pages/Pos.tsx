@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Keyboard, Printer, Plus } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, Copy, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '../components/Dialog';
@@ -8,11 +9,13 @@ import { CheckoutPanel } from '../components/pos/CheckoutPanel';
 import { DraftsMenu } from '../components/pos/DraftsMenu';
 import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine } from '../components/brand/ReceiptPreview';
-import { demoCart, usePosCart } from '../hooks/usePosCart';
+import { demoCart, usePosCart, type CartLine } from '../hooks/usePosCart';
 import { products } from '../data/products';
-import { salesDrafts, type SalesDraft } from '../data/sales';
+import { salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
+import { priceFor } from '../utils/units';
+import type { SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
   invoice: string;
@@ -29,14 +32,56 @@ type CompletedSale = {
 
 const quickItems = products.filter((p) => p.active).slice(0, 8);
 
+function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
+  return invoice.lines.flatMap((sourceLine) => {
+    const product = products.find((item) => item.id === sourceLine.productId);
+    if (!product) return [];
+    const alternateUnit = product.altUnit?.unit;
+    const unit = alternateUnit && sourceLine.quantity.includes(alternateUnit) ? alternateUnit : sourceLine.unit;
+    return [{
+      key: `source-${sourceLine.id}`,
+      product,
+      qty: String(parseFloat(sourceLine.quantity) || 1),
+      unit,
+      price: String(priceFor(product, unit))
+    }];
+  });
+}
+
 export function Pos() {
   const cart = usePosCart();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sourceMode = searchParams.get('mode');
+  const sourceInvoiceNo = searchParams.get('invoice');
+  const sourceInvoice = salesInvoices.find((sale) => sale.invoice === sourceInvoiceNo) ?? null;
+  const editing = sourceMode === 'edit' && !!sourceInvoice;
+  const duplicating = sourceMode === 'duplicate' && !!sourceInvoice;
+  const loadedSource = useRef<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const paidRef = useRef<HTMLInputElement>(null);
   const [invoiceNo, setInvoiceNo] = useState(242);
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
-  const invoice = `INV-${String(invoiceNo).padStart(6, '0')}`;
+  const invoice = editing && sourceInvoice ? sourceInvoice.invoice : `INV-${String(invoiceNo).padStart(6, '0')}`;
+  const pageTitle = editing ? 'Edit sale' : duplicating ? 'Duplicate sale' : 'New sale';
+  const pageTitleBn = editing ? 'বিক্রি সম্পাদনা' : duplicating ? 'বিক্রি কপি' : 'নতুন বিক্রি';
+
+  useEffect(() => {
+    if (!sourceInvoice || (!editing && !duplicating)) {
+      loadedSource.current = null;
+      return;
+    }
+    const sourceKey = `${sourceMode}:${sourceInvoice.invoice}`;
+    if (loadedSource.current === sourceKey) return;
+    loadedSource.current = sourceKey;
+    cart.setLines(cartFromInvoice(sourceInvoice));
+    cart.setCustomer(sourceInvoice.partyId ? parties.find((party) => party.id === sourceInvoice.partyId) ?? null : null);
+    cart.setDiscount(sourceInvoice.discount ? String(sourceInvoice.discount) : '');
+    cart.setDiscountMode('amount');
+    cart.setMethod(sourceInvoice.method);
+    cart.setPaid(editing && sourceInvoice.paid ? String(sourceInvoice.paid) : '');
+  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, duplicating, editing, sourceInvoice, sourceMode]);
 
   const complete = () => {
     const t = cart.totals;
@@ -104,6 +149,7 @@ export function Pos() {
     setCompleted(null);
     cart.reset();
     setInvoiceNo((n) => n + 1);
+    if (editing || duplicating) navigate('/app/pos', { replace: true });
     setTimeout(() => searchRef.current?.focus(), 50);
   };
 
@@ -111,8 +157,8 @@ export function Pos() {
     <div className="mx-auto max-w-[1440px] space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-xl font-semibold tracking-tight">New sale</h1>
-          <span className="font-bn text-sm text-ink-500">নতুন বিক্রি</span>
+          <h1 className="text-xl font-semibold tracking-tight">{pageTitle}</h1>
+          <span className="font-bn text-sm text-ink-500">{pageTitleBn}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-3 rounded-lg border border-ink-100 bg-white px-3 py-1.5 text-[11.5px] text-ink-500 md:flex">
@@ -137,6 +183,25 @@ export function Pos() {
           
         </div>
       </div>
+
+      {sourceInvoice && (editing || duplicating) && (
+        <div className="flex flex-col gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-[13px] text-teal-800 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-white text-teal-700 ring-1 ring-teal-100">
+              {editing ? <Pencil className="size-3.5" /> : <Copy className="size-3.5" />}
+            </span>
+            <div>
+              <p className="font-medium">{editing ? `Editing ${sourceInvoice.invoice}` : `Duplicating ${sourceInvoice.invoice}`}</p>
+              <p className="text-[11px] text-teal-700/80">
+                {sourceInvoice.party} · {sourceInvoice.items} lines · {editing ? 'saving updates the original invoice' : 'saving creates a new invoice'}
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="bg-white" onClick={() => navigate('/app/sales')}>
+            <ArrowLeft className="size-4" /> Back to sales
+          </Button>
+        </div>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 space-y-4">
@@ -192,7 +257,8 @@ export function Pos() {
           onMethod={cart.setMethod}
           onComplete={complete}
           onClear={cart.reset}
-          paidRef={paidRef} />
+          paidRef={paidRef}
+          completeLabel={editing ? 'Update sale' : 'Complete sale'} />
         
       </div>
 
@@ -200,7 +266,7 @@ export function Pos() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="size-5 text-success" /> Sale completed
+              <CheckCircle2 className="size-5 text-success" /> {editing ? 'Sale updated' : 'Sale completed'}
             </DialogTitle>
             <DialogDescription>
               {completed?.invoice} · {taka(completed?.total ?? 0)}
