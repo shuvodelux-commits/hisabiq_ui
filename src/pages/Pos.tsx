@@ -41,7 +41,7 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
     const hasBase = sourceLine.quantity.includes(product.unit);
     const unit = hasAlternate && !hasBase && alternateUnit ? alternateUnit : product.unit;
     const qty = unit === product.unit
-      ? String(sourceLine.returnableQuantity ?? parseFloat(sourceLine.quantity) || 1)
+      ? String(sourceLine.returnableQuantity ?? (parseFloat(sourceLine.quantity) || 1))
       : String(parseFloat(sourceLine.quantity) || 1);
     return [{
       key: `source-${sourceLine.id}`,
