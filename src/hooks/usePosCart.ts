@@ -13,7 +13,7 @@ export type CartLine = {
 };
 
 export type DiscountMode = 'amount' | 'percent';
-export type PosPaymentMethod = Exclude<PaymentMethod, 'Customer Credit'>;
+export type PosPaymentMethod = PaymentMethod;
 
 export type PosPaymentRow = {
   id: string;
@@ -34,7 +34,8 @@ export const posPaymentAccountsByMethod: Record<PosPaymentMethod, string[]> = {
   Bank: ['Dutch-Bangla Bank · 4582'],
   Card: ['Dutch-Bangla Bank · 4582'],
   bKash: ['bKash Business · 01711•••412'],
-  Nagad: ['Nagad Merchant · 01819•••771']
+  Nagad: ['Nagad Merchant · 01819•••771'],
+  'Customer Credit': ['Customer credit']
 };
 
 let seq = 0;
