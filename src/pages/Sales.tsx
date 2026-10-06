@@ -550,6 +550,8 @@ export function Sales() {
   const [returnReason, setReturnReason] = useState<Record<string, string>>({});
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
+  const [returnRefundMethod, setReturnRefundMethod] = useState<Exclude<PaymentMethod, 'Customer Credit'>>('Cash');
+  const [returnRefundAccount, setReturnRefundAccount] = useState('');
 
   const customerNames = useMemo(
     () => Array.from(new Set(invoices.map((invoice) => invoice.party))),
@@ -746,7 +748,11 @@ export function Sales() {
         })
         .join(', '),
       amount: returnAmount,
-      settlement: returnSettlement
+      settlement: returnSettlement,
+      ...(returnSettlement === 'Cash refund' ? {
+        refundMethod: returnRefundMethod,
+        ...(returnRefundAccount.trim() ? { refundAccount: returnRefundAccount.trim() } : {})
+      } : {})
     };
     setReturns((items) => [newReturn, ...items]);
 
@@ -788,6 +794,8 @@ export function Sales() {
     setReturnQty({});
     setReturnReason({});
     setReturnSerials({});
+    setReturnRefundMethod('Cash');
+    setReturnRefundAccount('');
     setTab('returns');
     toast.success(`${newReturn.id} saved`, { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
@@ -1084,6 +1092,28 @@ export function Sales() {
                       <p className="text-base font-semibold text-ink">{taka(returnAmount)}</p>
                     </div>
                     <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> Complete return</Button>
+                    {returnSettlement === 'Cash refund' && (
+                      <div className="grid gap-3 sm:col-span-3 sm:grid-cols-2">
+                        <label className="text-[12px] font-medium text-ink">
+                          Refund method
+                          <FormSelect
+                            className="mt-1"
+                            value={returnRefundMethod}
+                            onChange={(event) => setReturnRefundMethod(event.target.value as Exclude<PaymentMethod, 'Customer Credit'>)}
+                            options={paymentMethods}
+                          />
+                        </label>
+                        <label className="text-[12px] font-medium text-ink">
+                          Refund account
+                          <Input
+                            className="mt-1"
+                            value={returnRefundAccount}
+                            onChange={(event) => setReturnRefundAccount(event.target.value)}
+                            placeholder={returnRefundMethod === 'Cash' ? 'Cash counter' : 'Bank / wallet account'}
+                          />
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -1121,7 +1151,10 @@ export function Sales() {
                   <TableCell className="py-2 text-ink-600">{item.invoices.join(', ')}</TableCell>
                   <TableCell className="max-w-[300px] truncate py-2 text-ink-600">{item.items}</TableCell>
                   <TableCell className="py-2 text-right font-medium">{taka(item.amount)}</TableCell>
-                  <TableCell className="py-2"><StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{item.settlement}</StatusBadge></TableCell>
+                  <TableCell className="py-2">
+                    <StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{item.settlement}</StatusBadge>
+                    {item.refundMethod && <p className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
+                  </TableCell>
                   <TableCell className="py-2 pr-4 text-right">
                     <button onClick={() => toast('Return actions', { description: 'View · Print · Customer ledger' })} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`Actions for ${item.id}`}>
                       <MoreHorizontal className="size-4" />
