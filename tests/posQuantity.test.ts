@@ -5,7 +5,7 @@ import {
   compoundLineTotal,
   formatCompoundQuantity,
   normalizeCompoundQuantity
-} from '../src/utils/posQuantity.js';
+} from '../src/utils/posQuantity.ts';
 
 test('converts compound quantity to base units', () => {
   assert.equal(compoundBaseQuantity('2', '5', 10), 25);
