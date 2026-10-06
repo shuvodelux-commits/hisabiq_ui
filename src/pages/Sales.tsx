@@ -586,6 +586,7 @@ export function Sales() {
   ];
 
   const customerInvoices = invoices.filter((invoice) => invoice.party === returnCustomer);
+  const selectedReturnDue = customerInvoices.filter((invoice) => returnInvoiceIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoice.due, 0);
   const selectedReturnInvoices = invoices.filter((invoice) => returnInvoiceIds.includes(invoice.id));
   const selectedReturnLines = selectedReturnInvoices.flatMap((invoice) => invoice.lines.map((line) => ({ invoice, line })));
   const returnAmount = selectedReturnLines.reduce((sum, item) => sum + (parseFloat(returnQty[item.line.id] ?? '') || 0) * item.line.price, 0);
@@ -641,13 +642,20 @@ export function Sales() {
   const receiveCustomerPayment = (draft: CustomerPaymentDraft) => {
     const amount = parseFloat(draft.amount) || 0;
     if (amount <= 0) return;
-    let remainder = amount;
 
+    const allocations = new Map<string, number>();
+    let remainder = amount;
     if (draft.allocation === 'Settle oldest due') {
-      setInvoices((items) => items.map((invoice) => {
-        if (invoice.party !== draft.customer || invoice.due <= 0 || remainder <= 0) return invoice;
+      for (const invoice of invoices.filter((item) => item.party === draft.customer && item.due > 0)) {
+        if (remainder <= 0) break;
         const applied = Math.min(invoice.due, remainder);
+        allocations.set(invoice.id, applied);
         remainder -= applied;
+      }
+
+      setInvoices((items) => items.map((invoice) => {
+        const applied = allocations.get(invoice.id) ?? 0;
+        if (!applied) return invoice;
         const paid = invoice.paid + applied;
         const due = Math.max(invoice.total - paid, 0);
         return {
@@ -664,9 +672,10 @@ export function Sales() {
           }]
         };
       }));
+    } else {
+      remainder = amount;
     }
 
-    if (draft.allocation === 'Keep as customer credit') remainder = amount;
     if (remainder > 0) {
       setCredits((items) => {
         const existing = items.find((credit) => credit.customer === draft.customer);
@@ -701,7 +710,7 @@ export function Sales() {
         paid,
         due,
         status: due === 0 ? 'Paid' : 'Partial',
-        payments: [...invoice.payments, { id: `${invoice.id}-credit-${Date.now()}`, method: 'Cash', amount, account: 'Customer credit' }]
+        payments: [...invoice.payments, { id: `${invoice.id}-credit-${Date.now()}`, method: 'Customer Credit', amount, account: 'Customer credit' }]
       };
     }));
     setCredits((items) => items.map((item) => item.id === credit.id ? { ...item, balance: Math.max(item.balance - amount, 0), source: `Applied to invoice`, updatedAt: '01 Oct 2026' } : item));
