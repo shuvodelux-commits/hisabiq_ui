@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
   CheckCircle2,
@@ -425,6 +425,142 @@ function IntakeDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={save}><ShieldCheck className="size-4" /> Receive warranty</Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+function SendExternalDialog({
+  item,
+  onClose,
+  onSave
+}: {
+  item: WarrantyCase | null;
+  onClose: () => void;
+  onSave: (item: WarrantyCase, supplier: string, supplierRef: string, expectedDate: string) => void;
+}) {
+  const [supplier, setSupplier] = useState('');
+  const [supplierRef, setSupplierRef] = useState('');
+  const [expectedDate, setExpectedDate] = useState('');
+
+  useEffect(() => {
+    if (!item) return;
+    setSupplier(item.supplier ?? 'Padma Electric Supply');
+    setSupplierRef(item.supplierRef ?? '');
+    setExpectedDate(item.expectedDate ?? '');
+  }, [item]);
+
+  return (
+    <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        {item && (
+          <>
+            <DialogHeader>
+              <DialogTitle>{item.route === 'Manufacturer' ? 'Send to manufacturer' : 'Send to supplier'}</DialogTitle>
+              <DialogDescription>{item.id} · {item.customer} · {item.product}</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-[12px] font-medium text-ink sm:col-span-2">
+                {item.route === 'Manufacturer' ? 'Manufacturer / forwarding supplier' : 'Supplier'}
+                <FormSelect
+                  className="mt-1"
+                  value={supplier}
+                  onChange={(event) => setSupplier(event.target.value)}
+                  options={['Padma Electric Supply', 'Karim Traders', 'Hossain Electric', 'Bismillah Steel House']}
+                />
+              </label>
+              <label className="text-[12px] font-medium text-ink">
+                External reference
+                <Input className="mt-1" value={supplierRef} onChange={(event) => setSupplierRef(event.target.value)} placeholder="Supplier warranty ref" />
+              </label>
+              <label className="text-[12px] font-medium text-ink">
+                Expected back
+                <Input className="mt-1" value={expectedDate} onChange={(event) => setExpectedDate(event.target.value)} placeholder="e.g. 12 Oct 2026" />
+              </label>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button onClick={() => { onSave(item, supplier, supplierRef, expectedDate); onClose(); }}>
+                <Send className="size-4" /> Send
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ReceiveExternalDialog({
+  item,
+  onClose,
+  onSave
+}: {
+  item: WarrantyCase | null;
+  onClose: () => void;
+  onSave: (
+    item: WarrantyCase,
+    resolution: 'Repair' | 'Replace' | 'Rejected',
+    replacementSerial: string,
+    note: string
+  ) => void;
+}) {
+  const [resolution, setResolution] = useState<'Repair' | 'Replace' | 'Rejected'>('Repair');
+  const [replacementSerial, setReplacementSerial] = useState('');
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (!item) return;
+    setResolution(item.resolution === 'Replace' || item.resolution === 'Rejected' ? item.resolution : 'Repair');
+    setReplacementSerial(item.finalReplacement?.serial ?? '');
+    setNote('');
+  }, [item]);
+
+  return (
+    <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        {item && (
+          <>
+            <DialogHeader>
+              <DialogTitle>{item.route === 'Manufacturer' ? 'Receive from manufacturer' : 'Receive from supplier'}</DialogTitle>
+              <DialogDescription>{item.id} · {item.supplier ?? item.route} · {item.product}</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-[12px] font-medium text-ink">
+                Outcome
+                <FormSelect
+                  className="mt-1"
+                  value={resolution}
+                  onChange={(event) => setResolution(event.target.value as 'Repair' | 'Replace' | 'Rejected')}
+                  options={['Repair', 'Replace', 'Rejected']}
+                />
+              </label>
+              {resolution === 'Replace' ? (
+                <label className="text-[12px] font-medium text-ink">
+                  New serial
+                  <Input className="mt-1" value={replacementSerial} onChange={(event) => setReplacementSerial(event.target.value)} placeholder="Replacement serial" />
+                </label>
+              ) : <div />}
+              <label className="text-[12px] font-medium text-ink sm:col-span-2">
+                Note
+                <textarea
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  rows={3}
+                  className="mt-1 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                  placeholder="Supplier/manufacturer note, repair details, rejection reason…"
+                />
+              </label>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button onClick={() => { onSave(item, resolution, replacementSerial, note); onClose(); }}>
+                <PackageCheck className="size-4" /> Receive
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
