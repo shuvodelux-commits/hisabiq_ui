@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Copy, FileClock, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '../components/Dialog';
@@ -11,10 +11,10 @@ import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine } from '../components/brand/ReceiptPreview';
 import { demoCart, usePosCart, type CartLine } from '../hooks/usePosCart';
 import { products } from '../data/products';
-import { salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
+import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
-import type { SalesInvoice } from '../types/erp';
+import type { SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
   invoice: string;
@@ -30,6 +30,21 @@ type CompletedSale = {
 };
 
 const quickItems = products.filter((p) => p.active).slice(0, 8);
+
+function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
+  return lines.flatMap((sourceLine, index) => {
+    const product = products.find((item) => item.id === sourceLine.productId);
+    if (!product) return [];
+    const unit = sourceLine.unit === product.altUnit?.unit ? sourceLine.unit : product.unit;
+    return [{
+      key: `preset-${sourceLine.productId}-${index}`,
+      product,
+      qty: sourceLine.qty,
+      unit,
+      price: String(sourceLine.price)
+    }];
+  });
+}
 
 function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
   return invoice.lines.flatMap((sourceLine) => {
@@ -62,14 +77,17 @@ export function Pos() {
   const sourceMode = searchParams.get('mode');
   const sourceInvoiceNo = searchParams.get('invoice');
   const sourceDraftId = searchParams.get('draft');
+  const sourceTemplateId = searchParams.get('template');
   const sourceInvoice = salesInvoices.find((sale) => sale.invoice === sourceInvoiceNo) ?? null;
   const sourceDraft = salesDrafts.find((draft) => draft.id === sourceDraftId) ?? null;
+  const sourceTemplate = saleTemplates.find((template) => template.id === sourceTemplateId) ?? null;
   const editing = sourceMode === 'edit' && !!sourceInvoice;
   const duplicating = sourceMode === 'duplicate' && !!sourceInvoice;
   const continuingDraft = sourceMode === 'continue-draft' && !!sourceDraft;
   const editingDraft = sourceMode === 'edit-draft' && !!sourceDraft;
   const duplicatingDraft = sourceMode === 'duplicate-draft' && !!sourceDraft;
   const draftContext = continuingDraft || editingDraft || duplicatingDraft;
+  const templateContext = sourceMode === 'template' && !!sourceTemplate;
   const loadedSource = useRef<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const paidRef = useRef<HTMLInputElement>(null);
@@ -87,7 +105,9 @@ export function Pos() {
           ? 'Duplicate draft'
           : continuingDraft
             ? 'Continue draft'
-            : 'New sale';
+            : templateContext
+              ? 'Template sale'
+              : 'New sale';
   const pageTitleBn = editing
     ? 'বিক্রি সম্পাদনা'
     : duplicating
@@ -98,11 +118,13 @@ export function Pos() {
           ? 'খসড়া কপি'
           : continuingDraft
             ? 'খসড়া চালিয়ে যান'
-            : 'নতুন বিক্রি';
+            : templateContext
+              ? 'টেমপ্লেট বিক্রি'
+              : 'নতুন বিক্রি';
 
   useEffect(() => {
     if (!sourceInvoice || (!editing && !duplicating)) {
-      if (!sourceDraft || !draftContext) loadedSource.current = null;
+      if ((!sourceDraft || !draftContext) && (!sourceTemplate || !templateContext)) loadedSource.current = null;
       return;
     }
     const sourceKey = `${sourceMode}:${sourceInvoice.invoice}`;
@@ -121,13 +143,26 @@ export function Pos() {
     const sourceKey = `${sourceMode}:${sourceDraft.id}`;
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
-    cart.setLines(demoCart());
+    cart.setLines(cartFromPreset(sourceDraft.lines));
     cart.setCustomer(parties.find((party) => party.name === sourceDraft.customer) ?? null);
     cart.setDiscount('');
     cart.setDiscountMode('amount');
     cart.setMethod('Cash');
     cart.setPaid('');
   }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, draftContext, sourceDraft, sourceMode]);
+
+  useEffect(() => {
+    if (!sourceTemplate || !templateContext) return;
+    const sourceKey = `${sourceMode}:${sourceTemplate.id}`;
+    if (loadedSource.current === sourceKey) return;
+    loadedSource.current = sourceKey;
+    cart.setLines(cartFromPreset(sourceTemplate.lines));
+    cart.setCustomer(parties.find((party) => party.name === sourceTemplate.customer) ?? null);
+    cart.setDiscount('');
+    cart.setDiscountMode('amount');
+    cart.setMethod('Cash');
+    cart.setPaid('');
+  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, sourceMode, sourceTemplate, templateContext]);
 
   const complete = () => {
     const t = cart.totals;
@@ -195,7 +230,7 @@ export function Pos() {
     setCompleted(null);
     cart.reset();
     setInvoiceNo((n) => n + 1);
-    if (editing || duplicating || draftContext) navigate('/app/pos', { replace: true });
+    if (editing || duplicating || draftContext || templateContext) navigate('/app/pos', { replace: true });
     setTimeout(() => searchRef.current?.focus(), 50);
   };
 
@@ -261,6 +296,25 @@ export function Pos() {
               </p>
               <p className="text-[11px] text-teal-700/80">
                 {sourceDraft.customer ?? 'Walk-in customer'} · {sourceDraft.items} items · saved {sourceDraft.savedAt}
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="bg-white" onClick={() => navigate('/app/sales')}>
+            <ArrowLeft className="size-4" /> Back to sales
+          </Button>
+        </div>
+      )}
+
+      {sourceTemplate && templateContext && (
+        <div className="flex flex-col gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-[13px] text-teal-800 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-white text-teal-700 ring-1 ring-teal-100">
+              <FileText className="size-3.5" />
+            </span>
+            <div>
+              <p className="font-medium">Using template · {sourceTemplate.name}</p>
+              <p className="text-[11px] text-teal-700/80">
+                {sourceTemplate.customer ?? 'Any customer'} · {sourceTemplate.items} items · last used {sourceTemplate.lastUsed}
               </p>
             </div>
           </div>
