@@ -1,4 +1,4 @@
-import type { CustomerCredit, Sale, SalePresetLine, SalesInvoice, SalesReturn, SaleTemplate } from '../types/erp';
+import type { CustomerCredit, PaymentSplit, Sale, SalePresetLine, SalesInvoice, SalesReturn, SaleTemplate } from '../types/erp';
 
 export const salesInvoices: SalesInvoice[] = [
   {
@@ -176,6 +176,13 @@ export type SalesDraft = {
   id: string;
   label: string;
   customer?: string;
+  customerDetails?: {
+    name: string;
+    phone: string;
+    guardianName: string;
+    address: string;
+  };
+  payments?: PaymentSplit[];
   items: number;
   total: number;
   savedAt: string;
