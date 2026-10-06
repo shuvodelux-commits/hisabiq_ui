@@ -8,6 +8,7 @@ import { Pos } from './pages/Pos';
 import { Sales } from './pages/Sales';
 import { Warranty } from './pages/Warranty';
 import { Reconciliation } from './pages/Reconciliation';
+import { Finance } from './pages/Finance';
 import { Products } from './pages/Products';
 import { Parties } from './pages/Parties';
 import { Purchases } from './pages/Purchases';
@@ -28,6 +29,7 @@ export function App() {
           <Route path="sales" element={<Sales />} />
           <Route path="warranty" element={<Warranty />} />
           <Route path="reconciliation" element={<Reconciliation />} />
+          <Route path="finance" element={<Finance />} />
           <Route path="products" element={<Products />} />
           <Route path="parties" element={<Parties />} />
           <Route path="purchases" element={<Purchases />} />
