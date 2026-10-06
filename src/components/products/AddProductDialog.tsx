@@ -48,7 +48,9 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
   const [category, setCategory] = useState('Hardware');
   const [unit, setUnit] = useState('Gira');
   const [sell, setSell] = useState('');
+  const [sellUnit, setSellUnit] = useState('Gira');
   const [buy, setBuy] = useState('');
+  const [buyUnit, setBuyUnit] = useState('Gira');
   const [advanced, setAdvanced] = useState(true);
   const [multiUnit, setMultiUnit] = useState(true);
   const [altUnit, setAltUnit] = useState('Gauge');
@@ -63,17 +65,25 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
 
   const units = multiUnit && altUnit ? [altUnit, unit] : [unit];
   const f = parseFloat(factor) || 1;
+  const selectedSellUnit = units.includes(sellUnit) ? sellUnit : unit;
+  const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : unit;
   const toBase = (qty: string, u: string) => (parseFloat(qty) || 0) * (multiUnit && u === altUnit ? f : 1);
+  const toBasePrice = (amount: string, u: string) => (parseFloat(amount) || 0) / (multiUnit && u === altUnit ? f : 1);
   const sellNum = parseFloat(sell) || 0;
   const buyNum = parseFloat(buy) || 0;
-  const margin = sellNum > 0 && buyNum > 0 ? (sellNum - buyNum) / sellNum * 100 : null;
+  const sellBase = toBasePrice(sell, selectedSellUnit);
+  const buyBase = toBasePrice(buy, selectedBuyUnit);
+  const margin = sellBase > 0 && buyBase > 0 ? (sellBase - buyBase) / sellBase * 100 : null;
+  const autoAltSell = sellBase > 0 && multiUnit ? sellBase * f : 0;
 
   const resetForm = () => {
     setPhotos([]);
     setName('');
     setNameBn('');
     setSell('');
+    setSellUnit(unit);
     setBuy('');
+    setBuyUnit(unit);
     setOpeningQty('');
     setMinQty('');
     setBarcode('');
@@ -95,8 +105,8 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
       altUnit: multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
       stock: toBase(openingQty, openingUnit),
       minStock: toBase(minQty, minUnit),
-      sellPrice: sellNum,
-      purchasePrice: buyNum,
+      sellPrice: sellBase,
+      purchasePrice: buyBase,
       active: true
     });
     resetForm();
@@ -124,22 +134,33 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
             <Field label="Bangla name" bn="বাংলা নাম (ঐচ্ছিক)">
               <Input value={nameBn} onChange={(e) => setNameBn(e.target.value)} placeholder="তারের নেট ৪ ফুট" className="font-bn" />
             </Field>
-            <Field label="Category">
+            <Field label="Category" bn="ক্যাটাগরি">
               <FormSelect value={category} onChange={(e) => setCategory(e.target.value)} options={productCategories.filter((c) => c !== 'All')} />
             </Field>
             <Field label="Base unit" bn="ছোট একক" hint="The smallest unit you sell in.">
-              <FormSelect value={unit} onChange={(e) => setUnit(e.target.value)} options={baseUnits} />
+              <FormSelect value={unit} onChange={(e) => {
+                const next = e.target.value;
+                if (sellUnit === unit) setSellUnit(next);
+                if (buyUnit === unit) setBuyUnit(next);
+                setUnit(next);
+              }} options={baseUnits} />
             </Field>
-            <Field label={`Selling price / ${unit}`} bn="বিক্রয় মূল্য">
-              <MoneyInput value={sell} onChange={(e) => setSell(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" />
+            <Field label="Selling price" bn="বিক্রয় মূল্য" hint={sellNum && selectedSellUnit !== unit ? `Saved as ${taka(sellBase, sellBase % 1 ? 2 : 0)} / ${unit} base` : 'Enter the price in whichever configured unit you normally use.'}>
+              <div className="flex gap-2">
+                <div className="min-w-0 flex-1"><MoneyInput value={sell} onChange={(e) => setSell(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" /></div>
+                <FormSelect value={selectedSellUnit} onChange={(e) => setSellUnit(e.target.value)} options={units} className="w-28 shrink-0" />
+              </div>
             </Field>
-            <Field label={`Purchase price / ${unit}`} bn="ক্রয় মূল্য">
-              <MoneyInput value={buy} onChange={(e) => setBuy(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" />
+            <Field label="Purchase price" bn="ক্রয় মূল্য" hint={buyNum && selectedBuyUnit !== unit ? `Saved as ${taka(buyBase, buyBase % 1 ? 2 : 0)} / ${unit} base` : 'Optional. This can use a different unit from the selling price.'}>
+              <div className="flex gap-2">
+                <div className="min-w-0 flex-1"><MoneyInput value={buy} onChange={(e) => setBuy(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" /></div>
+                <FormSelect value={selectedBuyUnit} onChange={(e) => setBuyUnit(e.target.value)} options={units} className="w-28 shrink-0" />
+              </div>
             </Field>
           </div>
           {margin !== null &&
           <p className={`text-xs ${margin < 0 ? 'text-danger' : 'text-ink-500'}`}>
-              Margin {margin.toFixed(1)}% · profit {taka(sellNum - buyNum, (sellNum - buyNum) % 1 ? 2 : 0)} per {unit}
+              Margin {margin.toFixed(1)}% · profit {taka(sellBase - buyBase, (sellBase - buyBase) % 1 ? 2 : 0)} per {unit}
             </p>
           }
         </section>
@@ -172,7 +193,13 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                       <p className="text-[13px] font-medium text-ink">Sell in a larger unit too</p>
                       <p className="text-xs text-ink-500">e.g. Box and Pcs, or Gauge and Gira</p>
                     </div>
-                    <Switch checked={multiUnit} onCheckedChange={setMultiUnit} aria-label="Enable larger unit" />
+                    <Switch checked={multiUnit} onCheckedChange={(checked) => {
+                      if (!checked) {
+                        if (sellUnit === altUnit) setSellUnit(unit);
+                        if (buyUnit === altUnit) setBuyUnit(unit);
+                      }
+                      setMultiUnit(checked);
+                    }} aria-label="Enable larger unit" />
                   </div>
 
                   {multiUnit &&
@@ -182,7 +209,12 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                         <Input
                       aria-label="Larger unit name"
                       value={altUnit}
-                      onChange={(e) => setAltUnit(e.target.value)}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        if (sellUnit === altUnit) setSellUnit(next);
+                        if (buyUnit === altUnit) setBuyUnit(next);
+                        setAltUnit(next);
+                      }}
                       className="h-9 w-28 bg-white font-medium" />
                     
                         <span className="text-ink-500">=</span>
@@ -200,8 +232,8 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                         Reads as “1 {altUnit || '…'} = {factor || '…'} {unit}”. POS lets cashiers pick either unit per line.
                       </p>
                       <div className="mt-3 max-w-xs">
-                        <Field label={`Selling price / ${altUnit || 'unit'}`} hint={sellNum ? `Default ${taka(sellNum * f)} if left empty` : undefined}>
-                          <MoneyInput value={altPrice} onChange={(e) => setAltPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={sellNum ? String(sellNum * f) : '0'} />
+                        <Field label={`Custom selling price / ${altUnit || 'unit'}`} hint={autoAltSell ? `Auto ${taka(autoAltSell, autoAltSell % 1 ? 2 : 0)} / ${altUnit || 'unit'} from the base price. Leave empty to keep auto.` : 'Optional override. Leave empty to use automatic conversion.'}>
+                          <MoneyInput value={altPrice} onChange={(e) => setAltPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={autoAltSell ? String(autoAltSell) : '0'} />
                         </Field>
                       </div>
                     </div>
@@ -220,7 +252,7 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                         <FormSelect value={units.includes(minUnit) ? minUnit : unit} onChange={(e) => setMinUnit(e.target.value)} options={units} className="w-28 shrink-0" />
                       </div>
                     </Field>
-                    <Field label="Barcode / SKU">
+                    <Field label="Barcode / SKU" bn="বারকোড">
                       <Input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="Auto-generated if empty" />
                     </Field>
                   </div>
