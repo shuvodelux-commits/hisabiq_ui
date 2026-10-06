@@ -65,3 +65,32 @@ export function formatCompoundQuantity(
     ? `${primary} ${selectedUnit} ${secondary} ${baseUnit}`
     : `${primary} ${selectedUnit}`;
 }
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function parseCompoundQuantity(
+  label: string,
+  alternateUnit: string,
+  baseUnit: string
+): { primaryQty: string; secondaryQty: string; usesAlternate: boolean } {
+  const text = label.trim();
+  const alternateMatch = text.match(
+    new RegExp('([0-9]*\\.?[0-9]+)\\s*' + escapeRegExp(alternateUnit) + '\\b', 'i')
+  );
+
+  if (alternateMatch) {
+    const baseMatch = text.match(
+      new RegExp('([0-9]*\\.?[0-9]+)\\s*' + escapeRegExp(baseUnit) + '\\b', 'i')
+    );
+    return {
+      primaryQty: alternateMatch[1],
+      secondaryQty: baseMatch?.[1] ?? '',
+      usesAlternate: true
+    };
+  }
+
+  const first = text.match(/[0-9]*\.?[0-9]+/);
+  return { primaryQty: first?.[0] ?? '0', secondaryQty: '', usesAlternate: false };
+}
