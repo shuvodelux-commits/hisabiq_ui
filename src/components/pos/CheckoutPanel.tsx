@@ -47,7 +47,7 @@ type CheckoutPanelProps = {
   completeLabel?: string;
 };
 
-const methods: PosPaymentMethod[] = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card'];
+const methods: PosPaymentMethod[] = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card', 'Customer Credit'];
 
 function Row({ label, value, muted = false }: { label: React.ReactNode; value: React.ReactNode; muted?: boolean }) {
   return (
