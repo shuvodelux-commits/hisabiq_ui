@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
+import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog } from '../components/finance/FinanceRecordDialogs';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -429,98 +430,6 @@ function TransferDialog({
   );
 }
 
-function FinancePeopleDialog({
-  open,
-  people,
-  onOpenChange,
-  onAdd
-}: {
-  open: boolean;
-  people: FinancePerson[];
-  onOpenChange: (open: boolean) => void;
-  onAdd: (person: FinancePerson) => void;
-}) {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [roles, setRoles] = useState<FinancePersonRole[]>(['Lender']);
-
-  const toggleRole = (role: FinancePersonRole) => {
-    setRoles((current) => current.includes(role) ? current.filter((item) => item !== role) : [...current, role]);
-  };
-
-  const save = () => {
-    if (!name.trim() || roles.length === 0) {
-      toast.error('Enter a name and choose at least one role');
-      return;
-    }
-    onAdd({
-      id: `fp-${Date.now()}`,
-      name: name.trim(),
-      phone: phone || undefined,
-      roles,
-      status: 'Active'
-    });
-    setName('');
-    setPhone('');
-    setRoles(['Lender']);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Finance people</DialogTitle>
-          <DialogDescription>One person can be Owner, Lender and Borrower without cross-netting those balances.</DialogDescription>
-        </DialogHeader>
-
-        <div className="rounded-xl border border-ink-100">
-          <div className="grid gap-2 border-b border-ink-100 bg-ink-50/60 p-3 sm:grid-cols-[1fr_180px_auto]">
-            <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Name" />
-            <Input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Phone" />
-            <Button onClick={save}><Plus className="size-4" /> Add</Button>
-            <div className="flex flex-wrap gap-1.5 sm:col-span-3">
-              {(['Owner', 'Lender', 'Borrower'] as FinancePersonRole[]).map((role) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => toggleRole(role)}
-                  className={`rounded-md border px-2 py-1 text-xs font-medium ${
-                    roles.includes(role) ? 'border-teal-200 bg-teal-50 text-teal-700' : 'border-ink-100 bg-white text-ink-500'
-                  }`}>
-                  {role}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="max-h-72 divide-y divide-ink-100 overflow-auto">
-            {people.map((person) => (
-              <div key={person.id} className="flex items-center gap-3 px-3 py-2.5">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-ink-50 text-xs font-semibold text-ink-600">
-                  {person.name.split(' ').map((part) => part[0]).join('').slice(0, 2)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-ink">{person.name}</p>
-                  <p className="text-[11px] text-ink-400">{person.phone || 'No phone'}</p>
-                </div>
-                <div className="flex flex-wrap justify-end gap-1">
-                  {person.roles.map((role) => <StatusBadge key={role} tone="neutral">{role}</StatusBadge>)}
-                </div>
-                <button onClick={() => toast('Finance person actions', { description: 'Edit · Roles · Deactivate' })} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                  <MoreHorizontal className="size-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Done</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export function Finance() {
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen } = useCashSession();
@@ -533,6 +442,9 @@ export function Finance() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [peopleOpen, setPeopleOpen] = useState(false);
+  const [transactionAction, setTransactionAction] = useState<FinanceTransaction | null>(null);
+  const [accountAction, setAccountAction] = useState<FinanceAccount | null>(null);
+  const [transferAction, setTransferAction] = useState<AccountTransfer | null>(null);
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All transaction types');
   const [counterType, setCounterType] = useState<'Customer Receive' | 'Supplier Pay' | 'Expense' | 'Bank Transfer'>('Customer Receive');
@@ -541,6 +453,92 @@ export function Finance() {
   const [counterMethod, setCounterMethod] = useState('Cash');
   const [counterAccount, setCounterAccount] = useState(accounts.find((item) => item.type === 'Cash')?.name ?? '');
   const [counterNote, setCounterNote] = useState('');
+
+  const applyTransactionMovement = (list: FinanceAccount[], transaction: FinanceTransaction, factor = 1) => {
+    if (!transaction.accountId || transaction.direction === 'none' || transaction.status === 'Reversed') return list;
+    const signed = transaction.direction === 'in' ? transaction.amount : -transaction.amount;
+    return list.map((account) =>
+      account.id === transaction.accountId
+        ? { ...account, balance: account.balance + signed * factor, lastActivity: 'Just now' }
+        : account
+    );
+  };
+
+  const updateFinanceTransaction = (updated: FinanceTransaction) => {
+    const previous = transactions.find((item) => item.id === updated.id);
+    if (!previous) return;
+    setAccounts((current) => applyTransactionMovement(applyTransactionMovement(current, previous, -1), updated, 1));
+    setTransactions((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setTransactionAction(updated);
+    toast.success('Finance transaction updated', { description: updated.id });
+  };
+
+  const reverseFinanceTransaction = (transaction: FinanceTransaction) => {
+    if (transaction.status === 'Reversed') return;
+    const reversed = { ...transaction, status: 'Reversed' as const };
+    setAccounts((current) => applyTransactionMovement(current, transaction, -1));
+    setTransactions((current) => current.map((item) => item.id === transaction.id ? reversed : item));
+    setTransactionAction(reversed);
+    toast.success('Transaction reversed', { description: transaction.id + ' remains in the audit history' });
+  };
+
+  const updateFinanceAccount = (updated: FinanceAccount) => {
+    const previous = accounts.find((item) => item.id === updated.id);
+    setAccounts((current) => current.map((item) => item.id === updated.id ? updated : item));
+    if (previous && previous.name !== updated.name) {
+      setTransactions((current) => current.map((item) => item.accountId === updated.id ? { ...item, account: updated.name } : item));
+      setTransfers((current) => current.map((item) => ({
+        ...item,
+        from: item.from === previous.name ? updated.name : item.from,
+        to: item.to === previous.name ? updated.name : item.to
+      })));
+    }
+    setAccountAction(updated);
+    toast.success('Account updated', { description: updated.name });
+  };
+
+  const toggleFinanceAccount = (account: FinanceAccount) => {
+    const updated = { ...account, status: account.status === 'Active' ? 'Inactive' as const : 'Active' as const };
+    setAccounts((current) => current.map((item) => item.id === account.id ? updated : item));
+    setAccountAction(updated);
+    toast.success(updated.status === 'Active' ? 'Account activated' : 'Account deactivated', { description: updated.name });
+  };
+
+  const addManualAccountEntry = (account: FinanceAccount, direction: 'in' | 'out', amount: number, reference?: string, note?: string) => {
+    const transaction: FinanceTransaction = {
+      id: 'FIN-M-' + String(Date.now()).slice(-6),
+      date: '06 Oct 2026',
+      type: 'Manual Bank Entry',
+      method: account.type === 'Cash' ? 'Cash' : account.type === 'Bank' ? 'Bank' : 'Mobile Banking',
+      account: account.name,
+      accountId: account.id,
+      amount,
+      direction,
+      reference,
+      note,
+      status: 'Active',
+      createdBy: 'Anisur Rahman'
+    };
+    setTransactions((current) => [transaction, ...current]);
+    setAccounts((current) => applyTransactionMovement(current, transaction, 1));
+    setAccountAction((current) => current && current.id === account.id
+      ? { ...current, balance: current.balance + (direction === 'in' ? amount : -amount), lastActivity: 'Just now' }
+      : current);
+    toast.success('Manual account entry recorded', { description: (direction === 'in' ? '+' : '−') + taka(amount) });
+  };
+
+  const reverseAccountTransfer = (transfer: AccountTransfer) => {
+    if (transfer.status === 'Reversed') return;
+    const reversed = { ...transfer, status: 'Reversed' as const };
+    setTransfers((current) => current.map((item) => item.id === transfer.id ? reversed : item));
+    setAccounts((current) => current.map((account) => {
+      if (account.name === transfer.from) return { ...account, balance: account.balance + transfer.amount, lastActivity: 'Just now' };
+      if (account.name === transfer.to) return { ...account, balance: account.balance - transfer.amount, lastActivity: 'Just now' };
+      return account;
+    }));
+    setTransferAction(reversed);
+    toast.success('Transfer reversed', { description: transfer.id });
+  };
 
   const totalLiquid = accounts.filter((item) => item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
   const cashBalance = accounts.filter((item) => item.type === 'Cash' && item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
@@ -591,17 +589,44 @@ export function Finance() {
 
   const postCounter = () => {
     const value = parseFloat(counterAmount) || 0;
-    if (!value) {
-      toast.error('Enter an amount');
-      return;
+    if (!value) return toast.error('Enter an amount');
+
+    if (counterType === 'Bank Transfer') {
+      const from = counterParty || accounts[0]?.name || '';
+      const to = counterAccount;
+      if (!from || !to || from === to) return toast.error('Choose two different accounts');
+      const transfer: AccountTransfer = {
+        id: 'TRF-' + String(42 + transfers.length - seedTransfers.length).padStart(6, '0'),
+        date: '06 Oct 2026',
+        from,
+        to,
+        amount: value,
+        reference: counterNote || undefined,
+        status: 'Completed'
+      };
+      setTransfers((current) => [transfer, ...current]);
+      setAccounts((current) => current.map((account) => {
+        if (account.name === from) return { ...account, balance: account.balance - value, lastActivity: 'Just now' };
+        if (account.name === to) return { ...account, balance: account.balance + value, lastActivity: 'Just now' };
+        return account;
+      }));
+      toast.success('Account transfer completed', { description: taka(value) + ' · ' + from + ' → ' + to });
+    } else {
+      const selected = activeCounterAccounts.find((item) => item.name === counterAccount) || activeCounterAccounts[0];
+      if (!selected) return toast.error('Select an active account');
+      const incoming = counterType === 'Customer Receive';
+      setAccounts((current) => current.map((account) =>
+        account.id === selected.id
+          ? { ...account, balance: account.balance + (incoming ? value : -value), lastActivity: 'Just now' }
+          : account
+      ));
+      const verbs = {
+        'Customer Receive': 'Customer payment received',
+        'Supplier Pay': 'Supplier payment recorded',
+        Expense: 'Expense recorded'
+      } as const;
+      toast.success(verbs[counterType], { description: taka(value) + ' · ' + (counterParty || counterType) });
     }
-    const verbs = {
-      'Customer Receive': 'Customer payment received',
-      'Supplier Pay': 'Supplier payment recorded',
-      Expense: 'Expense recorded',
-      'Bank Transfer': 'Account transfer completed'
-    };
-    toast.success(verbs[counterType], { description: `${taka(value)} · ${counterParty || counterType}` });
     setCounterAmount('');
     setCounterNote('');
   };
@@ -815,7 +840,7 @@ export function Finance() {
                     <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{item.status}</StatusBadge></TableCell>
                     <TableCell className="py-2 pr-4 text-right">
                       <button
-                        onClick={() => toast('Finance transaction actions', { description: 'View · Edit · Print · Reverse / Delete' })}
+                        onClick={() => setTransactionAction(item)}
                         className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                         <MoreHorizontal className="size-4" />
                       </button>
@@ -973,7 +998,7 @@ export function Finance() {
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-100 pt-3">
-                    <Button variant="outline" size="sm" onClick={() => toast(`${account.name} ledger opened`)}>
+                    <Button variant="outline" size="sm" onClick={() => setAccountAction(account)}>
                       <BookOpen className="size-4" /> Ledger
                     </Button>
                     {account.type !== 'Cash' && (
@@ -982,7 +1007,7 @@ export function Finance() {
                       </Button>
                     )}
                     <button
-                      onClick={() => toast('Account actions', { description: 'Edit · Manual entry · Activate / Deactivate' })}
+                      onClick={() => setAccountAction(account)}
                       className="ml-auto rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                       <MoreHorizontal className="size-4" />
                     </button>
@@ -1024,7 +1049,7 @@ export function Finance() {
                       <TableCell className="py-2 text-right font-semibold">{taka(item.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{item.status}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
-                        <button onClick={() => toast('Transfer actions', { description: 'View · Print · Reverse' })} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
+                        <button onClick={() => setTransferAction(item)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                           <MoreHorizontal className="size-4" />
                         </button>
                       </TableCell>
@@ -1126,7 +1151,8 @@ export function Finance() {
         onOpenChange={setTransactionOpen}
         onSave={(transaction) => {
           setTransactions((current) => [transaction, ...current]);
-          toast.success('Finance transaction saved', { description: `${transaction.type} · ${taka(transaction.amount)}` });
+          setAccounts((current) => applyTransactionMovement(current, transaction, 1));
+          toast.success('Finance transaction saved', { description: transaction.type + ' · ' + taka(transaction.amount) });
         }}
       />
 
@@ -1146,18 +1172,53 @@ export function Finance() {
         onOpenChange={setTransferOpen}
         onSave={(transfer) => {
           setTransfers((current) => [transfer, ...current]);
-          toast.success('Transfer completed', { description: `${transfer.from} → ${transfer.to} · ${taka(transfer.amount)}` });
+          setAccounts((current) => current.map((account) => {
+            if (account.name === transfer.from) return { ...account, balance: account.balance - transfer.amount, lastActivity: 'Just now' };
+            if (account.name === transfer.to) return { ...account, balance: account.balance + transfer.amount, lastActivity: 'Just now' };
+            return account;
+          }));
+          toast.success('Transfer completed', { description: transfer.from + ' → ' + transfer.to + ' · ' + taka(transfer.amount) });
         }}
       />
 
-      <FinancePeopleDialog
+      <FinancePeopleManagerDialog
         open={peopleOpen}
         people={people}
         onOpenChange={setPeopleOpen}
         onAdd={(person) => {
           setPeople((current) => [...current, person]);
-          toast.success('Finance person added', { description: `${person.name} · ${person.roles.join(', ')}` });
+          toast.success('Finance person added', { description: person.name + ' · ' + person.roles.join(', ') });
         }}
+        onUpdate={(person) => {
+          setPeople((current) => current.map((item) => item.id === person.id ? person : item));
+          setTransactions((current) => current.map((item) => item.partyId === person.id ? { ...item, party: person.name } : item));
+          toast.success('Finance person updated', { description: person.name });
+        }}
+      />
+
+      <FinanceTransactionActionDialog
+        transaction={transactionAction}
+        accounts={accounts}
+        people={people}
+        onClose={() => setTransactionAction(null)}
+        onUpdate={updateFinanceTransaction}
+        onReverse={reverseFinanceTransaction}
+      />
+
+      <FinanceAccountActionDialog
+        account={accountAction}
+        transactions={transactions}
+        transfers={transfers}
+        onClose={() => setAccountAction(null)}
+        onUpdate={updateFinanceAccount}
+        onToggleStatus={toggleFinanceAccount}
+        onManualEntry={addManualAccountEntry}
+      />
+
+      <FinanceTransferActionDialog
+        transfer={transferAction}
+        onClose={() => setTransferAction(null)}
+        onReverse={reverseAccountTransfer}
       />
     </div>
   );
