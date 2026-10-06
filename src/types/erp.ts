@@ -22,6 +22,11 @@ export type Product = {
   minStock: number;
   sellPrice: number;
   purchasePrice: number;
+  warranty?: {
+    enabled: boolean;
+    period?: string;
+    serialRequired?: boolean;
+  };
   active: boolean;
 };
 
