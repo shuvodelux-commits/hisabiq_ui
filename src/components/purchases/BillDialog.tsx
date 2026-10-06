@@ -55,7 +55,7 @@ function quantityLabel(line: PurchaseLine): string {
   const big = parseFloat(line.bigQty) || 0;
   const small = parseFloat(line.smallQty) || 0;
   if (!product.altUnit) return `${small || 0} ${product.unit}`;
-  const parts = [];
+  const parts: string[] = [];
   if (big) parts.push(`${big} ${product.altUnit.unit}`);
   if (small) parts.push(`${small} ${product.unit}`);
   return parts.length ? parts.join(' ') : `0 ${product.unit}`;
