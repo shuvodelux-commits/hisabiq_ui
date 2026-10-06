@@ -321,7 +321,7 @@ export function Expenses() {
 
         {tab === 'reports' && (
           <div className="p-4">
-            <div className="mb-4 flex flex-col gap-2 rounded-xl border border-ink-100 bg-ink-25 p-3 sm:flex-row sm:items-end">
+            <div className="mb-4 flex flex-col gap-2 rounded-xl border border-ink-100 bg-ink-50/50 p-3 sm:flex-row sm:items-end">
               <label className="text-[12px] font-medium text-ink">
                 From
                 <Input className="mt-1 w-full sm:w-40" defaultValue="01 Sep 2026" />
