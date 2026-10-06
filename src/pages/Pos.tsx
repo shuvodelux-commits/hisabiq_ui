@@ -136,7 +136,7 @@ export function Pos() {
     cart.setDiscountMode('amount');
     cart.setMethod(sourceInvoice.method);
     cart.setPaid(editing && sourceInvoice.paid ? String(sourceInvoice.paid) : '');
-  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, draftContext, duplicating, editing, sourceDraft, sourceInvoice, sourceMode]);
+  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, draftContext, duplicating, editing, sourceDraft, sourceInvoice, sourceMode, sourceTemplate, templateContext]);
 
   useEffect(() => {
     if (!sourceDraft || !draftContext) return;
@@ -212,7 +212,13 @@ export function Pos() {
       customer: cart.customer?.name,
       items: cart.lines.length,
       total: cart.totals.total,
-      savedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+      savedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      lines: cart.lines.map((line) => ({
+        productId: line.product.id,
+        qty: line.qty,
+        unit: line.unit,
+        price: parseFloat(line.price) || 0
+      }))
     }]
     );
     cart.reset();
@@ -220,7 +226,7 @@ export function Pos() {
   };
 
   const resume = (d: SalesDraft) => {
-    cart.setLines(demoCart());
+    cart.setLines(cartFromPreset(d.lines));
     cart.setCustomer(parties.find((p) => p.name === d.customer) ?? null);
     setDrafts((ds) => ds.filter((x) => x.id !== d.id));
     toast(`${d.label} resumed`);
