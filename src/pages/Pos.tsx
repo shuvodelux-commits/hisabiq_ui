@@ -37,11 +37,16 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
     const product = products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
     const alternateUnit = product.altUnit?.unit;
-    const unit = alternateUnit && sourceLine.quantity.includes(alternateUnit) ? alternateUnit : sourceLine.unit;
+    const hasAlternate = Boolean(alternateUnit && sourceLine.quantity.includes(alternateUnit));
+    const hasBase = sourceLine.quantity.includes(product.unit);
+    const unit = hasAlternate && !hasBase && alternateUnit ? alternateUnit : product.unit;
+    const qty = unit === product.unit
+      ? String(sourceLine.returnableQuantity ?? parseFloat(sourceLine.quantity) || 1)
+      : String(parseFloat(sourceLine.quantity) || 1);
     return [{
       key: `source-${sourceLine.id}`,
       product,
-      qty: String(parseFloat(sourceLine.quantity) || 1),
+      qty,
       unit,
       price: String(priceFor(product, unit))
     }];
