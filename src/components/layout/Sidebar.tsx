@@ -6,7 +6,7 @@ import {
   Package,
   Users,
   ReceiptText,
-  WalletCards,
+  Wallet,
   PieChart,
   Palette,
   Settings,
@@ -20,7 +20,7 @@ const nav = [
   { to: '/app/products', label: 'Products', bn: 'পণ্য', icon: Package },
   { to: '/app/parties', label: 'Parties & Ledger', bn: 'পার্টি ও খাতা', icon: Users },
   { to: '/app/purchases', label: 'Purchases', bn: 'ক্রয়', icon: ReceiptText },
-  { to: '/app/expenses', label: 'Expenses', bn: 'খরচ', icon: WalletCards },
+  { to: '/app/expenses', label: 'Expenses', bn: 'খরচ', icon: Wallet },
   { to: '/app/reports', label: 'Reports & Finance', bn: 'রিপোর্ট', icon: PieChart }
 ];
 
