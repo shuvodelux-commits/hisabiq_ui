@@ -7,7 +7,7 @@ import type { CartLine } from '../../hooks/usePosCart';
 import type { Product } from '../../types/erp';
 import { formatStock, unitsFor } from '../../utils/units';
 import { formatNumber } from '../../utils/currency';
-import { compoundLineTotal } from '../../utils/posQuantity';
+import { compoundLineTotal, normalizeCompoundQuantity } from '../../utils/posQuantity';
 
 type CartTableProps = {
   lines: CartLine[];
@@ -25,6 +25,7 @@ const cellInput =
 
 export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchRef }: CartTableProps) {
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     if (lastAdded) {
@@ -40,20 +41,36 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
       searchRef.current?.focus();
     }
   };
+  const commitSecondary = (line: CartLine, focusSearch: boolean) => {
+    const factor = line.product.altUnit && line.unit === line.product.altUnit.unit
+      ? line.product.altUnit.factor
+      : 1;
+    onUpdate(line.key, normalizeCompoundQuantity(line.qty, line.secondaryQty, factor));
+    if (focusSearch) searchRef.current?.focus();
+  };
 
   return (
     <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white shadow-card">
       <div className={`${grid} border-b border-ink-100 px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400`}>
         <span className="text-right">#</span>
         <span>Product</span>
-        <span className="text-right">Qty</span>
-        <span>Unit</span>
+        <span className="text-right">Quantity</span>
+        <span>Price in</span>
         <span className="text-right">Price</span>
         <span className="text-right">Total</span>
         <span className="sr-only">Remove</span>
       </div>
 
       <div className="divide-y divide-ink-100">
+        <div className={`${grid} bg-teal-50/35 px-3 py-2`}>
+          <span className="text-right text-sm text-teal-600">{lines.length + 1}.</span>
+          <ProductCombobox ref={searchRef} onSelect={onAdd} />
+          <span className="pr-2 text-right text-sm text-ink-300">Qty</span>
+          <span className="px-2 text-sm text-ink-300">Unit</span>
+          <span className="pr-2 text-right text-sm text-ink-300">Price</span>
+          <span className="text-right text-sm text-ink-300">Total</span>
+          <span />
+        </div>
         <AnimatePresence initial={false}>
           {lines.map((l, i) => {
             const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
@@ -69,7 +86,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                 transition={{ duration: 0.25 }}
                 className={`${grid} px-3 py-1.5`}>
                 
-                <span className="text-right text-sm tabular-nums text-ink-400">{i + 1}.</span>
+                <span className="text-right text-sm text-ink-400">{i + 1}.</span>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <ProductThumb src={l.product.image} size={32} />
                   <div className="min-w-0">
@@ -80,16 +97,60 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                     </p>
                   </div>
                 </div>
-                <input
-                  ref={(el) => {
-                    qtyRefs.current[l.key] = el;
-                  }}
-                  aria-label={`Quantity for ${l.product.name}`}
-                  value={l.qty}
-                  inputMode="decimal"
-                  onChange={(e) => onUpdate(l.key, { qty: e.target.value.replace(/[^\d.]/g, '') })}
-                  onKeyDown={backToSearch}
-                  className={`${cellInput} border-ink-100 bg-ink-50/50 font-medium`} />
+                {l.product.altUnit && l.unit === l.product.altUnit.unit ?
+                <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-ink-100 bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-500/20">
+                    <input
+                      ref={(el) => {
+                        qtyRefs.current[l.key] = el;
+                      }}
+                      aria-label={`${l.product.altUnit.unit} quantity for ${l.product.name}`}
+                      value={l.qty}
+                      inputMode="decimal"
+                      onChange={(e) => onUpdate(l.key, { qty: e.target.value.replace(/[^\d.]/g, '') })}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+                        secondaryQtyRefs.current[l.key]?.focus();
+                        secondaryQtyRefs.current[l.key]?.select();
+                      }}
+                      className="min-w-0 flex-1 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none" />
+                    <span className="flex items-center border-l border-ink-100 px-1.5 text-[10.5px] text-ink-500">
+                      {l.product.altUnit.unit}
+                    </span>
+                    <input
+                      ref={(el) => {
+                        secondaryQtyRefs.current[l.key] = el;
+                      }}
+                      aria-label={`${l.product.unit} quantity for ${l.product.name}`}
+                      value={l.secondaryQty}
+                      inputMode="decimal"
+                      placeholder="0"
+                      onChange={(e) => onUpdate(l.key, { secondaryQty: e.target.value.replace(/[^\d.]/g, '') })}
+                      onBlur={() => commitSecondary(l, false)}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+                        commitSecondary(l, true);
+                      }}
+                      className="min-w-0 flex-1 border-l border-ink-100 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none" />
+                    <span className="flex items-center border-l border-ink-100 px-1.5 text-[10.5px] text-ink-500">
+                      {l.product.unit}
+                    </span>
+                  </div> :
+                <div className="relative">
+                    <input
+                      ref={(el) => {
+                        qtyRefs.current[l.key] = el;
+                      }}
+                      aria-label={`Quantity for ${l.product.name}`}
+                      value={l.qty}
+                      inputMode="decimal"
+                      onChange={(e) => onUpdate(l.key, { qty: e.target.value.replace(/[^\d.]/g, '') })}
+                      onKeyDown={backToSearch}
+                      className={`${cellInput} border-ink-100 bg-ink-50/50 pr-12 font-medium`} />
+                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10.5px] text-ink-500">{l.unit}</span>
+                  </div>
+                }
                 
                 {units.length > 1 ?
                 <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label="Unit">
@@ -121,7 +182,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                     className={cellInput} />
                   
                 </div>
-                <span className="text-right text-sm font-semibold tabular-nums text-ink">
+                <span className="text-right text-sm font-semibold text-ink">
                   ৳{formatNumber(lineTotal, lineTotal % 1 ? 2 : 0)}
                 </span>
                 <button
