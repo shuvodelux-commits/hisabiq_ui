@@ -87,8 +87,12 @@ export type SaleLine = {
   id: string;
   productId: string;
   name: string;
+  /** Human-friendly sold quantity, e.g. "3 Box 2 Pcs". */
   quantity: string;
+  /** Base unit used for return/refund calculations. */
   unit: string;
+  /** Exact quantity available to return in the base unit. */
+  returnableQuantity?: number;
   price: number;
   total: number;
   serials?: string[];
@@ -129,6 +133,15 @@ export type SaleTemplate = {
   items: number;
   total: number;
   lastUsed: string;
+};
+
+export type CustomerCredit = {
+  id: string;
+  customerId?: string;
+  customer: string;
+  balance: number;
+  source: string;
+  updatedAt: string;
 };
 
 export type Purchase = {
