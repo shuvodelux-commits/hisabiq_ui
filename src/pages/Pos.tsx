@@ -19,6 +19,9 @@ import type { SalePresetLine, SalesInvoice } from '../types/erp';
 type CompletedSale = {
   invoice: string;
   customer?: string;
+  customerPhone?: string;
+  guardianName?: string;
+  customerAddress?: string;
   lines: ReceiptLine[];
   subtotal: number;
   discount: number;
@@ -213,6 +216,9 @@ export function Pos() {
     setCompleted({
       invoice,
       customer: cart.customerDetails.name.trim() || cart.customer?.name || undefined,
+      customerPhone: cart.customerDetails.phone.trim() || undefined,
+      guardianName: cart.customerDetails.guardianName.trim() || undefined,
+      customerAddress: cart.customerDetails.address.trim() || undefined,
       lines: cart.lines.map((l) => ({
         name: l.product.name,
         qty: `${l.qty} ${l.unit}`,
