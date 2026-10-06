@@ -33,9 +33,9 @@ export function Reports() {
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
-        title="Reports & Finance"
-        titleBn="রিপোর্ট ও হিসাব"
-        description="A calm view of profit, money owed and where it goes."
+        title="Reports"
+        titleBn="রিপোর্ট"
+        description="Business reports, profit, receivables, payables and operational books."
         actions={
         <div className="flex rounded-lg bg-white p-0.5 shadow-card ring-1 ring-ink-100" role="radiogroup" aria-label="Period">
             {periods.map((p) =>
