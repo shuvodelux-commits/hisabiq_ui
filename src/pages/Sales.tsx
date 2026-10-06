@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Banknote,
   BookOpen,
@@ -418,7 +418,7 @@ export function Sales() {
         id: `${invoice.id}-new-${Date.now()}-${index}`,
         method: row.method,
         amount: parseFloat(row.amount),
-        account: row.account.trim() || undefined
+        ...(row.account.trim() ? { account: row.account.trim() } : {})
       }));
     setInvoices((items) => items.map((item) => {
       if (item.id !== invoice.id) return item;
