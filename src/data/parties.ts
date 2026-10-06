@@ -37,9 +37,9 @@ export const ledgerEntries: LedgerEntry[] = [
 { id: 'l-8', partyId: 'c1', date: '01 Oct 2026', type: 'invoice', ref: 'INV-000241', description: 'MS Angle 1.5" × 220 Kg, Teflon Tape × 2 Box', debit: 25550, credit: 0, attachment: { name: 'INV-000241.pdf' } },
 // Karim Traders
 { id: 'l-9', partyId: 's1', date: '01 Sep 2026', type: 'opening', description: 'Opening balance', debit: 0, credit: 64000 },
-{ id: 'l-10', partyId: 's1', date: '08 Sep 2026', type: 'purchase', ref: 'PUR-000112', description: 'PVC Pipe 1" × 120 Pcs', debit: 0, credit: 43800, attachment: { name: 'karim-memo-112.jpg', url: "/9fe849df-3b4b-4f01-b1ff-417303e487fb.jpg" } },
+{ id: 'l-10', partyId: 's1', date: '08 Sep 2026', type: 'purchase', ref: 'PUR-000112', description: 'PVC Pipe 1" × 120 Pcs', debit: 0, credit: 43800, attachment: { name: 'karim-memo-112.jpg', url: "./9fe849df-3b4b-4f01-b1ff-417303e487fb.jpg" } },
 { id: 'l-11', partyId: 's1', date: '15 Sep 2026', type: 'payment', ref: 'PAY-000054', description: 'Bank transfer — DBBL', debit: 40000, credit: 0 },
-{ id: 'l-12', partyId: 's1', date: '30 Sep 2026', type: 'purchase', ref: 'PUR-000118', description: 'Gate Valve ¾" × 60, Teflon Tape × 20 Box', debit: 0, credit: 58600, attachment: { name: 'karim-memo-118.jpg', url: "/9fe849df-3b4b-4f01-b1ff-417303e487fb.jpg" } },
+{ id: 'l-12', partyId: 's1', date: '30 Sep 2026', type: 'purchase', ref: 'PUR-000118', description: 'Gate Valve ¾" × 60, Teflon Tape × 20 Box', debit: 0, credit: 58600, attachment: { name: 'karim-memo-118.jpg', url: "./9fe849df-3b4b-4f01-b1ff-417303e487fb.jpg" } },
 // Hossain Electric
 { id: 'l-13', partyId: 'c2', date: '12 Sep 2026', type: 'invoice', ref: 'INV-000209', description: 'Electric Wire 1.5 rm × 4 Coil', debit: 11400, credit: 0 },
 { id: 'l-14', partyId: 'c2', date: '20 Sep 2026', type: 'purchase', ref: 'PUR-000115', description: 'Ceiling Fan Regulator × 10', debit: 0, credit: 2550 },
