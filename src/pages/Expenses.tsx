@@ -26,6 +26,20 @@ import { taka } from '../utils/currency';
 
 type Tab = 'expenses' | 'categories' | 'payees' | 'reports';
 
+const reportPaymentMethods = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card'] as const;
+
+function paymentsFor(expense: Expense) {
+  if (expense.payments?.length) return expense.payments;
+  if (expense.paid <= 0) return [];
+  return [{ id: `legacy-${expense.id}`, method: expense.method, amount: expense.paid }];
+}
+
+function paymentLabel(expense: Expense) {
+  const payments = paymentsFor(expense);
+  if (payments.length > 1) return 'Multiple';
+  return payments[0]?.method ?? expense.method;
+}
+
 const payees = parties
   .filter((party) => party.roles.some((role) => role === 'Payee' || role === 'Vendor'))
   .map((party) => ({
@@ -65,14 +79,16 @@ export function Expenses() {
     const q = query.trim().toLowerCase();
     if (!q) return expenses;
     return expenses.filter((expense) =>
-      [expense.ref, expense.category, expense.payee, expense.note, expense.method, expense.date]
+      [expense.ref, expense.category, expense.payee, expense.note, paymentLabel(expense), expense.date, ...paymentsFor(expense).map((payment) => payment.method)]
         .some((value) => value.toLowerCase().includes(q))
     );
   }, [expenses, query]);
 
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const cash = expenses.filter((expense) => expense.method === 'Cash').reduce((sum, expense) => sum + expense.amount, 0);
-  const bankAndMfs = total - cash;
+  const cash = expenses.reduce((sum, expense) =>
+    sum + paymentsFor(expense).filter((payment) => payment.method === 'Cash').reduce((paymentSum, payment) => paymentSum + payment.amount, 0), 0);
+  const bankAndMfs = expenses.reduce((sum, expense) =>
+    sum + paymentsFor(expense).filter((payment) => payment.method !== 'Cash').reduce((paymentSum, payment) => paymentSum + payment.amount, 0), 0);
   const categoryCount = new Set(expenses.map((expense) => expense.category)).size;
 
   const tabs: Array<[Tab, string, string]> = [
@@ -179,6 +195,7 @@ export function Expenses() {
                       category: expense.category,
                       total: expense.amount,
                       paid: expense.paid,
+                      payments: expense.payments,
                       receipt: expense.receipt
                     });
                   return (
@@ -202,7 +219,14 @@ export function Expenses() {
                         <span className="block max-w-[220px] truncate text-[11px] text-ink-400">{expense.note}</span>
                       </TableCell>
                       <TableCell className="py-2"><ReceiptThumb src={expense.receipt} onClick={open} /></TableCell>
-                      <TableCell className="py-2 text-ink-600">{expense.method}</TableCell>
+                      <TableCell className="py-2 text-ink-600">
+                        {paymentLabel(expense)}
+                        {expense.payments && expense.payments.length > 1 && (
+                          <span className="block text-[10.5px] text-ink-400">
+                            {expense.payments.map((payment) => payment.method).join(' + ')}
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="py-2 text-ink-500">—</TableCell>
                       <TableCell className="py-2 text-right font-medium">{taka(expense.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone="success" dot>Active</StatusBadge></TableCell>
@@ -294,7 +318,7 @@ export function Expenses() {
               </TableHeader>
               <TableBody>
                 {payees.map((payee) => {
-                  const paid = expenses.filter((expense) => expense.payeeId === payee.id).reduce((sum, expense) => sum + expense.amount, 0);
+                  const paid = expenses.filter((expense) => expense.payeeId === payee.id).reduce((sum, expense) => sum + expense.paid, 0);
                   return (
                     <TableRow key={payee.id} className="text-[13px]">
                       <TableCell className="py-2 pl-4">
@@ -360,10 +384,13 @@ export function Expenses() {
                 {
                   title: 'By payment method',
                   icon: BarChart3,
-                  rows: Array.from(new Set(expenses.map((expense) => expense.method))).map((method) => ({
+                  rows: reportPaymentMethods.map((method) => ({
                     label: method,
-                    value: expenses.filter((expense) => expense.method === method).reduce((sum, expense) => sum + expense.amount, 0)
-                  })).sort((a, b) => b.value - a.value)
+                    value: expenses.reduce((sum, expense) =>
+                      sum + paymentsFor(expense)
+                        .filter((payment) => payment.method === method)
+                        .reduce((paymentSum, payment) => paymentSum + payment.amount, 0), 0)
+                  })).filter((row) => row.value > 0).sort((a, b) => b.value - a.value)
                 }
               ].map((group) => {
                 const max = Math.max(...group.rows.map((row) => row.value), 1);

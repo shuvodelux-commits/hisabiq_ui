@@ -5,6 +5,9 @@ import { BrandGuide } from './pages/BrandGuide';
 import { AppShell } from './components/layout/AppShell';
 import { Dashboard } from './pages/Dashboard';
 import { Pos } from './pages/Pos';
+import { Sales } from './pages/Sales';
+import { Warranty } from './pages/Warranty';
+import { Reconciliation } from './pages/Reconciliation';
 import { Products } from './pages/Products';
 import { Parties } from './pages/Parties';
 import { Purchases } from './pages/Purchases';
@@ -22,6 +25,9 @@ export function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="pos" element={<Pos />} />
+          <Route path="sales" element={<Sales />} />
+          <Route path="warranty" element={<Warranty />} />
+          <Route path="reconciliation" element={<Reconciliation />} />
           <Route path="products" element={<Products />} />
           <Route path="parties" element={<Parties />} />
           <Route path="purchases" element={<Purchases />} />

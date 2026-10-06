@@ -3,6 +3,9 @@ import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   ShoppingCart,
+  FileText,
+  ShieldCheck,
+  Landmark,
   Package,
   Users,
   ReceiptText,
@@ -16,11 +19,14 @@ import { LogoLockup } from '../brand/Logo';
 
 const nav = [
   { to: '/app/dashboard', label: 'Dashboard', bn: 'ড্যাশবোর্ড', icon: LayoutDashboard },
-  { to: '/app/pos', label: 'POS / Sales', bn: 'বিক্রি', icon: ShoppingCart, hint: 'F1' },
+  { to: '/app/pos', label: 'POS / New Sale', bn: 'নতুন বিক্রি', icon: ShoppingCart, hint: 'F1' },
+  { to: '/app/sales', label: 'Sales', bn: 'বিক্রয়', icon: FileText },
+  { to: '/app/warranty', label: 'Warranty', bn: 'ওয়ারেন্টি', icon: ShieldCheck },
   { to: '/app/products', label: 'Products', bn: 'পণ্য', icon: Package },
   { to: '/app/parties', label: 'Parties & Ledger', bn: 'পার্টি ও খাতা', icon: Users },
   { to: '/app/purchases', label: 'Purchases', bn: 'ক্রয়', icon: ReceiptText },
   { to: '/app/expenses', label: 'Expenses', bn: 'খরচ', icon: Wallet },
+  { to: '/app/reconciliation', label: 'Reconciliation', bn: 'হিসাব মিলানো', icon: Landmark },
   { to: '/app/reports', label: 'Reports & Finance', bn: 'রিপোর্ট', icon: PieChart }
 ];
 

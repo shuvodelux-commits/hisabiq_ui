@@ -13,9 +13,12 @@ type CustomerPickerProps = {
 
 export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
   const [q, setQ] = useState('');
-  const customers = parties.filter(
-    (p) => (p.roles.includes('Customer') || p.roles.includes('Borrower')) && p.name.toLowerCase().includes(q.toLowerCase())
-  );
+  const customers = parties.filter((p) => {
+    if (!p.roles.includes('Customer') && !p.roles.includes('Borrower')) return false;
+    const needle = q.trim().toLowerCase();
+    if (!needle) return true;
+    return p.name.toLowerCase().includes(needle) || p.phone.toLowerCase().includes(needle);
+  });
 
   return (
     <FloatingPanel

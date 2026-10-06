@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
 import { StatusBadge } from '../StatusBadge';
+import type { PaymentSplit } from '../../types/erp';
 import { taka } from '../../utils/currency';
 
 export type BillDetail = {
@@ -16,6 +17,7 @@ export type BillDetail = {
   category?: string;
   total: number;
   paid: number;
+  payments?: PaymentSplit[];
   receipt?: string;
 };
 
@@ -63,10 +65,26 @@ export function BillDetailDialog({ bill, onClose }: {bill: BillDetail | null;onC
                   <p className="text-ink-700">{bill.description}</p>
                 </div>
                 <div className="space-y-1.5 rounded-lg bg-ink-50 p-3">
-                  <p className="flex justify-between"><span className="text-ink-500">Total</span><span className="tabular-nums font-medium">{taka(bill.total)}</span></p>
-                  <p className="flex justify-between"><span className="text-ink-500">Paid</span><span className="tabular-nums">{taka(bill.paid)}</span></p>
-                  <p className="flex justify-between border-t border-ink-200 pt-1.5 font-semibold"><span>Due</span><span className={`tabular-nums ${due > 0 ? 'text-danger' : 'text-success'}`}>{taka(due)}</span></p>
+                  <p className="flex justify-between"><span className="text-ink-500">Total</span><span className="font-medium">{taka(bill.total)}</span></p>
+                  <p className="flex justify-between"><span className="text-ink-500">Paid</span><span>{taka(bill.paid)}</span></p>
+                  <p className="flex justify-between border-t border-ink-200 pt-1.5 font-semibold"><span>Due</span><span className={due > 0 ? 'text-danger' : 'text-success'}>{taka(due)}</span></p>
                 </div>
+                {bill.payments && bill.payments.length > 0 && (
+                  <div className="rounded-lg border border-ink-100">
+                    <p className="border-b border-ink-100 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">Payments</p>
+                    <div className="divide-y divide-ink-100">
+                      {bill.payments.map((payment) => (
+                        <div key={payment.id} className="flex items-center justify-between gap-3 px-3 py-2 text-[12px]">
+                          <div className="min-w-0">
+                            <p className="font-medium text-ink">{payment.method}</p>
+                            <p className="truncate text-[10.5px] text-ink-400">{payment.account ?? 'Default account'}</p>
+                          </div>
+                          <span className="font-medium text-ink">{taka(payment.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>

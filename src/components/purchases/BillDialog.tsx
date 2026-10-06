@@ -9,7 +9,7 @@ import { PhotoUploader } from '../products/PhotoUploader';
 import { parties } from '../../data/parties';
 import { products } from '../../data/products';
 import { expenseCategories } from '../../data/purchases';
-import type { Expense, PaymentMethod, Product, Purchase } from '../../types/erp';
+import type { Expense, PaymentMethod, PaymentSplit, Product, Purchase } from '../../types/erp';
 import { taka } from '../../utils/currency';
 
 type BillDialogProps = {
@@ -29,10 +29,25 @@ type PurchaseLine = {
   unitCost: string;
 };
 
+type StandardPaymentMethod = Exclude<PaymentMethod, 'Customer Credit'>;
+
+type PaymentRow = {
+  id: string;
+  method: StandardPaymentMethod;
+  account: string;
+  amount: string;
+};
+
 const suppliers = parties.filter((p) => p.roles.some((r) => r === 'Supplier' || r === 'Vendor'));
 const payees = parties.filter((p) => p.roles.some((r) => r === 'Payee' || r === 'Vendor'));
-const methods: PaymentMethod[] = ['Cash', 'bKash', 'Nagad', 'Bank', 'Card'];
-const accounts = ['Cash counter', 'Dutch-Bangla Bank · 4582', 'bKash Business · 01711•••412', 'Nagad Merchant · 01819•••771'];
+const methods: StandardPaymentMethod[] = ['Cash', 'bKash', 'Nagad', 'Bank', 'Card'];
+const accountsByMethod: Record<StandardPaymentMethod, string[]> = {
+  Cash: ['Cash counter'],
+  Bank: ['Dutch-Bangla Bank · 4582'],
+  Card: ['Dutch-Bangla Bank · 4582'],
+  bKash: ['bKash Business · 01711•••412'],
+  Nagad: ['Nagad Merchant · 01819•••771']
+};
 const today = '2026-10-06';
 
 function productFor(line: PurchaseLine): Product {
@@ -61,6 +76,15 @@ function quantityLabel(line: PurchaseLine): string {
   return parts.length ? parts.join(' ') : `0 ${product.unit}`;
 }
 
+function newPaymentRow(seedIndex = 0, method: StandardPaymentMethod = 'Cash'): PaymentRow {
+  return {
+    id: `payment-${Date.now()}-${seedIndex}`,
+    method,
+    account: accountsByMethod[method][0],
+    amount: ''
+  };
+}
+
 function newLine(seedIndex = 1): PurchaseLine {
   const product = products[seedIndex % products.length];
   return {
@@ -81,9 +105,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   const [referenceNo, setReferenceNo] = useState('');
   const [notes, setNotes] = useState('');
   const [amount, setAmount] = useState('');
-  const [paid, setPaid] = useState('');
-  const [method, setMethod] = useState<PaymentMethod>('Cash');
-  const [account, setAccount] = useState(accounts[0]);
+  const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([newPaymentRow()]);
   const [photos, setPhotos] = useState<string[]>([]);
   const [lines, setLines] = useState<PurchaseLine[]>([newLine()]);
   const [error, setError] = useState('');
@@ -92,9 +114,31 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   const list = mode === 'purchase' ? suppliers : payees;
   const purchaseTotal = useMemo(() => lines.reduce((sum, line) => sum + lineTotal(line), 0), [lines]);
   const totalNum = mode === 'purchase' ? purchaseTotal : parseFloat(amount) || 0;
-  const paidNum = Math.min(parseFloat(paid) || 0, totalNum);
-  const due = totalNum - paidNum;
-  const needsAccount = method === 'Bank' || method === 'bKash' || method === 'Nagad';
+  const paymentTotal = paymentRows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+  const paidNum = Math.min(paymentTotal, totalNum);
+  const due = Math.max(totalNum - paidNum, 0);
+  const overpaid = Math.max(paymentTotal - totalNum, 0);
+
+  const updatePayment = (id: string, patch: Partial<PaymentRow>) => {
+    setPaymentRows((rows) => rows.map((row) => row.id === id ? { ...row, ...patch } : row));
+  };
+
+  const changePaymentMethod = (id: string, method: StandardPaymentMethod) => {
+    setPaymentRows((rows) => rows.map((row) => row.id === id ? {
+      ...row,
+      method,
+      account: accountsByMethod[method][0]
+    } : row));
+  };
+
+  const paymentSplits: PaymentSplit[] = paymentRows
+    .filter((row) => (parseFloat(row.amount) || 0) > 0)
+    .map((row) => ({
+      id: row.id,
+      method: row.method,
+      amount: parseFloat(row.amount),
+      ...(row.account ? { account: row.account } : {})
+    }));
 
   const updateLine = (id: string, patch: Partial<PurchaseLine>) => {
     setLines((current) => current.map((line) => line.id === id ? { ...line, ...patch } : line));
@@ -124,9 +168,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
     setReferenceNo('');
     setNotes('');
     setAmount('');
-    setPaid('');
-    setMethod('Cash');
-    setAccount(accounts[0]);
+    setPaymentRows([newPaymentRow()]);
     setPhotos([]);
     setLines([newLine()]);
     setError('');
@@ -139,6 +181,10 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
     }
     if (isBackdated && !backdateReason.trim()) {
       setError('Enter a reason for the backdated transaction.');
+      return;
+    }
+    if (paymentTotal > totalNum) {
+      setError(`Payments exceed the transaction total by ${taka(paymentTotal - totalNum)}.`);
       return;
     }
 
@@ -158,6 +204,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
         items: items || 'Items not itemised',
         total: totalNum,
         paid: paidNum,
+        payments: paymentSplits,
         receipt: photos[0]
       });
     } else {
@@ -171,8 +218,9 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
         payeeId: selectedParty?.id,
         note: combinedNote || 'Expense',
         amount: totalNum,
-        paid: paidNum || totalNum,
-        method,
+        paid: paidNum,
+        method: paymentSplits[0]?.method ?? 'Cash',
+        payments: paymentSplits,
         receipt: photos[0]
       });
     }
@@ -378,68 +426,116 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           </div>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <section className="overflow-hidden rounded-xl border border-ink-100">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 bg-ink-50/60 px-3 py-2">
+            <div>
+              <p className="text-[13px] font-medium text-ink">
+                Payments <span className="font-bn text-[11px] font-normal text-ink-400">· পেমেন্ট</span>
+              </p>
+              <p className="text-[11px] text-ink-500">Use one or multiple payment sources for this transaction.</p>
+            </div>
+            <div className="flex gap-2">
+              {totalNum > 0 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPaymentRows([{
+                    ...newPaymentRow(0, paymentRows[0]?.method ?? 'Cash'),
+                    account: paymentRows[0]?.account ?? accountsByMethod[paymentRows[0]?.method ?? 'Cash'][0],
+                    amount: String(totalNum)
+                  }])}>
+                  Pay full
+                </Button>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setPaymentRows((rows) => [...rows, newPaymentRow(rows.length)])}>
+                <Plus className="size-4" /> Add source
+              </Button>
+            </div>
+          </div>
+
+          <div className="divide-y divide-ink-100">
+            {paymentRows.map((row, index) => (
+              <div key={row.id} className="grid gap-2 p-3 sm:grid-cols-[140px_minmax(0,1fr)_140px_32px] sm:items-end">
+                <label className="text-[12px] font-medium text-ink">
+                  {index + 1}. Method
+                  <FormSelect
+                    className="mt-1"
+                    value={row.method}
+                    onChange={(event) => changePaymentMethod(row.id, event.target.value as StandardPaymentMethod)}
+                    options={methods}
+                  />
+                </label>
+
+                <label className="text-[12px] font-medium text-ink">
+                  Account
+                  <FormSelect
+                    className="mt-1"
+                    value={row.account}
+                    onChange={(event) => updatePayment(row.id, { account: event.target.value })}
+                    options={accountsByMethod[row.method]}
+                  />
+                </label>
+
+                <label className="text-[12px] font-medium text-ink">
+                  Amount
+                  <div className="relative mt-1">
+                    <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
+                    <Input
+                      value={row.amount}
+                      onChange={(event) => updatePayment(row.id, { amount: event.target.value.replace(/[^\d.]/g, '') })}
+                      inputMode="decimal"
+                      className="pl-6 text-right"
+                      placeholder="0"
+                    />
+                  </div>
+                </label>
+
+                <button
+                  type="button"
+                  disabled={paymentRows.length === 1}
+                  onClick={() => setPaymentRows((rows) => rows.filter((item) => item.id !== row.id))}
+                  className="mb-0.5 flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger-bg hover:text-danger disabled:cursor-not-allowed disabled:opacity-30"
+                  aria-label={`Remove payment source ${index + 1}`}>
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-3 gap-px border-t border-ink-100 bg-ink-100 text-center text-[12px]">
+            <div className="bg-ink-50 px-3 py-2">
+              <p className="text-ink-400">Total</p>
+              <p className="mt-0.5 font-semibold text-ink">{taka(totalNum)}</p>
+            </div>
+            <div className="bg-ink-50 px-3 py-2">
+              <p className="text-ink-400">Paid</p>
+              <p className="mt-0.5 font-semibold text-ink">{taka(paymentTotal)}</p>
+            </div>
+            <div className="bg-ink-50 px-3 py-2">
+              <p className="text-ink-400">{overpaid > 0 ? 'Over' : 'Due'}</p>
+              <p className={`mt-0.5 font-semibold ${overpaid > 0 || due > 0 ? 'text-danger' : 'text-success'}`}>
+                {taka(overpaid > 0 ? overpaid : due)}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {mode === 'purchase' && (
           <label className="block text-[13px] font-medium text-ink">
-            Payment method
-            <FormSelect
-              className="mt-1.5"
-              value={method}
-              onChange={(event) => setMethod(event.target.value as PaymentMethod)}
-              options={methods}
-            />
+            Notes
+            <Input className="mt-1.5" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Supplier memo note, delivery note or internal remark" />
           </label>
+        )}
 
-          {needsAccount ? (
-            <label className="block text-[13px] font-medium text-ink">
-              Account
-              <FormSelect className="mt-1.5" value={account} onChange={(event) => setAccount(event.target.value)} options={accounts} />
-            </label>
-          ) : (
-            <label className="block text-[13px] font-medium text-ink">
-              Paid now
-              <div className="relative mt-1.5">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-                <Input
-                  value={paid}
-                  onChange={(event) => setPaid(event.target.value.replace(/[^\d.]/g, ''))}
-                  className="pl-7 text-right"
-                  inputMode="decimal"
-                  placeholder={mode === 'expense' ? String(totalNum || 0) : '0'}
-                />
-              </div>
-            </label>
-          )}
-
-          {needsAccount && (
-            <label className="block text-[13px] font-medium text-ink">
-              Paid now
-              <div className="relative mt-1.5">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-                <Input
-                  value={paid}
-                  onChange={(event) => setPaid(event.target.value.replace(/[^\d.]/g, ''))}
-                  className="pl-7 text-right"
-                  inputMode="decimal"
-                  placeholder={mode === 'expense' ? String(totalNum || 0) : '0'}
-                />
-              </div>
-            </label>
-          )}
-
-          {mode === 'purchase' && (
-            <label className="block text-[13px] font-medium text-ink sm:col-span-2">
-              Notes
-              <Input className="mt-1.5" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Supplier memo note, delivery note or internal remark" />
-            </label>
-          )}
-        </div>
-
-        {totalNum > 0 && (
-          <div className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2 text-sm">
-            <span className="text-ink-500">
-              {due > 0 ? (mode === 'purchase' ? `Due to ${party}` : 'Unpaid amount') : 'Fully paid'}
-            </span>
-            <span className={`font-semibold ${due > 0 ? 'text-danger' : 'text-success'}`}>{taka(due)}</span>
+        {totalNum > 0 && due > 0 && (
+          <div className="flex items-center justify-between rounded-lg bg-warning-bg px-3 py-2 text-sm">
+            <span className="text-warning">{mode === 'purchase' ? `Due to ${party}` : 'Unpaid expense amount'}</span>
+            <span className="font-semibold text-warning">{taka(due)}</span>
           </div>
         )}
 
