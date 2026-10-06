@@ -1358,7 +1358,7 @@ export function Sales() {
                       <span className="text-[13px] font-semibold">{taka(draft.total)}</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                      <Button size="sm" onClick={() => { toast(`${draft.label} continued in POS`); navigate('/app/pos'); }}>Continue</Button>
+                      <Button size="sm" onClick={() => { toast(`${draft.label} continued in POS`); navigate(`/app/pos?mode=continue-draft&draft=${draft.id}`); }}>Continue</Button>
                       <FloatingPanel
                         label={`Actions for ${draft.label}`}
                         width={190}
@@ -1367,10 +1367,10 @@ export function Sales() {
                         )}>
                         {(close) => (
                           <div className="py-1">
-                            <button onClick={() => { close(); toast(`${draft.label} opened for editing`); navigate('/app/pos'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <button onClick={() => { close(); toast(`${draft.label} opened for editing`); navigate(`/app/pos?mode=edit-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Pencil className="size-4 text-ink-400" /> Edit
                             </button>
-                            <button onClick={() => { close(); toast(`${draft.label} duplicated`); navigate('/app/pos'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <button onClick={() => { close(); toast(`${draft.label} duplicated`); navigate(`/app/pos?mode=duplicate-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Copy className="size-4 text-ink-400" /> Duplicate
                             </button>
                             <button onClick={() => {
