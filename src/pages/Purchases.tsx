@@ -200,6 +200,7 @@ export function Purchases() {
                       description: p.items,
                       total: p.total,
                       paid: p.paid,
+                      payments: p.payments,
                       receipt: p.receipt
                     });
                   return (
