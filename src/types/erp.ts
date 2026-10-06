@@ -62,7 +62,7 @@ export type LedgerEntry = {
   attachment?: {name: string;url?: string;};
 };
 
-export type PaymentMethod = 'Cash' | 'bKash' | 'Nagad' | 'Card' | 'Bank';
+export type PaymentMethod = 'Cash' | 'bKash' | 'Nagad' | 'Card' | 'Bank' | 'Customer Credit';
 
 export type Sale = {
   id: string;
