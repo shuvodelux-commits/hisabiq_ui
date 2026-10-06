@@ -209,6 +209,13 @@ function WarrantyDetailDialog({
                       <div><p className="text-ink-400">Expected</p><p className="font-medium text-ink">{item.expectedDate ?? '—'}</p></div>
                       <div><p className="text-ink-400">Resolution</p><p className="font-medium text-ink">{item.resolution ?? 'Not decided'}</p></div>
                     </div>
+                    {item.finalReplacement && (
+                      <div className="rounded-lg bg-ink-50 p-3">
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Final replacement</p>
+                        <p className="mt-1 text-[12.5px] font-medium text-ink">{item.finalReplacement.product}</p>
+                        <p className="text-[11px] text-ink-500">{item.finalReplacement.serial ? `Serial ${item.finalReplacement.serial}` : 'No serial recorded'}</p>
+                      </div>
+                    )}
                     {item.note && <p className="rounded-lg bg-warning-bg px-3 py-2 text-warning">{item.note}</p>}
                   </div>
                 </div>
@@ -283,10 +290,12 @@ function WarrantyDetailDialog({
 
 function IntakeDialog({
   open,
+  initialInvoice,
   onOpenChange,
   onSave
 }: {
   open: boolean;
+  initialInvoice?: string;
   onOpenChange: (open: boolean) => void;
   onSave: (item: WarrantyCase) => void;
 }) {
@@ -301,6 +310,18 @@ function IntakeDialog({
   const [supplier, setSupplier] = useState('Padma Electric Supply');
   const [expectedDate, setExpectedDate] = useState('');
   const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (!open || !initialInvoice) return;
+    const nextInvoice = customerInvoices.find((invoice) => invoice.invoice === initialInvoice);
+    if (!nextInvoice) return;
+    setInvoiceNo(nextInvoice.invoice);
+    const firstLine = nextInvoice.lines[0];
+    if (firstLine) {
+      setProductId(firstLine.productId);
+      setSerial(firstLine.serials?.[0] ?? '');
+    }
+  }, [initialInvoice, open]);
 
   const reset = () => {
     setIssue('');
@@ -613,6 +634,9 @@ function TemporaryReplacementDialog({
 
 export function Warranty() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const intakeInvoice = searchParams.get('invoice') ?? undefined;
+  const intakeOpened = useRef(false);
   const [tab, setTab] = useState<Tab>('cases');
   const [cases, setCases] = useState<WarrantyCase[]>(seedCases);
   const [query, setQuery] = useState('');
@@ -621,6 +645,14 @@ export function Warranty() {
   const [detail, setDetail] = useState<WarrantyCase | null>(null);
   const [intakeOpen, setIntakeOpen] = useState(false);
   const [replacementTarget, setReplacementTarget] = useState<WarrantyCase | null>(null);
+  const [sendTarget, setSendTarget] = useState<WarrantyCase | null>(null);
+  const [receiveTarget, setReceiveTarget] = useState<WarrantyCase | null>(null);
+
+  useEffect(() => {
+    if (!intakeInvoice || intakeOpened.current) return;
+    intakeOpened.current = true;
+    setIntakeOpen(true);
+  }, [intakeInvoice]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -674,14 +706,72 @@ export function Warranty() {
   const advance = (item: WarrantyCase) => {
     const action = nextAction(item);
     if (!action) return;
+
+    if (item.status === 'Checking' && item.route !== 'In-house') {
+      setDetail(null);
+      setSendTarget(item);
+      return;
+    }
+
+    if (item.status === 'Waiting supplier') {
+      setDetail(null);
+      setReceiveTarget(item);
+      return;
+    }
+
     if (action.next === 'Resolved' && item.replacement && !item.replacement.returnedAt) {
       toast.error('Collect the temporary replacement before closing this warranty');
       return;
     }
+
     let patch: Partial<WarrantyCase> = { status: action.next };
-    if (action.next === 'Received from supplier' && !item.resolution) patch = { ...patch, resolution: 'Replace' };
+    if (item.status === 'Checking' && item.route === 'In-house' && !item.resolution) {
+      patch = { ...patch, resolution: 'Repair' };
+    }
     updateCase(item.id, patch, action.label);
     toast.success(`${item.id} · ${action.next}`);
+  };
+
+  const sendExternal = (item: WarrantyCase, supplier: string, supplierRef: string, expectedDate: string) => {
+    updateCase(item.id, {
+      status: 'Sent to supplier',
+      supplier,
+      ...(supplierRef.trim() ? { supplierRef: supplierRef.trim() } : {}),
+      ...(expectedDate.trim() ? { expectedDate: expectedDate.trim() } : {})
+    }, item.route === 'Manufacturer' ? 'Sent to manufacturer' : 'Sent to supplier', `${supplier}${supplierRef.trim() ? ` · ${supplierRef.trim()}` : ''}`);
+    toast.success(`${item.id} sent`, { description: supplier });
+  };
+
+  const receiveExternal = (
+    item: WarrantyCase,
+    resolution: 'Repair' | 'Replace' | 'Rejected',
+    replacementSerial: string,
+    note: string
+  ) => {
+    if (resolution === 'Rejected') {
+      if (item.replacement && !item.replacement.returnedAt) {
+        toast.error('Collect the temporary replacement before rejecting this warranty');
+        return;
+      }
+      updateCase(item.id, {
+        status: 'Rejected',
+        resolution: 'Rejected'
+      }, item.route === 'Manufacturer' ? 'Received rejected from manufacturer' : 'Received rejected from supplier', note || undefined);
+      toast.error(`${item.id} rejected by ${item.route.toLowerCase()}`);
+      return;
+    }
+
+    updateCase(item.id, {
+      status: 'Received from supplier',
+      resolution,
+      ...(resolution === 'Replace' ? {
+        finalReplacement: {
+          product: item.product,
+          ...(replacementSerial.trim() ? { serial: replacementSerial.trim() } : {})
+        }
+      } : {})
+    }, item.route === 'Manufacturer' ? 'Received from manufacturer' : 'Received from supplier', note || (resolution === 'Replace' ? 'Replacement product received.' : 'Repaired product received.'));
+    toast.success(`${item.id} received back`, { description: resolution });
   };
 
   const reject = (item: WarrantyCase) => {
@@ -884,12 +974,28 @@ export function Warranty() {
 
       <IntakeDialog
         open={intakeOpen}
-        onOpenChange={setIntakeOpen}
+        initialInvoice={intakeInvoice}
+        onOpenChange={(open) => {
+          setIntakeOpen(open);
+          if (!open && intakeInvoice) navigate('/app/warranty', { replace: true });
+        }}
         onSave={(item) => {
           setCases((items) => [item, ...items]);
           setTab('cases');
           toast.success(`${item.id} received`, { description: `${item.customer} · ${item.product}` });
         }}
+      />
+
+      <SendExternalDialog
+        item={sendTarget}
+        onClose={() => setSendTarget(null)}
+        onSave={sendExternal}
+      />
+
+      <ReceiveExternalDialog
+        item={receiveTarget}
+        onClose={() => setReceiveTarget(null)}
+        onSave={receiveExternal}
       />
 
       <TemporaryReplacementDialog
