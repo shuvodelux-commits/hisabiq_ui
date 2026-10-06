@@ -472,9 +472,9 @@ export function Sales() {
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
-        title="Sales management"
-        titleBn="বিক্রয় ব্যবস্থাপনা"
-        description="Find invoices, collect due payments, edit or duplicate sales, handle returns, drafts and reusable templates."
+        title="Sales"
+        titleBn="বিক্রয়"
+        description="Manage invoices, collect due payments, handle returns, drafts and reusable sale templates."
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
@@ -608,9 +608,16 @@ export function Sales() {
         {tab === 'return' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
             <div className="space-y-3">
-              <div className="rounded-xl border border-ink-100 p-3">
-                <p className="text-sm font-semibold text-ink">1. Choose customer</p>
-                <p className="mt-0.5 text-[11px] text-ink-500">Select a customer to see all invoices that can be returned together.</p>
+              <div className="rounded-xl border border-ink-100 bg-ink-50/50 p-4">
+                <div className="mb-3 flex items-start gap-2">
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                    <UserRound className="size-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-ink">Choose customer</p>
+                    <p className="text-xs text-ink-500">Select a customer to load invoices that can be returned together.</p>
+                  </div>
+                </div>
                 <FormSelect
                   className="mt-3"
                   value={returnCustomer}
@@ -623,10 +630,10 @@ export function Sales() {
                 />
               </div>
 
-              <div className="rounded-xl border border-ink-100">
+              <div className="rounded-xl border border-ink-100 bg-white">
                 <div className="border-b border-ink-100 p-3">
-                  <p className="text-sm font-semibold text-ink">2. Select invoices</p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Batch return supports more than one invoice.</p>
+                  <p className="text-[13px] font-medium text-ink">Select invoices <span className="font-bn text-[11px] font-normal text-ink-400">· ইনভয়েস বাছুন</span></p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">Choose one or more invoices for a batch return.</p>
                 </div>
                 <div className="divide-y divide-ink-100">
                   {customerInvoices.map((invoice) => (
@@ -651,9 +658,9 @@ export function Sales() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-ink-100">
+            <div className="rounded-xl border border-ink-100 bg-white">
               <div className="border-b border-ink-100 p-3">
-                <p className="text-sm font-semibold text-ink">3. Return items</p>
+                <p className="text-[13px] font-medium text-ink">Return items <span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span></p>
                 <p className="mt-0.5 text-[11px] text-ink-500">Enter quantity against any item from the selected invoices.</p>
               </div>
 
@@ -697,7 +704,7 @@ export function Sales() {
                     </TableBody>
                   </Table>
 
-                  <div className="grid gap-3 border-t border-ink-100 p-3 sm:grid-cols-[minmax(0,1fr)_180px_160px] sm:items-end">
+                  <div className="grid gap-3 border-t border-ink-100 bg-ink-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_180px_160px] sm:items-end">
                     <label className="text-[12px] font-medium text-ink">
                       Settlement
                       <FormSelect
@@ -766,8 +773,8 @@ export function Sales() {
             <section className="overflow-hidden rounded-xl border border-ink-100">
               <div className="flex items-center justify-between border-b border-ink-100 p-3">
                 <div>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileClock className="size-4 text-teal-700" /> Draft sales</p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Continue, edit or duplicate a held sale.</p>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileClock className="size-4 text-teal-700" /> Draft sales <span className="font-bn text-[11px] font-normal text-ink-400">· খসড়া</span></p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">Continue, edit, duplicate or archive a held sale.</p>
                 </div>
                 <StatusBadge tone="teal">{salesDrafts.length}</StatusBadge>
               </div>
@@ -795,8 +802,8 @@ export function Sales() {
             <section className="overflow-hidden rounded-xl border border-ink-100">
               <div className="flex items-center justify-between border-b border-ink-100 p-3">
                 <div>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> Sale templates</p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Reuse common invoice carts without recreating every line.</p>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> Sale templates <span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span></p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">Reuse common carts without recreating every line.</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => toast('Save current POS cart as template')}><Plus className="size-3.5" /> Template</Button>
               </div>
