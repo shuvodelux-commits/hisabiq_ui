@@ -175,7 +175,7 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
             className="flex w-full items-center justify-between px-4 py-3 text-left">
             
             <span>
-              <span className="block text-sm font-semibold text-ink">Advanced</span>
+              <span className="block text-sm font-semibold text-ink">Advanced <span className="font-bn text-[11px] font-normal text-ink-400">· উন্নত সেটিংস</span></span>
               <span className="block text-xs text-ink-500">Multiple units, opening stock, minimum stock, barcode</span>
             </span>
             <ChevronDown className={`size-4 text-ink-400 transition-transform ${advanced ? 'rotate-180' : ''}`} />
@@ -192,7 +192,7 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                 <div className="space-y-4 border-t border-ink-100 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-[13px] font-medium text-ink">Sell in a larger unit too</p>
+                      <p className="text-[13px] font-medium text-ink">Sell in a larger unit too <span className="font-bn text-[11px] font-normal text-ink-400">· বড় এককে বিক্রি</span></p>
                       <p className="text-xs text-ink-500">e.g. Box and Pcs, or Gauge and Gira</p>
                     </div>
                     <Switch checked={multiUnit} onCheckedChange={(checked) => {
@@ -233,11 +233,16 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                         <Info className="size-3.5" />
                         Reads as “1 {altUnit || '…'} = {factor || '…'} {unit}”. POS lets cashiers pick either unit per line.
                       </p>
+                      {selectedSellUnit === unit ?
                       <div className="mt-3 max-w-xs">
-                        <Field label={`Custom selling price / ${altUnit || 'unit'}`} hint={autoAltSell ? `Auto ${taka(autoAltSell, autoAltSell % 1 ? 2 : 0)} / ${altUnit || 'unit'} from the base price. Leave empty to keep auto.` : 'Optional override. Leave empty to use automatic conversion.'}>
-                          <MoneyInput value={altPrice} onChange={(e) => setAltPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={autoAltSell ? String(autoAltSell) : '0'} />
-                        </Field>
-                      </div>
+                          <Field label={`Custom selling price / ${altUnit || 'unit'}`} hint={autoAltSell ? `Auto ${taka(autoAltSell, autoAltSell % 1 ? 2 : 0)} / ${altUnit || 'unit'}. Leave empty to keep automatic conversion.` : 'Optional override. Leave empty to use automatic conversion.'}>
+                            <MoneyInput value={altPrice} onChange={(e) => setAltPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={autoAltSell ? String(autoAltSell) : '0'} />
+                          </Field>
+                        </div> :
+                      <p className="mt-3 rounded-md border border-teal-100 bg-white/70 px-3 py-2 text-xs text-teal-800">
+                          Selling price is already entered in {selectedSellUnit}. No extra larger-unit price is required.
+                        </p>
+                      }
                     </div>
                 }
 
@@ -250,7 +255,7 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                     </Field>
                     <Field label="Minimum stock" bn="সর্বনিম্ন স্টক" hint="We’ll alert you when stock falls below this.">
                       <div className="flex gap-2">
-                        <Input value={minQty} onChange={(e) => setMinQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right tabular-nums" inputMode="decimal" />
+                        <Input value={minQty} onChange={(e) => setMinQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
                         <FormSelect value={units.includes(minUnit) ? minUnit : unit} onChange={(e) => setMinUnit(e.target.value)} options={units} className="w-28 shrink-0" />
                       </div>
                     </Field>
