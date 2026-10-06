@@ -84,10 +84,10 @@ function InvoiceActions({
           <button className={itemClass} onClick={() => { close(); onView(); }}>
             <FileText className="size-4 text-ink-400" /> View invoice
           </button>
-          <button className={itemClass} onClick={() => { close(); toast('Opening sale in POS edit mode'); navigate('/app/pos'); }}>
+          <button className={itemClass} onClick={() => { close(); navigate(`/app/pos?mode=edit&invoice=${invoice.invoice}`); }}>
             <Pencil className="size-4 text-ink-400" /> Edit sale
           </button>
-          <button className={itemClass} onClick={() => { close(); toast('Duplicating invoice into POS'); navigate('/app/pos'); }}>
+          <button className={itemClass} onClick={() => { close(); navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`); }}>
             <Copy className="size-4 text-ink-400" /> Duplicate
           </button>
           {invoice.due > 0 && (
