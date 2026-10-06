@@ -7,6 +7,9 @@ export type ReceiptLine = {name: string;qty: string;price: number;total: number;
 type ReceiptPreviewProps = {
   invoice: string;
   customer?: string;
+  customerPhone?: string;
+  guardianName?: string;
+  customerAddress?: string;
   lines: ReceiptLine[];
   subtotal: number;
   discount: number;
@@ -31,7 +34,10 @@ export function ReceiptPreview(p: ReceiptPreviewProps) {
       </div>
       <div className="my-3 border-t border-dashed border-ink-300" />
       <div className="flex justify-between"><span>{p.invoice}</span><span>{p.dateTime ?? '01 Oct 2026, 11:58 AM'}</span></div>
-      <div className="flex justify-between"><span>Customer</span><span>{p.customer ?? 'Walk-in'}</span></div>
+      <div className="flex justify-between gap-3"><span>Customer</span><span className="text-right">{p.customer ?? 'Walk-in'}</span></div>
+      {p.customerPhone && <div className="flex justify-between gap-3"><span>Phone</span><span className="text-right">{p.customerPhone}</span></div>}
+      {p.guardianName && <div className="flex justify-between gap-3"><span>Guardian</span><span className="text-right">{p.guardianName}</span></div>}
+      {p.customerAddress && <div className="flex justify-between gap-3"><span>Address</span><span className="max-w-[170px] text-right">{p.customerAddress}</span></div>}
       <div className="my-3 border-t border-dashed border-ink-300" />
       <ol className="space-y-1.5">
         {p.lines.map((l, i) =>
