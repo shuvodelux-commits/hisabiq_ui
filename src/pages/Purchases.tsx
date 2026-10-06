@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowDownToLine,
   CornerUpLeft,
@@ -57,6 +57,7 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 }
 
 export function Purchases() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('purchases');
   const [purchases, setPurchases] = useState<Purchase[]>(seedPurchases);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -112,10 +113,8 @@ export function Purchases() {
         description="Purchase stock, manage supplier bills, update purchases and handle purchase returns."
         actions={
           <>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/app/parties">
-                <FileText className="size-4" /> Supplier ledger
-              </Link>
+            <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
+              <FileText className="size-4" /> Supplier ledger
             </Button>
             <Button size="sm" onClick={() => setDialogOpen(true)}>
               <Plus className="size-4" /> New purchase
@@ -247,7 +246,7 @@ export function Purchases() {
         {tab === 'return' && (
           <div className="p-4">
             <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
-              <div className="rounded-xl border border-ink-100 bg-ink-25 p-4">
+              <div className="rounded-xl border border-ink-100 bg-ink-50/50 p-4">
                 <div className="mb-3 flex items-start gap-2">
                   <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                     <Search className="size-4" />
@@ -293,7 +292,7 @@ export function Purchases() {
                     </div>
                     <div className="p-4">
                       <div className="rounded-lg border border-ink-100">
-                        <div className="grid grid-cols-[1fr_100px_120px] gap-2 border-b border-ink-100 bg-ink-25 px-3 py-2 text-xs font-medium text-ink-500">
+                        <div className="grid grid-cols-[1fr_100px_120px] gap-2 border-b border-ink-100 bg-ink-50/50 px-3 py-2 text-xs font-medium text-ink-500">
                           <span>Item</span>
                           <span>Return qty</span>
                           <span className="text-right">Refund</span>
