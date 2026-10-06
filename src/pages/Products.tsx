@@ -7,6 +7,7 @@ import { ProductThumb } from '../components/ProductThumb';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { AddProductDialog } from '../components/products/AddProductDialog';
+import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { productCategories, products as seed } from '../data/products';
 import type { Product } from '../types/erp';
@@ -21,6 +22,61 @@ const statusMeta: Record<StockStatus, {label: string;tone: StatusTone;}> = {
 };
 
 type StockFilter = 'all' | 'low' | 'out';
+function ProductActions({
+  product,
+  onDuplicate,
+  onToggle
+}: {
+  product: Product;
+  onDuplicate: () => void;
+  onToggle: () => void;
+}) {
+  return (
+    <FloatingPanel
+      label={`Actions for ${product.name}`}
+      width={190}
+      trigger={({ toggle, open }) => (
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={open}
+          aria-label={`Actions for ${product.name}`}
+          className="rounded-md p-1 text-ink-400 hover:bg-ink-50 hover:text-ink">
+          <MoreHorizontal className="size-4" />
+        </button>
+      )}>
+      {(close) => (
+        <div className="py-1">
+          <button
+            type="button"
+            onClick={() => { close(); toast(`Edit product · ${product.name}`); }}
+            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+            Edit product
+          </button>
+          <button
+            type="button"
+            onClick={() => { close(); toast(`Adjust stock · ${product.name}`); }}
+            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+            Adjust stock
+          </button>
+          <button
+            type="button"
+            onClick={() => { close(); onDuplicate(); }}
+            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+            Duplicate
+          </button>
+          <button
+            type="button"
+            onClick={() => { close(); onToggle(); }}
+            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+            {product.active ? 'Deactivate' : 'Activate'}
+          </button>
+        </div>
+      )}
+    </FloatingPanel>
+  );
+}
+
 type ProductView = 'list' | 'settings';
 
 export function Products() {
@@ -209,9 +265,15 @@ export function Products() {
                     <StatusBadge tone={statusMeta[s].tone} dot>{statusMeta[s].label}</StatusBadge>
                   </TableCell>
                   <TableCell className="py-2 pr-4">
-                    <button type="button" aria-label={`Actions for ${p.name}`} className="rounded-md p-1 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                      <MoreHorizontal className="size-4" />
-                    </button>
+                    <ProductActions
+                      product={p}
+                      onDuplicate={() => {
+                        const copy = { ...p, id: `p${Date.now()}`, name: `${p.name} Copy`, sku: `${p.sku}-COPY` };
+                        setList((items) => [copy, ...items]);
+                        toast.success(`${p.name} duplicated`);
+                      }}
+                      onToggle={() => setList((items) => items.map((item) => item.id === p.id ? { ...item, active: !item.active } : item))}
+                    />
                   </TableCell>
                 </TableRow>);
 
