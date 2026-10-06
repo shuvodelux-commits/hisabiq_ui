@@ -843,7 +843,7 @@ export function Sales() {
       </div>
 
       <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-ink-100 px-3" role="tablist">
+        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -851,7 +851,7 @@ export function Sales() {
               aria-selected={tab === id}
               onClick={() => setTab(id)}
               title={helper}
-              className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'border-teal-600 text-ink' : 'border-transparent text-ink-500 hover:text-ink'}`}>
+              className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'border-teal-600 text-ink' : 'border-transparent text-ink-500 hover:text-ink'}`}>
               {label}
               {id === 'sales' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{invoices.length}</span>}
               {id === 'returns' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{returns.length}</span>}
@@ -1162,9 +1162,39 @@ export function Sales() {
                     {item.refundMethod && <p className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
                   </TableCell>
                   <TableCell className="py-2 pr-4 text-right">
-                    <button onClick={() => toast('Return actions', { description: 'View · Print · Customer ledger' })} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`Actions for ${item.id}`}>
-                      <MoreHorizontal className="size-4" />
-                    </button>
+                    <FloatingPanel
+                      label={`Actions for ${item.id}`}
+                      width={210}
+                      trigger={({ toggle, open }) => (
+                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`Actions for ${item.id}`}>
+                          <MoreHorizontal className="size-4" />
+                        </button>
+                      )}>
+                      {(close) => (
+                        <div className="py-1">
+                          <button onClick={() => { close(); toast(`${item.id} opened`, { description: item.items }); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <FileText className="size-4 text-ink-400" /> View return
+                          </button>
+                          <button onClick={() => { close(); toast.success(`${item.id} sent to printer`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <Printer className="size-4 text-ink-400" /> Print
+                          </button>
+                          <button onClick={() => { close(); navigate('/app/parties'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <BookOpen className="size-4 text-ink-400" /> Customer ledger
+                          </button>
+                          <button onClick={() => {
+                            close();
+                            setReturnCustomer(item.customer);
+                            setReturnInvoiceIds([]);
+                            setReturnQty({});
+                            setReturnReason({});
+                            setReturnSerials({});
+                            setTab('return');
+                          }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <CornerUpLeft className="size-4 text-ink-400" /> Start another return
+                          </button>
+                        </div>
+                      )}
+                    </FloatingPanel>
                   </TableCell>
                 </TableRow>
               ))}
@@ -1279,11 +1309,28 @@ export function Sales() {
                       </div>
                       <span className="text-[13px] font-semibold">{taka(draft.total)}</span>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 flex items-center gap-2">
                       <Button size="sm" onClick={() => { toast(`${draft.label} continued in POS`); navigate('/app/pos'); }}>Continue</Button>
-                      <Button size="sm" variant="outline" onClick={() => { toast(`${draft.label} opened for editing`); navigate('/app/pos'); }}>Edit</Button>
-                      <Button size="sm" variant="outline" onClick={() => { toast(`${draft.label} duplicated`); navigate('/app/pos'); }}><Copy className="size-3.5" /> Duplicate</Button>
-                      <Button size="sm" variant="ghost" onClick={() => toast.error(`${draft.label} archived`)}>Archive</Button>
+                      <FloatingPanel
+                        label={`Actions for ${draft.label}`}
+                        width={190}
+                        trigger={({ toggle, open }) => (
+                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> Actions</Button>
+                        )}>
+                        {(close) => (
+                          <div className="py-1">
+                            <button onClick={() => { close(); toast(`${draft.label} opened for editing`); navigate('/app/pos'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <Pencil className="size-4 text-ink-400" /> Edit
+                            </button>
+                            <button onClick={() => { close(); toast(`${draft.label} duplicated`); navigate('/app/pos'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <Copy className="size-4 text-ink-400" /> Duplicate
+                            </button>
+                            <button onClick={() => { close(); toast.error(`${draft.label} archived`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
+                              <Trash2 className="size-4" /> Archive
+                            </button>
+                          </div>
+                        )}
+                      </FloatingPanel>
                     </div>
                   </div>
                 ))}
@@ -1308,10 +1355,28 @@ export function Sales() {
                       </div>
                       <span className="text-[13px] font-semibold">{taka(template.total)}</span>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 flex items-center gap-2">
                       <Button size="sm" onClick={() => { toast(`${template.name} loaded into POS`); navigate('/app/pos'); }}>Use template</Button>
-                      <Button size="sm" variant="outline" onClick={() => toast(`Editing ${template.name}`)}>Edit</Button>
-                      <Button size="sm" variant="outline" onClick={() => toast(`${template.name} duplicated`)}><Copy className="size-3.5" /> Duplicate</Button>
+                      <FloatingPanel
+                        label={`Actions for ${template.name}`}
+                        width={190}
+                        trigger={({ toggle, open }) => (
+                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> Actions</Button>
+                        )}>
+                        {(close) => (
+                          <div className="py-1">
+                            <button onClick={() => { close(); toast(`Editing ${template.name}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <Pencil className="size-4 text-ink-400" /> Edit template
+                            </button>
+                            <button onClick={() => { close(); toast(`${template.name} duplicated`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <Copy className="size-4 text-ink-400" /> Duplicate
+                            </button>
+                            <button onClick={() => { close(); toast.error(`${template.name} deleted`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
+                              <Trash2 className="size-4" /> Delete
+                            </button>
+                          </div>
+                        )}
+                      </FloatingPanel>
                     </div>
                   </div>
                 ))}
