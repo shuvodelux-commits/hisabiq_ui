@@ -243,6 +243,10 @@ export type WarrantyCase = {
   supplierRef?: string;
   expectedDate?: string;
   resolution?: 'Repair' | 'Replace' | 'Refund' | 'Rejected';
+  finalReplacement?: {
+    product: string;
+    serial?: string;
+  };
   replacement?: WarrantyReplacement;
   note?: string;
   events: WarrantyEvent[];
