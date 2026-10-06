@@ -76,6 +76,61 @@ export type Sale = {
   method: PaymentMethod;
 };
 
+export type SalePayment = {
+  id: string;
+  method: PaymentMethod;
+  amount: number;
+  account?: string;
+};
+
+export type SaleLine = {
+  id: string;
+  productId: string;
+  name: string;
+  quantity: string;
+  unit: string;
+  price: number;
+  total: number;
+  serials?: string[];
+};
+
+export type SalesInvoiceStatus = 'Paid' | 'Partial' | 'Due' | 'Part returned' | 'Returned';
+
+export type SalesInvoice = Sale & {
+  partyId?: string;
+  phone?: string;
+  guardianName?: string;
+  address?: string;
+  lines: SaleLine[];
+  subtotal: number;
+  discount: number;
+  rounding: number;
+  due: number;
+  status: SalesInvoiceStatus;
+  payments: SalePayment[];
+  salesperson: string;
+  note?: string;
+};
+
+export type SalesReturn = {
+  id: string;
+  date: string;
+  customer: string;
+  invoices: string[];
+  items: string;
+  amount: number;
+  settlement: 'Adjust due' | 'Customer credit' | 'Cash refund';
+};
+
+export type SaleTemplate = {
+  id: string;
+  name: string;
+  customer?: string;
+  items: number;
+  total: number;
+  lastUsed: string;
+};
+
 export type Purchase = {
   id: string;
   ref: string;
