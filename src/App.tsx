@@ -16,7 +16,8 @@ export function App() {
     <HashRouter>
       <Toaster position="bottom-right" toastOptions={{ style: { fontFamily: 'Geist' } }} />
       <Routes>
-        <Route path="/" element={<BrandGuide />} />
+        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="/design-system" element={<BrandGuide />} />
         <Route path="/app" element={<AppShell />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
