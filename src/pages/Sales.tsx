@@ -1401,7 +1401,8 @@ export function Sales() {
                     name: `Sale template ${templates.length + 1}`,
                     items: 0,
                     total: 0,
-                    lastUsed: 'Not used yet'
+                    lastUsed: 'Not used yet',
+                    lines: []
                   };
                   setTemplates((items) => [next, ...items]);
                   toast.success(`${next.name} created`);
@@ -1418,7 +1419,7 @@ export function Sales() {
                       <span className="text-[13px] font-semibold">{taka(template.total)}</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                      <Button size="sm" onClick={() => { toast(`${template.name} loaded into POS`); navigate('/app/pos'); }}>Use template</Button>
+                      <Button size="sm" onClick={() => { toast(`${template.name} loaded into POS`); navigate(`/app/pos?mode=template&template=${template.id}`); }}>Use template</Button>
                       <FloatingPanel
                         label={`Actions for ${template.name}`}
                         width={190}
