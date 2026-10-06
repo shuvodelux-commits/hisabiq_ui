@@ -9,7 +9,7 @@ import { CheckoutPanel } from '../components/pos/CheckoutPanel';
 import { DraftsMenu } from '../components/pos/DraftsMenu';
 import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine } from '../components/brand/ReceiptPreview';
-import { usePosCart, type CartLine } from '../hooks/usePosCart';
+import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
 import { products } from '../data/products';
 import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
@@ -44,6 +44,29 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       price: String(sourceLine.price)
     }];
   });
+}
+
+function paymentsFromInvoice(invoice: SalesInvoice): PosPaymentRow[] {
+  if (invoice.payments.length > 0) {
+    return invoice.payments.map((payment, index) => ({
+      ...makePosPaymentRow(index, payment.method),
+      account: payment.account ?? makePosPaymentRow(index, payment.method).account,
+      amount: String(payment.amount)
+    }));
+  }
+  if (invoice.paid > 0) {
+    return [{ ...makePosPaymentRow(0, invoice.method), amount: String(invoice.paid) }];
+  }
+  return [makePosPaymentRow()];
+}
+
+function paymentsFromDraft(draft: SalesDraft): PosPaymentRow[] {
+  if (!draft.payments?.length) return [makePosPaymentRow()];
+  return draft.payments.map((payment, index) => ({
+    ...makePosPaymentRow(index, payment.method),
+    account: payment.account ?? makePosPaymentRow(index, payment.method).account,
+    amount: String(payment.amount)
+  }));
 }
 
 function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
@@ -131,12 +154,18 @@ export function Pos() {
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
     cart.setLines(cartFromInvoice(sourceInvoice));
-    cart.setCustomer(sourceInvoice.partyId ? parties.find((party) => party.id === sourceInvoice.partyId) ?? null : null);
+    const sourceParty = sourceInvoice.partyId ? parties.find((party) => party.id === sourceInvoice.partyId) ?? null : null;
+    cart.setCustomer(sourceParty);
+    cart.setCustomerDetails({
+      name: sourceInvoice.party === 'Walk-in customer' ? '' : sourceInvoice.party,
+      phone: sourceInvoice.phone ?? sourceParty?.phone ?? '',
+      guardianName: sourceInvoice.guardianName ?? '',
+      address: sourceInvoice.address ?? sourceParty?.area ?? ''
+    });
     cart.setDiscount(sourceInvoice.discount ? String(sourceInvoice.discount) : '');
     cart.setDiscountMode('amount');
-    cart.setMethod(sourceInvoice.method);
-    cart.setPaid(editing && sourceInvoice.paid ? String(sourceInvoice.paid) : '');
-  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, draftContext, duplicating, editing, sourceDraft, sourceInvoice, sourceMode, sourceTemplate, templateContext]);
+    cart.setPayments(editing ? paymentsFromInvoice(sourceInvoice) : [makePosPaymentRow()]);
+  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicating, editing, sourceDraft, sourceInvoice, sourceMode, sourceTemplate, templateContext]);
 
   useEffect(() => {
     if (!sourceDraft || !draftContext) return;
@@ -144,12 +173,18 @@ export function Pos() {
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
     cart.setLines(cartFromPreset(sourceDraft.lines));
-    cart.setCustomer(parties.find((party) => party.name === sourceDraft.customer) ?? null);
+    const sourceParty = parties.find((party) => party.name === sourceDraft.customer) ?? null;
+    cart.setCustomer(sourceParty);
+    cart.setCustomerDetails(sourceDraft.customerDetails ?? {
+      name: sourceDraft.customer ?? sourceParty?.name ?? '',
+      phone: sourceParty?.phone ?? '',
+      guardianName: '',
+      address: sourceParty?.area ?? ''
+    });
     cart.setDiscount('');
     cart.setDiscountMode('amount');
-    cart.setMethod('Cash');
-    cart.setPaid('');
-  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, draftContext, sourceDraft, sourceMode]);
+    cart.setPayments(duplicatingDraft ? [makePosPaymentRow()] : paymentsFromDraft(sourceDraft));
+  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicatingDraft, sourceDraft, sourceMode]);
 
   useEffect(() => {
     if (!sourceTemplate || !templateContext) return;
@@ -157,19 +192,27 @@ export function Pos() {
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
     cart.setLines(cartFromPreset(sourceTemplate.lines));
-    cart.setCustomer(parties.find((party) => party.name === sourceTemplate.customer) ?? null);
+    const sourceParty = parties.find((party) => party.name === sourceTemplate.customer) ?? null;
+    cart.setCustomer(sourceParty);
+    cart.setCustomerDetails({
+      name: sourceTemplate.customer ?? sourceParty?.name ?? '',
+      phone: sourceParty?.phone ?? '',
+      guardianName: '',
+      address: sourceParty?.area ?? ''
+    });
     cart.setDiscount('');
     cart.setDiscountMode('amount');
-    cart.setMethod('Cash');
-    cart.setPaid('');
-  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, sourceMode, sourceTemplate, templateContext]);
+    cart.setPayments([makePosPaymentRow()]);
+  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, sourceMode, sourceTemplate, templateContext]);
 
   const complete = () => {
     const t = cart.totals;
-    if (t.total === 0 || t.due > 0 && !cart.customer) return;
+    const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
+    if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
+    const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
     setCompleted({
       invoice,
-      customer: cart.customer?.name,
+      customer: cart.customerDetails.name.trim() || cart.customer?.name || undefined,
       lines: cart.lines.map((l) => ({
         name: l.product.name,
         qty: `${l.qty} ${l.unit}`,
@@ -182,7 +225,7 @@ export function Pos() {
       total: t.total,
       paid: Math.min(t.paidNum, t.total),
       due: t.due,
-      method: cart.method
+      method: activePayments.length > 1 ? 'Multiple' : activePayments[0]?.method ?? 'Cash'
     });
   };
 
@@ -209,7 +252,16 @@ export function Pos() {
     {
       id: `d${Date.now()}`,
       label: `Draft #${16 + d.length - 2}`,
-      customer: cart.customer?.name,
+      customer: cart.customerDetails.name.trim() || cart.customer?.name,
+      customerDetails: { ...cart.customerDetails },
+      payments: cart.payments
+        .filter((payment) => (parseFloat(payment.amount) || 0) > 0)
+        .map((payment) => ({
+          id: payment.id,
+          method: payment.method,
+          amount: parseFloat(payment.amount),
+          account: payment.account
+        })),
       items: cart.lines.length,
       total: cart.totals.total,
       savedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
@@ -227,7 +279,15 @@ export function Pos() {
 
   const resume = (d: SalesDraft) => {
     cart.setLines(cartFromPreset(d.lines));
-    cart.setCustomer(parties.find((p) => p.name === d.customer) ?? null);
+    const sourceParty = parties.find((party) => party.name === d.customer) ?? null;
+    cart.setCustomer(sourceParty);
+    cart.setCustomerDetails(d.customerDetails ?? {
+      name: d.customer ?? sourceParty?.name ?? '',
+      phone: sourceParty?.phone ?? '',
+      guardianName: '',
+      address: sourceParty?.area ?? ''
+    });
+    cart.setPayments(paymentsFromDraft(d));
     setDrafts((ds) => ds.filter((x) => x.id !== d.id));
     toast(`${d.label} resumed`);
   };
@@ -374,14 +434,14 @@ export function Pos() {
           totals={cart.totals}
           customer={cart.customer}
           onCustomer={cart.setCustomer}
+          customerDetails={cart.customerDetails}
+          onCustomerDetails={cart.setCustomerDetails}
           discount={cart.discount}
           onDiscount={cart.setDiscount}
           discountMode={cart.discountMode}
           onDiscountMode={cart.setDiscountMode}
-          paid={cart.paid}
-          onPaid={cart.setPaid}
-          method={cart.method}
-          onMethod={cart.setMethod}
+          payments={cart.payments}
+          onPayments={cart.setPayments}
           onComplete={complete}
           onClear={cart.reset}
           paidRef={paidRef}
