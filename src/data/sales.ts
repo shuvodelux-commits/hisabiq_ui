@@ -1,4 +1,4 @@
-import type { CustomerCredit, Sale, SalesInvoice, SalesReturn, SaleTemplate } from '../types/erp';
+import type { CustomerCredit, Sale, SalePresetLine, SalesInvoice, SalesReturn, SaleTemplate } from '../types/erp';
 
 export const salesInvoices: SalesInvoice[] = [
   {
@@ -179,18 +179,70 @@ export type SalesDraft = {
   items: number;
   total: number;
   savedAt: string;
+  lines: SalePresetLine[];
 };
 
 export const salesDrafts: SalesDraft[] = [
-  { id: 'd1', label: 'Draft #14', customer: 'Mim Construction', items: 6, total: 38450, savedAt: 'Today, 10:12 AM' },
-  { id: 'd2', label: 'Draft #15', items: 2, total: 1240, savedAt: 'Today, 11:20 AM' },
-  { id: 'd3', label: 'Draft #16', customer: 'Rahman Hardware', items: 4, total: 12680, savedAt: 'Yesterday, 5:42 PM' }
+  {
+    id: 'd1', label: 'Draft #14', customer: 'Mim Construction', items: 6, total: 38405, savedAt: 'Today, 10:12 AM',
+    lines: [
+      { productId: 'p8', qty: '50', unit: 'Bag', price: 540 },
+      { productId: 'p3', qty: '45', unit: 'Kg', price: 112 },
+      { productId: 'p5', qty: '20', unit: 'Gauge', price: 180 },
+      { productId: 'p7', qty: '3', unit: 'Pcs', price: 650 },
+      { productId: 'p11', qty: '3', unit: 'Pair', price: 85 },
+      { productId: 'p9', qty: '2', unit: 'Box', price: 280 }
+    ]
+  },
+  {
+    id: 'd2', label: 'Draft #15', items: 2, total: 1220, savedAt: 'Today, 11:20 AM',
+    lines: [
+      { productId: 'p10', qty: '1', unit: 'Dozen', price: 660 },
+      { productId: 'p9', qty: '2', unit: 'Box', price: 280 }
+    ]
+  },
+  {
+    id: 'd3', label: 'Draft #16', customer: 'Rahman Hardware', items: 4, total: 12240, savedAt: 'Yesterday, 5:42 PM',
+    lines: [
+      { productId: 'p1', qty: '10', unit: 'Pcs', price: 420 },
+      { productId: 'p7', qty: '4', unit: 'Pcs', price: 650 },
+      { productId: 'p9', qty: '10', unit: 'Box', price: 280 },
+      { productId: 'p10', qty: '4', unit: 'Dozen', price: 660 }
+    ]
+  }
 ];
 
 export const saleTemplates: SaleTemplate[] = [
-  { id: 't1', name: 'Monthly site supply', customer: 'Mim Construction', items: 7, total: 42800, lastUsed: '28 Sep 2026' },
-  { id: 't2', name: 'Electric shop restock', customer: 'Nur Enterprise', items: 5, total: 9680, lastUsed: '26 Sep 2026' },
-  { id: 't3', name: 'Counter fast sale', items: 3, total: 1840, lastUsed: '01 Oct 2026' }
+  {
+    id: 't1', name: 'Monthly site supply', customer: 'Mim Construction', items: 7, total: 41505, lastUsed: '28 Sep 2026',
+    lines: [
+      { productId: 'p8', qty: '50', unit: 'Bag', price: 540 },
+      { productId: 'p3', qty: '45', unit: 'Kg', price: 112 },
+      { productId: 'p5', qty: '20', unit: 'Gauge', price: 180 },
+      { productId: 'p7', qty: '3', unit: 'Pcs', price: 650 },
+      { productId: 'p11', qty: '3', unit: 'Pair', price: 85 },
+      { productId: 'p9', qty: '2', unit: 'Box', price: 280 },
+      { productId: 'p2', qty: '2', unit: 'Box', price: 1550 }
+    ]
+  },
+  {
+    id: 't2', name: 'Electric shop restock', customer: 'Nur Enterprise', items: 5, total: 10030, lastUsed: '26 Sep 2026',
+    lines: [
+      { productId: 'p2', qty: '3', unit: 'Box', price: 1550 },
+      { productId: 'p4', qty: '1', unit: 'Coil', price: 2850 },
+      { productId: 'p10', qty: '2', unit: 'Dozen', price: 660 },
+      { productId: 'p9', qty: '2', unit: 'Box', price: 280 },
+      { productId: 'p7', qty: '1', unit: 'Pcs', price: 650 }
+    ]
+  },
+  {
+    id: 't3', name: 'Counter fast sale', items: 3, total: 1840, lastUsed: '01 Oct 2026',
+    lines: [
+      { productId: 'p7', qty: '2', unit: 'Pcs', price: 650 },
+      { productId: 'p10', qty: '4', unit: 'Pcs', price: 60 },
+      { productId: 'p9', qty: '12', unit: 'Pcs', price: 25 }
+    ]
+  }
 ];
 
 export const salesReturns: SalesReturn[] = [
