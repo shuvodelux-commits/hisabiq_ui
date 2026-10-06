@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowDownRight, ArrowUpRight, BookOpen, ChevronRight, FileSpreadsheet, Scale, Wallet, Boxes } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, BookOpen, ChevronRight, FileSpreadsheet, Landmark, Scale, Wallet, Boxes } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '../components/PageHeader';
 import { Panel } from '../components/Panel';
@@ -13,6 +14,7 @@ import { taka, takaCompact } from '../utils/currency';
 const periods = ['Today', 'This week', 'September', 'Quarter', 'FY 2026–27'];
 
 export function Reports() {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState('September');
   const [daybookOpen, setDaybookOpen] = useState(false);
   const { setOpen: openCash } = useCashSession();
@@ -23,6 +25,7 @@ export function Reports() {
   const links = [
   { icon: BookOpen, title: 'Daybook', bn: 'দৈনিক খাতা', desc: 'Every entry today, in order', onClick: () => setDaybookOpen(true) },
   { icon: Wallet, title: 'Cash reconciliation', bn: 'ক্যাশ মিলানো', desc: 'Count drawer, find short/over', onClick: () => openCash(true) },
+  { icon: Landmark, title: 'Account reconciliation', bn: 'হিসাব মিলানো', desc: 'Match bank or wallet statements', onClick: () => navigate('/app/reconciliation') },
   { icon: Scale, title: 'Profit & Loss', bn: 'লাভ-ক্ষতি', desc: 'Statement for any period', onClick: () => toast('Opening Profit & Loss…') },
   { icon: Boxes, title: 'Stock valuation', bn: 'স্টকের মূল্য', desc: 'Value at cost and sale price', onClick: () => toast('Opening stock valuation…') }];
 
