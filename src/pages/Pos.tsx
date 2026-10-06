@@ -285,8 +285,16 @@ export function Pos() {
             <Button variant="outline" onClick={() => toast.success('Sent to printer', { description: 'Thermal printer · 80mm' })}>
               <Printer className="size-4" /> Print receipt
             </Button>
-            <Button onClick={newSale}>
-              <Plus className="size-4" /> New sale
+            <Button onClick={() => {
+              if (editing) {
+                setCompleted(null);
+                navigate('/app/sales');
+                return;
+              }
+              newSale();
+            }}>
+              {editing ? <ArrowLeft className="size-4" /> : <Plus className="size-4" />}
+              {editing ? 'Back to sales' : 'New sale'}
             </Button>
           </DialogFooter>
         </DialogContent>
