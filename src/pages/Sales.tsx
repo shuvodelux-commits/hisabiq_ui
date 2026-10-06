@@ -391,8 +391,8 @@ export function Sales() {
   const returnTotal = returns.reduce((sum, item) => sum + item.amount, 0);
 
   const summary = [
-    { label: 'Sales · current', value: taka(salesTotal), sub: `${invoices.length} invoices` },
-    { label: 'Received', value: taka(receivedTotal), sub: 'Cash, bank & mobile' },
+    { label: 'Sales · Oct', value: taka(salesTotal), sub: `${invoices.length} invoices` },
+    { label: 'Received · Oct', value: taka(receivedTotal), sub: 'Cash, bank & mobile' },
     { label: 'Outstanding due', value: taka(dueTotal), sub: 'Customer receivable · বাকি', tone: 'text-danger' },
     { label: 'Sales returns', value: taka(returnTotal), sub: `${returns.length} return memos`, tone: 'text-warning' }
   ];
