@@ -1,6 +1,6 @@
 import type { Expense, Purchase } from '../types/erp';
 
-const receiptPhoto = "/9fe849df-3b4b-4f01-b1ff-417303e487fb.jpg";
+const receiptPhoto = "./9fe849df-3b4b-4f01-b1ff-417303e487fb.jpg";
 
 
 export const purchases: Purchase[] = [
