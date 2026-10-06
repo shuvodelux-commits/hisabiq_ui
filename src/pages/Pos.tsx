@@ -389,7 +389,15 @@ export function Pos() {
         
       </div>
 
-      <Dialog open={!!completed} onOpenChange={(o) => !o && newSale()}>
+      <Dialog open={!!completed} onOpenChange={(open) => {
+        if (open) return;
+        if (editing) {
+          setCompleted(null);
+          navigate('/app/sales');
+          return;
+        }
+        newSale();
+      }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
