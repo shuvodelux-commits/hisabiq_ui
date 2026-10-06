@@ -124,6 +124,8 @@ export type SalesReturn = {
   items: string;
   amount: number;
   settlement: 'Adjust due' | 'Customer credit' | 'Cash refund';
+  refundMethod?: Exclude<PaymentMethod, 'Customer Credit'>;
+  refundAccount?: string;
 };
 
 export type SaleTemplate = {
