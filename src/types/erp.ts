@@ -64,6 +64,13 @@ export type LedgerEntry = {
 
 export type PaymentMethod = 'Cash' | 'bKash' | 'Nagad' | 'Card' | 'Bank' | 'Customer Credit';
 
+export type PaymentSplit = {
+  id: string;
+  method: PaymentMethod;
+  amount: number;
+  account?: string;
+};
+
 export type Sale = {
   id: string;
   invoice: string;
@@ -76,12 +83,7 @@ export type Sale = {
   method: PaymentMethod;
 };
 
-export type SalePayment = {
-  id: string;
-  method: PaymentMethod;
-  amount: number;
-  account?: string;
-};
+export type SalePayment = PaymentSplit;
 
 export type SaleLine = {
   id: string;
@@ -163,6 +165,7 @@ export type Purchase = {
   items: string;
   total: number;
   paid: number;
+  payments?: PaymentSplit[];
   receipt?: string;
 };
 
@@ -177,6 +180,7 @@ export type Expense = {
   amount: number;
   paid: number;
   method: PaymentMethod;
+  payments?: PaymentSplit[];
   receipt?: string;
 };
 
