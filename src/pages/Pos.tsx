@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Copy, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Copy, FileClock, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '../components/Dialog';
@@ -61,9 +61,15 @@ export function Pos() {
   const [searchParams] = useSearchParams();
   const sourceMode = searchParams.get('mode');
   const sourceInvoiceNo = searchParams.get('invoice');
+  const sourceDraftId = searchParams.get('draft');
   const sourceInvoice = salesInvoices.find((sale) => sale.invoice === sourceInvoiceNo) ?? null;
+  const sourceDraft = salesDrafts.find((draft) => draft.id === sourceDraftId) ?? null;
   const editing = sourceMode === 'edit' && !!sourceInvoice;
   const duplicating = sourceMode === 'duplicate' && !!sourceInvoice;
+  const continuingDraft = sourceMode === 'continue-draft' && !!sourceDraft;
+  const editingDraft = sourceMode === 'edit-draft' && !!sourceDraft;
+  const duplicatingDraft = sourceMode === 'duplicate-draft' && !!sourceDraft;
+  const draftContext = continuingDraft || editingDraft || duplicatingDraft;
   const loadedSource = useRef<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const paidRef = useRef<HTMLInputElement>(null);
@@ -71,12 +77,32 @@ export function Pos() {
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
   const invoice = editing && sourceInvoice ? sourceInvoice.invoice : `INV-${String(invoiceNo).padStart(6, '0')}`;
-  const pageTitle = editing ? 'Edit sale' : duplicating ? 'Duplicate sale' : 'New sale';
-  const pageTitleBn = editing ? 'বিক্রি সম্পাদনা' : duplicating ? 'বিক্রি কপি' : 'নতুন বিক্রি';
+  const pageTitle = editing
+    ? 'Edit sale'
+    : duplicating
+      ? 'Duplicate sale'
+      : editingDraft
+        ? 'Edit draft'
+        : duplicatingDraft
+          ? 'Duplicate draft'
+          : continuingDraft
+            ? 'Continue draft'
+            : 'New sale';
+  const pageTitleBn = editing
+    ? 'বিক্রি সম্পাদনা'
+    : duplicating
+      ? 'বিক্রি কপি'
+      : editingDraft
+        ? 'খসড়া সম্পাদনা'
+        : duplicatingDraft
+          ? 'খসড়া কপি'
+          : continuingDraft
+            ? 'খসড়া চালিয়ে যান'
+            : 'নতুন বিক্রি';
 
   useEffect(() => {
     if (!sourceInvoice || (!editing && !duplicating)) {
-      loadedSource.current = null;
+      if (!sourceDraft || !draftContext) loadedSource.current = null;
       return;
     }
     const sourceKey = `${sourceMode}:${sourceInvoice.invoice}`;
@@ -88,7 +114,20 @@ export function Pos() {
     cart.setDiscountMode('amount');
     cart.setMethod(sourceInvoice.method);
     cart.setPaid(editing && sourceInvoice.paid ? String(sourceInvoice.paid) : '');
-  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, duplicating, editing, sourceInvoice, sourceMode]);
+  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, draftContext, duplicating, editing, sourceDraft, sourceInvoice, sourceMode]);
+
+  useEffect(() => {
+    if (!sourceDraft || !draftContext) return;
+    const sourceKey = `${sourceMode}:${sourceDraft.id}`;
+    if (loadedSource.current === sourceKey) return;
+    loadedSource.current = sourceKey;
+    cart.setLines(demoCart());
+    cart.setCustomer(parties.find((party) => party.name === sourceDraft.customer) ?? null);
+    cart.setDiscount('');
+    cart.setDiscountMode('amount');
+    cart.setMethod('Cash');
+    cart.setPaid('');
+  }, [cart.setCustomer, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setMethod, cart.setPaid, draftContext, sourceDraft, sourceMode]);
 
   const complete = () => {
     const t = cart.totals;
@@ -156,7 +195,7 @@ export function Pos() {
     setCompleted(null);
     cart.reset();
     setInvoiceNo((n) => n + 1);
-    if (editing || duplicating) navigate('/app/pos', { replace: true });
+    if (editing || duplicating || draftContext) navigate('/app/pos', { replace: true });
     setTimeout(() => searchRef.current?.focus(), 50);
   };
 
@@ -201,6 +240,27 @@ export function Pos() {
               <p className="font-medium">{editing ? `Editing ${sourceInvoice.invoice}` : `Duplicating ${sourceInvoice.invoice}`}</p>
               <p className="text-[11px] text-teal-700/80">
                 {sourceInvoice.party} · {sourceInvoice.items} lines · {editing ? 'saving updates the original invoice' : 'saving creates a new invoice'}
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="bg-white" onClick={() => navigate('/app/sales')}>
+            <ArrowLeft className="size-4" /> Back to sales
+          </Button>
+        </div>
+      )}
+
+      {sourceDraft && draftContext && (
+        <div className="flex flex-col gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-[13px] text-teal-800 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-white text-teal-700 ring-1 ring-teal-100">
+              {duplicatingDraft ? <Copy className="size-3.5" /> : editingDraft ? <Pencil className="size-3.5" /> : <FileClock className="size-3.5" />}
+            </span>
+            <div>
+              <p className="font-medium">
+                {duplicatingDraft ? `Duplicating ${sourceDraft.label}` : editingDraft ? `Editing ${sourceDraft.label}` : `Continuing ${sourceDraft.label}`}
+              </p>
+              <p className="text-[11px] text-teal-700/80">
+                {sourceDraft.customer ?? 'Walk-in customer'} · {sourceDraft.items} items · saved {sourceDraft.savedAt}
               </p>
             </div>
           </div>
