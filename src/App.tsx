@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { BrandGuide } from './pages/BrandGuide';
 import { AppShell } from './components/layout/AppShell';
@@ -13,7 +13,7 @@ import { Reports } from './pages/Reports';
 
 export function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Toaster position="bottom-right" toastOptions={{ style: { fontFamily: 'Geist' } }} />
       <Routes>
         <Route path="/" element={<BrandGuide />} />
@@ -29,6 +29,6 @@ export function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
