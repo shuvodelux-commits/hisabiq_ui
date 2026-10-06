@@ -8,6 +8,7 @@ import { Pos } from './pages/Pos';
 import { Products } from './pages/Products';
 import { Parties } from './pages/Parties';
 import { Purchases } from './pages/Purchases';
+import { Expenses } from './pages/Expenses';
 import { Reports } from './pages/Reports';
 
 export function App() {
@@ -23,10 +24,11 @@ export function App() {
           <Route path="products" element={<Products />} />
           <Route path="parties" element={<Parties />} />
           <Route path="purchases" element={<Purchases />} />
+          <Route path="expenses" element={<Expenses />} />
           <Route path="reports" element={<Reports />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>);
-
+    </BrowserRouter>
+  );
 }
