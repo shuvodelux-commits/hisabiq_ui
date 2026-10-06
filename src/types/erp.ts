@@ -138,6 +138,7 @@ export type SalesReturn = {
 export type SalePresetLine = {
   productId: string;
   qty: string;
+  secondaryQty?: string;
   unit: string;
   price: number;
 };
