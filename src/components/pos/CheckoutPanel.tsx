@@ -33,6 +33,7 @@ type CheckoutPanelProps = {
   onComplete: () => void;
   onClear: () => void;
   paidRef: React.RefObject<HTMLInputElement>;
+  completeLabel?: string;
 };
 
 const methods: {id: PaymentMethod;icon: React.ElementType;}[] = [
@@ -174,7 +175,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           disabled={totals.total === 0 || dueWithoutCustomer}
           className="h-12 w-full text-[15px] font-semibold">
           
-          Complete sale · {taka(totals.total)}
+          {props.completeLabel ?? 'Complete sale'} · {taka(totals.total)}
           <kbd className="ml-1 rounded bg-white/15 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
       </div>
