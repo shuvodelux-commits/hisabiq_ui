@@ -195,6 +195,7 @@ export function Expenses() {
                       category: expense.category,
                       total: expense.amount,
                       paid: expense.paid,
+                      payments: expense.payments,
                       receipt: expense.receipt
                     });
                   return (
