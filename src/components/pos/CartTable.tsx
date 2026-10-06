@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Eye, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
 import { ProductThumb } from '../ProductThumb';
 import type { CartLine } from '../../hooks/usePosCart';
 import type { Product } from '../../types/erp';
 import { formatStock, unitsFor } from '../../utils/units';
-import { formatNumber } from '../../utils/currency';
+import { formatNumber, taka } from '../../utils/currency';
 import { compoundLineTotal, normalizeCompoundQuantity } from '../../utils/posQuantity';
 
 type CartTableProps = {
@@ -26,6 +26,7 @@ const cellInput =
 export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchRef }: CartTableProps) {
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
 
   useEffect(() => {
     if (lastAdded) {
@@ -75,6 +76,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
           {lines.map((l, i) => {
             const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
+            const purchasePrice = factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
             return (
               <motion.div
@@ -157,6 +159,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                     {units.map((u) =>
                   <button
                     key={u}
+                    type="button"
                     role="radio"
                     aria-checked={l.unit === u}
                     onClick={() => onUpdate(l.key, { unit: u })}
@@ -179,13 +182,26 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                     inputMode="decimal"
                     onChange={(e) => onUpdate(l.key, { price: e.target.value.replace(/[^\d.]/g, '') })}
                     onKeyDown={backToSearch}
-                    className={cellInput} />
-                  
+                    className={`${cellInput} pl-6 pr-7`} />
+                  <button
+                    type="button"
+                    aria-label={`Show purchase price for ${l.product.name}`}
+                    aria-pressed={revealedPurchase === l.key}
+                    onClick={() => setRevealedPurchase((current) => current === l.key ? null : l.key)}
+                    className="absolute right-1.5 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded text-ink-300 hover:bg-ink-50 hover:text-teal-700">
+                    <Eye className="size-3.5" />
+                  </button>
+                  {revealedPurchase === l.key &&
+                  <div className="absolute right-0 top-full z-30 mt-1 whitespace-nowrap rounded-md border border-ink-100 bg-white px-2 py-1 text-[11px] text-ink-600 shadow-pop">
+                      Cost {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}
+                    </div>
+                  }
                 </div>
                 <span className="text-right text-sm font-semibold text-ink">
                   ৳{formatNumber(lineTotal, lineTotal % 1 ? 2 : 0)}
                 </span>
                 <button
+                  type="button"
                   onClick={() => onRemove(l.key)}
                   aria-label={`Remove ${l.product.name}`}
                   className="flex size-8 items-center justify-center rounded-md text-ink-300 hover:bg-danger-bg hover:text-danger">
