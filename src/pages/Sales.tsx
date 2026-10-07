@@ -173,6 +173,7 @@ function InvoiceDialog({
                           <TableCell className="py-2 pl-3">
                             <p className="font-medium text-ink">{line.name}</p>
                             {line.serials?.length ? <p className="mt-0.5 text-[11px] text-ink-400">Serial: {line.serials.join(', ')}</p> : null}
+                            {line.warranty ? <p className="mt-0.5 text-[11px] text-ink-400">Warranty: {line.warranty.duration} {line.warranty.durationUnit} · {line.warranty.type}{line.warranty.terms ? ` · ${line.warranty.terms}` : ''}</p> : null}
                           </TableCell>
                           <TableCell className="py-2">{invoiceQty(line)}</TableCell>
                           <TableCell className="py-2 text-right">{taka(line.price, line.price % 1 ? 2 : 0)}/{line.unit}</TableCell>
@@ -221,7 +222,9 @@ function InvoiceDialog({
                     name: line.name,
                     qty: invoiceQty(line),
                     price: line.price,
-                    total: line.total
+                    total: line.total,
+                    serials: line.serials,
+                    warranty: line.warranty
                   }))}
                   subtotal={invoice.subtotal}
                   discount={invoice.discount}
