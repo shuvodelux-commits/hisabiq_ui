@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
@@ -14,11 +14,13 @@ const nonMoneyAccounts = accountingAccounts.filter((account) => !moneyAccounts.s
 export function VoucherDialog({
   open,
   onOpenChange,
-  onSave
+  onSave,
+  initialType = 'receipt'
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (source: AccountingSourceTransaction) => void;
+  initialType?: VoucherType;
 }) {
   const [type, setType] = useState<VoucherType>('receipt');
   const [date, setDate] = useState('2026-10-07');
@@ -28,6 +30,10 @@ export function VoucherDialog({
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
   const [description, setDescription] = useState('');
+
+  useEffect(() => {
+    if (open) setType(initialType);
+  }, [initialType, open]);
 
   const other = useMemo(() => accountingAccounts.find((account) => account.name === otherAccount), [otherAccount]);
   const money = useMemo(() => accountingAccounts.find((account) => account.name === moneyAccount), [moneyAccount]);
