@@ -139,6 +139,17 @@ export type LedgerEntry = {
 
 export type PaymentMethod = 'Cash' | 'bKash' | 'Nagad' | 'Card' | 'Bank' | 'Customer Credit';
 
+export type TransactionAuditFields = {
+  transactionDate?: string;
+  createdAt?: string;
+  postedBy?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+  deletedAt?: string;
+  deletedBy?: string;
+  recordStatus?: 'Posted' | 'Draft' | 'Deleted';
+};
+
 export type PaymentSplit = {
   id: string;
   method: PaymentMethod;
@@ -146,7 +157,7 @@ export type PaymentSplit = {
   account?: string;
 };
 
-export type Sale = {
+export type Sale = TransactionAuditFields & {
   id: string;
   invoice: string;
   date: string;
@@ -197,7 +208,7 @@ export type SalesInvoice = Sale & {
   note?: string;
 };
 
-export type SalesReturn = {
+export type SalesReturn = TransactionAuditFields & {
   id: string;
   date: string;
   customer: string;
@@ -246,7 +257,7 @@ export type PurchaseInventoryLine = {
   expiryDate?: string;
 };
 
-export type Purchase = {
+export type Purchase = TransactionAuditFields & {
   id: string;
   ref: string;
   date: string;
@@ -260,7 +271,7 @@ export type Purchase = {
   inventoryLines?: PurchaseInventoryLine[];
 };
 
-export type Expense = {
+export type Expense = TransactionAuditFields & {
   id: string;
   ref: string;
   date: string;
