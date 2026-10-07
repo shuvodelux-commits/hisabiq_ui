@@ -92,11 +92,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [sellUnit, setSellUnit] = useState('Gira');
   const [buy, setBuy] = useState('');
   const [buyUnit, setBuyUnit] = useState('Gira');
-  const [advanced, setAdvanced] = useState(true);
+  const [advanced, setAdvanced] = useState(false);
   const [multiUnit, setMultiUnit] = useState(true);
   const [altUnit, setAltUnit] = useState('Gauge');
   const [factor, setFactor] = useState('16');
   const [altPrice, setAltPrice] = useState('');
+  const [stockViewUnit, setStockViewUnit] = useState('Gauge');
   const [openingQty, setOpeningQty] = useState('');
   const [openingUnit, setOpeningUnit] = useState('Gauge');
   const [minQty, setMinQty] = useState('');
@@ -127,6 +128,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const selectedSellUnit = units.includes(sellUnit) ? sellUnit : unit;
   const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : unit;
   const normalizedAltUnit = isStock && multiUnit && altUnit ? altUnit : undefined;
+  const selectedStockViewUnit = units.includes(stockViewUnit) ? stockViewUnit : normalizedAltUnit ?? unit;
   const stockToBase = (qty: string, selectedUnit: string) => toBaseQuantity(qty, selectedUnit, unit, normalizedAltUnit, f);
   const priceToBase = (amount: string, selectedUnit: string) => toBasePrice(amount, selectedUnit, unit, normalizedAltUnit, f);
   const sellNum = parseFloat(sell) || 0;
@@ -154,11 +156,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setSellUnit('Gira');
     setBuy('');
     setBuyUnit('Gira');
-    setAdvanced(true);
+    setAdvanced(false);
     setMultiUnit(true);
     setAltUnit('Gauge');
     setFactor('16');
     setAltPrice('');
+    setStockViewUnit('Gauge');
     setOpeningQty('');
     setOpeningUnit('Gauge');
     setMinQty('');
@@ -203,6 +206,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setAltUnit(initialProduct.altUnit?.unit ?? '');
     setFactor(String(initialProduct.altUnit?.factor ?? 1));
     setAltPrice(initialProduct.altUnit?.price ? String(initialProduct.altUnit.price) : '');
+    setStockViewUnit(initialProduct.stockViewUnit ?? initialProduct.altUnit?.unit ?? initialProduct.unit);
     setOpeningQty('');
     setOpeningUnit(initialProduct.unit);
     setMinQty(String(initialProduct.minStock));
@@ -233,6 +237,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       setUnit('Service');
       setSellUnit('Service');
       setBuyUnit('Service');
+      setStockViewUnit('Service');
       setMultiUnit(false);
       setSerialTracking('Off');
       setExpiryEnabled(false);
@@ -241,6 +246,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       setUnit('Pcs');
       setSellUnit('Pcs');
       setBuyUnit('Pcs');
+      setStockViewUnit('Pcs');
     }
   };
 
@@ -278,6 +284,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       unit,
       altUnit: isStock && multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
       stock: initialProduct ? initialProduct.stock : openingBaseQty,
+      stockViewUnit: isStock ? selectedStockViewUnit : undefined,
       minStock: isStock ? stockToBase(minQty, minUnit) : 0,
       sellPrice: sellBase,
       purchasePrice: buyBase,
@@ -342,6 +349,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                 const next = e.target.value;
                 if (sellUnit === unit) setSellUnit(next);
                 if (buyUnit === unit) setBuyUnit(next);
+                if (stockViewUnit === unit) setStockViewUnit(next);
                 setUnit(next);
               }} options={baseUnits} />
             </Field>}
@@ -378,6 +386,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     if (!checked) {
                       if (sellUnit === altUnit) setSellUnit(unit);
                       if (buyUnit === altUnit) setBuyUnit(unit);
+                      if (stockViewUnit === altUnit) setStockViewUnit(unit);
+                    } else if (stockViewUnit === unit && altUnit) {
+                      setStockViewUnit(altUnit);
                     }
                     setMultiUnit(checked);
                   }} />
@@ -390,6 +401,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                       <span className="font-medium">{unit}</span>
                     </div>
                     <p className="mt-2 flex items-center gap-1.5 text-xs text-teal-800"><Info className="size-3.5" />POS can sell in either unit; stock remains in {unit}.</p>
+                    <div className="mt-3 max-w-xs">
+                      <Field label="Stock / POS view unit" bn="ডিফল্ট দেখানোর একক" hint="Controls the normal stock display and the unit selected when this product is added to POS.">
+                        <FormSelect value={selectedStockViewUnit} onChange={(e) => setStockViewUnit(e.target.value)} options={units} />
+                      </Field>
+                    </div>
                     {selectedSellUnit === unit && <div className="mt-3 max-w-xs">
                       <Field label={`Custom selling price / ${altUnit || 'unit'}`} hint={autoAltSell ? `Auto ${taka(autoAltSell)} / ${altUnit}` : 'Optional override'}>
                         <MoneyInput value={altPrice} onChange={(e) => setAltPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={autoAltSell ? String(autoAltSell) : '0'} />
