@@ -93,7 +93,15 @@ export function VoucherDialog({
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[13px] font-medium text-ink">
             Type
-            <FormSelect className="mt-1.5" value={type} onChange={(event) => setType(event.target.value as VoucherType)} options={voucherTypes.map((item) => voucherLabels[item].label)} />
+            <FormSelect
+              className="mt-1.5"
+              value={voucherLabels[type].label}
+              onChange={(event) => {
+                const next = voucherTypes.find((item) => voucherLabels[item].label === event.target.value);
+                if (next) setType(next);
+              }}
+              options={voucherTypes.map((item) => voucherLabels[item].label)}
+            />
           </label>
           <label className="text-[13px] font-medium text-ink">
             Transaction Date <span className="font-bn text-[11px] font-normal text-ink-400">· যে তারিখের লেনদেন</span>
