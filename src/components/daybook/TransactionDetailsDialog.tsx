@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { StatusBadge } from '../StatusBadge';
 import type { UnifiedTransaction } from '../../types/transactions';
 import { taka } from '../../utils/currency';
+import { daybookActionAvailability, demoPermissions } from '../../utils/permissions';
 
 function Field({ label, helper, children }: { label: string; helper?: string; children: React.ReactNode }) {
   return (
@@ -29,6 +30,7 @@ export function TransactionDetailsDialog({
   onGoToSource: (transaction: UnifiedTransaction) => void;
 }) {
   if (!transaction) return null;
+  const availability = daybookActionAvailability(transaction.source, demoPermissions);
   return (
     <Dialog open={!!transaction} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-3xl">
@@ -72,9 +74,9 @@ export function TransactionDetailsDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onGoToSource(transaction)}><ExternalLink className="size-4" /> Go to source</Button>
-          {transaction.status !== 'Deleted' && <Button variant="outline" onClick={() => onDelete(transaction)}>Delete</Button>}
-          {transaction.status !== 'Deleted' && <Button variant="outline" onClick={() => onEdit(transaction)}>Edit</Button>}
+          {availability.open && <Button variant="outline" onClick={() => onGoToSource(transaction)}><ExternalLink className="size-4" /> Go to source</Button>}
+          {availability.delete && transaction.status !== 'Deleted' && <Button variant="outline" onClick={() => onDelete(transaction)}>Delete</Button>}
+          {availability.edit && transaction.status !== 'Deleted' && <Button variant="outline" onClick={() => onEdit(transaction)}>Edit</Button>}
           <Button onClick={onClose}>Close</Button>
         </DialogFooter>
       </DialogContent>
