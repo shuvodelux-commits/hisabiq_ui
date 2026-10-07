@@ -1,3 +1,45 @@
+export type ProductKind = 'Stock' | 'Service';
+export type WarrantyDurationUnit = 'Days' | 'Months' | 'Years';
+export type WarrantyType = 'Seller' | 'Manufacturer' | 'Service' | 'Replacement';
+export type SerialTrackingMode = 'Off' | 'Optional' | 'Required';
+export type StockAllocationMethod = 'FIFO' | 'FEFO';
+
+export type ProductWarranty = {
+  enabled: boolean;
+  duration?: number;
+  durationUnit?: WarrantyDurationUnit;
+  type?: WarrantyType;
+  terms?: string;
+};
+
+export type WarrantySnapshot = {
+  duration: number;
+  durationUnit: WarrantyDurationUnit;
+  type: WarrantyType;
+  terms?: string;
+};
+
+export type ProductExpirySettings = {
+  enabled: boolean;
+  dateRequired: boolean;
+  warningDays: number;
+  allocationMethod: StockAllocationMethod;
+};
+
+export type OfferDiscountType = 'Percentage' | 'Fixed';
+export type ProductOfferStatus = 'Scheduled' | 'Active' | 'Expired' | 'Disabled';
+
+export type ProductOffer = {
+  id: string;
+  productId: string;
+  discountType: OfferDiscountType;
+  value: number;
+  priceUnit: string;
+  startAt: string;
+  endAt: string;
+  enabled: boolean;
+};
+
 export type UnitConversion = {
   /** Larger unit name, e.g. "Box" or "Gauge" */
   unit: string;
@@ -9,6 +51,7 @@ export type UnitConversion = {
 
 export type Product = {
   id: string;
+  kind?: ProductKind;
   name: string;
   nameBn?: string;
   sku: string;
@@ -22,11 +65,9 @@ export type Product = {
   minStock: number;
   sellPrice: number;
   purchasePrice: number;
-  warranty?: {
-    enabled: boolean;
-    period?: string;
-    serialRequired?: boolean;
-  };
+  warranty?: ProductWarranty;
+  serialTracking?: SerialTrackingMode;
+  expiry?: ProductExpirySettings;
   active: boolean;
 };
 
@@ -40,6 +81,11 @@ export type StockLot = {
   unitCost: number;
   source: 'Opening' | 'Purchase' | 'Adjustment' | 'Return';
   reference?: string;
+  batchNumber?: string;
+  manufactureDate?: string;
+  expiryDate?: string;
+  serials?: string[];
+  warranty?: WarrantySnapshot;
 };
 
 export type StockMovementType = 'Opening' | 'Purchase' | 'Sale' | 'Return' | 'Adjustment';
