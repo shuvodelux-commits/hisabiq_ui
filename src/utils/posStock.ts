@@ -1,15 +1,15 @@
 import type { Product, StockLot } from '../types/erp';
 import { productStockBreakdown } from './productFeatures';
 
-export function saleAvailableStock(product: Product, lots: StockLot[]): number {
+export function saleAvailableStock(product: Product, lots: StockLot[], now = new Date()): number {
   if (product.kind === 'Service') return Number.POSITIVE_INFINITY;
-  if (product.expiry?.enabled) return Math.max(0, productStockBreakdown(product, lots).sellable);
+  if (product.expiry?.enabled) return Math.max(0, productStockBreakdown(product, lots, now).sellable);
   return Math.max(0, product.stock);
 }
 
-export function saleStockShortage(product: Product, lots: StockLot[], requestedBaseQty: number): number {
+export function saleStockShortage(product: Product, lots: StockLot[], requestedBaseQty: number, now = new Date()): number {
   if (product.kind === 'Service') return 0;
-  return Math.max(0, requestedBaseQty - saleAvailableStock(product, lots));
+  return Math.max(0, requestedBaseQty - saleAvailableStock(product, lots, now));
 }
 
 export function quantityFromBaseStock(baseQty: number, factor: number, useAlternateUnit: boolean) {
