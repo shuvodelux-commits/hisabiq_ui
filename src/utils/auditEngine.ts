@@ -23,7 +23,9 @@ const financialFields = new Set([
   'quantity',
   'expenseAccountId',
   'debitAccountId',
-  'creditAccountId'
+  'creditAccountId',
+  'fromAccount',
+  'toAccount'
 ]);
 
 function freezeEvent(event: Omit<AuditEvent, 'changes'> & { changes: AuditChange[] }): AuditEvent {
@@ -133,7 +135,7 @@ function impactNames(source: AuditSourceRecord, fields: string[]) {
     impacts.add('Daybook');
     impacts.add('Accounting posting');
   }
-  if (fields.some((field) => ['paymentAccounts', 'amount', 'paid'].includes(field))) {
+  if (fields.some((field) => ['paymentAccounts', 'amount', 'paid', 'fromAccount', 'toAccount'].includes(field))) {
     impacts.add('Money Accounts');
     impacts.add('Accounting posting');
   }
@@ -184,11 +186,21 @@ export function applyCorrection(command: CorrectionCommand, state: AuditState): 
   return rebuildDerived(nextSources, [...state.auditEvents, event]);
 }
 
-export function applyDelete(command: DeleteCommand, state: AuditState): AuditState {
+export function validateDelete(command: DeleteCommand, state: AuditState) {
   const source = sourceFor(state, command.sourceId);
-  if (!source) throw new Error('Source transaction not found.');
-  if (!command.reason.trim()) throw new Error('A reason is required to delete a posted transaction.');
-  if (source.status === 'Deleted') return state;
+  if (!source) return { allowed: false, message: 'Source transaction not found.' };
+  if (!command.reason.trim()) return { allowed: false, message: 'A reason is required to delete a posted transaction.' };
+  if (source.status === 'Deleted') return { allowed: false, message: 'This transaction is already deleted.' };
+  if (source.source === 'sale' && (source.returnedQuantity ?? 0) > 0) {
+    return { allowed: false, message: 'This sale has a Return. Delete or correct the Return first.' };
+  }
+  return { allowed: true };
+}
+
+export function applyDelete(command: DeleteCommand, state: AuditState): AuditState {
+  const validation = validateDelete(command, state);
+  if (!validation.allowed) throw new Error(validation.message ?? 'Delete is not allowed.');
+  const source = sourceFor(state, command.sourceId)!;
 
   const deleted: AuditSourceRecord = { ...source, status: 'Deleted' };
   const nextSources = state.sources.map((item) => item.id === source.id ? deleted : item);
