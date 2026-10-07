@@ -85,8 +85,6 @@ export type StockLot = {
   manufactureDate?: string;
   expiryDate?: string;
   serials?: string[];
-  warranty?: WarrantySnapshot;
-  lotAllocations?: Array<{ lotId: string; quantity: number }>;
 };
 
 export type StockMovementType = 'Opening' | 'Purchase' | 'Sale' | 'Return' | 'Adjustment';
@@ -175,6 +173,8 @@ export type SaleLine = {
   price: number;
   total: number;
   serials?: string[];
+  warranty?: WarrantySnapshot;
+  lotAllocations?: Array<{ lotId: string; quantity: number }>;
 };
 
 export type SalesInvoiceStatus = 'Paid' | 'Partial' | 'Due' | 'Part returned' | 'Returned';
