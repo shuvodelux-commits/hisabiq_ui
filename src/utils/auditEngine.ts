@@ -112,6 +112,12 @@ export function validateCorrection(command: CorrectionCommand, state: AuditState
   const nextPaid = command.patch.paid ?? source.paid;
   if (nextPaid > nextAmount) fieldErrors.paid = 'Paid amount cannot be greater than the transaction amount.';
 
+  const nextFrom = command.patch.fromAccount ?? source.fromAccount;
+  const nextTo = command.patch.toAccount ?? source.toAccount;
+  if (source.source === 'transfer' && nextFrom && nextTo && nextFrom === nextTo) {
+    fieldErrors.toAccount = 'From and To money accounts must be different.';
+  }
+
   if (command.patch.paymentAccounts) {
     const splitTotal = command.patch.paymentAccounts.reduce((sum, payment) => sum + payment.amount, 0);
     if (Math.abs(splitTotal - nextPaid) > 0.001) fieldErrors.paymentAccounts = 'Payment split must equal the paid amount.';
@@ -144,7 +150,7 @@ function impactNames(source: AuditSourceRecord, fields: string[]) {
     impacts.add('Profit & Loss');
     impacts.add('Accounting posting');
   }
-  if (fields.some((field) => ['expenseAccountId', 'debitAccountId', 'creditAccountId'].includes(field))) {
+  if (fields.some((field) => ['expenseAccountId', 'debitAccountId', 'creditAccountId', 'fromAccount', 'toAccount'].includes(field))) {
     impacts.add('Accounting posting');
     impacts.add('Reports');
   }
