@@ -69,8 +69,14 @@ export function validateOffer(product: Product, offer: ProductOffer, others: Pro
   const endDate = new Date(offer.endAt);
   if (!offer.startAt || !offer.endAt || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 'Enter valid start and end date/time.';
   if (endDate <= startDate) return 'End date and time must be after the start.';
-  if (offer.discountType === 'Percentage' && offer.value >= 100) return 'Percentage discount must be below 100%.';
-  if (effectivePriceForUnit(product, offer, offer.priceUnit) <= 0) return 'Discount cannot reduce the selling price to zero or below.';
+  if (offer.discountType === 'Percentage' && offer.value > 100) return 'Percentage discount cannot exceed 100%.';
+  const normalInOfferUnit = product.altUnit && offer.priceUnit === product.altUnit.unit
+    ? product.altUnit.price ?? product.sellPrice * product.altUnit.factor
+    : product.sellPrice;
+  const rawEffective = offer.discountType === 'Percentage'
+    ? normalInOfferUnit * (1 - offer.value / 100)
+    : normalInOfferUnit - offer.value;
+  if (rawEffective < 0) return 'Discount cannot make the effective price negative.';
 
   if (offer.enabled) {
     const start = new Date(offer.startAt).getTime();
