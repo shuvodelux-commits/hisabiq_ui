@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { products } from '../data/products';
 import { productOffers } from '../data/productOffers';
 import type { Party, PaymentMethod, Product } from '../types/erp';
-import { priceFor } from '../utils/units';
 import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures';
 import { roundTo } from '../utils/currency';
 import { compoundLineTotal } from '../utils/posQuantity';
