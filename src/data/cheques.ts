@@ -20,6 +20,9 @@ export type ChequeRecord = {
   status: ChequeStatus;
   createdAt?: string;
   postedBy?: string;
+  statusReason?: string;
+  statusUpdatedAt?: string;
+  statusUpdatedBy?: string;
 };
 
 export const cheques: ChequeRecord[] = [
