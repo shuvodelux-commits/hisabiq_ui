@@ -1,18 +1,22 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowDownToLine, BookOpen, FileText, Landmark, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowDownToLine, BookOpen, FileText, Landmark, MoreHorizontal, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { VoucherDialog } from '../components/accounts/VoucherDialog';
+import { VoucherActionDialog } from '../components/accounts/VoucherActionDialog';
+import { OpeningBalanceDialog } from '../components/accounts/OpeningBalanceDialog';
+import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { LedgerView } from '../components/accounts/LedgerView';
 import { TrialBalanceView } from '../components/accounts/TrialBalanceView';
 import { StatementsView } from '../components/accounts/StatementsView';
 import { ChartOfAccountsView } from '../components/accounts/ChartOfAccountsView';
 import { useUserPreferences } from '../contexts/UserPreferencesContext';
 import { accountingAccounts, accountingSources as seedSources } from '../data/accounting';
-import type { AccountingSourceTransaction, Posting } from '../types/accounting';
+import type { AccountingSourceTransaction, Posting, VoucherType } from '../types/accounting';
 import { accountingAccountLabel } from '../utils/accountingLabels';
 import { balanceSheet, postingForTransaction, profitAndLoss, trialBalance } from '../utils/accountingProjection';
 import { taka } from '../utils/currency';
@@ -24,6 +28,7 @@ function sourceLabel(source: AccountingSourceTransaction['source']) {
   if (source === 'payment-voucher') return 'Payment Voucher';
   if (source === 'transfer') return 'Account Transfer';
   if (source === 'adjustment') return 'Adjustment Entry';
+  if (source === 'opening-balance') return 'Opening Balance';
   if (source === 'customer-payment') return 'Customer Payment';
   if (source === 'supplier-payment') return 'Supplier Payment';
   if (source === 'sale') return 'Sale';
@@ -38,6 +43,7 @@ function sourceHelper(source: AccountingSourceTransaction['source']) {
   if (source === 'payment-voucher') return 'টাকা দিয়েছি';
   if (source === 'transfer') return 'নিজের অ্যাকাউন্টে টাকা সরানো';
   if (source === 'adjustment') return 'হিসাব ঠিক করার এন্ট্রি';
+  if (source === 'opening-balance') return 'শুরুর হিসাব';
   if (source === 'customer-payment') return 'গ্রাহকের টাকা পেয়েছি';
   if (source === 'supplier-payment') return 'সাপ্লায়ারকে টাকা দিয়েছি';
   if (source === 'sale') return 'বিক্রির হিসাব';
@@ -64,10 +70,14 @@ function rowBalance(postings: Posting[], accountId: string) {
 }
 
 export function Accounts() {
+  const navigate = useNavigate();
   const { terminologyMode, setTerminologyMode, entryDateView } = useUserPreferences();
   const [tab, setTab] = useState<Tab>('overview');
   const [sources, setSources] = useState<AccountingSourceTransaction[]>(seedSources);
   const [voucherOpen, setVoucherOpen] = useState(false);
+  const [voucherType, setVoucherType] = useState<VoucherType>('receipt');
+  const [openingOpen, setOpeningOpen] = useState(false);
+  const [entryActionId, setEntryActionId] = useState<string | null>(null);
 
   const postings = useMemo(() => sources.map(postingForTransaction), [sources]);
   const pnl = useMemo(() => profitAndLoss(postings, { from: '2026-09-01', to: '2026-10-31' }), [postings]);
@@ -75,6 +85,36 @@ export function Accounts() {
   const trial = useMemo(() => trialBalance(postings), [postings]);
   const customerDue = rowBalance(postings, 'asset-ar');
   const supplierDue = rowBalance(postings, 'liability-ap');
+  const entryAction = entryActionId ? sources.find((item) => item.id === entryActionId) ?? null : null;
+  const entryPosting = entryAction ? postings.find((item) => item.sourceId === entryAction.id) : undefined;
+
+  const openVoucher = (type: VoucherType = 'receipt') => {
+    setVoucherType(type);
+    setVoucherOpen(true);
+  };
+
+  const exportAccounts = () => {
+    const header = 'Date,Type,Reference,Description,Posted by,Amount,Status';
+    const rows = sources.map((source) => [source.transactionDate, sourceLabel(source.source), source.reference, source.description ?? '', source.postedBy, source.amount, source.recordStatus ?? 'Posted']
+      .map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','));
+    const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'hisabiq-accounts.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+    toast.success('Accounts export ready');
+  };
+
+  const goToAccountingSource = (source: AccountingSourceTransaction) => {
+    const route = source.source === 'sale' || source.source === 'customer-payment' ? '/app/sales'
+      : source.source === 'purchase' || source.source === 'supplier-payment' ? '/app/purchases'
+      : source.source === 'expense' ? '/app/expenses'
+      : source.source === 'finance' || source.source === 'transfer' ? '/app/finance'
+      : '/app/audit-ledger';
+    navigate(`${route}?open=${encodeURIComponent(source.id)}`);
+  };
 
   const tabs: Array<[Tab, string, string]> = [
     ['overview', 'Overview', 'হিসাবের সারাংশ'],
@@ -105,10 +145,13 @@ export function Accounts() {
                 Accounting
               </button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => toast('Accounts exported')}>
+            <Button variant="outline" size="sm" onClick={() => setOpeningOpen(true)}>
+              <Plus className="size-4" /> Opening balance
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportAccounts}>
               <ArrowDownToLine className="size-4" /> Export
             </Button>
-            <Button size="sm" onClick={() => setVoucherOpen(true)}>
+            <Button size="sm" onClick={() => openVoucher('receipt')}>
               <Plus className="size-4" /> New voucher
             </Button>
           </>
@@ -192,8 +235,8 @@ export function Accounts() {
                 </div>
                 <p className="mt-1 font-bn text-[11px] text-ink-400">সাধারণ কাজ সহজ রাখুন, হিসাব নিজে থেকেই দুই পাশে মিলবে</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  {['Receipt Voucher', 'Payment Voucher', 'Account Transfer', 'Adjustment Entry'].map((label) => (
-                    <button key={label} onClick={() => setVoucherOpen(true)} className="rounded-lg border border-ink-100 p-3 text-left text-[12px] font-medium text-ink hover:bg-ink-50">
+                  {([['Receipt Voucher', 'receipt'], ['Payment Voucher', 'payment'], ['Account Transfer', 'transfer'], ['Adjustment Entry', 'adjustment']] as Array<[string, VoucherType]>).map(([label, type]) => (
+                    <button key={label} onClick={() => openVoucher(type)} className="rounded-lg border border-ink-100 p-3 text-left text-[12px] font-medium text-ink hover:bg-ink-50">
                       {label}
                     </button>
                   ))}
@@ -210,7 +253,7 @@ export function Accounts() {
                 <p className="text-[13px] font-medium text-ink">Vouchers & postings</p>
                 <p className="font-bn text-[11px] text-ink-400">কোথা থেকে হিসাব এসেছে এবং কে এন্ট্রি করেছেন</p>
               </div>
-              <Button size="sm" onClick={() => setVoucherOpen(true)}><Plus className="size-4" /> New voucher</Button>
+              <div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => setOpeningOpen(true)}>Opening balance</Button><Button size="sm" onClick={() => openVoucher('receipt')}><Plus className="size-4" /> New voucher</Button></div>
             </div>
             <div className="overflow-x-auto">
               <Table>
@@ -222,7 +265,8 @@ export function Accounts() {
                     <TableHead className="h-9 text-xs">Description</TableHead>
                     <TableHead className="h-9 text-xs">Posted by</TableHead>
                     <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                    <TableHead className="h-9 pr-4 text-xs">Status</TableHead>
+                    <TableHead className="h-9 text-xs">Status</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -234,7 +278,15 @@ export function Accounts() {
                       <TableCell className="max-w-[360px] py-2"><p className="truncate text-ink-600">{source.description || '—'}</p></TableCell>
                       <TableCell className="py-2 text-ink-600">{source.postedBy}</TableCell>
                       <TableCell className="py-2 text-right font-semibold">{taka(source.amount)}</TableCell>
-                      <TableCell className="py-2 pr-4"><StatusBadge tone="success" dot>Posted</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={source.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{source.recordStatus ?? 'Posted'}</StatusBadge></TableCell>
+                      <TableCell className="py-2 pr-4 text-right">
+                        <FloatingPanel
+                          label={`Actions for ${source.reference}`}
+                          width={180}
+                          trigger={({ toggle }) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`Actions for ${source.reference}`}><MoreHorizontal className="size-4" /></button>}>
+                          {(close) => <div className="py-1"><button className="flex w-full items-center px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); setEntryActionId(source.id); }}>Open details</button></div>}
+                        </FloatingPanel>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -249,8 +301,38 @@ export function Accounts() {
         {tab === 'chart' && <ChartOfAccountsView terminologyMode={terminologyMode} />}
       </div>
 
+      <VoucherActionDialog
+        source={entryAction}
+        posting={entryPosting}
+        onClose={() => setEntryActionId(null)}
+        onUpdate={(updated) => {
+          setSources((current) => current.map((item) => item.id === updated.id ? updated : item));
+          toast.success('Voucher corrected', { description: updated.reference });
+        }}
+        onDelete={(source, reason) => {
+          setSources((current) => current.map((item) => item.id === source.id ? { ...item, recordStatus: 'Deleted', deletedAt: '2026-10-07T16:25:00+06:00', deletedBy: 'Shuvo', deleteReason: reason } : item));
+          toast.success('Voucher deleted safely', { description: source.reference + ' remains in history' });
+        }}
+        onDuplicate={(source) => {
+          const copy = { ...source, id: 'copy-' + Date.now(), reference: source.reference + '-COPY', createdAt: '2026-10-07T16:25:00+06:00', postedBy: 'Shuvo', recordStatus: 'Posted' as const, updatedAt: undefined, updatedBy: undefined, deletedAt: undefined, deletedBy: undefined, deleteReason: undefined };
+          setSources((current) => [...current, copy]);
+          toast.success('Voucher duplicated', { description: copy.reference });
+        }}
+        onGoToSource={goToAccountingSource}
+      />
+
+      <OpeningBalanceDialog
+        open={openingOpen}
+        onOpenChange={setOpeningOpen}
+        onSave={(source) => {
+          setSources((current) => [...current, source]);
+          toast.success('Opening balance posted', { description: source.reference + ' · ' + taka(source.amount) });
+        }}
+      />
+
       <VoucherDialog
         open={voucherOpen}
+        initialType={voucherType}
         onOpenChange={setVoucherOpen}
         onSave={(source) => {
           setSources((current) => [...current, source]);
