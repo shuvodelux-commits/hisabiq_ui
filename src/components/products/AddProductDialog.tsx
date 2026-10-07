@@ -137,6 +137,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const autoAltSell = sellBase > 0 && multiUnit ? sellBase * f : 0;
   const openingBaseQty = isStock ? stockToBase(openingQty, openingUnit) : 0;
   const openingSerials = normalizeSerials(openingSerialText);
+  const openingSerialDuplicates = duplicateSerials(openingSerials, existingSerials);
   const requiredOpeningSerials = !initialProduct ? requiredSerialCount({
     id: 'draft', name: name, sku: barcode, category, unit, stock: openingBaseQty, minStock: 0,
     sellPrice: sellBase, purchasePrice: buyBase, active: true, serialTracking, kind
@@ -253,8 +254,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
 
     if (!initialProduct && isStock && serialTracking !== 'Off') {
       if (serialTracking === 'Required' && !Number.isInteger(openingBaseQty)) return setError('Required serial tracking needs a whole base-unit quantity.');
-      const duplicates = duplicateSerials(openingSerials, existingSerials);
-      if (duplicates.length) return setError(`Duplicate serial: ${duplicates[0]}`);
+      if (openingSerialDuplicates.length) return setError(`Duplicate serial: ${openingSerialDuplicates[0]}`);
       if (serialTracking === 'Required' && openingSerials.length !== requiredOpeningSerials) {
         return setError(`Required serial tracking needs ${requiredOpeningSerials} unique serials for ${openingBaseQty} ${unit}.`);
       }
@@ -325,8 +325,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
             <PhotoUploader photos={photos} onChange={setPhotos} hint="Up to 4 photos. The first one appears in POS and lists." />
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Product type" bn="ধরন">
-              <FormSelect value={kind} onChange={(e) => changeKind(e.target.value as ProductKind)} options={['Stock', 'Service']} />
+            <Field label="Product type" bn="ধরন" hint={initialProduct ? 'Product type is fixed after creation.' : 'Stock products track inventory; services do not.'}>
+              <FormSelect value={kind} disabled={Boolean(initialProduct)} onChange={(e) => changeKind(e.target.value as ProductKind)} options={['Stock', 'Service']} />
             </Field>
             <Field label="Category" bn="ক্যাটাগরি">
               <FormSelect value={category} onChange={(e) => setCategory(e.target.value)} options={productCategories.filter((c) => c !== 'All')} />
@@ -442,7 +442,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                       <textarea value={openingSerialText} onChange={(e) => setOpeningSerialText(e.target.value)} placeholder={"GV34-1001\nGV34-1002"} className="min-h-24 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
                     </Field>
                     <p className={`mt-2 text-xs ${serialTracking === 'Required' && openingSerials.length !== requiredOpeningSerials ? 'text-warning' : 'text-ink-500'}`}>
-                      {openingSerials.length} serials entered{serialTracking === 'Required' ? ` · ${requiredOpeningSerials} required` : ' · optional'}
+                      {openingSerials.length} serials entered{serialTracking === 'Required' ? ` · ${requiredOpeningSerials} required` : ' · optional'}{openingSerialDuplicates.length ? ` · duplicate: ${openingSerialDuplicates[0]}` : ''}
                     </p>
                   </div>}
                 </div>}
