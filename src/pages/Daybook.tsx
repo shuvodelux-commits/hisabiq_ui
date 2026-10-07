@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, CalendarClock, WalletCards } from 'lucide-react';
+import { ArrowDownLeft, ArrowDownToLine, ArrowUpRight, CalendarClock, Printer, WalletCards } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -56,6 +56,33 @@ export function Daybook() {
     navigate(route + query);
   };
 
+  const printTransaction = (transaction: UnifiedTransaction) => {
+    setDetail(transaction);
+    requestAnimationFrame(() => window.print());
+  };
+
+  const duplicateTransaction = (transaction: UnifiedTransaction) => {
+    const route = transaction.sourceRoute || '/app/daybook';
+    navigate(`${route}?duplicate=${encodeURIComponent(transaction.sourceId)}`);
+  };
+
+  const exportDaybook = () => {
+    const rows = filtered.map((transaction) => [
+      dateForView(transaction, entryDateView), transaction.type, transaction.reference,
+      transaction.party ?? '', transaction.details ?? '', transaction.accounts.join(' + '),
+      transaction.moneyIn, transaction.moneyOut, transaction.postedBy, transaction.status
+    ]);
+    const csv = [['Date', 'Type', 'Reference', 'Party', 'Details', 'Account', 'Money In', 'Money Out', 'Posted by', 'Status'], ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'hisabiq-daybook.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+    toast.success('Daybook exported');
+  };
+
   const deleteTransaction = () => {
     if (!deleteTarget) return;
     if (!deleteReason.trim()) {
@@ -65,10 +92,10 @@ export function Daybook() {
     const now = '2026-10-07T15:20:00+06:00';
     setTransactions((current) => current.map((item) =>
       item.id === deleteTarget.id
-        ? { ...item, status: 'Deleted', deletedAt: now, deletedBy: 'Shuvo', updatedAt: now, updatedBy: 'Shuvo' }
+        ? { ...item, status: 'Deleted', deletedAt: now, deletedBy: 'Shuvo', deleteReason: deleteReason.trim(), updatedAt: now, updatedBy: 'Shuvo' }
         : item
     ));
-    setDetail((current) => current?.id === deleteTarget.id ? { ...current, status: 'Deleted', deletedAt: now, deletedBy: 'Shuvo' } : current);
+    setDetail((current) => current?.id === deleteTarget.id ? { ...current, status: 'Deleted', deletedAt: now, deletedBy: 'Shuvo', deleteReason: deleteReason.trim(), updatedAt: now, updatedBy: 'Shuvo' } : current);
     toast.success('Transaction deleted safely', { description: 'History is kept for audit.' });
     setDeleteTarget(null);
     setDeleteReason('');
@@ -81,7 +108,8 @@ export function Daybook() {
         titleBn="দৈনিক লেনদেন"
         description="Find, open, edit and manage all business transactions in one place."
         actions={
-          <div className="flex items-center gap-1 rounded-lg border border-ink-100 bg-white p-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1 rounded-lg border border-ink-100 bg-white p-1">
             <button
               onClick={() => setEntryDateView('transaction')}
               className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'transaction' ? 'bg-ink text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
@@ -92,6 +120,9 @@ export function Daybook() {
               className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'created' ? 'bg-ink text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
               Created Date
             </button>
+            </div>
+            <Button variant="outline" size="sm" onClick={exportDaybook}><ArrowDownToLine className="size-4" /> Export</Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
           </div>
         }
       />
@@ -167,6 +198,8 @@ export function Daybook() {
                       onEdit={(item) => goToSource(item, true)}
                       onDelete={setDeleteTarget}
                       onGoToSource={(item) => goToSource(item)}
+                      onPrint={printTransaction}
+                      onDuplicate={duplicateTransaction}
                     />
                   </TableCell>
                 </TableRow>
@@ -190,6 +223,8 @@ export function Daybook() {
         onEdit={(item) => goToSource(item, true)}
         onDelete={(item) => { setDetail(null); setDeleteTarget(item); }}
         onGoToSource={(item) => goToSource(item)}
+        onPrint={printTransaction}
+        onDuplicate={duplicateTransaction}
       />
 
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
