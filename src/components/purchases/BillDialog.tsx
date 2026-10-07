@@ -418,11 +418,11 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                       <span className="sr-only">Remove line</span>
                     </button>
 
-                    {(product.serialTracking !== 'Off' || product.expiry?.enabled) && (
+                    {((product.serialTracking ?? 'Off') !== 'Off' || product.expiry?.enabled) && (
                       <div className="rounded-lg border border-ink-100 bg-ink-50/40 p-2.5 lg:col-span-5">
                         <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">Tracking details <span className="font-bn normal-case tracking-normal">· সিরিয়াল / মেয়াদ</span></p>
                         <div className="grid gap-2 md:grid-cols-2">
-                          {product.serialTracking !== 'Off' && (
+                          {(product.serialTracking ?? 'Off') !== 'Off' && (
                             <label className="text-[12px] font-medium text-ink">
                               Serials
                               <textarea
