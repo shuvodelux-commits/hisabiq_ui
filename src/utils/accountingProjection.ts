@@ -46,7 +46,7 @@ function posting(
     createdAt: source.createdAt,
     postedBy: source.postedBy,
     description: source.description ?? source.reference,
-    status: 'Posted',
+    status: source.recordStatus === 'Deleted' ? 'Deleted' : 'Posted',
     lines: lines.filter((line) => line.debit !== 0 || line.credit !== 0)
   };
 }
