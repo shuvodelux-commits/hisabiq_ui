@@ -86,6 +86,7 @@ export type StockLot = {
   expiryDate?: string;
   serials?: string[];
   warranty?: WarrantySnapshot;
+  lotAllocations?: Array<{ lotId: string; quantity: number }>;
 };
 
 export type StockMovementType = 'Opening' | 'Purchase' | 'Sale' | 'Return' | 'Adjustment';
