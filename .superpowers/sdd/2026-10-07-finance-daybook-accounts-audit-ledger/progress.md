@@ -10,3 +10,6 @@ Pre-flight: Task 4 produces audit correction/delete behavior consumed by Task 5 
 Ruling: use the existing isolated GitHub feature branch as the worktree-equivalent workspace because this session edits GitHub directly and does not use the user's local machine — cost if wrong: branch-only changes remain isolated and can be discarded without affecting main.
 
 Task 1: complete (commits f9a9b5b..2c03eca, tests: GitHub UI Check run 37601535150 → success; npm test + npm run build passed).
+
+Task 2: Ruling: Purchase/Expense source pages do not yet expose a reusable edit form; Daybook routes to the source module now and Task 4's centralized Audit Edit provides complete correction — preserves single-source ownership without duplicating forms — cost if wrong: Daybook edit for those types is one click less direct until Task 4.
+Task 2: complete (commits ad889fb..e0cc6f9, tests: GitHub UI Check run 37602762389 → success; npm test + npm run build passed).
