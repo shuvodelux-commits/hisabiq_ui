@@ -30,6 +30,7 @@ import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransact
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
 import { CashSessionDetailsDialog } from '../components/finance/CashSessionDetailsDialog';
+import { FinancePaymentSplitEditor, normalizeFinancePaymentSplits, type FinancePaymentDraft } from '../components/finance/FinancePaymentSplitEditor';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -87,8 +88,6 @@ const financeTypeOptions: FinanceTransactionType[] = [
   'Opening Borrower Loan'
 ];
 
-const accountMethods = ['Cash', 'Bank', 'Mobile Banking'] as const;
-
 function transactionTone(transaction: FinanceTransaction) {
   if (transaction.status === 'Reversed') return 'neutral' as const;
   if (transaction.direction === 'in') return 'success' as const;
@@ -113,8 +112,12 @@ function TransactionDialog({
 }) {
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
   const [person, setPerson] = useState('');
-  const [method, setMethod] = useState<(typeof accountMethods)[number]>('Cash');
-  const [account, setAccount] = useState(accounts[0]?.name ?? '');
+  const [paymentRows, setPaymentRows] = useState<FinancePaymentDraft[]>([{
+    id: 'finance-payment-1',
+    method: 'Cash',
+    accountId: accounts.find((item) => item.status === 'Active' && (item.type === 'Cash' || item.type === 'Petty Cash'))?.id ?? '',
+    amount: ''
+  }]);
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState('2026-10-06');
   const [reference, setReference] = useState('');
@@ -124,14 +127,10 @@ function TransactionDialog({
   const meta = financeTypeMeta[type];
   const rolePeople = people.filter((item) => !meta.role || item.roles.includes(meta.role));
   const isOpening = !!meta.opening;
-  const matchingAccounts = accounts.filter((item) =>
-    method === 'Cash' ? (item.type === 'Cash' || item.type === 'Petty Cash') :
-    method === 'Bank' ? item.type === 'Bank' :
-    item.type === 'Mobile Banking'
-  );
   const selectedPerson = rolePeople.find((item) => item.name === person) ?? rolePeople[0];
-  const selectedAccount = matchingAccounts.find((item) => item.name === account) ?? matchingAccounts[0];
   const isBackdated = date !== '2026-10-06';
+  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, parseFloat(amount) || 0);
+  const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
 
   const save = () => {
     const value = parseFloat(amount) || 0;
@@ -147,6 +146,11 @@ function TransactionDialog({
       toast.error('Select a finance person');
       return;
     }
+    if (!isOpening && (!paymentSplits.length || Math.abs(paymentTotal - value) > 0.001)) {
+      toast.error('Payment split must equal the transaction amount');
+      return;
+    }
+    const firstPayment = paymentSplits[0];
 
     onSave({
       id: nextId,
@@ -155,9 +159,10 @@ function TransactionDialog({
       relationship: meta.account,
       party: selectedPerson.name,
       partyId: selectedPerson.id,
-      method: isOpening ? undefined : method,
-      account: isOpening ? undefined : selectedAccount?.name,
-      accountId: isOpening ? undefined : selectedAccount?.id,
+      method: isOpening ? undefined : firstPayment?.method,
+      account: isOpening ? undefined : firstPayment?.account,
+      accountId: isOpening ? undefined : firstPayment?.accountId,
+      paymentAccounts: isOpening ? undefined : paymentSplits,
       amount: value,
       direction: meta.direction,
       reference: reference || undefined,
@@ -220,30 +225,12 @@ function TransactionDialog({
           )}
 
           {!isOpening && (
-            <>
-              <label className="text-[13px] font-medium text-ink">
-                Payment method
-                <FormSelect className="mt-1.5" value={method} onChange={(event) => {
-                  const next = event.target.value as (typeof accountMethods)[number];
-                  setMethod(next);
-                  const first = accounts.find((item) =>
-                    next === 'Cash' ? (item.type === 'Cash' || item.type === 'Petty Cash') :
-                    next === 'Bank' ? item.type === 'Bank' :
-                    item.type === 'Mobile Banking'
-                  );
-                  setAccount(first?.name ?? '');
-                }} options={[...accountMethods]} />
-              </label>
-              <label className="text-[13px] font-medium text-ink">
-                Account
-                <FormSelect
-                  className="mt-1.5"
-                  value={selectedAccount?.name ?? ''}
-                  onChange={(event) => setAccount(event.target.value)}
-                  options={matchingAccounts.map((item) => item.name)}
-                />
-              </label>
-            </>
+            <FinancePaymentSplitEditor
+              accounts={accounts}
+              rows={paymentRows}
+              onChange={setPaymentRows}
+              totalAmount={parseFloat(amount) || 0}
+            />
           )}
 
           <label className="text-[13px] font-medium text-ink">
@@ -480,13 +467,18 @@ export function Finance() {
   const [counterNote, setCounterNote] = useState('');
 
   const applyTransactionMovement = (list: FinanceAccount[], transaction: FinanceTransaction, factor = 1) => {
-    if (!transaction.accountId || transaction.direction === 'none' || transaction.status === 'Reversed') return list;
-    const signed = transaction.direction === 'in' ? transaction.amount : -transaction.amount;
-    return list.map((account) =>
-      account.id === transaction.accountId
-        ? { ...account, balance: account.balance + signed * factor, lastActivity: 'Just now' }
-        : account
-    );
+    if (transaction.direction === 'none' || transaction.status === 'Reversed') return list;
+    const splits = transaction.paymentAccounts?.length
+      ? transaction.paymentAccounts
+      : transaction.accountId
+        ? [{ method: transaction.method ?? 'Cash', account: transaction.account ?? '', accountId: transaction.accountId, amount: transaction.amount }]
+        : [];
+    return list.map((account) => {
+      const movement = splits.filter((split) => split.accountId === account.id).reduce((sum, split) => sum + split.amount, 0);
+      if (!movement) return account;
+      const signed = transaction.direction === 'in' ? movement : -movement;
+      return { ...account, balance: account.balance + signed * factor, lastActivity: 'Just now' };
+    });
   };
 
   const updateFinanceTransaction = (updated: FinanceTransaction) => {
@@ -511,7 +503,11 @@ export function Finance() {
     const previous = accounts.find((item) => item.id === updated.id);
     setAccounts((current) => current.map((item) => item.id === updated.id ? updated : item));
     if (previous && previous.name !== updated.name) {
-      setTransactions((current) => current.map((item) => item.accountId === updated.id ? { ...item, account: updated.name } : item));
+      setTransactions((current) => current.map((item) => ({
+        ...item,
+        account: item.accountId === updated.id ? updated.name : item.account,
+        paymentAccounts: item.paymentAccounts?.map((split) => split.accountId === updated.id ? { ...split, account: updated.name } : split)
+      })));
       setTransfers((current) => current.map((item) => ({
         ...item,
         from: item.from === previous.name ? updated.name : item.from,
@@ -925,8 +921,8 @@ export function Finance() {
                     </TableCell>
                     <TableCell className="py-2 text-ink-600">{item.relationship ?? '—'}</TableCell>
                     <TableCell className="py-2 font-medium text-ink">{item.party ?? '—'}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{item.method ?? 'No money movement'}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{item.account ?? '—'}</TableCell>
+                    <TableCell className="py-2 text-ink-500">{item.paymentAccounts && item.paymentAccounts.length > 1 ? 'Multiple' : item.method ?? 'No money movement'}</TableCell>
+                    <TableCell className="py-2 text-ink-500">{item.paymentAccounts && item.paymentAccounts.length > 1 ? item.paymentAccounts.map((split) => split.account).join(' + ') : item.account ?? '—'}</TableCell>
                     <TableCell className={`py-2 text-right font-semibold ${
                       item.direction === 'in' ? 'text-success' : item.direction === 'out' ? 'text-ink' : 'text-info'
                     }`}>
