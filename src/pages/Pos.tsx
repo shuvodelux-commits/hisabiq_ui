@@ -18,7 +18,7 @@ import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
-import type { SalePresetLine, SalesInvoice } from '../types/erp';
+import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
   invoice: string;
@@ -26,7 +26,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: ReceiptLine[];
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'serials' | 'warranty' | 'lotAllocations'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -239,6 +239,16 @@ export function Pos() {
       return;
     }
 
+    const fractionalRequiredLine = cart.lines.find((line) => {
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
+      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      return line.product.serialTracking === 'Required' && !Number.isInteger(baseQty);
+    });
+    if (fractionalRequiredLine) {
+      toast.error('Whole quantity required', { description: `${fractionalRequiredLine.product.name} uses Required serial tracking.` });
+      return;
+    }
+
     const allSelectedSerials = cart.lines.flatMap((line) => line.serials);
     const duplicateSelected = duplicateSerials(allSelectedSerials);
     if (duplicateSelected.length) {
@@ -277,8 +287,12 @@ export function Pos() {
       customerAddress: cart.customerDetails.address.trim() || undefined,
       lines: cart.lines.map((l) => {
         const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
+        const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
         return {
+          productId: l.product.id,
           name: l.product.name,
+          unit: l.product.unit,
+          returnableQuantity: baseQty,
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
@@ -287,7 +301,7 @@ export function Pos() {
           lotAllocations: l.product.kind === 'Service' ? undefined : allocateLotQuantity(
             l.product,
             stockLots,
-            compoundBaseQuantity(l.qty, l.secondaryQty, factor)
+            baseQty
           ).allocations
         };
       }),
