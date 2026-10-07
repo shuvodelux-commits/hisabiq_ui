@@ -7,10 +7,13 @@ import { ProductThumb } from '../components/ProductThumb';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { AddProductDialog } from '../components/products/AddProductDialog';
+import { ProductDetailsDialog, StockAdjustmentDialog, type StockAdjustmentResult } from '../components/products/ProductInventoryDialogs';
+import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { productCategories, products as seed } from '../data/products';
-import type { Product } from '../types/erp';
+import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
+import type { Product, StockLot, StockMovement } from '../types/erp';
 import { formatStock, stockStatus, type StockStatus } from '../utils/units';
 import { taka } from '../utils/currency';
 
@@ -93,17 +96,29 @@ function ProductColumnPicker({
 
 function ProductActions({
   product,
+  onView,
+  onEdit,
+  onAdjust,
+  onLots,
+  onHistory,
   onDuplicate,
   onToggle
 }: {
   product: Product;
+  onView: () => void;
+  onEdit: () => void;
+  onAdjust: () => void;
+  onLots: () => void;
+  onHistory: () => void;
   onDuplicate: () => void;
   onToggle: () => void;
 }) {
+  const itemClass = 'w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
+
   return (
     <FloatingPanel
       label={`Actions for ${product.name}`}
-      width={190}
+      width={210}
       trigger={({ toggle, open }) => (
         <button
           type="button"
@@ -116,28 +131,25 @@ function ProductActions({
       )}>
       {(close) => (
         <div className="py-1">
+          <button type="button" onClick={() => { close(); onView(); }} className={itemClass}>View details</button>
+          <button type="button" onClick={() => { close(); onEdit(); }} className={itemClass}>Edit product</button>
+          <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>Adjust stock</button>
+          <div className="my-1 border-t border-ink-100" />
+          <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>Stock lots</button>
+          <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>Stock history</button>
           <button
             type="button"
-            onClick={() => { close(); toast(`Edit product · ${product.name}`); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            Edit product
+            onClick={() => {
+              close();
+              void navigator.clipboard?.writeText(product.sku);
+              toast.success('SKU copied', { description: product.sku });
+            }}
+            className={itemClass}>
+            Copy SKU / barcode
           </button>
-          <button
-            type="button"
-            onClick={() => { close(); toast(`Adjust stock · ${product.name}`); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            Adjust stock
-          </button>
-          <button
-            type="button"
-            onClick={() => { close(); onDuplicate(); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            Duplicate
-          </button>
-          <button
-            type="button"
-            onClick={() => { close(); onToggle(); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+          <div className="my-1 border-t border-ink-100" />
+          <button type="button" onClick={() => { close(); onDuplicate(); }} className={itemClass}>Duplicate</button>
+          <button type="button" onClick={() => { close(); onToggle(); }} className={itemClass}>
             {product.active ? 'Deactivate' : 'Activate'}
           </button>
         </div>
@@ -146,7 +158,7 @@ function ProductActions({
   );
 }
 
-type ProductView = 'list' | 'settings';
+type ProductView = 'list' | 'lots' | 'history' | 'settings';
 
 export function Products() {
   const [view, setView] = useState<ProductView>('list');
@@ -155,6 +167,12 @@ export function Products() {
   const [category, setCategory] = useState('All');
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
+  const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
+  const [lots, setLots] = useState<StockLot[]>(seedLots);
+  const [movements, setMovements] = useState<StockMovement[]>(seedMovements);
+  const [inventoryProductFilter, setInventoryProductFilter] = useState('');
   const [visibleColumns, setVisibleColumns] = useState<Record<ProductColumn, boolean>>(() => {
     if (typeof window === 'undefined') return defaultVisibleColumns;
     try {
@@ -175,6 +193,66 @@ export function Products() {
       }
       return next;
     });
+  };
+
+  const openLots = (product: Product) => {
+    setInventoryProductFilter(product.id);
+    setView('lots');
+  };
+
+  const openHistory = (product: Product) => {
+    setInventoryProductFilter(product.id);
+    setView('history');
+  };
+
+  const applyAdjustment = (product: Product, result: StockAdjustmentResult) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const reference = `ADJ-${String(movements.length + 1).padStart(4, '0')}`;
+
+    setList((items) => items.map((item) => item.id === product.id ? { ...item, stock: result.newStock } : item));
+
+    setLots((current) => {
+      if (result.delta > 0) {
+        const newLot: StockLot = {
+          id: `lot-${product.id}-adj-${Date.now()}`,
+          productId: product.id,
+          label: 'Stock Adjustment',
+          receivedAt: today,
+          quantity: result.delta,
+          available: result.delta,
+          unitCost: product.purchasePrice,
+          source: 'Adjustment',
+          reference
+        };
+        return [newLot, ...current];
+      }
+
+      if (result.delta < 0) {
+        let remaining = Math.abs(result.delta);
+        return current.map((lot) => {
+          if (lot.productId !== product.id || remaining <= 0 || lot.available <= 0) return lot;
+          const deduction = Math.min(lot.available, remaining);
+          remaining -= deduction;
+          return { ...lot, available: lot.available - deduction };
+        });
+      }
+
+      return current;
+    });
+
+    const movement: StockMovement = {
+      id: `mov-${product.id}-adj-${Date.now()}`,
+      productId: product.id,
+      date: today,
+      type: 'Adjustment',
+      quantity: result.delta,
+      balance: result.newStock,
+      reference,
+      note: result.note ? `${result.reason} · ${result.note}` : result.reason
+    };
+    setMovements((current) => [movement, ...current]);
+    setAdjustProduct(null);
+    toast.success('Stock adjusted', { description: `${product.name} · ${formatStock({ ...product, stock: result.newStock })}` });
   };
 
   const filtered = useMemo(() => {
@@ -205,13 +283,21 @@ export function Products() {
       <PageHeader
         title="Products"
         titleBn="পণ্য তালিকা"
-        description={view === 'list' ? 'Stock, units and prices for everything you sell.' : 'Categories, units, brands and defaults used across the product module.'}
+        description={
+          view === 'list'
+            ? 'Stock, units and prices for everything you sell.'
+            : view === 'lots'
+              ? 'See where current stock came from and what remains in each lot.'
+              : view === 'history'
+                ? 'Audit purchases, sales, returns and manual stock adjustments.'
+                : 'Categories, units, brands and defaults used across the product module.'
+        }
         actions={view === 'list' ? (
           <>
             <Button variant="outline" size="sm" onClick={() => toast('Exported products.xlsx')}>
               <Download className="size-4" /> Export
             </Button>
-            <Button size="sm" onClick={() => setDialogOpen(true)}>
+            <Button size="sm" onClick={() => { setEditingProduct(null); setDialogOpen(true); }}>
               <Plus className="size-4" /> Add product
             </Button>
           </>
@@ -221,6 +307,8 @@ export function Products() {
       <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 scrollbar-thin" role="tablist">
         {([
           ['list', 'Product list', 'পণ্য তালিকা'],
+          ['lots', 'Stock lots', 'স্টক লট'],
+          ['history', 'Stock history', 'স্টক হিস্ট্রি'],
           ['settings', 'Product settings', 'পণ্য সেটিংস']
         ] as Array<[ProductView, string, string]>).map(([id, label, bn]) => (
           <button
@@ -374,10 +462,21 @@ export function Products() {
                   <TableCell className="py-2 pr-4">
                     <ProductActions
                       product={p}
+                      onView={() => setDetailsProduct(p)}
+                      onEdit={() => { setEditingProduct(p); setDialogOpen(true); }}
+                      onAdjust={() => setAdjustProduct(p)}
+                      onLots={() => openLots(p)}
+                      onHistory={() => openHistory(p)}
                       onDuplicate={() => {
-                        const copy = { ...p, id: `p${Date.now()}`, name: `${p.name} Copy`, sku: `${p.sku}-COPY` };
+                        const copy = {
+                          ...p,
+                          id: `p${Date.now()}`,
+                          name: `${p.name} Copy`,
+                          sku: `${p.sku}-COPY`,
+                          stock: 0
+                        };
                         setList((items) => [copy, ...items]);
-                        toast.success(`${p.name} duplicated`);
+                        toast.success(`${p.name} duplicated`, { description: 'Product settings copied with zero opening stock.' });
                       }}
                       onToggle={() => setList((items) => items.map((item) => item.id === p.id ? { ...item, active: !item.active } : item))}
                     />
@@ -418,6 +517,25 @@ export function Products() {
         </>
       )}
 
+      {view === 'lots' && (
+        <StockLotsView
+          products={list}
+          lots={lots}
+          productFilter={inventoryProductFilter}
+          onProductFilter={setInventoryProductFilter}
+          onAdjust={setAdjustProduct}
+        />
+      )}
+
+      {view === 'history' && (
+        <StockHistoryView
+          products={list}
+          movements={movements}
+          productFilter={inventoryProductFilter}
+          onProductFilter={setInventoryProductFilter}
+        />
+      )}
+
       {view === 'settings' && (
         <div className="overflow-hidden rounded-xl border border-ink-100 bg-white shadow-card">
           <ProductSettings />
@@ -426,12 +544,63 @@ export function Products() {
 
       <AddProductDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSave={(p) => {
-          setList((l) => [p, ...l]);
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingProduct(null);
+        }}
+        initialProduct={editingProduct}
+        onSave={(product) => {
+          if (editingProduct) {
+            setList((items) => items.map((item) => item.id === product.id ? product : item));
+            toast.success(`${product.name} updated`);
+          } else {
+            setList((items) => [product, ...items]);
+            if (product.stock > 0) {
+              const today = new Date().toISOString().slice(0, 10);
+              const lot: StockLot = {
+                id: `lot-${product.id}-opening`,
+                productId: product.id,
+                label: 'Opening Stock',
+                receivedAt: today,
+                quantity: product.stock,
+                available: product.stock,
+                unitCost: product.purchasePrice,
+                source: 'Opening'
+              };
+              const movement: StockMovement = {
+                id: `mov-${product.id}-opening`,
+                productId: product.id,
+                date: today,
+                type: 'Opening',
+                quantity: product.stock,
+                balance: product.stock,
+                reference: 'Opening Stock',
+                note: 'Opening balance'
+              };
+              setLots((current) => [lot, ...current]);
+              setMovements((current) => [movement, ...current]);
+            }
+            toast.success(`${product.name} added`, { description: product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
+          }
           setDialogOpen(false);
-          toast.success(`${p.name} added`, { description: p.altUnit ? `1 ${p.altUnit.unit} = ${p.altUnit.factor} ${p.unit}` : undefined });
+          setEditingProduct(null);
         }} />
+
+      <ProductDetailsDialog
+        product={detailsProduct}
+        lots={lots}
+        open={Boolean(detailsProduct)}
+        onOpenChange={(open) => { if (!open) setDetailsProduct(null); }}
+      />
+
+      <StockAdjustmentDialog
+        product={adjustProduct}
+        open={Boolean(adjustProduct)}
+        onOpenChange={(open) => { if (!open) setAdjustProduct(null); }}
+        onSave={(result) => {
+          if (adjustProduct) applyAdjustment(adjustProduct, result);
+        }}
+      />
       
     </div>);
 
