@@ -9,11 +9,13 @@ import type { ChequeDirection, ChequeRecord, ChequeStatus } from '../../data/che
 export function ChequeDialog({
   open,
   onOpenChange,
-  onSave
+  onSave,
+  accountOptions = []
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (cheque: ChequeRecord) => void;
+  accountOptions?: string[];
 }) {
   const [direction, setDirection] = useState<ChequeDirection>('Received');
   const [chequeNumber, setChequeNumber] = useState('');
@@ -27,6 +29,7 @@ export function ChequeDialog({
   const [depositAccount, setDepositAccount] = useState('');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
+  const [attachment, setAttachment] = useState('');
 
   const save = () => {
     const value = parseFloat(amount) || 0;
@@ -49,6 +52,7 @@ export function ChequeDialog({
       depositAccount: depositAccount.trim() || undefined,
       reference: reference.trim() || undefined,
       note: note.trim() || undefined,
+      attachment: attachment || undefined,
       status,
       createdAt: '2026-10-07T15:30:00+06:00',
       postedBy: 'Shuvo'
@@ -105,7 +109,7 @@ export function ChequeDialog({
           </label>
           <label className="text-[13px] font-medium text-ink">
             Bank / Money Account
-            <Input className="mt-1.5" value={depositAccount} onChange={(event) => setDepositAccount(event.target.value)} placeholder="e.g. Dutch-Bangla Bank · 4582" />
+            {accountOptions.length ? <FormSelect className="mt-1.5" value={depositAccount || accountOptions[0]} onChange={(event) => setDepositAccount(event.target.value)} options={accountOptions} /> : <Input className="mt-1.5" value={depositAccount} onChange={(event) => setDepositAccount(event.target.value)} placeholder="e.g. Dutch-Bangla Bank · 4582" />}
           </label>
           <label className="text-[13px] font-medium text-ink">
             Reference
@@ -114,6 +118,11 @@ export function ChequeDialog({
           <label className="text-[13px] font-medium text-ink">
             Note
             <Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional" />
+          </label>
+          <label className="text-[13px] font-medium text-ink sm:col-span-2">
+            Attachment <span className="font-bn text-[11px] font-normal text-ink-400">· চেকের ছবি বা PDF</span>
+            <Input className="mt-1.5" type="file" accept="image/*,.pdf" onChange={(event) => setAttachment(event.target.files?.[0]?.name ?? '')} />
+            {attachment && <span className="mt-1 block text-[10.5px] text-ink-400">{attachment}</span>}
           </label>
         </div>
         <DialogFooter>
