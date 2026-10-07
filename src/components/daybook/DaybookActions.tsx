@@ -35,7 +35,7 @@ export function DaybookActions({
           {canOpen && <button className={itemClass} onClick={() => { close(); onOpen(transaction); }}><Eye className="size-3.5" /> Open</button>}
           {canEdit && transaction.status !== 'Deleted' && <button className={itemClass} onClick={() => { close(); onEdit(transaction); }}><Pencil className="size-3.5" /> Edit</button>}
           {canOpen && <button className={itemClass} onClick={() => { close(); onGoToSource(transaction); }}><ExternalLink className="size-3.5" /> Go to source</button>}
-          {canDelete && transaction.status !== 'Deleted' && <button className={`${itemClass} text-danger`} onClick={() => { close(); onDelete(transaction); }}><Trash2 className="size-3.5" /> Delete</button>}}
+          {canDelete && transaction.status !== 'Deleted' && <button className={`${itemClass} text-danger`} onClick={() => { close(); onDelete(transaction); }}><Trash2 className="size-3.5" /> Delete</button>}
         </div>
       )}
     </FloatingPanel>
