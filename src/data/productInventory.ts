@@ -8,8 +8,36 @@ function splitStock(stock: number): [number, number] {
   return [first, stock - first];
 }
 
+function lotExtras(productId: string, source: 'Opening' | 'Purchase'): Partial<StockLot> {
+  if (productId === 'p7') {
+    return source === 'Opening'
+      ? { serials: ['GV34-1001', 'GV34-1002'] }
+      : { serials: ['GV34-1003', 'GV34-1004'] };
+  }
+
+  if (productId === 'p2' && source === 'Purchase') {
+    return { serials: ['LB12-3001', 'LB12-3002', 'LB12-3003', 'LB12-3004'] };
+  }
+
+  if (productId === 'p8') {
+    return source === 'Opening'
+      ? {
+          batchNumber: 'CEM-0826-A',
+          manufactureDate: '2026-08-05',
+          expiryDate: '2026-10-03'
+        }
+      : {
+          batchNumber: 'CEM-0926-B',
+          manufactureDate: '2026-09-20',
+          expiryDate: '2026-10-25'
+        };
+  }
+
+  return {};
+}
+
 export const stockLots: StockLot[] = products.flatMap((product, index) => {
-  if (product.stock <= 0) return [];
+  if (product.kind === 'Service' || product.stock <= 0) return [];
   const [opening, purchase] = splitStock(product.stock);
   const rows: StockLot[] = [];
 
@@ -22,7 +50,8 @@ export const stockLots: StockLot[] = products.flatMap((product, index) => {
       quantity: opening,
       available: opening,
       unitCost: product.purchasePrice,
-      source: 'Opening'
+      source: 'Opening',
+      ...lotExtras(product.id, 'Opening')
     });
   }
 
@@ -36,7 +65,8 @@ export const stockLots: StockLot[] = products.flatMap((product, index) => {
       available: purchase,
       unitCost: product.purchasePrice,
       source: 'Purchase',
-      reference: `PUR-${String(1041 + index).padStart(4, '0')}`
+      reference: `PUR-${String(1041 + index).padStart(4, '0')}`,
+      ...lotExtras(product.id, 'Purchase')
     });
   }
 
@@ -44,6 +74,7 @@ export const stockLots: StockLot[] = products.flatMap((product, index) => {
 });
 
 export const stockMovements: StockMovement[] = products.flatMap((product, index) => {
+  if (product.kind === 'Service') return [];
   const openingBalance = product.stock > 0 ? Math.max(1, Math.floor(product.stock * 0.38)) : 0;
   const purchaseQty = Math.max(0, product.stock - openingBalance);
   const rows: StockMovement[] = [];
@@ -70,7 +101,7 @@ export const stockMovements: StockMovement[] = products.flatMap((product, index)
       quantity: purchaseQty,
       balance: product.stock,
       reference: `PUR-${String(1041 + index).padStart(4, '0')}`,
-      note: 'Supplier purchase received'
+      note: product.expiry?.enabled ? 'Supplier purchase received · lot expiry tracked' : 'Supplier purchase received'
     });
   }
 
