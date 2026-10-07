@@ -167,6 +167,12 @@ export function Products() {
   const [category, setCategory] = useState('All');
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
+  const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
+  const [lots, setLots] = useState<StockLot[]>(seedLots);
+  const [movements, setMovements] = useState<StockMovement[]>(seedMovements);
+  const [inventoryProductFilter, setInventoryProductFilter] = useState('');
   const [visibleColumns, setVisibleColumns] = useState<Record<ProductColumn, boolean>>(() => {
     if (typeof window === 'undefined') return defaultVisibleColumns;
     try {
@@ -187,6 +193,66 @@ export function Products() {
       }
       return next;
     });
+  };
+
+  const openLots = (product: Product) => {
+    setInventoryProductFilter(product.id);
+    setView('lots');
+  };
+
+  const openHistory = (product: Product) => {
+    setInventoryProductFilter(product.id);
+    setView('history');
+  };
+
+  const applyAdjustment = (product: Product, result: StockAdjustmentResult) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const reference = `ADJ-${String(movements.length + 1).padStart(4, '0')}`;
+
+    setList((items) => items.map((item) => item.id === product.id ? { ...item, stock: result.newStock } : item));
+
+    setLots((current) => {
+      if (result.delta > 0) {
+        const newLot: StockLot = {
+          id: `lot-${product.id}-adj-${Date.now()}`,
+          productId: product.id,
+          label: 'Stock Adjustment',
+          receivedAt: today,
+          quantity: result.delta,
+          available: result.delta,
+          unitCost: product.purchasePrice,
+          source: 'Adjustment',
+          reference
+        };
+        return [newLot, ...current];
+      }
+
+      if (result.delta < 0) {
+        let remaining = Math.abs(result.delta);
+        return current.map((lot) => {
+          if (lot.productId !== product.id || remaining <= 0 || lot.available <= 0) return lot;
+          const deduction = Math.min(lot.available, remaining);
+          remaining -= deduction;
+          return { ...lot, available: lot.available - deduction };
+        });
+      }
+
+      return current;
+    });
+
+    const movement: StockMovement = {
+      id: `mov-${product.id}-adj-${Date.now()}`,
+      productId: product.id,
+      date: today,
+      type: 'Adjustment',
+      quantity: result.delta,
+      balance: result.newStock,
+      reference,
+      note: result.note ? `${result.reason} · ${result.note}` : result.reason
+    };
+    setMovements((current) => [movement, ...current]);
+    setAdjustProduct(null);
+    toast.success('Stock adjusted', { description: `${product.name} · ${formatStock({ ...product, stock: result.newStock })}` });
   };
 
   const filtered = useMemo(() => {
@@ -217,13 +283,21 @@ export function Products() {
       <PageHeader
         title="Products"
         titleBn="পণ্য তালিকা"
-        description={view === 'list' ? 'Stock, units and prices for everything you sell.' : 'Categories, units, brands and defaults used across the product module.'}
+        description={
+          view === 'list'
+            ? 'Stock, units and prices for everything you sell.'
+            : view === 'lots'
+              ? 'See where current stock came from and what remains in each lot.'
+              : view === 'history'
+                ? 'Audit purchases, sales, returns and manual stock adjustments.'
+                : 'Categories, units, brands and defaults used across the product module.'
+        }
         actions={view === 'list' ? (
           <>
             <Button variant="outline" size="sm" onClick={() => toast('Exported products.xlsx')}>
               <Download className="size-4" /> Export
             </Button>
-            <Button size="sm" onClick={() => setDialogOpen(true)}>
+            <Button size="sm" onClick={() => { setEditingProduct(null); setDialogOpen(true); }}>
               <Plus className="size-4" /> Add product
             </Button>
           </>
@@ -233,6 +307,8 @@ export function Products() {
       <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 scrollbar-thin" role="tablist">
         {([
           ['list', 'Product list', 'পণ্য তালিকা'],
+          ['lots', 'Stock lots', 'স্টক লট'],
+          ['history', 'Stock history', 'স্টক হিস্ট্রি'],
           ['settings', 'Product settings', 'পণ্য সেটিংস']
         ] as Array<[ProductView, string, string]>).map(([id, label, bn]) => (
           <button
