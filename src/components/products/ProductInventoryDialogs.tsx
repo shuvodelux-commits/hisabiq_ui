@@ -338,7 +338,14 @@ export function StockAdjustmentDialog({
 
   const save = () => {
     if (!quantity.trim()) return setError('Enter a quantity.');
-    onSave({ newStock: previewStock, delta: previewStock - product.stock, reason, note: note.trim() });
+    const delta = previewStock - product.stock;
+    if (delta > 0 && product.serialTracking === 'Required') {
+      return setError('Add positive stock through Add stock lot so required serial numbers can be recorded.');
+    }
+    if (delta > 0 && product.expiry?.enabled && product.expiry.dateRequired) {
+      return setError('Add positive stock through Add stock lot so batch and expiry dates can be recorded.');
+    }
+    onSave({ newStock: previewStock, delta, reason, note: note.trim() });
     onOpenChange(false);
   };
 
