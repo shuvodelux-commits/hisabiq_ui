@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Pencil, Plus, Power, Printer, RotateCcw, Save, UserRoundCog } from 'lucide-react';
+import { ArrowLeftRight, BookOpen, Pencil, Plus, Power, Printer, RefreshCw, RotateCcw, Save, UserRoundCog } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
@@ -223,7 +223,7 @@ export function FinanceTransactionActionDialog({
 }
 
 export function FinanceAccountActionDialog({
-  account, transactions, transfers, onClose, onUpdate, onToggleStatus, onManualEntry
+  account, transactions, transfers, onClose, onUpdate, onToggleStatus, onManualEntry, onTransfer, onReconcile
 }: {
   account: FinanceAccount | null;
   transactions: FinanceTransaction[];
@@ -232,6 +232,8 @@ export function FinanceAccountActionDialog({
   onUpdate: (account: FinanceAccount) => void;
   onToggleStatus: (account: FinanceAccount) => void;
   onManualEntry: (account: FinanceAccount, direction: 'in' | 'out', amount: number, reference?: string, note?: string) => void;
+  onTransfer: (account: FinanceAccount) => void;
+  onReconcile: (account: FinanceAccount) => void;
 }) {
   const [mode, setMode] = useState<'ledger' | 'edit' | 'manual'>('ledger');
   const [confirmStatus, setConfirmStatus] = useState(false);
@@ -357,13 +359,18 @@ export function FinanceAccountActionDialog({
               </label>
             </>}
             <div className="sm:col-span-2 rounded-lg bg-ink-50 px-3 py-2 text-[11px] text-ink-500">
-              Opening balance is historical setup. Use Manual Entry for a real correction.
+              Opening balance is historical setup. Use Money in / out for a real account movement or correction.
             </div>
           </div>
         )}
 
         {mode === 'manual' && (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-3">
+            <div className="rounded-lg border border-teal-100 bg-teal-50/50 px-3 py-2">
+              <p className="text-[12.5px] font-medium text-teal-900">Money in / out <span className="font-bn text-[11px] font-normal text-teal-700">· অ্যাকাউন্টে টাকা যোগ বা কমানো</span></p>
+              <p className="mt-0.5 text-[10.5px] text-teal-700">Use for a real standalone movement. Transfers between your own accounts use Transfer instead.</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-[13px] font-medium text-ink">
               Direction
               <FormSelect className="mt-1.5" value={manualDirection} options={['in', 'out']} onChange={(event) => setManualDirection(event.target.value as 'in' | 'out')} />
@@ -384,13 +391,16 @@ export function FinanceAccountActionDialog({
               Description / note
               <Input className="mt-1.5" value={manualNote} onChange={(event) => setManualNote(event.target.value)} placeholder="Why is this entry needed?" />
             </label>
+            </div>
           </div>
         )}
 
         <DialogFooter>
           {mode === 'ledger' && !confirmStatus && <>
             <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
-            <Button variant="outline" onClick={() => setMode('manual')}><Plus className="size-4" /> Manual entry</Button>
+            <Button variant="outline" onClick={() => setMode('manual')}><Plus className="size-4" /> Money in / out</Button>
+            <Button variant="outline" onClick={() => onTransfer(account)}><ArrowLeftRight className="size-4" /> Transfer</Button>
+            {account.type !== 'Cash' && <Button variant="outline" onClick={() => onReconcile(account)}><RefreshCw className="size-4" /> Reconcile</Button>}
             <Button variant="outline" onClick={() => setMode('edit')}><Pencil className="size-4" /> Edit</Button>
             <Button variant="outline" onClick={() => setConfirmStatus(true)}><Power className="size-4" /> {account.status === 'Active' ? 'Deactivate' : 'Activate'}</Button>
             <Button onClick={onClose}>Close</Button>
