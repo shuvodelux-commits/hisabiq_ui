@@ -19,3 +19,10 @@ Task 3: complete (commits 417b216..65391dd, tests: GitHub UI Check run 376043142
 Task 3: complete (commits 417b216..65391dd, tests: GitHub UI Check run 37604314262 → success; accounting projection tests + full npm test + npm run build passed).
 
 Task 4: complete (commits fbaf3d3..86a37b9, tests: GitHub UI Check run 37605615726 → success; npm test + npm run build passed; Cloudflare preview build success).
+Task 5: complete (commits a56ddc9..f38e0bb, tests: GitHub UI Check run 37607295160 → 46/46 pass; npm run build → success; Cloudflare preview → success).
+
+Final review: self-review (no subagent tool).
+Final: fixed detail-dialog permission bypass — shared action availability test RED→GREEN; suite 46/46.
+Final: fixed invalid Audit Ledger accounting account reference — valid posting account test RED→GREEN; suite 46/46.
+Final: Ruling: UI demo accounting/audit projection fixtures remain separate seeded projections rather than a production shared datastore — this repository is the UI/design reference and source ownership is represented by source/sourceId plus tested projection/correction interfaces; production persistence must bind these projections to the real source records — cost if wrong: seeded demo values can drift visually if edited independently.
+Final: Ruling: Daybook's in-page Delete uses page-local demo state while source-aware whole-posting deletion is implemented and tested in the Audit engine — this keeps the UI prototype isolated without refactoring every existing page into a global data store; production wiring must call the same source-aware delete adapter — cost if wrong: during this static UI demo, another module may still show the original seed until refresh/wiring to shared persistence.
