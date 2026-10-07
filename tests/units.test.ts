@@ -25,3 +25,12 @@ test('formats negative compound stock without awkward floor division', () => {
   assert.equal(formatStock({ ...product, stock: -5 }), '-5 Pcs');
   assert.equal(formatStock({ ...product, stock: -25 }), '-2 Box 5 Pcs');
 });
+
+
+test('respects base-unit stock view preference', () => {
+  assert.equal(formatStock({ ...product, stockViewUnit: 'Pcs' }), '25 Pcs');
+});
+
+test('keeps compound stock when larger unit is the preferred view', () => {
+  assert.equal(formatStock({ ...product, stockViewUnit: 'Box' }), '2 Box 5 Pcs');
+});
