@@ -25,5 +25,8 @@ jobs:
       - name: Test POS helpers
         run: npm test
 
+      - name: Typecheck UI
+        run: npx tsc --noEmit
+
       - name: Build UI
         run: npm run build
