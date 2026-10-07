@@ -235,15 +235,23 @@ export function Pos() {
     const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
 
-    const expiredBlockedLine = cart.lines.find((line) => {
-      if (!line.product.expiry?.enabled) return false;
+    const unresolvedShortageLine = cart.lines.find((line) => {
       const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
       const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
-      return baseQty > productStockBreakdown(line.product, stockLots).sellable;
+      return saleStockShortage(line.product, stockLots, baseQty) > 0 && !line.stockSource;
     });
-    if (expiredBlockedLine) {
-      const sellable = productStockBreakdown(expiredBlockedLine.product, stockLots).sellable;
-      toast.error('Not enough sellable stock', { description: `${expiredBlockedLine.product.name}: only ${sellable} ${expiredBlockedLine.product.unit} are unexpired.` });
+    if (unresolvedShortageLine) {
+      const factor = unresolvedShortageLine.product.altUnit && unresolvedShortageLine.unit === unresolvedShortageLine.product.altUnit.unit
+        ? unresolvedShortageLine.product.altUnit.factor
+        : 1;
+      const shortage = saleStockShortage(
+        unresolvedShortageLine.product,
+        stockLots,
+        compoundBaseQuantity(unresolvedShortageLine.qty, unresolvedShortageLine.secondaryQty, factor)
+      );
+      toast.error('Choose stock shortage handling', {
+        description: `${unresolvedShortageLine.product.name}: resolve ${shortage} ${unresolvedShortageLine.product.unit} shortage before completing the sale.`
+      });
       return;
     }
 
@@ -305,6 +313,11 @@ export function Pos() {
       lines: cart.lines.map((l) => {
         const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
         const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
+        const availableStock = saleAvailableStock(l.product, stockLots);
+        const shortage = saleStockShortage(l.product, stockLots, baseQty);
+        const vendorUnitCost = l.stockSource?.mode === 'Vendor'
+          ? blendedVendorUnitCost(baseQty, availableStock, l.product.purchasePrice, l.stockSource.unitCost)
+          : undefined;
         return {
           productId: l.product.id,
           name: l.product.name,
@@ -313,13 +326,14 @@ export function Pos() {
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
-          unitCost: editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice,
+          unitCost: vendorUnitCost ?? (editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice),
           serials: l.serials,
           warranty: editing ? (l.historicalWarranty ?? warrantySnapshot(l.product)) : warrantySnapshot(l.product),
+          stockSource: shortage > 0 ? l.stockSource : undefined,
           lotAllocations: l.product.kind === 'Service' ? undefined : allocateLotQuantity(
             l.product,
             stockLots,
-            baseQty
+            Math.min(baseQty, availableStock)
           ).allocations
         };
       }),
@@ -375,7 +389,8 @@ export function Pos() {
         secondaryQty: line.secondaryQty,
         unit: line.unit,
         price: parseFloat(line.price) || 0,
-        serials: line.serials
+        serials: line.serials,
+        stockSource: line.stockSource
       }))
     }]
     );
