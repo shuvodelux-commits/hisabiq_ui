@@ -379,10 +379,15 @@ Recommended compact columns:
 
 Default date filter: **Today**.
 
+Daybook must support both:
+
+- **Selected date** — show transactions for one chosen date.
+- **Selected date range** — show transactions between a From date and To date, inclusive.
+
 Minimal filters:
 
 - Search
-- Date
+- Date / Date range
 - Type
 - Account
 - User
@@ -393,9 +398,40 @@ Quick dates:
 - Yesterday
 - This week
 - This month
-- Custom
+- Custom range
 
-### 6.3 Money In / Money Out semantics
+The date filter follows the user's **Entry date view** preference:
+
+- **Transaction Date** — default; filter, sort and show entries by the business transaction date.
+- **Created Date** — filter, sort and show entries by when the entry was actually created in HisabIQ.
+
+When Transaction Date and Created Date differ, the transaction details must show both dates clearly.
+
+### 6.3 Transaction date and created date
+
+Every business transaction keeps two separate dates:
+
+- **Transaction Date** — the date the business transaction belongs to. This is the normal date used for ledgers, accounting periods and reports.
+- **Created Date** — when the record was actually created in HisabIQ. This is audit information and is never editable.
+
+Default user preference:
+
+- **Entry date view: Transaction Date**
+
+Per-user setting:
+
+- **Transaction Date** · যে তারিখের লেনদেন
+- **Created Date** · সফটওয়্যারে যেদিন এন্ট্রি হয়েছে
+
+A longer tooltip explains:
+
+> এই পছন্দ Daybook ও Ledger-এ কোন তারিখ দিয়ে এন্ট্রি দেখানো, সাজানো ও খোঁজা হবে তা বদলায়। হিসাবের আসল Transaction Date বদলায় না।
+
+This preference changes presentation/filtering only. It does not change accounting data.
+
+Financial statements, Trial Balance periods and accounting calculations always use **Transaction Date**, regardless of the user's Entry date view preference.
+
+### 6.4 Money In / Money Out semantics
 
 These columns show **actual money movement only**.
 
@@ -419,7 +455,7 @@ Return:
 - refund to customer = actual refunded amount under Money Out
 - supplier refund received = actual received amount under Money In
 
-### 6.4 Internal transfers
+### 6.5 Internal transfers
 
 For Cash → DBBL ৳25,000:
 
@@ -429,7 +465,7 @@ For Cash → DBBL ৳25,000:
 
 Internal transfers are excluded from Daybook business Money In/Money Out summary totals so they do not appear as income or expense.
 
-### 6.5 Multiple payment methods
+### 6.6 Multiple payment methods
 
 A transaction paid through multiple accounts remains **one Daybook row**.
 
@@ -444,7 +480,7 @@ Daybook:
 
 Opening the transaction shows the payment breakdown.
 
-### 6.6 Posted by and audit display
+### 6.7 Posted by and audit display
 
 Daybook shows the real person who performed the business action.
 
@@ -466,7 +502,7 @@ Open details should show:
 - Deleted at, if deleted
 - Delete reason, if applicable
 
-### 6.7 Actions
+### 6.8 Actions
 
 Every Daybook row uses the standard `⋯` action pattern.
 
@@ -484,13 +520,13 @@ Contextual secondary actions may include:
 
 Do not overload menus with unnecessary actions.
 
-### 6.8 Open
+### 6.9 Open
 
 Open shows a consistent transaction-detail surface in Daybook, but reuses source-specific details where needed.
 
 It does not create a second business-rule implementation.
 
-### 6.9 Edit
+### 6.10 Edit
 
 Edit opens the original module's editor:
 
@@ -502,9 +538,19 @@ Edit opens the original module's editor:
 - Receipt/Payment Voucher → Accounts editor
 - Adjustment Entry → Accounts editor
 
+Every editable business transaction includes a **Transaction Date** field in its source editor.
+
+Rules:
+
+- Transaction Date may be changed by a user who already has permission to edit that source transaction.
+- Created Date is immutable and never changes when Transaction Date changes.
+- Changing the Transaction Date of an already-posted transaction records the old date, new date, editor, edit time and a short reason in audit history.
+- Changing one transaction's date does not silently rewrite the dates of linked transactions. For example, changing an invoice date does not change a later payment's own Transaction Date.
+- After saving, Daybook, Ledgers and accounting reports immediately reflect the new Transaction Date where applicable.
+
 After saving, Daybook reflects the updated source transaction.
 
-### 6.10 Delete
+### 6.11 Delete
 
 The UI says **Delete**.
 
@@ -530,7 +576,7 @@ Deleted transactions are hidden from the normal view but available through:
 
 Deleted rows retain audit information.
 
-### 6.11 Permissions
+### 6.12 Permissions
 
 Daybook has one dedicated permission:
 
@@ -612,6 +658,12 @@ Choose an account and show:
 - Debit
 - Credit
 - Balance
+
+Default ordering and date filtering use **Transaction Date**.
+
+The user's **Entry date view** preference may switch the Ledger to Created Date for display, sorting and filtering. When the two dates differ, details expose both.
+
+Accounting reports and period calculations still use Transaction Date even when the Ledger is being viewed by Created Date.
 
 In Simple mode, use friendlier context-specific wording where possible. In inherently accounting reports, Debit/Credit remain available with simple Bangla helpers/tooltips.
 
@@ -721,6 +773,12 @@ Posted financial records:
 - preserve audit integrity internally
 - corrections/reversals must keep books, balances and stock consistent
 - retain who created, edited and deleted the transaction and when
+- retain both immutable Created Date and editable Transaction Date
+- record Transaction Date changes in audit history with old date, new date, user, time and reason
+
+Created Date is audit history and can never be edited.
+
+Transaction Date is the business date and may be edited through the original transaction editor when the user has edit permission.
 
 Avoid exposing accounting implementation jargon to ordinary users.
 
@@ -764,23 +822,26 @@ Do not claim full Bangladesh/NBR compliance in this phase. Mushak forms, BIN/TIN
 - Tooltips must be keyboard accessible and must never contain information required to complete a transaction.
 - Do not duplicate source-module business rules inside Daybook.
 - Prefer progressive disclosure over exposing accounting complexity by default.
+- Date labels use short Bangla helpers; longer date-behavior explanations use tooltips.
+- Entry date view is a per-user display preference and defaults to Transaction Date.
 
 ## 14. Implementation slices
 
 Implementation should proceed in dependency order:
 
 1. Navigation and clean module split
-2. Shared terminology preference and context-aware labels
-3. Finance restructure
-4. Daybook unified transaction model and list
-5. Daybook Open/Edit/Delete routing and audit presentation
-6. Cheque register
-7. Accounting data model and posting representation
-8. Accounts vouchers and ledger
-9. Trial Balance
-10. Profit & Loss and Balance Sheet
-11. Opening balances and safe correction/reversal flows
-12. Full UI/Playwright verification, build, preview and merge
+2. Shared terminology and Entry date view preferences
+3. Shared Transaction Date / immutable Created Date model
+4. Finance restructure
+5. Daybook unified transaction model and list
+6. Daybook Open/Edit/Delete/date-change routing and audit presentation
+7. Cheque register
+8. Accounting data model and posting representation
+9. Accounts vouchers and ledger
+10. Trial Balance
+11. Profit & Loss and Balance Sheet
+12. Opening balances and safe correction/reversal flows
+13. Full UI/Playwright verification, build, preview and merge
 
 ## 15. Acceptance criteria
 
@@ -800,6 +861,12 @@ The design is successful when:
 12. Accounts contains accounting representation and reports, not a duplicate Daybook.
 13. Reconciliation remains a separate specialized module.
 14. The same underlying transaction is never copied into independent competing sources of truth.
+15. Daybook can show one selected date or an inclusive selected date range.
+16. Every transaction preserves immutable Created Date separately from editable Transaction Date.
+17. Transaction Date is the default date basis for Daybook and Ledger.
+18. Each user can switch Daybook/Ledger display, sorting and filtering between Transaction Date and Created Date without changing accounting data.
+19. Trial Balance and financial-statement periods always use Transaction Date.
+20. Editing a posted Transaction Date is permission-controlled and fully audited.
 
 ### End-to-end acceptance scenario
 
