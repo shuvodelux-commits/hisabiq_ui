@@ -46,6 +46,8 @@ export function SerialPickerDialog({
   );
 
   const addSerials = (incoming: string[]) => {
+    const ineligible = incoming.find((serial) => !eligible.includes(serial) && !selected.includes(serial));
+    if (ineligible) return setError(`Serial is not eligible stock: ${ineligible}`);
     const next = [...values, ...incoming.filter((serial) => !values.includes(serial))];
     const duplicates = duplicateSerials(next, blocked.filter((serial) => !values.includes(serial)));
     if (duplicates.length) return setError(`Serial already selected elsewhere: ${duplicates[0]}`);
