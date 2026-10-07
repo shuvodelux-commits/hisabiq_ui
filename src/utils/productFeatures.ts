@@ -65,9 +65,12 @@ export function effectiveOfferPrice(product: Product, offer: ProductOffer): numb
 
 export function validateOffer(product: Product, offer: ProductOffer, others: ProductOffer[]): string | null {
   if (offer.value <= 0) return 'Discount must be greater than zero.';
-  if (new Date(offer.endAt) <= new Date(offer.startAt)) return 'End date and time must be after the start.';
+  const startDate = new Date(offer.startAt);
+  const endDate = new Date(offer.endAt);
+  if (!offer.startAt || !offer.endAt || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 'Enter valid start and end date/time.';
+  if (endDate <= startDate) return 'End date and time must be after the start.';
   if (offer.discountType === 'Percentage' && offer.value >= 100) return 'Percentage discount must be below 100%.';
-  if (effectiveOfferPrice(product, offer) < 0.000001) return 'Discount cannot reduce the selling price to zero or below.';
+  if (effectivePriceForUnit(product, offer, offer.priceUnit) <= 0) return 'Discount cannot reduce the selling price to zero or below.';
 
   if (offer.enabled) {
     const start = new Date(offer.startAt).getTime();
