@@ -102,6 +102,7 @@ function ProductActions({
   onView,
   onEdit,
   onAdjust,
+  onAddLot,
   onLots,
   onHistory,
   onOffers,
@@ -112,6 +113,7 @@ function ProductActions({
   onView: () => void;
   onEdit: () => void;
   onAdjust: () => void;
+  onAddLot: () => void;
   onLots: () => void;
   onHistory: () => void;
   onOffers: () => void;
@@ -139,6 +141,7 @@ function ProductActions({
           <button type="button" onClick={() => { close(); onView(); }} className={itemClass}>View details</button>
           <button type="button" onClick={() => { close(); onEdit(); }} className={itemClass}>Edit product</button>
           {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>Adjust stock</button>}
+          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAddLot(); }} className={itemClass}>Add stock lot</button>}
           <button type="button" onClick={() => { close(); onOffers(); }} className={itemClass}>Manage offers</button>
           <div className="my-1 border-t border-ink-100" />
           {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>Stock lots & serials</button>}
@@ -501,6 +504,7 @@ export function Products() {
                       onView={() => setDetailsProduct(p)}
                       onEdit={() => { setEditingProduct(p); setDialogOpen(true); }}
                       onAdjust={() => setAdjustProduct(p)}
+                      onAddLot={() => setLotProduct(p)}
                       onLots={() => openLots(p)}
                       onHistory={() => openHistory(p)}
                       onOffers={() => setOfferProduct(p)}
