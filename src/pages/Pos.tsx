@@ -11,11 +11,13 @@ import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine } from '../components/brand/ReceiptPreview';
 import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
 import { products } from '../data/products';
+import { stockLots } from '../data/productInventory';
+import { productOffers } from '../data/productOffers';
 import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
-import { requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
+import { activeOfferFor, allocateLotQuantity, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import type { SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -34,7 +36,7 @@ type CompletedSale = {
   method: string;
 };
 
-const quickItems = products.filter((p) => p.active).slice(0, 8);
+const quickItems = products.filter((p) => p.active && (p.kind === 'Service' || !p.expiry?.enabled || productStockBreakdown(p, stockLots).sellable > 0)).slice(0, 8);
 
 function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
   return lines.flatMap((sourceLine, index) => {
@@ -225,6 +227,18 @@ export function Pos() {
     const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
 
+    const expiredBlockedLine = cart.lines.find((line) => {
+      if (!line.product.expiry?.enabled) return false;
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
+      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      return baseQty > productStockBreakdown(line.product, stockLots).sellable;
+    });
+    if (expiredBlockedLine) {
+      const sellable = productStockBreakdown(expiredBlockedLine.product, stockLots).sellable;
+      toast.error('Not enough sellable stock', { description: `${expiredBlockedLine.product.name}: only ${sellable} ${expiredBlockedLine.product.unit} are unexpired.` });
+      return;
+    }
+
     const missingSerialLine = cart.lines.find((line) => {
       const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
       const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
@@ -252,7 +266,12 @@ export function Pos() {
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
           serials: l.serials,
-          warranty: warrantySnapshot(l.product)
+          warranty: warrantySnapshot(l.product),
+          lotAllocations: l.product.kind === 'Service' ? undefined : allocateLotQuantity(
+            l.product,
+            stockLots,
+            compoundBaseQuantity(l.qty, l.secondaryQty, factor)
+          ).allocations
         };
       }),
       subtotal: t.subtotal,
@@ -457,7 +476,11 @@ export function Pos() {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-medium text-ink">{p.name}</span>
                     <span className="block text-xs text-ink-500">
-                      {taka(p.sellPrice, p.sellPrice % 1 ? 2 : 0)}/{p.unit}
+                      {(() => {
+                        const offer = activeOfferFor(p.id, productOffers);
+                        const price = effectivePriceForUnit(p, offer, p.unit);
+                        return <>{offer && <span className="mr-1 text-[10px] text-ink-400 line-through">{taka(p.sellPrice)}</span>}{taka(price, price % 1 ? 2 : 0)}/{p.unit}</>;
+                      })()}
                     </span>
                   </span>
                   <Plus className="size-4 text-ink-300 group-hover:text-teal-600" aria-hidden="true" />
