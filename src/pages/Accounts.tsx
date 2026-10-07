@@ -298,7 +298,7 @@ export function Accounts() {
         {tab === 'ledger' && <LedgerView postings={postings} dateView={entryDateView} terminologyMode={terminologyMode} />}
         {tab === 'trial' && <TrialBalanceView postings={postings} terminologyMode={terminologyMode} />}
         {tab === 'statements' && <StatementsView postings={postings} />}
-        {tab === 'chart' && <ChartOfAccountsView terminologyMode={terminologyMode} />}
+        {tab === 'chart' && <ChartOfAccountsView terminologyMode={terminologyMode} onOpeningBalance={() => setOpeningOpen(true)} />}
       </div>
 
       <VoucherActionDialog
