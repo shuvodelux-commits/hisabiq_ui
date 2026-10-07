@@ -12,6 +12,7 @@ export const accountingAccounts: AccountingAccount[] = [
   { id: 'liability-vat', code: '2200', name: 'VAT / Tax Payable', helperBn: 'ভ্যাট বা ট্যাক্স হিসেবে দিতে হবে', group: 'Liability', parent: 'Statutory Dues', active: true },
   { id: 'equity-capital', code: '3010', name: 'Owner Capital', helperBn: 'মালিক ব্যবসায় টাকা দিয়েছেন', group: 'Equity', parent: 'Equity', active: true },
   { id: 'equity-withdrawal', code: '3020', name: 'Owner Withdrawal', helperBn: 'মালিক ব্যবসা থেকে টাকা নিয়েছেন', group: 'Equity', parent: 'Equity', active: true },
+  { id: 'equity-opening', code: '3090', name: 'Opening Balance Equity', helperBn: 'শুরুর হিসাব মিলানোর অস্থায়ী খাত', group: 'Equity', parent: 'Equity', active: true },
   { id: 'income-sales', code: '4010', name: 'Sales Revenue', helperBn: 'পণ্য বিক্রি থেকে আয়', group: 'Income', parent: 'Income', active: true },
   { id: 'income-other', code: '4020', name: 'Other Income', helperBn: 'অন্য উৎস থেকে আয়', group: 'Income', parent: 'Income', active: true },
   { id: 'expense-cogs', code: '5010', name: 'Cost of Goods Sold', helperBn: 'যে পণ্য বিক্রি হয়েছে তার খরচ', group: 'Expense', parent: 'Direct Cost', active: true },
