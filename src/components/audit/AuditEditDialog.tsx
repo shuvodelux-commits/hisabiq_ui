@@ -1,0 +1,279 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '../Button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
+import { FormSelect } from '../FormSelect';
+import { Input } from '../Input';
+import { accountingAccounts } from '../../data/accounting';
+import { financeAccounts } from '../../data/financeAccounts';
+import { parties } from '../../data/parties';
+import type { AuditSourceRecord, AuditState, CorrectionCommand } from '../../types/audit';
+import { applyCorrection, buildImpactPreview, validateCorrection } from '../../utils/auditEngine';
+import { ImpactPreview } from './ImpactPreview';
+
+const moneyAccountNames = financeAccounts.filter((item) => item.status === 'Active').map((item) => item.name);
+const expenseAccounts = accountingAccounts.filter((item) => item.group === 'Expense' && item.active);
+
+export function AuditEditDialog({
+  source,
+  state,
+  onClose,
+  onApply
+}: {
+  source: AuditSourceRecord | null;
+  state: AuditState;
+  onClose: () => void;
+  onApply: (state: AuditState) => void;
+}) {
+  const [review, setReview] = useState(false);
+  const [date, setDate] = useState('');
+  const [reference, setReference] = useState('');
+  const [partyId, setPartyId] = useState('');
+  const [party, setParty] = useState('');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [note, setNote] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [expenseAccountId, setExpenseAccountId] = useState('');
+  const [fromAccount, setFromAccount] = useState('');
+  const [toAccount, setToAccount] = useState('');
+  const [payments, setPayments] = useState<Array<{ account: string; amount: string }>>([]);
+  const [reason, setReason] = useState('');
+
+  useEffect(() => {
+    if (!source) return;
+    setReview(false);
+    setDate(source.transactionDate);
+    setReference(source.reference);
+    setPartyId(source.partyId ?? '');
+    setParty(source.party ?? '');
+    setAmount(String(source.amount));
+    setDescription(source.description ?? '');
+    setNote(source.note ?? '');
+    setQuantity(source.quantity === undefined ? '' : String(source.quantity));
+    setExpenseAccountId(source.expenseAccountId ?? 'expense-misc');
+    setFromAccount(source.fromAccount ?? moneyAccountNames[0] ?? '');
+    setToAccount(source.toAccount ?? moneyAccountNames[1] ?? moneyAccountNames[0] ?? '');
+    setPayments((source.paymentAccounts ?? []).map((item) => ({ account: item.account, amount: String(item.amount) })));
+    setReason('');
+  }, [source]);
+
+  const command = useMemo<CorrectionCommand | null>(() => {
+    if (!source) return null;
+    const nextPayments = payments
+      .map((item) => ({ account: item.account.trim(), amount: parseFloat(item.amount) || 0 }))
+      .filter((item) => item.account || item.amount);
+    const paid = nextPayments.reduce((sum, item) => sum + item.amount, 0);
+    const patch: CorrectionCommand['patch'] = {};
+
+    if (date !== source.transactionDate) patch.transactionDate = date;
+    if (reference.trim() && reference.trim() !== source.reference) patch.reference = reference.trim();
+    if (partyId && partyId !== source.partyId) patch.partyId = partyId;
+    if (party !== (source.party ?? '')) patch.party = party;
+    const nextAmount = parseFloat(amount) || 0;
+    if (nextAmount !== source.amount) patch.amount = nextAmount;
+    if (description !== (source.description ?? '')) patch.description = description;
+    if (note !== (source.note ?? '')) patch.note = note;
+    if (source.quantity !== undefined && quantity !== '' && Number(quantity) !== source.quantity) patch.quantity = Number(quantity);
+    if (source.source === 'expense' && expenseAccountId !== (source.expenseAccountId ?? 'expense-misc')) patch.expenseAccountId = expenseAccountId;
+    if (source.source === 'transfer') {
+      if (fromAccount !== (source.fromAccount ?? '')) patch.fromAccount = fromAccount;
+      if (toAccount !== (source.toAccount ?? '')) patch.toAccount = toAccount;
+    }
+    if ((source.paymentAccounts?.length || source.paid > 0) && JSON.stringify(nextPayments) !== JSON.stringify(source.paymentAccounts ?? [])) {
+      patch.paymentAccounts = nextPayments;
+      patch.paid = paid;
+    }
+
+    return {
+      sourceId: source.id,
+      patch,
+      reason,
+      user: 'Shuvo',
+      at: '2026-10-07T16:30:00+06:00'
+    };
+  }, [amount, date, description, expenseAccountId, fromAccount, note, party, partyId, payments, quantity, reason, reference, source, toAccount]);
+
+  const preview = command ? buildImpactPreview(command, state) : { changes: [], impacts: [] };
+  const validation = command ? validateCorrection(command, state) : { allowed: false, fieldErrors: {} as Record<string, string> };
+  const partyOptions = parties.map((item) => ({ value: item.id, label: item.name }));
+
+  const startReview = () => {
+    if (!command || !preview.changes.length) return toast.error('No changes to review');
+    if (!validation.allowed) {
+      toast.error(Object.values(validation.fieldErrors)[0] || 'Review the highlighted fields');
+      return;
+    }
+    setReview(true);
+  };
+
+  const save = () => {
+    if (!command) return;
+    try {
+      onApply(applyCorrection(command, state));
+      toast.success('Transaction corrected', { description: source?.reference });
+      onClose();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not apply correction');
+    }
+  };
+
+  return (
+    <Dialog open={!!source} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>{review ? 'Review changes' : 'Correct transaction'} <span className="font-bn text-sm font-normal text-ink-400">· হিসাব ঠিক করুন</span></DialogTitle>
+        </DialogHeader>
+
+        {!review && source && (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-ink-100 bg-ink-50/50 px-3 py-2">
+              <p className="text-[12px] font-medium text-ink">{source.reference} · {source.source.replaceAll('-', ' ')}</p>
+              <p className="mt-0.5 font-bn text-[10.5px] text-ink-400">শুধু এই লেনদেনের জন্য নিরাপদ ও প্রযোজ্য ফিল্ডগুলো পরিবর্তন করুন। Created Date কখনও বদলাবে না।</p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-[13px] font-medium text-ink">
+                Transaction Date <span className="font-bn text-[11px] font-normal text-ink-400">· যে তারিখের লেনদেন</span>
+                <Input className="mt-1.5" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+              </label>
+              <label className="text-[13px] font-medium text-ink">
+                Created Date
+                <Input className="mt-1.5 bg-ink-50 text-ink-500" value={source.createdAt.slice(0, 10)} readOnly />
+                <span className="mt-1 block font-bn text-[10.5px] font-normal text-ink-400">এটি বদলানো যাবে না</span>
+              </label>
+
+              <label className="text-[13px] font-medium text-ink">
+                Reference
+                <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} />
+              </label>
+
+              <label className="text-[13px] font-medium text-ink">
+                Amount
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
+                  <Input className="pl-7 text-right" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} />
+                </div>
+                {validation.fieldErrors.paid && <span className="mt-1 block font-bn text-[10.5px] text-danger">Paid amount-এর নিচে মোট Amount করা যাবে না</span>}
+              </label>
+
+              {source.partyId ? (
+                <label className="text-[13px] font-medium text-ink sm:col-span-2">
+                  Party / Person <span className="font-bn text-[11px] font-normal text-ink-400">· যার সাথে লেনদেন</span>
+                  <FormSelect
+                    className="mt-1.5"
+                    value={partyId}
+                    onChange={(event) => {
+                      const id = event.target.value;
+                      setPartyId(id);
+                      setParty(parties.find((item) => item.id === id)?.name ?? party);
+                    }}
+                    options={partyOptions}
+                  />
+                </label>
+              ) : source.source !== 'transfer' && (
+                <label className="text-[13px] font-medium text-ink sm:col-span-2">
+                  Party / Person
+                  <Input className="mt-1.5" value={party} onChange={(event) => setParty(event.target.value)} />
+                </label>
+              )}
+
+              {source.quantity !== undefined && (
+                <label className="text-[13px] font-medium text-ink">
+                  Quantity
+                  <Input className="mt-1.5 text-right" inputMode="decimal" value={quantity} onChange={(event) => setQuantity(event.target.value.replace(/[^\d.]/g, ''))} />
+                  {validation.fieldErrors.quantity && <span className="mt-1 block font-bn text-[10.5px] text-danger">ইতিমধ্যে {source.returnedQuantity}টি ফেরত হয়েছে; এর নিচে Quantity করা যাবে না</span>}
+                </label>
+              )}
+
+              {source.source === 'expense' && (
+                <label className="text-[13px] font-medium text-ink">
+                  Expense category
+                  <FormSelect
+                    className="mt-1.5"
+                    value={accountingAccounts.find((item) => item.id === expenseAccountId)?.name ?? expenseAccounts[0]?.name ?? ''}
+                    onChange={(event) => {
+                      const next = expenseAccounts.find((item) => item.name === event.target.value);
+                      if (next) setExpenseAccountId(next.id);
+                    }}
+                    options={expenseAccounts.map((item) => item.name)}
+                  />
+                </label>
+              )}
+
+              {source.source === 'transfer' && <>
+                <label className="text-[13px] font-medium text-ink">
+                  From account
+                  <FormSelect className="mt-1.5" value={fromAccount} onChange={(event) => setFromAccount(event.target.value)} options={moneyAccountNames} />
+                </label>
+                <label className="text-[13px] font-medium text-ink">
+                  To account
+                  <FormSelect className="mt-1.5" value={toAccount} onChange={(event) => setToAccount(event.target.value)} options={moneyAccountNames} />
+                  {fromAccount === toAccount && <span className="mt-1 block font-bn text-[10.5px] text-danger">From এবং To account আলাদা হতে হবে</span>}
+                </label>
+              </>}
+
+              <label className="text-[13px] font-medium text-ink sm:col-span-2">
+                Description
+                <Input className="mt-1.5" value={description} onChange={(event) => setDescription(event.target.value)} />
+              </label>
+              <label className="text-[13px] font-medium text-ink sm:col-span-2">
+                Internal note
+                <Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional audit note" />
+              </label>
+            </div>
+
+            {(source.paymentAccounts?.length || source.paid > 0) && source.source !== 'transfer' && (
+              <div className="rounded-xl border border-ink-100">
+                <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+                  <div>
+                    <p className="text-[12.5px] font-semibold text-ink">Payment split</p>
+                    <p className="font-bn text-[10.5px] text-ink-400">কোন অ্যাকাউন্ট থেকে কত টাকা গেছে বা এসেছে</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setPayments((current) => [...current, { account: moneyAccountNames[0] ?? '', amount: '' }])}><Plus className="size-3.5" /> Add</Button>
+                </div>
+                <div className="space-y-2 p-3">
+                  {payments.map((payment, index) => (
+                    <div key={index} className="grid grid-cols-[1fr_130px_32px] gap-2">
+                      <FormSelect value={payment.account} onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, account: event.target.value } : item))} options={moneyAccountNames} />
+                      <Input className="text-right" inputMode="decimal" value={payment.amount} onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))} placeholder="0" />
+                      <button type="button" onClick={() => setPayments((current) => current.filter((_, i) => i !== index))} className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger" aria-label="Remove payment"><Trash2 className="size-3.5" /></button>
+                    </div>
+                  ))}
+                  <div className="flex justify-between border-t border-ink-100 pt-2 text-[11px] text-ink-500">
+                    <span>Split total</span>
+                    <span className="font-medium text-ink">৳{payments.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0).toLocaleString()}</span>
+                  </div>
+                  {validation.fieldErrors.paymentAccounts && <p className="font-bn text-[10.5px] text-danger">পেমেন্টের মোট টাকা Paid amount-এর সাথে মিলতে হবে</p>}
+                </div>
+              </div>
+            )}
+
+            <label className="block text-[13px] font-medium text-ink">
+              Reason for change <span className="font-bn text-[11px] font-normal text-ink-400">· কেন পরিবর্তন করছেন</span>
+              <Input className="mt-1.5" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="e.g. Wrong date and payment account entered" />
+              {validation.fieldErrors._reason && <span className="mt-1 block font-bn text-[10.5px] text-danger">আর্থিক পরিবর্তনের কারণ লিখুন</span>}
+            </label>
+          </div>
+        )}
+
+        {review && <ImpactPreview preview={preview} />}
+
+        <DialogFooter>
+          {review ? (
+            <>
+              <Button variant="outline" onClick={() => setReview(false)}>Back</Button>
+              <Button onClick={save}>Save changes</Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button onClick={startReview}>Review changes</Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

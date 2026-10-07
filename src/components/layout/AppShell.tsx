@@ -4,10 +4,12 @@ import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { CashSessionDialog } from './CashSessionDialog';
 import { CashSessionProvider } from '../../contexts/CashSessionContext';
+import { UserPreferencesProvider } from '../../contexts/UserPreferencesContext';
 
 export function AppShell() {
   return (
-    <CashSessionProvider>
+    <UserPreferencesProvider>
+      <CashSessionProvider>
       <div className="flex min-h-screen w-full bg-ink-50/60">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -17,7 +19,8 @@ export function AppShell() {
           </main>
         </div>
       </div>
-      <CashSessionDialog />
-    </CashSessionProvider>);
+        <CashSessionDialog />
+      </CashSessionProvider>
+    </UserPreferencesProvider>);
 
 }

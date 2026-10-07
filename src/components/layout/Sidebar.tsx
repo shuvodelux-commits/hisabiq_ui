@@ -14,7 +14,9 @@ import {
   PieChart,
   Palette,
   Settings,
-  ChevronsUpDown
+  ChevronsUpDown,
+  BookOpenCheck,
+  ClipboardList
 } from 'lucide-react';
 import { LogoLockup } from '../brand/Logo';
 
@@ -27,7 +29,10 @@ const nav = [
   { to: '/app/parties', label: 'Parties & Ledger', bn: 'পার্টি ও খাতা', icon: Users },
   { to: '/app/purchases', label: 'Purchases', bn: 'ক্রয়', icon: ReceiptText },
   { to: '/app/expenses', label: 'Expenses', bn: 'খরচ', icon: Wallet },
-  { to: '/app/finance', label: 'Finance & Accounts', bn: 'হিসাব ও অ্যাকাউন্ট', icon: Banknote },
+  { to: '/app/finance', label: 'Finance', bn: 'টাকা-পয়সা', icon: Banknote },
+  { to: '/app/daybook', label: 'Daybook', bn: 'দৈনিক লেনদেন', icon: ClipboardList },
+  { to: '/app/accounts', label: 'Accounts', bn: 'হিসাব', icon: ReceiptText },
+  { to: '/app/audit-ledger', label: 'Audit Ledger', bn: 'হিসাব যাচাই', icon: BookOpenCheck },
   { to: '/app/reconciliation', label: 'Reconciliation', bn: 'হিসাব মিলানো', icon: Landmark },
   { to: '/app/reports', label: 'Reports', bn: 'রিপোর্ট', icon: PieChart }
 ];
