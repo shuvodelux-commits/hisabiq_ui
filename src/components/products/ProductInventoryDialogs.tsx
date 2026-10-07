@@ -150,12 +150,8 @@ export function StockAdjustmentDialog({
         : baseQty;
 
   const save = () => {
-    if (!baseQty && mode !== 'Set exact stock') {
+    if (!quantity.trim()) {
       setError('Enter a quantity.');
-      return;
-    }
-    if (previewStock < 0) {
-      setError('This adjustment would make stock negative. Use Set exact stock if you need a manual correction.');
       return;
     }
 
@@ -198,7 +194,13 @@ export function StockAdjustmentDialog({
             <div className="flex gap-2">
               <Input
                 value={quantity}
-                onChange={(e) => { setQuantity(e.target.value.replace(/[^\d.]/g, '')); setError(''); }}
+                onChange={(e) => {
+                  const cleaned = mode === 'Set exact stock'
+                    ? e.target.value.replace(/[^\d.-]/g, '')
+                    : e.target.value.replace(/[^\d.]/g, '');
+                  setQuantity(cleaned);
+                  setError('');
+                }}
                 inputMode="decimal"
                 placeholder="0"
                 className="text-right"
@@ -227,7 +229,7 @@ export function StockAdjustmentDialog({
 
           <div className="flex items-center justify-between rounded-lg border border-teal-100 bg-teal-50/60 px-3 py-2.5 text-sm">
             <span className="text-ink-600">Stock after adjustment</span>
-            <span className="font-semibold text-ink">{formatStock({ ...product, stock: Math.max(0, previewStock) })}</span>
+            <span className="font-semibold text-ink">{formatStock({ ...product, stock: previewStock })}</span>
           </div>
 
           {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
