@@ -636,9 +636,9 @@ export function Products() {
         movements={movements}
         open={Boolean(detailsProduct)}
         onOpenChange={(open) => { if (!open) setDetailsProduct(null); }}
-        onAdjust={(product) => setAdjustProduct(product)}
-        onAddLot={(product) => setLotProduct(product)}
-        onManageOffers={(product) => setOfferProduct(product)}
+        onAdjust={(product) => { setDetailsProduct(null); setAdjustProduct(product); }}
+        onAddLot={(product) => { setDetailsProduct(null); setLotProduct(product); }}
+        onManageOffers={(product) => { setDetailsProduct(null); setOfferProduct(product); }}
       />
 
       <StockAdjustmentDialog
