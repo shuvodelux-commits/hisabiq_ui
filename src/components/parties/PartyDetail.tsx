@@ -86,8 +86,8 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
           role="tab"
           aria-selected={tab === t.id}
           onClick={() => setTab(t.id)}
-          className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] font-medium transition-colors ${
-          tab === t.id ? 'border-teal-600 text-ink' : 'border-transparent text-ink-500 hover:text-ink'}`
+          className={`flex items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors ${
+          tab === t.id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`
           }>
           
             {t.label}
