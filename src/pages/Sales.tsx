@@ -5,6 +5,8 @@ import {
   Banknote,
   BookOpen,
   Copy,
+  Check,
+  ChevronDown,
   CornerUpLeft,
   FileClock,
   FileText,
@@ -28,6 +30,7 @@ import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { customerCredits as seedCredits, saleTemplates, salesDrafts, salesInvoices as seedInvoices, salesReturns as seedReturns } from '../data/sales';
+import { products } from '../data/products';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn } from '../types/erp';
 import { taka } from '../utils/currency';
 
@@ -42,6 +45,91 @@ const statusTone: Record<SalesInvoiceStatus, StatusTone> = {
   'Part returned': 'info',
   Returned: 'neutral'
 };
+
+type SalesColumn = 'invoice' | 'customer' | 'items' | 'total' | 'profit' | 'paid' | 'due' | 'payment' | 'status';
+
+const salesColumns: Array<{ id: SalesColumn; label: string }> = [
+  { id: 'invoice', label: 'Invoice' },
+  { id: 'customer', label: 'Customer' },
+  { id: 'items', label: 'Items' },
+  { id: 'total', label: 'Total' },
+  { id: 'profit', label: 'Profit' },
+  { id: 'paid', label: 'Paid' },
+  { id: 'due', label: 'Due' },
+  { id: 'payment', label: 'Payment' },
+  { id: 'status', label: 'Status' }
+];
+
+const defaultVisibleSalesColumns: Record<SalesColumn, boolean> = {
+  invoice: true,
+  customer: true,
+  items: true,
+  total: true,
+  profit: true,
+  paid: true,
+  due: true,
+  payment: true,
+  status: true
+};
+
+const salesColumnStorageKey = 'hisabiq-sales-visible-columns';
+const purchasePriceByProductId = new Map(products.map((product) => [product.id, product.purchasePrice]));
+
+function lineBaseQuantity(line: SalesInvoice['lines'][number]) {
+  return line.returnableQuantity ?? (parseFloat(line.quantity) || 0);
+}
+
+function invoiceCogs(invoice: SalesInvoice) {
+  return invoice.lines.reduce((sum, line) => {
+    const unitCost = line.unitCost ?? purchasePriceByProductId.get(line.productId) ?? 0;
+    return sum + lineBaseQuantity(line) * unitCost;
+  }, 0);
+}
+
+function invoiceProfit(invoice: SalesInvoice) {
+  return invoice.total - invoiceCogs(invoice);
+}
+
+function SalesColumnPicker({
+  visible,
+  onToggle
+}: {
+  visible: Record<SalesColumn, boolean>;
+  onToggle: (column: SalesColumn) => void;
+}) {
+  return (
+    <FloatingPanel
+      label="Choose sales invoice columns"
+      width={210}
+      trigger={({ toggle, open }) => (
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={open}
+          className="flex h-8 items-center gap-2 rounded-md border border-ink-100 bg-white px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+          Columns
+          <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+      )}>
+      {() => (
+        <div className="py-1">
+          {salesColumns.map((column) => (
+            <button
+              key={column.id}
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={visible[column.id]}
+              onClick={() => onToggle(column.id)}
+              className="flex w-full items-center justify-between gap-4 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+              <span>{column.label}</span>
+              {visible[column.id] && <Check className="size-4 text-ink" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </FloatingPanel>
+  );
+}
 
 function PaymentStatus({ invoice }: { invoice: SalesInvoice }) {
   return <StatusBadge tone={statusTone[invoice.status]} dot>{invoice.status}</StatusBadge>;
