@@ -73,3 +73,25 @@ test('expiry breakdown excludes expired stock and FEFO sorts earliest expiry fir
   assert.deepEqual(allocatableLots(stockProduct, lots, new Date('2026-10-07T12:00:00')).map((lot) => lot.id), ['l2', 'l1']);
   assert.deepEqual(availableSerials(stockProduct, lots, new Date('2026-10-07T12:00:00')), ['S2', 'S3', 'S4']);
 });
+
+
+test('offers may be free but may not make the selected price unit negative', () => {
+  const free: ProductOffer = {
+    id: 'free',
+    productId: 'p',
+    discountType: 'Percentage',
+    value: 100,
+    priceUnit: 'Pcs',
+    startAt: '2026-11-01T00:00',
+    endAt: '2026-11-02T00:00',
+    enabled: true
+  };
+  const negative: ProductOffer = {
+    ...free,
+    id: 'negative',
+    discountType: 'Fixed',
+    value: 101
+  };
+  assert.equal(validateOffer(stockProduct, free, []), null);
+  assert.match(validateOffer(stockProduct, negative, []) ?? '', /negative/);
+});
