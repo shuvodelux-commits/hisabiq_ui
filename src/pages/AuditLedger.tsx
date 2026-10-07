@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowDownToLine, Eye, MoreHorizontal, Pencil, Printer, ShieldCheck, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
@@ -52,6 +52,7 @@ function sourceRoute(source: AuditSourceRecord) {
 
 export function AuditLedger() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { entryDateView, setEntryDateView } = useUserPreferences();
   const [state, setState] = useState(() => createAuditState(auditSourceRecords));
   const [filters, setFilters] = useState<AuditFilterState>({
@@ -70,6 +71,22 @@ export function AuditLedger() {
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteReason, setDeleteReason] = useState('');
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const editRef = params.get('editRef');
+    const openRef = params.get('openRef');
+    const reference = editRef || openRef;
+    if (!reference) return;
+    const match = state.sources.find((item) => item.reference === reference);
+    if (match) {
+      if (editRef && match.status === 'Posted') setEditId(match.id);
+      else setDetailId(match.id);
+    } else {
+      setFilters((current) => ({ ...current, search: reference }));
+      toast.info('Source record is not in this audit demo yet', { description: 'The Audit Ledger was filtered to the reference.' });
+    }
+  }, [location.search]);
 
   const changedByOptions = useMemo(() => Array.from(new Set(state.auditEvents.map((event) => event.user))).sort(), [state.auditEvents]);
 
