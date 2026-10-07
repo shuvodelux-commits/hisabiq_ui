@@ -11,8 +11,8 @@ function splitStock(stock: number): [number, number] {
 function lotExtras(productId: string, source: 'Opening' | 'Purchase'): Partial<StockLot> {
   if (productId === 'p7') {
     return source === 'Opening'
-      ? { serials: ['GV34-1001', 'GV34-1002'] }
-      : { serials: ['GV34-1003', 'GV34-1004'] };
+      ? { serials: ['GV34-1001', 'GV34-1002', 'GV34-1003', 'GV34-1004'] }
+      : {};
   }
 
   if (productId === 'p2' && source === 'Purchase') {
