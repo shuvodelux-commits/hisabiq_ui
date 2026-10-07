@@ -1,5 +1,5 @@
 import type { Product, StockLot } from '../types/erp';
-import { productStockBreakdown } from './productFeatures';
+import { productStockBreakdown } from './productFeatures.ts';
 
 export function saleAvailableStock(product: Product, lots: StockLot[], now = new Date()): number {
   if (product.kind === 'Service') return Number.POSITIVE_INFINITY;
