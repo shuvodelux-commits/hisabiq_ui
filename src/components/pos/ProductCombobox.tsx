@@ -184,6 +184,15 @@ ref)
             const normalPrice = effectivePriceForUnit(p, undefined, displayUnit);
             const effectivePrice = effectivePriceForUnit(p, activeOffer, displayUnit);
             const breakdown = p.kind === 'Service' ? null : productStockBreakdown(p, stockLots);
+            const sellableStatus = p.kind === 'Service'
+              ? 'service'
+              : p.expiry?.enabled
+                ? (breakdown?.sellable ?? 0) <= 0
+                  ? 'out'
+                  : (breakdown?.sellable ?? 0) <= p.minStock
+                    ? 'low'
+                    : 'in'
+                : status;
             return (
               <li
                 key={p.id}
@@ -208,8 +217,14 @@ ref)
                     {taka(effectivePrice, effectivePrice % 1 ? 2 : 0)}
                     <span className="font-normal text-ink-400">/{displayUnit}</span>
                   </p>
-                  <p className={`text-[11px] ${status === 'low' || status === 'out' ? 'text-danger' : 'text-ink-500'}`}>
-                    {p.kind === 'Service' ? 'Service' : p.expiry?.enabled ? `Sellable ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}` : status === 'out' ? 'Out of stock' : formatStock(p)}
+                  <p className={`text-[11px] ${sellableStatus === 'low' || sellableStatus === 'out' ? 'text-danger' : 'text-ink-500'}`}>
+                    {p.kind === 'Service'
+                      ? 'Service'
+                      : p.expiry?.enabled
+                        ? `${sellableStatus === 'out' ? 'Out of sellable stock' : 'Sellable'} · ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}`
+                        : status === 'out'
+                          ? 'Out of stock'
+                          : formatStock(p)}
                   </p>
                 </div>
               </li>
