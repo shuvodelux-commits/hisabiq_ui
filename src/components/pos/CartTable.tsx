@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, ScanLine, X } from 'lucide-react';
+import { AlertTriangle, Eye, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
 import { ProductThumb } from '../ProductThumb';
 import { SerialPickerDialog } from './SerialPickerDialog';
+import { StockShortageDialog } from './StockShortageDialog';
 import type { CartLine } from '../../hooks/usePosCart';
 import type { Product } from '../../types/erp';
 import { formatStock, unitsFor } from '../../utils/units';
@@ -12,12 +13,13 @@ import { compoundBaseQuantity, compoundLineTotal, normalizeCompoundQuantity } fr
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
 import { availableSerials, productStockBreakdown, requiredSerialCount } from '../../utils/productFeatures';
+import { quantityFromBaseStock, saleAvailableStock, saleStockShortage } from '../../utils/posStock';
 
 type CartTableProps = {
   lines: CartLine[];
   lastAdded: string | null;
   onAdd: (p: Product) => void;
-  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials'>>) => void;
+  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource'>>) => void;
   onRemove: (key: string) => void;
   searchRef: React.RefObject<HTMLInputElement>;
 };
@@ -32,6 +34,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
   const [serialLine, setSerialLine] = useState<CartLine | null>(null);
+  const [shortageLine, setShortageLine] = useState<CartLine | null>(null);
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
 
   useEffect(() => {
@@ -81,9 +84,11 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
         <AnimatePresence initial={false}>
           {lines.map((l, i) => {
             const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
+            const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
             const purchasePrice = factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
+            const shortage = saleStockShortage(l.product, stockLots, baseQty);
             return (
               <motion.div
                 key={l.key}
@@ -103,20 +108,41 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
                       {l.product.category}{l.product.kind === 'Service' ? ' · Service' : l.product.expiry?.enabled ? ` · Sellable ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · Stock ${formatStock(l.product)}`}
                     </p>
-                    {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
-                      <button
-                        type="button"
-                        onClick={() => setSerialLine(l)}
-                        className={`mt-0.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
-                          (l.product.serialTracking === 'Required' && l.serials.length !== requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor))) ||
-                          l.serials.length > Math.ceil(compoundBaseQuantity(l.qty, l.secondaryQty, factor))
-                            ? 'bg-warning-bg text-warning'
-                            : 'bg-teal-50 text-teal-700'
-                        }`}>
-                        <ScanLine className="size-3" />
-                        Serials {l.serials.length}/{Math.max(requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor)), Math.ceil(compoundBaseQuantity(l.qty, l.secondaryQty, factor)))}
-                      </button>
-                    )}
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                      {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
+                        <button
+                          type="button"
+                          onClick={() => setSerialLine(l)}
+                          className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
+                            (l.product.serialTracking === 'Required' && l.serials.length !== requiredSerialCount(l.product, baseQty)) ||
+                            l.serials.length > Math.ceil(baseQty)
+                              ? 'bg-warning-bg text-warning'
+                              : 'bg-teal-50 text-teal-700'
+                          }`}>
+                          <ScanLine className="size-3" />
+                          Serials {l.serials.length}/{Math.max(requiredSerialCount(l.product, baseQty), Math.ceil(baseQty))}
+                        </button>
+                      )}
+                      {shortage > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShortageLine(l)}
+                          className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
+                            !l.stockSource
+                              ? 'bg-danger-bg text-danger'
+                              : l.stockSource.mode === 'Negative'
+                                ? 'bg-warning-bg text-warning'
+                                : 'bg-blue-50 text-blue-700'
+                          }`}>
+                          <AlertTriangle className="size-3" />
+                          {!l.stockSource
+                            ? `Short ${formatStock({ ...l.product, stock: shortage })} · choose source`
+                            : l.stockSource.mode === 'Negative'
+                              ? `Negative sale · ${formatStock({ ...l.product, stock: shortage })}`
+                              : `${l.stockSource.vendorName} · ${formatStock({ ...l.product, stock: shortage })}`}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {l.product.altUnit && l.unit === l.product.altUnit.unit ?
