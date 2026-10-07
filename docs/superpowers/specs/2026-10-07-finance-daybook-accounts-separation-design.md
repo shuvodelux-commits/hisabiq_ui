@@ -1,4 +1,4 @@
-# HisabIQ Finance, Daybook & Accounts Separation — Design Specification
+# HisabIQ Finance, Daybook, Accounts & Audit Ledger — Design Specification
 
 Date: 2026-10-07  
 Status: Approved conversational design; implementation not yet approved  
@@ -11,6 +11,7 @@ Separate the current combined Finance & Accounts area into three simple modules 
 - **Finance · টাকা-পয়সা** — where money is and how it moves.
 - **Daybook · দৈনিক লেনদেন** — one place to find and manage all business transactions.
 - **Accounts · হিসাব** — bookkeeping, vouchers, ledgers, trial balance and financial statements.
+- **Audit Ledger · হিসাব যাচাই** — advanced inspection, correction, deletion and audit history for posted transactions.
 
 The design must follow HisabIQ's core rule: **Keep It Simple.** Normal users should not need accounting knowledge to operate daily workflows.
 
@@ -29,8 +30,9 @@ Sidebar order:
 9. **Finance · টাকা-পয়সা**
 10. **Daybook · দৈনিক লেনদেন**
 11. **Accounts · হিসাব**
-12. Reconciliation
-13. Reports
+12. **Audit Ledger · হিসাব যাচাই**
+13. Reconciliation
+14. Reports
 
 The old **Finance & Accounts** combined entry is removed.
 
@@ -44,6 +46,7 @@ The old **Finance & Accounts** combined entry is removed.
 | Finance | Money accounts, generic receive/pay, transfers, owners, lenders, borrowers, cheques, cash sessions |
 | Daybook | Finding, opening and managing existing business transactions |
 | Accounts | Accounting representation, vouchers, ledgers and financial statements |
+| Audit Ledger | Advanced source-aware review, correction, deletion, impact preview and immutable change history |
 | Reconciliation | Bank/cash statement reconciliation |
 
 Daybook is a control surface, not a second owner of business logic. Every transaction keeps one source of truth.
@@ -735,7 +738,426 @@ Include common accounts for:
 
 Custom accounts remain possible but are not the primary workflow.
 
-## 8. Reconciliation
+## 8. Audit Ledger module
+
+Purpose: provide an advanced, permission-controlled workspace for **reviewing and correcting posted financial transactions without breaking the source transaction, balances, stock, ledgers or double-entry accounting**.
+
+User-facing title:
+
+> **Audit Ledger · হিসাব যাচাই**
+
+This is a separate sidebar module. It is not merged into Daybook or Accounts.
+
+Daybook remains the simple daily transaction manager. Audit Ledger is the advanced correction/audit workspace for Accountant/Admin users and other explicitly permitted users.
+
+### 8.1 Core architecture: source-aware, never ledger-only
+
+Every Audit Ledger record knows its source.
+
+Examples:
+
+- Sale → Sales/POS
+- Sale Return → Sales
+- Customer Payment → Sales/Parties payment source
+- Purchase → Purchases
+- Supplier Payment → Purchases/Parties payment source
+- Expense → Expenses
+- Account Transfer → Finance
+- Owner/Lender/Borrower transaction → Finance
+- Receipt/Payment Voucher → Accounts
+- Adjustment Entry → Accounts
+- Opening Balance → setup/accounting source
+
+If a posted accounting entry was generated from another business transaction, **Audit Ledger edits the original source transaction**, then HisabIQ recalculates and rebuilds all dependent effects.
+
+Audit Ledger must never directly change only the accounting copy while leaving the source transaction unchanged.
+
+Example:
+
+> Sale INV-000241 changes from ৳15,000 to ৳14,500.
+
+The Sale remains the source of truth. HisabIQ updates/rebuilds, as applicable:
+
+- invoice amount
+- customer balance
+- payment allocation
+- Money Account balances
+- stock effects
+- COGS
+- gross profit
+- accounting posting
+- Daybook
+- Ledgers
+- Trial Balance
+- Profit & Loss
+- Balance Sheet
+- reports
+
+Manual **Adjustment Entry** records are the exception: the accounting entry itself is the source, so Audit Ledger can edit that source directly.
+
+### 8.2 Audit Ledger list
+
+Keep the list compact and powerful.
+
+Recommended columns:
+
+- Transaction Date
+- Created Date
+- Type
+- No. / Reference
+- Party / Person
+- Source
+- Account / Payment
+- Amount
+- Posted by
+- Last changed by
+- Status
+- Action
+
+Default view uses **Transaction Date**. The user's existing Entry date view preference can switch display/sort/filter to Created Date.
+
+Filters:
+
+- Search
+- Selected date
+- Selected date range
+- Transaction type
+- Source module
+- Party/person
+- Money Account
+- Posted by
+- Changed by
+- Status
+- Changed / unchanged
+
+Search should match useful identifiers such as invoice number, voucher number, party, phone where available, reference and amount.
+
+### 8.3 Open / inspect transaction
+
+Opening a record shows one consistent audit detail view with:
+
+**Transaction**
+- source type
+- transaction number
+- Transaction Date
+- Created Date
+- amount
+- party/person
+- account/payment method
+- status
+- source module
+
+**Posting**
+- Money In / Money Out where relevant
+- accounting effect
+- linked Debit/Credit lines for Accounting terminology users
+- stock/COGS effect where relevant
+- customer/supplier/owner/lender/borrower balance effect
+
+**People**
+- Posted by
+- Posted at
+- Last edited by
+- Last edited at
+- Deleted by / Deleted at if applicable
+
+**Links**
+- source transaction
+- linked payments
+- returns
+- refunds
+- cheque records
+- warranty/other dependencies where they affect editability
+
+**History**
+- complete list of edits/deletions/restorations/corrections
+- before → after values
+- reason
+- user
+- timestamp
+
+### 8.4 Centralized Audit Edit workspace
+
+Audit Ledger has its own correction UI so the user can stay in one module.
+
+The workspace edits the true source transaction through source-owned business rules. It does not duplicate or bypass the source module's validation logic.
+
+The edit workspace exposes only fields that are safe and meaningful for the selected source type.
+
+Common editable fields can include:
+
+- Transaction Date
+- party/person
+- customer/supplier
+- amount
+- reference
+- description/note
+- payment method
+- Money Account
+- multiple-payment split
+- expense category
+- finance relationship/person
+- accounting category/account mapping where permitted
+- product, quantity, unit, price or discount where source rules permit
+- tax/VAT fields when those modules exist
+
+Created Date is never editable.
+
+### 8.5 Deep edit rule
+
+Audit Ledger follows:
+
+> **Editable by default; block only a change that would make linked records invalid.**
+
+A transaction is not automatically locked merely because dependent records exist.
+
+Examples of normally allowed changes, when source rules can safely recalculate them:
+
+- change Transaction Date
+- fix party/person
+- change reference/description
+- change payment account
+- edit payment split
+- correct amount
+- correct category/account mapping
+
+Examples of dependency-aware blocking:
+
+- sale quantity cannot be reduced below quantity already returned
+- serial-tracked sold item cannot be replaced in a way that invalidates an existing return/warranty link without resolving that dependency
+- payment cannot be reduced below an amount already allocated onward when no valid reallocation exists
+- cheque state cannot be changed to a state that contradicts an already-settled linked transaction
+
+Only the invalid field/change is blocked. The whole transaction should remain editable where other corrections are safe.
+
+Error/helper language must explain the practical reason in simple Bangla, not expose database/accounting internals.
+
+### 8.6 Impact Preview before save
+
+Any financially meaningful edit to a posted transaction requires a **Review Changes / Impact Preview** step before saving.
+
+Show:
+
+**Changes**
+- old value → new value for every changed field
+
+Example:
+
+- Transaction Date: 07 Oct → 05 Oct
+- Customer: Rahman Hardware → Karim Hardware
+- Amount: ৳15,000 → ৳14,500
+- Payment Account: bKash → DBBL
+
+**This will update**
+- source transaction
+- party balance
+- Money Account balance
+- stock / COGS where applicable
+- linked payment allocations
+- Daybook
+- accounting posting
+- Ledger
+- Trial Balance
+- Profit & Loss
+- Balance Sheet
+- affected reports
+
+Only show impacts that actually apply to that transaction. Do not display a giant generic checklist.
+
+### 8.7 Change reason
+
+For posted records, a reason is required for **financially meaningful changes**, including:
+
+- Transaction Date
+- amount
+- party/person
+- customer/supplier
+- payment account
+- payment split
+- product/quantity
+- price/discount
+- expense category
+- accounting/account mapping
+- any field that changes money, stock, balance, profit or accounting output
+
+Field:
+
+> **Reason for change · কেন পরিবর্তন করছেন**
+
+For non-financial text-only corrections such as an internal note typo, HisabIQ records the audit event automatically but does not require a reason.
+
+Delete always requires a reason.
+
+### 8.8 Date correction rules
+
+Audit Ledger may edit **Transaction Date** when the user has source edit permission.
+
+- Created Date remains immutable.
+- Audit history records old date, new date, user, time and reason.
+- Ledgers, Daybook transaction-date view and accounting reports use the corrected Transaction Date.
+- Changing one source transaction's date does not silently rewrite linked transactions' own dates.
+- If a date change crosses a closed/locked accounting period in a future period-locking feature, the period rules must decide whether the change is allowed.
+
+### 8.9 Amount and party correction
+
+Amount and party/person corrections must update the source and every dependent balance atomically.
+
+Examples:
+
+Customer Payment:
+- changing amount recalculates customer balance and Money Account balance
+- changing customer moves the payment effect from the old customer to the new customer
+- changing Bank → bKash removes the old bank effect and applies the new bKash effect
+
+Expense:
+- changing amount updates the Money Account and expense/accounting effect
+- changing category updates reporting/account mapping
+
+Sale/Purchase:
+- changing financially relevant line data must recalculate totals, due, stock/COGS and accounting effects according to source rules
+
+No intermediate inconsistent state may be saved.
+
+### 8.10 Multiple-payment correction
+
+For a transaction paid from multiple sources, Audit Edit shows the payment split.
+
+Example:
+
+- Cash ৳8,000
+- bKash ৳7,000
+- DBBL ৳5,000
+
+The user can correct the split while the total stays valid.
+
+Impact Preview shows each affected Money Account before save.
+
+### 8.11 Double-entry presentation
+
+Audit Ledger may show the generated accounting lines, especially in Accounting terminology mode.
+
+Example:
+
+- DBBL — Debit ৳20,000
+- Customer Due — Credit ৳20,000
+
+These lines are inspectable, but for source-generated postings they are **not independent editable records**.
+
+To change them, edit the source transaction or an explicitly permitted accounting mapping field. HisabIQ then rebuilds the balanced posting.
+
+### 8.12 Delete behavior
+
+User-facing action:
+
+> **Delete**
+
+For a source-generated posting, Delete operates on the **complete linked source transaction/posting as one unit**.
+
+Never allow deleting only one Debit or Credit line from a posted balanced entry.
+
+Before deleting, show an Impact Preview such as:
+
+- Bank balance will decrease by ৳20,000
+- Customer Due will increase by ৳20,000
+- Daybook entry will become Deleted
+- linked accounting posting will be undone
+- affected reports will update
+
+Require:
+
+> **Reason for delete · কেন মুছছেন**
+
+Internally, use safe reversal/soft-delete semantics. Do not hard-delete financial audit history.
+
+For a manual Adjustment Entry, the Adjustment Entry itself is the source. Delete removes/undoes the complete balanced adjustment as one unit while retaining its audit history.
+
+### 8.13 Delete with dependencies
+
+Keep Delete visible so actions remain predictable.
+
+If deletion would make dependent records invalid, block the action and tell the user what must be resolved first.
+
+Examples:
+
+- "This sale has a Return. Delete the Return first."
+- "This invoice has a later Payment. Fix or delete that Payment first."
+- "This payment is linked to a settled cheque. Resolve the cheque first."
+
+Do not silently cascade-delete unrelated business records.
+
+### 8.14 Audit history is immutable
+
+Every posted transaction maintains an immutable audit timeline.
+
+Audit events can include:
+
+- Created
+- Edited
+- Transaction Date changed
+- Party changed
+- Amount changed
+- Payment method/account changed
+- Payment split changed
+- Source-specific financial fields changed
+- Deleted
+- Restored, if restore is supported later
+- System accounting posting rebuilt
+
+Each event records, where applicable:
+
+- event type
+- user
+- timestamp
+- reason
+- field
+- previous value
+- new value
+- source transaction ID
+- audit event ID
+
+Users may inspect audit history but cannot edit/delete audit-history events.
+
+### 8.15 Permissions
+
+Audit Ledger gets explicit high-level permissions, while source-module permissions remain authoritative.
+
+Recommended permission model:
+
+- **View Audit Ledger**
+- **Correct Transactions**
+- **Delete Transactions**
+
+A user may only correct a source transaction when they have:
+1. Audit Ledger correction permission, and
+2. the relevant source-module edit permission.
+
+A user may only delete when they have:
+1. Audit Ledger delete permission, and
+2. the relevant source-module delete permission.
+
+Manual Accounts Adjustment Entries follow Accounts permissions.
+
+Normal cashiers/salespeople should not receive Audit Ledger correction/delete permissions by default.
+
+### 8.16 KISS rules
+
+Despite its power, Audit Ledger must stay understandable:
+
+- one global audit list
+- one Open detail experience
+- one Audit Edit workspace
+- one Review Changes step
+- one required reason field when needed
+- source-aware automatic recalculation
+- no manual "fix the debit then fix the credit" workflow
+- no exposing raw database concepts
+- no separate duplicated transaction engine
+
+Advanced accounting details use progressive disclosure.
+
+Bangla helpers explain the practical meaning in everyday language.
+
+## 9. Reconciliation
 
 Reconciliation remains a separate sidebar module.
 
@@ -743,7 +1165,7 @@ Finance Money Accounts provide a **Reconcile** action that opens the Reconciliat
 
 Do not duplicate bank-statement reconciliation inside Finance or Accounts.
 
-## 9. Permissions and roles
+## 10. Permissions and roles
 
 Normal cashier:
 - operational Finance actions according to permission
@@ -760,11 +1182,12 @@ Accountant/Admin:
 - Adjustment Entry
 - opening balances
 - accounting reports
+- Audit Ledger according to explicit View/Correct/Delete permissions
 - accounting terminology mode available, but still a personal preference
 
 Terminology preference is never admin-locked.
 
-## 10. Editing, deletion and audit integrity
+## 11. Editing, deletion and audit integrity
 
 Draft records may be edited/deleted normally according to permissions.
 
@@ -782,7 +1205,7 @@ Transaction Date is the business date and may be edited through the original tra
 
 Avoid exposing accounting implementation jargon to ordinary users.
 
-## 11. Opening balances
+## 12. Opening balances
 
 Provide a guided opening-balance workflow rather than requiring manual journals.
 
@@ -799,7 +1222,7 @@ Supported opening values:
 
 HisabIQ creates the necessary accounting representation internally.
 
-## 12. VAT / Tax scope
+## 13. VAT / Tax scope
 
 This UI phase may prepare account categories such as:
 
@@ -810,7 +1233,7 @@ This UI phase may prepare account categories such as:
 
 Do not claim full Bangladesh/NBR compliance in this phase. Mushak forms, BIN/TIN flows and statutory returns require a separate requirements/design phase.
 
-## 13. UX constraints
+## 14. UX constraints
 
 - Follow the existing Magic Patterns HisabIQ visual language.
 - Use the shared 2px teal `.erp-tab-active` indicator for underline tabs.
@@ -825,25 +1248,17 @@ Do not claim full Bangladesh/NBR compliance in this phase. Mushak forms, BIN/TIN
 - Date labels use short Bangla helpers; longer date-behavior explanations use tooltips.
 - Entry date view is a per-user display preference and defaults to Transaction Date.
 
-## 14. Implementation slices
+## 15. Implementation slices
 
-Implementation should proceed in dependency order:
+Implementation should proceed in five dependency-ordered phases:
 
-1. Navigation and clean module split
-2. Shared terminology and Entry date view preferences
-3. Shared Transaction Date / immutable Created Date model
-4. Finance restructure
-5. Daybook unified transaction model and list
-6. Daybook Open/Edit/Delete/date-change routing and audit presentation
-7. Cheque register
-8. Accounting data model and posting representation
-9. Accounts vouchers and ledger
-10. Trial Balance
-11. Profit & Loss and Balance Sheet
-12. Opening balances and safe correction/reversal flows
-13. Full UI/Playwright verification, build, preview and merge
+1. **Foundation & navigation** — split Finance/Daybook/Accounts/Audit Ledger; add per-user terminology/date-view settings; establish shared Transaction Date, immutable Created Date, source identity and audit-event model.
+2. **Finance & Daybook operations** — restructure Finance, Money Accounts, Counter, Loans & Owners, Cheques, Cash Sessions; build unified Daybook with date/range filters, Money In/Out, Posted by and source-aware Open/Edit/Delete.
+3. **Accounting core** — implement Accounts vouchers, Chart of Accounts, automatic posting representation, Ledger, Trial Balance, Profit & Loss, Balance Sheet and opening balances.
+4. **Audit Ledger & correction engine** — build source-aware audit list/details, centralized Audit Edit workspace, dependency checks, Impact Preview, required reasons, atomic recalculation/reposting, complete-posting Delete and immutable audit history.
+5. **Integration & verification** — connect all source modules, validate permissions and multi-payment/date-edit flows, run full tests/UI checks/Playwright/build, fix regressions, deploy preview, review, then merge and verify production.
 
-## 15. Acceptance criteria
+## 16. Acceptance criteria
 
 The design is successful when:
 
@@ -867,6 +1282,16 @@ The design is successful when:
 18. Each user can switch Daybook/Ledger display, sorting and filtering between Transaction Date and Created Date without changing accounting data.
 19. Trial Balance and financial-statement periods always use Transaction Date.
 20. Editing a posted Transaction Date is permission-controlled and fully audited.
+21. Audit Ledger is a separate module and never replaces Daybook's simple daily workflow.
+22. Source-generated accounting entries can only be corrected through their source-aware transaction correction flow.
+23. Audit Edit supports safe correction of date, amount, party/person, payment account/split and other source-supported fields.
+24. Financially meaningful posted-record edits show a before → after Impact Preview and require a reason.
+25. Dependency-aware editing blocks only invalid changes instead of locking the entire transaction.
+26. Deleting a posted double-entry transaction always removes/undoes the complete balanced source posting; individual Debit/Credit lines cannot be deleted independently.
+27. Audit deletion is soft/reversal-based, requires a reason and retains immutable history.
+28. Audit history records who changed what, when and why and cannot itself be edited or deleted.
+29. Audit Ledger correction/delete access requires both Audit Ledger permission and the corresponding source-module permission.
+30. Corrections update all affected source data, Money Accounts, party balances, stock/COGS and accounting/reporting outputs atomically.
 
 ### End-to-end acceptance scenario
 
