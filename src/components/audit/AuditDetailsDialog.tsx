@@ -8,6 +8,7 @@ import type { AuditEvent, AuditSourceRecord } from '../../types/audit';
 import type { Posting } from '../../types/accounting';
 import { taka } from '../../utils/currency';
 import { AuditTimeline } from './AuditTimeline';
+import { auditActionAvailability, demoPermissions } from '../../utils/permissions';
 
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return <div className="rounded-lg bg-ink-50 px-3 py-2.5"><p className="text-[10.5px] text-ink-400">{label}</p><div className="mt-0.5 text-[12.5px] font-medium text-ink">{children}</div></div>;
@@ -31,6 +32,7 @@ export function AuditDetailsDialog({
   const accountMap = useMemo(() => new Map(accountingAccounts.map((item) => [item.id, item.name])), []);
   if (!source) return null;
   const lastEvent = events[0];
+  const availability = auditActionAvailability(source.source, demoPermissions);
 
   return (
     <Dialog open={!!source} onOpenChange={(open) => !open && onClose()}>
@@ -86,8 +88,8 @@ export function AuditDetailsDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Close</Button>
-          {source.status === 'Posted' && <Button variant="outline" onClick={() => onEdit(source)}><Pencil className="size-4" /> Correct</Button>}
-          {source.status === 'Posted' && <Button variant="outline" onClick={() => onDelete(source)}><Trash2 className="size-4" /> Delete</Button>}
+          {source.status === 'Posted' && availability.correct && <Button variant="outline" onClick={() => onEdit(source)}><Pencil className="size-4" /> Correct</Button>}
+          {source.status === 'Posted' && availability.delete && <Button variant="outline" onClick={() => onDelete(source)}><Trash2 className="size-4" /> Delete</Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>
