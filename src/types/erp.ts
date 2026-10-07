@@ -30,6 +30,31 @@ export type Product = {
   active: boolean;
 };
 
+export type StockLot = {
+  id: string;
+  productId: string;
+  label: string;
+  receivedAt: string;
+  quantity: number;
+  available: number;
+  unitCost: number;
+  source: 'Opening' | 'Purchase' | 'Adjustment' | 'Return';
+  reference?: string;
+};
+
+export type StockMovementType = 'Opening' | 'Purchase' | 'Sale' | 'Return' | 'Adjustment';
+
+export type StockMovement = {
+  id: string;
+  productId: string;
+  date: string;
+  type: StockMovementType;
+  quantity: number;
+  balance: number;
+  reference?: string;
+  note?: string;
+};
+
 export type PartyRole =
 'Customer' |
 'Supplier' |
