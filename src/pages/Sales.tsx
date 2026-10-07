@@ -5,6 +5,8 @@ import {
   Banknote,
   BookOpen,
   Copy,
+  Check,
+  ChevronDown,
   CornerUpLeft,
   FileClock,
   FileText,
@@ -28,6 +30,7 @@ import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { customerCredits as seedCredits, saleTemplates, salesDrafts, salesInvoices as seedInvoices, salesReturns as seedReturns } from '../data/sales';
+import { products } from '../data/products';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn } from '../types/erp';
 import { taka } from '../utils/currency';
 
@@ -42,6 +45,91 @@ const statusTone: Record<SalesInvoiceStatus, StatusTone> = {
   'Part returned': 'info',
   Returned: 'neutral'
 };
+
+type SalesColumn = 'invoice' | 'customer' | 'items' | 'total' | 'profit' | 'paid' | 'due' | 'payment' | 'status';
+
+const salesColumns: Array<{ id: SalesColumn; label: string }> = [
+  { id: 'invoice', label: 'Invoice' },
+  { id: 'customer', label: 'Customer' },
+  { id: 'items', label: 'Items' },
+  { id: 'total', label: 'Total' },
+  { id: 'profit', label: 'Profit' },
+  { id: 'paid', label: 'Paid' },
+  { id: 'due', label: 'Due' },
+  { id: 'payment', label: 'Payment' },
+  { id: 'status', label: 'Status' }
+];
+
+const defaultVisibleSalesColumns: Record<SalesColumn, boolean> = {
+  invoice: true,
+  customer: true,
+  items: true,
+  total: true,
+  profit: true,
+  paid: true,
+  due: true,
+  payment: true,
+  status: true
+};
+
+const salesColumnStorageKey = 'hisabiq-sales-visible-columns';
+const purchasePriceByProductId = new Map(products.map((product) => [product.id, product.purchasePrice]));
+
+function lineBaseQuantity(line: SalesInvoice['lines'][number]) {
+  return line.returnableQuantity ?? (parseFloat(line.quantity) || 0);
+}
+
+function invoiceCogs(invoice: SalesInvoice) {
+  return invoice.lines.reduce((sum, line) => {
+    const unitCost = line.unitCost ?? purchasePriceByProductId.get(line.productId) ?? 0;
+    return sum + lineBaseQuantity(line) * unitCost;
+  }, 0);
+}
+
+function invoiceProfit(invoice: SalesInvoice) {
+  return invoice.total - invoiceCogs(invoice);
+}
+
+function SalesColumnPicker({
+  visible,
+  onToggle
+}: {
+  visible: Record<SalesColumn, boolean>;
+  onToggle: (column: SalesColumn) => void;
+}) {
+  return (
+    <FloatingPanel
+      label="Choose sales invoice columns"
+      width={210}
+      trigger={({ toggle, open }) => (
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={open}
+          className="flex h-8 items-center gap-2 rounded-md border border-ink-100 bg-white px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+          Columns
+          <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+      )}>
+      {() => (
+        <div className="py-1">
+          {salesColumns.map((column) => (
+            <button
+              key={column.id}
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={visible[column.id]}
+              onClick={() => onToggle(column.id)}
+              className="flex w-full items-center justify-between gap-4 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+              <span>{column.label}</span>
+              {visible[column.id] && <Check className="size-4 text-ink" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </FloatingPanel>
+  );
+}
 
 function PaymentStatus({ invoice }: { invoice: SalesInvoice }) {
   return <StatusBadge tone={statusTone[invoice.status]} dot>{invoice.status}</StatusBadge>;
@@ -188,6 +276,7 @@ function InvoiceDialog({
                     {invoice.discount > 0 && <div className="flex justify-between"><span className="text-ink-500">Discount</span><span>−{taka(invoice.discount)}</span></div>}
                     <div className="flex justify-between"><span className="text-ink-500">Rounding</span><span>{invoice.rounding >= 0 ? '+' : '−'}{taka(Math.abs(invoice.rounding))}</span></div>
                     <div className="flex justify-between border-t border-ink-100 pt-1.5 text-sm font-semibold"><span>Total</span><span>{taka(invoice.total)}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">Gross profit</span><span className={invoiceProfit(invoice) < 0 ? 'font-medium text-danger' : 'font-medium text-success'}>{invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}</span></div>
                     <div className="flex justify-between"><span className="text-ink-500">Paid</span><span>{taka(invoice.paid)}</span></div>
                     <div className="flex justify-between font-medium"><span className="text-ink-500">Due</span><span className={invoice.due > 0 ? 'text-danger' : 'text-success'}>{invoice.due > 0 ? taka(invoice.due) : '৳0'}</span></div>
                   </div>
@@ -564,6 +653,15 @@ export function Sales() {
   const [customerFilter, setCustomerFilter] = useState('All customers');
   const [status, setStatus] = useState('All status');
   const [method, setMethod] = useState('All payments');
+  const [visibleSalesColumns, setVisibleSalesColumns] = useState<Record<SalesColumn, boolean>>(() => {
+    if (typeof window === 'undefined') return defaultVisibleSalesColumns;
+    try {
+      const stored = window.localStorage.getItem(salesColumnStorageKey);
+      return stored ? { ...defaultVisibleSalesColumns, ...JSON.parse(stored) } : defaultVisibleSalesColumns;
+    } catch {
+      return defaultVisibleSalesColumns;
+    }
+  });
   const [detail, setDetail] = useState<SalesInvoice | null>(null);
   const [paymentTarget, setPaymentTarget] = useState<SalesInvoice | null>(null);
   const [customerPaymentOpen, setCustomerPaymentOpen] = useState(false);
@@ -577,6 +675,18 @@ export function Sales() {
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
   const [returnRefundMethod, setReturnRefundMethod] = useState<Exclude<PaymentMethod, 'Customer Credit'>>('Cash');
   const [returnRefundAccount, setReturnRefundAccount] = useState('');
+
+  const toggleSalesColumn = (column: SalesColumn) => {
+    setVisibleSalesColumns((current) => {
+      const next = { ...current, [column]: !current[column] };
+      try {
+        window.localStorage.setItem(salesColumnStorageKey, JSON.stringify(next));
+      } catch {
+        // Keep the current-session preference when storage is unavailable.
+      }
+      return next;
+    });
+  };
 
   const customerNames = useMemo(
     () => Array.from(new Set(invoices.map((invoice) => invoice.party))),
@@ -919,6 +1029,7 @@ export function Sales() {
                 onChange={(event) => setMethod(event.target.value)}
                 options={['All payments', ...paymentMethods]}
               />
+              <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
               <Button variant="outline" size="sm" onClick={() => toast('Sales list exported')}>
                 <ArrowDownToLine className="size-4" /> Export
               </Button>
@@ -927,25 +1038,26 @@ export function Sales() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Invoice</TableHead>
-                  <TableHead className="h-9 text-xs">Customer</TableHead>
-                  <TableHead className="h-9 text-xs">Items</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Total</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Paid</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Due</TableHead>
-                  <TableHead className="h-9 text-xs">Payment</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
+                  {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">Invoice</TableHead>}
+                  {visibleSalesColumns.customer && <TableHead className="h-9 text-xs">Customer</TableHead>}
+                  {visibleSalesColumns.items && <TableHead className="h-9 text-xs">Items</TableHead>}
+                  {visibleSalesColumns.total && <TableHead className="h-9 text-right text-xs">Total</TableHead>}
+                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title="Invoice total minus cost of goods sold">Profit</TableHead>}
+                  {visibleSalesColumns.paid && <TableHead className="h-9 text-right text-xs">Paid</TableHead>}
+                  {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">Due</TableHead>}
+                  {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">Payment</TableHead>}
+                  {visibleSalesColumns.status && <TableHead className="h-9 text-xs">Status</TableHead>}
                   <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((invoice) => (
                   <TableRow key={invoice.id} className="cursor-pointer text-[13px]" onClick={() => setDetail(invoice)}>
-                    <TableCell className="py-2 pl-4">
+                    {visibleSalesColumns.invoice && <TableCell className="py-2 pl-4">
                       <span className="font-medium text-ink">{invoice.invoice}</span>
                       <span className="block text-[11px] text-ink-400">{invoice.date} · {invoice.time}</span>
-                    </TableCell>
-                    <TableCell className="py-2">
+                    </TableCell>}
+                    {visibleSalesColumns.customer && <TableCell className="py-2">
                       {invoice.partyId ? (
                         <button
                           onClick={(event) => { event.stopPropagation(); navigate(`/app/parties?id=${invoice.partyId}`); }}
@@ -954,16 +1066,19 @@ export function Sales() {
                         </button>
                       ) : <p className="font-medium text-ink">{invoice.party}</p>}
                       <p className="text-[11px] text-ink-400">{invoice.phone ?? 'No phone'}</p>
-                    </TableCell>
-                    <TableCell className="max-w-[270px] py-2 text-ink-600">
+                    </TableCell>}
+                    {visibleSalesColumns.items && <TableCell className="max-w-[270px] py-2 text-ink-600">
                       <span className="block truncate">{invoice.lines.map((line) => line.name).join(', ')}</span>
                       <span className="text-[11px] text-ink-400">{invoice.items} line{invoice.items === 1 ? '' : 's'}</span>
-                    </TableCell>
-                    <TableCell className="py-2 text-right font-medium">{taka(invoice.total)}</TableCell>
-                    <TableCell className="py-2 text-right text-ink-600">{taka(invoice.paid)}</TableCell>
-                    <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-ink-300'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>
-                    <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? 'Multiple' : invoice.method}</TableCell>
-                    <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>
+                    </TableCell>}
+                    {visibleSalesColumns.total && <TableCell className="py-2 text-right font-medium">{taka(invoice.total)}</TableCell>}
+                    {visibleSalesColumns.profit && <TableCell className={`py-2 text-right font-medium ${invoiceProfit(invoice) < 0 ? 'text-danger' : 'text-success'}`}>
+                      {invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}
+                    </TableCell>}
+                    {visibleSalesColumns.paid && <TableCell className="py-2 text-right text-ink-600">{taka(invoice.paid)}</TableCell>}
+                    {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-ink-300'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
+                    {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? 'Multiple' : invoice.method}</TableCell>}
+                    {visibleSalesColumns.status && <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>}
                     <TableCell className="py-2 pr-4 text-right">
                       <InvoiceActions
                         invoice={invoice}

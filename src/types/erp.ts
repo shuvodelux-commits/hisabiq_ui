@@ -172,6 +172,8 @@ export type SaleLine = {
   returnableQuantity?: number;
   price: number;
   total: number;
+  /** Historical cost per base unit at the time of sale. */
+  unitCost?: number;
   serials?: string[];
   warranty?: WarrantySnapshot;
   lotAllocations?: Array<{ lotId: string; quantity: number }>;
