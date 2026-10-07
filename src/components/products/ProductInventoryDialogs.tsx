@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { FormSelect } from '../FormSelect';
@@ -116,6 +116,16 @@ export function StockAdjustmentDialog({
   const [reason, setReason] = useState('Count correction');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!open) return;
+    setMode('Add stock');
+    setQuantity('');
+    setUnit(product?.unit ?? '');
+    setReason('Count correction');
+    setNote('');
+    setError('');
+  }, [open, product?.id]);
 
   const units = product?.altUnit ? [product.altUnit.unit, product.unit] : product ? [product.unit] : [];
   const selectedUnit = units.includes(unit) ? unit : product?.unit ?? '';
