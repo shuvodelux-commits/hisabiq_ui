@@ -62,6 +62,8 @@ export type Product = {
   altUnit?: UnitConversion;
   /** Stock in base units */
   stock: number;
+  /** Preferred display/POS unit. Stock is still stored in the base unit. */
+  stockViewUnit?: string;
   minStock: number;
   sellPrice: number;
   purchasePrice: number;
@@ -157,6 +159,10 @@ export type PaymentSplit = {
   account?: string;
 };
 
+export type SaleStockSource =
+  | { mode: 'Negative' }
+  | { mode: 'Vendor'; vendorId: string; vendorName: string; unitCost: number };
+
 export type Sale = TransactionAuditFields & {
   id: string;
   invoice: string;
@@ -188,6 +194,8 @@ export type SaleLine = {
   serials?: string[];
   warranty?: WarrantySnapshot;
   lotAllocations?: Array<{ lotId: string; quantity: number }>;
+  /** How a quantity beyond sellable own stock was fulfilled. Vendor unitCost is per base unit. */
+  stockSource?: SaleStockSource;
 };
 
 export type SalesInvoiceStatus = 'Paid' | 'Partial' | 'Due' | 'Part returned' | 'Returned';
@@ -227,6 +235,7 @@ export type SalePresetLine = {
   unit: string;
   price: number;
   serials?: string[];
+  stockSource?: SaleStockSource;
 };
 
 export type SaleTemplate = {
