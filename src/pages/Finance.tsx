@@ -671,8 +671,8 @@ export function Finance() {
               aria-selected={tab === id}
               title={helper}
               onClick={() => setTab(id)}
-              className={`-mb-px border-b-2 px-2.5 py-2.5 text-[13px] font-medium ${
-                tab === id ? 'border-teal-600 text-ink' : 'border-transparent text-ink-500 hover:text-ink'
+              className={`border-b-2 px-2.5 py-2.5 text-[13px] font-medium ${
+                tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
             </button>
