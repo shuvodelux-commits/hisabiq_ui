@@ -6,14 +6,15 @@ import { PageHeader } from '../components/PageHeader';
 import { ProductThumb } from '../components/ProductThumb';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
-import { AddProductDialog } from '../components/products/AddProductDialog';
-import { ProductDetailsDialog, StockAdjustmentDialog, type StockAdjustmentResult } from '../components/products/ProductInventoryDialogs';
+import { AddProductDialog, type ProductOpeningMeta } from '../components/products/AddProductDialog';
+import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockLotDialog, type StockAdjustmentResult } from '../components/products/ProductInventoryDialogs';
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { productCategories, products as seed } from '../data/products';
 import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
-import type { Product, StockLot, StockMovement } from '../types/erp';
+import { productOffers as seedOffers } from '../data/productOffers';
+import type { Product, ProductOffer, StockLot, StockMovement } from '../types/erp';
 import { formatStock, stockStatus, type StockStatus } from '../utils/units';
 import { taka } from '../utils/currency';
 
@@ -21,7 +22,8 @@ const statusMeta: Record<StockStatus, {label: string;tone: StatusTone;}> = {
   in: { label: 'In stock', tone: 'success' },
   low: { label: 'Low stock', tone: 'warning' },
   out: { label: 'Out of stock', tone: 'danger' },
-  inactive: { label: 'Inactive', tone: 'neutral' }
+  inactive: { label: 'Inactive', tone: 'neutral' },
+  service: { label: 'Service', tone: 'info' }
 };
 
 type StockFilter = 'all' | 'low' | 'out';
@@ -101,6 +103,7 @@ function ProductActions({
   onAdjust,
   onLots,
   onHistory,
+  onOffers,
   onDuplicate,
   onToggle
 }: {
@@ -110,6 +113,7 @@ function ProductActions({
   onAdjust: () => void;
   onLots: () => void;
   onHistory: () => void;
+  onOffers: () => void;
   onDuplicate: () => void;
   onToggle: () => void;
 }) {
@@ -133,10 +137,11 @@ function ProductActions({
         <div className="py-1">
           <button type="button" onClick={() => { close(); onView(); }} className={itemClass}>View details</button>
           <button type="button" onClick={() => { close(); onEdit(); }} className={itemClass}>Edit product</button>
-          <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>Adjust stock</button>
+          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>Adjust stock</button>}
+          <button type="button" onClick={() => { close(); onOffers(); }} className={itemClass}>Manage offers</button>
           <div className="my-1 border-t border-ink-100" />
-          <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>Stock lots</button>
-          <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>Stock history</button>
+          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>Stock lots & serials</button>}
+          <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>Product history</button>
           <button
             type="button"
             onClick={() => {
@@ -170,8 +175,11 @@ export function Products() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
   const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
+  const [lotProduct, setLotProduct] = useState<Product | null>(null);
+  const [offerProduct, setOfferProduct] = useState<Product | null>(null);
   const [lots, setLots] = useState<StockLot[]>(seedLots);
   const [movements, setMovements] = useState<StockMovement[]>(seedMovements);
+  const [offers, setOffers] = useState<ProductOffer[]>(seedOffers);
   const [inventoryProductFilter, setInventoryProductFilter] = useState('');
   const [visibleColumns, setVisibleColumns] = useState<Record<ProductColumn, boolean>>(() => {
     if (typeof window === 'undefined') return defaultVisibleColumns;
@@ -253,6 +261,31 @@ export function Products() {
     setMovements((current) => [movement, ...current]);
     setAdjustProduct(null);
     toast.success('Stock adjusted', { description: `${product.name} · ${formatStock({ ...product, stock: result.newStock })}` });
+  };
+
+  const addLot = (product: Product, lot: StockLot) => {
+    setLots((current) => [lot, ...current]);
+    setList((items) => items.map((item) => item.id === product.id ? { ...item, stock: item.stock + lot.quantity } : item));
+    setMovements((current) => [{
+      id: `mov-${product.id}-purchase-${Date.now()}`,
+      productId: product.id,
+      date: lot.receivedAt,
+      type: 'Purchase',
+      quantity: lot.quantity,
+      balance: product.stock + lot.quantity,
+      reference: lot.reference,
+      note: lot.expiryDate ? `Lot ${lot.batchNumber ?? '—'} · expiry ${lot.expiryDate}` : 'Stock lot received'
+    }, ...current]);
+    setLotProduct(null);
+    toast.success('Stock lot added', { description: `${product.name} · +${formatStock({ ...product, stock: lot.quantity })}` });
+  };
+
+  const saveProductOffers = (product: Product, nextProductOffers: ProductOffer[]) => {
+    setOffers((current) => [
+      ...current.filter((offer) => offer.productId !== product.id),
+      ...nextProductOffers
+    ]);
+    toast.success('Offers updated', { description: product.name });
   };
 
   const filtered = useMemo(() => {
@@ -422,13 +455,13 @@ export function Products() {
                   {visibleColumns.category && <TableCell className="py-2 text-ink-600">{p.category}</TableCell>}
                   {visibleColumns.stock &&
                   <TableCell className={`py-2 text-right font-medium ${s === 'low' ? 'text-warning' : s === 'out' ? 'text-danger' : 'text-ink'}`}>
-                    {formatStock(p)}
-                    <span className="block text-[11px] font-normal text-ink-400">min {formatStock({ ...p, stock: p.minStock })}</span>
+                    {p.kind === 'Service' ? '—' : formatStock(p)}
+                    {p.kind !== 'Service' && <span className="block text-[11px] font-normal text-ink-400">min {formatStock({ ...p, stock: p.minStock })}</span>}
                   </TableCell>}
                   {visibleColumns.stockValue &&
                   <TableCell className="py-2 text-right font-medium text-ink">
-                    {taka(rowStockValue, rowStockValue % 1 ? 2 : 0)}
-                    <span className="block text-[11px] font-normal text-ink-400">at purchase price</span>
+                    {p.kind === 'Service' ? '—' : taka(rowStockValue, rowStockValue % 1 ? 2 : 0)}
+                    {p.kind !== 'Service' && <span className="block text-[11px] font-normal text-ink-400">at purchase price</span>}
                   </TableCell>}
                   {visibleColumns.unit &&
                   <TableCell className="py-2 text-ink-600">
@@ -467,6 +500,7 @@ export function Products() {
                       onAdjust={() => setAdjustProduct(p)}
                       onLots={() => openLots(p)}
                       onHistory={() => openHistory(p)}
+                      onOffers={() => setOfferProduct(p)}
                       onDuplicate={() => {
                         const copy = {
                           ...p,
@@ -549,13 +583,14 @@ export function Products() {
           if (!open) setEditingProduct(null);
         }}
         initialProduct={editingProduct}
-        onSave={(product) => {
+        onSave={(product, opening?: ProductOpeningMeta) => {
           if (editingProduct) {
             setList((items) => items.map((item) => item.id === product.id ? product : item));
+            setDetailsProduct((current) => current?.id === product.id ? product : current);
             toast.success(`${product.name} updated`);
           } else {
             setList((items) => [product, ...items]);
-            if (product.stock > 0) {
+            if (product.kind !== 'Service' && product.stock > 0) {
               const today = new Date().toISOString().slice(0, 10);
               const lot: StockLot = {
                 id: `lot-${product.id}-opening`,
@@ -565,7 +600,11 @@ export function Products() {
                 quantity: product.stock,
                 available: product.stock,
                 unitCost: product.purchasePrice,
-                source: 'Opening'
+                source: 'Opening',
+                serials: opening?.serials.length ? opening.serials : undefined,
+                batchNumber: opening?.batchNumber,
+                manufactureDate: opening?.manufactureDate,
+                expiryDate: opening?.expiryDate
               };
               const movement: StockMovement = {
                 id: `mov-${product.id}-opening`,
@@ -575,12 +614,12 @@ export function Products() {
                 quantity: product.stock,
                 balance: product.stock,
                 reference: 'Opening Stock',
-                note: 'Opening balance'
+                note: opening?.expiryDate ? `Opening lot · expiry ${opening.expiryDate}` : 'Opening balance'
               };
               setLots((current) => [lot, ...current]);
               setMovements((current) => [movement, ...current]);
             }
-            toast.success(`${product.name} added`, { description: product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
+            toast.success(`${product.name} added`, { description: product.kind === 'Service' ? 'Service product' : product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
           }
           setDialogOpen(false);
           setEditingProduct(null);
@@ -589,8 +628,13 @@ export function Products() {
       <ProductDetailsDialog
         product={detailsProduct}
         lots={lots}
+        offers={offers}
+        movements={movements}
         open={Boolean(detailsProduct)}
         onOpenChange={(open) => { if (!open) setDetailsProduct(null); }}
+        onAdjust={(product) => setAdjustProduct(product)}
+        onAddLot={(product) => setLotProduct(product)}
+        onManageOffers={(product) => setOfferProduct(product)}
       />
 
       <StockAdjustmentDialog
@@ -600,6 +644,22 @@ export function Products() {
         onSave={(result) => {
           if (adjustProduct) applyAdjustment(adjustProduct, result);
         }}
+      />
+
+      <StockLotDialog
+        product={lotProduct}
+        existingLots={lots}
+        open={Boolean(lotProduct)}
+        onOpenChange={(open) => { if (!open) setLotProduct(null); }}
+        onSave={(lot) => { if (lotProduct) addLot(lotProduct, lot); }}
+      />
+
+      <ManageOffersDialog
+        product={offerProduct}
+        offers={offers}
+        open={Boolean(offerProduct)}
+        onOpenChange={(open) => { if (!open) setOfferProduct(null); }}
+        onSaveOffers={(next) => { if (offerProduct) saveProductOffers(offerProduct, next); }}
       />
       
     </div>);
