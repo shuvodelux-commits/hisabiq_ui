@@ -34,7 +34,7 @@ test('issued cheque lifecycle exposes presented, cleared and stop states', () =>
 
 test('daybook duplicate is limited to source-owned reusable transactions', () => {
   assert.deepEqual(daybookContextActions('sale'), ['print', 'duplicate', 'go-source']);
-  assert.deepEqual(daybookContextActions('expense'), ['print', 'duplicate', 'go-source']);
+  assert.deepEqual(daybookContextActions('expense'), ['print', 'go-source']);
   assert.deepEqual(daybookContextActions('customer-payment'), ['print', 'go-source']);
   assert.deepEqual(daybookContextActions('transfer'), ['print', 'go-source']);
 });
