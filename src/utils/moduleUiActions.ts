@@ -59,15 +59,7 @@ export function chequeLifecycleActions(input: { direction: ChequeDirection; stat
   return [];
 }
 
-const duplicableDaybookSources = new Set<TransactionSource>([
-  'sale',
-  'purchase',
-  'expense',
-  'finance',
-  'receipt-voucher',
-  'payment-voucher',
-  'adjustment'
-]);
+const duplicableDaybookSources = new Set<TransactionSource>(['sale']);
 
 export type DaybookContextAction = 'print' | 'duplicate' | 'go-source';
 
