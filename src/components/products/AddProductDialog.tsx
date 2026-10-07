@@ -83,14 +83,22 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setPhotos([]);
     setName('');
     setNameBn('');
+    setCategory('Hardware');
+    setUnit('Gira');
     setSell('');
-    setSellUnit(unit);
+    setSellUnit('Gira');
     setBuy('');
-    setBuyUnit(unit);
-    setOpeningQty('');
-    setMinQty('');
-    setBarcode('');
+    setBuyUnit('Gira');
+    setAdvanced(true);
+    setMultiUnit(true);
+    setAltUnit('Gauge');
+    setFactor('16');
     setAltPrice('');
+    setOpeningQty('');
+    setOpeningUnit('Gauge');
+    setMinQty('');
+    setMinUnit('Gauge');
+    setBarcode('');
     setError('');
   };
 
