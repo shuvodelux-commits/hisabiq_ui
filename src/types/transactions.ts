@@ -27,6 +27,7 @@ export type TransactionMeta = {
   updatedBy?: string;
   deletedAt?: string;
   deletedBy?: string;
+  deleteReason?: string;
 };
 
 export type UnifiedTransaction = TransactionMeta & {
