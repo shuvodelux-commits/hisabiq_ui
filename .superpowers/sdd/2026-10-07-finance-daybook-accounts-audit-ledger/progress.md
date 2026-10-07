@@ -8,3 +8,5 @@ Pre-flight: Task 2 produces Daybook/Finance source actions consumed by Task 4 co
 Pre-flight: Task 3 produces accounting postings consumed by Task 4 and Task 5 — interfaces match.
 Pre-flight: Task 4 produces audit correction/delete behavior consumed by Task 5 integration — interfaces match.
 Ruling: use the existing isolated GitHub feature branch as the worktree-equivalent workspace because this session edits GitHub directly and does not use the user's local machine — cost if wrong: branch-only changes remain isolated and can be discarded without affecting main.
+
+Task 1: complete (commits f9a9b5b..2c03eca, tests: GitHub UI Check run 37601535150 → success; npm test + npm run build passed).
