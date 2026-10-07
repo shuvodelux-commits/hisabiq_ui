@@ -7,10 +7,13 @@ import { ProductThumb } from '../components/ProductThumb';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { AddProductDialog } from '../components/products/AddProductDialog';
+import { ProductDetailsDialog, StockAdjustmentDialog, type StockAdjustmentResult } from '../components/products/ProductInventoryDialogs';
+import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { productCategories, products as seed } from '../data/products';
-import type { Product } from '../types/erp';
+import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
+import type { Product, StockLot, StockMovement } from '../types/erp';
 import { formatStock, stockStatus, type StockStatus } from '../utils/units';
 import { taka } from '../utils/currency';
 
@@ -93,17 +96,29 @@ function ProductColumnPicker({
 
 function ProductActions({
   product,
+  onView,
+  onEdit,
+  onAdjust,
+  onLots,
+  onHistory,
   onDuplicate,
   onToggle
 }: {
   product: Product;
+  onView: () => void;
+  onEdit: () => void;
+  onAdjust: () => void;
+  onLots: () => void;
+  onHistory: () => void;
   onDuplicate: () => void;
   onToggle: () => void;
 }) {
+  const itemClass = 'w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
+
   return (
     <FloatingPanel
       label={`Actions for ${product.name}`}
-      width={190}
+      width={210}
       trigger={({ toggle, open }) => (
         <button
           type="button"
@@ -116,28 +131,25 @@ function ProductActions({
       )}>
       {(close) => (
         <div className="py-1">
+          <button type="button" onClick={() => { close(); onView(); }} className={itemClass}>View details</button>
+          <button type="button" onClick={() => { close(); onEdit(); }} className={itemClass}>Edit product</button>
+          <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>Adjust stock</button>
+          <div className="my-1 border-t border-ink-100" />
+          <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>Stock lots</button>
+          <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>Stock history</button>
           <button
             type="button"
-            onClick={() => { close(); toast(`Edit product · ${product.name}`); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            Edit product
+            onClick={() => {
+              close();
+              void navigator.clipboard?.writeText(product.sku);
+              toast.success('SKU copied', { description: product.sku });
+            }}
+            className={itemClass}>
+            Copy SKU / barcode
           </button>
-          <button
-            type="button"
-            onClick={() => { close(); toast(`Adjust stock · ${product.name}`); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            Adjust stock
-          </button>
-          <button
-            type="button"
-            onClick={() => { close(); onDuplicate(); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            Duplicate
-          </button>
-          <button
-            type="button"
-            onClick={() => { close(); onToggle(); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+          <div className="my-1 border-t border-ink-100" />
+          <button type="button" onClick={() => { close(); onDuplicate(); }} className={itemClass}>Duplicate</button>
+          <button type="button" onClick={() => { close(); onToggle(); }} className={itemClass}>
             {product.active ? 'Deactivate' : 'Activate'}
           </button>
         </div>
@@ -146,7 +158,7 @@ function ProductActions({
   );
 }
 
-type ProductView = 'list' | 'settings';
+type ProductView = 'list' | 'lots' | 'history' | 'settings';
 
 export function Products() {
   const [view, setView] = useState<ProductView>('list');
