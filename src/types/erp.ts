@@ -234,6 +234,15 @@ export type CustomerCredit = {
   updatedAt: string;
 };
 
+export type PurchaseInventoryLine = {
+  productId: string;
+  quantity: number;
+  serials?: string[];
+  batchNumber?: string;
+  manufactureDate?: string;
+  expiryDate?: string;
+};
+
 export type Purchase = {
   id: string;
   ref: string;
@@ -245,6 +254,7 @@ export type Purchase = {
   paid: number;
   payments?: PaymentSplit[];
   receipt?: string;
+  inventoryLines?: PurchaseInventoryLine[];
 };
 
 export type Expense = {
