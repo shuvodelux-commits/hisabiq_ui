@@ -410,7 +410,7 @@ export function Pos() {
           <span className="font-bn text-sm text-ink-500">{pageTitleBn}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-3 rounded-lg border border-ink-100 bg-white px-3 py-1.5 text-[11.5px] text-ink-500 md:flex">
+          <div className="hidden items-center gap-3 rounded-lg border border-border bg-card px-3 py-1.5 text-[11.5px] text-ink-500 md:flex">
             <Keyboard className="size-3.5" aria-hidden="true" />
             {[
             ['F2', 'Search'],
@@ -436,7 +436,7 @@ export function Pos() {
       {sourceInvoice && (editing || duplicating) && (
         <div className="flex flex-col gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-[13px] text-teal-800 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-2">
-            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-white text-teal-700 ring-1 ring-teal-100">
+            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-card text-teal-700 ring-1 ring-teal-100">
               {editing ? <Pencil className="size-3.5" /> : <Copy className="size-3.5" />}
             </span>
             <div>
@@ -446,7 +446,7 @@ export function Pos() {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="bg-white" onClick={() => navigate('/app/sales')}>
+          <Button variant="outline" size="sm" className="bg-card" onClick={() => navigate('/app/sales')}>
             <ArrowLeft className="size-4" /> Back to sales
           </Button>
         </div>
@@ -455,7 +455,7 @@ export function Pos() {
       {sourceDraft && draftContext && (
         <div className="flex flex-col gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-[13px] text-teal-800 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-2">
-            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-white text-teal-700 ring-1 ring-teal-100">
+            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-card text-teal-700 ring-1 ring-teal-100">
               {duplicatingDraft ? <Copy className="size-3.5" /> : editingDraft ? <Pencil className="size-3.5" /> : <FileClock className="size-3.5" />}
             </span>
             <div>
@@ -467,7 +467,7 @@ export function Pos() {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="bg-white" onClick={() => navigate('/app/sales')}>
+          <Button variant="outline" size="sm" className="bg-card" onClick={() => navigate('/app/sales')}>
             <ArrowLeft className="size-4" /> Back to sales
           </Button>
         </div>
@@ -476,7 +476,7 @@ export function Pos() {
       {sourceTemplate && templateContext && (
         <div className="flex flex-col gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-[13px] text-teal-800 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-2">
-            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-white text-teal-700 ring-1 ring-teal-100">
+            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-card text-teal-700 ring-1 ring-teal-100">
               <FileText className="size-3.5" />
             </span>
             <div>
@@ -486,7 +486,7 @@ export function Pos() {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="bg-white" onClick={() => navigate('/app/sales')}>
+          <Button variant="outline" size="sm" className="bg-card" onClick={() => navigate('/app/sales')}>
             <ArrowLeft className="size-4" /> Back to sales
           </Button>
         </div>
@@ -515,7 +515,7 @@ export function Pos() {
               <button
                 key={p.id}
                 onClick={() => cart.addProduct(p)}
-                className="group flex items-center gap-2.5 rounded-xl border border-ink-100 bg-white p-2.5 text-left shadow-card transition-colors hover:border-teal-300 hover:bg-teal-50/40 active:scale-[0.99]">
+                className="group flex items-center gap-2.5 rounded-xl border border-border bg-card p-2.5 text-left shadow-card transition-colors hover:border-teal-300 hover:bg-teal-50/40 active:scale-[0.99]">
                 
                   <ProductThumb src={p.image} size={40} />
                   <span className="min-w-0 flex-1">
@@ -528,7 +528,7 @@ export function Pos() {
                       })()}
                     </span>
                   </span>
-                  <Plus className="size-4 text-ink-300 group-hover:text-teal-600" aria-hidden="true" />
+                  <Plus className="size-4 text-helper group-hover:text-teal-600" aria-hidden="true" />
                 </button>
               )}
             </div>

@@ -37,9 +37,9 @@ function Group({
         <Reorder.Item
           key={w.id}
           value={w}
-          className="flex cursor-grab items-center gap-2 rounded-lg border border-ink-100 bg-white px-2 py-1.5 active:cursor-grabbing active:shadow-pop">
+          className="flex cursor-grab items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5 active:cursor-grabbing active:shadow-pop">
           
-            <GripVertical className="size-4 text-ink-300" aria-hidden="true" />
+            <GripVertical className="size-4 text-helper" aria-hidden="true" />
             <span className="flex-1 text-[13px]">
               <span className={w.visible ? 'text-ink' : 'text-ink-400'}>{w.label}</span>
               <span className="font-bn ml-1.5 text-[11px] text-ink-400">{w.labelBn}</span>

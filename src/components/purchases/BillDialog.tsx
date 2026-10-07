@@ -311,7 +311,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               />
               <button
                 type="button"
-                className="-ml-px flex size-9 shrink-0 items-center justify-center rounded-r-md border border-input bg-white text-teal-700 hover:bg-teal-50"
+                className="-ml-px flex size-9 shrink-0 items-center justify-center rounded-r-md border border-input bg-card text-teal-700 hover:bg-teal-50"
                 onClick={() => toast(mode === 'purchase' ? 'Add supplier' : 'Add payee')}>
                 <Plus className="size-4" />
                 <span className="sr-only">{mode === 'purchase' ? 'Add supplier' : 'Add payee'}</span>
@@ -338,8 +338,8 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
         </div>
 
         {mode === 'purchase' ? (
-          <div className="overflow-hidden rounded-xl border border-ink-100">
-            <div className="flex items-center justify-between border-b border-ink-100 bg-ink-50/60 px-3 py-2">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="flex items-center justify-between border-b border-border bg-ink-50/60 px-3 py-2">
               <div>
                 <p className="text-[13px] font-medium text-ink">Products</p>
                 <p className="text-[11px] text-ink-500">Purchase in large + small units where a conversion exists.</p>
@@ -349,7 +349,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               </Button>
             </div>
 
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-border">
               {lines.map((line, index) => {
                 const product = productFor(line);
                 const total = lineTotal(line);
@@ -419,7 +419,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                     </button>
 
                     {((product.serialTracking ?? 'Off') !== 'Off' || product.expiry?.enabled) && (
-                      <div className="rounded-lg border border-ink-100 bg-ink-50/40 p-2.5 lg:col-span-5">
+                      <div className="rounded-lg border border-border bg-ink-50/40 p-2.5 lg:col-span-5">
                         <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">Tracking details <span className="font-bn normal-case tracking-normal">· সিরিয়াল / মেয়াদ</span></p>
                         <div className="grid gap-2 md:grid-cols-2">
                           {(product.serialTracking ?? 'Off') !== 'Off' && (
@@ -429,7 +429,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                                 value={line.serialText}
                                 onChange={(event) => updateLine(line.id, { serialText: event.target.value })}
                                 placeholder="Scan, type or paste serials"
-                                className="mt-1 min-h-20 w-full rounded-md border border-input bg-white px-2.5 py-2 text-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                                className="mt-1 min-h-20 w-full rounded-md border border-input bg-card px-2.5 py-2 text-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                               />
                               <span className="mt-1 block text-[11px] font-normal text-ink-400">
                                 {normalizeSerials(line.serialText).length} entered{product.serialTracking === 'Required' ? ` · ${requiredSerialCount(product, lineBaseQty(line))} required` : ' · optional'}
@@ -451,7 +451,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               })}
             </div>
 
-            <div className="flex items-center justify-between border-t border-ink-100 bg-ink-50/60 px-3 py-2">
+            <div className="flex items-center justify-between border-t border-border bg-ink-50/60 px-3 py-2">
               <span className="text-xs text-ink-500">{lines.length} product line{lines.length === 1 ? '' : 's'}</span>
               <span className="text-sm font-semibold text-ink">Purchase total · {taka(purchaseTotal)}</span>
             </div>
@@ -469,7 +469,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                 />
                 <button
                   type="button"
-                  className="-ml-px flex size-9 shrink-0 items-center justify-center rounded-r-md border border-input bg-white text-teal-700 hover:bg-teal-50"
+                  className="-ml-px flex size-9 shrink-0 items-center justify-center rounded-r-md border border-input bg-card text-teal-700 hover:bg-teal-50"
                   onClick={() => toast('Manage expense categories')}>
                   <Plus className="size-4" />
                   <span className="sr-only">Manage categories</span>
@@ -513,8 +513,8 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           </div>
         )}
 
-        <section className="overflow-hidden rounded-xl border border-ink-100">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 bg-ink-50/60 px-3 py-2">
+        <section className="overflow-hidden rounded-xl border border-border">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/60 px-3 py-2">
             <div>
               <p className="text-[13px] font-medium text-ink">
                 Payments <span className="font-bn text-[11px] font-normal text-ink-400">· পেমেন্ট</span>
@@ -545,7 +545,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
             </div>
           </div>
 
-          <div className="divide-y divide-ink-100">
+          <div className="divide-y divide-border">
             {paymentRows.map((row, index) => (
               <div key={row.id} className="grid gap-2 p-3 sm:grid-cols-[140px_minmax(0,1fr)_140px_32px] sm:items-end">
                 <label className="text-[12px] font-medium text-ink">
@@ -594,7 +594,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
             ))}
           </div>
 
-          <div className="grid grid-cols-3 gap-px border-t border-ink-100 bg-ink-100 text-center text-[12px]">
+          <div className="grid grid-cols-3 gap-px border-t border-border bg-ink-100 text-center text-[12px]">
             <div className="bg-ink-50 px-3 py-2">
               <p className="text-ink-400">Total</p>
               <p className="mt-0.5 font-semibold text-ink">{taka(totalNum)}</p>
@@ -650,3 +650,4 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
     </Dialog>
   );
 }
+

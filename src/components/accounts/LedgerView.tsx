@@ -82,8 +82,8 @@ export function LedgerView({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-ink-100">
-        <div className="border-b border-ink-100 bg-ink-50/40 px-4 py-3">
+      <div className="overflow-hidden rounded-xl border border-border">
+        <div className="border-b border-border bg-ink-50/40 px-4 py-3">
           <p className="text-sm font-semibold text-ink">{accountingAccountLabel(account, terminologyMode)}</p>
           <p className="font-bn text-[11px] text-ink-400">{account.helperBn}</p>
         </div>
@@ -131,3 +131,4 @@ export function LedgerView({
     </div>
   );
 }
+

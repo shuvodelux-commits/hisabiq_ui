@@ -44,13 +44,13 @@ export function AuditFilters({
   const quickDate = (from: string, to = from) => patch({ from, to });
 
   return (
-    <div className="space-y-2 border-b border-ink-100 p-3">
+    <div className="space-y-2 border-b border-border p-3">
       <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
         <div className="relative min-w-0 flex-1 xl:max-w-md">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
           <Input className="pl-8" value={value.search} onChange={(event) => patch({ search: event.target.value })} placeholder="Search invoice, voucher, party, account, reference or amount" />
         </div>
-        <div className="flex gap-1 rounded-lg border border-ink-100 bg-white p-1">
+        <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
           <button type="button" onClick={() => quickDate('2026-10-07')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">Today</button>
           <button type="button" onClick={() => quickDate('2026-10-06')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">Yesterday</button>
           <button type="button" onClick={() => quickDate('2026-10-01', '2026-10-31')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">This month</button>
@@ -77,3 +77,4 @@ export function AuditFilters({
     </div>
   );
 }
+

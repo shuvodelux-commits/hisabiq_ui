@@ -33,7 +33,7 @@ export function DaybookFilters({
   const quickDate = (from: string, to = from) => onChange({ ...value, from, to });
 
   return (
-    <div className="space-y-2 border-b border-ink-100 p-3">
+    <div className="space-y-2 border-b border-border p-3">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
         <div className="relative min-w-0 flex-1 lg:max-w-md">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
@@ -52,7 +52,7 @@ export function DaybookFilters({
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-1 rounded-lg border border-ink-100 bg-white p-1">
+        <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1">
           <button type="button" onClick={() => quickDate('2026-10-07')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">Today</button>
           <button type="button" onClick={() => quickDate('2026-10-06')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">Yesterday</button>
           <button type="button" onClick={() => quickDate('2026-10-05', '2026-10-11')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">This week</button>
@@ -67,3 +67,4 @@ export function DaybookFilters({
     </div>
   );
 }
+

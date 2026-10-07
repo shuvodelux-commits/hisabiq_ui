@@ -10,7 +10,8 @@
     "preview": "npx vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "cf:deploy": "npm run build && wrangler deploy",
-    "cf:preview": "npm run build && wrangler preview"
+    "cf:preview": "npm run build && wrangler preview",
+    "test:theme": "node scripts/theme-browser.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -37,6 +38,8 @@
     "tailwindcss": "3.4.17",
     "autoprefixer": "latest",
     "postcss": "latest",
-    "wrangler": "^4.135.0"
+    "wrangler": "^4.135.0",
+    "playwright": "^1.62.1",
+    "axe-core": "^4.14.0"
   }
 }

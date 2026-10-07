@@ -62,7 +62,7 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
   return (
     <div className="p-4">
       <div className="mb-4 flex flex-wrap items-end gap-2">
-        <div className="flex gap-1 rounded-lg border border-ink-100 bg-white p-1">
+        <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
           <button onClick={() => setPreset('month')} className="rounded-md px-2.5 py-1.5 text-[11px] font-medium text-ink-600 hover:bg-ink-50">This month</button>
           <button onClick={() => setPreset('quarter')} className="rounded-md px-2.5 py-1.5 text-[11px] font-medium text-ink-600 hover:bg-ink-50">Quarter</button>
           <button onClick={() => setPreset('year')} className="rounded-md px-2.5 py-1.5 text-[11px] font-medium text-ink-600 hover:bg-ink-50">Year</button>
@@ -77,8 +77,8 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <section className="overflow-hidden rounded-xl border border-ink-100">
-          <div className="border-b border-ink-100 px-4 py-3">
+        <section className="overflow-hidden rounded-xl border border-border">
+          <div className="border-b border-border px-4 py-3">
             <p className="text-sm font-semibold text-ink">Profit & Loss</p>
             <p className="font-bn text-[11px] text-ink-400">কত লাভ বা ক্ষতি হয়েছে</p>
           </div>
@@ -86,14 +86,14 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
             <div className="flex justify-between"><span className="text-ink-500">Sales Revenue</span><span>{taka(sales)}</span></div>
             {otherIncome > 0 && <div className="flex justify-between"><span className="text-ink-500">Other Income</span><span>{taka(otherIncome)}</span></div>}
             <div className="flex justify-between"><span className="text-ink-500">Cost of Goods Sold</span><span>−{taka(cogs)}</span></div>
-            <div className="flex justify-between border-t border-ink-100 pt-2 font-semibold"><span>Gross Profit <span className="font-bn text-[11px] font-normal text-ink-400">· পণ্য বিক্রির লাভ</span></span><span>{grossProfit < 0 ? '−' : ''}{taka(Math.abs(grossProfit))}</span></div>
+            <div className="flex justify-between border-t border-border pt-2 font-semibold"><span>Gross Profit <span className="font-bn text-[11px] font-normal text-ink-400">· পণ্য বিক্রির লাভ</span></span><span>{grossProfit < 0 ? '−' : ''}{taka(Math.abs(grossProfit))}</span></div>
             <div className="flex justify-between"><span className="text-ink-500">Operating Expenses</span><span>−{taka(operatingExpenses)}</span></div>
-            <div className="flex justify-between border-t border-ink-100 pt-2 text-sm font-semibold"><span>Net Profit <span className="font-bn text-[11px] font-normal text-ink-400">· সব খরচের পর লাভ</span></span><span className={pnl.netProfit < 0 ? 'text-danger' : 'text-success'}>{pnl.netProfit < 0 ? '−' : ''}{taka(Math.abs(pnl.netProfit))}</span></div>
+            <div className="flex justify-between border-t border-border pt-2 text-sm font-semibold"><span>Net Profit <span className="font-bn text-[11px] font-normal text-ink-400">· সব খরচের পর লাভ</span></span><span className={pnl.netProfit < 0 ? 'text-danger' : 'text-success'}>{pnl.netProfit < 0 ? '−' : ''}{taka(Math.abs(pnl.netProfit))}</span></div>
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-ink-100">
-          <div className="border-b border-ink-100 px-4 py-3">
+        <section className="overflow-hidden rounded-xl border border-border">
+          <div className="border-b border-border px-4 py-3">
             <p className="text-sm font-semibold text-ink">Balance Sheet</p>
             <p className="font-bn text-[11px] text-ink-400">ব্যবসার সম্পদ, দেনা ও মালিকের অংশ</p>
           </div>
@@ -101,7 +101,7 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
             <div className="flex justify-between"><span className="text-ink-500">Assets</span><span>{taka(sheet.assets)}</span></div>
             <div className="flex justify-between"><span className="text-ink-500">Liabilities</span><span>{taka(sheet.liabilities)}</span></div>
             <div className="flex justify-between"><span className="text-ink-500">Equity</span><span>{taka(sheet.equity)}</span></div>
-            <div className="flex justify-between border-t border-ink-100 pt-2 font-semibold">
+            <div className="flex justify-between border-t border-border pt-2 font-semibold">
               <span>Books check</span>
               <span className={sheet.balanced ? 'text-success' : 'text-danger'}>{sheet.balanced ? 'Balanced' : 'Needs review'}</span>
             </div>
@@ -111,3 +111,4 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
     </div>
   );
 }
+

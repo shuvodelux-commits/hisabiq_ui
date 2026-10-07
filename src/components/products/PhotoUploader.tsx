@@ -25,16 +25,16 @@ export function PhotoUploader({ photos, onChange, max = 4, label = 'Add photo', 
     <div>
       <div className="flex flex-wrap gap-2">
         {photos.map((src, i) =>
-        <div key={src} className="group relative size-20 overflow-hidden rounded-lg border border-ink-100">
+        <div key={src} className="group relative size-20 overflow-hidden rounded-lg border border-border">
             <img src={src} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
             {i === 0 &&
-          <span className="absolute bottom-1 left-1 rounded bg-ink/80 px-1 text-[10px] font-medium text-white">Cover</span>
+          <span className="absolute bottom-1 left-1 rounded bg-inverse/80 px-1 text-[10px] font-medium text-white">Cover</span>
           }
             <button
             type="button"
             onClick={() => onChange(photos.filter((p) => p !== src))}
             aria-label={`Remove photo ${i + 1}`}
-            className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-white/90 text-ink opacity-0 shadow transition-opacity group-hover:opacity-100 focus:opacity-100">
+            className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-card/90 text-ink opacity-0 shadow transition-opacity group-hover:opacity-100 focus:opacity-100">
             
               <X className="size-3" />
             </button>

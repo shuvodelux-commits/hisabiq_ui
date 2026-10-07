@@ -25,7 +25,7 @@ type CartTableProps = {
 const grid = 'grid min-w-[820px] grid-cols-[24px_minmax(180px,1fr)_168px_108px_96px_104px_28px] items-center gap-2';
 
 const cellInput =
-'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-ink-100 focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20';
+'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
 
 export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchRef }: CartTableProps) {
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -57,8 +57,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
   };
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white shadow-card">
-      <div className={`${grid} border-b border-ink-100 px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400`}>
+    <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
+      <div className={`${grid} border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400`}>
         <span className="text-right">#</span>
         <span>Product</span>
         <span className="text-right">Quantity</span>
@@ -68,14 +68,14 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
         <span className="sr-only">Remove</span>
       </div>
 
-      <div className="divide-y divide-ink-100">
+      <div className="divide-y divide-border">
         <div className={`${grid} bg-teal-50/35 px-3 py-2`}>
           <span className="text-right text-sm text-teal-600">{lines.length + 1}.</span>
           <ProductCombobox ref={searchRef} onSelect={onAdd} />
-          <span className="pr-2 text-right text-sm text-ink-300">Qty</span>
-          <span className="px-2 text-sm text-ink-300">Unit</span>
-          <span className="pr-2 text-right text-sm text-ink-300">Price</span>
-          <span className="text-right text-sm text-ink-300">Total</span>
+          <span className="pr-2 text-right text-sm text-helper">Qty</span>
+          <span className="px-2 text-sm text-helper">Unit</span>
+          <span className="pr-2 text-right text-sm text-helper">Price</span>
+          <span className="text-right text-sm text-helper">Total</span>
           <span />
         </div>
         <AnimatePresence initial={false}>
@@ -88,8 +88,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
               <motion.div
                 key={l.key}
                 layout
-                initial={{ opacity: 0, backgroundColor: '#EAF6F4' }}
-                animate={{ opacity: 1, backgroundColor: '#FFFFFF' }}
+                initial={{ opacity: 0, backgroundColor: 'var(--accent)' }}
+                animate={{ opacity: 1, backgroundColor: 'var(--card)' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.25 }}
                 className={`${grid} px-3 py-1.5`}>
@@ -120,7 +120,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                   </div>
                 </div>
                 {l.product.altUnit && l.unit === l.product.altUnit.unit ?
-                <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-ink-100 bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-500/20">
+                <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-input bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
                     <input
                       ref={(el) => {
                         qtyRefs.current[l.key] = el;
@@ -136,7 +136,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                         secondaryQtyRefs.current[l.key]?.select();
                       }}
                       className="min-w-0 flex-1 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none" />
-                    <span className="flex items-center border-l border-ink-100 px-1.5 text-[10.5px] text-ink-500">
+                    <span className="flex items-center border-l border-border px-1.5 text-[10.5px] text-ink-500">
                       {l.product.altUnit.unit}
                     </span>
                     <input
@@ -154,8 +154,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                         e.preventDefault();
                         commitSecondary(l, true);
                       }}
-                      className="min-w-0 flex-1 border-l border-ink-100 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none" />
-                    <span className="flex items-center border-l border-ink-100 px-1.5 text-[10.5px] text-ink-500">
+                      className="min-w-0 flex-1 border-l border-border bg-transparent px-2 text-right text-sm font-medium text-ink outline-none" />
+                    <span className="flex items-center border-l border-border px-1.5 text-[10.5px] text-ink-500">
                       {l.product.unit}
                     </span>
                   </div> :
@@ -169,7 +169,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                       inputMode="decimal"
                       onChange={(e) => onUpdate(l.key, { qty: e.target.value.replace(/[^\d.]/g, '') })}
                       onKeyDown={backToSearch}
-                      className={`${cellInput} border-ink-100 bg-ink-50/50 pr-12 font-medium`} />
+                      className={`${cellInput} border-border bg-ink-50/50 pr-12 font-medium`} />
                     <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10.5px] text-ink-500">{l.unit}</span>
                   </div>
                 }
@@ -184,7 +184,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                     aria-checked={l.unit === u}
                     onClick={() => onUpdate(l.key, { unit: u })}
                     className={`flex-1 rounded px-1 text-xs font-medium transition-colors ${
-                    l.unit === u ? 'bg-white text-ink shadow-card ring-1 ring-ink-100' : 'text-ink-500 hover:text-ink'}`
+                    l.unit === u ? 'bg-card text-ink shadow-card ring-1 ring-primary' : 'text-ink-500 hover:text-ink'}`
                     }>
                     
                         {u}
@@ -208,11 +208,11 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                     aria-label={`Show purchase price for ${l.product.name}`}
                     aria-pressed={revealedPurchase === l.key}
                     onClick={() => setRevealedPurchase((current) => current === l.key ? null : l.key)}
-                    className="absolute right-1.5 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded text-ink-300 hover:bg-ink-50 hover:text-teal-700">
+                    className="absolute right-1.5 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded text-helper hover:bg-ink-50 hover:text-teal-700">
                     <Eye className="size-3.5" />
                   </button>
                   {revealedPurchase === l.key &&
-                  <div className="absolute right-0 top-full z-30 mt-1 whitespace-nowrap rounded-md border border-ink-100 bg-white px-2 py-1 text-[11px] text-ink-600 shadow-pop">
+                  <div className="absolute right-0 top-full z-30 mt-1 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-[11px] text-ink-600 shadow-pop">
                       Cost {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}
                     </div>
                   }
@@ -224,7 +224,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                   type="button"
                   onClick={() => onRemove(l.key)}
                   aria-label={`Remove ${l.product.name}`}
-                  className="flex size-8 items-center justify-center rounded-md text-ink-300 hover:bg-danger-bg hover:text-danger">
+                  className="flex size-8 items-center justify-center rounded-md text-helper hover:bg-danger-bg hover:text-danger">
                   
                   <X className="size-4" />
                 </button>
@@ -236,7 +236,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
       </div>
 
       {lines.length === 0 &&
-      <p className="border-t border-ink-100 px-4 py-6 text-center text-sm text-ink-500">
+      <p className="border-t border-border px-4 py-6 text-center text-sm text-ink-500">
           Cart is empty. Search above or tap a quick item below. <span className="font-bn">পণ্য যোগ করুন।</span>
         </p>
       }

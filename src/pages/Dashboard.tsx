@@ -41,7 +41,7 @@ function PanelContent({ widget }: {widget: DashboardWidget;}) {
         <Panel
           title="Sales trend"
           subtitle="Last 14 days · বিক্রির ধারা"
-          actions={<Legend items={[{ label: 'Sales', className: 'bg-teal-600' }, { label: 'Gross profit', className: 'bg-ink' }]} />}
+          actions={<Legend items={[{ label: 'Sales', className: 'bg-teal-600' }, { label: 'Gross profit', className: 'bg-inverse' }]} />}
           className="h-full">
           
           <SalesTrendChart />
@@ -160,7 +160,7 @@ export function Dashboard() {
       }
 
       {visibleMetrics.length === 0 && visiblePanels.length === 0 &&
-      <div className="rounded-xl border border-dashed border-ink-200 bg-white p-10 text-center">
+      <div className="rounded-xl border border-dashed border-ink-200 bg-card p-10 text-center">
           <p className="font-medium text-ink">Your dashboard is empty</p>
           <p className="mt-1 text-sm text-ink-500">Turn widgets back on to see your numbers.</p>
           <Button className="mt-4" size="sm" onClick={() => setDialogOpen(true)}>Choose widgets</Button>

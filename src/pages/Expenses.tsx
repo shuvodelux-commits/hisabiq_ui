@@ -51,17 +51,17 @@ const payees = parties
   }));
 
 function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
-  if (!src) return <span className="text-xs text-ink-300">—</span>;
+  if (!src) return <span className="text-xs text-helper">—</span>;
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="group relative block size-8 overflow-hidden rounded-md border border-ink-100"
+      className="group relative block size-8 overflow-hidden rounded-md border border-border"
       aria-label="View receipt">
       <img src={src} alt="" className="h-full w-full object-cover" />
-      <span className="absolute inset-0 flex items-center justify-center bg-ink/40 opacity-0 transition-opacity group-hover:opacity-100">
+      <span className="absolute inset-0 flex items-center justify-center bg-inverse/40 opacity-0 transition-opacity group-hover:opacity-100">
         <Paperclip className="size-3 text-white" />
       </span>
     </button>
@@ -120,7 +120,7 @@ export function Expenses() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((item) => (
-          <div key={item.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={item.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{item.label}</p>
             <p className="mt-0.5 text-lg font-semibold text-ink">{item.value}</p>
             <p className="font-bn text-[11px] text-ink-400">{item.sub}</p>
@@ -128,8 +128,8 @@ export function Expenses() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-ink-100 px-3" role="tablist">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -150,7 +150,7 @@ export function Expenses() {
 
         {tab === 'expenses' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-ink-100 p-3 lg:flex-row lg:items-center">
+            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1 lg:max-w-md">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                 <Input
@@ -251,7 +251,7 @@ export function Expenses() {
 
         {tab === 'categories' && (
           <div>
-            <div className="flex items-center justify-between gap-3 border-b border-ink-100 p-3">
+            <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Expense categories</p>
                 <p className="text-[11px] text-ink-500">Create, rename, activate or deactivate categories used when recording expenses.</p>
@@ -296,7 +296,7 @@ export function Expenses() {
 
         {tab === 'payees' && (
           <div>
-            <div className="flex items-center justify-between gap-3 border-b border-ink-100 p-3">
+            <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Expense payees</p>
                 <p className="text-[11px] text-ink-500">Reusable people and businesses you regularly pay.</p>
@@ -345,7 +345,7 @@ export function Expenses() {
 
         {tab === 'reports' && (
           <div className="p-4">
-            <div className="mb-4 flex flex-col gap-2 rounded-xl border border-ink-100 bg-ink-50/50 p-3 sm:flex-row sm:items-end">
+            <div className="mb-4 flex flex-col gap-2 rounded-xl border border-border bg-ink-50/50 p-3 sm:flex-row sm:items-end">
               <label className="text-[12px] font-medium text-ink">
                 From
                 <Input className="mt-1 w-full sm:w-40" defaultValue="01 Sep 2026" />
@@ -396,7 +396,7 @@ export function Expenses() {
                 const max = Math.max(...group.rows.map((row) => row.value), 1);
                 const Icon = group.icon;
                 return (
-                  <div key={group.title} className="rounded-xl border border-ink-100 bg-white p-4">
+                  <div key={group.title} className="rounded-xl border border-border bg-card p-4">
                     <div className="mb-4 flex items-center gap-2">
                       <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                         <Icon className="size-4" />
@@ -445,3 +445,4 @@ export function Expenses() {
     </div>
   );
 }
+

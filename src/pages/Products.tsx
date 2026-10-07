@@ -72,7 +72,7 @@ function ProductColumnPicker({
           type="button"
           onClick={toggle}
           aria-expanded={open}
-          className="flex h-8 items-center gap-2 rounded-md border border-ink-100 bg-white px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+          className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
           Columns
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
@@ -143,7 +143,7 @@ function ProductActions({
           {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>Adjust stock</button>}
           {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAddLot(); }} className={itemClass}>Add stock lot</button>}
           <button type="button" onClick={() => { close(); onOffers(); }} className={itemClass}>Manage offers</button>
-          <div className="my-1 border-t border-ink-100" />
+          <div className="my-1 border-t border-border" />
           {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>Stock lots & serials</button>}
           <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>Product history</button>
           <button
@@ -156,7 +156,7 @@ function ProductActions({
             className={itemClass}>
             Copy SKU / barcode
           </button>
-          <div className="my-1 border-t border-ink-100" />
+          <div className="my-1 border-t border-border" />
           <button type="button" onClick={() => { close(); onDuplicate(); }} className={itemClass}>Duplicate</button>
           <button type="button" onClick={() => { close(); onToggle(); }} className={itemClass}>
             {product.active ? 'Deactivate' : 'Activate'}
@@ -343,7 +343,7 @@ export function Products() {
         ) : undefined} />
       
 
-      <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 scrollbar-thin" role="tablist">
+      <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border scrollbar-thin" role="tablist">
         {([
           ['list', 'Product list', 'পণ্য তালিকা'],
           ['lots', 'Stock lots', 'স্টক লট'],
@@ -365,7 +365,7 @@ export function Products() {
         <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((s) =>
-        <div key={s.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div key={s.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{s.label}</p>
             <p className={`mt-0.5 text-lg font-semibold ${s.tone ?? 'text-ink'}`}>{s.value}</p>
             <p className="text-[11px] text-ink-400">{s.sub}</p>
@@ -373,8 +373,8 @@ export function Products() {
         )}
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-wrap items-center gap-2 border-b border-ink-100 p-3">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
           <div className="relative w-full max-w-xs">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
             <input
@@ -382,7 +382,7 @@ export function Products() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search name, বাংলা, SKU…"
               aria-label="Search products"
-              className="h-8 w-full rounded-md border border-ink-100 pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+              className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
             
           </div>
           <div className="flex flex-wrap gap-1">
@@ -391,7 +391,7 @@ export function Products() {
               key={c}
               onClick={() => setCategory(c)}
               className={`h-8 rounded-md px-2.5 text-xs font-medium transition-colors ${
-              category === c ? 'bg-ink text-white' : 'text-ink-600 hover:bg-ink-50'}`
+              category === c ? 'bg-inverse text-white' : 'text-ink-600 hover:bg-ink-50'}`
               }>
               
                 {c}
@@ -413,7 +413,7 @@ export function Products() {
                 role="radio"
                 aria-checked={stockFilter === id}
                 onClick={() => setStockFilter(id)}
-                className={`h-7 rounded px-2.5 text-xs font-medium ${stockFilter === id ? 'bg-white text-ink shadow-card' : 'text-ink-500'}`}>
+                className={`h-7 rounded px-2.5 text-xs font-medium ${stockFilter === id ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
                 
                   {label}
                 </button>
@@ -547,7 +547,7 @@ export function Products() {
           </div>
         }
 
-        <div className="flex items-center justify-between border-t border-ink-100 px-4 py-2.5 text-xs text-ink-500">
+        <div className="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs text-ink-500">
           <span>
             Showing {filtered.length} of {list.length} products
           </span>
@@ -578,7 +578,7 @@ export function Products() {
       )}
 
       {view === 'settings' && (
-        <div className="overflow-hidden rounded-xl border border-ink-100 bg-white shadow-card">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
           <ProductSettings />
         </div>
       )}

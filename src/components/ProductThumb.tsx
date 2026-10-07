@@ -9,7 +9,7 @@ type ProductThumbProps = {
 export function ProductThumb({ src, size = 36 }: ProductThumbProps) {
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-md border border-ink-100 bg-ink-50 text-ink-400"
+      className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-ink-50 text-ink-400"
       style={{ width: size, height: size }}>
       
       {src ?

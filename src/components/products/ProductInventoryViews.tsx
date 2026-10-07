@@ -26,7 +26,7 @@ function ProductFilterSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-9 w-full appearance-none rounded-md border border-input bg-white pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+        className="h-9 w-full appearance-none rounded-md border border-input bg-card pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
         aria-label="Filter inventory by product">
         <option value="">All products</option>
         {products.filter((product) => product.kind !== 'Service').map((product) => (
@@ -61,17 +61,17 @@ export function StockLotsView({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <div className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
           <p className="text-xs text-ink-500">Available lots</p>
           <p className="mt-0.5 text-lg font-semibold text-ink">{availableLots.length}</p>
           <p className="text-[11px] text-ink-400">Lots with remaining stock</p>
         </div>
-        <div className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
           <p className="text-xs text-ink-500">Lot stock value</p>
           <p className="mt-0.5 text-lg font-semibold text-ink">{taka(value, value % 1 ? 2 : 0)}</p>
           <p className="text-[11px] text-ink-400">At lot purchase cost</p>
         </div>
-        <div className="col-span-2 rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card lg:col-span-1">
+        <div className="col-span-2 rounded-xl border border-border bg-card px-4 py-3 shadow-card lg:col-span-1">
           <p className="text-xs text-ink-500">Selected product</p>
           <p className="mt-0.5 truncate text-sm font-semibold text-ink">
             {productFilter ? productById(products, productFilter)?.name ?? 'Unknown' : 'All products'}
@@ -80,8 +80,8 @@ export function StockLotsView({
         </div>
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-wrap items-center gap-2 border-b border-ink-100 p-3">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
           <div className="min-w-[220px] flex-1 sm:max-w-sm">
             <ProductFilterSelect products={products} value={productFilter} onChange={onProductFilter} />
           </div>
@@ -179,11 +179,11 @@ export function StockHistoryView({
   );
 
   return (
-    <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-      <div className="flex flex-wrap items-center gap-2 border-b border-ink-100 p-3">
+    <div className="rounded-xl border border-border bg-card shadow-card">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
         <div className="relative flex-1 text-sm text-ink-500">
           <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-          <div className="h-9 rounded-md border border-ink-100 pl-8 pr-3 leading-9">Stock movement audit trail</div>
+          <div className="h-9 rounded-md border border-border pl-8 pr-3 leading-9">Stock movement audit trail</div>
         </div>
         <div className="w-full sm:w-64">
           <ProductFilterSelect products={products} value={productFilter} onChange={onProductFilter} />
@@ -232,3 +232,4 @@ export function StockHistoryView({
     </div>
   );
 }
+

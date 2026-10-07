@@ -8,9 +8,9 @@ const toneClass: Record<StatusTone, string> = {
   warning: 'bg-warning-bg text-warning border-transparent',
   danger: 'bg-danger-bg text-danger border-transparent',
   info: 'bg-info-bg text-info border-transparent',
-  neutral: 'bg-ink-50 text-ink-600 border-ink-100',
+  neutral: 'bg-ink-50 text-ink-600 border-border',
   teal: 'bg-teal-50 text-teal-700 border-transparent',
-  ink: 'bg-ink text-white border-transparent'
+  ink: 'bg-inverse text-white border-transparent'
 };
 
 type StatusBadgeProps = {

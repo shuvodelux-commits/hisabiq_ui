@@ -106,7 +106,7 @@ function SalesColumnPicker({
           type="button"
           onClick={toggle}
           aria-expanded={open}
-          className="flex h-8 items-center gap-2 rounded-md border border-ink-100 bg-white px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+          className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
           Columns
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
@@ -238,8 +238,8 @@ function InvoiceDialog({
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
               <div className="space-y-3">
-                <div className="rounded-xl border border-ink-100">
-                  <div className="grid grid-cols-2 gap-3 border-b border-ink-100 p-3 text-[12.5px] sm:grid-cols-4">
+                <div className="rounded-xl border border-border">
+                  <div className="grid grid-cols-2 gap-3 border-b border-border p-3 text-[12.5px] sm:grid-cols-4">
                     <div><p className="text-ink-400">Customer</p><p className="font-medium text-ink">{invoice.party}</p></div>
                     <div><p className="text-ink-400">Phone</p><p className="font-medium text-ink">{invoice.phone ?? '—'}</p></div>
                     <div><p className="text-ink-400">Guardian</p><p className="font-medium text-ink">{invoice.guardianName ?? '—'}</p></div>
@@ -271,21 +271,21 @@ function InvoiceDialog({
                     </TableBody>
                   </Table>
 
-                  <div className="grid gap-1 border-t border-ink-100 p-3 text-[12.5px] sm:ml-auto sm:w-72">
+                  <div className="grid gap-1 border-t border-border p-3 text-[12.5px] sm:ml-auto sm:w-72">
                     <div className="flex justify-between"><span className="text-ink-500">Subtotal</span><span>{taka(invoice.subtotal)}</span></div>
                     {invoice.discount > 0 && <div className="flex justify-between"><span className="text-ink-500">Discount</span><span>−{taka(invoice.discount)}</span></div>}
                     <div className="flex justify-between"><span className="text-ink-500">Rounding</span><span>{invoice.rounding >= 0 ? '+' : '−'}{taka(Math.abs(invoice.rounding))}</span></div>
-                    <div className="flex justify-between border-t border-ink-100 pt-1.5 text-sm font-semibold"><span>Total</span><span>{taka(invoice.total)}</span></div>
+                    <div className="flex justify-between border-t border-border pt-1.5 text-sm font-semibold"><span>Total</span><span>{taka(invoice.total)}</span></div>
                     <div className="flex justify-between"><span className="text-ink-500">Gross profit</span><span className={invoiceProfit(invoice) < 0 ? 'font-medium text-danger' : 'font-medium text-success'}>{invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}</span></div>
                     <div className="flex justify-between"><span className="text-ink-500">Paid</span><span>{taka(invoice.paid)}</span></div>
                     <div className="flex justify-between font-medium"><span className="text-ink-500">Due</span><span className={invoice.due > 0 ? 'text-danger' : 'text-success'}>{invoice.due > 0 ? taka(invoice.due) : '৳0'}</span></div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-ink-100 p-3">
+                <div className="rounded-xl border border-border p-3">
                   <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-400">Payments</p>
                   {invoice.payments.length ? (
-                    <div className="mt-2 divide-y divide-ink-100">
+                    <div className="mt-2 divide-y divide-border">
                       {invoice.payments.map((payment) => (
                         <div key={payment.id} className="flex items-center justify-between gap-3 py-2 text-[12.5px]">
                           <div>
@@ -391,7 +391,7 @@ function PaymentDialog({
 
             <div className="space-y-2">
               {rows.map((row, index) => (
-                <div key={row.id} className="grid gap-2 rounded-xl border border-ink-100 p-3 sm:grid-cols-[140px_1fr_120px_auto]">
+                <div key={row.id} className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[140px_1fr_120px_auto]">
                   <label className="text-[12px] font-medium text-ink">
                     Method
                     <FormSelect
@@ -424,7 +424,7 @@ function PaymentDialog({
                     type="button"
                     disabled={rows.length === 1}
                     onClick={() => setRows((items) => items.filter((item) => item.id !== row.id))}
-                    className="self-end rounded-md p-2 text-ink-300 hover:bg-danger-bg hover:text-danger disabled:opacity-30"
+                    className="self-end rounded-md p-2 text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
                     aria-label={`Remove payment ${index + 1}`}>
                     <Trash2 className="size-4" />
                   </button>
@@ -971,7 +971,7 @@ export function Sales() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((item) => (
-          <div key={item.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={item.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{item.label}</p>
             <p className={`mt-0.5 text-lg font-semibold ${item.tone ?? 'text-ink'}`}>{item.value}</p>
             <p className="font-bn text-[11px] text-ink-400">{item.sub}</p>
@@ -979,8 +979,8 @@ export function Sales() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 px-3 scrollbar-thin" role="tablist">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -1000,7 +1000,7 @@ export function Sales() {
 
         {tab === 'sales' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-ink-100 p-3 lg:flex-row lg:items-center">
+            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1 lg:max-w-lg">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                 <Input
@@ -1076,7 +1076,7 @@ export function Sales() {
                       {invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}
                     </TableCell>}
                     {visibleSalesColumns.paid && <TableCell className="py-2 text-right text-ink-600">{taka(invoice.paid)}</TableCell>}
-                    {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-ink-300'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
+                    {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-helper'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
                     {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? 'Multiple' : invoice.method}</TableCell>}
                     {visibleSalesColumns.status && <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>}
                     <TableCell className="py-2 pr-4 text-right">
@@ -1100,7 +1100,7 @@ export function Sales() {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-4 py-2.5 text-xs text-ink-500">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
               <span>Showing {filtered.length} of {invoices.length} invoices</span>
               <span>Click a row to view invoice details</span>
             </div>
@@ -1110,7 +1110,7 @@ export function Sales() {
         {tab === 'return' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
             <div className="space-y-3">
-              <div className="rounded-xl border border-ink-100 bg-ink-50/50 p-4">
+              <div className="rounded-xl border border-border bg-ink-50/50 p-4">
                 <div className="mb-3 flex items-start gap-2">
                   <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                     <UserRound className="size-4" />
@@ -1135,12 +1135,12 @@ export function Sales() {
                 />
               </div>
 
-              <div className="rounded-xl border border-ink-100 bg-white">
-                <div className="border-b border-ink-100 p-3">
+              <div className="rounded-xl border border-border bg-card">
+                <div className="border-b border-border p-3">
                   <p className="text-[13px] font-medium text-ink">Select invoices <span className="font-bn text-[11px] font-normal text-ink-400">· ইনভয়েস বাছুন</span></p>
                   <p className="mt-0.5 text-[11px] text-ink-500">Choose one or more invoices for a batch return.</p>
                 </div>
-                <div className="divide-y divide-ink-100">
+                <div className="divide-y divide-border">
                   {customerInvoices.map((invoice) => (
                     <label key={invoice.id} className="flex cursor-pointer items-center gap-3 p-3 hover:bg-ink-50">
                       <input
@@ -1166,8 +1166,8 @@ export function Sales() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-ink-100 bg-white">
-              <div className="border-b border-ink-100 p-3">
+            <div className="rounded-xl border border-border bg-card">
+              <div className="border-b border-border p-3">
                 <p className="text-[13px] font-medium text-ink">Return items <span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span></p>
                 <p className="mt-0.5 text-[11px] text-ink-500">Enter quantity against any item from the selected invoices.</p>
               </div>
@@ -1251,7 +1251,7 @@ export function Sales() {
                     </TableBody>
                   </Table>
 
-                  <div className="grid gap-3 border-t border-ink-100 bg-ink-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_180px_160px] sm:items-end">
+                  <div className="grid gap-3 border-t border-border bg-ink-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_180px_160px] sm:items-end">
                     <label className="text-[12px] font-medium text-ink">
                       Settlement
                       <FormSelect
@@ -1299,7 +1299,7 @@ export function Sales() {
                 </>
               ) : (
                 <div className="px-4 py-16 text-center">
-                  <CornerUpLeft className="mx-auto size-7 text-ink-300" />
+                  <CornerUpLeft className="mx-auto size-7 text-helper" />
                   <p className="mt-2 font-medium text-ink">Select one or more invoices</p>
                   <p className="mt-1 text-sm text-ink-500">Their items will appear here for a batch return.</p>
                 </div>
@@ -1381,7 +1381,7 @@ export function Sales() {
 
         {tab === 'credits' && (
           <div>
-            <div className="flex flex-col gap-2 border-b border-ink-100 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[13px] font-medium text-ink">Customer payments & credit <span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span></p>
                 <p className="mt-0.5 text-[11px] text-ink-500">Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.</p>
@@ -1435,13 +1435,13 @@ export function Sales() {
                             <button
                               disabled={credit.balance <= 0}
                               onClick={() => { close(); setCreditAction({ credit, mode: 'apply' }); }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-ink-300">
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
                               <FileText className="size-4 text-ink-400" /> Apply to invoice
                             </button>
                             <button
                               disabled={credit.balance <= 0}
                               onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-ink-300">
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
                               <Banknote className="size-4 text-ink-400" /> Refund credit
                             </button>
                             <button
@@ -1458,7 +1458,7 @@ export function Sales() {
               </TableBody>
             </Table>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-4 py-2.5 text-xs text-ink-500">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
               <span>Total customer credit {taka(creditTotal)}</span>
               <span>Credit can settle invoice due or be refunded from a selected account</span>
             </div>
@@ -1467,15 +1467,15 @@ export function Sales() {
 
         {tab === 'drafts' && (
           <div className="grid gap-4 p-4 xl:grid-cols-2">
-            <section className="overflow-hidden rounded-xl border border-ink-100">
-              <div className="flex items-center justify-between border-b border-ink-100 p-3">
+            <section className="overflow-hidden rounded-xl border border-border">
+              <div className="flex items-center justify-between border-b border-border p-3">
                 <div>
                   <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileClock className="size-4 text-teal-700" /> Draft sales <span className="font-bn text-[11px] font-normal text-ink-400">· খসড়া</span></p>
                   <p className="mt-0.5 text-[11px] text-ink-500">Continue, edit, duplicate or archive a held sale.</p>
                 </div>
                 <StatusBadge tone="teal">{drafts.length}</StatusBadge>
               </div>
-              <div className="divide-y divide-ink-100">
+              <div className="divide-y divide-border">
                 {drafts.map((draft) => (
                   <div key={draft.id} className="p-3">
                     <div className="flex items-start justify-between gap-3">
@@ -1517,8 +1517,8 @@ export function Sales() {
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-xl border border-ink-100">
-              <div className="flex items-center justify-between border-b border-ink-100 p-3">
+            <section className="overflow-hidden rounded-xl border border-border">
+              <div className="flex items-center justify-between border-b border-border p-3">
                 <div>
                   <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> Sale templates <span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span></p>
                   <p className="mt-0.5 text-[11px] text-ink-500">Reuse common carts without recreating every line.</p>
@@ -1536,7 +1536,7 @@ export function Sales() {
                   toast.success(`${next.name} created`);
                 }}><Plus className="size-3.5" /> Template</Button>
               </div>
-              <div className="divide-y divide-ink-100">
+              <div className="divide-y divide-border">
                 {templates.map((template) => (
                   <div key={template.id} className="p-3">
                     <div className="flex items-start justify-between gap-3">
@@ -1616,3 +1616,4 @@ export function Sales() {
     </div>
   );
 }
+

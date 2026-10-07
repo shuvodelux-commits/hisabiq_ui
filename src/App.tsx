@@ -1,5 +1,6 @@
 import React from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { useTheme } from './contexts/ThemeContext';
 import { Toaster } from 'sonner';
 import { BrandGuide } from './pages/BrandGuide';
 import { AppShell } from './components/layout/AppShell';
@@ -19,9 +20,10 @@ import { Accounts } from './pages/Accounts';
 import { AuditLedger } from './pages/AuditLedger';
 
 export function App() {
+  const { resolvedTheme } = useTheme();
   return (
     <HashRouter>
-      <Toaster position="bottom-right" toastOptions={{ style: { fontFamily: 'Geist' } }} />
+      <Toaster theme={resolvedTheme} position="bottom-right" toastOptions={{ style: { fontFamily: 'Geist' } }} />
       <Routes>
         <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
         <Route path="/design-system" element={<BrandGuide />} />
@@ -47,3 +49,4 @@ export function App() {
     </HashRouter>
   );
 }
+

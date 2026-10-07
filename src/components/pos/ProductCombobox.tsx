@@ -168,7 +168,7 @@ ref)
           ref={listRef}
           id="pos-product-list"
           role="listbox"
-          className="fixed z-[110] overflow-y-auto rounded-xl border border-ink-100 bg-white p-1 shadow-pop scrollbar-thin"
+          className="fixed z-[110] overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-pop scrollbar-thin"
           style={{
             top: position?.top ?? 0,
             left: position?.left ?? 0,
@@ -236,11 +236,12 @@ ref)
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         placeholder="Add product… name or বাংলা"
-        className="h-10 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 pr-12 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
-      <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-ink-200 bg-white px-1.5 text-[10px] text-ink-500">
+        className="h-10 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 pr-12 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+      <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500">
         F2
       </kbd>
       {listbox}
     </div>
   );
 });
+

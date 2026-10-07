@@ -30,7 +30,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
           <button
           onClick={toggle}
           aria-expanded={open}
-          className="flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-lg border border-ink-100 bg-white px-2.5 text-left hover:border-ink-200">
+          className="flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 text-left hover:border-ink-200">
           
             {value ?
           <PartyAvatar name={value.name} color={value.avatarColor} size={26} /> :
@@ -59,13 +59,13 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
       
       {(close) =>
       <div>
-          <div className="border-b border-ink-100 p-2">
+          <div className="border-b border-border p-2">
             <input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search customer or phone…"
-            className="h-9 w-full rounded-md border border-ink-100 px-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+            className="h-9 w-full rounded-md border border-border px-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
           
           </div>
           <ul className="max-h-64 overflow-auto p-1">

@@ -56,7 +56,7 @@ export function TrialBalanceView({ postings, terminologyMode }: { postings: Post
         <div className="rounded-lg bg-ink-50 px-3 py-2"><p className="text-[10.5px] text-ink-400">Total Credit</p><p className="text-sm font-semibold text-ink">{taka(result.totalCredit)}</p></div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-ink-100">
+      <div className="overflow-hidden rounded-xl border border-border">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -93,3 +93,4 @@ export function TrialBalanceView({ postings, terminologyMode }: { postings: Post
     </div>
   );
 }
+
