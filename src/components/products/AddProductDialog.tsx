@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Info } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
@@ -16,6 +16,7 @@ type AddProductDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (product: Product) => void;
+  initialProduct?: Product | null;
 };
 
 const baseUnits = ['Pcs', 'Gira', 'Kg', 'Feet', 'Bag', 'Coil', 'Pair', 'Litre'];
@@ -42,7 +43,7 @@ function MoneyInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
 
 }
 
-export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialogProps) {
+export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = null }: AddProductDialogProps) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [name, setName] = useState('');
   const [nameBn, setNameBn] = useState('');
@@ -93,11 +94,42 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
     setError('');
   };
 
+
+
+  useEffect(() => {
+    if (!open) return;
+    if (!initialProduct) {
+      resetForm();
+      return;
+    }
+
+    setPhotos(initialProduct.image ? [initialProduct.image] : []);
+    setName(initialProduct.name);
+    setNameBn(initialProduct.nameBn ?? '');
+    setCategory(initialProduct.category);
+    setUnit(initialProduct.unit);
+    setSell(String(initialProduct.sellPrice));
+    setSellUnit(initialProduct.unit);
+    setBuy(String(initialProduct.purchasePrice));
+    setBuyUnit(initialProduct.unit);
+    setMultiUnit(Boolean(initialProduct.altUnit));
+    setAltUnit(initialProduct.altUnit?.unit ?? '');
+    setFactor(String(initialProduct.altUnit?.factor ?? 1));
+    setAltPrice(initialProduct.altUnit?.price ? String(initialProduct.altUnit.price) : '');
+    setOpeningQty('');
+    setOpeningUnit(initialProduct.unit);
+    setMinQty(String(initialProduct.minStock));
+    setMinUnit(initialProduct.unit);
+    setBarcode(initialProduct.sku);
+    setAdvanced(true);
+    setError('');
+  }, [open, initialProduct]);
+
   const save = () => {
     if (!name.trim()) return setError('Product name is required.');
     if (!sellNum) return setError('Enter a selling price.');
     onSave({
-      id: `p${Date.now()}`,
+      id: initialProduct?.id ?? `p${Date.now()}`,
       name: name.trim(),
       nameBn: nameBn.trim() || undefined,
       sku: barcode || `${category.slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 8999)}`,
@@ -105,7 +137,7 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
       image: photos[0],
       unit,
       altUnit: multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
-      stock: stockToBase(openingQty, openingUnit),
+      stock: initialProduct ? initialProduct.stock : stockToBase(openingQty, openingUnit),
       minStock: stockToBase(minQty, minUnit),
       sellPrice: sellBase,
       purchasePrice: buyBase,
@@ -119,9 +151,9 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin">
         <DialogHeader>
           <DialogTitle>
-            Add product <span className="font-bn text-sm font-normal text-ink-500">নতুন পণ্য</span>
+            {initialProduct ? 'Edit product' : 'Add product'} <span className="font-bn text-sm font-normal text-ink-500">{initialProduct ? 'পণ্য সম্পাদনা' : 'নতুন পণ্য'}</span>
           </DialogTitle>
-          <DialogDescription>Only name and selling price are required. Everything else can be added later.</DialogDescription>
+          <DialogDescription>{initialProduct ? 'Update product details. Use Adjust stock for stock corrections.' : 'Only name and selling price are required. Everything else can be added later.'}</DialogDescription>
         </DialogHeader>
 
         <section className="space-y-4">
@@ -247,12 +279,12 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
                 }
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Opening stock" bn="শুরুর স্টক">
+                    {!initialProduct && <Field label="Opening stock" bn="শুরুর স্টক">
                       <div className="flex gap-2">
                         <Input value={openingQty} onChange={(e) => setOpeningQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
                         <FormSelect value={units.includes(openingUnit) ? openingUnit : unit} onChange={(e) => setOpeningUnit(e.target.value)} options={units} className="w-28 shrink-0" />
                       </div>
-                    </Field>
+                    </Field>}
                     <Field label="Minimum stock" bn="সর্বনিম্ন স্টক" hint="We’ll alert you when stock falls below this.">
                       <div className="flex gap-2">
                         <Input value={minQty} onChange={(e) => setMinQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
@@ -273,7 +305,7 @@ export function AddProductDialog({ open, onOpenChange, onSave }: AddProductDialo
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>Save product</Button>
+          <Button onClick={save}>{initialProduct ? 'Save changes' : 'Save product'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>);
