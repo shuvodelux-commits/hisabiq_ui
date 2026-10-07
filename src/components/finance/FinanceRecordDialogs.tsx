@@ -16,6 +16,7 @@ import {
   type FinanceTransactionType
 } from '../../data/financeAccounts';
 import { taka } from '../../utils/currency';
+import { FinancePaymentSplitEditor, normalizeFinancePaymentSplits, type FinancePaymentDraft } from './FinancePaymentSplitEditor';
 
 const typeMeta: Record<FinanceTransactionType, {
   role?: FinancePersonRole;
@@ -64,8 +65,7 @@ export function FinanceTransactionActionDialog({
   const [confirmReverse, setConfirmReverse] = useState(false);
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
   const [partyId, setPartyId] = useState('');
-  const [method, setMethod] = useState<'Cash' | 'Bank' | 'Mobile Banking'>('Cash');
-  const [accountId, setAccountId] = useState('');
+  const [paymentRows, setPaymentRows] = useState<FinancePaymentDraft[]>([]);
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
@@ -76,8 +76,12 @@ export function FinanceTransactionActionDialog({
     setConfirmReverse(false);
     setType(transaction.type);
     setPartyId(transaction.partyId || '');
-    setMethod(transaction.method || 'Cash');
-    setAccountId(transaction.accountId || '');
+    const splits = transaction.paymentAccounts?.length
+      ? transaction.paymentAccounts
+      : transaction.accountId
+        ? [{ method: transaction.method || 'Cash', account: transaction.account || '', accountId: transaction.accountId, amount: transaction.amount }]
+        : [];
+    setPaymentRows(splits.map((split, index) => ({ id: 'edit-payment-' + index, method: split.method, accountId: split.accountId, amount: String(split.amount) })));
     setAmount(String(transaction.amount));
     setReference(transaction.reference || '');
     setNote(transaction.note || '');
@@ -89,26 +93,25 @@ export function FinanceTransactionActionDialog({
   const opening = !!meta.opening;
   const peopleOptions = people.filter((person) => person.status === 'Active' && (!meta.role || person.roles.includes(meta.role)));
   const selectedPerson = peopleOptions.find((person) => person.id === partyId) || peopleOptions[0];
-  const accountOptions = accounts.filter((account) =>
-    account.status === 'Active' &&
-    (method === 'Cash' ? account.type === 'Cash' : method === 'Bank' ? account.type === 'Bank' : account.type === 'Mobile Banking')
-  );
-  const selectedAccount = accountOptions.find((account) => account.id === accountId) || accountOptions[0];
+  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, parseFloat(amount) || 0);
+  const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
 
   const save = () => {
     const value = parseFloat(amount) || 0;
     if (!value) return toast.error('Enter a valid amount');
     if (meta.role && !selectedPerson) return toast.error('Select a finance person');
-    if (!opening && !selectedAccount) return toast.error('Select an account');
+    if (!opening && (!paymentSplits.length || Math.abs(paymentTotal - value) > 0.001)) return toast.error('Payment split must equal the transaction amount');
+    const firstPayment = paymentSplits[0];
     onUpdate({
       ...transaction,
       type,
       relationship: meta.relationship,
       party: selectedPerson?.name,
       partyId: selectedPerson?.id,
-      method: opening ? undefined : method,
-      account: opening ? undefined : selectedAccount?.name,
-      accountId: opening ? undefined : selectedAccount?.id,
+      method: opening ? undefined : firstPayment?.method,
+      account: opening ? undefined : firstPayment?.account,
+      accountId: opening ? undefined : firstPayment?.accountId,
+      paymentAccounts: opening ? undefined : paymentSplits,
       amount: value,
       direction: meta.direction,
       reference: reference.trim() || undefined,
@@ -151,24 +154,7 @@ export function FinanceTransactionActionDialog({
               </div>
             </label>
 
-            {!opening && <>
-              <label className="text-[13px] font-medium text-ink">
-                Payment method
-                <FormSelect className="mt-1.5" value={method} options={['Cash', 'Petty Cash', 'Bank', 'Mobile Banking']} onChange={(event) => {
-                  const next = event.target.value as typeof method;
-                  setMethod(next);
-                  setAccountId(accounts.find((account) =>
-                    account.status === 'Active' &&
-                    (next === 'Cash' ? account.type === 'Cash' : next === 'Bank' ? account.type === 'Bank' : account.type === 'Mobile Banking')
-                  )?.id || '');
-                }} />
-              </label>
-              <label className="text-[13px] font-medium text-ink">
-                Account
-                <FormSelect className="mt-1.5" value={selectedAccount?.id || ''} options={accountOptions.map((account) => account.id)} onChange={(event) => setAccountId(event.target.value)} />
-                <span className="mt-1 block text-[11px] font-normal text-ink-400">{selectedAccount?.name || 'No active account'}</span>
-              </label>
-            </>}
+            {!opening && <FinancePaymentSplitEditor accounts={accounts} rows={paymentRows} onChange={setPaymentRows} totalAmount={parseFloat(amount) || 0} />}
 
             <label className="text-[13px] font-medium text-ink">
               Reference
@@ -185,13 +171,19 @@ export function FinanceTransactionActionDialog({
               <Detail label="Relationship">{transaction.relationship}</Detail>
               <Detail label="Party">{transaction.party}</Detail>
               <Detail label="Amount">{(transaction.direction === 'in' ? '+' : transaction.direction === 'out' ? '−' : '') + taka(transaction.amount)}</Detail>
-              <Detail label="Payment method">{transaction.method || 'No money movement'}</Detail>
-              <Detail label="Account">{transaction.account}</Detail>
+              <Detail label="Payment method">{transaction.paymentAccounts && transaction.paymentAccounts.length > 1 ? 'Multiple' : transaction.method || 'No money movement'}</Detail>
+              <Detail label="Account">{transaction.paymentAccounts && transaction.paymentAccounts.length > 1 ? transaction.paymentAccounts.map((split) => split.account).join(' + ') : transaction.account}</Detail>
               <Detail label="Status"><StatusBadge tone={transaction.status === 'Active' ? 'success' : 'neutral'} dot>{transaction.status}</StatusBadge></Detail>
               <Detail label="Reference">{transaction.reference}</Detail>
               <Detail label="Notes">{transaction.note}</Detail>
               <Detail label="Created by">{transaction.createdBy}</Detail>
             </div>
+            {!!transaction.paymentAccounts?.length && transaction.paymentAccounts.length > 1 && (
+              <div className="rounded-xl border border-ink-100">
+                <div className="border-b border-ink-100 px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">Payment split</p></div>
+                <div className="divide-y divide-ink-100">{transaction.paymentAccounts.map((split, index) => <div key={index} className="flex items-center justify-between px-3 py-2 text-[12px]"><span className="text-ink-600">{split.method} · {split.account}</span><span className="font-medium text-ink">{taka(split.amount)}</span></div>)}</div>
+              </div>
+            )}
             {confirmReverse && (
               <div className="rounded-lg border border-danger/20 bg-danger/5 px-3 py-2.5">
                 <p className="text-[13px] font-medium text-danger">Reverse this transaction?</p>
@@ -262,9 +254,12 @@ export function FinanceAccountActionDialog({
 
   const ledgerRows = useMemo(() => {
     if (!account) return [];
-    const rows = transactions.filter((item) => item.accountId === account.id || item.account === account.name).map((item) => ({
-      id: item.id, date: item.date, label: item.type, amount: item.amount, direction: item.direction, reference: item.reference || ''
-    }));
+    const rows = transactions
+      .filter((item) => item.accountId === account.id || item.account === account.name || item.paymentAccounts?.some((split) => split.accountId === account.id))
+      .map((item) => {
+        const splitAmount = item.paymentAccounts?.filter((split) => split.accountId === account.id).reduce((sum, split) => sum + split.amount, 0);
+        return { id: item.id, date: item.date, label: item.type, amount: splitAmount || item.amount, direction: item.direction, reference: item.reference || '' };
+      });
     const transferRows = transfers.filter((item) => item.from === account.name || item.to === account.name).map((item) => ({
       id: item.id,
       date: item.date,
