@@ -319,13 +319,13 @@ function AccountDialog({
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[13px] font-medium text-ink">
             Account type
-            <FormSelect className="mt-1.5" value={type} onChange={(event) => setType(event.target.value as FinanceAccountType)} options={['Cash', 'Bank', 'Mobile Banking']} />
+            <FormSelect className="mt-1.5" value={type} onChange={(event) => setType(event.target.value as FinanceAccountType)} options={['Cash', 'Petty Cash', 'Bank', 'Mobile Banking']} />
           </label>
           <label className="text-[13px] font-medium text-ink">
             Account name
             <Input className="mt-1.5" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. City Bank · 3812" />
           </label>
-          {type !== 'Cash' && (
+          {(type === 'Bank' || type === 'Mobile Banking') && (
             <>
               <label className="text-[13px] font-medium text-ink">
                 {type === 'Bank' ? 'Bank name' : 'Provider'}
@@ -359,12 +359,14 @@ function TransferDialog({
   open,
   accounts,
   nextId,
+  initialFrom,
   onOpenChange,
   onSave
 }: {
   open: boolean;
   accounts: FinanceAccount[];
   nextId: string;
+  initialFrom?: string;
   onOpenChange: (open: boolean) => void;
   onSave: (transfer: AccountTransfer) => void;
 }) {
@@ -373,6 +375,16 @@ function TransferDialog({
   const [to, setTo] = useState(active[1]?.name ?? '');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
+
+  React.useEffect(() => {
+    if (!open) return;
+    const preferred = active.find((item) => item.name === initialFrom)?.name ?? active[0]?.name ?? '';
+    setFrom(preferred);
+    const other = active.find((item) => item.name !== preferred)?.name ?? '';
+    setTo(other);
+    setAmount('');
+    setReference('');
+  }, [open, initialFrom]);
 
   const save = () => {
     const value = parseFloat(amount) || 0;
