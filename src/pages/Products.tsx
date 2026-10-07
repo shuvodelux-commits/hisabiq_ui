@@ -462,10 +462,21 @@ export function Products() {
                   <TableCell className="py-2 pr-4">
                     <ProductActions
                       product={p}
+                      onView={() => setDetailsProduct(p)}
+                      onEdit={() => { setEditingProduct(p); setDialogOpen(true); }}
+                      onAdjust={() => setAdjustProduct(p)}
+                      onLots={() => openLots(p)}
+                      onHistory={() => openHistory(p)}
                       onDuplicate={() => {
-                        const copy = { ...p, id: `p${Date.now()}`, name: `${p.name} Copy`, sku: `${p.sku}-COPY` };
+                        const copy = {
+                          ...p,
+                          id: `p${Date.now()}`,
+                          name: `${p.name} Copy`,
+                          sku: `${p.sku}-COPY`,
+                          stock: 0
+                        };
                         setList((items) => [copy, ...items]);
-                        toast.success(`${p.name} duplicated`);
+                        toast.success(`${p.name} duplicated`, { description: 'Product settings copied with zero opening stock.' });
                       }}
                       onToggle={() => setList((items) => items.map((item) => item.id === p.id ? { ...item, active: !item.active } : item))}
                     />
@@ -506,6 +517,25 @@ export function Products() {
         </>
       )}
 
+      {view === 'lots' && (
+        <StockLotsView
+          products={list}
+          lots={lots}
+          productFilter={inventoryProductFilter}
+          onProductFilter={setInventoryProductFilter}
+          onAdjust={setAdjustProduct}
+        />
+      )}
+
+      {view === 'history' && (
+        <StockHistoryView
+          products={list}
+          movements={movements}
+          productFilter={inventoryProductFilter}
+          onProductFilter={setInventoryProductFilter}
+        />
+      )}
+
       {view === 'settings' && (
         <div className="overflow-hidden rounded-xl border border-ink-100 bg-white shadow-card">
           <ProductSettings />
@@ -514,12 +544,63 @@ export function Products() {
 
       <AddProductDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSave={(p) => {
-          setList((l) => [p, ...l]);
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingProduct(null);
+        }}
+        initialProduct={editingProduct}
+        onSave={(product) => {
+          if (editingProduct) {
+            setList((items) => items.map((item) => item.id === product.id ? product : item));
+            toast.success(`${product.name} updated`);
+          } else {
+            setList((items) => [product, ...items]);
+            if (product.stock > 0) {
+              const today = new Date().toISOString().slice(0, 10);
+              const lot: StockLot = {
+                id: `lot-${product.id}-opening`,
+                productId: product.id,
+                label: 'Opening Stock',
+                receivedAt: today,
+                quantity: product.stock,
+                available: product.stock,
+                unitCost: product.purchasePrice,
+                source: 'Opening'
+              };
+              const movement: StockMovement = {
+                id: `mov-${product.id}-opening`,
+                productId: product.id,
+                date: today,
+                type: 'Opening',
+                quantity: product.stock,
+                balance: product.stock,
+                reference: 'Opening Stock',
+                note: 'Opening balance'
+              };
+              setLots((current) => [lot, ...current]);
+              setMovements((current) => [movement, ...current]);
+            }
+            toast.success(`${product.name} added`, { description: product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
+          }
           setDialogOpen(false);
-          toast.success(`${p.name} added`, { description: p.altUnit ? `1 ${p.altUnit.unit} = ${p.altUnit.factor} ${p.unit}` : undefined });
+          setEditingProduct(null);
         }} />
+
+      <ProductDetailsDialog
+        product={detailsProduct}
+        lots={lots}
+        open={Boolean(detailsProduct)}
+        onOpenChange={(open) => { if (!open) setDetailsProduct(null); }}
+      />
+
+      <StockAdjustmentDialog
+        product={adjustProduct}
+        open={Boolean(adjustProduct)}
+        onOpenChange={(open) => { if (!open) setAdjustProduct(null); }}
+        onSave={(result) => {
+          if (adjustProduct) applyAdjustment(adjustProduct, result);
+        }}
+      />
       
     </div>);
 
