@@ -15,3 +15,5 @@ Task 2: Ruling: Purchase/Expense source pages do not yet expose a reusable edit 
 Task 2: complete (commits ad889fb..e0cc6f9, tests: GitHub UI Check run 37602762389 → success; npm test + npm run build passed).
 
 Task 3: complete (commits 417b216..65391dd, tests: GitHub UI Check run 37604314262 → success; npm test + npm run build passed).
+
+Task 3: complete (commits 417b216..65391dd, tests: GitHub UI Check run 37604314262 → success; accounting projection tests + full npm test + npm run build passed).
