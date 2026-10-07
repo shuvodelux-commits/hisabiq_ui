@@ -154,7 +154,7 @@ export function FinanceTransactionActionDialog({
             {!opening && <>
               <label className="text-[13px] font-medium text-ink">
                 Payment method
-                <FormSelect className="mt-1.5" value={method} options={['Cash', 'Bank', 'Mobile Banking']} onChange={(event) => {
+                <FormSelect className="mt-1.5" value={method} options={['Cash', 'Petty Cash', 'Bank', 'Mobile Banking']} onChange={(event) => {
                   const next = event.target.value as typeof method;
                   setMethod(next);
                   setAccountId(accounts.find((account) =>
@@ -340,7 +340,7 @@ export function FinanceAccountActionDialog({
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-[13px] font-medium text-ink">
               Account type
-              <FormSelect className="mt-1.5" value={type} options={['Cash', 'Bank', 'Mobile Banking']} onChange={(event) => setType(event.target.value as FinanceAccountType)} />
+              <FormSelect className="mt-1.5" value={type} options={['Cash', 'Petty Cash', 'Bank', 'Mobile Banking']} onChange={(event) => setType(event.target.value as FinanceAccountType)} />
             </label>
             <label className="text-[13px] font-medium text-ink">
               Account name
@@ -348,7 +348,7 @@ export function FinanceAccountActionDialog({
             </label>
             {type !== 'Cash' && <>
               <label className="text-[13px] font-medium text-ink">
-                {type === 'Bank' ? 'Bank name' : 'Provider'}
+                {type === 'Bank' ? 'Bank name' : type === 'Mobile Banking' ? 'Provider' : 'Label'}
                 <Input className="mt-1.5" value={institution} onChange={(event) => setInstitution(event.target.value)} />
               </label>
               <label className="text-[13px] font-medium text-ink">
