@@ -1,4 +1,4 @@
-export type FinanceAccountType = 'Cash' | 'Bank' | 'Mobile Banking';
+export type FinanceAccountType = 'Cash' | 'Petty Cash' | 'Bank' | 'Mobile Banking';
 export type FinanceAccountStatus = 'Active' | 'Inactive';
 
 export type FinanceAccount = {
