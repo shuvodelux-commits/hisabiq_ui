@@ -143,3 +143,41 @@ export function allocatableLots(product: Product, lots: StockLot[], now = new Da
 export function availableSerials(product: Product, lots: StockLot[], now = new Date()): string[] {
   return allocatableLots(product, lots, now).flatMap((lot) => lot.serials ?? []);
 }
+
+
+export function effectivePriceForUnit(product: Product, offer: ProductOffer | undefined, unit: string): number {
+  const normal = product.altUnit && unit === product.altUnit.unit
+    ? product.altUnit.price ?? product.sellPrice * product.altUnit.factor
+    : product.sellPrice;
+  if (!offer || offerStatus(offer) !== 'Active') return normal;
+
+  if (offer.discountType === 'Percentage') {
+    return Math.max(0, normal * (1 - offer.value / 100));
+  }
+
+  let discount = offer.value;
+  if (offer.priceUnit !== unit) {
+    if (product.altUnit && offer.priceUnit === product.altUnit.unit && unit === product.unit) {
+      discount = offer.value / product.altUnit.factor;
+    } else if (product.altUnit && offer.priceUnit === product.unit && unit === product.altUnit.unit) {
+      discount = offer.value * product.altUnit.factor;
+    }
+  }
+  return Math.max(0, normal - discount);
+}
+
+export function activeOfferFor(productId: string, offers: ProductOffer[], now = new Date()): ProductOffer | undefined {
+  return offers.find((offer) => offer.productId === productId && offerStatus(offer, now) === 'Active');
+}
+
+export function allocateLotQuantity(product: Product, lots: StockLot[], quantity: number, now = new Date()) {
+  let remaining = Math.max(0, quantity);
+  const allocations: Array<{ lotId: string; quantity: number }> = [];
+  for (const lot of allocatableLots(product, lots, now)) {
+    if (remaining <= 0) break;
+    const take = Math.min(remaining, lot.available);
+    if (take > 0) allocations.push({ lotId: lot.id, quantity: take });
+    remaining -= take;
+  }
+  return { allocations, unallocated: remaining };
+}
