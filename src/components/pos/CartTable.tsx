@@ -288,6 +288,38 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
           />
         );
       })()}
+
+      {shortageLine && (() => {
+        const factor = shortageLine.product.altUnit && shortageLine.unit === shortageLine.product.altUnit.unit ? shortageLine.product.altUnit.factor : 1;
+        const baseQty = compoundBaseQuantity(shortageLine.qty, shortageLine.secondaryQty, factor);
+        const available = saleAvailableStock(shortageLine.product, stockLots);
+        const shortage = saleStockShortage(shortageLine.product, stockLots, baseQty);
+        return (
+          <StockShortageDialog
+            line={shortageLine}
+            availableBaseQty={available}
+            shortageBaseQty={shortage}
+            open
+            onOpenChange={(open) => { if (!open) setShortageLine(null); }}
+            onUseOwnStock={() => {
+              if (available <= 0) {
+                onRemove(shortageLine.key);
+              } else {
+                const useAlternate = Boolean(shortageLine.product.altUnit && shortageLine.unit === shortageLine.product.altUnit.unit);
+                onUpdate(shortageLine.key, {
+                  ...quantityFromBaseStock(available, factor, useAlternate),
+                  stockSource: undefined
+                });
+              }
+              setShortageLine(null);
+            }}
+            onResolve={(source) => {
+              onUpdate(shortageLine.key, { stockSource: source });
+              setShortageLine(null);
+            }}
+          />
+        );
+      })()}
     </div>);
 
 }
