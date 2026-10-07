@@ -37,6 +37,13 @@ export type FinanceTransactionType =
   | 'Manual Bank Entry'
   | 'Transfer';
 
+export type FinancePaymentSplit = {
+  method: 'Cash' | 'Bank' | 'Mobile Banking';
+  account: string;
+  accountId: string;
+  amount: number;
+};
+
 export type FinanceTransaction = {
   id: string;
   date: string;
@@ -47,6 +54,7 @@ export type FinanceTransaction = {
   method?: 'Cash' | 'Bank' | 'Mobile Banking';
   account?: string;
   accountId?: string;
+  paymentAccounts?: FinancePaymentSplit[];
   amount: number;
   direction: 'in' | 'out' | 'none';
   reference?: string;
