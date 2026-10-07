@@ -14,7 +14,8 @@ import { products } from '../data/products';
 import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
-import { compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
+import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
+import { requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import type { SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -46,7 +47,8 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       qty: sourceLine.qty,
       secondaryQty: sourceLine.secondaryQty ?? '',
       unit,
-      price: String(sourceLine.price)
+      price: String(sourceLine.price),
+      serials: []
     }];
   });
 }
@@ -88,7 +90,8 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
           qty: parsed.primaryQty,
           secondaryQty: parsed.secondaryQty,
           unit: product.altUnit.unit,
-          price: String(sourceLine.price * product.altUnit.factor)
+          price: String(sourceLine.price * product.altUnit.factor),
+          serials: sourceLine.serials ?? []
         }];
       }
     }
@@ -99,7 +102,8 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
       qty: String(sourceLine.returnableQuantity ?? (parseFloat(sourceLine.quantity) || 1)),
       secondaryQty: '',
       unit: product.unit,
-      price: String(sourceLine.price)
+      price: String(sourceLine.price),
+      serials: sourceLine.serials ?? []
     }];
   });
 }
@@ -220,6 +224,19 @@ export function Pos() {
     const t = cart.totals;
     const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
+
+    const missingSerialLine = cart.lines.find((line) => {
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
+      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      const required = requiredSerialCount(line.product, baseQty);
+      return required > 0 && line.serials.length !== required;
+    });
+    if (missingSerialLine) {
+      const factor = missingSerialLine.product.altUnit && missingSerialLine.unit === missingSerialLine.product.altUnit.unit ? missingSerialLine.product.altUnit.factor : 1;
+      const required = requiredSerialCount(missingSerialLine.product, compoundBaseQuantity(missingSerialLine.qty, missingSerialLine.secondaryQty, factor));
+      toast.error('Serial numbers required', { description: `${missingSerialLine.product.name}: ${missingSerialLine.serials.length}/${required} selected` });
+      return;
+    }
     const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
     setCompleted({
       invoice,
@@ -233,7 +250,9 @@ export function Pos() {
           name: l.product.name,
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
-          total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price)
+          total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
+          serials: l.serials,
+          warranty: warrantySnapshot(l.product)
         };
       }),
       subtotal: t.subtotal,
@@ -287,7 +306,8 @@ export function Pos() {
         qty: line.qty,
         secondaryQty: line.secondaryQty,
         unit: line.unit,
-        price: parseFloat(line.price) || 0
+        price: parseFloat(line.price) || 0,
+        serials: line.serials
       }))
     }]
     );
