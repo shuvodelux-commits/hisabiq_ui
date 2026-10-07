@@ -270,7 +270,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       onSaveExpense({
         id: `e${Date.now()}`,
         ref: nextRef,
-        date: date === today ? '06 Oct 2026' : date,
+        date: date === today ? '07 Oct 2026' : date,
         category,
         payee: party,
         payeeId: selectedParty?.id,
