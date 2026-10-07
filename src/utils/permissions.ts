@@ -48,3 +48,20 @@ export const demoPermissions: ReadonlySet<string> = new Set([
   'accounts.view', 'accounts.edit', 'accounts.delete',
   'products.view', 'products.edit', 'products.delete'
 ]);
+
+
+export function daybookActionAvailability(source: TransactionSource, granted: ReadonlySet<string>) {
+  return {
+    open: canDaybookAction('open', source, granted),
+    edit: canDaybookAction('edit', source, granted),
+    delete: canDaybookAction('delete', source, granted)
+  };
+}
+
+export function auditActionAvailability(source: TransactionSource, granted: ReadonlySet<string>) {
+  return {
+    view: canAuditAction('view', source, granted),
+    correct: canAuditAction('correct', source, granted),
+    delete: canAuditAction('delete', source, granted)
+  };
+}
