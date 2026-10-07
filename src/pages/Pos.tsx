@@ -50,7 +50,8 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       secondaryQty: sourceLine.secondaryQty ?? '',
       unit,
       price: String(sourceLine.price),
-      serials: sourceLine.serials ?? []
+      serials: preserveHistorical ? sourceLine.serials ?? [] : [],
+      historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined
     }];
   });
 }
