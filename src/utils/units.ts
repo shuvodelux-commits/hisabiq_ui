@@ -25,10 +25,11 @@ export function priceFor(product: Product, unit: string): number {
   return product.sellPrice;
 }
 
-export type StockStatus = 'in' | 'low' | 'out' | 'inactive';
+export type StockStatus = 'in' | 'low' | 'out' | 'inactive' | 'service';
 
 export function stockStatus(product: Product): StockStatus {
   if (!product.active) return 'inactive';
+  if (product.kind === 'Service') return 'service';
   if (product.stock <= 0) return 'out';
   if (product.stock <= product.minStock) return 'low';
   return 'in';

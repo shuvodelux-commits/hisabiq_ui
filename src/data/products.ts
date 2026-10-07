@@ -1,6 +1,6 @@
 import type { Product } from '../types/erp';
 
-export const productCategories = ['All', 'Plumbing', 'Electrical', 'Steel', 'Building', 'Hardware'];
+export const productCategories = ['All', 'Plumbing', 'Electrical', 'Steel', 'Building', 'Hardware', 'Service'];
 
 export const products: Product[] = [
 {
@@ -30,6 +30,8 @@ export const products: Product[] = [
   minStock: 100,
   sellPrice: 165,
   purchasePrice: 128,
+  warranty: { enabled: true, duration: 2, durationUnit: 'Years', type: 'Manufacturer', terms: 'Original invoice required. Physical damage is not covered.' },
+  serialTracking: 'Optional',
   active: true
 },
 {
@@ -98,6 +100,8 @@ export const products: Product[] = [
   minStock: 10,
   sellPrice: 650,
   purchasePrice: 540,
+  warranty: { enabled: true, duration: 1, durationUnit: 'Years', type: 'Replacement', terms: 'Replacement applies for manufacturing defects after inspection.' },
+  serialTracking: 'Required',
   active: true
 },
 {
@@ -111,6 +115,8 @@ export const products: Product[] = [
   minStock: 40,
   sellPrice: 540,
   purchasePrice: 505,
+  serialTracking: 'Off',
+  expiry: { enabled: true, dateRequired: true, warningDays: 30, allocationMethod: 'FEFO' },
   active: true
 },
 {
@@ -179,5 +185,23 @@ export const products: Product[] = [
   minStock: 5,
   sellPrice: 320,
   purchasePrice: 255,
+  warranty: { enabled: true, duration: 6, durationUnit: 'Months', type: 'Seller', terms: 'Repair or replacement after inspection.' },
+  serialTracking: 'Optional',
   active: false
+},
+{
+  id: 'p14',
+  kind: 'Service',
+  name: 'Ceiling Fan Installation',
+  nameBn: 'সিলিং ফ্যান ইনস্টলেশন',
+  sku: 'SRV-1401',
+  category: 'Service',
+  unit: 'Service',
+  stock: 0,
+  minStock: 0,
+  sellPrice: 650,
+  purchasePrice: 0,
+  warranty: { enabled: true, duration: 30, durationUnit: 'Days', type: 'Service', terms: 'Installation workmanship only; product defects follow the product warranty.' },
+  serialTracking: 'Off',
+  active: true
 }];

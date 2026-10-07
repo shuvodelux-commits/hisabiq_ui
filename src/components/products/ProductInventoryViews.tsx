@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import type { Product, StockLot, StockMovement, StockMovementType } from '../../types/erp';
 import { taka } from '../../utils/currency';
 import { formatStock } from '../../utils/units';
+import { lotExpiryState } from '../../utils/productFeatures';
 
 function productById(products: Product[], id: string) {
   return products.find((product) => product.id === id);
@@ -28,7 +29,7 @@ function ProductFilterSelect({
         className="h-9 w-full appearance-none rounded-md border border-input bg-white pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
         aria-label="Filter inventory by product">
         <option value="">All products</option>
-        {products.map((product) => (
+        {products.filter((product) => product.kind !== 'Service').map((product) => (
           <option key={product.id} value={product.id}>{product.name}</option>
         ))}
       </select>
@@ -104,6 +105,7 @@ export function StockLotsView({
               <TableHead className="h-9 text-right text-xs">Available</TableHead>
               <TableHead className="h-9 text-right text-xs">Unit cost</TableHead>
               <TableHead className="h-9 text-right text-xs">Value</TableHead>
+              <TableHead className="h-9 text-xs">Lot details</TableHead>
               <TableHead className="h-9 text-xs">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -112,6 +114,7 @@ export function StockLotsView({
               const product = productById(products, lot.productId);
               if (!product) return null;
               const lotValue = lot.available * lot.unitCost;
+              const expiryState = lotExpiryState(lot, product.expiry?.warningDays ?? 0);
               return (
                 <TableRow key={lot.id} className="text-[13px]">
                   <TableCell className="py-2">
@@ -128,7 +131,13 @@ export function StockLotsView({
                   <TableCell className="py-2 text-right text-ink-600">{taka(lot.unitCost, lot.unitCost % 1 ? 2 : 0)}/{product.unit}</TableCell>
                   <TableCell className="py-2 text-right font-medium text-ink">{taka(lotValue, lotValue % 1 ? 2 : 0)}</TableCell>
                   <TableCell className="py-2">
-                    <StatusBadge tone={lot.available > 0 ? 'success' : 'neutral'} dot>{lot.available > 0 ? 'Open' : 'Depleted'}</StatusBadge>
+                    <p className="text-ink-600">{lot.batchNumber ? `Batch ${lot.batchNumber}` : 'No batch'}</p>
+                    <p className="text-[11px] text-ink-400">{lot.expiryDate ? `Exp ${lot.expiryDate}` : 'No expiry'}{lot.serials?.length ? ` · ${lot.serials.length} serials` : ''}</p>
+                  </TableCell>
+                  <TableCell className="py-2">
+                    <StatusBadge tone={lot.available <= 0 ? 'neutral' : expiryState === 'Expired' ? 'danger' : expiryState === 'Expiring soon' ? 'warning' : 'success'} dot>
+                      {lot.available <= 0 ? 'Depleted' : expiryState === 'No expiry' ? 'Open' : expiryState}
+                    </StatusBadge>
                   </TableCell>
                 </TableRow>
               );

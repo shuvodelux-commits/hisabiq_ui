@@ -2,9 +2,12 @@ import React, { forwardRef, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { ProductThumb } from '../ProductThumb';
 import { products } from '../../data/products';
+import { stockLots } from '../../data/productInventory';
+import { productOffers } from '../../data/productOffers';
 import { formatStock, stockStatus } from '../../utils/units';
 import { taka } from '../../utils/currency';
 import type { Product } from '../../types/erp';
+import { activeOfferFor, effectivePriceForUnit, productStockBreakdown } from '../../utils/productFeatures';
 
 type ProductComboboxProps = {
   onSelect: (product: Product) => void;
@@ -20,7 +23,7 @@ ref)
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = products.filter((p) => p.active);
+    const list = products.filter((p) => p.active && (p.kind === 'Service' || !p.expiry?.enabled || productStockBreakdown(p, stockLots).sellable > 0));
     if (!q) return list.slice(0, 8);
     return list.
     filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').includes(q)).
@@ -83,6 +86,9 @@ ref)
         
           {results.map((p, i) => {
           const status = stockStatus(p);
+          const activeOffer = activeOfferFor(p.id, productOffers);
+          const effectivePrice = effectivePriceForUnit(p, activeOffer, p.unit);
+          const breakdown = p.kind === 'Service' ? null : productStockBreakdown(p, stockLots);
           return (
             <li
               key={p.id}
@@ -104,11 +110,12 @@ ref)
                 </div>
                 <div className="text-right">
                   <p className="text-[13px] font-medium text-ink">
-                    {taka(p.sellPrice, p.sellPrice % 1 ? 2 : 0)}
+                    {activeOffer && <span className="mr-1 text-[10px] font-normal text-ink-400 line-through">{taka(p.sellPrice)}</span>}
+                    {taka(effectivePrice, effectivePrice % 1 ? 2 : 0)}
                     <span className="font-normal text-ink-400">/{p.unit}</span>
                   </p>
                   <p className={`text-[11px] ${status === 'low' || status === 'out' ? 'text-danger' : 'text-ink-500'}`}>
-                    {status === 'out' ? 'Out of stock' : formatStock(p)}
+                    {p.kind === 'Service' ? 'Service' : p.expiry?.enabled ? `Sellable ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}` : status === 'out' ? 'Out of stock' : formatStock(p)}
                   </p>
                 </div>
               </li>);

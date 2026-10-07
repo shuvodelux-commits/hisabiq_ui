@@ -1,19 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, X } from 'lucide-react';
+import { Eye, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
 import { ProductThumb } from '../ProductThumb';
+import { SerialPickerDialog } from './SerialPickerDialog';
 import type { CartLine } from '../../hooks/usePosCart';
 import type { Product } from '../../types/erp';
 import { formatStock, unitsFor } from '../../utils/units';
 import { formatNumber, taka } from '../../utils/currency';
-import { compoundLineTotal, normalizeCompoundQuantity } from '../../utils/posQuantity';
+import { compoundBaseQuantity, compoundLineTotal, normalizeCompoundQuantity } from '../../utils/posQuantity';
+import { stockLots } from '../../data/productInventory';
+import { salesInvoices } from '../../data/sales';
+import { availableSerials, productStockBreakdown, requiredSerialCount } from '../../utils/productFeatures';
 
 type CartTableProps = {
   lines: CartLine[];
   lastAdded: string | null;
   onAdd: (p: Product) => void;
-  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price'>>) => void;
+  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials'>>) => void;
   onRemove: (key: string) => void;
   searchRef: React.RefObject<HTMLInputElement>;
 };
@@ -27,6 +31,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
+  const [serialLine, setSerialLine] = useState<CartLine | null>(null);
+  const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
 
   useEffect(() => {
     if (lastAdded) {
@@ -95,8 +101,22 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                     <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
                     <p className="truncate text-[11px] text-ink-500">
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
-                      {l.product.category} · Stock {formatStock(l.product)}
+                      {l.product.category}{l.product.kind === 'Service' ? ' · Service' : l.product.expiry?.enabled ? ` · Sellable ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · Stock ${formatStock(l.product)}`}
                     </p>
+                    {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
+                      <button
+                        type="button"
+                        onClick={() => setSerialLine(l)}
+                        className={`mt-0.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
+                          (l.product.serialTracking === 'Required' && l.serials.length !== requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor))) ||
+                          l.serials.length > Math.ceil(compoundBaseQuantity(l.qty, l.secondaryQty, factor))
+                            ? 'bg-warning-bg text-warning'
+                            : 'bg-teal-50 text-teal-700'
+                        }`}>
+                        <ScanLine className="size-3" />
+                        Serials {l.serials.length}/{Math.max(requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor)), Math.ceil(compoundBaseQuantity(l.qty, l.secondaryQty, factor)))}
+                      </button>
+                    )}
                   </div>
                 </div>
                 {l.product.altUnit && l.unit === l.product.altUnit.unit ?
@@ -220,6 +240,28 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
           Cart is empty. Search above or tap a quick item below. <span className="font-bn">পণ্য যোগ করুন।</span>
         </p>
       }
+
+      {serialLine && (() => {
+        const factor = serialLine.product.altUnit && serialLine.unit === serialLine.product.altUnit.unit ? serialLine.product.altUnit.factor : 1;
+        const baseQty = compoundBaseQuantity(serialLine.qty, serialLine.secondaryQty, factor);
+        const blocked = lines.filter((line) => line.key !== serialLine.key).flatMap((line) => line.serials);
+        return (
+          <SerialPickerDialog
+            product={serialLine.product}
+            open
+            onOpenChange={(open) => { if (!open) setSerialLine(null); }}
+            eligible={[...new Set([...availableSerials(serialLine.product, stockLots).filter((serial) => !soldSerials.includes(serial)), ...serialLine.serials])]}
+            selected={serialLine.serials}
+            required={requiredSerialCount(serialLine.product, baseQty)}
+            maxCount={Math.ceil(baseQty)}
+            blocked={blocked}
+            onSave={(serials) => {
+              onUpdate(serialLine.key, { serials });
+              setSerialLine(null);
+            }}
+          />
+        );
+      })()}
     </div>);
 
 }

@@ -8,9 +8,12 @@ import { FormSelect } from '../FormSelect';
 import { PhotoUploader } from '../products/PhotoUploader';
 import { parties } from '../../data/parties';
 import { products } from '../../data/products';
+import { stockLots } from '../../data/productInventory';
+import { salesInvoices } from '../../data/sales';
 import { expenseCategories } from '../../data/purchases';
 import type { Expense, PaymentMethod, PaymentSplit, Product, Purchase } from '../../types/erp';
 import { taka } from '../../utils/currency';
+import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 
 type BillDialogProps = {
   mode: 'purchase' | 'expense';
@@ -27,6 +30,10 @@ type PurchaseLine = {
   bigQty: string;
   smallQty: string;
   unitCost: string;
+  serialText: string;
+  batchNumber: string;
+  manufactureDate: string;
+  expiryDate: string;
 };
 
 type StandardPaymentMethod = Exclude<PaymentMethod, 'Customer Credit'>;
@@ -48,10 +55,11 @@ const accountsByMethod: Record<StandardPaymentMethod, string[]> = {
   bKash: ['bKash Business · 01711•••412'],
   Nagad: ['Nagad Merchant · 01819•••771']
 };
-const today = '2026-10-06';
+const today = '2026-10-07';
+const stockProducts = products.filter((product) => product.kind !== 'Service');
 
 function productFor(line: PurchaseLine): Product {
-  return products.find((product) => product.id === line.productId) ?? products[0];
+  return stockProducts.find((product) => product.id === line.productId) ?? stockProducts[0];
 }
 
 function lineBaseQty(line: PurchaseLine): number {
@@ -86,13 +94,17 @@ function newPaymentRow(seedIndex = 0, method: StandardPaymentMethod = 'Cash'): P
 }
 
 function newLine(seedIndex = 1): PurchaseLine {
-  const product = products[seedIndex % products.length];
+  const product = stockProducts[seedIndex % stockProducts.length];
   return {
     id: `line-${Date.now()}-${seedIndex}`,
     productId: product.id,
     bigQty: product.altUnit ? '1' : '',
     smallQty: product.altUnit ? '0' : '1',
-    unitCost: String(product.purchasePrice)
+    unitCost: String(product.purchasePrice),
+    serialText: '',
+    batchNumber: '',
+    manufactureDate: '',
+    expiryDate: ''
   };
 }
 
@@ -145,7 +157,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   };
 
   const changeLineProduct = (id: string, name: string) => {
-    const product = products.find((item) => item.name === name) ?? products[0];
+    const product = stockProducts.find((item) => item.name === name) ?? stockProducts[0];
     setLines((current) =>
       current.map((line) =>
         line.id === id
@@ -154,7 +166,11 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               productId: product.id,
               bigQty: product.altUnit ? '1' : '',
               smallQty: product.altUnit ? '0' : '1',
-              unitCost: String(product.purchasePrice)
+              unitCost: String(product.purchasePrice),
+              serialText: '',
+              batchNumber: '',
+              manufactureDate: '',
+              expiryDate: ''
             }
           : line
       )
@@ -190,6 +206,38 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
     const selectedParty = list.find((item) => item.name === party);
     if (mode === 'purchase') {
+      const existingSerials = [
+        ...stockLots.flatMap((lot) => lot.serials ?? []),
+        ...salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? []))
+      ];
+      const enteredAcrossLines: string[] = [];
+      for (const line of lines.filter((item) => lineBaseQty(item) > 0)) {
+        const product = productFor(line);
+        const serials = normalizeSerials(line.serialText);
+        const duplicate = duplicateSerials(serials, [...existingSerials, ...enteredAcrossLines]);
+        if (duplicate.length) {
+          setError(`${product.name}: duplicate serial ${duplicate[0]}.`);
+          return;
+        }
+        const required = requiredSerialCount(product, lineBaseQty(line));
+        if (required > 0 && !Number.isInteger(lineBaseQty(line))) {
+          setError(`${product.name}: Required serial tracking needs a whole base-unit quantity.`);
+          return;
+        }
+        if (required > 0 && serials.length !== required) {
+          setError(`${product.name}: ${required} unique serials required, ${serials.length} entered.`);
+          return;
+        }
+        if (product.expiry?.enabled && product.expiry.dateRequired && !line.expiryDate) {
+          setError(`${product.name}: expiry date is required.`);
+          return;
+        }
+        if (line.manufactureDate && line.expiryDate && line.expiryDate <= line.manufactureDate) {
+          setError(`${product.name}: expiry date must be after manufacture date.`);
+          return;
+        }
+        enteredAcrossLines.push(...serials);
+      }
       const items = lines
         .filter((line) => lineBaseQty(line) > 0)
         .map((line) => `${productFor(line).name} · ${quantityLabel(line)}`)
@@ -198,21 +246,31 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       onSavePurchase({
         id: `pu${Date.now()}`,
         ref: nextRef,
-        date: date === today ? '06 Oct 2026' : date,
+        date: date === today ? '07 Oct 2026' : date,
         supplierId: selectedParty?.id ?? '',
         supplier: party,
         items: items || 'Items not itemised',
         total: totalNum,
         paid: paidNum,
         payments: paymentSplits,
-        receipt: photos[0]
+        receipt: photos[0],
+        inventoryLines: lines
+          .filter((line) => lineBaseQty(line) > 0)
+          .map((line) => ({
+            productId: line.productId,
+            quantity: lineBaseQty(line),
+            serials: normalizeSerials(line.serialText).length ? normalizeSerials(line.serialText) : undefined,
+            batchNumber: line.batchNumber.trim() || undefined,
+            manufactureDate: line.manufactureDate || undefined,
+            expiryDate: line.expiryDate || undefined
+          }))
       });
     } else {
       const combinedNote = [description, referenceNo ? `Ref: ${referenceNo}` : '', notes].filter(Boolean).join(' · ');
       onSaveExpense({
         id: `e${Date.now()}`,
         ref: nextRef,
-        date: date === today ? '06 Oct 2026' : date,
+        date: date === today ? '07 Oct 2026' : date,
         category,
         payee: party,
         payeeId: selectedParty?.id,
@@ -230,7 +288,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={mode === 'purchase' ? 'sm:max-w-4xl' : 'sm:max-w-2xl'}>
+      <DialogContent className={mode === 'purchase' ? 'max-h-[92vh] overflow-y-auto sm:max-w-4xl scrollbar-thin' : 'max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin'}>
         <DialogHeader>
           <DialogTitle>
             {mode === 'purchase' ? 'New purchase' : 'Add expense'}{' '}
@@ -303,7 +361,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                         className="mt-1"
                         value={product.name}
                         onChange={(event) => changeLineProduct(line.id, event.target.value)}
-                        options={products.filter((item) => item.active).map((item) => item.name)}
+                        options={stockProducts.filter((item) => item.active).map((item) => item.name)}
                       />
                     </label>
 
@@ -359,6 +417,35 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                       <Trash2 className="size-4" />
                       <span className="sr-only">Remove line</span>
                     </button>
+
+                    {((product.serialTracking ?? 'Off') !== 'Off' || product.expiry?.enabled) && (
+                      <div className="rounded-lg border border-ink-100 bg-ink-50/40 p-2.5 lg:col-span-5">
+                        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">Tracking details <span className="font-bn normal-case tracking-normal">· সিরিয়াল / মেয়াদ</span></p>
+                        <div className="grid gap-2 md:grid-cols-2">
+                          {(product.serialTracking ?? 'Off') !== 'Off' && (
+                            <label className="text-[12px] font-medium text-ink">
+                              Serials
+                              <textarea
+                                value={line.serialText}
+                                onChange={(event) => updateLine(line.id, { serialText: event.target.value })}
+                                placeholder="Scan, type or paste serials"
+                                className="mt-1 min-h-20 w-full rounded-md border border-input bg-white px-2.5 py-2 text-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                              />
+                              <span className="mt-1 block text-[11px] font-normal text-ink-400">
+                                {normalizeSerials(line.serialText).length} entered{product.serialTracking === 'Required' ? ` · ${requiredSerialCount(product, lineBaseQty(line))} required` : ' · optional'}
+                              </span>
+                            </label>
+                          )}
+                          {product.expiry?.enabled && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <label className="text-[12px] font-medium text-ink">Batch<Input className="mt-1" value={line.batchNumber} onChange={(event) => updateLine(line.id, { batchNumber: event.target.value })} /></label>
+                              <label className="text-[12px] font-medium text-ink">Manufacture<Input className="mt-1" type="date" value={line.manufactureDate} onChange={(event) => updateLine(line.id, { manufactureDate: event.target.value })} /></label>
+                              <label className="col-span-2 text-[12px] font-medium text-ink">Expiry {product.expiry.dateRequired && <span className="text-danger">*</span>}<Input className="mt-1" type="date" value={line.expiryDate} onChange={(event) => updateLine(line.id, { expiryDate: event.target.value })} /></label>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

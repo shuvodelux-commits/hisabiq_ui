@@ -1,8 +1,9 @@
 import React from 'react';
 import { LogoMark } from './Logo';
 import { formatNumber } from '../../utils/currency';
+import type { WarrantySnapshot } from '../../types/erp';
 
-export type ReceiptLine = {name: string;qty: string;price: number;total: number;};
+export type ReceiptLine = {name: string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;};
 
 type ReceiptPreviewProps = {
   invoice: string;
@@ -44,20 +45,22 @@ export function ReceiptPreview(p: ReceiptPreviewProps) {
         <li key={i}>
             <div className="flex justify-between gap-2">
               <span className="truncate">{i + 1}. {l.name}</span>
-              <span className="tabular-nums">{n(l.total)}</span>
+              <span className="">{n(l.total)}</span>
             </div>
             <div className="pl-3.5 text-[10.5px] text-ink-500">{l.qty} × {n(l.price)}</div>
+            {l.serials?.length ? <div className="pl-3.5 text-[9.5px] text-ink-500">Serial: {l.serials.join(', ')}</div> : null}
+            {l.warranty ? <div className="pl-3.5 text-[9.5px] text-ink-500">Warranty: {l.warranty.duration} {l.warranty.durationUnit} · {l.warranty.type}{l.warranty.terms ? ` · ${l.warranty.terms}` : ''}</div> : null}
           </li>
         )}
       </ol>
       <div className="my-3 border-t border-dashed border-ink-300" />
       <div className="space-y-0.5">
-        <div className="flex justify-between"><span>Subtotal</span><span className="tabular-nums">{n(p.subtotal)}</span></div>
-        {p.discount > 0 && <div className="flex justify-between"><span>Discount</span><span className="tabular-nums">−{n(p.discount)}</span></div>}
-        <div className="flex justify-between"><span>Rounding</span><span className="tabular-nums">{p.rounding >= 0 ? '+' : '−'}{n(Math.abs(p.rounding))}</span></div>
-        <div className="flex justify-between pt-1 text-[14px] font-semibold"><span>Total</span><span className="tabular-nums">৳{n(p.total)}</span></div>
-        <div className="flex justify-between"><span>Paid ({p.method})</span><span className="tabular-nums">{n(p.paid)}</span></div>
-        {p.due > 0 && <div className="flex justify-between font-medium"><span>Due</span><span className="tabular-nums">{n(p.due)}</span></div>}
+        <div className="flex justify-between"><span>Subtotal</span><span className="">{n(p.subtotal)}</span></div>
+        {p.discount > 0 && <div className="flex justify-between"><span>Discount</span><span className="">−{n(p.discount)}</span></div>}
+        <div className="flex justify-between"><span>Rounding</span><span className="">{p.rounding >= 0 ? '+' : '−'}{n(Math.abs(p.rounding))}</span></div>
+        <div className="flex justify-between pt-1 text-[14px] font-semibold"><span>Total</span><span className="">৳{n(p.total)}</span></div>
+        <div className="flex justify-between"><span>Paid ({p.method})</span><span className="">{n(p.paid)}</span></div>
+        {p.due > 0 && <div className="flex justify-between font-medium"><span>Due</span><span className="">{n(p.due)}</span></div>}
       </div>
       <div className="my-3 border-t border-dashed border-ink-300" />
       <p className="font-bn text-center text-[11px]">ধন্যবাদ, আবার আসবেন</p>

@@ -103,7 +103,7 @@ export const salesInvoices: SalesInvoice[] = [
     payments: [],
     salesperson: 'Anis',
     lines: [
-      { id: 'sl238-1', productId: 'p2', name: 'LED Bulb 12W', quantity: '2 Box', unit: 'Pcs', returnableQuantity: 20, price: 172.5, total: 3450, serials: ['LB12-3001', 'LB12-3002'] }
+      { id: 'sl238-1', productId: 'p2', name: 'LED Bulb 12W', quantity: '2 Box', unit: 'Pcs', returnableQuantity: 20, price: 172.5, total: 3450, serials: ['LB12-3001', 'LB12-3002'], warranty: { duration: 2, durationUnit: 'Years', type: 'Manufacturer', terms: 'Original invoice required. Physical damage is not covered.' } }
     ]
   },
   {

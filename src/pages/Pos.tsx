@@ -11,11 +11,14 @@ import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine } from '../components/brand/ReceiptPreview';
 import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
 import { products } from '../data/products';
+import { stockLots } from '../data/productInventory';
+import { productOffers } from '../data/productOffers';
 import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
-import { compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
-import type { SalePresetLine, SalesInvoice } from '../types/erp';
+import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
+import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
+import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
   invoice: string;
@@ -23,7 +26,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: ReceiptLine[];
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'serials' | 'warranty' | 'lotAllocations'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -33,7 +36,7 @@ type CompletedSale = {
   method: string;
 };
 
-const quickItems = products.filter((p) => p.active).slice(0, 8);
+const quickItems = products.filter((p) => p.active && (p.kind === 'Service' || !p.expiry?.enabled || productStockBreakdown(p, stockLots).sellable > 0)).slice(0, 8);
 
 function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
   return lines.flatMap((sourceLine, index) => {
@@ -46,7 +49,9 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       qty: sourceLine.qty,
       secondaryQty: sourceLine.secondaryQty ?? '',
       unit,
-      price: String(sourceLine.price)
+      price: String(sourceLine.price),
+      serials: preserveHistorical ? sourceLine.serials ?? [] : [],
+      historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined
     }];
   });
 }
@@ -74,7 +79,7 @@ function paymentsFromDraft(draft: SalesDraft): PosPaymentRow[] {
   }));
 }
 
-function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
+function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): CartLine[] {
   return invoice.lines.flatMap((sourceLine) => {
     const product = products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
@@ -88,7 +93,9 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
           qty: parsed.primaryQty,
           secondaryQty: parsed.secondaryQty,
           unit: product.altUnit.unit,
-          price: String(sourceLine.price * product.altUnit.factor)
+          price: String(sourceLine.price * product.altUnit.factor),
+          serials: preserveHistorical ? sourceLine.serials ?? [] : [],
+          historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined
         }];
       }
     }
@@ -99,7 +106,8 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
       qty: String(sourceLine.returnableQuantity ?? (parseFloat(sourceLine.quantity) || 1)),
       secondaryQty: '',
       unit: product.unit,
-      price: String(sourceLine.price)
+      price: String(sourceLine.price),
+      serials: sourceLine.serials ?? []
     }];
   });
 }
@@ -164,7 +172,7 @@ export function Pos() {
     const sourceKey = `${sourceMode}:${sourceInvoice.invoice}`;
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
-    cart.setLines(cartFromInvoice(sourceInvoice));
+    cart.setLines(cartFromInvoice(sourceInvoice, editing));
     const sourceParty = sourceInvoice.partyId ? parties.find((party) => party.id === sourceInvoice.partyId) ?? null : null;
     cart.setCustomer(sourceParty);
     cart.setCustomerDetails({
@@ -220,6 +228,67 @@ export function Pos() {
     const t = cart.totals;
     const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
+
+    const expiredBlockedLine = cart.lines.find((line) => {
+      if (!line.product.expiry?.enabled) return false;
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
+      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      return baseQty > productStockBreakdown(line.product, stockLots).sellable;
+    });
+    if (expiredBlockedLine) {
+      const sellable = productStockBreakdown(expiredBlockedLine.product, stockLots).sellable;
+      toast.error('Not enough sellable stock', { description: `${expiredBlockedLine.product.name}: only ${sellable} ${expiredBlockedLine.product.unit} are unexpired.` });
+      return;
+    }
+
+    const fractionalRequiredLine = cart.lines.find((line) => {
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
+      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      return line.product.serialTracking === 'Required' && !Number.isInteger(baseQty);
+    });
+    if (fractionalRequiredLine) {
+      toast.error('Whole quantity required', { description: `${fractionalRequiredLine.product.name} uses Required serial tracking.` });
+      return;
+    }
+
+    const soldOutsideEditedInvoice = salesInvoices
+      .filter((invoiceItem) => !editing || invoiceItem.invoice !== sourceInvoice?.invoice)
+      .flatMap((invoiceItem) => invoiceItem.lines.flatMap((line) => line.serials ?? []));
+    const reusedSoldSerial = cart.lines.flatMap((line) => line.serials).find((serial) => soldOutsideEditedInvoice.includes(serial));
+    if (reusedSoldSerial) {
+      toast.error('Serial already sold', { description: reusedSoldSerial });
+      return;
+    }
+
+    const allSelectedSerials = cart.lines.flatMap((line) => line.serials);
+    const duplicateSelected = duplicateSerials(allSelectedSerials);
+    if (duplicateSelected.length) {
+      toast.error('Duplicate serial selected', { description: duplicateSelected[0] });
+      return;
+    }
+
+    const tooManySerialsLine = cart.lines.find((line) => {
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
+      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      return line.serials.length > Math.ceil(baseQty);
+    });
+    if (tooManySerialsLine) {
+      toast.error('Too many serials selected', { description: `${tooManySerialsLine.product.name}: reduce serials or increase quantity.` });
+      return;
+    }
+
+    const missingSerialLine = cart.lines.find((line) => {
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
+      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      const required = requiredSerialCount(line.product, baseQty);
+      return required > 0 && line.serials.length !== required;
+    });
+    if (missingSerialLine) {
+      const factor = missingSerialLine.product.altUnit && missingSerialLine.unit === missingSerialLine.product.altUnit.unit ? missingSerialLine.product.altUnit.factor : 1;
+      const required = requiredSerialCount(missingSerialLine.product, compoundBaseQuantity(missingSerialLine.qty, missingSerialLine.secondaryQty, factor));
+      toast.error('Serial numbers required', { description: `${missingSerialLine.product.name}: ${missingSerialLine.serials.length}/${required} selected` });
+      return;
+    }
     const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
     setCompleted({
       invoice,
@@ -229,11 +298,22 @@ export function Pos() {
       customerAddress: cart.customerDetails.address.trim() || undefined,
       lines: cart.lines.map((l) => {
         const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
+        const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
         return {
+          productId: l.product.id,
           name: l.product.name,
+          unit: l.product.unit,
+          returnableQuantity: baseQty,
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
-          total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price)
+          total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
+          serials: l.serials,
+          warranty: editing ? (l.historicalWarranty ?? warrantySnapshot(l.product)) : warrantySnapshot(l.product),
+          lotAllocations: l.product.kind === 'Service' ? undefined : allocateLotQuantity(
+            l.product,
+            stockLots,
+            baseQty
+          ).allocations
         };
       }),
       subtotal: t.subtotal,
@@ -287,7 +367,8 @@ export function Pos() {
         qty: line.qty,
         secondaryQty: line.secondaryQty,
         unit: line.unit,
-        price: parseFloat(line.price) || 0
+        price: parseFloat(line.price) || 0,
+        serials: line.serials
       }))
     }]
     );
@@ -437,7 +518,11 @@ export function Pos() {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-medium text-ink">{p.name}</span>
                     <span className="block text-xs text-ink-500">
-                      {taka(p.sellPrice, p.sellPrice % 1 ? 2 : 0)}/{p.unit}
+                      {(() => {
+                        const offer = activeOfferFor(p.id, productOffers);
+                        const price = effectivePriceForUnit(p, offer, p.unit);
+                        return <>{offer && <span className="mr-1 text-[10px] text-ink-400 line-through">{taka(p.sellPrice)}</span>}{taka(price, price % 1 ? 2 : 0)}/{p.unit}</>;
+                      })()}
                     </span>
                   </span>
                   <Plus className="size-4 text-ink-300 group-hover:text-teal-600" aria-hidden="true" />
