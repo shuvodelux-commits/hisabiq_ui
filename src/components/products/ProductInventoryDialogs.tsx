@@ -130,7 +130,7 @@ export function ProductDetailsDialog({
               role="tab"
               aria-selected={tab === id}
               onClick={() => setTab(id)}
-              className={`-mb-px shrink-0 border-b-2 px-2.5 py-2 text-[12.5px] font-medium ${tab === id ? 'border-teal-600 text-ink' : 'border-transparent text-ink-500 hover:text-ink'}`}>
+              className={`shrink-0 px-2.5 py-2 text-[12.5px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label} <span className="font-bn text-[10px] font-normal text-ink-400">· {bn}</span>
             </button>
           ))}

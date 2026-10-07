@@ -137,8 +137,8 @@ export function Expenses() {
               aria-selected={tab === id}
               onClick={() => setTab(id)}
               title={helper}
-              className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] font-medium ${
-                tab === id ? 'border-teal-600 text-ink' : 'border-transparent text-ink-500 hover:text-ink'
+              className={`flex items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${
+                tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
               {id === 'expenses' && (
