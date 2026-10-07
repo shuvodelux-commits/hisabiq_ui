@@ -44,8 +44,8 @@ export const stockLots: StockLot[] = products.flatMap((product, index) => {
 });
 
 export const stockMovements: StockMovement[] = products.flatMap((product, index) => {
-  const openingBalance = product.stock > 0 ? Math.max(product.stock, Math.ceil(product.stock * 0.45)) : 0;
-  const purchaseQty = product.stock > openingBalance ? product.stock - openingBalance : 0;
+  const openingBalance = product.stock > 0 ? Math.max(1, Math.floor(product.stock * 0.38)) : 0;
+  const purchaseQty = Math.max(0, product.stock - openingBalance);
   const rows: StockMovement[] = [];
 
   if (openingBalance > 0) {
