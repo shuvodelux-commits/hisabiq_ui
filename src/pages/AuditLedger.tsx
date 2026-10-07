@@ -15,7 +15,7 @@ import { auditSourceRecords } from '../data/auditLedger';
 import type { AuditSourceRecord } from '../types/audit';
 import { applyDelete, auditTimelineFor, createAuditState } from '../utils/auditEngine';
 import { taka } from '../utils/currency';
-import { canAuditAction, demoPermissions } from '../utils/permissions';
+import { auditActionAvailability, demoPermissions } from '../utils/permissions';
 
 function accountLabel(source: AuditSourceRecord) {
   if (source.source === 'transfer') return [source.fromAccount, source.toAccount].filter(Boolean).join(' → ');
@@ -158,6 +158,7 @@ export function AuditLedger() {
               {filtered.map((source) => {
                 const timeline = auditTimelineFor(state, source.id);
                 const lastChange = timeline[0];
+                const availability = auditActionAvailability(source.source, demoPermissions);
                 return (
                   <TableRow key={source.id} className="text-[13px]">
                     <TableCell className="py-2 pl-4 font-medium text-ink">{source.transactionDate}</TableCell>
@@ -184,9 +185,9 @@ export function AuditLedger() {
                         )}>
                         {(close) => (
                           <div className="py-1">
-                            {canAuditAction('view', source.source, demoPermissions) && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); setDetailId(source.id); }}><Eye className="size-3.5" /> Open</button>}
-                            {source.status === 'Posted' && canAuditAction('correct', source.source, demoPermissions) && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); requestEdit(source); }}><Pencil className="size-3.5" /> Correct</button>}
-                            {source.status === 'Posted' && canAuditAction('delete', source.source, demoPermissions) && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-danger hover:bg-danger/5" onClick={() => { close(); requestDelete(source); }}><Trash2 className="size-3.5" /> Delete</button>}
+                            {availability.view && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); setDetailId(source.id); }}><Eye className="size-3.5" /> Open</button>}
+                            {source.status === 'Posted' && availability.correct && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); requestEdit(source); }}><Pencil className="size-3.5" /> Correct</button>}
+                            {source.status === 'Posted' && availability.delete && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-danger hover:bg-danger/5" onClick={() => { close(); requestDelete(source); }}><Trash2 className="size-3.5" /> Delete</button>}
                           </div>
                         )}
                       </FloatingPanel>
