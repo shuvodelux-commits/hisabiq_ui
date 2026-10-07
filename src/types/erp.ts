@@ -213,6 +213,7 @@ export type SalePresetLine = {
   secondaryQty?: string;
   unit: string;
   price: number;
+  serials?: string[];
 };
 
 export type SaleTemplate = {
