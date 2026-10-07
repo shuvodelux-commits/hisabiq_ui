@@ -58,7 +58,7 @@ export function makePosPaymentRow(seedIndex = 0, method: PosPaymentMethod = 'Cas
 }
 
 function line(product: Product, qty: number, unit?: string, secondaryQty = ''): CartLine {
-  const u = unit ?? product.stockViewUnit ?? product.unit;
+  const u = unit ?? product.stockViewUnit ?? product.altUnit?.unit ?? product.unit;
   return {
     key: nextKey(),
     product,
