@@ -26,6 +26,7 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog } from '../components/finance/FinanceRecordDialogs';
+import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -45,10 +46,11 @@ import {
   type FinanceTransactionType
 } from '../data/financeAccounts';
 import { expenseCategories } from '../data/purchases';
+import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
 
-type Tab = 'overview' | 'transactions' | 'counter' | 'accounts' | 'cash';
+type Tab = 'overview' | 'transactions' | 'counter' | 'accounts' | 'cheques' | 'cash';
 
 const financeTypeMeta: Record<FinanceTransactionType, {
   role?: FinancePersonRole;
@@ -119,7 +121,7 @@ function TransactionDialog({
   const rolePeople = people.filter((item) => !meta.role || item.roles.includes(meta.role));
   const isOpening = !!meta.opening;
   const matchingAccounts = accounts.filter((item) =>
-    method === 'Cash' ? item.type === 'Cash' :
+    method === 'Cash' ? (item.type === 'Cash' || item.type === 'Petty Cash') :
     method === 'Bank' ? item.type === 'Bank' :
     item.type === 'Mobile Banking'
   );
@@ -221,7 +223,7 @@ function TransactionDialog({
                   const next = event.target.value as (typeof accountMethods)[number];
                   setMethod(next);
                   const first = accounts.find((item) =>
-                    next === 'Cash' ? item.type === 'Cash' :
+                    next === 'Cash' ? (item.type === 'Cash' || item.type === 'Petty Cash') :
                     next === 'Bank' ? item.type === 'Bank' :
                     item.type === 'Mobile Banking'
                   );
@@ -438,10 +440,12 @@ export function Finance() {
   const [transactions, setTransactions] = useState<FinanceTransaction[]>(seedTransactions);
   const [transfers, setTransfers] = useState<AccountTransfer[]>(seedTransfers);
   const [people, setPeople] = useState<FinancePerson[]>(seedPeople);
+  const [chequeRecords, setChequeRecords] = useState<ChequeRecord[]>(seedCheques);
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [peopleOpen, setPeopleOpen] = useState(false);
+  const [chequeOpen, setChequeOpen] = useState(false);
   const [transactionAction, setTransactionAction] = useState<FinanceTransaction | null>(null);
   const [accountAction, setAccountAction] = useState<FinanceAccount | null>(null);
   const [transferAction, setTransferAction] = useState<AccountTransfer | null>(null);
@@ -509,7 +513,7 @@ export function Finance() {
       id: 'FIN-M-' + String(Date.now()).slice(-6),
       date: '06 Oct 2026',
       type: 'Manual Bank Entry',
-      method: account.type === 'Cash' ? 'Cash' : account.type === 'Bank' ? 'Bank' : 'Mobile Banking',
+      method: account.type === 'Cash' || account.type === 'Petty Cash' ? 'Cash' : account.type === 'Bank' ? 'Bank' : 'Mobile Banking',
       account: account.name,
       accountId: account.id,
       amount,
@@ -541,7 +545,7 @@ export function Finance() {
   };
 
   const totalLiquid = accounts.filter((item) => item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
-  const cashBalance = accounts.filter((item) => item.type === 'Cash' && item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
+  const cashBalance = accounts.filter((item) => (item.type === 'Cash' || item.type === 'Petty Cash') && item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
   const bankBalance = accounts.filter((item) => item.type === 'Bank' && item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
   const mobileBalance = accounts.filter((item) => item.type === 'Mobile Banking' && item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
 
@@ -558,23 +562,29 @@ export function Finance() {
 
   const tabs: Array<[Tab, string, string]> = [
     ['overview', 'Overview', 'Money position and relationship balances'],
-    ['transactions', 'Finance transactions', 'Owner, lender and borrower ledger'],
+    ['accounts', 'Money Accounts', 'Cash, bank, mobile banking and petty cash'],
     ['counter', 'Counter', 'Fast receive, pay, expense and transfer'],
-    ['accounts', 'Accounts', 'Cash, bank and mobile banking'],
-    ['cash', 'Cash sessions', 'Open, close and reconcile cash drawer']
+    ['transactions', 'Loans & Owners', 'Owner, lender and borrower money'],
+    ['cheques', 'Cheques', 'Received, issued and post-dated cheques'],
+    ['cash', 'Cash Sessions', 'Open, close and reconcile cash drawer']
   ];
+
+  const pendingChequeAmount = chequeRecords
+    .filter((item) => !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status))
+    .reduce((sum, item) => sum + item.amount, 0);
 
   const summaryCards = [
     { label: 'Available money', value: taka(totalLiquid), sub: 'Cash + bank + mobile banking', icon: CircleDollarSign },
     { label: 'Cash', value: taka(cashBalance), sub: sessionOpen ? 'Cash session open' : 'Cash session closed', icon: Banknote },
     { label: 'Bank', value: taka(bankBalance), sub: 'Across active bank accounts', icon: Landmark },
     { label: 'Mobile banking', value: taka(mobileBalance), sub: 'bKash, Nagad and wallets', icon: WalletCards },
-    { label: 'Lender payable', value: taka(relationshipSummary.outstandingLoan), sub: 'Outstanding lender balance', icon: ArrowDownLeft, tone: 'text-danger' },
-    { label: 'Borrower receivable', value: taka(relationshipSummary.borrowerReceivable), sub: 'Money others owe the business', icon: ArrowUpRight, tone: 'text-teal-700' }
+    { label: 'Cheques pending', value: taka(pendingChequeAmount), sub: 'Waiting for clearance', icon: BookOpen },
+    { label: 'Lender payable', value: taka(relationshipSummary.outstandingLoan), sub: 'Money we still need to repay', icon: ArrowDownLeft, tone: 'text-danger' },
+    { label: 'Borrower receivable', value: taka(relationshipSummary.borrowerReceivable), sub: 'Money others still owe us', icon: ArrowUpRight, tone: 'text-teal-700' }
   ];
 
   const activeCounterAccounts = accounts.filter((item) => {
-    if (counterMethod === 'Cash') return item.type === 'Cash';
+    if (counterMethod === 'Cash') return item.type === 'Cash' || item.type === 'Petty Cash';
     if (counterMethod === 'Bank') return item.type === 'Bank';
     return item.type === 'Mobile Banking';
   });
@@ -634,13 +644,16 @@ export function Finance() {
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
-        title="Finance & Accounts"
-        titleBn="হিসাব ও অ্যাকাউন্ট"
-        description="Cash, bank, mobile banking and business finance in one operational workspace."
+        title="Finance"
+        titleBn="টাকা-পয়সা"
+        description="Cash, bank, mobile banking, loans, cheques and everyday money movement."
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
               <UserRoundCog className="size-4" /> Finance people
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setChequeOpen(true)}>
+              <Plus className="size-4" /> New cheque
             </Button>
             <Button size="sm" onClick={() => setTransactionOpen(true)}>
               <Plus className="size-4" /> New transaction
@@ -649,7 +662,7 @@ export function Finance() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
         {summaryCards.map(({ label, value, sub, icon: Icon, tone }) => (
           <div key={label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
             <div className="flex items-start justify-between gap-2">
@@ -713,8 +726,8 @@ export function Finance() {
               <div className="rounded-xl border border-ink-100">
                 <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
                   <div>
-                    <p className="text-sm font-semibold text-ink">Recent finance transactions</p>
-                    <p className="text-[11px] text-ink-500">Relationship finance entries only.</p>
+                    <p className="text-sm font-semibold text-ink">Recent loans & owner money</p>
+                    <p className="text-[11px] text-ink-500">Owner, lender and borrower money stays separate.</p>
                   </div>
                   <button onClick={() => setTab('transactions')} className="text-xs font-medium text-teal-700 hover:underline">View all</button>
                 </div>
@@ -750,7 +763,7 @@ export function Finance() {
 
             <section className="space-y-4">
               <div className="rounded-xl border border-ink-100 p-4">
-                <p className="text-sm font-semibold text-ink">Accounts</p>
+                <p className="text-sm font-semibold text-ink">Money Accounts</p>
                 <p className="mb-3 text-[11px] text-ink-500">Live balances by money account.</p>
                 <div className="space-y-2">
                   {accounts.filter((item) => item.status === 'Active').map((account) => (
@@ -778,7 +791,7 @@ export function Finance() {
                     { label: 'Counter', helper: 'Receive / pay', icon: BriefcaseBusiness, action: () => setTab('counter') },
                     { label: 'Transfer', helper: 'Between accounts', icon: ArrowLeftRight, action: () => setTransferOpen(true) },
                     { label: 'Reconcile', helper: 'Bank statement', icon: CheckCircle2, action: () => navigate('/app/reconciliation') },
-                    { label: 'Reports', helper: 'Books & reports', icon: BookOpen, action: () => navigate('/app/reports') }
+                    { label: 'Daybook', helper: 'All transactions', icon: BookOpen, action: () => navigate('/app/daybook') }
                   ].map(({ label, helper, icon: Icon, action }) => (
                     <button key={label} onClick={action} className="rounded-lg border border-ink-100 p-3 text-left hover:bg-ink-50">
                       <Icon className="size-4 text-teal-700" />
@@ -929,7 +942,7 @@ export function Finance() {
                       const next = event.target.value;
                       setCounterMethod(next);
                       const first = accounts.find((item) =>
-                        next === 'Cash' ? item.type === 'Cash' :
+                        next === 'Cash' ? (item.type === 'Cash' || item.type === 'Petty Cash') :
                         next === 'Bank' ? item.type === 'Bank' :
                         item.type === 'Mobile Banking'
                       );
@@ -1061,6 +1074,77 @@ export function Finance() {
           </div>
         )}
 
+
+        {tab === 'cheques' && (
+          <div className="p-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-[13px] font-medium text-ink">Cheque register <span className="font-bn text-[11px] font-normal text-ink-400">· পাওয়া ও দেওয়া চেক</span></p>
+                <p className="text-[11px] text-ink-500">Post-dated cheques stay visible. Bank balance changes only when a cheque clears.</p>
+              </div>
+              <Button size="sm" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> New cheque</Button>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-ink-100">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="h-9 pl-4 text-xs">Cheque</TableHead>
+                    <TableHead className="h-9 text-xs">Party</TableHead>
+                    <TableHead className="h-9 text-xs">Bank</TableHead>
+                    <TableHead className="h-9 text-xs">Cheque date</TableHead>
+                    <TableHead className="h-9 text-xs">Money account</TableHead>
+                    <TableHead className="h-9 text-right text-xs">Amount</TableHead>
+                    <TableHead className="h-9 text-xs">Status</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {chequeRecords.map((cheque) => {
+                    const pdc = cheque.chequeDate > '2026-10-07' && cheque.status !== 'Cleared';
+                    const canClear = cheque.status !== 'Cleared' && !['Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(cheque.status);
+                    return (
+                      <TableRow key={cheque.id} className="text-[13px]">
+                        <TableCell className="py-2 pl-4">
+                          <p className="font-medium text-ink">{cheque.direction} · #{cheque.chequeNumber}</p>
+                          <p className="text-[10.5px] text-ink-400">{cheque.id}{pdc ? ' · PDC' : ''}{cheque.reference ? ' · ' + cheque.reference : ''}</p>
+                        </TableCell>
+                        <TableCell className="py-2 font-medium text-ink">{cheque.party}</TableCell>
+                        <TableCell className="py-2 text-ink-500">{cheque.bank}{cheque.branch ? ' · ' + cheque.branch : ''}</TableCell>
+                        <TableCell className="py-2">
+                          <p className="text-ink-600">{cheque.chequeDate}</p>
+                          {pdc && <p className="font-bn text-[10.5px] text-warning">পরে জমা দেওয়ার চেক</p>}
+                        </TableCell>
+                        <TableCell className="py-2 text-ink-500">{cheque.depositAccount || '—'}</TableCell>
+                        <TableCell className="py-2 text-right font-semibold">{taka(cheque.amount)}</TableCell>
+                        <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{cheque.status}</StatusBadge></TableCell>
+                        <TableCell className="py-2 pr-4 text-right">
+                          {canClear ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setChequeRecords((current) => current.map((item) => item.id === cheque.id ? { ...item, status: 'Cleared' as ChequeStatus } : item));
+                                if (cheque.depositAccount) {
+                                  setAccounts((current) => current.map((account) => account.name === cheque.depositAccount
+                                    ? { ...account, balance: account.balance + (cheque.direction === 'Received' ? cheque.amount : -cheque.amount), lastActivity: 'Just now' }
+                                    : account));
+                                }
+                                toast.success('Cheque cleared', { description: cheque.id + ' · ' + taka(cheque.amount) });
+                              }}>
+                              Mark cleared
+                            </Button>
+                          ) : <span className="text-xs text-ink-300">—</span>}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
         {tab === 'cash' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[360px_1fr]">
             <section className="rounded-xl border border-ink-100 p-4">
@@ -1178,6 +1262,15 @@ export function Finance() {
             return account;
           }));
           toast.success('Transfer completed', { description: transfer.from + ' → ' + transfer.to + ' · ' + taka(transfer.amount) });
+        }}
+      />
+
+      <ChequeDialog
+        open={chequeOpen}
+        onOpenChange={setChequeOpen}
+        onSave={(cheque) => {
+          setChequeRecords((current) => [cheque, ...current]);
+          toast.success('Cheque saved', { description: cheque.direction + ' · ' + taka(cheque.amount) });
         }}
       />
 
