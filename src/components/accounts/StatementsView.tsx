@@ -1,4 +1,7 @@
 import React, { useMemo, useState } from 'react';
+import { ArrowDownToLine, Printer } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '../Button';
 import { Input } from '../Input';
 import type { Posting } from '../../types/accounting';
 import { accountingAccounts } from '../../data/accounting';
@@ -28,12 +31,49 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
   const operatingExpenses = Math.max(0, pnl.expenses - cogs);
   const grossProfit = sales - cogs;
 
+  const setPreset = (preset: 'month' | 'quarter' | 'year') => {
+    if (preset === 'month') { setFrom('2026-10-01'); setTo('2026-10-31'); }
+    if (preset === 'quarter') { setFrom('2026-07-01'); setTo('2026-10-31'); }
+    if (preset === 'year') { setFrom('2026-01-01'); setTo('2026-10-31'); }
+  };
+
+  const exportCsv = () => {
+    const csv = [
+      ['Statement', 'Line', 'Amount'],
+      ['Profit & Loss', 'Sales Revenue', sales],
+      ['Profit & Loss', 'Other Income', otherIncome],
+      ['Profit & Loss', 'Cost of Goods Sold', cogs],
+      ['Profit & Loss', 'Gross Profit', grossProfit],
+      ['Profit & Loss', 'Operating Expenses', operatingExpenses],
+      ['Profit & Loss', 'Net Profit', pnl.netProfit],
+      ['Balance Sheet', 'Assets', sheet.assets],
+      ['Balance Sheet', 'Liabilities', sheet.liabilities],
+      ['Balance Sheet', 'Equity', sheet.equity]
+    ].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'financial-statements-' + from + '-to-' + to + '.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+    toast.success('Statements exported');
+  };
+
   return (
     <div className="p-4">
       <div className="mb-4 flex flex-wrap items-end gap-2">
+        <div className="flex gap-1 rounded-lg border border-ink-100 bg-white p-1">
+          <button onClick={() => setPreset('month')} className="rounded-md px-2.5 py-1.5 text-[11px] font-medium text-ink-600 hover:bg-ink-50">This month</button>
+          <button onClick={() => setPreset('quarter')} className="rounded-md px-2.5 py-1.5 text-[11px] font-medium text-ink-600 hover:bg-ink-50">Quarter</button>
+          <button onClick={() => setPreset('year')} className="rounded-md px-2.5 py-1.5 text-[11px] font-medium text-ink-600 hover:bg-ink-50">Year</button>
+        </div>
         <label className="text-[12px] font-medium text-ink">From<Input className="mt-1 w-40" type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
         <label className="text-[12px] font-medium text-ink">To<Input className="mt-1 w-40" type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label>
-        <p className="ml-auto text-[10.5px] text-ink-400">Financial statements always use Transaction Date.</p>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportCsv}><ArrowDownToLine className="size-4" /> Export</Button>
+          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
+        </div>
+        <p className="w-full text-right text-[10.5px] text-ink-400">Financial statements always use Transaction Date.</p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
