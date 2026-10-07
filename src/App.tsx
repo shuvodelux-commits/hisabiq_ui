@@ -14,6 +14,9 @@ import { Parties } from './pages/Parties';
 import { Purchases } from './pages/Purchases';
 import { Expenses } from './pages/Expenses';
 import { Reports } from './pages/Reports';
+import { Daybook } from './pages/Daybook';
+import { Accounts } from './pages/Accounts';
+import { AuditLedger } from './pages/AuditLedger';
 
 export function App() {
   return (
@@ -30,6 +33,9 @@ export function App() {
           <Route path="warranty" element={<Warranty />} />
           <Route path="reconciliation" element={<Reconciliation />} />
           <Route path="finance" element={<Finance />} />
+          <Route path="daybook" element={<Daybook />} />
+          <Route path="accounts" element={<Accounts />} />
+          <Route path="audit-ledger" element={<AuditLedger />} />
           <Route path="products" element={<Products />} />
           <Route path="parties" element={<Parties />} />
           <Route path="purchases" element={<Purchases />} />
