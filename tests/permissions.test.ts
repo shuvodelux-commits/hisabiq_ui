@@ -34,3 +34,21 @@ test('source groups map finance and accounting records to their owning modules',
   assert.equal(mod.sourcePermissionGroup('adjustment'), 'accounts');
   assert.equal(mod.sourcePermissionGroup('stock-adjustment'), 'products');
 });
+
+
+test('shared action availability keeps menus and detail dialogs on the same permission result', async () => {
+  const mod = await permissionsModule();
+  const daybookGranted = new Set(['daybook.view', 'sales.view']);
+  assert.deepEqual(mod.daybookActionAvailability('sale', daybookGranted), {
+    open: true,
+    edit: false,
+    delete: false
+  });
+
+  const auditGranted = new Set(['audit.view', 'audit.correct', 'sales.view']);
+  assert.deepEqual(mod.auditActionAvailability('sale', auditGranted), {
+    view: true,
+    correct: false,
+    delete: false
+  });
+});
