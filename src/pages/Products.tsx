@@ -475,6 +475,7 @@ export function Products() {
                     <span>
                         {p.altUnit.unit} / {p.unit}
                         <span className="block text-[11px] text-ink-400">1 {p.altUnit.unit} = {p.altUnit.factor} {p.unit}</span>
+                        <span className="block text-[11px] text-teal-700">POS default: {p.stockViewUnit ?? p.altUnit.unit}</span>
                       </span> :
 
                     p.unit
