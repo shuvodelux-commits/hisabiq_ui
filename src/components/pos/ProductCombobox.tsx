@@ -46,7 +46,7 @@ ref)
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = products.filter((p) => p.active && (p.kind === 'Service' || !p.expiry?.enabled || productStockBreakdown(p, stockLots).sellable > 0));
+    const list = products.filter((p) => p.active);
     if (!q) return list.slice(0, 8);
     return list.
     filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').includes(q)).

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { products } from '../data/products';
 import { productOffers } from '../data/productOffers';
-import type { Party, PaymentMethod, Product, WarrantySnapshot } from '../types/erp';
+import type { Party, PaymentMethod, Product, SaleStockSource, WarrantySnapshot } from '../types/erp';
 import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures';
 import { roundTo } from '../utils/currency';
 import { compoundLineTotal } from '../utils/posQuantity';
@@ -14,6 +14,7 @@ export type CartLine = {
   unit: string;
   price: string;
   serials: string[];
+  stockSource?: SaleStockSource;
   historicalWarranty?: WarrantySnapshot;
   historicalUnitCost?: number;
 };
@@ -121,11 +122,13 @@ export function usePosCart() {
     setLastAdded(l.key);
   };
 
-  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials'>>) => {
+  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource'>>) => {
     setLines((ls) =>
       ls.map((l) => {
         if (l.key !== key) return l;
+        const quantityChanged = patch.qty !== undefined || patch.secondaryQty !== undefined || patch.unit !== undefined;
         const next = { ...l, ...patch };
+        if (quantityChanged && patch.stockSource === undefined) next.stockSource = undefined;
         if (patch.unit && patch.unit !== l.unit) {
           next.price = String(effectivePriceForUnit(l.product, activeOfferFor(l.product.id, productOffers), patch.unit));
           next.secondaryQty = '';

@@ -157,6 +157,10 @@ export type PaymentSplit = {
   account?: string;
 };
 
+export type SaleStockSource =
+  | { mode: 'Negative' }
+  | { mode: 'Vendor'; vendorId: string; vendorName: string; unitCost: number };
+
 export type Sale = TransactionAuditFields & {
   id: string;
   invoice: string;
@@ -188,6 +192,8 @@ export type SaleLine = {
   serials?: string[];
   warranty?: WarrantySnapshot;
   lotAllocations?: Array<{ lotId: string; quantity: number }>;
+  /** How quantity beyond own sellable stock was fulfilled. Vendor unitCost is per base unit. */
+  stockSource?: SaleStockSource;
 };
 
 export type SalesInvoiceStatus = 'Paid' | 'Partial' | 'Due' | 'Part returned' | 'Returned';
@@ -227,6 +233,7 @@ export type SalePresetLine = {
   unit: string;
   price: number;
   serials?: string[];
+  stockSource?: SaleStockSource;
 };
 
 export type SaleTemplate = {
