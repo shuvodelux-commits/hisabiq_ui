@@ -137,3 +137,17 @@ test('delete undoes the complete source posting and retains immutable audit hist
   assert.equal(Object.isFrozen(event), true);
   assert.equal(Object.isFrozen(event.changes), true);
 });
+
+
+test('every Audit Ledger posting references a known accounting account', async () => {
+  const { auditSourceRecords } = await import('../src/data/auditLedger.ts');
+  const { accountingAccounts } = await import('../src/data/accounting.ts');
+  const known = new Set(accountingAccounts.map((account) => account.id));
+  const state = createAuditState(auditSourceRecords);
+
+  for (const posting of state.postings) {
+    for (const line of posting.lines) {
+      assert.equal(known.has(line.accountId), true, `Unknown account ${line.accountId} in ${posting.reference}`);
+    }
+  }
+});
