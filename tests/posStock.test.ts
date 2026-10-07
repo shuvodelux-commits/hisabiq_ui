@@ -57,7 +57,7 @@ test('uses sellable lots for expiry-tracked stock', () => {
     }
   ];
 
-  assert.equal(saleAvailableStock(expiryProduct, lots, new Date('2026-10-07') as never), 10);
+  assert.equal(saleAvailableStock(expiryProduct, lots, new Date('2026-10-07')), 10);
 });
 
 test('converts clamped base stock back to a compound line quantity', () => {
