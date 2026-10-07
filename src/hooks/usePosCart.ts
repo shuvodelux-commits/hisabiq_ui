@@ -15,6 +15,7 @@ export type CartLine = {
   price: string;
   serials: string[];
   historicalWarranty?: WarrantySnapshot;
+  historicalUnitCost?: number;
 };
 
 export type DiscountMode = 'amount' | 'percent';
