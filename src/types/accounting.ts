@@ -47,7 +47,8 @@ export type AccountingSourceTransaction = {
     | 'finance'
     | 'receipt-voucher'
     | 'payment-voucher'
-    | 'adjustment';
+    | 'adjustment'
+    | 'opening-balance';
   reference: string;
   transactionDate: string;
   createdAt: string;
@@ -65,6 +66,12 @@ export type AccountingSourceTransaction = {
   debitAccountId?: string;
   creditAccountId?: string;
   lines?: PostingLine[];
+  recordStatus?: 'Posted' | 'Deleted';
+  updatedAt?: string;
+  updatedBy?: string;
+  deletedAt?: string;
+  deletedBy?: string;
+  deleteReason?: string;
 };
 
 export type TrialBalanceRow = {
