@@ -85,7 +85,7 @@ export const auditSourceRecords: AuditSourceRecord[] = [
     paid: 2500,
     due: 0,
     paymentAccounts: [{ account: 'Main Cash Counter', amount: 2500 }],
-    expenseAccountId: 'expense-utilities',
+    expenseAccountId: 'expense-utility',
     description: 'Electricity bill paid to DESCO',
     party: 'DESCO',
     status: 'Posted'
@@ -117,7 +117,7 @@ export const auditSourceRecords: AuditSourceRecord[] = [
     due: 0,
     description: 'Month-end utility accrual adjustment',
     lines: [
-      { accountId: 'expense-utilities', debit: 1650, credit: 0 },
+      { accountId: 'expense-utility', debit: 1650, credit: 0 },
       { accountId: 'liability-ap', debit: 0, credit: 1650 }
     ],
     status: 'Posted'
