@@ -3,11 +3,13 @@ import { products } from '../data/products';
 import type { Party, PaymentMethod, Product } from '../types/erp';
 import { priceFor } from '../utils/units';
 import { roundTo } from '../utils/currency';
+import { compoundLineTotal } from '../utils/posQuantity';
 
 export type CartLine = {
   key: string;
   product: Product;
   qty: string;
+  secondaryQty: string;
   unit: string;
   price: string;
 };
@@ -50,17 +52,24 @@ export function makePosPaymentRow(seedIndex = 0, method: PosPaymentMethod = 'Cas
   };
 }
 
-function line(product: Product, qty: number, unit?: string): CartLine {
+function line(product: Product, qty: number, unit?: string, secondaryQty = ''): CartLine {
   const u = unit ?? product.unit;
-  return { key: nextKey(), product, qty: String(qty), unit: u, price: String(priceFor(product, u)) };
+  return {
+    key: nextKey(),
+    product,
+    qty: String(qty),
+    secondaryQty,
+    unit: u,
+    price: String(priceFor(product, u))
+  };
 }
 
 const byId = (id: string) => products.find((p) => p.id === id) as Product;
 
 export const demoCart = (): CartLine[] => [
   line(byId('p1'), 4),
-  line(byId('p2'), 2, 'Box'),
-  line(byId('p5'), 3, 'Gauge')
+  line(byId('p2'), 2, 'Box', '5'),
+  line(byId('p5'), 1, 'Gauge', '12')
 ];
 
 const emptyCustomerDetails = (): PosCustomerDetails => ({
@@ -107,12 +116,15 @@ export function usePosCart() {
     setLastAdded(l.key);
   };
 
-  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'unit' | 'price'>>) => {
+  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price'>>) => {
     setLines((ls) =>
       ls.map((l) => {
         if (l.key !== key) return l;
         const next = { ...l, ...patch };
-        if (patch.unit && patch.unit !== l.unit) next.price = String(priceFor(l.product, patch.unit));
+        if (patch.unit && patch.unit !== l.unit) {
+          next.price = String(priceFor(l.product, patch.unit));
+          next.secondaryQty = '';
+        }
         return next;
       })
     );
@@ -129,7 +141,12 @@ export function usePosCart() {
   };
 
   const totals = useMemo(() => {
-    const subtotal = lines.reduce((s, l) => s + (parseFloat(l.qty) || 0) * (parseFloat(l.price) || 0), 0);
+    const subtotal = lines.reduce((sum, line) => {
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit
+        ? line.product.altUnit.factor
+        : 1;
+      return sum + compoundLineTotal(line.qty, line.secondaryQty, factor, line.price);
+    }, 0);
     const d = parseFloat(discount) || 0;
     const discountAmt = Math.min(subtotal, discountMode === 'percent' ? subtotal * d / 100 : d);
     const net = subtotal - discountAmt;

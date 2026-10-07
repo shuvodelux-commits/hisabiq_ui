@@ -22,5 +22,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Test POS helpers
+        run: npm test
+
       - name: Build UI
         run: npm run build

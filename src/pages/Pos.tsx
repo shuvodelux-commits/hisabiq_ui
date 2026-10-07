@@ -14,6 +14,7 @@ import { products } from '../data/products';
 import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
+import { compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import type { SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -43,6 +44,7 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       key: `preset-${sourceLine.productId}-${index}`,
       product,
       qty: sourceLine.qty,
+      secondaryQty: sourceLine.secondaryQty ?? '',
       unit,
       price: String(sourceLine.price)
     }];
@@ -76,22 +78,28 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
   return invoice.lines.flatMap((sourceLine) => {
     const product = products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
-    const alternateUnit = product.altUnit?.unit;
-    const hasAlternate = Boolean(alternateUnit && sourceLine.quantity.includes(alternateUnit));
-    const hasBase = sourceLine.quantity.includes(product.unit);
-    const unit = hasAlternate && !hasBase && alternateUnit ? alternateUnit : product.unit;
-    const qty = unit === product.unit
-      ? String(sourceLine.returnableQuantity ?? (parseFloat(sourceLine.quantity) || 1))
-      : String(parseFloat(sourceLine.quantity) || 1);
-    const historicalPrice = unit === product.unit
-      ? sourceLine.price
-      : sourceLine.price * (product.altUnit?.factor ?? 1);
+
+    if (product.altUnit) {
+      const parsed = parseCompoundQuantity(sourceLine.quantity, product.altUnit.unit, product.unit);
+      if (parsed.usesAlternate) {
+        return [{
+          key: `source-${sourceLine.id}`,
+          product,
+          qty: parsed.primaryQty,
+          secondaryQty: parsed.secondaryQty,
+          unit: product.altUnit.unit,
+          price: String(sourceLine.price * product.altUnit.factor)
+        }];
+      }
+    }
+
     return [{
       key: `source-${sourceLine.id}`,
       product,
-      qty,
-      unit,
-      price: String(historicalPrice)
+      qty: String(sourceLine.returnableQuantity ?? (parseFloat(sourceLine.quantity) || 1)),
+      secondaryQty: '',
+      unit: product.unit,
+      price: String(sourceLine.price)
     }];
   });
 }
@@ -219,12 +227,15 @@ export function Pos() {
       customerPhone: cart.customerDetails.phone.trim() || undefined,
       guardianName: cart.customerDetails.guardianName.trim() || undefined,
       customerAddress: cart.customerDetails.address.trim() || undefined,
-      lines: cart.lines.map((l) => ({
-        name: l.product.name,
-        qty: `${l.qty} ${l.unit}`,
-        price: parseFloat(l.price) || 0,
-        total: (parseFloat(l.qty) || 0) * (parseFloat(l.price) || 0)
-      })),
+      lines: cart.lines.map((l) => {
+        const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
+        return {
+          name: l.product.name,
+          qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
+          price: parseFloat(l.price) || 0,
+          total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price)
+        };
+      }),
       subtotal: t.subtotal,
       discount: t.discountAmt,
       rounding: t.rounding,
@@ -274,6 +285,7 @@ export function Pos() {
       lines: cart.lines.map((line) => ({
         productId: line.product.id,
         qty: line.qty,
+        secondaryQty: line.secondaryQty,
         unit: line.unit,
         price: parseFloat(line.price) || 0
       }))
@@ -424,7 +436,7 @@ export function Pos() {
                   <ProductThumb src={p.image} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-medium text-ink">{p.name}</span>
-                    <span className="block text-xs tabular-nums text-ink-500">
+                    <span className="block text-xs text-ink-500">
                       {taka(p.sellPrice, p.sellPrice % 1 ? 2 : 0)}/{p.unit}
                     </span>
                   </span>
