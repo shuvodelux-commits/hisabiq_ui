@@ -228,6 +228,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const changeKind = (next: ProductKind) => {
     setKind(next);
     if (next === 'Service') {
+      setCategory('Service');
       setUnit('Service');
       setSellUnit('Service');
       setBuyUnit('Service');
@@ -235,6 +236,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       setSerialTracking('Off');
       setExpiryEnabled(false);
     } else if (unit === 'Service') {
+      if (category === 'Service') setCategory('Hardware');
       setUnit('Pcs');
       setSellUnit('Pcs');
       setBuyUnit('Pcs');
