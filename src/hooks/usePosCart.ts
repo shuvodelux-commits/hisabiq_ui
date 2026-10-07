@@ -109,7 +109,8 @@ export function usePosCart() {
   };
 
   const addProduct = (product: Product) => {
-    const existing = lines.find((l) => l.product.id === product.id && l.unit === product.unit);
+    const preferredUnit = product.stockViewUnit ?? product.altUnit?.unit ?? product.unit;
+    const existing = lines.find((l) => l.product.id === product.id && l.unit === preferredUnit);
     if (existing) {
       setLines((ls) =>
         ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1) } : l)
