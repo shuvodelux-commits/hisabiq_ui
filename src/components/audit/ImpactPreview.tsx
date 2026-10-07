@@ -19,7 +19,12 @@ function fieldLabel(field: string) {
     paymentAccounts: 'Payment account',
     description: 'Description',
     note: 'Note',
-    quantity: 'Quantity'
+    quantity: 'Quantity',
+    reference: 'Reference',
+    note: 'Internal note',
+    expenseAccountId: 'Expense category',
+    fromAccount: 'From account',
+    toAccount: 'To account'
   };
   return labels[field] ?? field;
 }
