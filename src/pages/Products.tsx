@@ -355,8 +355,7 @@ export function Products() {
             role="tab"
             aria-selected={view === id}
             onClick={() => setView(id)}
-            className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}
-            style={{ boxShadow: view === id ? 'inset 0 -3px 0 0 #0D7C74' : undefined }}>
+            className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
             {label} <span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>
           </button>
         ))}
