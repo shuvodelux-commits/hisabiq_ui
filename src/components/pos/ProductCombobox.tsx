@@ -179,7 +179,8 @@ ref)
           {results.map((p, i) => {
             const status = stockStatus(p);
             const activeOffer = activeOfferFor(p.id, productOffers);
-            const displayUnit = unitsFor(p).includes(p.stockViewUnit ?? '') ? p.stockViewUnit! : p.unit;
+            const preferredUnit = p.stockViewUnit ?? p.altUnit?.unit ?? p.unit;
+            const displayUnit = unitsFor(p).includes(preferredUnit) ? preferredUnit : p.unit;
             const normalPrice = effectivePriceForUnit(p, undefined, displayUnit);
             const effectivePrice = effectivePriceForUnit(p, activeOffer, displayUnit);
             const breakdown = p.kind === 'Service' ? null : productStockBreakdown(p, stockLots);
