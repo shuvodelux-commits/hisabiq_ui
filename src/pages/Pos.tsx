@@ -17,7 +17,7 @@ import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../d
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
-import { activeOfferFor, allocateLotQuantity, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
+import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import type { SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -50,7 +50,7 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       secondaryQty: sourceLine.secondaryQty ?? '',
       unit,
       price: String(sourceLine.price),
-      serials: []
+      serials: sourceLine.serials ?? []
     }];
   });
 }
@@ -236,6 +236,23 @@ export function Pos() {
     if (expiredBlockedLine) {
       const sellable = productStockBreakdown(expiredBlockedLine.product, stockLots).sellable;
       toast.error('Not enough sellable stock', { description: `${expiredBlockedLine.product.name}: only ${sellable} ${expiredBlockedLine.product.unit} are unexpired.` });
+      return;
+    }
+
+    const allSelectedSerials = cart.lines.flatMap((line) => line.serials);
+    const duplicateSelected = duplicateSerials(allSelectedSerials);
+    if (duplicateSelected.length) {
+      toast.error('Duplicate serial selected', { description: duplicateSelected[0] });
+      return;
+    }
+
+    const tooManySerialsLine = cart.lines.find((line) => {
+      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
+      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      return line.serials.length > Math.ceil(baseQty);
+    });
+    if (tooManySerialsLine) {
+      toast.error('Too many serials selected', { description: `${tooManySerialsLine.product.name}: reduce serials or increase quantity.` });
       return;
     }
 
