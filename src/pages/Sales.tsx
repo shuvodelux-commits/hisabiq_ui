@@ -1028,6 +1028,7 @@ export function Sales() {
                 onChange={(event) => setMethod(event.target.value)}
                 options={['All payments', ...paymentMethods]}
               />
+              <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
               <Button variant="outline" size="sm" onClick={() => toast('Sales list exported')}>
                 <ArrowDownToLine className="size-4" /> Export
               </Button>
@@ -1036,25 +1037,26 @@ export function Sales() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Invoice</TableHead>
-                  <TableHead className="h-9 text-xs">Customer</TableHead>
-                  <TableHead className="h-9 text-xs">Items</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Total</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Paid</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Due</TableHead>
-                  <TableHead className="h-9 text-xs">Payment</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
+                  {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">Invoice</TableHead>}
+                  {visibleSalesColumns.customer && <TableHead className="h-9 text-xs">Customer</TableHead>}
+                  {visibleSalesColumns.items && <TableHead className="h-9 text-xs">Items</TableHead>}
+                  {visibleSalesColumns.total && <TableHead className="h-9 text-right text-xs">Total</TableHead>}
+                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title="Invoice total minus cost of goods sold">Profit</TableHead>}
+                  {visibleSalesColumns.paid && <TableHead className="h-9 text-right text-xs">Paid</TableHead>}
+                  {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">Due</TableHead>}
+                  {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">Payment</TableHead>}
+                  {visibleSalesColumns.status && <TableHead className="h-9 text-xs">Status</TableHead>}
                   <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((invoice) => (
                   <TableRow key={invoice.id} className="cursor-pointer text-[13px]" onClick={() => setDetail(invoice)}>
-                    <TableCell className="py-2 pl-4">
+                    {visibleSalesColumns.invoice && <TableCell className="py-2 pl-4">
                       <span className="font-medium text-ink">{invoice.invoice}</span>
                       <span className="block text-[11px] text-ink-400">{invoice.date} · {invoice.time}</span>
-                    </TableCell>
-                    <TableCell className="py-2">
+                    </TableCell>}
+                    {visibleSalesColumns.customer && <TableCell className="py-2">
                       {invoice.partyId ? (
                         <button
                           onClick={(event) => { event.stopPropagation(); navigate(`/app/parties?id=${invoice.partyId}`); }}
@@ -1063,16 +1065,19 @@ export function Sales() {
                         </button>
                       ) : <p className="font-medium text-ink">{invoice.party}</p>}
                       <p className="text-[11px] text-ink-400">{invoice.phone ?? 'No phone'}</p>
-                    </TableCell>
-                    <TableCell className="max-w-[270px] py-2 text-ink-600">
+                    </TableCell>}
+                    {visibleSalesColumns.items && <TableCell className="max-w-[270px] py-2 text-ink-600">
                       <span className="block truncate">{invoice.lines.map((line) => line.name).join(', ')}</span>
                       <span className="text-[11px] text-ink-400">{invoice.items} line{invoice.items === 1 ? '' : 's'}</span>
-                    </TableCell>
-                    <TableCell className="py-2 text-right font-medium">{taka(invoice.total)}</TableCell>
-                    <TableCell className="py-2 text-right text-ink-600">{taka(invoice.paid)}</TableCell>
-                    <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-ink-300'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>
-                    <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? 'Multiple' : invoice.method}</TableCell>
-                    <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>
+                    </TableCell>}
+                    {visibleSalesColumns.total && <TableCell className="py-2 text-right font-medium">{taka(invoice.total)}</TableCell>}
+                    {visibleSalesColumns.profit && <TableCell className={`py-2 text-right font-medium ${invoiceProfit(invoice) < 0 ? 'text-danger' : 'text-success'}`}>
+                      {invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}
+                    </TableCell>}
+                    {visibleSalesColumns.paid && <TableCell className="py-2 text-right text-ink-600">{taka(invoice.paid)}</TableCell>}
+                    {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-ink-300'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
+                    {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? 'Multiple' : invoice.method}</TableCell>}
+                    {visibleSalesColumns.status && <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>}
                     <TableCell className="py-2 pr-4 text-right">
                       <InvoiceActions
                         invoice={invoice}
