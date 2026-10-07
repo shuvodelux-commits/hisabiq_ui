@@ -32,6 +32,7 @@ type AddProductDialogProps = {
   onOpenChange: (open: boolean) => void;
   onSave: (product: Product, opening?: ProductOpeningMeta) => void;
   initialProduct?: Product | null;
+  existingSerials?: string[];
 };
 
 const baseUnits = ['Pcs', 'Gira', 'Kg', 'Feet', 'Bag', 'Coil', 'Pair', 'Litre'];
@@ -80,7 +81,7 @@ function SettingHeader({ title, bn, hint, checked, onCheckedChange }: {
   );
 }
 
-export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = null }: AddProductDialogProps) {
+export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = null, existingSerials = [] }: AddProductDialogProps) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [kind, setKind] = useState<ProductKind>('Stock');
   const [name, setName] = useState('');
@@ -249,7 +250,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     }
 
     if (!initialProduct && isStock && serialTracking !== 'Off') {
-      const duplicates = duplicateSerials(openingSerials);
+      if (serialTracking === 'Required' && !Number.isInteger(openingBaseQty)) return setError('Required serial tracking needs a whole base-unit quantity.');
+      const duplicates = duplicateSerials(openingSerials, existingSerials);
       if (duplicates.length) return setError(`Duplicate serial: ${duplicates[0]}`);
       if (serialTracking === 'Required' && openingSerials.length !== requiredOpeningSerials) {
         return setError(`Required serial tracking needs ${requiredOpeningSerials} unique serials for ${openingBaseQty} ${unit}.`);
