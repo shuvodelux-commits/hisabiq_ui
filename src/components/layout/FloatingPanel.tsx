@@ -94,7 +94,10 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
     };
 
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.querySelector<HTMLElement>('button, a')?.focus();
+      }
     };
 
     const onViewportChange = () => updatePosition();
@@ -124,7 +127,7 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.14, ease: 'easeOut' }}
-              className="fixed z-[100] overflow-y-auto rounded-xl border border-ink-100 bg-white shadow-pop scrollbar-thin"
+              className="fixed z-[100] overflow-y-auto rounded-xl border border-border bg-card shadow-pop scrollbar-thin"
               style={{
                 top: position?.top ?? 0,
                 left: position?.left ?? 0,
@@ -135,7 +138,10 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
                   ? align === 'right' ? 'bottom right' : 'bottom left'
                   : align === 'right' ? 'top right' : 'top left'
               }}>
-              {children(() => setOpen(false))}
+              {children(() => {
+                setOpen(false);
+                triggerRef.current?.querySelector<HTMLElement>('button, a')?.focus();
+              })}
             </motion.div>
           )}
         </AnimatePresence>,
@@ -150,3 +156,4 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
     </div>
   );
 }
+

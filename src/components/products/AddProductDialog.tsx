@@ -361,7 +361,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           {margin !== null && <p className={`text-xs ${margin < 0 ? 'text-danger' : 'text-ink-500'}`}>Margin {margin.toFixed(1)}% · profit {taka(sellBase - buyBase)} per {unit}</p>}
         </section>
 
-        <section className="rounded-xl border border-ink-100">
+        <section className="rounded-xl border border-border">
           <button type="button" onClick={() => setAdvanced((value) => !value)} aria-expanded={advanced} className="flex w-full items-center justify-between px-4 py-3 text-left">
             <span>
               <span className="block text-sm font-semibold text-ink">Advanced <span className="font-bn text-[11px] font-normal text-ink-400">· উন্নত সেটিংস</span></span>
@@ -372,7 +372,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
 
           <AnimatePresence initial={false}>
             {advanced && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-              <div className="space-y-5 border-t border-ink-100 p-4">
+              <div className="space-y-5 border-t border-border p-4">
                 {isStock && <>
                   <SettingHeader title="Sell in a larger unit too" bn="বড় এককে বিক্রি" hint="e.g. Box/Pcs or Gauge/Gira" checked={multiUnit} onCheckedChange={(checked) => {
                     if (!checked) {
@@ -384,9 +384,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                   {multiUnit && <div className="rounded-lg bg-teal-50/60 p-3">
                     <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink">
                       <span className="font-medium">1</span>
-                      <Input value={altUnit} onChange={(e) => setAltUnit(e.target.value)} className="h-9 w-28 bg-white font-medium" aria-label="Larger unit" />
+                      <Input value={altUnit} onChange={(e) => setAltUnit(e.target.value)} className="h-9 w-28 bg-card font-medium" aria-label="Larger unit" />
                       <span className="text-ink-500">=</span>
-                      <Input value={factor} onChange={(e) => setFactor(e.target.value.replace(/[^\d.]/g, ''))} className="h-9 w-20 bg-white text-right font-medium" inputMode="decimal" aria-label="Conversion factor" />
+                      <Input value={factor} onChange={(e) => setFactor(e.target.value.replace(/[^\d.]/g, ''))} className="h-9 w-20 bg-card text-right font-medium" inputMode="decimal" aria-label="Conversion factor" />
                       <span className="font-medium">{unit}</span>
                     </div>
                     <p className="mt-2 flex items-center gap-1.5 text-xs text-teal-800"><Info className="size-3.5" />POS can sell in either unit; stock remains in {unit}.</p>
@@ -413,7 +413,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                   </div>
                 </>}
 
-                <div className="border-t border-ink-100 pt-4">
+                <div className="border-t border-border pt-4">
                   <SettingHeader title="Warranty" bn="ওয়ারেন্টি" hint="Independent from serial tracking; claims stay in the Warranty module." checked={warrantyEnabled} onCheckedChange={setWarrantyEnabled} />
                   {warrantyEnabled && <div className="mt-3 grid gap-3 rounded-lg bg-ink-50/60 p-3 sm:grid-cols-2">
                     <Field label="Duration" bn="সময়কাল">
@@ -426,20 +426,20 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                       <FormSelect value={warrantyType} onChange={(e) => setWarrantyType(e.target.value as WarrantyType)} options={warrantyTypes} />
                     </Field>
                     <Field label="Terms" bn="শর্তাবলি" hint="This text is snapshotted onto each sold invoice item." >
-                      <textarea value={warrantyTerms} onChange={(e) => setWarrantyTerms(e.target.value)} placeholder="Coverage, exclusions, required documents…" className="min-h-20 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:col-span-2" />
+                      <textarea value={warrantyTerms} onChange={(e) => setWarrantyTerms(e.target.value)} placeholder="Coverage, exclusions, required documents…" className="min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:col-span-2" />
                     </Field>
                   </div>}
                 </div>
 
-                {isStock && <div className="border-t border-ink-100 pt-4">
+                {isStock && <div className="border-t border-border pt-4">
                   <p className="text-[13px] font-medium text-ink">Serial Tracking <span className="font-bn text-[11px] font-normal text-ink-400">· সিরিয়াল নম্বর</span></p>
                   <p className="mb-3 text-xs text-ink-500">Choose independently from warranty.</p>
                   <div className="grid grid-cols-3 gap-1 rounded-lg bg-ink-50 p-1">
-                    {serialModes.map((mode) => <button key={mode} type="button" onClick={() => setSerialTracking(mode)} className={`rounded-md px-2 py-2 text-xs font-medium ${serialTracking === mode ? 'bg-white text-ink shadow-card' : 'text-ink-500'}`}>{mode}</button>)}
+                    {serialModes.map((mode) => <button key={mode} type="button" onClick={() => setSerialTracking(mode)} className={`rounded-md px-2 py-2 text-xs font-medium ${serialTracking === mode ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>{mode}</button>)}
                   </div>
-                  {!initialProduct && serialTracking !== 'Off' && openingBaseQty > 0 && <div className="mt-3 rounded-lg border border-ink-100 p-3">
+                  {!initialProduct && serialTracking !== 'Off' && openingBaseQty > 0 && <div className="mt-3 rounded-lg border border-border p-3">
                     <Field label="Opening stock serials" bn="শুরুর সিরিয়াল" hint="Type, scan or paste. Separate by new line, comma or semicolon.">
-                      <textarea value={openingSerialText} onChange={(e) => setOpeningSerialText(e.target.value)} placeholder={"GV34-1001\nGV34-1002"} className="min-h-24 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+                      <textarea value={openingSerialText} onChange={(e) => setOpeningSerialText(e.target.value)} placeholder={"GV34-1001\nGV34-1002"} className="min-h-24 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
                     </Field>
                     <p className={`mt-2 text-xs ${serialTracking === 'Required' && openingSerials.length !== requiredOpeningSerials ? 'text-warning' : 'text-ink-500'}`}>
                       {openingSerials.length} serials entered{serialTracking === 'Required' ? ` · ${requiredOpeningSerials} required` : ' · optional'}{openingSerialDuplicates.length ? ` · duplicate: ${openingSerialDuplicates[0]}` : ''}
@@ -447,10 +447,10 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                   </div>}
                 </div>}
 
-                {isStock && <div className="border-t border-ink-100 pt-4">
+                {isStock && <div className="border-t border-border pt-4">
                   <SettingHeader title="Expiry tracking" bn="মেয়াদ" hint="Track batch/manufacture/expiry per stock lot and optionally allocate FEFO." checked={expiryEnabled} onCheckedChange={setExpiryEnabled} />
                   {expiryEnabled && <div className="mt-3 space-y-3 rounded-lg bg-ink-50/60 p-3">
-                    <div className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2">
+                    <div className="flex items-center justify-between gap-3 rounded-md bg-card px-3 py-2">
                       <span className="text-[13px] text-ink">Expiry date required <span className="font-bn text-[11px] text-ink-400">· মেয়াদ তারিখ আবশ্যক</span></span>
                       <Switch checked={expiryDateRequired} onCheckedChange={setExpiryDateRequired} />
                     </div>
@@ -458,7 +458,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                       <Field label="Warning days" bn="আগে সতর্কতা"><Input value={expiryWarningDays} onChange={(e) => setExpiryWarningDays(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" className="text-right" /></Field>
                       <Field label="Allocation" bn="স্টক নির্বাচন"><FormSelect value={allocationMethod} onChange={(e) => setAllocationMethod(e.target.value as StockAllocationMethod)} options={allocationMethods} /></Field>
                     </div>
-                    {!initialProduct && openingBaseQty > 0 && <div className="grid gap-3 border-t border-ink-100 pt-3 sm:grid-cols-3">
+                    {!initialProduct && openingBaseQty > 0 && <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-3">
                       <Field label="Batch no." bn="ব্যাচ"><Input value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} placeholder="Optional" /></Field>
                       <Field label="Manufacture date" bn="উৎপাদন"><Input type="date" value={manufactureDate} onChange={(e) => setManufactureDate(e.target.value)} /></Field>
                       <Field label="Expiry date" bn="মেয়াদ"><Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} /></Field>
@@ -466,7 +466,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                   </div>}
                 </div>}
 
-                <div className="border-t border-ink-100 pt-4">
+                <div className="border-t border-border pt-4">
                   <Field label="Barcode / SKU" bn="বারকোড"><Input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="Auto-generated if empty" /></Field>
                 </div>
               </div>
@@ -484,3 +484,4 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     </Dialog>
   );
 }
+

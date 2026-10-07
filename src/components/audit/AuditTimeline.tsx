@@ -9,7 +9,7 @@ export function AuditTimeline({ events }: { events: readonly AuditEvent[] }) {
   return (
     <div className="space-y-2">
       {events.map((event) => (
-        <div key={event.id} className="rounded-lg border border-ink-100 p-3">
+        <div key={event.id} className="rounded-lg border border-border p-3">
           <div className="flex items-start gap-2">
             <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-ink-50"><Clock3 className="size-3 text-ink-400" /></span>
             <div className="min-w-0 flex-1">
@@ -34,3 +34,4 @@ export function AuditTimeline({ events }: { events: readonly AuditEvent[] }) {
     </div>
   );
 }
+

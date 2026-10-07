@@ -731,10 +731,10 @@ export function Finance() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
         {summaryCards.map(({ label, value, sub, icon: Icon, tone }) => (
-          <div key={label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <div className="flex items-start justify-between gap-2">
               <p className="text-[12.5px] text-ink-500">{label}</p>
-              <Icon className="size-4 text-ink-300" />
+              <Icon className="size-4 text-helper" />
             </div>
             <p className={`mt-0.5 text-lg font-semibold ${tone ?? 'text-ink'}`}>{value}</p>
             <p className="mt-0.5 text-[10.5px] text-ink-400">{sub}</p>
@@ -744,17 +744,17 @@ export function Finance() {
 
       {(pdcCount > 0 || bouncedCount > 0 || varianceSessions > 0) && (
         <div className="flex flex-wrap gap-2 rounded-xl border border-warning/20 bg-warning/5 p-3">
-          <button onClick={() => setTab('cheques')} className="rounded-lg border border-warning/20 bg-white px-3 py-2 text-left hover:bg-warning/5">
+          <button onClick={() => setTab('cheques')} className="rounded-lg border border-warning/20 bg-card px-3 py-2 text-left hover:bg-warning/5">
             <p className="text-[12px] font-medium text-ink">{pdcCount} post-dated cheque{pdcCount === 1 ? '' : 's'}</p>
             <p className="font-bn text-[10.5px] text-ink-400">পরে জমা দেওয়ার চেক দেখুন</p>
           </button>
-          {bouncedCount > 0 && <button onClick={() => setTab('cheques')} className="rounded-lg border border-danger/20 bg-white px-3 py-2 text-left hover:bg-danger/5"><p className="text-[12px] font-medium text-danger">{bouncedCount} cheque issue{bouncedCount === 1 ? '' : 's'}</p><p className="font-bn text-[10.5px] text-ink-400">Bounced / Returned চেক দেখুন</p></button>}
-          {varianceSessions > 0 && <button onClick={() => setTab('cash')} className="rounded-lg border border-warning/20 bg-white px-3 py-2 text-left hover:bg-warning/5"><p className="text-[12px] font-medium text-ink">{varianceSessions} cash variance</p><p className="font-bn text-[10.5px] text-ink-400">Short / over যাচাই করুন</p></button>}
+          {bouncedCount > 0 && <button onClick={() => setTab('cheques')} className="rounded-lg border border-danger/20 bg-card px-3 py-2 text-left hover:bg-danger/5"><p className="text-[12px] font-medium text-danger">{bouncedCount} cheque issue{bouncedCount === 1 ? '' : 's'}</p><p className="font-bn text-[10.5px] text-ink-400">Bounced / Returned চেক দেখুন</p></button>}
+          {varianceSessions > 0 && <button onClick={() => setTab('cash')} className="rounded-lg border border-warning/20 bg-card px-3 py-2 text-left hover:bg-warning/5"><p className="text-[12px] font-medium text-ink">{varianceSessions} cash variance</p><p className="font-bn text-[10.5px] text-ink-400">Short / over যাচাই করুন</p></button>}
         </div>
       )}
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-ink-100 px-3" role="tablist">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -773,8 +773,8 @@ export function Finance() {
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.25fr_1fr]">
             <section className="space-y-4">
-              <div className="rounded-xl border border-ink-100">
-                <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
+              <div className="rounded-xl border border-border">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Business relationship balances</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower balances never cross-net.</p>
@@ -792,7 +792,7 @@ export function Finance() {
                     ['Borrower receivable', relationshipSummary.borrowerReceivable, 'Borrower'],
                     ['Borrower credit', relationshipSummary.borrowerCredit, 'Borrower']
                   ].map(([label, value, group]) => (
-                    <div key={String(label)} className="bg-white p-3">
+                    <div key={String(label)} className="bg-card p-3">
                       <p className="text-[11px] text-ink-400">{group}</p>
                       <p className="text-[12.5px] font-medium text-ink">{label}</p>
                       <p className="mt-1 text-base font-semibold text-ink">{taka(Number(value))}</p>
@@ -801,8 +801,8 @@ export function Finance() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-ink-100">
-                <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
+              <div className="rounded-xl border border-border">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Recent loans & owner money</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower money stays separate.</p>
@@ -840,7 +840,7 @@ export function Finance() {
             </section>
 
             <section className="space-y-4">
-              <div className="rounded-xl border border-ink-100 p-4">
+              <div className="rounded-xl border border-border p-4">
                 <p className="text-sm font-semibold text-ink">Money Accounts</p>
                 <p className="mb-3 text-[11px] text-ink-500">Live balances by money account.</p>
                 <div className="space-y-2">
@@ -848,7 +848,7 @@ export function Finance() {
                     <button
                       key={account.id}
                       onClick={() => setTab('accounts')}
-                      className="flex w-full items-center gap-3 rounded-lg border border-ink-100 px-3 py-2.5 text-left hover:bg-ink-50">
+                      className="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2.5 text-left hover:bg-ink-50">
                       <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                         {account.type === 'Cash' ? <Banknote className="size-4" /> : account.type === 'Bank' ? <Landmark className="size-4" /> : <WalletCards className="size-4" />}
                       </span>
@@ -862,7 +862,7 @@ export function Finance() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-ink-100 p-4">
+              <div className="rounded-xl border border-border p-4">
                 <p className="text-sm font-semibold text-ink">Quick tools</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[
@@ -871,7 +871,7 @@ export function Finance() {
                     { label: 'Reconcile', helper: 'Bank statement', icon: CheckCircle2, action: () => navigate('/app/reconciliation') },
                     { label: 'Daybook', helper: 'All transactions', icon: BookOpen, action: () => navigate('/app/daybook') }
                   ].map(({ label, helper, icon: Icon, action }) => (
-                    <button key={label} onClick={action} className="rounded-lg border border-ink-100 p-3 text-left hover:bg-ink-50">
+                    <button key={label} onClick={action} className="rounded-lg border border-border p-3 text-left hover:bg-ink-50">
                       <Icon className="size-4 text-teal-700" />
                       <p className="mt-2 text-[12.5px] font-medium text-ink">{label}</p>
                       <p className="text-[10.5px] text-ink-400">{helper}</p>
@@ -885,7 +885,7 @@ export function Finance() {
 
         {tab === 'transactions' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-ink-100 p-3 lg:flex-row lg:items-center">
+            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1 lg:max-w-md">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                 <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" placeholder="Search finance transaction, party or reference" />
@@ -957,7 +957,7 @@ export function Finance() {
                     setCounterPayments([{ id: 'counter-payment-' + Date.now(), method: 'Cash', account: accounts.find((item) => item.status === 'Active' && item.type === 'Cash')?.name ?? '', amount: '' }]);
                   }}
                   className={`rounded-xl border p-3 text-left transition-colors ${
-                    counterType === type ? 'border-teal-200 bg-teal-50' : 'border-ink-100 bg-white hover:bg-ink-50'
+                    counterType === type ? 'border-teal-200 bg-teal-50' : 'border-border bg-card hover:bg-ink-50'
                   }`}>
                   <p className={`text-[13px] font-semibold ${counterType === type ? 'text-teal-800' : 'text-ink'}`}>{type}</p>
                   <p className="mt-0.5 text-[10.5px] text-ink-400">
@@ -969,7 +969,7 @@ export function Finance() {
               ))}
             </div>
 
-            <div className="rounded-xl border border-ink-100 bg-white p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <div className="mb-4">
                 <p className="text-sm font-semibold text-ink">{counterType}</p>
                 <p className="text-[11px] text-ink-500">Quick-entry only. Full history and editing stay in their original modules.</p>
@@ -1016,8 +1016,8 @@ export function Finance() {
                 </label>
 
                 {counterType !== 'Bank Transfer' && (
-                  <div className="sm:col-span-2 rounded-xl border border-ink-100">
-                    <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+                  <div className="sm:col-span-2 rounded-xl border border-border">
+                    <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
                       <div>
                         <p className="text-[12.5px] font-semibold text-ink">Payment sources</p>
                         <p className="font-bn text-[10.5px] text-ink-400">Cash + Bank + Mobile Banking একসাথে ব্যবহার করা যাবে</p>
@@ -1044,7 +1044,7 @@ export function Finance() {
                           </div>
                         );
                       })}
-                      <div className="flex items-center justify-between border-t border-ink-100 pt-2 text-[11px]">
+                      <div className="flex items-center justify-between border-t border-border pt-2 text-[11px]">
                         <span className="text-ink-400">Split total</span>
                         <span className={Math.abs(counterSplitTotal - (parseFloat(counterAmount) || 0)) < 0.001 ? 'font-medium text-success' : 'font-medium text-warning'}>{taka(counterSplitTotal)}</span>
                       </div>
@@ -1086,7 +1086,7 @@ export function Finance() {
 
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {accounts.map((account) => (
-                <div key={account.id} className="rounded-xl border border-ink-100 bg-white p-4">
+                <div key={account.id} className="rounded-xl border border-border bg-card p-4">
                   <div className="flex items-start gap-3">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                       {account.type === 'Cash' ? <Banknote className="size-4" /> : account.type === 'Bank' ? <Landmark className="size-4" /> : <WalletCards className="size-4" />}
@@ -1104,7 +1104,7 @@ export function Finance() {
                     <span>{account.lastActivity}</span>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-100 pt-3">
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
                     <Button variant="outline" size="sm" onClick={() => setAccountAction(account)}>
                       <BookOpen className="size-4" /> Ledger
                     </Button>
@@ -1123,8 +1123,8 @@ export function Finance() {
               ))}
             </div>
 
-            <div className="mt-5 rounded-xl border border-ink-100">
-              <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
+            <div className="mt-5 rounded-xl border border-border">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">Transfer history</p>
                   <p className="text-[11px] text-ink-500">Transfers between business money accounts.</p>
@@ -1179,7 +1179,7 @@ export function Finance() {
               <Button size="sm" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> New cheque</Button>
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-ink-100">
+            <div className="overflow-hidden rounded-xl border border-border">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -1227,7 +1227,7 @@ export function Finance() {
 
         {tab === 'cash' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[360px_1fr]">
-            <section className="rounded-xl border border-ink-100 p-4">
+            <section className="rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">Current cash session</p>
@@ -1257,13 +1257,13 @@ export function Finance() {
                 <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>Open cash session</Button>
               )}
 
-              <button onClick={() => navigate('/app/reconciliation')} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-ink-100 py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
+              <button onClick={() => navigate('/app/reconciliation')} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
                 <RefreshCw className="size-3.5" /> Cash reconciliation
               </button>
             </section>
 
-            <section className="rounded-xl border border-ink-100">
-              <div className="border-b border-ink-100 px-4 py-3">
+            <section className="rounded-xl border border-border">
+              <div className="border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-ink">Cash session history</p>
                 <p className="text-[11px] text-ink-500">Expected vs counted cash, with short/over variance kept visible.</p>
               </div>
@@ -1415,3 +1415,4 @@ export function Finance() {
     </div>
   );
 }
+

@@ -161,8 +161,8 @@ export function VoucherDialog({
           </label>
 
           {(type === 'receipt' || type === 'payment') && (
-            <div className="sm:col-span-2 rounded-xl border border-ink-100">
-              <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+            <div className="sm:col-span-2 rounded-xl border border-border">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
                 <div><p className="text-[12.5px] font-semibold text-ink">Payment sources</p><p className="font-bn text-[10.5px] text-ink-400">একটি ভাউচারে Cash + Bank + Mobile Banking ব্যবহার করতে পারেন</p></div>
                 <Button variant="outline" size="sm" onClick={() => setPaymentRows((current) => [...current, { account: moneyAccounts[0]?.name ?? '', amount: '' }])}><Plus className="size-3.5" /> Add</Button>
               </div>
@@ -174,7 +174,7 @@ export function VoucherDialog({
                     <button type="button" disabled={paymentRows.length === 1} onClick={() => setPaymentRows((current) => current.filter((_, i) => i !== index))} className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger disabled:opacity-30" aria-label="Remove payment source"><Trash2 className="size-3.5" /></button>
                   </div>
                 ))}
-                <div className="flex items-center justify-between border-t border-ink-100 pt-2 text-[11px]"><span className="text-ink-400">Split total</span><span className={Math.abs(splitTotal - (parseFloat(amount) || 0)) < 0.001 ? 'font-medium text-success' : 'font-medium text-warning'}>৳{splitTotal.toLocaleString()}</span></div>
+                <div className="flex items-center justify-between border-t border-border pt-2 text-[11px]"><span className="text-ink-400">Split total</span><span className={Math.abs(splitTotal - (parseFloat(amount) || 0)) < 0.001 ? 'font-medium text-success' : 'font-medium text-warning'}>৳{splitTotal.toLocaleString()}</span></div>
               </div>
             </div>
           )}
@@ -192,3 +192,4 @@ export function VoucherDialog({
     </Dialog>
   );
 }
+

@@ -65,8 +65,8 @@ export function AuditDetailsDialog({
 
         {(source.description || source.note) && (
           <div className="grid gap-2 sm:grid-cols-2">
-            {source.description && <div className="rounded-lg border border-ink-100 px-3 py-2.5"><p className="text-[10.5px] text-ink-400">Description</p><p className="mt-0.5 text-[12.5px] text-ink-700">{source.description}</p></div>}
-            {source.note && <div className="rounded-lg border border-ink-100 px-3 py-2.5"><p className="text-[10.5px] text-ink-400">Internal note</p><p className="mt-0.5 text-[12.5px] text-ink-700">{source.note}</p></div>}
+            {source.description && <div className="rounded-lg border border-border px-3 py-2.5"><p className="text-[10.5px] text-ink-400">Description</p><p className="mt-0.5 text-[12.5px] text-ink-700">{source.description}</p></div>}
+            {source.note && <div className="rounded-lg border border-border px-3 py-2.5"><p className="text-[10.5px] text-ink-400">Internal note</p><p className="mt-0.5 text-[12.5px] text-ink-700">{source.note}</p></div>}
           </div>
         )}
 
@@ -78,9 +78,9 @@ export function AuditDetailsDialog({
         )}
 
         {!!source.paymentAccounts?.length && (
-          <div className="rounded-xl border border-ink-100">
-            <div className="border-b border-ink-100 px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">Payment / Money Accounts</p><p className="font-bn text-[10.5px] text-ink-400">কোন অ্যাকাউন্টে কত টাকার প্রভাব</p></div>
-            <div className="divide-y divide-ink-100">
+          <div className="rounded-xl border border-border">
+            <div className="border-b border-border px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">Payment / Money Accounts</p><p className="font-bn text-[10.5px] text-ink-400">কোন অ্যাকাউন্টে কত টাকার প্রভাব</p></div>
+            <div className="divide-y divide-border">
               {source.paymentAccounts.map((payment, index) => (
                 <div key={index} className="flex items-center justify-between px-3 py-2 text-[12px]"><span className="text-ink-600">{payment.account}</span><span className="font-medium text-ink">{taka(payment.amount)}</span></div>
               ))}
@@ -89,12 +89,12 @@ export function AuditDetailsDialog({
         )}
 
         {posting && (
-          <div className="rounded-xl border border-ink-100">
-            <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+          <div className="rounded-xl border border-border">
+            <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
               <div><p className="text-[12.5px] font-semibold text-ink">Accounting posting</p><p className="font-bn text-[10.5px] text-ink-400">এই লেনদেন থেকে তৈরি হিসাব — এক পাশ আলাদা করে পরিবর্তন করা যাবে না</p></div>
               <StatusBadge tone={posting.status === 'Posted' ? 'success' : 'neutral'}>{posting.status}</StatusBadge>
             </div>
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-border">
               {posting.lines.map((line, index) => (
                 <div key={index} className="grid grid-cols-[1fr_110px_110px] gap-2 px-3 py-2 text-[12px]">
                   <span className="text-ink-600">{accountMap.get(line.accountId) || line.accountId}</span>
@@ -122,3 +122,4 @@ export function AuditDetailsDialog({
     </Dialog>
   );
 }
+

@@ -109,16 +109,16 @@ export function VoucherActionDialog({
               <Detail label="Posted by">{source.postedBy}</Detail>
               <Detail label="Amount">{taka(source.amount)}</Detail>
             </div>
-            <div className="rounded-xl border border-ink-100 p-3">
+            <div className="rounded-xl border border-border p-3">
               <p className="text-[10.5px] text-ink-400">Description</p>
               <p className="mt-1 text-[12.5px] text-ink-700">{source.description || '—'}</p>
               {source.updatedBy && <p className="mt-2 text-[10.5px] text-ink-400">Last corrected by {source.updatedBy} · {source.updatedAt?.replace('T', ' ').slice(0, 16)}</p>}
               {source.deleteReason && <p className="mt-2 text-[10.5px] text-danger">Deleted by {source.deletedBy} · {source.deleteReason}</p>}
             </div>
             {posting && (
-              <div className="overflow-hidden rounded-xl border border-ink-100">
-                <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5"><div><p className="text-[12.5px] font-semibold text-ink">Balanced posting</p><p className="font-bn text-[10.5px] text-ink-400">এই ভাউচার থেকে তৈরি Debit/Credit</p></div><StatusBadge tone={posting.status === 'Posted' ? 'success' : 'neutral'}>{posting.status}</StatusBadge></div>
-                <div className="divide-y divide-ink-100">
+              <div className="overflow-hidden rounded-xl border border-border">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2.5"><div><p className="text-[12.5px] font-semibold text-ink">Balanced posting</p><p className="font-bn text-[10.5px] text-ink-400">এই ভাউচার থেকে তৈরি Debit/Credit</p></div><StatusBadge tone={posting.status === 'Posted' ? 'success' : 'neutral'}>{posting.status}</StatusBadge></div>
+                <div className="divide-y divide-border">
                   {posting.lines.map((line, index) => (
                     <div key={index} className="grid grid-cols-[1fr_110px_110px] gap-2 px-3 py-2 text-[12px]">
                       <span className="text-ink-600">{accountMap.get(line.accountId) ?? line.accountId}</span>
@@ -166,3 +166,4 @@ export function VoucherActionDialog({
     </Dialog>
   );
 }
+

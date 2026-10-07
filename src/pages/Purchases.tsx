@@ -39,17 +39,17 @@ function PayStatus({ total, paid }: { total: number; paid: number }) {
 }
 
 function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
-  if (!src) return <span className="text-xs text-ink-300">—</span>;
+  if (!src) return <span className="text-xs text-helper">—</span>;
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="group relative block size-8 overflow-hidden rounded-md border border-ink-100"
+      className="group relative block size-8 overflow-hidden rounded-md border border-border"
       aria-label="View receipt">
       <img src={src} alt="" className="h-full w-full object-cover" />
-      <span className="absolute inset-0 flex items-center justify-center bg-ink/40 opacity-0 transition-opacity group-hover:opacity-100">
+      <span className="absolute inset-0 flex items-center justify-center bg-inverse/40 opacity-0 transition-opacity group-hover:opacity-100">
         <Paperclip className="size-3 text-white" />
       </span>
     </button>
@@ -125,7 +125,7 @@ export function Purchases() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((item) => (
-          <div key={item.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={item.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{item.label}</p>
             <p className={`mt-0.5 text-lg font-semibold ${item.tone ?? 'text-ink'}`}>{item.value}</p>
             <p className="font-bn text-[11px] text-ink-400">{item.sub}</p>
@@ -133,8 +133,8 @@ export function Purchases() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-ink-100 px-3" role="tablist">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -158,7 +158,7 @@ export function Purchases() {
 
         {tab === 'purchases' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-ink-100 p-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">
               <div className="relative min-w-0 flex-1 sm:max-w-md">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                 <Input
@@ -247,7 +247,7 @@ export function Purchases() {
         {tab === 'return' && (
           <div className="p-4">
             <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
-              <div className="rounded-xl border border-ink-100 bg-ink-50/50 p-4">
+              <div className="rounded-xl border border-border bg-ink-50/50 p-4">
                 <div className="mb-3 flex items-start gap-2">
                   <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                     <Search className="size-4" />
@@ -268,15 +268,15 @@ export function Purchases() {
                     <Search className="size-4" /> Find purchase
                   </Button>
                 </div>
-                <div className="mt-4 border-t border-ink-100 pt-3 text-xs text-ink-500">
+                <div className="mt-4 border-t border-border pt-3 text-xs text-ink-500">
                   Return workflow keeps the original purchase price and unit conversion, then posts the refund to cash or supplier credit.
                 </div>
               </div>
 
-              <div className="rounded-xl border border-ink-100 bg-white">
+              <div className="rounded-xl border border-border bg-card">
                 {!returnPurchase ? (
                   <div className="flex min-h-64 flex-col items-center justify-center px-6 text-center">
-                    <Undo2 className="mb-3 size-8 text-ink-300" />
+                    <Undo2 className="mb-3 size-8 text-helper" />
                     <p className="text-sm font-medium text-ink">No purchase selected</p>
                     <p className="mt-1 max-w-md text-xs text-ink-500">
                       Find a purchase first. HisabIQ will load the original items, historical units and quantities available to return.
@@ -284,7 +284,7 @@ export function Purchases() {
                   </div>
                 ) : (
                   <>
-                    <div className="flex flex-col gap-2 border-b border-ink-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-sm font-semibold text-ink">{returnPurchase.ref}</p>
                         <p className="text-xs text-ink-500">{returnPurchase.supplier} · {returnPurchase.date}</p>
@@ -292,8 +292,8 @@ export function Purchases() {
                       <StatusBadge tone="teal">Original purchase loaded</StatusBadge>
                     </div>
                     <div className="p-4">
-                      <div className="rounded-lg border border-ink-100">
-                        <div className="grid grid-cols-[1fr_100px_120px] gap-2 border-b border-ink-100 bg-ink-50/50 px-3 py-2 text-xs font-medium text-ink-500">
+                      <div className="rounded-lg border border-border">
+                        <div className="grid grid-cols-[1fr_100px_120px] gap-2 border-b border-border bg-ink-50/50 px-3 py-2 text-xs font-medium text-ink-500">
                           <span>Item</span>
                           <span>Return qty</span>
                           <span className="text-right">Refund</span>
@@ -344,7 +344,7 @@ export function Purchases() {
 
         {tab === 'return-history' && (
           <>
-            <div className="flex items-center justify-between gap-3 border-b border-ink-100 p-3">
+            <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Purchase return history</p>
                 <p className="text-[11px] text-ink-500">Completed returns, refund method and source purchase.</p>
@@ -408,3 +408,4 @@ export function Purchases() {
     </div>
   );
 }
+

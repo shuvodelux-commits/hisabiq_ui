@@ -10,7 +10,7 @@ export function AppShell() {
   return (
     <UserPreferencesProvider>
       <CashSessionProvider>
-      <div className="flex min-h-screen w-full bg-ink-50/60">
+      <div className="flex min-h-screen w-full bg-background">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar />

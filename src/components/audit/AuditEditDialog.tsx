@@ -128,7 +128,7 @@ export function AuditEditDialog({
 
         {!review && source && (
           <div className="space-y-4">
-            <div className="rounded-lg border border-ink-100 bg-ink-50/50 px-3 py-2">
+            <div className="rounded-lg border border-border bg-ink-50/50 px-3 py-2">
               <p className="text-[12px] font-medium text-ink">{source.reference} · {source.source.replaceAll('-', ' ')}</p>
               <p className="mt-0.5 font-bn text-[10.5px] text-ink-400">শুধু এই লেনদেনের জন্য নিরাপদ ও প্রযোজ্য ফিল্ডগুলো পরিবর্তন করুন। Created Date কখনও বদলাবে না।</p>
             </div>
@@ -225,8 +225,8 @@ export function AuditEditDialog({
             </div>
 
             {(source.paymentAccounts?.length || source.paid > 0) && source.source !== 'transfer' && (
-              <div className="rounded-xl border border-ink-100">
-                <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+              <div className="rounded-xl border border-border">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
                   <div>
                     <p className="text-[12.5px] font-semibold text-ink">Payment split</p>
                     <p className="font-bn text-[10.5px] text-ink-400">কোন অ্যাকাউন্ট থেকে কত টাকা গেছে বা এসেছে</p>
@@ -241,7 +241,7 @@ export function AuditEditDialog({
                       <button type="button" onClick={() => setPayments((current) => current.filter((_, i) => i !== index))} className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger" aria-label="Remove payment"><Trash2 className="size-3.5" /></button>
                     </div>
                   ))}
-                  <div className="flex justify-between border-t border-ink-100 pt-2 text-[11px] text-ink-500">
+                  <div className="flex justify-between border-t border-border pt-2 text-[11px] text-ink-500">
                     <span>Split total</span>
                     <span className="font-medium text-ink">৳{payments.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0).toLocaleString()}</span>
                   </div>
@@ -277,3 +277,4 @@ export function AuditEditDialog({
     </Dialog>
   );
 }
+

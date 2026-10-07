@@ -16,12 +16,12 @@ export const monthlyProfit = [
 
 
 export const expenseBreakdown = [
-{ name: 'Salary', value: 42000, color: '#0B1A2C' },
-{ name: 'Rent', value: 35000, color: '#0D7C74' },
-{ name: 'Transport', value: 6500, color: '#3DB8AC' },
-{ name: 'Utilities', value: 4860, color: '#8A9BB0' },
-{ name: 'Maintenance', value: 2800, color: '#B45309' },
-{ name: 'Tea & Snacks', value: 1250, color: '#D5DDE6' }];
+{ name: 'Salary', value: 42000, color: 'var(--chart-1)' },
+{ name: 'Rent', value: 35000, color: 'var(--chart-2)' },
+{ name: 'Transport', value: 6500, color: 'var(--chart-3)' },
+{ name: 'Utilities', value: 4860, color: 'var(--chart-4)' },
+{ name: 'Maintenance', value: 2800, color: 'var(--chart-5)' },
+{ name: 'Tea & Snacks', value: 1250, color: 'var(--chart-6)' }];
 
 
 export const aging = [

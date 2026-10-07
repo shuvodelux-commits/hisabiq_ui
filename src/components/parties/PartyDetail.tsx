@@ -39,8 +39,8 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
   const isReceivable = party.balance > 0;
 
   return (
-    <div className="min-w-0 rounded-xl border border-ink-100 bg-white shadow-card">
-      <div className="flex flex-wrap items-start gap-4 border-b border-ink-100 p-4">
+    <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
+      <div className="flex flex-wrap items-start gap-4 border-b border-border p-4">
         <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -64,7 +64,7 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-ink-100 px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" onClick={() => toast.success(isReceivable ? 'Payment received' : 'Payment recorded')}>
           <HandCoins className="size-4" /> {isReceivable || party.balance === 0 ? 'Receive payment' : 'Make payment'}
         </Button>
@@ -79,7 +79,7 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
         </Button>
       </div>
 
-      <div className="flex gap-1 border-b border-ink-100 px-3" role="tablist">
+      <div className="flex gap-1 border-b border-border px-3" role="tablist">
         {tabs.map((t) =>
         <button
           key={t.id}
@@ -100,7 +100,7 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
 
       {entries.length === 0 && tab !== 'notes' ?
       <div className="px-4 py-14 text-center">
-          <Receipt className="mx-auto size-8 text-ink-300" />
+          <Receipt className="mx-auto size-8 text-helper" />
           <p className="mt-2 font-medium text-ink">No transactions in this period</p>
           <p className="mt-1 text-sm text-ink-500">Invoices, payments and notes for {party.name} will appear here.</p>
         </div> :
@@ -108,7 +108,7 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
       <div>
           {tab === 'ledger' && <LedgerTable entries={entries} onOpenAttachment={setAttachment} />}
           {(tab === 'invoices' || tab === 'payments') &&
-        <ul className="divide-y divide-ink-100">
+        <ul className="divide-y divide-border">
               {(tab === 'invoices' ? invoices : payments).map((e) =>
           <li key={e.id} className="flex items-center gap-3 px-4 py-2.5 text-[13px]">
                   <span className="flex size-8 items-center justify-center rounded-lg bg-ink-50 text-ink-500">
@@ -129,12 +129,12 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
           {tab === 'attachments' &&
         <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-4">
               {attachments.map((e) =>
-          <button key={e.id} onClick={() => setAttachment(e)} className="overflow-hidden rounded-lg border border-ink-100 text-left hover:border-teal-300">
+          <button key={e.id} onClick={() => setAttachment(e)} className="overflow-hidden rounded-lg border border-border text-left hover:border-teal-300">
                   <div className="flex aspect-[4/3] items-center justify-center bg-ink-50">
                     {e.attachment?.url ?
               <img src={e.attachment.url} alt="" className="h-full w-full object-cover" /> :
 
-              <Paperclip className="size-6 text-ink-300" />
+              <Paperclip className="size-6 text-helper" />
               }
                   </div>
                   <div className="px-2.5 py-1.5">
@@ -189,7 +189,7 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
             <img src={attachment.attachment.url} alt={`Attachment ${attachment.attachment.name}`} className="max-h-[60vh] w-full object-contain" /> :
 
             <div className="py-12 text-center text-sm text-ink-500">
-                <FileText className="mx-auto mb-2 size-8 text-ink-300" />
+                <FileText className="mx-auto mb-2 size-8 text-helper" />
                 Preview not available · {formatNumber(84)} KB
               </div>
             }

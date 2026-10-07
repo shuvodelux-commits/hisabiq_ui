@@ -162,7 +162,7 @@ export function ProductSettings() {
 
   return (
     <div>
-      <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 px-3 scrollbar-thin" role="tablist">
+      <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
         {tabs.map(([id, label, Icon]) => (
           <button
             key={id}
@@ -176,7 +176,7 @@ export function ProductSettings() {
       </div>
 
       {tab !== 'defaults' && (
-        <div className="flex flex-col gap-2 border-b border-ink-100 bg-ink-50/40 p-3 lg:flex-row lg:items-end">
+        <div className="flex flex-col gap-2 border-b border-border bg-ink-50/40 p-3 lg:flex-row lg:items-end">
           <label className="min-w-0 flex-1 text-[12px] font-medium text-ink lg:max-w-xs">
             {tab === 'categories' ? 'Category name' : tab === 'brands' ? 'Brand name' : 'Unit name'}
             <Input className="mt-1" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder={tab === 'units' ? 'e.g. Meter' : 'Enter name'} />
@@ -299,8 +299,8 @@ export function ProductSettings() {
 
       {tab === 'defaults' && (
         <div className="grid gap-4 p-4 xl:grid-cols-2">
-          <section className="rounded-xl border border-ink-100">
-            <div className="border-b border-ink-100 p-3">
+          <section className="rounded-xl border border-border">
+            <div className="border-b border-border p-3">
               <p className="text-sm font-semibold text-ink">Product entry defaults</p>
               <p className="mt-0.5 text-[11px] text-ink-500">Defaults reduce repetitive choices; each product can still override them.</p>
             </div>
@@ -324,12 +324,12 @@ export function ProductSettings() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-ink-100">
-            <div className="border-b border-ink-100 p-3">
+          <section className="rounded-xl border border-border">
+            <div className="border-b border-border p-3">
               <p className="text-sm font-semibold text-ink">Product behaviour</p>
               <p className="mt-0.5 text-[11px] text-ink-500">Keep operational behaviour simple and switchable.</p>
             </div>
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-border">
               {[
                 { label: 'Bangla helper text', helper: 'Show Bangla hints beside product fields.', value: banglaHelpers, set: setBanglaHelpers },
                 { label: 'Low stock alerts', helper: 'Warn when stock falls below the product minimum.', value: lowStockAlerts, set: setLowStockAlerts },
@@ -355,3 +355,4 @@ export function ProductSettings() {
     </div>
   );
 }
+

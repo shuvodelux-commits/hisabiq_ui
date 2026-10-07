@@ -26,7 +26,7 @@ const n = (v: number) => formatNumber(v, v % 1 ? 2 : 0);
 
 export function ReceiptPreview(p: ReceiptPreviewProps) {
   return (
-    <div className="mx-auto w-[288px] bg-white px-5 py-5 text-[11.5px] leading-relaxed text-ink shadow-pop ring-1 ring-ink-100">
+    <div className="theme-light mx-auto w-[288px] bg-white px-5 py-5 text-[11.5px] leading-relaxed text-ink shadow-pop ring-1 ring-ink-100">
       <div className="flex flex-col items-center text-center">
         <LogoMark size={28} tone="mono-ink" />
         <p className="mt-2 text-[13px] font-semibold">Nawabpur Hardware House</p>

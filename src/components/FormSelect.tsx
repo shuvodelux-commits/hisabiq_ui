@@ -10,7 +10,7 @@ export function FormSelect({ options, className = '', ...rest }: FormSelectProps
     <div className={`relative ${className}`}>
       <select
         {...rest}
-        className="h-9 w-full appearance-none rounded-md border border-input bg-white pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20">
+        className="h-9 w-full appearance-none rounded-md border border-input bg-card pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20">
         
         {options.map((o) =>
         <option key={o} value={o}>

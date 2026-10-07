@@ -107,13 +107,13 @@ export function ChequeActionDialog({
             </div>
 
             {(cheque.attachment || cheque.note) && <div className="grid gap-2 sm:grid-cols-2">
-              {cheque.attachment && <div className="rounded-lg border border-ink-100 px-3 py-2.5"><p className="text-[10.5px] text-ink-400">Attachment</p><p className="mt-1 flex items-center gap-1.5 text-[12px] font-medium text-ink"><Paperclip className="size-3.5" /> {cheque.attachment}</p></div>}
-              {cheque.note && <div className="rounded-lg border border-ink-100 px-3 py-2.5"><p className="text-[10.5px] text-ink-400">Note</p><p className="mt-1 text-[12px] text-ink-700">{cheque.note}</p></div>}
+              {cheque.attachment && <div className="rounded-lg border border-border px-3 py-2.5"><p className="text-[10.5px] text-ink-400">Attachment</p><p className="mt-1 flex items-center gap-1.5 text-[12px] font-medium text-ink"><Paperclip className="size-3.5" /> {cheque.attachment}</p></div>}
+              {cheque.note && <div className="rounded-lg border border-border px-3 py-2.5"><p className="text-[10.5px] text-ink-400">Note</p><p className="mt-1 text-[12px] text-ink-700">{cheque.note}</p></div>}
             </div>}
 
             {cheque.statusUpdatedBy && <div className="rounded-lg bg-ink-50 px-3 py-2 text-[10.5px] text-ink-500">Last status changed by {cheque.statusUpdatedBy} · {cheque.statusUpdatedAt?.replace('T', ' ').slice(0, 16)}{cheque.statusReason ? ' · ' + cheque.statusReason : ''}</div>}
 
-            {!terminal && !pendingAction && <div className="rounded-xl border border-ink-100 p-3">
+            {!terminal && !pendingAction && <div className="rounded-xl border border-border p-3">
               <p className="text-[12.5px] font-semibold text-ink">Next cheque action</p>
               <p className="mt-0.5 font-bn text-[10.5px] text-ink-400">Cleared না হওয়া পর্যন্ত Bank balance বদলাবে না</p>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -138,3 +138,4 @@ export function ChequeActionDialog({
     </Dialog>
   );
 }
+

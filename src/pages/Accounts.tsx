@@ -133,15 +133,15 @@ export function Accounts() {
         description="Bookkeeping, vouchers, ledgers and financial statements — separate from daily money movement."
         actions={
           <>
-            <div className="flex items-center gap-1 rounded-lg border border-ink-100 bg-white p-1" aria-label="Terminology preference">
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1" aria-label="Terminology preference">
               <button
                 onClick={() => setTerminologyMode('simple')}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${terminologyMode === 'simple' ? 'bg-ink text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
+                className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${terminologyMode === 'simple' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
                 Simple
               </button>
               <button
                 onClick={() => setTerminologyMode('accounting')}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${terminologyMode === 'accounting' ? 'bg-ink text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
+                className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${terminologyMode === 'accounting' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
                 Accounting
               </button>
             </div>
@@ -166,10 +166,10 @@ export function Accounts() {
           { label: 'Assets', helper: 'ব্যবসার মোট সম্পদ', value: sheet.assets, icon: Landmark, tone: 'text-ink' },
           { label: 'Liabilities', helper: 'ব্যবসার মোট দেনা', value: sheet.liabilities, icon: Scale, tone: 'text-ink' }
         ].map(({ label, helper, value, icon: Icon, tone }) => (
-          <div key={label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <div className="flex items-start justify-between gap-2">
               <p className="text-[12.5px] text-ink-500">{label}</p>
-              <Icon className="size-4 text-ink-300" />
+              <Icon className="size-4 text-helper" />
             </div>
             <p className={`mt-0.5 text-lg font-semibold ${tone}`}>{value < 0 ? '−' : ''}{taka(Math.abs(value))}</p>
             <p className="font-bn text-[10.5px] text-ink-400">{helper}</p>
@@ -177,8 +177,8 @@ export function Accounts() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 px-3 scrollbar-thin" role="tablist">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -194,15 +194,15 @@ export function Accounts() {
 
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.2fr_1fr]">
-            <section className="rounded-xl border border-ink-100">
-              <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
+            <section className="rounded-xl border border-border">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">Recent accounting entries</p>
                   <p className="font-bn text-[11px] text-ink-400">Sales, Purchase, Expense ও Finance থেকে নিজে থেকেই হিসাব তৈরি হয়</p>
                 </div>
                 <button onClick={() => setTab('vouchers')} className="text-xs font-medium text-teal-700 hover:underline">View all</button>
               </div>
-              <div className="divide-y divide-ink-100">
+              <div className="divide-y divide-border">
                 {sources.slice().reverse().slice(0, 6).map((source) => (
                   <div key={source.id} className="flex items-center gap-3 px-4 py-3">
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
@@ -219,7 +219,7 @@ export function Accounts() {
             </section>
 
             <section className="space-y-3">
-              <div className="rounded-xl border border-ink-100 p-4">
+              <div className="rounded-xl border border-border p-4">
                 <p className="text-sm font-semibold text-ink">Books status</p>
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2"><span className="text-[12px] text-ink-600">Trial Balance</span><StatusBadge tone={Math.abs(trial.totalDebit - trial.totalCredit) < 0.01 ? 'success' : 'danger'} dot>{Math.abs(trial.totalDebit - trial.totalCredit) < 0.01 ? 'Balanced' : 'Needs review'}</StatusBadge></div>
@@ -228,7 +228,7 @@ export function Accounts() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-ink-100 p-4">
+              <div className="rounded-xl border border-border p-4">
                 <div className="flex items-center gap-2">
                   <Settings2 className="size-4 text-teal-700" />
                   <p className="text-sm font-semibold text-ink">Quick accounting</p>
@@ -236,7 +236,7 @@ export function Accounts() {
                 <p className="mt-1 font-bn text-[11px] text-ink-400">সাধারণ কাজ সহজ রাখুন, হিসাব নিজে থেকেই দুই পাশে মিলবে</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {([['Receipt Voucher', 'receipt'], ['Payment Voucher', 'payment'], ['Account Transfer', 'transfer'], ['Adjustment Entry', 'adjustment']] as Array<[string, VoucherType]>).map(([label, type]) => (
-                    <button key={label} onClick={() => openVoucher(type)} className="rounded-lg border border-ink-100 p-3 text-left text-[12px] font-medium text-ink hover:bg-ink-50">
+                    <button key={label} onClick={() => openVoucher(type)} className="rounded-lg border border-border p-3 text-left text-[12px] font-medium text-ink hover:bg-ink-50">
                       {label}
                     </button>
                   ))}
@@ -248,7 +248,7 @@ export function Accounts() {
 
         {tab === 'vouchers' && (
           <div>
-            <div className="flex items-center justify-between border-b border-ink-100 p-3">
+            <div className="flex items-center justify-between border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Vouchers & postings</p>
                 <p className="font-bn text-[11px] text-ink-400">কোথা থেকে হিসাব এসেছে এবং কে এন্ট্রি করেছেন</p>
@@ -342,3 +342,4 @@ export function Accounts() {
     </div>
   );
 }
+

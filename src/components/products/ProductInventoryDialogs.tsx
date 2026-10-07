@@ -122,7 +122,7 @@ export function ProductDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-1 overflow-x-auto border-b border-ink-100" role="tablist">
+        <div className="flex gap-1 overflow-x-auto border-b border-border" role="tablist">
           {tabs.map(([id, label, bn]) => (
             <button
               key={id}
@@ -139,22 +139,22 @@ export function ProductDetailsDialog({
         {tab === 'overview' && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {isStock && <div className="rounded-lg border border-ink-100 p-3">
+              {isStock && <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-ink-500">On hand</p>
                 <p className="mt-1 text-base font-semibold text-ink">{formatStock(product)}</p>
                 <p className="text-[11px] text-ink-400">Recorded stock</p>
               </div>}
-              {isStock && <div className="rounded-lg border border-ink-100 p-3">
+              {isStock && <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-ink-500">Stock value</p>
                 <p className="mt-1 text-base font-semibold text-ink">{taka(stockValue, stockValue % 1 ? 2 : 0)}</p>
                 <p className="text-[11px] text-ink-400">At purchase price</p>
               </div>}
-              <div className="rounded-lg border border-ink-100 p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-ink-500">Normal selling price</p>
                 <p className="mt-1 text-base font-semibold text-ink">{taka(product.sellPrice)}/{product.unit}</p>
                 <p className="text-[11px] text-ink-400">Offers never overwrite this price</p>
               </div>
-              <div className="rounded-lg border border-ink-100 p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-ink-500">Product type</p>
                 <p className="mt-1 text-base font-semibold text-ink">{product.kind ?? 'Stock'}</p>
                 <p className="text-[11px] text-ink-400">{product.category}</p>
@@ -162,7 +162,7 @@ export function ProductDetailsDialog({
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-ink-100 p-3">
+              <div className="rounded-xl border border-border p-3">
                 <p className="text-[13px] font-semibold text-ink">Warranty <span className="font-bn text-[11px] font-normal text-ink-400">· ওয়ারেন্টি</span></p>
                 {product.warranty?.enabled ? (
                   <div className="mt-2 space-y-1 text-[12.5px]">
@@ -174,7 +174,7 @@ export function ProductDetailsDialog({
                 ) : <p className="mt-2 text-sm text-ink-500">Warranty is off.</p>}
               </div>
 
-              <div className="rounded-xl border border-ink-100 p-3">
+              <div className="rounded-xl border border-border p-3">
                 <p className="text-[13px] font-semibold text-ink">{isStock ? 'Tracking' : 'Service settings'} <span className="font-bn text-[11px] font-normal text-ink-400">· ট্র্যাকিং</span></p>
                 {isStock ? (
                   <div className="mt-2 space-y-2 text-[12.5px]">
@@ -201,7 +201,7 @@ export function ProductDetailsDialog({
                 ['Expiring Soon', stock.expiringSoon, `Within ${product.expiry?.warningDays ?? 0} days`],
                 ['Expired', stock.expired, 'Visible but blocked from normal sale']
               ].map(([label, value, hint]) => (
-                <div key={String(label)} className="rounded-lg border border-ink-100 p-3">
+                <div key={String(label)} className="rounded-lg border border-border p-3">
                   <p className="text-xs text-ink-500">{label}</p>
                   <p className={`mt-1 text-base font-semibold ${label === 'Expired' && Number(value) > 0 ? 'text-danger' : label === 'Expiring Soon' && Number(value) > 0 ? 'text-warning' : 'text-ink'}`}>
                     {formatStock({ ...product, stock: Number(value) })}
@@ -218,15 +218,15 @@ export function ProductDetailsDialog({
         )}
 
         {tab === 'lots' && isStock && (
-          <div className="overflow-hidden rounded-xl border border-ink-100">
-            <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
               <div>
                 <p className="text-[13px] font-semibold text-ink">Lots & Serials <span className="font-bn text-[11px] font-normal text-ink-400">· লট ও সিরিয়াল</span></p>
                 <p className="text-[11px] text-ink-400">{productLots.length} lots · {productLots.reduce((sum, lot) => sum + (lot.serials?.length ?? 0), 0)} serials recorded</p>
               </div>
               <Button size="sm" variant="outline" onClick={() => onAddLot(product)}><Plus className="size-3.5" /> Add lot</Button>
             </div>
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-border">
               {productLots.map((lot) => {
                 const expiry = lotExpiryState(lot, product.expiry?.warningDays ?? 0);
                 return <div key={lot.id} className="grid gap-2 px-3 py-3 text-[12.5px] sm:grid-cols-[1.2fr_.8fr_.8fr_1fr]">
@@ -248,15 +248,15 @@ export function ProductDetailsDialog({
         )}
 
         {tab === 'offers' && (
-          <div className="rounded-xl border border-ink-100">
-            <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+          <div className="rounded-xl border border-border">
+            <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
               <div>
                 <p className="text-[13px] font-semibold text-ink">Offers <span className="font-bn text-[11px] font-normal text-ink-400">· অফার</span></p>
                 <p className="text-[11px] text-ink-400">Normal price remains {taka(product.sellPrice)}/{product.unit}</p>
               </div>
               <Button size="sm" variant="outline" onClick={() => onManageOffers(product)}><Tag className="size-3.5" /> Manage offers</Button>
             </div>
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-border">
               {productOffers.map((offer) => {
                 const status = offerStatus(offer);
                 const normal = priceForOfferUnit(product, offer.priceUnit);
@@ -275,9 +275,9 @@ export function ProductDetailsDialog({
         )}
 
         {tab === 'history' && (
-          <div className="overflow-hidden rounded-xl border border-ink-100">
-            <div className="border-b border-ink-100 px-3 py-2.5"><p className="text-[13px] font-semibold text-ink">History <span className="font-bn text-[11px] font-normal text-ink-400">· হিস্ট্রি</span></p></div>
-            <div className="divide-y divide-ink-100">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="border-b border-border px-3 py-2.5"><p className="text-[13px] font-semibold text-ink">History <span className="font-bn text-[11px] font-normal text-ink-400">· হিস্ট্রি</span></p></div>
+            <div className="divide-y divide-border">
               {productMovements.map((movement) => <div key={movement.id} className="grid grid-cols-[90px_1fr_auto] gap-3 px-3 py-2.5 text-[12.5px]">
                 <span className="text-ink-400">{movement.date}</span>
                 <span><span className="font-medium text-ink">{movement.type}</span><span className="block text-[11px] text-ink-400">{movement.reference ?? movement.note ?? '—'}</span></span>
@@ -357,7 +357,7 @@ export function StockAdjustmentDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-1 rounded-lg bg-ink-50 p-1">
-            {(['Add stock', 'Remove stock', 'Set exact stock'] as StockAdjustmentMode[]).map((item) => <button key={item} type="button" onClick={() => { setMode(item); setError(''); }} className={`rounded-md px-2 py-2 text-xs font-medium ${mode === item ? 'bg-white text-ink shadow-card' : 'text-ink-500 hover:text-ink'}`}>{item}</button>)}
+            {(['Add stock', 'Remove stock', 'Set exact stock'] as StockAdjustmentMode[]).map((item) => <button key={item} type="button" onClick={() => { setMode(item); setError(''); }} className={`rounded-md px-2 py-2 text-xs font-medium ${mode === item ? 'bg-card text-ink shadow-card' : 'text-ink-500 hover:text-ink'}`}>{item}</button>)}
           </div>
           <div>
             <label className="mb-1.5 block text-[13px] font-medium text-ink">Quantity <span className="font-bn text-[11px] font-normal text-ink-400">· পরিমাণ</span></label>
@@ -464,10 +464,10 @@ export function StockLotDialog({
             {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">Expiry date <span className="font-bn text-[11px] text-ink-400">· মেয়াদ</span><Input className="mt-1.5" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} /></label>}
           </div>
 
-          {(product.serialTracking ?? 'Off') !== 'Off' && <div className="rounded-xl border border-ink-100 p-3">
+          {(product.serialTracking ?? 'Off') !== 'Off' && <div className="rounded-xl border border-border p-3">
             <div className="flex items-center gap-2"><ScanLine className="size-4 text-teal-700" /><p className="text-[13px] font-medium text-ink">Serials <span className="font-bn text-[11px] text-ink-400">· সিরিয়াল নম্বর</span></p></div>
             <p className="mt-1 text-xs text-ink-500">Type, scan or paste serials separated by line, comma or semicolon.</p>
-            <textarea value={serialText} onChange={(e) => setSerialText(e.target.value)} className="mt-2 min-h-28 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" placeholder={"SN-001\nSN-002"} />
+            <textarea value={serialText} onChange={(e) => setSerialText(e.target.value)} className="mt-2 min-h-28 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" placeholder={"SN-001\nSN-002"} />
             <p className={`mt-1.5 text-xs ${duplicates.length || (product.serialTracking === 'Required' && serials.length !== required) ? 'text-warning' : 'text-ink-500'}`}>
               {serials.length} entered{product.serialTracking === 'Required' ? ` · ${required} required` : ' · optional'}{duplicates.length ? ` · duplicate: ${duplicates[0]}` : ''}
             </p>
@@ -549,7 +549,7 @@ export function ManageOffersDialog({
         <div className="space-y-3">
           {drafts.map((offer) => {
             const status = offerStatus(offer);
-            return <button key={offer.id} type="button" onClick={() => { setEditing(offer); setError(''); }} className="flex w-full items-center justify-between gap-3 rounded-xl border border-ink-100 p-3 text-left hover:bg-ink-50">
+            return <button key={offer.id} type="button" onClick={() => { setEditing(offer); setError(''); }} className="flex w-full items-center justify-between gap-3 rounded-xl border border-border p-3 text-left hover:bg-ink-50">
               <div><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% discount` : `${taka(offer.value)} / ${offer.priceUnit} discount`}</span><StatusBadge tone={offerTone[status]}>{status}</StatusBadge></div><p className="mt-1 text-[11px] text-ink-400">{offer.startAt.replace('T', ' ')} → {offer.endAt.replace('T', ' ')}</p></div>
               <div className="text-right"><p className="text-[11px] text-ink-400 line-through">{taka(priceForOfferUnit(product, offer.priceUnit))}/{offer.priceUnit}</p><p className="text-sm font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, offer))}/{offer.priceUnit}</p></div>
             </button>;
@@ -563,8 +563,8 @@ export function ManageOffersDialog({
               <label className="text-[13px] font-medium text-ink">Start date & time<Input className="mt-1.5" type="datetime-local" value={editing.startAt} onChange={(e) => setEditing({ ...editing, startAt: e.target.value })} /></label>
               <label className="text-[13px] font-medium text-ink">End date & time<Input className="mt-1.5" type="datetime-local" value={editing.endAt} onChange={(e) => setEditing({ ...editing, endAt: e.target.value })} /></label>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-white px-3 py-2"><span className="text-[13px] text-ink">Enabled</span><Switch checked={editing.enabled} onCheckedChange={(enabled) => setEditing({ ...editing, enabled })} /></div>
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-white p-3 text-center text-xs"><div><p className="text-ink-400">Normal</p><p className="mt-1 font-semibold">{taka(priceForOfferUnit(product, editing.priceUnit))}/{editing.priceUnit}</p></div><div><p className="text-ink-400">Effective</p><p className="mt-1 font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, editing))}/{editing.priceUnit}</p></div></div>
+            <div className="flex items-center justify-between rounded-lg bg-card px-3 py-2"><span className="text-[13px] text-ink">Enabled</span><Switch checked={editing.enabled} onCheckedChange={(enabled) => setEditing({ ...editing, enabled })} /></div>
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-card p-3 text-center text-xs"><div><p className="text-ink-400">Normal</p><p className="mt-1 font-semibold">{taka(priceForOfferUnit(product, editing.priceUnit))}/{editing.priceUnit}</p></div><div><p className="text-ink-400">Effective</p><p className="mt-1 font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, editing))}/{editing.priceUnit}</p></div></div>
             {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">{error}</p>}
             <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button><Button size="sm" onClick={saveDraft}>Save offer</Button></div>
           </div>}
@@ -578,3 +578,4 @@ export function ManageOffersDialog({
     </Dialog>
   );
 }
+
