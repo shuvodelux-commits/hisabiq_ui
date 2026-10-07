@@ -50,7 +50,8 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       secondaryQty: sourceLine.secondaryQty ?? '',
       unit,
       price: String(sourceLine.price),
-      serials: sourceLine.serials ?? []
+      serials: preserveHistorical ? sourceLine.serials ?? [] : [],
+      historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined
     }];
   });
 }
@@ -78,7 +79,7 @@ function paymentsFromDraft(draft: SalesDraft): PosPaymentRow[] {
   }));
 }
 
-function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
+function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): CartLine[] {
   return invoice.lines.flatMap((sourceLine) => {
     const product = products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
@@ -93,7 +94,8 @@ function cartFromInvoice(invoice: SalesInvoice): CartLine[] {
           secondaryQty: parsed.secondaryQty,
           unit: product.altUnit.unit,
           price: String(sourceLine.price * product.altUnit.factor),
-          serials: sourceLine.serials ?? []
+          serials: preserveHistorical ? sourceLine.serials ?? [] : [],
+          historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined
         }];
       }
     }
@@ -170,7 +172,7 @@ export function Pos() {
     const sourceKey = `${sourceMode}:${sourceInvoice.invoice}`;
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
-    cart.setLines(cartFromInvoice(sourceInvoice));
+    cart.setLines(cartFromInvoice(sourceInvoice, editing));
     const sourceParty = sourceInvoice.partyId ? parties.find((party) => party.id === sourceInvoice.partyId) ?? null : null;
     cart.setCustomer(sourceParty);
     cart.setCustomerDetails({
@@ -249,6 +251,15 @@ export function Pos() {
       return;
     }
 
+    const soldOutsideEditedInvoice = salesInvoices
+      .filter((invoiceItem) => !editing || invoiceItem.invoice !== sourceInvoice?.invoice)
+      .flatMap((invoiceItem) => invoiceItem.lines.flatMap((line) => line.serials ?? []));
+    const reusedSoldSerial = cart.lines.flatMap((line) => line.serials).find((serial) => soldOutsideEditedInvoice.includes(serial));
+    if (reusedSoldSerial) {
+      toast.error('Serial already sold', { description: reusedSoldSerial });
+      return;
+    }
+
     const allSelectedSerials = cart.lines.flatMap((line) => line.serials);
     const duplicateSelected = duplicateSerials(allSelectedSerials);
     if (duplicateSelected.length) {
@@ -297,7 +308,7 @@ export function Pos() {
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
           serials: l.serials,
-          warranty: warrantySnapshot(l.product),
+          warranty: editing ? (l.historicalWarranty ?? warrantySnapshot(l.product)) : warrantySnapshot(l.product),
           lotAllocations: l.product.kind === 'Service' ? undefined : allocateLotQuantity(
             l.product,
             stockLots,
