@@ -374,12 +374,14 @@ export function StockAdjustmentDialog({
 export function StockLotDialog({
   product,
   existingLots,
+  soldSerials,
   open,
   onOpenChange,
   onSave
 }: {
   product: Product | null;
   existingLots: StockLot[];
+  soldSerials: string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (lot: StockLot) => void;
@@ -412,12 +414,13 @@ export function StockLotDialog({
   const selectedUnit = units.includes(unit) ? unit : product.unit;
   const baseQty = toBaseQuantity(quantity, selectedUnit, product.unit, product.altUnit?.unit, product.altUnit?.factor ?? 1);
   const serials = normalizeSerials(serialText);
-  const existingSerials = existingLots.flatMap((lot) => lot.serials ?? []);
+  const existingSerials = [...existingLots.flatMap((lot) => lot.serials ?? []), ...soldSerials];
   const duplicates = duplicateSerials(serials, existingSerials);
   const required = requiredSerialCount(product, baseQty);
 
   const save = () => {
     if (!(baseQty > 0)) return setError('Enter a quantity.');
+    if (product.serialTracking === 'Required' && !Number.isInteger(baseQty)) return setError('Required serial tracking needs a whole base-unit quantity.');
     if (duplicates.length) return setError(`Duplicate serial: ${duplicates[0]}`);
     if (product.serialTracking === 'Required' && serials.length !== required) return setError(`${required} unique serials are required for this lot.`);
     if (product.expiry?.enabled && product.expiry.dateRequired && !expiryDate) return setError('Expiry date is required for this product.');
