@@ -51,9 +51,11 @@ export function Daybook() {
   const summary = useMemo(() => cashflowSummary(filtered), [filtered]);
 
   const goToSource = (transaction: UnifiedTransaction, edit = false) => {
-    const route = transaction.sourceRoute || '/app/daybook';
-    const query = edit ? `?edit=${encodeURIComponent(transaction.sourceId)}` : `?open=${encodeURIComponent(transaction.sourceId)}`;
-    navigate(route + query);
+    if (edit) {
+      navigate(`/app/audit-ledger?editRef=${encodeURIComponent(transaction.reference)}`);
+      return;
+    }
+    navigate(transaction.sourceRoute || '/app/daybook');
   };
 
   const printTransaction = (transaction: UnifiedTransaction) => {
@@ -62,8 +64,9 @@ export function Daybook() {
   };
 
   const duplicateTransaction = (transaction: UnifiedTransaction) => {
-    const route = transaction.sourceRoute || '/app/daybook';
-    navigate(`${route}?duplicate=${encodeURIComponent(transaction.sourceId)}`);
+    if (transaction.source === 'sale') {
+      navigate(`/app/pos?mode=duplicate&invoice=${encodeURIComponent(transaction.reference)}`);
+    }
   };
 
   const exportDaybook = () => {
