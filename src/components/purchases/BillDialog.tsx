@@ -288,7 +288,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={mode === 'purchase' ? 'sm:max-w-4xl' : 'sm:max-w-2xl'}>
+      <DialogContent className={mode === 'purchase' ? 'max-h-[92vh] overflow-y-auto sm:max-w-4xl scrollbar-thin' : 'max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin'}>
         <DialogHeader>
           <DialogTitle>
             {mode === 'purchase' ? 'New purchase' : 'Add expense'}{' '}
