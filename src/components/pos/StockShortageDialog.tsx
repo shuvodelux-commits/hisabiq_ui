@@ -39,20 +39,20 @@ export function StockShortageDialog({
       ? 'Negative'
       : 'Own';
   const [choice, setChoice] = useState<Choice>(initialChoice);
-  const [vendorId, setVendorId] = useState('');
+  const [vendorName, setVendorName] = useState('');
   const [vendorCost, setVendorCost] = useState('');
 
   const factor = line?.product.altUnit && line.unit === line.product.altUnit.unit
     ? line.product.altUnit.factor
     : 1;
   const displayUnit = line?.unit ?? '';
-  const vendor = vendors.find((item) => item.id === vendorId) ?? null;
+  const vendor = vendors.find((item) => item.name === vendorName) ?? null;
 
   useEffect(() => {
     if (!open || !line) return;
     const source = line.stockSource;
     setChoice(source?.mode === 'Vendor' ? 'Vendor' : source?.mode === 'Negative' ? 'Negative' : 'Own');
-    setVendorId(source?.mode === 'Vendor' ? source.vendorId : vendors[0]?.id ?? '');
+    setVendorName(source?.mode === 'Vendor' ? source.vendorName : vendors[0]?.name ?? '');
     setVendorCost(source?.mode === 'Vendor' ? String(source.unitCost * factor) : '');
   }, [factor, line, open]);
 
@@ -141,7 +141,7 @@ export function StockShortageDialog({
           <div className="space-y-3 rounded-xl border border-blue-100 bg-blue-50/40 p-3">
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-ink-600">Vendor</span>
-              <FormSelect value={vendorId} onChange={(event) => setVendorId(event.target.value)} options={vendors.map((item) => item.name)} />
+              <FormSelect value={vendorName} onChange={(event) => setVendorName(event.target.value)} options={vendors.map((item) => item.name)} />
             </label>
             <div>
               <p className="mb-1 text-xs font-medium text-ink-600">Vendor cost per {displayUnit}</p>
