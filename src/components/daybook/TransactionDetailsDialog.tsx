@@ -1,6 +1,5 @@
 import React from 'react';
 import { Copy, ExternalLink, Printer } from 'lucide-react';
-import { ExternalLink } from 'lucide-react';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { StatusBadge } from '../StatusBadge';
