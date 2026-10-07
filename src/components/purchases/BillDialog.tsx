@@ -9,6 +9,7 @@ import { PhotoUploader } from '../products/PhotoUploader';
 import { parties } from '../../data/parties';
 import { products } from '../../data/products';
 import { stockLots } from '../../data/productInventory';
+import { salesInvoices } from '../../data/sales';
 import { expenseCategories } from '../../data/purchases';
 import type { Expense, PaymentMethod, PaymentSplit, Product, Purchase } from '../../types/erp';
 import { taka } from '../../utils/currency';
@@ -205,7 +206,10 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
     const selectedParty = list.find((item) => item.name === party);
     if (mode === 'purchase') {
-      const existingSerials = stockLots.flatMap((lot) => lot.serials ?? []);
+      const existingSerials = [
+        ...stockLots.flatMap((lot) => lot.serials ?? []),
+        ...salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? []))
+      ];
       const enteredAcrossLines: string[] = [];
       for (const line of lines.filter((item) => lineBaseQty(item) > 0)) {
         const product = productFor(line);
@@ -216,6 +220,10 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           return;
         }
         const required = requiredSerialCount(product, lineBaseQty(line));
+        if (required > 0 && !Number.isInteger(lineBaseQty(line))) {
+          setError(`${product.name}: Required serial tracking needs a whole base-unit quantity.`);
+          return;
+        }
         if (required > 0 && serials.length !== required) {
           setError(`${product.name}: ${required} unique serials required, ${serials.length} entered.`);
           return;
@@ -238,7 +246,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       onSavePurchase({
         id: `pu${Date.now()}`,
         ref: nextRef,
-        date: date === today ? '06 Oct 2026' : date,
+        date: date === today ? '07 Oct 2026' : date,
         supplierId: selectedParty?.id ?? '',
         supplier: party,
         items: items || 'Items not itemised',
