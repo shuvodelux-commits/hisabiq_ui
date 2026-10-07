@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Search,
   Settings2,
+  Trash2,
   UserRoundCog,
   Wallet,
   WalletCards
@@ -472,8 +473,10 @@ export function Finance() {
   const [counterType, setCounterType] = useState<'Customer Receive' | 'Supplier Pay' | 'Expense' | 'Bank Transfer'>('Customer Receive');
   const [counterParty, setCounterParty] = useState('');
   const [counterAmount, setCounterAmount] = useState('');
-  const [counterMethod, setCounterMethod] = useState('Cash');
-  const [counterAccount, setCounterAccount] = useState(accounts.find((item) => item.type === 'Cash')?.name ?? '');
+  const [counterAccount, setCounterAccount] = useState(accounts[1]?.name ?? accounts[0]?.name ?? '');
+  const [counterPayments, setCounterPayments] = useState<Array<{ id: string; method: string; account: string; amount: string }>>([
+    { id: 'counter-payment-1', method: 'Cash', account: accounts.find((item) => item.type === 'Cash')?.name ?? '', amount: '' }
+  ]);
   const [counterNote, setCounterNote] = useState('');
 
   const applyTransactionMovement = (list: FinanceAccount[], transaction: FinanceTransaction, factor = 1) => {
@@ -639,11 +642,18 @@ export function Finance() {
     { label: 'Borrower receivable', value: taka(relationshipSummary.borrowerReceivable), sub: 'Money others still owe us', icon: ArrowUpRight, tone: 'text-teal-700' }
   ];
 
-  const activeCounterAccounts = accounts.filter((item) => {
-    if (counterMethod === 'Cash') return item.type === 'Cash' || item.type === 'Petty Cash';
-    if (counterMethod === 'Bank') return item.type === 'Bank';
+  const counterAccountsForMethod = (method: string) => accounts.filter((item) => {
+    if (item.status !== 'Active') return false;
+    if (method === 'Cash') return item.type === 'Cash' || item.type === 'Petty Cash';
+    if (method === 'Bank') return item.type === 'Bank';
     return item.type === 'Mobile Banking';
   });
+
+  const normalizedCounterPayments = counterPayments.map((row, index) => ({
+    ...row,
+    amountNumber: parseFloat(row.amount) || (counterPayments.length === 1 && index === 0 ? (parseFloat(counterAmount) || 0) : 0)
+  })).filter((row) => row.account && row.amountNumber > 0);
+  const counterSplitTotal = normalizedCounterPayments.reduce((sum, row) => sum + row.amountNumber, 0);
 
   const counterPartyOptions = counterType === 'Customer Receive'
     ? parties.filter((item) => item.roles.includes('Customer')).map((item) => item.name)
@@ -678,22 +688,27 @@ export function Finance() {
       }));
       toast.success('Account transfer completed', { description: taka(value) + ' · ' + from + ' → ' + to });
     } else {
-      const selected = activeCounterAccounts.find((item) => item.name === counterAccount) || activeCounterAccounts[0];
-      if (!selected) return toast.error('Select an active account');
+      if (!normalizedCounterPayments.length) return toast.error('Add at least one payment source');
+      if (Math.abs(counterSplitTotal - value) > 0.001) return toast.error('Payment split must equal the transaction amount');
       const incoming = counterType === 'Customer Receive';
-      setAccounts((current) => current.map((account) =>
-        account.id === selected.id
-          ? { ...account, balance: account.balance + (incoming ? value : -value), lastActivity: 'Just now' }
-          : account
-      ));
+      setAccounts((current) => current.map((account) => {
+        const movement = normalizedCounterPayments
+          .filter((payment) => payment.account === account.name)
+          .reduce((sum, payment) => sum + payment.amountNumber, 0);
+        if (!movement) return account;
+        return { ...account, balance: account.balance + (incoming ? movement : -movement), lastActivity: 'Just now' };
+      }));
       const verbs = {
         'Customer Receive': 'Customer payment received',
         'Supplier Pay': 'Supplier payment recorded',
         Expense: 'Expense recorded'
       } as const;
-      toast.success(verbs[counterType], { description: taka(value) + ' · ' + (counterParty || counterType) });
+      toast.success(verbs[counterType], {
+        description: taka(value) + ' · ' + (counterParty || counterType) + (normalizedCounterPayments.length > 1 ? ' · Multiple payments' : '')
+      });
     }
     setCounterAmount('');
+    setCounterPayments([{ id: 'counter-payment-' + Date.now(), method: 'Cash', account: accounts.find((item) => item.status === 'Active' && item.type === 'Cash')?.name ?? '', amount: '' }]);
     setCounterNote('');
   };
 
@@ -940,8 +955,10 @@ export function Finance() {
                   key={type}
                   onClick={() => {
                     setCounterType(type);
-                    setCounterParty('');
+                    setCounterParty(type === 'Bank Transfer' ? (accounts[0]?.name ?? '') : '');
+                    setCounterAccount(type === 'Bank Transfer' ? (accounts[1]?.name ?? accounts[0]?.name ?? '') : counterAccount);
                     setCounterAmount('');
+                    setCounterPayments([{ id: 'counter-payment-' + Date.now(), method: 'Cash', account: accounts.find((item) => item.status === 'Active' && item.type === 'Cash')?.name ?? '', amount: '' }]);
                   }}
                   className={`rounded-xl border p-3 text-left transition-colors ${
                     counterType === type ? 'border-teal-200 bg-teal-50' : 'border-ink-100 bg-white hover:bg-ink-50'
@@ -1003,26 +1020,40 @@ export function Finance() {
                 </label>
 
                 {counterType !== 'Bank Transfer' && (
-                  <label className="text-[13px] font-medium text-ink">
-                    Payment method
-                    <FormSelect className="mt-1.5" value={counterMethod} onChange={(event) => {
-                      const next = event.target.value;
-                      setCounterMethod(next);
-                      const first = accounts.find((item) =>
-                        next === 'Cash' ? (item.type === 'Cash' || item.type === 'Petty Cash') :
-                        next === 'Bank' ? item.type === 'Bank' :
-                        item.type === 'Mobile Banking'
-                      );
-                      setCounterAccount(first?.name ?? '');
-                    }} options={['Cash', 'Bank', 'Mobile Banking']} />
-                  </label>
-                )}
-
-                {counterType !== 'Bank Transfer' && (
-                  <label className="text-[13px] font-medium text-ink">
-                    Account
-                    <FormSelect className="mt-1.5" value={counterAccount} onChange={(event) => setCounterAccount(event.target.value)} options={activeCounterAccounts.map((item) => item.name)} />
-                  </label>
+                  <div className="sm:col-span-2 rounded-xl border border-ink-100">
+                    <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+                      <div>
+                        <p className="text-[12.5px] font-semibold text-ink">Payment sources</p>
+                        <p className="font-bn text-[10.5px] text-ink-400">Cash + Bank + Mobile Banking একসাথে ব্যবহার করা যাবে</p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        const method = 'Cash';
+                        const first = counterAccountsForMethod(method)[0];
+                        setCounterPayments((current) => [...current, { id: 'counter-payment-' + Date.now(), method, account: first?.name ?? '', amount: '' }]);
+                      }}><Plus className="size-3.5" /> Add</Button>
+                    </div>
+                    <div className="space-y-2 p-3">
+                      {counterPayments.map((row) => {
+                        const available = counterAccountsForMethod(row.method);
+                        return (
+                          <div key={row.id} className="grid gap-2 sm:grid-cols-[130px_1fr_120px_32px]">
+                            <FormSelect value={row.method} onChange={(event) => {
+                              const method = event.target.value;
+                              const first = counterAccountsForMethod(method)[0];
+                              setCounterPayments((current) => current.map((item) => item.id === row.id ? { ...item, method, account: first?.name ?? '' } : item));
+                            }} options={['Cash', 'Bank', 'Mobile Banking']} />
+                            <FormSelect value={row.account || available[0]?.name || ''} onChange={(event) => setCounterPayments((current) => current.map((item) => item.id === row.id ? { ...item, account: event.target.value } : item))} options={available.map((item) => item.name)} />
+                            <Input className="text-right" inputMode="decimal" value={row.amount} onChange={(event) => setCounterPayments((current) => current.map((item) => item.id === row.id ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))} placeholder={counterPayments.length === 1 ? counterAmount || '0' : '0'} />
+                            <button type="button" disabled={counterPayments.length === 1} onClick={() => setCounterPayments((current) => current.filter((item) => item.id !== row.id))} className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger disabled:opacity-30" aria-label="Remove payment source"><Trash2 className="size-3.5" /></button>
+                          </div>
+                        );
+                      })}
+                      <div className="flex items-center justify-between border-t border-ink-100 pt-2 text-[11px]">
+                        <span className="text-ink-400">Split total</span>
+                        <span className={Math.abs(counterSplitTotal - (parseFloat(counterAmount) || 0)) < 0.001 ? 'font-medium text-success' : 'font-medium text-warning'}>{taka(counterSplitTotal)}</span>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 <label className="text-[13px] font-medium text-ink">
