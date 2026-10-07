@@ -355,8 +355,14 @@ export function Products() {
             role="tab"
             aria-selected={view === id}
             onClick={() => setView(id)}
-            className={`-mb-px flex shrink-0 items-baseline gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'border-teal-600 text-ink' : 'border-transparent text-ink-500 hover:text-ink'}`}>
+            className={`relative -mb-px flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
             {label} <span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>
+            {view === id && (
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-teal-600"
+              />
+            )}
           </button>
         ))}
       </div>
