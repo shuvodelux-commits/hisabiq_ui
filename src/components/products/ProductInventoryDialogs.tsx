@@ -465,7 +465,7 @@ export function StockLotDialog({
             {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">Expiry date <span className="font-bn text-[11px] text-ink-400">· মেয়াদ</span><Input className="mt-1.5" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} /></label>}
           </div>
 
-          {product.serialTracking !== 'Off' && <div className="rounded-xl border border-ink-100 p-3">
+          {(product.serialTracking ?? 'Off') !== 'Off' && <div className="rounded-xl border border-ink-100 p-3">
             <div className="flex items-center gap-2"><ScanLine className="size-4 text-teal-700" /><p className="text-[13px] font-medium text-ink">Serials <span className="font-bn text-[11px] text-ink-400">· সিরিয়াল নম্বর</span></p></div>
             <p className="mt-1 text-xs text-ink-500">Type, scan or paste serials separated by line, comma or semicolon.</p>
             <textarea value={serialText} onChange={(e) => setSerialText(e.target.value)} className="mt-2 min-h-28 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" placeholder={"SN-001\nSN-002"} />
