@@ -149,7 +149,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       minStock: stockToBase(minQty, minUnit),
       sellPrice: sellBase,
       purchasePrice: buyBase,
-      active: true
+      warranty: initialProduct?.warranty,
+      active: initialProduct?.active ?? true
     });
     resetForm();
   };
