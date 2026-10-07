@@ -19,7 +19,6 @@ import { formatStock } from '../../utils/units';
 import { toBaseQuantity } from '../../utils/productEntry';
 import {
   duplicateSerials,
-  effectiveOfferPrice,
   lotExpiryState,
   normalizeSerials,
   offerStatus,
