@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { products } from '../data/products';
+import { productOffers } from '../data/productOffers';
 import type { Party, PaymentMethod, Product } from '../types/erp';
 import { priceFor } from '../utils/units';
+import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures';
 import { roundTo } from '../utils/currency';
 import { compoundLineTotal } from '../utils/posQuantity';
 
@@ -12,6 +14,7 @@ export type CartLine = {
   secondaryQty: string;
   unit: string;
   price: string;
+  serials: string[];
 };
 
 export type DiscountMode = 'amount' | 'percent';
@@ -60,7 +63,8 @@ function line(product: Product, qty: number, unit?: string, secondaryQty = ''): 
     qty: String(qty),
     secondaryQty,
     unit: u,
-    price: String(priceFor(product, u))
+    price: String(effectivePriceForUnit(product, activeOfferFor(product.id, productOffers), u)),
+    serials: []
   };
 }
 
@@ -116,13 +120,13 @@ export function usePosCart() {
     setLastAdded(l.key);
   };
 
-  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price'>>) => {
+  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials'>>) => {
     setLines((ls) =>
       ls.map((l) => {
         if (l.key !== key) return l;
         const next = { ...l, ...patch };
         if (patch.unit && patch.unit !== l.unit) {
-          next.price = String(priceFor(l.product, patch.unit));
+          next.price = String(effectivePriceForUnit(l.product, activeOfferFor(l.product.id, productOffers), patch.unit));
           next.secondaryQty = '';
         }
         return next;
