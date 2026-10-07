@@ -27,6 +27,8 @@ import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog } from '../components/finance/FinanceRecordDialogs';
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
+import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
+import { CashSessionDetailsDialog } from '../components/finance/CashSessionDetailsDialog';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -43,7 +45,8 @@ import {
   type FinancePerson,
   type FinancePersonRole,
   type FinanceTransaction,
-  type FinanceTransactionType
+  type FinanceTransactionType,
+  type CashSessionRecord
 } from '../data/financeAccounts';
 import { expenseCategories } from '../data/purchases';
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
@@ -446,6 +449,9 @@ export function Finance() {
   const [transferOpen, setTransferOpen] = useState(false);
   const [peopleOpen, setPeopleOpen] = useState(false);
   const [chequeOpen, setChequeOpen] = useState(false);
+  const [chequeAction, setChequeAction] = useState<ChequeRecord | null>(null);
+  const [cashSessionAction, setCashSessionAction] = useState<CashSessionRecord | null>(null);
+  const [transferFrom, setTransferFrom] = useState<string | undefined>(undefined);
   const [transactionAction, setTransactionAction] = useState<FinanceTransaction | null>(null);
   const [accountAction, setAccountAction] = useState<FinanceAccount | null>(null);
   const [transferAction, setTransferAction] = useState<AccountTransfer | null>(null);
@@ -496,6 +502,7 @@ export function Finance() {
         from: item.from === previous.name ? updated.name : item.from,
         to: item.to === previous.name ? updated.name : item.to
       })));
+      setChequeRecords((current) => current.map((item) => item.depositAccount === previous.name ? { ...item, depositAccount: updated.name } : item));
     }
     setAccountAction(updated);
     toast.success('Account updated', { description: updated.name });
@@ -529,6 +536,39 @@ export function Finance() {
       ? { ...current, balance: current.balance + (direction === 'in' ? amount : -amount), lastActivity: 'Just now' }
       : current);
     toast.success('Manual account entry recorded', { description: (direction === 'in' ? '+' : '−') + taka(amount) });
+  };
+
+  const openTransfer = (account?: FinanceAccount) => {
+    setTransferFrom(account?.name);
+    setTransferOpen(true);
+  };
+
+  const updateCheque = (updated: ChequeRecord) => {
+    setChequeRecords((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setChequeAction(updated);
+    toast.success('Cheque updated', { description: updated.id });
+  };
+
+  const changeChequeStatus = (cheque: ChequeRecord, nextStatus: ChequeStatus, reason?: string) => {
+    if (nextStatus === 'Cleared' && !cheque.depositAccount) {
+      toast.error('Select the Bank / Money Account before clearing this cheque');
+      return;
+    }
+    const updated: ChequeRecord = {
+      ...cheque,
+      status: nextStatus,
+      statusReason: reason,
+      statusUpdatedAt: '2026-10-07T16:40:00+06:00',
+      statusUpdatedBy: 'Shuvo'
+    };
+    setChequeRecords((current) => current.map((item) => item.id === cheque.id ? updated : item));
+    if (nextStatus === 'Cleared' && cheque.status !== 'Cleared' && cheque.depositAccount) {
+      setAccounts((current) => current.map((account) => account.name === cheque.depositAccount
+        ? { ...account, balance: account.balance + (cheque.direction === 'Received' ? cheque.amount : -cheque.amount), lastActivity: 'Just now' }
+        : account));
+    }
+    setChequeAction(updated);
+    toast.success('Cheque status updated', { description: cheque.id + ' · ' + nextStatus });
   };
 
   const reverseAccountTransfer = (transfer: AccountTransfer) => {
@@ -568,6 +608,10 @@ export function Finance() {
     ['cheques', 'Cheques', 'Received, issued and post-dated cheques'],
     ['cash', 'Cash Sessions', 'Open, close and reconcile cash drawer']
   ];
+
+  const pdcCount = chequeRecords.filter((item) => item.chequeDate > '2026-10-07' && !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status)).length;
+  const bouncedCount = chequeRecords.filter((item) => item.status === 'Bounced' || item.status === 'Returned').length;
+  const varianceSessions = cashSessions.filter((item) => item.status === 'Closed' && (item.variance ?? 0) !== 0).length;
 
   const pendingChequeAmount = chequeRecords
     .filter((item) => !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status))
@@ -674,6 +718,17 @@ export function Finance() {
           </div>
         ))}
       </div>
+
+      {(pdcCount > 0 || bouncedCount > 0 || varianceSessions > 0) && (
+        <div className="flex flex-wrap gap-2 rounded-xl border border-warning/20 bg-warning/5 p-3">
+          <button onClick={() => setTab('cheques')} className="rounded-lg border border-warning/20 bg-white px-3 py-2 text-left hover:bg-warning/5">
+            <p className="text-[12px] font-medium text-ink">{pdcCount} post-dated cheque{pdcCount === 1 ? '' : 's'}</p>
+            <p className="font-bn text-[10.5px] text-ink-400">পরে জমা দেওয়ার চেক দেখুন</p>
+          </button>
+          {bouncedCount > 0 && <button onClick={() => setTab('cheques')} className="rounded-lg border border-danger/20 bg-white px-3 py-2 text-left hover:bg-danger/5"><p className="text-[12px] font-medium text-danger">{bouncedCount} cheque issue{bouncedCount === 1 ? '' : 's'}</p><p className="font-bn text-[10.5px] text-ink-400">Bounced / Returned চেক দেখুন</p></button>}
+          {varianceSessions > 0 && <button onClick={() => setTab('cash')} className="rounded-lg border border-warning/20 bg-white px-3 py-2 text-left hover:bg-warning/5"><p className="text-[12px] font-medium text-ink">{varianceSessions} cash variance</p><p className="font-bn text-[10.5px] text-ink-400">Short / over যাচাই করুন</p></button>}
+        </div>
+      )}
 
       <div className="rounded-xl border border-ink-100 bg-white shadow-card">
         <div className="flex flex-wrap gap-1 border-b border-ink-100 px-3" role="tablist">
@@ -981,7 +1036,7 @@ export function Finance() {
                 <p className="text-[11px] text-ink-500">Cash, bank and mobile banking with opening balance and ledger access.</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
+                <Button variant="outline" size="sm" onClick={() => openTransfer()}>
                   <ArrowLeftRight className="size-4" /> Transfer
                 </Button>
                 <Button size="sm" onClick={() => setAccountOpen(true)}>
@@ -1015,7 +1070,7 @@ export function Finance() {
                       <BookOpen className="size-4" /> Ledger
                     </Button>
                     {account.type !== 'Cash' && (
-                      <Button variant="outline" size="sm" onClick={() => navigate('/app/reconciliation')}>
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`)}>
                         <CheckCircle2 className="size-4" /> Reconcile
                       </Button>
                     )}
@@ -1035,7 +1090,7 @@ export function Finance() {
                   <p className="text-sm font-semibold text-ink">Transfer history</p>
                   <p className="text-[11px] text-ink-500">Transfers between business money accounts.</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
+                <Button variant="outline" size="sm" onClick={() => openTransfer()}>
                   <Plus className="size-4" /> New transfer
                 </Button>
               </div>
@@ -1102,7 +1157,6 @@ export function Finance() {
                 <TableBody>
                   {chequeRecords.map((cheque) => {
                     const pdc = cheque.chequeDate > '2026-10-07' && cheque.status !== 'Cleared';
-                    const canClear = cheque.status !== 'Cleared' && !['Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(cheque.status);
                     return (
                       <TableRow key={cheque.id} className="text-[13px]">
                         <TableCell className="py-2 pl-4">
@@ -1119,22 +1173,9 @@ export function Finance() {
                         <TableCell className="py-2 text-right font-semibold">{taka(cheque.amount)}</TableCell>
                         <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{cheque.status}</StatusBadge></TableCell>
                         <TableCell className="py-2 pr-4 text-right">
-                          {canClear ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setChequeRecords((current) => current.map((item) => item.id === cheque.id ? { ...item, status: 'Cleared' as ChequeStatus } : item));
-                                if (cheque.depositAccount) {
-                                  setAccounts((current) => current.map((account) => account.name === cheque.depositAccount
-                                    ? { ...account, balance: account.balance + (cheque.direction === 'Received' ? cheque.amount : -cheque.amount), lastActivity: 'Just now' }
-                                    : account));
-                                }
-                                toast.success('Cheque cleared', { description: cheque.id + ' · ' + taka(cheque.amount) });
-                              }}>
-                              Mark cleared
-                            </Button>
-                          ) : <span className="text-xs text-ink-300">—</span>}
+                          <button onClick={() => setChequeAction(cheque)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + cheque.id}>
+                            <MoreHorizontal className="size-4" />
+                          </button>
                         </TableCell>
                       </TableRow>
                     );
@@ -1196,7 +1237,8 @@ export function Finance() {
                     <TableHead className="h-9 text-right text-xs">Expected</TableHead>
                     <TableHead className="h-9 text-right text-xs">Counted</TableHead>
                     <TableHead className="h-9 text-right text-xs">Variance</TableHead>
-                    <TableHead className="h-9 pr-4 text-xs">Status</TableHead>
+                    <TableHead className="h-9 text-xs">Status</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1215,9 +1257,10 @@ export function Finance() {
                       }`}>
                         {session.variance === undefined ? '—' : session.variance === 0 ? taka(0) : `${session.variance > 0 ? '+' : '−'}${taka(Math.abs(session.variance))}`}
                       </TableCell>
-                      <TableCell className="py-2 pr-4">
+                      <TableCell className="py-2">
                         <StatusBadge tone={session.status === 'Open' ? 'success' : session.variance ? 'warning' : 'neutral'} dot>{session.status}</StatusBadge>
                       </TableCell>
+                      <TableCell className="py-2 pr-4 text-right"><button onClick={() => setCashSessionAction(session)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + session.id}><MoreHorizontal className="size-4" /></button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -1251,6 +1294,7 @@ export function Finance() {
 
       <TransferDialog
         open={transferOpen}
+        initialFrom={transferFrom}
         accounts={accounts}
         nextId={`TRF-${String(42 + transfers.length - seedTransfers.length).padStart(6, '0')}`}
         onOpenChange={setTransferOpen}
@@ -1267,6 +1311,7 @@ export function Finance() {
 
       <ChequeDialog
         open={chequeOpen}
+        accountOptions={accounts.filter((item) => item.status === 'Active' && item.type === 'Bank').map((item) => item.name)}
         onOpenChange={setChequeOpen}
         onSave={(cheque) => {
           setChequeRecords((current) => [cheque, ...current]);
@@ -1289,6 +1334,19 @@ export function Finance() {
         }}
       />
 
+      <ChequeActionDialog
+        cheque={chequeAction}
+        onClose={() => setChequeAction(null)}
+        onUpdate={updateCheque}
+        onStatus={changeChequeStatus}
+      />
+
+      <CashSessionDetailsDialog
+        session={cashSessionAction}
+        onClose={() => setCashSessionAction(null)}
+        onReconcile={(session) => navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`)}
+      />
+
       <FinanceTransactionActionDialog
         transaction={transactionAction}
         accounts={accounts}
@@ -1306,6 +1364,8 @@ export function Finance() {
         onUpdate={updateFinanceAccount}
         onToggleStatus={toggleFinanceAccount}
         onManualEntry={addManualAccountEntry}
+        onTransfer={(account) => { setAccountAction(null); openTransfer(account); }}
+        onReconcile={(account) => { setAccountAction(null); navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`); }}
       />
 
       <FinanceTransferActionDialog
