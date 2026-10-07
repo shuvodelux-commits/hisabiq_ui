@@ -11,7 +11,7 @@ import { formatNumber, taka } from '../../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
-import { availableSerials, requiredSerialCount } from '../../utils/productFeatures';
+import { availableSerials, productStockBreakdown, requiredSerialCount } from '../../utils/productFeatures';
 
 type CartTableProps = {
   lines: CartLine[];
@@ -101,7 +101,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                     <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
                     <p className="truncate text-[11px] text-ink-500">
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
-                      {l.product.category}{l.product.kind === 'Service' ? ' · Service' : ` · Stock ${formatStock(l.product)}`}
+                      {l.product.category}{l.product.kind === 'Service' ? ' · Service' : l.product.expiry?.enabled ? ` · Sellable ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · Stock ${formatStock(l.product)}`}
                     </p>
                     {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
                       <button
