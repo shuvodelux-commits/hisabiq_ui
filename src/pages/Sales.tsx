@@ -652,6 +652,15 @@ export function Sales() {
   const [customerFilter, setCustomerFilter] = useState('All customers');
   const [status, setStatus] = useState('All status');
   const [method, setMethod] = useState('All payments');
+  const [visibleSalesColumns, setVisibleSalesColumns] = useState<Record<SalesColumn, boolean>>(() => {
+    if (typeof window === 'undefined') return defaultVisibleSalesColumns;
+    try {
+      const stored = window.localStorage.getItem(salesColumnStorageKey);
+      return stored ? { ...defaultVisibleSalesColumns, ...JSON.parse(stored) } : defaultVisibleSalesColumns;
+    } catch {
+      return defaultVisibleSalesColumns;
+    }
+  });
   const [detail, setDetail] = useState<SalesInvoice | null>(null);
   const [paymentTarget, setPaymentTarget] = useState<SalesInvoice | null>(null);
   const [customerPaymentOpen, setCustomerPaymentOpen] = useState(false);
@@ -665,6 +674,18 @@ export function Sales() {
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
   const [returnRefundMethod, setReturnRefundMethod] = useState<Exclude<PaymentMethod, 'Customer Credit'>>('Cash');
   const [returnRefundAccount, setReturnRefundAccount] = useState('');
+
+  const toggleSalesColumn = (column: SalesColumn) => {
+    setVisibleSalesColumns((current) => {
+      const next = { ...current, [column]: !current[column] };
+      try {
+        window.localStorage.setItem(salesColumnStorageKey, JSON.stringify(next));
+      } catch {
+        // Keep the current-session preference when storage is unavailable.
+      }
+      return next;
+    });
+  };
 
   const customerNames = useMemo(
     () => Array.from(new Set(invoices.map((invoice) => invoice.party))),
