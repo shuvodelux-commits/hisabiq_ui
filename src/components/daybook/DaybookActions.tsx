@@ -2,7 +2,7 @@ import React from 'react';
 import { ExternalLink, Eye, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import type { UnifiedTransaction } from '../../types/transactions';
-import { canDaybookAction, demoPermissions } from '../../utils/permissions';
+import { daybookActionAvailability, demoPermissions } from '../../utils/permissions';
 
 export function DaybookActions({
   transaction,
@@ -18,9 +18,10 @@ export function DaybookActions({
   onGoToSource: (transaction: UnifiedTransaction) => void;
 }) {
   const itemClass = 'flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50';
-  const canOpen = canDaybookAction('open', transaction.source, demoPermissions);
-  const canEdit = canDaybookAction('edit', transaction.source, demoPermissions);
-  const canDelete = canDaybookAction('delete', transaction.source, demoPermissions);
+  const availability = daybookActionAvailability(transaction.source, demoPermissions);
+  const canOpen = availability.open;
+  const canEdit = availability.edit;
+  const canDelete = availability.delete;
   return (
     <FloatingPanel
       label={`Actions for ${transaction.reference}`}
