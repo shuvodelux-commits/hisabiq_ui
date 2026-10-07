@@ -6,7 +6,8 @@ import {
   auditTimelineFor,
   buildImpactPreview,
   createAuditState,
-  validateCorrection
+  validateCorrection,
+  validateDelete
 } from '../src/utils/auditEngine.ts';
 import type { AuditSourceRecord, CorrectionCommand, DeleteCommand } from '../src/types/audit.ts';
 
@@ -117,10 +118,23 @@ test('impact preview lists before-after changes and only relevant effects', () =
   assert.equal(preview.impacts.includes('Stock'), false);
 });
 
-test('delete undoes the complete source posting and retains immutable audit history', () => {
-  const before = createAuditState([sale]);
-  const deleteCommand: DeleteCommand = {
+test('delete blocks a source with dependent return and explains the blocker', () => {
+  const state = createAuditState([sale]);
+  const validation = validateDelete({
     sourceId: sale.id,
+    reason: 'Wrong transaction',
+    user: 'Shuvo',
+    at: '2026-10-07T16:00:00+06:00'
+  }, state);
+  assert.equal(validation.allowed, false);
+  assert.match(validation.message ?? '', /return/i);
+});
+
+test('delete undoes the complete source posting and retains immutable audit history', () => {
+  const cleanSale = { ...sale, returnedQuantity: 0 };
+  const before = createAuditState([cleanSale]);
+  const deleteCommand: DeleteCommand = {
+    sourceId: cleanSale.id,
     reason: 'Duplicate transaction',
     user: 'Shuvo',
     at: '2026-10-07T16:00:00+06:00'
