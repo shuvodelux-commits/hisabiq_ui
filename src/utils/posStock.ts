@@ -1,9 +1,21 @@
 import type { Product, StockLot } from '../types/erp';
-import { productStockBreakdown } from './productFeatures';
+
+function isExpiredLot(lot: StockLot, now: Date): boolean {
+  if (!lot.expiryDate) return false;
+  const end = new Date(`${lot.expiryDate}T23:59:59`);
+  return end.getTime() < now.getTime();
+}
 
 export function saleAvailableStock(product: Product, lots: StockLot[], now = new Date()): number {
   if (product.kind === 'Service') return Number.POSITIVE_INFINITY;
-  if (product.expiry?.enabled) return Math.max(0, productStockBreakdown(product, lots, now).sellable);
+  if (product.expiry?.enabled) {
+    return Math.max(
+      0,
+      lots
+        .filter((lot) => lot.productId === product.id && lot.available > 0 && !isExpiredLot(lot, now))
+        .reduce((sum, lot) => sum + lot.available, 0)
+    );
+  }
   return Math.max(0, product.stock);
 }
 
