@@ -14,6 +14,7 @@ import { ProductSettings } from '../components/products/ProductSettings';
 import { productCategories, products as seed } from '../data/products';
 import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
 import { productOffers as seedOffers } from '../data/productOffers';
+import { salesInvoices } from '../data/sales';
 import type { Product, ProductOffer, StockLot, StockMovement } from '../types/erp';
 import { formatStock, stockStatus, type StockStatus } from '../utils/units';
 import { taka } from '../utils/currency';
@@ -181,6 +182,8 @@ export function Products() {
   const [movements, setMovements] = useState<StockMovement[]>(seedMovements);
   const [offers, setOffers] = useState<ProductOffer[]>(seedOffers);
   const [inventoryProductFilter, setInventoryProductFilter] = useState('');
+  const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
+  const knownSerials = useMemo(() => [...lots.flatMap((lot) => lot.serials ?? []), ...soldSerials], [lots, soldSerials]);
   const [visibleColumns, setVisibleColumns] = useState<Record<ProductColumn, boolean>>(() => {
     if (typeof window === 'undefined') return defaultVisibleColumns;
     try {
@@ -583,6 +586,7 @@ export function Products() {
           if (!open) setEditingProduct(null);
         }}
         initialProduct={editingProduct}
+        existingSerials={knownSerials}
         onSave={(product, opening?: ProductOpeningMeta) => {
           if (editingProduct) {
             setList((items) => items.map((item) => item.id === product.id ? product : item));
@@ -649,6 +653,7 @@ export function Products() {
       <StockLotDialog
         product={lotProduct}
         existingLots={lots}
+        soldSerials={soldSerials}
         open={Boolean(lotProduct)}
         onOpenChange={(open) => { if (!open) setLotProduct(null); }}
         onSave={(lot) => { if (lotProduct) addLot(lotProduct, lot); }}
