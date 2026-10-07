@@ -44,6 +44,8 @@ export type CorrectionPatch = Partial<Pick<
   | 'expenseAccountId'
   | 'debitAccountId'
   | 'creditAccountId'
+  | 'fromAccount'
+  | 'toAccount'
 >>;
 
 export type CorrectionCommand = {
@@ -64,6 +66,11 @@ export type DeleteCommand = {
 export type AuditValidation = {
   allowed: boolean;
   fieldErrors: Record<string, string>;
+};
+
+export type DeleteValidation = {
+  allowed: boolean;
+  message?: string;
 };
 
 export type AuditImpact = {
