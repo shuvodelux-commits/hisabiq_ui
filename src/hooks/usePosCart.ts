@@ -113,7 +113,7 @@ export function usePosCart() {
     const existing = lines.find((l) => l.product.id === product.id && l.unit === preferredUnit);
     if (existing) {
       setLines((ls) =>
-        ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1) } : l)
+        ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1), stockSource: undefined } : l)
       );
       setLastAdded(existing.key);
       return;
