@@ -26,7 +26,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'serials' | 'warranty' | 'lotAllocations'>>;
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -51,7 +51,8 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       unit,
       price: String(sourceLine.price),
       serials: preserveHistorical ? sourceLine.serials ?? [] : [],
-      historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined
+      historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined,
+      historicalUnitCost: preserveHistorical ? sourceLine.unitCost : undefined
     }];
   });
 }
@@ -95,7 +96,8 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
           unit: product.altUnit.unit,
           price: String(sourceLine.price * product.altUnit.factor),
           serials: preserveHistorical ? sourceLine.serials ?? [] : [],
-          historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined
+          historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined,
+          historicalUnitCost: preserveHistorical ? sourceLine.unitCost : undefined
         }];
       }
     }
@@ -307,6 +309,7 @@ export function Pos() {
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
+          unitCost: editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice,
           serials: l.serials,
           warranty: editing ? (l.historicalWarranty ?? warrantySnapshot(l.product)) : warrantySnapshot(l.product),
           lotAllocations: l.product.kind === 'Service' ? undefined : allocateLotQuantity(
