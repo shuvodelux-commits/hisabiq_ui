@@ -18,6 +18,7 @@ import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
+import { blendedVendorUnitCost, saleAvailableStock, saleStockShortage } from '../utils/posStock';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -26,7 +27,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations'>>;
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -50,7 +51,8 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       secondaryQty: sourceLine.secondaryQty ?? '',
       unit,
       price: String(sourceLine.price),
-      serials: sourceLine.serials ?? []
+      serials: sourceLine.serials ?? [],
+      stockSource: sourceLine.stockSource
     }];
   });
 }
@@ -94,6 +96,7 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
           unit: product.altUnit.unit,
           price: String(sourceLine.price * product.altUnit.factor),
           serials: preserveHistorical ? sourceLine.serials ?? [] : [],
+          stockSource: preserveHistorical ? sourceLine.stockSource : undefined,
           historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined,
           historicalUnitCost: preserveHistorical ? sourceLine.unitCost : undefined
         }];
@@ -108,6 +111,7 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
       unit: product.unit,
       price: String(sourceLine.price),
       serials: preserveHistorical ? sourceLine.serials ?? [] : [],
+      stockSource: preserveHistorical ? sourceLine.stockSource : undefined,
       historicalWarranty: preserveHistorical ? sourceLine.warranty : undefined,
       historicalUnitCost: preserveHistorical ? sourceLine.unitCost : undefined
     }];
