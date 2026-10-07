@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
@@ -10,6 +10,7 @@ import { formatStock, unitsFor } from '../../utils/units';
 import { formatNumber, taka } from '../../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { stockLots } from '../../data/productInventory';
+import { salesInvoices } from '../../data/sales';
 import { availableSerials, requiredSerialCount } from '../../utils/productFeatures';
 
 type CartTableProps = {
@@ -31,6 +32,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
   const [serialLine, setSerialLine] = useState<CartLine | null>(null);
+  const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
 
   useEffect(() => {
     if (lastAdded) {
@@ -105,7 +107,12 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                       <button
                         type="button"
                         onClick={() => setSerialLine(l)}
-                        className={`mt-0.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${l.product.serialTracking === 'Required' && l.serials.length !== requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor)) ? 'bg-warning-bg text-warning' : 'bg-teal-50 text-teal-700'}`}>
+                        className={`mt-0.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
+                          (l.product.serialTracking === 'Required' && l.serials.length !== requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor))) ||
+                          l.serials.length > Math.ceil(compoundBaseQuantity(l.qty, l.secondaryQty, factor))
+                            ? 'bg-warning-bg text-warning'
+                            : 'bg-teal-50 text-teal-700'
+                        }`}>
                         <ScanLine className="size-3" />
                         Serials {l.serials.length}/{Math.max(requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor)), Math.ceil(compoundBaseQuantity(l.qty, l.secondaryQty, factor)))}
                       </button>
@@ -243,7 +250,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
             product={serialLine.product}
             open
             onOpenChange={(open) => { if (!open) setSerialLine(null); }}
-            eligible={[...new Set([...availableSerials(serialLine.product, stockLots), ...serialLine.serials])]}
+            eligible={[...new Set([...availableSerials(serialLine.product, stockLots).filter((serial) => !soldSerials.includes(serial)), ...serialLine.serials])]}
             selected={serialLine.serials}
             required={requiredSerialCount(serialLine.product, baseQty)}
             maxCount={Math.ceil(baseQty)}
