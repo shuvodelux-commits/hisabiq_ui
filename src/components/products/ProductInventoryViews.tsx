@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 import { Button } from '../Button';
-import { FormSelect } from '../FormSelect';
 import { StatusBadge, type StatusTone } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import type { Product, StockLot, StockMovement, StockMovementType } from '../../types/erp';
@@ -10,6 +9,32 @@ import { formatStock } from '../../utils/units';
 
 function productById(products: Product[], id: string) {
   return products.find((product) => product.id === id);
+}
+
+function ProductFilterSelect({
+  products,
+  value,
+  onChange
+}: {
+  products: Product[];
+  value: string;
+  onChange: (productId: string) => void;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-9 w-full appearance-none rounded-md border border-input bg-white pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+        aria-label="Filter inventory by product">
+        <option value="">All products</option>
+        {products.map((product) => (
+          <option key={product.id} value={product.id}>{product.name}</option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+    </div>
+  );
 }
 
 export function StockLotsView({
@@ -57,12 +82,7 @@ export function StockLotsView({
       <div className="rounded-xl border border-ink-100 bg-white shadow-card">
         <div className="flex flex-wrap items-center gap-2 border-b border-ink-100 p-3">
           <div className="min-w-[220px] flex-1 sm:max-w-sm">
-            <FormSelect
-              value={productFilter}
-              onChange={(e) => onProductFilter(e.target.value)}
-              options={['', ...products.map((product) => product.id)]}
-              aria-label="Filter stock lots by product"
-            />
+            <ProductFilterSelect products={products} value={productFilter} onChange={onProductFilter} />
           </div>
           {productFilter && (
             <Button variant="outline" size="sm" onClick={() => onProductFilter('')}>Clear product</Button>
@@ -157,12 +177,7 @@ export function StockHistoryView({
           <div className="h-9 rounded-md border border-ink-100 pl-8 pr-3 leading-9">Stock movement audit trail</div>
         </div>
         <div className="w-full sm:w-64">
-          <FormSelect
-            value={productFilter}
-            onChange={(e) => onProductFilter(e.target.value)}
-            options={['', ...products.map((product) => product.id)]}
-            aria-label="Filter stock history by product"
-          />
+          <ProductFilterSelect products={products} value={productFilter} onChange={onProductFilter} />
         </div>
         {productFilter && <Button variant="outline" size="sm" onClick={() => onProductFilter('')}>Clear</Button>}
       </div>
