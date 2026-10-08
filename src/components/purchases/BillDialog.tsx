@@ -305,7 +305,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
         </DialogHeader>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-[13px] font-medium text-ink">
+          <div className="block text-[13px] font-medium text-ink">
             {mode === 'purchase' ? 'Supplier' : 'Payee'}
             <div className="mt-1.5">
               <QuickAddSelect label={mode === 'purchase' ? 'Supplier' : 'Payee'} value={party} options={list.map((item) => item.name)} onChange={setParty} showContact
@@ -316,7 +316,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                   setParty(name);
                 }} />
             </div>
-          </label>
+          </div>
 
           <label className="block text-[13px] font-medium text-ink">
             {mode === 'purchase' ? 'Purchase date' : 'Expense date'}
@@ -457,7 +457,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-[13px] font-medium text-ink">
+            <div className="block text-[13px] font-medium text-ink">
               Expense category
               <div className="mt-1.5">
                 <QuickAddSelect label="Expense category" value={category} options={categoryOptions} onChange={setCategory}
@@ -467,7 +467,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                     setCategory(name);
                   }} />
               </div>
-            </label>
+            </div>
 
             <label className="block text-[13px] font-medium text-ink">
               Amount
