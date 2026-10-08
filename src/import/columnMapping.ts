@@ -1,6 +1,6 @@
 import type {ColumnMapping,ImportTarget,ImportTable,StagedImportRow,ImportCell} from './importTypes.ts';
 import {fieldsFor} from './fieldSchemas.ts';
-const normalize=(value:string)=>value.normalize('NFKC').trim().toLocaleLowerCase().replace(/[\\s_\\-/.()]/g,'');
+const normalize=(value:string)=>value.normalize('NFKC').trim().toLocaleLowerCase().replace(/[\s_./()-]/g,'');
 const rawText=(cell:ImportCell):string=>cell instanceof Date?cell.toISOString().slice(0,10):cell===null?'':String(cell);
 export function suggestColumnMapping(target:ImportTarget,headers:readonly string[]):{mapping:ColumnMapping;ambiguities:string[]}{
  const mapping:ColumnMapping={};const ambiguities:string[]=[];
