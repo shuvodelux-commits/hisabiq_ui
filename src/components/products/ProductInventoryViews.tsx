@@ -104,6 +104,7 @@ export function StockLotsView({
               <TableHead className="h-9 text-right text-xs">Qty in</TableHead>
               <TableHead className="h-9 text-right text-xs">Available</TableHead>
               <TableHead className="h-9 text-right text-xs">Unit cost</TableHead>
+              <TableHead className="h-9 text-right text-xs">Lot sale</TableHead>
               <TableHead className="h-9 text-right text-xs">Value</TableHead>
               <TableHead className="h-9 text-xs">Lot details</TableHead>
               <TableHead className="h-9 text-xs">Status</TableHead>
@@ -129,6 +130,7 @@ export function StockLotsView({
                   <TableCell className="py-2 text-right text-ink-600">{formatStock({ ...product, stock: lot.quantity })}</TableCell>
                   <TableCell className="py-2 text-right font-medium text-ink">{formatStock({ ...product, stock: lot.available })}</TableCell>
                   <TableCell className="py-2 text-right text-ink-600">{taka(lot.unitCost, lot.unitCost % 1 ? 2 : 0)}/{product.unit}</TableCell>
+                  <TableCell className="py-2 text-right text-ink-600">{lot.sellingPrice !== undefined ? `${taka(lot.sellingPrice, lot.sellingPrice % 1 ? 2 : 0)}/${product.unit}` : "Default"}</TableCell>
                   <TableCell className="py-2 text-right font-medium text-ink">{taka(lotValue, lotValue % 1 ? 2 : 0)}</TableCell>
                   <TableCell className="py-2">
                     <p className="text-ink-600">{lot.batchNumber ? `Batch ${lot.batchNumber}` : 'No batch'}</p>
