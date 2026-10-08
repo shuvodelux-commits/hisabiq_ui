@@ -186,6 +186,7 @@ async function main() {
       await page.locator('[data-slot="dialog-content"] [role="combobox"][data-value="Pcs"]').count() > 0,
       'default base unit uses saved Pcs preference'
     );
+    await page.locator('[data-slot="dialog-content"]').getByRole("button", { name: /Advanced/ }).click();
     assert.match(
       await page
         .locator('[data-slot="dialog-content"]')
