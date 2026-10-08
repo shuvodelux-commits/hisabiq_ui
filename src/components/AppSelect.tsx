@@ -77,7 +77,13 @@ export function AppSelect({
     }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
       event.preventDefault();
-      if (!open) { setActive(Math.max(0, chosen)); setOpen(true); return; }
+      if (!open) {
+        const start = Math.max(0, chosen);
+        setActive(event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1
+          : Math.max(0, Math.min(options.length - 1, start + (event.key === 'ArrowDown' ? 1 : -1))));
+        setOpen(true);
+        return;
+      }
       setActive((current) => event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1
         : Math.max(0, Math.min(options.length - 1, current + (event.key === 'ArrowDown' ? 1 : -1))));
       return;
