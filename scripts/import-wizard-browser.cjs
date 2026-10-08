@@ -1,5 +1,6 @@
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
 async function main(){
  const {createServer}=await import('vite');
  const server=await createServer({server:{host:'127.0.0.1',port:4207,strictPort:true}});
@@ -41,6 +42,16 @@ async function main(){
   await dlg.getByRole('button',{name:'Back'}).click();
   await dlg.getByRole('button',{name:'Back'}).click();
   await dlg.getByText('2 data rows',{exact:false}).waitFor({state:'visible'});
+  // An XLSX downloaded from our template must round-trip through the same wizard.
+  await dlg.getByLabel('Select Excel or CSV file').setInputFiles({
+   name:'hisabiq-products-template.xlsx',
+   mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+   buffer:fs.readFileSync(await excelDownload.path())
+  });
+  await dlg.getByText('1 data rows',{exact:false}).waitFor({state:'visible'});
+  await dlg.getByRole('button',{name:'Next: Map columns'}).click();
+  await dlg.getByRole('button',{name:'Next: Review'}).click();
+  await dlg.getByText('LED Bulb 12W',{exact:false}).first().waitFor();
   await page.setViewportSize({width:375,height:812});
   assert.ok(await dlg.isVisible());
   await dlg.getByRole('button',{name:'Cancel'}).click();
