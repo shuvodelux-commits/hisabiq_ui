@@ -57,6 +57,7 @@ async function main() {
     assert.doesNotMatch(await audit.innerText(), /All dates/);
 
     await page.goto(root + 'accounts');
+    await page.getByRole('tab', { name: /^Ledger/ }).click();
     const ledger = page.getByRole('button', { name: 'Account ledger date range' });
     await ledger.click();
     await page.getByRole('button', { name: 'Clear' }).click();
