@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Keyboard, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { FormSelect } from '../components/FormSelect';
@@ -55,6 +55,8 @@ export function PurchaseEditor() {
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const smallRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const costRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const lotPriceRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const paymentAmountRef = useRef<HTMLInputElement>(null);
 
   const supplier = suppliers.find((party) => party.id === supplierId);
   const purchaseRef = 'PUR-' + String(119 + availablePurchases().length - seedPurchases.length).padStart(6, '0');
@@ -168,12 +170,43 @@ export function PurchaseEditor() {
     navigate('/app/purchases');
   };
 
+  // Shortcuts mirror the POS workflow; dialogs retain their own keyboard handling.
+  useEffect(() => {
+    const handlePurchaseShortcuts = (event: KeyboardEvent) => {
+      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+      const dialogOpen = Array.from(document.querySelectorAll('[data-slot="dialog-content"]'))
+        .some((node) => (node as HTMLElement).getClientRects().length > 0);
+      if (dialogOpen) return;
+      if (event.key === 'F2') {
+        event.preventDefault();
+        searchRef.current?.focus();
+      } else if (event.key === 'F8') {
+        event.preventDefault();
+        paymentAmountRef.current?.focus();
+        paymentAmountRef.current?.select();
+      } else if (event.key === 'F9') {
+        event.preventDefault();
+        save();
+      }
+    };
+    window.addEventListener('keydown', handlePurchaseShortcuts);
+    return () => window.removeEventListener('keydown', handlePurchaseShortcuts);
+  });
+
   return (
     <div className="mx-auto max-w-[1440px] space-y-4 pb-8">
       <PageHeader
         title="New purchase" titleBn="নতুন ক্রয়"
         description={purchaseRef + ' · Add products like a POS cart, then choose payment sources.'}
-        actions={<Button variant="outline" size="sm" onClick={() => navigate('/app/purchases')}><ArrowLeft className="size-4" /> Purchases</Button>}
+        actions={<>
+          <div className="hidden items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] text-ink-500 md:flex">
+            <Keyboard className="size-3.5" aria-hidden="true" />
+            {([['F2', 'Search'], ['Enter', 'Next'], ['F8', 'Paid'], ['F9', 'Complete']] as const).map(([key, label]) => (
+              <span key={key} className="flex items-center gap-1"><kbd className="rounded border border-ink-200 bg-ink-50 px-1 text-[10px]">{key}</kbd> {label}</span>
+            ))}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/app/purchases')}><ArrowLeft className="size-4" /> Purchases</Button>
+        </>}
       />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
@@ -185,6 +218,7 @@ export function PurchaseEditor() {
             qtyRefs={qtyRefs}
             smallRefs={smallRefs}
             costRefs={costRefs}
+            lotPriceRefs={lotPriceRefs}
             onAdd={addProduct}
             onCreate={() => setProductDialogOpen(true)}
             onUpdate={updateLine}
@@ -249,7 +283,8 @@ export function PurchaseEditor() {
                       }} />
                     </label>
                     <label className="text-[11px] text-ink-500">Paid amount
-                      <Input className="mt-1 text-right" inputMode="decimal" placeholder="0" value={row.amount}
+                      <Input ref={index === 0 ? paymentAmountRef : undefined} aria-label={'Paid amount ' + (index + 1)}
+                        className="mt-1 text-right" inputMode="decimal" placeholder="0" value={row.amount}
                         onChange={(event) => updatePayment(row.id, { amount: event.target.value.replace(/[^0-9.]/g, '') })} />
                     </label>
                   </div>
