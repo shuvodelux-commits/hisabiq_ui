@@ -54,3 +54,10 @@ test('financially linked parties cannot be deactivated', () => {
   resetPartyPreviewForTest();
   assert.throws(()=>dispatchPartyPreview({type:'deactivate-party',id:'c1'}),/linked transactions/i);
 });
+
+test('notes belong to the selected relationship, never the first role by accident', () => {
+  resetPartyPreviewForTest();
+  const state=dispatchPartyPreview({type:'add-note',partyId:'c2',relationship:'Supplier',text:'Supplier discussion'});
+  const note=state.sources.find(x=>x.kind==='note'&&x.description==='Supplier discussion');
+  assert.equal(note?.relationship,'Supplier');
+});
