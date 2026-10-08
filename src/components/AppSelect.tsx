@@ -137,7 +137,7 @@ export function AppSelect({
             <button key={optionValue(option) + index} type="button" role="option" id={id + '-opt-' + index}
               aria-selected={value === optionValue(option)} data-value={optionValue(option)} data-active={active === index}
               onPointerDown={(event) => event.preventDefault()}
-              onMouseEnter={() => setActive(index)}
+              onPointerMove={() => setActive(index)}
               onClick={() => choose(option)}
               className={'flex min-h-9 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] outline-none hover:bg-teal-50 hover:text-teal-700 ' +
                 (active === index ? 'bg-teal-50 text-teal-700' : '')}
