@@ -1,9 +1,9 @@
 import type { LedgerEntry, Party, Product, Purchase, StockLot } from '../types/erp';
-import { purchases as seedPurchases, expenseCategories } from './purchases';
-import { ledgerEntries as seedLedgerEntries } from './parties';
-import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore';
-import { products as seedProducts, productCategories } from './products';
-import { stockLots as seedLots } from './productInventory';
+import { purchases as seedPurchases, expenseCategories } from './purchases.ts';
+import { ledgerEntries as seedLedgerEntries } from './parties.ts';
+import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore.ts';
+import { products as seedProducts, productCategories } from './products.ts';
+import { stockLots as seedLots } from './productInventory.ts';
 
 /** Design-preview state only: no network posting or cross-tenant persistence. */
 const createdProducts: Product[] = [];
