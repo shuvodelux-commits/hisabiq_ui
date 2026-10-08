@@ -12,8 +12,8 @@ import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockL
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
-import { availableProducts, availableProductCategories } from '../data/erpDemoStore';
-import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
+import { availableProducts, availableProductCategories, availableStockLots } from '../data/erpDemoStore';
+import { stockMovements as seedMovements } from '../data/productInventory';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
 import type { Product, ProductOffer, StockLot, StockMovement } from '../types/erp';
@@ -184,7 +184,7 @@ export function Products() {
   const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
   const [lotProduct, setLotProduct] = useState<Product | null>(null);
   const [offerProduct, setOfferProduct] = useState<Product | null>(null);
-  const [lots, setLots] = useState<StockLot[]>(seedLots);
+  const [lots, setLots] = useState<StockLot[]>(availableStockLots);
   const [movements, setMovements] = useState<StockMovement[]>(seedMovements);
   const [offers, setOffers] = useState<ProductOffer[]>(seedOffers);
   const [inventoryProductFilter, setInventoryProductFilter] = useState('');
