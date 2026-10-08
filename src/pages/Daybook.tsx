@@ -112,15 +112,15 @@ export function Daybook() {
         description="Find, open, edit and manage all business transactions in one place."
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-lg border border-ink-100 bg-white p-1">
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
             <button
               onClick={() => setEntryDateView('transaction')}
-              className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'transaction' ? 'bg-ink text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'transaction' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
               Transaction Date
             </button>
             <button
               onClick={() => setEntryDateView('created')}
-              className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'created' ? 'bg-ink text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'created' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
               Created Date
             </button>
             </div>
@@ -131,32 +131,32 @@ export function Daybook() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
           <div className="flex items-center justify-between"><p className="text-[12.5px] text-ink-500">Money In <span className="font-bn text-[11px]">· টাকা এসেছে</span></p><ArrowDownLeft className="size-4 text-success" /></div>
           <p className="mt-0.5 text-lg font-semibold text-success">{taka(summary.moneyIn)}</p>
           <p className="text-[10.5px] text-ink-400">Actual money received in this view</p>
         </div>
-        <div className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
           <div className="flex items-center justify-between"><p className="text-[12.5px] text-ink-500">Money Out <span className="font-bn text-[11px]">· টাকা গেছে</span></p><ArrowUpRight className="size-4 text-danger" /></div>
           <p className="mt-0.5 text-lg font-semibold text-ink">{taka(summary.moneyOut)}</p>
           <p className="text-[10.5px] text-ink-400">Actual money paid in this view</p>
         </div>
-        <div className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
-          <div className="flex items-center justify-between"><p className="text-[12.5px] text-ink-500">Net movement</p><WalletCards className="size-4 text-ink-300" /></div>
+        <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+          <div className="flex items-center justify-between"><p className="text-[12.5px] text-ink-500">Net movement</p><WalletCards className="size-4 text-helper" /></div>
           <p className={`mt-0.5 text-lg font-semibold ${summary.net < 0 ? 'text-danger' : 'text-ink'}`}>{summary.net < 0 ? '−' : ''}{taka(Math.abs(summary.net))}</p>
           <p className="text-[10.5px] text-ink-400">Internal transfers excluded</p>
         </div>
-        <div className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-1 text-[12.5px] text-ink-500">Entries <Tooltip content="এই তারিখ বা তারিখের মধ্যে পাওয়া মোট ব্যবসার লেনদেন।" /></p>
-            <CalendarClock className="size-4 text-ink-300" />
+            <CalendarClock className="size-4 text-helper" />
           </div>
           <p className="mt-0.5 text-lg font-semibold text-ink">{filtered.length}</p>
           <p className="font-bn text-[10.5px] text-ink-400">নির্বাচিত সময়ের লেনদেন</p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-ink-100 bg-white shadow-card">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
         <DaybookFilters value={filters} onChange={setFilters} transactions={transactions} dateView={entryDateView} />
 
         <div className="overflow-x-auto">
@@ -252,3 +252,4 @@ export function Daybook() {
     </div>
   );
 }
+

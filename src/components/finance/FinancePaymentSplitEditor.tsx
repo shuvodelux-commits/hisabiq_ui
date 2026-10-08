@@ -63,8 +63,8 @@ export function FinancePaymentSplitEditor({
   };
 
   return (
-    <div className="rounded-xl border border-ink-100 sm:col-span-2">
-      <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+    <div className="rounded-xl border border-border sm:col-span-2">
+      <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
         <div>
           <p className="text-[12.5px] font-semibold text-ink">Payment sources</p>
           <p className="font-bn text-[10.5px] text-ink-400">Cash + Bank + Mobile Banking একসাথে ব্যবহার করা যাবে</p>
@@ -112,7 +112,7 @@ export function FinancePaymentSplitEditor({
             </div>
           );
         })}
-        <div className="flex items-center justify-between border-t border-ink-100 pt-2 text-[11px]">
+        <div className="flex items-center justify-between border-t border-border pt-2 text-[11px]">
           <span className="text-ink-400">Split total</span>
           <span className={Math.abs(splitTotal - totalAmount) < 0.001 ? 'font-medium text-success' : 'font-medium text-warning'}>{taka(splitTotal)}</span>
         </div>
@@ -120,3 +120,4 @@ export function FinancePaymentSplitEditor({
     </div>
   );
 }
+

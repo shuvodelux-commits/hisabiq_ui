@@ -86,7 +86,7 @@ export function MetricCard({ widget }: {widget: DashboardWidget;}) {
   const c = config(widget.id);
   const Icon = c.icon;
   const body =
-  <div className="h-full rounded-xl border border-ink-100 bg-white p-3.5 shadow-card transition-colors hover:border-ink-200">
+  <div className="h-full rounded-xl border border-border bg-card p-3.5 shadow-card transition-colors hover:border-ink-200">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-[12.5px] font-medium text-ink-600">{widget.label}</p>

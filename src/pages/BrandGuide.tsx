@@ -15,7 +15,7 @@ import { LogoLockup } from '../components/brand/Logo';
 export function BrandGuide() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen w-full scroll-smooth bg-ink-50/60">
+    <div className="theme-light min-h-screen w-full scroll-smooth bg-ink-50/60">
       <BrandNav />
       <main>
         <BrandHero />
@@ -27,20 +27,20 @@ export function BrandGuide() {
         <ApplicationsSection />
 
         <section className="mx-auto max-w-[1280px] px-6 pb-20">
-          <div className="flex flex-col items-start justify-between gap-6 rounded-2xl bg-ink p-10 md:flex-row md:items-center">
+          <div className="flex flex-col items-start justify-between gap-6 rounded-2xl bg-inverse p-10 md:flex-row md:items-center">
             <div>
               <p className="text-2xl font-semibold tracking-tight text-white">See the brand at work</p>
-              <p className="mt-1 text-ink-300">
+              <p className="mt-1 text-[#B7C2CF]">
                 Dashboard, POS, products, parties, purchases and reports — one coherent HisabIQ.
               </p>
             </div>
-            <Button size="lg" className="bg-white text-ink hover:bg-ink-50" onClick={() => navigate('/app/dashboard')}>
+            <Button size="lg" className="bg-card text-ink hover:bg-ink-50" onClick={() => navigate('/app/dashboard')}>
               Open the app <ArrowRight className="size-4" />
             </Button>
           </div>
         </section>
       </main>
-      <footer className="border-t border-ink-100 bg-white">
+      <footer className="border-t border-border bg-card">
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-6 py-6 text-xs text-ink-500">
           <LogoLockup size={22} />
           <span className="font-bn">সহজ হিসাব, স্মার্ট ব্যবসা · Simple accounts. Smarter business.</span>

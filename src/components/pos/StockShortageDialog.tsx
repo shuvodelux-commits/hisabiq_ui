@@ -24,27 +24,12 @@ type StockShortageDialogProps = {
 
 const vendors = parties.filter((party) => party.roles.includes('Vendor'));
 
-export function StockShortageDialog({
-  line,
-  availableBaseQty,
-  shortageBaseQty,
-  open,
-  onOpenChange,
-  onUseOwnStock,
-  onResolve
-}: StockShortageDialogProps) {
-  const initialChoice: Choice = line?.stockSource?.mode === 'Vendor'
-    ? 'Vendor'
-    : line?.stockSource?.mode === 'Negative'
-      ? 'Negative'
-      : 'Own';
-  const [choice, setChoice] = useState<Choice>(initialChoice);
+export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, open, onOpenChange, onUseOwnStock, onResolve }: StockShortageDialogProps) {
+  const [choice, setChoice] = useState<Choice>('Own');
   const [vendorName, setVendorName] = useState('');
   const [vendorCost, setVendorCost] = useState('');
 
-  const factor = line?.product.altUnit && line.unit === line.product.altUnit.unit
-    ? line.product.altUnit.factor
-    : 1;
+  const factor = line?.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
   const displayUnit = line?.unit ?? '';
   const vendor = vendors.find((item) => item.name === vendorName) ?? null;
 
@@ -56,11 +41,7 @@ export function StockShortageDialog({
     setVendorCost(source?.mode === 'Vendor' ? String(source.unitCost * factor) : '');
   }, [factor, line, open]);
 
-  const ownStockLabel = useMemo(() => {
-    if (!line) return '';
-    return formatStock({ ...line.product, stock: availableBaseQty });
-  }, [availableBaseQty, line]);
-
+  const ownStockLabel = useMemo(() => line ? formatStock({ ...line.product, stock: availableBaseQty }) : '', [availableBaseQty, line]);
   if (!line) return null;
 
   const requestedBaseQty = availableBaseQty + shortageBaseQty;
@@ -69,21 +50,10 @@ export function StockShortageDialog({
   const costNumber = parseFloat(vendorCost) || 0;
 
   const save = () => {
-    if (choice === 'Own') {
-      onUseOwnStock();
-      return;
-    }
-    if (choice === 'Negative') {
-      onResolve({ mode: 'Negative' });
-      return;
-    }
+    if (choice === 'Own') return onUseOwnStock();
+    if (choice === 'Negative') return onResolve({ mode: 'Negative' });
     if (!vendor || costNumber <= 0) return;
-    onResolve({
-      mode: 'Vendor',
-      vendorId: vendor.id,
-      vendorName: vendor.name,
-      unitCost: costNumber / factor
-    });
+    onResolve({ mode: 'Vendor', vendorId: vendor.id, vendorName: vendor.name, unitCost: costNumber / factor });
   };
 
   return (
@@ -97,39 +67,24 @@ export function StockShortageDialog({
         </DialogHeader>
 
         <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => setChoice('Own')}
-            className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Own' ? 'border-teal-400 bg-teal-50/60' : 'border-ink-100 hover:bg-ink-50'}`}>
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-teal-700 ring-1 ring-ink-100">
-              <PackageCheck className="size-4" />
-            </span>
+          <button type="button" onClick={() => setChoice('Own')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Own' ? 'border-teal-400 bg-teal-50/60' : 'border-ink-100 hover:bg-ink-50'}`}>
+            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-teal-700 ring-1 ring-ink-100"><PackageCheck className="size-4" /></span>
             <span>
               <span className="block text-sm font-medium text-ink">Own Stock <span className="font-bn text-xs font-normal text-ink-400">· নিজের স্টক</span></span>
               <span className="block text-xs text-ink-500">{availableBaseQty > 0 ? `Reduce this line to ${ownStockLabel}.` : 'No own stock is available; this removes the line.'}</span>
             </span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setChoice('Negative')}
-            className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Negative' ? 'border-warning bg-warning-bg/70' : 'border-ink-100 hover:bg-ink-50'}`}>
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-warning ring-1 ring-ink-100">
-              <TrendingDown className="size-4" />
-            </span>
+          <button type="button" onClick={() => setChoice('Negative')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Negative' ? 'border-warning bg-warning-bg/70' : 'border-ink-100 hover:bg-ink-50'}`}>
+            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-warning ring-1 ring-ink-100"><TrendingDown className="size-4" /></span>
             <span>
               <span className="block text-sm font-medium text-ink">Negative Sale <span className="font-bn text-xs font-normal text-ink-400">· নেগেটিভ বিক্রি</span></span>
               <span className="block text-xs text-ink-500">Complete the sale now; the shortage remains negative until future stock is received.</span>
             </span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setChoice('Vendor')}
-            className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Vendor' ? 'border-blue-300 bg-blue-50/70' : 'border-ink-100 hover:bg-ink-50'}`}>
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-700 ring-1 ring-ink-100">
-              <Truck className="size-4" />
-            </span>
+          <button type="button" onClick={() => setChoice('Vendor')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Vendor' ? 'border-blue-300 bg-blue-50/70' : 'border-ink-100 hover:bg-ink-50'}`}>
+            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-700 ring-1 ring-ink-100"><Truck className="size-4" /></span>
             <span>
               <span className="block text-sm font-medium text-ink">Vendor <span className="font-bn text-xs font-normal text-ink-400">· ভেন্ডর থেকে</span></span>
               <span className="block text-xs text-ink-500">Source only the shortage from a vendor and record its cost.</span>
@@ -147,26 +102,16 @@ export function StockShortageDialog({
               <p className="mb-1 text-xs font-medium text-ink-600">Vendor cost per {displayUnit}</p>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-                <Input
-                  value={vendorCost}
-                  onChange={(event) => setVendorCost(event.target.value.replace(/[^\d.]/g, ''))}
-                  inputMode="decimal"
-                  placeholder="0"
-                  className="pl-7 text-right"
-                />
+                <Input value={vendorCost} onChange={(event) => setVendorCost(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="0" className="pl-7 text-right" />
               </div>
-              {costNumber > 0 && factor > 1 && (
-                <p className="mt-1 text-[11px] text-ink-500">
-                  {taka(costNumber)} / {displayUnit} = {taka(costNumber / factor)} / {line.product.unit}
-                </p>
-              )}
+              {costNumber > 0 && factor > 1 && <p className="mt-1 text-[11px] text-ink-500">{taka(costNumber)} / {displayUnit} = {taka(costNumber / factor)} / {line.product.unit}</p>}
             </div>
           </div>
         )}
 
         <div className="flex items-start gap-2 rounded-lg bg-ink-50 p-2.5 text-xs text-ink-500">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
-          This choice applies to this cart line. Changing its quantity or unit asks you to review the shortage again.
+          This choice applies only to this cart line. Changing quantity or unit asks you to review the shortage again.
         </div>
 
         <DialogFooter>

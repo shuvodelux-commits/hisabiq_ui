@@ -44,7 +44,7 @@ const financeTypeOptions: FinanceTransactionType[] = [
 
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-ink-100 bg-ink-50/40 px-3 py-2.5">
+    <div className="rounded-lg border border-border bg-ink-50/40 px-3 py-2.5">
       <p className="text-[10.5px] uppercase tracking-wide text-ink-400">{label}</p>
       <div className="mt-0.5 text-[13px] font-medium text-ink">{children || '—'}</div>
     </div>
@@ -179,9 +179,9 @@ export function FinanceTransactionActionDialog({
               <Detail label="Created by">{transaction.createdBy}</Detail>
             </div>
             {!!transaction.paymentAccounts?.length && transaction.paymentAccounts.length > 1 && (
-              <div className="rounded-xl border border-ink-100">
-                <div className="border-b border-ink-100 px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">Payment split</p></div>
-                <div className="divide-y divide-ink-100">{transaction.paymentAccounts.map((split, index) => <div key={index} className="flex items-center justify-between px-3 py-2 text-[12px]"><span className="text-ink-600">{split.method} · {split.account}</span><span className="font-medium text-ink">{taka(split.amount)}</span></div>)}</div>
+              <div className="rounded-xl border border-border">
+                <div className="border-b border-border px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">Payment split</p></div>
+                <div className="divide-y divide-border">{transaction.paymentAccounts.map((split, index) => <div key={index} className="flex items-center justify-between px-3 py-2 text-[12px]"><span className="text-ink-600">{split.method} · {split.account}</span><span className="font-medium text-ink">{taka(split.amount)}</span></div>)}</div>
               </div>
             )}
             {confirmReverse && (
@@ -303,15 +303,15 @@ export function FinanceAccountActionDialog({
             <Detail label="Opening balance">{taka(account.openingBalance)}</Detail>
             <Detail label="Status"><StatusBadge tone={account.status === 'Active' ? 'success' : 'neutral'} dot>{account.status}</StatusBadge></Detail>
           </div>
-          <div className="overflow-hidden rounded-xl border border-ink-100">
-            <div className="flex items-center justify-between border-b border-ink-100 bg-ink-50/50 px-3 py-2.5">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="flex items-center justify-between border-b border-border bg-ink-50/50 px-3 py-2.5">
               <div>
                 <p className="text-[13px] font-medium text-ink">Recent ledger</p>
                 <p className="text-[10.5px] text-ink-400">Finance entries and account transfers linked here.</p>
               </div>
-              <BookOpen className="size-4 text-ink-300" />
+              <BookOpen className="size-4 text-helper" />
             </div>
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-border">
               {ledgerRows.length ? ledgerRows.map((row) => (
                 <div key={row.id} className="flex items-center gap-3 px-3 py-2.5">
                   <div className="min-w-0 flex-1">
@@ -518,15 +518,15 @@ export function FinancePeopleManagerDialog({
           <DialogDescription>Manage Owner, Lender and Borrower roles without cross-netting balances.</DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-xl border border-ink-100">
-          <div className="grid gap-2 border-b border-ink-100 bg-ink-50/60 p-3 md:grid-cols-2">
+        <div className="rounded-xl border border-border">
+          <div className="grid gap-2 border-b border-border bg-ink-50/60 p-3 md:grid-cols-2">
             <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Name" />
             <Input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Phone" />
             <Input className="md:col-span-2" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description / relationship note" />
             <div className="flex flex-wrap gap-1.5 md:col-span-2">
               {(['Owner', 'Lender', 'Borrower'] as FinancePersonRole[]).map((role) => (
                 <button key={role} type="button" onClick={() => toggleRole(role)}
-                  className={'rounded-md border px-2 py-1 text-xs font-medium ' + (roles.includes(role) ? 'border-teal-200 bg-teal-50 text-teal-700' : 'border-ink-100 bg-white text-ink-500')}>
+                  className={'rounded-md border px-2 py-1 text-xs font-medium ' + (roles.includes(role) ? 'border-teal-200 bg-teal-50 text-teal-700' : 'border-border bg-card text-ink-500')}>
                   {role}
                 </button>
               ))}
@@ -537,7 +537,7 @@ export function FinancePeopleManagerDialog({
             </div>
           </div>
 
-          <div className="max-h-80 divide-y divide-ink-100 overflow-auto">
+          <div className="max-h-80 divide-y divide-border overflow-auto">
             {people.map((person) => (
               <div key={person.id} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-ink-50 text-xs font-semibold text-ink-600">
@@ -565,3 +565,4 @@ export function FinancePeopleManagerDialog({
     </Dialog>
   );
 }
+

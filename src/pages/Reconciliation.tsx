@@ -1,3 +1,4 @@
+import { AppSelect } from '../components/AppSelect';
 import React, { useMemo, useState } from 'react';
 import {
   ArrowDownToLine,
@@ -122,7 +123,7 @@ function ErpEditor({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-ink-100 bg-white p-3">
+      <div className="rounded-xl border border-border bg-card p-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Selected ERP transaction</p>
@@ -339,23 +340,16 @@ export function Reconciliation() {
         }
       />
 
-      <div className="rounded-xl border border-ink-100 bg-white p-3 shadow-card">
+      <div className="rounded-xl border border-border bg-card p-3 shadow-card">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="flex size-9 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
             <Landmark className="size-4" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Account</p>
-            <div className="relative mt-1 max-w-sm">
-              <select
-                value={accountId}
-                onChange={(event) => switchAccount(event.target.value)}
-                className="h-9 w-full appearance-none rounded-md border border-input bg-white px-3 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20">
-                {reconciliationAccounts.map((item) => (
-                  <option key={item.id} value={item.id}>{item.name}</option>
-                ))}
-              </select>
-            </div>
+            <AppSelect label="Reconciliation account" className="mt-1 max-w-sm"
+              value={accountId} onChange={switchAccount}
+              options={reconciliationAccounts.map((item) => ({ value: item.id, label: item.name }))} />
             <p className="mt-1 text-[11px] text-ink-500">{account.detail ?? account.type}</p>
           </div>
           <div className="text-left sm:text-right">
@@ -367,7 +361,7 @@ export function Reconciliation() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((item) => (
-          <div key={item.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={item.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{item.label}</p>
             <p className={`mt-0.5 text-lg font-semibold ${item.tone ?? 'text-ink'}`}>{item.value}</p>
             <p className="text-[11px] text-ink-400">{item.sub}</p>
@@ -375,8 +369,8 @@ export function Reconciliation() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 px-3 scrollbar-thin" role="tablist">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {([
             ['reconcile', 'Reconcile', 'Statement vs ERP'],
             ['history', 'History', 'Previous reconciliations']
@@ -395,7 +389,7 @@ export function Reconciliation() {
 
         {tab === 'reconcile' && (
           <>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 bg-ink-50/40 px-3 py-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/40 px-3 py-2">
               <p className="text-[11.5px] text-ink-500">
                 {matchedCount} matched · {reviewCount} review · {unmatchedCount} unmatched
               </p>
@@ -407,8 +401,8 @@ export function Reconciliation() {
               </Button>
             </div>
             <div className="grid min-h-[620px] lg:grid-cols-2">
-            <section className="border-b border-ink-100 lg:border-b-0 lg:border-r">
-              <div className="flex flex-col gap-2 border-b border-ink-100 p-3 sm:flex-row sm:items-center">
+            <section className="border-b border-border lg:border-b-0 lg:border-r">
+              <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
                   <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                   <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" placeholder="Search statement transaction" />
@@ -426,7 +420,7 @@ export function Reconciliation() {
                   <button
                     key={item.id}
                     onClick={() => selectStatement(item)}
-                    className={`flex w-full items-start gap-3 border-b border-ink-100 px-3 py-3 text-left transition-colors ${selectedStatement?.id === item.id ? 'bg-teal-50/60' : 'hover:bg-ink-50'}`}>
+                    className={`flex w-full items-start gap-3 border-b border-border px-3 py-3 text-left transition-colors ${selectedStatement?.id === item.id ? 'bg-teal-50/60' : 'hover:bg-ink-50'}`}>
                     <span className={`mt-1.5 size-2 shrink-0 rounded-full ${item.direction === 'in' ? 'bg-success' : 'bg-danger'}`} />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
@@ -445,7 +439,7 @@ export function Reconciliation() {
 
                 {filtered.length === 0 && (
                   <div className="px-4 py-12 text-center">
-                    <FileText className="mx-auto size-7 text-ink-300" />
+                    <FileText className="mx-auto size-7 text-helper" />
                     <p className="mt-2 text-sm font-medium text-ink">No statement rows match</p>
                     <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setStatusFilter('All status'); }}>Clear filters</Button>
                   </div>
@@ -456,13 +450,13 @@ export function Reconciliation() {
             <section className="min-w-0 bg-ink-50/30">
               {!selectedStatement ? (
                 <div className="flex h-full min-h-96 flex-col items-center justify-center p-6 text-center">
-                  <Link2 className="size-8 text-ink-300" />
+                  <Link2 className="size-8 text-helper" />
                   <p className="mt-2 font-medium text-ink">Select a statement transaction</p>
                   <p className="mt-1 text-sm text-ink-500">HisabIQ will show likely ERP matches on this side.</p>
                 </div>
               ) : (
                 <div className="space-y-3 p-3">
-                  <div className="rounded-xl border border-ink-100 bg-white p-3">
+                  <div className="rounded-xl border border-border bg-card p-3">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Statement transaction</p>
@@ -496,12 +490,12 @@ export function Reconciliation() {
                   </div>
 
                   {candidates.length > 0 && (
-                    <div className="rounded-xl border border-ink-100 bg-white">
-                      <div className="border-b border-ink-100 p-3">
+                    <div className="rounded-xl border border-border bg-card">
+                      <div className="border-b border-border p-3">
                         <p className="text-[13px] font-medium text-ink">ERP matches</p>
                         <p className="mt-0.5 text-[11px] text-ink-500">Choose a transaction, then fix date, party, amount or reference inline before matching.</p>
                       </div>
-                      <div className="divide-y divide-ink-100">
+                      <div className="divide-y divide-border">
                         {candidates.map((item) => (
                           <button
                             key={item.id}
@@ -528,7 +522,7 @@ export function Reconciliation() {
                       onMatch={() => matchSelected(selectedErp.id)}
                     />
                   ) : (
-                    <div className="rounded-xl border border-dashed border-ink-200 bg-white p-6 text-center">
+                    <div className="rounded-xl border border-dashed border-ink-200 bg-card p-6 text-center">
                       <p className="text-sm font-medium text-ink">No ERP match found</p>
                       <p className="mt-1 text-xs text-ink-500">Create a new ERP transaction from the statement row or ignore it.</p>
                     </div>
@@ -599,3 +593,4 @@ export function Reconciliation() {
     </div>
   );
 }
+

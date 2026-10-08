@@ -56,13 +56,14 @@ export type Product = {
   nameBn?: string;
   sku: string;
   category: string;
+  brand?: string;
   image?: string;
   /** Base (smallest) unit, e.g. "Pcs", "Gira", "Kg" */
   unit: string;
   altUnit?: UnitConversion;
   /** Stock in base units */
   stock: number;
-  /** Preferred display/POS unit. Stock is still stored in the base unit. */
+  /** Preferred display/POS unit. Quantity remains in base units. */
   stockViewUnit?: string;
   minStock: number;
   sellPrice: number;
@@ -81,6 +82,8 @@ export type StockLot = {
   quantity: number;
   available: number;
   unitCost: number;
+  /** Base-unit selling price override for this purchase lot, not the product default. */
+  sellingPrice?: number;
   source: 'Opening' | 'Purchase' | 'Adjustment' | 'Return';
   reference?: string;
   batchNumber?: string;
@@ -194,7 +197,7 @@ export type SaleLine = {
   serials?: string[];
   warranty?: WarrantySnapshot;
   lotAllocations?: Array<{ lotId: string; quantity: number }>;
-  /** How a quantity beyond sellable own stock was fulfilled. Vendor unitCost is per base unit. */
+  /** How quantity beyond own sellable stock was fulfilled. Vendor unitCost is per base unit. */
   stockSource?: SaleStockSource;
 };
 
@@ -260,6 +263,9 @@ export type CustomerCredit = {
 export type PurchaseInventoryLine = {
   productId: string;
   quantity: number;
+  unitCost?: number;
+  /** Base-unit lot selling price snapshot; does not overwrite master product selling price. */
+  lotSellingPrice?: number;
   serials?: string[];
   batchNumber?: string;
   manufactureDate?: string;
@@ -273,11 +279,17 @@ export type Purchase = TransactionAuditFields & {
   supplierId: string;
   supplier: string;
   items: string;
+  subtotal?: number;
+  discount?: number;
+  rounding?: number;
   total: number;
   paid: number;
   payments?: PaymentSplit[];
   receipt?: string;
   inventoryLines?: PurchaseInventoryLine[];
+  memoNo?: string;
+  notes?: string;
+  backdateReason?: string;
 };
 
 export type Expense = TransactionAuditFields & {

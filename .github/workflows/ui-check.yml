@@ -20,10 +20,34 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Test POS helpers
+      - name: Test UI helpers and theme palette
         run: npm test
 
       - name: Build UI
         run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Check POS drag reorder and receipt order
+        run: npm run test:pos-reorder
+
+      - name: Check full-page purchase and quick-add workflow
+        run: npm run test:purchases
+
+      - name: Check product quick-add and price-unit interactions
+        run: npm run test:product-quick-add
+
+      - name: Check themed selects and date-range filters
+        run: npm run test:themed-filters
+
+      - name: Check rendered light and dark themes
+        run: npm run test:theme
+
+      - name: Check SaaS administration journeys and contrast
+        run: npm run test:saas
+
+      - name: Check ERP settings workflows and contrast
+        run: npm run test:settings

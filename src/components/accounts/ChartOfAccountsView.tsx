@@ -110,7 +110,7 @@ export function ChartOfAccountsView({
         <FormSelect className="sm:w-44" value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)} options={['All groups', ...groups]} />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-ink-100">
+      <div className="overflow-hidden rounded-xl border border-border">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -167,3 +167,4 @@ export function ChartOfAccountsView({
     </div>
   );
 }
+

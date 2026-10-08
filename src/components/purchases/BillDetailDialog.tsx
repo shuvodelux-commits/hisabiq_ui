@@ -36,12 +36,12 @@ export function BillDetailDialog({ bill, onClose }: {bill: BillDetail | null;onC
               <DialogDescription>{bill.date}{bill.category ? ` · ${bill.category}` : ''}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 md:grid-cols-[1fr_240px]">
-              <div className="flex min-h-56 items-center justify-center overflow-hidden rounded-lg border border-ink-100 bg-ink-50">
+              <div className="flex min-h-56 items-center justify-center overflow-hidden rounded-lg border border-border bg-ink-50">
                 {bill.receipt ?
               <img src={bill.receipt} alt={`Receipt for ${bill.ref}`} className="max-h-[50vh] w-full object-contain" /> :
 
               <div className="p-6 text-center text-sm text-ink-500">
-                    <FileImage className="mx-auto mb-2 size-8 text-ink-300" />
+                    <FileImage className="mx-auto mb-2 size-8 text-helper" />
                     No receipt attached
                     <button onClick={() => toast('Choose a photo to attach')} className="mt-2 block w-full text-xs font-medium text-teal-700 hover:underline">
                       Attach receipt photo
@@ -70,9 +70,9 @@ export function BillDetailDialog({ bill, onClose }: {bill: BillDetail | null;onC
                   <p className="flex justify-between border-t border-ink-200 pt-1.5 font-semibold"><span>Due</span><span className={due > 0 ? 'text-danger' : 'text-success'}>{taka(due)}</span></p>
                 </div>
                 {bill.payments && bill.payments.length > 0 && (
-                  <div className="rounded-lg border border-ink-100">
-                    <p className="border-b border-ink-100 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">Payments</p>
-                    <div className="divide-y divide-ink-100">
+                  <div className="rounded-lg border border-border">
+                    <p className="border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">Payments</p>
+                    <div className="divide-y divide-border">
                       {bill.payments.map((payment) => (
                         <div key={payment.id} className="flex items-center justify-between gap-3 px-3 py-2 text-[12px]">
                           <div className="min-w-0">

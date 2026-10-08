@@ -6,29 +6,30 @@ import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
-import { ledgerEntries, parties } from '../data/parties';
+import { availableParties, availableLedgerEntries } from '../data/erpDemoStore';
 import type { LedgerEntry, PartyRole } from '../types/erp';
 import { taka } from '../utils/currency';
 
 export function Parties() {
   const [params, setParams] = useSearchParams();
+  const allParties = useMemo(availableParties, []);
   const selectedId = params.get('id') ?? 'c1';
   const [role, setRole] = useState<PartyRole | 'All'>('All');
   const [query, setQuery] = useState('');
-  const [entries, setEntries] = useState<LedgerEntry[]>(ledgerEntries);
+  const [entries, setEntries] = useState<LedgerEntry[]>(availableLedgerEntries);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
-    return parties.filter(
+    return allParties.filter(
       (p) => (role === 'All' || p.roles.includes(role)) && (p.name.toLowerCase().includes(q) || p.phone.includes(q))
     );
-  }, [role, query]);
+  }, [role, query, allParties]);
 
-  const party = parties.find((p) => p.id === selectedId) ?? parties[0];
+  const party = allParties.find((p) => p.id === selectedId) ?? allParties[0];
   const partyEntries = entries.filter((e) => e.partyId === party.id);
 
-  const receivable = parties.filter((p) => p.balance > 0).reduce((s, p) => s + p.balance, 0);
-  const payable = parties.filter((p) => p.balance < 0).reduce((s, p) => s - p.balance, 0);
+  const receivable = allParties.filter((p) => p.balance > 0).reduce((s, p) => s + p.balance, 0);
+  const payable = allParties.filter((p) => p.balance < 0).reduce((s, p) => s - p.balance, 0);
 
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">

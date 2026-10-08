@@ -1,3 +1,4 @@
+import { AppSelect } from '../components/AppSelect';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -188,8 +189,8 @@ function WarrantyDetailDialog({
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
               <div className="space-y-3">
-                <div className="rounded-xl border border-ink-100">
-                  <div className="grid grid-cols-2 gap-3 border-b border-ink-100 p-3 text-[12.5px] sm:grid-cols-4">
+                <div className="rounded-xl border border-border">
+                  <div className="grid grid-cols-2 gap-3 border-b border-border p-3 text-[12.5px] sm:grid-cols-4">
                     <div><p className="text-ink-400">Customer</p><p className="font-medium text-ink">{item.customer}</p></div>
                     <div><p className="text-ink-400">Phone</p><p className="font-medium text-ink">{item.phone ?? '—'}</p></div>
                     <div><p className="text-ink-400">Invoice</p><p className="font-medium text-ink">{item.invoice}</p></div>
@@ -235,8 +236,8 @@ function WarrantyDetailDialog({
                 )}
               </div>
 
-              <div className="rounded-xl border border-ink-100 bg-white">
-                <div className="border-b border-ink-100 p-3">
+              <div className="rounded-xl border border-border bg-card">
+                <div className="border-b border-border p-3">
                   <p className="text-[13px] font-semibold text-ink">Case timeline</p>
                   <p className="mt-0.5 text-[11px] text-ink-500">Every handoff stays visible.</p>
                 </div>
@@ -244,7 +245,7 @@ function WarrantyDetailDialog({
                   {item.events.map((event, index) => (
                     <li key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
                       {index < item.events.length - 1 && <span className="absolute left-[7px] top-4 h-[calc(100%-4px)] w-px bg-ink-100" />}
-                      <span className="relative mt-1.5 size-3.5 shrink-0 rounded-full border-2 border-white bg-teal-600 ring-1 ring-teal-200" />
+                      <span className="relative mt-1.5 size-3.5 shrink-0 rounded-full border-2 border-card bg-teal-600 ring-1 ring-teal-200" />
                       <div className="min-w-0">
                         <p className="text-[12.5px] font-medium text-ink">{event.title}</p>
                         <p className="text-[10.5px] text-ink-400">{event.date}</p>
@@ -395,18 +396,14 @@ function IntakeDialog({
           </label>
           <label className="text-[12px] font-medium text-ink">
             Product
-            <div className="relative mt-1">
-              <select
-                value={selectedLine?.productId ?? ''}
-                onChange={(event) => {
-                  const line = selectedInvoice?.lines.find((item) => item.productId === event.target.value);
-                  setProductId(event.target.value);
-                  setSerial(line?.serials?.[0] ?? '');
-                }}
-                className="h-9 w-full appearance-none rounded-md border border-input bg-white px-3 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20">
-                {selectedInvoice?.lines.map((line) => <option key={line.id} value={line.productId}>{line.name}</option>)}
-              </select>
-            </div>
+            <AppSelect label="Warranty product" className="mt-1"
+              value={selectedLine?.productId ?? ''}
+              onChange={(next) => {
+                const line = selectedInvoice?.lines.find((item) => item.productId === next);
+                setProductId(next);
+                setSerial(line?.serials?.[0] ?? '');
+              }}
+              options={(selectedInvoice?.lines ?? []).map((line) => ({ value: line.productId, label: line.name }))} />
           </label>
           <label className="text-[12px] font-medium text-ink">
             Serial number
@@ -418,7 +415,7 @@ function IntakeDialog({
               value={issue}
               onChange={(event) => setIssue(event.target.value)}
               rows={3}
-              className="mt-1 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               placeholder="What problem did the customer report?"
             />
           </label>
@@ -569,7 +566,7 @@ function ReceiveExternalDialog({
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
                   rows={3}
-                  className="mt-1 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                  className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                   placeholder="Supplier/manufacturer note, repair details, rejection reason…"
                 />
               </label>
@@ -828,7 +825,7 @@ export function Warranty() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((item) => (
-          <div key={item.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={item.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{item.label}</p>
             <p className={`mt-0.5 text-lg font-semibold ${item.tone ?? 'text-ink'}`}>{item.value}</p>
             <p className="font-bn text-[11px] text-ink-400">{item.sub}</p>
@@ -836,8 +833,8 @@ export function Warranty() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-ink-100 px-3 scrollbar-thin" role="tablist">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -854,7 +851,7 @@ export function Warranty() {
           ))}
         </div>
 
-        <div className="flex flex-col gap-2 border-b border-ink-100 p-3 lg:flex-row lg:items-center">
+        <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
           <div className="relative min-w-0 flex-1 lg:max-w-lg">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
             <Input
@@ -930,7 +927,7 @@ export function Warranty() {
                         </button>
                       )}
                     </div>
-                  ) : <span className="text-ink-300">—</span>}
+                  ) : <span className="text-helper">—</span>}
                 </TableCell>
                 <TableCell className="py-2"><WarrantyBadge status={item.status} /></TableCell>
                 <TableCell className="py-2 pr-4 text-right">
@@ -949,7 +946,7 @@ export function Warranty() {
 
         {filtered.length === 0 && (
           <div className="px-4 py-12 text-center">
-            <ShieldCheck className="mx-auto size-8 text-ink-300" />
+            <ShieldCheck className="mx-auto size-8 text-helper" />
             <p className="mt-2 font-medium text-ink">No warranty cases match</p>
             <p className="mt-1 text-sm text-ink-500">Try another search, status or route.</p>
             <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setStatus('All status'); setRoute('All routes'); }}>
@@ -958,7 +955,7 @@ export function Warranty() {
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-4 py-2.5 text-xs text-ink-500">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
           <span>Showing {filtered.length} warranty cases</span>
           <span>Invoice and serial verification stay linked to every case</span>
         </div>
@@ -1006,3 +1003,4 @@ export function Warranty() {
     </div>
   );
 }
+

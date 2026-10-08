@@ -96,13 +96,13 @@ export function SerialPickerDialog({
 
           <div>
             <p className="mb-1.5 text-[12px] font-medium text-ink">Paste multiple <span className="font-bn text-[11px] font-normal text-ink-400">· একসাথে পেস্ট</span></p>
-            <textarea value={paste} onChange={(e) => setPaste(e.target.value)} placeholder={"SN-001\nSN-002"} className="min-h-20 w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+            <textarea value={paste} onChange={(e) => setPaste(e.target.value)} placeholder={"SN-001\nSN-002"} className="min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
             <button type="button" className="mt-1 text-xs font-medium text-teal-700 hover:underline" onClick={() => { addSerials(normalizeSerials(paste)); setPaste(''); }}>Add pasted serials</button>
           </div>
 
           <div>
             <p className="mb-2 text-[12px] font-medium text-ink">Eligible serials <span className="text-ink-400">({available.length})</span></p>
-            <div className="max-h-44 overflow-y-auto rounded-lg border border-ink-100 p-1">
+            <div className="max-h-44 overflow-y-auto rounded-lg border border-border p-1">
               {available.map((serial) => {
                 const checked = values.includes(serial);
                 return <button key={serial} type="button" onClick={() => checked ? setValues((items) => items.filter((item) => item !== serial)) : addSerials([serial])} className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs ${checked ? 'bg-teal-50 text-teal-800' : 'text-ink-600 hover:bg-ink-50'}`}><span>{serial}</span><span>{checked ? 'Selected' : 'Available'}</span></button>;
@@ -123,3 +123,4 @@ export function SerialPickerDialog({
     </Dialog>
   );
 }
+

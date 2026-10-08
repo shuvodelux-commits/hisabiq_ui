@@ -1,3 +1,4 @@
+import { AppSelect } from '../AppSelect';
 import React, { useMemo } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { Button } from '../Button';
@@ -21,21 +22,10 @@ function ProductFilterSelect({
   value: string;
   onChange: (productId: string) => void;
 }) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-9 w-full appearance-none rounded-md border border-input bg-white pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-        aria-label="Filter inventory by product">
-        <option value="">All products</option>
-        {products.filter((product) => product.kind !== 'Service').map((product) => (
-          <option key={product.id} value={product.id}>{product.name}</option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-    </div>
-  );
+  return <AppSelect label="Filter inventory by product" value={value} onChange={onChange}
+    options={[{ value: '', label: 'All products' }, ...products.filter((product) => product.kind !== 'Service')
+      .map((product) => ({ value: product.id, label: product.name }))]} />;
+
 }
 
 export function StockLotsView({
@@ -61,17 +51,17 @@ export function StockLotsView({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <div className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
           <p className="text-xs text-ink-500">Available lots</p>
           <p className="mt-0.5 text-lg font-semibold text-ink">{availableLots.length}</p>
           <p className="text-[11px] text-ink-400">Lots with remaining stock</p>
         </div>
-        <div className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
           <p className="text-xs text-ink-500">Lot stock value</p>
           <p className="mt-0.5 text-lg font-semibold text-ink">{taka(value, value % 1 ? 2 : 0)}</p>
           <p className="text-[11px] text-ink-400">At lot purchase cost</p>
         </div>
-        <div className="col-span-2 rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card lg:col-span-1">
+        <div className="col-span-2 rounded-xl border border-border bg-card px-4 py-3 shadow-card lg:col-span-1">
           <p className="text-xs text-ink-500">Selected product</p>
           <p className="mt-0.5 truncate text-sm font-semibold text-ink">
             {productFilter ? productById(products, productFilter)?.name ?? 'Unknown' : 'All products'}
@@ -80,8 +70,8 @@ export function StockLotsView({
         </div>
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-wrap items-center gap-2 border-b border-ink-100 p-3">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
           <div className="min-w-[220px] flex-1 sm:max-w-sm">
             <ProductFilterSelect products={products} value={productFilter} onChange={onProductFilter} />
           </div>
@@ -104,6 +94,7 @@ export function StockLotsView({
               <TableHead className="h-9 text-right text-xs">Qty in</TableHead>
               <TableHead className="h-9 text-right text-xs">Available</TableHead>
               <TableHead className="h-9 text-right text-xs">Unit cost</TableHead>
+              <TableHead className="h-9 text-right text-xs">Lot sale</TableHead>
               <TableHead className="h-9 text-right text-xs">Value</TableHead>
               <TableHead className="h-9 text-xs">Lot details</TableHead>
               <TableHead className="h-9 text-xs">Status</TableHead>
@@ -129,6 +120,7 @@ export function StockLotsView({
                   <TableCell className="py-2 text-right text-ink-600">{formatStock({ ...product, stock: lot.quantity })}</TableCell>
                   <TableCell className="py-2 text-right font-medium text-ink">{formatStock({ ...product, stock: lot.available })}</TableCell>
                   <TableCell className="py-2 text-right text-ink-600">{taka(lot.unitCost, lot.unitCost % 1 ? 2 : 0)}/{product.unit}</TableCell>
+                  <TableCell className="py-2 text-right text-ink-600">{lot.sellingPrice !== undefined ? `${taka(lot.sellingPrice, lot.sellingPrice % 1 ? 2 : 0)}/${product.unit}` : "Default"}</TableCell>
                   <TableCell className="py-2 text-right font-medium text-ink">{taka(lotValue, lotValue % 1 ? 2 : 0)}</TableCell>
                   <TableCell className="py-2">
                     <p className="text-ink-600">{lot.batchNumber ? `Batch ${lot.batchNumber}` : 'No batch'}</p>
@@ -179,11 +171,11 @@ export function StockHistoryView({
   );
 
   return (
-    <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-      <div className="flex flex-wrap items-center gap-2 border-b border-ink-100 p-3">
+    <div className="rounded-xl border border-border bg-card shadow-card">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
         <div className="relative flex-1 text-sm text-ink-500">
           <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-          <div className="h-9 rounded-md border border-ink-100 pl-8 pr-3 leading-9">Stock movement audit trail</div>
+          <div className="h-9 rounded-md border border-border pl-8 pr-3 leading-9">Stock movement audit trail</div>
         </div>
         <div className="w-full sm:w-64">
           <ProductFilterSelect products={products} value={productFilter} onChange={onProductFilter} />
@@ -232,3 +224,4 @@ export function StockHistoryView({
     </div>
   );
 }
+

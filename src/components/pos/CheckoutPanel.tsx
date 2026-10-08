@@ -22,6 +22,7 @@ type Totals = {
   discountAmt: number;
   total: number;
   rounding: number;
+  roundingLabel?: string;
   paidNum: number;
   due: number;
   change: number;
@@ -96,8 +97,8 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
   };
 
   return (
-    <aside className="flex flex-col rounded-xl border border-ink-100 bg-white shadow-card xl:sticky xl:top-[72px]">
-      <div className="space-y-3 border-b border-ink-100 p-4">
+    <aside className="flex flex-col rounded-xl border border-border bg-card shadow-card xl:sticky xl:top-[72px]">
+      <div className="space-y-3 border-b border-border p-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-ink">{props.invoice}</p>
@@ -162,7 +163,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                   role="radio"
                   aria-checked={discountMode === mode}
                   onClick={() => props.onDiscountMode(mode)}
-                  className={`w-7 rounded text-xs font-medium ${discountMode === mode ? 'bg-white text-ink shadow-card' : 'text-ink-500'}`}>
+                  className={`w-7 rounded text-xs font-medium ${discountMode === mode ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
                   {mode === 'amount' ? '৳' : '%'}
                 </button>
               ))}
@@ -173,17 +174,17 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
               onChange={(event) => props.onDiscount(event.target.value.replace(/[^\d.]/g, ''))}
               placeholder="0"
               inputMode="decimal"
-              className="h-8 w-24 rounded-md border border-ink-100 px-2 text-right text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="h-8 w-24 rounded-md border border-border px-2 text-right text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
           </div>
         </div>
         {totals.discountAmt > 0 && <Row muted label="Discount applied" value={`−${taka(totals.discountAmt, totals.discountAmt % 1 ? 2 : 0)}`} />}
-        <Row muted label="Rounding (to ৳5)" value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
+        <Row muted label={totals.roundingLabel || "Rounding (to ৳5)"} value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
       </div>
 
-      <div className="mx-4 rounded-xl bg-ink px-4 py-3.5 text-white">
+      <div className="mx-4 rounded-xl bg-inverse px-4 py-3.5 text-white">
         <div className="flex items-baseline justify-between">
-          <span className="text-sm text-ink-300">
+          <span className="text-sm text-[#B7C2CF]">
             Total payable <span className="font-bn">· মোট</span>
           </span>
         </div>
@@ -207,7 +208,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
         <div className="space-y-2">
           {payments.map((payment, index) => (
-            <div key={payment.id} className="rounded-lg border border-ink-100 bg-ink-50/40 p-2">
+            <div key={payment.id} className="rounded-lg border border-border bg-ink-50/40 p-2">
               <div className="grid grid-cols-[92px_minmax(0,1fr)_28px] gap-1.5">
                 <FormSelect
                   value={payment.method}
@@ -223,7 +224,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                   type="button"
                   disabled={payments.length === 1}
                   onClick={() => props.onPayments((rows) => rows.filter((row) => row.id !== payment.id))}
-                  className="flex size-9 items-center justify-center rounded-md text-ink-300 hover:bg-danger-bg hover:text-danger disabled:opacity-30"
+                  className="flex size-9 items-center justify-center rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
                   aria-label={`Remove payment ${index + 1}`}>
                   <Trash2 className="size-3.5" />
                 </button>
@@ -245,7 +246,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                 <button
                   type="button"
                   onClick={() => fillRemaining(payment.id)}
-                  className="h-9 rounded-md border border-ink-100 bg-white px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50">
+                  className="h-9 rounded-md border border-border bg-card px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50">
                   Remaining
                 </button>
               </div>
@@ -258,7 +259,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             Exact
           </button>
           {quick.map((amount) => (
-            <button key={amount} onClick={() => setSinglePayment(amount, 'Cash')} className="h-8 rounded-md border border-ink-100 px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+            <button key={amount} onClick={() => setSinglePayment(amount, 'Cash')} className="h-8 rounded-md border border-border px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
               ৳{formatNumber(amount)}
             </button>
           ))}
@@ -282,9 +283,10 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           disabled={totals.total === 0 || dueWithoutCustomer}
           className="h-12 w-full text-[15px] font-semibold">
           {props.completeLabel ?? 'Complete sale'} · {taka(totals.total)}
-          <kbd className="ml-1 rounded bg-white/15 px-1.5 text-[10px] font-medium">F9</kbd>
+          <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
       </div>
     </aside>
   );
 }
+

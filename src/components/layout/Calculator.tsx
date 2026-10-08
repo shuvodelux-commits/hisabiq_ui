@@ -101,7 +101,7 @@ export function Calculator() {
               navigator.clipboard?.writeText(display);
               toast.success('Copied to clipboard');
             }}
-            className="rounded p-1 text-ink-400 hover:bg-white hover:text-ink"
+            className="rounded p-1 text-ink-400 hover:bg-card hover:text-ink"
             aria-label="Copy result">
             
             <Copy className="size-3.5" />
@@ -118,12 +118,12 @@ export function Calculator() {
           onClick={k.onClick}
           className={`h-10 rounded-lg text-[15px] font-medium transition-colors active:scale-[0.97] ${
           k.kind === 'eq' ?
-          'bg-teal-600 text-white hover:bg-teal-700' :
+          'bg-teal-600 text-primary-foreground hover:bg-teal-700' :
           k.kind === 'op' ?
           'bg-teal-50 text-teal-700 hover:bg-teal-100' :
           k.kind === 'muted' ?
           'bg-ink-50 text-ink-600 hover:bg-ink-100' :
-          'border border-ink-100 bg-white text-ink hover:bg-ink-50'}`
+          'border border-border bg-card text-ink hover:bg-ink-50'}`
           }>
           
             {k.label}
