@@ -68,16 +68,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
         <span className="sr-only">Remove</span>
       </div>
 
-      <div className="divide-y divide-border">
-        <div className={`${grid} bg-teal-50/35 px-3 py-2`}>
-          <span className="text-right text-sm text-teal-600">{lines.length + 1}.</span>
-          <ProductCombobox ref={searchRef} onSelect={onAdd} />
-          <span className="pr-2 text-right text-sm text-helper">Qty</span>
-          <span className="px-2 text-sm text-helper">Unit</span>
-          <span className="pr-2 text-right text-sm text-helper">Price</span>
-          <span className="text-right text-sm text-helper">Total</span>
-          <span />
-        </div>
+      <div data-testid="pos-cart" className="divide-y divide-border">
         <AnimatePresence initial={false}>
           {lines.map((l, i) => {
             const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
@@ -86,6 +77,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
             const units = unitsFor(l.product);
             return (
               <motion.div
+                data-testid="pos-cart-row"
                 key={l.key}
                 layout
                 initial={{ opacity: 0, backgroundColor: 'var(--accent)' }}
@@ -232,6 +224,15 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
 
           })}
         </AnimatePresence>
+        <div data-testid="pos-add-row" className={`${grid} bg-teal-50/35 px-3 py-2`}>
+          <span className="text-right text-sm text-teal-600">{lines.length + 1}.</span>
+          <ProductCombobox ref={searchRef} onSelect={onAdd} />
+          <span className="pr-2 text-right text-sm text-helper">Qty</span>
+          <span className="px-2 text-sm text-helper">Unit</span>
+          <span className="pr-2 text-right text-sm text-helper">Price</span>
+          <span className="text-right text-sm text-helper">Total</span>
+          <span />
+        </div>
 
       </div>
 
