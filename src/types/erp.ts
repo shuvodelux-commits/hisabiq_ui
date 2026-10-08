@@ -269,6 +269,9 @@ export type Purchase = TransactionAuditFields & {
   supplierId: string;
   supplier: string;
   items: string;
+  subtotal?: number;
+  discount?: number;
+  rounding?: number;
   total: number;
   paid: number;
   payments?: PaymentSplit[];
