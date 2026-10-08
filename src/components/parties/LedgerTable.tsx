@@ -72,7 +72,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
             <TableCell>
               <div className="flex items-center gap-1.5">
                 {row.source==='note'&&<StickyNote className="size-3.5 text-warning"/>}
-                <StatusBadge tone={tone(row.source)}>{label(row.source)}</StatusBadge>
+                <StatusBadge tone={tone(row)}>{label(row.source)}</StatusBadge>
                 {row.reference&&<span className="font-medium text-ink">{row.reference}</span>}
                 <Impact row={row}/>
                 {row.attachment&&<button type="button" className="text-teal-700" aria-label={'Open attachment '+row.attachment.name} onClick={()=>onOpenAttachment(row)}><Paperclip className="size-3.5"/></button>}
@@ -91,7 +91,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
     <div className="space-y-2 p-3 sm:hidden">
       {visibleRows.map(row=><div key={row.id} className="rounded-lg border border-border p-3">
         <div className="flex items-center justify-between gap-2"><span className="text-xs text-ink-500">{row.date}</span><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></div>
-        <div className="mt-1 flex flex-wrap gap-1"><StatusBadge tone={tone(row.source)}>{label(row.source)}</StatusBadge>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}<Impact row={row}/></div>
+        <div className="mt-1 flex flex-wrap gap-1"><StatusBadge tone={tone(row)}>{label(row.source)}</StatusBadge>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}<Impact row={row}/></div>
         <p className="my-2 break-words text-xs text-ink-600">{row.description}</p>
         <div className="grid grid-cols-3 gap-2 text-right text-xs">
           <div><p className="text-ink-500">Debit</p><strong className={amountClass(row,row.debit)}>{money(row.debit)}</strong></div>
