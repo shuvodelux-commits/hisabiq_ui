@@ -13,6 +13,7 @@ import { StockHistoryView, StockLotsView } from '../components/products/ProductI
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { productCategories, products as seed } from '../data/products';
+import { availableProducts } from '../data/erpDemoStore';
 import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
@@ -174,7 +175,7 @@ export function Products() {
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<ProductView>(() => searchParams.get('view') === 'settings' ? 'settings' : 'list');
   useEffect(() => { if (searchParams.get('view') === 'settings') setView('settings'); }, [searchParams]);
-  const [list, setList] = useState<Product[]>(seed);
+  const [list, setList] = useState<Product[]>(availableProducts);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
