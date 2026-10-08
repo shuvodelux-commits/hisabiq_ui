@@ -1,6 +1,8 @@
 import React from 'react';
 import { Search } from 'lucide-react';
-import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
+import { AppDateRangePicker } from '../AppDateRangePicker';
+import { datePreset } from '../../utils/dateRange';
 import { Input } from '../Input';
 import type { EntryDateView } from '../../types/transactions';
 import type { AuditSourceRecord } from '../../types/audit';
@@ -41,7 +43,6 @@ export function AuditFilters({
   const postedBy = Array.from(new Set(records.map((item) => item.postedBy))).sort();
   const patch = (next: Partial<AuditFilterState>) => onChange({ ...value, ...next });
 
-  const quickDate = (from: string, to = from) => patch({ from, to });
 
   return (
     <div className="space-y-2 border-b border-border p-3">
@@ -50,26 +51,21 @@ export function AuditFilters({
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
           <Input className="pl-8" value={value.search} onChange={(event) => patch({ search: event.target.value })} placeholder="Search invoice, voucher, party, account, reference or amount" />
         </div>
-        <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
-          <button type="button" onClick={() => quickDate('2026-10-07')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">Today</button>
-          <button type="button" onClick={() => quickDate('2026-10-06')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">Yesterday</button>
-          <button type="button" onClick={() => quickDate('2026-10-01', '2026-10-31')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">This month</button>
-        </div>
-        <Input className="xl:w-36" type="date" value={value.from} onChange={(event) => patch({ from: event.target.value })} aria-label="From date" />
-        <Input className="xl:w-36" type="date" value={value.to} onChange={(event) => patch({ to: event.target.value })} aria-label="To date" />
+        <AppDateRangePicker label="Audit date range" className="w-full sm:w-[265px]"
+          value={{ from: value.from, to: value.to }} onChange={(range) => patch(range)} />
         <span className="whitespace-nowrap text-[10.5px] text-ink-400">{dateView === 'transaction' ? 'Transaction Date' : 'Created Date'}</span>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <FormSelect className="w-44" value={value.source} onChange={(event) => patch({ source: event.target.value })} options={['All sources', ...sources]} />
-        <FormSelect className="w-44" value={value.party} onChange={(event) => patch({ party: event.target.value })} options={['All parties', ...parties]} />
-        <FormSelect className="w-52" value={value.account} onChange={(event) => patch({ account: event.target.value })} options={['All accounts', ...accounts]} />
-        <FormSelect className="w-40" value={value.postedBy} onChange={(event) => patch({ postedBy: event.target.value })} options={['All posters', ...postedBy]} />
-        <FormSelect className="w-40" value={value.changedBy} onChange={(event) => patch({ changedBy: event.target.value })} options={['All changers', ...changedByOptions]} />
-        <FormSelect className="w-36" value={value.status} onChange={(event) => patch({ status: event.target.value })} options={['All status', 'Posted', 'Deleted']} />
-        <FormSelect className="w-40" value={value.changed} onChange={(event) => patch({ changed: event.target.value })} options={['Changed or not', 'Changed', 'Unchanged']} />
+        <AppSelect label="Source" className="w-44" value={value.source} onChange={(next) => patch({ source: next })} options={['All sources', ...sources]} />
+        <AppSelect label="Party" className="w-44" value={value.party} onChange={(next) => patch({ party: next })} options={['All parties', ...parties]} />
+        <AppSelect label="Account" className="w-52" value={value.account} onChange={(next) => patch({ account: next })} options={['All accounts', ...accounts]} />
+        <AppSelect label="Posted by" className="w-40" value={value.postedBy} onChange={(next) => patch({ postedBy: next })} options={['All posters', ...postedBy]} />
+        <AppSelect label="Changed by" className="w-40" value={value.changedBy} onChange={(next) => patch({ changedBy: next })} options={['All changers', ...changedByOptions]} />
+        <AppSelect label="Status" className="w-36" value={value.status} onChange={(next) => patch({ status: next })} options={['All status', 'Posted', 'Deleted']} />
+        <AppSelect label="Changed" className="w-40" value={value.changed} onChange={(next) => patch({ changed: next })} options={['Changed or not', 'Changed', 'Unchanged']} />
         <button type="button" onClick={() => onChange({
-          search: '', from: '2026-10-01', to: '2026-10-07', source: 'All sources',
+          search: '', ...datePreset('This month'), source: 'All sources',
           party: 'All parties', account: 'All accounts', postedBy: 'All posters',
           changedBy: 'All changers', status: 'All status', changed: 'Changed or not'
         })} className="px-2 py-1 text-[11px] font-medium text-ink-400 hover:text-ink">Reset</button>
