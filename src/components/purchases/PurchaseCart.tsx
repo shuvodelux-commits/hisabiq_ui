@@ -158,7 +158,7 @@ export function PurchaseCart({
                         inputMode="decimal"
                         value={line.lotSellPrice}
                         className={entryInput + ' pl-5 pr-12'}
-                        onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\\d.]/g, '') })}
+                        onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
                       />
                       <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{line.lotSellUnit}</span>
                     </div>
