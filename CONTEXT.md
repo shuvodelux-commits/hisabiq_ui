@@ -14,6 +14,15 @@ The member responsible for the business's subscription and authorized administra
 **Platform staff**:
 People operating HisabIQ across permitted tenants, with responsibilities such as support or payment verification. Platform authority is separate from a business member's ERP role.
 
+**Staff role**:
+A configurable bundle of platform permissions. An employee can hold several roles at once to combine responsibilities.
+
+**Role assignment**:
+The grant of a staff role to an employee for all tenants or a specified tenant set. Each grant retains its own scope when roles are combined.
+
+**Effective permissions**:
+The combined actions allowed by an employee's role assignments within each assignment's scope, subject to operational rules such as no self-approval.
+
 **Plan**:
 A published offer defining subscription pricing, entitlements and usage limits. Historical subscriptions and charges retain their applicable offer terms.
 

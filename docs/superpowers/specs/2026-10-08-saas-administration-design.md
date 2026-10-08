@@ -25,7 +25,7 @@ Navigation groups:
 - Support: Tickets, Knowledge base
 - Administration: Team & roles, Announcements, Reports, Audit log, Settings
 
-Each role sees permitted groups only. Direct navigation to a forbidden route shows an access-denied screen with a safe return action. A visible prototype role selector may demonstrate roles but must be labelled “Demo role”. No multi-product selector in this version.
+Each employee sees the combined permitted groups from all their assigned roles. Direct navigation to a forbidden route shows an access-denied screen with a safe return action. A visible prototype employee selector may demonstrate combined roles but must be labelled “Demo staff account”. No multi-product selector in this version.
 
 ## Layout and visual direction
 
@@ -45,7 +45,17 @@ Contrast acceptance targets: normal text including Bangla helpers at least 4.5:1
 
 ## Roles and authority
 
-Permission checks combine action permission and tenant scope. Presets are editable through a future custom-role interface; avoid scattered checks against role names. Sensitive operations record the operator, reason and affected record.
+Configurable roles are part of the first release. One employee has one account and can hold multiple roles simultaneously: for example, Support Engineer + Payment Verifier + Service Coordinator. They do not need separate accounts or a role-switching step to do their daily work. The table below describes starter permission presets, not mutually exclusive job positions. Its restrictions mean permissions absent from that preset; another assigned role may grant them. Non-overridable operational rules, such as preventing self-approval, remain in effect across all roles.
+
+Administrators can create, duplicate, rename and edit roles, select module/action permissions, and assign several roles to an employee. Use a searchable multi-select with role chips on invitation and staff edit forms. A permission matrix groups actions such as view, create, edit, assign, verify, refund, export and configure. Required view access is included when an action is enabled and explained in the editor. There are no per-user permission overrides or explicit deny rules in v1; create a small custom role for an additional responsibility.
+
+Permissions are additive, evaluated with the scope of the role assignment that grants them. A Support role covering all tenants plus a Payment Verifier role scoped to assigned tenants must not grant payment verification across all tenants. Each assignment selects all tenants or an explicit tenant set; ticket/payment work assignment filters are a further restriction where applicable. The staff detail page shows effective permissions, their source roles and the applicable tenant scope.
+
+A multi-role employee gets one combined “My work” landing page with permitted ticket, payment and service queues. Single-role staff may use the preset landing page below. A preferred landing page must remain within their effective permissions and fall back to My work when access is removed.
+
+Role editing previews affected employees and added/removed permissions before saving. Unchecking a permission in one role does not revoke the same permission granted by another role; the preview explains retained access. Removing a role assignment is different from deleting the shared role. Deleting an assigned role requires reassignment or explicit removal from affected employees. Only staff with role-management authority can manage roles; they cannot grant authority beyond their own delegable permissions. Super Admin assignment and owner-level authority remain owner-only. Prevent removal or disablement of the last active owner.
+
+Sensitive operations record the operator, reason and affected record. No role combination permits approving a payment submission created by the same employee; a tenant-submitted payment can be verified by an employee who also handled its support ticket. When no other eligible reviewer exists, the UI leaves the staff-created submission pending and explains the blocker instead of silently bypassing the rule. Permission changes update navigation, queues and open actions together; backend integration must recheck authorization on every operation.
 
 | Role | Default landing | Allowed responsibilities | Important boundaries |
 | --- | --- | --- | --- |
@@ -77,7 +87,7 @@ Invitations show pending, accepted, expired and revoked states. Role changes sho
 | Services | Catalog and orders with tenant, assignee, price, due date and progress | Request/quote/approve, assign, schedule, start, add deliverable, complete or cancel |
 | Support inbox | Ticket ID, tenant, subject, priority, assignee, status, SLA due; My/Unassigned/Team views | Assign, reply, internal note, escalate, link operational records, resolve/reopen; separate public and private composers |
 | Knowledge base | Searchable articles, audience, category, draft/published status | Draft, preview and publish articles; internal articles are never shown in tenant portal |
-| Team & roles | Staff, role, tenant scope, invitation/session state | Invite, edit permissions/scope, disable, revoke sessions; compare permission changes |
+| Team & roles | Staff, multiple role chips, per-role tenant scopes, invitation/session state; separate Roles tab | Invite, assign multiple roles, create/duplicate/edit roles, inspect effective permissions, preview affected staff, disable, revoke sessions |
 | Announcements | Audience, channels, schedule and delivery summary | Draft, preview audience and message, schedule/send confirmation, cancel pending delivery |
 | Reports | Revenue, collections/dues, renewals/churn, SMS usage, services, support | Date filters, metric definitions and permission-controlled exports |
 | Audit log | Actor, action, timestamp, tenant, entity, reason and before/after | Search and filter; inspect event; no edit/delete action |
@@ -104,7 +114,7 @@ Manual payment journey:
 5. A verified payment can be allocated across permitted invoices for the same tenant. Partial payments leave the balance due. Excess funds become an explicit unapplied credit. Repeated verification cannot create another receipt or credit.
 6. Full qualifying settlement activates the purchased subscription, package or service once. Partial payment does not silently grant full entitlement. Corrections, refunds and reversals require finance authority and a visible consequence preview.
 
-Duplicate matching considers collection account, payment channel and normalized reference. A suspected duplicate blocks automatic allocation and provides a finance escalation path. Support may link a payment issue but cannot verify it. Concurrent review conflicts should refresh the record rather than overwrite another decision.
+Duplicate matching considers collection account, payment channel and normalized reference. A suspected duplicate blocks automatic allocation and provides a finance escalation path. Support permission alone allows linking a payment issue; the same employee may verify it when also granted payment-verification permission for that tenant. Concurrent review conflicts should refresh the record rather than overwrite another decision.
 
 ## SMS and services
 
@@ -146,7 +156,10 @@ These are linked work packages, not five disconnected mockups. Detail implementa
 
 ## Acceptance scenarios
 
-- Every role has an appropriate landing page; hidden navigation cannot be reached through an unguarded direct route in the prototype.
+- A Support Engineer + Payment Verifier sees both queues, can reply and verify eligible tenant submissions without changing accounts, and cannot use ungranted refund/settings actions.
+- Custom roles can be created, duplicated, edited and assigned from the first release. Effective access shows source roles and tenant scopes; edits preview all affected employees.
+- Removing one role preserves permissions still granted by another; removing the last grant removes routes and actions. Broad support scope never broadens a narrow payment-verification grant.
+- Single-role and combined-role employees have appropriate landing pages; hidden navigation cannot be reached through an unguarded direct route in the prototype.
 - Create a tenant, assign a trial, issue a renewal invoice, submit evidence, request information, resubmit, verify and observe the correct subscription update and audit entries.
 - Cover partial payment, unapplied credit, duplicate reference, self-approval rejection, concurrent review, rejected proof and reversal without double activation.
 - Buy SMS credit and inspect its ledger; repeated settlement or retry does not duplicate credit/charges. Expired/reserved credits are not spendable.
