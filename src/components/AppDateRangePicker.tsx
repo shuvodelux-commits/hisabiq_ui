@@ -31,7 +31,7 @@ function Month({
   });
   return <div className="min-w-0 flex-1" aria-label={monthLabel(first)}>
     <p className="mb-2 text-center text-[13px] font-semibold text-ink">{monthLabel(first)}</p>
-    <div role="grid" aria-label={'Choose dates in ' + monthLabel(first)} className="space-y-0.5 text-center">
+    <div role="grid" aria-label={'Choose dates in ' + monthLabel(first)} className="space-y-0.5 text-center" style={{ visibility: "visible" }}>
       <div role="row" className="grid grid-cols-7 gap-0.5">
         {weekdays.map((day) => <span key={day} role="columnheader" className="py-1 text-[11px] font-medium text-ink-400">{day}</span>)}
       </div>
