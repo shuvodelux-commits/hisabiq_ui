@@ -1,6 +1,8 @@
 import React from 'react';
 import { Search } from 'lucide-react';
-import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
+import { AppDateRangePicker } from '../AppDateRangePicker';
+import { datePreset } from '../../utils/dateRange';
 import { Input } from '../Input';
 import type { EntryDateView, UnifiedTransaction } from '../../types/transactions';
 
@@ -30,7 +32,6 @@ export function DaybookFilters({
   const users = Array.from(new Set(transactions.map((item) => item.postedBy))).sort();
   const set = (key: keyof DaybookFilterState, next: string) => onChange({ ...value, [key]: next });
 
-  const quickDate = (from: string, to = from) => onChange({ ...value, from, to });
 
   return (
     <div className="space-y-2 border-b border-border p-3">
@@ -39,30 +40,19 @@ export function DaybookFilters({
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
           <Input value={value.search} onChange={(event) => set('search', event.target.value)} className="pl-8" placeholder="Search transaction, party, reference or amount" />
         </div>
-        <label className="flex items-center gap-1.5 text-[11px] text-ink-500">
-          From
-          <Input type="date" value={value.from} onChange={(event) => set('from', event.target.value)} className="w-[150px]" />
-        </label>
-        <label className="flex items-center gap-1.5 text-[11px] text-ink-500">
-          To
-          <Input type="date" value={value.to} onChange={(event) => set('to', event.target.value)} className="w-[150px]" />
-        </label>
+        <AppDateRangePicker label="Daybook date range" className="w-full sm:w-[265px]"
+          value={{ from: value.from, to: value.to }}
+          onChange={({ from, to }) => onChange({ ...value, from, to })} />
         <span className="whitespace-nowrap text-[10.5px] text-ink-400">
           {dateView === 'transaction' ? 'Transaction Date · যে তারিখের লেনদেন' : 'Created Date · যেদিন এন্ট্রি হয়েছে'}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1">
-          <button type="button" onClick={() => quickDate('2026-10-07')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">Today</button>
-          <button type="button" onClick={() => quickDate('2026-10-06')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">Yesterday</button>
-          <button type="button" onClick={() => quickDate('2026-10-05', '2026-10-11')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">This week</button>
-          <button type="button" onClick={() => quickDate('2026-10-01', '2026-10-31')} className="rounded-md px-2 py-1 text-[10.5px] font-medium text-ink-600 hover:bg-ink-50">This month</button>
-        </div>
-        <FormSelect className="w-40" value={value.type} onChange={(event) => set('type', event.target.value)} options={['All types', ...types]} />
-        <FormSelect className="w-44" value={value.account} onChange={(event) => set('account', event.target.value)} options={['All accounts', ...accounts]} />
-        <FormSelect className="w-36" value={value.user} onChange={(event) => set('user', event.target.value)} options={['All users', ...users]} />
-        <FormSelect className="w-36" value={value.status} onChange={(event) => set('status', event.target.value)} options={['All status', 'Posted', 'Draft', 'Deleted', 'Reversed']} />
-        <button type="button" onClick={() => onChange({ search: '', from: '2026-10-07', to: '2026-10-07', type: 'All types', account: 'All accounts', user: 'All users', status: 'All status' })} className="px-2 py-1 text-[11px] font-medium text-ink-400 hover:text-ink">Reset</button>
+        <AppSelect label="Transaction type" className="w-40" value={value.type} onChange={(type) => set('type', type)} options={['All types', ...types]} />
+        <AppSelect label="Account" className="w-44" value={value.account} onChange={(account) => set('account', account)} options={['All accounts', ...accounts]} />
+        <AppSelect label="Posted by" className="w-36" value={value.user} onChange={(user) => set('user', user)} options={['All users', ...users]} />
+        <AppSelect label="Status" className="w-36" value={value.status} onChange={(status) => set('status', status)} options={['All status', 'Posted', 'Draft', 'Deleted', 'Reversed']} />
+        <button type="button" onClick={() => onChange({ search: '', ...datePreset('Today'), type: 'All types', account: 'All accounts', user: 'All users', status: 'All status' })} className="px-2 py-1 text-[11px] font-medium text-ink-400 hover:text-ink">Reset</button>
       </div>
     </div>
   );
