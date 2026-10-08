@@ -3,6 +3,8 @@ name: UI Check
 on:
   pull_request:
     branches: [main, 'feat/party-*']
+  push:
+    branches: ['feat/party-*']
 
 permissions:
   contents: read
