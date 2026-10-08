@@ -12,7 +12,7 @@ import type { PartyDraft, PartyPreviewState, PartySourceRecord, PartyPaymentPayl
 export type PartyPreviewCommand =
   | {type:'create-party'; party:PartyDraft; openings?:Omit<PartyOpeningPayload,'partyId'>[]}
   | {type:'import-parties'; parties:PartyDraft[]}
-  | {type:'update-party'; id:string; patch:Partial<PartyDraft>}
+  | {type:'update-party'; id:string; patch:Partial<PartyDraft>; openings?:Omit<PartyOpeningPayload,'partyId'>[]}
   | {type:'deactivate-party'; id:string}
   | {type:'add-note'; partyId:string; text:string; relationship?:PartyRole}
   | {type:'edit-note'; sourceId:string; text:string}
@@ -115,6 +115,16 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     after={...patch,name:patch.name.trim(),phone:patch.phone.trim(),area:patch.area.trim(),roles:[...patch.roles]};
     parties=parties.map(p=>p.id===party.id?after as Party:p);
     targetPartyId=party.id;
+    if(command.openings?.length){
+      const roleSet=new Set<string>();
+      for(const opening of command.openings){
+        if(roleSet.has(opening.relationship))throw new Error('Only one opening per relationship.');
+        roleSet.add(opening.relationship);
+        applyOpening({...opening,partyId:party.id});
+      }
+      after={party:parties.find(p=>p.id===party.id),openings:command.openings};
+      targetPartyId=party.id;sourceId=undefined;
+    }
   } else if(command.type==='deactivate-party'){
     const party=findParty(command.id);
     if(sources.some(s=>s.partyId===party.id&&s.status==='Active'&&s.kind!=='note'))throw new Error('Cannot deactivate a party with linked transactions.');
