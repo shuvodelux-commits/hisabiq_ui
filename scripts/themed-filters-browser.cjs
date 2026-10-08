@@ -91,6 +91,7 @@ async function main() {
     await page.goto(root + 'daybook');
     await page.getByRole('button', { name: 'Daybook date range' }).click();
     const mobile = page.getByRole('dialog', { name: 'Daybook date range calendar' });
+    await mobile.waitFor({ state: 'visible' });
     const mobileGrids = mobile.locator('[role="grid"]');
     assert.equal(await mobileGrids.count(), 2, 'both months retained for responsive UI');
     assert.equal(await mobileGrids.first().isVisible(), true);
