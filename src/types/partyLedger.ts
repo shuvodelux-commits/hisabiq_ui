@@ -1,7 +1,7 @@
 import type { Party, PartyRole } from './erp';
 
 export type PartyRelationship = PartyRole;
-export type PartyLedgerSource = 'sale' | 'sale-return' | 'customer-payment' | 'customer-credit-refund' | 'purchase' | 'purchase-return' | 'supplier-payment' | 'finance' | 'expense' | 'opening' | 'note';
+export type PartyLedgerSource = 'sale' | 'sale-return' | 'customer-payment' | 'customer-credit-refund' | 'supplier-credit-refund' | 'customer-credit-apply' | 'purchase' | 'purchase-return' | 'supplier-payment' | 'finance' | 'expense' | 'opening' | 'note';
 export type PartyLedgerRow = {
   id: string;
   partyId: string;
@@ -38,6 +38,8 @@ export type PartySourceRecord = {
   method?: string;
   accountId?: string;
   invoiceId?: string;
+  /** Credit-proof for settlement replay; legacy fixtures are never refund-eligible by default. */
+  provenance?: 'verified' | 'legacy-unverified';
   paymentSplits?: Array<{id:string; method:'Cash'|'Bank'|'Mobile Banking'; accountId:string; amount:number}>;
   status: 'Active' | 'Reversed' | 'Deleted';
   createdAt?: string;
