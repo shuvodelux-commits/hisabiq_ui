@@ -139,7 +139,12 @@ async function main() {
     const posCart = page.getByTestId('pos-cart');
     const posOrder = await posCart.locator(':scope > *').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-testid')));
     assert.equal(posOrder[posOrder.length - 1], 'pos-add-row', 'POS inline search must be last');
-    assert.equal(posOrder.filter((item) => item === 'pos-cart-row').length >= 1, true, 'existing sale rows remain ahead of POS search');
+    assert.equal(await posCart.getByTestId('pos-cart-row').count() >= 1, true, 'sale rows remain in the cart');
+    assert.equal(await posCart.evaluate((node) => {
+      const add = node.querySelector('[data-testid="pos-add-row"]');
+      const rows = [...node.querySelectorAll('[data-testid="pos-cart-row"]')];
+      return !!add && rows.every((row) => Boolean(row.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING));
+    }), true, 'sortable sale rows remain ahead of the POS search');
     assert.deepEqual(errors, []);
     console.log('Purchase full page, supplier quick-add, multi-unit cart, payment and navigation smoke test passed.');
   } finally {
