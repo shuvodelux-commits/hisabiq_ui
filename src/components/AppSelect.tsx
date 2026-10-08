@@ -15,11 +15,13 @@ type Props = {
   disabled?: boolean;
   placeholder?: string;
   compact?: boolean;
+  id?: string;
+  describedBy?: string;
 };
 
 /** Theme-token select. Unlike a native option popup, the menu matches both ERP themes. */
 export function AppSelect({
-  label, value, options, onChange, className = '', disabled = false, placeholder = 'Select…', compact = false
+  label, value, options, onChange, className = '', disabled = false, placeholder = 'Select…', compact = false, id: triggerId, describedBy
 }: Props) {
   const [open, setOpen] = useState(false);
   const [active, setActiveState] = useState(0);
@@ -108,7 +110,7 @@ export function AppSelect({
   return (
     <div className={'min-w-0 ' + className}>
       <button
-        ref={trigger} type="button" role="combobox" aria-label={label}
+        ref={trigger} type="button" role="combobox" id={triggerId} aria-label={label} aria-describedby={describedBy}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined}
         aria-activedescendant={open ? id + '-opt-' + active : undefined}
         disabled={disabled}
