@@ -251,6 +251,7 @@ export type CustomerCredit = {
 export type PurchaseInventoryLine = {
   productId: string;
   quantity: number;
+  unitCost?: number;
   serials?: string[];
   batchNumber?: string;
   manufactureDate?: string;
@@ -269,6 +270,9 @@ export type Purchase = TransactionAuditFields & {
   payments?: PaymentSplit[];
   receipt?: string;
   inventoryLines?: PurchaseInventoryLine[];
+  memoNo?: string;
+  notes?: string;
+  backdateReason?: string;
 };
 
 export type Expense = TransactionAuditFields & {
