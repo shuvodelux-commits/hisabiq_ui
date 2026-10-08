@@ -3,7 +3,7 @@ import { ArrowDownToLine, Printer, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
-import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
 import { AppDateRangePicker } from '../AppDateRangePicker';
 import { Input } from '../Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
@@ -62,13 +62,13 @@ export function LedgerView({
     <div className="p-4">
       <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-[320px_300px_1fr]">
-          <label className="text-[13px] font-medium text-ink">
+          <div className="text-[13px] font-medium text-ink">
             Ledger account <span className="font-bn text-[11px] font-normal text-ink-400">· যে হিসাবটি দেখতে চান</span>
-            <FormSelect className="mt-1.5" value={account.name} onChange={(event) => {
-              const next = accountingAccounts.find((item) => item.name === event.target.value);
+            <AppSelect label="Ledger account" className="mt-1.5" value={account.name} onChange={(name) => {
+              const next = accountingAccounts.find((item) => item.name === name);
               if (next) setAccountId(next.id);
             }} options={accountingAccounts.filter((item) => item.active).map((item) => item.name)} />
-          </label>
+          </div>
           <div className="lg:col-span-2">
             <p className="mb-1.5 text-[12px] font-medium text-ink">Date range</p>
             <AppDateRangePicker label="Account ledger date range" value={{ from, to }}
