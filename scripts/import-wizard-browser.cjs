@@ -28,20 +28,28 @@ async function main(){
    name:'products.csv',mimeType:'text/csv',
    buffer:Buffer.from('Product Name,SKU,Selling Price,Base Unit,Opening Stock,Opening Stock Unit\n' +
     'LED Bulb 12W,000120,165,Pcs,2,Box\n' +
-    'পাইপ,0009,420,Pcs,0,Pcs\n','utf8')
+    'পাইপ,0009,420,Pcs,0,Pcs\n' +
+    ',0030,70,Pcs,0,Pcs\n','utf8')
   });
-  await dlg.getByText('2 data rows',{exact:false}).waitFor({state:'visible'});
+  await dlg.getByText('3 data rows',{exact:false}).waitFor({state:'visible'});
   await dlg.getByRole('button',{name:'Next: Map columns'}).click();
   assert.ok(await dlg.getByText('Map columns').count()>0);
   await dlg.getByRole('button',{name:'Next: Review'}).click();
   assert.ok(await dlg.getByText('LED Bulb 12W').count()>0);
   assert.ok(await dlg.getByText('000120').count()>0);
   assert.ok(await dlg.getByText('পাইপ').count()>0);
+  await dlg.getByRole('button',{name:'Errors (1)'}).click();
+  await dlg.getByRole('button',{name:'Edit mapped row 4'}).click();
+  await dlg.getByLabel('Edit name row 4').fill('Test Spare');
+  await dlg.getByRole('button',{name:'Save row 4'}).click();
+  await dlg.getByRole('button',{name:'Ready (3)'}).waitFor({state:'visible'});
+  await dlg.getByRole('button',{name:'Ready (3)'}).click();
+  await dlg.getByText('Test Spare',{exact:false}).first().waitFor();
   assert.equal(await dlg.getByRole('button',{name:/Confirm import/i}).isDisabled(),true,
    'Phase A must never fake a backend or product posting');
   await dlg.getByRole('button',{name:'Back'}).click();
   await dlg.getByRole('button',{name:'Back'}).click();
-  await dlg.getByText('2 data rows',{exact:false}).waitFor({state:'visible'});
+  await dlg.getByText('3 data rows',{exact:false}).waitFor({state:'visible'});
   // An XLSX downloaded from our template must round-trip through the same wizard.
   await dlg.getByLabel('Select Excel or CSV file').setInputFiles({
    name:'hisabiq-products-template.xlsx',
