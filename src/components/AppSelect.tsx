@@ -2,10 +2,14 @@ import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'reac
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 
+export type SelectOption = string | { value: string; label: string };
+const optionValue = (item: SelectOption) => typeof item === 'string' ? item : item.value;
+const optionLabel = (item: SelectOption) => typeof item === 'string' ? item : item.label;
+
 type Props = {
   label: string;
   value: string;
-  options: string[];
+  options: SelectOption[];
   onChange: (value: string) => void;
   className?: string;
   disabled?: boolean;
@@ -29,10 +33,11 @@ export function AppSelect({
   const trigger = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const id = useId().replace(/:/g, '');
-  const chosen = options.indexOf(value);
+  const chosen = options.findIndex((option) => optionValue(option) === value);
+  const currentLabel = options.find((option) => optionValue(option) === value);
 
-  const choose = (option: string) => {
-    onChange(option);
+  const choose = (option: SelectOption) => {
+    onChange(optionValue(option));
     setOpen(false);
     trigger.current?.focus();
   };
@@ -95,7 +100,7 @@ export function AppSelect({
       return;
     }
     if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
-      const found = options.findIndex((item) => item.toLowerCase().startsWith(event.key.toLowerCase()));
+      const found = options.findIndex((item) => optionLabel(item).toLowerCase().startsWith(event.key.toLowerCase()));
       if (found >= 0) { setActive(found); if (!open) setOpen(true); }
     }
   };
@@ -117,7 +122,7 @@ export function AppSelect({
         }}
         className={'flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-input bg-card px-3 text-left text-sm text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/20 disabled:opacity-50 ' + (compact ? 'border-0 bg-transparent px-2 shadow-none' : '')}
       >
-        <span className="truncate">{value || placeholder}</span>
+        <span className="truncate">{currentLabel ? optionLabel(currentLabel) : value || placeholder}</span>
         <ChevronDown className="size-4 shrink-0 text-ink-400" aria-hidden="true" />
       </button>
       {open && typeof document !== 'undefined' && createPortal(
@@ -127,16 +132,16 @@ export function AppSelect({
             maxHeight: rect?.maxHeight ?? 260, visibility: rect ? 'visible' : 'hidden' }}
         >
           {options.map((option, index) => (
-            <button key={option + index} type="button" role="option" id={id + '-opt-' + index}
-              aria-selected={value === option} data-active={active === index}
+            <button key={optionValue(option) + index} type="button" role="option" id={id + '-opt-' + index}
+              aria-selected={value === optionValue(option)} data-active={active === index}
               onPointerDown={(event) => event.preventDefault()}
               onMouseEnter={() => setActive(index)}
               onClick={() => choose(option)}
               className={'flex min-h-9 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] outline-none hover:bg-teal-50 hover:text-teal-700 ' +
                 (active === index ? 'bg-teal-50 text-teal-700' : '')}
             >
-              <span className="min-w-0 flex-1 truncate">{option}</span>
-              {value === option && <Check className="size-3.5 shrink-0 text-teal-600" aria-hidden="true" />}
+              <span className="min-w-0 flex-1 truncate">{optionLabel(option)}</span>
+              {value === optionValue(option) && <Check className="size-3.5 shrink-0 text-teal-600" aria-hidden="true" />}
             </button>
           ))}
           {options.length === 0 && <div className="p-2 text-xs text-ink-400">No options</div>}
