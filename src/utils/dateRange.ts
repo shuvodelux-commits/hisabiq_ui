@@ -38,7 +38,7 @@ export const datePreset = (key: string, today = businessToday()): IsoRange => {
   }
 };
 export const formatDay = (date: string) => date
-  ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(utcDate(date)) : 'Select date';
+  ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(utcDate(date)).replace('Sept ', 'Sep ') : 'Select date';
 export const formatRange = ({ from, to }: IsoRange) =>
   from && to ? (from === to ? formatDay(from) : formatDay(from) + ' – ' + formatDay(to)) : from ? formatDay(from) + ' – …' : 'All dates';
 
