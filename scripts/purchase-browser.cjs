@@ -85,7 +85,7 @@ async function main() {
     const baseOnlyQty = bulbRow.getByLabel('Quantity for LED Bulb 12W');
     assert.equal(await baseOnlyQty.inputValue(), '25', 'switch to Pcs shows one base quantity');
     assert.equal(await bulbRow.getByLabel('Purchase cost for LED Bulb 12W').inputValue(), '150');
-    assert.equal(await bulbRow.getByText('Box', { exact: true }).count(), 1, 'Box remains only in the unit toggle');
+    assert.equal(await bulbRow.getByLabel('Box quantity for LED Bulb 12W').count(), 0, 'base-unit mode only has a single quantity input');
     assert.match(await page.locator('aside').last().innerText(), /3,750/, 'switch does not change purchase total');
     await bulbRow.getByRole('radio', { name: 'Box', exact: true }).click();
     assert.equal(await bulbRow.getByLabel('Box quantity for LED Bulb 12W').inputValue(), '2');
