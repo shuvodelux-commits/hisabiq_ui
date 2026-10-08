@@ -35,6 +35,10 @@ async function main() {
     await quickAdd('Brand', 'QA Manufacturer');
     await quickAdd('Base unit', 'Sample Unit', 'su');
     assert.equal(await selectedText(product.getByRole('combobox', { name: 'Base unit' })), 'su');
+    const advanced = product.getByRole('button', { name: /Advanced/ });
+    assert.equal(await advanced.getAttribute('aria-expanded'), 'false', 'advanced fields start collapsed for a simple product form');
+    await advanced.click();
+    assert.equal(await advanced.getAttribute('aria-expanded'), 'true');
     await quickAdd('Larger unit', 'Bundle', 'bdl');
     assert.equal(await selectedText(product.getByRole('combobox', { name: 'Larger unit' })), 'bdl');
     assert.equal(await selectedText(product.getByRole('combobox', { name: 'Category' })), 'QA Components');
