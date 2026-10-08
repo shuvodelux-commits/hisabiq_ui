@@ -395,7 +395,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                   setUnit(next);
                 })} showSymbol placeholder="Unit name, e.g. Meter" />
               <p className="mt-1 text-xs text-ink-500">Smallest unit used for stock and serial counts.</p>
-            </div>
+            </div>}
             <div className="min-w-0">
               <p className="mb-1.5 text-[13px] font-medium text-ink">Selling price <span className="font-bn text-[11px] font-normal text-ink-400">· বিক্রয় মূল্য</span></p>
               <MoneyUnitInput label="Selling price" value={sell} onChange={setSell}
