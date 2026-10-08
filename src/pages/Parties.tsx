@@ -61,7 +61,7 @@ export function Parties() {
     source:source.kind,sourceId:source.id,reference:source.reference,
     date:source.date,description:source.description,debit:source.debit,credit:source.credit,
     sequence:source.sequence,status:source.status,amountPaid:source.amountPaid,
-    discount:source.discount,method:source.method,accountId:source.accountId
+    discount:source.discount,method:source.method,accountId:source.accountId,financeType:source.financeType
   }));
   const statement=party&&relationship
     ? projectPartyStatement(normalizedRows,party.id,relationship,range)
