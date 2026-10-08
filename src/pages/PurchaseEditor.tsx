@@ -345,7 +345,7 @@ export function PurchaseEditor() {
           <section className="rounded-xl border border-border bg-card shadow-card">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
               <div><p className="text-[13px] font-semibold text-ink">Payment <span className="font-bn text-[11px] font-normal text-ink-400">· পেমেন্ট</span></p><p className="text-[11px] text-ink-500">Multiple payment sources supported</p></div>
-              <Button size="sm" variant="outline" onClick={() => setPayments([paymentRow(), ...payments.map((p) => p)].slice(1).length ? [{ ...paymentRow(), amount: String(total), method: payments[0]?.method ?? 'Cash', account: payments[0]?.account ?? accounts.Cash[0] }] : [{ ...paymentRow(), amount: String(total) }])} disabled={total <= 0}>Pay full</Button>
+              <Button size="sm" variant="outline" onClick={() => setPayments([{ ...paymentRow(), amount: String(total), method: payments[0]?.method ?? 'Cash', account: payments[0]?.account ?? accounts.Cash[0] }])} disabled={total <= 0}>Pay full</Button>
             </div>
             <div className="divide-y divide-border">
               {payments.map((row, index) => (
