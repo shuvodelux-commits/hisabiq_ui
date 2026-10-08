@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from './Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './Dialog';
-import { FormSelect } from './FormSelect';
+import { AppSelect } from './AppSelect';
 import { Input } from './Input';
 
 type Props = {
@@ -48,11 +48,11 @@ export function QuickAddSelect({ label, value, options, onChange, onCreate, show
   return (
     <>
       <div className="flex min-w-0">
-        <FormSelect
-          aria-label={label}
-          className="min-w-0 flex-1 [&>select]:rounded-r-none"
+        <AppSelect
+          label={label}
+          className="min-w-0 flex-1 [&>button]:rounded-r-none"
           value={value}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={onChange}
           options={options.length ? options : [placeholder ?? 'Select ' + label.toLowerCase()]}
         />
         <button
