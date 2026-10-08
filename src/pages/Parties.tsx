@@ -6,8 +6,7 @@ import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
-import { ledgerEntries } from '../data/parties';
-import { availableParties } from '../data/erpDemoStore';
+import { availableParties, availableLedgerEntries } from '../data/erpDemoStore';
 import type { LedgerEntry, PartyRole } from '../types/erp';
 import { taka } from '../utils/currency';
 
@@ -17,7 +16,7 @@ export function Parties() {
   const selectedId = params.get('id') ?? 'c1';
   const [role, setRole] = useState<PartyRole | 'All'>('All');
   const [query, setQuery] = useState('');
-  const [entries, setEntries] = useState<LedgerEntry[]>(ledgerEntries);
+  const [entries, setEntries] = useState<LedgerEntry[]>(availableLedgerEntries);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
