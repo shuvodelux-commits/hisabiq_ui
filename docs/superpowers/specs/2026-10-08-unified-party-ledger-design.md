@@ -1,7 +1,7 @@
 # Unified Party & Ledger Workspace — Design Specification
 
 **Date:** 2026-10-08  
-**Status:** Written design awaiting human review  
+**Status:** Design approved on 2026-10-08; implementation plan awaiting review  
 **Scope:** `shuvodelux-commits/hisabiq_ui` (UI/UX and coherent, in-memory design-preview behavior)  
 **Reference implementation:** `shuvodelux-commits/sherERP_Mohim` (read-only requirements reference; do not modify)  
 **Approved approach:** A — one Party workspace with source-aware transaction actions.  
