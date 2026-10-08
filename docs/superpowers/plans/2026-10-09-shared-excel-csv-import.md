@@ -4,7 +4,7 @@
 
 **Goal:** Deliver a real, keyboard/touch-friendly Excel and CSV import preview for HisabIQ Products (including opening stock) and Customer/Supplier Parties (including opening balances), with correct duplicate handling and no fake accounting postings.
 
-**Architecture:** One four-step React wizard consumes a shared, bounded and security-checked tabular reader and schema-driven column mapper. Two domain planners produce independently validated, typed change sets; the Product and Party preview adapters commit each approved batch coherently and audibly without inventing a backend. **Three sequential reviewable PR slices (A shared wizard, B Products, C Parties)**; each provides useful, testable behavior and does not enable actions that are not yet implemented.
+**Architecture:** One four-step React wizard consumes a shared, bounded and security-checked tabular reader and schema-driven column mapper. Two domain planners produce independently validated, typed change sets; the Product and Party preview adapters commit each approved batch coherently and auditably without inventing a backend. **Three sequential reviewable PR slices (A shared wizard, B Products, C Parties)**; each provides useful, testable behavior and does not enable actions that are not yet implemented.
 
 **Tech Stack:** React 18, TypeScript 5.5, Vite 5, Tailwind/shadcn-style UI, existing HisabIQ components, Node 22 `--experimental-strip-types` tests, Playwright Chromium, GitHub Actions; proposed exact read/write/ZIP dependencies below.
 
@@ -162,7 +162,7 @@ Fields and interfaces are UI-preview contracts, not a production API. `importFil
 
 ### Task 4: Four-step wizard UI with a deliberately disabled commit
 
-**Files:** Create `src/components/import/{ImportWizard,ImportUploadStep,ImportMappingStep,ImportReviewStep,ImportFinishStep}.tsx`; Create `scripts/import-wizard-browser.cjs`; Modify `package.json`, `.github/workflows/ui-check.yml`.
+**Files:** Create `src/components/import/{ImportWizard,ImportUploadStep,ImportMappingStep,ImportReviewStep,ImportFinishStep}.tsx`; Create `scripts/import-wizard-browser.cjs`; Modify `package.json`, `.github/workflows/ui-check.yml` (register `test:import-wizard`).
 
 **Interfaces:**
 - `ImportWizard({target,open,onClose,onApply}:{target:ImportTarget;open:boolean;onClose:()=>void;onApply?:(rows:StagedImportRow[],sessionId:string)=>Promise<ImportResult>})`. With no `onApply`, **Confirm is disabled**, visibly "Available once import integration is ready"; not a fake success.
@@ -185,8 +185,8 @@ Fields and interfaces are UI-preview contracts, not a production API. `importFil
 **Files:** Create `src/import/productImport.ts`; Test `tests/productImport.test.ts`.
 
 **Interfaces:**
-- `planProductImport(rows:readonly StagedImportRow[],existing:readonly Product[],existingLots:readonly StockLot[],options:{sessionId:string;today:string}):ProductImportPlan`.
-- `ProductImportPlan={sessionId:string;baseRevision:number;products:Product[];updatedMasterFields:Pick<Product,'id'>[];lots:StockLot[];movements:StockMovement[];issues:ImportIssue[];skipped:number}`. Use a discriminated record of allowed master patches if needed; never cast incomplete Product into a full existing record.
+- `planProductImport(rows:readonly StagedImportRow[],existing:readonly Product[],existingLots:readonly StockLot[],options:{sessionId:string;today:string;baseRevision:number}):ProductImportPlan`.
+- `ProductImportPlan={sessionId:string;baseRevision:number;creates:Array<{sourceRow:number;product:Product;openingLot?:StockLot;openingMovement?:StockMovement}>;updates:Array<{sourceRow:number;productId:string;patch:Partial<Pick<Product,'name'|'nameBn'|'category'|'brand'|'sellPrice'|'purchasePrice'|'minStock'|'active'>>}>;issues:ImportIssue[];skipped:number}`. Only new Stock products may carry an opening lot and movement; no update path accepts stock mutations.
 - `ProductImportPlan` must **not contain** a stock lot for `update-master` rows.
 
 - [ ] **5.1 Write failing tests.** `2 Box -> 20 Pcs`, `1200 / Box -> 120 / Pcs`, `1 Gauge = 16 Gira`, large-unit explicit selling price retained, default cost from purchase price shown, dated opening lot and movement agree, invalid factor (0, NaN), serial mismatch and expiry date fail, Service rejects nonzero stock.
@@ -226,7 +226,7 @@ Fields and interfaces are UI-preview contracts, not a production API. `importFil
 
 ### Task 8: Product page integration and browser acceptance
 
-**Files:** Modify `src/pages/Products.tsx`, `src/components/import/ImportWizard.tsx`, `package.json`, `.github/workflows/ui-check.yml`; Create `scripts/product-import-browser.cjs`.
+**Files:** Modify `src/pages/Products.tsx`, `src/components/import/ImportWizard.tsx`, `package.json`, `.github/workflows/ui-check.yml`; Create `scripts/product-import-browser.cjs` (register `test:import-products`).
 
 **Interfaces:** Product UI supplies `onApply(rows,sessionId)` by planning with task 5/6 and committing task 7. In v1 `ImportResult` is authoritative for finish screen; never derive toast counts from uploaded rows.
 
@@ -274,7 +274,7 @@ Fields and interfaces are UI-preview contracts, not a production API. `importFil
 
 ### Task 11: Party UI integration and per-row identity decisions
 
-**Files:** Modify `src/pages/Parties.tsx`, `src/components/parties/PartyImportDialog.tsx`, `src/components/import/ImportWizard.tsx`, `package.json`, `.github/workflows/ui-check.yml`; Create `scripts/party-import-browser.cjs`.
+**Files:** Modify `src/pages/Parties.tsx`, `src/components/parties/PartyImportDialog.tsx`, `src/components/import/ImportWizard.tsx`, `package.json`, `.github/workflows/ui-check.yml`; Create `scripts/party-import-browser.cjs` (register `test:import-parties`).
 
 **Interfaces:** `Parties.tsx` supplies the wizard target based on selected `Customer` or `Supplier` role; when filter `All`, prompt one explicit choice, then call task 9 planner and task 10 commit.
 
@@ -293,7 +293,7 @@ Fields and interfaces are UI-preview contracts, not a production API. `importFil
 - [ ] **12.1 Add failing browser cases.** Imported counts survive return to view, Cancel/Back never post; filtered Ready/Duplicate/Error/Skipped labels use color **plus words**; long Bangla error does not overflow mobile; keyboard tab/focus restores on close; wrong/corrupted files show useful alerts; dark selects/date pickers contrast; CSV error report escapes `=HYPERLINK(...)`; no duplicate session commits on double-click.
 - [ ] **12.2 Run `node scripts/import-wizard-browser.cjs` and targeted domain scripts.** Expected RED for remaining gaps.
 - [ ] **12.3 Make minimum changes** to satisfy accessibility and error-report behavior; disable Submit during commit, preserve review state on apply error, and clear session on Import Another.
-- [ ] **12.4 Run full acceptance commands:** `npm ci`, `npm test`, `npm run build`, `npm run test:parties`, `npm run test:party-ledger`, `npm run test:party-opening`, `npm run test:party-settlement`, `npm run test:product-quick-add`, `npm run test:purchases`, `npm run test:pos-reorder`, `npm run test:theme`, `npm run test:themed-filters`, `npm run test:saas`, `npm run test:settings`, and all three `test:import-*` scripts from the updated `package.json`. Expected every command PASS.
+- [ ] **12.4 Run full acceptance commands:** `npm ci`, `npm test`, `npm run build`, `npm run test:parties`, `npm run test:party-ledger`, `npm run test:party-opening`, `npm run test:party-settlement`, `npm run test:product-quick-add`, `npm run test:purchases`, `npm run test:pos-reorder`, `npm run test:theme`, `npm run test:themed-filters`, `npm run test:saas`, `npm run test:settings`, and `npm run test:import-wizard`, `npm run test:import-products` and `npm run test:import-parties` (register these exact script names as part of Tasks 4/8/11). Expected every command PASS.
 - [ ] **12.5 Commit** `test(import): complete bilingual responsive import acceptance gates`.
 
 **Slice C PR gate:** All previous UI tests green; no unverified refundable Party credit, silent Party merge, overwritten ledger opening, or duplicate Product stock. PR `feat/party-import-openings`; final visual review **before any merge or Cloudflare deploy**.
