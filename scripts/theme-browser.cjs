@@ -100,6 +100,9 @@ async function main() {
     await page.waitForTimeout(120); assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
     await other.close();
     await page.emulateMedia({ media: 'print' });
+    // Media emulation can resolve before Chromium applies the new print styles.
+    await page.waitForFunction(() => window.matchMedia('print').matches &&
+      getComputedStyle(document.body).backgroundColor === 'rgb(255, 255, 255)');
     assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(255, 255, 255)');
     await page.emulateMedia({ media: 'screen' });
     assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');

@@ -21,6 +21,8 @@ import {
 import { LogoLockup } from '../brand/Logo';
 
 const nav = [
+  { to: '/app/subscription', label: 'My subscription', bn: 'সাবস্ক্রিপশন', icon: ReceiptText },
+  { to: '/app/support', label: 'Support', bn: 'সহায়তা', icon: Users },
   { to: '/app/dashboard', label: 'Dashboard', bn: 'ড্যাশবোর্ড', icon: LayoutDashboard },
   { to: '/app/pos', label: 'POS / New Sale', bn: 'নতুন বিক্রি', icon: ShoppingCart, hint: 'F1' },
   { to: '/app/sales', label: 'Sales', bn: 'বিক্রয়', icon: FileText },

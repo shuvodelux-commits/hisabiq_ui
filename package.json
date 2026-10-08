@@ -11,7 +11,8 @@
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "cf:deploy": "npm run build && wrangler deploy",
     "cf:preview": "npm run build && wrangler preview",
-    "test:theme": "node scripts/theme-browser.cjs"
+    "test:theme": "node scripts/theme-browser.cjs",
+    "test:saas": "node scripts/saas-browser.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",
