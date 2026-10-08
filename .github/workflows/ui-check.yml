@@ -34,6 +34,9 @@ jobs:
       - name: Check full-page purchase and quick-add workflow
         run: npm run test:purchases
 
+      - name: Check product quick-add and price-unit interactions
+        run: npm run test:product-quick-add
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
