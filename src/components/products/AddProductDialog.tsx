@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { Switch } from '../Switch';
-import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
 import { QuickAddSelect } from '../QuickAddSelect';
 import { MoneyUnitInput } from '../MoneyUnitInput';
 import {
@@ -363,7 +363,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Product type" bn="ধরন" hint={initialProduct ? 'Product type is fixed after creation.' : 'Stock products track inventory; services do not.'}>
-              <FormSelect value={kind} disabled={Boolean(initialProduct)} onChange={(e) => changeKind(e.target.value as ProductKind)} options={['Stock', 'Service']} />
+              <AppSelect label="Product type" value={kind} disabled={Boolean(initialProduct)} onChange={(next) => changeKind(next as ProductKind)} options={['Stock', 'Service']} />
             </Field>
             <div>
               <p className="mb-1.5 text-[13px] font-medium text-ink">Category <span className="font-bn text-[11px] font-normal text-ink-400">· ক্যাটাগরি</span></p>
@@ -463,13 +463,13 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     {!initialProduct && <Field label="Opening stock" bn="শুরুর স্টক">
                       <div className="flex gap-2">
                         <Input value={openingQty} onChange={(e) => setOpeningQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
-                        <FormSelect value={units.includes(openingUnit) ? openingUnit : unit} onChange={(e) => setOpeningUnit(e.target.value)} options={units} className="w-28 shrink-0" />
+                        <AppSelect label="Opening stock unit" value={units.includes(openingUnit) ? openingUnit : unit} onChange={setOpeningUnit} options={units} className="w-28 shrink-0" />
                       </div>
                     </Field>}
                     <Field label="Minimum stock" bn="সর্বনিম্ন স্টক">
                       <div className="flex gap-2">
                         <Input value={minQty} onChange={(e) => setMinQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
-                        <FormSelect value={units.includes(minUnit) ? minUnit : unit} onChange={(e) => setMinUnit(e.target.value)} options={units} className="w-28 shrink-0" />
+                        <AppSelect label="Minimum stock unit" value={units.includes(minUnit) ? minUnit : unit} onChange={setMinUnit} options={units} className="w-28 shrink-0" />
                       </div>
                     </Field>
                   </div>
@@ -481,11 +481,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     <Field label="Duration" bn="সময়কাল">
                       <div className="flex gap-2">
                         <Input value={warrantyDuration} onChange={(e) => setWarrantyDuration(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="text-right" />
-                        <FormSelect value={warrantyDurationUnit} onChange={(e) => setWarrantyDurationUnit(e.target.value as WarrantyDurationUnit)} options={warrantyUnits} className="w-32 shrink-0" />
+                        <AppSelect label="Warranty duration unit" value={warrantyDurationUnit} onChange={(next) => setWarrantyDurationUnit(next as WarrantyDurationUnit)} options={warrantyUnits} className="w-32 shrink-0" />
                       </div>
                     </Field>
                     <Field label="Warranty type" bn="ধরন">
-                      <FormSelect value={warrantyType} onChange={(e) => setWarrantyType(e.target.value as WarrantyType)} options={warrantyTypes} />
+                      <AppSelect label="Warranty type" value={warrantyType} onChange={(next) => setWarrantyType(next as WarrantyType)} options={warrantyTypes} />
                     </Field>
                     <Field label="Terms" bn="শর্তাবলি" hint="This text is snapshotted onto each sold invoice item." >
                       <textarea value={warrantyTerms} onChange={(e) => setWarrantyTerms(e.target.value)} placeholder="Coverage, exclusions, required documents…" className="min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:col-span-2" />
@@ -518,7 +518,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Field label="Warning days" bn="আগে সতর্কতা"><Input value={expiryWarningDays} onChange={(e) => setExpiryWarningDays(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" className="text-right" /></Field>
-                      <Field label="Allocation" bn="স্টক নির্বাচন"><FormSelect value={allocationMethod} onChange={(e) => setAllocationMethod(e.target.value as StockAllocationMethod)} options={allocationMethods} /></Field>
+                      <Field label="Allocation" bn="স্টক নির্বাচন"><AppSelect label="Allocation" value={allocationMethod} onChange={(next) => setAllocationMethod(next as StockAllocationMethod)} options={allocationMethods} /></Field>
                     </div>
                     {!initialProduct && openingBaseQty > 0 && <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-3">
                       <Field label="Batch no." bn="ব্যাচ"><Input value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} placeholder="Optional" /></Field>
