@@ -29,5 +29,6 @@ test('remote links, macros and decompression-bomb workbooks are rejected',()=>{
 });
 test('HisabIQ generated Excel template passes XLSX safety check',async()=>{
  const blob=await makeTemplateXlsx('product');
- assert.doesNotThrow(()=>validateXlsxSafety(new Uint8Array(await blob.arrayBuffer())));
+ const bytes=new Uint8Array(await blob.arrayBuffer());
+ assert.doesNotThrow(()=>validateXlsxSafety(bytes));
 });
