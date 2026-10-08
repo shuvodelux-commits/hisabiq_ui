@@ -13,6 +13,7 @@ async function main(){
     await page.getByRole('button',{name:'Party ledger date range'}).click();
     await page.getByRole('dialog',{name:'Party ledger date range calendar'}).waitFor();
     await page.getByRole('button',{name:'Last month'}).click();
+    await page.getByRole('dialog',{name:'Party ledger date range calendar'}).getByRole('button',{name:'Apply'}).click();
     await page.getByText('Opening balance',{exact:true}).first().waitFor();
     await page.getByRole('button',{name:/Actions for INV-000241/i}).count().then(x=>assert.equal(x,0,'October invoice excluded by September range'));
     await page.getByRole('button',{name:'Print statement'}).click();
