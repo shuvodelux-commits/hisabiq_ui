@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2 } from 'lucide-react';
+import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -14,9 +14,11 @@ import { PartyPaymentDialog } from './PartyPaymentDialog';
 import { PartyCreditRefundDialog } from './PartyCreditRefundDialog';
 import { PartyTransactionDialog } from './PartyTransactionDialog';
 import { PartyFinanceDialog } from './PartyFinanceDialog';
+import { PartyOpeningDialog } from './PartyOpeningDialog';
+import { activePartyOpening } from '../../utils/partyOpening';
 import type { FinanceRole } from '../../utils/partyFinance';
 import type { LedgerEntry, Party, PartyRole } from '../../types/erp';
-import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload } from '../../types/partyLedger';
+import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload, PartyOpeningPayload } from '../../types/partyLedger';
 import type { IsoRange } from '../../utils/dateRange';
 import { formatNumber, taka } from '../../utils/currency';
 
@@ -49,6 +51,7 @@ type PartyDetailProps = {
   onEditSourcePayment: (sourceId:string,payload:PartyPaymentPayload,reason:string) => void;
   onReverseSource: (sourceId:string,reason:string) => void;
   onRecordFinance: (payload:PartyFinancePayload) => void;
+  onSetOpening: (payload:PartyOpeningPayload) => void;
 };
 
 export function PartyDetail({
@@ -56,7 +59,7 @@ export function PartyDetail({
   statement, balanceSummary, visibleRows, range, onRange, kind, onKind, ledgerQuery, onLedgerQuery,
   pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
   onLedgerAction, statementOpen, onCloseStatement, sources, onRecordPayment, onRefundCredit,
-  onEditSourcePayment, onReverseSource, onRecordFinance
+  onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening
 }: PartyDetailProps) {
   const [tab, setTab] = useState<Tab>('ledger');
   const [note, setNote] = useState('');
@@ -68,6 +71,8 @@ export function PartyDetail({
   const [paymentOpen,setPaymentOpen] = useState(false);
   const [refundOpen,setRefundOpen] = useState(false);
   const [financeOpen,setFinanceOpen]=useState(false);
+  const [openingOpen,setOpeningOpen]=useState(false);
+  const existingOpening=activePartyOpening(sources,party.id,relationship);
   const [editorRow,setEditorRow]=useState<PartyLedgerRow|null>(null);
   const [editorMode,setEditorMode]=useState<'edit'|'reverse'>('edit');
   const doRowAction=(action:PartyAction,row:PartyLedgerRow)=>{
@@ -142,6 +147,10 @@ export function PartyDetail({
             onClick={()=>setRefundOpen(true)}>
             Refund credit
           </Button>}
+        <Button size="sm" variant="outline" onClick={()=>setOpeningOpen(true)}
+          aria-label={existingOpening?'Edit opening balance':'Set opening balance'}>
+          <BookOpen className="size-4"/> {existingOpening?'Edit opening':'Opening balance'}
+        </Button>
         <Button size="sm" variant="outline" disabled title="Open a new invoice from the POS until the Party source action is connected">
           <Plus className="size-4" /> New invoice
         </Button>
@@ -277,6 +286,8 @@ export function PartyDetail({
         </div>
       }
 
+      <PartyOpeningDialog open={openingOpen} onClose={()=>setOpeningOpen(false)}
+        party={party} relationship={relationship} existing={existingOpening} onSubmit={onSetOpening}/>
       <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={statement}/>
       {(relationship==='Customer'||relationship==='Supplier')&&<>
         <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}
