@@ -56,6 +56,7 @@ export type Product = {
   nameBn?: string;
   sku: string;
   category: string;
+  brand?: string;
   image?: string;
   /** Base (smallest) unit, e.g. "Pcs", "Gira", "Kg" */
   unit: string;
