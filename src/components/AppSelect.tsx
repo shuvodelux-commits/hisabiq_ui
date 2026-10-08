@@ -18,7 +18,13 @@ export function AppSelect({
   label, value, options, onChange, className = '', disabled = false, placeholder = 'Select…', compact = false
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(0);
+  const [active, setActiveState] = useState(0);
+  const activeRef = useRef(0);
+  const setActive = (next: React.SetStateAction<number>) => {
+    const index = typeof next === 'function' ? next(activeRef.current) : next;
+    activeRef.current = index;
+    setActiveState(index);
+  };
   const [rect, setRect] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -72,7 +78,7 @@ export function AppSelect({
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       if (!open) { setActive(Math.max(0, chosen)); setOpen(true); }
-      else if (options[active]) choose(options[active]);
+      else if (options[activeRef.current]) choose(options[activeRef.current]);
       return;
     }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
@@ -102,7 +108,13 @@ export function AppSelect({
         aria-activedescendant={open ? id + '-opt-' + active : undefined}
         disabled={disabled}
         onKeyDown={onKeyboard}
-        onClick={() => { if (!open) setActive(Math.max(0, chosen)); setOpen((v) => !v); }}
+        onClick={(event) => {
+          // Enter/Space are handled in onKeyDown; don't allow their synthetic click
+          // to re-open or reset selection after a keyboard choice.
+          if (event.detail === 0) return;
+          if (!open) setActive(Math.max(0, chosen));
+          setOpen((v) => !v);
+        }}
         className={'flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-input bg-card px-3 text-left text-sm text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/20 disabled:opacity-50 ' + (compact ? 'border-0 bg-transparent px-2 shadow-none' : '')}
       >
         <span className="truncate">{value || placeholder}</span>
