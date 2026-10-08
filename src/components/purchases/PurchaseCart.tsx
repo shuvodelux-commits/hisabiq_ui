@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, ChevronUp, PackagePlus, Plus, ScanLine, Search, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, PackagePlus, Plus, ScanLine, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
