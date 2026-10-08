@@ -39,3 +39,6 @@ jobs:
 
       - name: Check ERP settings workflows and contrast
         run: npm run test:settings
+
+      - name: Check full-page purchase and quick-add workflow
+        run: npm run test:purchases
