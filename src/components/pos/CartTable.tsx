@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, ScanLine, X } from 'lucide-react';
+import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { AlertTriangle, Eye, GripVertical, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
 import { ProductThumb } from '../ProductThumb';
 import { SerialPickerDialog } from './SerialPickerDialog';
+import { StockShortageDialog } from './StockShortageDialog';
 import type { CartLine } from '../../hooks/usePosCart';
 import type { Product } from '../../types/erp';
 import { formatStock, unitsFor } from '../../utils/units';
@@ -12,26 +13,83 @@ import { compoundBaseQuantity, compoundLineTotal, normalizeCompoundQuantity } fr
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
 import { availableSerials, productStockBreakdown, requiredSerialCount } from '../../utils/productFeatures';
+import { quantityFromBaseStock, saleAvailableStock, saleStockShortage } from '../../utils/posStock';
 
 type CartTableProps = {
   lines: CartLine[];
   lastAdded: string | null;
   onAdd: (p: Product) => void;
-  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials'>>) => void;
+  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource'>>) => void;
   onRemove: (key: string) => void;
+  onReorder: (orderedKeys: string[]) => void;
+  onMove: (key: string, delta: number) => void;
   searchRef: React.RefObject<HTMLInputElement>;
 };
 
-const grid = 'grid min-w-[820px] grid-cols-[24px_minmax(180px,1fr)_168px_108px_96px_104px_28px] items-center gap-2';
+const grid = 'grid min-w-[850px] grid-cols-[56px_minmax(180px,1fr)_168px_108px_96px_104px_28px] items-center gap-2';
 
 const cellInput =
 'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
 
-export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchRef }: CartTableProps) {
+/** Drag only from the handle, leaving numeric inputs and product actions fully interactive. */
+function SortableCartRow({
+  line, index, count, onMove, children
+}: {
+  line: CartLine;
+  index: number;
+  count: number;
+  onMove: (key: string, delta: number) => void;
+  children: React.ReactNode;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      as="div"
+      value={line.key}
+      dragControls={controls}
+      dragListener={false}
+      dragMomentum={false}
+      data-testid="pos-cart-row"
+      data-line-key={line.key}
+      className={`${grid} relative bg-card px-3 py-1.5`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.16 }}
+      whileDrag={{ zIndex: 20, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.13)' }}
+    >
+      <div className="flex items-center justify-end gap-1">
+        <span className="text-right text-sm text-ink-400">{index + 1}.</span>
+        <button
+          type="button"
+          data-testid="pos-drag-handle"
+          aria-label={`Reorder ${line.product.name}, position ${index + 1} of ${count}`}
+          aria-keyshortcuts="ArrowUp ArrowDown"
+          title="Drag to reorder · use ↑/↓ keys"
+          onPointerDown={(event) => controls.start(event)}
+          onKeyDown={(event) => {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+            event.preventDefault();
+            event.stopPropagation();
+            onMove(line.key, event.key === 'ArrowUp' ? -1 : 1);
+          }}
+          style={{ touchAction: 'none' }}
+          className="flex size-7 shrink-0 cursor-grab items-center justify-center rounded-md text-ink-400 hover:bg-ink-50 hover:text-teal-700 active:cursor-grabbing focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500"
+        >
+          <GripVertical className="size-4" aria-hidden="true" />
+        </button>
+      </div>
+      {children}
+    </Reorder.Item>
+  );
+}
+
+export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReorder, onMove, searchRef }: CartTableProps) {
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
   const [serialLine, setSerialLine] = useState<CartLine | null>(null);
+  const [shortageLine, setShortageLine] = useState<CartLine | null>(null);
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
 
   useEffect(() => {
@@ -68,33 +126,19 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
         <span className="sr-only">Remove</span>
       </div>
 
-      <div className="divide-y divide-border">
-        <div className={`${grid} bg-teal-50/35 px-3 py-2`}>
-          <span className="text-right text-sm text-teal-600">{lines.length + 1}.</span>
-          <ProductCombobox ref={searchRef} onSelect={onAdd} />
-          <span className="pr-2 text-right text-sm text-helper">Qty</span>
-          <span className="px-2 text-sm text-helper">Unit</span>
-          <span className="pr-2 text-right text-sm text-helper">Price</span>
-          <span className="text-right text-sm text-helper">Total</span>
-          <span />
-        </div>
-        <AnimatePresence initial={false}>
+      <div data-testid="pos-cart">
+        <Reorder.Group as="div" axis="y" values={lines.map((line) => line.key)} onReorder={onReorder}
+          className="divide-y divide-border">
+          <AnimatePresence initial={false}>
           {lines.map((l, i) => {
             const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
+            const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
             const purchasePrice = factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
+            const shortage = saleStockShortage(l.product, stockLots, baseQty);
             return (
-              <motion.div
-                key={l.key}
-                layout
-                initial={{ opacity: 0, backgroundColor: 'var(--accent)' }}
-                animate={{ opacity: 1, backgroundColor: 'var(--card)' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25 }}
-                className={`${grid} px-3 py-1.5`}>
-                
-                <span className="text-right text-sm text-ink-400">{i + 1}.</span>
+              <SortableCartRow key={l.key} line={l} index={i} count={lines.length} onMove={onMove}>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <ProductThumb src={l.product.image} size={32} />
                   <div className="min-w-0">
@@ -103,20 +147,41 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
                       {l.product.category}{l.product.kind === 'Service' ? ' · Service' : l.product.expiry?.enabled ? ` · Sellable ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · Stock ${formatStock(l.product)}`}
                     </p>
-                    {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
-                      <button
-                        type="button"
-                        onClick={() => setSerialLine(l)}
-                        className={`mt-0.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
-                          (l.product.serialTracking === 'Required' && l.serials.length !== requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor))) ||
-                          l.serials.length > Math.ceil(compoundBaseQuantity(l.qty, l.secondaryQty, factor))
-                            ? 'bg-warning-bg text-warning'
-                            : 'bg-teal-50 text-teal-700'
-                        }`}>
-                        <ScanLine className="size-3" />
-                        Serials {l.serials.length}/{Math.max(requiredSerialCount(l.product, compoundBaseQuantity(l.qty, l.secondaryQty, factor)), Math.ceil(compoundBaseQuantity(l.qty, l.secondaryQty, factor)))}
-                      </button>
-                    )}
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                      {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
+                        <button
+                          type="button"
+                          onClick={() => setSerialLine(l)}
+                          className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
+                            (l.product.serialTracking === 'Required' && l.serials.length !== requiredSerialCount(l.product, baseQty)) ||
+                            l.serials.length > Math.ceil(baseQty)
+                              ? 'bg-warning-bg text-warning'
+                              : 'bg-teal-50 text-teal-700'
+                          }`}>
+                          <ScanLine className="size-3" />
+                          Serials {l.serials.length}/{Math.max(requiredSerialCount(l.product, baseQty), Math.ceil(baseQty))}
+                        </button>
+                      )}
+                      {shortage > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShortageLine(l)}
+                          className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
+                            !l.stockSource
+                              ? 'bg-danger-bg text-danger'
+                              : l.stockSource.mode === 'Negative'
+                                ? 'bg-warning-bg text-warning'
+                                : 'bg-blue-50 text-blue-700'
+                          }`}>
+                          <AlertTriangle className="size-3" />
+                          {!l.stockSource
+                            ? `Short ${formatStock({ ...l.product, stock: shortage })} · choose source`
+                            : l.stockSource.mode === 'Negative'
+                              ? `Negative sale · ${formatStock({ ...l.product, stock: shortage })}`
+                              : `${l.stockSource.vendorName} · ${formatStock({ ...l.product, stock: shortage })}`}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {l.product.altUnit && l.unit === l.product.altUnit.unit ?
@@ -228,10 +293,20 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                   
                   <X className="size-4" />
                 </button>
-              </motion.div>);
+              </SortableCartRow>);
 
           })}
-        </AnimatePresence>
+          </AnimatePresence>
+        </Reorder.Group>
+        <div data-testid="pos-add-row" className={`${grid} border-t border-border bg-teal-50/35 px-3 py-2`}>
+          <span className="pr-3 text-right text-sm text-teal-600">{lines.length + 1}.</span>
+          <ProductCombobox ref={searchRef} onSelect={onAdd} />
+          <span className="pr-2 text-right text-sm text-helper">Qty</span>
+          <span className="px-2 text-sm text-helper">Unit</span>
+          <span className="pr-2 text-right text-sm text-helper">Price</span>
+          <span className="text-right text-sm text-helper">Total</span>
+          <span />
+        </div>
 
       </div>
 
@@ -258,6 +333,38 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
             onSave={(serials) => {
               onUpdate(serialLine.key, { serials });
               setSerialLine(null);
+            }}
+          />
+        );
+      })()}
+
+      {shortageLine && (() => {
+        const factor = shortageLine.product.altUnit && shortageLine.unit === shortageLine.product.altUnit.unit ? shortageLine.product.altUnit.factor : 1;
+        const baseQty = compoundBaseQuantity(shortageLine.qty, shortageLine.secondaryQty, factor);
+        const available = saleAvailableStock(shortageLine.product, stockLots);
+        const shortage = saleStockShortage(shortageLine.product, stockLots, baseQty);
+        return (
+          <StockShortageDialog
+            line={shortageLine}
+            availableBaseQty={available}
+            shortageBaseQty={shortage}
+            open
+            onOpenChange={(open) => { if (!open) setShortageLine(null); }}
+            onUseOwnStock={() => {
+              if (available <= 0) {
+                onRemove(shortageLine.key);
+              } else {
+                const useAlternate = Boolean(shortageLine.product.altUnit && shortageLine.unit === shortageLine.product.altUnit.unit);
+                onUpdate(shortageLine.key, {
+                  ...quantityFromBaseStock(available, factor, useAlternate),
+                  stockSource: undefined
+                });
+              }
+              setShortageLine(null);
+            }}
+            onResolve={(source) => {
+              onUpdate(shortageLine.key, { stockSource: source });
+              setShortageLine(null);
             }}
           />
         );

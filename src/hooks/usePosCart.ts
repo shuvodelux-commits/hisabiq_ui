@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { products } from '../data/products';
 import { productOffers } from '../data/productOffers';
-import type { Party, PaymentMethod, Product, WarrantySnapshot } from '../types/erp';
+import type { Party, PaymentMethod, Product, SaleStockSource, WarrantySnapshot } from '../types/erp';
 import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures';
-import { roundTo } from '../utils/currency';
+import { useTenantSettings } from '../settings/TenantSettingsProvider';
+import { roundInvoice } from '../settings/model';
 import { compoundLineTotal } from '../utils/posQuantity';
+import { moveCartLine, reorderCartLines } from '../utils/reorderCartLines';
 
 export type CartLine = {
   key: string;
@@ -14,6 +16,7 @@ export type CartLine = {
   unit: string;
   price: string;
   serials: string[];
+  stockSource?: SaleStockSource;
   historicalWarranty?: WarrantySnapshot;
   historicalUnitCost?: number;
 };
@@ -85,11 +88,13 @@ const emptyCustomerDetails = (): PosCustomerDetails => ({
 });
 
 export function usePosCart() {
+  const { state } = useTenantSettings();
+  const settings = state.sections.sales;
   const [lines, setLines] = useState<CartLine[]>(demoCart);
   const [lastAdded, setLastAdded] = useState<string | null>(null);
   const [discountMode, setDiscountMode] = useState<DiscountMode>('amount');
   const [discount, setDiscount] = useState('');
-  const [payments, setPayments] = useState<PosPaymentRow[]>([makePosPaymentRow()]);
+  const [payments, setPayments] = useState<PosPaymentRow[]>(() => [makePosPaymentRow(0, settings.defaultPayment)]);
   const [customer, setCustomerState] = useState<Party | null>(null);
   const [customerDetails, setCustomerDetails] = useState<PosCustomerDetails>(emptyCustomerDetails);
 
@@ -121,11 +126,13 @@ export function usePosCart() {
     setLastAdded(l.key);
   };
 
-  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials'>>) => {
+  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource'>>) => {
     setLines((ls) =>
       ls.map((l) => {
         if (l.key !== key) return l;
+        const quantityChanged = patch.qty !== undefined || patch.secondaryQty !== undefined || patch.unit !== undefined;
         const next = { ...l, ...patch };
+        if (quantityChanged && patch.stockSource === undefined) next.stockSource = undefined;
         if (patch.unit && patch.unit !== l.unit) {
           next.price = String(effectivePriceForUnit(l.product, activeOfferFor(l.product.id, productOffers), patch.unit));
           next.secondaryQty = '';
@@ -137,10 +144,13 @@ export function usePosCart() {
 
   const removeLine = (key: string) => setLines((ls) => ls.filter((l) => l.key !== key));
 
+  const reorderLines = (keys: string[]) => setLines((current) => reorderCartLines(current, keys));
+  const moveLine = (key: string, delta: number) => setLines((current) => moveCartLine(current, key, delta));
+
   const reset = () => {
     setLines([]);
     setDiscount('');
-    setPayments([makePosPaymentRow()]);
+    setPayments([makePosPaymentRow(0, settings.defaultPayment)]);
     setCustomerState(null);
     setCustomerDetails(emptyCustomerDetails());
   };
@@ -155,14 +165,14 @@ export function usePosCart() {
     const d = parseFloat(discount) || 0;
     const discountAmt = Math.min(subtotal, discountMode === 'percent' ? subtotal * d / 100 : d);
     const net = subtotal - discountAmt;
-    const total = net > 0 ? roundTo(net, 5) : 0;
+    const total = net > 0 ? roundInvoice(net, settings.rounding) : 0;
     const rounding = total - net;
     const paidNum = payments.reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
     const due = Math.max(0, total - paidNum);
     const change = Math.max(0, paidNum - total);
     const itemCount = lines.length;
-    return { subtotal, discountAmt, net, total, rounding, paidNum, due, change, itemCount };
-  }, [lines, discount, discountMode, payments]);
+    return { subtotal, discountAmt, net, total, rounding, roundingLabel: settings.rounding === 'No rounding' ? 'Rounding (off)' : settings.rounding === 'Nearest ৳1' ? 'Rounding (to ৳1)' : 'Rounding (to ৳5)', paidNum, due, change, itemCount };
+  }, [lines, discount, discountMode, payments, settings.rounding]);
 
   return {
     lines,
@@ -171,6 +181,8 @@ export function usePosCart() {
     addProduct,
     updateLine,
     removeLine,
+    reorderLines,
+    moveLine,
     reset,
     discount,
     setDiscount,
@@ -185,3 +197,4 @@ export function usePosCart() {
     totals
   };
 }
+

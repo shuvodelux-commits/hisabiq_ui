@@ -1,3 +1,4 @@
+import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Info } from 'lucide-react';
@@ -5,9 +6,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { Switch } from '../Switch';
-import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
+import { AppDatePicker } from '../AppDateRangePicker';
+import { QuickAddSelect } from '../QuickAddSelect';
+import { MoneyUnitInput, QuantityUnitInput } from '../MoneyUnitInput';
+import {
+  availableProductCategories, availableProductBrands, availableProductUnits,
+  createPreviewProductCategory, createPreviewProductBrand, createPreviewProductUnit
+} from '../../data/erpDemoStore';
 import { PhotoUploader } from './PhotoUploader';
-import { productCategories } from '../../data/products';
+
 import type {
   Product,
   ProductKind,
@@ -17,7 +25,7 @@ import type {
   WarrantyType
 } from '../../types/erp';
 import { taka } from '../../utils/currency';
-import { toBasePrice, toBaseQuantity } from '../../utils/productEntry';
+import { toBasePrice, toBaseQuantity, switchQuantityUnit } from '../../utils/productEntry';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 
 export type ProductOpeningMeta = {
@@ -35,7 +43,6 @@ type AddProductDialogProps = {
   existingSerials?: string[];
 };
 
-const baseUnits = ['Pcs', 'Gira', 'Kg', 'Feet', 'Bag', 'Coil', 'Pair', 'Litre'];
 const serialModes: SerialTrackingMode[] = ['Off', 'Optional', 'Required'];
 const warrantyUnits: WarrantyDurationUnit[] = ['Days', 'Months', 'Years'];
 const warrantyTypes: WarrantyType[] = ['Seller', 'Manufacturer', 'Service', 'Replacement'];
@@ -82,11 +89,18 @@ function SettingHeader({ title, bn, hint, checked, onCheckedChange }: {
 }
 
 export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = null, existingSerials = [] }: AddProductDialogProps) {
+  const { state } = useTenantSettings();
+  const defaults = state.sections.products;
+  const defaultViewUnit = defaults.defaultUnit === 'Gira' ? 'Gauge' : defaults.defaultUnit;
   const [photos, setPhotos] = useState<string[]>([]);
   const [kind, setKind] = useState<ProductKind>('Stock');
   const [name, setName] = useState('');
   const [nameBn, setNameBn] = useState('');
   const [category, setCategory] = useState('Hardware');
+  const [categoryOptions, setCategoryOptions] = useState(availableProductCategories);
+  const [brand, setBrand] = useState('Generic / No brand');
+  const [brandOptions, setBrandOptions] = useState(availableProductBrands);
+  const [unitOptions, setUnitOptions] = useState(availableProductUnits);
   const [unit, setUnit] = useState('Gira');
   const [sell, setSell] = useState('');
   const [sellUnit, setSellUnit] = useState('Gira');
@@ -122,10 +136,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [error, setError] = useState('');
 
   const isStock = kind === 'Stock';
-  const units = isStock && multiUnit && altUnit ? [altUnit, unit] : [unit];
+  const units = isStock && multiUnit && altUnit && altUnit !== unit ? [altUnit, unit] : [unit];
   const f = parseFloat(factor) || 1;
   const selectedSellUnit = units.includes(sellUnit) ? sellUnit : unit;
   const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : unit;
+  const selectedOpeningUnit = units.includes(openingUnit) ? openingUnit : unit;
+  const selectedMinUnit = units.includes(minUnit) ? minUnit : unit;
   const normalizedAltUnit = isStock && multiUnit && altUnit ? altUnit : undefined;
   const stockToBase = (qty: string, selectedUnit: string) => toBaseQuantity(qty, selectedUnit, unit, normalizedAltUnit, f);
   const priceToBase = (amount: string, selectedUnit: string) => toBasePrice(amount, selectedUnit, unit, normalizedAltUnit, f);
@@ -135,7 +151,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const buyBase = isStock ? priceToBase(buy, selectedBuyUnit) : buyNum;
   const margin = sellBase > 0 && buyBase > 0 ? (sellBase - buyBase) / sellBase * 100 : null;
   const autoAltSell = sellBase > 0 && multiUnit ? sellBase * f : 0;
-  const openingBaseQty = isStock ? stockToBase(openingQty, openingUnit) : 0;
+  const openingBaseQty = isStock ? stockToBase(openingQty, selectedOpeningUnit) : 0;
   const openingSerials = normalizeSerials(openingSerialText);
   const openingSerialDuplicates = duplicateSerials(openingSerials, existingSerials);
   const requiredOpeningSerials = !initialProduct ? requiredSerialCount({
@@ -149,32 +165,36 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setName('');
     setNameBn('');
     setCategory('Hardware');
-    setUnit('Gira');
+    setCategoryOptions(availableProductCategories());
+    setBrand('Generic / No brand');
+    setBrandOptions(availableProductBrands());
+    setUnitOptions(availableProductUnits());
+    setUnit(defaults.defaultUnit);
     setSell('');
-    setSellUnit('Gira');
+    setSellUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setBuy('');
-    setBuyUnit('Gira');
+    setBuyUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setAdvanced(true);
-    setMultiUnit(true);
+    setMultiUnit(defaults.defaultUnit === 'Gira');
     setAltUnit('Gauge');
     setFactor('16');
     setAltPrice('');
     setOpeningQty('');
-    setOpeningUnit('Gauge');
+    setOpeningUnit(defaults.openingUnit === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setMinQty('');
-    setMinUnit('Gauge');
+    setMinUnit(defaults.minimumUnit === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setBarcode('');
-    setWarrantyEnabled(false);
-    setWarrantyDuration('12');
+    setWarrantyEnabled(defaults.warranty);
+    setWarrantyDuration(String(defaults.warrantyMonths));
     setWarrantyDurationUnit('Months');
     setWarrantyType('Seller');
     setWarrantyTerms('');
-    setSerialTracking('Off');
+    setSerialTracking(defaults.serial);
     setOpeningSerialText('');
-    setExpiryEnabled(false);
+    setExpiryEnabled(defaults.expiry);
     setExpiryDateRequired(false);
-    setExpiryWarningDays('30');
-    setAllocationMethod('FIFO');
+    setExpiryWarningDays(String(defaults.expiryDays));
+    setAllocationMethod(defaults.allocation);
     setBatchNumber('');
     setManufactureDate('');
     setExpiryDate('');
@@ -194,6 +214,10 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setName(initialProduct.name);
     setNameBn(initialProduct.nameBn ?? '');
     setCategory(initialProduct.category);
+    setCategoryOptions(availableProductCategories());
+    setBrand(initialProduct.brand ?? 'Generic / No brand');
+    setBrandOptions(availableProductBrands());
+    setUnitOptions(availableProductUnits());
     setUnit(initialProduct.unit);
     setSell(String(initialProduct.sellPrice));
     setSellUnit(initialProduct.unit);
@@ -225,6 +249,31 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setAdvanced(true);
     setError('');
   }, [open, initialProduct]);
+
+  const changePriceUnit = (amount: string, current: string, next: string, setValue: (value: string) => void, setUnitValue: (value: string) => void) => {
+    if (amount.trim() && current !== next) {
+      const basePrice = priceToBase(amount, current);
+      const converted = next === normalizedAltUnit ? basePrice * f : basePrice;
+      setValue(String(Math.round(converted * 10000) / 10000));
+    }
+    setUnitValue(next);
+  };
+  const changeStockUnit = (
+    amount: string,
+    current: string,
+    next: string,
+    setValue: (value: string) => void,
+    setUnitValue: (unit: string) => void
+  ) => {
+    setValue(switchQuantityUnit(amount, current, next, unit, normalizedAltUnit, f));
+    setUnitValue(next);
+  };
+  const quickAddUnit = (name: string, symbol: string, select: (symbol: string) => void) => {
+    const code = symbol.trim() || name.trim();
+    createPreviewProductUnit(name, code);
+    setUnitOptions(availableProductUnits());
+    select(code);
+  };
 
   const changeKind = (next: ProductKind) => {
     setKind(next);
@@ -274,11 +323,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       nameBn: nameBn.trim() || undefined,
       sku: barcode || `${category.slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 8999)}`,
       category,
+      brand: isStock ? brand : undefined,
       image: photos[0],
       unit,
       altUnit: isStock && multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
       stock: initialProduct ? initialProduct.stock : openingBaseQty,
-      minStock: isStock ? stockToBase(minQty, minUnit) : 0,
+      minStock: isStock ? stockToBase(minQty, selectedMinUnit) : 0,
       sellPrice: sellBase,
       purchasePrice: buyBase,
       warranty: {
@@ -326,37 +376,58 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Product type" bn="ধরন" hint={initialProduct ? 'Product type is fixed after creation.' : 'Stock products track inventory; services do not.'}>
-              <FormSelect value={kind} disabled={Boolean(initialProduct)} onChange={(e) => changeKind(e.target.value as ProductKind)} options={['Stock', 'Service']} />
+              <AppSelect label="Product type" value={kind} disabled={Boolean(initialProduct)} onChange={(next) => changeKind(next as ProductKind)} options={['Stock', 'Service']} />
             </Field>
-            <Field label="Category" bn="ক্যাটাগরি">
-              <FormSelect value={category} onChange={(e) => setCategory(e.target.value)} options={productCategories.filter((c) => c !== 'All')} />
-            </Field>
+            <div>
+              <p className="mb-1.5 text-[13px] font-medium text-ink">Category <span className="font-bn text-[11px] font-normal text-ink-400">· ক্যাটাগরি</span></p>
+              <QuickAddSelect label="Category" value={category} options={categoryOptions.filter((c) => c !== 'All')} onChange={setCategory}
+                onCreate={(name) => { createPreviewProductCategory(name); setCategoryOptions(availableProductCategories()); setCategory(name); }} />
+            </div>
+            {isStock && <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">Brand <span className="font-bn text-[11px] font-normal text-ink-400">· ব্র্যান্ড</span></p>
+              <QuickAddSelect label="Brand" value={brand} options={brandOptions} onChange={setBrand}
+                onCreate={(name) => { createPreviewProductBrand(name); setBrandOptions(availableProductBrands()); setBrand(name); }} />
+            </div>}
             <Field label="Product name" bn="নাম">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={isStock ? 'e.g. LED Bulb 12W' : 'e.g. Ceiling Fan Installation'} autoFocus />
             </Field>
             <Field label="Bangla name" bn="বাংলা নাম (ঐচ্ছিক)">
               <Input value={nameBn} onChange={(e) => setNameBn(e.target.value)} placeholder={isStock ? 'এলইডি বাল্ব ১২ ওয়াট' : 'সিলিং ফ্যান ইনস্টলেশন'} className="font-bn" />
             </Field>
-            {isStock && <Field label="Base unit" bn="ছোট একক" hint="Smallest unit used for stock and serial counts.">
-              <FormSelect value={unit} onChange={(e) => {
-                const next = e.target.value;
-                if (sellUnit === unit) setSellUnit(next);
-                if (buyUnit === unit) setBuyUnit(next);
-                setUnit(next);
-              }} options={baseUnits} />
-            </Field>}
-            <Field label="Selling price" bn="বিক্রয় মূল্য" hint={sellNum && selectedSellUnit !== unit ? `${taka(sellNum)} / ${selectedSellUnit} → ${taka(sellBase)} / ${unit} automatically` : 'Normal selling price is preserved; offers are managed separately.'}>
-              <div className="flex gap-2">
-                <div className="min-w-0 flex-1"><MoneyInput value={sell} onChange={(e) => setSell(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" /></div>
-                <FormSelect value={selectedSellUnit} onChange={(e) => setSellUnit(e.target.value)} options={units} className="w-28 shrink-0" />
-              </div>
-            </Field>
-            <Field label={isStock ? 'Purchase price' : 'Service cost'} bn={isStock ? 'ক্রয় মূল্য' : 'সেবা খরচ'} hint="Optional internal cost.">
-              <div className="flex gap-2">
-                <div className="min-w-0 flex-1"><MoneyInput value={buy} onChange={(e) => setBuy(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" /></div>
-                {isStock && <FormSelect value={selectedBuyUnit} onChange={(e) => setBuyUnit(e.target.value)} options={units} className="w-28 shrink-0" />}
-              </div>
-            </Field>
+            {isStock && <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">Base unit <span className="font-bn text-[11px] font-normal text-ink-400">· ছোট একক</span></p>
+              <QuickAddSelect label="Base unit" value={unit} options={unitOptions.map((item) => item.symbol)}
+                onChange={(next) => {
+                  if (sellUnit === unit) setSellUnit(next);
+                  if (buyUnit === unit) setBuyUnit(next);
+                  setUnit(next);
+                }}
+                onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, (next) => {
+                  if (sellUnit === unit) setSellUnit(next);
+                  if (buyUnit === unit) setBuyUnit(next);
+                  setUnit(next);
+                })} showSymbol placeholder="Unit name, e.g. Meter" />
+              <p className="mt-1 text-xs text-ink-500">Smallest unit used for stock and serial counts.</p>
+            </div>}
+            <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">Selling price <span className="font-bn text-[11px] font-normal text-ink-400">· বিক্রয় মূল্য</span></p>
+              <MoneyUnitInput label="Selling price" value={sell} onChange={setSell}
+                unit={selectedSellUnit} units={units}
+                onUnitChange={(next) => changePriceUnit(sell, selectedSellUnit, next, setSell, setSellUnit)} />
+              <p className="mt-1 text-xs text-ink-500">
+                {sellNum && selectedSellUnit !== unit ? `${taka(sellNum)} / ${selectedSellUnit} → ${taka(sellBase)} / ${unit} automatically` : 'Normal selling price; offers are managed separately.'}
+              </p>
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">
+                {isStock ? 'Purchase price' : 'Service cost'}
+                <span className="font-bn ml-1 text-[11px] font-normal text-ink-400">· {isStock ? 'ক্রয় মূল্য' : 'সেবা খরচ'}</span>
+              </p>
+              <MoneyUnitInput label={isStock ? 'Purchase price' : 'Service cost'} value={buy} onChange={setBuy}
+                unit={isStock ? selectedBuyUnit : undefined} units={units}
+                onUnitChange={isStock ? (next) => changePriceUnit(buy, selectedBuyUnit, next, setBuy, setBuyUnit) : undefined} />
+              <p className="mt-1 text-xs text-ink-500">Optional internal cost.</p>
+            </div>
           </div>
           {margin !== null && <p className={`text-xs ${margin < 0 ? 'text-danger' : 'text-ink-500'}`}>Margin {margin.toFixed(1)}% · profit {taka(sellBase - buyBase)} per {unit}</p>}
         </section>
@@ -378,13 +449,21 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     if (!checked) {
                       if (sellUnit === altUnit) setSellUnit(unit);
                       if (buyUnit === altUnit) setBuyUnit(unit);
+                      setOpeningQty(switchQuantityUnit(openingQty, selectedOpeningUnit, unit, unit, normalizedAltUnit, f));
+                      setOpeningUnit(unit);
+                      setMinQty(switchQuantityUnit(minQty, selectedMinUnit, unit, unit, normalizedAltUnit, f));
+                      setMinUnit(unit);
                     }
                     setMultiUnit(checked);
                   }} />
                   {multiUnit && <div className="rounded-lg bg-teal-50/60 p-3">
                     <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink">
                       <span className="font-medium">1</span>
-                      <Input value={altUnit} onChange={(e) => setAltUnit(e.target.value)} className="h-9 w-28 bg-card font-medium" aria-label="Larger unit" />
+                      <div className="min-w-[156px] max-w-[240px] flex-1">
+                        <QuickAddSelect label="Larger unit" value={altUnit} options={unitOptions.map((item) => item.symbol)}
+                          onChange={setAltUnit} onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, setAltUnit)}
+                          showSymbol placeholder="e.g. Box or Gauge" />
+                      </div>
                       <span className="text-ink-500">=</span>
                       <Input value={factor} onChange={(e) => setFactor(e.target.value.replace(/[^\d.]/g, ''))} className="h-9 w-20 bg-card text-right font-medium" inputMode="decimal" aria-label="Conversion factor" />
                       <span className="font-medium">{unit}</span>
@@ -399,16 +478,14 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     {!initialProduct && <Field label="Opening stock" bn="শুরুর স্টক">
-                      <div className="flex gap-2">
-                        <Input value={openingQty} onChange={(e) => setOpeningQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
-                        <FormSelect value={units.includes(openingUnit) ? openingUnit : unit} onChange={(e) => setOpeningUnit(e.target.value)} options={units} className="w-28 shrink-0" />
-                      </div>
+                      <QuantityUnitInput label="Opening stock" value={openingQty} onChange={setOpeningQty}
+                        unit={selectedOpeningUnit} units={units}
+                        onUnitChange={(next) => changeStockUnit(openingQty, selectedOpeningUnit, next, setOpeningQty, setOpeningUnit)} />
                     </Field>}
                     <Field label="Minimum stock" bn="সর্বনিম্ন স্টক">
-                      <div className="flex gap-2">
-                        <Input value={minQty} onChange={(e) => setMinQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
-                        <FormSelect value={units.includes(minUnit) ? minUnit : unit} onChange={(e) => setMinUnit(e.target.value)} options={units} className="w-28 shrink-0" />
-                      </div>
+                      <QuantityUnitInput label="Minimum stock" value={minQty} onChange={setMinQty}
+                        unit={selectedMinUnit} units={units}
+                        onUnitChange={(next) => changeStockUnit(minQty, selectedMinUnit, next, setMinQty, setMinUnit)} />
                     </Field>
                   </div>
                 </>}
@@ -419,11 +496,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     <Field label="Duration" bn="সময়কাল">
                       <div className="flex gap-2">
                         <Input value={warrantyDuration} onChange={(e) => setWarrantyDuration(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="text-right" />
-                        <FormSelect value={warrantyDurationUnit} onChange={(e) => setWarrantyDurationUnit(e.target.value as WarrantyDurationUnit)} options={warrantyUnits} className="w-32 shrink-0" />
+                        <AppSelect label="Warranty duration unit" value={warrantyDurationUnit} onChange={(next) => setWarrantyDurationUnit(next as WarrantyDurationUnit)} options={warrantyUnits} className="w-32 shrink-0" />
                       </div>
                     </Field>
                     <Field label="Warranty type" bn="ধরন">
-                      <FormSelect value={warrantyType} onChange={(e) => setWarrantyType(e.target.value as WarrantyType)} options={warrantyTypes} />
+                      <AppSelect label="Warranty type" value={warrantyType} onChange={(next) => setWarrantyType(next as WarrantyType)} options={warrantyTypes} />
                     </Field>
                     <Field label="Terms" bn="শর্তাবলি" hint="This text is snapshotted onto each sold invoice item." >
                       <textarea value={warrantyTerms} onChange={(e) => setWarrantyTerms(e.target.value)} placeholder="Coverage, exclusions, required documents…" className="min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:col-span-2" />
@@ -456,12 +533,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Field label="Warning days" bn="আগে সতর্কতা"><Input value={expiryWarningDays} onChange={(e) => setExpiryWarningDays(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" className="text-right" /></Field>
-                      <Field label="Allocation" bn="স্টক নির্বাচন"><FormSelect value={allocationMethod} onChange={(e) => setAllocationMethod(e.target.value as StockAllocationMethod)} options={allocationMethods} /></Field>
+                      <Field label="Allocation" bn="স্টক নির্বাচন"><AppSelect label="Allocation" value={allocationMethod} onChange={(next) => setAllocationMethod(next as StockAllocationMethod)} options={allocationMethods} /></Field>
                     </div>
                     {!initialProduct && openingBaseQty > 0 && <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-3">
                       <Field label="Batch no." bn="ব্যাচ"><Input value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} placeholder="Optional" /></Field>
-                      <Field label="Manufacture date" bn="উৎপাদন"><Input type="date" value={manufactureDate} onChange={(e) => setManufactureDate(e.target.value)} /></Field>
-                      <Field label="Expiry date" bn="মেয়াদ"><Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} /></Field>
+                      <Field label="Manufacture date" bn="উৎপাদন"><AppDatePicker label="Manufacture date" value={manufactureDate} onChange={setManufactureDate} /></Field>
+                      <Field label="Expiry date" bn="মেয়াদ"><AppDatePicker label="Expiry date" value={expiryDate} onChange={setExpiryDate} /></Field>
                     </div>}
                   </div>}
                 </div>}

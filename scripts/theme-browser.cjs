@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const routes = ['dashboard', 'pos', 'products', 'sales', 'purchases', 'parties', 'expenses', 'finance', 'daybook', 'accounts', 'audit-ledger', 'warranty', 'reconciliation', 'reports'];
+const routes = ['dashboard', 'pos', 'products', 'sales', 'purchases', 'purchases/new', 'parties', 'expenses', 'finance', 'daybook', 'accounts', 'audit-ledger', 'warranty', 'reconciliation', 'reports'];
 
 async function main() {
   const { createServer } = await import('vite');
@@ -100,6 +100,9 @@ async function main() {
     await page.waitForTimeout(120); assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
     await other.close();
     await page.emulateMedia({ media: 'print' });
+    // Media emulation can resolve before Chromium applies the new print styles.
+    await page.waitForFunction(() => window.matchMedia('print').matches &&
+      getComputedStyle(document.body).backgroundColor === 'rgb(255, 255, 255)');
     assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(255, 255, 255)');
     await page.emulateMedia({ media: 'screen' });
     assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');

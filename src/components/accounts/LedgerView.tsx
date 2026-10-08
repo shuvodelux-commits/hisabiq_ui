@@ -3,7 +3,8 @@ import { ArrowDownToLine, Printer, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
-import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
+import { AppDateRangePicker } from '../AppDateRangePicker';
 import { Input } from '../Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { accountingAccounts } from '../../data/accounting';
@@ -47,7 +48,7 @@ export function LedgerView({
     const query = search.trim().toLowerCase();
     let balance = 0;
     return allRows
-      .filter((row) => row.displayDate >= from && row.displayDate <= to)
+      .filter((row) => (!from || row.displayDate >= from) && (!to || row.displayDate <= to))
       .filter((row) => !query || [row.reference, row.description, row.postingId].some((value) => value.toLowerCase().includes(query)))
       .map((row) => {
         balance += account.group === 'Asset' || account.group === 'Expense' ? row.debit - row.credit : row.credit - row.debit;
@@ -60,16 +61,19 @@ export function LedgerView({
   return (
     <div className="p-4">
       <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-        <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-[320px_150px_150px_1fr]">
-          <label className="text-[13px] font-medium text-ink">
+        <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-[320px_300px_1fr]">
+          <div className="text-[13px] font-medium text-ink">
             Ledger account <span className="font-bn text-[11px] font-normal text-ink-400">· যে হিসাবটি দেখতে চান</span>
-            <FormSelect className="mt-1.5" value={account.name} onChange={(event) => {
-              const next = accountingAccounts.find((item) => item.name === event.target.value);
+            <AppSelect label="Ledger account" className="mt-1.5" value={account.name} onChange={(name) => {
+              const next = accountingAccounts.find((item) => item.name === name);
               if (next) setAccountId(next.id);
             }} options={accountingAccounts.filter((item) => item.active).map((item) => item.name)} />
-          </label>
-          <label className="text-[12px] font-medium text-ink">From<Input className="mt-1.5" type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
-          <label className="text-[12px] font-medium text-ink">To<Input className="mt-1.5" type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label>
+          </div>
+          <div className="lg:col-span-2">
+            <p className="mb-1.5 text-[12px] font-medium text-ink">Date range</p>
+            <AppDateRangePicker label="Account ledger date range" value={{ from, to }}
+              onChange={(range) => { setFrom(range.from); setTo(range.to); }} />
+          </div>
           <label className="text-[12px] font-medium text-ink">
             Search
             <div className="relative mt-1.5"><Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" /><Input className="pl-8" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Reference or details" /></div>

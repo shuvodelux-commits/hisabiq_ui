@@ -56,6 +56,7 @@ export type Product = {
   nameBn?: string;
   sku: string;
   category: string;
+  brand?: string;
   image?: string;
   /** Base (smallest) unit, e.g. "Pcs", "Gira", "Kg" */
   unit: string;
@@ -79,6 +80,8 @@ export type StockLot = {
   quantity: number;
   available: number;
   unitCost: number;
+  /** Base-unit selling price override for this purchase lot, not the product default. */
+  sellingPrice?: number;
   source: 'Opening' | 'Purchase' | 'Adjustment' | 'Return';
   reference?: string;
   batchNumber?: string;
@@ -157,6 +160,10 @@ export type PaymentSplit = {
   account?: string;
 };
 
+export type SaleStockSource =
+  | { mode: 'Negative' }
+  | { mode: 'Vendor'; vendorId: string; vendorName: string; unitCost: number };
+
 export type Sale = TransactionAuditFields & {
   id: string;
   invoice: string;
@@ -188,6 +195,8 @@ export type SaleLine = {
   serials?: string[];
   warranty?: WarrantySnapshot;
   lotAllocations?: Array<{ lotId: string; quantity: number }>;
+  /** How quantity beyond own sellable stock was fulfilled. Vendor unitCost is per base unit. */
+  stockSource?: SaleStockSource;
 };
 
 export type SalesInvoiceStatus = 'Paid' | 'Partial' | 'Due' | 'Part returned' | 'Returned';
@@ -227,6 +236,7 @@ export type SalePresetLine = {
   unit: string;
   price: number;
   serials?: string[];
+  stockSource?: SaleStockSource;
 };
 
 export type SaleTemplate = {
@@ -251,6 +261,9 @@ export type CustomerCredit = {
 export type PurchaseInventoryLine = {
   productId: string;
   quantity: number;
+  unitCost?: number;
+  /** Base-unit lot selling price snapshot; does not overwrite master product selling price. */
+  lotSellingPrice?: number;
   serials?: string[];
   batchNumber?: string;
   manufactureDate?: string;
@@ -264,11 +277,17 @@ export type Purchase = TransactionAuditFields & {
   supplierId: string;
   supplier: string;
   items: string;
+  subtotal?: number;
+  discount?: number;
+  rounding?: number;
   total: number;
   paid: number;
   payments?: PaymentSplit[];
   receipt?: string;
   inventoryLines?: PurchaseInventoryLine[];
+  memoNo?: string;
+  notes?: string;
+  backdateReason?: string;
 };
 
 export type Expense = TransactionAuditFields & {
