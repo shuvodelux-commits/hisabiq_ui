@@ -16,7 +16,9 @@ export type PartyPreviewCommand =
   | {type:'edit-note'; sourceId:string; text:string}
   | {type:'delete-note'; sourceId:string}
   | {type:'record-payment'; payload:PartyPaymentPayload}
-  | {type:'refund-credit'; payload:PartyRefundPayload};
+  | {type:'refund-credit'; payload:PartyRefundPayload}
+  | {type:'edit-source-payment'; sourceId:string; reason:string; payload:PartyPaymentPayload}
+  | {type:'reverse-source'; sourceId:string; reason:string};
 
 const listeners = new Set<()=>void>();
 let counter = 0;
@@ -149,6 +151,50 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     if(payload.relationship==='Customer')customerSettlementAsOf(proposed,party.id,businessToday());
     else supplierSettlementAsOf(proposed,party.id,businessToday());
     sources=proposed;targetPartyId=party.id;sourceId=id;after=source;
+  } else if(command.type==='edit-source-payment'||command.type==='reverse-source'){
+    const original=sources.find(row=>row.id===command.sourceId);
+    if(!original)throw new Error('Original source record was not found.');
+    if(original.status!=='Active')throw new Error('Source is already reversed or inactive.');
+    // Only preview-created payment/refund sources may be changed here; Sales,
+    // Purchases and legacy opening records have their own source editors.
+    if(!/^party-(payment|refund):/.test(original.id)||
+      !['customer-payment','supplier-payment','customer-credit-refund','supplier-credit-refund'].includes(original.kind))
+      throw new Error('Original source action is not allowed from the Party preview.');
+    if(!command.reason.trim())throw new Error('An audit reason is required.');
+    let updated:PartySourceRecord;
+    if(command.type==='reverse-source') {
+      updated={...original,status:'Reversed'};
+    }else{
+      if(original.kind!=='customer-payment'&&original.kind!=='supplier-payment')
+        throw new Error('Refund edits require a dedicated source workflow. Reverse and re-record if permitted.');
+      validatePartyPayment(command.payload);
+      if(command.payload.partyId!==original.partyId||command.payload.relationship!==original.relationship)
+        throw new Error('Changing source party or relationship is not allowed.');
+      const amount=command.payload.amount;
+      const discount=command.payload.discount??0;
+      if(command.payload.invoiceId){
+        const invoiceKind=original.relationship==='Customer'?'sale':'purchase';
+        if(!sources.some(row=>row.partyId===original.partyId&&row.relationship===original.relationship
+          &&row.kind===invoiceKind&&row.status==='Active'&&row.date<=command.payload.date
+          &&(row.reference===command.payload.invoiceId||row.id===command.payload.invoiceId)))
+          throw new Error('Payment cannot predate or use an unrelated invoice.');
+      }
+      updated={...original,date:command.payload.date,amountPaid:amount,discount,
+        debit:original.relationship==='Customer'?0:amount+discount,
+        credit:original.relationship==='Customer'?amount+discount:0,
+        invoiceId:command.payload.invoiceId,
+        paymentSplits:command.payload.splits.map(row=>({...row})),
+        method:command.payload.splits.length===1?command.payload.splits[0].method:'Multiple',
+        accountId:command.payload.splits.length===1?command.payload.splits[0].accountId:undefined,
+        description:'Corrected preview payment · '+command.reason.trim()};
+    }
+    const proposed=sources.map(row=>row.id===original.id?updated:row);
+    // Revalidate dependent refunds and advances after correction, not only
+    // the targeted amount. Refuse edits that would bankrupt a later refund.
+    if(original.relationship==='Customer')customerSettlementAsOf(proposed,original.partyId,businessToday());
+    else supplierSettlementAsOf(proposed,original.partyId,businessToday());
+    sources=proposed;targetPartyId=original.partyId;sourceId=original.id;
+    before=original;after=updated;
   } else if(command.type==='add-note'){
     const noteParty=findParty(command.partyId);
     if(command.relationship&&!noteParty.roles.includes(command.relationship))throw new Error('Party does not have this relationship.');
