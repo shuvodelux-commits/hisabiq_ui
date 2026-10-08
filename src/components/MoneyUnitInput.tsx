@@ -10,15 +10,16 @@ type MoneyUnitInputProps = {
   onUnitChange?: (unit: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  prefix?: string | null;
 };
 
 /** A single connected control: amount, currency, and selected unit. */
 export function MoneyUnitInput({
-  label, value, onChange, unit, units = [], onUnitChange, disabled, placeholder = '0'
+  label, value, onChange, unit, units = [], onUnitChange, disabled, placeholder = '0', prefix = '৳'
 }: MoneyUnitInputProps) {
   return (
     <div className="flex h-9 min-w-0 overflow-hidden rounded-md border border-input bg-card shadow-xs focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20">
-      <span className="flex shrink-0 items-center pl-3 text-sm text-ink-400" aria-hidden="true">৳</span>
+      {prefix && <span className="flex shrink-0 items-center pl-3 text-sm text-ink-400" aria-hidden="true">{prefix}</span>}
       <input
         aria-label={label}
         inputMode="decimal"
@@ -44,4 +45,9 @@ export function MoneyUnitInput({
       )}
     </div>
   );
+}
+
+/** Stock quantity uses the same joined amount/unit shell as price, without the currency marker. */
+export function QuantityUnitInput(props: Omit<MoneyUnitInputProps, 'prefix'>) {
+  return <MoneyUnitInput {...props} prefix={null} />;
 }
