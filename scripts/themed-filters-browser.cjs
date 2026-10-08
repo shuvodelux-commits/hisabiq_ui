@@ -36,6 +36,16 @@ async function main() {
       'rgb(20, 38, 59)', 'dark calendar uses HisabIQ popover color');
     const monthGrids = calendar.locator('[role="grid"]');
     assert.equal(await monthGrids.count(), 2, 'two month calendars rendered on desktop');
+    console.log('Calendar layout:', JSON.stringify(await calendar.evaluate((node) => ({
+      popup: { rect: node.getBoundingClientRect().toJSON(), display: getComputedStyle(node).display, visibility: getComputedStyle(node).visibility },
+      grids: [...node.querySelectorAll('[role="grid"]')].map((grid) => ({
+        rect: grid.getBoundingClientRect().toJSON(), display: getComputedStyle(grid).display,
+        visibility: getComputedStyle(grid).visibility,
+        content: grid.textContent.slice(0, 80),
+        parent: grid.parentElement?.className
+      }))
+    }))));
+
     assert.equal(await monthGrids.nth(0).isVisible(), true);
     assert.equal(await monthGrids.nth(1).isVisible(), true, 'second month visible on desktop');
     await calendar.locator('[data-calendar-date="2026-10-06"]').click();
