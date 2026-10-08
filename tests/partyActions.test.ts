@@ -26,7 +26,7 @@ test('reversed, missing source id, opening and note are mutation constrained',()
   assert.equal(avail({...sale,status:'Reversed'},['sales.view','sales.edit','sales.delete']).find(x=>x.action==='edit')?.enabled,false);
   assert.equal(avail({...sale,sourceId:undefined},['sales.view','sales.edit']).find(x=>x.action==='edit')?.enabled,false);
   const opening={...sale,source:'opening' as const};
-  assert.equal(avail(opening,['accounts.view','accounts.edit','accounts.delete']).find(x=>x.action==='delete')?.enabled,false);
+  assert.equal(avail(opening,['accounts.view','accounts.edit','accounts.delete']).find(x=>x.action==='delete'),undefined);
   const note={...sale,source:'note' as const};
   assert.equal(avail(note,['parties.view','parties.edit']).find(x=>x.action==='print'),undefined);
 });
