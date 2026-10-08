@@ -54,6 +54,7 @@ function settle(events:readonly PartySourceRecord[],partyId:string,asOf:string,r
     due-=applied;
     if(total>applied)lots.push({id,kind,remaining:total-applied,verified});
   };
+  const isCustomer=relationship==='Customer';
   for(const e of matching){
     if(seen.has(e.id))continue;
     seen.add(e.id);
@@ -62,7 +63,6 @@ function settle(events:readonly PartySourceRecord[],partyId:string,asOf:string,r
     const debit=assertAmount(e.debit,'Debit');
     const credit=assertAmount(e.credit,'Credit');
     const rebate=assertAmount(e.discount??0,'Discount');
-    const isCustomer=relationship==='Customer';
     if((isCustomer&&e.kind==='sale')||(!isCustomer&&e.kind==='purchase')){
       addDue(isCustomer?debit:credit);
     }else if((isCustomer&&e.kind==='customer-payment')||(!isCustomer&&e.kind==='supplier-payment')){
