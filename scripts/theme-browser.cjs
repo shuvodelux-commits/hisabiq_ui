@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const routes = ['dashboard', 'pos', 'products', 'sales', 'purchases', 'parties', 'expenses', 'finance', 'daybook', 'accounts', 'audit-ledger', 'warranty', 'reconciliation', 'reports'];
+const routes = ['dashboard', 'pos', 'products', 'sales', 'purchases', 'purchases/new', 'parties', 'expenses', 'finance', 'daybook', 'accounts', 'audit-ledger', 'warranty', 'reconciliation', 'reports'];
 
 async function main() {
   const { createServer } = await import('vite');

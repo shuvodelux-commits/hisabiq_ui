@@ -32,6 +32,7 @@ import { Finance } from './pages/Finance';
 import { Products } from './pages/Products';
 import { Parties } from './pages/Parties';
 import { Purchases } from './pages/Purchases';
+import { PurchaseEditor } from './pages/PurchaseEditor';
 import { Expenses } from './pages/Expenses';
 import { Reports } from './pages/Reports';
 import { Daybook } from './pages/Daybook';
@@ -86,6 +87,7 @@ export function App() {
           <Route path="products" element={<Products />} />
           <Route path="parties" element={<Parties />} />
           <Route path="purchases" element={<Purchases />} />
+          <Route path="purchases/new" element={<PurchaseEditor />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="reports" element={<Reports />} />
         </Route>

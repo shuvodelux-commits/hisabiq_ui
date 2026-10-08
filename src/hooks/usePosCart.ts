@@ -6,6 +6,7 @@ import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures'
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { roundInvoice } from '../settings/model';
 import { compoundLineTotal } from '../utils/posQuantity';
+import { moveCartLine, reorderCartLines } from '../utils/reorderCartLines';
 
 export type CartLine = {
   key: string;
@@ -140,6 +141,9 @@ export function usePosCart() {
 
   const removeLine = (key: string) => setLines((ls) => ls.filter((l) => l.key !== key));
 
+  const reorderLines = (keys: string[]) => setLines((current) => reorderCartLines(current, keys));
+  const moveLine = (key: string, delta: number) => setLines((current) => moveCartLine(current, key, delta));
+
   const reset = () => {
     setLines([]);
     setDiscount('');
@@ -174,6 +178,8 @@ export function usePosCart() {
     addProduct,
     updateLine,
     removeLine,
+    reorderLines,
+    moveLine,
     reset,
     discount,
     setDiscount,

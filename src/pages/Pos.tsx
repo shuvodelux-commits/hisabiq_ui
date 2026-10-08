@@ -504,6 +504,8 @@ export function Pos() {
             onAdd={cart.addProduct}
             onUpdate={cart.updateLine}
             onRemove={cart.removeLine}
+            onReorder={cart.reorderLines}
+            onMove={cart.moveLine}
             searchRef={searchRef} />
           
 

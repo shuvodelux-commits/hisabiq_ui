@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, ScanLine, X } from 'lucide-react';
+import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { Eye, GripVertical, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
 import { ProductThumb } from '../ProductThumb';
 import { SerialPickerDialog } from './SerialPickerDialog';
@@ -19,15 +19,70 @@ type CartTableProps = {
   onAdd: (p: Product) => void;
   onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials'>>) => void;
   onRemove: (key: string) => void;
+  onReorder: (orderedKeys: string[]) => void;
+  onMove: (key: string, delta: number) => void;
   searchRef: React.RefObject<HTMLInputElement>;
 };
 
-const grid = 'grid min-w-[820px] grid-cols-[24px_minmax(180px,1fr)_168px_108px_96px_104px_28px] items-center gap-2';
+const grid = 'grid min-w-[850px] grid-cols-[56px_minmax(180px,1fr)_168px_108px_96px_104px_28px] items-center gap-2';
 
 const cellInput =
 'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
 
-export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchRef }: CartTableProps) {
+/** Drag only from the handle, leaving numeric inputs and product actions fully interactive. */
+function SortableCartRow({
+  line, index, count, onMove, children
+}: {
+  line: CartLine;
+  index: number;
+  count: number;
+  onMove: (key: string, delta: number) => void;
+  children: React.ReactNode;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      as="div"
+      value={line.key}
+      dragControls={controls}
+      dragListener={false}
+      dragMomentum={false}
+      data-testid="pos-cart-row"
+      data-line-key={line.key}
+      className={`${grid} relative bg-card px-3 py-1.5`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.16 }}
+      whileDrag={{ zIndex: 20, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.13)' }}
+    >
+      <div className="flex items-center justify-end gap-1">
+        <span className="text-right text-sm text-ink-400">{index + 1}.</span>
+        <button
+          type="button"
+          data-testid="pos-drag-handle"
+          aria-label={`Reorder ${line.product.name}, position ${index + 1} of ${count}`}
+          aria-keyshortcuts="ArrowUp ArrowDown"
+          title="Drag to reorder · use ↑/↓ keys"
+          onPointerDown={(event) => controls.start(event)}
+          onKeyDown={(event) => {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+            event.preventDefault();
+            event.stopPropagation();
+            onMove(line.key, event.key === 'ArrowUp' ? -1 : 1);
+          }}
+          style={{ touchAction: 'none' }}
+          className="flex size-7 shrink-0 cursor-grab items-center justify-center rounded-md text-ink-400 hover:bg-ink-50 hover:text-teal-700 active:cursor-grabbing focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500"
+        >
+          <GripVertical className="size-4" aria-hidden="true" />
+        </button>
+      </div>
+      {children}
+    </Reorder.Item>
+  );
+}
+
+export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReorder, onMove, searchRef }: CartTableProps) {
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
@@ -68,33 +123,17 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
         <span className="sr-only">Remove</span>
       </div>
 
-      <div className="divide-y divide-border">
-        <div className={`${grid} bg-teal-50/35 px-3 py-2`}>
-          <span className="text-right text-sm text-teal-600">{lines.length + 1}.</span>
-          <ProductCombobox ref={searchRef} onSelect={onAdd} />
-          <span className="pr-2 text-right text-sm text-helper">Qty</span>
-          <span className="px-2 text-sm text-helper">Unit</span>
-          <span className="pr-2 text-right text-sm text-helper">Price</span>
-          <span className="text-right text-sm text-helper">Total</span>
-          <span />
-        </div>
-        <AnimatePresence initial={false}>
+      <div data-testid="pos-cart">
+        <Reorder.Group as="div" axis="y" values={lines.map((line) => line.key)} onReorder={onReorder}
+          className="divide-y divide-border">
+          <AnimatePresence initial={false}>
           {lines.map((l, i) => {
             const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
             const purchasePrice = factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
             return (
-              <motion.div
-                key={l.key}
-                layout
-                initial={{ opacity: 0, backgroundColor: 'var(--accent)' }}
-                animate={{ opacity: 1, backgroundColor: 'var(--card)' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25 }}
-                className={`${grid} px-3 py-1.5`}>
-                
-                <span className="text-right text-sm text-ink-400">{i + 1}.</span>
+              <SortableCartRow key={l.key} line={l} index={i} count={lines.length} onMove={onMove}>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <ProductThumb src={l.product.image} size={32} />
                   <div className="min-w-0">
@@ -228,10 +267,20 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, searchR
                   
                   <X className="size-4" />
                 </button>
-              </motion.div>);
+              </SortableCartRow>);
 
           })}
-        </AnimatePresence>
+          </AnimatePresence>
+        </Reorder.Group>
+        <div data-testid="pos-add-row" className={`${grid} border-t border-border bg-teal-50/35 px-3 py-2`}>
+          <span className="pr-3 text-right text-sm text-teal-600">{lines.length + 1}.</span>
+          <ProductCombobox ref={searchRef} onSelect={onAdd} />
+          <span className="pr-2 text-right text-sm text-helper">Qty</span>
+          <span className="px-2 text-sm text-helper">Unit</span>
+          <span className="pr-2 text-right text-sm text-helper">Price</span>
+          <span className="text-right text-sm text-helper">Total</span>
+          <span />
+        </div>
 
       </div>
 

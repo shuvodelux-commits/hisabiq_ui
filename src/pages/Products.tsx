@@ -12,8 +12,8 @@ import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockL
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
-import { productCategories, products as seed } from '../data/products';
-import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
+import { availableProducts, availableProductCategories, availableStockLots, createPreviewProduct } from '../data/erpDemoStore';
+import { stockMovements as seedMovements } from '../data/productInventory';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
 import type { Product, ProductOffer, StockLot, StockMovement } from '../types/erp';
@@ -174,7 +174,7 @@ export function Products() {
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<ProductView>(() => searchParams.get('view') === 'settings' ? 'settings' : 'list');
   useEffect(() => { if (searchParams.get('view') === 'settings') setView('settings'); }, [searchParams]);
-  const [list, setList] = useState<Product[]>(seed);
+  const [list, setList] = useState<Product[]>(availableProducts);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
@@ -184,7 +184,7 @@ export function Products() {
   const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
   const [lotProduct, setLotProduct] = useState<Product | null>(null);
   const [offerProduct, setOfferProduct] = useState<Product | null>(null);
-  const [lots, setLots] = useState<StockLot[]>(seedLots);
+  const [lots, setLots] = useState<StockLot[]>(availableStockLots);
   const [movements, setMovements] = useState<StockMovement[]>(seedMovements);
   const [offers, setOffers] = useState<ProductOffer[]>(seedOffers);
   const [inventoryProductFilter, setInventoryProductFilter] = useState('');
@@ -305,7 +305,7 @@ export function Products() {
       if (stockFilter === 'low' && s !== 'low') return false;
       if (stockFilter === 'out' && s !== 'out') return false;
       if (!q) return true;
-      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').includes(q);
+      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').includes(q) || (p.brand ?? '').toLowerCase().includes(q);
     });
   }, [list, query, category, stockFilter]);
 
@@ -389,7 +389,7 @@ export function Products() {
             
           </div>
           <div className="flex flex-wrap gap-1">
-            {productCategories.map((c) =>
+            {availableProductCategories().map((c) =>
             <button
               key={c}
               onClick={() => setCategory(c)}
@@ -461,7 +461,9 @@ export function Products() {
                       </div>
                     </div>
                   </TableCell>}
-                  {visibleColumns.category && <TableCell className="py-2 text-ink-600">{p.category}</TableCell>}
+                  {visibleColumns.category && <TableCell className="py-2 text-ink-600">
+                    {p.category}{p.brand && p.brand !== 'Generic / No brand' && <span className="block text-[11px] text-ink-400">{p.brand}</span>}
+                  </TableCell>}
                   {visibleColumns.stock &&
                   <TableCell className={`py-2 text-right font-medium ${s === 'low' ? 'text-warning' : s === 'out' ? 'text-danger' : 'text-ink'}`}>
                     {p.kind === 'Service' ? '—' : formatStock(p)}
@@ -600,6 +602,7 @@ export function Products() {
             setDetailsProduct((current) => current?.id === product.id ? product : current);
             toast.success(`${product.name} updated`);
           } else {
+            createPreviewProduct(product);
             setList((items) => [product, ...items]);
             if (product.kind !== 'Service' && product.stock > 0) {
               const today = new Date().toISOString().slice(0, 10);

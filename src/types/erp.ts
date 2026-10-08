@@ -56,6 +56,7 @@ export type Product = {
   nameBn?: string;
   sku: string;
   category: string;
+  brand?: string;
   image?: string;
   /** Base (smallest) unit, e.g. "Pcs", "Gira", "Kg" */
   unit: string;
@@ -79,6 +80,8 @@ export type StockLot = {
   quantity: number;
   available: number;
   unitCost: number;
+  /** Base-unit selling price override for this purchase lot, not the product default. */
+  sellingPrice?: number;
   source: 'Opening' | 'Purchase' | 'Adjustment' | 'Return';
   reference?: string;
   batchNumber?: string;
@@ -251,6 +254,9 @@ export type CustomerCredit = {
 export type PurchaseInventoryLine = {
   productId: string;
   quantity: number;
+  unitCost?: number;
+  /** Base-unit lot selling price snapshot; does not overwrite master product selling price. */
+  lotSellingPrice?: number;
   serials?: string[];
   batchNumber?: string;
   manufactureDate?: string;
@@ -264,11 +270,17 @@ export type Purchase = TransactionAuditFields & {
   supplierId: string;
   supplier: string;
   items: string;
+  subtotal?: number;
+  discount?: number;
+  rounding?: number;
   total: number;
   paid: number;
   payments?: PaymentSplit[];
   receipt?: string;
   inventoryLines?: PurchaseInventoryLine[];
+  memoNo?: string;
+  notes?: string;
+  backdateReason?: string;
 };
 
 export type Expense = TransactionAuditFields & {
