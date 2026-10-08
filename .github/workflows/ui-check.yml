@@ -34,6 +34,9 @@ jobs:
       - name: Check POS drag reorder and receipt order
         run: npm run test:pos-reorder
 
+      - name: Check Party profile and CSV workflows
+        run: npm run test:parties
+
       - name: Check full-page purchase and quick-add workflow
         run: npm run test:purchases
 
