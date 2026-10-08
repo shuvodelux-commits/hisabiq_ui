@@ -1,4 +1,4 @@
-import { roundInvoice, type SalesSettings } from '../settings/model';
+import { roundInvoice, type SalesSettings } from '../settings/model.ts';
 
 export type PurchaseDiscountMode = 'amount' | 'percent';
 export type PurchasePaymentAmount = { id: string; amount: string };
