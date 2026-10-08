@@ -95,9 +95,24 @@ export type PartyBalanceSummary = {
   labels:Record<string,number>;
 };
 export type PartyAction = 'view'|'edit'|'delete'|'reverse'|'print'|'return'|'source';
+export type PartySourceRecord = {
+  id:string; partyId:string; relationship:PartyRelationship; kind:PartyLedgerSource;
+  date:string; sequence:number; reference?:string; description:string;
+  debit:number; credit:number; amountPaid?:number; discount?:number;
+  method?:string; accountId?:string; invoiceId?:string;
+  paymentSplits?:Array<{id:string;method:'Cash'|'Bank'|'Mobile Banking';accountId:string;amount:number}>;
+  status:'Active'|'Reversed'|'Deleted'; createdAt?:string;
+};
+export type PartyAuditEvent = {
+  id:string; sourceId?:string; partyId:string; action:string;
+  before?:unknown; after?:unknown; actor:string; at:string; reason?:string;
+};
+export type PartyPreviewState = {
+  parties:Party[]; sources:PartySourceRecord[]; audit:PartyAuditEvent[]; revision:number;
+};
 ```
 
-`PartyPreviewState` is a value type containing `parties: Party[]`, `sources: PartySourceRecord[]`, `audit: PartyAuditEvent[]`, `revision: number`; source records add `id`, `partyId`, `relationship`, `kind:PartyLedgerSource`, `date`, `reference`, `description`, financial fields and `status`. Commands must preserve source identity. UI read path `getPartyPreviewSnapshot(): PartyPreviewState`; observer `subscribePartyPreview(listener:()=>void):()=>void`; command `dispatchPartyPreview(command:PartyPreviewCommand): PartyPreviewState`. A new `PartyPreviewCommand` variant has a literal `type` and validated payload, not generic mutating row patches. Initialize once from explicit source/fixture adapters. Confirm no fixture import cycles.
+`PartyPreviewState` is a value type containing `parties: Party[]`, `sources: PartySourceRecord[]`, `audit: PartyAuditEvent[]`, `revision: number`; source records add `id`, `partyId`, `relationship`, `kind:PartyLedgerSource`, `date`, `reference`, `description`, financial fields and `status`. Commands must preserve source identity. UI read path `getPartyPreviewSnapshot(): PartyPreviewState`; observer `subscribePartyPreview(listener:()=>void):()=>void`; command `dispatchPartyPreview(command:PartyPreviewCommand): PartyPreviewState`. A new `PartyPreviewCommand` variant has a literal `type` and validated payload, not generic mutating row patches. Initialize once from explicit source/fixture adapters. Seed `Sales` from `src/data/sales.ts` and `Purchases` from `src/data/purchases.ts` plus preview-created purchases, and Finance from `src/data/financeAccounts.ts` where explicit party links exist. Legacy ledger entries matching a real source's party, role and reference are **supplementary historical evidence, not extra financial movement**; only unmatched legacy entries become a separate source. Reject ambiguous duplicate references and flag fixture differences. Confirm no fixture import cycles.
 
 For demo money amounts, use integer minor units internally (BDT paisa; 2 decimal places). Date parser is `expenseDateIso` from `src/utils/dateRange.ts` for legacy fixtures; all new commands store ISO `YYYY-MM-DD`. Report `from/to` use `IsoRange`.
 
@@ -122,7 +137,7 @@ Each PR targets the preceding merged slice (or branch until it is merged); never
 - Consumes: existing `Party`, `PartyRole`, `LedgerEntry`, `financePeople`, `financeTransactions`, `expenseDateIso`.
 - Produces: shared types above; `validatePartyDraft(draft:PartyDraft,existing:Party[]):string[]`; `resolvePartySelection(parties:Party[],id?:string,role?:string):{partyId:string;relationship:PartyRelationship}|null`; `normalizePartyFixture(parties:Party[], legacy:LedgerEntry[]):PartyPreviewState`; explicit `financePersonIdByPartyId: Readonly<Record<string,string>>`.
 
-- [ ] **Step 1: Write failing tests.** `validatePartyDraft` rejects blank name and duplicate id, preserves customer+supplier roles; selecting `c2` and Supplier returns the Supplier relationship; a missing id falls back to a valid party; legacy `'01 Sep 2026'` becomes `2026-09-01`; finance ids link only via explicit mapping, not matching by similar names/phone. Use `node:test` and `node:assert/strict`; import `../src/utils/partyIdentity.ts`.
+- [ ] **Step 1: Write failing tests.** `validatePartyDraft` rejects blank name and duplicate id, preserves customer+supplier roles; selecting `c2` and Supplier returns the Supplier relationship; a missing id falls back to a valid party; legacy `'01 Sep 2026'` becomes `2026-09-01`; finance ids link only via explicit mapping, not matching by similar names/phone; `INV-000241` from Sales and the same reference in the legacy ledger produce exactly **one** economic sale movement; `PUR-000118` from Purchases and the legacy ledger likewise produce one purchase. Use `node:test` and `node:assert/strict`; import `../src/utils/partyIdentity.ts`.
 - [ ] **Step 2: Verify RED.** Run `node --experimental-strip-types --test tests/partyIdentity.test.ts`. Expected: FAIL because the new exports do not yet exist.
 - [ ] **Step 3: Implement** three focused files. `PartyDraft = Pick<Party,'name'|'roles'|'phone'|'area'> & Partial<Party>`; normalize digits/whitespace for validation, do not auto-merge. For finance, explicitly link the matching seeded owner (`o1` to `fp1`) only after confirming ids from fixtures; keep other finance-person records separate unless an explicit map exists.
 - [ ] **Step 4: Verify GREEN.** Run the same test. Expected: all Task 1 cases PASS.
@@ -220,7 +235,7 @@ Each PR targets the preceding merged slice (or branch until it is merged); never
 
 ### Task 8: Full-period statement, A4 print and safe CSV
 
-**Files:** Create `src/utils/partyStatement.ts`, `src/components/parties/PartyStatementDialog.tsx`, `tests/partyStatement.test.ts`; modify `src/components/parties/PartyDetail.tsx`; add focused print CSS alongside existing app styles; extend browser script.
+**Files:** Create `src/utils/partyStatement.ts`, `src/components/parties/PartyStatementDialog.tsx`, `tests/partyStatement.test.ts`; modify `src/components/parties/PartyDetail.tsx`; modify `src/index.css` for scoped statement print CSS; extend browser script.
 
 **Interfaces:**
 - Consumes: `LedgerStatement`, `projectPartyStatement`, `businessToday`.
@@ -249,7 +264,7 @@ Each PR targets the preceding merged slice (or branch until it is merged); never
 
 - [ ] **Step 1: Write failing tests.** Sep 1 invoice due ৳100, Sep 4 receive ৳130 => settled 100 + refundable advance 30; Sep 5 apply 10 advance to another invoice => refundable 20; no invoice-targeted payment before invoice date; discount 10 with no due rejected and never added to refundable; Sep 7 credit return 25 increases valid customer credit; refund 40 on Sep 6 (before return) rejected though end-of-month balance >=40; duplicate payment replay with same source id has no second effect; supplier purchase 100/pay 130 gives advance 30 of correct sign; two same-day events settle in deterministic sequence.
 - [ ] **Step 2: Verify RED.** Run `node --experimental-strip-types --test tests/partySettlement.test.ts`. Expected FAIL.
-- [ ] **Step 3: Implement** minor-unit settlement replay with invoice allocations oldest-first or explicit, discount constraints, immutable provenance lots consumed once (cash advance first and return credit rules modeled explicitly), as-of date stable sequencing. Avoid reducing refundable credit to negative net balance. Assert debit/credit signs per relationship. If seed fixtures lack provenance, flag unknown/unsafe as **not refundable**, never invent credit entitlement.
+- [ ] **Step 3: Implement** minor-unit settlement replay with invoice allocations oldest-first or explicit, discount constraints, immutable provenance lots consumed once (cash advance first and return credit rules modeled explicitly), as-of date stable sequencing. Avoid reducing refundable credit to negative net balance. Assert debit/credit signs per relationship. If seed fixtures lack provenance, flag unknown/unsafe as **not refundable**, never invent credit entitlement. Update Task 5 `computePartyBalanceSummary` to use these authoritative settlement replay outputs for available/refundable credit; add an assertion that cash-backed advance differs from net due.
 - [ ] **Step 4: Verify GREEN.** Run task test and `npm test`. Expected PASS.
 - [ ] **Step 5: Commit.** `git add src/utils/partySettlement.ts src/types/partyLedger.ts tests/partySettlement.test.ts && git commit -m "feat(parties): replay customer and supplier settlement provenance"`.
 
@@ -317,7 +332,7 @@ Each PR targets the preceding merged slice (or branch until it is merged); never
 
 ### Task 14: Cross-module coherence, UI accessibility and CI
 
-**Files:** Create `tests/partyIntegration.test.ts`; extend `scripts/party-browser.cjs`; modify `src/pages/Sales.tsx`, `src/pages/Finance.tsx`, `src/pages/Purchases.tsx` **only where true preview-state integration is possible**; modify `src/data/partyPreviewStore.ts`, `src/pages/Parties.tsx`; update `package.json`, `.github/workflows/ui-check.yml`, relevant CSS.
+**Files:** Create `tests/partyIntegration.test.ts`; extend `scripts/party-browser.cjs`; modify `src/pages/Sales.tsx`, `src/pages/Finance.tsx`, `src/pages/Purchases.tsx` **only where true preview-state integration is possible**; modify `src/data/partyPreviewStore.ts`, `src/pages/Parties.tsx`; update `package.json`, `.github/workflows/ui-check.yml`, `src/index.css` for any necessary responsive styling.
 
 **Interfaces:**
 - Consumes: entire approved preview source reducer and projection pipeline, source ids, existing source action pages.
