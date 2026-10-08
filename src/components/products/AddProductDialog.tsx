@@ -7,8 +7,10 @@ import { Button } from '../Button';
 import { Input } from '../Input';
 import { Switch } from '../Switch';
 import { FormSelect } from '../FormSelect';
+import { QuickAddSelect } from '../QuickAddSelect';
+import { availableProductCategories, createPreviewProductCategory } from '../../data/erpDemoStore';
 import { PhotoUploader } from './PhotoUploader';
-import { productCategories } from '../../data/products';
+
 import type {
   Product,
   ProductKind,
@@ -91,6 +93,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [name, setName] = useState('');
   const [nameBn, setNameBn] = useState('');
   const [category, setCategory] = useState('Hardware');
+  const [categoryOptions, setCategoryOptions] = useState(availableProductCategories);
   const [unit, setUnit] = useState('Gira');
   const [sell, setSell] = useState('');
   const [sellUnit, setSellUnit] = useState('Gira');
@@ -333,7 +336,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
               <FormSelect value={kind} disabled={Boolean(initialProduct)} onChange={(e) => changeKind(e.target.value as ProductKind)} options={['Stock', 'Service']} />
             </Field>
             <Field label="Category" bn="ক্যাটাগরি">
-              <FormSelect value={category} onChange={(e) => setCategory(e.target.value)} options={productCategories.filter((c) => c !== 'All')} />
+              <QuickAddSelect label="Category" value={category} options={categoryOptions.filter((c) => c !== 'All')} onChange={setCategory}
+                onCreate={(name) => { createPreviewProductCategory(name); setCategoryOptions((items) => [...items, name]); setCategory(name); }} />
             </Field>
             <Field label="Product name" bn="নাম">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={isStock ? 'e.g. LED Bulb 12W' : 'e.g. Ceiling Fan Installation'} autoFocus />
