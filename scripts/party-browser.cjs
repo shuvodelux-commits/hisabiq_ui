@@ -42,6 +42,14 @@ async function main() {
     // The directory search must include the Bangla display name.
     await page.getByRole('textbox',{name:'Search parties'}).fill('নতুন');
     assert.ok(await page.getByText('New Party QA',{exact:true}).count() >= 1);
+    await page.getByRole('textbox',{name:'Search parties'}).fill('');
+    await page.getByRole('button',{name:/Import CSV/i}).click();
+    await page.getByLabel('Select CSV file').setInputFiles({
+      name:'parties.csv',mimeType:'text/csv',
+      buffer:Buffer.from('name,nameBn,phone,area,roles\\nCSV Supplier QA,সিএসভি,01700990011,Sylhet,Supplier|Customer\\n')
+    });
+    await page.getByRole('button',{name:/Import 1 parties/}).click();
+    await page.getByText('CSV Supplier QA',{exact:true}).first().waitFor();
     await page.setViewportSize({width:375,height:800});
     assert.equal(errors.length,0,'browser page must not throw');
     console.log('Party profile browser flow passed');
