@@ -3,6 +3,10 @@ import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import React, { useState } from 'react';
 import { MoreHorizontal, Plus, Ruler, Settings2, Tags } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  availableProductCategories, availableProductBrands, availableProductUnits,
+  createPreviewProductCategory, createPreviewProductBrand, createPreviewProductUnit
+} from '../../data/erpDemoStore';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { StatusBadge } from '../StatusBadge';
@@ -101,9 +105,24 @@ export function ProductSettings() {
   const [searchParams] = useSearchParams();
   const { state } = useTenantSettings();
   const [tab, setTab] = useState<SettingsTab>(() => ['categories','units','brands'].includes(searchParams.get('tab') || '') ? searchParams.get('tab') as SettingsTab : 'categories');
-  const [categories, setCategories] = useState(initialCategories);
-  const [units, setUnits] = useState(initialUnits);
-  const [brands, setBrands] = useState(initialBrands);
+  const [categories, setCategories] = useState<NamedSetting[]>(() => [
+    ...initialCategories,
+    ...availableProductCategories().filter((name) =>
+      name !== 'All' && !initialCategories.some((item) => item.name.toLowerCase() === name.toLowerCase()))
+      .map((name, index) => ({ id: 'cat-preview-' + index, name, usage: 0, active: true }))
+  ]);
+  const [units, setUnits] = useState<UnitSetting[]>(() => [
+    ...initialUnits,
+    ...availableProductUnits().filter((unit) => !initialUnits.some((item) =>
+      item.symbol.toLowerCase() === unit.symbol.toLowerCase()))
+      .map((unit, index) => ({ id: 'unit-preview-' + index, name: unit.name, symbol: unit.symbol, kind: 'Compound-ready' as const, usage: 0, active: true }))
+  ]);
+  const [brands, setBrands] = useState<NamedSetting[]>(() => [
+    ...initialBrands,
+    ...availableProductBrands().filter((name) => !initialBrands.some((item) =>
+      item.name.toLowerCase() === name.toLowerCase()))
+      .map((name, index) => ({ id: 'brand-preview-' + index, name, usage: 0, active: true }))
+  ]);
   const [newName, setNewName] = useState('');
   const [newBn, setNewBn] = useState('');
   const [newSymbol, setNewSymbol] = useState('');
@@ -117,6 +136,7 @@ export function ProductSettings() {
   const addNamed = () => {
     if (!newName.trim()) return;
     if (tab === 'categories') {
+      createPreviewProductCategory(newName.trim());
       setCategories((items) => [...items, {
         id: `cat-${Date.now()}`,
         name: newName.trim(),
@@ -125,6 +145,7 @@ export function ProductSettings() {
         active: true
       }]);
     } else if (tab === 'brands') {
+      createPreviewProductBrand(newName.trim());
       setBrands((items) => [...items, {
         id: `br-${Date.now()}`,
         name: newName.trim(),
@@ -133,6 +154,7 @@ export function ProductSettings() {
         active: true
       }]);
     } else if (tab === 'units') {
+      createPreviewProductUnit(newName.trim(), newSymbol.trim() || newName.trim());
       setUnits((items) => [...items, {
         id: `u-${Date.now()}`,
         name: newName.trim(),
