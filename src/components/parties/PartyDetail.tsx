@@ -10,8 +10,10 @@ import { RoleBadge } from './RoleBadge';
 import { LedgerTable } from './LedgerTable';
 import { PartyLedgerToolbar } from './PartyLedgerToolbar';
 import { PartyStatementDialog } from './PartyStatementDialog';
+import { PartyPaymentDialog } from './PartyPaymentDialog';
+import { PartyCreditRefundDialog } from './PartyCreditRefundDialog';
 import type { LedgerEntry, Party, PartyRole } from '../../types/erp';
-import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary } from '../../types/partyLedger';
+import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload } from '../../types/partyLedger';
 import type { IsoRange } from '../../utils/dateRange';
 import { formatNumber, taka } from '../../utils/currency';
 
@@ -38,13 +40,16 @@ type PartyDetailProps = {
   actionsForRow: (row: PartyLedgerRow) => Array<{action:PartyAction;enabled:boolean;reason?:string}>;
   onLedgerAction: (action:PartyAction,row:PartyLedgerRow) => void;
   statementOpen: boolean; onCloseStatement: () => void;
+  sources: readonly PartySourceRecord[];
+  onRecordPayment: (payload:PartyPaymentPayload) => void;
+  onRefundCredit: (payload:PartyRefundPayload) => void;
 };
 
 export function PartyDetail({
   party, entries, relationship, onRoleChange, onEditParty, onAddNote, onEditNote, onDeleteNote,
   statement, balanceSummary, visibleRows, range, onRange, kind, onKind, ledgerQuery, onLedgerQuery,
   pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
-  onLedgerAction, statementOpen, onCloseStatement
+  onLedgerAction, statementOpen, onCloseStatement, sources, onRecordPayment, onRefundCredit
 }: PartyDetailProps) {
   const [tab, setTab] = useState<Tab>('ledger');
   const [note, setNote] = useState('');
@@ -53,6 +58,8 @@ export function PartyDetail({
   const [deleteNote, setDeleteNote] = useState<LedgerEntry | null>(null);
   const [attachment, setAttachment] = useState<LedgerEntry | null>(null);
   const [viewedRow,setViewedRow] = useState<PartyLedgerRow|null>(null);
+  const [paymentOpen,setPaymentOpen] = useState(false);
+  const [refundOpen,setRefundOpen] = useState(false);
   const doRowAction=(action:PartyAction,row:PartyLedgerRow)=>{
     if(action==='view')setViewedRow(row);
     else onLedgerAction(action,row);
@@ -110,9 +117,17 @@ export function PartyDetail({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
-        <Button size="sm" disabled title="Party payments are implemented in the settlement slice">
+        <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
+          title={relationship==='Customer'||relationship==='Supplier'?'Record payment in browser preview':'Finance-role payments require the separate finance workflow'}
+          onClick={()=>setPaymentOpen(true)}>
           <HandCoins className="size-4" /> {payable ? 'Make payment' : 'Receive payment'}
         </Button>
+        {(relationship==='Customer'||relationship==='Supplier')&&
+          <Button size="sm" variant="outline" disabled={balanceSummary.refundableCredit<=0}
+            title={balanceSummary.refundableCredit>0?'Refund verified credit as of the selected date':'No verified refundable credit yet'}
+            onClick={()=>setRefundOpen(true)}>
+            Refund credit
+          </Button>}
         <Button size="sm" variant="outline" disabled title="Open a new invoice from the POS until the Party source action is connected">
           <Plus className="size-4" /> New invoice
         </Button>
@@ -243,6 +258,12 @@ export function PartyDetail({
       }
 
       <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={statement}/>
+      {(relationship==='Customer'||relationship==='Supplier')&&<>
+        <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}
+          onClose={()=>setPaymentOpen(false)} onSubmit={onRecordPayment}/>
+        <PartyCreditRefundDialog open={refundOpen} party={party} relationship={relationship} sources={sources}
+          onClose={()=>setRefundOpen(false)} onSubmit={onRefundCredit}/>
+      </>}
       <Dialog open={!!viewedRow} onOpenChange={open=>!open&&setViewedRow(null)}>
         <DialogContent role="dialog" aria-modal="true" aria-label="Party transaction details" className="sm:max-w-md">
           <DialogHeader><DialogTitle>Transaction details</DialogTitle><DialogDescription>Read-only source reference in the UI preview.</DialogDescription></DialogHeader>
