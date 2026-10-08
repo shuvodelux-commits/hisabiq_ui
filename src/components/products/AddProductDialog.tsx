@@ -8,7 +8,11 @@ import { Input } from '../Input';
 import { Switch } from '../Switch';
 import { FormSelect } from '../FormSelect';
 import { QuickAddSelect } from '../QuickAddSelect';
-import { availableProductCategories, createPreviewProductCategory } from '../../data/erpDemoStore';
+import { MoneyUnitInput } from '../MoneyUnitInput';
+import {
+  availableProductCategories, availableProductBrands, availableProductUnits,
+  createPreviewProductCategory, createPreviewProductBrand, createPreviewProductUnit
+} from '../../data/erpDemoStore';
 import { PhotoUploader } from './PhotoUploader';
 
 import type {
@@ -38,7 +42,6 @@ type AddProductDialogProps = {
   existingSerials?: string[];
 };
 
-const baseUnits = ['Pcs', 'Gira', 'Kg', 'Feet', 'Bag', 'Coil', 'Pair', 'Litre'];
 const serialModes: SerialTrackingMode[] = ['Off', 'Optional', 'Required'];
 const warrantyUnits: WarrantyDurationUnit[] = ['Days', 'Months', 'Years'];
 const warrantyTypes: WarrantyType[] = ['Seller', 'Manufacturer', 'Service', 'Replacement'];
@@ -94,6 +97,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [nameBn, setNameBn] = useState('');
   const [category, setCategory] = useState('Hardware');
   const [categoryOptions, setCategoryOptions] = useState(availableProductCategories);
+  const [brand, setBrand] = useState('Generic / No brand');
+  const [brandOptions, setBrandOptions] = useState(availableProductBrands);
+  const [unitOptions, setUnitOptions] = useState(availableProductUnits);
   const [unit, setUnit] = useState('Gira');
   const [sell, setSell] = useState('');
   const [sellUnit, setSellUnit] = useState('Gira');
@@ -129,7 +135,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [error, setError] = useState('');
 
   const isStock = kind === 'Stock';
-  const units = isStock && multiUnit && altUnit ? [altUnit, unit] : [unit];
+  const units = isStock && multiUnit && altUnit && altUnit !== unit ? [altUnit, unit] : [unit];
   const f = parseFloat(factor) || 1;
   const selectedSellUnit = units.includes(sellUnit) ? sellUnit : unit;
   const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : unit;
@@ -156,6 +162,10 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setName('');
     setNameBn('');
     setCategory('Hardware');
+    setCategoryOptions(availableProductCategories());
+    setBrand('Generic / No brand');
+    setBrandOptions(availableProductBrands());
+    setUnitOptions(availableProductUnits());
     setUnit(defaults.defaultUnit);
     setSell('');
     setSellUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
@@ -201,6 +211,10 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setName(initialProduct.name);
     setNameBn(initialProduct.nameBn ?? '');
     setCategory(initialProduct.category);
+    setCategoryOptions(availableProductCategories());
+    setBrand(initialProduct.brand ?? 'Generic / No brand');
+    setBrandOptions(availableProductBrands());
+    setUnitOptions(availableProductUnits());
     setUnit(initialProduct.unit);
     setSell(String(initialProduct.sellPrice));
     setSellUnit(initialProduct.unit);
@@ -232,6 +246,21 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setAdvanced(true);
     setError('');
   }, [open, initialProduct]);
+
+  const changePriceUnit = (amount: string, current: string, next: string, setValue: (value: string) => void, setUnitValue: (value: string) => void) => {
+    if (amount.trim() && current !== next) {
+      const basePrice = priceToBase(amount, current);
+      const converted = next === normalizedAltUnit ? basePrice * f : basePrice;
+      setValue(String(Math.round(converted * 10000) / 10000));
+    }
+    setUnitValue(next);
+  };
+  const quickAddUnit = (name: string, symbol: string, select: (symbol: string) => void) => {
+    const code = symbol.trim() || name.trim();
+    createPreviewProductUnit(name, code);
+    setUnitOptions(availableProductUnits());
+    select(code);
+  };
 
   const changeKind = (next: ProductKind) => {
     setKind(next);
@@ -281,6 +310,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       nameBn: nameBn.trim() || undefined,
       sku: barcode || `${category.slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 8999)}`,
       category,
+      brand: isStock ? brand : undefined,
       image: photos[0],
       unit,
       altUnit: isStock && multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
