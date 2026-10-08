@@ -22,6 +22,7 @@ type Props = {
   qtyRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   smallRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   costRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
+  lotPriceRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   onAdd: (product: Product) => void;
   onCreate: () => void;
   onUpdate: (id: string, patch: Partial<PurchaseCartLine>) => void;
@@ -34,7 +35,7 @@ const entryInput = 'h-9 w-full min-w-0 rounded-md border border-input bg-card px
 const unitOptions = (product: Product) => product.altUnit ? [product.unit, product.altUnit.unit] : [product.unit];
 
 export function PurchaseCart({
-  lines, products, searchRef, qtyRefs, smallRefs, costRefs, onAdd, onCreate, onUpdate, onRemove, onCostUnitChange
+  lines, products, searchRef, qtyRefs, smallRefs, costRefs, lotPriceRefs, onAdd, onCreate, onUpdate, onRemove, onCostUnitChange
 }: Props) {
   const quickItems = products.filter((p) => p.active && p.kind !== 'Service').slice(0, 8);
 
@@ -149,16 +150,18 @@ export function PurchaseCart({
                         aria-label={'Purchase cost for ' + product.name} inputMode="decimal" value={line.cost}
                         className={entryInput + ' pl-5'}
                         onChange={(event) => onUpdate(line.id, { cost: event.target.value.replace(/[^\d.]/g, '') })}
-                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); normalizeQty(line, true); } }} />
+                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); lotPriceRefs.current[line.id]?.focus(); lotPriceRefs.current[line.id]?.select(); } }} />
                     </div>
                     <div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <input
+                        ref={(node) => { lotPriceRefs.current[line.id] = node; }}
                         aria-label={'Lot selling price for ' + product.name}
                         inputMode="decimal"
                         value={line.lotSellPrice}
                         className={entryInput + ' pl-5 pr-12'}
                         onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
+                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
                       />
                       <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{line.lotSellUnit}</span>
                     </div>
