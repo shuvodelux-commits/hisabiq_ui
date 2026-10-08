@@ -12,12 +12,13 @@ import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } 
 import { availableParties } from '../data/erpDemoStore';
 import { matchesPartySearch, resolvePartySelection } from '../utils/partyIdentity';
 import type { Party, PartyRole, LedgerEntry, LedgerEntryType } from '../types/erp';
-import type { PartyDraft, PartyLedgerSource, PartyLedgerRow, PartyAction } from '../types/partyLedger';
+import type { PartyDraft, PartyLedgerSource, PartyLedgerRow, PartyAction, PartyOpeningPayload } from '../types/partyLedger';
 import { projectPartyStatement, pagedStatementRows, computePartyBalanceSummary } from '../utils/partyLedger';
 import { ledgerActionAvailability, partySourceRoute } from '../utils/partyActions';
 import { demoPermissions } from '../utils/permissions';
 import type { IsoRange } from '../utils/dateRange';
 import { taka } from '../utils/currency';
+import { isPartyOpening } from '../utils/partyOpening';
 
 const ledgerType = (kind:PartyLedgerSource): LedgerEntryType => {
   if(kind==='sale')return 'invoice';
@@ -99,11 +100,11 @@ export function Parties() {
     const target=allParties.find(p=>p.id===id);
     if(target){setParams({id,role:target.roles.includes(relationship as PartyRole)?relationship!:target.roles[0]});resetLedger();}
   };
-  const saveParty=(draft:PartyDraft)=>{
-    if(editing)dispatchPartyPreview({type:'update-party',id:editing.id,patch:draft});
+  const saveParty=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
+    if(editing)dispatchPartyPreview({type:'update-party',id:editing.id,patch:draft,openings});
     else {
       const previous=new Set(allParties.map(p=>p.id));
-      const next=dispatchPartyPreview({type:'create-party',party:draft});
+      const next=dispatchPartyPreview({type:'create-party',party:draft,openings});
       const created=next.parties.find(p=>!previous.has(p.id));
       if(created)setParams({id:created.id,role:created.roles[0]});
     }
@@ -159,7 +160,9 @@ export function Parties() {
         onDeleteNote={id=>noteAction('delete',id)}/>:
         <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">No parties yet. Add your first party.</div>}
     </div>
-    <PartyEditorDialog open={editing!==undefined} party={editing} onClose={()=>setEditing(undefined)} onSave={saveParty}/>
+    <PartyEditorDialog open={editing!==undefined} party={editing}
+      existingOpenings={editing?.id?state.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
+      onClose={()=>setEditing(undefined)} onSave={saveParty}/>
     <PartyImportDialog open={importOpen} onClose={()=>setImportOpen(false)} onImport={parties=>{dispatchPartyPreview({type:"import-parties",parties});toast.success(`${parties.length} parties imported to preview`);}}/>
   </div>;
 }
