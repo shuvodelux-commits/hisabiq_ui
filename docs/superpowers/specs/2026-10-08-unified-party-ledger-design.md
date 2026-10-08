@@ -204,7 +204,7 @@ Do **not** seed the same payment separately into two independent mutable arrays.
 
 **Slice 3 — Customer/supplier settlement**: payment modal with multiple methods and source account selection; full/partial/invoice allocation; discount reason validation; actual customer credit vs net due; refund cannot exceed available credit *as of refund date*; cash-backed vs noncash; supplier payable/advance direction; edit/reverse preview settles balances and keeps audit. Tests for overpay, return credit, partial/combined splits, discount-only and backdated refunds, reverse and repeated action.
 
-**Slice 4 — Finance relationships and final QA**: Owner/Lender/Borrower role-filtered transactions, capital/loan balance isolation and opening no-cash behavior; finance view/edit/reverse; vendor/payee only source-supported flows; cross-module updates in preview; light/dark desktop/mobile responsiveness, accessible keyboard menus/dialogs. Vitest + project TypeScript/build + full Playwright suite must pass before PR merge.
+**Slice 4 — Finance relationships and final QA**: Owner/Lender/Borrower role-filtered transactions, capital/loan balance isolation and opening no-cash behavior; finance view/edit/reverse; vendor/payee only source-supported flows; cross-module updates in preview; light/dark desktop/mobile responsiveness, accessible keyboard menus/dialogs. Existing Node test runner (`node:test`) + Vite build + full Playwright scripts must pass before PR merge.
 
 Each slice should be a reviewable GitHub change/PR; do not merge or deploy automatically. A visual review after Cloudflare deployment is separate from code/CI acceptance and must be verified, not claimed without deploy evidence.
 
