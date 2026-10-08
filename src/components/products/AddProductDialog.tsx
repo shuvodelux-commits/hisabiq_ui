@@ -335,10 +335,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
             <Field label="Product type" bn="ধরন" hint={initialProduct ? 'Product type is fixed after creation.' : 'Stock products track inventory; services do not.'}>
               <FormSelect value={kind} disabled={Boolean(initialProduct)} onChange={(e) => changeKind(e.target.value as ProductKind)} options={['Stock', 'Service']} />
             </Field>
-            <Field label="Category" bn="ক্যাটাগরি">
+            <div>
+              <p className="mb-1.5 text-[13px] font-medium text-ink">Category <span className="font-bn text-[11px] font-normal text-ink-400">· ক্যাটাগরি</span></p>
               <QuickAddSelect label="Category" value={category} options={categoryOptions.filter((c) => c !== 'All')} onChange={setCategory}
                 onCreate={(name) => { createPreviewProductCategory(name); setCategoryOptions((items) => [...items, name]); setCategory(name); }} />
-            </Field>
+            </div>
             <Field label="Product name" bn="নাম">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={isStock ? 'e.g. LED Bulb 12W' : 'e.g. Ceiling Fan Installation'} autoFocus />
             </Field>
