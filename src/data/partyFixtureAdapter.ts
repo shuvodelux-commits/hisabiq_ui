@@ -54,7 +54,7 @@ export function normalizePartyFixture(parties: Party[], legacy: LedgerEntry[]): 
       const debit = role === 'Borrower' ? (increase ? txn.amount : 0) : (increase ? 0 : txn.amount);
       const credit = role === 'Borrower' ? (increase ? 0 : txn.amount) : (increase ? txn.amount : 0);
       push({id:'finance:'+txn.id,partyId:party.id,relationship:role,kind:'finance',
-        date:expenseDateIso(txn.date),reference:txn.reference??txn.id,description:txn.type,
+        date:expenseDateIso(txn.date),reference:txn.reference??txn.id,description:txn.type,financeType:txn.type,
         debit,credit,status:'Active'});
     }
   }
