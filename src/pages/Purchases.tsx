@@ -18,9 +18,8 @@ import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
-import { BillDialog } from '../components/purchases/BillDialog';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
-import { purchases as seedPurchases } from '../data/purchases';
+import { availablePurchases } from '../data/erpDemoStore';
 import type { Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 
@@ -59,8 +58,7 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 export function Purchases() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('purchases');
-  const [purchases, setPurchases] = useState<Purchase[]>(seedPurchases);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [purchases] = useState<Purchase[]>(availablePurchases);
   const [detail, setDetail] = useState<BillDetail | null>(null);
   const [query, setQuery] = useState('');
   const [returnQuery, setReturnQuery] = useState('');
@@ -116,7 +114,7 @@ export function Purchases() {
             <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
               <FileText className="size-4" /> Supplier ledger
             </Button>
-            <Button size="sm" onClick={() => setDialogOpen(true)}>
+            <Button size="sm" onClick={() => navigate('/app/purchases/new')}>
               <Plus className="size-4" /> New purchase
             </Button>
           </>
@@ -168,7 +166,7 @@ export function Purchases() {
                   placeholder="Search purchase ID, supplier or product"
                 />
               </div>
-              <FormSelect className="w-full sm:w-40" options={['All suppliers', 'Karim Traders', 'Bismillah Steel House', 'Padma Electric Supply']} />
+              <FormSelect className="w-full sm:w-40" options={['All suppliers', ...Array.from(new Set(purchases.map((purchase) => purchase.supplier)))]} />
               <FormSelect className="w-full sm:w-36" options={['All status', 'Paid', 'Partial', 'Due']} />
               <Button variant="outline" size="sm" onClick={() => toast('Purchase list refreshed')}>
                 <RefreshCw className="size-4" /> Refresh
