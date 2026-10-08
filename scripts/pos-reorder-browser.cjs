@@ -9,7 +9,7 @@ async function main() {
   const browser = await chromium.launch({
     executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined, args: ['--no-sandbox']
   });
-  const page = await browser.newPage({ viewport: { width: 1460, height: 1050 }, reducedMotion: 'reduce' });
+  let page = await browser.newPage({ viewport: { width: 1460, height: 1050 }, reducedMotion: 'reduce' });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   const rowOrder = async () => page.getByTestId('pos-cart-row').evaluateAll((nodes) =>
@@ -41,8 +41,12 @@ async function main() {
     ], 'invoice print preview follows reordered cart sequence');
     await receipt.getByRole('button', { name: 'Close', exact: true }).click();
 
-    // An identical SPA hash navigation may preserve the mounted React state; hard reload for a fresh cart.
-    await page.reload();
+    // Isolate the pointer test in its own browser context, rather than reusing a completed cart.
+    await page.close();
+    page = await browser.newPage({ viewport: { width: 1460, height: 1050 }, reducedMotion: 'reduce' });
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('http://127.0.0.1:4182/#/app/pos');
+    await page.getByTestId('pos-cart-row').first().waitFor();
     assert.deepEqual(await rowOrder(), original);
     const source = page.getByTestId('pos-cart-row').nth(2).getByTestId('pos-drag-handle');
     const target = page.getByTestId('pos-cart-row').first().getByTestId('pos-drag-handle');
