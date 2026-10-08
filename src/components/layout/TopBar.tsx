@@ -19,6 +19,7 @@ import { FloatingPanel } from './FloatingPanel';
 import { Calculator } from './Calculator';
 import { mobileNav } from './Sidebar';
 import { LogoMark } from '../brand/Logo';
+import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import { useCashSession } from '../../contexts/CashSessionContext';
 import { notifications } from '../../data/dashboard';
 import { taka } from '../../utils/currency';
@@ -32,6 +33,7 @@ const toneDot = {
 
 export function TopBar() {
   const { setOpen, sessionOpen } = useCashSession();
+  const { state, personal } = useTenantSettings();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -63,7 +65,7 @@ export function TopBar() {
             </Button>
           }
 
-          <button
+          {state.sections.money.cashSession && <button
             onClick={() => setOpen(true)}
             className="hidden h-8 items-center gap-2 rounded-lg border border-border px-2.5 text-[13px] text-ink-700 transition-colors hover:bg-ink-50 sm:flex">
             
@@ -77,7 +79,7 @@ export function TopBar() {
 
             <span>Open cash session</span>
             }
-          </button>
+          </button>}
 
           <FloatingPanel
             label="Calculator"
@@ -166,7 +168,7 @@ export function TopBar() {
               { icon: Languages, label: 'ভাষা: English / বাংলা' },
               { icon: Settings, label: 'Business settings' }].
               map(({ icon: Icon, label }) =>
-              <button key={label} onClick={close} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
+              <button key={label} onClick={() => { close(); navigate(label === 'Business settings' ? '/app/settings/business' : '/app/settings/personal'); }} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
                     <Icon className="size-4 text-ink-400" /> <span className="font-bn">{label}</span>
                   </button>
               )}
@@ -184,7 +186,7 @@ export function TopBar() {
       </div>
 
       <nav className="flex gap-1 overflow-x-auto border-t border-border px-3 py-1.5 lg:hidden" aria-label="Sections">
-        {mobileNav.map(({ to, label, icon: Icon }) =>
+        {mobileNav.map(({ to, label, bn, icon: Icon }) =>
         <NavLink
           key={to}
           to={to}
@@ -192,7 +194,7 @@ export function TopBar() {
           `flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs ${isActive ? 'bg-teal-50 font-medium text-teal-700' : 'text-ink-600'}`
           }>
           
-            <Icon className="size-3.5" /> {label}
+            <Icon className="size-3.5" /> {personal.language === 'Bangla' ? bn : label}
           </NavLink>
         )}
       </nav>

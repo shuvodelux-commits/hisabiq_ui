@@ -1,3 +1,4 @@
+import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Info } from 'lucide-react';
@@ -82,6 +83,9 @@ function SettingHeader({ title, bn, hint, checked, onCheckedChange }: {
 }
 
 export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = null, existingSerials = [] }: AddProductDialogProps) {
+  const { state } = useTenantSettings();
+  const defaults = state.sections.products;
+  const defaultViewUnit = defaults.defaultUnit === 'Gira' ? 'Gauge' : defaults.defaultUnit;
   const [photos, setPhotos] = useState<string[]>([]);
   const [kind, setKind] = useState<ProductKind>('Stock');
   const [name, setName] = useState('');
@@ -149,32 +153,32 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setName('');
     setNameBn('');
     setCategory('Hardware');
-    setUnit('Gira');
+    setUnit(defaults.defaultUnit);
     setSell('');
-    setSellUnit('Gira');
+    setSellUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setBuy('');
-    setBuyUnit('Gira');
+    setBuyUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setAdvanced(true);
-    setMultiUnit(true);
+    setMultiUnit(defaults.defaultUnit === 'Gira');
     setAltUnit('Gauge');
     setFactor('16');
     setAltPrice('');
     setOpeningQty('');
-    setOpeningUnit('Gauge');
+    setOpeningUnit(defaults.openingUnit === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setMinQty('');
-    setMinUnit('Gauge');
+    setMinUnit(defaults.minimumUnit === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setBarcode('');
-    setWarrantyEnabled(false);
-    setWarrantyDuration('12');
+    setWarrantyEnabled(defaults.warranty);
+    setWarrantyDuration(String(defaults.warrantyMonths));
     setWarrantyDurationUnit('Months');
     setWarrantyType('Seller');
     setWarrantyTerms('');
-    setSerialTracking('Off');
+    setSerialTracking(defaults.serial);
     setOpeningSerialText('');
-    setExpiryEnabled(false);
+    setExpiryEnabled(defaults.expiry);
     setExpiryDateRequired(false);
-    setExpiryWarningDays('30');
-    setAllocationMethod('FIFO');
+    setExpiryWarningDays(String(defaults.expiryDays));
+    setAllocationMethod(defaults.allocation);
     setBatchNumber('');
     setManufactureDate('');
     setExpiryDate('');

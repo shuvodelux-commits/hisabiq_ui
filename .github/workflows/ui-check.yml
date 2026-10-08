@@ -36,3 +36,6 @@ jobs:
 
       - name: Check SaaS administration journeys and contrast
         run: npm run test:saas
+
+      - name: Check ERP settings workflows and contrast
+        run: npm run test:settings
