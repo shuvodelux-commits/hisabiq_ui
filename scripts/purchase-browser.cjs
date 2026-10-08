@@ -17,19 +17,19 @@ async function main() {
     assert.equal(await page.locator('[role="dialog"]').count(), 0, 'purchase editor must not be a modal');
 
     await page.getByRole('button', { name: 'Quick add supplier' }).click();
-    console.log('Quick add state:', await page.getByRole('dialog').count(),
-      await page.locator('input').evaluateAll((nodes) => nodes.slice(0, 8).map((node) => ({ placeholder: node.placeholder, outer: node.outerHTML.slice(0, 160) }))));
-    await page.getByRole('dialog').waitFor({ timeout: 8000 });
-    await page.getByRole('dialog').getByPlaceholder('Supplier or business name').fill('Browser QA Supplier');
-    await page.getByRole('dialog').getByPlaceholder('01XXXXXXXXX').fill('01700000123');
-    await page.getByRole('dialog').getByRole('button', { name: 'Add supplier' }).click();
-    await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    const supplierDialog = page.locator('[data-slot="dialog-content"]').last();
+    await supplierDialog.waitFor({ timeout: 8000 });
+    await supplierDialog.getByPlaceholder('Supplier or business name').fill('Browser QA Supplier');
+    await supplierDialog.getByPlaceholder('01XXXXXXXXX').fill('01700000123');
+    await supplierDialog.getByRole('button', { name: 'Add supplier' }).click();
+    await supplierDialog.waitFor({ state: 'hidden' });
     await page.getByRole('combobox', { name: 'Supplier' }).selectOption({ label: 'Browser QA Supplier' });
 
     await page.getByRole('button', { name: 'New product' }).click();
-    await page.getByRole('dialog').waitFor();
+    const productDialog = page.locator('[data-slot="dialog-content"]').last();
+    await productDialog.waitFor();
     await page.keyboard.press('Escape');
-    await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    await productDialog.waitFor({ state: 'hidden' });
 
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).fill('LED Bulb 12W');
     await page.getByRole('option', { name: /LED Bulb 12W/ }).click();
