@@ -9,6 +9,7 @@ import { PartyDetail } from '../components/parties/PartyDetail';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { PartyImportDialog } from '../components/parties/PartyImportDialog';
 import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
+import { availableParties } from '../data/erpDemoStore';
 import { matchesPartySearch, resolvePartySelection } from '../utils/partyIdentity';
 import type { Party, PartyRole, LedgerEntry, LedgerEntryType } from '../types/erp';
 import type { PartyDraft, PartyLedgerSource } from '../types/partyLedger';
@@ -32,7 +33,7 @@ export function Parties() {
   const [editing,setEditing]=useState<Party|null|undefined>(undefined);
   const [importOpen,setImportOpen]=useState(false);
   const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
-  const allParties=state.parties;
+  const allParties=availableParties();
   const selected=resolvePartySelection(allParties,params.get('id')??undefined,params.get('role')??undefined);
   const party=selected?allParties.find(p=>p.id===selected.partyId):undefined;
   const relationship=selected?.relationship;
