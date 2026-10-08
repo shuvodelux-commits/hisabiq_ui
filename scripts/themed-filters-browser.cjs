@@ -34,9 +34,12 @@ async function main() {
     await calendar.waitFor();
     assert.equal(await calendar.evaluate((node) => getComputedStyle(node).backgroundColor),
       'rgb(20, 38, 59)', 'dark calendar uses HisabIQ popover color');
-    assert.equal(await calendar.getByRole('grid').count(), 2, 'two months on desktop');
-    await calendar.getByRole('gridcell', { name: '6 Oct 2026' }).click();
-    await calendar.getByRole('gridcell', { name: '9 Oct 2026' }).click();
+    const monthGrids = calendar.locator('[role="grid"]');
+    assert.equal(await monthGrids.count(), 2, 'two month calendars rendered on desktop');
+    assert.equal(await monthGrids.nth(0).isVisible(), true);
+    assert.equal(await monthGrids.nth(1).isVisible(), true, 'second month visible on desktop');
+    await calendar.locator('[data-calendar-date="2026-10-06"]').click();
+    await calendar.locator('[data-calendar-date="2026-10-09"]').click();
     await calendar.getByRole('button', { name: 'Apply' }).click();
     assert.match(await range.innerText(), /6 Oct 2026 – 9 Oct 2026/);
 
@@ -67,7 +70,10 @@ async function main() {
     await page.goto(root + 'daybook');
     await page.getByRole('button', { name: 'Daybook date range' }).click();
     const mobile = page.getByRole('dialog', { name: 'Daybook date range calendar' });
-    assert.equal(await mobile.getByRole('grid').count(), 1, 'one visible month on mobile');
+    const mobileGrids = mobile.locator('[role="grid"]');
+    assert.equal(await mobileGrids.count(), 2, 'both months retained for responsive UI');
+    assert.equal(await mobileGrids.first().isVisible(), true);
+    assert.equal(await mobileGrids.last().isVisible(), false, 'second month hidden on mobile');
     assert.ok((await mobile.boundingBox()).width <= 390);
 
     await page.evaluate(() => localStorage.setItem('hisabiq-theme', 'light'));
