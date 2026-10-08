@@ -5,7 +5,7 @@ import { ProductThumb } from '../ProductThumb';
 import { products } from '../../data/products';
 import { stockLots } from '../../data/productInventory';
 import { productOffers } from '../../data/productOffers';
-import { formatStock, stockStatus } from '../../utils/units';
+import { formatStock, stockStatus, unitsFor } from '../../utils/units';
 import { taka } from '../../utils/currency';
 import type { Product } from '../../types/erp';
 import { activeOfferFor, effectivePriceForUnit, productStockBreakdown } from '../../utils/productFeatures';
@@ -179,8 +179,20 @@ ref)
           {results.map((p, i) => {
             const status = stockStatus(p);
             const activeOffer = activeOfferFor(p.id, productOffers);
-            const effectivePrice = effectivePriceForUnit(p, activeOffer, p.unit);
+            const preferredUnit = p.stockViewUnit ?? p.altUnit?.unit ?? p.unit;
+            const displayUnit = unitsFor(p).includes(preferredUnit) ? preferredUnit : p.unit;
+            const normalPrice = effectivePriceForUnit(p, undefined, displayUnit);
+            const effectivePrice = effectivePriceForUnit(p, activeOffer, displayUnit);
             const breakdown = p.kind === 'Service' ? null : productStockBreakdown(p, stockLots);
+            const sellableStatus = p.kind === 'Service'
+              ? 'service'
+              : p.expiry?.enabled
+                ? (breakdown?.sellable ?? 0) <= 0
+                  ? 'out'
+                  : (breakdown?.sellable ?? 0) <= p.minStock
+                    ? 'low'
+                    : 'in'
+                : status;
             return (
               <li
                 key={p.id}
@@ -201,12 +213,18 @@ ref)
                 </div>
                 <div className="text-right">
                   <p className="text-[13px] font-medium text-ink">
-                    {activeOffer && <span className="mr-1 text-[10px] font-normal text-ink-400 line-through">{taka(p.sellPrice)}</span>}
+                    {activeOffer && <span className="mr-1 text-[10px] font-normal text-ink-400 line-through">{taka(normalPrice)}</span>}
                     {taka(effectivePrice, effectivePrice % 1 ? 2 : 0)}
-                    <span className="font-normal text-ink-400">/{p.unit}</span>
+                    <span className="font-normal text-ink-400">/{displayUnit}</span>
                   </p>
-                  <p className={`text-[11px] ${status === 'low' || status === 'out' ? 'text-danger' : 'text-ink-500'}`}>
-                    {p.kind === 'Service' ? 'Service' : p.expiry?.enabled ? `Sellable ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}` : status === 'out' ? 'Out of stock' : formatStock(p)}
+                  <p className={`text-[11px] ${sellableStatus === 'low' || sellableStatus === 'out' ? 'text-danger' : 'text-ink-500'}`}>
+                    {p.kind === 'Service'
+                      ? 'Service'
+                      : p.expiry?.enabled
+                        ? `${sellableStatus === 'out' ? 'Out of sellable stock' : 'Sellable'} · ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}`
+                        : status === 'out'
+                          ? 'Out of stock'
+                          : formatStock(p)}
                   </p>
                 </div>
               </li>

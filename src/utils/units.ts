@@ -5,7 +5,7 @@ export function formatStock(product: Product): string {
   const { stock, unit, altUnit } = product;
   const sign = stock < 0 ? '-' : '';
   const absolute = Math.abs(stock);
-  if (!altUnit) return `${sign}${absolute.toLocaleString('en-IN')} ${unit}`;
+  if (!altUnit || product.stockViewUnit === unit) return `${sign}${absolute.toLocaleString('en-IN')} ${unit}`;
   const big = Math.floor(absolute / altUnit.factor);
   const rest = absolute % altUnit.factor;
   if (big === 0) return `${sign}${rest} ${unit}`;

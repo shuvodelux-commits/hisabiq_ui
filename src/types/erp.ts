@@ -63,6 +63,8 @@ export type Product = {
   altUnit?: UnitConversion;
   /** Stock in base units */
   stock: number;
+  /** Preferred display/POS unit. Quantity remains in base units. */
+  stockViewUnit?: string;
   minStock: number;
   sellPrice: number;
   purchasePrice: number;

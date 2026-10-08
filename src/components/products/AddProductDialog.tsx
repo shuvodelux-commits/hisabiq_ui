@@ -106,11 +106,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [sellUnit, setSellUnit] = useState('Gira');
   const [buy, setBuy] = useState('');
   const [buyUnit, setBuyUnit] = useState('Gira');
-  const [advanced, setAdvanced] = useState(true);
+  const [advanced, setAdvanced] = useState(false);
   const [multiUnit, setMultiUnit] = useState(true);
   const [altUnit, setAltUnit] = useState('Gauge');
   const [factor, setFactor] = useState('16');
   const [altPrice, setAltPrice] = useState('');
+  const [stockViewUnit, setStockViewUnit] = useState(defaultViewUnit);
   const [openingQty, setOpeningQty] = useState('');
   const [openingUnit, setOpeningUnit] = useState('Gauge');
   const [minQty, setMinQty] = useState('');
@@ -143,6 +144,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const selectedOpeningUnit = units.includes(openingUnit) ? openingUnit : unit;
   const selectedMinUnit = units.includes(minUnit) ? minUnit : unit;
   const normalizedAltUnit = isStock && multiUnit && altUnit ? altUnit : undefined;
+  const selectedStockViewUnit = units.includes(stockViewUnit) ? stockViewUnit : normalizedAltUnit ?? unit;
   const stockToBase = (qty: string, selectedUnit: string) => toBaseQuantity(qty, selectedUnit, unit, normalizedAltUnit, f);
   const priceToBase = (amount: string, selectedUnit: string) => toBasePrice(amount, selectedUnit, unit, normalizedAltUnit, f);
   const sellNum = parseFloat(sell) || 0;
@@ -174,11 +176,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setSellUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setBuy('');
     setBuyUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
-    setAdvanced(true);
+    setAdvanced(false);
     setMultiUnit(defaults.defaultUnit === 'Gira');
     setAltUnit('Gauge');
     setFactor('16');
     setAltPrice('');
+    setStockViewUnit(defaultViewUnit);
     setOpeningQty('');
     setOpeningUnit(defaults.openingUnit === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setMinQty('');
@@ -227,6 +230,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setAltUnit(initialProduct.altUnit?.unit ?? '');
     setFactor(String(initialProduct.altUnit?.factor ?? 1));
     setAltPrice(initialProduct.altUnit?.price ? String(initialProduct.altUnit.price) : '');
+    setStockViewUnit(initialProduct.stockViewUnit ?? initialProduct.altUnit?.unit ?? initialProduct.unit);
     setOpeningQty('');
     setOpeningUnit(initialProduct.unit);
     setMinQty(String(initialProduct.minStock));
@@ -246,7 +250,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setBatchNumber('');
     setManufactureDate('');
     setExpiryDate('');
-    setAdvanced(true);
+    setAdvanced(false);
     setError('');
   }, [open, initialProduct]);
 
@@ -282,6 +286,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       setUnit('Service');
       setSellUnit('Service');
       setBuyUnit('Service');
+      setStockViewUnit('Service');
       setMultiUnit(false);
       setSerialTracking('Off');
       setExpiryEnabled(false);
@@ -290,6 +295,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       setUnit('Pcs');
       setSellUnit('Pcs');
       setBuyUnit('Pcs');
+      setStockViewUnit('Pcs');
     }
   };
 
@@ -328,6 +334,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       unit,
       altUnit: isStock && multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
       stock: initialProduct ? initialProduct.stock : openingBaseQty,
+      stockViewUnit: isStock ? selectedStockViewUnit : undefined,
       minStock: isStock ? stockToBase(minQty, selectedMinUnit) : 0,
       sellPrice: sellBase,
       purchasePrice: buyBase,
@@ -400,11 +407,13 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                 onChange={(next) => {
                   if (sellUnit === unit) setSellUnit(next);
                   if (buyUnit === unit) setBuyUnit(next);
+                  if (stockViewUnit === unit) setStockViewUnit(next);
                   setUnit(next);
                 }}
                 onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, (next) => {
                   if (sellUnit === unit) setSellUnit(next);
                   if (buyUnit === unit) setBuyUnit(next);
+                  if (stockViewUnit === unit) setStockViewUnit(next);
                   setUnit(next);
                 })} showSymbol placeholder="Unit name, e.g. Meter" />
               <p className="mt-1 text-xs text-ink-500">Smallest unit used for stock and serial counts.</p>
@@ -449,10 +458,13 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     if (!checked) {
                       if (sellUnit === altUnit) setSellUnit(unit);
                       if (buyUnit === altUnit) setBuyUnit(unit);
+                      if (stockViewUnit === altUnit) setStockViewUnit(unit);
                       setOpeningQty(switchQuantityUnit(openingQty, selectedOpeningUnit, unit, unit, normalizedAltUnit, f));
                       setOpeningUnit(unit);
                       setMinQty(switchQuantityUnit(minQty, selectedMinUnit, unit, unit, normalizedAltUnit, f));
                       setMinUnit(unit);
+                    } else if (stockViewUnit === unit && altUnit) {
+                      setStockViewUnit(altUnit);
                     }
                     setMultiUnit(checked);
                   }} />
@@ -469,6 +481,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                       <span className="font-medium">{unit}</span>
                     </div>
                     <p className="mt-2 flex items-center gap-1.5 text-xs text-teal-800"><Info className="size-3.5" />POS can sell in either unit; stock remains in {unit}.</p>
+                    <div className="mt-3 max-w-xs">
+                      <Field label="Stock / POS view unit" bn="ডিফল্ট দেখানোর একক" hint="Controls stock display and the default POS cart unit.">
+                        <AppSelect label="Stock / POS view unit" value={selectedStockViewUnit} onChange={setStockViewUnit} options={units} />
+                      </Field>
+                    </div>
                     {selectedSellUnit === unit && <div className="mt-3 max-w-xs">
                       <Field label={`Custom selling price / ${altUnit || 'unit'}`} hint={autoAltSell ? `Auto ${taka(autoAltSell)} / ${altUnit}` : 'Optional override'}>
                         <MoneyInput value={altPrice} onChange={(e) => setAltPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={autoAltSell ? String(autoAltSell) : '0'} />

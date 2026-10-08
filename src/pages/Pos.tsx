@@ -548,8 +548,10 @@ export function Pos() {
                     <span className="block text-xs text-ink-500">
                       {(() => {
                         const offer = activeOfferFor(p.id, productOffers);
-                        const price = effectivePriceForUnit(p, offer, p.unit);
-                        return <>{offer && <span className="mr-1 text-[10px] text-ink-400 line-through">{taka(p.sellPrice)}</span>}{taka(price, price % 1 ? 2 : 0)}/{p.unit}</>;
+                        const displayUnit = p.stockViewUnit ?? p.altUnit?.unit ?? p.unit;
+                        const normalPrice = effectivePriceForUnit(p, undefined, displayUnit);
+                        const price = effectivePriceForUnit(p, offer, displayUnit);
+                        return <>{offer && <span className="mr-1 text-[10px] text-ink-400 line-through">{taka(normalPrice)}</span>}{taka(price, price % 1 ? 2 : 0)}/{displayUnit}</>;
                       })()}
                     </span>
                   </span>
