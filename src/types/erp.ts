@@ -79,6 +79,8 @@ export type StockLot = {
   quantity: number;
   available: number;
   unitCost: number;
+  /** Base-unit selling price override for this purchase lot, not the product default. */
+  sellingPrice?: number;
   source: 'Opening' | 'Purchase' | 'Adjustment' | 'Return';
   reference?: string;
   batchNumber?: string;
@@ -252,6 +254,8 @@ export type PurchaseInventoryLine = {
   productId: string;
   quantity: number;
   unitCost?: number;
+  /** Base-unit lot selling price snapshot; does not overwrite master product selling price. */
+  lotSellingPrice?: number;
   serials?: string[];
   batchNumber?: string;
   manufactureDate?: string;
