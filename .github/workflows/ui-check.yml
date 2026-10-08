@@ -2,7 +2,7 @@ name: UI Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/party-*']
 
 permissions:
   contents: read
