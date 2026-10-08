@@ -63,7 +63,7 @@ export function Parties() {
   const changeRole=(next:PartyRole)=>{if(party)setParams({id:party.id,role:next});};
   const noteAction=(type:'add'|'edit'|'delete',idOrText:string,text?:string)=>{
     try {
-      if(type==='add'&&party)dispatchPartyPreview({type:'add-note',partyId:party.id,text:idOrText});
+      if(type==='add'&&party)dispatchPartyPreview({type:'add-note',partyId:party.id,relationship,text:idOrText});
       if(type==='edit')dispatchPartyPreview({type:'edit-note',sourceId:idOrText,text:text??''});
       if(type==='delete')dispatchPartyPreview({type:'delete-note',sourceId:idOrText});
     }catch(error){toast.error(error instanceof Error?error.message:'Note action failed');throw error;}
