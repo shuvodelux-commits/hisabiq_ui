@@ -23,7 +23,7 @@ test('customer cash-backed credit can be refunded only once and only as of fundi
  assert.throws(()=>dispatchPartyPreview({type:'refund-credit',payload:{partyId:'credit-qa',relationship:'Customer',date:'2026-10-03',amount:30,
  reason:'Second payout',splits:[{...split[0],amount:30}]}}),/credit|available/i);
  assert.throws(()=>dispatchPartyPreview({type:'refund-credit',payload:{partyId:'credit-qa',relationship:'Customer',date:'2026-10-03',amount:10,
- reason:'Duplicate operation',splits:[{...split[0],amount:10}],operationId:'refund-2026'}),/Duplicate/i);
+ reason:'Duplicate operation',splits:[{...split[0],amount:10}],operationId:'refund-2026'}}),/Duplicate/i);
 });
 test('supplier advance refund records incoming cash/credit, not customer debit',()=>{
  resetPartyPreviewForTest();newCustomer();deposit('Supplier');
