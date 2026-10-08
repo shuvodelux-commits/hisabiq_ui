@@ -58,10 +58,10 @@ async function main() {
     assert.match(await page.locator('aside').last().innerText(), /Supplier due/);
     await page.getByRole('button', { name: 'Complete purchase' }).click();
     await page.getByRole('heading', { name: 'Purchases', exact: true }).waitFor();
-    await page.getByText('Browser QA Supplier', { exact: true }).first().waitFor();
+    await page.getByRole('link', { name: 'Browser QA Supplier' }).waitFor();
 
     await page.goto('http://127.0.0.1:4177/#/app/parties');
-    await page.getByText('Browser QA Supplier', { exact: true }).first().waitFor();
+    await page.getByText('Browser QA Supplier', { exact: true }).last().waitFor();
     await page.goto('http://127.0.0.1:4177/#/app/purchases/new');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).waitFor();
