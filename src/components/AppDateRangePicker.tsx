@@ -31,9 +31,13 @@ function Month({
   });
   return <div className="min-w-0 flex-1" aria-label={monthLabel(first)}>
     <p className="mb-2 text-center text-[13px] font-semibold text-ink">{monthLabel(first)}</p>
-    <div role="grid" aria-label={'Choose dates in ' + monthLabel(first)} className="grid grid-cols-7 gap-0.5 text-center">
-      {weekdays.map((day) => <span key={day} className="py-1 text-[11px] font-medium text-ink-400">{day}</span>)}
-      {cells.map((day, index) => {
+    <div role="grid" aria-label={'Choose dates in ' + monthLabel(first)} className="space-y-0.5 text-center">
+      <div role="row" className="grid grid-cols-7 gap-0.5">
+        {weekdays.map((day) => <span key={day} role="columnheader" className="py-1 text-[11px] font-medium text-ink-400">{day}</span>)}
+      </div>
+      {Array.from({ length: cells.length / 7 }, (_, week) => (
+        <div role="row" key={week} className="grid grid-cols-7 gap-0.5">
+          {cells.slice(week * 7, week * 7 + 7).map((day, index) => {
         if (!day) return <span key={'blank-' + index} aria-hidden="true" />;
         const start = selected.from === day, end = selected.to === day;
         const between = Boolean(selected.from && selected.to && day > selected.from && day < selected.to);
@@ -52,7 +56,9 @@ function Month({
               : 'text-ink hover:bg-ink-50') +
             (day === today && !start && !end ? ' ring-1 ring-teal-500' : '')}
         >{Number(day.slice(-2))}</button>;
-      })}
+          })}
+        </div>
+      ))}
     </div>
   </div>;
 }
