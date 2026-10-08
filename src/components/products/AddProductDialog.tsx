@@ -7,6 +7,7 @@ import { Button } from '../Button';
 import { Input } from '../Input';
 import { Switch } from '../Switch';
 import { AppSelect } from '../AppSelect';
+import { AppDatePicker } from '../AppDateRangePicker';
 import { QuickAddSelect } from '../QuickAddSelect';
 import { MoneyUnitInput } from '../MoneyUnitInput';
 import {
@@ -522,8 +523,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     </div>
                     {!initialProduct && openingBaseQty > 0 && <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-3">
                       <Field label="Batch no." bn="ব্যাচ"><Input value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} placeholder="Optional" /></Field>
-                      <Field label="Manufacture date" bn="উৎপাদন"><Input type="date" value={manufactureDate} onChange={(e) => setManufactureDate(e.target.value)} /></Field>
-                      <Field label="Expiry date" bn="মেয়াদ"><Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} /></Field>
+                      <Field label="Manufacture date" bn="উৎপাদন"><AppDatePicker label="Manufacture date" value={manufactureDate} onChange={setManufactureDate} /></Field>
+                      <Field label="Expiry date" bn="মেয়াদ"><AppDatePicker label="Expiry date" value={expiryDate} onChange={setExpiryDate} /></Field>
                     </div>}
                   </div>}
                 </div>}
