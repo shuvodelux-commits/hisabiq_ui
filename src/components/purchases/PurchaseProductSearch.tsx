@@ -43,7 +43,7 @@ export const PurchaseProductSearch = forwardRef<HTMLInputElement, Props>(functio
         placeholder="Search product name, Bangla name or SKU · পণ্য খুঁজুন"
         onChange={(event) => { setQuery(event.target.value); setOpen(true); setActive(0); }}
         onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        onBlur={(event) => { if (!event.currentTarget.parentElement?.contains(event.relatedTarget as Node)) setOpen(false); }}
         onKeyDown={(event) => {
           if (event.key === 'Escape') setOpen(false);
           if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true); setActive((i) => Math.min(i + 1, results.length - 1)); }
@@ -64,7 +64,7 @@ export const PurchaseProductSearch = forwardRef<HTMLInputElement, Props>(functio
               type="button"
               role="option"
               aria-selected={active === index}
-              onMouseDown={(event) => event.preventDefault()}
+              onPointerDown={(event) => event.preventDefault()}
               onMouseEnter={() => setActive(index)}
               onClick={() => choose(product)}
               className={'flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left hover:bg-teal-50 ' + (active === index ? 'bg-teal-50' : '')}>
@@ -77,7 +77,7 @@ export const PurchaseProductSearch = forwardRef<HTMLInputElement, Props>(functio
             </button>
           ))}
           {results.length === 0 && <p className="px-3 py-3 text-xs text-ink-500">No product found. Add it without leaving this purchase.</p>}
-          <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setOpen(false); onCreate(); }}
+          <button type="button" onPointerDown={(event) => event.preventDefault()} onClick={() => { setOpen(false); onCreate(); }}
             className="mt-1 flex w-full items-center gap-2 rounded-md border-t border-border px-2 py-2 text-left text-[13px] font-medium text-teal-700 hover:bg-teal-50">
             <Plus className="size-4" /> Create new product {query.trim() ? 'for ' + query.trim() : ''}
           </button>
