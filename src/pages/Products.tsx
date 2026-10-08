@@ -12,7 +12,6 @@ import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockL
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
-import { productCategories, products as seed } from '../data/products';
 import { availableProducts, availableProductCategories } from '../data/erpDemoStore';
 import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
 import { productOffers as seedOffers } from '../data/productOffers';
