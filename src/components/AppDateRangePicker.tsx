@@ -48,7 +48,7 @@ function Month({
             focusDay(addDays(day, movement[event.key]));
           }}
           className={'h-8 rounded-md text-[12px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 ' +
-            (start || end ? 'bg-teal-600 font-semibold text-white' : between ? 'bg-teal-50 text-teal-700'
+            (start || end ? 'bg-primary font-semibold text-primary-foreground' : between ? 'bg-teal-50 text-teal-700'
               : 'text-ink hover:bg-ink-50') +
             (day === today && !start && !end ? ' ring-1 ring-teal-500' : '')}
         >{Number(day.slice(-2))}</button>;
