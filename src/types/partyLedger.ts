@@ -45,6 +45,16 @@ export type PartySourceRecord = {
   createdAt?: string;
 };
 export type PartyAuditEvent = {id:string; sourceId?:string; partyId:string; action:string; before?:unknown; after?:unknown; actor:string; at:string; reason?:string};
+export type PartyMoneySplit = { id:string; method:'Cash'|'Bank'|'Mobile Banking'; accountId:string; amount:number };
+export type PartyPaymentPayload = {
+  partyId:string; relationship:'Customer'|'Supplier'; date:string; amount:number;
+  discount?:number; reason?:string; invoiceId?:string; operationId?:string;
+  splits:PartyMoneySplit[];
+};
+export type PartyRefundPayload = {
+  partyId:string; relationship:'Customer'|'Supplier'; date:string;
+  amount:number; reason:string; operationId?:string; splits:PartyMoneySplit[];
+};
 export type PartyPreviewState = { parties: Party[]; sources: PartySourceRecord[]; audit: PartyAuditEvent[]; revision: number };
 export type LedgerStatement = {
   partyId:string;
