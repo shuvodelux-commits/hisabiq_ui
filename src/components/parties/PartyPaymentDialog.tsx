@@ -77,7 +77,7 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
               const next=event.target.value;setAmount(next);setReview(false);
               if(splits.length===1)setSplits(previous=>previous.map(item=>({...item,amount:next})));
             }} placeholder="0.00"/>
-              <Button size="sm" variant="outline" onClick={()=>{const n=String(Math.max(0,due-rebate));setAmount(n);if(splits.length===1)setSplits(previous=>previous.map(item=>({...item,amount:n}));setReview(false);}}>Full</Button>
+              <Button size="sm" variant="outline" onClick={()=>{const n=String(Math.max(0,due-rebate));setAmount(n);if(splits.length===1)setSplits(previous=>previous.map(item=>({...item,amount:n})));setReview(false);}}>Full</Button>
             </div>
           </label>
           <label className="space-y-1 text-xs font-medium text-ink-700">Discount / adjustment
