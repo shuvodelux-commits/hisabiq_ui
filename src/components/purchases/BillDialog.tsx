@@ -5,8 +5,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { FormSelect } from '../FormSelect';
+import { QuickAddSelect } from '../QuickAddSelect';
 import { PhotoUploader } from '../products/PhotoUploader';
 import { parties } from '../../data/parties';
+import { availableParties, availableExpenseCategories, createPreviewParty, createPreviewExpenseCategory } from '../../data/erpDemoStore';
 import { products } from '../../data/products';
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
@@ -110,6 +112,8 @@ function newLine(seedIndex = 1): PurchaseLine {
 
 export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, onSaveExpense }: BillDialogProps) {
   const [party, setParty] = useState(mode === 'purchase' ? suppliers[0].name : payees[0].name);
+  const [partyOptions, setPartyOptions] = useState<Party[]>(() => availableParties().filter((item) => item.roles.some((role) => mode === 'purchase' ? role === 'Supplier' || role === 'Vendor' : role === 'Payee' || role === 'Vendor')));
+  const [categoryOptions, setCategoryOptions] = useState(availableExpenseCategories);
   const [category, setCategory] = useState(expenseCategories[2]);
   const [date, setDate] = useState(today);
   const [backdateReason, setBackdateReason] = useState('');
@@ -123,7 +127,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   const [error, setError] = useState('');
 
   const isBackdated = date !== today;
-  const list = mode === 'purchase' ? suppliers : payees;
+  const list = partyOptions;
   const purchaseTotal = useMemo(() => lines.reduce((sum, line) => sum + lineTotal(line), 0), [lines]);
   const totalNum = mode === 'purchase' ? purchaseTotal : parseFloat(amount) || 0;
   const paymentTotal = paymentRows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
@@ -302,20 +306,14 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-[13px] font-medium text-ink">
             {mode === 'purchase' ? 'Supplier' : 'Payee'}
-            <div className="mt-1.5 flex">
-              <FormSelect
-                className="min-w-0 flex-1 [&>select]:rounded-r-none"
-                value={party}
-                onChange={(event) => setParty(event.target.value)}
-                options={list.map((item) => item.name)}
-              />
-              <button
-                type="button"
-                className="-ml-px flex size-9 shrink-0 items-center justify-center rounded-r-md border border-input bg-card text-teal-700 hover:bg-teal-50"
-                onClick={() => toast(mode === 'purchase' ? 'Add supplier' : 'Add payee')}>
-                <Plus className="size-4" />
-                <span className="sr-only">{mode === 'purchase' ? 'Add supplier' : 'Add payee'}</span>
-              </button>
+            <div className="mt-1.5">
+              <QuickAddSelect label={mode === 'purchase' ? 'Supplier' : 'Payee'} value={party} options={list.map((item) => item.name)} onChange={setParty} showContact
+                onCreate={(name, phone, area) => {
+                  const newParty: Party = { id: 'quick-' + Date.now(), name, phone, area, roles: [mode === 'purchase' ? 'Supplier' : 'Payee'], balance: 0, lastActivity: 'Just now', avatarColor: '#0D7C74' };
+                  createPreviewParty(newParty);
+                  setPartyOptions((items) => [...items, newParty]);
+                  setParty(name);
+                }} />
             </div>
           </label>
 
@@ -460,20 +458,13 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-[13px] font-medium text-ink">
               Expense category
-              <div className="mt-1.5 flex">
-                <FormSelect
-                  className="min-w-0 flex-1 [&>select]:rounded-r-none"
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value)}
-                  options={expenseCategories}
-                />
-                <button
-                  type="button"
-                  className="-ml-px flex size-9 shrink-0 items-center justify-center rounded-r-md border border-input bg-card text-teal-700 hover:bg-teal-50"
-                  onClick={() => toast('Manage expense categories')}>
-                  <Plus className="size-4" />
-                  <span className="sr-only">Manage categories</span>
-                </button>
+              <div className="mt-1.5">
+                <QuickAddSelect label="Expense category" value={category} options={categoryOptions} onChange={setCategory}
+                  onCreate={(name) => {
+                    createPreviewExpenseCategory(name);
+                    setCategoryOptions((items) => [...items, name]);
+                    setCategory(name);
+                  }} />
               </div>
             </label>
 
