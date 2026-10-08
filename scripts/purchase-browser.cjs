@@ -23,7 +23,7 @@ async function main() {
     await supplierDialog.getByPlaceholder('01XXXXXXXXX').fill('01700000123');
     await supplierDialog.getByRole('button', { name: 'Add supplier' }).click();
     await supplierDialog.waitFor({ state: 'hidden' });
-    await page.getByRole('combobox', { name: 'Supplier' }).selectOption({ label: 'Browser QA Supplier' });
+    assert.match(await page.getByRole('combobox', { name: 'Supplier' }).innerText(), /Browser QA Supplier/, 'quick-added supplier selected automatically');
 
     await page.getByRole('button', { name: 'New product' }).click();
     const productDialog = page.locator('[data-slot="dialog-content"]').last();
