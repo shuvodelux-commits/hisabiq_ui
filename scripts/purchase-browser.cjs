@@ -37,8 +37,9 @@ async function main() {
     await page.getByLabel('Box quantity for LED Bulb 12W').fill('2');
     await page.getByLabel('Pcs quantity for LED Bulb 12W').fill('5');
     await page.getByLabel('Purchase cost for LED Bulb 12W').fill('1500');
-    await page.getByRole('button', { name: /Lot details for LED Bulb 12W/ }).click();
-    await page.getByLabel('Lot selling price for LED Bulb 12W').fill('185');
+    const lotSellInput = page.getByLabel('Lot selling price for LED Bulb 12W');
+    if (!(await lotSellInput.isVisible())) await page.getByRole('button', { name: /Lot details for LED Bulb 12W/ }).click();
+    await lotSellInput.fill('185');
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 1);
     assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
     assert.match(await page.locator('aside').innerText(), /3,750/);
@@ -57,6 +58,11 @@ async function main() {
     await page.goto('http://127.0.0.1:4177/#/app/purchases/new');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).waitFor();
+    await page.goto('http://127.0.0.1:4177/#/app/pos');
+    const posCart = page.getByTestId('pos-cart');
+    const posOrder = await posCart.locator(':scope > *').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-testid')));
+    assert.equal(posOrder[posOrder.length - 1], 'pos-add-row', 'POS inline search must be last');
+    assert.equal(posOrder.filter((item) => item === 'pos-cart-row').length >= 1, true, 'existing sale rows remain ahead of POS search');
     assert.deepEqual(errors, []);
     console.log('Purchase full page, supplier quick-add, multi-unit cart, payment and navigation smoke test passed.');
   } finally {
