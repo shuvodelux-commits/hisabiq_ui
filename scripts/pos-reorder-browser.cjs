@@ -41,7 +41,8 @@ async function main() {
     ], 'invoice print preview follows reordered cart sequence');
     await receipt.getByRole('button', { name: 'Close', exact: true }).click();
 
-    await page.goto('http://127.0.0.1:4182/#/app/pos');
+    // An identical SPA hash navigation may preserve the mounted React state; hard reload for a fresh cart.
+    await page.reload();
     assert.deepEqual(await rowOrder(), original);
     const source = page.getByTestId('pos-cart-row').nth(2).getByTestId('pos-drag-handle');
     const target = page.getByTestId('pos-cart-row').first().getByTestId('pos-drag-handle');
