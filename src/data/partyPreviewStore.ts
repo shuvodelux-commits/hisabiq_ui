@@ -2,7 +2,7 @@ import { parties as seedParties, ledgerEntries as seedLedgerEntries } from './pa
 import { normalizePartyFixture } from './partyFixtureAdapter.ts';
 import { validatePartyDraft } from '../utils/partyIdentity.ts';
 import { businessToday } from '../utils/dateRange.ts';
-import type { Party } from '../types/erp';
+import type { Party, PartyRole } from '../types/erp';
 import type { PartyDraft, PartyPreviewState, PartySourceRecord } from '../types/partyLedger';
 
 export type PartyPreviewCommand =
@@ -10,7 +10,7 @@ export type PartyPreviewCommand =
   | {type:'import-parties'; parties:PartyDraft[]}
   | {type:'update-party'; id:string; patch:Partial<PartyDraft>}
   | {type:'deactivate-party'; id:string}
-  | {type:'add-note'; partyId:string; text:string}
+  | {type:'add-note'; partyId:string; text:string; relationship?:PartyRole}
   | {type:'edit-note'; sourceId:string; text:string}
   | {type:'delete-note'; sourceId:string};
 
@@ -88,10 +88,11 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     parties=parties.map(p=>p.id===party.id?after as Party:p);
     targetPartyId=party.id;
   } else if(command.type==='add-note'){
-    findParty(command.partyId);
+    const noteParty=findParty(command.partyId);
+    if(command.relationship&&!noteParty.roles.includes(command.relationship))throw new Error('Party does not have this relationship.');
     const description=checkedText(command.text,'Note');
     const note:PartySourceRecord={id:'note-preview-'+(++counter),partyId:command.partyId,
-      relationship:findParty(command.partyId).roles[0],kind:'note',date:businessToday(),
+      relationship:command.relationship??noteParty.roles[0],kind:'note',date:businessToday(),
       sequence:Math.max(0,...sources.map(s=>s.sequence))+1,description,debit:0,credit:0,status:'Active'};
     sources=[...sources,note];targetPartyId=command.partyId;sourceId=note.id;after=note;
   } else if(command.type==='edit-note'||command.type==='delete-note'){
