@@ -1,7 +1,8 @@
-import type { LedgerEntry, Party, Product, Purchase } from '../types/erp';
+import type { LedgerEntry, Party, Product, Purchase, StockLot } from '../types/erp';
 import { purchases as seedPurchases, expenseCategories } from './purchases';
 import { parties as seedParties, ledgerEntries as seedLedgerEntries } from './parties';
 import { products as seedProducts, productCategories } from './products';
+import { stockLots as seedLots } from './productInventory';
 
 /** Design-preview state only: no network posting or cross-tenant persistence. */
 const createdProducts: Product[] = [];
@@ -32,6 +33,28 @@ export const availableLedgerEntries = (): LedgerEntry[] => [
 ];
 export const availableExpenseCategories = () => [...expenseCategories, ...createdCategories];
 export const availablePurchases = () => [...createdPurchases, ...seedPurchases];
+
+/** Purchase lots in the design preview; in the backend each lot will be posted atomically with its purchase. */
+export const availableStockLots = (): StockLot[] => [
+  ...createdPurchases.flatMap((purchase) => (purchase.inventoryLines ?? []).map((line, index) => ({
+    id: purchase.id + '-lot-' + index,
+    productId: line.productId,
+    label: 'Purchase lot',
+    receivedAt: purchase.date,
+    quantity: line.quantity,
+    available: line.quantity,
+    unitCost: line.unitCost ?? 0,
+    sellingPrice: line.lotSellingPrice,
+    source: 'Purchase' as const,
+    reference: purchase.ref,
+    serials: line.serials,
+    batchNumber: line.batchNumber,
+    manufactureDate: line.manufactureDate,
+    expiryDate: line.expiryDate
+  }))),
+  ...seedLots
+];
+
 
 export function createPreviewProductCategory(category: string) {
   if (!availableProductCategories().some((item) => item.toLowerCase() === category.toLowerCase())) createdProductCategories.push(category);
