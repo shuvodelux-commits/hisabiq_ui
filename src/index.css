@@ -56,3 +56,20 @@
 /* Personal density applies only to the business workspace. */
 .erp-workspace[data-density="Comfortable"] table td { padding-top: 0.9rem; padding-bottom: 0.9rem; }
 .erp-settings input[type="radio"]:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 4px; }
+
+/* Isolate the selected party ledger in the browser's Print/Save as PDF dialog. */
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  body * { visibility: hidden !important; }
+  #party-statement-print, #party-statement-print * { visibility: visible !important; }
+  #party-statement-print {
+    position: fixed !important; inset: 0 auto auto 0 !important;
+    width: 100% !important; max-width: 100% !important;
+    background: white !important; color: black !important;
+    border: 0 !important; box-shadow: none !important; padding: 0 !important;
+    overflow: visible !important;
+  }
+  #party-statement-print thead { display: table-header-group; }
+  #party-statement-print tr { break-inside: avoid; page-break-inside: avoid; }
+  #party-statement-print table { width: 100%; }
+}
