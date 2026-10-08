@@ -29,7 +29,7 @@ async function main(){
     'LED Bulb 12W,000120,165,Pcs,2,Box\n' +
     'পাইপ,0009,420,Pcs,0,Pcs\n','utf8')
   });
-  assert.ok(await dlg.getByText('2 data rows').count()>0);
+  await dlg.getByText('2 data rows',{exact:false}).waitFor({state:'visible'});
   await dlg.getByRole('button',{name:'Next: Map columns'}).click();
   assert.ok(await dlg.getByText('Map columns').count()>0);
   await dlg.getByRole('button',{name:'Next: Review'}).click();
@@ -40,7 +40,7 @@ async function main(){
    'Phase A must never fake a backend or product posting');
   await dlg.getByRole('button',{name:'Back'}).click();
   await dlg.getByRole('button',{name:'Back'}).click();
-  assert.ok(await dlg.getByText('2 data rows').count()>0);
+  await dlg.getByText('2 data rows',{exact:false}).waitFor({state:'visible'});
   await page.setViewportSize({width:375,height:812});
   assert.ok(await dlg.isVisible());
   await dlg.getByRole('button',{name:'Cancel'}).click();
