@@ -62,3 +62,29 @@ export function makePurchaseLine(product: Product): PurchaseCartLine {
     serialText: '', batchNumber: '', manufactureDate: '', expiryDate: ''
   };
 }
+
+/**
+ * Switch the purchase row like POS (one base-unit input, compound large-unit input).
+ * Preserve the purchased base-unit quantity and per-base-unit cost; never rewrite lot pricing.
+ */
+export function switchPurchaseUnit(line: PurchaseCartLine, nextUnit: string): PurchaseCartLine {
+  const { product } = line;
+  if (nextUnit === line.costUnit || ![product.unit, product.altUnit?.unit].includes(nextUnit)) return line;
+  if (!product.altUnit) return line;
+
+  const quantity = baseQty(line);
+  const unitCost = baseCost(line);
+  const bigSelected = nextUnit === product.altUnit.unit;
+  const large = bigSelected ? Math.floor(quantity / conversion(product)) : 0;
+  const small = bigSelected
+    ? Number((quantity - large * conversion(product)).toFixed(4))
+    : quantity;
+
+  return {
+    ...line,
+    costUnit: nextUnit,
+    bigQty: String(large),
+    smallQty: String(small),
+    cost: String(Math.round(priceInUnit(unitCost, product, nextUnit) * 10000) / 10000)
+  };
+}
