@@ -1,6 +1,6 @@
-import type { Party, Product, Purchase } from '../types/erp';
+import type { LedgerEntry, Party, Product, Purchase } from '../types/erp';
 import { purchases as seedPurchases, expenseCategories } from './purchases';
-import { parties as seedParties } from './parties';
+import { parties as seedParties, ledgerEntries as seedLedgerEntries } from './parties';
 import { products as seedProducts, productCategories } from './products';
 
 /** Design-preview state only: no network posting or cross-tenant persistence. */
@@ -10,9 +10,26 @@ const createdParties: Party[] = [];
 const createdCategories: string[] = [];
 const createdPurchases: Purchase[] = [];
 
-export const availableProducts = () => [...seedProducts, ...createdProducts];
+export const availableProducts = () => [...seedProducts, ...createdProducts].map((product) => ({
+  ...product,
+  stock: product.stock + createdPurchases.reduce((sum, purchase) =>
+    sum + (purchase.inventoryLines ?? []).filter((line) => line.productId === product.id).reduce((qty, line) => qty + line.quantity, 0), 0)
+}));
 export const availableProductCategories = () => [...productCategories, ...createdProductCategories];
-export const availableParties = () => [...seedParties, ...createdParties];
+export const availableParties = () => [...seedParties, ...createdParties].map((party) => ({
+  ...party,
+  balance: party.balance - createdPurchases.filter((purchase) => purchase.supplierId === party.id)
+    .reduce((sum, purchase) => sum + purchase.total - purchase.paid, 0)
+}));
+export const availableLedgerEntries = (): LedgerEntry[] => [
+  ...seedLedgerEntries,
+  ...createdPurchases.flatMap((purchase) => [
+    { id: purchase.id + '-bill', partyId: purchase.supplierId, date: purchase.date, type: 'purchase' as const,
+      ref: purchase.ref, description: purchase.items, debit: 0, credit: purchase.total },
+    ...(purchase.paid > 0 ? [{ id: purchase.id + '-payment', partyId: purchase.supplierId, date: purchase.date,
+      type: 'payment' as const, ref: purchase.ref, description: 'Purchase payment', debit: purchase.paid, credit: 0 }] : [])
+  ])
+];
 export const availableExpenseCategories = () => [...expenseCategories, ...createdCategories];
 export const availablePurchases = () => [...createdPurchases, ...seedPurchases];
 
