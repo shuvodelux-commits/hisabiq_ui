@@ -25,6 +25,11 @@ export function normalizePartyFixture(parties: Party[], legacy: LedgerEntry[]): 
     push({id:'sale:'+invoice.id,partyId:invoice.partyId,relationship:'Customer',kind:'sale',
       date:expenseDateIso(invoice.date),reference:ref,description:invoice.lines.map(x=>x.name).join(', '),
       debit:invoice.total, credit:0, status:'Active'});
+    if(invoice.paid>0) push({id:'sale-paid:'+invoice.id,partyId:invoice.partyId,
+      relationship:'Customer',kind:'customer-payment',date:expenseDateIso(invoice.date),
+      reference:'PAY-'+ref,invoiceId:ref,description:'Paid with '+ref,
+      debit:0,credit:invoice.paid,amountPaid:invoice.paid,
+      provenance:invoice.payments?.length?'verified':'legacy-unverified',status:'Active'});
   }
   for (const purchase of purchases) {
     if (!validIds.has(purchase.supplierId)) continue;
@@ -32,6 +37,11 @@ export function normalizePartyFixture(parties: Party[], legacy: LedgerEntry[]): 
     push({id:'purchase:'+purchase.id,partyId:purchase.supplierId,relationship:'Supplier',kind:'purchase',
       date:expenseDateIso(purchase.date),reference:purchase.ref,description:purchase.items,
       debit:0,credit:purchase.total,status:'Active'});
+    if(purchase.paid>0)push({id:'purchase-paid:'+purchase.id,partyId:purchase.supplierId,
+      relationship:'Supplier',kind:'supplier-payment',date:expenseDateIso(purchase.date),
+      reference:'PAY-'+purchase.ref,invoiceId:purchase.ref,description:'Paid with '+purchase.ref,
+      debit:purchase.paid,credit:0,amountPaid:purchase.paid,
+      provenance:purchase.payments?.length?'verified':'legacy-unverified',status:'Active'});
   }
   for (const party of parties) {
     const fp = financePersonIdByPartyId[party.id];

@@ -3,6 +3,8 @@ name: UI Check
 on:
   pull_request:
     branches: [main, 'feat/party-*']
+  push:
+    branches: ['feat/party-*']
 
 permissions:
   contents: read
@@ -39,6 +41,9 @@ jobs:
 
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
+
+      - name: Check Party payment correction and reversal
+        run: npm run test:party-settlement
 
       - name: Check full-page purchase and quick-add workflow
         run: npm run test:purchases

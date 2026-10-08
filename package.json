@@ -19,7 +19,8 @@
     "test:pos-reorder": "node scripts/pos-reorder-browser.cjs",
     "test:themed-filters": "node scripts/themed-filters-browser.cjs",
     "test:parties": "node scripts/party-browser.cjs",
-    "test:party-ledger": "node scripts/party-ledger-browser.cjs"
+    "test:party-ledger": "node scripts/party-ledger-browser.cjs",
+    "test:party-settlement": "node scripts/party-settlement-browser.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",
