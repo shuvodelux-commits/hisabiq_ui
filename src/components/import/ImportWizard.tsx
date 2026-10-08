@@ -43,7 +43,7 @@ export function ImportWizard({target,open,onClose,onApply}:{
   }
   if(step==='map'){
    if(!current)return;
-   try{const mapped=mapImportRows(current,mapping);setRows(mapped);setStep('review');}
+   try{if(!rows.length)setRows(mapImportRows(current,mapping));setStep('review');}
    catch(e){setError(e instanceof Error?e.message:'Invalid column mapping.');}
    return;
   }
@@ -76,8 +76,8 @@ export function ImportWizard({target,open,onClose,onApply}:{
    </div>
    {error&&<p className="rounded-md bg-danger-bg p-3 text-xs text-danger" role="alert">{error}</p>}
    {step==='upload'&&<ImportUploadStep target={target} tables={tables} selected={current} onRead={read} onSelect={selectSheet} onError={setError}/>}
-   {step==='map'&&current&&<ImportMappingStep target={target} table={current} mapping={mapping} onMapping={nextMapping=>{setMapping(nextMapping);setError('');}}/>}
-   {step==='review'&&<ImportReviewStep rows={rows}/>}
+   {step==='map'&&current&&<ImportMappingStep target={target} table={current} mapping={mapping} onMapping={nextMapping=>{setMapping(nextMapping);setRows([]);setError('');}}/>}
+   {step==='review'&&<ImportReviewStep target={target} rows={rows} onRowsChange={setRows}/>}
    {step==='finish'&&result&&<ImportFinishStep result={result} onAnother={restart} onView={onClose}/>}
    {step!=='finish'&&<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
     <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
