@@ -1,43 +1,36 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Keyboard, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Keyboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
-import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { QuickAddSelect } from '../components/QuickAddSelect';
 import { PhotoUploader } from '../components/products/PhotoUploader';
 import { AddProductDialog } from '../components/products/AddProductDialog';
 import { PurchaseCart } from '../components/purchases/PurchaseCart';
+import { PurchasePaymentPanel, makePurchasePaymentRow, type PurchasePaymentRow } from '../components/purchases/PurchasePaymentPanel';
+import { useTenantSettings } from '../settings/TenantSettingsProvider';
+import { calculatePurchaseCheckout, type PurchaseDiscountMode } from '../utils/purchaseCheckout';
 import { stockLots } from '../data/productInventory';
 import { salesInvoices } from '../data/sales';
 import { purchases as seedPurchases } from '../data/purchases';
 import { availableParties, availableProducts, availablePurchases, createPreviewParty, createPreviewProduct, createPreviewPurchase } from '../data/erpDemoStore';
-import type { Party, PaymentMethod, PaymentSplit, Product, Purchase } from '../types/erp';
+import type { Party, PaymentSplit, Product, Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../utils/productFeatures';
 import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, lotBaseSellPrice, makePurchaseLine, switchPurchaseUnit, type PurchaseCartLine } from '../utils/purchaseCart';
 
-type Method = Exclude<PaymentMethod, 'Customer Credit'>;
-type PaymentRow = { id: string; method: Method; account: string; amount: string };
 type Line = PurchaseCartLine;
 
-const methods: Method[] = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card'];
-const accounts: Record<Method, string[]> = {
-  Cash: ['Cash counter'], Bank: ['Dutch-Bangla Bank · 4582'],
-  Card: ['Dutch-Bangla Bank · 4582'],
-  bKash: ['bKash Business · 01711•••412'],
-  Nagad: ['Nagad Merchant · 01819•••771']
-};
 const uid = () => Math.random().toString(36).slice(2, 10);
 const todayISO = () => {
   const date = new Date();
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
 };
-const paymentRow = (): PaymentRow => ({ id: uid(), method: 'Cash', account: accounts.Cash[0], amount: '' });
 export function PurchaseEditor() {
   const navigate = useNavigate();
+  const { state: settingsState } = useTenantSettings();
   const [products, setProducts] = useState(() => availableProducts().filter((product) => product.kind !== 'Service'));
   const [suppliers, setSuppliers] = useState(() => availableParties().filter((party) => party.roles.includes('Supplier') || party.roles.includes('Vendor')));
   const [supplierId, setSupplierId] = useState('');
@@ -46,7 +39,9 @@ export function PurchaseEditor() {
   const [referenceNo, setReferenceNo] = useState('');
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<Line[]>([]);
-  const [payments, setPayments] = useState<PaymentRow[]>([paymentRow()]);
+  const [payments, setPayments] = useState<PurchasePaymentRow[]>([makePurchasePaymentRow()]);
+  const [discount, setDiscount] = useState('');
+  const [discountMode, setDiscountMode] = useState<PurchaseDiscountMode>('amount');
   const [photos, setPhotos] = useState<string[]>([]);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [error, setError] = useState('');
@@ -60,10 +55,10 @@ export function PurchaseEditor() {
 
   const supplier = suppliers.find((party) => party.id === supplierId);
   const purchaseRef = 'PUR-' + String(119 + availablePurchases().length - seedPurchases.length).padStart(6, '0');
-  const total = useMemo(() => rounded(lines.reduce((sum, line) => sum + lineAmount(line), 0)), [lines]);
-  const paid = rounded(payments.reduce((sum, row) => sum + amountOf(row.amount), 0));
-  const due = Math.max(0, rounded(total - paid));
-  const excess = Math.max(0, rounded(paid - total));
+  const subtotal = useMemo(() => rounded(lines.reduce((sum, line) => sum + lineAmount(line), 0)), [lines]);
+  const totals = calculatePurchaseCheckout(subtotal, discount, discountMode, settingsState.sections.sales.rounding, payments);
+  const { total, due, excess } = totals;
+  const paid = totals.paidNum;
 
   useEffect(() => {
     if (!lastAdded) return;
@@ -78,7 +73,6 @@ export function PurchaseEditor() {
     setError('');
   };
   const updateLine = (id: string, patch: Partial<Line>) => setLines((current) => current.map((line) => line.id === id ? { ...line, ...patch } : line));
-  const updatePayment = (id: string, patch: Partial<PaymentRow>) => setPayments((current) => current.map((row) => row.id === id ? { ...row, ...patch } : row));
   const selectCostUnit = (line: Line, unit: string) => {
     setLines((current) => current.map((item) =>
       item.id === line.id ? switchPurchaseUnit(item, unit) : item));
@@ -152,6 +146,7 @@ export function PurchaseEditor() {
       supplierId: supplier.id, supplier: supplier.name,
       items: lines.map((line) => line.product.name + ' · ' + describeQty(line)).join(', '),
       total, paid: rounded(paid), payments: paymentSplits,
+      subtotal, discount: totals.discountAmt, rounding: totals.rounding,
       receipt: photos[0], memoNo: referenceNo.trim() || undefined,
       notes: notes.trim() || undefined,
       backdateReason: backdateReason.trim() || undefined,
@@ -263,49 +258,21 @@ export function PurchaseEditor() {
         </div>
       </section>
 
-          <section className="rounded-xl border border-border bg-card shadow-card">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
-              <div><p className="text-[13px] font-semibold text-ink">Payment <span className="font-bn text-[11px] font-normal text-ink-400">· পেমেন্ট</span></p><p className="text-[11px] text-ink-500">Multiple payment sources supported</p></div>
-              <Button size="sm" variant="outline" onClick={() => setPayments([{ ...paymentRow(), amount: String(total), method: payments[0]?.method ?? 'Cash', account: payments[0]?.account ?? accounts.Cash[0] }])} disabled={total <= 0}>Pay full</Button>
-            </div>
-            <div className="divide-y divide-border">
-              {payments.map((row, index) => (
-                <div key={row.id} className="space-y-2 p-3">
-                  <div className="flex items-center justify-between text-[11px] font-medium text-ink-500"><span>Source {index + 1}</span>
-                    <button type="button" disabled={payments.length === 1} onClick={() => setPayments((current) => current.filter((entry) => entry.id !== row.id))}
-                      className="text-ink-400 hover:text-danger disabled:opacity-25" aria-label={'Remove payment source ' + (index + 1)}><Trash2 className="size-3.5" /></button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <label className="text-[11px] text-ink-500">Method
-                      <FormSelect className="mt-1" value={row.method} options={methods} onChange={(event) => {
-                        const method = event.target.value as Method;
-                        updatePayment(row.id, { method, account: accounts[method][0] });
-                      }} />
-                    </label>
-                    <label className="text-[11px] text-ink-500">Paid amount
-                      <Input ref={index === 0 ? paymentAmountRef : undefined} aria-label={'Paid amount ' + (index + 1)}
-                        className="mt-1 text-right" inputMode="decimal" placeholder="0" value={row.amount}
-                        onChange={(event) => updatePayment(row.id, { amount: event.target.value.replace(/[^0-9.]/g, '') })} />
-                    </label>
-                  </div>
-                  <label className="block text-[11px] text-ink-500">Account
-                    <FormSelect className="mt-1" value={row.account} options={accounts[row.method]} onChange={(event) => updatePayment(row.id, { account: event.target.value })} />
-                  </label>
-                </div>
-              ))}
-            </div>
-            <div className="border-t border-border p-3"><Button variant="outline" size="sm" className="w-full" onClick={() => setPayments((current) => [...current, paymentRow()])}><Plus className="size-4" /> Add payment source</Button></div>
-            <div className="space-y-2 border-t border-border bg-ink-50/50 p-4 text-[13px]">
-              <div className="flex justify-between text-ink-500"><span>Purchase total</span><span className="font-semibold text-ink">{taka(total)}</span></div>
-              <div className="flex justify-between text-ink-500"><span>Paid</span><span className="font-medium text-ink">{taka(paid)}</span></div>
-              <div className="flex justify-between border-t border-border pt-2"><span className={excess ? 'text-danger' : 'font-medium text-ink'}>{excess ? 'Overpayment' : 'Supplier due · বাকি'}</span>
-                <span className={'font-semibold ' + (excess ? 'text-danger' : due ? 'text-warning' : 'text-success')}>{taka(excess || due)}</span></div>
-            </div>
-          </section>
+          <PurchasePaymentPanel
+            totals={totals}
+            itemCount={lines.length}
+            discount={discount}
+            discountMode={discountMode}
+            onDiscount={setDiscount}
+            onDiscountMode={setDiscountMode}
+            payments={payments}
+            onPayments={setPayments}
+            paidRef={paymentAmountRef}
+            onComplete={save}
+          />
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
           <div className="flex gap-2">
             <Button className="flex-1" variant="outline" onClick={() => navigate('/app/purchases')}>Cancel</Button>
-            <Button className="flex-[1.5]" onClick={save} disabled={lines.length === 0}><Plus className="size-4" /> Complete purchase</Button>
           </div>
           <p className="text-center text-[11px] text-ink-400">UI preview: entries and quick-add records remain in memory until refresh; backend posting is not connected.</p>
         </aside>
