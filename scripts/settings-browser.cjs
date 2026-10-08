@@ -26,6 +26,10 @@ async function main() {
       .getByRole("heading", { name: "Business settings", exact: true })
       .waitFor();
   };
+  const chooseOption = async (label, value) => {
+    await page.getByLabel(label, { exact: true }).click();
+    await page.locator('[role="option"][data-value=' + JSON.stringify(value) + ']').click();
+  };
   const mode = async (value) =>
     page.getByRole("radio", { name: value, exact: true }).check();
   const save = async () => {
@@ -104,12 +108,8 @@ async function main() {
         .inputValue(),
       "15",
     );
-    await page
-      .getByLabel("Default payment method", { exact: true })
-      .selectOption("bKash");
-    await page
-      .getByLabel("Invoice rounding", { exact: true })
-      .selectOption("No rounding");
+    await chooseOption("Default payment method", "bKash");
+    await chooseOption("Invoice rounding", "No rounding");
     await save();
     await page.goto(`${base}/#/app/pos`);
     await page.getByText("Rounding (off)", { exact: true }).waitFor();
@@ -125,14 +125,12 @@ async function main() {
     );
     await page.getByText("Rounding (off)", { exact: true }).waitFor();
     assert.equal(
-      await page
-        .locator("select")
-        .evaluateAll((els) => els.some((el) => el.value === "bKash")),
+      await page.locator('[role="combobox"][data-value="bKash"]').count() > 0,
       true,
       "First payment uses saved method",
     );
     await go("sales");
-    await page.getByLabel("Demo employee access").selectOption("rafiq");
+    await chooseOption("Demo employee access", "rafiq");
     await page.getByText(/Read-only access/).waitFor();
     assert.equal(
       await page.getByLabel("Invoice rounding", { exact: true }).isDisabled(),
@@ -144,7 +142,7 @@ async function main() {
         .isDisabled(),
       true,
     );
-    await page.getByLabel("Demo employee access").selectOption("mahmud");
+    await chooseOption("Demo employee access", "mahmud");
     await mode("Simple");
     await page.getByLabel("Search settings").fill("FIFO");
     await page
@@ -158,12 +156,8 @@ async function main() {
         .isChecked(),
       true,
     );
-    await page
-      .getByLabel("Default base unit", { exact: true })
-      .selectOption("Pcs");
-    await page
-      .getByLabel("Default serial tracking", { exact: true })
-      .selectOption("Required");
+    await chooseOption("Default base unit", "Pcs");
+    await chooseOption("Default serial tracking", "Required");
     await page
       .getByRole("switch", { name: "Warranty by default", exact: true })
       .locator("..")
@@ -229,15 +223,15 @@ async function main() {
       .getByRole("button", { name: "Keep employee draft", exact: true })
       .click();
     await save();
-    await page.getByLabel("Demo employee access").selectOption("rafiq");
+    await chooseOption("Demo employee access", "rafiq");
     await go("sales");
     // A hard navigation reopens the owner demo actor; use the selector to inspect the saved combined role.
-    await page.getByLabel("Demo employee access").selectOption("rafiq");
+    await chooseOption("Demo employee access", "rafiq");
     assert.equal(
       await page.getByLabel("Invoice rounding", { exact: true }).isDisabled(),
       false,
     );
-    await page.getByLabel("Demo employee access").selectOption("mahmud");
+    await chooseOption("Demo employee access", "mahmud");
     await go("team");
     await mode("Advanced");
     await page
@@ -259,13 +253,9 @@ async function main() {
     await page.getByRole("button", { name: "Discard", exact: true }).click();
     await go("personal");
     await mode("Advanced");
-    await page.getByLabel("Appearance", { exact: true }).selectOption("dark");
-    await page
-      .getByLabel("Financial terminology", { exact: true })
-      .selectOption("accounting");
-    await page
-      .getByLabel("Transaction date display", { exact: true })
-      .selectOption("created");
+    await chooseOption("Appearance", "dark");
+    await chooseOption("Financial terminology", "accounting");
+    await chooseOption("Transaction date display", "created");
     await save();
     await page.waitForFunction(
       () => document.documentElement.dataset.theme === "dark",
@@ -325,7 +315,7 @@ async function main() {
           "Name,Category,Unit\nPVC elbow,Hardware,Pcs\nPipe,Plumbing,Ft",
         ),
       });
-    await page.getByLabel("Map Product name").selectOption("0");
+    await chooseOption("Map Product name", "0");
     await page
       .getByRole("button", { name: "Preview import", exact: true })
       .click();
