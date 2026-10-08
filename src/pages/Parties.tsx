@@ -49,7 +49,10 @@ export function Parties() {
   const selected=resolvePartySelection(allParties,params.get('id')??undefined,params.get('role')??undefined);
   const party=selected?allParties.find(p=>p.id===selected.partyId):undefined;
   const relationship=selected?.relationship;
-  const filtered=allParties.filter(p=>(role==='All'||p.roles.includes(role))&&matchesPartySearch(p,query));
+  const filtered=allParties.filter(p=>(role==='All'||p.roles.includes(role))&&matchesPartySearch(p,query))
+    .map(p=>({...p,balance:role!=='All'
+      ?computePartyBalanceSummary(state,p.id,role).netBalance
+      :p.roles.length===1?computePartyBalanceSummary(state,p.id,p.roles[0]).netBalance:0}));
   const partyEntries:LedgerEntry[]=party&&relationship?state.sources
     .filter(source=>source.partyId===party.id&&source.relationship===relationship&&source.status==='Active')
     .sort((a,b)=>a.date.localeCompare(b.date)||a.sequence-b.sequence)
@@ -94,8 +97,11 @@ export function Parties() {
     }
   };
 
-  const receivable=allParties.filter(p=>p.balance>0).reduce((s,p)=>s+p.balance,0);
-  const payable=allParties.filter(p=>p.balance<0).reduce((s,p)=>s-p.balance,0);
+  // Sum each relationship separately; a customer receivable must never
+  // silently offset the same party's supplier payable.
+  const balances=allParties.flatMap(p=>p.roles.map(r=>computePartyBalanceSummary(state,p.id,r).netBalance));
+  const receivable=balances.filter(n=>n>0).reduce((s,n)=>s+n,0);
+  const payable=balances.filter(n=>n<0).reduce((s,n)=>s-n,0);
   const selectParty=(id:string)=>{
     const target=allParties.find(p=>p.id===id);
     if(target){setParams({id,role:target.roles.includes(relationship as PartyRole)?relationship!:target.roles[0]});resetLedger();}
