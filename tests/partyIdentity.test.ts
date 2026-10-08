@@ -44,7 +44,7 @@ test('legacy fixture dates normalize and financial references are not double cou
 });
 
 test('seeded invoices and purchases include their original paid amounts exactly once', () => {
-  const snapshot=normalizePartyFixture(partiesFromSeed(), ledgerFromSeed());
+  const snapshot=normalizePartyFixture(partiesFromSeed, ledgerFromSeed);
   const paidCustomer=snapshot.sources.filter(x=>x.partyId==='c4'&&x.relationship==='Customer'&&x.kind==='customer-payment'&&x.invoiceId==='INV-000239');
   assert.equal(paidCustomer.length,1);
   assert.equal(paidCustomer[0].credit,6000);
