@@ -15,6 +15,17 @@ async function main() {
     await page.reload();
     assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
 
+    // The Sales customer filter was the original gray native popup screenshot.
+    await page.goto(root + 'sales');
+    const salesCustomer = page.getByRole('combobox', { name: 'All customers', exact: true });
+    await salesCustomer.click();
+    const salesOptions = page.getByRole('listbox', { name: 'All customers options' });
+    assert.equal(await salesOptions.evaluate((node) => getComputedStyle(node).backgroundColor),
+      'rgb(20, 38, 59)', 'Sales customer popup is navy, not native charcoal');
+    await salesOptions.locator('[role="option"][data-value="Rahman Hardware"]').click();
+    assert.equal(await salesCustomer.getAttribute('data-value'), 'Rahman Hardware');
+    await page.goto(root + 'daybook');
+
     const status = page.getByRole('combobox', { name: 'Status', exact: true });
     await status.click();
     const options = page.getByRole('listbox', { name: 'Status options' });
