@@ -1,4 +1,5 @@
 import type { Party, PartyRole } from './erp';
+import type { FinanceTransactionType } from '../data/financeAccounts';
 
 export type PartyRelationship = PartyRole;
 export type PartyLedgerSource = 'sale' | 'sale-return' | 'customer-payment' | 'customer-credit-refund' | 'supplier-credit-refund' | 'customer-credit-apply' | 'purchase' | 'purchase-return' | 'supplier-payment' | 'finance' | 'expense' | 'opening' | 'note';
@@ -38,6 +39,7 @@ export type PartySourceRecord = {
   method?: string;
   accountId?: string;
   invoiceId?: string;
+  financeType?: FinanceTransactionType;
   /** Credit-proof for settlement replay; legacy fixtures are never refund-eligible by default. */
   provenance?: 'verified' | 'legacy-unverified';
   paymentSplits?: Array<{id:string; method:'Cash'|'Bank'|'Mobile Banking'; accountId:string; amount:number}>;
@@ -54,6 +56,11 @@ export type PartyPaymentPayload = {
 export type PartyRefundPayload = {
   partyId:string; relationship:'Customer'|'Supplier'; date:string;
   amount:number; reason:string; operationId?:string; splits:PartyMoneySplit[];
+};
+export type PartyFinancePayload = {
+  partyId:string; relationship:'Owner'|'Lender'|'Borrower'; financeType:FinanceTransactionType;
+  amount:number; date:string; operationId?:string; note?:string; reference?:string;
+  splits:PartyMoneySplit[];
 };
 export type PartyPreviewState = { parties: Party[]; sources: PartySourceRecord[]; audit: PartyAuditEvent[]; revision: number };
 export type LedgerStatement = {

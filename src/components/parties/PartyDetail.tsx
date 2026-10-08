@@ -13,8 +13,10 @@ import { PartyStatementDialog } from './PartyStatementDialog';
 import { PartyPaymentDialog } from './PartyPaymentDialog';
 import { PartyCreditRefundDialog } from './PartyCreditRefundDialog';
 import { PartyTransactionDialog } from './PartyTransactionDialog';
+import { PartyFinanceDialog } from './PartyFinanceDialog';
+import type { FinanceRole } from '../../utils/partyFinance';
 import type { LedgerEntry, Party, PartyRole } from '../../types/erp';
-import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload } from '../../types/partyLedger';
+import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload } from '../../types/partyLedger';
 import type { IsoRange } from '../../utils/dateRange';
 import { formatNumber, taka } from '../../utils/currency';
 
@@ -46,6 +48,7 @@ type PartyDetailProps = {
   onRefundCredit: (payload:PartyRefundPayload) => void;
   onEditSourcePayment: (sourceId:string,payload:PartyPaymentPayload,reason:string) => void;
   onReverseSource: (sourceId:string,reason:string) => void;
+  onRecordFinance: (payload:PartyFinancePayload) => void;
 };
 
 export function PartyDetail({
@@ -53,7 +56,7 @@ export function PartyDetail({
   statement, balanceSummary, visibleRows, range, onRange, kind, onKind, ledgerQuery, onLedgerQuery,
   pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
   onLedgerAction, statementOpen, onCloseStatement, sources, onRecordPayment, onRefundCredit,
-  onEditSourcePayment, onReverseSource
+  onEditSourcePayment, onReverseSource, onRecordFinance
 }: PartyDetailProps) {
   const [tab, setTab] = useState<Tab>('ledger');
   const [note, setNote] = useState('');
@@ -64,12 +67,13 @@ export function PartyDetail({
   const [viewedRow,setViewedRow] = useState<PartyLedgerRow|null>(null);
   const [paymentOpen,setPaymentOpen] = useState(false);
   const [refundOpen,setRefundOpen] = useState(false);
+  const [financeOpen,setFinanceOpen]=useState(false);
   const [editorRow,setEditorRow]=useState<PartyLedgerRow|null>(null);
   const [editorMode,setEditorMode]=useState<'edit'|'reverse'>('edit');
   const doRowAction=(action:PartyAction,row:PartyLedgerRow)=>{
     if(action==='view'){setViewedRow(row);return;}
     if((action==='edit'||action==='delete'||action==='reverse')&&
-       /^party-(payment|refund):/.test(row.sourceId??'')){
+       /^party-(payment|refund|finance):/.test(row.sourceId??'')){
       setEditorMode(action==='edit'?'edit':'reverse');setEditorRow(row);return;
     }
     onLedgerAction(action,row);
@@ -144,6 +148,12 @@ export function PartyDetail({
         <Button size="sm" variant="outline" disabled title="SMS service is not connected to the UI preview">
           <Send className="size-4" /> Send statement
         </Button>
+        {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
+          <Button size="sm" variant="outline" aria-label={`Record ${relationship.toLowerCase()} finance`}
+            onClick={()=>setFinanceOpen(true)}>
+            <HandCoins className="size-4"/> {relationship==='Owner'?'Capital / withdrawal':
+              relationship==='Lender'?'Borrow / repay':'Lend / receive'}
+          </Button>}
         <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
           <StickyNote className="size-4" /> Add note
         </Button>
@@ -274,6 +284,9 @@ export function PartyDetail({
         <PartyCreditRefundDialog open={refundOpen} party={party} relationship={relationship} sources={sources}
           onClose={()=>setRefundOpen(false)} onSubmit={onRefundCredit}/>
       </>}
+      {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
+        <PartyFinanceDialog open={financeOpen} party={party} relationship={relationship as FinanceRole}
+          onClose={()=>setFinanceOpen(false)} onSubmit={onRecordFinance}/>}
       <PartyTransactionDialog row={editorRow} mode={editorMode}
         source={sources.find(item=>item.id===editorRow?.sourceId)??null}
         onClose={()=>setEditorRow(null)} onEdit={onEditSourcePayment} onReverse={onReverseSource}/>
