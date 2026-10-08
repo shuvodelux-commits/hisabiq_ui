@@ -1,3 +1,4 @@
+import { AppSelect } from '../components/AppSelect';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -395,18 +396,14 @@ function IntakeDialog({
           </label>
           <label className="text-[12px] font-medium text-ink">
             Product
-            <div className="relative mt-1">
-              <select
-                value={selectedLine?.productId ?? ''}
-                onChange={(event) => {
-                  const line = selectedInvoice?.lines.find((item) => item.productId === event.target.value);
-                  setProductId(event.target.value);
-                  setSerial(line?.serials?.[0] ?? '');
-                }}
-                className="h-9 w-full appearance-none rounded-md border border-input bg-card px-3 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20">
-                {selectedInvoice?.lines.map((line) => <option key={line.id} value={line.productId}>{line.name}</option>)}
-              </select>
-            </div>
+            <AppSelect label="Warranty product" className="mt-1"
+              value={selectedLine?.productId ?? ''}
+              onChange={(next) => {
+                const line = selectedInvoice?.lines.find((item) => item.productId === next);
+                setProductId(next);
+                setSerial(line?.serials?.[0] ?? '');
+              }}
+              options={(selectedInvoice?.lines ?? []).map((line) => ({ value: line.productId, label: line.name }))} />
           </label>
           <label className="text-[12px] font-medium text-ink">
             Serial number
