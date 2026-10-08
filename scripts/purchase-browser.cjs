@@ -47,6 +47,13 @@ async function main() {
     await page.getByRole('button', { name: /Quick add PVC Pipe/ }).first().click();
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 2);
     assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
+    await page.getByRole('button', { name: /Quick add Gate Valve/ }).click();
+    await page.getByRole('textbox', { name: /Serial numbers for Gate Valve/ }).fill('QA-GATE-2026-001');
+    await page.getByRole('button', { name: /Quick add Cement/ }).click();
+    const expiryRow = page.getByTestId('purchase-cart-row').last();
+    await expiryRow.getByLabel('Batch / lot number').fill('CEM-QA-BATCH');
+    await expiryRow.getByLabel('Expiry date').fill('2026-12-31');
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 4);
     await page.getByRole('button', { name: 'Pay full' }).click();
     assert.match(await page.locator('aside').last().innerText(), /Supplier due/);
     await page.getByRole('button', { name: 'Complete purchase' }).click();
