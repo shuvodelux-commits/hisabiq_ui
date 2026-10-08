@@ -1,7 +1,7 @@
 # Shared Excel/CSV Import Center — UI/UX Design Specification
 
 **Date:** 2026-10-09  
-**Status:** Approved concept and scope (Products, Customers, Suppliers, opening stock, opening balances); detailed specification **pending user review**  
+**Status:** Detailed design **approved on 2026-10-09** (Products, Customers, Suppliers, opening stock, opening balances); implementation plan pending separate review  
 **Repository:** `shuvodelux-commits/hisabiq_ui` — UI/UX only, using the existing Magic Patterns design language and shadcn-style components  
 **Production project:** HisabIQ is separate; the UI repository must not be represented as production accounting code  
 **Principle:** KISS — simple on the surface, correct and auditable underneath.
