@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, Download, MoreHorizontal, Plus, Search } from 'lucide-react';
+import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
@@ -8,6 +8,7 @@ import { ProductThumb } from '../components/ProductThumb';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { AddProductDialog, type ProductOpeningMeta } from '../components/products/AddProductDialog';
+import { ImportWizard } from '../components/import/ImportWizard';
 import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockLotDialog, type StockAdjustmentResult } from '../components/products/ProductInventoryDialogs';
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
@@ -179,6 +180,7 @@ export function Products() {
   const [category, setCategory] = useState('All');
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
   const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
@@ -338,6 +340,9 @@ export function Products() {
           <>
             <Button variant="outline" size="sm" onClick={() => toast('Exported products.xlsx')}>
               <Download className="size-4" /> Export
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+              <Upload className="size-4" /> Import
             </Button>
             <Button size="sm" onClick={() => { setEditingProduct(null); setDialogOpen(true); }}>
               <Plus className="size-4" /> Add product
@@ -589,6 +594,7 @@ export function Products() {
         </div>
       )}
 
+      <ImportWizard target="product" open={importOpen} onClose={()=>setImportOpen(false)}/>
       <AddProductDialog
         open={dialogOpen}
         onOpenChange={(open) => {
