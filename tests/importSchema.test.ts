@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fieldsFor} from '../src/import/fieldSchemas.ts';
-import {suggestColumnMapping,mapImportRows} from '../src/import/columnMapping.ts';
+import {suggestColumnMapping,mapImportRows,validateMappedRow} from '../src/import/columnMapping.ts';
 import type {ImportTable} from '../src/import/importTypes.ts';
 
 test('product headers recognize Bangla name and English SKU / selling price',()=>{
@@ -48,4 +48,16 @@ test('unmapped required headings fail instead of inventing a product name',()=>{
  const table:ImportTable={fileName:'bad.csv',sheet:'CSV',sheetNames:['CSV'],headers:['SKU'],rows:[{sourceRow:2,cells:['001']}]};
  const mapping=suggestColumnMapping('product',table.headers).mapping;
  assert.throws(()=>mapImportRows(table,mapping),/required|name/i);
+});
+
+test('blank required values become review errors and can be corrected without changing originals',()=>{
+ const table:ImportTable={fileName:'test.csv',sheet:'CSV',sheetNames:['CSV'],
+  headers:['Product Name','Selling Price'],rows:[{sourceRow:4,cells:['',165]}]};
+ const rows=mapImportRows(table,suggestColumnMapping('product',table.headers).mapping);
+ assert.equal(rows[0].issues[0]?.field,'name');
+ assert.equal(rows[0].issues[0]?.severity,'error');
+ const fixed=validateMappedRow({...rows[0],mapped:{...rows[0].mapped,name:'LED Bulb 12W'}},'product');
+ assert.equal(fixed.issues.length,0);
+ assert.equal(fixed.original['Product Name'],'');
+ assert.equal(fixed.sourceRow,4);
 });
