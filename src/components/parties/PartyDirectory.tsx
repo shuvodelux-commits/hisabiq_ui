@@ -74,10 +74,13 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-[13px] font-semibold tabular-nums ${p.balance > 0 ? 'text-teal-700' : p.balance < 0 ? 'text-danger' : 'text-ink-400'}`}>
-                    {p.balance === 0 ? '৳0' : taka(Math.abs(p.balance))}
-                  </p>
-                  <p className="text-[10.5px] text-ink-400">{p.balance > 0 ? 'Receivable' : p.balance < 0 ? 'Payable' : 'Settled'}</p>
+                  {role==='All'&&p.roles.length>1?
+                    <><p className="text-[12px] font-semibold text-ink-600">Multiple ledgers</p>
+                      <p className="text-[10.5px] text-ink-400">Select relationship</p></>:
+                    <><p className={`text-[13px] font-semibold tabular-nums ${p.balance > 0 ? 'text-teal-700' : p.balance < 0 ? 'text-danger' : 'text-ink-400'}`}>
+                      {p.balance === 0 ? '৳0' : taka(Math.abs(p.balance))}
+                    </p>
+                    <p className="text-[10.5px] text-ink-400">{p.balance > 0 ? 'Receivable' : p.balance < 0 ? 'Payable' : 'Settled'}</p></>}
                 </div>
               </button>
             </li>);
