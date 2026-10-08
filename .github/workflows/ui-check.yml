@@ -40,6 +40,9 @@ jobs:
       - name: Check product quick-add and price-unit interactions
         run: npm run test:product-quick-add
 
+      - name: Check themed selects and date-range filters
+        run: npm run test:themed-filters
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
