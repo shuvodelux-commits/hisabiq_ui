@@ -36,7 +36,7 @@ export function PartyEditorDialog({open,party,onClose,onSave}:Props) {
     catch(err){setError(err instanceof Error?err.message:'Cannot save party.');}
   };
   return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
-    <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
+    <DialogContent role="dialog" aria-modal="true" aria-label={party?"Edit party":"Add party"} className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
       <DialogHeader>
         <DialogTitle>{party?'Edit party':'Add party'} <span className="font-bn text-sm font-normal text-ink-500">পার্টি তথ্য</span></DialogTitle>
         <DialogDescription>One person can be a customer, supplier or hold multiple roles. This is a preview; no backend record is written.</DialogDescription>
