@@ -156,7 +156,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
           <div className="flex gap-2">
             <button type="button" onClick={close} className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-ink-50">Cancel</button>
             <button type="button" onClick={() => commit(draft)} disabled={!draft.from || !draft.to}
-              className="rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40">Apply</button>
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40">Apply</button>
           </div>
         </div>
       </div>, document.body)}
