@@ -46,7 +46,7 @@ async function main() {
     await page.getByRole('button',{name:/Import CSV/i}).click();
     await page.getByLabel('Select CSV file').setInputFiles({
       name:'parties.csv',mimeType:'text/csv',
-      buffer:Buffer.from('name,nameBn,phone,area,roles\\nCSV Supplier QA,সিএসভি,01700990011,Sylhet,Supplier|Customer\\n')
+      buffer:Buffer.from('name,nameBn,phone,area,roles\nCSV Supplier QA,সিএসভি,01700990011,Sylhet,Supplier|Customer\n')
     });
     await page.getByRole('button',{name:/Import 1 parties/}).click();
     await page.getByText('CSV Supplier QA',{exact:true}).first().waitFor();
