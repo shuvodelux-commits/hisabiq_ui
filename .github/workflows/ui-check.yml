@@ -6,6 +6,10 @@ on:
   push:
     branches: ['feat/party-*']
 
+concurrency:
+  group: ui-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
