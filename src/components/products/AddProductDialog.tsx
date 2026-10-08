@@ -368,7 +368,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
             <div>
               <p className="mb-1.5 text-[13px] font-medium text-ink">Category <span className="font-bn text-[11px] font-normal text-ink-400">· ক্যাটাগরি</span></p>
               <QuickAddSelect label="Category" value={category} options={categoryOptions.filter((c) => c !== 'All')} onChange={setCategory}
-                onCreate={(name) => { createPreviewProductCategory(name); setCategoryOptions((items) => [...items, name]); setCategory(name); }} />
+                onCreate={(name) => { createPreviewProductCategory(name); setCategoryOptions(availableProductCategories()); setCategory(name); }} />
+            </div>
+            {isStock && <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">Brand <span className="font-bn text-[11px] font-normal text-ink-400">· ব্র্যান্ড</span></p>
+              <QuickAddSelect label="Brand" value={brand} options={brandOptions} onChange={setBrand}
+                onCreate={(name) => { createPreviewProductBrand(name); setBrandOptions(availableProductBrands()); setBrand(name); }} />
             </div>
             <Field label="Product name" bn="নাম">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={isStock ? 'e.g. LED Bulb 12W' : 'e.g. Ceiling Fan Installation'} autoFocus />
@@ -376,26 +381,40 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
             <Field label="Bangla name" bn="বাংলা নাম (ঐচ্ছিক)">
               <Input value={nameBn} onChange={(e) => setNameBn(e.target.value)} placeholder={isStock ? 'এলইডি বাল্ব ১২ ওয়াট' : 'সিলিং ফ্যান ইনস্টলেশন'} className="font-bn" />
             </Field>
-            {isStock && <Field label="Base unit" bn="ছোট একক" hint="Smallest unit used for stock and serial counts.">
-              <FormSelect value={unit} onChange={(e) => {
-                const next = e.target.value;
-                if (sellUnit === unit) setSellUnit(next);
-                if (buyUnit === unit) setBuyUnit(next);
-                setUnit(next);
-              }} options={baseUnits} />
-            </Field>}
-            <Field label="Selling price" bn="বিক্রয় মূল্য" hint={sellNum && selectedSellUnit !== unit ? `${taka(sellNum)} / ${selectedSellUnit} → ${taka(sellBase)} / ${unit} automatically` : 'Normal selling price is preserved; offers are managed separately.'}>
-              <div className="flex gap-2">
-                <div className="min-w-0 flex-1"><MoneyInput value={sell} onChange={(e) => setSell(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" /></div>
-                <FormSelect value={selectedSellUnit} onChange={(e) => setSellUnit(e.target.value)} options={units} className="w-28 shrink-0" />
-              </div>
-            </Field>
-            <Field label={isStock ? 'Purchase price' : 'Service cost'} bn={isStock ? 'ক্রয় মূল্য' : 'সেবা খরচ'} hint="Optional internal cost.">
-              <div className="flex gap-2">
-                <div className="min-w-0 flex-1"><MoneyInput value={buy} onChange={(e) => setBuy(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" /></div>
-                {isStock && <FormSelect value={selectedBuyUnit} onChange={(e) => setBuyUnit(e.target.value)} options={units} className="w-28 shrink-0" />}
-              </div>
-            </Field>
+            {isStock && <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">Base unit <span className="font-bn text-[11px] font-normal text-ink-400">· ছোট একক</span></p>
+              <QuickAddSelect label="Base unit" value={unit} options={unitOptions.map((item) => item.symbol)}
+                onChange={(next) => {
+                  if (sellUnit === unit) setSellUnit(next);
+                  if (buyUnit === unit) setBuyUnit(next);
+                  setUnit(next);
+                }}
+                onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, (next) => {
+                  if (sellUnit === unit) setSellUnit(next);
+                  if (buyUnit === unit) setBuyUnit(next);
+                  setUnit(next);
+                })} showSymbol placeholder="Unit name, e.g. Meter" />
+              <p className="mt-1 text-xs text-ink-500">Smallest unit used for stock and serial counts.</p>
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">Selling price <span className="font-bn text-[11px] font-normal text-ink-400">· বিক্রয় মূল্য</span></p>
+              <MoneyUnitInput label="Selling price" value={sell} onChange={setSell}
+                unit={selectedSellUnit} units={units}
+                onUnitChange={(next) => changePriceUnit(sell, selectedSellUnit, next, setSell, setSellUnit)} />
+              <p className="mt-1 text-xs text-ink-500">
+                {sellNum && selectedSellUnit !== unit ? `${taka(sellNum)} / ${selectedSellUnit} → ${taka(sellBase)} / ${unit} automatically` : 'Normal selling price; offers are managed separately.'}
+              </p>
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">
+                {isStock ? 'Purchase price' : 'Service cost'}
+                <span className="font-bn ml-1 text-[11px] font-normal text-ink-400">· {isStock ? 'ক্রয় মূল্য' : 'সেবা খরচ'}</span>
+              </p>
+              <MoneyUnitInput label={isStock ? 'Purchase price' : 'Service cost'} value={buy} onChange={setBuy}
+                unit={isStock ? selectedBuyUnit : undefined} units={units}
+                onUnitChange={isStock ? (next) => changePriceUnit(buy, selectedBuyUnit, next, setBuy, setBuyUnit) : undefined} />
+              <p className="mt-1 text-xs text-ink-500">Optional internal cost.</p>
+            </div>
           </div>
           {margin !== null && <p className={`text-xs ${margin < 0 ? 'text-danger' : 'text-ink-500'}`}>Margin {margin.toFixed(1)}% · profit {taka(sellBase - buyBase)} per {unit}</p>}
         </section>
@@ -423,7 +442,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                   {multiUnit && <div className="rounded-lg bg-teal-50/60 p-3">
                     <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink">
                       <span className="font-medium">1</span>
-                      <Input value={altUnit} onChange={(e) => setAltUnit(e.target.value)} className="h-9 w-28 bg-card font-medium" aria-label="Larger unit" />
+                      <div className="min-w-[156px] max-w-[240px] flex-1">
+                        <QuickAddSelect label="Larger unit" value={altUnit} options={unitOptions.map((item) => item.symbol)}
+                          onChange={setAltUnit} onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, setAltUnit)}
+                          showSymbol placeholder="e.g. Box or Gauge" />
+                      </div>
                       <span className="text-ink-500">=</span>
                       <Input value={factor} onChange={(e) => setFactor(e.target.value.replace(/[^\d.]/g, ''))} className="h-9 w-20 bg-card text-right font-medium" inputMode="decimal" aria-label="Conversion factor" />
                       <span className="font-medium">{unit}</span>
