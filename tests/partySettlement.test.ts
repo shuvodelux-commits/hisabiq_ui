@@ -4,6 +4,7 @@ import {
  customerSettlementAsOf, supplierSettlementAsOf, validateCustomerPayment, validateCustomerRefund
 } from '../src/utils/partySettlement.ts';
 import type { PartySourceRecord } from '../src/types/partyLedger.ts';
+import { computePartyBalanceSummary } from '../src/utils/partyLedger.ts';
 
 const row=(id:string,date:string,kind:PartySourceRecord['kind'],debit:number,credit:number,over:Partial<PartySourceRecord>={}):PartySourceRecord=>({
  id,partyId:'c1',relationship:'Customer',kind,date,description:id,debit,credit,status:'Active',sequence:Number(id.replace(/\D/g,''))||1,...over
@@ -77,4 +78,14 @@ test('refunded credit cannot be refunded twice or move back in time',()=>{
  assert.equal(result.refundableCredit,20);
  assert.equal(result.refundedCredit,30);
  assert.throws(()=>validateCustomerRefund(result,{amount:21}),/exceeds|available/i);
+});
+
+test('Party summary uses real cash-backed credit, not negative Party.balance',()=>{
+ const sources=[row('pay-1','2026-09-04','customer-payment',0,50,{provenance:'verified'}),
+ row('pay-old','2026-09-05','customer-payment',0,125,{provenance:'legacy-unverified'})];
+ const summary=computePartyBalanceSummary({parties:[],sources,audit:[],revision:0},'c1','Customer');
+ assert.equal(summary.netBalance,-175);
+ assert.equal(summary.refundableCredit,50);
+ assert.equal(summary.availableCredit,50);
+ assert.equal(summary.due,0);
 });
