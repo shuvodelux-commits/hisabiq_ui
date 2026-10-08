@@ -229,8 +229,9 @@ export function PurchaseEditor() {
           </section>
         </div>
 
-        <aside className="min-w-0 space-y-4 lg:sticky lg:top-4">
-      <section className="rounded-xl border border-border bg-card p-4 shadow-card">
+        <aside className="min-w-0 space-y-3 lg:sticky lg:top-4">
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+      <section className="border-b border-border p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <div><p className="text-[13px] font-semibold text-ink">Purchase details</p><p className="font-bn text-[11px] text-ink-400">সরবরাহকারী ও ক্রয়ের তথ্য</p></div>
           <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
@@ -251,7 +252,7 @@ export function PurchaseEditor() {
             <Input className="mt-1" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder="Supplier bill / challan" />
           </label>
           {date && date < todayISO() && (
-            <label className="block text-[12px] font-medium text-ink sm:col-span-2 sm:col-span-2">Backdate reason <span className="text-danger">*</span>
+            <label className="block text-[12px] font-medium text-ink sm:col-span-2">Backdate reason <span className="text-danger">*</span>
               <Input className="mt-1" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder="Reason for entering an earlier purchase" />
             </label>
           )}
@@ -270,6 +271,7 @@ export function PurchaseEditor() {
             paidRef={paymentAmountRef}
             onComplete={save}
           />
+          </div>
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
           <div className="flex gap-2">
             <Button className="flex-1" variant="outline" onClick={() => navigate('/app/purchases')}>Cancel</Button>
