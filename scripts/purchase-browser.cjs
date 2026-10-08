@@ -36,6 +36,13 @@ async function main() {
     await page.keyboard.press('F2');
     const purchaseSearch = page.getByRole('combobox', { name: 'Search product to add to purchase' });
     assert.equal(await purchaseSearch.evaluate((node) => document.activeElement === node), true, 'F2 focuses search');
+    await purchaseSearch.fill('wire');
+    const firstOptionId = await purchaseSearch.getAttribute('aria-activedescendant');
+    await purchaseSearch.press('ArrowDown');
+    const secondOptionId = await purchaseSearch.getAttribute('aria-activedescendant');
+    assert.notEqual(firstOptionId, secondOptionId, 'ArrowDown selects the next search suggestion');
+    await purchaseSearch.press('ArrowUp');
+    assert.equal(await purchaseSearch.getAttribute('aria-activedescendant'), firstOptionId, 'ArrowUp selects previous suggestion');
     await purchaseSearch.fill('bulb');
     const suggestion = page.getByRole('option', { name: /LED Bulb 12W/ });
     await suggestion.waitFor();
@@ -84,6 +91,11 @@ async function main() {
     await expiryRow.getByLabel('Batch / lot number').fill('CEM-QA-BATCH');
     await expiryRow.getByLabel('Expiry date').fill('2026-12-31');
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 4);
+    await purchaseSearch.fill('PVC Pipe');
+    await page.getByRole('option', { name: /PVC Pipe/ }).first().click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 5, 'mouse click on floating suggestion adds a cart line');
+    await page.getByTestId('purchase-cart-row').last().getByRole('button', { name: /Remove PVC Pipe/ }).click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 4, 'remove restores cart');
     await page.keyboard.press('F8');
     const firstPaymentInput = page.getByLabel('Paid amount 1');
     assert.equal(await firstPaymentInput.evaluate((node) => document.activeElement === node), true, 'F8 focuses payment amount');
@@ -98,6 +110,9 @@ async function main() {
     await page.goto('http://127.0.0.1:4177/#/app/purchases/new');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).waitFor();
+    await page.keyboard.press('F9');
+    await page.getByText('Select or quick-add a supplier.', { exact: true }).last().waitFor();
+    assert.match(page.url(), /purchases\/new/, 'F9 validates instead of navigating on an incomplete purchase');
     await page.goto('http://127.0.0.1:4177/#/app/pos');
     const posCart = page.getByTestId('pos-cart');
     const posOrder = await posCart.locator(':scope > *').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-testid')));
