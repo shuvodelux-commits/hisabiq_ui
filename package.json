@@ -18,7 +18,8 @@
     "test:product-quick-add": "node scripts/product-quick-add-browser.cjs",
     "test:pos-reorder": "node scripts/pos-reorder-browser.cjs",
     "test:themed-filters": "node scripts/themed-filters-browser.cjs",
-    "test:parties": "node scripts/party-browser.cjs"
+    "test:parties": "node scripts/party-browser.cjs",
+    "test:party-ledger": "node scripts/party-ledger-browser.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",
