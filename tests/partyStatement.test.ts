@@ -31,3 +31,11 @@ test('print rows preserve running balances and never create synthetic changes',(
   assert.deepEqual(statementPrintRows(statement).map(r=>r.runningBalance),[70,90]);
   assert.equal(statementPrintRows({...statement,rows:[]}).length,0);
 });
+
+test('supplier credit balances remain numeric negative amounts in exported CSV',()=>{
+  const negative={...statement,relationship:'Supplier' as const,openingBalance:-100,closingBalance:-90};
+  const csv=serializePartyStatementCsv(negative,{business:'Shop',party:'Supplier'});
+  assert.match(csv,/Opening balance,-100\r?\n/);
+  assert.match(csv,/Closing balance,-90\r?\n/);
+  assert.doesNotMatch(csv,/Opening balance,'-100/);
+});
