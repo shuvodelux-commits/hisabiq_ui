@@ -245,7 +245,7 @@ Each PR targets the preceding merged slice (or branch until it is merged); never
 - [ ] **Step 2: Verify RED.** Run `node --experimental-strip-types --test tests/partyStatement.test.ts` and browser script. Expected FAIL.
 - [ ] **Step 3: Implement** CSV serializer + actual Blob/objectURL download with cleanup, business/party heading, period, opening, full rows, totals, closing and print timestamp. Print via `window.print()` of a **scoped** print-only subtree styled `@media print`, not generic screen shot. PDF is browser Save as PDF, not server PDF or false download claim. SMS Send statement remains explicitly disabled with "SMS not connected".
 - [ ] **Step 4: Verify GREEN.** Run task test, browser script and build. Expected PASS.
-- [ ] **Step 5: Commit.** `git add src/utils/partyStatement.ts src/components/parties/PartyStatementDialog.tsx src/components/parties/PartyDetail.tsx tests/partyStatement.test.ts scripts/party-browser.cjs && git add src && git commit -m "feat(parties): print and export complete clean statements"`.
+- [ ] **Step 5: Commit.** `git add src/utils/partyStatement.ts src/components/parties/PartyStatementDialog.tsx src/components/parties/PartyDetail.tsx tests/partyStatement.test.ts scripts/party-browser.cjs src/index.css && git commit -m "feat(parties): print and export complete clean statements"`.
 
 **Slice 2 gate:** all tests/build/browser pass; verify correction rows not printable and sample closing amounts reconcile; reviewable PR B.
 
