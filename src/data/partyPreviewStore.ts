@@ -2,10 +2,11 @@ import { parties as seedParties, ledgerEntries as seedLedgerEntries } from './pa
 import { normalizePartyFixture } from './partyFixtureAdapter.ts';
 import { validatePartyDraft } from '../utils/partyIdentity.ts';
 import { businessToday } from '../utils/dateRange.ts';
-import { validatePartyPayment, validatePartyRefund } from '../utils/partyPayment.ts';
+import { validatePartyPayment, validatePartyRefund, validatePartySplits, validateBusinessDate, toPaisa } from '../utils/partyPayment.ts';
+import { financeTypeMeta } from '../utils/partyFinance.ts';
 import { customerSettlementAsOf, supplierSettlementAsOf, validateCustomerPayment, validateCustomerRefund } from '../utils/partySettlement.ts';
 import type { Party, PartyRole } from '../types/erp';
-import type { PartyDraft, PartyPreviewState, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload } from '../types/partyLedger';
+import type { PartyDraft, PartyPreviewState, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload } from '../types/partyLedger';
 
 export type PartyPreviewCommand =
   | {type:'create-party'; party:PartyDraft}
@@ -16,6 +17,7 @@ export type PartyPreviewCommand =
   | {type:'edit-note'; sourceId:string; text:string}
   | {type:'delete-note'; sourceId:string}
   | {type:'record-payment'; payload:PartyPaymentPayload}
+  | {type:'record-finance'; payload:PartyFinancePayload}
   | {type:'refund-credit'; payload:PartyRefundPayload}
   | {type:'edit-source-payment'; sourceId:string; reason:string; payload:PartyPaymentPayload}
   | {type:'reverse-source'; sourceId:string; reason:string};
@@ -93,6 +95,36 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     before=party;after={...party,status:'Inactive' as const};
     parties=parties.map(p=>p.id===party.id?after as Party:p);
     targetPartyId=party.id;
+  } else if(command.type==='record-finance'){
+    const payload=command.payload;
+    const party=findParty(payload.partyId);
+    const meta=financeTypeMeta[payload.financeType];
+    if(!meta||meta.role!==payload.relationship||!party.roles.includes(meta.role))
+      throw new Error('Finance type does not match the selected party role or relationship.');
+    if(party.status==='Inactive')throw new Error('Inactive party cannot record finance transactions.');
+    validateBusinessDate(payload.date);
+    if(toPaisa(payload.amount,'Finance amount')<=0)throw new Error('Finance amount must be positive.');
+    if(meta.opening){
+      if(payload.splits.length)throw new Error('Opening finance balance must not move any money account.');
+    }else validatePartySplits(payload.splits,payload.amount);
+    if(payload.operationId&&!/^[A-Za-z0-9_-]{4,100}$/.test(payload.operationId))
+      throw new Error('Invalid operation ID.');
+    const id='party-finance:'+(payload.operationId??(++counter).toString());
+    if(sources.some(row=>row.id===id))throw new Error('Duplicate finance operation.');
+    const amount=payload.amount;
+    const source:PartySourceRecord={
+      id,partyId:party.id,relationship:meta.role,kind:'finance',financeType:payload.financeType,
+      date:payload.date,sequence:Math.max(0,...sources.map(row=>row.sequence))+1,
+      reference:payload.reference?.trim()||id.toUpperCase(),
+      description:payload.financeType+(payload.note?.trim()?' · '+payload.note.trim():''),
+      debit:meta.entry==='debit'?amount:0,credit:meta.entry==='credit'?amount:0,
+      amountPaid:meta.opening?0:amount,
+      paymentSplits:payload.splits.map(split=>({...split})),
+      method:meta.opening?undefined:payload.splits.length===1?payload.splits[0].method:'Multiple',
+      accountId:meta.opening?undefined:payload.splits.length===1?payload.splits[0].accountId:undefined,
+      provenance:'verified',status:'Active'
+    };
+    sources=[...sources,source];targetPartyId=party.id;sourceId=id;after=source;
   } else if(command.type==='record-payment'||command.type==='refund-credit'){
     const isRefund=command.type==='refund-credit';
     const payload=command.payload;
@@ -157,8 +189,8 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     if(original.status!=='Active')throw new Error('Source is already reversed or inactive.');
     // Only preview-created payment/refund sources may be changed here; Sales,
     // Purchases and legacy opening records have their own source editors.
-    if(!/^party-(payment|refund):/.test(original.id)||
-      !['customer-payment','supplier-payment','customer-credit-refund','supplier-credit-refund'].includes(original.kind))
+    if(!/^party-(payment|refund|finance):/.test(original.id)||
+      !['customer-payment','supplier-payment','customer-credit-refund','supplier-credit-refund','finance'].includes(original.kind))
       throw new Error('Original source action is not allowed from the Party preview.');
     if(!command.reason.trim())throw new Error('An audit reason is required.');
     let updated:PartySourceRecord;
