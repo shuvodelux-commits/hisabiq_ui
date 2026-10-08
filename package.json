@@ -21,7 +21,8 @@
     "test:parties": "node scripts/party-browser.cjs",
     "test:party-ledger": "node scripts/party-ledger-browser.cjs",
     "test:party-settlement": "node scripts/party-settlement-browser.cjs",
-    "test:party-opening": "node scripts/party-opening-browser.cjs"
+    "test:party-opening": "node scripts/party-opening-browser.cjs",
+    "test:import-wizard": "node scripts/import-wizard-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
