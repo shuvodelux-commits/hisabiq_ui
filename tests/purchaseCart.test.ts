@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { baseQty, baseCost, lineAmount, lotBaseSellPrice, makePurchaseLine, priceInUnit } from '../src/utils/purchaseCart.ts';
+import { baseQty, baseCost, lineAmount, lotBaseSellPrice, makePurchaseLine, priceInUnit, switchPurchaseUnit } from '../src/utils/purchaseCart.ts';
 
 const box = {
   id: 'p2', name: 'LED Bulb 12W', sku: 'LED', category: 'Electrical',
@@ -26,4 +26,34 @@ test('new purchase lines capture an initial lot selling price without mutating p
   assert.equal(lotBaseSellPrice(line), 165);
   assert.equal(box.sellPrice, 165);
   assert.equal(line.detailsOpen, false);
+});
+
+test('POS-style unit switch keeps the same compound stock quantity and purchase total', () => {
+  const original = { ...makePurchaseLine(box), bigQty: '2', smallQty: '5', cost: '1500' };
+  const base = switchPurchaseUnit(original, 'Pcs');
+  assert.equal(base.costUnit, 'Pcs');
+  assert.equal(base.bigQty, '0');
+  assert.equal(base.smallQty, '25');
+  assert.equal(base.cost, '150');
+  assert.equal(baseQty(base), 25);
+  assert.equal(lineAmount(base), 3750);
+  const again = switchPurchaseUnit(base, 'Box');
+  assert.equal(again.costUnit, 'Box');
+  assert.equal(again.bigQty, '2');
+  assert.equal(again.smallQty, '5');
+  assert.equal(again.cost, '1500');
+  assert.equal(lineAmount(again), 3750);
+});
+
+test('single-unit product ignores unsupported unit switch', () => {
+  const item = { ...box, altUnit: undefined };
+  const initial = makePurchaseLine(item);
+  assert.deepEqual(switchPurchaseUnit(initial, 'Box'), initial);
+});
+
+test('switching units retains independently entered lot selling price', () => {
+  const initial = { ...makePurchaseLine(box), lotSellPrice: '185', lotSellUnit: 'Pcs' };
+  const base = switchPurchaseUnit(initial, 'Pcs');
+  assert.equal(base.lotSellPrice, '185');
+  assert.equal(base.lotSellUnit, 'Pcs');
 });
