@@ -176,34 +176,6 @@ export function PurchaseEditor() {
         actions={<Button variant="outline" size="sm" onClick={() => navigate('/app/purchases')}><ArrowLeft className="size-4" /> Purchases</Button>}
       />
 
-      <div className="rounded-xl border border-border bg-card p-4 shadow-card">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div><p className="text-[13px] font-semibold text-ink">Purchase details</p><p className="font-bn text-[11px] text-ink-400">সরবরাহকারী ও ক্রয়ের তথ্য</p></div>
-          <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="block min-w-0 text-[12px] font-medium text-ink lg:col-span-2">
-            Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
-            <div className="mt-1">
-              <QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
-                onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
-                onCreate={addSupplier} showContact placeholder="Supplier or business name" />
-            </div>
-          </div>
-          <label className="block text-[12px] font-medium text-ink">Purchase date <span className="text-danger">*</span>
-            <Input className="mt-1" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
-          </label>
-          <label className="block text-[12px] font-medium text-ink">Supplier memo no. <span className="font-normal text-ink-400">· optional</span>
-            <Input className="mt-1" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder="Supplier bill / challan" />
-          </label>
-          {date && date < todayISO() && (
-            <label className="block text-[12px] font-medium text-ink sm:col-span-2 lg:col-span-4">Backdate reason <span className="text-danger">*</span>
-              <Input className="mt-1" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder="Reason for entering an earlier purchase" />
-            </label>
-          )}
-        </div>
-      </div>
-
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
         <div className="min-w-0 space-y-4">
           <PurchaseCart
@@ -229,6 +201,34 @@ export function PurchaseEditor() {
         </div>
 
         <aside className="min-w-0 space-y-4 lg:sticky lg:top-4">
+      <section className="rounded-xl border border-border bg-card p-4 shadow-card">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div><p className="text-[13px] font-semibold text-ink">Purchase details</p><p className="font-bn text-[11px] text-ink-400">সরবরাহকারী ও ক্রয়ের তথ্য</p></div>
+          <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="block min-w-0 text-[12px] font-medium text-ink lg:col-span-2">
+            Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
+            <div className="mt-1">
+              <QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
+                onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
+                onCreate={addSupplier} showContact placeholder="Supplier or business name" />
+            </div>
+          </div>
+          <label className="block text-[12px] font-medium text-ink">Purchase date <span className="text-danger">*</span>
+            <Input className="mt-1" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+          </label>
+          <label className="block text-[12px] font-medium text-ink">Supplier memo no. <span className="font-normal text-ink-400">· optional</span>
+            <Input className="mt-1" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder="Supplier bill / challan" />
+          </label>
+          {date && date < todayISO() && (
+            <label className="block text-[12px] font-medium text-ink sm:col-span-2 sm:col-span-2">Backdate reason <span className="text-danger">*</span>
+              <Input className="mt-1" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder="Reason for entering an earlier purchase" />
+            </label>
+          )}
+        </div>
+      </section>
+
           <section className="rounded-xl border border-border bg-card shadow-card">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
               <div><p className="text-[13px] font-semibold text-ink">Payment <span className="font-bn text-[11px] font-normal text-ink-400">· পেমেন্ট</span></p><p className="text-[11px] text-ink-500">Multiple payment sources supported</p></div>
