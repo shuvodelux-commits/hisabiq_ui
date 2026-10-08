@@ -60,6 +60,29 @@ async function main() {
     await chooseUnit(buyingUnit, 'su');
     assert.equal(await buying.inputValue(), '5', 'unit switching preserves base purchase price');
 
+    const opening = product.getByRole('textbox', { name: 'Opening stock', exact: true });
+    const openingUnit = product.getByRole('combobox', { name: 'Opening stock unit' });
+    const minimum = product.getByRole('textbox', { name: 'Minimum stock', exact: true });
+    const minimumUnit = product.getByRole('combobox', { name: 'Minimum stock unit' });
+    assert.equal(await opening.locator('xpath=..').getByRole('combobox').count(), 1,
+      'opening stock amount and unit share one connected border');
+    assert.equal(await minimum.locator('xpath=..').getByRole('combobox').count(), 1,
+      'minimum stock amount and unit share one connected border');
+    assert.equal(await opening.locator('xpath=..').getByText('৳').count(), 0,
+      'stock quantity must not show a currency symbol');
+    await chooseUnit(openingUnit, 'bdl');
+    await opening.fill('2');
+    await chooseUnit(openingUnit, 'su');
+    assert.equal(await opening.inputValue(), '32', 'opening stock converts to base quantity');
+    await chooseUnit(openingUnit, 'bdl');
+    assert.equal(await opening.inputValue(), '2', 'opening stock restores larger unit');
+    await chooseUnit(minimumUnit, 'bdl');
+    await minimum.fill('0.5');
+    await chooseUnit(minimumUnit, 'su');
+    assert.equal(await minimum.inputValue(), '8', 'minimum stock converts to base quantity');
+    await chooseUnit(minimumUnit, 'bdl');
+    assert.equal(await minimum.inputValue(), '0.5', 'minimum stock restores larger unit');
+
     await product.getByPlaceholder('e.g. LED Bulb 12W').fill('QA Sample Lamp');
     await product.getByRole('button', { name: 'Save product', exact: true }).click();
     await product.waitFor({ state: 'hidden' });

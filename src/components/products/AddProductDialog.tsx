@@ -9,7 +9,7 @@ import { Switch } from '../Switch';
 import { AppSelect } from '../AppSelect';
 import { AppDatePicker } from '../AppDateRangePicker';
 import { QuickAddSelect } from '../QuickAddSelect';
-import { MoneyUnitInput } from '../MoneyUnitInput';
+import { MoneyUnitInput, QuantityUnitInput } from '../MoneyUnitInput';
 import {
   availableProductCategories, availableProductBrands, availableProductUnits,
   createPreviewProductCategory, createPreviewProductBrand, createPreviewProductUnit
@@ -25,7 +25,7 @@ import type {
   WarrantyType
 } from '../../types/erp';
 import { taka } from '../../utils/currency';
-import { toBasePrice, toBaseQuantity } from '../../utils/productEntry';
+import { toBasePrice, toBaseQuantity, switchQuantityUnit } from '../../utils/productEntry';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 
 export type ProductOpeningMeta = {
@@ -140,6 +140,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const f = parseFloat(factor) || 1;
   const selectedSellUnit = units.includes(sellUnit) ? sellUnit : unit;
   const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : unit;
+  const selectedOpeningUnit = units.includes(openingUnit) ? openingUnit : unit;
+  const selectedMinUnit = units.includes(minUnit) ? minUnit : unit;
   const normalizedAltUnit = isStock && multiUnit && altUnit ? altUnit : undefined;
   const stockToBase = (qty: string, selectedUnit: string) => toBaseQuantity(qty, selectedUnit, unit, normalizedAltUnit, f);
   const priceToBase = (amount: string, selectedUnit: string) => toBasePrice(amount, selectedUnit, unit, normalizedAltUnit, f);
@@ -149,7 +151,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const buyBase = isStock ? priceToBase(buy, selectedBuyUnit) : buyNum;
   const margin = sellBase > 0 && buyBase > 0 ? (sellBase - buyBase) / sellBase * 100 : null;
   const autoAltSell = sellBase > 0 && multiUnit ? sellBase * f : 0;
-  const openingBaseQty = isStock ? stockToBase(openingQty, openingUnit) : 0;
+  const openingBaseQty = isStock ? stockToBase(openingQty, selectedOpeningUnit) : 0;
   const openingSerials = normalizeSerials(openingSerialText);
   const openingSerialDuplicates = duplicateSerials(openingSerials, existingSerials);
   const requiredOpeningSerials = !initialProduct ? requiredSerialCount({
@@ -256,6 +258,16 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     }
     setUnitValue(next);
   };
+  const changeStockUnit = (
+    amount: string,
+    current: string,
+    next: string,
+    setValue: (value: string) => void,
+    setUnitValue: (unit: string) => void
+  ) => {
+    setValue(switchQuantityUnit(amount, current, next, unit, normalizedAltUnit, f));
+    setUnitValue(next);
+  };
   const quickAddUnit = (name: string, symbol: string, select: (symbol: string) => void) => {
     const code = symbol.trim() || name.trim();
     createPreviewProductUnit(name, code);
@@ -316,7 +328,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       unit,
       altUnit: isStock && multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
       stock: initialProduct ? initialProduct.stock : openingBaseQty,
-      minStock: isStock ? stockToBase(minQty, minUnit) : 0,
+      minStock: isStock ? stockToBase(minQty, selectedMinUnit) : 0,
       sellPrice: sellBase,
       purchasePrice: buyBase,
       warranty: {
@@ -437,6 +449,10 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     if (!checked) {
                       if (sellUnit === altUnit) setSellUnit(unit);
                       if (buyUnit === altUnit) setBuyUnit(unit);
+                      setOpeningQty(switchQuantityUnit(openingQty, selectedOpeningUnit, unit, unit, normalizedAltUnit, f));
+                      setOpeningUnit(unit);
+                      setMinQty(switchQuantityUnit(minQty, selectedMinUnit, unit, unit, normalizedAltUnit, f));
+                      setMinUnit(unit);
                     }
                     setMultiUnit(checked);
                   }} />
@@ -462,16 +478,14 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     {!initialProduct && <Field label="Opening stock" bn="শুরুর স্টক">
-                      <div className="flex gap-2">
-                        <Input value={openingQty} onChange={(e) => setOpeningQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
-                        <AppSelect label="Opening stock unit" value={units.includes(openingUnit) ? openingUnit : unit} onChange={setOpeningUnit} options={units} className="w-28 shrink-0" />
-                      </div>
+                      <QuantityUnitInput label="Opening stock" value={openingQty} onChange={setOpeningQty}
+                        unit={selectedOpeningUnit} units={units}
+                        onUnitChange={(next) => changeStockUnit(openingQty, selectedOpeningUnit, next, setOpeningQty, setOpeningUnit)} />
                     </Field>}
                     <Field label="Minimum stock" bn="সর্বনিম্ন স্টক">
-                      <div className="flex gap-2">
-                        <Input value={minQty} onChange={(e) => setMinQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className="text-right" inputMode="decimal" />
-                        <AppSelect label="Minimum stock unit" value={units.includes(minUnit) ? minUnit : unit} onChange={setMinUnit} options={units} className="w-28 shrink-0" />
-                      </div>
+                      <QuantityUnitInput label="Minimum stock" value={minQty} onChange={setMinQty}
+                        unit={selectedMinUnit} units={units}
+                        onUnitChange={(next) => changeStockUnit(minQty, selectedMinUnit, next, setMinQty, setMinUnit)} />
                     </Field>
                   </div>
                 </>}
