@@ -17,7 +17,7 @@ import { availableParties, availableProducts, availablePurchases, createPreviewP
 import type { Party, PaymentMethod, PaymentSplit, Product, Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../utils/productFeatures';
-import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, lotBaseSellPrice, priceInUnit, makePurchaseLine, type PurchaseCartLine } from '../utils/purchaseCart';
+import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, lotBaseSellPrice, makePurchaseLine, switchPurchaseUnit, type PurchaseCartLine } from '../utils/purchaseCart';
 
 type Method = Exclude<PaymentMethod, 'Customer Credit'>;
 type PaymentRow = { id: string; method: Method; account: string; amount: string };
@@ -80,8 +80,8 @@ export function PurchaseEditor() {
   const updateLine = (id: string, patch: Partial<Line>) => setLines((current) => current.map((line) => line.id === id ? { ...line, ...patch } : line));
   const updatePayment = (id: string, patch: Partial<PaymentRow>) => setPayments((current) => current.map((row) => row.id === id ? { ...row, ...patch } : row));
   const selectCostUnit = (line: Line, unit: string) => {
-    const converted = priceInUnit(baseCost(line), line.product, unit);
-    updateLine(line.id, { costUnit: unit, cost: String(Math.round(converted * 10000) / 10000) });
+    setLines((current) => current.map((item) =>
+      item.id === line.id ? switchPurchaseUnit(item, unit) : item));
   };
 
   const addSupplier = (name: string, phone: string, area: string) => {
