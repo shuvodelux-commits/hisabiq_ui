@@ -37,6 +37,9 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Check shared Excel CSV import wizard
+        run: npm run test:import-wizard
+
       - name: Check POS drag reorder and receipt order
         run: npm run test:pos-reorder
 
