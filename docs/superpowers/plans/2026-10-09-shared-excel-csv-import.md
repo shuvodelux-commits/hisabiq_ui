@@ -48,6 +48,7 @@ Five easy-to-miss real-world inputs; **the corresponding numbered task must test
 - Create `src/import/fileReader.ts`: CSV/XLSX reader, limits, sheets and original row numbers; no domain mapping.
 - Create `src/import/importTemplates.ts`: actual CSV and XLSX template generation; safe CSV serialization and Blob download.
 - Create `src/components/import/ImportWizard.tsx`, `ImportUploadStep.tsx`, `ImportMappingStep.tsx`, `ImportReviewStep.tsx`, `ImportFinishStep.tsx`: shared accessible wizard and its four focused views. Split UI state from row conversion.
+- Modify `src/pages/Products.tsx` in Slice A **only** to mount `ImportWizard(target:'product')` with no apply callback and visibly disabled Confirm. Slice B adds the apply callback.
 - Tests: `tests/importSchema.test.ts`, `tests/importFileReader.test.ts`, `tests/importTemplates.test.ts`, `scripts/import-wizard-browser.cjs`.
 
 **Products / Slice B**
@@ -162,7 +163,7 @@ Fields and interfaces are UI-preview contracts, not a production API. `importFil
 
 ### Task 4: Four-step wizard UI with a deliberately disabled commit
 
-**Files:** Create `src/components/import/{ImportWizard,ImportUploadStep,ImportMappingStep,ImportReviewStep,ImportFinishStep}.tsx`; Create `scripts/import-wizard-browser.cjs`; Modify `package.json`, `.github/workflows/ui-check.yml` (register `test:import-wizard`).
+**Files:** Create `src/components/import/{ImportWizard,ImportUploadStep,ImportMappingStep,ImportReviewStep,ImportFinishStep}.tsx`; Create `scripts/import-wizard-browser.cjs`; Modify `src/pages/Products.tsx` (Import button and inert wizard only), `package.json`, `.github/workflows/ui-check.yml` (register `test:import-wizard`).
 
 **Interfaces:**
 - `ImportWizard({target,open,onClose,onApply}:{target:ImportTarget;open:boolean;onClose:()=>void;onApply?:(rows:StagedImportRow[],sessionId:string)=>Promise<ImportResult>})`. With no `onApply`, **Confirm is disabled**, visibly "Available once import integration is ready"; not a fake success.
@@ -170,7 +171,7 @@ Fields and interfaces are UI-preview contracts, not a production API. `importFil
 
 - [ ] **4.1 Write failing Playwright browser script.** Open dialog, upload real UTF-8 CSV; select another worksheet in multi-sheet XLSX; map a renamed column, fix an error, filter Ready/Errors, move Back and Next while preserving staged state; download CSV + XLSX; test Escape/cancel without changing preview; assert disabled Confirm if `onApply` missing; test narrow viewport and dark theme.
 - [ ] **4.2 Run `node scripts/import-wizard-browser.cjs`.** Expected RED.
-- [ ] **4.3 Implement** wizard state, step headings, accessible error alerts, issue counts, focus restoration and user-facing "UI preview only" disclosure. Reuse `Dialog`, `Input`, `AppSelect`, `AppDatePicker`, `Table` and status labels. Wire task 2 reader and task 3 templates. No domain persistence in Slice A.
+- [ ] **4.3 Implement** Product-page Import button and wizard state, step headings, accessible error alerts, issue counts, focus restoration and user-facing "UI preview only" disclosure. Reuse `Dialog`, `Input`, `AppSelect`, `AppDatePicker`, `Table` and status labels. Wire task 2 reader and task 3 templates. No domain persistence in Slice A.
 - [ ] **4.4 Rerun browser script, `npm test`, `npm run build`, `npm run test:theme`.** Expected PASS.
 - [ ] **4.5 Commit** `feat(import): build accessible shared four-step import wizard`.
 
@@ -232,7 +233,7 @@ Fields and interfaces are UI-preview contracts, not a production API. `importFil
 
 - [ ] **8.1 Write failing browser flow.** Click `Import` beside Add Product; upload sample XLSX with `LED Light, 2 Box, factor 10`, review normalized `20 Pcs` and purchase rate `120/Pcs`, confirm, inspect Product list and Opening Stock lot/history, navigate away/back; import duplicate SKU -> Skip; product update -> no new lot; mobile cards have working actions.
 - [ ] **8.2 Run `node scripts/product-import-browser.cjs`.** Expected RED.
-- [ ] **8.3 Wire** Product button, wizard target, validation and commit callback; preserve current Add Product/duplicate/adjust/lot workflows, and make review/finish reflect real amounts/quantities and saved preview state only.
+- [ ] **8.3 Wire** existing Product-page Import wizard to task 5–7 validation and commit callback; preserve current Add Product/duplicate/adjust/lot workflows, and make review/finish reflect real amounts/quantities and saved preview state only.
 - [ ] **8.4 Rerun browser, `npm test`, `npm run build`, `npm run test:purchases`, `npm run test:product-quick-add`, `npm run test:pos-reorder`.** Expected PASS.
 - [ ] **8.5 Commit** `feat(import): enable Product Excel CSV import and opening stock flow`.
 
