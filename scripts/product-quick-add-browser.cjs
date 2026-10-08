@@ -19,11 +19,12 @@ async function main() {
     async function quickAdd(field, value, symbol) {
       await product.getByRole('button', { name: 'Quick add ' + field.toLowerCase() }).click();
       const quick = page.locator('[data-slot="dialog-content"]').last();
-      await quick.getByPlaceholder(field === 'Base unit' ? 'Unit name, e.g. Meter' :
-        field === 'Larger unit' ? 'e.g. Box or Gauge' : field + ' name').fill(value);
+      const namePlaceholder = field === 'Base unit' ? 'Unit name, e.g. Meter' :
+        field === 'Larger unit' ? 'e.g. Box or Gauge' : field + ' name';
+      await quick.getByPlaceholder(namePlaceholder).fill(value);
       if (symbol) await quick.getByPlaceholder('e.g. pcs, ft, m · defaults to name').fill(symbol);
       await quick.getByRole('button', { name: 'Add ' + field.toLowerCase() }).click();
-      await quick.waitFor({ state: 'hidden' });
+      await page.getByPlaceholder(namePlaceholder).waitFor({ state: 'hidden' });
     }
     await quickAdd('Category', 'QA Components');
     await quickAdd('Brand', 'QA Manufacturer');
