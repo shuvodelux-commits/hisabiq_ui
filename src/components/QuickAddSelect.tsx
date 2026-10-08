@@ -10,17 +10,19 @@ type Props = {
   value: string;
   options: string[];
   onChange: (value: string) => void;
-  onCreate: (name: string, phone: string, area: string) => void;
+  onCreate: (name: string, phone: string, area: string, symbol?: string) => void;
+  showSymbol?: boolean;
   showContact?: boolean;
   placeholder?: string;
 };
 
 /** One predictable + control beside a dropdown. Creation stays in context. */
-export function QuickAddSelect({ label, value, options, onChange, onCreate, showContact = false, placeholder }: Props) {
+export function QuickAddSelect({ label, value, options, onChange, onCreate, showContact = false, showSymbol = false, placeholder }: Props) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [area, setArea] = useState('');
+  const [symbol, setSymbol] = useState('');
   const [error, setError] = useState('');
 
   const close = () => {
@@ -28,16 +30,18 @@ export function QuickAddSelect({ label, value, options, onChange, onCreate, show
     setName('');
     setPhone('');
     setArea('');
+    setSymbol('');
     setError('');
   };
 
   const create = () => {
     const trimmed = name.trim();
     if (!trimmed) return setError(label + ' name is required.');
-    if (options.some((option) => option.toLocaleLowerCase() === trimmed.toLocaleLowerCase())) {
+    const value = showSymbol ? (symbol.trim() || trimmed) : trimmed;
+    if (options.some((option) => [trimmed, value].some((entry) => option.toLocaleLowerCase() === entry.toLocaleLowerCase()))) {
       return setError('This ' + label.toLocaleLowerCase() + ' already exists. Select it from the list.');
     }
-    onCreate(trimmed, phone.trim(), area.trim());
+    onCreate(trimmed, phone.trim(), area.trim(), value);
     close();
   };
 
@@ -73,6 +77,13 @@ export function QuickAddSelect({ label, value, options, onChange, onCreate, show
               {label} name <span className="text-danger">*</span>
               <Input autoFocus className="mt-1" value={name} onChange={(event) => { setName(event.target.value); setError(''); }} placeholder={placeholder ?? label + ' name'} />
             </label>
+            {showSymbol && (
+              <label className="block text-[13px] font-medium text-ink">
+                Unit symbol <span className="font-normal text-ink-400">· একক চিহ্ন</span>
+                <Input className="mt-1" value={symbol} onChange={(event) => { setSymbol(event.target.value); setError(''); }}
+                  placeholder="e.g. pcs, ft, m · defaults to name" />
+              </label>
+            )}
             {showContact && (
               <>
                 <label className="block text-[13px] font-medium text-ink">Phone <span className="font-normal text-ink-400">· ফোন</span>
