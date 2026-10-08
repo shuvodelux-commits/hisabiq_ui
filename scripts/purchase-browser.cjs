@@ -17,8 +17,11 @@ async function main() {
     assert.equal(await page.locator('[role="dialog"]').count(), 0, 'purchase editor must not be a modal');
 
     await page.getByRole('button', { name: 'Quick add supplier' }).click();
-    await page.getByRole('dialog').getByLabel('Supplier name').fill('Browser QA Supplier');
-    await page.getByRole('dialog').getByLabel('Phone').fill('01700000123');
+    console.log('Quick add state:', await page.getByRole('dialog').count(),
+      await page.locator('input').evaluateAll((nodes) => nodes.slice(0, 8).map((node) => ({ placeholder: node.placeholder, outer: node.outerHTML.slice(0, 160) }))));
+    await page.getByRole('dialog').waitFor({ timeout: 8000 });
+    await page.getByRole('dialog').getByPlaceholder('Supplier or business name').fill('Browser QA Supplier');
+    await page.getByRole('dialog').getByPlaceholder('01XXXXXXXXX').fill('01700000123');
     await page.getByRole('dialog').getByRole('button', { name: 'Add supplier' }).click();
     await page.getByRole('dialog').waitFor({ state: 'hidden' });
     await page.getByRole('combobox', { name: 'Supplier' }).selectOption({ label: 'Browser QA Supplier' });
