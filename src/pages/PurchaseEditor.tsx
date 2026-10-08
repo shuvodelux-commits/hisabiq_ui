@@ -205,14 +205,14 @@ export function PurchaseEditor() {
           <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="block min-w-0 text-[12px] font-medium text-ink lg:col-span-2">
+          <div className="block min-w-0 text-[12px] font-medium text-ink lg:col-span-2">
             Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
             <div className="mt-1">
               <QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
                 onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
                 onCreate={addSupplier} showContact placeholder="Supplier or business name" />
             </div>
-          </label>
+          </div>
           <label className="block text-[12px] font-medium text-ink">Purchase date <span className="text-danger">*</span>
             <Input className="mt-1" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
           </label>
