@@ -112,8 +112,17 @@ async function main() {
     await page.keyboard.press('F8');
     const firstPaymentInput = page.getByLabel('Paid amount 1');
     assert.equal(await firstPaymentInput.evaluate((node) => document.activeElement === node), true, 'F8 focuses payment amount');
-    await page.getByRole('button', { name: 'Pay full' }).click();
-    assert.match(await page.locator('aside').last().innerText(), /Supplier due/);
+    await page.getByRole('radio', { name: '%', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Discount' }).fill('10');
+    const purchasePaymentPanel = page.getByTestId('purchase-payment-panel');
+    assert.match(await purchasePaymentPanel.innerText(), /Discount applied/);
+    const discountedTotal = (await purchasePaymentPanel.getByTestId('purchase-net-total').innerText()).trim();
+    assert.notEqual(discountedTotal, '', 'discount and total should update live');
+    await page.getByRole('button', { name: 'Exact', exact: true }).click();
+    assert.match(await purchasePaymentPanel.innerText(), /Supplier due/);
+    assert.match(await purchasePaymentPanel.innerText(), /৳0(?!\d)/, 'fully paid');
+
+    assert.match(await purchasePaymentPanel.innerText(), /Supplier due/);
     await page.getByRole('button', { name: 'Complete purchase' }).click();
     await page.getByRole('heading', { name: 'Purchases', exact: true }).waitFor();
     await page.getByRole('link', { name: 'Browser QA Supplier' }).waitFor();
