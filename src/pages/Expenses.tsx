@@ -19,8 +19,9 @@ import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { BillDialog } from '../components/purchases/BillDialog';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
-import { expenses as seedExpenses, expenseCategories as seedCategories } from '../data/purchases';
-import { parties } from '../data/parties';
+import { expenses as seedExpenses } from '../data/purchases';
+import { availableExpenseCategories, availableParties } from '../data/erpDemoStore';
+
 import type { Expense } from '../types/erp';
 import { taka } from '../utils/currency';
 
@@ -40,7 +41,7 @@ function paymentLabel(expense: Expense) {
   return payments[0]?.method ?? expense.method;
 }
 
-const payees = parties
+const payeesForPreview = () => availableParties()
   .filter((party) => party.roles.some((role) => role === 'Payee' || role === 'Vendor'))
   .map((party) => ({
     id: party.id,
@@ -70,6 +71,7 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 
 export function Expenses() {
   const [tab, setTab] = useState<Tab>('expenses');
+  const payees = payeesForPreview();
   const [expenses, setExpenses] = useState<Expense[]>(seedExpenses);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detail, setDetail] = useState<BillDetail | null>(null);
@@ -160,7 +162,7 @@ export function Expenses() {
                   placeholder="Search expense, payee, category or reference"
                 />
               </div>
-              <FormSelect className="w-full lg:w-40" options={['All categories', ...seedCategories]} />
+              <FormSelect className="w-full lg:w-40" options={['All categories', ...availableExpenseCategories()]} />
               <FormSelect className="w-full lg:w-40" options={['All payees', ...payees.map((payee) => payee.name)]} />
               <FormSelect className="w-full lg:w-40" options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card']} />
               <FormSelect className="w-full lg:w-32" options={['All status', 'Active', 'Cancelled']} />
@@ -271,7 +273,7 @@ export function Expenses() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {seedCategories.map((category) => {
+                {availableExpenseCategories().map((category) => {
                   const amount = expenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0);
                   return (
                     <TableRow key={category} className="text-[13px]">
@@ -368,7 +370,7 @@ export function Expenses() {
                 {
                   title: 'By category',
                   icon: Settings2,
-                  rows: seedCategories.map((category) => ({
+                  rows: availableExpenseCategories().map((category) => ({
                     label: category,
                     value: expenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0)
                   })).filter((row) => row.value > 0)
