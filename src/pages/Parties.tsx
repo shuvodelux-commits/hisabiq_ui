@@ -79,7 +79,8 @@ export function Parties() {
   const actionsForRow=(row:PartyLedgerRow)=>ledgerActionAvailability(row,demoPermissions,new Set<PartyAction>(
     row.source==='sale'?['view','source','edit']
       :row.sourceId?.startsWith('party-payment:')?['view','edit','delete']
-      :row.sourceId?.startsWith('party-refund:')?['view','delete']:['view']
+      :row.sourceId?.startsWith('party-refund:')?['view','delete']
+      :row.sourceId?.startsWith('party-finance:')?['view','reverse']:['view']
   ));
   const resetLedger=()=>{setRange({from:'',to:''});setKind('All types');setLedgerQuery('');setPage(1);};
   const handleLedgerAction=(action:PartyAction,row:PartyLedgerRow)=>{
@@ -143,6 +144,7 @@ export function Parties() {
         sources={state.sources}
         onRecordPayment={payload=>{dispatchPartyPreview({type:'record-payment',payload});toast.success('Payment recorded in preview (no bank posting)');}}
         onRefundCredit={payload=>{dispatchPartyPreview({type:'refund-credit',payload});toast.success('Credit refund recorded in preview (no bank posting)');}}
+        onRecordFinance={payload=>{dispatchPartyPreview({type:'record-finance',payload});toast.success('Capital / loan transaction saved in preview (no bank posting)');}}
         onEditSourcePayment={(sourceId,payload,reason)=>{
           dispatchPartyPreview({type:'edit-source-payment',sourceId,payload,reason});
           toast.success('Preview payment corrected; dependent balances recalculated');
