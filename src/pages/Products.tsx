@@ -13,7 +13,7 @@ import { StockHistoryView, StockLotsView } from '../components/products/ProductI
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { productCategories, products as seed } from '../data/products';
-import { availableProducts } from '../data/erpDemoStore';
+import { availableProducts, availableProductCategories } from '../data/erpDemoStore';
 import { stockLots as seedLots, stockMovements as seedMovements } from '../data/productInventory';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
@@ -390,7 +390,7 @@ export function Products() {
             
           </div>
           <div className="flex flex-wrap gap-1">
-            {productCategories.map((c) =>
+            {availableProductCategories().map((c) =>
             <button
               key={c}
               onClick={() => setCategory(c)}
