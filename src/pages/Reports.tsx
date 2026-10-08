@@ -37,14 +37,14 @@ export function Reports() {
         titleBn="রিপোর্ট"
         description="Business reports, profit, receivables, payables and operational books."
         actions={
-        <div className="flex rounded-lg bg-white p-0.5 shadow-card ring-1 ring-ink-100" role="radiogroup" aria-label="Period">
+        <div className="flex rounded-lg bg-card p-0.5 shadow-card ring-1 ring-ink-100" role="radiogroup" aria-label="Period">
             {periods.map((p) =>
           <button
             key={p}
             role="radio"
             aria-checked={period === p}
             onClick={() => setPeriod(p)}
-            className={`h-7 rounded-md px-2.5 text-xs font-medium ${period === p ? 'bg-ink text-white' : 'text-ink-600 hover:bg-ink-50'}`}>
+            className={`h-7 rounded-md px-2.5 text-xs font-medium ${period === p ? 'bg-inverse text-white' : 'text-ink-600 hover:bg-ink-50'}`}>
             
                 {p}
               </button>
@@ -57,14 +57,14 @@ export function Reports() {
         {profitSummary.map((s, i) => {
           const good = i === 3 ? s.change < 0 : s.change > 0;
           return (
-            <div key={s.label} className={`rounded-xl border px-4 py-3 shadow-card ${i === 4 ? 'border-teal-600 bg-teal-600 text-white' : 'border-ink-100 bg-white'}`}>
-              <p className={`text-[12.5px] ${i === 4 ? 'text-teal-50' : 'text-ink-500'}`}>
-                {s.label} <span className="font-bn text-[11px] opacity-80">· {s.labelBn}</span>
+            <div key={s.label} className={`rounded-xl border px-4 py-3 shadow-card ${i === 4 ? 'border-teal-600 bg-teal-600 text-primary-foreground' : 'border-border bg-card'}`}>
+              <p className={`text-[12.5px] ${i === 4 ? 'text-primary-foreground' : 'text-ink-500'}`}>
+                {s.label} <span className="font-bn text-[11px]">· {s.labelBn}</span>
               </p>
               <p className="mt-0.5 text-xl font-semibold tabular-nums tracking-tight">{taka(s.value)}</p>
-              <p className={`flex items-center gap-0.5 text-[11.5px] font-medium ${i === 4 ? 'text-teal-50' : good ? 'text-success' : 'text-danger'}`}>
+              <p className={`flex items-center gap-0.5 text-[11.5px] font-medium ${i === 4 ? 'text-primary-foreground' : good ? 'text-success' : 'text-danger'}`}>
                 {s.change > 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
-                {Math.abs(s.change)}% <span className="font-normal opacity-80">vs Aug</span>
+                {Math.abs(s.change)}% <span className="font-normal">vs Aug</span>
               </p>
             </div>);
 
@@ -75,16 +75,16 @@ export function Reports() {
         <Panel title="Profit trend" subtitle="Gross vs net profit · last 6 months" className="xl:col-span-2">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={monthlyProfit} margin={{ top: 8, right: 4, left: -8, bottom: 0 }} barGap={3}>
-              <CartesianGrid stroke="#E3E8EE" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#8A9BB0' }} />
-              <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#8A9BB0' }} tickFormatter={takaCompact} width={52} />
+              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'var(--helper)' }} />
+              <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'var(--helper)' }} tickFormatter={takaCompact} width={52} />
               <Tooltip
-                cursor={{ fill: '#F5F7FA' }}
+                cursor={{ fill: 'var(--muted)' }}
                 formatter={(v: number, name: string) => [taka(v), name === 'gross' ? 'Gross profit' : 'Net profit']}
-                contentStyle={{ borderRadius: 8, border: '1px solid #E3E8EE', fontSize: 12 }} />
+                contentStyle={{ borderRadius: 8, border: '1px solid var(--input)', background: 'var(--popover)', color: 'var(--foreground)', fontSize: 12 }} />
               
-              <Bar dataKey="gross" fill="#B3E3DC" radius={[4, 4, 0, 0]} maxBarSize={22} />
-              <Bar dataKey="net" fill="#0D7C74" radius={[4, 4, 0, 0]} maxBarSize={22} />
+              <Bar dataKey="gross" fill="var(--chart-2)" radius={[4, 4, 0, 0]} maxBarSize={22} />
+              <Bar dataKey="net" fill="var(--chart-1)" radius={[4, 4, 0, 0]} maxBarSize={22} />
             </BarChart>
           </ResponsiveContainer>
         </Panel>
@@ -171,7 +171,7 @@ export function Reports() {
                     </span>
                     <span className="block text-xs text-ink-500">{desc}</span>
                   </span>
-                  <ChevronRight className="size-4 text-ink-300 group-hover:text-ink-500" />
+                  <ChevronRight className="size-4 text-helper group-hover:text-ink-500" />
                 </button>
               </li>
             )}

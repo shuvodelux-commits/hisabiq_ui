@@ -21,7 +21,7 @@ export function WidgetFrame({ editing, label, onHide, onMove, className = '', ch
       <div className={editing ? 'pointer-events-none select-none opacity-90' : ''}>{children}</div>
       {editing &&
       <div className="absolute inset-0 rounded-xl border-2 border-dashed border-teal-400 bg-teal-50/30">
-          <div className="absolute right-2 top-2 flex items-center gap-0.5 rounded-lg border border-ink-100 bg-white p-0.5 shadow-pop">
+          <div className="absolute right-2 top-2 flex items-center gap-0.5 rounded-lg border border-border bg-card p-0.5 shadow-pop">
             <button onClick={() => onMove(-1)} aria-label={`Move ${label} earlier`} className="rounded-md p-1 text-ink-500 hover:bg-ink-50 hover:text-ink">
               <ArrowLeft className="size-3.5" />
             </button>

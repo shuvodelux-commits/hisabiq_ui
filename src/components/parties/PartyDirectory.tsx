@@ -18,8 +18,8 @@ type PartyDirectoryProps = {
 
 export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, query, onQuery }: PartyDirectoryProps) {
   return (
-    <div className="flex min-h-0 flex-col rounded-xl border border-ink-100 bg-white shadow-card">
-      <div className="space-y-2 border-b border-ink-100 p-3">
+    <div className="flex min-h-0 flex-col rounded-xl border border-border bg-card shadow-card">
+      <div className="space-y-2 border-b border-border p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
           <input
@@ -27,7 +27,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
             onChange={(e) => onQuery(e.target.value)}
             placeholder="Search name or phone…"
             aria-label="Search parties"
-            className="h-8 w-full rounded-md border border-ink-100 pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+            className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
           
         </div>
         <div className="flex flex-wrap gap-1" role="tablist" aria-label="Filter by role">
@@ -38,7 +38,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
             aria-selected={role === r}
             onClick={() => onRole(r)}
             className={`h-6 rounded-md px-2 text-[11.5px] font-medium transition-colors ${
-            role === r ? 'bg-ink text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'}`
+            role === r ? 'bg-inverse text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'}`
             }>
             
               {r}

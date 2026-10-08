@@ -199,9 +199,9 @@ export function AuditLedger() {
         description="Review who posted a transaction, inspect its accounting effect, and safely correct posted records."
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-lg border border-ink-100 bg-white p-1">
-              <button onClick={() => setEntryDateView('transaction')} className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'transaction' ? 'bg-ink text-white' : 'text-ink-500 hover:bg-ink-50'}`}>Transaction Date</button>
-              <button onClick={() => setEntryDateView('created')} className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'created' ? 'bg-ink text-white' : 'text-ink-500 hover:bg-ink-50'}`}>Created Date</button>
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
+              <button onClick={() => setEntryDateView('transaction')} className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'transaction' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>Transaction Date</button>
+              <button onClick={() => setEntryDateView('created')} className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'created' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>Created Date</button>
             </div>
             <Button variant="outline" size="sm" onClick={exportAudit}><ArrowDownToLine className="size-4" /> Export</Button>
             <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
@@ -216,7 +216,7 @@ export function AuditLedger() {
           ['Deleted records', String(deletedCount), 'ইতিহাস রেখে মুছে দেওয়া'],
           ['Audit events', String(state.auditEvents.length), 'সব পরিবর্তনের ইতিহাস']
         ].map(([label, value, helper]) => (
-          <div key={label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{label}</p>
             <p className="mt-0.5 text-lg font-semibold text-ink">{value}</p>
             <p className="font-bn text-[10.5px] text-ink-400">{helper}</p>
@@ -224,7 +224,7 @@ export function AuditLedger() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-ink-100 bg-white shadow-card">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
         <AuditFilters value={filters} onChange={setFilters} records={state.sources} changedByOptions={changedByOptions} dateView={entryDateView} />
 
         <div className="overflow-x-auto">
@@ -290,7 +290,7 @@ export function AuditLedger() {
               {!filtered.length && (
                 <TableRow>
                   <TableCell colSpan={11} className="py-14 text-center">
-                    <ShieldCheck className="mx-auto size-5 text-ink-300" />
+                    <ShieldCheck className="mx-auto size-5 text-helper" />
                     <p className="mt-2 text-sm font-medium text-ink">No audit records found</p>
                     <p className="mt-1 font-bn text-xs text-ink-400">এই ফিল্টারে কোনো লেনদেন নেই</p>
                   </TableCell>
@@ -331,10 +331,10 @@ export function AuditLedger() {
           </div>
 
           {deleteSource && (
-            <div className="rounded-xl border border-ink-100">
-              <div className="border-b border-ink-100 px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">This will update</p></div>
+            <div className="rounded-xl border border-border">
+              <div className="border-b border-border px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">This will update</p></div>
               <div className="flex flex-wrap gap-1.5 p-3">
-                {deleteImpacts.map((impact) => <span key={impact} className="rounded-md border border-ink-100 bg-ink-50 px-2 py-1 text-[11px] text-ink-600">{impact}</span>)}
+                {deleteImpacts.map((impact) => <span key={impact} className="rounded-md border border-border bg-ink-50 px-2 py-1 text-[11px] text-ink-600">{impact}</span>)}
               </div>
             </div>
           )}
@@ -365,3 +365,4 @@ export function AuditLedger() {
     </div>
   );
 }
+

@@ -13,14 +13,16 @@ import {
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { FormSelect } from '../components/FormSelect';
+import { AppDateRangePicker } from '../components/AppDateRangePicker';
+import { expenseDateIso, formatRange, type IsoRange } from '../utils/dateRange';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { BillDialog } from '../components/purchases/BillDialog';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
-import { expenses as seedExpenses, expenseCategories as seedCategories } from '../data/purchases';
-import { parties } from '../data/parties';
+import { expenses as seedExpenses } from '../data/purchases';
+import { availableExpenseCategories, availableParties } from '../data/erpDemoStore';
 import type { Expense } from '../types/erp';
 import { taka } from '../utils/currency';
 
@@ -40,7 +42,7 @@ function paymentLabel(expense: Expense) {
   return payments[0]?.method ?? expense.method;
 }
 
-const payees = parties
+const payeesForPreview = () => availableParties()
   .filter((party) => party.roles.some((role) => role === 'Payee' || role === 'Vendor'))
   .map((party) => ({
     id: party.id,
@@ -51,17 +53,17 @@ const payees = parties
   }));
 
 function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
-  if (!src) return <span className="text-xs text-ink-300">—</span>;
+  if (!src) return <span className="text-xs text-helper">—</span>;
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="group relative block size-8 overflow-hidden rounded-md border border-ink-100"
+      className="group relative block size-8 overflow-hidden rounded-md border border-border"
       aria-label="View receipt">
       <img src={src} alt="" className="h-full w-full object-cover" />
-      <span className="absolute inset-0 flex items-center justify-center bg-ink/40 opacity-0 transition-opacity group-hover:opacity-100">
+      <span className="absolute inset-0 flex items-center justify-center bg-inverse/40 opacity-0 transition-opacity group-hover:opacity-100">
         <Paperclip className="size-3 text-white" />
       </span>
     </button>
@@ -70,10 +72,20 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 
 export function Expenses() {
   const [tab, setTab] = useState<Tab>('expenses');
+  const payees = payeesForPreview();
   const [expenses, setExpenses] = useState<Expense[]>(seedExpenses);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detail, setDetail] = useState<BillDetail | null>(null);
   const [query, setQuery] = useState('');
+  // Keep the initial demonstration report on September's seeded expense entries.
+  const [reportRange, setReportRange] = useState<IsoRange>({ from: '2026-09-01', to: '2026-09-30' });
+  const reportExpenses = useMemo(() => expenses.filter((expense) => {
+    const day = expenseDateIso(expense.date);
+    return !!day && (!reportRange.from || day >= reportRange.from) && (!reportRange.to || day <= reportRange.to);
+  }), [expenses, reportRange.from, reportRange.to]);
+  const reportPeriod = reportRange.from === '2026-09-01' && reportRange.to === '2026-09-30'
+    ? 'Sep 2026' : formatRange(reportRange);
+
 
   const filteredExpenses = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -120,7 +132,7 @@ export function Expenses() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((item) => (
-          <div key={item.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3 shadow-card">
+          <div key={item.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{item.label}</p>
             <p className="mt-0.5 text-lg font-semibold text-ink">{item.value}</p>
             <p className="font-bn text-[11px] text-ink-400">{item.sub}</p>
@@ -128,8 +140,8 @@ export function Expenses() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-ink-100 bg-white shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-ink-100 px-3" role="tablist">
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -150,7 +162,7 @@ export function Expenses() {
 
         {tab === 'expenses' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-ink-100 p-3 lg:flex-row lg:items-center">
+            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1 lg:max-w-md">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                 <Input
@@ -160,7 +172,7 @@ export function Expenses() {
                   placeholder="Search expense, payee, category or reference"
                 />
               </div>
-              <FormSelect className="w-full lg:w-40" options={['All categories', ...seedCategories]} />
+              <FormSelect className="w-full lg:w-40" options={['All categories', ...availableExpenseCategories()]} />
               <FormSelect className="w-full lg:w-40" options={['All payees', ...payees.map((payee) => payee.name)]} />
               <FormSelect className="w-full lg:w-40" options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card']} />
               <FormSelect className="w-full lg:w-32" options={['All status', 'Active', 'Cancelled']} />
@@ -251,7 +263,7 @@ export function Expenses() {
 
         {tab === 'categories' && (
           <div>
-            <div className="flex items-center justify-between gap-3 border-b border-ink-100 p-3">
+            <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Expense categories</p>
                 <p className="text-[11px] text-ink-500">Create, rename, activate or deactivate categories used when recording expenses.</p>
@@ -271,7 +283,7 @@ export function Expenses() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {seedCategories.map((category) => {
+                {availableExpenseCategories().map((category) => {
                   const amount = expenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0);
                   return (
                     <TableRow key={category} className="text-[13px]">
@@ -296,7 +308,7 @@ export function Expenses() {
 
         {tab === 'payees' && (
           <div>
-            <div className="flex items-center justify-between gap-3 border-b border-ink-100 p-3">
+            <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Expense payees</p>
                 <p className="text-[11px] text-ink-500">Reusable people and businesses you regularly pay.</p>
@@ -345,15 +357,12 @@ export function Expenses() {
 
         {tab === 'reports' && (
           <div className="p-4">
-            <div className="mb-4 flex flex-col gap-2 rounded-xl border border-ink-100 bg-ink-50/50 p-3 sm:flex-row sm:items-end">
-              <label className="text-[12px] font-medium text-ink">
-                From
-                <Input className="mt-1 w-full sm:w-40" defaultValue="01 Sep 2026" />
-              </label>
-              <label className="text-[12px] font-medium text-ink">
-                To
-                <Input className="mt-1 w-full sm:w-40" defaultValue="30 Sep 2026" />
-              </label>
+            <div className="mb-4 flex flex-col gap-2 rounded-xl border border-border bg-ink-50/50 p-3 sm:flex-row sm:items-end">
+              <div className="w-full sm:w-auto">
+                <p className="mb-1 text-[12px] font-medium text-ink">Date range <span className="font-bn text-ink-400">· সময়কাল</span></p>
+                <AppDateRangePicker label="Expense report date range" className="w-full sm:w-[280px]"
+                  value={reportRange} onChange={setReportRange} />
+              </div>
               <Button size="sm" onClick={() => toast('Expense report refreshed')}>
                 <BarChart3 className="size-4" /> Refresh
               </Button>
@@ -368,17 +377,17 @@ export function Expenses() {
                 {
                   title: 'By category',
                   icon: Settings2,
-                  rows: seedCategories.map((category) => ({
+                  rows: availableExpenseCategories().map((category) => ({
                     label: category,
-                    value: expenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0)
+                    value: reportExpenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0)
                   })).filter((row) => row.value > 0)
                 },
                 {
                   title: 'By payee',
                   icon: Search,
-                  rows: Array.from(new Set(expenses.map((expense) => expense.payee))).map((payee) => ({
+                  rows: Array.from(new Set(reportExpenses.map((expense) => expense.payee))).map((payee) => ({
                     label: payee,
-                    value: expenses.filter((expense) => expense.payee === payee).reduce((sum, expense) => sum + expense.amount, 0)
+                    value: reportExpenses.filter((expense) => expense.payee === payee).reduce((sum, expense) => sum + expense.amount, 0)
                   })).sort((a, b) => b.value - a.value).slice(0, 6)
                 },
                 {
@@ -386,7 +395,7 @@ export function Expenses() {
                   icon: BarChart3,
                   rows: reportPaymentMethods.map((method) => ({
                     label: method,
-                    value: expenses.reduce((sum, expense) =>
+                    value: reportExpenses.reduce((sum, expense) =>
                       sum + paymentsFor(expense)
                         .filter((payment) => payment.method === method)
                         .reduce((paymentSum, payment) => paymentSum + payment.amount, 0), 0)
@@ -396,14 +405,14 @@ export function Expenses() {
                 const max = Math.max(...group.rows.map((row) => row.value), 1);
                 const Icon = group.icon;
                 return (
-                  <div key={group.title} className="rounded-xl border border-ink-100 bg-white p-4">
+                  <div key={group.title} className="rounded-xl border border-border bg-card p-4">
                     <div className="mb-4 flex items-center gap-2">
                       <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                         <Icon className="size-4" />
                       </span>
                       <div>
                         <p className="text-sm font-semibold text-ink">{group.title}</p>
-                        <p className="text-[11px] text-ink-500">Sep 2026</p>
+                        <p className="text-[11px] text-ink-500">{reportPeriod}</p>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -445,3 +454,4 @@ export function Expenses() {
     </div>
   );
 }
+

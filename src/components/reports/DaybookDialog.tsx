@@ -17,7 +17,7 @@ export function DaybookDialog({ open, onOpenChange }: {open: boolean;onOpenChang
           </DialogTitle>
           <DialogDescription>Thursday, 1 October 2026 · every entry in order</DialogDescription>
         </DialogHeader>
-        <div className="max-h-[60vh] overflow-auto rounded-lg border border-ink-100 scrollbar-thin">
+        <div className="max-h-[60vh] overflow-auto rounded-lg border border-border scrollbar-thin">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">

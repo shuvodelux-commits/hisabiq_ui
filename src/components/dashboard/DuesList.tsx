@@ -9,7 +9,7 @@ import { taka } from '../../utils/currency';
 export function DuesList() {
   const max = Math.max(...duesToCollect.map((d) => d.amount));
   return (
-    <ul className="divide-y divide-ink-100">
+    <ul className="divide-y divide-border">
       {duesToCollect.map((d) => {
         const party = parties.find((p) => p.id === d.partyId);
         return (
@@ -33,7 +33,7 @@ export function DuesList() {
                   </span>
                 </div>
               </div>
-              <ChevronRight className="size-4 text-ink-300 group-hover:text-ink-500" aria-hidden="true" />
+              <ChevronRight className="size-4 text-helper group-hover:text-ink-500" aria-hidden="true" />
             </Link>
           </li>);
 

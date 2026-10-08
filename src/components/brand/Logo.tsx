@@ -58,9 +58,9 @@ type WordmarkProps = {
 
 export function Wordmark({ size = 24, tone = 'color', bangla = false, className }: WordmarkProps) {
   const base =
-  tone === 'inverse' || tone === 'mono-white' ? '#FFFFFF' : '#0B1A2C';
+  tone === 'inverse' || tone === 'mono-white' ? '#FFFFFF' : tone === 'color' ? 'var(--foreground)' : '#0B1A2C';
   const iq =
-  tone === 'color' ? '#0D7C74' : tone === 'inverse' ? '#3DD6B5' : base;
+  tone === 'color' ? 'var(--primary)' : tone === 'inverse' ? '#3DD6B5' : base;
   return (
     <span
       className={className}

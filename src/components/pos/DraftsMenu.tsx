@@ -27,7 +27,7 @@ export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: Draf
       
       {(close) =>
       <div>
-          <div className="flex items-center justify-between border-b border-ink-100 px-3 py-2.5">
+          <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
             <p className="text-sm font-semibold">Held sales</p>
             <button
             disabled={!canSave}
@@ -35,7 +35,7 @@ export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: Draf
               onSave();
               close();
             }}
-            className="flex items-center gap-1 text-xs font-medium text-teal-700 hover:underline disabled:cursor-not-allowed disabled:text-ink-300 disabled:no-underline">
+            className="flex items-center gap-1 text-xs font-medium text-teal-700 hover:underline disabled:cursor-not-allowed disabled:text-helper disabled:no-underline">
             
               <Save className="size-3.5" /> Hold current
             </button>
@@ -43,7 +43,7 @@ export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: Draf
           {drafts.length === 0 ?
         <p className="px-3 py-6 text-center text-sm text-ink-500">No held sales.</p> :
 
-        <ul className="max-h-72 divide-y divide-ink-100 overflow-auto">
+        <ul className="max-h-72 divide-y divide-border overflow-auto">
               {drafts.map((d) =>
           <li key={d.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-ink-50">
                   <button
@@ -61,7 +61,7 @@ export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: Draf
                     </p>
                   </button>
                   <span className="text-[13px] font-semibold tabular-nums">{taka(d.total)}</span>
-                  <button onClick={() => onDelete(d.id)} aria-label={`Delete ${d.label}`} className="rounded p-1 text-ink-300 hover:bg-danger-bg hover:text-danger">
+                  <button onClick={() => onDelete(d.id)} aria-label={`Delete ${d.label}`} className="rounded p-1 text-helper hover:bg-danger-bg hover:text-danger">
                     <Trash2 className="size-3.5" />
                   </button>
                 </li>

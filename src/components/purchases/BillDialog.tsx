@@ -5,8 +5,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { FormSelect } from '../FormSelect';
+import { QuickAddSelect } from '../QuickAddSelect';
 import { PhotoUploader } from '../products/PhotoUploader';
 import { parties } from '../../data/parties';
+import { availableParties, availableExpenseCategories, createPreviewParty, createPreviewExpenseCategory } from '../../data/erpDemoStore';
 import { products } from '../../data/products';
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
@@ -55,7 +57,8 @@ const accountsByMethod: Record<StandardPaymentMethod, string[]> = {
   bKash: ['bKash Business · 01711•••412'],
   Nagad: ['Nagad Merchant · 01819•••771']
 };
-const today = '2026-10-07';
+const dateNow = new Date();
+const today = [dateNow.getFullYear(), String(dateNow.getMonth() + 1).padStart(2, '0'), String(dateNow.getDate()).padStart(2, '0')].join('-');
 const stockProducts = products.filter((product) => product.kind !== 'Service');
 
 function productFor(line: PurchaseLine): Product {
@@ -110,6 +113,8 @@ function newLine(seedIndex = 1): PurchaseLine {
 
 export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, onSaveExpense }: BillDialogProps) {
   const [party, setParty] = useState(mode === 'purchase' ? suppliers[0].name : payees[0].name);
+  const [partyOptions, setPartyOptions] = useState<Party[]>(() => availableParties().filter((item) => item.roles.some((role) => mode === 'purchase' ? role === 'Supplier' || role === 'Vendor' : role === 'Payee' || role === 'Vendor')));
+  const [categoryOptions, setCategoryOptions] = useState(availableExpenseCategories);
   const [category, setCategory] = useState(expenseCategories[2]);
   const [date, setDate] = useState(today);
   const [backdateReason, setBackdateReason] = useState('');
@@ -123,7 +128,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   const [error, setError] = useState('');
 
   const isBackdated = date !== today;
-  const list = mode === 'purchase' ? suppliers : payees;
+  const list = partyOptions;
   const purchaseTotal = useMemo(() => lines.reduce((sum, line) => sum + lineTotal(line), 0), [lines]);
   const totalNum = mode === 'purchase' ? purchaseTotal : parseFloat(amount) || 0;
   const paymentTotal = paymentRows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
@@ -246,7 +251,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       onSavePurchase({
         id: `pu${Date.now()}`,
         ref: nextRef,
-        date: date === today ? '07 Oct 2026' : date,
+        date: new Date(date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         supplierId: selectedParty?.id ?? '',
         supplier: party,
         items: items || 'Items not itemised',
@@ -270,7 +275,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       onSaveExpense({
         id: `e${Date.now()}`,
         ref: nextRef,
-        date: date === today ? '07 Oct 2026' : date,
+        date: new Date(date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         category,
         payee: party,
         payeeId: selectedParty?.id,
@@ -300,24 +305,18 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
         </DialogHeader>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-[13px] font-medium text-ink">
+          <div className="block text-[13px] font-medium text-ink">
             {mode === 'purchase' ? 'Supplier' : 'Payee'}
-            <div className="mt-1.5 flex">
-              <FormSelect
-                className="min-w-0 flex-1 [&>select]:rounded-r-none"
-                value={party}
-                onChange={(event) => setParty(event.target.value)}
-                options={list.map((item) => item.name)}
-              />
-              <button
-                type="button"
-                className="-ml-px flex size-9 shrink-0 items-center justify-center rounded-r-md border border-input bg-white text-teal-700 hover:bg-teal-50"
-                onClick={() => toast(mode === 'purchase' ? 'Add supplier' : 'Add payee')}>
-                <Plus className="size-4" />
-                <span className="sr-only">{mode === 'purchase' ? 'Add supplier' : 'Add payee'}</span>
-              </button>
+            <div className="mt-1.5">
+              <QuickAddSelect label={mode === 'purchase' ? 'Supplier' : 'Payee'} value={party} options={list.map((item) => item.name)} onChange={setParty} showContact
+                onCreate={(name, phone, area) => {
+                  const newParty: Party = { id: 'quick-' + Date.now(), name, phone, area, roles: [mode === 'purchase' ? 'Supplier' : 'Payee'], balance: 0, lastActivity: 'Just now', avatarColor: '#0D7C74' };
+                  createPreviewParty(newParty);
+                  setPartyOptions((items) => [...items, newParty]);
+                  setParty(name);
+                }} />
             </div>
-          </label>
+          </div>
 
           <label className="block text-[13px] font-medium text-ink">
             {mode === 'purchase' ? 'Purchase date' : 'Expense date'}
@@ -338,8 +337,8 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
         </div>
 
         {mode === 'purchase' ? (
-          <div className="overflow-hidden rounded-xl border border-ink-100">
-            <div className="flex items-center justify-between border-b border-ink-100 bg-ink-50/60 px-3 py-2">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="flex items-center justify-between border-b border-border bg-ink-50/60 px-3 py-2">
               <div>
                 <p className="text-[13px] font-medium text-ink">Products</p>
                 <p className="text-[11px] text-ink-500">Purchase in large + small units where a conversion exists.</p>
@@ -349,7 +348,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               </Button>
             </div>
 
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-border">
               {lines.map((line, index) => {
                 const product = productFor(line);
                 const total = lineTotal(line);
@@ -419,7 +418,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                     </button>
 
                     {((product.serialTracking ?? 'Off') !== 'Off' || product.expiry?.enabled) && (
-                      <div className="rounded-lg border border-ink-100 bg-ink-50/40 p-2.5 lg:col-span-5">
+                      <div className="rounded-lg border border-border bg-ink-50/40 p-2.5 lg:col-span-5">
                         <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">Tracking details <span className="font-bn normal-case tracking-normal">· সিরিয়াল / মেয়াদ</span></p>
                         <div className="grid gap-2 md:grid-cols-2">
                           {(product.serialTracking ?? 'Off') !== 'Off' && (
@@ -429,7 +428,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                                 value={line.serialText}
                                 onChange={(event) => updateLine(line.id, { serialText: event.target.value })}
                                 placeholder="Scan, type or paste serials"
-                                className="mt-1 min-h-20 w-full rounded-md border border-input bg-white px-2.5 py-2 text-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                                className="mt-1 min-h-20 w-full rounded-md border border-input bg-card px-2.5 py-2 text-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                               />
                               <span className="mt-1 block text-[11px] font-normal text-ink-400">
                                 {normalizeSerials(line.serialText).length} entered{product.serialTracking === 'Required' ? ` · ${requiredSerialCount(product, lineBaseQty(line))} required` : ' · optional'}
@@ -451,31 +450,24 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               })}
             </div>
 
-            <div className="flex items-center justify-between border-t border-ink-100 bg-ink-50/60 px-3 py-2">
+            <div className="flex items-center justify-between border-t border-border bg-ink-50/60 px-3 py-2">
               <span className="text-xs text-ink-500">{lines.length} product line{lines.length === 1 ? '' : 's'}</span>
               <span className="text-sm font-semibold text-ink">Purchase total · {taka(purchaseTotal)}</span>
             </div>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-[13px] font-medium text-ink">
+            <div className="block text-[13px] font-medium text-ink">
               Expense category
-              <div className="mt-1.5 flex">
-                <FormSelect
-                  className="min-w-0 flex-1 [&>select]:rounded-r-none"
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value)}
-                  options={expenseCategories}
-                />
-                <button
-                  type="button"
-                  className="-ml-px flex size-9 shrink-0 items-center justify-center rounded-r-md border border-input bg-white text-teal-700 hover:bg-teal-50"
-                  onClick={() => toast('Manage expense categories')}>
-                  <Plus className="size-4" />
-                  <span className="sr-only">Manage categories</span>
-                </button>
+              <div className="mt-1.5">
+                <QuickAddSelect label="Expense category" value={category} options={categoryOptions} onChange={setCategory}
+                  onCreate={(name) => {
+                    createPreviewExpenseCategory(name);
+                    setCategoryOptions((items) => [...items, name]);
+                    setCategory(name);
+                  }} />
               </div>
-            </label>
+            </div>
 
             <label className="block text-[13px] font-medium text-ink">
               Amount
@@ -513,8 +505,8 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           </div>
         )}
 
-        <section className="overflow-hidden rounded-xl border border-ink-100">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 bg-ink-50/60 px-3 py-2">
+        <section className="overflow-hidden rounded-xl border border-border">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/60 px-3 py-2">
             <div>
               <p className="text-[13px] font-medium text-ink">
                 Payments <span className="font-bn text-[11px] font-normal text-ink-400">· পেমেন্ট</span>
@@ -545,7 +537,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
             </div>
           </div>
 
-          <div className="divide-y divide-ink-100">
+          <div className="divide-y divide-border">
             {paymentRows.map((row, index) => (
               <div key={row.id} className="grid gap-2 p-3 sm:grid-cols-[140px_minmax(0,1fr)_140px_32px] sm:items-end">
                 <label className="text-[12px] font-medium text-ink">
@@ -594,7 +586,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
             ))}
           </div>
 
-          <div className="grid grid-cols-3 gap-px border-t border-ink-100 bg-ink-100 text-center text-[12px]">
+          <div className="grid grid-cols-3 gap-px border-t border-border bg-ink-100 text-center text-[12px]">
             <div className="bg-ink-50 px-3 py-2">
               <p className="text-ink-400">Total</p>
               <p className="mt-0.5 font-semibold text-ink">{taka(totalNum)}</p>
@@ -650,3 +642,4 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
     </Dialog>
   );
 }
+
