@@ -57,7 +57,8 @@ const accountsByMethod: Record<StandardPaymentMethod, string[]> = {
   bKash: ['bKash Business · 01711•••412'],
   Nagad: ['Nagad Merchant · 01819•••771']
 };
-const today = '2026-10-07';
+const dateNow = new Date();
+const today = [dateNow.getFullYear(), String(dateNow.getMonth() + 1).padStart(2, '0'), String(dateNow.getDate()).padStart(2, '0')].join('-');
 const stockProducts = products.filter((product) => product.kind !== 'Service');
 
 function productFor(line: PurchaseLine): Product {
@@ -250,7 +251,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       onSavePurchase({
         id: `pu${Date.now()}`,
         ref: nextRef,
-        date: date === today ? '07 Oct 2026' : date,
+        date: new Date(date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         supplierId: selectedParty?.id ?? '',
         supplier: party,
         items: items || 'Items not itemised',
@@ -274,7 +275,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       onSaveExpense({
         id: `e${Date.now()}`,
         ref: nextRef,
-        date: date === today ? '07 Oct 2026' : date,
+        date: new Date(date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         category,
         payee: party,
         payeeId: selectedParty?.id,
