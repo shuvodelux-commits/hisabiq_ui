@@ -7,6 +7,8 @@ import { stockLots as seedLots } from './productInventory';
 /** Design-preview state only: no network posting or cross-tenant persistence. */
 const createdProducts: Product[] = [];
 const createdProductCategories: string[] = [];
+const createdProductBrands: string[] = [];
+const createdProductUnits: ProductUnitOption[] = [];
 const createdParties: Party[] = [];
 const createdCategories: string[] = [];
 const createdPurchases: Purchase[] = [];
@@ -16,7 +18,39 @@ export const availableProducts = () => [...seedProducts, ...createdProducts].map
   stock: product.stock + createdPurchases.reduce((sum, purchase) =>
     sum + (purchase.inventoryLines ?? []).filter((line) => line.productId === product.id).reduce((qty, line) => qty + line.quantity, 0), 0)
 }));
+export type ProductUnitOption = { name: string; symbol: string };
+const initialProductUnits: ProductUnitOption[] = [
+  { name: 'Piece', symbol: 'Pcs' }, { name: 'Gira', symbol: 'Gira' },
+  { name: 'Kilogram', symbol: 'Kg' }, { name: 'Feet', symbol: 'Feet' },
+  { name: 'Bag', symbol: 'Bag' }, { name: 'Coil', symbol: 'Coil' },
+  { name: 'Pair', symbol: 'Pair' }, { name: 'Litre', symbol: 'Litre' },
+  { name: 'Box', symbol: 'Box' }, { name: 'Gauge', symbol: 'Gauge' }
+];
+const seedBrands = ['Generic / No brand', 'RFL', 'Vision', 'Shah Cement'];
+const isSame = (left: string, right: string) => left.toLocaleLowerCase() === right.toLocaleLowerCase();
 export const availableProductCategories = () => [...productCategories, ...createdProductCategories];
+export const availableProductBrands = () => [...seedBrands, ...createdProductBrands];
+export const availableProductUnits = (): ProductUnitOption[] => {
+  const units = [...initialProductUnits, ...createdProductUnits];
+  for (const product of [...seedProducts, ...createdProducts]) {
+    for (const symbol of [product.unit, product.altUnit?.unit]) {
+      if (symbol && !units.some((item) => isSame(item.symbol, symbol)))
+        units.push({ name: symbol, symbol });
+    }
+  }
+  return units;
+};
+export function createPreviewProductBrand(name: string) {
+  const trimmed = name.trim();
+  if (trimmed && !availableProductBrands().some((item) => isSame(item, trimmed)))
+    createdProductBrands.push(trimmed);
+}
+export function createPreviewProductUnit(name: string, symbol: string) {
+  const cleanedName = name.trim(), cleanedSymbol = (symbol.trim() || cleanedName);
+  if (cleanedName && cleanedSymbol && !availableProductUnits().some((item) =>
+    isSame(item.name, cleanedName) || isSame(item.symbol, cleanedSymbol)))
+    createdProductUnits.push({ name: cleanedName, symbol: cleanedSymbol });
+}
 export const availableParties = () => [...seedParties, ...createdParties].map((party) => ({
   ...party,
   balance: party.balance - createdPurchases.filter((purchase) => purchase.supplierId === party.id)
