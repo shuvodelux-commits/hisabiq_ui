@@ -198,14 +198,14 @@ export function PartyDetail({ party, entries, relationship, onRoleChange, onEdit
       }
 
       <Dialog open={!!editingNote} onOpenChange={(open)=>!open&&setEditingNote(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent role="dialog" aria-modal="true" aria-label="Edit party note" className="sm:max-w-md">
           <DialogHeader><DialogTitle>Edit note</DialogTitle><DialogDescription>Updates this party's preview note only.</DialogDescription></DialogHeader>
           <Input aria-label="Edit note" value={editText} onChange={event=>setEditText(event.target.value)}/>
           <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setEditingNote(null)}>Cancel</Button><Button onClick={()=>{if(editingNote&&editText.trim()){onEditNote(editingNote.id,editText.trim());setEditingNote(null);toast.success('Note updated');}}}>Save note</Button></div>
         </DialogContent>
       </Dialog>
       <Dialog open={!!deleteNote} onOpenChange={(open)=>!open&&setDeleteNote(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent role="dialog" aria-modal="true" aria-label="Delete party note" className="sm:max-w-md">
           <DialogHeader><DialogTitle>Delete note?</DialogTitle><DialogDescription>This removes the note from the active preview and preserves an audit entry.</DialogDescription></DialogHeader>
           <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setDeleteNote(null)}>Keep note</Button><Button onClick={()=>{if(deleteNote){onDeleteNote(deleteNote.id);setDeleteNote(null);toast.success('Note deleted');}}}>Confirm delete</Button></div>
         </DialogContent>
