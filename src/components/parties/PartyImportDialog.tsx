@@ -21,7 +21,7 @@ export function PartyImportDialog({open,onClose,onImport}:Props){
     catch(reason){setError(reason instanceof Error?reason.message:'Import rejected.');}
   };
   return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
-    <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
+    <DialogContent role="dialog" aria-modal="true" aria-label="Import parties from CSV" className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
       <DialogHeader>
         <DialogTitle>Import parties from CSV</DialogTitle>
         <DialogDescription>Preview accepted and rejected rows before adding them to this browser's in-memory preview. Columns: name, nameBn, phone, area, roles. Use | between multiple roles.</DialogDescription>
