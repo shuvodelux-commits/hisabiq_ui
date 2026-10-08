@@ -138,6 +138,9 @@ export function Parties() {
         page={page} pages={totalPages} onPage={setPage}
         actionsForRow={actionsForRow} onLedgerAction={handleLedgerAction}
         statementOpen={statementOpen} onCloseStatement={()=>setStatementOpen(false)}
+        sources={state.sources}
+        onRecordPayment={payload=>{dispatchPartyPreview({type:'record-payment',payload});toast.success('Payment recorded in preview (no bank posting)');}}
+        onRefundCredit={payload=>{dispatchPartyPreview({type:'refund-credit',payload});toast.success('Credit refund recorded in preview (no bank posting)');}}
         onAddNote={text=>noteAction('add',text)}
         onEditNote={(id,text)=>noteAction('edit',id,text)}
         onDeleteNote={id=>noteAction('delete',id)}/>:
