@@ -145,6 +145,7 @@ export function Parties() {
         onRecordPayment={payload=>{dispatchPartyPreview({type:'record-payment',payload});toast.success('Payment recorded in preview (no bank posting)');}}
         onRefundCredit={payload=>{dispatchPartyPreview({type:'refund-credit',payload});toast.success('Credit refund recorded in preview (no bank posting)');}}
         onRecordFinance={payload=>{dispatchPartyPreview({type:'record-finance',payload});toast.success('Capital / loan transaction saved in preview (no bank posting)');}}
+        onSetOpening={payload=>{dispatchPartyPreview({type:'set-opening',payload});toast.success('Opening balance updated in preview; previous amount retained in audit');}}
         onEditSourcePayment={(sourceId,payload,reason)=>{
           dispatchPartyPreview({type:'edit-source-payment',sourceId,payload,reason});
           toast.success('Preview payment corrected; dependent balances recalculated');
