@@ -80,6 +80,19 @@ async function main() {
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 1);
     assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
     assert.match(await page.locator('aside').last().innerText(), /3,750/);
+    const bulbRow = page.getByTestId('purchase-cart-row').first();
+    await bulbRow.getByRole('radio', { name: 'Pcs', exact: true }).click();
+    const baseOnlyQty = bulbRow.getByLabel('Quantity for LED Bulb 12W');
+    assert.equal(await baseOnlyQty.inputValue(), '25', 'switch to Pcs shows one base quantity');
+    assert.equal(await bulbRow.getByLabel('Purchase cost for LED Bulb 12W').inputValue(), '150');
+    assert.equal(await bulbRow.getByText('Box', { exact: true }).count(), 1, 'Box remains only in the unit toggle');
+    assert.match(await page.locator('aside').last().innerText(), /3,750/, 'switch does not change purchase total');
+    await bulbRow.getByRole('radio', { name: 'Box', exact: true }).click();
+    assert.equal(await bulbRow.getByLabel('Box quantity for LED Bulb 12W').inputValue(), '2');
+    assert.equal(await bulbRow.getByLabel('Pcs quantity for LED Bulb 12W').inputValue(), '5');
+    assert.equal(await bulbRow.getByLabel('Purchase cost for LED Bulb 12W').inputValue(), '1500');
+    assert.match(await page.locator('aside').last().innerText(), /3,750/);
+
 
     await page.getByRole('button', { name: /Quick add PVC Pipe/ }).first().click();
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 2);
