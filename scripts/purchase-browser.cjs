@@ -32,11 +32,41 @@ async function main() {
     await productDialog.waitFor({ state: 'hidden' });
 
     assert.ok(await page.getByRole('button', { name: /^Quick add/ }).count() >= 6, 'Quick Items must be touch-friendly');
-    await page.getByRole('combobox', { name: 'Search product to add to purchase' }).fill('LED Bulb 12W');
-    await page.getByRole('option', { name: /LED Bulb 12W/ }).click();
-    await page.getByLabel('Box quantity for LED Bulb 12W').fill('2');
-    await page.getByLabel('Pcs quantity for LED Bulb 12W').fill('5');
-    await page.getByLabel('Purchase cost for LED Bulb 12W').fill('1500');
+    // Regression: the purchase dropdown must behave like POS, not clip inside the scrollable cart.
+    await page.keyboard.press('F2');
+    const purchaseSearch = page.getByRole('combobox', { name: 'Search product to add to purchase' });
+    assert.equal(await purchaseSearch.evaluate((node) => document.activeElement === node), true, 'F2 focuses search');
+    await purchaseSearch.fill('bulb');
+    const suggestion = page.getByRole('option', { name: /LED Bulb 12W/ });
+    await suggestion.waitFor();
+    const floatingList = page.getByRole('listbox', { name: 'Purchase product suggestions' });
+    await floatingList.waitFor({ state: 'visible' });
+    assert.equal(await floatingList.evaluate((node) => {
+      const cartScroller = document.querySelector('[data-testid="purchase-cart"]')?.parentElement;
+      return !cartScroller?.contains(node) && node.getBoundingClientRect().width > 0;
+    }), true, 'suggestions must render outside the cart scrolling container');
+    await purchaseSearch.press('Escape');
+    await floatingList.waitFor({ state: 'hidden' });
+    await purchaseSearch.fill('bulb');
+
+    await page.getByRole('combobox', { name: 'Search product to add to purchase' }).press('Enter');
+    const boxQty = page.getByLabel('Box quantity for LED Bulb 12W');
+    assert.equal(await boxQty.evaluate((node) => document.activeElement === node), true, 'selecting product focuses quantity');
+    await boxQty.press('Enter');
+    const pcsQty = page.getByLabel('Pcs quantity for LED Bulb 12W');
+    assert.equal(await pcsQty.evaluate((node) => document.activeElement === node), true, 'Enter moves large to small unit');
+    await pcsQty.press('Enter');
+    const purchaseCostInput = page.getByLabel('Purchase cost for LED Bulb 12W');
+    assert.equal(await purchaseCostInput.evaluate((node) => document.activeElement === node), true, 'Enter moves to cost');
+    await purchaseCostInput.press('Enter');
+    const salePriceInput = page.getByLabel('Lot selling price for LED Bulb 12W');
+    assert.equal(await salePriceInput.evaluate((node) => document.activeElement === node), true, 'Enter moves to lot sale price');
+    await salePriceInput.press('Enter');
+    assert.equal(await purchaseSearch.evaluate((node) => document.activeElement === node), true, 'Enter returns to new product');
+
+    await boxQty.fill('2');
+    await pcsQty.fill('5');
+    await purchaseCostInput.fill('1500');
     const lotSellInput = page.getByLabel('Lot selling price for LED Bulb 12W');
     if (!(await lotSellInput.isVisible())) await page.getByRole('button', { name: /Lot details for LED Bulb 12W/ }).click();
     await lotSellInput.fill('185');
@@ -54,6 +84,9 @@ async function main() {
     await expiryRow.getByLabel('Batch / lot number').fill('CEM-QA-BATCH');
     await expiryRow.getByLabel('Expiry date').fill('2026-12-31');
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 4);
+    await page.keyboard.press('F8');
+    const firstPaymentInput = page.getByLabel('Paid amount 1');
+    assert.equal(await firstPaymentInput.evaluate((node) => document.activeElement === node), true, 'F8 focuses payment amount');
     await page.getByRole('button', { name: 'Pay full' }).click();
     assert.match(await page.locator('aside').last().innerText(), /Supplier due/);
     await page.getByRole('button', { name: 'Complete purchase' }).click();
