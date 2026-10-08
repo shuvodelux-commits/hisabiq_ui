@@ -87,6 +87,47 @@ async function main() {
     await page.getByRole('button', { name: 'Clear' }).click();
     assert.match(await ledger.innerText(), /All dates/, 'account ledger accepts an unbounded range');
 
+    // Expenses Reports: this formerly had two decorative, disconnected date fields.
+    await page.goto(root + 'expenses');
+    await page.getByRole('tab', { name: /^Reports/ }).click();
+    const expenseRange = page.getByRole('button', { name: 'Expense report date range' });
+    assert.match(await expenseRange.innerText(), /1 Sep 2026 – 30 Sep 2026/);
+    assert.equal(await page.getByText('Rent', { exact: true }).count() > 0, true,
+      'expense category present for September');
+    await expenseRange.click();
+    const expenseCalendar = page.getByRole('dialog', { name: 'Expense report date range calendar' });
+    await expenseCalendar.waitFor({ state: 'visible' });
+    assert.equal(await expenseCalendar.evaluate((node) => getComputedStyle(node).backgroundColor),
+      'rgb(20, 38, 59)', 'expense range popup uses navy theme');
+    await expenseCalendar.locator('[data-calendar-date="2026-09-24"]').click();
+    await expenseCalendar.locator('[data-calendar-date="2026-09-25"]').click();
+    await expenseCalendar.getByRole('button', { name: 'Apply' }).click();
+    assert.match(await expenseRange.innerText(), /24 Sep 2026 – 25 Sep 2026/);
+    assert.equal(await page.getByText('Rent', { exact: true }).count(), 0,
+      'expense report category totals react to range');
+    assert.equal(await page.getByText('Utilities', { exact: true }).count() > 0, true);
+    await expenseRange.click();
+    await expenseCalendar.getByRole('button', { name: 'Clear' }).click();
+    assert.match(await expenseRange.innerText(), /All dates/);
+    assert.equal(await page.getByText('Rent', { exact: true }).count() > 0, true,
+      'clearing range restores expense totals');
+
+    // Accounts Statements: a single date range and dynamic accounting period presets.
+    await page.goto(root + 'accounts');
+    await page.getByRole('tab', { name: /^Statements/ }).click();
+    const statementsRange = page.getByRole('button', { name: 'Financial statements date range' });
+    assert.match(await statementsRange.innerText(), /1 Sep 2026 – 31 Oct 2026/);
+    await page.getByRole('button', { name: 'This month', exact: true }).click();
+    assert.match(await statementsRange.innerText(), /1 Oct 2026 – 31 Oct 2026/);
+    await statementsRange.click();
+    const statementCalendar = page.getByRole('dialog', { name: 'Financial statements date range calendar' });
+    await statementCalendar.waitFor({ state: 'visible' });
+    assert.equal(await statementCalendar.evaluate((node) => getComputedStyle(node).backgroundColor),
+      'rgb(20, 38, 59)', 'statements range popup matches dark theme');
+    await statementCalendar.getByRole('button', { name: 'Clear' }).click();
+    assert.match(await statementsRange.innerText(), /All dates/);
+    await page.getByText('Profit & Loss', { exact: true }).waitFor();
+
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(root + 'daybook');
     await page.getByRole('button', { name: 'Daybook date range' }).click();
