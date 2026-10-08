@@ -30,7 +30,7 @@ async function main() {
     await page.getByText('01888880000').first().waitFor();
     await page.getByRole('tab',{name:/Notes/}).click();
     await page.getByRole('textbox',{name:'New note'}).fill('Ask for receipt');
-    await page.getByRole('button',{name:/Add note/i}).click();
+    await page.getByRole('textbox',{name:'New note'}).locator('..').getByRole('button',{name:'Add note'}).click();
     await page.getByText('Ask for receipt').first().waitFor();
     await page.getByRole('button',{name:/Edit note Ask for receipt/i}).click();
     await page.getByRole('textbox',{name:'Edit note'}).fill('Bring receipt');
