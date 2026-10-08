@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
+import { PartyImportDialog } from '../components/parties/PartyImportDialog';
 import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
 import { matchesPartySearch, resolvePartySelection } from '../utils/partyIdentity';
 import type { Party, PartyRole, LedgerEntry, LedgerEntryType } from '../types/erp';
@@ -29,6 +30,7 @@ export function Parties() {
   const [role,setRole]=useState<PartyRole|'All'>('All');
   const [query,setQuery]=useState('');
   const [editing,setEditing]=useState<Party|null|undefined>(undefined);
+  const [importOpen,setImportOpen]=useState(false);
   const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
   const allParties=state.parties;
   const selected=resolvePartySelection(allParties,params.get('id')??undefined,params.get('role')??undefined);
@@ -70,7 +72,7 @@ export function Parties() {
     <PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
       description={`Everyone you deal with, in one place · Directory receivables ${taka(receivable)} · payables ${taka(payable)} · preview`}
       actions={<>
-        <Button variant="outline" size="sm" disabled title="CSV import is included in the next directory slice">
+        <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
           <Upload className="size-4"/> Import CSV
         </Button>
         <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add party</Button>
@@ -87,5 +89,6 @@ export function Parties() {
         <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">No parties yet. Add your first party.</div>}
     </div>
     <PartyEditorDialog open={editing!==undefined} party={editing} onClose={()=>setEditing(undefined)} onSave={saveParty}/>
+    <PartyImportDialog open={importOpen} onClose={()=>setImportOpen(false)} onImport={parties=>{dispatchPartyPreview({type:"import-parties",parties});toast.success(`${parties.length} parties imported to preview`);}}/>
   </div>;
 }
