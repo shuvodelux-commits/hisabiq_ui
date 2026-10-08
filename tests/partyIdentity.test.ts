@@ -1,3 +1,4 @@
+import { parties as partiesFromSeed, ledgerEntries as ledgerFromSeed } from '../src/data/parties.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validatePartyDraft, resolvePartySelection, matchesPartySearch } from '../src/utils/partyIdentity.ts';
@@ -40,4 +41,16 @@ test('legacy fixture dates normalize and financial references are not double cou
   assert.ok(state.sources.some(x => x.partyId === 'c1' && x.date === '2026-09-03' && x.credit === 50));
   assert.equal(financePersonIdByPartyId.o1, 'fp1');
   assert.equal(financePersonIdByPartyId.c1, undefined);
+});
+
+test('seeded invoices and purchases include their original paid amounts exactly once', () => {
+  const snapshot=normalizePartyFixture(partiesFromSeed, ledgerFromSeed);
+  const paidCustomer=snapshot.sources.filter(x=>x.partyId==='c4'&&x.relationship==='Customer'&&x.kind==='customer-payment'&&x.invoiceId==='INV-000239');
+  assert.equal(paidCustomer.length,1);
+  assert.equal(paidCustomer[0].credit,6000);
+  assert.equal(paidCustomer[0].amountPaid,6000);
+  const paidSupplier=snapshot.sources.filter(x=>x.partyId==='s2'&&x.relationship==='Supplier'&&x.kind==='supplier-payment'&&x.invoiceId==='PUR-000117');
+  assert.equal(paidSupplier.length,1);
+  assert.equal(paidSupplier[0].debit,40000);
+  assert.equal(paidSupplier[0].amountPaid,40000);
 });

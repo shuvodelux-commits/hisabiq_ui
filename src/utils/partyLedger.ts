@@ -1,5 +1,6 @@
 import type { IsoRange } from './dateRange';
 import { businessToday } from './dateRange.ts';
+import { customerSettlementAsOf, supplierSettlementAsOf } from './partySettlement.ts';
 import type { PartyBalanceSummary, PartyLedgerRow, PartyPreviewState, LedgerStatement, PartyRelationship } from '../types/partyLedger';
 
 const paisa=(value:number)=>Math.round(value*100);
@@ -61,6 +62,16 @@ export function computePartyBalanceSummary(
     amountPaid:s.amountPaid,discount:s.discount,method:s.method,accountId:s.accountId
   }));
   const netBalance=projectPartyStatement(rows,partyId,relationship,{from:'',to:''}).closingBalance;
+  if(relationship==='Customer'||relationship==='Supplier'){
+    const snapshot=relationship==='Customer'
+      ? customerSettlementAsOf(state.sources,partyId,businessToday())
+      : supplierSettlementAsOf(state.sources,partyId,businessToday());
+    return {relationship,netBalance:snapshot.netBalance,due:snapshot.invoiceDue,
+      availableCredit:snapshot.refundableCredit,refundableCredit:snapshot.refundableCredit,
+      labels:{due:snapshot.invoiceDue,netBalance:snapshot.netBalance,
+        unknownCredit:snapshot.unverifiedCredit,cashBackedAdvance:snapshot.cashBackedAdvance,
+        returnCredit:snapshot.returnCredit}};
+  }
   const receives=['Customer','Borrower'].includes(relationship);
   const due=receives?Math.max(0,netBalance):Math.max(0,-netBalance);
   // Refundable balances require replayable credit provenance (settlement slice);
