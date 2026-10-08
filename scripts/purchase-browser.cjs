@@ -28,16 +28,24 @@ async function main() {
     await page.getByRole('button', { name: 'New product' }).click();
     const productDialog = page.locator('[data-slot="dialog-content"]').last();
     await productDialog.waitFor();
-    await page.keyboard.press('Escape');
+    await productDialog.getByRole('button', { name: 'Close', exact: true }).click();
     await productDialog.waitFor({ state: 'hidden' });
 
+    assert.ok(await page.getByRole('button', { name: /^Quick add/ }).count() >= 6, 'Quick Items must be touch-friendly');
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).fill('LED Bulb 12W');
     await page.getByRole('option', { name: /LED Bulb 12W/ }).click();
     await page.getByLabel('Box quantity for LED Bulb 12W').fill('2');
     await page.getByLabel('Pcs quantity for LED Bulb 12W').fill('5');
     await page.getByLabel('Purchase cost for LED Bulb 12W').fill('1500');
+    await page.getByRole('button', { name: /Lot details for LED Bulb 12W/ }).click();
+    await page.getByLabel('Lot selling price for LED Bulb 12W').fill('185');
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 1);
+    assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
     assert.match(await page.locator('aside').innerText(), /3,750/);
 
+    await page.getByRole('button', { name: /Quick add PVC Pipe/ }).first().click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 2);
+    assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
     await page.getByRole('button', { name: 'Pay full' }).click();
     assert.match(await page.locator('aside').innerText(), /Supplier due/);
     await page.getByRole('button', { name: 'Complete purchase' }).click();
