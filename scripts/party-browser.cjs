@@ -22,7 +22,7 @@ async function main() {
     await page.getByText('New Party QA',{exact:true}).first().waitFor();
     assert.match(page.url(),/id=party-preview-/);
     await page.getByRole('combobox',{name:'Relationship'}).click();
-    await page.getByRole('option',{name:'Supplier'}).click();
+    await page.getByRole('listbox',{name:'Relationship options'}).getByRole('option',{name:'Supplier',exact:true}).click();
     assert.match(page.url(),/role=Supplier/);
     await page.getByRole('button',{name:/Edit party/i}).click();
     await dialog.getByLabel('Phone').fill('01888880000');
