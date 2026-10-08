@@ -1,4 +1,4 @@
-import { products } from './products';
+import { products } from './products.ts';
 import type { StockLot, StockMovement } from '../types/erp';
 
 function splitStock(stock: number): [number, number] {

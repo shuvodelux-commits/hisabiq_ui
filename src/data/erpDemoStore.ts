@@ -1,15 +1,15 @@
 import type { LedgerEntry, Party, Product, Purchase, StockLot } from '../types/erp';
-import { purchases as seedPurchases, expenseCategories } from './purchases';
-import { parties as seedParties, ledgerEntries as seedLedgerEntries } from './parties';
-import { products as seedProducts, productCategories } from './products';
-import { stockLots as seedLots } from './productInventory';
+import { purchases as seedPurchases, expenseCategories } from './purchases.ts';
+import { ledgerEntries as seedLedgerEntries } from './parties.ts';
+import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore.ts';
+import { products as seedProducts, productCategories } from './products.ts';
+import { stockLots as seedLots } from './productInventory.ts';
 
 /** Design-preview state only: no network posting or cross-tenant persistence. */
 const createdProducts: Product[] = [];
 const createdProductCategories: string[] = [];
 const createdProductBrands: string[] = [];
 const createdProductUnits: ProductUnitOption[] = [];
-const createdParties: Party[] = [];
 const createdCategories: string[] = [];
 const createdPurchases: Purchase[] = [];
 
@@ -51,7 +51,7 @@ export function createPreviewProductUnit(name: string, symbol: string) {
     isSame(item.name, cleanedName) || isSame(item.symbol, cleanedSymbol)))
     createdProductUnits.push({ name: cleanedName, symbol: cleanedSymbol });
 }
-export const availableParties = () => [...seedParties, ...createdParties].map((party) => ({
+export const availableParties = () => getPartyPreviewSnapshot().parties.map((party) => ({
   ...party,
   balance: party.balance - createdPurchases.filter((purchase) => purchase.supplierId === party.id)
     .reduce((sum, purchase) => sum + purchase.total - purchase.paid, 0)
@@ -97,7 +97,9 @@ export function createPreviewProduct(product: Product) {
   if (!availableProducts().some((item) => item.id === product.id)) createdProducts.push(product);
 }
 export function createPreviewParty(party: Party) {
-  if (!availableParties().some((item) => item.id === party.id)) createdParties.push(party);
+  if (!getPartyPreviewSnapshot().parties.some((item) => item.id === party.id)) {
+    dispatchPartyPreview({type:'create-party',party});
+  }
 }
 export function createPreviewExpenseCategory(category: string) {
   if (!availableExpenseCategories().some((item) => item.toLowerCase() === category.toLowerCase())) createdCategories.push(category);

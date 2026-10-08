@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote } from 'lucide-react';
+import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
+import { FormSelect } from '../FormSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
 import { RoleBadge } from './RoleBadge';
 import { LedgerTable } from './LedgerTable';
-import type { LedgerEntry, Party } from '../../types/erp';
+import type { LedgerEntry, Party, PartyRole } from '../../types/erp';
 import { formatNumber, taka } from '../../utils/currency';
 
 type Tab = 'ledger' | 'invoices' | 'payments' | 'notes' | 'attachments';
@@ -16,11 +17,19 @@ type PartyDetailProps = {
   party: Party;
   entries: LedgerEntry[];
   onAddNote: (text: string) => void;
+  onEditNote: (id: string, text: string) => void;
+  onDeleteNote: (id: string) => void;
+  relationship: PartyRole;
+  onRoleChange: (role: PartyRole) => void;
+  onEditParty: () => void;
 };
 
-export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
+export function PartyDetail({ party, entries, relationship, onRoleChange, onEditParty, onAddNote, onEditNote, onDeleteNote }: PartyDetailProps) {
   const [tab, setTab] = useState<Tab>('ledger');
   const [note, setNote] = useState('');
+  const [editingNote, setEditingNote] = useState<LedgerEntry | null>(null);
+  const [editText, setEditText] = useState('');
+  const [deleteNote, setDeleteNote] = useState<LedgerEntry | null>(null);
   const [attachment, setAttachment] = useState<LedgerEntry | null>(null);
 
   const invoices = entries.filter((e) => e.type === 'invoice' || e.type === 'purchase');
@@ -47,6 +56,10 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
             <h2 className="text-lg font-semibold tracking-tight text-ink">{party.name}</h2>
             {party.nameBn && <span className="font-bn text-sm text-ink-500">{party.nameBn}</span>}
           </div>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" onClick={onEditParty}><Pencil className="size-3"/> Edit party</Button>
+            {party.roles.length>1 && <div className="min-w-32"><FormSelect title="Relationship" value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)}/></div>}
+          </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500">
             <span className="flex gap-1">{party.roles.map((r) => <RoleBadge key={r} role={r} />)}</span>
             <span className="flex items-center gap-1"><Phone className="size-3" /> {party.phone}</span>
@@ -65,13 +78,13 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
-        <Button size="sm" onClick={() => toast.success(isReceivable ? 'Payment received' : 'Payment recorded')}>
+        <Button size="sm" disabled title="Party payments are implemented in the settlement slice">
           <HandCoins className="size-4" /> {isReceivable || party.balance === 0 ? 'Receive payment' : 'Make payment'}
         </Button>
-        <Button size="sm" variant="outline" onClick={() => toast('New invoice started')}>
+        <Button size="sm" variant="outline" disabled title="Open a new invoice from the POS until the Party source action is connected">
           <Plus className="size-4" /> New invoice
         </Button>
-        <Button size="sm" variant="outline" onClick={() => toast.success('Statement sent by SMS', { description: party.phone })}>
+        <Button size="sm" variant="outline" disabled title="SMS service is not connected to the UI preview">
           <Send className="size-4" /> Send statement
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
@@ -163,14 +176,20 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
           
             <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Write a note… e.g. Promised payment on Sunday" aria-label="New note" />
             <Button type="submit" size="sm" className="h-9">
-              <MessageSquare className="size-4" /> Add
+              <MessageSquare className="size-4" /> Add note
             </Button>
           </form>
           <ul className="space-y-2">
             {notes.map((n) =>
           <li key={n.id} className="rounded-lg border border-warning/20 bg-warning-bg/50 px-3 py-2 text-[13px] text-ink-700">
-                {n.description}
-                <span className="mt-0.5 block text-[11px] text-ink-400">{n.date} · Anisur Rahman</span>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="break-words">{n.description}</span>
+                  <span className="flex shrink-0 gap-1">
+                    <button type="button" aria-label={`Edit note ${n.description}`} className="rounded p-1 text-ink-500 hover:bg-ink-100" onClick={()=>{setEditingNote(n);setEditText(n.description);}}><Pencil className="size-3.5"/></button>
+                    <button type="button" aria-label={`Delete note ${n.description}`} className="rounded p-1 text-danger hover:bg-danger-bg" onClick={()=>setDeleteNote(n)}><Trash2 className="size-3.5"/></button>
+                  </span>
+                </div>
+                <span className="mt-0.5 block text-[11px] text-ink-400">{n.date} · Preview</span>
               </li>
           )}
             {notes.length === 0 && <li className="py-6 text-center text-sm text-ink-500">No notes yet.</li>}
@@ -178,6 +197,19 @@ export function PartyDetail({ party, entries, onAddNote }: PartyDetailProps) {
         </div>
       }
 
+      <Dialog open={!!editingNote} onOpenChange={(open)=>!open&&setEditingNote(null)}>
+        <DialogContent role="dialog" aria-modal="true" aria-label="Edit party note" className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Edit note</DialogTitle><DialogDescription>Updates this party's preview note only.</DialogDescription></DialogHeader>
+          <Input aria-label="Edit note" value={editText} onChange={event=>setEditText(event.target.value)}/>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setEditingNote(null)}>Cancel</Button><Button onClick={()=>{if(editingNote&&editText.trim()){onEditNote(editingNote.id,editText.trim());setEditingNote(null);toast.success('Note updated');}}}>Save note</Button></div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!deleteNote} onOpenChange={(open)=>!open&&setDeleteNote(null)}>
+        <DialogContent role="dialog" aria-modal="true" aria-label="Delete party note" className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Delete note?</DialogTitle><DialogDescription>This removes the note from the active preview and preserves an audit entry.</DialogDescription></DialogHeader>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setDeleteNote(null)}>Keep note</Button><Button onClick={()=>{if(deleteNote){onDeleteNote(deleteNote.id);setDeleteNote(null);toast.success('Note deleted');}}}>Confirm delete</Button></div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!attachment} onOpenChange={(o) => !o && setAttachment(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>

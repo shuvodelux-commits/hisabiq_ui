@@ -126,6 +126,8 @@ export type Party = {
   lastActivity: string;
   avatarColor: string;
   image?: string;
+  /** UI preview identity lifecycle; financial records remain separately audited. */
+  status?: 'Active' | 'Inactive';
 };
 
 export type LedgerEntryType = 'invoice' | 'payment' | 'purchase' | 'return' | 'note' | 'opening';
