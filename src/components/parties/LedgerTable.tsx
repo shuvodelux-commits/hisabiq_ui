@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paperclip, StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw, Minus } from 'lucide-react';
+import { Paperclip, StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { StatusBadge, type StatusTone } from '../StatusBadge';
 import { PartyLedgerRowActions } from './PartyLedgerRowActions';
@@ -30,7 +30,6 @@ const label=(source:PartyLedgerRow['source'])=>({
   'customer-payment':'Payment','supplier-payment':'Payment',
   'customer-credit-refund':'Credit refund',expense:'Expense'
 })[source]??source;
-const money=(n:number)=>n?formatNumber(n):'—';
 const impactTone:Record<LedgerImpact['kind'],string>={
  in:'text-emerald-700 dark:text-emerald-400',
  out:'text-rose-700 dark:text-rose-400',
@@ -39,18 +38,30 @@ const impactTone:Record<LedgerImpact['kind'],string>={
  opening:'text-ink-600',
  neutral:'text-ink-500'
 };
-function Impact({row}:{row:PartyLedgerRow}){
+/** Show the icon beside the posted amount and its explanation directly underneath.
+ * Debit and credit retain their accounting meaning; these colors describe the
+ * transaction's economic impact, not the sign of an account column.
+ */
+function LedgerAmount({row,value}:{row:PartyLedgerRow;value:number}){
+ if(!value)return <span className="text-ink-400">—</span>;
  const info=ledgerImpact(row);
+ if(info.kind==='neutral')return <span className="font-medium text-ink">{formatNumber(value)}</span>;
  const Icon=info.kind==='in'?ArrowDownLeft:info.kind==='out'?ArrowUpRight:
-  info.kind==='due'?FileText:info.kind==='opening'?BookOpen:
-  info.kind==='adjustment'?RefreshCcw:Minus;
- return <span className={`inline-flex shrink-0 items-center gap-1 text-[10px] font-medium ${impactTone[info.kind]}`}
-   title={info.label} aria-label={info.label}>
-   <Icon className="size-3" aria-hidden="true"/>{info.label}
- </span>;
+  info.kind==='due'?FileText:info.kind==='opening'?BookOpen:RefreshCcw;
+ const visibleCaption=info.kind==='due'
+  ?row.relationship==='Supplier'?'Payable increased':'Due increased'
+  :info.kind==='adjustment'?'Adjustment':info.label;
+ return <div className={`flex flex-col items-end gap-0.5 ${impactTone[info.kind]}`}>
+   <span data-testid="ledger-money-value" aria-label={info.label} title={info.label}
+      className="inline-flex items-center justify-end gap-1 whitespace-nowrap font-semibold leading-tight">
+     <Icon className="size-3.5 shrink-0" aria-hidden="true"/>
+     <span>{formatNumber(value)}</span>
+   </span>
+   <span data-testid="ledger-impact-caption" className="whitespace-nowrap text-[10px] font-normal leading-tight">
+     {visibleCaption}
+   </span>
+ </div>;
 }
-const amountClass=(row:PartyLedgerRow,n:number)=>n&&['in','out','due','adjustment'].includes(ledgerImpact(row).kind)
- ?impactTone[ledgerImpact(row).kind]:'text-ink';
 
 export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpenAttachment}:Props){
   return <div>
@@ -74,13 +85,12 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
                 {row.source==='note'&&<StickyNote className="size-3.5 text-warning"/>}
                 <StatusBadge tone={tone(row)}>{label(row.source)}</StatusBadge>
                 {row.reference&&<span className="font-medium text-ink">{row.reference}</span>}
-                <Impact row={row}/>
                 {row.attachment&&<button type="button" className="text-teal-700" aria-label={'Open attachment '+row.attachment.name} onClick={()=>onOpenAttachment(row)}><Paperclip className="size-3.5"/></button>}
               </div>
               <p className="mt-0.5 max-w-md truncate text-xs text-ink-500" title={row.description}>{row.description}</p>
             </TableCell>
-            <TableCell className={`text-right ${amountClass(row,row.debit)}`}>{money(row.debit)}</TableCell>
-            <TableCell className={`text-right ${amountClass(row,row.credit)}`}>{money(row.credit)}</TableCell>
+            <TableCell className="text-right align-middle"><LedgerAmount row={row} value={row.debit}/></TableCell>
+            <TableCell className="text-right align-middle"><LedgerAmount row={row} value={row.credit}/></TableCell>
             <TableCell className="text-right font-medium">{formatNumber(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
             <TableCell className="pr-4 text-right"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></TableCell>
           </TableRow>)}
@@ -91,11 +101,11 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
     <div className="space-y-2 p-3 sm:hidden">
       {visibleRows.map(row=><div key={row.id} className="rounded-lg border border-border p-3">
         <div className="flex items-center justify-between gap-2"><span className="text-xs text-ink-500">{row.date}</span><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></div>
-        <div className="mt-1 flex flex-wrap gap-1"><StatusBadge tone={tone(row)}>{label(row.source)}</StatusBadge>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}<Impact row={row}/></div>
+        <div className="mt-1 flex flex-wrap gap-1"><StatusBadge tone={tone(row)}>{label(row.source)}</StatusBadge>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}</div>
         <p className="my-2 break-words text-xs text-ink-600">{row.description}</p>
         <div className="grid grid-cols-3 gap-2 text-right text-xs">
-          <div><p className="text-ink-500">Debit</p><strong className={amountClass(row,row.debit)}>{money(row.debit)}</strong></div>
-          <div><p className="text-ink-500">Credit</p><strong className={amountClass(row,row.credit)}>{money(row.credit)}</strong></div>
+          <div><p className="mb-1 text-ink-500">Debit</p><LedgerAmount row={row} value={row.debit}/></div>
+          <div><p className="mb-1 text-ink-500">Credit</p><LedgerAmount row={row} value={row.credit}/></div>
           <div><p className="text-ink-500">Balance</p><strong>{formatNumber(Math.abs(row.runningBalance))}</strong></div>
         </div>
       </div>)}
