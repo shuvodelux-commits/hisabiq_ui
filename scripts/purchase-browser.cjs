@@ -42,13 +42,13 @@ async function main() {
     await lotSellInput.fill('185');
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 1);
     assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
-    assert.match(await page.locator('aside').innerText(), /3,750/);
+    assert.match(await page.locator('aside').last().innerText(), /3,750/);
 
     await page.getByRole('button', { name: /Quick add PVC Pipe/ }).first().click();
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 2);
     assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
     await page.getByRole('button', { name: 'Pay full' }).click();
-    assert.match(await page.locator('aside').innerText(), /Supplier due/);
+    assert.match(await page.locator('aside').last().innerText(), /Supplier due/);
     await page.getByRole('button', { name: 'Complete purchase' }).click();
     await page.getByRole('heading', { name: 'Purchases', exact: true }).waitFor();
     await page.getByText('Browser QA Supplier', { exact: true }).first().waitFor();
