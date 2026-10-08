@@ -1,3 +1,4 @@
+import { AppSelect } from '../AppSelect';
 import React, { useMemo } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { Button } from '../Button';
@@ -21,21 +22,10 @@ function ProductFilterSelect({
   value: string;
   onChange: (productId: string) => void;
 }) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-9 w-full appearance-none rounded-md border border-input bg-card pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-        aria-label="Filter inventory by product">
-        <option value="">All products</option>
-        {products.filter((product) => product.kind !== 'Service').map((product) => (
-          <option key={product.id} value={product.id}>{product.name}</option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-    </div>
-  );
+  return <AppSelect label="Filter inventory by product" value={value} onChange={onChange}
+    options={[{ value: '', label: 'All products' }, ...products.filter((product) => product.kind !== 'Service')
+      .map((product) => ({ value: product.id, label: product.name }))]} />;
+
 }
 
 export function StockLotsView({

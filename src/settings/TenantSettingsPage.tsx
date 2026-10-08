@@ -1,3 +1,4 @@
+import { AppSelect } from '../components/AppSelect';
 import {
   useEffect,
   useRef,
@@ -207,19 +208,8 @@ function Fields({
                   );
                 if (field.kind === "select")
                   return (
-                    <select
-                      id={id}
-                      aria-label={field.label}
-                      aria-describedby={descriptionId}
-                      className={controlClass}
-                      value={v as string}
-                      onChange={(e) => update(e.target.value)}
-                      disabled={disabled}
-                    >
-                      {field.options?.map((option) => (
-                        <option key={option}>{option}</option>
-                      ))}
-                    </select>
+                    <AppSelect id={id} describedBy={descriptionId} label={field.label} value={v as string}
+  onChange={update} disabled={disabled} options={field.options ?? []} />
                   );
                 if (field.kind === "textarea")
                   return (
@@ -550,22 +540,11 @@ function SettingsPageContent() {
         </p>
         <label className="space-y-1 text-[11px] font-medium text-ink-600">
           Demo employee access
-          <select
-            aria-label="Demo employee access"
-            value={actorId}
-            className={`${controlClass} !h-8 !text-xs`}
-            onChange={(e) => {
-              const id = e.target.value;
-              requestChange(() => setActorId(id));
-            }}
-          >
-            {state.sections.team.employees.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-                {!e.active ? " · Disabled" : ""}
-              </option>
-            ))}
-          </select>
+          <AppSelect label="Demo employee access" value={actorId}
+  onChange={(id) => requestChange(() => setActorId(id))}
+  options={state.sections.team.employees.map((e) => ({
+    value: e.id, label: e.name + (!e.active ? ' · Disabled' : '')
+  }))} />
         </label>
       </div>
       <div className="grid min-w-0 gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
@@ -735,19 +714,9 @@ function SettingsPageContent() {
                         hint="Uses your existing Light, Dark and System theme setting."
                       >
                         {(id) => (
-                          <select
-                            id={id}
-                            aria-label="Appearance"
-                            className={controlClass}
-                            value={themeDraft}
-                            onChange={(e) =>
-                              setThemeDraft(e.target.value as typeof theme)
-                            }
-                          >
-                            <option value="light">Light</option>
-                            <option value="dark">Dark</option>
-                            <option value="system">System</option>
-                          </select>
+                          <AppSelect id={id} label="Appearance" value={themeDraft}
+  onChange={(next) => setThemeDraft(next as typeof theme)}
+  options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'},{value:'system',label:'System'}]} />
                         )}
                       </SettingsField>
                       <SettingsField
@@ -757,25 +726,9 @@ function SettingsPageContent() {
                         hint="Applies to settings and navigation. Existing module content remains in its current language."
                       >
                         {(id) => (
-                          <select
-                            id={id}
-                            aria-label="Language"
-                            className={controlClass}
-                            value={personalDraft.language}
-                            onChange={(e) =>
-                              setPersonalDraft({
-                                ...personalDraft,
-                                language: e.target
-                                  .value as PersonalSettings["language"],
-                              })
-                            }
-                          >
-                            {["English + Bangla", "English", "Bangla"].map(
-                              (v) => (
-                                <option key={v}>{v}</option>
-                              ),
-                            )}
-                          </select>
+                          <AppSelect id={id} label="Language" value={personalDraft.language}
+  onChange={(language) => setPersonalDraft({ ...personalDraft, language: language as PersonalSettings['language'] })}
+  options={['English + Bangla', 'English', 'Bangla']} />
                         )}
                       </SettingsField>
                     </div>
@@ -789,22 +742,9 @@ function SettingsPageContent() {
                           hint="Changes row spacing across this business workspace."
                         >
                           {(id) => (
-                            <select
-                              id={id}
-                              aria-label="Table density"
-                              className={controlClass}
-                              value={personalDraft.density}
-                              onChange={(e) =>
-                                setPersonalDraft({
-                                  ...personalDraft,
-                                  density: e.target
-                                    .value as PersonalSettings["density"],
-                                })
-                              }
-                            >
-                              <option>Compact</option>
-                              <option>Comfortable</option>
-                            </select>
+                            <AppSelect id={id} label="Table density" value={personalDraft.density}
+  onChange={(density) => setPersonalDraft({ ...personalDraft, density: density as PersonalSettings['density'] })}
+  options={['Compact', 'Comfortable']} />
                           )}
                         </SettingsField>
                         <SettingsField
@@ -813,24 +753,9 @@ function SettingsPageContent() {
                           hint="Uses the existing finance and daybook terminology preference."
                         >
                           {(id) => (
-                            <select
-                              id={id}
-                              aria-label="Financial terminology"
-                              className={controlClass}
-                              value={personalDraft.terminology}
-                              onChange={(e) =>
-                                setPersonalDraft({
-                                  ...personalDraft,
-                                  terminology: e.target
-                                    .value as PersonalSettings["terminology"],
-                                })
-                              }
-                            >
-                              <option value="simple">Simple words</option>
-                              <option value="accounting">
-                                Accounting terms
-                              </option>
-                            </select>
+                            <AppSelect id={id} label="Financial terminology" value={personalDraft.terminology}
+  onChange={(terminology) => setPersonalDraft({ ...personalDraft, terminology: terminology as PersonalSettings['terminology'] })}
+  options={[{value:'simple',label:'Simple words'},{value:'accounting',label:'Accounting terms'}]} />
                           )}
                         </SettingsField>
                         <SettingsField
@@ -839,24 +764,9 @@ function SettingsPageContent() {
                           hint="Uses the existing daybook date display preference."
                         >
                           {(id) => (
-                            <select
-                              id={id}
-                              aria-label="Transaction date display"
-                              className={controlClass}
-                              value={personalDraft.dateView}
-                              onChange={(e) =>
-                                setPersonalDraft({
-                                  ...personalDraft,
-                                  dateView: e.target
-                                    .value as PersonalSettings["dateView"],
-                                })
-                              }
-                            >
-                              <option value="transaction">
-                                Transaction date
-                              </option>
-                              <option value="created">Entry date</option>
-                            </select>
+                            <AppSelect id={id} label="Transaction date display" value={personalDraft.dateView}
+  onChange={(dateView) => setPersonalDraft({ ...personalDraft, dateView: dateView as PersonalSettings['dateView'] })}
+  options={[{value:'transaction',label:'Transaction date'},{value:'created',label:'Entry date'}]} />
                           )}
                         </SettingsField>
                       </div>

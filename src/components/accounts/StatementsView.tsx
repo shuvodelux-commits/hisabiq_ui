@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { ArrowDownToLine, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
-import { Input } from '../Input';
+import { AppDateRangePicker } from '../AppDateRangePicker';
+import { datePreset, type IsoRange } from '../../utils/dateRange';
 import type { Posting } from '../../types/accounting';
 import { accountingAccounts } from '../../data/accounting';
 import { balanceSheet, profitAndLoss } from '../../utils/accountingProjection';
@@ -12,7 +13,7 @@ function accountNet(postings: Posting[], accountId: string, from: string, to: st
   const account = accountingAccounts.find((item) => item.id === accountId);
   if (!account) return 0;
   return postings
-    .filter((posting) => posting.status === 'Posted' && posting.transactionDate >= from && posting.transactionDate <= to)
+    .filter((posting) => posting.status === 'Posted' && (!from || posting.transactionDate >= from) && (!to || posting.transactionDate <= to))
     .flatMap((posting) => posting.lines)
     .filter((line) => line.accountId === accountId)
     .reduce((sum, line) => sum + (account.group === 'Income' || account.group === 'Liability' || account.group === 'Equity'
@@ -21,10 +22,13 @@ function accountNet(postings: Posting[], accountId: string, from: string, to: st
 }
 
 export function StatementsView({ postings }: { postings: Posting[] }) {
-  const [from, setFrom] = useState('2026-09-01');
-  const [to, setTo] = useState('2026-10-31');
-  const pnl = useMemo(() => profitAndLoss(postings, { from, to }), [from, postings, to]);
-  const sheet = useMemo(() => balanceSheet(postings, to), [postings, to]);
+  // Display demo Sep–Oct initially, but quick presets always use the actual business date.
+  const [range, setRange] = useState<IsoRange>({ from: '2026-09-01', to: '2026-10-31' });
+  const { from, to } = range;
+  const pnl = useMemo(() => profitAndLoss(postings, {
+    from: from || '0001-01-01', to: to || '9999-12-31'
+  }), [from, postings, to]);
+  const sheet = useMemo(() => balanceSheet(postings, to || '9999-12-31'), [postings, to]);
   const sales = accountNet(postings, 'income-sales', from, to);
   const cogs = accountNet(postings, 'expense-cogs', from, to);
   const otherIncome = Math.max(0, pnl.income - sales);
@@ -32,9 +36,8 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
   const grossProfit = sales - cogs;
 
   const setPreset = (preset: 'month' | 'quarter' | 'year') => {
-    if (preset === 'month') { setFrom('2026-10-01'); setTo('2026-10-31'); }
-    if (preset === 'quarter') { setFrom('2026-07-01'); setTo('2026-10-31'); }
-    if (preset === 'year') { setFrom('2026-01-01'); setTo('2026-10-31'); }
+    const key = preset === 'month' ? 'This month' : preset === 'quarter' ? 'This quarter' : 'This year';
+    setRange(datePreset(key));
   };
 
   const exportCsv = () => {
@@ -53,7 +56,7 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'financial-statements-' + from + '-to-' + to + '.csv';
+    anchor.download = 'financial-statements-' + (from || 'all') + '-to-' + (to || 'all') + '.csv';
     anchor.click();
     URL.revokeObjectURL(url);
     toast.success('Statements exported');
@@ -67,8 +70,8 @@ export function StatementsView({ postings }: { postings: Posting[] }) {
           <button onClick={() => setPreset('quarter')} className="rounded-md px-2.5 py-1.5 text-[11px] font-medium text-ink-600 hover:bg-ink-50">Quarter</button>
           <button onClick={() => setPreset('year')} className="rounded-md px-2.5 py-1.5 text-[11px] font-medium text-ink-600 hover:bg-ink-50">Year</button>
         </div>
-        <label className="text-[12px] font-medium text-ink">From<Input className="mt-1 w-40" type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
-        <label className="text-[12px] font-medium text-ink">To<Input className="mt-1 w-40" type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label>
+        <AppDateRangePicker label="Financial statements date range"
+          className="w-full sm:w-[286px]" value={range} onChange={setRange} />
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={exportCsv}><ArrowDownToLine className="size-4" /> Export</Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>

@@ -1,3 +1,4 @@
+import { AppSelect } from '../components/AppSelect';
 import React, { useMemo, useState } from 'react';
 import {
   ArrowDownToLine,
@@ -346,16 +347,9 @@ export function Reconciliation() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Account</p>
-            <div className="relative mt-1 max-w-sm">
-              <select
-                value={accountId}
-                onChange={(event) => switchAccount(event.target.value)}
-                className="h-9 w-full appearance-none rounded-md border border-input bg-card px-3 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20">
-                {reconciliationAccounts.map((item) => (
-                  <option key={item.id} value={item.id}>{item.name}</option>
-                ))}
-              </select>
-            </div>
+            <AppSelect label="Reconciliation account" className="mt-1 max-w-sm"
+              value={accountId} onChange={switchAccount}
+              options={reconciliationAccounts.map((item) => ({ value: item.id, label: item.name }))} />
             <p className="mt-1 text-[11px] text-ink-500">{account.detail ?? account.type}</p>
           </div>
           <div className="text-left sm:text-right">

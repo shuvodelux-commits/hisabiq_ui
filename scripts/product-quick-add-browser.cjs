@@ -16,6 +16,11 @@ async function main() {
     const product = page.locator('[data-slot="dialog-content"]').last();
     await product.waitFor({ state: 'visible' });
 
+    async function chooseUnit(selector, value) {
+      await selector.click();
+      await page.getByRole('option', { name: value, exact: true }).click();
+    }
+    async function selectedText(selector) { return (await selector.innerText()).trim(); }
     async function quickAdd(field, value, symbol) {
       await product.getByRole('button', { name: 'Quick add ' + field.toLowerCase() }).click();
       const quick = page.locator('[data-slot="dialog-content"]').last();
@@ -29,53 +34,53 @@ async function main() {
     await quickAdd('Category', 'QA Components');
     await quickAdd('Brand', 'QA Manufacturer');
     await quickAdd('Base unit', 'Sample Unit', 'su');
-    assert.equal(await product.getByRole('combobox', { name: 'Base unit' }).inputValue(), 'su');
+    assert.equal(await selectedText(product.getByRole('combobox', { name: 'Base unit' })), 'su');
     await quickAdd('Larger unit', 'Bundle', 'bdl');
-    assert.equal(await product.getByRole('combobox', { name: 'Larger unit' }).inputValue(), 'bdl');
-    assert.equal(await product.getByRole('combobox', { name: 'Category' }).inputValue(), 'QA Components');
-    assert.equal(await product.getByRole('combobox', { name: 'Brand' }).inputValue(), 'QA Manufacturer');
+    assert.equal(await selectedText(product.getByRole('combobox', { name: 'Larger unit' })), 'bdl');
+    assert.equal(await selectedText(product.getByRole('combobox', { name: 'Category' })), 'QA Components');
+    assert.equal(await selectedText(product.getByRole('combobox', { name: 'Brand' })), 'QA Manufacturer');
 
     const selling = product.getByRole('textbox', { name: 'Selling price', exact: true });
     const sellingUnit = product.getByRole('combobox', { name: 'Selling price unit' });
     const buying = product.getByRole('textbox', { name: 'Purchase price', exact: true });
     const buyingUnit = product.getByRole('combobox', { name: 'Purchase price unit' });
-    assert.equal(await selling.locator('xpath=..').locator('select').count(), 1,
+    assert.equal(await selling.locator('xpath=..').getByRole('combobox').count(), 1,
       'amount and unit must be a single connected control');
-    assert.equal(await buying.locator('xpath=..').locator('select').count(), 1,
+    assert.equal(await buying.locator('xpath=..').getByRole('combobox').count(), 1,
       'purchase amount and unit must share one border');
 
-    await sellingUnit.selectOption('bdl');
+    await chooseUnit(sellingUnit, 'bdl');
     await selling.fill('160');
-    await sellingUnit.selectOption('su');
+    await chooseUnit(sellingUnit, 'su');
     assert.equal(await selling.inputValue(), '10', 'unit switching preserves base selling price');
-    await sellingUnit.selectOption('bdl');
+    await chooseUnit(sellingUnit, 'bdl');
     assert.equal(await selling.inputValue(), '160');
-    await buyingUnit.selectOption('bdl');
+    await chooseUnit(buyingUnit, 'bdl');
     await buying.fill('80');
-    await buyingUnit.selectOption('su');
+    await chooseUnit(buyingUnit, 'su');
     assert.equal(await buying.inputValue(), '5', 'unit switching preserves base purchase price');
 
     const opening = product.getByRole('textbox', { name: 'Opening stock', exact: true });
     const openingUnit = product.getByRole('combobox', { name: 'Opening stock unit' });
     const minimum = product.getByRole('textbox', { name: 'Minimum stock', exact: true });
     const minimumUnit = product.getByRole('combobox', { name: 'Minimum stock unit' });
-    assert.equal(await opening.locator('xpath=..').locator('select').count(), 1,
+    assert.equal(await opening.locator('xpath=..').getByRole('combobox').count(), 1,
       'opening stock amount and unit share one connected border');
-    assert.equal(await minimum.locator('xpath=..').locator('select').count(), 1,
+    assert.equal(await minimum.locator('xpath=..').getByRole('combobox').count(), 1,
       'minimum stock amount and unit share one connected border');
     assert.equal(await opening.locator('xpath=..').getByText('৳').count(), 0,
       'stock quantity must not show a currency symbol');
-    await openingUnit.selectOption('bdl');
+    await chooseUnit(openingUnit, 'bdl');
     await opening.fill('2');
-    await openingUnit.selectOption('su');
+    await chooseUnit(openingUnit, 'su');
     assert.equal(await opening.inputValue(), '32', 'opening stock converts to base quantity');
-    await openingUnit.selectOption('bdl');
+    await chooseUnit(openingUnit, 'bdl');
     assert.equal(await opening.inputValue(), '2', 'opening stock restores larger unit');
-    await minimumUnit.selectOption('bdl');
+    await chooseUnit(minimumUnit, 'bdl');
     await minimum.fill('0.5');
-    await minimumUnit.selectOption('su');
+    await chooseUnit(minimumUnit, 'su');
     assert.equal(await minimum.inputValue(), '8', 'minimum stock converts to base quantity');
-    await minimumUnit.selectOption('bdl');
+    await chooseUnit(minimumUnit, 'bdl');
     assert.equal(await minimum.inputValue(), '0.5', 'minimum stock restores larger unit');
 
     await product.getByPlaceholder('e.g. LED Bulb 12W').fill('QA Sample Lamp');

@@ -1,3 +1,4 @@
+import { AppSelect } from '../components/AppSelect';
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Download, Upload, History } from "lucide-react";
@@ -167,21 +168,13 @@ export function DataSettings() {
                   className="block space-y-1 text-xs font-medium"
                 >
                   {field}
-                  <select
-                    aria-label={`Map ${field}`}
-                    className={controlClass}
-                    value={mapping[field] || ""}
-                    onChange={(e) =>
-                      setMapping({ ...mapping, [field]: e.target.value })
-                    }
-                  >
-                    <option value="">Choose CSV column</option>
-                    {csv[0].map((header, i) => (
-                      <option key={i} value={String(i)}>
-                        {header}
-                      </option>
-                    ))}
-                  </select>
+                  <AppSelect label={`Map ${field}`}
+                    value={mapping[field] || ''}
+                    onChange={(next) => setMapping({ ...mapping, [field]: next })}
+                    options={[{ value: '', label: 'Choose CSV column' }, ...csv[0].map((header, i) => ({
+                      value: String(i), label: header
+                    }))]} />
+
                 </label>
               ))}
               <Button
