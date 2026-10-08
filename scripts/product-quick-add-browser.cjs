@@ -56,7 +56,7 @@ async function main() {
     assert.equal(await buying.inputValue(), '5', 'unit switching preserves base purchase price');
 
     await product.getByPlaceholder('e.g. LED Bulb 12W').fill('QA Sample Lamp');
-    await product.getByRole('button', { name: /^Add product/ }).last().click();
+    await product.getByRole('button', { name: 'Save product', exact: true }).click();
     await product.waitFor({ state: 'hidden' });
     await page.getByText('QA Sample Lamp', { exact: true }).first().waitFor();
     await page.getByText('QA Manufacturer', { exact: true }).first().waitFor();
