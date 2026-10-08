@@ -384,24 +384,6 @@ export function Purchases() {
         )}
       </div>
 
-      <BillDialog
-        mode="purchase"
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        nextRef={`PUR-${String(119 + purchases.length - seedPurchases.length).padStart(6, '0')}`}
-        onSavePurchase={(purchase) => {
-          setPurchases((items) => [purchase, ...items]);
-          setDialogOpen(false);
-          setTab('purchases');
-          toast.success(`${purchase.ref} saved`, {
-            description: purchase.total - purchase.paid > 0
-              ? `${taka(purchase.total - purchase.paid)} added to ${purchase.supplier}'s payable`
-              : 'Fully paid'
-          });
-        }}
-        onSaveExpense={() => undefined}
-      />
-
       <BillDetailDialog bill={detail} onClose={() => setDetail(null)} />
     </div>
   );
