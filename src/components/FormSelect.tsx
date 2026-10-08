@@ -1,24 +1,40 @@
-import React from 'react';
-import { ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { AppSelect } from './AppSelect';
 
 type FormSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   options: string[];
 };
 
-export function FormSelect({ options, className = '', ...rest }: FormSelectProps) {
+/**
+ * Legacy form-select adapter, now rendered through the shared theme-aware menu.
+ * Preserve the existing select's value/onChange contract across ERP modules.
+ */
+export function FormSelect({
+  options,
+  className = '',
+  value,
+  defaultValue,
+  onChange,
+  disabled,
+  name,
+  title,
+  id,
+  ...other
+}: FormSelectProps) {
+  const [local, setLocal] = useState<string>(() => String(defaultValue ?? options[0] ?? ''));
+  const selected = value === undefined ? local : String(value);
+  const label = String(other['aria-label'] ?? title ?? name ?? options[0] ?? 'Select option');
+  const update = (next: string) => {
+    if (value === undefined) setLocal(next);
+    // Existing callers only read event.target.value. The form-select adapter
+    // preserves that API; other controls should use AppSelect directly.
+    onChange?.({ target: { value: next, name }, currentTarget: { value: next, name } } as React.ChangeEvent<HTMLSelectElement>);
+  };
   return (
-    <div className={`relative ${className}`}>
-      <select
-        {...rest}
-        className="h-9 w-full appearance-none rounded-md border border-input bg-card pl-3 pr-8 text-sm text-ink shadow-xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20">
-        
-        {options.map((o) =>
-        <option key={o} value={o}>
-            {o}
-          </option>
-        )}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-    </div>);
-
+    <>
+      <AppSelect label={label} value={selected} options={options} onChange={update}
+        className={className.replaceAll('[&>select]', '[&>button]')} disabled={disabled} />
+      {name && <input type="hidden" name={name} value={selected} />}
+    </>
+  );
 }
