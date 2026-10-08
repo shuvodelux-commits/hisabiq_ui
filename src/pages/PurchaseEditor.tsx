@@ -1,32 +1,27 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, PackagePlus, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
-import { ProductThumb } from '../components/ProductThumb';
 import { QuickAddSelect } from '../components/QuickAddSelect';
 import { PhotoUploader } from '../components/products/PhotoUploader';
 import { AddProductDialog } from '../components/products/AddProductDialog';
-import { PurchaseProductSearch } from '../components/purchases/PurchaseProductSearch';
+import { PurchaseCart } from '../components/purchases/PurchaseCart';
 import { stockLots } from '../data/productInventory';
 import { salesInvoices } from '../data/sales';
 import { purchases as seedPurchases } from '../data/purchases';
 import { availableParties, availableProducts, availablePurchases, createPreviewParty, createPreviewProduct, createPreviewPurchase } from '../data/erpDemoStore';
 import type { Party, PaymentMethod, PaymentSplit, Product, Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
-import { formatStock } from '../utils/units';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../utils/productFeatures';
+import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, lotBaseSellPrice, priceInUnit, makePurchaseLine, type PurchaseCartLine } from '../utils/purchaseCart';
 
 type Method = Exclude<PaymentMethod, 'Customer Credit'>;
 type PaymentRow = { id: string; method: Method; account: string; amount: string };
-type Line = {
-  id: string; product: Product; bigQty: string; smallQty: string;
-  cost: string; costUnit: string; serialText: string;
-  batchNumber: string; manufactureDate: string; expiryDate: string;
-};
+type Line = PurchaseCartLine;
 
 const methods: Method[] = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card'];
 const accounts: Record<Method, string[]> = {
@@ -36,31 +31,11 @@ const accounts: Record<Method, string[]> = {
   Nagad: ['Nagad Merchant · 01819•••771']
 };
 const uid = () => Math.random().toString(36).slice(2, 10);
-const amountOf = (value: string) => Math.max(0, Number(value) || 0);
-const rounded = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 const todayISO = () => {
   const date = new Date();
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
 };
 const paymentRow = (): PaymentRow => ({ id: uid(), method: 'Cash', account: accounts.Cash[0], amount: '' });
-const conversion = (product: Product) => product.altUnit?.factor || 1;
-const baseQty = (line: Line) => amountOf(line.bigQty) * (line.product.altUnit ? conversion(line.product) : 0) + amountOf(line.smallQty);
-const baseCost = (line: Line) => amountOf(line.cost) / (line.product.altUnit?.unit === line.costUnit ? conversion(line.product) : 1);
-const lineAmount = (line: Line) => rounded(baseQty(line) * baseCost(line));
-const describeQty = (line: Line) => {
-  const big = amountOf(line.bigQty), small = amountOf(line.smallQty);
-  const parts = [];
-  if (line.product.altUnit && big > 0) parts.push(big + ' ' + line.product.altUnit.unit);
-  if (small > 0) parts.push(small + ' ' + line.product.unit);
-  return parts.join(' ') || '0 ' + line.product.unit;
-};
-const newLine = (product: Product): Line => ({
-  id: uid(), product, bigQty: product.altUnit ? '1' : '0', smallQty: product.altUnit ? '0' : '1',
-  costUnit: product.altUnit?.unit ?? product.unit,
-  cost: String(rounded(product.purchasePrice * conversion(product))),
-  serialText: '', batchNumber: '', manufactureDate: '', expiryDate: ''
-});
-
 export function PurchaseEditor() {
   const navigate = useNavigate();
   const [products, setProducts] = useState(() => availableProducts().filter((product) => product.kind !== 'Service'));
@@ -95,7 +70,7 @@ export function PurchaseEditor() {
   }, [lastAdded]);
 
   const addProduct = (product: Product) => {
-    const added = newLine(product);
+    const added = makePurchaseLine(product);
     setLines((current) => [...current, added]);
     setLastAdded(added.id);
     setError('');
@@ -103,7 +78,7 @@ export function PurchaseEditor() {
   const updateLine = (id: string, patch: Partial<Line>) => setLines((current) => current.map((line) => line.id === id ? { ...line, ...patch } : line));
   const updatePayment = (id: string, patch: Partial<PaymentRow>) => setPayments((current) => current.map((row) => row.id === id ? { ...row, ...patch } : row));
   const selectCostUnit = (line: Line, unit: string) => {
-    const converted = baseCost(line) * (line.product.altUnit?.unit === unit ? conversion(line.product) : 1);
+    const converted = priceInUnit(baseCost(line), line.product, unit);
     updateLine(line.id, { costUnit: unit, cost: String(Math.round(converted * 10000) / 10000) });
   };
 
@@ -138,6 +113,7 @@ export function PurchaseEditor() {
     if (lines.length === 0) return 'Add at least one product to the cart.';
     if (lines.some((line) => baseQty(line) <= 0)) return 'All purchase products need a quantity greater than zero.';
     if (lines.some((line) => !Number.isFinite(Number(line.cost)) || Number(line.cost) <= 0)) return 'Enter a valid purchase cost for every product.';
+    if (lines.some((line) => !(lotBaseSellPrice(line) > 0))) return 'Enter a valid lot selling price for every product.';
     if (excess > 0) return 'Payments exceed the purchase total by ' + taka(excess) + '.';
 
     const existingSerials = [
@@ -180,6 +156,7 @@ export function PurchaseEditor() {
       inventoryLines: lines.map((line) => ({
         productId: line.product.id, quantity: baseQty(line),
         unitCost: baseCost(line),
+        lotSellingPrice: lotBaseSellPrice(line),
         serials: normalizeSerials(line.serialText).length ? normalizeSerials(line.serialText) : undefined,
         batchNumber: line.batchNumber.trim() || undefined,
         manufactureDate: line.manufactureDate || undefined,
@@ -229,109 +206,19 @@ export function PurchaseEditor() {
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
         <div className="min-w-0 space-y-4">
-          <section className="rounded-xl border border-border bg-card shadow-card">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-              <div><p className="text-[13px] font-semibold text-ink">Purchase cart <span className="font-bn text-[11px] font-normal text-ink-400">· পণ্য তালিকা</span></p>
-                <p className="text-[11px] text-ink-500">Search → quantity → cost → next product. Large and small units stay together.</p></div>
-              <Button size="sm" variant="outline" onClick={() => setProductDialogOpen(true)}><PackagePlus className="size-4" /> New product</Button>
-            </div>
-            <div className="flex gap-2 border-b border-border bg-teal-50/35 p-3">
-              <PurchaseProductSearch ref={searchRef} products={products} onAdd={addProduct} onCreate={() => setProductDialogOpen(true)} />
-            </div>
-            {lines.length === 0 ? (
-              <div className="flex min-h-40 flex-col items-center justify-center px-4 py-6 text-center">
-                <PackagePlus className="mb-2 size-7 text-ink-300" />
-                <p className="text-[13px] font-medium text-ink">Your purchase cart is empty</p>
-                <p className="font-bn mt-1 text-[12px] text-ink-500">উপরে পণ্য খুঁজুন অথবা নতুন পণ্য যোগ করুন</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {lines.map((line, index) => (
-                  <div key={line.id} className="p-3">
-                    <div className="grid gap-2 xl:grid-cols-[minmax(180px,1fr)_minmax(170px,1fr)_142px_98px_28px] xl:items-end">
-                      <div className="flex min-w-0 items-center gap-2.5 self-center">
-                        <span className="w-5 shrink-0 text-right text-xs text-ink-400">{index + 1}.</span>
-                        <ProductThumb src={line.product.image} size={34} />
-                        <div className="min-w-0">
-                          <p className="truncate text-[13px] font-medium text-ink">{line.product.name}</p>
-                          <p className="truncate text-[11px] text-ink-500"><span className="font-bn">{line.product.nameBn}</span> · {line.product.category} · Stock {formatStock(line.product)}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="mb-1 text-[11px] font-medium text-ink-500">Quantity <span className="font-bn">· পরিমাণ</span></p>
-                        <div className="flex gap-1">
-                          {line.product.altUnit && (
-                            <div className="flex min-w-0 flex-1 items-center rounded-md border border-input bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
-                              <input ref={(node) => { qtyRefs.current[line.id] = node; }} aria-label={line.product.altUnit.unit + ' quantity for ' + line.product.name}
-                                inputMode="decimal" value={line.bigQty}
-                                onChange={(event) => updateLine(line.id, { bigQty: event.target.value.replace(/[^0-9.]/g, '') })}
-                                onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); smallRefs.current[line.id]?.focus(); smallRefs.current[line.id]?.select(); } }}
-                                className="h-9 w-full min-w-0 bg-transparent px-2 text-right text-sm text-ink outline-none" />
-                              <span className="shrink-0 pr-2 text-[10px] text-ink-500">{line.product.altUnit.unit}</span>
-                            </div>
-                          )}
-                          <div className="flex min-w-0 flex-1 items-center rounded-md border border-input bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
-                            <input ref={(node) => { smallRefs.current[line.id] = node; if (!line.product.altUnit) qtyRefs.current[line.id] = node; }}
-                              aria-label={line.product.unit + ' quantity for ' + line.product.name}
-                              inputMode="decimal" value={line.smallQty}
-                              onChange={(event) => updateLine(line.id, { smallQty: event.target.value.replace(/[^0-9.]/g, '') })}
-                              onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); costRefs.current[line.id]?.focus(); costRefs.current[line.id]?.select(); } }}
-                              className="h-9 w-full min-w-0 bg-transparent px-2 text-right text-sm text-ink outline-none" />
-                            <span className="shrink-0 pr-2 text-[10px] text-ink-500">{line.product.unit}</span>
-                          </div>
-                        </div>
-                        <p className="mt-1 truncate text-[10px] text-ink-400">{describeQty(line)} = {baseQty(line)} {line.product.unit}</p>
-                      </div>
-                      <div>
-                        <p className="mb-1 text-[11px] font-medium text-ink-500">Cost per unit</p>
-                        <div className="flex gap-1">
-                          <Input ref={(node) => { costRefs.current[line.id] = node; }} aria-label={'Purchase cost for ' + line.product.name}
-                            value={line.cost} inputMode="decimal"
-                            onChange={(event) => updateLine(line.id, { cost: event.target.value.replace(/[^0-9.]/g, '') })}
-                            onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
-                            className="min-w-0 flex-1 text-right" />
-                          <FormSelect className="w-[76px] shrink-0 [&>select]:px-1.5 [&>select]:pr-6 [&>select]:text-xs" value={line.costUnit}
-                            onChange={(event) => selectCostUnit(line, event.target.value)}
-                            options={line.product.altUnit ? [line.product.altUnit.unit, line.product.unit] : [line.product.unit]} />
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="mb-1 text-[11px] font-medium text-ink-500">Total</p>
-                        <p className="flex h-9 items-center justify-end text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</p>
-                      </div>
-                      <button type="button" aria-label={'Remove ' + line.product.name} onClick={() => setLines((current) => current.filter((item) => item.id !== line.id))}
-                        className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger-bg hover:text-danger"><Trash2 className="size-4" /></button>
-                    </div>
-                    {((line.product.serialTracking ?? 'Off') !== 'Off' || line.product.expiry?.enabled) && (
-                      <div className="mt-3 rounded-lg border border-border bg-ink-50/50 p-3">
-                        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-500">Tracking details <span className="font-bn normal-case tracking-normal">· সিরিয়াল / মেয়াদ</span></p>
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          {line.product.serialTracking && line.product.serialTracking !== 'Off' && (
-                            <label className="text-[12px] font-medium text-ink">Serial numbers {line.product.serialTracking === 'Required' ? '*' : '(optional)'}
-                              <textarea className="mt-1 min-h-20 w-full rounded-md border border-input bg-card p-2 text-xs" value={line.serialText}
-                                onChange={(event) => updateLine(line.id, { serialText: event.target.value })} placeholder="One per line, or scan / paste" />
-                              <span className="mt-1 block text-[11px] font-normal text-ink-400">{normalizeSerials(line.serialText).length} entered · {requiredSerialCount(line.product, baseQty(line))} required</span>
-                            </label>
-                          )}
-                          {line.product.expiry?.enabled && (
-                            <div className="grid grid-cols-2 gap-2">
-                              <label className="text-[12px] text-ink">Batch<Input className="mt-1" value={line.batchNumber} onChange={(event) => updateLine(line.id, { batchNumber: event.target.value })} /></label>
-                              <label className="text-[12px] text-ink">Manufactured<Input type="date" className="mt-1" value={line.manufactureDate} onChange={(event) => updateLine(line.id, { manufactureDate: event.target.value })} /></label>
-                              <label className="col-span-2 text-[12px] text-ink">Expiry date {line.product.expiry.dateRequired && '*'}
-                                <Input type="date" className="mt-1" value={line.expiryDate} onChange={(event) => updateLine(line.id, { expiryDate: event.target.value })} /></label>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="flex items-center justify-between gap-2 border-t border-border bg-ink-50/50 px-4 py-2.5 text-xs text-ink-500">
-              <span>{lines.length} product line{lines.length === 1 ? '' : 's'}</span><span className="font-semibold text-ink">Subtotal · {taka(total)}</span>
-            </div>
-          </section>
+          <PurchaseCart
+            lines={lines}
+            products={products}
+            searchRef={searchRef}
+            qtyRefs={qtyRefs}
+            smallRefs={smallRefs}
+            costRefs={costRefs}
+            onAdd={addProduct}
+            onCreate={() => setProductDialogOpen(true)}
+            onUpdate={updateLine}
+            onRemove={(id) => setLines((current) => current.filter((line) => line.id !== id))}
+            onCostUnitChange={selectCostUnit}
+          />
           <section className="rounded-xl border border-border bg-card p-4 shadow-card">
             <p className="mb-3 text-[13px] font-semibold text-ink">Supplier memo & notes <span className="font-bn text-[11px] font-normal text-ink-400">· রসিদের ছবি</span></p>
             <label className="mb-3 block text-[12px] font-medium text-ink">Notes
