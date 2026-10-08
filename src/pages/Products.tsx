@@ -12,7 +12,7 @@ import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockL
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
-import { availableProducts, availableProductCategories, availableStockLots } from '../data/erpDemoStore';
+import { availableProducts, availableProductCategories, availableStockLots, createPreviewProduct } from '../data/erpDemoStore';
 import { stockMovements as seedMovements } from '../data/productInventory';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
@@ -305,7 +305,7 @@ export function Products() {
       if (stockFilter === 'low' && s !== 'low') return false;
       if (stockFilter === 'out' && s !== 'out') return false;
       if (!q) return true;
-      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').includes(q);
+      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').includes(q) || (p.brand ?? '').toLowerCase().includes(q);
     });
   }, [list, query, category, stockFilter]);
 
@@ -461,7 +461,9 @@ export function Products() {
                       </div>
                     </div>
                   </TableCell>}
-                  {visibleColumns.category && <TableCell className="py-2 text-ink-600">{p.category}</TableCell>}
+                  {visibleColumns.category && <TableCell className="py-2 text-ink-600">
+                    {p.category}{p.brand && p.brand !== 'Generic / No brand' && <span className="block text-[11px] text-ink-400">{p.brand}</span>}
+                  </TableCell>}
                   {visibleColumns.stock &&
                   <TableCell className={`py-2 text-right font-medium ${s === 'low' ? 'text-warning' : s === 'out' ? 'text-danger' : 'text-ink'}`}>
                     {p.kind === 'Service' ? '—' : formatStock(p)}
@@ -600,6 +602,7 @@ export function Products() {
             setDetailsProduct((current) => current?.id === product.id ? product : current);
             toast.success(`${product.name} updated`);
           } else {
+            createPreviewProduct(product);
             setList((items) => [product, ...items]);
             if (product.kind !== 'Service' && product.stock > 0) {
               const today = new Date().toISOString().slice(0, 10);
