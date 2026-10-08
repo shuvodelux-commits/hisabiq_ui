@@ -182,11 +182,10 @@ async function main() {
       .getByRole("button", { name: "Add product", exact: true })
       .click();
     await page.locator('[data-slot="dialog-content"]').waitFor();
-    const selected = await page
-      .locator('[data-slot="dialog-content"]')
-      .locator("select")
-      .evaluateAll((els) => els.map((el) => el.value));
-    assert(selected.includes("Pcs"));
+    assert.ok(
+      await page.locator('[data-slot="dialog-content"] [role="combobox"][data-value="Pcs"]').count() > 0,
+      'default base unit uses saved Pcs preference'
+    );
     assert.match(
       await page
         .locator('[data-slot="dialog-content"]')
