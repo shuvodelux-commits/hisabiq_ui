@@ -26,7 +26,7 @@ export function Parties() {
     );
   }, [role, query, allParties]);
 
-  const party = allParties.find((p) => p.id === selectedId) ?? parties[0];
+  const party = allParties.find((p) => p.id === selectedId) ?? allParties[0];
   const partyEntries = entries.filter((e) => e.partyId === party.id);
 
   const receivable = allParties.filter((p) => p.balance > 0).reduce((s, p) => s + p.balance, 0);
