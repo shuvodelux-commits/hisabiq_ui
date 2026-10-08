@@ -21,7 +21,6 @@ import { BillDialog } from '../components/purchases/BillDialog';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
 import { expenses as seedExpenses } from '../data/purchases';
 import { availableExpenseCategories, availableParties } from '../data/erpDemoStore';
-
 import type { Expense } from '../types/erp';
 import { taka } from '../utils/currency';
 
