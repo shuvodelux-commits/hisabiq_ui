@@ -18,6 +18,7 @@ export type PartyLedgerRow = {
   discount?: number;
   method?: string;
   accountId?: string;
+  financeType?: FinanceTransactionType;
   attachment?: {name:string; url?:string};
   status: 'Active' | 'Reversed' | 'Deleted';
   isCorrection?: boolean;
@@ -52,6 +53,10 @@ export type PartyPaymentPayload = {
   partyId:string; relationship:'Customer'|'Supplier'; date:string; amount:number;
   discount?:number; reason?:string; invoiceId?:string; operationId?:string;
   splits:PartyMoneySplit[];
+};
+export type PartyOpeningPayload = {
+  partyId:string; relationship:PartyRelationship; date:string; amount:number;
+  side:'debit'|'credit'; note?:string;
 };
 export type PartyRefundPayload = {
   partyId:string; relationship:'Customer'|'Supplier'; date:string;
