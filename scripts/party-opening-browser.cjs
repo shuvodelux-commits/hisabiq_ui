@@ -12,6 +12,18 @@ async function main(){
   // Semantic labels are visible as text, not color alone.
   assert.ok(await page.getByLabel('Money in').count()>0);
   assert.ok(await page.getByLabel('Customer due increased').count()>0);
+  // Approved layout: impact icon belongs alongside the amount, with the label
+  // directly underneath it, NOT in the particulars/reference cell.
+  const paymentRow=page.locator('table tbody tr').filter({hasText:'RCV-000101'}).first();
+  const creditCell=paymentRow.locator('td').nth(3);
+  assert.equal(await paymentRow.locator('td').nth(1).getByText('Money in').count(),0,'Particulars should stay clean');
+  assert.equal(await creditCell.getByLabel('Money in').count(),1,'Money-in icon + amount must share credit cell');
+  assert.equal(await creditCell.locator('[data-testid="ledger-money-value"]').count(),1);
+  assert.equal(await creditCell.locator('[data-testid="ledger-impact-caption"]').innerText(),'Money in');
+  const dueRow=page.locator('table tbody tr').filter({hasText:'INV-000241'}).first();
+  assert.equal(await dueRow.locator('td').nth(2).getByLabel('Customer due increased').count(),1);
+  const openingRow=page.locator('table tbody tr').filter({hasText:'Opening balance'}).last();
+  assert.equal(await openingRow.locator('td').nth(2).getByLabel('Opening balance').count(),1);
   await page.getByRole('button',{name:'Edit opening balance'}).click();
   const opening=page.getByRole('dialog',{name:'Party opening balance'});
   await opening.waitFor();
@@ -40,7 +52,11 @@ async function main(){
   await supplier.getByRole('button',{name:'Save opening balance'}).click();
   await supplier.waitFor({state:'hidden'});
   await page.setViewportSize({width:375,height:812});
-  assert.ok(await page.getByLabel('Opening balance').count()>0);
+  const mobileLedger=page.locator('.sm\\:hidden').first();
+  assert.ok(await mobileLedger.getByLabel('Opening balance').count()>0);
+  const mobileOpeningCard=mobileLedger.locator('div.rounded-lg').filter({hasText:'Opening balance'}).first();
+  assert.equal(await mobileOpeningCard.getByLabel('Opening balance').count(),1,'Mobile opening icon beside amount');
+  assert.equal(await mobileOpeningCard.locator('[data-testid="ledger-impact-caption"]').innerText(),'Opening balance');
   assert.deepEqual(errors,[]);
   console.log('Party opening create/edit + ledger semantic impact desktop/mobile smoke passed');
  }finally{await browser.close();await server.close();}
