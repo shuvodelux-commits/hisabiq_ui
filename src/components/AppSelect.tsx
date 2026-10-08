@@ -110,7 +110,7 @@ export function AppSelect({
   return (
     <div className={'min-w-0 ' + className}>
       <button
-        ref={trigger} type="button" role="combobox" id={triggerId} aria-label={label} aria-describedby={describedBy}
+        ref={trigger} type="button" role="combobox" id={triggerId} data-value={value} aria-label={label} aria-describedby={describedBy}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined}
         aria-activedescendant={open ? id + '-opt-' + active : undefined}
         disabled={disabled}
@@ -135,7 +135,7 @@ export function AppSelect({
         >
           {options.map((option, index) => (
             <button key={optionValue(option) + index} type="button" role="option" id={id + '-opt-' + index}
-              aria-selected={value === optionValue(option)} data-active={active === index}
+              aria-selected={value === optionValue(option)} data-value={optionValue(option)} data-active={active === index}
               onPointerDown={(event) => event.preventDefault()}
               onMouseEnter={() => setActive(index)}
               onClick={() => choose(option)}
