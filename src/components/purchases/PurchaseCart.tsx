@@ -29,7 +29,7 @@ type Props = {
   onCostUnitChange: (line: PurchaseCartLine, unit: string) => void;
 };
 
-const grid = 'grid min-w-[850px] grid-cols-[24px_minmax(190px,1fr)_172px_90px_122px_110px_28px] items-center gap-2';
+const grid = 'grid min-w-[960px] grid-cols-[24px_minmax(190px,1fr)_172px_90px_112px_126px_110px_28px] items-center gap-2';
 const entryInput = 'h-9 w-full min-w-0 rounded-md border border-input bg-card px-2 text-right text-[13px] text-ink outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20';
 const unitOptions = (product: Product) => product.altUnit ? [product.unit, product.altUnit.unit] : [product.unit];
 
@@ -67,7 +67,7 @@ export function PurchaseCart({
         <div className="overflow-x-auto">
           <div className={grid + ' border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400'}>
             <span className="text-right">#</span><span>Product</span><span className="text-right">Quantity</span>
-            <span>Cost in</span><span className="text-right">Unit cost</span><span className="text-right">Total</span><span aria-hidden="true" />
+            <span>Cost in</span><span className="text-right">Unit cost</span><span className="text-right">Lot sale</span><span className="text-right">Total</span><span aria-hidden="true" />
           </div>
           <div data-testid="purchase-cart" className="divide-y divide-border">
             {lines.map((line, index) => {
@@ -151,6 +151,17 @@ export function PurchaseCart({
                         onChange={(event) => onUpdate(line.id, { cost: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); normalizeQty(line, true); } }} />
                     </div>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
+                      <input
+                        aria-label={'Lot selling price for ' + product.name}
+                        inputMode="decimal"
+                        value={line.lotSellPrice}
+                        className={entryInput + ' pl-5 pr-12'}
+                        onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\\d.]/g, '') })}
+                      />
+                      <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{line.lotSellUnit}</span>
+                    </div>
                     <span className="text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
                     <button type="button" aria-label={'Remove ' + product.name} onClick={() => onRemove(line.id)}
                       className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger-bg hover:text-danger">
@@ -165,15 +176,10 @@ export function PurchaseCart({
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="min-w-0">
-                          <label className="mb-1 block text-[11px] font-medium text-ink" htmlFor={'lot-sale-' + line.id}>Lot selling price <span className="font-bn text-ink-500">· লট বিক্রয় মূল্য</span></label>
-                          <div className="flex gap-1">
-                            <Input id={'lot-sale-' + line.id} aria-label={'Lot selling price for ' + product.name}
-                              inputMode="decimal" value={line.lotSellPrice} className="min-w-0 flex-1 text-right"
-                              onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })} />
-                            <FormSelect className="w-[100px] shrink-0 [&>select]:px-1.5 [&>select]:pr-6 [&>select]:text-xs"
-                              value={line.lotSellUnit} options={unitOptions(product)}
-                              onChange={(event) => changeLotSellUnit(line, event.target.value)} />
-                          </div>
+                          <p className="mb-1 text-[11px] font-medium text-ink">Lot selling price unit <span className="font-bn text-ink-500">· বিক্রয় একক</span></p>
+                          <FormSelect className="w-full [&>select]:text-xs"
+                            value={line.lotSellUnit} options={unitOptions(product)}
+                            onChange={(event) => changeLotSellUnit(line, event.target.value)} />
                           <p className="mt-1 text-[10.5px] text-ink-500">Base {taka(lotBaseSellPrice(line))}/{product.unit} · Cost {taka(lineAmount(line))} total</p>
                         </div>
                         <label className="block min-w-0 text-[11px] font-medium text-ink">
@@ -218,6 +224,7 @@ export function PurchaseCart({
               <span className="pr-2 text-right text-[12px] text-ink-400">Qty</span>
               <span className="text-[12px] text-ink-400">Unit</span>
               <span className="text-right text-[12px] text-ink-400">Cost</span>
+              <span className="text-right text-[12px] text-ink-400">Lot sale</span>
               <span className="text-right text-[12px] text-ink-400">Total</span><span />
             </div>
           </div>
