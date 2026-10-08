@@ -33,7 +33,8 @@ export function FormSelect({
   return (
     <>
       <AppSelect label={label} value={selected} options={options} onChange={update}
-        className={className.replaceAll('[&>select]', '[&>button]')} disabled={disabled} />
+        className={className.replaceAll('[&>select]', '[&>button]')} disabled={disabled}
+        id={id} describedBy={other['aria-describedby']} />
       {name && <input type="hidden" name={name} value={selected} />}
     </>
   );
