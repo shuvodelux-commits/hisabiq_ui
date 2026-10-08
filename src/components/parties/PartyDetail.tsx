@@ -8,7 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { PartyAvatar } from '../PartyAvatar';
 import { RoleBadge } from './RoleBadge';
 import { LedgerTable } from './LedgerTable';
+import { PartyLedgerToolbar } from './PartyLedgerToolbar';
+import { PartyStatementDialog } from './PartyStatementDialog';
 import type { LedgerEntry, Party, PartyRole } from '../../types/erp';
+import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary } from '../../types/partyLedger';
+import type { IsoRange } from '../../utils/dateRange';
 import { formatNumber, taka } from '../../utils/currency';
 
 type Tab = 'ledger' | 'invoices' | 'payments' | 'notes' | 'attachments';
@@ -22,15 +26,37 @@ type PartyDetailProps = {
   relationship: PartyRole;
   onRoleChange: (role: PartyRole) => void;
   onEditParty: () => void;
+  statement: LedgerStatement;
+  balanceSummary: PartyBalanceSummary;
+  visibleRows: LedgerStatement['rows'];
+  range: IsoRange; onRange: (range: IsoRange) => void;
+  kind: string; onKind: (kind: string) => void;
+  ledgerQuery: string; onLedgerQuery: (query: string) => void;
+  pageSize: number; onPageSize: (n: number) => void;
+  onResetLedger: () => void; onStatement: () => void;
+  page: number; pages: number; onPage: (n: number) => void;
+  actionsForRow: (row: PartyLedgerRow) => Array<{action:PartyAction;enabled:boolean;reason?:string}>;
+  onLedgerAction: (action:PartyAction,row:PartyLedgerRow) => void;
+  statementOpen: boolean; onCloseStatement: () => void;
 };
 
-export function PartyDetail({ party, entries, relationship, onRoleChange, onEditParty, onAddNote, onEditNote, onDeleteNote }: PartyDetailProps) {
+export function PartyDetail({
+  party, entries, relationship, onRoleChange, onEditParty, onAddNote, onEditNote, onDeleteNote,
+  statement, balanceSummary, visibleRows, range, onRange, kind, onKind, ledgerQuery, onLedgerQuery,
+  pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
+  onLedgerAction, statementOpen, onCloseStatement
+}: PartyDetailProps) {
   const [tab, setTab] = useState<Tab>('ledger');
   const [note, setNote] = useState('');
   const [editingNote, setEditingNote] = useState<LedgerEntry | null>(null);
   const [editText, setEditText] = useState('');
   const [deleteNote, setDeleteNote] = useState<LedgerEntry | null>(null);
   const [attachment, setAttachment] = useState<LedgerEntry | null>(null);
+  const [viewedRow,setViewedRow] = useState<PartyLedgerRow|null>(null);
+  const doRowAction=(action:PartyAction,row:PartyLedgerRow)=>{
+    if(action==='view')setViewedRow(row);
+    else onLedgerAction(action,row);
+  };
 
   const invoices = entries.filter((e) => e.type === 'invoice' || e.type === 'purchase');
   const payments = entries.filter((e) => e.type === 'payment' || e.type === 'return');
@@ -45,7 +71,13 @@ export function PartyDetail({ party, entries, relationship, onRoleChange, onEdit
   { id: 'attachments', label: 'Attachments', count: attachments.length }];
 
 
-  const isReceivable = party.balance > 0;
+  const currentBalance=balanceSummary.netBalance;
+  const isReceivable = currentBalance > 0;
+  const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
+  const balanceLabel = relationship==='Owner'?'Owner capital · মূলধন':
+    relationship==='Lender'?'Lender loan · ঋণ':relationship==='Borrower'?'Borrower balance · পাওনা':
+    relationship==='Supplier'?'Supplier payable · দেনা':
+    relationship==='Customer'?'Customer balance · কাস্টমার খাতা':relationship+' balance';
 
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
@@ -67,19 +99,19 @@ export function PartyDetail({ party, entries, relationship, onRoleChange, onEdit
             <span>Last activity {party.lastActivity}</span>
           </div>
         </div>
-        <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : party.balance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
-          <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : party.balance < 0 ? 'text-danger' : 'text-ink-500'}`}>
-            {isReceivable ? 'Receivable · পাবো' : party.balance < 0 ? 'Payable · দেবো' : 'Settled'}
+        <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
+          <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
+            {balanceLabel}
           </p>
-          <p className={`text-2xl font-semibold tabular-nums tracking-tight ${isReceivable ? 'text-teal-800' : party.balance < 0 ? 'text-danger' : 'text-ink'}`}>
-            {taka(Math.abs(party.balance))}
+          <p className={`text-2xl font-semibold tabular-nums tracking-tight ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink'}`}>
+            {taka(Math.abs(currentBalance))}
           </p>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" disabled title="Party payments are implemented in the settlement slice">
-          <HandCoins className="size-4" /> {isReceivable || party.balance === 0 ? 'Receive payment' : 'Make payment'}
+          <HandCoins className="size-4" /> {payable ? 'Make payment' : 'Receive payment'}
         </Button>
         <Button size="sm" variant="outline" disabled title="Open a new invoice from the POS until the Party source action is connected">
           <Plus className="size-4" /> New invoice
@@ -111,7 +143,7 @@ export function PartyDetail({ party, entries, relationship, onRoleChange, onEdit
         )}
       </div>
 
-      {entries.length === 0 && tab !== 'notes' ?
+      {entries.length === 0 && tab !== 'notes' && tab !== 'ledger' ?
       <div className="px-4 py-14 text-center">
           <Receipt className="mx-auto size-8 text-helper" />
           <p className="mt-2 font-medium text-ink">No transactions in this period</p>
@@ -119,7 +151,20 @@ export function PartyDetail({ party, entries, relationship, onRoleChange, onEdit
         </div> :
 
       <div>
-          {tab === 'ledger' && <LedgerTable entries={entries} onOpenAttachment={setAttachment} />}
+          {tab === 'ledger' && <>
+            <PartyLedgerToolbar range={range} onRange={onRange} kind={kind} onKind={onKind}
+              query={ledgerQuery} onQuery={onLedgerQuery} pageSize={pageSize} onPageSize={onPageSize}
+              onStatement={onStatement} onReset={onResetLedger}/>
+            <LedgerTable statement={statement} visibleRows={visibleRows} actionsForRow={actionsForRow}
+              onAction={doRowAction} onOpenAttachment={()=>toast('No document available in preview')}/>
+            <div className="flex items-center justify-between gap-2 px-4 py-2 text-xs text-ink-500">
+              <span>Page {page} of {pages} · {statement.rows.length} dated transactions</span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" disabled={page<=1} onClick={()=>onPage(page-1)}>Previous</Button>
+                <Button size="sm" variant="outline" disabled={page>=pages} onClick={()=>onPage(page+1)}>Next</Button>
+              </div>
+            </div>
+          </>}
           {(tab === 'invoices' || tab === 'payments') &&
         <ul className="divide-y divide-border">
               {(tab === 'invoices' ? invoices : payments).map((e) =>
@@ -197,6 +242,18 @@ export function PartyDetail({ party, entries, relationship, onRoleChange, onEdit
         </div>
       }
 
+      <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={statement}/>
+      <Dialog open={!!viewedRow} onOpenChange={open=>!open&&setViewedRow(null)}>
+        <DialogContent role="dialog" aria-modal="true" aria-label="Party transaction details" className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Transaction details</DialogTitle><DialogDescription>Read-only source reference in the UI preview.</DialogDescription></DialogHeader>
+          {viewedRow&&<div className="space-y-2 text-sm">
+            <p><strong>Source:</strong> {viewedRow.source}</p><p><strong>Reference:</strong> {viewedRow.reference??viewedRow.id}</p>
+            <p><strong>Date:</strong> {viewedRow.date}</p><p><strong>Details:</strong> {viewedRow.description}</p>
+            <p><strong>Debit:</strong> {taka(viewedRow.debit)} · <strong>Credit:</strong> {taka(viewedRow.credit)}</p>
+          </div>}
+          <div className="flex justify-end"><Button onClick={()=>setViewedRow(null)}>Close</Button></div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!editingNote} onOpenChange={(open)=>!open&&setEditingNote(null)}>
         <DialogContent role="dialog" aria-modal="true" aria-label="Edit party note" className="sm:max-w-md">
           <DialogHeader><DialogTitle>Edit note</DialogTitle><DialogDescription>Updates this party's preview note only.</DialogDescription></DialogHeader>
