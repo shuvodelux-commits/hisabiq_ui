@@ -83,6 +83,10 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     const newSource=toPaisa(payload.amount,'Opening balance')===0?undefined
       :makeOpeningSource(payload,Math.max(0,...sources.map(row=>row.sequence))+1,id);
     if(newSource)sources=[...sources,newSource];
+    // Opening changes are backdated: recheck all later verified refunds
+    // before changing the observable snapshot.
+    if(payload.relationship==='Customer')customerSettlementAsOf(sources,p.id,businessToday());
+    if(payload.relationship==='Supplier')supplierSettlementAsOf(sources,p.id,businessToday());
     targetPartyId=p.id;sourceId=newSource?.id??previous[0]?.id;
     before=old;after=newSource??{cleared:true,partyId:p.id,relationship:payload.relationship};
   };
