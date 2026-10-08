@@ -35,6 +35,24 @@ export function mapImportRows(table:ImportTable,mapping:ColumnMapping):StagedImp
   table.headers.forEach((header,i)=>{original[header]=rawText(row.cells[i]??null)});
   const mapped:Record<string,unknown>={};
   for(const [key,index] of Object.entries(mapping))if(index!==null)mapped[key]=row.cells[index]??'';
-  return {sourceSheet:table.sheet,sourceRow:row.sourceRow,original,mapped,issues:[],decision:'create' as const};
+  return validateMappedRow({sourceSheet:table.sheet,sourceRow:row.sourceRow,original,mapped,issues:[],decision:'create' as const},target);
  });
+}
+
+/** Preview-level checks only; Product/Party domain adapters perform full validation later. */
+export function validateMappedRow(row:StagedImportRow,target:ImportTarget):StagedImportRow{
+ const issues=[] as StagedImportRow['issues'];
+ for(const field of fieldsFor(target)){
+  const value=row.mapped[field.key];
+  if(field.required&&(value===null||value===undefined||String(value).trim()==='')){
+   issues.push({sourceRow:row.sourceRow,field:field.key,severity:'error' as const,message:field.label+' is required.'});
+  }
+ }
+ for(const key of ['name','nameBn','sku','category','brand']){
+  const value=row.mapped[key];
+  if(typeof value==='string'&&/^\s*[=+@]/.test(value)){
+   issues.push({sourceRow:row.sourceRow,field:key,severity:'error' as const,message:'Spreadsheet formula-like text is not allowed.'});
+  }
+ }
+ return {...row,issues};
 }
