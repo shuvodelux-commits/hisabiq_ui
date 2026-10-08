@@ -16,11 +16,12 @@ type Props={
   onAction:(action:PartyAction,row:PartyLedgerRow)=>void;
   onOpenAttachment:(row:PartyLedgerRow)=>void;
 };
-const tone=(source:PartyLedgerRow['source']):StatusTone=>{
-  if(source==='sale')return 'teal';
-  if(source==='purchase')return 'info';
-  if(source.includes('return')||source==='customer-credit-refund')return 'warning';
-  if(source.includes('payment'))return 'success';
+const tone=(row:PartyLedgerRow):StatusTone=>{
+  const impact=ledgerImpact(row).kind;
+  if(impact==='in')return 'success';
+  if(impact==='out')return 'danger';
+  if(impact==='due')return 'info';
+  if(impact==='adjustment')return 'warning';
   return 'neutral';
 };
 const label=(source:PartyLedgerRow['source'])=>({
