@@ -37,6 +37,7 @@ async function main() {
     await page.getByRole('button',{name:/Save note/i}).click();
     await page.getByText('Bring receipt').first().waitFor();
     await page.getByRole('button',{name:/Delete note Bring receipt/i}).click();
+    await page.getByRole('button',{name:'Confirm delete'}).click();
     assert.equal(await page.getByText('Bring receipt').count(),0);
     // The directory search must include the Bangla display name.
     await page.getByRole('textbox',{name:'Search parties'}).fill('নতুন');
