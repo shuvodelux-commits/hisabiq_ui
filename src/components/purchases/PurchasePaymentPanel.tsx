@@ -73,7 +73,7 @@ export function PurchasePaymentPanel(props: Props) {
   };
 
   return (
-    <section data-testid="purchase-payment-panel" className="rounded-xl border border-border bg-card shadow-card">
+    <section data-testid="purchase-payment-panel" className="bg-card">
       <div className="space-y-2 p-4">
         <Row label={'Subtotal · ' + props.itemCount + ' products'} value={taka(totals.subtotal, totals.subtotal % 1 ? 2 : 0)} />
         <div className="flex items-center justify-between gap-3 text-sm text-ink-700">
