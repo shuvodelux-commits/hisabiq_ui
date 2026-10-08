@@ -24,12 +24,12 @@ async function main(){
     await page.evaluate(()=>{window.__partyPrinted=false;window.print=()=>{window.__partyPrinted=true;};});
     await statement.getByRole('button',{name:'Print'}).click();
     assert.equal(await page.evaluate(()=>window.__partyPrinted),true);
-    await statement.getByRole('button',{name:'Close',exact:true}).first().click();
+    await statement.getByRole('button',{name:'Close'}).first().click();
     await page.getByRole('button',{name:'Clear filters'}).click();
     await page.getByRole('button',{name:/Actions for INV-000241/i}).click();
     await page.getByRole('button',{name:'View',exact:true}).click();
     await page.getByRole('dialog',{name:'Party transaction details'}).waitFor();
-    await page.getByRole('dialog',{name:'Party transaction details'}).getByRole('button',{name:'Close',exact:true}).first().click();
+    await page.getByRole('dialog',{name:'Party transaction details'}).getByRole('button',{name:'Close'}).first().click();
     await page.setViewportSize({width:375,height:812});
     assert.deepEqual(errors,[]);
     console.log('Party ledger date, row actions, print and mobile smoke passed');
