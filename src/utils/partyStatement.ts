@@ -2,7 +2,7 @@ import type { LedgerStatement } from '../types/partyLedger';
 
 const safe=(value:unknown):string=>{
   let s=String(value??'');
-  if(/^[\s]*[=+@-]/.test(s))s="'"+s;
+  if(typeof value!=='number'&&/^[\s]*[=+@-]/.test(s))s="'"+s;
   return /[,\n\r"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
 };
 export function statementPrintRows(statement:LedgerStatement):LedgerStatement['rows'] {
