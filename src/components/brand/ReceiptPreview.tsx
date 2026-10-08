@@ -4,6 +4,7 @@ import { formatNumber } from '../../utils/currency';
 import type { WarrantySnapshot } from '../../types/erp';
 
 export type ReceiptLine = {name: string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;};
+export type ReceiptBranding = { name: string; nameBn: string; address: string; phone: string; logo: string; showLogo: boolean; footer: string };
 
 type ReceiptPreviewProps = {
   invoice: string;
@@ -20,6 +21,7 @@ type ReceiptPreviewProps = {
   due: number;
   method: string;
   dateTime?: string;
+  branding?: ReceiptBranding;
 };
 
 const n = (v: number) => formatNumber(v, v % 1 ? 2 : 0);
@@ -28,10 +30,10 @@ export function ReceiptPreview(p: ReceiptPreviewProps) {
   return (
     <div className="theme-light mx-auto w-[288px] bg-white px-5 py-5 text-[11.5px] leading-relaxed text-ink shadow-pop ring-1 ring-ink-100">
       <div className="flex flex-col items-center text-center">
-        <LogoMark size={28} tone="mono-ink" />
-        <p className="mt-2 text-[13px] font-semibold">Nawabpur Hardware House</p>
-        <p className="font-bn text-[11px] text-ink-600">নবাবপুর হার্ডওয়্যার হাউস</p>
-        <p className="text-[10.5px] text-ink-500">142 Nawabpur Road, Dhaka 1100 · 01711-000245</p>
+        {p.branding ? p.branding.showLogo && p.branding.logo && <img src={p.branding.logo} alt="Business logo" className="size-8 object-contain" /> : <LogoMark size={28} tone="mono-ink" />}
+        <p className="mt-2 text-[13px] font-semibold">{p.branding?.name ?? 'Nawabpur Hardware House'}</p>
+        <p className="font-bn text-[11px] text-ink-600">{p.branding?.nameBn ?? 'নবাবপুর হার্ডওয়্যার হাউস'}</p>
+        <p className="text-[10.5px] text-ink-500">{p.branding ? `${p.branding.address} · ${p.branding.phone}` : '142 Nawabpur Road, Dhaka 1100 · 01711-000245'}</p>
       </div>
       <div className="my-3 border-t border-dashed border-ink-300" />
       <div className="flex justify-between"><span>{p.invoice}</span><span>{p.dateTime ?? '01 Oct 2026, 11:58 AM'}</span></div>
@@ -63,7 +65,7 @@ export function ReceiptPreview(p: ReceiptPreviewProps) {
         {p.due > 0 && <div className="flex justify-between font-medium"><span>Due</span><span className="">{n(p.due)}</span></div>}
       </div>
       <div className="my-3 border-t border-dashed border-ink-300" />
-      <p className="font-bn text-center text-[11px]">ধন্যবাদ, আবার আসবেন</p>
+      <p className="font-bn text-center text-[11px]">{p.branding?.footer ?? 'ধন্যবাদ, আবার আসবেন'}</p>
       <p className="mt-1 text-center text-[9.5px] text-ink-400">Powered by HisabIQ · সহজ হিসাব, স্মার্ট ব্যবসা</p>
     </div>);
 

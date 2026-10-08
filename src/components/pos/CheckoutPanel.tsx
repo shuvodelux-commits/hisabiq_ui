@@ -22,6 +22,7 @@ type Totals = {
   discountAmt: number;
   total: number;
   rounding: number;
+  roundingLabel?: string;
   paidNum: number;
   due: number;
   change: number;
@@ -178,7 +179,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           </div>
         </div>
         {totals.discountAmt > 0 && <Row muted label="Discount applied" value={`−${taka(totals.discountAmt, totals.discountAmt % 1 ? 2 : 0)}`} />}
-        <Row muted label="Rounding (to ৳5)" value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
+        <Row muted label={totals.roundingLabel || "Rounding (to ৳5)"} value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
       </div>
 
       <div className="mx-4 rounded-xl bg-inverse px-4 py-3.5 text-white">

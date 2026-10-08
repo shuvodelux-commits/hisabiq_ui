@@ -52,3 +52,7 @@
   }
 }
 
+
+/* Personal density applies only to the business workspace. */
+.erp-workspace[data-density="Comfortable"] table td { padding-top: 0.9rem; padding-bottom: 0.9rem; }
+.erp-settings input[type="radio"]:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 4px; }

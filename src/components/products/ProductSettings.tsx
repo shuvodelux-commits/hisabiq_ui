@@ -1,11 +1,11 @@
+import { Link, useSearchParams } from 'react-router-dom';
+import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import React, { useState } from 'react';
 import { MoreHorizontal, Plus, Ruler, Settings2, Tags } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
-import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
 import { StatusBadge } from '../StatusBadge';
-import { Switch } from '../Switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { FloatingPanel } from '../layout/FloatingPanel';
 
@@ -98,22 +98,15 @@ function SettingActions({
 }
 
 export function ProductSettings() {
-  const [tab, setTab] = useState<SettingsTab>('categories');
+  const [searchParams] = useSearchParams();
+  const { state } = useTenantSettings();
+  const [tab, setTab] = useState<SettingsTab>(() => ['categories','units','brands'].includes(searchParams.get('tab') || '') ? searchParams.get('tab') as SettingsTab : 'categories');
   const [categories, setCategories] = useState(initialCategories);
   const [units, setUnits] = useState(initialUnits);
   const [brands, setBrands] = useState(initialBrands);
   const [newName, setNewName] = useState('');
   const [newBn, setNewBn] = useState('');
   const [newSymbol, setNewSymbol] = useState('');
-
-  const [banglaHelpers, setBanglaHelpers] = useState(true);
-  const [lowStockAlerts, setLowStockAlerts] = useState(true);
-  const [barcodeScan, setBarcodeScan] = useState(true);
-  const [negativeStock, setNegativeStock] = useState(false);
-  const [openingUnit, setOpeningUnit] = useState('Stock view unit');
-  const [minimumUnit, setMinimumUnit] = useState('Stock view unit');
-  const [priceEntry, setPriceEntry] = useState('Selected unit');
-  const [rounding, setRounding] = useState('Round final invoice');
 
   const clearNew = () => {
     setNewName('');
@@ -297,61 +290,7 @@ export function ProductSettings() {
         </Table>
       )}
 
-      {tab === 'defaults' && (
-        <div className="grid gap-4 p-4 xl:grid-cols-2">
-          <section className="rounded-xl border border-border">
-            <div className="border-b border-border p-3">
-              <p className="text-sm font-semibold text-ink">Product entry defaults</p>
-              <p className="mt-0.5 text-[11px] text-ink-500">Defaults reduce repetitive choices; each product can still override them.</p>
-            </div>
-            <div className="space-y-4 p-3">
-              <label className="block text-[12px] font-medium text-ink">
-                Opening stock unit
-                <FormSelect className="mt-1" value={openingUnit} onChange={(event) => setOpeningUnit(event.target.value)} options={['Stock view unit', 'Base unit', 'Largest configured unit']} />
-              </label>
-              <label className="block text-[12px] font-medium text-ink">
-                Minimum stock unit
-                <FormSelect className="mt-1" value={minimumUnit} onChange={(event) => setMinimumUnit(event.target.value)} options={['Stock view unit', 'Base unit', 'Largest configured unit']} />
-              </label>
-              <label className="block text-[12px] font-medium text-ink">
-                Selling / purchase price entry
-                <FormSelect className="mt-1" value={priceEntry} onChange={(event) => setPriceEntry(event.target.value)} options={['Selected unit', 'Base unit', 'Largest configured unit']} />
-              </label>
-              <label className="block text-[12px] font-medium text-ink">
-                Rounding
-                <FormSelect className="mt-1" value={rounding} onChange={(event) => setRounding(event.target.value)} options={['Round final invoice', 'No automatic rounding', 'Round unit prices + invoice']} />
-              </label>
-            </div>
-          </section>
-
-          <section className="rounded-xl border border-border">
-            <div className="border-b border-border p-3">
-              <p className="text-sm font-semibold text-ink">Product behaviour</p>
-              <p className="mt-0.5 text-[11px] text-ink-500">Keep operational behaviour simple and switchable.</p>
-            </div>
-            <div className="divide-y divide-border">
-              {[
-                { label: 'Bangla helper text', helper: 'Show Bangla hints beside product fields.', value: banglaHelpers, set: setBanglaHelpers },
-                { label: 'Low stock alerts', helper: 'Warn when stock falls below the product minimum.', value: lowStockAlerts, set: setLowStockAlerts },
-                { label: 'Barcode scan in POS', helper: 'Allow barcode scan to add a product to the cart.', value: barcodeScan, set: setBarcodeScan },
-                { label: 'Negative stock by default', helper: 'Allow sale below zero without choosing the shortage option.', value: negativeStock, set: setNegativeStock }
-              ].map((setting) => (
-                <div key={setting.label} className="flex items-start justify-between gap-4 p-3">
-                  <div>
-                    <p className="text-[13px] font-medium text-ink">{setting.label}</p>
-                    <p className="mt-0.5 text-[11px] text-ink-500">{setting.helper}</p>
-                  </div>
-                  <Switch checked={setting.value} onCheckedChange={setting.set} aria-label={setting.label} />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <div className="xl:col-span-2 flex justify-end">
-            <Button onClick={() => toast.success('Product defaults saved')}>Save defaults</Button>
-          </div>
-        </div>
-      )}
+      {tab === 'defaults' && <div className="space-y-3 p-4"><h3 className="text-sm font-semibold text-ink">Business product defaults</h3><p className="text-sm text-ink-600">Base unit: {state.sections.products.defaultUnit} · Serial tracking: {state.sections.products.serial} · Lot allocation: {state.sections.products.allocation}</p><p className="text-xs text-ink-500">Product defaults are shared with Business settings. Existing products keep their own units and conversions.</p><Link className="inline-flex rounded-md border border-input bg-card px-3 py-2 text-sm text-ink" to="/app/settings/products">Configure product defaults →</Link></div>}
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Download, MoreHorizontal, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -170,7 +171,9 @@ function ProductActions({
 type ProductView = 'list' | 'lots' | 'history' | 'settings';
 
 export function Products() {
-  const [view, setView] = useState<ProductView>('list');
+  const [searchParams] = useSearchParams();
+  const [view, setView] = useState<ProductView>(() => searchParams.get('view') === 'settings' ? 'settings' : 'list');
+  useEffect(() => { if (searchParams.get('view') === 'settings') setView('settings'); }, [searchParams]);
   const [list, setList] = useState<Product[]>(seed);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');

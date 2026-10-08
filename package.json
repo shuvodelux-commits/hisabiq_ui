@@ -12,7 +12,8 @@
     "cf:deploy": "npm run build && wrangler deploy",
     "cf:preview": "npm run build && wrangler preview",
     "test:theme": "node scripts/theme-browser.cjs",
-    "test:saas": "node scripts/saas-browser.cjs"
+    "test:saas": "node scripts/saas-browser.cjs",
+    "test:settings": "node scripts/settings-browser.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",

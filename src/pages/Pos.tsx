@@ -1,3 +1,4 @@
+import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
@@ -8,7 +9,7 @@ import { CartTable } from '../components/pos/CartTable';
 import { CheckoutPanel } from '../components/pos/CheckoutPanel';
 import { DraftsMenu } from '../components/pos/DraftsMenu';
 import { ProductThumb } from '../components/ProductThumb';
-import { ReceiptPreview, type ReceiptLine } from '../components/brand/ReceiptPreview';
+import { ReceiptPreview, type ReceiptLine, type ReceiptBranding } from '../components/brand/ReceiptPreview';
 import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
 import { products } from '../data/products';
 import { stockLots } from '../data/productInventory';
@@ -30,6 +31,7 @@ type CompletedSale = {
   subtotal: number;
   discount: number;
   rounding: number;
+  branding?: ReceiptBranding;
   total: number;
   paid: number;
   due: number;
@@ -115,6 +117,7 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
 }
 
 export function Pos() {
+  const { state: settingsState } = useTenantSettings();
   const cart = usePosCart();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -322,6 +325,7 @@ export function Pos() {
       subtotal: t.subtotal,
       discount: t.discountAmt,
       rounding: t.rounding,
+      branding: { ...settingsState.sections.business, showLogo: settingsState.sections.invoices.showLogo, footer: settingsState.sections.invoices.footer },
       total: t.total,
       paid: Math.min(t.paidNum, t.total),
       due: t.due,
