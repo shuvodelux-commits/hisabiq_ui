@@ -374,7 +374,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
               <p className="mb-1.5 text-[13px] font-medium text-ink">Brand <span className="font-bn text-[11px] font-normal text-ink-400">· ব্র্যান্ড</span></p>
               <QuickAddSelect label="Brand" value={brand} options={brandOptions} onChange={setBrand}
                 onCreate={(name) => { createPreviewProductBrand(name); setBrandOptions(availableProductBrands()); setBrand(name); }} />
-            </div>
+            </div>}
             <Field label="Product name" bn="নাম">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={isStock ? 'e.g. LED Bulb 12W' : 'e.g. Ceiling Fan Installation'} autoFocus />
             </Field>
