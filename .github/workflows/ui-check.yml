@@ -37,6 +37,9 @@ jobs:
       - name: Check Party profile and CSV workflows
         run: npm run test:parties
 
+      - name: Check date-filtered Party ledger and print
+        run: npm run test:party-ledger
+
       - name: Check full-page purchase and quick-add workflow
         run: npm run test:purchases
 

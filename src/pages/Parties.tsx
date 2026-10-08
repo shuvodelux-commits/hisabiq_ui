@@ -1,5 +1,5 @@
 import React, { useState, useSyncExternalStore } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -12,7 +12,11 @@ import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } 
 import { availableParties } from '../data/erpDemoStore';
 import { matchesPartySearch, resolvePartySelection } from '../utils/partyIdentity';
 import type { Party, PartyRole, LedgerEntry, LedgerEntryType } from '../types/erp';
-import type { PartyDraft, PartyLedgerSource } from '../types/partyLedger';
+import type { PartyDraft, PartyLedgerSource, PartyLedgerRow, PartyAction } from '../types/partyLedger';
+import { projectPartyStatement, pagedStatementRows, computePartyBalanceSummary } from '../utils/partyLedger';
+import { ledgerActionAvailability, partySourceRoute } from '../utils/partyActions';
+import { demoPermissions } from '../utils/permissions';
+import type { IsoRange } from '../utils/dateRange';
 import { taka } from '../utils/currency';
 
 const ledgerType = (kind:PartyLedgerSource): LedgerEntryType => {
@@ -28,6 +32,13 @@ const displayDate=(iso:string)=>new Intl.DateTimeFormat('en-GB',{day:'2-digit',m
 
 export function Parties() {
   const [params,setParams]=useSearchParams();
+  const navigate=useNavigate();
+  const [range,setRange]=useState<IsoRange>({from:'',to:''});
+  const [kind,setKind]=useState('All types');
+  const [ledgerQuery,setLedgerQuery]=useState('');
+  const [page,setPage]=useState(1);
+  const [pageSize,setPageSize]=useState(25);
+  const [statementOpen,setStatementOpen]=useState(false);
   const [role,setRole]=useState<PartyRole|'All'>('All');
   const [query,setQuery]=useState('');
   const [editing,setEditing]=useState<Party|null|undefined>(undefined);
@@ -45,11 +56,45 @@ export function Parties() {
       type:ledgerType(source.kind),ref:source.reference,description:source.description,
       debit:source.debit,credit:source.credit})):[];
 
+  const normalizedRows:PartyLedgerRow[]=state.sources.map(source=>({
+    id:source.id,partyId:source.partyId,relationship:source.relationship,
+    source:source.kind,sourceId:source.id,reference:source.reference,
+    date:source.date,description:source.description,debit:source.debit,credit:source.credit,
+    sequence:source.sequence,status:source.status,amountPaid:source.amountPaid,
+    discount:source.discount,method:source.method,accountId:source.accountId
+  }));
+  const statement=party&&relationship
+    ? projectPartyStatement(normalizedRows,party.id,relationship,range)
+    : null;
+  const summary=party&&relationship
+    ? computePartyBalanceSummary(state,party.id,relationship) : null;
+  const searched=statement
+    ? statement.rows.filter(row=>(kind==='All types'||row.source===kind)
+      &&[row.reference,row.description,row.source].some(value=>String(value??'').toLowerCase().includes(ledgerQuery.toLowerCase().trim())))
+    : [];
+  const filteredStatement=statement?{...statement,rows:searched}:null;
+  const visibleRows=filteredStatement
+    ? pagedStatementRows(filteredStatement,page,pageSize,true) : [];
+  const totalPages=Math.max(1,Math.ceil(searched.length/pageSize));
+  const actionsForRow=(row:PartyLedgerRow)=>ledgerActionAvailability(row,demoPermissions,new Set<PartyAction>(
+    row.source==='sale'?['view','source','edit']:['view']
+  ));
+  const resetLedger=()=>{setRange({from:'',to:''});setKind('All types');setLedgerQuery('');setPage(1);};
+  const handleLedgerAction=(action:PartyAction,row:PartyLedgerRow)=>{
+    if((action==='edit'||action==='source')&&partySourceRoute(row)){
+      navigate(partySourceRoute(row)!);
+    }else if(action==='view'){
+      // A read-only dialog in PartyDetail handles the source record.
+    }else{
+      toast.error('This transaction action is not connected to a source editor yet.');
+    }
+  };
+
   const receivable=allParties.filter(p=>p.balance>0).reduce((s,p)=>s+p.balance,0);
   const payable=allParties.filter(p=>p.balance<0).reduce((s,p)=>s-p.balance,0);
   const selectParty=(id:string)=>{
     const target=allParties.find(p=>p.id===id);
-    if(target)setParams({id,role:target.roles.includes(relationship as PartyRole)?relationship!:target.roles[0]});
+    if(target){setParams({id,role:target.roles.includes(relationship as PartyRole)?relationship!:target.roles[0]});resetLedger();}
   };
   const saveParty=(draft:PartyDraft)=>{
     if(editing)dispatchPartyPreview({type:'update-party',id:editing.id,patch:draft});
@@ -61,7 +106,7 @@ export function Parties() {
     }
     toast.success(editing?'Party updated in preview':'Party added to preview');
   };
-  const changeRole=(next:PartyRole)=>{if(party)setParams({id:party.id,role:next});};
+  const changeRole=(next:PartyRole)=>{if(party){setParams({id:party.id,role:next});resetLedger();}};
   const noteAction=(type:'add'|'edit'|'delete',idOrText:string,text?:string)=>{
     try {
       if(type==='add'&&party)dispatchPartyPreview({type:'add-note',partyId:party.id,relationship,text:idOrText});
@@ -84,6 +129,15 @@ export function Parties() {
       {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}
+        statement={statement!} balanceSummary={summary!} visibleRows={visibleRows}
+        range={range} onRange={next=>{setRange(next);setPage(1);}}
+        kind={kind} onKind={value=>{setKind(value);setPage(1);}}
+        ledgerQuery={ledgerQuery} onLedgerQuery={value=>{setLedgerQuery(value);setPage(1);}}
+        pageSize={pageSize} onPageSize={value=>{setPageSize(value);setPage(1);}}
+        onResetLedger={resetLedger} onStatement={()=>setStatementOpen(true)}
+        page={page} pages={totalPages} onPage={setPage}
+        actionsForRow={actionsForRow} onLedgerAction={handleLedgerAction}
+        statementOpen={statementOpen} onCloseStatement={()=>setStatementOpen(false)}
         onAddNote={text=>noteAction('add',text)}
         onEditNote={(id,text)=>noteAction('edit',id,text)}
         onDeleteNote={id=>noteAction('delete',id)}/>:
