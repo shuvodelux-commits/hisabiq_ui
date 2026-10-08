@@ -12,12 +12,13 @@ import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } 
 import { availableParties } from '../data/erpDemoStore';
 import { matchesPartySearch, resolvePartySelection } from '../utils/partyIdentity';
 import type { Party, PartyRole, LedgerEntry, LedgerEntryType } from '../types/erp';
-import type { PartyDraft, PartyLedgerSource, PartyLedgerRow, PartyAction } from '../types/partyLedger';
+import type { PartyDraft, PartyLedgerSource, PartyLedgerRow, PartyAction, PartyOpeningPayload } from '../types/partyLedger';
 import { projectPartyStatement, pagedStatementRows, computePartyBalanceSummary } from '../utils/partyLedger';
 import { ledgerActionAvailability, partySourceRoute } from '../utils/partyActions';
 import { demoPermissions } from '../utils/permissions';
 import type { IsoRange } from '../utils/dateRange';
 import { taka } from '../utils/currency';
+import { isPartyOpening } from '../utils/partyOpening';
 
 const ledgerType = (kind:PartyLedgerSource): LedgerEntryType => {
   if(kind==='sale')return 'invoice';
@@ -48,7 +49,10 @@ export function Parties() {
   const selected=resolvePartySelection(allParties,params.get('id')??undefined,params.get('role')??undefined);
   const party=selected?allParties.find(p=>p.id===selected.partyId):undefined;
   const relationship=selected?.relationship;
-  const filtered=allParties.filter(p=>(role==='All'||p.roles.includes(role))&&matchesPartySearch(p,query));
+  const filtered=allParties.filter(p=>(role==='All'||p.roles.includes(role))&&matchesPartySearch(p,query))
+    .map(p=>({...p,balance:role!=='All'
+      ?computePartyBalanceSummary(state,p.id,role).netBalance
+      :p.roles.length===1?computePartyBalanceSummary(state,p.id,p.roles[0]).netBalance:0}));
   const partyEntries:LedgerEntry[]=party&&relationship?state.sources
     .filter(source=>source.partyId===party.id&&source.relationship===relationship&&source.status==='Active')
     .sort((a,b)=>a.date.localeCompare(b.date)||a.sequence-b.sequence)
@@ -61,7 +65,7 @@ export function Parties() {
     source:source.kind,sourceId:source.id,reference:source.reference,
     date:source.date,description:source.description,debit:source.debit,credit:source.credit,
     sequence:source.sequence,status:source.status,amountPaid:source.amountPaid,
-    discount:source.discount,method:source.method,accountId:source.accountId
+    discount:source.discount,method:source.method,accountId:source.accountId,financeType:source.financeType
   }));
   const statement=party&&relationship
     ? projectPartyStatement(normalizedRows,party.id,relationship,range)
@@ -93,17 +97,20 @@ export function Parties() {
     }
   };
 
-  const receivable=allParties.filter(p=>p.balance>0).reduce((s,p)=>s+p.balance,0);
-  const payable=allParties.filter(p=>p.balance<0).reduce((s,p)=>s-p.balance,0);
+  // Sum each relationship separately; a customer receivable must never
+  // silently offset the same party's supplier payable.
+  const balances=allParties.flatMap(p=>p.roles.map(r=>computePartyBalanceSummary(state,p.id,r).netBalance));
+  const receivable=balances.filter(n=>n>0).reduce((s,n)=>s+n,0);
+  const payable=balances.filter(n=>n<0).reduce((s,n)=>s-n,0);
   const selectParty=(id:string)=>{
     const target=allParties.find(p=>p.id===id);
     if(target){setParams({id,role:target.roles.includes(relationship as PartyRole)?relationship!:target.roles[0]});resetLedger();}
   };
-  const saveParty=(draft:PartyDraft)=>{
-    if(editing)dispatchPartyPreview({type:'update-party',id:editing.id,patch:draft});
+  const saveParty=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
+    if(editing)dispatchPartyPreview({type:'update-party',id:editing.id,patch:draft,openings});
     else {
       const previous=new Set(allParties.map(p=>p.id));
-      const next=dispatchPartyPreview({type:'create-party',party:draft});
+      const next=dispatchPartyPreview({type:'create-party',party:draft,openings});
       const created=next.parties.find(p=>!previous.has(p.id));
       if(created)setParams({id:created.id,role:created.roles[0]});
     }
@@ -145,6 +152,7 @@ export function Parties() {
         onRecordPayment={payload=>{dispatchPartyPreview({type:'record-payment',payload});toast.success('Payment recorded in preview (no bank posting)');}}
         onRefundCredit={payload=>{dispatchPartyPreview({type:'refund-credit',payload});toast.success('Credit refund recorded in preview (no bank posting)');}}
         onRecordFinance={payload=>{dispatchPartyPreview({type:'record-finance',payload});toast.success('Capital / loan transaction saved in preview (no bank posting)');}}
+        onSetOpening={payload=>{dispatchPartyPreview({type:'set-opening',payload});toast.success('Opening balance updated in preview; previous amount retained in audit');}}
         onEditSourcePayment={(sourceId,payload,reason)=>{
           dispatchPartyPreview({type:'edit-source-payment',sourceId,payload,reason});
           toast.success('Preview payment corrected; dependent balances recalculated');
@@ -158,7 +166,9 @@ export function Parties() {
         onDeleteNote={id=>noteAction('delete',id)}/>:
         <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">No parties yet. Add your first party.</div>}
     </div>
-    <PartyEditorDialog open={editing!==undefined} party={editing} onClose={()=>setEditing(undefined)} onSave={saveParty}/>
+    <PartyEditorDialog open={editing!==undefined} party={editing}
+      existingOpenings={editing?.id?state.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
+      onClose={()=>setEditing(undefined)} onSave={saveParty}/>
     <PartyImportDialog open={importOpen} onClose={()=>setImportOpen(false)} onImport={parties=>{dispatchPartyPreview({type:"import-parties",parties});toast.success(`${parties.length} parties imported to preview`);}}/>
   </div>;
 }

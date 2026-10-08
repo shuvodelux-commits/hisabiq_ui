@@ -4,18 +4,20 @@ import { validatePartyDraft } from '../utils/partyIdentity.ts';
 import { businessToday } from '../utils/dateRange.ts';
 import { validatePartyPayment, validatePartyRefund, validatePartySplits, validateBusinessDate, toPaisa } from '../utils/partyPayment.ts';
 import { financeTypeMeta } from '../utils/partyFinance.ts';
+import { validateOpening,activePartyOpening,isPartyOpening,makeOpeningSource } from '../utils/partyOpening.ts';
 import { customerSettlementAsOf, supplierSettlementAsOf, validateCustomerPayment, validateCustomerRefund } from '../utils/partySettlement.ts';
 import type { Party, PartyRole } from '../types/erp';
-import type { PartyDraft, PartyPreviewState, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload } from '../types/partyLedger';
+import type { PartyDraft, PartyPreviewState, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload, PartyOpeningPayload } from '../types/partyLedger';
 
 export type PartyPreviewCommand =
-  | {type:'create-party'; party:PartyDraft}
+  | {type:'create-party'; party:PartyDraft; openings?:Omit<PartyOpeningPayload,'partyId'>[]}
   | {type:'import-parties'; parties:PartyDraft[]}
-  | {type:'update-party'; id:string; patch:Partial<PartyDraft>}
+  | {type:'update-party'; id:string; patch:Partial<PartyDraft>; openings?:Omit<PartyOpeningPayload,'partyId'>[]}
   | {type:'deactivate-party'; id:string}
   | {type:'add-note'; partyId:string; text:string; relationship?:PartyRole}
   | {type:'edit-note'; sourceId:string; text:string}
   | {type:'delete-note'; sourceId:string}
+  | {type:'set-opening'; payload:PartyOpeningPayload}
   | {type:'record-payment'; payload:PartyPaymentPayload}
   | {type:'record-finance'; payload:PartyFinancePayload}
   | {type:'refund-credit'; payload:PartyRefundPayload}
@@ -70,10 +72,38 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     if(!party)throw new Error('Party not found.');
     return party;
   };
+  const applyOpening=(payload:PartyOpeningPayload)=>{
+    const p=findParty(payload.partyId);
+    validateOpening(payload,p,sources);
+    const previous=sources.filter(row=>row.partyId===p.id&&row.relationship===payload.relationship
+      &&row.status==='Active'&&isPartyOpening(row));
+    const old=previous.length?[...previous]:undefined;
+    sources=sources.map(row=>previous.some(o=>o.id===row.id)?{...row,status:'Reversed' as const}:row);
+    const id='party-opening:'+(++counter);
+    const newSource=toPaisa(payload.amount,'Opening balance')===0?undefined
+      :makeOpeningSource(payload,Math.max(0,...sources.map(row=>row.sequence))+1,id);
+    if(newSource)sources=[...sources,newSource];
+    // Opening changes are backdated: recheck all later verified refunds
+    // before changing the observable snapshot.
+    if(payload.relationship==='Customer')customerSettlementAsOf(sources,p.id,businessToday());
+    if(payload.relationship==='Supplier')supplierSettlementAsOf(sources,p.id,businessToday());
+    targetPartyId=p.id;sourceId=newSource?.id??previous[0]?.id;
+    before=old;after=newSource??{cleared:true,partyId:p.id,relationship:payload.relationship};
+  };
   if(command.type==='create-party'){
     const party=addParty(command.party,parties);
     parties=[...parties,party];
     targetPartyId=party.id;after=party;
+    if(command.openings?.length){
+      const relationships=new Set<string>();
+      for(const opening of command.openings){
+        if(relationships.has(opening.relationship))throw new Error('Only one opening per relationship.');
+        relationships.add(opening.relationship);
+        applyOpening({...opening,partyId:party.id});
+      }
+      after={party,openings:sources.filter(row=>row.partyId===party.id&&isPartyOpening(row))};
+      sourceId=undefined;targetPartyId=party.id;
+    }
   } else if(command.type==='import-parties'){
     const additions:Party[]=[];
     for(const draft of command.parties) additions.push(addParty(draft,[...parties,...additions]));
@@ -89,12 +119,24 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     after={...patch,name:patch.name.trim(),phone:patch.phone.trim(),area:patch.area.trim(),roles:[...patch.roles]};
     parties=parties.map(p=>p.id===party.id?after as Party:p);
     targetPartyId=party.id;
+    if(command.openings?.length){
+      const roleSet=new Set<string>();
+      for(const opening of command.openings){
+        if(roleSet.has(opening.relationship))throw new Error('Only one opening per relationship.');
+        roleSet.add(opening.relationship);
+        applyOpening({...opening,partyId:party.id});
+      }
+      after={party:parties.find(p=>p.id===party.id),openings:command.openings};
+      targetPartyId=party.id;sourceId=undefined;
+    }
   } else if(command.type==='deactivate-party'){
     const party=findParty(command.id);
     if(sources.some(s=>s.partyId===party.id&&s.status==='Active'&&s.kind!=='note'))throw new Error('Cannot deactivate a party with linked transactions.');
     before=party;after={...party,status:'Inactive' as const};
     parties=parties.map(p=>p.id===party.id?after as Party:p);
     targetPartyId=party.id;
+  } else if(command.type==='set-opening'){
+    applyOpening(command.payload);
   } else if(command.type==='record-finance'){
     const payload=command.payload;
     const party=findParty(payload.partyId);
@@ -105,6 +147,7 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     validateBusinessDate(payload.date);
     if(toPaisa(payload.amount,'Finance amount')<=0)throw new Error('Finance amount must be positive.');
     if(meta.opening){
+      if(activePartyOpening(sources,payload.partyId,meta.role))throw new Error('An opening balance already exists; use Edit opening balance.');
       if(payload.splits.length)throw new Error('Opening finance balance must not move any money account.');
     }else validatePartySplits(payload.splits,payload.amount);
     if(payload.operationId&&!/^[A-Za-z0-9_-]{4,100}$/.test(payload.operationId))
@@ -249,7 +292,8 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
   }
   const updated:PartyPreviewState={parties,sources,revision:state.revision+1,
     audit:[...state.audit,{id:'audit-preview-'+(++counter),partyId:targetPartyId,sourceId,
-      action:command.type,before,after,actor:'Preview user',at:new Date().toISOString()}]};
+      action:command.type,before,after,actor:'Preview user',at:new Date().toISOString(),
+      reason:command.type==='set-opening'?command.payload.note:undefined}]};
   state=updated;
   listeners.forEach(listener=>listener());
   return updated;

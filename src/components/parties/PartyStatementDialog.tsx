@@ -7,6 +7,7 @@ import type { LedgerStatement } from '../../types/partyLedger';
 import { statementPrintRows, serializePartyStatementCsv } from '../../utils/partyStatement';
 import { businessToday } from '../../utils/dateRange';
 import { formatNumber } from '../../utils/currency';
+import { ledgerImpact } from '../../utils/partyLedgerImpact';
 
 type Props={open:boolean;onClose:()=>void;party:Party;statement:LedgerStatement};
 export function PartyStatementDialog({open,onClose,party,statement}:Props){
@@ -41,7 +42,7 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
             </div>
           </div>
         </div>
-        <div className="flex justify-between text-sm"><span>Opening balance</span><strong>৳{formatNumber(statement.openingBalance)}</strong></div>
+        <div className="flex justify-between text-sm"><span title="Balance before the selected date range; dated opening entries appear in the table">Opening balance (brought forward)</span><strong>৳{formatNumber(statement.openingBalance)}</strong></div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead><tr className="border-y border-border bg-ink-50 text-ink-700">
@@ -50,7 +51,9 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
             </tr></thead>
             <tbody>{rows.map(row=><tr key={row.id} className="border-b border-border/70">
               <td className="whitespace-nowrap p-2">{row.date}</td>
-              <td className="p-2"><span className="font-medium">{row.reference||row.source}</span><p className="max-w-sm break-words text-ink-500">{row.description}</p></td>
+              <td className="p-2"><span className="font-medium">{row.reference||row.source}</span>
+               <span className="ml-1 text-[10px] text-ink-500">· {ledgerImpact(row).label}</span>
+               <p className="max-w-sm break-words text-ink-500">{row.description}</p></td>
               <td className="p-2 text-right">{row.debit?formatNumber(row.debit):'—'}</td>
               <td className="p-2 text-right">{row.credit?formatNumber(row.credit):'—'}</td>
               <td className="p-2 text-right">{formatNumber(row.runningBalance)}</td>
