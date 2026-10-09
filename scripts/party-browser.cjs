@@ -43,7 +43,7 @@ async function main() {
     await page.getByRole('textbox',{name:'Search parties'}).fill('নতুন');
     assert.ok(await page.getByText('New Party QA',{exact:true}).count() >= 1);
     await page.getByRole('textbox',{name:'Search parties'}).fill('');
-    await page.getByRole('button',{name:/Import Excel \\/ CSV/i}).click();
+    await page.getByRole('button',{name:/Import Excel/i}).click();
     await page.getByRole('dialog',{name:'Choose Party import type'})
       .getByRole('button',{name:'Legacy multi-role CSV'}).click();
     await page.getByLabel('Select CSV file').setInputFiles({
