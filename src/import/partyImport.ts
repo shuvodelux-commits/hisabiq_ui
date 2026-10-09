@@ -88,7 +88,7 @@ export function planPartyImport(
    if(typeof rawPhone==='number')throw new Error('Excel numeric phone may have lost a leading zero. Enter the complete number as text, e.g. 017...');
    const phone=trim(rawPhone),area=trim(row.mapped.area),partyId=trim(row.mapped.partyId);
    const normalized=normalizePhone(phone);
-   if(/^1[3-9]\\d{8}$/.test(normalized))throw new Error('Bangladesh mobile appears to be missing its leading 0. Enter 01... as literal text.');
+   if(/^1[3-9]\d{8}$/.test(normalized))throw new Error('Bangladesh mobile appears to be missing its leading 0. Enter 01... as literal text.');
    const sameFileKey=partyId?'id:'+partyId:normalized?'phone:'+normalized:'row:'+row.sourceRow;
    if(seen.has(sameFileKey))throw new Error('Duplicate identity in the same import file.');
    seen.add(sameFileKey);
