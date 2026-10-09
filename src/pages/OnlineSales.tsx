@@ -48,7 +48,7 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
  const totals=useMemo(()=>{try{return orderTotals(draft);}catch{return null;}},[draft]);
  const paymentSwitch=(value:string)=>{
   const mode=value as PaymentMode;
-  const total=money(draft.lines.reduce((s,l)=>s+l.quantity*l.price,0)-draft.discount+draft.deliveryCharge);
+  const total=money(draft.lines.reduce((s,l)=>s+l.quantity*l.price+(l.secondaryQuantity??0)*l.price/(l.unitFactor??1),0)-draft.discount+draft.deliveryCharge);
   patch({paymentMode:mode,prepaid:mode==='COD'?0:mode==='Delivery charge advance'?draft.deliveryCharge:
     mode==='Fully paid'?Math.max(0,total):Math.min(Math.max(1,draft.deliveryCharge),Math.max(1,total/2))});
  };
