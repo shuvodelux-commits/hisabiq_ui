@@ -1,6 +1,6 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -12,6 +12,7 @@ import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine, type ReceiptBranding } from '../components/brand/ReceiptPreview';
 import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
 import { products } from '../data/products';
+import {getOnlineSnapshot,orderTotals,preparePosHandoff} from '../onlineSales/onlineStore';
 import { stockLots } from '../data/productInventory';
 import { productOffers } from '../data/productOffers';
 import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
@@ -124,6 +125,10 @@ export function Pos() {
   const { state: settingsState } = useTenantSettings();
   const cart = usePosCart();
   const navigate = useNavigate();
+  const location = useLocation();
+  const incomingState = location.state as {hisabiqSource?:string;orderId?:string}|null;
+  const incomingOrderId = incomingState?.hisabiqSource==='online-order'?incomingState.orderId:undefined;
+  const handoffOrder = incomingOrderId?getOnlineSnapshot().orders.find(o=>o.id===incomingOrderId):undefined;
   const [searchParams] = useSearchParams();
   const sourceMode = searchParams.get('mode');
   const sourceInvoiceNo = searchParams.get('invoice');
@@ -146,7 +151,7 @@ export function Pos() {
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
   const invoice = editing && sourceInvoice ? sourceInvoice.invoice : `INV-${String(invoiceNo).padStart(6, '0')}`;
-  const pageTitle = editing
+  const pageTitle = handoffOrder?'Online order · POS preview':editing
     ? 'Edit sale'
     : duplicating
       ? 'Duplicate sale'
@@ -159,7 +164,7 @@ export function Pos() {
             : templateContext
               ? 'Template sale'
               : 'New sale';
-  const pageTitleBn = editing
+  const pageTitleBn = handoffOrder?'অনলাইন অর্ডার':editing
     ? 'বিক্রি সম্পাদনা'
     : duplicating
       ? 'বিক্রি কপি'
@@ -175,7 +180,7 @@ export function Pos() {
 
   useEffect(() => {
     if (!sourceInvoice || (!editing && !duplicating)) {
-      if ((!sourceDraft || !draftContext) && (!sourceTemplate || !templateContext)) loadedSource.current = null;
+      if ((!sourceDraft || !draftContext) && (!sourceTemplate || !templateContext) && !incomingOrderId) loadedSource.current = null;
       return;
     }
     const sourceKey = `${sourceMode}:${sourceInvoice.invoice}`;
@@ -232,6 +237,27 @@ export function Pos() {
     cart.setDiscountMode('amount');
     cart.setPayments([makePosPaymentRow()]);
   }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, sourceMode, sourceTemplate, templateContext]);
+
+  useEffect(() => {
+    if(!incomingOrderId)return;
+    const sourceKey='online-order:'+incomingOrderId;
+    if(loadedSource.current===sourceKey)return;
+    try{
+      const handoff=preparePosHandoff(incomingOrderId,products);
+      loadedSource.current=sourceKey;
+      cart.setLines(handoff.lines.map(l=>{
+        const product=products.find(p=>p.id===l.productId)!;
+        return {key:l.key,product,qty:l.qty,secondaryQty:l.secondaryQty,
+          unit:l.unit,price:l.price,serials:[]};
+      }));
+      const matchingParty=handoff.partyId?parties.find(p=>p.id===handoff.partyId)??null:null;
+      cart.setCustomer(matchingParty);
+      cart.setCustomerDetails({name:handoff.customerName,phone:handoff.phone,guardianName:'',address:handoff.address});
+      cart.setDiscount(handoff.discount?String(handoff.discount):'');
+      cart.setDiscountMode('amount');
+      cart.setPayments([makePosPaymentRow()]);
+    }catch(e){toast.error(e instanceof Error?e.message:'Online order handoff unavailable.');navigate('/app/online-sales',{replace:true,state:null});}
+  },[incomingOrderId,cart.setCustomer,cart.setCustomerDetails,cart.setDiscount,cart.setDiscountMode,cart.setLines,cart.setPayments,navigate]);
 
   const complete = () => {
     const t = cart.totals;
@@ -421,7 +447,7 @@ export function Pos() {
     setCompleted(null);
     cart.reset();
     setInvoiceNo((n) => n + 1);
-    if (editing || duplicating || draftContext || templateContext) navigate('/app/pos', { replace: true });
+    if (editing || duplicating || draftContext || templateContext || incomingOrderId) navigate('/app/pos', { replace: true, state: null });
     setTimeout(() => searchRef.current?.focus(), 50);
   };
 
@@ -456,6 +482,20 @@ export function Pos() {
         </div>
       </div>
 
+      {handoffOrder && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-300 bg-teal-50 p-3 text-sm text-teal-900 dark:bg-teal-900/20 dark:text-teal-200">
+          <div>
+            <p className="font-semibold">Prefilled from online order {handoffOrder.number} · POS preview only</p>
+            <p className="mt-1 text-xs">
+              Goods and quoted discount were copied. Delivery charge {orderTotals(handoffOrder).delivery}
+              and advance {orderTotals(handoffOrder).advance} are <strong>NOT automatically added</strong>
+              to POS item totals or payment rows. Verify each amount and inventory before completing a sale.
+            </p>
+            <p className="mt-1 text-xs">No Sales invoice, stock deduction or Party ledger posting is linked by this handoff.</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={()=>navigate('/app/online-sales')}>Back to online orders</Button>
+        </div>
+      )}
       {sourceInvoice && (editing || duplicating) && (
         <div className="flex flex-col gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-[13px] text-teal-800 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-2">
