@@ -2,18 +2,18 @@ import type { LedgerEntry, Party, Product, Purchase, StockLot } from '../types/e
 import { purchases as seedPurchases, expenseCategories } from './purchases.ts';
 import { ledgerEntries as seedLedgerEntries } from './parties.ts';
 import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore.ts';
-import { products as seedProducts, productCategories } from './products.ts';
-import { stockLots as seedLots } from './productInventory.ts';
+import { productCategories } from './products.ts';
+import {getProductImportPreviewSnapshot,upsertProductPreview} from './productImportPreviewStore.ts';
+
 
 /** Design-preview state only: no network posting or cross-tenant persistence. */
-const createdProducts: Product[] = [];
 const createdProductCategories: string[] = [];
 const createdProductBrands: string[] = [];
 const createdProductUnits: ProductUnitOption[] = [];
 const createdCategories: string[] = [];
 const createdPurchases: Purchase[] = [];
 
-export const availableProducts = () => [...seedProducts, ...createdProducts].map((product) => ({
+export const availableProducts = () => getProductImportPreviewSnapshot().products.map((product) => ({
   ...product,
   stock: product.stock + createdPurchases.reduce((sum, purchase) =>
     sum + (purchase.inventoryLines ?? []).filter((line) => line.productId === product.id).reduce((qty, line) => qty + line.quantity, 0), 0)
@@ -32,7 +32,7 @@ export const availableProductCategories = () => [...productCategories, ...create
 export const availableProductBrands = () => [...seedBrands, ...createdProductBrands];
 export const availableProductUnits = (): ProductUnitOption[] => {
   const units = [...initialProductUnits, ...createdProductUnits];
-  for (const product of [...seedProducts, ...createdProducts]) {
+  for (const product of getProductImportPreviewSnapshot().products) {
     for (const symbol of [product.unit, product.altUnit?.unit]) {
       if (symbol && !units.some((item) => isSame(item.symbol, symbol)))
         units.push({ name: symbol, symbol });
@@ -86,15 +86,16 @@ export const availableStockLots = (): StockLot[] => [
     manufactureDate: line.manufactureDate,
     expiryDate: line.expiryDate
   }))),
-  ...seedLots
+  ...getProductImportPreviewSnapshot().lots
 ];
+export const availableStockMovements = () => [...getProductImportPreviewSnapshot().movements];
 
 
 export function createPreviewProductCategory(category: string) {
   if (!availableProductCategories().some((item) => item.toLowerCase() === category.toLowerCase())) createdProductCategories.push(category);
 }
 export function createPreviewProduct(product: Product) {
-  if (!availableProducts().some((item) => item.id === product.id)) createdProducts.push(product);
+  if (!availableProducts().some((item) => item.id === product.id)) upsertProductPreview(product);
 }
 export function createPreviewParty(party: Party) {
   if (!getPartyPreviewSnapshot().parties.some((item) => item.id === party.id)) {
