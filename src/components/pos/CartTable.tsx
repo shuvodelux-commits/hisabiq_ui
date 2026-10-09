@@ -185,7 +185,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     </div>
                   </div>
                 </div>
-                <CompoundQuantityInput product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
+                <CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
                   primaryRef={el=>{qtyRefs.current[l.key]=el;}} secondaryRef={el=>{secondaryQtyRefs.current[l.key]=el;}}
                   primaryLabel={factor>1?`${l.product.altUnit!.unit} quantity for ${l.product.name}`:`Quantity for ${l.product.name}`}
                   secondaryLabel={`${l.product.unit} quantity for ${l.product.name}`}
