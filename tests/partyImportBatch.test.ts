@@ -69,7 +69,8 @@ test('stale snapshot, preexisting opening, and unconfirmed phone collision are b
  stale.baseRevision--;
  assert.throws(()=>commitPartyImportBatch(stale),/changed/i);
  const conflict=plan([row(3,'01911-305566',100)],'customer','no-confirm');
- assert.throws(()=>commitPartyImportBatch(conflict),/Matching phone/i);
+ assert.ok(conflict.issues.some(issue=>/Creating a separate Party with a matched phone/i.test(issue.message)), 'Planner must refuse an unconfirmed matched identity');
+ assert.throws(()=>commitPartyImportBatch(conflict),/Resolve or skip invalid Party rows/i);
  const original=before.parties.find(p=>p.id==='c1')!;
  const mapped=row(4,original.phone,100);mapped.mapped.partyId='c1';
  const decided=resolvePartyImportDecisions([mapped],'customer',before);
