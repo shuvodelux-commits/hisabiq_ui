@@ -21,7 +21,7 @@ async function main(){
   await dlg.getByText('Opening: 2 Box → 20 Pcs',{exact:false}).waitFor();
   assert.equal(await dlg.getByRole('button',{name:'Confirm import'}).isEnabled(),true);
   await dlg.getByRole('button',{name:'Confirm import'}).click();
-  await dlg.getByText('Import preview updated').waitFor();
+  await dlg.getByText('Added to UI preview').waitFor();
   await dlg.getByText('Created').first().waitFor();
   await dlg.getByText('1',{exact:true}).first().waitFor();
   await dlg.getByRole('button',{name:'View records'}).click();
