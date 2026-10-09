@@ -48,6 +48,7 @@ import {
 } from "./ui";
 import { TeamSettings } from "./TeamSettings";
 import { DataSettings } from "./DataSettings";
+import { TenantSettingsHub } from "./TenantSettingsHub";
 
 const icons = {
   business: Building2,
@@ -532,6 +533,9 @@ function SettingsPageContent() {
           ))}
         </fieldset>
       </div>
+      {section === "business" && <TenantSettingsHub onNavigate={(path,event)=>{
+        if(dirty){event.preventDefault();requestChange(()=>navigate(path));}
+      }}/>}
       <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
         <p className="max-w-xl text-xs leading-relaxed text-ink-500">
           Demo business preferences · Shared settings apply to this business.
@@ -638,12 +642,12 @@ function SettingsPageContent() {
             })}
           </nav>
           <div className="hidden space-y-2 px-2 text-xs lg:block">
-            <Link
+            {state.sections.team.employees.find(e=>e.id===actorId)?.roleIds.includes("owner") && <Link
               className="block text-teal-700 hover:underline"
               to="/app/subscription"
             >
               Subscription & SMS credits
-            </Link>
+            </Link>}
             <Link
               className="block text-teal-700 hover:underline"
               to="/app/support"
