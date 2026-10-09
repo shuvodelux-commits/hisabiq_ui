@@ -596,11 +596,20 @@ export function Products() {
       )}
 
       <ImportWizard target="product" open={importOpen} onClose={()=>setImportOpen(false)}
-        prepareRows={(rows)=>resolveProductDecisions(rows,availableProducts())}
+        prepareRows={(rows)=>{
+          const cleaned=rows.map(row=>({...row,issues:row.issues.filter(issue=>issue.field!=='product')}));
+          const resolved=resolveProductDecisions(cleaned,availableProducts());
+          const validation=planProductImport(resolved,availableProducts(),availableStockLots(),{
+            sessionId:'product-review',today:new Date(Date.now()+21600000).toISOString().slice(0,10),
+            baseRevision:getProductImportPreviewSnapshot().revision
+          });
+          return resolved.map(row=>({...row,issues:[...row.issues,...validation.issues.filter(issue=>
+            issue.sourceRow===row.sourceRow&&issue.field==='product')]}));
+        }}
         onApply={async(rows,sessionId)=>{
           const snapshot=getProductImportPreviewSnapshot();
           const plan=planProductImport(rows,availableProducts(),availableStockLots(),{
-            sessionId,today:new Date().toISOString().slice(0,10),baseRevision:snapshot.revision
+            sessionId,today:new Date(Date.now()+21600000).toISOString().slice(0,10),baseRevision:snapshot.revision
           });
           if(plan.issues.some(issue=>issue.severity==='error')){
             const problems=plan.issues.filter(issue=>issue.severity==='error');
