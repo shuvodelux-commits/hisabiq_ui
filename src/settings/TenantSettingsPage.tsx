@@ -858,12 +858,18 @@ function SettingsPageContent() {
                         {(draft as SettingsSections["notifications"]).time}{" "}
                         Asia/Dhaka. No message is sent.
                       </p>
-                      <Link
-                        to="/app/subscription"
-                        className="inline-block text-xs text-teal-700 hover:underline"
-                      >
-                        Review SMS packages & credits →
-                      </Link>
+                      <p className="text-xs text-ink-500">
+                        Configure shared sales completion, due collection and courier SMS event switches in Online Sales.
+                        SMS sending remains disconnected in this UI preview.
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        <Link to="/app/online-sales" className="inline-block text-xs text-teal-700 hover:underline">
+                          Configure sales & courier SMS →
+                        </Link>
+                        <Link to="/app/subscription" className="inline-block text-xs text-teal-700 hover:underline">
+                          Review SMS packages & credits →
+                        </Link>
+                      </div>
                     </SettingCard>
                   )}
                   {section === "sales" && (
