@@ -65,7 +65,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
        </p>
       </div>
      </div>
-     <CompoundQuantityInput product={product??{unit:line.unit}} unit={line.unit}
+     <CompoundQuantityInput key={line.unit} product={product??{unit:line.unit}} unit={line.unit}
       primary={line.quantity} secondary={line.secondaryQuantity??0} disabled={!canChange}
       primaryRef={node=>{quantityRefs.current[line.id]=node;}}
       secondaryRef={node=>{secondaryRefs.current[line.id]=node;}}
