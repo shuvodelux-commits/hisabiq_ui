@@ -30,3 +30,11 @@ test('disabled due reminder, missing consent and invalid phone are blocked',()=>
  assert.throws(()=>updateNotificationRule('courier_handover',{requireConsent:false}),/consent/i);
  assert.throws(()=>updateNotificationRule('courier_handover',{template:'{secret}'}),/placeholders/i);
 });
+
+test('Bangla notification switch uses Bangla default without discarding a custom template',()=>{
+ resetNotificationRulesForTest();
+ const bn=updateNotificationRule('sale_completed',{language:'Bangla'});
+ assert.match(bn.template,/বিক্রয়/);
+ const custom=updateNotificationRule('sale_completed',{template:'Special sale {number}'});
+ assert.equal(updateNotificationRule('sale_completed',{language:'English'}).template,custom.template);
+});
