@@ -13,7 +13,7 @@ export type ColumnMapping=Record<string,number|null>;
 export type StagedImportRow={
  sourceSheet:string;sourceRow:number;original:Record<string,string>;
  mapped:Record<string,unknown>;issues:ImportIssue[];
- match?:{kind:'strong'|'suggested';existingId:string;label:string};
+ match?:{kind:'strong'|'suggested';existingId:string;label:string;hasRole?:boolean};
  decision:ImportRowDecision;
 };
 export type ImportResult={

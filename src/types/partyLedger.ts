@@ -46,8 +46,11 @@ export type PartySourceRecord = {
   paymentSplits?: Array<{id:string; method:'Cash'|'Bank'|'Mobile Banking'; accountId:string; amount:number}>;
   status: 'Active' | 'Reversed' | 'Deleted';
   createdAt?: string;
+  importSessionId?:string;
+  importSourceSheet?:string;
+  importSourceRow?:number;
 };
-export type PartyAuditEvent = {id:string; sourceId?:string; partyId:string; action:string; before?:unknown; after?:unknown; actor:string; at:string; reason?:string};
+export type PartyAuditEvent = {id:string; sourceId?:string; partyId:string; action:string; before?:unknown; after?:unknown; actor:string; at:string; reason?:string; importSessionId?:string; sourceSheet?:string; sourceRow?:number; relationship?:PartyRelationship};
 export type PartyMoneySplit = { id:string; method:'Cash'|'Bank'|'Mobile Banking'; accountId:string; amount:number };
 export type PartyPaymentPayload = {
   partyId:string; relationship:'Customer'|'Supplier'; date:string; amount:number;
