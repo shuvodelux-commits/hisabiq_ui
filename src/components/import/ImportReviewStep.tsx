@@ -94,7 +94,7 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
        {target==='product'?'Existing SKU match: ':'Potential Party match: '}{row.match.label}
        {target==='product'?' · Update master data only; stock is unchanged.':' · Matching by phone does not merge automatically. Choose a deliberate action.'}
       </p>}
-      {row.issues.map((issue,i)=><p key={i} className="mt-1 text-danger" role="alert">{issue.field?issue.field+': ':''}{issue.message}</p>)}
+      {row.issues.map((issue,i)=><p key={i} className={issue.severity==='warning'?'mt-1 text-warning':'mt-1 text-danger'} role={issue.severity==='warning'?'note':'alert'}>{issue.field?issue.field+': ':''}{issue.message}</p>)}
      </div>
      {status(row)==='errors'?<span className="inline-flex items-center gap-1 text-danger"><AlertTriangle className="size-3.5"/> Error</span>
       :status(row)==='skipped'?<span className="text-ink-500">Skipped</span>
