@@ -1,6 +1,7 @@
 import React,{useMemo,useState,useSyncExternalStore} from 'react';
 import {Link} from 'react-router-dom';
 import {toast} from 'sonner';
+import {ErpNotificationsWorkbench} from './ErpNotifications';
 import {Bell,Box,Check,ChevronRight,ClipboardList,Copy,FileText,MessageSquare,PackageCheck,Plus,Search,Send,Truck,Users,Wallet} from 'lucide-react';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
@@ -263,45 +264,7 @@ function LeadsTab(){
   </DialogContent></Dialog>
  </div>;
 }
-function NotificationsTab(){
- const {rules}=useSyncExternalStore(subscribeNotificationRules,getNotificationSnapshot);
- const [selected,setSelected]=useState<ErpNotificationEvent>('sale_completed');
- const [consent,setConsent]=useState(false),[phone,setPhone]=useState('01711482093');
- const rule=rules[selected];
- const preview=renderNotificationPreview(selected,{business:'HisabIQ demo',number:'ON-000101',total:3200,paid:100,due:3100,courier:'Steadfast',tracking:'TRK-DEMO'});
- const eligibility=notificationEligibility(selected,{phone,consent,gatewayConnected:false});
- return <div className="space-y-3">
-  <p className="rounded-lg border border-warning/30 bg-warning-bg p-3 text-xs text-warning">
-   SMS is not connected. Switching rules ON configures preview policy only — <strong>no SMS will be sent or billed</strong>.
-   Applies to POS/Sales, Party due collection and online courier events when backend hooks exist.</p>
-  <div className="grid gap-3 lg:grid-cols-[1fr_1fr]">
-   <div className="space-y-2">{notificationEvents.map(ev=><div key={ev.id} className="flex items-center gap-2 rounded-lg border border-border bg-card p-3">
-    <button className="min-w-0 flex-1 text-left" onClick={()=>setSelected(ev.id)}><strong className="block text-xs text-ink">{ev.label} <span className="font-bn font-normal text-ink-400">· {ev.bn}</span></strong><span className="text-[11px] text-ink-500">{ev.source}</span></button>
-    <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs">
-     <input type="checkbox" aria-label={'Enable SMS '+ev.id} checked={rules[ev.id].enabled}
-      onChange={e=>{updateNotificationRule(ev.id,{enabled:e.target.checked});setSelected(ev.id);}}/>
-     {rules[ev.id].enabled?'On':'Off'}
-    </label>
-   </div>)}</div>
-   <div className="self-start space-y-3 rounded-xl border border-border bg-card p-4">
-    <strong className="text-sm text-ink">Message preview · এসএমএস নমুনা</strong>
-    <p className="text-xs text-ink-500">{notificationEvents.find(x=>x.id===selected)?.label}</p>
-    <AppSelect label="SMS language" value={rule.language} options={['English','Bangla']}
-     onChange={v=>updateNotificationRule(selected,{language:v as 'English'|'Bangla'})}/>
-    <textarea aria-label="SMS template" rows={4} maxLength={320} value={rule.template}
-     onChange={e=>{try{updateNotificationRule(selected,{template:e.target.value});}catch{}}}
-     className="w-full resize-y rounded-md border border-input bg-card p-2 text-xs text-ink"/>
-    <p className="text-[11px] text-ink-500">Tokens: {'{business} {number} {total} {paid} {due} {courier} {tracking}'}</p>
-    <div className="rounded-lg bg-ink-50 p-3 text-sm text-ink">{preview}</div>
-    <label className="block space-y-1 text-xs text-ink-500">Customer phone for eligibility preview
-     <Input aria-label="SMS preview phone" value={phone} onChange={e=>setPhone(e.target.value)}/></label>
-    <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/> Customer consent recorded</label>
-    <p className="text-xs text-warning">{eligibility.reasons.join(' · ')||'Eligible policy; still preview-only (no gateway).'}</p>
-    <Button variant="outline" size="sm" onClick={()=>toast('SMS preview only; no message sent.')}>Preview only — never send</Button>
-   </div>
-  </div>
- </div>;
-}
+function NotificationsTab(){return <ErpNotificationsWorkbench embedded/>;}
 export function OnlineSales(){
  const {orders}=useSyncExternalStore(subscribeOnline,getOnlineSnapshot);
  const [tab,setTab]=useState<View>('Orders'),[query,setQuery]=useState(''),[filter,setFilter]=useState('All channels');
