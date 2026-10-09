@@ -12,7 +12,7 @@ async function main(){
   await page.getByLabel('Enable SMS service_ready').check();
   await page.getByLabel('SMS language').click();
   await page.getByRole('listbox',{name:'SMS language options'}).getByRole('option',{name:'Bangla'}).click();
-  await page.getByTestId('erp-sms-preview').getByText('পাঞ্জাবি',{exact:false}).waitFor();
+  assert.match(await page.getByTestId('erp-sms-preview').innerText(),/পাঞ্জাবি/);
   await page.getByLabel('Notification trigger').click();
   await page.getByRole('listbox',{name:'Notification trigger options'}).getByRole('option',{name:'On event'}).click();
   await page.getByLabel('Filter notification group').click();
