@@ -1,8 +1,8 @@
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { ProductThumb } from '../ProductThumb';
-import { products } from '../../data/products';
+import { products as seedProducts } from '../../data/products';
 import { stockLots } from '../../data/productInventory';
 import { productOffers } from '../../data/productOffers';
 import { formatStock, stockStatus, unitsFor } from '../../utils/units';
@@ -10,8 +10,14 @@ import { taka } from '../../utils/currency';
 import type { Product } from '../../types/erp';
 import { activeOfferFor, effectivePriceForUnit, productStockBreakdown } from '../../utils/productFeatures';
 
+export type ProductPickerMode = 'sale' | 'purchase' | 'quotation' | 'online';
 type ProductComboboxProps = {
   onSelect: (product: Product) => void;
+  products?: readonly Product[];
+  mode?: ProductPickerMode;
+  onCreate?: (query: string) => void;
+  ariaLabel?: string;
+  disabled?: boolean;
 };
 
 type ListPosition = {
@@ -27,7 +33,7 @@ const GAP = 6;
 const DESIRED_WIDTH = 560;
 
 export const ProductCombobox = forwardRef<HTMLInputElement, ProductComboboxProps>(function ProductCombobox(
-{ onSelect },
+{ onSelect, products: suppliedProducts, mode = 'sale', onCreate, ariaLabel, disabled = false },
 ref)
 {
   const [query, setQuery] = useState('');
@@ -46,12 +52,12 @@ ref)
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = products.filter((p) => p.active);
+    const list = (suppliedProducts ?? seedProducts).filter((p) => p.active && (mode !== 'purchase' || p.kind !== 'Service'));
     if (!q) return list.slice(0, 8);
     return list.
-    filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').includes(q)).
+    filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.brand ?? '').toLowerCase().includes(q)).
     slice(0, 8);
-  }, [query]);
+  }, [query, suppliedProducts, mode]);
 
   const updatePosition = useCallback(() => {
     if (!open || !inputRef.current) return;
@@ -139,6 +145,7 @@ ref)
   }, [open, updatePosition]);
 
   const choose = (p: Product) => {
+    if (disabled) return;
     onSelect(p);
     setQuery('');
     setActive(0);
@@ -157,17 +164,19 @@ ref)
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (results[active]) choose(results[active]);
+      else if (onCreate && query.trim()) {setOpen(false); onCreate(query.trim());}
     } else if (e.key === 'Escape') {
       setOpen(false);
     }
   };
 
-  const listbox = typeof document !== 'undefined' && open && results.length > 0
+  const listbox = typeof document !== 'undefined' && open && !disabled
     ? createPortal(
         <ul
           ref={listRef}
           id="pos-product-list"
           role="listbox"
+          aria-label={mode === 'purchase' ? 'Purchase product suggestions' : (ariaLabel ? ariaLabel + ' options' : 'POS product suggestions')}
           className="fixed z-[110] overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-pop scrollbar-thin"
           style={{
             top: position?.top ?? 0,
@@ -179,10 +188,10 @@ ref)
           {results.map((p, i) => {
             const status = stockStatus(p);
             const activeOffer = activeOfferFor(p.id, productOffers);
-            const preferredUnit = p.stockViewUnit ?? p.altUnit?.unit ?? p.unit;
+            const preferredUnit = mode === 'purchase' ? p.unit : (p.stockViewUnit ?? p.altUnit?.unit ?? p.unit);
             const displayUnit = unitsFor(p).includes(preferredUnit) ? preferredUnit : p.unit;
-            const normalPrice = effectivePriceForUnit(p, undefined, displayUnit);
-            const effectivePrice = effectivePriceForUnit(p, activeOffer, displayUnit);
+            const normalPrice = mode === 'purchase' ? p.purchasePrice : effectivePriceForUnit(p, undefined, displayUnit);
+            const effectivePrice = mode === 'purchase' ? p.purchasePrice : effectivePriceForUnit(p, activeOffer, displayUnit);
             const breakdown = p.kind === 'Service' ? null : productStockBreakdown(p, stockLots);
             const sellableStatus = p.kind === 'Service'
               ? 'service'
@@ -197,6 +206,7 @@ ref)
               <li
                 key={p.id}
                 role="option"
+                id={'pos-product-option-' + p.id}
                 aria-selected={i === active}
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -213,7 +223,7 @@ ref)
                 </div>
                 <div className="text-right">
                   <p className="text-[13px] font-medium text-ink">
-                    {activeOffer && <span className="mr-1 text-[10px] font-normal text-ink-400 line-through">{taka(normalPrice)}</span>}
+                    {mode !== 'purchase' && activeOffer && <span className="mr-1 text-[10px] font-normal text-ink-400 line-through">{taka(normalPrice)}</span>}
                     {taka(effectivePrice, effectivePrice % 1 ? 2 : 0)}
                     <span className="font-normal text-ink-400">/{displayUnit}</span>
                   </p>
@@ -230,6 +240,8 @@ ref)
               </li>
             );
           })}
+          {results.length === 0 && <li className="px-3 py-3 text-xs text-ink-500">No matching products. {onCreate ? 'Use Create new product below.' : 'Try another search.'}</li>}
+          {onCreate && <li><button type="button" onMouseDown={event => event.preventDefault()} onClick={() => {setOpen(false);onCreate(query.trim());}} className="mt-1 flex w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm font-medium text-teal-700 hover:bg-teal-50"><Plus className="size-4"/>Create new product {query.trim() ? '· '+query.trim() : ''}</button></li>}
         </ul>,
         document.body
       )
@@ -241,10 +253,12 @@ ref)
       <input
         ref={setInputRef}
         role="combobox"
+        disabled={disabled}
         aria-expanded={open}
+        aria-activedescendant={open && results[active] ? 'pos-product-option-' + results[active].id : undefined}
         aria-controls="pos-product-list"
         aria-autocomplete="list"
-        aria-label="Add product"
+        aria-label={ariaLabel ?? 'Add product'}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -253,7 +267,7 @@ ref)
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        placeholder="Add product… name or বাংলা"
+        placeholder="Add product… name, SKU or বাংলা"
         className="h-10 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 pr-12 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
       <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500">
         F2
