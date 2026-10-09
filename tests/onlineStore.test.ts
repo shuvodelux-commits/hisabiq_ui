@@ -15,6 +15,11 @@ test('COD, delivery-charge paid, partial advance, fully prepaid are calculated s
   assert.deepEqual(validateOnlineOrder(draft),[]);
  }
 });
+test('fractional small-unit quantities round per line to paisa',()=>{
+ const draft={...make(0,'COD'),lines:[{id:'f',productId:'p5',name:'Fabric',quantity:0.333,unit:'Gira',price:1.23}]};
+ assert.equal(orderTotals(draft).items,0.41);
+ assert.equal(orderTotals(draft).cod,100.41);
+});
 test('reject underflow, overpayment, invalid phone and wrong payment mode without mutation',()=>{
  resetOnlinePreviewForTest();const before=getOnlineSnapshot();
  assert.ok(validateOnlineOrder(make(1200,'Partial advance')).length>0);
