@@ -26,6 +26,7 @@
     "test:import-products": "node scripts/product-import-browser.cjs",
     "test:import-parties": "node scripts/party-import-browser.cjs",
     "test:quotations": "node scripts/quotations-browser.cjs",
+    "test:compound-units": "node scripts/compound-quantity-browser.cjs",
     "test:online-sales": "node scripts/online-sales-browser.cjs",
     "test:fulfillment-sms": "node scripts/fulfillment-sms-browser.cjs"
   },
