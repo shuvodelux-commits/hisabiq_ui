@@ -7,11 +7,14 @@ import { financeTypeMeta } from '../utils/partyFinance.ts';
 import { validateOpening,activePartyOpening,isPartyOpening,makeOpeningSource } from '../utils/partyOpening.ts';
 import { customerSettlementAsOf, supplierSettlementAsOf, validateCustomerPayment, validateCustomerRefund } from '../utils/partySettlement.ts';
 import type { Party, PartyRole } from '../types/erp';
+import type {PartyImportPlan} from '../import/partyImport.ts';
+import type {ImportResult} from '../import/importTypes.ts';
 import type { PartyDraft, PartyPreviewState, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload, PartyOpeningPayload } from '../types/partyLedger';
 
 export type PartyPreviewCommand =
   | {type:'create-party'; party:PartyDraft; openings?:Omit<PartyOpeningPayload,'partyId'>[]}
   | {type:'import-parties'; parties:PartyDraft[]}
+  | {type:'import-party-batch'; plan:PartyImportPlan}
   | {type:'update-party'; id:string; patch:Partial<PartyDraft>; openings?:Omit<PartyOpeningPayload,'partyId'>[]}
   | {type:'deactivate-party'; id:string}
   | {type:'add-note'; partyId:string; text:string; relationship?:PartyRole}
@@ -25,6 +28,7 @@ export type PartyPreviewCommand =
   | {type:'reverse-source'; sourceId:string; reason:string};
 
 const listeners = new Set<()=>void>();
+const importedSessions=new Map<string,ImportResult>();
 let counter = 0;
 const fresh = () => normalizePartyFixture(seedParties, seedLedgerEntries);
 let state:PartyPreviewState = fresh();
@@ -34,7 +38,7 @@ export function subscribePartyPreview(listener:()=>void):()=>void {
   listeners.add(listener);
   return () => {listeners.delete(listener);};
 }
-export function resetPartyPreviewForTest():void { counter=0; state=fresh(); listeners.forEach(listener=>listener()); }
+export function resetPartyPreviewForTest():void { counter=0; importedSessions.clear(); state=fresh(); listeners.forEach(listener=>listener()); }
 
 function checkedText(value:string,field:string):string {
   const text=value.trim();
@@ -60,7 +64,106 @@ function addParty(input:PartyDraft, existing:Party[]):Party {
   };
 }
 
+/** A single audited validation-and-commit transaction in the in-memory UI preview. */
+export function commitPartyImportBatch(plan:PartyImportPlan):ImportResult {
+ const previous=importedSessions.get(plan.sessionId);
+ if(previous)return previous;
+ if(!plan.sessionId.trim())throw new Error('Import session ID is required.');
+ if(plan.baseRevision!==state.revision)throw new Error('Party preview changed. Recheck the imported rows before confirming.');
+ if(plan.issues.some(issue=>issue.severity==='error'))throw new Error('Resolve or skip invalid Party rows before import.');
+ if(!plan.changes.length)throw new Error('No valid Parties selected for import.');
+ const relationship=plan.target==='customer'?'Customer':'Supplier';
+ const parties=state.parties.map(p=>({...p,roles:[...p.roles]}));
+ const sources=[...state.sources];
+ const audit=[...state.audit];
+ const touched=new Set<string>();
+ const rows=new Set<string>();
+ let nextCounter=counter,created=0,roleAdded=0,openingSources=0;
+ const issuedIds=new Set(parties.map(p=>p.id));
+ const usedPhones=new Map<string,Set<string>>();
+ for(const p of state.parties){
+  const key=p.phone.replace(/[\\s()-]/g,'');
+  if(key)usedPhones.set(key,new Set([...(usedPhones.get(key)??new Set()),p.id]));
+ }
+ let sequence=Math.max(0,...sources.map(s=>s.sequence));
+ for(const change of plan.changes){
+  if(!Number.isSafeInteger(change.sourceRow)||change.sourceRow<1||!change.sourceSheet.trim())
+   throw new Error('Invalid source row metadata.');
+  const rowKey=change.sourceSheet+':'+change.sourceRow;
+  if(rows.has(rowKey))throw new Error('Duplicate import source row.');
+  rows.add(rowKey);
+  let party:Party;
+  let before:unknown;
+  let after:unknown;
+  let sourceId:string|undefined;
+  if(change.action==='create'){
+   const draft=change.draft;
+   if(draft.roles.length!==1||draft.roles[0]!==relationship)throw new Error('Party relationship does not match import target.');
+   const problems=validatePartyDraft(draft,parties);
+   if(problems.length)throw new Error(problems.join(' '));
+   if(draft.id)throw new Error('New Party IDs are assigned by the import store.');
+   const normalized=draft.phone.replace(/[\\s()-]/g,'');
+   if(normalized&&usedPhones.has(normalized)){
+    const matchIds=usedPhones.get(normalized)!;
+    if(matchIds.size!==1||!change.confirmedSeparateFrom||!matchIds.has(change.confirmedSeparateFrom))
+     throw new Error('Matching phone requires explicit Create separately confirmation.');
+   }else if(change.confirmedSeparateFrom)throw new Error('Previously confirmed phone match changed; review identity again.');
+   const id='party-import-'+plan.sessionId.replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,75)+'-'+change.sourceRow;
+   if(issuedIds.has(id))throw new Error('Duplicate imported Party ID.');
+   issuedIds.add(id);
+   party={id,name:draft.name.trim(),nameBn:draft.nameBn?.trim(),phone:draft.phone.trim(),
+    area:draft.area.trim(),roles:[relationship],avatarColor:'#0D7C74',balance:0,lastActivity:'Just now',status:'Active'};
+   parties.push(party);
+   if(normalized)usedPhones.set(normalized,new Set([...(usedPhones.get(normalized)??new Set()),id]));
+   created++;after=party;
+  }else{
+   if(change.role!==relationship)throw new Error('Import relationship does not match target.');
+   const index=parties.findIndex(p=>p.id===change.partyId);
+   if(index<0)throw new Error('Matched Party no longer exists.');
+   const original=parties[index];
+   if(original.status==='Inactive')throw new Error('Cannot add relationship to an inactive Party.');
+   if(original.roles.includes(relationship))throw new Error('Selected Party already has this relationship.');
+   before=original;
+   party={...original,roles:[...original.roles,relationship]};
+   parties[index]=party;
+   roleAdded++;after=party;
+  }
+  if(change.opening){
+   const opening={...change.opening,partyId:party.id};
+   if(opening.relationship!==relationship)throw new Error('Opening relationship does not match imported role.');
+   if(toPaisa(opening.amount,'Opening balance')<=0)throw new Error('Zero opening must not create a ledger source.');
+   if(activePartyOpening(sources,party.id,relationship))throw new Error('An active opening balance already exists for this relationship.');
+   validateOpening(opening,party,sources);
+   sourceId='party-opening:import-'+plan.sessionId.replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,75)+'-'+change.sourceRow;
+   if(sources.some(s=>s.id===sourceId))throw new Error('Duplicate opening source ID.');
+   const source=makeOpeningSource(opening,++sequence,sourceId);
+   sources.push({...source,importSessionId:plan.sessionId,importSourceSheet:change.sourceSheet,importSourceRow:change.sourceRow});
+   openingSources++;
+   after={party,opening:source};
+  }
+  touched.add(party.id);
+  audit.push({id:'audit-preview-'+(++nextCounter),partyId:party.id,sourceId,
+    action:change.action==='create'?'import-party-create':'import-party-add-role',
+    before,after,actor:'Preview user',at:new Date().toISOString(),
+    importSessionId:plan.sessionId,sourceSheet:change.sourceSheet,sourceRow:change.sourceRow,relationship});
+ }
+ for(const partyId of touched){
+  const party=parties.find(p=>p.id===partyId);
+  if(party?.roles.includes('Customer'))customerSettlementAsOf(sources,partyId,businessToday());
+  if(party?.roles.includes('Supplier'))supplierSettlementAsOf(sources,partyId,businessToday());
+ }
+ const result:ImportResult={sessionId:plan.sessionId,created,masterUpdated:0,roleAdded,openingSources,
+  openingLots:0,skipped:plan.skipped,rejected:0,errors:[]};
+ // Publish only after every check succeeds. A thrown validation leaves snapshot and audit unchanged.
+ state={parties,sources,audit,revision:state.revision+1};
+ counter=nextCounter;
+ importedSessions.set(plan.sessionId,result);
+ listeners.forEach(listener=>listener());
+ return result;
+}
+
 export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewState {
+ if(command.type==='import-party-batch'){commitPartyImportBatch(command.plan);return state;}
   let parties=state.parties;
   let sources=state.sources;
   let targetPartyId='';
