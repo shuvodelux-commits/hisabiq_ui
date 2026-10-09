@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import { AlertTriangle, Eye, GripVertical, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
+import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
 import { ProductThumb } from '../ProductThumb';
 import { SerialPickerDialog } from './SerialPickerDialog';
 import { StockShortageDialog } from './StockShortageDialog';
@@ -184,61 +185,15 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     </div>
                   </div>
                 </div>
-                {l.product.altUnit && l.unit === l.product.altUnit.unit ?
-                <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-input bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
-                    <input
-                      ref={(el) => {
-                        qtyRefs.current[l.key] = el;
-                      }}
-                      aria-label={`${l.product.altUnit.unit} quantity for ${l.product.name}`}
-                      value={l.qty}
-                      inputMode="decimal"
-                      onChange={(e) => onUpdate(l.key, { qty: e.target.value.replace(/[^\d.]/g, '') })}
-                      onKeyDown={(e) => {
-                        if (e.key !== 'Enter') return;
-                        e.preventDefault();
-                        secondaryQtyRefs.current[l.key]?.focus();
-                        secondaryQtyRefs.current[l.key]?.select();
-                      }}
-                      className="min-w-0 flex-1 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none" />
-                    <span className="flex items-center border-l border-border px-1.5 text-[10.5px] text-ink-500">
-                      {l.product.altUnit.unit}
-                    </span>
-                    <input
-                      ref={(el) => {
-                        secondaryQtyRefs.current[l.key] = el;
-                      }}
-                      aria-label={`${l.product.unit} quantity for ${l.product.name}`}
-                      value={l.secondaryQty}
-                      inputMode="decimal"
-                      placeholder="0"
-                      onChange={(e) => onUpdate(l.key, { secondaryQty: e.target.value.replace(/[^\d.]/g, '') })}
-                      onBlur={() => commitSecondary(l, false)}
-                      onKeyDown={(e) => {
-                        if (e.key !== 'Enter') return;
-                        e.preventDefault();
-                        commitSecondary(l, true);
-                      }}
-                      className="min-w-0 flex-1 border-l border-border bg-transparent px-2 text-right text-sm font-medium text-ink outline-none" />
-                    <span className="flex items-center border-l border-border px-1.5 text-[10.5px] text-ink-500">
-                      {l.product.unit}
-                    </span>
-                  </div> :
-                <div className="relative">
-                    <input
-                      ref={(el) => {
-                        qtyRefs.current[l.key] = el;
-                      }}
-                      aria-label={`Quantity for ${l.product.name}`}
-                      value={l.qty}
-                      inputMode="decimal"
-                      onChange={(e) => onUpdate(l.key, { qty: e.target.value.replace(/[^\d.]/g, '') })}
-                      onKeyDown={backToSearch}
-                      className={`${cellInput} border-border bg-ink-50/50 pr-12 font-medium`} />
-                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10.5px] text-ink-500">{l.unit}</span>
-                  </div>
-                }
-                
+                <CompoundQuantityInput product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
+                  primaryRef={el=>{qtyRefs.current[l.key]=el;}} secondaryRef={el=>{secondaryQtyRefs.current[l.key]=el;}}
+                  primaryLabel={factor>1?`${l.product.altUnit!.unit} quantity for ${l.product.name}`:`Quantity for ${l.product.name}`}
+                  secondaryLabel={`${l.product.unit} quantity for ${l.product.name}`}
+                  onPrimaryChange={value=>onUpdate(l.key,{qty:value})}
+                  onSecondaryChange={value=>onUpdate(l.key,{secondaryQty:value})}
+                  onPrimaryEnter={()=>{if(factor>1){secondaryQtyRefs.current[l.key]?.focus();secondaryQtyRefs.current[l.key]?.select();}else searchRef.current?.focus();}}
+                  onSecondaryBlur={()=>commitSecondary(l,false)}
+                  onSecondaryEnter={()=>commitSecondary(l,true)}/>
                 {units.length > 1 ?
                 <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label="Unit">
                     {units.map((u) =>
