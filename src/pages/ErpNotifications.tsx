@@ -114,7 +114,7 @@ export function ErpNotificationsWorkbench({embedded=false}:{embedded?:boolean}){
     {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
     <div className="space-y-2 rounded-lg bg-ink-50 p-3">
      <p className="text-xs font-medium text-ink">Message preview — উদাহরণ</p>
-     <p className="text-sm text-ink" data-testid="erp-sms-preview">{renderNotificationPreview(selected,example)}</p>
+     <p className="text-sm text-ink" data-testid="erp-sms-preview">{renderNotificationPreview(selected,{...example,item:rule.language==='Bangla'?'পাঞ্জাবি':'Panjabi'})}</p>
      <p className="text-[11px] text-ink-500">Example item: Panjabi (পাঞ্জাবি). Replace placeholders with actual record fields when backend events exist.</p>
     </div>
     <div className="grid gap-2 sm:grid-cols-2">
