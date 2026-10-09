@@ -25,6 +25,16 @@ export const defaultSmsTemplates:Record<ErpNotificationEvent,string>={
  parcel_failed:'{business}: Delivery for order {number} needs attention. Please contact us.',
  cod_settled:'{business}: Courier settlement received for {number}.'
 };
+export const banglaSmsTemplates:Record<ErpNotificationEvent,string>={
+ order_confirmed:'{business}: আপনার অর্ডার {number} নিশ্চিত হয়েছে। মোট {total} টাকা।',
+ sale_completed:'{business}: বিক্রয় রসিদ {number}, মোট {total} টাকা, বকেয়া {due} টাকা।',
+ sale_payment_received:'{business}: {number} এর জন্য {paid} টাকা পেয়েছি। বকেয়া {due} টাকা।',
+ due_reminder:'{business}: {number} এর বকেয়া {due} টাকা। পরিশোধ করে থাকলে জানান।',
+ courier_handover:'{business}: {number} কুরিয়ারে দেওয়া হয়েছে। {courier}, ট্র্যাকিং: {tracking}।',
+ parcel_delivered:'{business}: আপনার অর্ডার {number} ডেলিভারি হয়েছে। ধন্যবাদ।',
+ parcel_failed:'{business}: অর্ডার {number} ডেলিভারিতে সমস্যা হয়েছে। আমাদের সাথে যোগাযোগ করুন।',
+ cod_settled:'{business}: {number} এর COD কুরিয়ার সেটেলমেন্ট গ্রহণ করা হয়েছে।'
+};
 const makeDefaults=():NotificationSnapshot=>({revision:0,rules:Object.fromEntries(notificationEvents.map(e=>[e.id,{
  enabled:false,language:'English',template:defaultSmsTemplates[e.id],requireConsent:true
 }])) as Record<ErpNotificationEvent,NotificationRule>});
@@ -35,7 +45,11 @@ export const subscribeNotificationRules=(f:()=>void)=>{listeners.add(f);return()
 export function resetNotificationRulesForTest(){state=makeDefaults();listeners.forEach(f=>f());}
 export function updateNotificationRule(event:ErpNotificationEvent,patch:Partial<NotificationRule>):NotificationRule{
  if(!notificationEvents.some(e=>e.id===event))throw new Error('Unknown ERP notification event.');
- const rule={...state.rules[event],...patch};
+ const old=state.rules[event];
+ const nextTemplate=patch.language&&patch.language!==old.language&&patch.template===undefined&&
+  (old.template===defaultSmsTemplates[event]||old.template===banglaSmsTemplates[event])
+  ?(patch.language==='Bangla'?banglaSmsTemplates[event]:defaultSmsTemplates[event]):old.template;
+ const rule={...old,...patch,template:patch.template??nextTemplate};
  if(!['English','Bangla'].includes(rule.language))throw new Error('Invalid SMS language.');
  if(!rule.template.trim()||rule.template.length>320||/\{[^{}]+\}/.test(rule.template.replace(/\{(?:business|number|total|paid|due|courier|tracking)\}/g,'')))
   throw new Error('Template must be 1–320 characters and contain only supported placeholders.');
