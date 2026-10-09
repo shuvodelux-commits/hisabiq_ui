@@ -26,10 +26,10 @@ async function main(){
   assert.match(excelDownload.suggestedFilename(),/products.*\.xlsx$/);
   await dlg.getByLabel('Select Excel or CSV file').setInputFiles({
    name:'products.csv',mimeType:'text/csv',
-   buffer:Buffer.from('Product Name,SKU,Selling Price,Base Unit,Opening Stock,Opening Stock Unit\n' +
-    'LED Bulb 12W,000120,165,Pcs,2,Box\n' +
-    'পাইপ,0009,420,Pcs,0,Pcs\n' +
-    ',0030,70,Pcs,0,Pcs\n','utf8')
+   buffer:Buffer.from('Product Name,SKU,Selling Price,Base Unit,Opening Stock,Opening Stock Unit,Opening Date\n' +
+    'LED Bulb 12W,000120,165,Pcs,2,Pcs,2026-10-01\n' +
+    'পাইপ,0009,420,Pcs,0,Pcs,\n' +
+    ',0030,70,Pcs,0,Pcs,\n','utf8')
   });
   await dlg.getByText('3 data rows',{exact:false}).waitFor({state:'visible'});
   await dlg.getByRole('button',{name:'Next: Map columns'}).click();
