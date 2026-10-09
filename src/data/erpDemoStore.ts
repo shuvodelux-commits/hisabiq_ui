@@ -28,8 +28,8 @@ const initialProductUnits: ProductUnitOption[] = [
 ];
 const seedBrands = ['Generic / No brand', 'RFL', 'Vision', 'Shah Cement'];
 const isSame = (left: string, right: string) => left.toLocaleLowerCase() === right.toLocaleLowerCase();
-export const availableProductCategories = () => [...productCategories, ...createdProductCategories];
-export const availableProductBrands = () => [...seedBrands, ...createdProductBrands];
+export const availableProductCategories = () => [...new Set([...productCategories, ...createdProductCategories, ...getProductImportPreviewSnapshot().products.map(p=>p.category)])];
+export const availableProductBrands = () => [...new Set([...seedBrands, ...createdProductBrands, ...getProductImportPreviewSnapshot().products.map(p=>p.brand).filter((brand):brand is string=>Boolean(brand))])];
 export const availableProductUnits = (): ProductUnitOption[] => {
   const units = [...initialProductUnits, ...createdProductUnits];
   for (const product of getProductImportPreviewSnapshot().products) {
