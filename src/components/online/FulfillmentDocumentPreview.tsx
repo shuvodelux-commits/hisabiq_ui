@@ -1,8 +1,7 @@
 import React from 'react';
 import {Printer} from 'lucide-react';
-import {Button} from '../components/Button';
-import {taka} from '../utils/currency';
-import {orderTotals,type OnlineOrder} from '../onlineSales/onlineStore';
+import {taka} from '../../utils/currency';
+import {orderTotals,type OnlineOrder} from '../../onlineSales/onlineStore';
 
 export type FulfillmentDocument='Order confirmation'|'Packing list'|'Delivery challan';
 export const documentTitles:FulfillmentDocument[]=['Order confirmation','Packing list','Delivery challan'];
