@@ -82,7 +82,7 @@ export function commitPartyImportBatch(plan:PartyImportPlan):ImportResult {
  const issuedIds=new Set(parties.map(p=>p.id));
  const usedPhones=new Map<string,Set<string>>();
  for(const p of state.parties){
-  const key=p.phone.replace(/[\\s()-]/g,'');
+  const key=p.phone.replace(/[\s()-]/g,'');
   if(key)usedPhones.set(key,new Set([...(usedPhones.get(key)??new Set()),p.id]));
  }
  let sequence=Math.max(0,...sources.map(s=>s.sequence));
@@ -102,7 +102,7 @@ export function commitPartyImportBatch(plan:PartyImportPlan):ImportResult {
    const problems=validatePartyDraft(draft,parties);
    if(problems.length)throw new Error(problems.join(' '));
    if(draft.id)throw new Error('New Party IDs are assigned by the import store.');
-   const normalized=draft.phone.replace(/[\\s()-]/g,'');
+   const normalized=draft.phone.replace(/[\s()-]/g,'');
    if(normalized&&usedPhones.has(normalized)){
     const matchIds=usedPhones.get(normalized)!;
     if(matchIds.size!==1||!change.confirmedSeparateFrom||!matchIds.has(change.confirmedSeparateFrom))
