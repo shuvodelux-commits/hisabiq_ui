@@ -5,6 +5,7 @@ import {getPartyPreviewSnapshot,resetPartyPreviewForTest,commitPartyImportBatch,
 import {planPartyImport,resolvePartyImportDecisions} from '../src/import/partyImport.ts';
 import type {StagedImportRow} from '../src/import/importTypes.ts';
 import {activePartyOpening} from '../src/utils/partyOpening.ts';
+import {customerSettlementAsOf,supplierSettlementAsOf} from '../src/utils/partySettlement.ts';
 const row=(sourceRow:number,phone:string,amount=0,direction='Dr'):StagedImportRow=>({
  sourceSheet:'CSV',sourceRow,original:{},mapped:{name:'Imported '+sourceRow,phone,
  openingAmount:amount,openingDirection:amount?direction:'',openingDate:amount?'2026-10-01':''},
@@ -75,4 +76,20 @@ test('stale snapshot, preexisting opening, and unconfirmed phone collision are b
  assert.equal(decided[0].decision,'skip');
  assert.equal(decided[0].match?.hasRole,true);
  assert.equal(getPartyPreviewSnapshot(),before);
+});
+
+test('unverified Customer credit cannot fund a refund; Supplier Dr remains a separate advance',()=>{
+ resetPartyPreviewForTest();
+ commitPartyImportBatch(plan([row(2,'01766000401',300,'Cr')],'customer','unverified-customer-credit'));
+ commitPartyImportBatch(plan([row(2,'01766000402',450,'Dr')],'supplier','unverified-supplier-advance'));
+ const snap=getPartyPreviewSnapshot();
+ const customer=snap.parties.find(p=>p.phone==='01766000401')!;
+ const supplier=snap.parties.find(p=>p.phone==='01766000402')!;
+ const customerState=customerSettlementAsOf(snap.sources,customer.id,'2026-10-09');
+ const supplierState=supplierSettlementAsOf(snap.sources,supplier.id,'2026-10-09');
+ assert.equal(customerState.unverifiedCredit,300);
+ assert.equal(customerState.refundableCredit,0);
+ assert.equal(supplierState.unverifiedCredit,450);
+ assert.equal(supplierState.refundableCredit,0);
+ assert.equal(activePartyOpening(snap.sources,supplier.id,'Supplier')?.debit,450);
 });
