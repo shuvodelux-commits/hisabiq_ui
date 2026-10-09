@@ -24,7 +24,7 @@ async function main(){
   await dlg.waitFor({state:'hidden'});
   await page.getByText('Quotation Browser Customer',{exact:true}).first().waitFor();
   const row=page.getByRole('row').filter({hasText:'Quotation Browser Customer'});
-  await row.getByRole('button',{name:/QT-000043/}).click();
+  await row.getByRole('button',{name:'QT-000043',exact:true}).click();
   const details=page.getByRole('dialog',{name:'Quotation QT-000043'});
   await details.getByText('LED Bulb 12W',{exact:true}).waitFor();
   await details.getByRole('button',{name:'Mark sent'}).click();
