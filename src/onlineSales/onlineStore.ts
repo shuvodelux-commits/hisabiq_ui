@@ -27,10 +27,9 @@ const validMoney=(n:number,label:string)=>{if(!Number.isFinite(n)||n<0||!Number.
 const bdt=(paisa:number)=>Number((paisa/100).toFixed(2));
 export const lineTotal=(line:OnlineOrderLine)=>bdt(validMoney(line.price,'Unit price')*line.quantity);
 export const orderTotals=(order:Pick<OnlineOrderDraft,'lines'|'discount'|'deliveryCharge'|'prepaid'>)=>{
- const itemPaisa=order.lines.reduce((sum,l)=>sum+validMoney(l.price,'Unit price')*l.quantity,0);
- const item=Math.round(itemPaisa);
+ const item=order.lines.reduce((sum,l)=>sum+Math.round(validMoney(l.price,'Unit price')*l.quantity),0);
  const discount=validMoney(order.discount,'Discount'),delivery=validMoney(order.deliveryCharge,'Delivery charge'),advance=validMoney(order.prepaid,'Advance received');
- if(!Number.isSafeInteger(item)||Math.abs(item-itemPaisa)>1e-5)throw new Error('Line amount must round to a valid paisa amount.');
+ if(!Number.isSafeInteger(item))throw new Error('Item total exceeds supported amount.');
  if(discount>item)throw new Error('Discount cannot exceed item subtotal.');
  const grand=item-discount+delivery;
  if(advance>grand)throw new Error('Advance cannot exceed order total.');
