@@ -1,4 +1,5 @@
 import type {Product} from '../types/erp.ts';
+import {getQuoteSnapshot,type Quotation} from '../quotations/quotePreviewStore.ts';
 
 /** Isolated UI preview; no actual stock, cash, courier or Party ledger posting. */
 export type SalesChannel='Facebook'|'WhatsApp'|'Instagram'|'YouTube'|'TikTok'|'Website'|'Other';
@@ -7,7 +8,7 @@ export type OrderStage='Draft'|'Confirmed'|'Packed'|'Handed over'|'In transit'|'
 export type CourierName='Steadfast'|'Pathao'|'RedX'|'Sundarban'|'Other'|'Own delivery';
 export type OnlineOrderLine={id:string;productId:string;name:string;quantity:number;unit:string;price:number};
 export type OnlineOrderDraft={
- channel:SalesChannel;sourceReference:string;partyId?:string;customerName:string;
+ channel:SalesChannel;sourceReference:string;partyId?:string;sourceQuoteId?:string;customerName:string;
  phone:string;address:string;lines:OnlineOrderLine[];discount:number;deliveryCharge:number;
  prepaid:number;paymentMode:PaymentMode;note:string;courier?:CourierName;tracking?:string;
 };
@@ -87,7 +88,50 @@ export function resetOnlinePreviewForTest(){state={orders:seed,leads:[],revision
 function replaceOrder(old:OnlineOrder,newOrder:OnlineOrder){state={...state,revision:state.revision+1,orders:state.orders.map(o=>o.id===old.id?newOrder:o)};listeners.forEach(f=>f());return newOrder;}
 function publishOrder(o:OnlineOrder){state={...state,revision:state.revision+1,orders:[o,...state.orders]};listeners.forEach(f=>f());return o;}
 function orderById(id:string){const found=state.orders.find(o=>o.id===id);if(!found)throw new Error('Online order not found.');return found;}
+/** A quote is commercial context; customer delivery details and received advance require review. */
+export function draftFromAcceptedQuote(quote:Quotation):OnlineOrderDraft{
+ if(quote.status!=='Accepted')throw new Error('Only accepted quotations can be converted to online orders.');
+ return {channel:'Other',sourceReference:'Quotation '+quote.number,sourceQuoteId:quote.id,
+  partyId:quote.partyId,customerName:quote.customerName,phone:quote.customerPhone??'',
+  address:'',note:quote.note,discount:quote.discount,deliveryCharge:0,prepaid:0,paymentMode:'COD',
+  lines:quote.lines.map((line,i)=>({id:'quote-line-'+i,productId:line.productId,name:line.name,
+    quantity:line.quantity,unit:line.unit,price:line.price}))};
+}
+function requireQuoteSnapshot(draft:OnlineOrderDraft){
+ if(!draft.sourceQuoteId)return;
+ const quote=getQuoteSnapshot().quotes.find(q=>q.id===draft.sourceQuoteId);
+ if(!quote||quote.status!=='Accepted')throw new Error('Linked quotation must still be accepted.');
+ const source=draftFromAcceptedQuote(quote);
+ if(JSON.stringify(source.lines)!==JSON.stringify(draft.lines)||source.discount!==draft.discount)
+  throw new Error('Linked quotation prices, units and discount are locked. Create an independent order to renegotiate.');
+}
+export function existingOrderForQuote(quoteId:string):OnlineOrder|undefined{
+ return state.orders.find(order=>order.sourceQuoteId===quoteId);
+}
+/** Prepares a handoff only; no invoice ID, stock, ledger or payment posting. */
+export function preparePosHandoff(orderId:string,products:readonly Product[]){
+ const order=orderById(orderId);
+ if(!['Confirmed','Packed'].includes(order.stage))throw new Error('Confirm the online order before opening POS. Handed-over orders need an explicit correction workflow.');
+ const lines=order.lines.map((line,index)=>{
+  const product=products.find(p=>p.id===line.productId&&p.active);
+  if(!product)throw new Error('Product unavailable in POS: '+line.name);
+  if(line.unit!==product.unit&&line.unit!==product.altUnit?.unit)
+   throw new Error('Product unit no longer matches POS: '+line.name);
+  if(!Number.isFinite(line.quantity)||line.quantity<=0||!Number.isSafeInteger(line.quantity*1000))
+   throw new Error('Unsupported order quantity for POS.');
+  return {key:'online-'+order.id+'-'+index,productId:product.id,qty:String(line.quantity),
+   secondaryQty:'',unit:line.unit,price:String(line.price)};
+ });
+ return {orderId:order.id,number:order.number,customerName:order.customerName,phone:order.phone,
+  address:order.address,partyId:order.partyId,lines,discount:order.discount,
+  advancePreview:order.prepaid,deliveryCharge:order.deliveryCharge};
+}
 export function createOnlineOrder(input:OnlineOrderDraft):OnlineOrder{
+ if(input.sourceQuoteId){
+  const previous=existingOrderForQuote(input.sourceQuoteId);
+  if(previous)return previous; // idempotent, no new row or implicit mutation
+ }
+ requireQuoteSnapshot(input);
  const errors=validateOnlineOrder(input);if(errors.length)throw new Error(errors.join(' '));
  const number='ON-'+String(seq++).padStart(6,'0');
  const created:OnlineOrder={...input,lines:input.lines.map(l=>({...l})),id:'online-'+number,number,stage:'Draft',
@@ -97,6 +141,8 @@ export function createOnlineOrder(input:OnlineOrderDraft):OnlineOrder{
 export function reviseOnlineDraft(id:string,input:OnlineOrderDraft){
  const original=orderById(id);
  if(original.stage!=='Draft')throw new Error('Confirmed online orders cannot be silently edited; use a correction workflow.');
+ requireQuoteSnapshot(input);
+ if(original.sourceQuoteId!==input.sourceQuoteId)throw new Error('Cannot change linked quotation identity.');
  const errors=validateOnlineOrder(input);if(errors.length)throw new Error(errors.join(' '));
  return replaceOrder(original,{...original,...input,lines:input.lines.map(l=>({...l})),updatedAt:now(),
  timeline:[...original.timeline,stamp('Draft revised')]});
