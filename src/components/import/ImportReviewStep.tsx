@@ -7,6 +7,15 @@ import {Button} from '../Button';
 import {AppSelect} from '../AppSelect';
 import {toBasePrice,toBaseQuantity} from '../../utils/productEntry.ts';
 
+function partyOpeningPreview(row:StagedImportRow,target:'customer'|'supplier'):string|null {
+ const amount=Number(row.mapped.openingAmount||0);
+ const direction=String(row.mapped.openingDirection||'').trim().toUpperCase();
+ if(!Number.isFinite(amount)||amount<=0)return null;
+ const explanation=target==='customer'
+  ?(direction==='DR'?'Customer owes us':'We owe customer')
+  :(direction==='CR'?'We owe supplier':'Supplier advance');
+ return 'Opening: '+direction+' '+amount.toLocaleString('en-BD')+' · '+explanation+' · legacy-unverified, no money moved';
+}
 function productConversion(row:StagedImportRow):string|null {
  const m=row.mapped,base=String(m.baseUnit??'').trim(),large=String(m.largeUnit??'').trim();
  const factor=large?Number(m.conversionFactor):1;
@@ -80,7 +89,11 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
        {Object.entries(row.mapped).filter(([k])=>k!=='name').slice(0,5).map(([k,v])=>k+': '+String(v)).join(' · ')}
       </p>
       {target==='product'&&productConversion(row)&&<p className="mt-1 text-[11px] font-medium text-teal-700 dark:text-teal-400">{productConversion(row)}</p>}
-      {row.match&&<p className="mt-1 text-warning">Existing SKU match: {row.match.label} · select Update master data to change permitted fields without stock changes.</p>}
+      {target!=='product'&&partyOpeningPreview(row,target)&&<p className="mt-1 text-[11px] font-medium text-teal-700 dark:text-teal-400">{partyOpeningPreview(row,target)}</p>}
+      {row.match&&<p className="mt-1 text-warning">
+       {target==='product'?'Existing SKU match: ':'Potential Party match: '}{row.match.label}
+       {target==='product'?' · Update master data only; stock is unchanged.':' · Matching by phone does not merge automatically. Choose a deliberate action.'}
+      </p>}
       {row.issues.map((issue,i)=><p key={i} className="mt-1 text-danger" role="alert">{issue.field?issue.field+': ':''}{issue.message}</p>)}
      </div>
      {status(row)==='errors'?<span className="inline-flex items-center gap-1 text-danger"><AlertTriangle className="size-3.5"/> Error</span>
@@ -106,6 +119,14 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
         options={row.match
          ?[{value:'skip',label:'Skip duplicate'},{value:'update-master',label:'Update master only'}]
          :[{value:'create',label:'Create product'},{value:'skip',label:'Skip row'}]}
+        onChange={value=>onRowsChange(rows.map(item=>item===row?{...item,decision:value as StagedImportRow['decision']}:item))}/>
+      </div>:row.match?<div className="min-w-[185px]">
+       <AppSelect label={'Party identity action for row '+row.sourceRow} compact value={row.decision}
+        options={[
+         {value:'skip',label:'Skip matched Party'},
+         ...(!row.match.hasRole?[{value:'add-role',label:'Add missing relationship'}]:[]),
+         ...(row.match.kind==='suggested'?[{value:'create',label:'Create separately (distinct person)'}]:[])
+        ]}
         onChange={value=>onRowsChange(rows.map(item=>item===row?{...item,decision:value as StagedImportRow['decision']}:item))}/>
       </div>:<Button size="sm" type="button" variant="outline" onClick={()=>skip(row)}>
        {row.decision==='skip'?'Include row':'Skip row'}
