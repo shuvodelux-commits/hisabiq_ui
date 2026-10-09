@@ -53,7 +53,7 @@ export function resolvePartyImportDecisions(
    issues.push(err(row.sourceRow,'identity','Phone matches multiple Parties. Enter the exact Party ID or correct the phone.'));
    decision='reject';
   }else if(candidate){
-   match={kind:strong?'strong':'suggested',existingId:candidate.id,label:candidate.name};
+   match={kind:strong?'strong':'suggested',existingId:candidate.id,label:candidate.name,hasRole:candidate.roles.includes(role)};
    const changedMatch=row.match?.existingId!==candidate.id;
    if(changedMatch||(row.decision!=='add-role'&&row.decision!=='create'&&row.decision!=='skip'))decision='skip';
    if(candidate.roles.includes(role)&&decision==='add-role')decision='skip';
