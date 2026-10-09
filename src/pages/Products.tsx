@@ -13,8 +13,9 @@ import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockL
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
-import { availableProducts, availableProductCategories, availableStockLots, createPreviewProduct } from '../data/erpDemoStore';
-import { stockMovements as seedMovements } from '../data/productInventory';
+import { availableProducts, availableProductCategories, availableStockLots, availableStockMovements } from '../data/erpDemoStore';
+import {planProductImport,resolveProductDecisions} from '../import/productImport.ts';
+import {commitProductImportPreview,getProductImportPreviewSnapshot,upsertProductPreview} from '../data/productImportPreviewStore.ts';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
 import type { Product, ProductOffer, StockLot, StockMovement } from '../types/erp';
@@ -187,7 +188,7 @@ export function Products() {
   const [lotProduct, setLotProduct] = useState<Product | null>(null);
   const [offerProduct, setOfferProduct] = useState<Product | null>(null);
   const [lots, setLots] = useState<StockLot[]>(availableStockLots);
-  const [movements, setMovements] = useState<StockMovement[]>(seedMovements);
+  const [movements, setMovements] = useState<StockMovement[]>(availableStockMovements);
   const [offers, setOffers] = useState<ProductOffer[]>(seedOffers);
   const [inventoryProductFilter, setInventoryProductFilter] = useState('');
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
@@ -594,7 +595,33 @@ export function Products() {
         </div>
       )}
 
-      <ImportWizard target="product" open={importOpen} onClose={()=>setImportOpen(false)}/>
+      <ImportWizard target="product" open={importOpen} onClose={()=>setImportOpen(false)}
+        prepareRows={(rows)=>{
+          const cleaned=rows.map(row=>({...row,issues:row.issues.filter(issue=>issue.field!=='product')}));
+          const resolved=resolveProductDecisions(cleaned,availableProducts());
+          const validation=planProductImport(resolved,availableProducts(),availableStockLots(),{
+            sessionId:'product-review',today:new Date(Date.now()+21600000).toISOString().slice(0,10),
+            baseRevision:getProductImportPreviewSnapshot().revision
+          });
+          return resolved.map(row=>({...row,issues:[...row.issues,...validation.issues.filter(issue=>
+            issue.sourceRow===row.sourceRow&&issue.field==='product')]}));
+        }}
+        onApply={async(rows,sessionId)=>{
+          const snapshot=getProductImportPreviewSnapshot();
+          const plan=planProductImport(rows,availableProducts(),availableStockLots(),{
+            sessionId,today:new Date(Date.now()+21600000).toISOString().slice(0,10),baseRevision:snapshot.revision
+          });
+          if(plan.issues.some(issue=>issue.severity==='error')){
+            const problems=plan.issues.filter(issue=>issue.severity==='error');
+            throw new Error(problems.slice(0,3).map(issue=>'Row '+issue.sourceRow+': '+issue.message).join(' • ')+
+              (problems.length>3?' ('+problems.length+' errors total)':''));
+          }
+          const result=commitProductImportPreview(plan);
+          setList(availableProducts());
+          setLots(availableStockLots());
+          setMovements(availableStockMovements());
+          return result;
+        }}/>
       <AddProductDialog
         open={dialogOpen}
         onOpenChange={(open) => {
@@ -605,11 +632,12 @@ export function Products() {
         existingSerials={knownSerials}
         onSave={(product, opening?: ProductOpeningMeta) => {
           if (editingProduct) {
+            const stockAtSource=getProductImportPreviewSnapshot().products.find(item=>item.id===product.id)?.stock??product.stock;
+            upsertProductPreview({...product,stock:stockAtSource});
             setList((items) => items.map((item) => item.id === product.id ? product : item));
             setDetailsProduct((current) => current?.id === product.id ? product : current);
             toast.success(`${product.name} updated`);
           } else {
-            createPreviewProduct(product);
             setList((items) => [product, ...items]);
             if (product.kind !== 'Service' && product.stock > 0) {
               const today = new Date().toISOString().slice(0, 10);
@@ -637,8 +665,11 @@ export function Products() {
                 reference: 'Opening Stock',
                 note: opening?.expiryDate ? `Opening lot · expiry ${opening.expiryDate}` : 'Opening balance'
               };
+              upsertProductPreview(product,lot,movement);
               setLots((current) => [lot, ...current]);
               setMovements((current) => [movement, ...current]);
+            } else {
+              upsertProductPreview(product);
             }
             toast.success(`${product.name} added`, { description: product.kind === 'Service' ? 'Service product' : product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
           }

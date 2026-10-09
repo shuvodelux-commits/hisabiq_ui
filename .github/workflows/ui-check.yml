@@ -40,6 +40,9 @@ jobs:
       - name: Check shared Excel CSV import wizard
         run: npm run test:import-wizard
 
+      - name: Check Product import and opening stock
+        run: npm run test:import-products
+
       - name: Check POS drag reorder and receipt order
         run: npm run test:pos-reorder
 

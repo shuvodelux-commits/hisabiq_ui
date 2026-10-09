@@ -4,7 +4,22 @@ import type {ImportTarget,StagedImportRow} from '../../import/importTypes.ts';
 import {validateMappedRow} from '../../import/columnMapping.ts';
 import {Input} from '../Input';
 import {Button} from '../Button';
+import {AppSelect} from '../AppSelect';
+import {toBasePrice,toBaseQuantity} from '../../utils/productEntry.ts';
 
+function productConversion(row:StagedImportRow):string|null {
+ const m=row.mapped,base=String(m.baseUnit??'').trim(),large=String(m.largeUnit??'').trim();
+ const factor=large?Number(m.conversionFactor):1;
+ if(!base||!Number.isFinite(factor)||factor<=0)return null;
+ const opening=Number(m.openingStock||0),cost=Number(m.purchasePrice||0);
+ const openingUnit=String(m.openingStockUnit||base),costUnit=String(m.purchasePriceUnit||base);
+ if(![base,large].includes(openingUnit)||![base,large].includes(costUnit))return null;
+ if(!Number.isFinite(opening)||!Number.isFinite(cost)||opening<0||cost<0)return null;
+ const parts=[];
+ if(opening>0)parts.push('Opening: '+opening+' '+openingUnit+' → '+toBaseQuantity(opening,openingUnit,base,large,factor)+' '+base);
+ if(cost>0)parts.push('Purchase: '+cost+'/'+costUnit+' → '+toBasePrice(cost,costUnit,base,large,factor).toFixed(2)+'/'+base);
+ return parts.join(' · ')||null;
+}
 type Filter='all'|'ready'|'errors'|'skipped';
 const status=(row:StagedImportRow):Exclude<Filter,'all'>=>
  row.decision==='skip'?'skipped':row.issues.some(i=>i.severity==='error')?'errors':'ready';
@@ -43,7 +58,7 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
    <div><strong className="text-base text-danger">{counts.errors}</strong><p className="text-ink-500">Errors</p></div>
    <div><strong className="text-base text-ink-500">{counts.skipped}</strong><p className="text-ink-500">Skipped</p></div>
   </div>
-  <p className="text-xs text-ink-500">Edit mapped values here before import. Product, Party and opening-balance checks activate with their domain import adapters.</p>
+  <p className="text-xs text-ink-500">Review source values, converted amounts and duplicate decisions before confirming. No server records are posted.</p>
   <div className="flex flex-wrap gap-1.5" aria-label="Review status filters">
    {([['all','All ('+rows.length+')'],['ready','Ready ('+counts.ready+')'],
      ['errors','Errors ('+counts.errors+')'],['skipped','Skipped ('+counts.skipped+')']] as const).map(([value,label])=>
@@ -64,6 +79,8 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
       <p className="break-words text-ink-500">
        {Object.entries(row.mapped).filter(([k])=>k!=='name').slice(0,5).map(([k,v])=>k+': '+String(v)).join(' · ')}
       </p>
+      {target==='product'&&productConversion(row)&&<p className="mt-1 text-[11px] font-medium text-teal-700 dark:text-teal-400">{productConversion(row)}</p>}
+      {row.match&&<p className="mt-1 text-warning">Existing SKU match: {row.match.label} · select Update master data to change permitted fields without stock changes.</p>}
       {row.issues.map((issue,i)=><p key={i} className="mt-1 text-danger" role="alert">{issue.field?issue.field+': ':''}{issue.message}</p>)}
      </div>
      {status(row)==='errors'?<span className="inline-flex items-center gap-1 text-danger"><AlertTriangle className="size-3.5"/> Error</span>
@@ -84,9 +101,15 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
       </div>
      </div>:
      <div className="flex items-center justify-end gap-2">
-      <Button size="sm" type="button" variant="outline" onClick={()=>skip(row)}>
+      {target==='product'?<div className="min-w-[160px]">
+       <AppSelect label={'Import action for row '+row.sourceRow} compact value={row.decision}
+        options={row.match
+         ?[{value:'skip',label:'Skip duplicate'},{value:'update-master',label:'Update master only'}]
+         :[{value:'create',label:'Create product'},{value:'skip',label:'Skip row'}]}
+        onChange={value=>onRowsChange(rows.map(item=>item===row?{...item,decision:value as StagedImportRow['decision']}:item))}/>
+      </div>:<Button size="sm" type="button" variant="outline" onClick={()=>skip(row)}>
        {row.decision==='skip'?'Include row':'Skip row'}
-      </Button>
+      </Button>}
       <Button size="sm" type="button" variant="outline" onClick={()=>begin(row)}
        aria-label={'Edit mapped row '+row.sourceRow}><Pencil className="size-3"/> Edit</Button>
      </div>}
