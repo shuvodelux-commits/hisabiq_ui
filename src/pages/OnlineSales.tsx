@@ -1,5 +1,5 @@
-import React,{useMemo,useState,useSyncExternalStore} from 'react';
-import {Link} from 'react-router-dom';
+import React,{useEffect,useMemo,useState,useSyncExternalStore} from 'react';
+import {Link,useNavigate,useSearchParams} from 'react-router-dom';
 import {toast} from 'sonner';
 import {ErpNotificationsWorkbench} from './ErpNotifications';
 import {Bell,Box,Check,ChevronRight,ClipboardList,Copy,FileText,MessageSquare,PackageCheck,Plus,Search,Send,Truck,Users,Wallet} from 'lucide-react';
@@ -11,7 +11,10 @@ import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFo
 import {StatusBadge} from '../components/StatusBadge';
 import {availableProducts,availableParties} from '../data/erpDemoStore';
 import {taka} from '../utils/currency';
-import {orderTotals,createOnlineOrder,reviseOnlineDraft,updateOrderStage,setOrderCourier,recordCourierCod,recordCourierPayout,courierClearing,
+import {getQuoteSnapshot} from '../quotations/quotePreviewStore';
+import {products as posProducts} from '../data/products';
+import {FulfillmentDocumentPreview,fulfillmentPrintCss,printFulfillment,documentTitles,type FulfillmentDocument} from '../components/online/FulfillmentDocumentPreview';
+import {orderTotals,createOnlineOrder,reviseOnlineDraft,updateOrderStage,setOrderCourier,recordCourierCod,recordCourierPayout,courierClearing,draftFromAcceptedQuote,existingOrderForQuote,preparePosHandoff,
  getOnlineSnapshot,subscribeOnline,upsertSalesLead,type SalesChannel,type PaymentMode,type OnlineOrderDraft,type OnlineOrder,type OrderStage,type CourierName,type SalesLead,type LeadStage
 } from '../onlineSales/onlineStore';
 import {notificationEvents,subscribeNotificationRules,getNotificationSnapshot,updateNotificationRule,
@@ -28,12 +31,12 @@ const paymentModes:PaymentMode[]=['COD','Delivery charge advance','Partial advan
 const stageTone=(s:OrderStage)=>s==='Delivered'?'success':s==='Cancelled'||s==='Failed delivery'||s==='Returned'?'danger':s==='Draft'?'neutral':s==='Confirmed'||s==='Packed'?'info':'warning';
 const draftNew=():OnlineOrderDraft=>({channel:'Facebook',sourceReference:'',customerName:'',phone:'',address:'',
  lines:[],discount:0,deliveryCharge:100,prepaid:0,paymentMode:'COD',note:''});
-function OrderEditor({original,onClose}:{original:OnlineOrder|null;onClose:()=>void}){
+function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;initialDraft?:OnlineOrderDraft|null;onClose:()=>void}){
  const [draft,setDraft]=useState<OnlineOrderDraft>(original?{
-  channel:original.channel,sourceReference:original.sourceReference,partyId:original.partyId,customerName:original.customerName,
+  channel:original.channel,sourceReference:original.sourceReference,partyId:original.partyId,sourceQuoteId:original.sourceQuoteId,customerName:original.customerName,
   phone:original.phone,address:original.address,lines:original.lines.map(x=>({...x})),discount:original.discount,deliveryCharge:original.deliveryCharge,
   prepaid:original.prepaid,paymentMode:original.paymentMode,note:original.note,courier:original.courier,tracking:original.tracking
- }:draftNew);
+ }:initialDraft??draftNew);
  const [error,setError]=useState('');
  const products=availableProducts().filter(p=>p.active);
  const customers=availableParties().filter(p=>p.roles.includes('Customer'));
@@ -86,24 +89,27 @@ function OrderEditor({original,onClose}:{original:OnlineOrder|null;onClose:()=>v
     <Input aria-label="Delivery address" value={draft.address} onChange={e=>patch({address:e.target.value})} placeholder="Area, city, house/road"/>
    </label>
   </div>
+  {draft.sourceQuoteId&&<p className="rounded-lg border border-teal-300 bg-teal-50/40 p-2 text-xs text-teal-800 dark:text-teal-300">
+    Linked accepted quotation: product lines, unit prices and discount are locked. Confirm customer phone/address before creating this order.
+   </p>}
   <div className="space-y-2 border-t border-border pt-3">
    <div className="flex justify-between"><strong className="text-sm text-ink">Products · পণ্য</strong><span className="text-xs text-ink-500">{draft.lines.length} lines</span></div>
-   <AppSelect label="Add online order product" value="" placeholder="+ Add product" onChange={addProduct}
-    options={products.map(p=>({value:p.id,label:p.name+' · '+taka(p.sellPrice)+'/'+p.unit+' · stock '+p.stock}))}/>
+   {!draft.sourceQuoteId&&<AppSelect label="Add online order product" value="" placeholder="+ Add product" onChange={addProduct}
+    options={products.map(p=>({value:p.id,label:p.name+' · '+taka(p.sellPrice)+'/'+p.unit+' · stock '+p.stock}))}/>}
    <div className="max-h-56 space-y-2 overflow-auto">
     {draft.lines.map((l,index)=>{const p=products.find(p=>p.id===l.productId);return <div key={l.id} className="rounded-lg border border-border p-2">
      <div className="mb-1 flex items-center justify-between"><strong className="min-w-0 truncate text-xs text-ink">{index+1}. {l.name}</strong>
-      <Button variant="outline" size="sm" onClick={()=>patch({lines:draft.lines.filter(x=>x.id!==l.id)})}>Remove</Button></div>
+      {!draft.sourceQuoteId&&<Button variant="outline" size="sm" onClick={()=>patch({lines:draft.lines.filter(x=>x.id!==l.id)})}>Remove</Button>}</div>
      <div className="grid grid-cols-3 gap-2">
       <label className="space-y-1 text-[11px] text-ink-500">Qty
-       <Input aria-label={'Order quantity row '+(index+1)} inputMode="decimal" type="number" min="0" step="any" value={l.quantity}
+       <Input aria-label={'Order quantity row '+(index+1)} disabled={Boolean(draft.sourceQuoteId)} inputMode="decimal" type="number" min="0" step="any" value={l.quantity}
         onChange={e=>updateLine(l.id,{quantity:Number(e.target.value)})}/></label>
       <label className="space-y-1 text-[11px] text-ink-500">Unit
-       <AppSelect label={'Order unit row '+(index+1)} value={l.unit}
+       <AppSelect label={'Order unit row '+(index+1)} disabled={Boolean(draft.sourceQuoteId)} value={l.unit}
         options={[p?.unit??l.unit,...(p?.altUnit?[p.altUnit.unit]:[])]}
         onChange={v=>updateLine(l.id,{unit:v,price:v===p?.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p?.sellPrice??l.price})}/></label>
       <label className="space-y-1 text-[11px] text-ink-500">Price
-       <Input aria-label={'Order price row '+(index+1)} type="number" min="0" step="any" value={l.price}
+       <Input aria-label={'Order price row '+(index+1)} disabled={Boolean(draft.sourceQuoteId)} type="number" min="0" step="any" value={l.price}
         onChange={e=>updateLine(l.id,{price:Number(e.target.value)})}/></label>
      </div>
     </div>})}
@@ -124,7 +130,7 @@ function OrderEditor({original,onClose}:{original:OnlineOrder|null;onClose:()=>v
    <div className="space-y-2 rounded-lg bg-ink-50 p-3 text-xs text-ink">
     <div className="flex justify-between"><span>Products</span><strong>{totals?taka(totals.items):'—'}</strong></div>
     <label className="flex items-center justify-between gap-2">Discount
-     <Input aria-label="Online discount" type="number" min="0" step="any" value={draft.discount} className="w-28 text-right"
+     <Input aria-label="Online discount" disabled={Boolean(draft.sourceQuoteId)} type="number" min="0" step="any" value={draft.discount} className="w-28 text-right"
       onChange={e=>patch({discount:Number(e.target.value)})}/></label>
     <label className="flex items-center justify-between gap-2">Customer delivery charge
      <Input aria-label="Delivery charge" type="number" min="0" step="any" value={draft.deliveryCharge} className="w-28 text-right"
@@ -180,8 +186,9 @@ function OrderActionDialog({order,action,onClose}:{order:OnlineOrder;action:Orde
   </div><DialogFooter><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={submit}>Save manual preview</Button></DialogFooter>
  </DialogContent></Dialog>;
 }
-function OrderDetail({order,onClose,onEdit}:{order:OnlineOrder;onClose:()=>void;onEdit:()=>void}){
+function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=>void;onEdit:()=>void;onPos:()=>void}){
  const [action,setAction]=useState<OrderAction|null>(null);
+ const [documentKind,setDocumentKind]=useState<FulfillmentDocument|null>(null);
  const [note,setNote]=useState('');
  const totals=orderTotals(order),clearing=courierClearing(order);
  const allowed:Partial<Record<OrderStage,OrderStage[]>>={
@@ -214,6 +221,8 @@ function OrderDetail({order,onClose,onEdit}:{order:OnlineOrder;onClose:()=>void;
   </div>
   <div className="flex flex-wrap gap-2">
    {order.stage==='Draft'&&<Button size="sm" variant="outline" onClick={onEdit}>Edit draft</Button>}
+   {['Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={onPos}>Open in POS V2 (preview)</Button>}
+   {documentTitles.map(kind=><Button key={kind} size="sm" variant="outline" onClick={()=>setDocumentKind(kind)}>{kind}</Button>)}
    {['Draft','Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={()=>setAction('courier')}>Assign courier</Button>}
    {(allowed[order.stage]??[]).map(stage=><Button key={stage} size="sm" variant={stage==='Cancelled'?'outline':'default'} onClick={()=>nextStage(stage)}>{stage}</Button>)}
    {order.stage==='Delivered'&&orderTotals(order).cod>0&&<>
@@ -231,6 +240,10 @@ function OrderDetail({order,onClose,onEdit}:{order:OnlineOrder;onClose:()=>void;
   </div>
  </DialogContent></Dialog>
  {action&&<OrderActionDialog order={order} action={action} onClose={()=>setAction(null)}/>}
+ {documentKind&&<Dialog open={true} onOpenChange={v=>!v&&setDocumentKind(null)}><DialogContent role="dialog" aria-label={'Print '+documentKind} className="max-h-[95vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
+   <style>{fulfillmentPrintCss}</style><DialogHeader><DialogTitle>{documentKind}</DialogTitle><DialogDescription>Print preview — no shipment, invoice, stock, or financial posting.</DialogDescription></DialogHeader>
+   <FulfillmentDocumentPreview order={order} kind={documentKind}/><DialogFooter><Button variant="outline" onClick={()=>setDocumentKind(null)}>Close</Button><Button onClick={()=>printFulfillment(documentKind)}>Print document</Button></DialogFooter>
+  </DialogContent></Dialog>}
  </>;
 }
 function LeadsTab(){
@@ -267,10 +280,36 @@ function LeadsTab(){
 function NotificationsTab(){return <ErpNotificationsWorkbench embedded/>;}
 export function OnlineSales(){
  const {orders}=useSyncExternalStore(subscribeOnline,getOnlineSnapshot);
+ const navigate=useNavigate();
+ const [searchParams,setSearchParams]=useSearchParams();
+ const quoteId=searchParams.get('quote');
+ const [quoteDraft,setQuoteDraft]=useState<OnlineOrderDraft|null>(null);
+
  const [tab,setTab]=useState<View>('Orders'),[query,setQuery]=useState(''),[filter,setFilter]=useState('All channels');
  const [stage,setStage]=useState('All statuses'),[editing,setEditing]=useState<OnlineOrder|null>(null);
  const [editorOpen,setEditorOpen]=useState(false),[selectedId,setSelectedId]=useState<string|null>(null);
  const selected=orders.find(o=>o.id===selectedId)??null;
+ useEffect(()=>{
+  if(!quoteId)return;
+  const existing=existingOrderForQuote(quoteId);
+  if(existing){setSelectedId(existing.id);toast.info('This quotation already has an online order.');}
+  else {
+   const quote=getQuoteSnapshot().quotes.find(q=>q.id===quoteId);
+   if(!quote){toast.error('Quotation not found.');}
+   else try{
+    const draft=draftFromAcceptedQuote(quote);
+    const related=availableParties().find(p=>p.id===draft.partyId);
+    setQuoteDraft({...draft,phone:draft.phone||related?.phone?.replace(/[ -]/g,'')||'',address:related?.area||''});
+    setEditorOpen(true);
+   }catch(e){toast.error(e instanceof Error?e.message:String(e));}
+  }
+  setSearchParams({}, {replace:true});
+ },[quoteId,setSearchParams]);
+ const openPos=(order:OnlineOrder)=>{
+  try{preparePosHandoff(order.id,posProducts);setSelectedId(null);
+   navigate('/app/pos',{state:{hisabiqSource:'online-order',orderId:order.id}});}
+  catch(e){toast.error(e instanceof Error?e.message:String(e));}
+ };
  const filtered=useMemo(()=>orders.filter(o=>(filter==='All channels'||o.channel===filter)&&
   (stage==='All statuses'||o.stage===stage)&&
   [o.number,o.channel,o.customerName,o.phone,o.courier??'',o.tracking??''].some(v=>v.toLowerCase().includes(query.toLowerCase().trim()))),
@@ -281,7 +320,7 @@ export function OnlineSales(){
  return <div className="mx-auto max-w-[1440px] space-y-4">
   <PageHeader title="Online Sales" titleBn="অনলাইন বিক্রয়" description="Social commerce orders, courier COD and follow-ups · manual UI preview only."
    actions={<><Link to="/app/quotations"><Button size="sm" variant="outline"><FileText className="size-4"/> Quotations</Button></Link>
-    <Button size="sm" onClick={()=>{setEditing(null);setEditorOpen(true);}}><Plus className="size-4"/> New online order</Button></>}/>
+    <Button size="sm" onClick={()=>{setEditing(null);setQuoteDraft(null);setEditorOpen(true);}}><Plus className="size-4"/> New online order</Button></>}/>
   <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
    {[['Online orders',String(orders.length),'All channels'],['Awaiting shipment',String(orders.filter(o=>['Confirmed','Packed'].includes(o.stage)).length),'Confirmed + packed'],
     ['COD to collect',taka(expected),'Expected gross, not received'],['Courier clearing',taka(pending),'Reported less fee and remittance']]
@@ -316,7 +355,7 @@ export function OnlineSales(){
     </>:tab==='CRM Leads'?<LeadsTab/>:<NotificationsTab/>}
    </div>
   </div>
-  {editorOpen&&<OrderEditor key={editing?.id??'new'} original={editing} onClose={()=>{setEditorOpen(false);setEditing(null);}}/>}
-  {selected&&<OrderDetail order={selected} onClose={()=>setSelectedId(null)} onEdit={()=>{setEditing(selected);setEditorOpen(true);setSelectedId(null);}}/>}
+  {editorOpen&&<OrderEditor key={editing?.id??quoteDraft?.sourceQuoteId??'new'} original={editing} initialDraft={quoteDraft} onClose={()=>{setEditorOpen(false);setEditing(null);setQuoteDraft(null);}}/>}
+  {selected&&<OrderDetail order={selected} onClose={()=>setSelectedId(null)} onPos={()=>openPos(selected)} onEdit={()=>{setQuoteDraft(null);setEditing(selected);setEditorOpen(true);setSelectedId(null);}}/>}
  </div>;
 }
