@@ -27,7 +27,6 @@ test('create edit duplicate and status changes are atomic observable preview cha
  const sent=changeQuoteStatus(added.id,'Sent');
  assert.equal(sent.status,'Sent');
  assert.equal(quoteDisplayStatus(sent,'2026-10-20'),'Expired');
- assert.throws(()=>changeQuoteStatus(added.id,'Accepted'),/Expired/);
  const updated=saveQuote({...make('Quotation QA Updated'),discount:30},added.id);
  assert.equal(updated.status,'Draft');assert.equal(updated.number,added.number);
  const copied=duplicateQuote(added.id);
@@ -39,4 +38,11 @@ test('create edit duplicate and status changes are atomic observable preview cha
  assert.equal(getQuoteSnapshot().quotes.some(q=>q.id===copied.id),false);
  assert.equal(calls,7);
  off();
+});
+
+test('expired sent quotes cannot be accepted until revised',()=>{
+ const created=saveQuote({...make('Expired buyer'),date:'2026-09-01',validUntil:'2026-09-05'});
+ changeQuoteStatus(created.id,'Sent');
+ assert.equal(quoteDisplayStatus(getQuoteSnapshot().quotes.find(q=>q.id===created.id)!), 'Expired');
+ assert.throws(()=>changeQuoteStatus(created.id,'Accepted'),/Expired/);
 });
