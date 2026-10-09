@@ -173,9 +173,15 @@ function ProductActions({
 type ProductView = 'list' | 'lots' | 'history' | 'settings';
 
 export function Products() {
-  const [searchParams] = useSearchParams();
-  const [view, setView] = useState<ProductView>(() => searchParams.get('view') === 'settings' ? 'settings' : 'list');
-  useEffect(() => { if (searchParams.get('view') === 'settings') setView('settings'); }, [searchParams]);
+  const [searchParams,setSearchParams] = useSearchParams();
+  const requestedView=searchParams.get('view');
+  const readView=():ProductView=>['list','lots','history','settings'].includes(requestedView??'')?requestedView as ProductView:'list';
+  const [view,setView]=useState<ProductView>(readView);
+  useEffect(()=>{setView(readView());},[requestedView]);
+  const chooseView=(next:ProductView)=>{setView(next);setSearchParams(previous=>{
+   const params=new URLSearchParams(previous);if(next==='list')params.delete('view');else params.set('view',next);
+   if(next!=='settings')params.delete('tab');return params;
+  },{replace:true});};
   const [list, setList] = useState<Product[]>(availableProducts);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
@@ -363,7 +369,7 @@ export function Products() {
             key={id}
             role="tab"
             aria-selected={view === id}
-            onClick={() => setView(id)}
+            onClick={() => chooseView(id)}
             className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
             {label} <span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>
           </button>
