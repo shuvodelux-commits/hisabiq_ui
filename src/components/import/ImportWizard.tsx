@@ -49,7 +49,7 @@ export function ImportWizard({target,open,onClose,onApply,prepareRows}:{
    return;
   }
   if(step==='review'&&onApply){
-   if(!rows.some(row=>row.decision!=='skip'&&row.decision!=='reject')){setError('Select at least one product to import.');return;}
+   if(!rows.some(row=>row.decision!=='skip'&&row.decision!=='reject')){setError('Select at least one valid row to import.');return;}
    setBusy(true);
    try{
     const outcome=await onApply(rows,globalThis.crypto?.randomUUID?.()??String(Date.now()));
@@ -79,7 +79,7 @@ export function ImportWizard({target,open,onClose,onApply,prepareRows}:{
    {step==='upload'&&<ImportUploadStep target={target} tables={tables} selected={current} onRead={read} onSelect={selectSheet} onError={setError}/>}
    {step==='map'&&current&&<ImportMappingStep target={target} table={current} mapping={mapping} onMapping={nextMapping=>{setMapping(nextMapping);setRows([]);setError('');}}/>}
    {step==='review'&&<ImportReviewStep target={target} rows={rows} onRowsChange={next=>setRows(prepareRows?prepareRows(next):next)}/>}
-   {step==='finish'&&result&&<ImportFinishStep result={result} onAnother={restart} onView={onClose}/>}
+   {step==='finish'&&result&&<ImportFinishStep result={result} rows={rows} onAnother={restart} onView={onClose}/>}
    {step!=='finish'&&<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
     <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Cancel</Button>
     <div className="flex flex-wrap items-center justify-end gap-2">
@@ -91,6 +91,10 @@ export function ImportWizard({target,open,onClose,onApply,prepareRows}:{
      </Button>}
     </div>
    </div>}
+   {step==='review'&&onApply&&rows.some(row=>!['skip','reject'].includes(row.decision)&&
+    Number(target==='product'?row.mapped.openingStock:row.mapped.openingAmount)>0)&&
+    <p className="text-xs text-warning" role="note">Confirming will create Opening {target==='product'?'Stock lots':'Ledger balances'} for the selected rows.
+      Party opening balances are unverified historical entries; no payment account is changed.</p>}
    {step==='review'&&!onApply&&<p role="note" className="text-right text-xs text-ink-500">
     Confirm is unavailable until the {target} import adapter is connected. No data has been saved.
    </p>}
