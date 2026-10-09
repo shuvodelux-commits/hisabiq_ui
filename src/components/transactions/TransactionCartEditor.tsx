@@ -6,18 +6,13 @@ import {AppSelect} from '../AppSelect';
 import {taka} from '../../utils/currency';
 import {formatStock} from '../../utils/units';
 import type {Product} from '../../types/erp';
+import {transactionLineTotal} from '../../utils/transactionLines';
 
 /** POS V2/Magic Patterns visual contract for non-posting transaction cart editors. */
 export type EditableTransactionLine={
  id:string;productId:string;name:string;quantity:number;unit:string;price:number;
  secondaryQuantity?:number;unitFactor?:number;
 };
-export function editableLineTotal(line:EditableTransactionLine):number{
- const secondary=Number(line.secondaryQuantity)||0;
- const factor=Number(line.unitFactor)||1;
- const raw=(Number(line.quantity)||0)*(Number(line.price)||0)+(factor>1?secondary*(Number(line.price)||0)/factor:0);
- return Math.round((raw+Number.EPSILON)*100)/100;
-}
 type Props<L extends EditableTransactionLine>={
  mode:'quotation'|'online';
  products:readonly Product[];
@@ -97,7 +92,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
       <input aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
        disabled={!canChange} value={line.price} onChange={event=>onUpdate(line.id,{price:Number(event.target.value)} as Partial<L>)}
        onKeyDown={backToProduct} className={input+' pl-5'}/></div>
-     <strong className="text-right text-[13px] text-ink">{taka(editableLineTotal({...line,unitFactor:factor}))}</strong>
+     <strong className="text-right text-[13px] text-ink">{taka(transactionLineTotal({...line,unitFactor:factor}))}</strong>
      <div className="flex items-center justify-end">
       {onMove&&!locked&&<div className="flex flex-col">
        <button type="button" aria-label={'Move row '+(i+1)+' up'} disabled={i===0} onClick={()=>onMove(line.id,-1)} className="rounded text-ink-500 hover:text-teal-700 disabled:opacity-30"><ArrowUp className="size-3.5"/></button>
