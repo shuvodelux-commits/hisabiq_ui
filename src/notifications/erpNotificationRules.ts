@@ -48,7 +48,7 @@ export type NotificationSnapshot={revision:number;rules:Record<ErpNotificationEv
 export const groups:NotificationGroup[]=['Sales & customer','Services & tailoring','Suppliers & purchases','Loans & owner','Warranty & stock','Online & courier'];
 
 const overrides:Partial<Record<ErpNotificationEvent,[string,string]>>={
- sale_completed:['{business}: Invoice {number} total BDT {total}. Due BDT {due}.','{business}: রসিদ {number}, মোট {total} টাকা, বকেয়া {due} টাকা।'],
+ sale_completed:['{business}: Invoice {number} total BDT {total}. Due BDT {due}.','{business}: বিক্রয় রসিদ {number}, মোট {total} টাকা, বকেয়া {due} টাকা।'],
  sale_payment_received:['{business}: Payment BDT {paid} received for {number}. Remaining due BDT {due}.','{business}: {number} এর {paid} টাকা পেয়েছি। বকেয়া {due} টাকা।'],
  due_reminder:['{business}: Invoice {number} has BDT {due} outstanding. Due date {due_date}.','{business}: {number} এর বকেয়া {due} টাকা। শেষ তারিখ {due_date}।'],
  customer_overdue:['{business}: Your outstanding balance is BDT {balance}. Please contact us.','{business}: আপনার বকেয়া {balance} টাকা। অনুগ্রহ করে যোগাযোগ করুন।'],
