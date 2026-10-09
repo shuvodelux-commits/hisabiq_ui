@@ -1,6 +1,7 @@
+import {transactionLineTotal} from '../utils/transactionLines.ts';
 /** In-memory quotation preview; no invoice, payment, or stock posting. */
 export type QuoteStatus='Draft'|'Sent'|'Accepted'|'Declined';
-export type QuoteLine={id:string;productId:string;name:string;unit:string;quantity:number;price:number};
+export type QuoteLine={id:string;productId:string;name:string;unit:string;quantity:number;price:number;secondaryQuantity?:number;unitFactor?:number};
 export type Quotation={
  id:string;number:string;date:string;validUntil:string;
  partyId?:string;customerName:string;customerPhone?:string;
@@ -11,7 +12,7 @@ export type QuoteDraft=Omit<Quotation,'id'|'number'|'updatedAt'>;
 export type QuoteSnapshot={revision:number;quotes:readonly Quotation[]};
 const today=()=>new Date(Date.now()+6*60*60*1000).toISOString().slice(0,10);
 const money=(n:number)=>Math.round((n+Number.EPSILON)*100)/100;
-export const quoteLineTotal=(line:QuoteLine)=>money(line.quantity*line.price);
+export const quoteLineTotal=(line:QuoteLine)=>transactionLineTotal(line);
 export const quoteSubtotal=(quote:Pick<Quotation,'lines'>)=>money(quote.lines.reduce((sum,line)=>sum+quoteLineTotal(line),0));
 export const quoteTotal=(quote:Pick<Quotation,'lines'|'discount'>)=>money(Math.max(0,quoteSubtotal(quote)-quote.discount));
 export const quoteDisplayStatus=(quote:Quotation,asOf=today()):QuoteStatus|'Expired'=>
@@ -50,7 +51,11 @@ export function validateQuoteDraft(input:QuoteDraft):string[]{
   if(ids.has(line.id))errors.push('Duplicate line ID.');ids.add(line.id);
   if(!Number.isFinite(line.quantity)||line.quantity<=0||!Number.isFinite(line.price)||line.price<0)
    errors.push('Quantity must be positive and price cannot be negative.');
-  if(money(line.quantity*line.price)>1e11)errors.push('Line amount is too large.');
+  if(!Number.isFinite(line.secondaryQuantity??0)||(line.secondaryQuantity??0)<0||
+   !Number.isFinite(line.unitFactor??1)||(line.unitFactor??1)<1||
+   (line.secondaryQuantity??0)>0&&((line.unitFactor??1)<=1||(line.secondaryQuantity??0)>=(line.unitFactor??1)))
+   errors.push('Small-unit quantity must be less than one large unit.');
+  if(!Number.isFinite(quoteLineTotal(line))||quoteLineTotal(line)>1e11)errors.push('Line amount is too large.');
  }
  const subtotal=quoteSubtotal(input);
  if(!Number.isFinite(input.discount)||input.discount<0||input.discount>subtotal)
