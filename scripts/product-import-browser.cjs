@@ -10,7 +10,12 @@ async function main(){
  const sku='IMP-BROWSER-'+Date.now();
  try {
   await page.goto('http://127.0.0.1:4208/#/app/products');
-  await page.getByRole('button',{name:'Import',exact:true}).click();
+  const openImport=page.getByRole('button',{name:'Import',exact:true});
+  if(!(await openImport.count())){
+    console.error('Import button diagnostic:',{url:page.url(),errors,pageText:(await page.locator('main').innerText().catch(()=>'<no main>')).slice(0,850)});
+    throw new Error('Product list Import action was not rendered');
+  }
+  await openImport.click();
   const dlg=page.getByRole('dialog',{name:'Import products'});
   await dlg.waitFor();
   const header='Product Name,SKU,Product Type,Base Unit,Larger Unit,Unit Conversion,Purchase Price,Purchase Price Unit,Selling Price,Selling Price Unit,Opening Stock,Opening Stock Unit,Opening Date';
