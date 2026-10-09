@@ -10,7 +10,10 @@ import {AppDateRangePicker} from '../components/AppDateRangePicker';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogFooter} from '../components/Dialog';
 import {StatusBadge} from '../components/StatusBadge';
 import {Table,TableHeader,TableHead,TableBody,TableRow,TableCell} from '../components/Table';
-import {availableProducts,availableParties} from '../data/erpDemoStore';
+import {availableProducts,availableParties,createPreviewProduct} from '../data/erpDemoStore';
+import {TransactionCartEditor} from '../components/transactions/TransactionCartEditor';
+import {AddProductDialog} from '../components/products/AddProductDialog';
+import type {Product} from '../types/erp';
 import {businessToday,addDays} from '../utils/dateRange';
 import {taka} from '../utils/currency';
 import {getQuoteSnapshot,subscribeQuotes,saveQuote,duplicateQuote,changeQuoteStatus,deleteDraftQuote,
@@ -30,16 +33,16 @@ function QuotationEditor({open,original,onClose}:{
 }){
  const [draft,setDraft]=useState<QuoteDraft>(()=>original?copyDraft(original):freshDraft());
  const [error,setError]=useState('');
+ const [creatingProduct,setCreatingProduct]=useState(false);
  const products=availableProducts().filter(p=>p.active);
  const customers=availableParties().filter(p=>p.roles.includes('Customer')&&p.status!=='Inactive');
  const patch=(partial:Partial<QuoteDraft>)=>setDraft(prev=>({...prev,...partial}));
  const patchLine=(id:string,partial:Partial<QuoteLine>)=>
   patch({lines:draft.lines.map(line=>line.id===id?{...line,...partial}:line)});
- const addProduct=(id:string)=>{
-  const p=products.find(product=>product.id===id);if(!p)return;
+ const addProduct=(p:Product)=>{
   const unit=p.stockViewUnit===p.altUnit?.unit?p.altUnit!.unit:p.unit;
   const price=unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice;
-  patch({lines:[...draft.lines,{id:'quote-line-'+(++lineCounter),productId:p.id,name:p.name,quantity:1,unit,price}]});
+  patch({lines:[...draft.lines,{id:'quote-line-'+(++lineCounter),productId:p.id,name:p.name,quantity:1,unit,price,unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0}]});
  };
  const changeUnit=(line:QuoteLine,unit:string)=>{
   const p=products.find(product=>product.id===line.productId);if(!p)return;
@@ -93,48 +96,12 @@ function QuotationEditor({open,original,onClose}:{
    <section className="space-y-2">
     <div className="flex items-center justify-between gap-2">
      <h3 className="text-sm font-semibold text-ink">Items <span className="font-bn text-xs font-normal text-ink-400">· পণ্যের তালিকা</span></h3>
-     <span className="text-xs text-ink-500">{draft.lines.length} rows</span>
+     <span className="text-xs text-ink-500">{draft.lines.length} rows · POS-style entry</span>
     </div>
-    <div className="rounded-lg border border-border bg-card p-2">
-     <AppSelect label="Add product to quotation" value="" placeholder="+ Add product · পণ্য যোগ করুন"
-      options={products.map(p=>({value:p.id,label:p.name+' · '+taka(p.sellPrice)+'/'+p.unit}))}
-      onChange={addProduct}/>
-    </div>
-    <div className="space-y-2">
-     {draft.lines.map((line,index)=>{
-      const p=products.find(product=>product.id===line.productId);
-      const units=p?.altUnit?[p.altUnit.unit,p.unit]:[p?.unit??line.unit];
-      return <div key={line.id} className="rounded-lg border border-border bg-card p-3">
-       <div className="flex items-start gap-2">
-        <span className="pt-1 text-xs text-ink-400">{index+1}.</span>
-        <div className="min-w-0 flex-1">
-         <strong className="block truncate text-sm text-ink">{line.name}</strong>
-         <span className="text-[11px] text-ink-500">{p?.category??''} · Quote only; no stock deducted</span>
-        </div>
-        <Button type="button" variant="outline" size="sm" disabled={index===0} onClick={()=>reorder(line.id,-1)}><ArrowUp className="size-3.5"/></Button>
-        <Button type="button" variant="outline" size="sm" disabled={index===draft.lines.length-1} onClick={()=>reorder(line.id,1)}><ArrowDown className="size-3.5"/></Button>
-        <Button type="button" variant="outline" size="sm" onClick={()=>patch({lines:draft.lines.filter(x=>x.id!==line.id)})}><Trash2 className="size-3.5"/></Button>
-       </div>
-       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_1fr]">
-        <label className="space-y-1 text-[11px] text-ink-500">Qty
-         <Input aria-label={'Quantity row '+(index+1)} type="number" min="0.001" step="any" value={line.quantity}
-          onChange={e=>patchLine(line.id,{quantity:Number(e.target.value)})} className="text-right"/>
-        </label>
-        <label className="space-y-1 text-[11px] text-ink-500">Unit
-         <AppSelect label={'Unit row '+(index+1)} value={line.unit} options={units} onChange={value=>changeUnit(line,value)}/>
-        </label>
-        <label className="space-y-1 text-[11px] text-ink-500">Price / {line.unit}
-         <Input aria-label={'Price row '+(index+1)} type="number" min="0" step="any" value={line.price}
-          onChange={e=>patchLine(line.id,{price:Number(e.target.value)})} className="text-right"/>
-        </label>
-        <div className="space-y-1 text-right text-[11px] text-ink-500">Line total
-         <p className="pt-2 text-sm font-semibold text-ink">{taka(quoteLineTotal(line))}</p>
-        </div>
-       </div>
-      </div>;
-     })}
-     {!draft.lines.length&&<p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-ink-500">Add a product to prepare a quotation.</p>}
-    </div>
+    <TransactionCartEditor mode="quotation" products={products} lines={draft.lines}
+     onAdd={addProduct} onUpdate={patchLine}
+     onRemove={id=>patch({lines:draft.lines.filter(x=>x.id!==id)})}
+     onMove={reorder} onCreate={()=>setCreatingProduct(true)}/>
    </section>
    <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
     <label className="space-y-1 text-xs font-medium text-ink">Terms / note · <span className="font-bn text-ink-400">শর্ত</span>
@@ -153,6 +120,9 @@ function QuotationEditor({open,original,onClose}:{
    </div>
    {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-sm text-danger">{error}</p>}
    <DialogFooter><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={save}><Check className="size-4"/> Save draft</Button></DialogFooter>
+  <AddProductDialog open={creatingProduct} onOpenChange={setCreatingProduct} onSave={product=>{
+   createPreviewProduct(product);addProduct(product);setCreatingProduct(false);
+  }}/>
   </DialogContent>
  </Dialog>;
 }
