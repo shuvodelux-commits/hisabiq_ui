@@ -623,7 +623,8 @@ export function Products() {
         existingSerials={knownSerials}
         onSave={(product, opening?: ProductOpeningMeta) => {
           if (editingProduct) {
-            upsertProductPreview(product);
+            const stockAtSource=getProductImportPreviewSnapshot().products.find(item=>item.id===product.id)?.stock??product.stock;
+            upsertProductPreview({...product,stock:stockAtSource});
             setList((items) => items.map((item) => item.id === product.id ? product : item));
             setDetailsProduct((current) => current?.id === product.id ? product : current);
             toast.success(`${product.name} updated`);
