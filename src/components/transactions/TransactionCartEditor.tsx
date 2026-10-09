@@ -1,8 +1,9 @@
 import React, {useEffect,useRef} from 'react';
 import {ArrowDown,ArrowUp,X} from 'lucide-react';
-import {ProductCombobox, type ProductPickerMode} from '../pos/ProductCombobox';
+import {ProductCombobox} from '../pos/ProductCombobox';
+import {CompoundQuantityInput} from './CompoundQuantityInput';
+import {normalizeCompoundQuantity} from '../../utils/posQuantity';
 import {ProductThumb} from '../ProductThumb';
-import {AppSelect} from '../AppSelect';
 import {taka} from '../../utils/currency';
 import {formatStock} from '../../utils/units';
 import type {Product} from '../../types/erp';
@@ -24,12 +25,13 @@ type Props<L extends EditableTransactionLine>={
  onCreate?:()=>void;
  locked?:boolean;
 };
-const grid='grid min-w-[760px] grid-cols-[36px_minmax(200px,1fr)_136px_112px_112px_110px_66px] items-center gap-2';
+const grid='grid min-w-[930px] grid-cols-[40px_minmax(210px,1fr)_204px_124px_112px_110px_64px] items-center gap-2';
 const input='h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
 /** Same inline add row, compact product thumbnails, themed controls and keyboard flow as POS. */
 export function TransactionCartEditor<L extends EditableTransactionLine>({mode,products,lines,onAdd,onUpdate,onRemove,onMove,onCreate,locked=false}:Props<L>){
  const searchRef=useRef<HTMLInputElement>(null);
  const quantityRefs=useRef<Record<string,HTMLInputElement|null>>({});
+ const secondaryRefs=useRef<Record<string,HTMLInputElement|null>>({});
  const previousCount=useRef(lines.length);
  useEffect(()=>{
   if(lines.length>previousCount.current&&!locked){
@@ -63,32 +65,44 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
        </p>
       </div>
      </div>
-     <div className="flex min-w-0 items-center gap-1">
-      <input ref={node=>{quantityRefs.current[line.id]=node;}} aria-label={inputPrefix+'Quantity row '+(i+1)}
-       type="number" min="0" step="any" inputMode="decimal" disabled={!canChange} value={line.quantity}
-       onChange={event=>onUpdate(line.id,{quantity:Number(event.target.value)} as Partial<L>)}
-       onKeyDown={backToProduct} className={input+' min-w-0 bg-ink-50/50 font-medium'}/>
-      {large&&<div className="min-w-0 flex-1">
-        <input aria-label={inputPrefix+'Additional '+product!.unit+' row '+(i+1)} type="number" min="0" step="any" disabled={!canChange}
-         title={'Additional '+product!.unit} value={line.secondaryQuantity??0}
-         onChange={event=>onUpdate(line.id,{secondaryQuantity:Number(event.target.value),unitFactor:factor} as Partial<L>)}
-         onKeyDown={backToProduct} className={input+' w-full bg-ink-50/50'}/>
-        <span className="block text-center text-[10px] text-ink-400">{product!.unit}</span>
-      </div>}
-     </div>
-     <AppSelect label={inputPrefix+'Unit row '+(i+1)} value={line.unit} disabled={!canChange}
-      options={product?.altUnit?[product.altUnit.unit,product.unit]:[line.unit]}
-      onChange={unit=>{
-       const oldFactor=product?.altUnit&&line.unit===product.altUnit.unit?product.altUnit.factor:1;
-       const nextFactor=product?.altUnit&&unit===product.altUnit.unit?product.altUnit.factor:1;
-       const configuredOld=oldFactor>1?(product?.altUnit?.price??(product?.sellPrice??0)*oldFactor):(product?.sellPrice??0);
-       const configuredNew=nextFactor>1?(product?.altUnit?.price??(product?.sellPrice??0)*nextFactor):(product?.sellPrice??0);
-       const isDefaultPrice=Math.abs(line.price-configuredOld)<0.0001;
-       const newPrice=isDefaultPrice?configuredNew:line.price/oldFactor*nextFactor;
-       // Match POS: the number typed in Qty stays in the chosen unit; don't silently rewrite 1 Pcs into 0 Box + 1 Pcs.
-       onUpdate(line.id,{unit,quantity:line.quantity,secondaryQuantity:0,
-        unitFactor:nextFactor,price:Number(newPrice.toFixed(4))} as Partial<L>);
+     <CompoundQuantityInput product={product??{unit:line.unit}} unit={line.unit}
+      primary={line.quantity} secondary={line.secondaryQuantity??0} disabled={!canChange}
+      primaryRef={node=>{quantityRefs.current[line.id]=node;}}
+      secondaryRef={node=>{secondaryRefs.current[line.id]=node;}}
+      primaryLabel={inputPrefix+'Quantity row '+(i+1)}
+      secondaryLabel={inputPrefix+(product?.unit??'Small unit')+' quantity row '+(i+1)}
+      onPrimaryChange={value=>onUpdate(line.id,{quantity:Number(value||0)} as Partial<L>)}
+      onSecondaryChange={value=>onUpdate(line.id,{secondaryQuantity:Number(value||0),unitFactor:factor} as Partial<L>)}
+      onPrimaryEnter={()=>{
+       if(large){secondaryRefs.current[line.id]?.focus();secondaryRefs.current[line.id]?.select();}
+       else searchRef.current?.focus();
+      }}
+      onSecondaryBlur={()=>{
+       const normalized=normalizeCompoundQuantity(line.quantity,line.secondaryQuantity??0,factor);
+       onUpdate(line.id,{quantity:Number(normalized.primaryQty||0),
+        secondaryQuantity:Number(normalized.secondaryQty||0),unitFactor:factor} as Partial<L>);
+      }}
+      onSecondaryEnter={()=>{
+       const normalized=normalizeCompoundQuantity(line.quantity,line.secondaryQuantity??0,factor);
+       onUpdate(line.id,{quantity:Number(normalized.primaryQty||0),
+        secondaryQuantity:Number(normalized.secondaryQty||0),unitFactor:factor} as Partial<L>);
+       searchRef.current?.focus();
       }}/>
+     {product?.altUnit ? <div className="flex h-9 min-w-0 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={inputPrefix+'Unit row '+(i+1)}>
+       {[product.altUnit.unit,product.unit].map(unit=><button key={unit} type="button" role="radio"
+        aria-checked={line.unit===unit} disabled={!canChange} onClick={()=>{
+         if(unit===line.unit)return;
+         const oldFactor=line.unit===product.altUnit!.unit?product.altUnit!.factor:1;
+         const nextFactor=unit===product.altUnit!.unit?product.altUnit!.factor:1;
+         const configuredOld=oldFactor>1?(product.altUnit!.price??product.sellPrice*oldFactor):product.sellPrice;
+         const configuredNew=nextFactor>1?(product.altUnit!.price??product.sellPrice*nextFactor):product.sellPrice;
+         const nextPrice=Math.abs(line.price-configuredOld)<0.0001?configuredNew:line.price/oldFactor*nextFactor;
+         onUpdate(line.id,{unit,quantity:line.quantity,secondaryQuantity:0,unitFactor:nextFactor,
+          price:Number(nextPrice.toFixed(4))} as Partial<L>);
+        }} className={'min-w-0 flex-1 rounded px-1 text-[12px] font-medium transition-colors '+(line.unit===unit?'bg-card text-ink shadow-card ring-1 ring-primary':'text-ink-500 hover:text-ink')}>
+         {unit}
+       </button>)}
+      </div> : <span className="px-2 text-sm text-ink-600">{line.unit}</span>}
      <div className="relative"><span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
       <input aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
        disabled={!canChange} value={line.price} onChange={event=>onUpdate(line.id,{price:Number(event.target.value)} as Partial<L>)}
