@@ -35,11 +35,11 @@ async function main(){
   await detail.getByRole('button',{name:'Packing list'}).click();
   let printable=page.getByRole('dialog',{name:'Print Packing list'});
   await printable.getByText('Packing checklist only',{exact:false}).waitFor();
-  await printable.getByRole('button',{name:'Close'}).click();
+  await printable.getByRole('button',{name:'Close',exact:true}).first().click();
   await detail.getByRole('button',{name:'Delivery challan'}).click();
   printable=page.getByRole('dialog',{name:'Print Delivery challan'});
   await printable.getByText('not a sales invoice',{exact:false}).waitFor();
-  await printable.getByRole('button',{name:'Close'}).click();
+  await printable.getByRole('button',{name:'Close',exact:true}).first().click();
   await detail.getByRole('button',{name:/Open in POS V2/}).click();
   await page.getByText('Prefilled from online order ON-000104',{exact:false}).waitFor();
   await page.getByText('NOT automatically added',{exact:false}).waitFor();
