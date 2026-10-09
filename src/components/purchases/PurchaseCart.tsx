@@ -100,7 +100,7 @@ export function PurchaseCart({
                         </button>
                       </div>
                     </div>
-                    <CompoundQuantityInput product={product} unit={line.costUnit}
+                    <CompoundQuantityInput key={line.costUnit} product={product} unit={line.costUnit}
                       primary={product.altUnit&&line.costUnit===product.altUnit.unit?line.bigQty:line.smallQty}
                       secondary={line.smallQty}
                       primaryRef={node=>{qtyRefs.current[line.id]=node;}}
