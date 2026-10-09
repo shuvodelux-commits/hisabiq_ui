@@ -10,9 +10,10 @@ import type {ImportTarget,ImportStep,ImportTable,ColumnMapping,StagedImportRow,I
 
 const order:ImportStep[]=['upload','map','review','finish'];
 const labels:{[K in ImportStep]:string}={upload:'Upload',map:'Map columns',review:'Review',finish:'Finish'};
-export function ImportWizard({target,open,onClose,onApply}:{
+export function ImportWizard({target,open,onClose,onApply,prepareRows}:{
  target:ImportTarget;open:boolean;onClose:()=>void;
  onApply?:(rows:StagedImportRow[],sessionId:string)=>Promise<ImportResult>;
+ prepareRows?:(rows:StagedImportRow[])=>StagedImportRow[];
 }){
  const [step,setStep]=useState<ImportStep>('upload');
  const [tables,setTables]=useState<ImportTable[]>([]);
@@ -43,12 +44,12 @@ export function ImportWizard({target,open,onClose,onApply}:{
   }
   if(step==='map'){
    if(!current)return;
-   try{if(!rows.length)setRows(mapImportRows(current,mapping));setStep('review');}
+   try{if(!rows.length){const mapped=mapImportRows(current,mapping);setRows(prepareRows?prepareRows(mapped):mapped);}setStep('review');}
    catch(e){setError(e instanceof Error?e.message:'Invalid column mapping.');}
    return;
   }
   if(step==='review'&&onApply){
-   if(!rows.length)return;
+   if(!rows.some(row=>row.decision!=='skip'&&row.decision!=='reject')){setError('Select at least one product to import.');return;}
    setBusy(true);
    try{
     const outcome=await onApply(rows,globalThis.crypto?.randomUUID?.()??String(Date.now()));
@@ -77,15 +78,15 @@ export function ImportWizard({target,open,onClose,onApply}:{
    {error&&<p className="rounded-md bg-danger-bg p-3 text-xs text-danger" role="alert">{error}</p>}
    {step==='upload'&&<ImportUploadStep target={target} tables={tables} selected={current} onRead={read} onSelect={selectSheet} onError={setError}/>}
    {step==='map'&&current&&<ImportMappingStep target={target} table={current} mapping={mapping} onMapping={nextMapping=>{setMapping(nextMapping);setRows([]);setError('');}}/>}
-   {step==='review'&&<ImportReviewStep target={target} rows={rows} onRowsChange={setRows}/>}
+   {step==='review'&&<ImportReviewStep target={target} rows={rows} onRowsChange={next=>setRows(prepareRows?prepareRows(next):next)}/>}
    {step==='finish'&&result&&<ImportFinishStep result={result} onAnother={restart} onView={onClose}/>}
    {step!=='finish'&&<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-    <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+    <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Cancel</Button>
     <div className="flex flex-wrap items-center justify-end gap-2">
      {step!=='upload'&&<Button type="button" variant="outline" onClick={previous}>Back</Button>}
      {step==='upload'&&<Button type="button" disabled={!current?.headers.length} onClick={()=>void next()}>Next: Map columns</Button>}
      {step==='map'&&<Button type="button" onClick={()=>void next()}>Next: Review</Button>}
-     {step==='review'&&<Button type="button" disabled={!onApply||busy||!rows.length} onClick={()=>void next()}>
+     {step==='review'&&<Button type="button" disabled={!onApply||busy||!rows.some(row=>row.decision!=='skip'&&row.decision!=='reject')||rows.some(row=>row.decision!=='skip'&&row.issues.some(i=>i.severity==='error'))} onClick={()=>void next()}>
        {busy?'Importing…':'Confirm import'}
      </Button>}
     </div>
