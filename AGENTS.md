@@ -14,6 +14,19 @@ This file applies to the entire repository, all pages, PRs, and AI-generated UI 
 9. **No cosmetic-only functionality.** Menus, dialogs, actions, empty states, buttons and modals must work at the intended UI-preview level. Never imply stock, payment, customer ledger, courier or SMS posting without real backend integration.
 10. **Before PR review**, compare changed flows side-by-side with POS V2 and Purchase Cart at desktop and mobile sizes, keyboard and touch, light and dark. Verify search, addition, quick create, unit selection, quantity and price, reorder where applicable, payment, errors, keyboard focus and print order. Add/update Playwright tests.
 
+## ERP-wide KISS: complete work inside the current module (mandatory)
+
+Read [ERP Context-Complete Workflow Contract](docs/superpowers/specs/2026-10-09-erp-kiss-contextual-workflows-design.md) and [ERP Source Audit](docs/ui/erp-workflow-audit-2026-10-09.md) before building or declaring any module complete.
+
+- **Context over navigation:** A module's detail workspace must handle its common related actions. Customer → selected invoice/print/edit/payment/refund/return/new sale; Supplier → bill/payment/return; Expense → payee/category/account creation/receipt/edit; Products → category/brand/unit creation. Use a shared full editor via contextual drawer/overlay/returnTo rather than duplicating posting code. Global module navigation is for optional advanced work, not mandatory frequent entry.
+- **Quick Add everywhere a dependency may be missing:** Searchable selector with an integrated + New action, short shared dialog, duplicate check, tenant-scoped mutation, immediate auto-select, keyboard/focus return, and exact parent-draft preservation. Nested Category/Brand/Unit additions stay inside the New Product flow; New Payee and Expense Category stay inside New Expense.
+- **Dense yet simple:** Frequent actions and relevant balance/stock visible; uncommon settings in expandable Advanced; compact tables with action menus; bilingual helpers only where useful; one clear primary action; keyboard and touch first.
+- **Full action means real operation:** List every dropdown/menu/button/filter and connect it to an actual editor, mutation, readable preview, export/print or intentional disabled state with reason. `toast('Edit dialog')` is not Edit; `toast.success('Payment recorded')` without a payment record is a **P0 defect**; uncontrolled filters are broken functionality. Never make a decorative “Complete return” claim.
+- **Source integrity:** Posted invoices, stock movements and ledger events require source-linked permission-aware correction/reversal with audit reason, impact preview and idempotent posting. Do not delete ledger projections or invent backend posting. Preserve Party role isolation, invoice source, selected date range, filter and scroll.
+- **Same shared controls:** Actual reusable combobox/QuickAddSelect/CompoundQuantityInput/action menu/date-picker/payment rows, Magic Patterns design tokens and dark/light; do not introduce local lookalikes.
+- **Acceptance:** Before PR, demonstrate 3 routine next actions from the record, Quick Add inside a half-filled form, filtered table changes, every action's outcome, keyboard/mobile/dark/light and source-safe reverse/correction. Include a per-action workflow matrix and Playwright tests; clearly mark any UI-preview-only result.
+- **Priority:** Remove misleading fake financial actions and inert dropdowns before cosmetic polish. Do not rewrite the entire ERP at once; use independent, dependency-ordered slices and Superpowers approval/review gates.
+
 ## Known divergences — not approved precedent
 - POS `src/components/pos/{CartTable,ProductCombobox}.tsx` is current reference.
 - Purchases `src/components/purchases/{PurchaseCart,PurchaseProductSearch}.tsx` follows POS style but duplicates some picker logic; consolidate into shared primitives, **do not duplicate it again**.
