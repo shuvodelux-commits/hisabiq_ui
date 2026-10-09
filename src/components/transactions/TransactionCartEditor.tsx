@@ -69,7 +69,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
        onChange={event=>onUpdate(line.id,{quantity:Number(event.target.value)} as Partial<L>)}
        onKeyDown={backToProduct} className={input+' min-w-0 bg-ink-50/50 font-medium'}/>
       {large&&<div className="min-w-0 flex-1">
-        <input aria-label={inputPrefix+'Small quantity row '+(i+1)} type="number" min="0" step="any" disabled={!canChange}
+        <input aria-label={inputPrefix+'Additional '+product!.unit+' row '+(i+1)} type="number" min="0" step="any" disabled={!canChange}
          title={'Additional '+product!.unit} value={line.secondaryQuantity??0}
          onChange={event=>onUpdate(line.id,{secondaryQuantity:Number(event.target.value),unitFactor:factor} as Partial<L>)}
          onKeyDown={backToProduct} className={input+' w-full bg-ink-50/50'}/>
@@ -81,12 +81,13 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
       onChange={unit=>{
        const oldFactor=product?.altUnit&&line.unit===product.altUnit.unit?product.altUnit.factor:1;
        const nextFactor=product?.altUnit&&unit===product.altUnit.unit?product.altUnit.factor:1;
-       const basePrice=line.price/oldFactor;
-       const baseQuantity=line.quantity*oldFactor+(line.secondaryQuantity??0);
-       const nextQuantity=nextFactor>1?Math.floor(baseQuantity/nextFactor):baseQuantity;
-       const secondary=nextFactor>1?Number((baseQuantity-nextQuantity*nextFactor).toFixed(3)):0;
-       onUpdate(line.id,{unit,quantity:Number(nextQuantity.toFixed(3)),secondaryQuantity:secondary,
-        unitFactor:nextFactor,price:Number((basePrice*nextFactor).toFixed(4))} as Partial<L>);
+       const configuredOld=oldFactor>1?(product?.altUnit?.price??(product?.sellPrice??0)*oldFactor):(product?.sellPrice??0);
+       const configuredNew=nextFactor>1?(product?.altUnit?.price??(product?.sellPrice??0)*nextFactor):(product?.sellPrice??0);
+       const isDefaultPrice=Math.abs(line.price-configuredOld)<0.0001;
+       const newPrice=isDefaultPrice?configuredNew:line.price/oldFactor*nextFactor;
+       // Match POS: the number typed in Qty stays in the chosen unit; don't silently rewrite 1 Pcs into 0 Box + 1 Pcs.
+       onUpdate(line.id,{unit,quantity:line.quantity,secondaryQuantity:0,
+        unitFactor:nextFactor,price:Number(newPrice.toFixed(4))} as Partial<L>);
       }}/>
      <div className="relative"><span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
       <input aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
