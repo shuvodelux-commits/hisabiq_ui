@@ -9,7 +9,10 @@ import {Input} from '../components/Input';
 import {AppSelect} from '../components/AppSelect';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter} from '../components/Dialog';
 import {StatusBadge} from '../components/StatusBadge';
-import {availableProducts,availableParties} from '../data/erpDemoStore';
+import {availableProducts,availableParties,createPreviewProduct} from '../data/erpDemoStore';
+import {TransactionCartEditor} from '../components/transactions/TransactionCartEditor';
+import {AddProductDialog} from '../components/products/AddProductDialog';
+import type {Product} from '../types/erp';
 import {taka} from '../utils/currency';
 import {getQuoteSnapshot} from '../quotations/quotePreviewStore';
 import {products as posProducts} from '../data/products';
@@ -38,6 +41,7 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
   prepaid:original.prepaid,paymentMode:original.paymentMode,note:original.note,courier:original.courier,tracking:original.tracking
  }:initialDraft??draftNew);
  const [error,setError]=useState('');
+ const [creatingProduct,setCreatingProduct]=useState(false);
  const products=availableProducts().filter(p=>p.active);
  const customers=availableParties().filter(p=>p.roles.includes('Customer'));
  const patch=(next:Partial<OnlineOrderDraft>)=>setDraft(prev=>({...prev,...next}));
@@ -48,11 +52,11 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
   patch({paymentMode:mode,prepaid:mode==='COD'?0:mode==='Delivery charge advance'?draft.deliveryCharge:
     mode==='Fully paid'?Math.max(0,total):Math.min(Math.max(1,draft.deliveryCharge),Math.max(1,total/2))});
  };
- const addProduct=(id:string)=>{
-  const p=products.find(x=>x.id===id);if(!p)return;
+ const addProduct=(p:Product)=>{
   const unit=p.stockViewUnit===p.altUnit?.unit?p.altUnit!.unit:p.unit;
   patch({lines:[...draft.lines,{id:'on-line-'+(globalThis.crypto?.randomUUID?.()??Date.now().toString()),
-   productId:p.id,name:p.name,unit,quantity:1,price:unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice}]});
+   productId:p.id,name:p.name,unit,quantity:1,price:unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice,
+   unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0}]});
  };
  const updateLine=(id:string,next:Partial<OnlineOrderDraft['lines'][number]>)=>
   patch({lines:draft.lines.map(l=>l.id===id?{...l,...next}:l)});
@@ -93,28 +97,19 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
     Linked accepted quotation: product lines, unit prices and discount are locked. Confirm customer phone/address before creating this order.
    </p>}
   <div className="space-y-2 border-t border-border pt-3">
-   <div className="flex justify-between"><strong className="text-sm text-ink">Products · পণ্য</strong><span className="text-xs text-ink-500">{draft.lines.length} lines</span></div>
-   {!draft.sourceQuoteId&&<AppSelect label="Add online order product" value="" placeholder="+ Add product" onChange={addProduct}
-    options={products.map(p=>({value:p.id,label:p.name+' · '+taka(p.sellPrice)+'/'+p.unit+' · stock '+p.stock}))}/>}
-   <div className="max-h-56 space-y-2 overflow-auto">
-    {draft.lines.map((l,index)=>{const p=products.find(p=>p.id===l.productId);return <div key={l.id} className="rounded-lg border border-border p-2">
-     <div className="mb-1 flex items-center justify-between"><strong className="min-w-0 truncate text-xs text-ink">{index+1}. {l.name}</strong>
-      {!draft.sourceQuoteId&&<Button variant="outline" size="sm" onClick={()=>patch({lines:draft.lines.filter(x=>x.id!==l.id)})}>Remove</Button>}</div>
-     <div className="grid grid-cols-3 gap-2">
-      <label className="space-y-1 text-[11px] text-ink-500">Qty
-       <Input aria-label={'Order quantity row '+(index+1)} disabled={Boolean(draft.sourceQuoteId)} inputMode="decimal" type="number" min="0" step="any" value={l.quantity}
-        onChange={e=>updateLine(l.id,{quantity:Number(e.target.value)})}/></label>
-      <label className="space-y-1 text-[11px] text-ink-500">Unit
-       <AppSelect label={'Order unit row '+(index+1)} disabled={Boolean(draft.sourceQuoteId)} value={l.unit}
-        options={[p?.unit??l.unit,...(p?.altUnit?[p.altUnit.unit]:[])]}
-        onChange={v=>updateLine(l.id,{unit:v,price:v===p?.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p?.sellPrice??l.price})}/></label>
-      <label className="space-y-1 text-[11px] text-ink-500">Price
-       <Input aria-label={'Order price row '+(index+1)} disabled={Boolean(draft.sourceQuoteId)} type="number" min="0" step="any" value={l.price}
-        onChange={e=>updateLine(l.id,{price:Number(e.target.value)})}/></label>
-     </div>
-    </div>})}
-    {!draft.lines.length&&<p className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-ink-500">Select at least one inventory product.</p>}
+   <div className="flex items-center justify-between">
+    <strong className="text-sm text-ink">Products · <span className="font-bn font-normal">পণ্য</span></strong>
+    <span className="text-xs text-ink-500">{draft.lines.length} lines · POS-style entry</span>
    </div>
+   <TransactionCartEditor mode="online" products={products} lines={draft.lines}
+    locked={Boolean(draft.sourceQuoteId)} onAdd={addProduct} onUpdate={updateLine}
+    onRemove={id=>patch({lines:draft.lines.filter(x=>x.id!==id)})}
+    onMove={(id,delta)=>{
+     const index=draft.lines.findIndex(line=>line.id===id),next=index+delta;
+     if(index<0||next<0||next>=draft.lines.length)return;
+     const reordered=[...draft.lines];[reordered[index],reordered[next]]=[reordered[next],reordered[index]];
+     patch({lines:reordered});
+    }} onCreate={()=>setCreatingProduct(true)}/>
   </div>
   <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
    <div className="space-y-2">
@@ -143,6 +138,9 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
   </div>
   {error&&<p role="alert" className="rounded-lg bg-danger-bg p-2 text-xs text-danger">{error}</p>}
   <DialogFooter><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={submit}><Check className="size-4"/> Save order draft</Button></DialogFooter>
+ <AddProductDialog open={creatingProduct} onOpenChange={setCreatingProduct} onSave={product=>{
+   createPreviewProduct(product);addProduct(product);setCreatingProduct(false);
+  }}/>
  </DialogContent></Dialog>;
 }
 type OrderAction='courier'|'cod'|'payout';
