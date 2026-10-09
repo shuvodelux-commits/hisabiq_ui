@@ -26,6 +26,7 @@ import { AppShell } from './components/layout/AppShell';
 import { Dashboard } from './pages/Dashboard';
 import { Pos } from './pages/Pos';
 import { Sales } from './pages/Sales';
+import {Quotations} from './pages/Quotations';
 import { Warranty } from './pages/Warranty';
 import { Reconciliation } from './pages/Reconciliation';
 import { Finance } from './pages/Finance';
@@ -78,6 +79,7 @@ export function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="pos" element={<Pos />} />
           <Route path="sales" element={<Sales />} />
+          <Route path="quotations" element={<Quotations />} />
           <Route path="warranty" element={<Warranty />} />
           <Route path="reconciliation" element={<Reconciliation />} />
           <Route path="finance" element={<Finance />} />
