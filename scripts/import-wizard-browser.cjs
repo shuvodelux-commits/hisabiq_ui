@@ -45,8 +45,8 @@ async function main(){
   await dlg.getByRole('button',{name:'Ready (3)'}).waitFor({state:'visible'});
   await dlg.getByRole('button',{name:'Ready (3)'}).click();
   await dlg.getByText('Test Spare',{exact:false}).first().waitFor();
-  assert.equal(await dlg.getByRole('button',{name:/Confirm import/i}).isDisabled(),true,
-   'Phase A must never fake a backend or product posting');
+  assert.equal(await dlg.getByRole('button',{name:/Confirm import/i}).isEnabled(),true,
+   'The Product import adapter must be available without backend posting');
   await dlg.getByRole('button',{name:'Back'}).click();
   await dlg.getByRole('button',{name:'Back'}).click();
   await dlg.getByText('3 data rows',{exact:false}).waitFor({state:'visible'});
