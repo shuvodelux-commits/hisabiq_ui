@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
   Banknote,
@@ -643,7 +643,14 @@ function CreditActionDialog({
 
 export function Sales() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('sales');
+  const [searchParams,setSearchParams] = useSearchParams();
+  const routeTab=searchParams.get('tab');
+  const allowedTabs:Tab[]=['sales','return','returns','credits','drafts'];
+  const [tab,setTab]=useState<Tab>(()=>allowedTabs.includes(routeTab as Tab)?routeTab as Tab:'sales');
+  useEffect(()=>{if(routeTab&&allowedTabs.includes(routeTab as Tab))setTab(routeTab as Tab);else if(!routeTab)setTab('sales');},[routeTab]);
+  const chooseTab=(id:Tab)=>{setTab(id);setSearchParams(current=>{
+   const next=new URLSearchParams(current);if(id==='sales')next.delete('tab');else next.set('tab',id);return next;
+  },{replace:true});};
   const [invoices, setInvoices] = useState<SalesInvoice[]>(seedInvoices);
   const [returns, setReturns] = useState<SalesReturn[]>(seedReturns);
   const [credits, setCredits] = useState<CustomerCredit[]>(seedCredits);
@@ -986,7 +993,7 @@ export function Sales() {
               key={id}
               role="tab"
               aria-selected={tab === id}
-              onClick={() => setTab(id)}
+              onClick={() => chooseTab(id)}
               title={helper}
               className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
