@@ -43,7 +43,7 @@ export function CompoundQuantityInput({product,unit,primary,secondary='',onPrima
   if(where==='primary')primaryInput.current=node;else secondaryInput.current=node;
   const ref=where==='primary'?primaryRef:secondaryRef;
   if(typeof ref==='function')ref(node);
-  else if(ref)ref.current=node;
+  else if(ref)(ref as React.MutableRefObject<HTMLInputElement|null>).current=node;
  };
  const updatePrimary=(value:string)=>{const clean=sanitize(value);setPrimaryText(clean);onPrimaryChange(clean);};
  const updateSecondary=(value:string)=>{const clean=sanitize(value);setSecondaryText(clean);onSecondaryChange?.(clean);};
