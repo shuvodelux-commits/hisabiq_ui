@@ -67,7 +67,7 @@ test('stale snapshot, preexisting opening, and unconfirmed phone collision are b
  const stale=plan([row(2,'01766000301')],'customer','stale');
  stale.baseRevision--;
  assert.throws(()=>commitPartyImportBatch(stale),/changed/i);
- const conflict=plan([row(3,'01711-482093',100)],'customer','no-confirm');
+ const conflict=plan([row(3,'01911-305566',100)],'customer','no-confirm');
  assert.throws(()=>commitPartyImportBatch(conflict),/Matching phone/i);
  const original=before.parties.find(p=>p.id==='c1')!;
  const mapped=row(4,original.phone,100);mapped.mapped.partyId='c1';
