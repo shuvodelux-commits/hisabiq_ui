@@ -17,9 +17,17 @@ async function main(){
   await dlg.getByLabel('Delivery address').fill('Motijheel Dhaka');
   await dlg.getByLabel('Add online order product').click();
   await page.getByRole('listbox',{name:'Add online order product options'}).getByRole('option',{name:/LED Bulb 12W/}).click();
-  await dlg.getByLabel('Order unit row 1').click();
-  await page.getByRole('listbox',{name:'Order unit row 1 options'}).getByRole('option',{name:'Box'}).click();
-  await dlg.getByLabel('Order quantity row 1').fill('2');
+  await dlg.getByRole('radiogroup',{name:'Order Unit row 1'}).getByRole('radio',{name:'Box'}).click();
+  await dlg.getByLabel('Order Quantity row 1',{exact:true}).fill('2');
+  const small=dlg.getByLabel('Order Pcs quantity row 1',{exact:true});
+  await small.fill('3');
+  const [q,u]=await Promise.all([dlg.getByTestId('compound-quantity').boundingBox(),
+   dlg.getByRole('radiogroup',{name:'Order Unit row 1'}).boundingBox()]);
+  assert.ok(q&&u&&q.x+q.width<=u.x-1,'online compound quantity must not overlap unit switch');
+  await small.press('Enter');
+  assert.equal(await dlg.getByRole('combobox',{name:'Add online order product'}).evaluate(el=>document.activeElement===el),true);
+  await small.fill('0');
+  await small.press('Enter');
   await dlg.getByLabel('Order payment mode').click();
   await page.getByRole('listbox',{name:'Order payment mode options'}).getByRole('option',{name:'Delivery charge advance'}).click();
   assert.equal(await dlg.getByLabel('Prepaid amount').inputValue(),'100');
