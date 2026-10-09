@@ -863,8 +863,8 @@ function SettingsPageContent() {
                         SMS sending remains disconnected in this UI preview.
                       </p>
                       <div className="flex flex-wrap gap-3">
-                        <Link to="/app/online-sales" className="inline-block text-xs text-teal-700 hover:underline">
-                          Configure sales & courier SMS →
+                        <Link to="/app/notifications" className="inline-block text-xs text-teal-700 hover:underline">
+                          Configure ERP-wide SMS alerts →
                         </Link>
                         <Link to="/app/subscription" className="inline-block text-xs text-teal-700 hover:underline">
                           Review SMS packages & credits →
