@@ -33,7 +33,7 @@ async function main(){
   assert.equal(await nav.getByRole('link',{name:/Stock, Lots & Adjustments/}).getAttribute('aria-current'),'page');
   await page.goto(base+'/app/notifications');
   assert.equal(await nav.getByRole('link',{name:/Notifications & SMS/}).getAttribute('aria-current'),'page');
-  await nav.getByRole('button',{name:'Collapse sidebar'}).click();
+  await page.getByRole('button',{name:'Collapse sidebar'}).click();
   await nav.getByRole('button',{name:/Expand sidebar to open Sales/}).click();
   await nav.getByRole('link',{name:/Notifications & SMS/}).waitFor();
 
