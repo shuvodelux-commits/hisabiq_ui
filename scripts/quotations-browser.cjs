@@ -15,9 +15,22 @@ async function main(){
   await dlg.getByRole('combobox',{name:'Add product to quotation'}).click();
   await page.getByRole('listbox',{name:'Add product to quotation options'})
    .getByRole('option',{name:/LED Bulb 12W/}).click();
-  await dlg.getByRole('combobox',{name:'Unit row 1'}).click();
-  await page.getByRole('listbox',{name:'Unit row 1 options'}).getByRole('option',{name:'Box'}).click();
-  await dlg.getByLabel('Quantity row 1').fill('2');
+  await dlg.getByRole('radiogroup',{name:'Unit row 1'}).getByRole('radio',{name:'Box'}).click();
+  await dlg.getByLabel('Quantity row 1',{exact:true}).fill('2');
+  const pcs=dlg.getByLabel('Pcs quantity row 1',{exact:true});
+  await pcs.fill('5');
+  // Both number fields must stay within ONE POS-style quantity cell, not cross into the unit buttons.
+  const qty=dlg.getByTestId('compound-quantity');
+  const unit=dlg.getByRole('radiogroup',{name:'Unit row 1'});
+  const geometry=await Promise.all([qty.boundingBox(),unit.boundingBox(),pcs.boundingBox()]);
+  assert.ok(geometry.every(Boolean),'compound quantity and unit must be rendered');
+  assert.ok(geometry[0].x+geometry[0].width<=geometry[1].x-1,'quantity input must not overlap unit switch');
+  assert.ok(geometry[2].x+geometry[2].width<=geometry[0].x+geometry[0].width,'small-unit input must be contained');
+  await dlg.getByText('3,875',{exact:false}).first().waitFor();
+  await pcs.press('Enter');
+  assert.equal(await dlg.getByRole('combobox',{name:'Add product to quotation'}).evaluate(el=>document.activeElement===el),true);
+  await pcs.fill('0');
+  await pcs.press('Enter');
   await dlg.getByLabel('Quotation discount').fill('50');
   await dlg.getByText('3,050',{exact:false}).first().waitFor();
   await dlg.getByRole('button',{name:'Save draft'}).click();
