@@ -22,9 +22,9 @@ test('COD and POS handoff preserve both quantities without fake payment',()=>{
  resetOnlinePreviewForTest();
  const draft={channel:'Facebook' as const,sourceReference:'FB',customerName:'Buyer',phone:'01711482093',
   address:'Dhaka',lines:[{id:'1',productId:'p2',name:'LED Bulb 12W',unit:'Box',quantity:2,secondaryQuantity:5,
-   unitFactor:12,price:1200}],discount:100,deliveryCharge:80,prepaid:80,paymentMode:'Delivery charge advance' as const,note:''};
- assert.equal(orderTotals(draft).items,2900);
- assert.equal(orderTotals(draft).cod,2800);
+   unitFactor:10,price:1200}],discount:100,deliveryCharge:80,prepaid:80,paymentMode:'Delivery charge advance' as const,note:''};
+ assert.equal(orderTotals(draft).items,3000);
+ assert.equal(orderTotals(draft).cod,2900);
  const created=createOnlineOrder(draft);
  updateOrderStage(created.id,'Confirmed');
  const handoff=preparePosHandoff(created.id,products);
