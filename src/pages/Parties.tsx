@@ -8,6 +8,7 @@ import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { PartyImportDialog } from '../components/parties/PartyImportDialog';
+import {PartyExcelImportDialog} from '../components/parties/PartyExcelImportDialog';
 import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
 import { availableParties } from '../data/erpDemoStore';
 import { matchesPartySearch, resolvePartySelection } from '../utils/partyIdentity';
@@ -44,6 +45,7 @@ export function Parties() {
   const [query,setQuery]=useState('');
   const [editing,setEditing]=useState<Party|null|undefined>(undefined);
   const [importOpen,setImportOpen]=useState(false);
+  const [legacyImportOpen,setLegacyImportOpen]=useState(false);
   const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
   const allParties=availableParties();
   const selected=resolvePartySelection(allParties,params.get('id')??undefined,params.get('role')??undefined);
@@ -129,7 +131,7 @@ export function Parties() {
       description={`Everyone you deal with, in one place · Directory receivables ${taka(receivable)} · payables ${taka(payable)} · preview`}
       actions={<>
         <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
-          <Upload className="size-4"/> Import CSV
+          <Upload className="size-4"/> Import Excel / CSV
         </Button>
         <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add party</Button>
       </>} />
@@ -169,6 +171,10 @@ export function Parties() {
     <PartyEditorDialog open={editing!==undefined} party={editing}
       existingOpenings={editing?.id?state.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
       onClose={()=>setEditing(undefined)} onSave={saveParty}/>
-    <PartyImportDialog open={importOpen} onClose={()=>setImportOpen(false)} onImport={parties=>{dispatchPartyPreview({type:"import-parties",parties});toast.success(`${parties.length} parties imported to preview`);}}/>
+    <PartyExcelImportDialog open={importOpen} selectedRole={role} onClose={()=>setImportOpen(false)}
+      onLegacyImport={()=>{setImportOpen(false);setLegacyImportOpen(true);}}/>
+    <PartyImportDialog open={legacyImportOpen} onClose={()=>setLegacyImportOpen(false)}
+      onImport={parties=>{dispatchPartyPreview({type:"import-parties",parties});
+        toast.success(`${parties.length} legacy parties imported to preview`);}}/>
   </div>;
 }
