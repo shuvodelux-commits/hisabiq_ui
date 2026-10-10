@@ -13,7 +13,7 @@ async function main(){
   await row.getByRole('textbox',{name:/Quantity for/}).fill('100');
   await row.getByRole('button',{name:/Short/}).click();
   const dialog=page.getByRole('dialog').filter({hasText:'Stock shortage'}).first();
-  await dialog.getByRole('button',{name:/^Vendor/}).click();
+  await dialog.getByText('Source only the shortage from a nearby Vendor.',{exact:false}).click();
   await dialog.getByRole('combobox',{name:'Vendor'}).click();
   await page.getByRole('listbox',{name:'Vendor options'}).getByRole('option').first().click();
   assert.match(await dialog.innerText(),/Price pending/i);
