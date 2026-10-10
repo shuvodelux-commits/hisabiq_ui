@@ -47,7 +47,7 @@ The legacy model links `VENDOR_SOURCING` to a sale and separates `Current Due` a
 **Workspace summary:** Vendor name, Bangla name, phone/address, active status, Edit; two independent cards:
 - **You owe vendor / দেনা** — payable balance.
 - **Vendor owes you / পাওনা** — receivable balance.
-Never print only one signed net number as Vendor balance. Include outstanding sourced units and issued units as secondary indicators when available.
+The two balances are never netted. Never print only one signed net number as Vendor balance. Include outstanding sourced units and issued units as secondary indicators when available.
 
 **Action strip:** Pay Vendor, Return Goods, Give Products, Receive Money, Receive Products, Ledger Statement; compact visible primary actions plus an accessible actions menu on narrow screens. Actions open dialogs/drawers in-place; no context-destroying redirect. User can open an original POS invoice within a source-detail sheet; if navigating, preserve Party ID, relationship, date range, search and tab in return state.
 
