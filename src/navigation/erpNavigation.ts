@@ -27,7 +27,8 @@ export const erpNavigation:readonly ErpNavGroup[]=[
  {id:'parties',label:'Parties & Ledger',bn:'পার্টি ও খাতা',icon:Users,landingPath:'/app/parties',children:[
   {id:'all-parties',label:'All Parties',bn:'সকল পার্টি',path:'/app/parties'},
   {id:'customers',label:'Customers',bn:'ক্রেতা',path:'/app/parties?role=Customer'},
-  {id:'suppliers',label:'Suppliers & Vendors',bn:'সরবরাহকারী',path:'/app/parties?role=Supplier'},
+  {id:'suppliers',label:'Suppliers',bn:'সরবরাহকারী',path:'/app/parties?role=Supplier'},
+  {id:'vendors',label:'Vendors',bn:'ভেন্ডর',path:'/app/parties?role=Vendor'},
   {id:'loans',label:'Lenders & Borrowers',bn:'ঋণদাতা ও ঋণগ্রহীতা',path:'/app/parties?group=loans'},
   {id:'owners',label:'Owners & Payees',bn:'মালিক ও প্রাপক',path:'/app/parties?group=owners'}
  ]},
