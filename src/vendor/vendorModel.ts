@@ -23,7 +23,8 @@ const extended=(state:VendorPreviewState,operationId:string):VendorPreviewState|
    openings:[...state.openings],sales:[...state.sales],
    operations:[...state.operations,operationId],revision:state.revision+1,
    inventory:state.inventory?{...state.inventory}:undefined,
-   operationPayloads:state.operationPayloads?{...state.operationPayloads}:{}};
+   operationPayloads:state.operationPayloads?{...state.operationPayloads}:{},
+   recordedPurchaseIds:[...(state.recordedPurchaseIds??[])]};
 };
 function ensureVendor(state:VendorPreviewState,id:string):void {
  const party=state.parties.find(p=>p.id===id);
@@ -241,6 +242,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
  }
  if(cmd.type==='record-purchase-inventory'){
   if(!cmd.purchaseId.trim()||!cmd.lines.length)throw new Error('Purchase reference and product lines required.');
+  if(state.recordedPurchaseIds?.includes(cmd.purchaseId))throw new Error('Purchase already received in Vendor demo inventory.');
   const next=extended(state,cmd.operationId)!;
   if(!next.inventory)next.inventory={};
   for(const line of cmd.lines){
@@ -248,6 +250,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    qty(line.baseQty);
    next.inventory[line.productId]=(next.inventory[line.productId]??0)+line.baseQty;
   }
+  next.recordedPurchaseIds!.push(cmd.purchaseId);
   return finish(next,cmd);
  }
  if(cmd.type==='record-sourcing'||cmd.type==='issue-goods'){
