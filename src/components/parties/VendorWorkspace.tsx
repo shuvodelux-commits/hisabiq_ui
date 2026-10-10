@@ -1,4 +1,4 @@
-import React,{useMemo,useState,useSyncExternalStore} from 'react';
+import React,{useId,useMemo,useState,useSyncExternalStore} from 'react';
 import {BookOpen,FileText,HandCoins,MapPin,PackageMinus,PackagePlus,Phone,Plus,Printer,Truck} from 'lucide-react';
 import {Button} from '../Button';
 import {Input} from '../Input';
@@ -9,6 +9,8 @@ import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '.
 import {PartyAvatar} from '../PartyAvatar';
 import {RoleBadge} from './RoleBadge';
 import {VendorStatementDialog} from './VendorStatementDialog';
+import {VendorPurchaseDialog} from './VendorPurchaseDialog';
+import {availablePurchases} from '../../data/erpDemoStore';
 import {VendorActionDialog,type VendorActionMode} from './VendorActionDialog';
 import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import {vendorBalances,sourceOutstanding} from '../../vendor/vendorModel';
@@ -27,6 +29,9 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const [range,setRange]=useState<IsoRange>({from:'',to:''});
  const [query,setQuery]=useState('');
  const [statementOpen,setStatementOpen]=useState(false);
+ const [purchaseOpen,setPurchaseOpen]=useState(false);
+ const [purchaseRevision,setPurchaseRevision]=useState(0);
+ const tabId=useId().replace(/:/g,'');
  const [detail,setDetail]=useState<VendorSource|null>(null);
  const [actionMode,setActionMode]=useState<VendorActionMode>('details');
  const openAction=(source:VendorSource,mode:VendorActionMode)=>{setDetail(source);setActionMode(mode);};
@@ -54,6 +59,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   {key:'purchases',label:'Purchases'}
  ];
  const list=tab==='pending'?pending:tab==='sourcing'?sourced:issued;
+ const ordinaryPurchases=useMemo(()=>availablePurchases().filter(p=>p.supplierId===party.id),[party.id,purchaseRevision]);
  const openBalance=(side:VendorSide)=>{
   setOpeningSide(side);setOpeningAmount('');setOpeningDate(businessToday());setOpeningError('');
  };
@@ -116,7 +122,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
    {disabled('Give products','Goods issued memo is scheduled for Increment C.')}
    <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive money</Button>
    <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive products</Button>
-   {disabled('Buy products','Contextual Purchase editor is scheduled for Increment C; use Purchases module meanwhile.')}
+   <Button size="sm" variant="outline" onClick={()=>setPurchaseOpen(true)}><Plus className="size-4"/> Buy products</Button>
    <Button size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Vendor statement</Button>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
@@ -126,8 +132,20 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   </div>
   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
    <div className="flex flex-wrap gap-1" role="tablist" aria-label="Vendor workspace tabs">
-    {tabs.map(t=><button type="button" key={t.key} role="tab" aria-selected={tab===t.key}
-      onClick={()=>setTab(t.key)} className={'rounded-md px-2.5 py-1.5 text-xs font-medium '+(tab===t.key?'bg-ink-100 text-ink':'text-ink-500 hover:bg-ink-50')}>
+    {tabs.map((t,i)=><button type="button" key={t.key} role="tab"
+      id={tabId+'-'+t.key} aria-controls={tabId+'-panel'} aria-selected={tab===t.key}
+      tabIndex={tab===t.key?0:-1}
+      onClick={()=>setTab(t.key)}
+      onKeyDown={e=>{
+       if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+       e.preventDefault();
+       const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:
+        (i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+       setTab(tabs[next].key);
+       const target=e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next];
+       target?.focus();
+      }}
+      className={'rounded-md px-2.5 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-teal-500 '+(tab===t.key?'bg-ink-100 text-ink':'text-ink-500 hover:bg-ink-50')}>
       {t.label}{t.count!==undefined?' ('+t.count+')':''}</button>)}
    </div>
    <div className="flex flex-wrap items-center gap-2">
@@ -136,8 +154,23 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
     <AppDateRangePicker value={range} onChange={setRange} label="Vendor activity date range"/>
    </div>
   </div>
-  {tab==='purchases'?<div className="p-6 text-center text-sm text-ink-500">
-   <FileText className="mx-auto mb-2 size-6"/>Use Purchases for ordinary buys from this same Party. An in-context Purchase editor is planned.
+  <div role="tabpanel" id={tabId+'-panel'} aria-labelledby={tabId+'-'+tab}>
+  {tab==='purchases'?<div className="p-3">
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <p className="text-xs text-ink-500">Ordinary purchases · own inventory, not Vendor-sourced sales</p>
+      <Button size="sm" onClick={()=>setPurchaseOpen(true)}><Plus className="size-4"/> Buy products</Button>
+    </div>
+    {ordinaryPurchases.length?<div className="divide-y divide-border rounded-lg border border-border">
+      {ordinaryPurchases.map(p=><div key={p.id} className="flex flex-wrap items-center gap-3 p-3 text-xs">
+        <FileText className="size-4 shrink-0 text-ink-400"/>
+        <div className="min-w-0 flex-1"><strong className="text-ink">{p.ref}</strong>
+          <p className="text-ink-500">{p.date} · {p.items}</p></div>
+        <span className="font-semibold text-ink">{taka(p.total)}</span>
+        <span className="text-ink-500">{p.paid>=p.total?'Paid':'Due '+taka(p.total-p.paid)}</span>
+      </div>)}
+    </div>:<p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-ink-500">
+      No ordinary purchases recorded for this Vendor.
+    </p>}
   </div>:tab==='activity'?<div className="overflow-x-auto">
     <table className="w-full min-w-[570px] text-xs"><thead><tr className="border-b border-border bg-ink-50">
      <th className="p-2 text-left">Date</th><th className="p-2 text-left">Type & source</th>
@@ -187,6 +220,9 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
     </div>)}
     {!list.length&&<div className="p-8 text-center text-sm text-ink-500">No Vendor records match these filters.</div>}
    </div>}
+  </div>
+  <VendorPurchaseDialog open={purchaseOpen} vendorPartyId={party.id} vendorName={party.name}
+    onClose={()=>setPurchaseOpen(false)} onSaved={()=>{setPurchaseOpen(false);setPurchaseRevision(v=>v+1);setTab('purchases');}}/>
   <VendorStatementDialog open={statementOpen} onClose={()=>setStatementOpen(false)} party={party} state={snapshot} range={range}/>
   <VendorActionDialog source={detail?snapshot.sources.find(s=>s.id===detail.id)??null:null} mode={actionMode} onClose={()=>setDetail(null)}/>
   <Dialog open={!!openingSide} onOpenChange={v=>!v&&setOpeningSide(null)}>
