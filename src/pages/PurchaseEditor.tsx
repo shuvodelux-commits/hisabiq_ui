@@ -20,6 +20,7 @@ import type { Party, PaymentSplit, Product, Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../utils/productFeatures';
 import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, lotBaseSellPrice, makePurchaseLine, switchPurchaseUnit, type PurchaseCartLine } from '../utils/purchaseCart';
+import {purchaseSupplierGuard} from '../utils/purchaseSupplierGuard';
 
 type Line = PurchaseCartLine;
 
@@ -28,8 +29,8 @@ const todayISO = () => {
   const date = new Date();
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
 };
-type PurchaseEditorProps={initialSupplierId?:string;embedded?:boolean;onCompleted?:(purchase:Purchase)=>void;onCancel?:()=>void};
-export function PurchaseEditor({initialSupplierId,embedded=false,onCompleted,onCancel}:PurchaseEditorProps={}) {
+type PurchaseEditorProps={initialSupplierId?:string;lockedSupplierId?:string;embedded?:boolean;onCompleted?:(purchase:Purchase)=>void;onCancel?:()=>void};
+export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=false,onCompleted,onCancel}:PurchaseEditorProps={}) {
   const navigate = useNavigate();
   const { state: settingsState } = useTenantSettings();
   const [products, setProducts] = useState(() => availableProducts().filter((product) => product.kind !== 'Service'));
@@ -105,6 +106,8 @@ export function PurchaseEditor({initialSupplierId,embedded=false,onCompleted,onC
 
   const validate = (): string | null => {
     if (!supplier) return 'Select or quick-add a supplier.';
+    const wrongSupplier=purchaseSupplierGuard(supplier.id,lockedSupplierId);
+    if(wrongSupplier)return wrongSupplier;
     if (!date) return 'Select a purchase date.';
     if (date < todayISO() && !backdateReason.trim()) return 'Add a reason for backdating this purchase.';
     if (lines.length === 0) return 'Add at least one product to the cart.';
@@ -242,9 +245,11 @@ export function PurchaseEditor({initialSupplierId,embedded=false,onCompleted,onC
           <div className="block min-w-0 text-[12px] font-medium text-ink lg:col-span-2">
             Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
             <div className="mt-1">
-              <QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
+              {lockedSupplierId?<div className="rounded-md border border-border bg-ink-50 px-3 py-2 text-sm text-ink">
+                {supplier?.name??'Selected Vendor'} <span className="text-xs text-ink-500">· Vendor selected</span>
+               </div>:<QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
                 onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
-                onCreate={addSupplier} showContact placeholder="Supplier or business name" />
+                onCreate={addSupplier} showContact placeholder="Supplier or business name" />}
             </div>
           </div>
           <label className="block text-[12px] font-medium text-ink">Purchase date <span className="text-danger">*</span>
