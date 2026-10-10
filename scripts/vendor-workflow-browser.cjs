@@ -8,27 +8,24 @@ async function main(){
  const page=await browser.newPage({viewport:{width:1250,height:850},reducedMotion:'reduce',acceptDownloads:true});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
-  await page.goto('http://127.0.0.1:4244/#/app/parties?id=v1&role=Vendor');
-  await page.getByRole('region',{name:'Vendor workspace'}).waitFor();
-  assert.ok(await page.getByText('Known payable').count()>0);
-  assert.ok(await page.getByText('Vendor receivable').count()>0);
-  assert.ok(await page.getByText('Price pending',{exact:false}).count()>0);
+  await page.goto('http://127.0.0.1:4244/#/app/vendors?partyId=v1&tab=taken');
+  const vendor=page.getByRole('region',{name:'Selected Vendor work'});
+  await vendor.waitFor();
+  await vendor.getByRole('tab',{name:/Taken/}).waitFor();
+  await vendor.getByText('Price not set · দাম ঠিক হয়নি').first().waitFor();
   const nav=page.getByRole('navigation',{name:'Main'});
-  await nav.getByRole('link',{name:/Vendors/}).waitFor();
-  const pending=page.getByRole('tab',{name:/Pending/});await pending.click();
-  assert.ok(await page.getByText('DEMO-INV-201').count()>0);
-  await page.getByRole('button',{name:'View vendor source DEMO-INV-201'}).click();
-  await page.getByRole('dialog',{name:'Vendor source details'}).waitFor();
-  await page.getByRole('dialog',{name:'Vendor source details'}).getByRole('button',{name:'Close'}).first().click();
-  await page.getByRole('button',{name:/Vendor statement/}).click();
-  await page.getByRole('dialog',{name:'Vendor ledger statement'}).waitFor();
-  const csv=page.waitForEvent('download');
-  await page.getByRole('dialog',{name:'Vendor ledger statement'}).getByRole('button',{name:/Export CSV/}).click();
-  assert.match((await csv).suggestedFilename(),/vendor-ledger-/);
-  await page.getByRole('dialog',{name:'Vendor ledger statement'}).getByRole('button',{name:'Close'}).first().click();
-  await page.setViewportSize({width:375,height:800});
-  assert.equal(errors.length,0,errors.join('\n'));
-  console.log('Vendor workspace and statement preview smoke passed');
+  await nav.getByRole('link',{name:'Vendor'}).waitFor();
+  await vendor.getByRole('tab',{name:/Ledger/}).click();
+  await vendor.getByRole('button',{name:'Print Ledger'}).click();
+  const dialog=page.getByRole('dialog',{name:'Vendor ledger statement'});
+  await dialog.waitFor();
+  const downloaded=page.waitForEvent('download');
+  await dialog.getByRole('button',{name:/Export CSV/}).click();
+  assert.match((await downloaded).suggestedFilename(),/vendor-ledger-/);
+  await dialog.getByRole('button',{name:'Close'}).first().click();
+  await page.setViewportSize({width:390,height:800});
+  assert.deepEqual(errors,[]);
+  console.log('Vendor top-level ledger and CSV statement preview verified');
  }finally{await browser.close();await server.close();}
 }
 main().catch(err=>{console.error(err);process.exitCode=1;});
