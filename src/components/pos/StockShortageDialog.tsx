@@ -75,7 +75,7 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent role="dialog" aria-modal="true" aria-label="Stock shortage" className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Stock shortage <span className="font-bn text-sm font-normal text-ink-500">· স্টক কম</span></DialogTitle>
           <DialogDescription>
