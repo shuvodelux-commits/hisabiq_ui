@@ -46,9 +46,8 @@ export function projectVendorActivity(
  for(const event of state.events){
   if(event.vendorPartyId!==vendorPartyId||!isWithin(event.date))continue;
   const source=state.sources.find(s=>s.id===event.sourceId);
-  const isUnknownSource=Boolean(source&&source.unitCostBasePaisa===null
-   &&event.kind==='sourcing') || (event.kind==='reversal'&&
-    event.deltaPaisa===0&&Boolean(event.reversesEventId));
+  const isUnknownSource=(event.kind==='sourcing'&&event.description.includes('Price pending'))
+   || (event.kind==='reversal'&&event.deltaPaisa===0&&Boolean(event.reversesEventId));
   activity.push({
    id:event.id,date:event.date,kind:event.kind,sourceEventId:event.id,
    bucket:event.side==='payable'?'vendor-payable':'vendor-receivable',
