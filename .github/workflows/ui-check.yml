@@ -2,9 +2,8 @@ name: UI Check
 
 on:
   pull_request:
-    branches: [main, 'feat/party-*']
   push:
-    branches: ['feat/party-*']
+    branches: ['feat/party-*', 'feat/top-level-vendor-workspace']
 
 concurrency:
   group: ui-check-${{ github.workflow }}-${{ github.ref }}
