@@ -156,8 +156,9 @@ function QuotationEditor({open,original,onClose}:{
   </DialogContent>
  </Dialog>;
 }
-function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete}:{
+function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete,onCreateOrder}:{
  quote:Quotation|null;onClose:()=>void;onEdit:(q:Quotation)=>void;
+ onCreateOrder:(q:Quotation)=>void;
  onDuplicate:(q:Quotation)=>void;onTransition:(q:Quotation,status:QuoteStatus)=>void;
  onDelete:(q:Quotation)=>void;
 }){
@@ -201,6 +202,7 @@ function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete
       <Button variant="outline" size="sm" onClick={()=>onTransition(quote,'Declined')}><X className="size-4"/> Declined</Button>
       <Button size="sm" disabled={status==='Expired'} onClick={()=>onTransition(quote,'Accepted')}><Check className="size-4"/> Accepted</Button>
      </>}
+    {quote.status==='Accepted'&&<Button size="sm" onClick={()=>onCreateOrder(quote)}>Create online order</Button>}
     {quote.status==='Draft'&&<Button size="sm" variant="outline" onClick={()=>onDelete(quote)}><Trash2 className="size-4"/> Delete draft</Button>}
    </div>
   </DialogContent>
@@ -274,7 +276,7 @@ export function Quotations(){
    <div className="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-ink-500"><span>Showing {filtered.length} of {quotes.length}</span><span>Prices only · no financial posting</span></div>
   </div>
   {editorOpen&&<QuotationEditor key={editing?.id??'new'} open original={editing} onClose={()=>{setEditorOpen(false);setEditing(null);}}/>}
-  <QuotationDetail quote={detail} onClose={()=>setDetailId(null)} onEdit={edit} onDuplicate={duplicate} onTransition={transition} onDelete={setDeleteTarget}/>
+  <QuotationDetail quote={detail} onClose={()=>setDetailId(null)} onEdit={edit} onDuplicate={duplicate} onTransition={transition} onDelete={setDeleteTarget} onCreateOrder={q=>navigate('/app/online-sales?quote='+encodeURIComponent(q.id))}/>
   <Dialog open={Boolean(deleteTarget)} onOpenChange={value=>!value&&setDeleteTarget(null)}>
    <DialogContent role="dialog" aria-label="Confirm delete quotation" className="sm:max-w-md">
     <DialogHeader><DialogTitle>Delete draft quotation?</DialogTitle><DialogDescription>{deleteTarget?.number} will be deleted from the in-memory preview. This action cannot be undone.</DialogDescription></DialogHeader>

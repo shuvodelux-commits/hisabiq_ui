@@ -49,6 +49,9 @@ jobs:
       - name: Check Product import and opening stock
         run: npm run test:import-products
 
+      - name: Check ERP SMS and quote-to-order fulfillment handoff
+        run: npm run test:fulfillment-sms
+
       - name: Check Online Sales order, COD, CRM and SMS journeys
         run: npm run test:online-sales
 
