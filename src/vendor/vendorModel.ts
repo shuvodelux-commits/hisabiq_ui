@@ -83,6 +83,32 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   return next;
  }
  ensureVendor(state,cmd.vendorPartyId);
+ if(cmd.type==='issue-goods-memo'){
+  if(!cmd.memoId.trim()||!goodDate(cmd.date)||!cmd.sources.length)
+   throw new Error('Valid memo, date and goods lines are required.');
+  const next=extended(state,cmd.operationId)!;
+  if(!next.inventory)throw new Error('Owned stock preview is unavailable.');
+  const seen=new Set<string>();
+  const additions:VendorSource[]=[];
+  for(const input of cmd.sources){
+   if(input.date!==cmd.date)throw new Error('Goods issue date must match memo date.');
+   if(seen.has(input.id))throw new Error('Duplicate Vendor memo source ID.');
+   seen.add(input.id);
+   const linked=source({...next,sources:[...next.sources,...additions]},cmd.vendorPartyId,'issue',
+     {...input,memoId:cmd.memoId,reference:cmd.reference??cmd.memoId});
+   const balance=next.inventory[linked.productId]??0;
+   if(balance<linked.baseQty)throw new Error('Insufficient owned stock to issue goods.');
+   next.inventory[linked.productId]=balance-linked.baseQty;
+   additions.push(linked);
+  }
+  for(const linked of additions){
+   next.sources.push(linked);
+   next.events.push({...event(next,linked,cmd.operationId),
+    id:'vendor-event:'+cmd.operationId+':'+linked.id,
+    sequence:next.events.length+1});
+  }
+  return next;
+ }
  if(cmd.type==='record-purchase-inventory'){
   if(!cmd.purchaseId.trim()||!cmd.lines.length)throw new Error('Purchase reference and product lines required.');
   const next=extended(state,cmd.operationId)!;
