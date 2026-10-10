@@ -17,7 +17,7 @@ test('unpriced Vendor sourcing remains visible in All Activity with no fabricate
  assert.equal(rows[0].kind,'sourcing');
  assert.equal(rows[0].moneyPaisa,null);
  assert.equal(rows[0].bucket,'vendor-payable');
- assert.equal(rows[0].description.includes('Price pending'),true);
+ assert.equal(rows[0].description.includes('Price not set'),true);
  s=applyVendorCommand(s,{type:'reverse-event',operationId:'reverse',
   vendorPartyId:'v1',eventId:'vendor-event:borrow',actor:'Demo',reason:'Wrong sale source',date:'2026-10-10'});
  const audit=projectVendorActivity(s,'v1',[],{from:'',to:''});
