@@ -69,6 +69,24 @@ async function main(){
   await page.getByRole('button',{name:'Open ERP navigation'}).click();
   const drawer=page.getByRole('dialog',{name:'ERP navigation'});
   await drawer.waitFor();
+  // Regression: a sticky, backdrop-blurred header must never confine the mobile sheet.
+  const assertFullscreen=async(width,height)=>{
+    const bounds=await drawer.boundingBox();
+    assert.ok(bounds && Math.abs(bounds.y)<2 && bounds.height>=height-2,
+      'mobile sheet must cover viewport height, not just the sticky header');
+    assert.ok(bounds.width<=Math.min(320,width) + 1,
+      'mobile sheet should have a comfortable max-width');
+    assert.equal(await drawer.evaluate(node=>node.parentElement?.parentElement===document.body),true,
+      'mobile sheet must live outside backdrop-filter header containing block');
+    assert.equal(await page.evaluate(()=>document.body.style.overflow),'hidden',
+      'opening a mobile sheet prevents page scrolling underneath');
+    assert.ok(await page.evaluate(()=>Boolean(document.elementFromPoint(25,Math.min(250,innerHeight-20))?.closest('#erp-mobile-drawer'))),
+      'sheet must intercept taps below the top bar');
+  };
+  await assertFullscreen(375,812);
+  await page.setViewportSize({width:695,height:880});
+  await assertFullscreen(695,880);
+  await page.setViewportSize({width:375,height:812});
   await drawer.getByRole('link',{name:/Quotations & Estimates/}).click();
   await drawer.waitFor({state:'hidden'});
   assert.ok(page.url().includes('/app/quotations'));
@@ -76,6 +94,10 @@ async function main(){
   assert.equal(await page.getByRole('dialog',{name:'ERP navigation'}).getByRole('link',{name:/Quotations & Estimates/}).getAttribute('aria-current'),'page');
   await page.keyboard.press('Escape');
   await drawer.waitFor({state:'hidden'});
+  assert.equal(await page.evaluate(()=>document.body.style.overflow),'',
+    'closing mobile sheet restores document scrolling');
+  assert.equal(await page.getByRole('button',{name:'Open ERP navigation'}).evaluate(el=>el===document.activeElement),true,
+    'Escape should restore keyboard focus to the nav trigger');
   await page.setViewportSize({width:768,height:1024});
   await page.getByRole('button',{name:'Open ERP navigation'}).click();
   const mobile=page.getByRole('dialog',{name:'ERP navigation'});

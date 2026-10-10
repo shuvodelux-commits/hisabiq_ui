@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -40,9 +41,55 @@ export function TopBar() {
   const navigate = useNavigate();
   const [navOpen,setNavOpen] = useState(false);
   const navTrigger = useRef<HTMLButtonElement>(null);
-  useEffect(()=>{if(!navOpen)return;const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape'){setNavOpen(false);navTrigger.current?.focus();}};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);},[navOpen]);
+  const navDialog = useRef<HTMLDivElement>(null);
+  const closeMobileNav = () => {
+    setNavOpen(false);
+    navTrigger.current?.focus();
+  };
+
+  // A modal sidebar must lock background scrolling and keep keyboard focus inside it.
+  useEffect(() => {
+    if (!navOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMobileNav();
+        return;
+      }
+      if (event.key !== 'Tab' || !navDialog.current) return;
+      const controls = Array.from(navDialog.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      )).filter(el => el.getClientRects().length > 0);
+      if (!controls.length) return;
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !navDialog.current.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !navDialog.current.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [navOpen]);
+
+  // Never leave the mobile modal open after navigation or expanding to desktop.
+  useEffect(() => setNavOpen(false), [pathname]);
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => { if (media.matches) setNavOpen(false); };
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
 
   return (
+    <>
     <header data-print-hide className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
       <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
         <button ref={navTrigger} type="button" aria-label="Open ERP navigation" aria-expanded={navOpen}
@@ -195,24 +242,28 @@ export function TopBar() {
         </div>
       </div>
 
-      {navOpen&&<div className="fixed inset-0 z-[80] lg:hidden">
+    </header>
+    {navOpen && createPortal(
+      <div data-print-hide className="fixed inset-0 z-[80] lg:hidden" aria-label="Mobile navigation overlay">
         <button type="button" className="fixed inset-0 bg-inverse/50" aria-label="Close ERP navigation"
-          onClick={()=>{setNavOpen(false);navTrigger.current?.focus();}}/>
-        <div id="erp-mobile-drawer" role="dialog" aria-modal="true" aria-label="ERP navigation"
-          className="fixed inset-y-0 left-0 flex w-[min(87vw,320px)] flex-col border-r border-border bg-sidebar shadow-xl">
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-            <span className="text-sm font-semibold text-ink">HisabIQ · Modules</span>
-            <button type="button" autoFocus aria-label="Close navigation"
-              onClick={()=>{setNavOpen(false);navTrigger.current?.focus();}}
-              className="flex size-9 items-center justify-center rounded-lg text-ink-600 hover:bg-ink-50">
+          onClick={closeMobileNav}/>
+        <div ref={navDialog} id="erp-mobile-drawer" role="dialog" aria-modal="true" aria-label="ERP navigation"
+          className="fixed inset-y-0 left-0 flex h-[100dvh] w-[min(87vw,320px)] max-w-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-xl"
+          style={{backgroundColor:'var(--sidebar)'}}>
+          <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4">
+            <span className="text-sm font-semibold text-sidebar-foreground">HisabIQ · Modules</span>
+            <button type="button" autoFocus aria-label="Close navigation" onClick={closeMobileNav}
+              className="flex size-9 items-center justify-center rounded-lg text-sidebar-foreground hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring">
               <X className="size-5"/>
             </button>
           </div>
           <ErpNavMenu mode="mobile" onNavigate={()=>setNavOpen(false)}/>
           <Link to="/app/support" onClick={()=>setNavOpen(false)}
-            className="border-t border-border px-5 py-3 text-sm text-ink-600">Help & Support</Link>
+            className="border-t border-sidebar-border px-5 py-3 text-sm text-sidebar-foreground">Help & Support</Link>
         </div>
-      </div>}
-    </header>);
+      </div>,
+      document.body
+    )}
+    </>);
 
 }
