@@ -85,6 +85,9 @@ jobs:
       - name: Check Vendor in-context Issue memo and Purchase
         run: npm run test:vendor-context
 
+      - name: Check Vendor source corrections, links and audit reversals
+        run: npm run test:vendor-correction
+
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
 
