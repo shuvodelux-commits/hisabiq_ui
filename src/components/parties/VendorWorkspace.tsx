@@ -1,4 +1,4 @@
-import React,{useMemo,useState,useSyncExternalStore} from 'react';
+import React,{useId,useMemo,useState,useSyncExternalStore} from 'react';
 import {BookOpen,FileText,HandCoins,MapPin,PackageMinus,PackagePlus,Phone,Plus,Printer,Truck} from 'lucide-react';
 import {Button} from '../Button';
 import {Input} from '../Input';
@@ -9,7 +9,10 @@ import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '.
 import {PartyAvatar} from '../PartyAvatar';
 import {RoleBadge} from './RoleBadge';
 import {VendorStatementDialog} from './VendorStatementDialog';
-import {VendorActionDialog} from './VendorActionDialog';
+import {VendorPurchaseDialog} from './VendorPurchaseDialog';
+import {VendorIssueGoodsDialog} from './VendorIssueGoodsDialog';
+import {availablePurchases} from '../../data/erpDemoStore';
+import {VendorActionDialog,type VendorActionMode} from './VendorActionDialog';
 import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import {vendorBalances,sourceOutstanding} from '../../vendor/vendorModel';
 import {projectVendorStatement} from '../../vendor/vendorLedger';
@@ -27,7 +30,13 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const [range,setRange]=useState<IsoRange>({from:'',to:''});
  const [query,setQuery]=useState('');
  const [statementOpen,setStatementOpen]=useState(false);
+ const [purchaseOpen,setPurchaseOpen]=useState(false);
+ const [issueOpen,setIssueOpen]=useState(false);
+ const [purchaseRevision,setPurchaseRevision]=useState(0);
+ const tabId=useId().replace(/:/g,'');
  const [detail,setDetail]=useState<VendorSource|null>(null);
+ const [actionMode,setActionMode]=useState<VendorActionMode>('details');
+ const openAction=(source:VendorSource,mode:VendorActionMode)=>{setDetail(source);setActionMode(mode);};
  const [openingSide,setOpeningSide]=useState<VendorSide|null>(null);
  const [openingAmount,setOpeningAmount]=useState('');
  const [openingDate,setOpeningDate]=useState(businessToday());
@@ -52,6 +61,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   {key:'purchases',label:'Purchases'}
  ];
  const list=tab==='pending'?pending:tab==='sourcing'?sourced:issued;
+ const ordinaryPurchases=useMemo(()=>availablePurchases().filter(p=>p.supplierId===party.id),[party.id,purchaseRevision]);
  const openBalance=(side:VendorSide)=>{
   setOpeningSide(side);setOpeningAmount('');setOpeningDate(businessToday());setOpeningError('');
  };
@@ -108,13 +118,13 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
    </div>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-   {disabled('Set price & settle','Evening price confirmation is scheduled for Increment C.')}
-   {disabled('Pay Vendor','Money settlement is not connected to demo inventory or finance yet.')}
-   {disabled('Return goods','Returning matched owned stock is scheduled for Increment C.')}
-   {disabled('Give products','Goods issued memo is scheduled for Increment C.')}
-   {disabled('Receive money','Receivable settlement is scheduled for Increment C.')}
-   {disabled('Receive products','Goods received from Vendor is scheduled for Increment C.')}
-   {disabled('Buy products','Contextual Purchase editor is scheduled for Increment C; use Purchases module meanwhile.')}
+   <Button size="sm" onClick={()=>setTab('pending')}>Set price & settle · সন্ধ্যার হিসাব</Button>
+   <Button size="sm" variant="outline" onClick={()=>setTab('sourcing')}>Pay Vendor</Button>
+   <Button size="sm" variant="outline" onClick={()=>setTab('sourcing')}>Return goods</Button>
+   <Button size="sm" variant="outline" onClick={()=>setIssueOpen(true)}><PackageMinus className="size-4"/> Give products</Button>
+   <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive money</Button>
+   <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive products</Button>
+   <Button size="sm" variant="outline" onClick={()=>setPurchaseOpen(true)}><Plus className="size-4"/> Buy products</Button>
    <Button size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Vendor statement</Button>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
@@ -124,8 +134,20 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   </div>
   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
    <div className="flex flex-wrap gap-1" role="tablist" aria-label="Vendor workspace tabs">
-    {tabs.map(t=><button type="button" key={t.key} role="tab" aria-selected={tab===t.key}
-      onClick={()=>setTab(t.key)} className={'rounded-md px-2.5 py-1.5 text-xs font-medium '+(tab===t.key?'bg-ink-100 text-ink':'text-ink-500 hover:bg-ink-50')}>
+    {tabs.map((t,i)=><button type="button" key={t.key} role="tab"
+      id={tabId+'-'+t.key} aria-controls={tabId+'-panel'} aria-selected={tab===t.key}
+      tabIndex={tab===t.key?0:-1}
+      onClick={()=>setTab(t.key)}
+      onKeyDown={e=>{
+       if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+       e.preventDefault();
+       const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:
+        (i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+       setTab(tabs[next].key);
+       const target=e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next];
+       target?.focus();
+      }}
+      className={'rounded-md px-2.5 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-teal-500 '+(tab===t.key?'bg-ink-100 text-ink':'text-ink-500 hover:bg-ink-50')}>
       {t.label}{t.count!==undefined?' ('+t.count+')':''}</button>)}
    </div>
    <div className="flex flex-wrap items-center gap-2">
@@ -134,8 +156,23 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
     <AppDateRangePicker value={range} onChange={setRange} label="Vendor activity date range"/>
    </div>
   </div>
-  {tab==='purchases'?<div className="p-6 text-center text-sm text-ink-500">
-   <FileText className="mx-auto mb-2 size-6"/>Use Purchases for ordinary buys from this same Party. An in-context Purchase editor is planned.
+  <div role="tabpanel" id={tabId+'-panel'} aria-labelledby={tabId+'-'+tab}>
+  {tab==='purchases'?<div className="p-3">
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <p className="text-xs text-ink-500">Ordinary purchases · own inventory, not Vendor-sourced sales</p>
+      <Button size="sm" onClick={()=>setPurchaseOpen(true)}><Plus className="size-4"/> Buy products</Button>
+    </div>
+    {ordinaryPurchases.length?<div className="divide-y divide-border rounded-lg border border-border">
+      {ordinaryPurchases.map(p=><div key={p.id} className="flex flex-wrap items-center gap-3 p-3 text-xs">
+        <FileText className="size-4 shrink-0 text-ink-400"/>
+        <div className="min-w-0 flex-1"><strong className="text-ink">{p.ref}</strong>
+          <p className="text-ink-500">{p.date} · {p.items}</p></div>
+        <span className="font-semibold text-ink">{taka(p.total)}</span>
+        <span className="text-ink-500">{p.paid>=p.total?'Paid':'Due '+taka(p.total-p.paid)}</span>
+      </div>)}
+    </div>:<p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-ink-500">
+      No ordinary purchases recorded for this Vendor.
+    </p>}
   </div>:tab==='activity'?<div className="overflow-x-auto">
     <table className="w-full min-w-[570px] text-xs"><thead><tr className="border-b border-border bg-ink-50">
      <th className="p-2 text-left">Date</th><th className="p-2 text-left">Type & source</th>
@@ -160,13 +197,38 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
        {' · '+source.baseQty+' '+(products.find(p=>p.id===source.productId)?.unit??'base units')}</p>
      </div>
      <div className="font-medium text-ink">{source.unitCostBasePaisa===null?'Price pending · দাম পরে নির্ধারণ':taka((source.sourceAmountPaisa??0)/100)}</div>
-     <Button size="sm" variant="outline" aria-label={'View vendor source '+(source.reference??source.id)}
-      onClick={()=>setDetail(source)}>View source</Button>
+     <div className="flex flex-wrap gap-1">
+      {source.sourceKind==='sourcing'&&source.unitCostBasePaisa===null&&
+       <Button size="sm" variant="outline" aria-label={'Set price '+(source.reference??source.id)}
+        onClick={()=>openAction(source,'quote')}>Set price</Button>}
+      {source.sourceKind==='sourcing'&&source.unitCostBasePaisa!==null&&
+        (sourceOutstanding(snapshot,source.id).monetaryDuePaisa??0)>0&&
+       <Button size="sm" variant="outline" aria-label={'Pay '+(source.reference??source.id)}
+        onClick={()=>openAction(source,'pay')}>Pay</Button>}
+      {source.sourceKind==='sourcing'&&sourceOutstanding(snapshot,source.id).returnedBaseQty<source.baseQty&&
+       (sourceOutstanding(snapshot,source.id).monetaryDuePaisa===null||
+        (sourceOutstanding(snapshot,source.id).monetaryDuePaisa??0)>0)&&
+       <Button size="sm" variant="outline" aria-label={'Return goods '+(source.reference??source.id)}
+        onClick={()=>openAction(source,'return')}>Return goods</Button>}
+      {source.sourceKind==='issue'&&(sourceOutstanding(snapshot,source.id).monetaryDuePaisa??0)>0&&<>
+       <Button size="sm" variant="outline" aria-label={'Receive money '+(source.reference??source.id)}
+        onClick={()=>openAction(source,'receive-money')}>Receive money</Button>
+       <Button size="sm" variant="outline" aria-label={'Receive goods '+(source.reference??source.id)}
+        onClick={()=>openAction(source,'receive-goods')}>Receive goods</Button>
+      </>}
+      <Button size="sm" variant="outline" aria-label={'View vendor source '+(source.reference??source.id)}
+       onClick={()=>openAction(source,'details')}>View source</Button>
+     </div>
     </div>)}
     {!list.length&&<div className="p-8 text-center text-sm text-ink-500">No Vendor records match these filters.</div>}
    </div>}
+  </div>
+  <VendorIssueGoodsDialog open={issueOpen} vendorPartyId={party.id} vendorName={party.name}
+    onClose={()=>{setIssueOpen(false);setTab('issued');}}/>
+  <VendorPurchaseDialog open={purchaseOpen} vendorPartyId={party.id} vendorName={party.name}
+    onClose={()=>setPurchaseOpen(false)} onSaved={()=>{setPurchaseOpen(false);setPurchaseRevision(v=>v+1);setTab('purchases');}}/>
   <VendorStatementDialog open={statementOpen} onClose={()=>setStatementOpen(false)} party={party} state={snapshot} range={range}/>
-  <VendorActionDialog source={detail} onClose={()=>setDetail(null)}/>
+  <VendorActionDialog source={detail?snapshot.sources.find(s=>s.id===detail.id)??null:null} mode={actionMode} onClose={()=>setDetail(null)}/>
   <Dialog open={!!openingSide} onOpenChange={v=>!v&&setOpeningSide(null)}>
    <DialogContent role="dialog" aria-label="Vendor opening balance" className="sm:max-w-md">
     <DialogHeader><DialogTitle>{openingSide==='payable'?'Vendor payable opening':'Vendor receivable opening'}</DialogTitle>

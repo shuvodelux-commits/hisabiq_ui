@@ -15,6 +15,7 @@ export type VendorSource = {
  id:string; vendorPartyId:string; sourceKind:VendorSourceKind;
  productId:string; baseQty:number; unitCostBasePaisa:number|null;
  sourceAmountPaisa:number|null; pricingStatus:VendorPricingStatus;
+ /** Quantity priced at original quote after any earlier in-kind returns. */ pricedBaseQty?:number;
  date:string; reference?:string; sourceInvoiceId?:string; sourceSaleLineId?:string;
  memoId?:string; status:'Active'|'Reversed';
 };
@@ -45,9 +46,12 @@ export type VendorPreviewState = {
  settlements:VendorSettlement[];events:VendorLedgerEvent[];
  openings:VendorOpening[];sales:VendorPreviewSale[];
  operations:string[];revision:number;
+ /** Simulated available owned product quantity; never production stock. */ inventory?:Record<string,number>;
 };
 export type VendorPreviewCommand =
  | {type:'record-sourcing'|'issue-goods';operationId:string;vendorPartyId:string;source:VendorSourceInput}
+ | {type:'record-purchase-inventory';operationId:string;vendorPartyId:string;purchaseId:string;lines:Array<{productId:string;baseQty:number}>}
+ | {type:'issue-goods-memo';operationId:string;vendorPartyId:string;memoId:string;date:string;reference?:string;sources:VendorSourceInput[]}
  | {type:'set-opening';operationId:string;vendorPartyId:string;side:VendorSide;amountPaisa:number;date:string;reason?:string}
  | {type:'set-source-price';operationId:string;vendorPartyId:string;sourceId:string;date:string;unitCostBasePaisa:number;reason?:string}
  | {type:'settle-source';operationId:string;vendorPartyId:string;side:VendorSide;kind:VendorSettlementKind;date:string;amountPaisa:number|null;allocations:VendorSettlementAllocation[];paymentSplits?:VendorSettlement['paymentSplits'];reason?:string}

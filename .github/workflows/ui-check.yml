@@ -79,6 +79,12 @@ jobs:
       - name: Check POS Vendor unknown-price sourcing
         run: npm run test:vendor-pos
 
+      - name: Check Vendor evening quote and replacement settlement
+        run: npm run test:vendor-evening
+
+      - name: Check Vendor in-context Issue memo and Purchase
+        run: npm run test:vendor-context
+
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
 

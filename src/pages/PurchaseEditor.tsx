@@ -28,12 +28,13 @@ const todayISO = () => {
   const date = new Date();
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
 };
-export function PurchaseEditor() {
+type PurchaseEditorProps={initialSupplierId?:string;embedded?:boolean;onCompleted?:(purchase:Purchase)=>void;onCancel?:()=>void};
+export function PurchaseEditor({initialSupplierId,embedded=false,onCompleted,onCancel}:PurchaseEditorProps={}) {
   const navigate = useNavigate();
   const { state: settingsState } = useTenantSettings();
   const [products, setProducts] = useState(() => availableProducts().filter((product) => product.kind !== 'Service'));
   const [suppliers, setSuppliers] = useState(() => availableParties().filter((party) => party.roles.includes('Supplier') || party.roles.includes('Vendor')));
-  const [supplierId, setSupplierId] = useState('');
+  const [supplierId, setSupplierId] = useState(initialSupplierId??'');
   const [date, setDate] = useState(todayISO);
   const [backdateReason, setBackdateReason] = useState('');
   const [referenceNo, setReferenceNo] = useState('');
@@ -162,7 +163,8 @@ export function PurchaseEditor() {
     };
     createPreviewPurchase(purchase);
     toast.success(purchase.ref + ' saved', { description: due > 0 ? taka(due) + ' payable to ' + supplier.name : 'Fully paid' });
-    navigate('/app/purchases');
+    if(onCompleted)onCompleted(purchase);
+    else navigate('/app/purchases');
   };
 
   // Shortcuts mirror the POS workflow; dialogs retain their own keyboard handling.
@@ -190,7 +192,7 @@ export function PurchaseEditor() {
 
   return (
     <div className="mx-auto max-w-[1440px] space-y-4 pb-8">
-      <PageHeader
+      {!embedded&&<PageHeader
         title="New purchase" titleBn="নতুন ক্রয়"
         description={purchaseRef + ' · Add products like a POS cart, then choose payment sources.'}
         actions={<>
@@ -202,7 +204,7 @@ export function PurchaseEditor() {
           </div>
           <Button variant="outline" size="sm" onClick={() => navigate('/app/purchases')}><ArrowLeft className="size-4" /> Purchases</Button>
         </>}
-      />
+      />}
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
         <div className="min-w-0 space-y-4">
@@ -274,7 +276,7 @@ export function PurchaseEditor() {
           </div>
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
           <div className="flex gap-2">
-            <Button className="flex-1" variant="outline" onClick={() => navigate('/app/purchases')}>Cancel</Button>
+            <Button className="flex-1" variant="outline" onClick={() => onCancel?onCancel():navigate('/app/purchases')}>Cancel</Button>
           </div>
           <p className="text-center text-[11px] text-ink-400">UI preview: entries and quick-add records remain in memory until refresh; backend posting is not connected.</p>
         </aside>
