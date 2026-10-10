@@ -16,14 +16,14 @@ async function main(){
   await modal.getByRole('button',{name:'Confirm price in demo'}).click();
   await vendor.getByText('৳330').first().waitFor();
   await vendor.getByRole('button',{name:'Record Settlement'}).first().click();
-  const clear=page.getByRole('form',{name:'Clear Vendor due'});
+  const clear=page.getByRole('form',{name:'Record Vendor Settlement'});
   await clear.getByRole('textbox',{name:'Money from account 1'}).fill('200');
-  await clear.getByRole('button',{name:'Save Due Change'}).click();
+  await clear.getByRole('button',{name:'Save Settlement'}).click();
   await clear.waitFor({state:'hidden'});
   await vendor.getByText('৳130').first().waitFor();
   await vendor.getByRole('button',{name:'Record Settlement'}).first().click();
   await clear.getByRole('textbox',{name:'Products to return'}).fill('1');
-  await clear.getByRole('button',{name:'Save Due Change'}).click();
+  await clear.getByRole('button',{name:'Save Settlement'}).click();
   await clear.waitFor({state:'hidden'});
   await vendor.getByText('৳20').first().waitFor();
   assert.deepEqual(errors,[]);
