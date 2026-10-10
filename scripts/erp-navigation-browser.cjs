@@ -61,7 +61,7 @@ async function main(){
   assert.equal(await sidebar.getAttribute('data-collapsible'),'icon','shadcn sidebar shortcut collapses');
   await page.reload();
   assert.equal(await sidebar.getAttribute('data-collapsible'),'icon','sidebar preference persists after refresh');
-  await page.getByRole('button',{name:'Expand sidebar'}).click();
+  await page.getByRole('button',{name:'Expand sidebar',exact:true}).click();
   assert.equal(await sidebar.getAttribute('data-collapsible'),'none');
 
   await page.setViewportSize({width:375,height:812});
