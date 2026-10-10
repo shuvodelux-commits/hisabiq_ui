@@ -3,7 +3,7 @@ name: UI Check
 on:
   pull_request:
   push:
-    branches: ['feat/party-*', 'feat/top-level-vendor-workspace']
+    branches: ['feat/party-*']
 
 concurrency:
   group: ui-check-${{ github.workflow }}-${{ github.ref }}
@@ -39,6 +39,33 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Check Vendor Party two-way ledger preview
+        run: npm run test:vendor-workflow
+
+      - name: Check POS Vendor unknown-price sourcing
+        run: npm run test:vendor-pos
+
+      - name: Check Vendor evening quote and replacement settlement
+        run: npm run test:vendor-evening
+
+      - name: Check Vendor in-context Issue memo and Purchase
+        run: npm run test:vendor-context
+
+      - name: Check Vendor source corrections, links and audit reversals
+        run: npm run test:vendor-correction
+
+      - name: Check top-level Vendor module, selector and tabs
+        run: npm run test:vendor-module
+
+      - name: Check shared Vendor Party profile
+        run: npm run test:vendor-party-profile
+
+      - name: Check inline Vendor goods cart
+        run: npm run test:vendor-goods
+
+      - name: Check atomic Vendor Clear Due with payment and products
+        run: npm run test:vendor-clear-due
+
       - name: Check task-centered ERP navigation and deep links
         run: npm run test:erp-navigation
 
@@ -71,33 +98,6 @@ jobs:
 
       - name: Check Party profile and CSV workflows
         run: npm run test:parties
-
-      - name: Check Vendor Party two-way ledger preview
-        run: npm run test:vendor-workflow
-
-      - name: Check POS Vendor unknown-price sourcing
-        run: npm run test:vendor-pos
-
-      - name: Check Vendor evening quote and replacement settlement
-        run: npm run test:vendor-evening
-
-      - name: Check Vendor in-context Issue memo and Purchase
-        run: npm run test:vendor-context
-
-      - name: Check Vendor source corrections, links and audit reversals
-        run: npm run test:vendor-correction
-
-      - name: Check top-level Vendor module, selector and tabs
-        run: npm run test:vendor-module
-
-      - name: Check shared Vendor Party profile
-        run: npm run test:vendor-party-profile
-
-      - name: Check inline Vendor goods cart
-        run: npm run test:vendor-goods
-
-      - name: Check atomic Vendor Clear Due with payment and products
-        run: npm run test:vendor-clear-due
 
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
