@@ -2,6 +2,7 @@ import type {
  VendorBalances, VendorLedgerEvent, VendorPreviewCommand, VendorPreviewState,
  VendorSource, VendorSourceInput, VendorOutstanding, VendorSide
 } from './vendorTypes.ts';
+import {vendorCorrectionImpact} from './vendorCorrection.ts';
 
 const goodDate=(date:string)=>/^\d{4}-\d\d-\d\d$/.test(date)
  && !Number.isNaN(Date.parse(date+'T12:00:00Z'))
@@ -14,14 +15,15 @@ const qty=(n:number)=>{
  if(!Number.isFinite(n)||n<=0)throw new Error('Source quantity must be positive.');
  return n;
 };
-const extended=(state:VendorPreviewState,operationId:string)=>{
+const extended=(state:VendorPreviewState,operationId:string):VendorPreviewState|null=>{
  if(!operationId.trim())throw new Error('Operation ID is required.');
  if(state.operations.includes(operationId))return null;
  return {parties:state.parties, sources:[...state.sources],
    settlements:[...state.settlements],events:[...state.events],
    openings:[...state.openings],sales:[...state.sales],
    operations:[...state.operations,operationId],revision:state.revision+1,
-   inventory:state.inventory?{...state.inventory}:undefined};
+   inventory:state.inventory?{...state.inventory}:undefined,
+   operationPayloads:state.operationPayloads?{...state.operationPayloads}:{}};
 };
 function ensureVendor(state:VendorPreviewState,id:string):void {
  const party=state.parties.find(p=>p.id===id);
@@ -57,10 +59,141 @@ function event(state:VendorPreviewState,s:VendorSource,operationId:string):Vendo
  operationId,status:'Active',description:s.sourceAmountPaisa===null
  ?'Price pending · unpriced sourced quantity':'Linked '+s.sourceKind};
 }
+
+const finish=(next:VendorPreviewState,command:VendorPreviewCommand):VendorPreviewState=>{
+ next.operationPayloads={...next.operationPayloads,[command.operationId]:JSON.stringify(command)};
+ return next;
+};
+const activeSourceSettlements=(state:VendorPreviewState,sourceId:string)=>
+ state.settlements.filter(t=>t.status==='Active'&&t.allocations.some(a=>a.sourceId===sourceId));
+const sourcePriceEvents=(state:VendorPreviewState,sourceId:string)=>
+ state.events.filter(e=>e.kind==='pricing'&&e.sourceId===sourceId
+ &&!state.events.some(r=>r.kind==='reversal'&&r.reversesEventId===e.id));
+
+/** Appends a compensating audit event; never silently deletes original history. */
+function reverseVendorEvent(
+ original:VendorPreviewState,next:VendorPreviewState,
+ target:VendorLedgerEvent,
+ command:{operationId:string;vendorPartyId:string;date:string;reason:string;actor:string}
+):void{
+ if(!command.reason?.trim())throw new Error('Correction reason is required.');
+ if(!command.actor?.trim())throw new Error('Correction actor is required.');
+ if(!goodDate(command.date)||command.date<target.date)throw new Error('Invalid reversal date.');
+ if(target.vendorPartyId!==command.vendorPartyId)throw new Error('Wrong Vendor for this reversal.');
+ if(target.kind==='reversal'||original.events.some(e=>e.kind==='reversal'&&e.reversesEventId===target.id))
+  throw new Error('Vendor event is already reversed or cannot reverse a reversal.');
+ if(!['settlement','sourcing','issue','pricing','opening'].includes(target.kind))
+  throw new Error('Unsupported source event type for reversal.');
+ if(target.kind==='settlement'){
+  const settlement=original.settlements.find(t=>t.operationId===target.operationId
+   &&t.vendorPartyId===command.vendorPartyId&&t.status==='Active');
+  if(!settlement)throw new Error('Linked settlement was already reversed.');
+  for(const allocation of settlement.allocations){
+   const linked=original.sources.find(s=>s.id===allocation.sourceId&&s.status==='Active');
+   if(!linked)throw new Error('Linked Vendor source missing: review before reversal.');
+   if(settlement.kind==='return-to-vendor'||settlement.kind==='receive-goods'){
+    if(!next.inventory)throw new Error('Demo inventory is unavailable for stock reversal.');
+    const quantity=allocation.baseQty??0;
+    const available=next.inventory[linked.productId]??0;
+    const offset=settlement.kind==='return-to-vendor'?quantity:-quantity;
+    if(available+offset<0)throw new Error('Cannot reverse goods receipt; owned stock already used.');
+    next.inventory[linked.productId]=available+offset;
+   }
+  }
+  next.settlements=next.settlements.map(t=>t.id===settlement.id?{...t,status:'Reversed'}:t);
+  // Reopen settled sources based on their remaining quantity / money.
+  next.sources=next.sources.map(src=>{
+   if(!settlement.allocations.some(a=>a.sourceId===src.id)||src.status==='Reversed')return src;
+   const remaining=sourceOutstanding(next,src.id);
+   const pricingStatus=src.unitCostBasePaisa===null
+    ?(remaining.unpricedBaseQty>0?'unpriced':'closed')
+    :((remaining.monetaryDuePaisa??0)>0?'priced':'closed');
+   return {...src,pricingStatus};
+  });
+ }else if(target.kind==='opening'){
+  const opening=original.openings.find(o=>o.operationId===target.operationId
+   &&o.vendorPartyId===command.vendorPartyId&&o.side===target.side&&o.status!=='Reversed');
+  if(!opening)throw new Error('Opening balance already reversed.');
+  next.openings=next.openings.map(o=>o.id===opening.id?{...o,status:'Reversed'}:o);
+ }else{
+  const linked=original.sources.find(t=>t.id===target.sourceId&&t.vendorPartyId===command.vendorPartyId
+   &&t.status==='Active');
+  if(!linked)throw new Error('Active Vendor source not found.');
+  const dependencies=activeSourceSettlements(original,linked.id);
+  if(dependencies.length)throw new Error('Reverse linked settlement(s) before editing or reversing this source.');
+  if(target.kind==='pricing'){
+   if(linked.unitCostBasePaisa===null)throw new Error('Source price already unconfirmed.');
+   next.sources=next.sources.map(t=>t.id===linked.id?{...t,
+    unitCostBasePaisa:null,sourceAmountPaisa:null,pricedBaseQty:undefined,
+    pricingStatus:sourceOutstanding(original,t.id).returnedBaseQty>=t.baseQty?'closed':'unpriced'}:t);
+  }else{
+   const impact=vendorCorrectionImpact(original,linked.id);
+   if(!impact.reversible)throw new Error(impact.blocker??'Source correction is blocked.');
+   if(target.kind==='issue'&&next.inventory){
+    next.inventory[linked.productId]=(next.inventory[linked.productId]??0)+linked.baseQty;
+   }
+   next.sources=next.sources.map(t=>t.id===linked.id?{...t,status:'Reversed'}:t);
+  }
+ }
+ next.events.push({
+  id:'vendor-event:'+command.operationId+':reversal',
+  vendorPartyId:command.vendorPartyId,side:target.side,kind:'reversal',
+  sourceId:target.sourceId,reference:target.reference,date:command.date,
+  sequence:next.events.length+1,deltaPaisa:-target.deltaPaisa,
+  operationId:command.operationId,description:'Reversal of '+target.kind+' · '+command.reason.trim(),
+  status:'Active',actor:command.actor.trim(),reason:command.reason.trim(),reversesEventId:target.id
+ });
+}
+
 /** Pure single-command transition: validates every input before producing a new snapshot. */
 export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCommand):VendorPreviewState {
- if(state.operations.includes(cmd.operationId))return state;
+ if(state.operations.includes(cmd.operationId)){
+  const prior=state.operationPayloads?.[cmd.operationId];
+  if(prior&&prior!==JSON.stringify(cmd))throw new Error('Operation ID conflict: changed Vendor command payload.');
+  return state;
+ }
  if(!cmd.operationId.trim())throw new Error('Operation ID is required.');
+ if(cmd.type==='reverse-event'){
+  const target=state.events.find(e=>e.id===cmd.eventId);
+  if(!target)throw new Error('Vendor event not found for reversal.');
+  const next=extended(state,cmd.operationId)!;
+  reverseVendorEvent(state,next,target,cmd);
+  return finish(next,cmd);
+ }
+ if(cmd.type==='correct-source'){
+  ensureVendor(state,cmd.vendorPartyId);
+  const original=state.sources.find(t=>t.id===cmd.sourceId&&t.vendorPartyId===cmd.vendorPartyId
+   &&t.status==='Active');
+  if(!original)throw new Error('Active Vendor source not found.');
+  const target=state.events.find(e=>e.sourceId===original.id&&e.kind===original.sourceKind
+   &&e.vendorPartyId===cmd.vendorPartyId
+   &&!state.events.some(r=>r.kind==='reversal'&&r.reversesEventId===e.id));
+  if(!target)throw new Error('Original Vendor source audit event missing.');
+  if(!cmd.replacement.id||cmd.replacement.id===original.id)
+   throw new Error('Correction requires a new source ID.');
+  if(original.sourceInvoiceId && cmd.replacement.sourceInvoiceId
+   &&original.sourceInvoiceId!==cmd.replacement.sourceInvoiceId)
+   throw new Error('Cannot change the linked sale invoice during source correction.');
+  const next=extended(state,cmd.operationId)!;
+  reverseVendorEvent(state,next,target,cmd);
+  const corrected=source(next,cmd.vendorPartyId,original.sourceKind,{
+    ...cmd.replacement,
+    sourceInvoiceId:original.sourceInvoiceId??cmd.replacement.sourceInvoiceId,
+    sourceSaleLineId:original.sourceSaleLineId??cmd.replacement.sourceSaleLineId
+  });
+  corrected.correctsSourceId=original.id;
+  if(corrected.sourceKind==='issue'&&next.inventory){
+   const available=next.inventory[corrected.productId]??0;
+   if(available<corrected.baseQty)throw new Error('Insufficient owned stock for corrected Vendor issue.');
+   next.inventory[corrected.productId]=available-corrected.baseQty;
+  }
+  next.sources.push(corrected);
+  next.events.push({...event(next,corrected,cmd.operationId),
+   id:'vendor-event:'+cmd.operationId+':replacement',
+   sequence:next.events.length+1,actor:cmd.actor.trim(),
+   reason:cmd.reason.trim(),description:'Corrected '+corrected.sourceKind+' · '+(corrected.reference??corrected.id)});
+  return finish(next,cmd);
+ }
  if(cmd.type==='simulate-pos-sale'){
   if(!cmd.sale.id.trim()||!cmd.sale.invoiceId.trim()||cmd.sale.sourceMode!=='demo')
    throw new Error('A linked demo sale and invoice are required.');
@@ -80,7 +213,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
      cmd.sale.sourceIds.some((id,i)=>id!==cmd.sources[i].source.id))
    throw new Error('Demo invoice and source allocations differ.');
   next.sales.push({...cmd.sale});
-  return next;
+  return finish(next,cmd);
  }
  ensureVendor(state,cmd.vendorPartyId);
  if(cmd.type==='issue-goods-memo'){
@@ -107,7 +240,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
     id:'vendor-event:'+cmd.operationId+':'+linked.id,
     sequence:next.events.length+1});
   }
-  return next;
+  return finish(next,cmd);
  }
  if(cmd.type==='record-purchase-inventory'){
   if(!cmd.purchaseId.trim()||!cmd.lines.length)throw new Error('Purchase reference and product lines required.');
@@ -118,7 +251,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    qty(line.baseQty);
    next.inventory[line.productId]=(next.inventory[line.productId]??0)+line.baseQty;
   }
-  return next;
+  return finish(next,cmd);
  }
  if(cmd.type==='record-sourcing'||cmd.type==='issue-goods'){
   const kind=cmd.type==='record-sourcing'?'sourcing':'issue';
@@ -131,12 +264,12 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   }
   next.sources.push(added);
   next.events.push(event(state,added,cmd.operationId));
-  return next;
+  return finish(next,cmd);
  }
  if(cmd.type==='set-opening'){
   money(cmd.amountPaisa,'Opening amount');
   if(!goodDate(cmd.date))throw new Error('Invalid opening date.');
-  if(state.openings.some(o=>o.vendorPartyId===cmd.vendorPartyId&&o.side===cmd.side))
+  if(state.openings.some(o=>o.vendorPartyId===cmd.vendorPartyId&&o.side===cmd.side&&o.status!=='Reversed'))
    throw new Error('Opening exists; correct using an audited replacement.');
   const next=extended(state,cmd.operationId)!;
   next.openings.push({id:'vendor-opening:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
@@ -146,7 +279,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    side:cmd.side,kind:'opening',date:cmd.date,sequence:state.events.length+1,
    deltaPaisa:cmd.amountPaisa,description:'Opening balance (non-cash)',
    operationId:cmd.operationId,status:'Active'});
-  return next;
+  return finish(next,cmd);
  }
 
  if(cmd.type==='set-source-price'){
@@ -169,7 +302,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    side:'payable',kind:'pricing',sourceId:existing.id,reference:existing.reference,
    date:cmd.date,sequence:next.events.length+1,deltaPaisa:amount,operationId:cmd.operationId,
    description:'Vendor price confirmed after sale · demo',status:'Active'});
-  return next;
+  return finish(next,cmd);
  }
  if(cmd.type==='settle-source'){
   if(!goodDate(cmd.date))throw new Error('Invalid settlement date.');
@@ -246,7 +379,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    return out.unpricedBaseQty===0&&out.monetaryDuePaisa===0
      ?{...src,pricingStatus:'closed'}:src;
   });
-  return next;
+  return finish(next,cmd);
  }
  throw new Error('Vendor '+cmd.type+' is not available in this preview increment.');
 }
