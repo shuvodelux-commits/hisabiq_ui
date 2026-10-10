@@ -127,7 +127,7 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
               </div>
               {pricePending?<p className="mt-1 text-[11px] font-medium text-warning">Price pending · দাম পরে নির্ধারণ — record quantity now, settle with Vendor later.</p>
                 :validCost&&costNumber!==null&&factor>1?<p className="mt-1 text-[11px] text-ink-500">{taka(costNumber)} / {displayUnit} = {taka(costNumber / factor)} / {line.product.unit}</p>:null}
-              {!validCost&&<p role="alert" className="mt-1 text-xs text-danger">Enter a positive cost or leave blank for pending price.</p>
+              {!validCost&&<p role="alert" className="mt-1 text-xs text-danger">Enter a positive cost or leave blank for pending price.</p>}
             </div>
           </div>
         )}
