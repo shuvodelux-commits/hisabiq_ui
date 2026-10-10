@@ -19,24 +19,24 @@ export function VendorStatementDialog({open,onClose,party,state,range}:Props){
   URL.revokeObjectURL(url);
  };
  return <Dialog open={open} onOpenChange={next=>!next&&onClose()}>
-  <DialogContent role="dialog" aria-modal="true" aria-label="Vendor ledger statement"
+  <DialogContent role="dialog" aria-modal="true" aria-label="Vendor Statement"
     className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
    <DialogHeader>
-    <DialogTitle>Vendor ledger statement <span className="font-bn text-sm font-normal text-ink-500">· ভেন্ডর খাতা</span></DialogTitle>
+    <DialogTitle>Vendor Statement <span className="font-bn text-sm font-normal text-ink-500">· ভেন্ডর খাতা</span></DialogTitle>
     <DialogDescription>Demo preview — not accounting records. Payable and receivable are always separate.</DialogDescription>
    </DialogHeader>
    <div className="flex flex-wrap gap-2" role="tablist" aria-label="Vendor statement side">
     {(['payable','receivable'] as const).map(value=><Button key={value}
       size="sm" variant={side===value?'default':'outline'}
       role="tab" aria-selected={side===value} onClick={()=>setSide(value)}>
-      {value==='payable'?'You owe Vendor':'Vendor owes you'}</Button>)}
+      {value==='payable'?'Amount Payable':'Amount Receivable'}</Button>)}
    </div>
    <div className="space-y-4 rounded-lg border border-border bg-card p-3 text-ink" id="vendor-statement-print">
     <div className="flex flex-wrap justify-between gap-3 border-b border-border pb-3">
      <div><strong>{party.name}</strong><p className="text-xs text-ink-500">{party.phone} · {party.area}</p></div>
      <div className="text-xs text-ink-500">HisabIQ · Demo preview
       <p>{range.from||'All time'} — {range.to||'Today'}</p>
-      <p>Account: {side==='payable'?'Taken products payable':'Given products receivable'}</p>
+      <p>Account: {side==='payable'?'Products Received — Amount Payable':'Products Issued — Amount Receivable'}</p>
      </div>
     </div>
     <div className="text-sm">Opening: <strong>{taka(statement.openingPaisa/100)}</strong></div>
