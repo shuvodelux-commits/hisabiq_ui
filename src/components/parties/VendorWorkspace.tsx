@@ -1,5 +1,5 @@
 import React,{useId,useMemo,useState,useSyncExternalStore} from 'react';
-import {BookOpen,FileText,HandCoins,MapPin,PackageMinus,PackagePlus,Phone,Plus,Printer,Truck} from 'lucide-react';
+import {BookOpen,FileText,MapPin,PackageMinus,Phone,Plus,Printer,Truck} from 'lucide-react';
 import {Button} from '../Button';
 import {Input} from '../Input';
 import {FormSelect} from '../FormSelect';
@@ -11,16 +11,17 @@ import {RoleBadge} from './RoleBadge';
 import {VendorStatementDialog} from './VendorStatementDialog';
 import {VendorPurchaseDialog} from './VendorPurchaseDialog';
 import {VendorIssueGoodsDialog} from './VendorIssueGoodsDialog';
+import {VendorCorrectionDialog} from './VendorCorrectionDialog';
 import {availablePurchases} from '../../data/erpDemoStore';
 import {VendorActionDialog,type VendorActionMode} from './VendorActionDialog';
 import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import {vendorBalances,sourceOutstanding} from '../../vendor/vendorModel';
-import {projectVendorStatement} from '../../vendor/vendorLedger';
+import {projectVendorActivity,ordinaryVendorPurchaseDuePaisa} from '../../vendor/vendorActivity';
 import {products} from '../../data/products';
 import {businessToday,type IsoRange} from '../../utils/dateRange';
 import {taka} from '../../utils/currency';
 import type {Party,PartyRole} from '../../types/erp';
-import type {VendorSource,VendorSide} from '../../vendor/vendorTypes';
+import type {VendorLedgerEvent,VendorSource,VendorSide} from '../../vendor/vendorTypes';
 type Props={party:Party;onEditParty:()=>void;onRoleChange:(role:PartyRole)=>void};
 type Tab='activity'|'pending'|'sourcing'|'issued'|'purchases';
 export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
@@ -36,6 +37,15 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const tabId=useId().replace(/:/g,'');
  const [detail,setDetail]=useState<VendorSource|null>(null);
  const [actionMode,setActionMode]=useState<VendorActionMode>('details');
+ const [correctionSourceId,setCorrectionSourceId]=useState<string|null>(null);
+ const [correctionEventId,setCorrectionEventId]=useState<string|null>(null);
+ const reviewSource=(id:string)=>{setCorrectionSourceId(id);setCorrectionEventId(null);};
+ const reviewEvent=(e:VendorLedgerEvent)=>{
+   setCorrectionEventId(e.id);
+   const link=e.sourceId??snapshot.settlements.find(s=>s.operationId===e.operationId)?.allocations[0]?.sourceId??null;
+   if(link)setCorrectionSourceId(link);
+ };
+ const closeCorrection=()=>{setCorrectionSourceId(null);setCorrectionEventId(null);};
  const openAction=(source:VendorSource,mode:VendorActionMode)=>{setDetail(source);setActionMode(mode);};
  const [openingSide,setOpeningSide]=useState<VendorSide|null>(null);
  const [openingAmount,setOpeningAmount]=useState('');
@@ -48,11 +58,10 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const pending=known.filter(s=>s.sourceKind==='sourcing'&&sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
  const sourced=known.filter(s=>s.sourceKind==='sourcing');
  const issued=known.filter(s=>s.sourceKind==='issue');
- const payable=projectVendorStatement(snapshot,party.id,'payable',range);
- const receivable=projectVendorStatement(snapshot,party.id,'receivable',range);
- const allEvents=[...payable.rows,...receivable.rows].filter(e=>
-  [e.reference??'',e.description].some(v=>v.toLowerCase().includes(query.toLowerCase())))
-  .sort((a,b)=>b.date.localeCompare(a.date)||b.sequence-a.sequence);
+ const ordinaryPurchases=useMemo(()=>availablePurchases().filter(p=>p.supplierId===party.id),[party.id,purchaseRevision]);
+ const purchasePayablePaisa=ordinaryVendorPurchaseDuePaisa(ordinaryPurchases,party.id);
+ const allEvents=projectVendorActivity(snapshot,party.id,ordinaryPurchases,range).filter(e=>
+  [e.reference,e.description,e.kind].some(v=>v.toLowerCase().includes(query.toLowerCase())));
  const tabs:{key:Tab;label:string;count?:number}[]=[
   {key:'activity',label:'All Activity'},
   {key:'pending',label:'Pending price',count:pending.length},
@@ -61,7 +70,6 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   {key:'purchases',label:'Purchases'}
  ];
  const list=tab==='pending'?pending:tab==='sourcing'?sourced:issued;
- const ordinaryPurchases=useMemo(()=>availablePurchases().filter(p=>p.supplierId===party.id),[party.id,purchaseRevision]);
  const openBalance=(side:VendorSide)=>{
   setOpeningSide(side);setOpeningAmount('');setOpeningDate(businessToday());setOpeningError('');
  };
@@ -100,7 +108,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
    </div>
    <span className="rounded-lg border border-border bg-ink-50 px-2 py-1 text-[11px] font-medium text-ink-500">Demo preview · no real posting</span>
   </div>
-  <div className="grid grid-cols-1 gap-2 border-b border-border p-3 sm:grid-cols-3">
+  <div className="grid grid-cols-1 gap-2 border-b border-border p-3 sm:grid-cols-2 lg:grid-cols-4">
    <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Known payable">
     <p className="text-xs text-ink-500">Known payable · দেনা</p>
     <p className="mt-1 text-xl font-semibold text-ink">{taka(balance.knownPayablePaisa/100)}</p>
@@ -115,6 +123,11 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
     <p className="text-xs text-ink-500">Vendor receivable · পাওনা</p>
     <p className="mt-1 text-xl font-semibold text-ink">{taka(balance.knownReceivablePaisa/100)}</p>
     <p className="mt-0.5 text-[11px] text-ink-500">Goods issued to Vendor</p>
+   </div>
+   <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Purchase payable">
+    <p className="text-xs text-ink-500">Purchase payable · ক্রয়ের বাকি</p>
+    <p className="mt-1 text-xl font-semibold text-ink">{taka(purchasePayablePaisa/100)}</p>
+    <p className="mt-0.5 text-[11px] text-ink-500">Normal Purchases · separate supplier balance</p>
    </div>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
@@ -176,13 +189,27 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   </div>:tab==='activity'?<div className="overflow-x-auto">
     <table className="w-full min-w-[570px] text-xs"><thead><tr className="border-b border-border bg-ink-50">
      <th className="p-2 text-left">Date</th><th className="p-2 text-left">Type & source</th>
-     <th className="p-2 text-left">Account</th><th className="p-2 text-right">Amount</th>
+     <th className="p-2 text-left">Account</th><th className="p-2 text-right">Increases</th>
+     <th className="p-2 text-right">Decreases</th><th className="p-2 text-right">Actions</th>
     </tr></thead><tbody>{allEvents.map(e=><tr key={e.id} className="border-b border-border/70">
-     <td className="p-2 text-ink-500">{e.date}</td><td className="p-2">{e.reference??e.kind}<p className="text-ink-500">{e.description}</p></td>
-     <td className="p-2 capitalize">{e.side}</td>
-     <td className="p-2 text-right">{taka(e.deltaPaisa/100)}</td>
+     <td className="p-2 text-ink-500">{e.date}</td><td className="p-2">{e.reference}
+      <p className="text-ink-500">{e.description}
+        {e.reversed&&<span className="ml-1 font-medium text-warning">(reversed · historical)</span>}
+      </p>
+     </td>
+     <td className="p-2"><span className={'inline-flex rounded px-2 py-0.5 text-[11px] '+(e.bucket==='vendor-payable'?'bg-warning-bg text-warning':'bg-ink-50 text-ink-600')}>
+        {e.bucket==='vendor-payable'?'Vendor sourcing payable':
+         e.bucket==='vendor-receivable'?'Vendor receivable':'Supplier purchase'}</span></td>
+     <td className="p-2 text-right text-ink">{e.moneyPaisa!==null&&e.moneyPaisa>0?taka(e.moneyPaisa/100):'—'}</td>
+     <td className="p-2 text-right text-ink">{e.moneyPaisa!==null&&e.moneyPaisa<0?taka(-e.moneyPaisa/100):'—'}</td>
+     <td className="p-2 text-right">
+       {e.sourceEventId&&e.kind!=='reversal'&&<Button type="button" size="sm" variant="ghost"
+        aria-label={'Review Vendor event '+e.reference}
+        onClick={()=>{const original=snapshot.events.find(entry=>entry.id===e.sourceEventId);if(original)reviewEvent(original);}}>
+        Review</Button>}
+     </td>
     </tr>)}
-    {!allEvents.length&&<tr><td colSpan={4} className="p-8 text-center text-ink-500">No valued transactions in this date range. Price-pending items are in the Pending tab.</td></tr>}
+    {!allEvents.length&&<tr><td colSpan={6} className="p-8 text-center text-ink-500">No Vendor or purchase activity matches these filters.</td></tr>}
     </tbody></table>
     {pending.length>0&&<p className="px-3 py-2 text-xs text-ink-500">Also {pending.length} unpriced source(s) — see Pending price.</p>}
    </div>:<div className="divide-y divide-border">
@@ -216,6 +243,8 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
        <Button size="sm" variant="outline" aria-label={'Receive goods '+(source.reference??source.id)}
         onClick={()=>openAction(source,'receive-goods')}>Receive goods</Button>
       </>}
+      <Button size="sm" variant="ghost" aria-label={'Correct vendor source '+(source.reference??source.id)}
+       onClick={()=>reviewSource(source.id)}>Correct</Button>
       <Button size="sm" variant="outline" aria-label={'View vendor source '+(source.reference??source.id)}
        onClick={()=>openAction(source,'details')}>View source</Button>
      </div>
@@ -227,6 +256,11 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
     onClose={()=>{setIssueOpen(false);setTab('issued');}}/>
   <VendorPurchaseDialog open={purchaseOpen} vendorPartyId={party.id} vendorName={party.name}
     onClose={()=>setPurchaseOpen(false)} onSaved={()=>{setPurchaseOpen(false);setPurchaseRevision(v=>v+1);setTab('purchases');}}/>
+  <VendorCorrectionDialog
+    source={snapshot.sources.find(item=>item.id===correctionSourceId)??null}
+    event={snapshot.events.find(item=>item.id===correctionEventId)??null}
+    state={snapshot} onClose={closeCorrection}
+    onReviewEvent={reviewEvent} onBackToSource={()=>setCorrectionEventId(null)}/>
   <VendorStatementDialog open={statementOpen} onClose={()=>setStatementOpen(false)} party={party} state={snapshot} range={range}/>
   <VendorActionDialog source={detail?snapshot.sources.find(s=>s.id===detail.id)??null:null} mode={actionMode} onClose={()=>setDetail(null)}/>
   <Dialog open={!!openingSide} onOpenChange={v=>!v&&setOpeningSide(null)}>

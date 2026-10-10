@@ -26,6 +26,7 @@
     "test:vendor-pos": "node scripts/vendor-pos-browser.cjs",
     "test:vendor-evening": "node scripts/vendor-evening-browser.cjs",
     "test:vendor-context": "node scripts/vendor-context-browser.cjs",
+    "test:vendor-correction": "node scripts/vendor-correction-browser.cjs",
     "test:party-ledger": "node scripts/party-ledger-browser.cjs",
     "test:party-settlement": "node scripts/party-settlement-browser.cjs",
     "test:party-opening": "node scripts/party-opening-browser.cjs",
