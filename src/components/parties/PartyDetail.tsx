@@ -224,7 +224,7 @@ export function PartyDetail({
         )}
       </div>
 
-      {entries.length === 0 && tab !== 'notes' && tab !== 'ledger' ?
+      {(vendorProfile?(!vendorProfile.documents.length&&!vendorProfile.payments.length&&!notes.length):entries.length===0) && tab !== 'notes' && tab !== 'ledger' ?
       <div className="px-4 py-14 text-center">
           <Receipt className="mx-auto size-8 text-helper" />
           <p className="mt-2 font-medium text-ink">No transactions in this period</p>
@@ -233,20 +233,45 @@ export function PartyDetail({
 
       <div>
           {tab === 'ledger' && <>
+            {vendorProfile&&<div className="flex flex-wrap items-center gap-2 border-b border-border bg-ink-50 px-3 py-2 text-xs">
+              <span>Account · কোন হিসাব?</span>
+              <Button size="sm" variant={vendorSide==='payable'?'default':'outline'}
+               onClick={()=>{setVendorSide('payable');onPage(1);}}>Taken · You owe</Button>
+              <Button size="sm" variant={vendorSide==='receivable'?'default':'outline'}
+               onClick={()=>{setVendorSide('receivable');onPage(1);}}>Given · Vendor owes</Button>
+              <span className="ml-auto text-ink-500">Separate running balances</span>
+             </div>}
             <PartyLedgerToolbar range={range} onRange={onRange} kind={kind} onKind={onKind}
               query={ledgerQuery} onQuery={onLedgerQuery} pageSize={pageSize} onPageSize={onPageSize}
               onStatement={onStatement} onReset={onResetLedger}/>
-            <LedgerTable statement={statement} visibleRows={visibleRows} actionsForRow={actionsForRow}
+            <LedgerTable statement={shownStatement} visibleRows={shownRows} actionsForRow={shownActions}
               onAction={doRowAction} onOpenAttachment={()=>toast('No document available in preview')}/>
             <div className="flex items-center justify-between gap-2 px-4 py-2 text-xs text-ink-500">
-              <span>Page {page} of {pages} · {statement.rows.length} dated transactions</span>
+              <span>Page {page} of {shownPages} · {shownFiltered.length||shownStatement.rows.length} dated transactions</span>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" disabled={page<=1} onClick={()=>onPage(page-1)}>Previous</Button>
-                <Button size="sm" variant="outline" disabled={page>=pages} onClick={()=>onPage(page+1)}>Next</Button>
+                <Button size="sm" variant="outline" disabled={page>=shownPages} onClick={()=>onPage(page+1)}>Next</Button>
               </div>
             </div>
+            {vendorProfile&&vendorSide==='payable'&&vendorProfile.takenStatement.unpricedSources.length>0&&
+             <p className="px-4 py-2 text-xs text-ink-500">Price not set · দাম ঠিক হয়নি — {vendorProfile.takenStatement.unpricedSources.length} taken record(s). No money amount assigned.</p>}
           </>}
-          {(tab === 'invoices' || tab === 'payments') &&
+          {(tab === 'invoices' || tab === 'payments') && vendorProfile&&
+           <ul className="divide-y divide-border">
+            {(tab==='invoices'?vendorProfile.documents:vendorProfile.payments).map(item=>
+             <li key={item.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-xs">
+              <span className="min-w-0 flex-1"><strong className="text-ink">{item.reference}</strong>
+               <span className="ml-2 text-ink-400">{item.date}</span>
+               <p className="mt-1 text-ink-500">{item.description}</p></span>
+              <strong className="text-ink">{item.moneyPaisa===null?'Price not set':taka(Math.abs(item.moneyPaisa)/100)}</strong>
+              <Button size="sm" variant="ghost" onClick={()=>onOpenVendorWork?.(
+                item.bucket==='vendor-receivable'?'given':item.bucket==='supplier-purchase'?'purchases':'taken',
+                item.sourceEventId)}>View</Button>
+             </li>)}
+            {!(tab==='invoices'?vendorProfile.documents:vendorProfile.payments).length&&
+             <li className="p-8 text-center text-xs text-ink-500">No records yet.</li>}
+           </ul>}
+          {(tab === 'invoices' || tab === 'payments') && !vendorProfile &&
         <ul className="divide-y divide-border">
               {(tab === 'invoices' ? invoices : payments).map((e) =>
           <li key={e.id} className="flex items-center gap-3 px-4 py-2.5 text-[13px]">
@@ -325,7 +350,7 @@ export function PartyDetail({
 
       <PartyOpeningDialog open={openingOpen} onClose={()=>setOpeningOpen(false)}
         party={party} relationship={relationship} existing={existingOpening} onSubmit={onSetOpening}/>
-      <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={statement}/>
+      <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={shownStatement}/>
       {(relationship==='Customer'||relationship==='Supplier')&&<>
         <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}
           onClose={()=>setPaymentOpen(false)} onSubmit={onRecordPayment}/>
