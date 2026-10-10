@@ -20,7 +20,8 @@ import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
-import { blendedVendorUnitCost, saleAvailableStock, saleStockShortage } from '../utils/posStock';
+import { blendedVendorUnitCost } from '../utils/posStock';
+import {allocatePosStock} from '../vendor/vendorStock';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -264,20 +265,16 @@ export function Pos() {
     const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
 
-    const unresolvedShortageLine = cart.lines.find((line) => {
-      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
-      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
-      return saleStockShortage(line.product, stockLots, baseQty) > 0 && !line.stockSource;
-    });
+    const allocated=allocatePosStock(cart.lines.map(l=>({key:l.key,product:l.product,
+      requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
+       l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),
+      choice:l.stockSource})),stockLots);
+    const unresolvedShortageLine=cart.lines.find((_,i)=>allocated[i]?.needsSourceBaseQty>0);
     if (unresolvedShortageLine) {
       const factor = unresolvedShortageLine.product.altUnit && unresolvedShortageLine.unit === unresolvedShortageLine.product.altUnit.unit
         ? unresolvedShortageLine.product.altUnit.factor
         : 1;
-      const shortage = saleStockShortage(
-        unresolvedShortageLine.product,
-        stockLots,
-        compoundBaseQuantity(unresolvedShortageLine.qty, unresolvedShortageLine.secondaryQty, factor)
-      );
+      const shortage=allocated.find(a=>a.key===unresolvedShortageLine.key)?.needsSourceBaseQty??0;
       toast.error('Choose stock shortage handling', {
         description: `${unresolvedShortageLine.product.name}: resolve ${shortage} ${unresolvedShortageLine.product.unit} shortage before completing the sale.`
       });
@@ -333,20 +330,26 @@ export function Pos() {
       return;
     }
     const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
+    const remainingLots=stockLots.map(lot=>({...lot}));
     setCompleted({
       invoice,
       customer: cart.customerDetails.name.trim() || cart.customer?.name || undefined,
       customerPhone: cart.customerDetails.phone.trim() || undefined,
       guardianName: cart.customerDetails.guardianName.trim() || undefined,
       customerAddress: cart.customerDetails.address.trim() || undefined,
-      lines: cart.lines.map((l) => {
+      lines: cart.lines.map((l,index) => {
         const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
         const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
-        const availableStock = saleAvailableStock(l.product, stockLots);
-        const shortage = saleStockShortage(l.product, stockLots, baseQty);
-        const vendorBlendedCost = l.stockSource?.mode === 'Vendor'
-          ? blendedVendorUnitCost(baseQty, availableStock, l.product.purchasePrice, l.stockSource.unitCost)
+        const ownBaseQty=allocated[index]?.ownBaseQty??0;
+        const shortage=Math.max(0,baseQty-ownBaseQty);
+        const vendorBlendedCost = l.stockSource?.mode === 'Vendor' && l.stockSource.unitCost!==null
+          ? blendedVendorUnitCost(baseQty,ownBaseQty,l.product.purchasePrice,l.stockSource.unitCost)
           : undefined;
+        const allocatedLots=l.product.kind==='Service'?undefined:allocateLotQuantity(l.product,remainingLots,ownBaseQty).allocations;
+        for(const consumed of allocatedLots??[]){
+          const lot=remainingLots.find(item=>item.id===consumed.lotId);
+          if(lot)lot.available=Math.max(0,lot.available-consumed.quantity);
+        }
         return {
           productId: l.product.id,
           name: l.product.name,
@@ -355,15 +358,12 @@ export function Pos() {
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
-          unitCost: vendorBlendedCost ?? (editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice),
+          unitCost: l.stockSource?.mode==='Vendor' && l.stockSource.unitCost===null
+            ? undefined : vendorBlendedCost ?? (editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice),
           serials: l.serials,
           warranty: editing ? (l.historicalWarranty ?? warrantySnapshot(l.product)) : warrantySnapshot(l.product),
           stockSource: shortage > 0 ? l.stockSource : undefined,
-          lotAllocations: l.product.kind === 'Service' ? undefined : allocateLotQuantity(
-            l.product,
-            stockLots,
-            Math.min(baseQty, availableStock)
-          ).allocations
+          lotAllocations: allocatedLots
         };
       }),
       subtotal: t.subtotal,
