@@ -1,0 +1,187 @@
+import React,{useMemo,useState,useSyncExternalStore} from 'react';
+import {BookOpen,FileText,HandCoins,MapPin,PackageMinus,PackagePlus,Phone,Plus,Printer,Truck} from 'lucide-react';
+import {Button} from '../Button';
+import {Input} from '../Input';
+import {FormSelect} from '../FormSelect';
+import {AppDateRangePicker} from '../AppDateRangePicker';
+import {AppDatePicker} from '../AppDateRangePicker';
+import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '../Dialog';
+import {PartyAvatar} from '../PartyAvatar';
+import {RoleBadge} from './RoleBadge';
+import {VendorStatementDialog} from './VendorStatementDialog';
+import {VendorActionDialog} from './VendorActionDialog';
+import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
+import {vendorBalances,sourceOutstanding} from '../../vendor/vendorModel';
+import {projectVendorStatement} from '../../vendor/vendorLedger';
+import {products} from '../../data/products';
+import {businessToday,type IsoRange} from '../../utils/dateRange';
+import {taka} from '../../utils/currency';
+import type {Party,PartyRole} from '../../types/erp';
+import type {VendorSource,VendorSide} from '../../vendor/vendorTypes';
+type Props={party:Party;onEditParty:()=>void;onRoleChange:(role:PartyRole)=>void};
+type Tab='activity'|'pending'|'sourcing'|'issued'|'purchases';
+export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
+ const snapshot=useSyncExternalStore(subscribeVendorPreview,getVendorPreviewSnapshot);
+ const balance=vendorBalances(snapshot,party.id);
+ const [tab,setTab]=useState<Tab>('activity');
+ const [range,setRange]=useState<IsoRange>({from:'',to:''});
+ const [query,setQuery]=useState('');
+ const [statementOpen,setStatementOpen]=useState(false);
+ const [detail,setDetail]=useState<VendorSource|null>(null);
+ const [openingSide,setOpeningSide]=useState<VendorSide|null>(null);
+ const [openingAmount,setOpeningAmount]=useState('');
+ const [openingDate,setOpeningDate]=useState(businessToday());
+ const [openingError,setOpeningError]=useState('');
+ const known=useMemo(()=>snapshot.sources.filter(s=>s.vendorPartyId===party.id&&s.status==='Active'
+  &&(!range.from||s.date>=range.from)&&(!range.to||s.date<=range.to)
+  &&[s.reference??'',s.productId,products.find(p=>p.id===s.productId)?.name??'']
+   .some(value=>value.toLowerCase().includes(query.trim().toLowerCase()))),[snapshot,party.id,range,query]);
+ const pending=known.filter(s=>s.sourceKind==='sourcing'&&sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
+ const sourced=known.filter(s=>s.sourceKind==='sourcing');
+ const issued=known.filter(s=>s.sourceKind==='issue');
+ const payable=projectVendorStatement(snapshot,party.id,'payable',range);
+ const receivable=projectVendorStatement(snapshot,party.id,'receivable',range);
+ const allEvents=[...payable.rows,...receivable.rows].filter(e=>
+  [e.reference??'',e.description].some(v=>v.toLowerCase().includes(query.toLowerCase())))
+  .sort((a,b)=>b.date.localeCompare(a.date)||b.sequence-a.sequence);
+ const tabs:{key:Tab;label:string;count?:number}[]=[
+  {key:'activity',label:'All Activity'},
+  {key:'pending',label:'Pending price',count:pending.length},
+  {key:'sourcing',label:'Sourced Sales',count:sourced.length},
+  {key:'issued',label:'Goods Issued',count:issued.length},
+  {key:'purchases',label:'Purchases'}
+ ];
+ const list=tab==='pending'?pending:tab==='sourcing'?sourced:issued;
+ const openBalance=(side:VendorSide)=>{
+  setOpeningSide(side);setOpeningAmount('');setOpeningDate(businessToday());setOpeningError('');
+ };
+ const submitOpening=()=>{
+  if(!openingSide)return;
+  try{
+   const amount=Number(openingAmount);
+   if(!Number.isFinite(amount)||amount<0||!Number.isSafeInteger(Math.round(amount*100))
+      ||Math.abs(Math.round(amount*100)/100-amount)>0.0000001)throw new Error('Enter a valid amount (up to two decimal places).');
+   dispatchVendorPreview({type:'set-opening',vendorPartyId:party.id,side:openingSide,
+    amountPaisa:Math.round(amount*100),date:openingDate,
+    operationId:'vendor-open-'+party.id+'-'+openingSide+'-'+snapshot.revision});
+   setOpeningSide(null);
+  }catch(error){setOpeningError(error instanceof Error?error.message:'Cannot save demo opening');}
+ };
+ const disabled=(label:string,explanation:string)=><Button key={label} size="sm" variant="outline" disabled title={explanation}>
+   {label}</Button>;
+ return <section aria-label="Vendor workspace" className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card">
+  <div className="flex flex-wrap items-start gap-3 border-b border-border p-4">
+   <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={48}/>
+   <div className="min-w-0 flex-1">
+    <h2 className="flex flex-wrap items-center gap-2 text-lg font-semibold text-ink">
+      {party.name} {party.nameBn&&<span className="font-bn text-sm font-normal text-ink-500">{party.nameBn}</span>}
+    </h2>
+    <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-500">
+     <span><Phone className="mr-1 inline size-3"/>{party.phone}</span>
+     <span><MapPin className="mr-1 inline size-3"/>{party.area}</span>
+     {party.roles.map(role=><RoleBadge key={role} role={role}/>)}
+    </div>
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+     <Button size="sm" variant="outline" onClick={onEditParty}>Edit party</Button>
+     {party.roles.length>1&&<div className="min-w-36">
+       <FormSelect title="Relationship" value="Vendor" options={party.roles} onChange={e=>onRoleChange(e.target.value as PartyRole)}/>
+     </div>}
+    </div>
+   </div>
+   <span className="rounded-lg border border-border bg-ink-50 px-2 py-1 text-[11px] font-medium text-ink-500">Demo preview · no real posting</span>
+  </div>
+  <div className="grid grid-cols-1 gap-2 border-b border-border p-3 sm:grid-cols-3">
+   <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Known payable">
+    <p className="text-xs text-ink-500">Known payable · দেনা</p>
+    <p className="mt-1 text-xl font-semibold text-ink">{taka(balance.knownPayablePaisa/100)}</p>
+    <p className="mt-0.5 text-[11px] text-ink-500">Priced Vendor sourcing only</p>
+   </div>
+   <div className="rounded-lg border border-warning/25 bg-warning-bg/30 p-3" aria-label="Price pending">
+    <p className="text-xs text-ink-500">Price pending · দাম বাকি</p>
+    <p className="mt-1 text-xl font-semibold text-ink">{balance.unpricedSourceBaseQty} <span className="text-sm font-normal">base units</span></p>
+    <p className="mt-0.5 text-[11px] text-ink-500">{balance.unpricedSourceCount} unsettled sources · Not ৳0</p>
+   </div>
+   <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Vendor receivable">
+    <p className="text-xs text-ink-500">Vendor receivable · পাওনা</p>
+    <p className="mt-1 text-xl font-semibold text-ink">{taka(balance.knownReceivablePaisa/100)}</p>
+    <p className="mt-0.5 text-[11px] text-ink-500">Goods issued to Vendor</p>
+   </div>
+  </div>
+  <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
+   {disabled('Set price & settle','Evening price confirmation is scheduled for Increment C.')}
+   {disabled('Pay Vendor','Money settlement is not connected to demo inventory or finance yet.')}
+   {disabled('Return goods','Returning matched owned stock is scheduled for Increment C.')}
+   {disabled('Give products','Goods issued memo is scheduled for Increment C.')}
+   {disabled('Receive money','Receivable settlement is scheduled for Increment C.')}
+   {disabled('Receive products','Goods received from Vendor is scheduled for Increment C.')}
+   {disabled('Buy products','Contextual Purchase editor is scheduled for Increment C; use Purchases module meanwhile.')}
+   <Button size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Vendor statement</Button>
+  </div>
+  <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+   <Button size="sm" variant="ghost" onClick={()=>openBalance('payable')}><BookOpen className="size-3.5"/> Payable opening</Button>
+   <Button size="sm" variant="ghost" onClick={()=>openBalance('receivable')}><BookOpen className="size-3.5"/> Receivable opening</Button>
+   <span className="text-[11px] text-ink-500">Opening amounts are non-cash, preview-only.</span>
+  </div>
+  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
+   <div className="flex flex-wrap gap-1" role="tablist" aria-label="Vendor workspace tabs">
+    {tabs.map(t=><button type="button" key={t.key} role="tab" aria-selected={tab===t.key}
+      onClick={()=>setTab(t.key)} className={'rounded-md px-2.5 py-1.5 text-xs font-medium '+(tab===t.key?'bg-ink-100 text-ink':'text-ink-500 hover:bg-ink-50')}>
+      {t.label}{t.count!==undefined?' ('+t.count+')':''}</button>)}
+   </div>
+   <div className="flex flex-wrap items-center gap-2">
+    <Input aria-label="Search Vendor activity" value={query} onChange={e=>setQuery(e.target.value)}
+     placeholder="Search source…" className="h-9 w-44"/>
+    <AppDateRangePicker value={range} onChange={setRange} label="Vendor activity date range"/>
+   </div>
+  </div>
+  {tab==='purchases'?<div className="p-6 text-center text-sm text-ink-500">
+   <FileText className="mx-auto mb-2 size-6"/>Use Purchases for ordinary buys from this same Party. An in-context Purchase editor is planned.
+  </div>:tab==='activity'?<div className="overflow-x-auto">
+    <table className="w-full min-w-[570px] text-xs"><thead><tr className="border-b border-border bg-ink-50">
+     <th className="p-2 text-left">Date</th><th className="p-2 text-left">Type & source</th>
+     <th className="p-2 text-left">Account</th><th className="p-2 text-right">Amount</th>
+    </tr></thead><tbody>{allEvents.map(e=><tr key={e.id} className="border-b border-border/70">
+     <td className="p-2 text-ink-500">{e.date}</td><td className="p-2">{e.reference??e.kind}<p className="text-ink-500">{e.description}</p></td>
+     <td className="p-2 capitalize">{e.side}</td>
+     <td className="p-2 text-right">{taka(e.deltaPaisa/100)}</td>
+    </tr>)}
+    {!allEvents.length&&<tr><td colSpan={4} className="p-8 text-center text-ink-500">No valued transactions in this date range. Price-pending items are in the Pending tab.</td></tr>}
+    </tbody></table>
+    {pending.length>0&&<p className="px-3 py-2 text-xs text-ink-500">Also {pending.length} unpriced source(s) — see Pending price.</p>}
+   </div>:<div className="divide-y divide-border">
+    {list.map(source=><div key={source.id} className="flex flex-wrap items-center gap-3 px-3 py-3 text-xs">
+     <div className="flex size-8 items-center justify-center rounded-lg bg-ink-50">
+      {source.sourceKind==='issue'?<PackageMinus className="size-4"/>:<Truck className="size-4"/>}
+     </div>
+     <div className="min-w-0 flex-1">
+      <p className="font-semibold text-ink">{source.reference??source.id}
+       <span className="ml-2 font-normal text-ink-500">{source.date}</span></p>
+      <p className="text-ink-500">{products.find(p=>p.id===source.productId)?.name??source.productId}
+       {' · '+source.baseQty+' '+(products.find(p=>p.id===source.productId)?.unit??'base units')}</p>
+     </div>
+     <div className="font-medium text-ink">{source.unitCostBasePaisa===null?'Price pending · দাম পরে নির্ধারণ':taka((source.sourceAmountPaisa??0)/100)}</div>
+     <Button size="sm" variant="outline" aria-label={'View vendor source '+(source.reference??source.id)}
+      onClick={()=>setDetail(source)}>View source</Button>
+    </div>)}
+    {!list.length&&<div className="p-8 text-center text-sm text-ink-500">No Vendor records match these filters.</div>}
+   </div>}
+  <VendorStatementDialog open={statementOpen} onClose={()=>setStatementOpen(false)} party={party} state={snapshot} range={range}/>
+  <VendorActionDialog source={detail} onClose={()=>setDetail(null)}/>
+  <Dialog open={!!openingSide} onOpenChange={v=>!v&&setOpeningSide(null)}>
+   <DialogContent role="dialog" aria-label="Vendor opening balance" className="sm:max-w-md">
+    <DialogHeader><DialogTitle>{openingSide==='payable'?'Vendor payable opening':'Vendor receivable opening'}</DialogTitle>
+     <DialogDescription>Non-cash historical balance · Demo preview only. Payable and receivable are separate.</DialogDescription>
+    </DialogHeader>
+    <label className="space-y-1 text-xs text-ink-500">Amount (৳)
+     <Input aria-label="Vendor opening amount" value={openingAmount} onChange={e=>setOpeningAmount(e.target.value)} inputMode="decimal"/>
+    </label>
+    <div className="space-y-1 text-xs text-ink-500">Opening date
+     <AppDatePicker label="Vendor opening date" value={openingDate} onChange={setOpeningDate}/>
+    </div>
+    {!!openingError&&<p role="alert" className="text-xs text-danger">{openingError}</p>}
+    <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={()=>setOpeningSide(null)}>Cancel</Button>
+     <Button size="sm" onClick={submitOpening}>Save demo opening</Button></div>
+   </DialogContent>
+  </Dialog>
+ </section>;
+}

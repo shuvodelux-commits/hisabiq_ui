@@ -1,0 +1,63 @@
+/**
+ * Vendor domain for the UI-only preview. Neither this store nor its balances
+ * are backend accounting transactions. Quantities are always in base units,
+ * known money in integer paisa; null price is explicitly unknown.
+ */
+export type VendorSide = 'payable' | 'receivable';
+export type VendorSourceKind = 'sourcing' | 'issue';
+export type VendorPricingStatus = 'unpriced' | 'partially-priced' | 'priced' | 'closed';
+export type VendorSettlementKind = 'pay' | 'return-to-vendor' | 'receive-money' | 'receive-goods';
+
+export type VendorPartyIdentity = {
+ id:string; roles:readonly string[]; status?:'Active'|'Inactive';
+};
+export type VendorSource = {
+ id:string; vendorPartyId:string; sourceKind:VendorSourceKind;
+ productId:string; baseQty:number; unitCostBasePaisa:number|null;
+ sourceAmountPaisa:number|null; pricingStatus:VendorPricingStatus;
+ date:string; reference?:string; sourceInvoiceId?:string; sourceSaleLineId?:string;
+ memoId?:string; status:'Active'|'Reversed';
+};
+export type VendorSourceInput = Pick<VendorSource,'id'|'productId'|'baseQty'|'date'|'unitCostBasePaisa'> &
+ Partial<Pick<VendorSource,'reference'|'sourceInvoiceId'|'sourceSaleLineId'|'memoId'>>;
+export type VendorOpening = {
+ id:string; vendorPartyId:string; side:VendorSide; openingAmountPaisa:number;
+ date:string; reason?:string; operationId:string;
+};
+export type VendorSettlementAllocation = {sourceId:string;amountPaisa:number|null;baseQty?:number};
+export type VendorSettlement = {
+ id:string;vendorPartyId:string;side:VendorSide;kind:VendorSettlementKind;date:string;
+ amountPaisa:number|null;allocations:VendorSettlementAllocation[];
+ paymentSplits?:Array<{id:string;method:'Cash'|'Bank'|'Mobile Banking';accountId:string;amountPaisa:number}>;
+ reason?:string;status:'Active'|'Reversed';operationId:string;
+};
+export type VendorLedgerEvent = {
+ id:string;vendorPartyId:string;side:VendorSide;kind:'opening'|'sourcing'|'issue'|'pricing'|'settlement'|'reversal';
+ sourceId?:string;reference?:string;date:string;sequence:number;
+ deltaPaisa:number;operationId:string;description:string;status:'Active'|'Reversed';
+};
+export type VendorPreviewSale = {
+ id:string;invoiceId:string;date:string;vendorPartyIds:string[];
+ sourceIds:string[];sourceMode:'demo';
+};
+export type VendorPreviewState = {
+ parties:VendorPartyIdentity[];sources:VendorSource[];
+ settlements:VendorSettlement[];events:VendorLedgerEvent[];
+ openings:VendorOpening[];sales:VendorPreviewSale[];
+ operations:string[];revision:number;
+};
+export type VendorPreviewCommand =
+ | {type:'record-sourcing'|'issue-goods';operationId:string;vendorPartyId:string;source:VendorSourceInput}
+ | {type:'set-opening';operationId:string;vendorPartyId:string;side:VendorSide;amountPaisa:number;date:string;reason?:string}
+ | {type:'set-source-price';operationId:string;vendorPartyId:string;sourceId:string;date:string;unitCostBasePaisa:number;reason?:string}
+ | {type:'settle-source';operationId:string;vendorPartyId:string;side:VendorSide;kind:VendorSettlementKind;date:string;amountPaisa:number|null;allocations:VendorSettlementAllocation[];paymentSplits?:VendorSettlement['paymentSplits'];reason?:string}
+ | {type:'reverse-event';operationId:string;vendorPartyId:string;eventId:string;date:string;reason:string}
+ | {type:'simulate-pos-sale';operationId:string;vendorPartyId:string;sale:VendorPreviewSale;sources:VendorSourceInput[]};
+export type VendorBalances = {
+ knownPayablePaisa:number;knownReceivablePaisa:number;
+ unpricedSourceBaseQty:number;unpricedSourceCount:number;
+};
+export type VendorOutstanding = {
+ unpricedBaseQty:number;pricedBaseQty:number;returnedBaseQty:number;
+ monetaryDuePaisa:number|null;
+};

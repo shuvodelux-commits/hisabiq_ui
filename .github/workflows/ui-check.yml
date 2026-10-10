@@ -73,6 +73,9 @@ jobs:
       - name: Check Party profile and CSV workflows
         run: npm run test:parties
 
+      - name: Check Vendor Party two-way ledger preview
+        run: npm run test:vendor-workflow
+
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
 

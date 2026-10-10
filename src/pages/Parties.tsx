@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
+import { VendorWorkspace } from '../components/parties/VendorWorkspace';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { PartyImportDialog } from '../components/parties/PartyImportDialog';
 import {PartyExcelImportDialog} from '../components/parties/PartyExcelImportDialog';
@@ -149,7 +150,8 @@ export function Parties() {
          setRole(value);const next=new URLSearchParams(params);next.delete('group');next.delete('id');
          if(value==='All')next.delete('role');else next.set('role',value);setParams(next);
         }} query={query} onQuery={setQuery}/>
-      {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
+      {party&&relationship?relationship==='Vendor'?<VendorWorkspace key={party.id+'-Vendor'} party={party}
+        onEditParty={()=>setEditing(party)} onRoleChange={changeRole}/>:<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}
         statement={statement!} balanceSummary={summary!} visibleRows={visibleRows}
