@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan **natively** task-by-task. Do **not** use subagent-driven development. Every task includes red/green verification and one reviewable commit. No product implementation until the user approves the written spec and this plan.
 
-**Goal:** Deliver a consistent UI-only Vendor sourcing and two-way Vendor ledger workflow inside existing HisabIQ POS V2 and Party modules, without fake financial posting.
+**Goal:** Deliver a UI-only **source first, price later** Vendor sourcing workflow, two-way Vendor ledger, like-for-like product settlement, and ordinary Vendor purchases inside the existing HisabIQ POS V2 and Party modules—without fake financial posting.
 
-**Architecture:** Keep one Party identity, with a separate Vendor-specific source-linked, two-sided subledger. Pure allocation/reducer/projector functions back a single in-memory demo snapshot and the Party Vendor workspace; the existing POS renders explicit **demo/preview** source simulations. True consignment and authoritative backend operations are out of scope.
+**Architecture:** Keep one Party identity, with a separate Vendor-specific source-linked, two-sided subledger and explicit **unpriced quantity obligations**. Pure allocation/reducer/projector functions back a single in-memory demo snapshot and the Party Vendor workspace; the existing POS renders explicit **demo/preview** source simulations. True consignment and authoritative backend operations are out of scope.
 
 **Tech Stack:** React 18, TypeScript, Vite, existing shadcn-style local components, React Router, Node `--experimental-strip-types --test`, Playwright browser scripts, GitHub Actions. No new dependencies required.
 
@@ -15,10 +15,10 @@
 - Work only in `shuvodelux-commits/HisabIQ_ui`; **do not modify** main NestJS `hisabiq` or `sherERP_Mohim` legacy code.
 - **Native Superpowers only**; no subagents, no Remote Desktop Commander. Use a clean feature branch from the latest reviewed `main`; do not merge unrelated draft PR #51.
 - UI-only design phase: no genuine backend, stock, Sales, customer ledger, cashbook or bankbook posting claims. Every simulation/statement is explicitly labeled `Demo preview — not accounting records`.
-- One canonical Party ID; Vendor subaccounts are strictly **separate payable and receivable**, never netted; multi-role Party balances are independent.
+- One canonical Party ID; Vendor subaccounts are strictly **separate payable and receivable**, never netted; multi-role Party balances are independent. Existing PurchaseEditor already accepts Vendor-role Parties; reuse its logic contextually, never duplicate a Party or count a Vendor source as a second Purchase.
 - Preserve Magic Patterns design language, approved ERP nav and settings, POS V2 cart reorder, mixed units, serials, keyboard/touch interactions, desktop/tablet/mobile, light/dark themes, bilingual helper text, **no monospaced numeric font**.
 - Keep existing static fixture-based pages functioning. Do not migrate the app to a new state management dependency.
-- All financial values in integer paisa; normalized base quantities; immutable source links and audit records; operator-facing feedback is accurate, never a success toast for unimplemented posting.
+- **POS Vendor cost is optional**: unknown source cost is `null`, not `0`; sale preview may proceed and creates an **unpriced quantity obligation**. Confirm evening cost later, settle with money, matching owned goods, or both. Report unknown margin/COGS as `Pending`, never zero-profit or false free stock. Known money values use integer paisa; normalized base quantities; immutable source links and audit records; truthful UI feedback.
 - TDD: a failing behavior test precedes implementation; only report passing tests observed on the exact revision under test.
 - No true consignment, commission accounting, drop shipping, vendor advances, cross-role netting or production backend APIs in this plan.
 - Reuse `AppDatePicker` / range, Party creation/validation, POS V2 product/unit/cart and existing Party statement style instead of making parallel controls.
@@ -26,8 +26,8 @@
 ## File ownership map and stable interfaces
 
 **Domain (new):**
-- `src/vendor/vendorTypes.ts`: `VendorSide`, `VendorSource`, `VendorSettlement`, `VendorOpening`, `VendorLedgerEvent`, `VendorPreviewSale`, `VendorPreviewState`, discriminated `VendorPreviewCommand`, `VendorBalances`.
-- `src/vendor/vendorModel.ts`: pure `applyVendorCommand(state: VendorPreviewState, command: VendorPreviewCommand): VendorPreviewState`, `vendorBalances(state, vendorPartyId): VendorBalances`, `sourceOutstanding(state, sourceId): {qty: number; amountPaisa: number}`. All transitions validate before returning new state; throw leaves old state intact.
+- `src/vendor/vendorTypes.ts`: `VendorSide`, `VendorSource` (nullable pricing), `VendorSettlement`, `VendorOpening`, `VendorLedgerEvent`, `VendorPreviewSale`, `VendorPreviewState`, discriminated `VendorPreviewCommand` (including `set-source-price`), `VendorBalances` (known payable, known receivable, pending unpriced quantity/count).
+- `src/vendor/vendorModel.ts`: pure `applyVendorCommand(state: VendorPreviewState, command: VendorPreviewCommand): VendorPreviewState`, `vendorBalances(state, vendorPartyId): VendorBalances`, `sourceOutstanding(state, sourceId): {unpricedBaseQty:number; pricedBaseQty:number; returnedBaseQty:number; monetaryDuePaisa:number|null}`. `monetaryDuePaisa:null` means the quote has not been established; a successful linked physical return may close unpriced units without pricing. All transitions validate before returning new state; throw leaves old state intact.
 - `src/vendor/vendorPreviewStore.ts`: `getVendorPreviewSnapshot()`, `subscribeVendorPreview(listener)`, `dispatchVendorPreview(command)`, `resetVendorPreviewForTest()` using existing external-store convention. Demo fixtures are contained here and may link to existing `Party.id`s.
 - `src/vendor/vendorStock.ts`: `allocatePosStock(lines: readonly PosStockRequest[], lots: readonly StockLot[], now?: Date): PosStockAllocation[]` where each request is `{key:string; product:Product; requestedBaseQty:number; choice?: SaleStockSource}` and result `{key; productId; ownBaseQty; vendorBaseQty; negativeBaseQty; effectiveBaseQty; availableBeforeBaseQty}`. An explicit Own Stock clamp is a UI action, not a stored `stockSource` mode.
 - `src/vendor/vendorLedger.ts`: `projectVendorStatement(state: VendorPreviewState, vendorPartyId: string, side: VendorSide, range: IsoRange): VendorStatement`; `serializeVendorStatementCsv(statement: VendorStatement, vendorName: string): string` (reuse existing Party CSV/print escaping conventions).
@@ -36,14 +36,14 @@
 
 **UI (adapt existing screens):**
 - `src/components/parties/VendorWorkspace.tsx`: vendor-specific body inside `PartyDetail` for `relationship==='Vendor'`; retain shared Party header, relationship switch and identity.
-- `src/components/parties/VendorActionDialog.tsx`: modal for Pay, Return-to-Vendor, Give Products, Receive Money, Receive Products; extract source selection, product editor and payment split inputs rather than copy finance internals.
-- `src/components/parties/VendorStatementDialog.tsx`: payable/receivable statement tabs; date-range and CSV/print based on `PartyStatementDialog`.
+- `src/components/parties/VendorActionDialog.tsx`: modal for **Set Price**, `Set Price + Pay`, Return-to-Vendor (including unpriced matching goods), Give Products, Receive Money, Receive Products; extract source selection, product editor and payment split inputs rather than copy finance internals.
+- `src/components/parties/VendorStatementDialog.tsx`: payable/receivable statement tabs **plus unpriced quantity queue**, date-range and CSV/print based on `PartyStatementDialog`.\n- `src/components/parties/VendorPurchaseDialog.tsx` and `src/components/purchases/PurchaseEntryContent.tsx`: contextual **Buy Products** sheet and shared extracted Purchase editor composition; no second purchase posting engine. Reuse `src/pages/PurchaseEditor.tsx`, `PurchaseCart.tsx`, `PurchasePaymentPanel.tsx`.
 - `src/components/pos/StockShortageDialog.tsx`, `src/components/pos/CartTable.tsx`, `src/hooks/usePosCart.ts`, `src/pages/Pos.tsx`: live Party vendor picker, inline create and safe per-product, whole-cart allocations; mock sale source simulation only.
 - `src/pages/Parties.tsx`, `src/components/parties/PartyDetail.tsx`, `src/navigation/erpNavigation.ts`: Vendor filtered view and source-linked dialogs.
 - `src/types/erp.ts`: compatible optional source snapshot fields on `SaleLine`; do not break current Sale fixtures.
 
 **Tests:**
-- New `tests/vendorModel.test.ts`, `tests/vendorPreviewStore.test.ts`, `tests/vendorStock.test.ts`, `tests/vendorLedger.test.ts`, `tests/vendorWorkspace.test.ts`, `tests/vendorSalePreview.test.ts`, `tests/vendorSettlements.test.ts`, `tests/vendorCorrection.test.ts`.
+- New `tests/vendorModel.test.ts`, `tests/vendorPreviewStore.test.ts`, `tests/vendorStock.test.ts`, `tests/vendorLedger.test.ts`, `tests/vendorWorkspace.test.ts`, `tests/vendorSalePreview.test.ts`, **`tests/vendorPricing.test.ts`**, `tests/vendorSettlements.test.ts`, **`tests/vendorPurchaseContext.test.ts`**, `tests/vendorCorrection.test.ts`.
 - New `scripts/vendor-workflow-browser.cjs`.
 - Add `test:vendor-workflow` to `package.json` and browser regression step to `.github/workflows/ui-check.yml`.
 
@@ -53,9 +53,9 @@
 
 1. **Repeated product lines / simultaneous negative and vendor resolution:** 4+4 units at stock 5 may reserve only 5 owned; test Task 5.
 2. **Existing OVERSOLD debt mixed with positive lots:** net stock 1, positive lots 3, OVERSOLD -2 => vendor shortage 2 for request 3; test Task 5.
-3. **Cross-vendor, over-quantity/over-value or duplicate settlement:** reject before state mutation and never double-post; test Tasks 1 and 4.
-4. **Backdated transactions and printable running balances:** opening/closing separate by side, stable `date+sequence` order, CSV equals date filter; test Task 3.
-5. **Settled sale edited, customer return ambiguity or draft re-open:** require audit reversal/source review; never restore owned stock automatically; test Tasks 7 and 8.
+3. **Unpriced quantity returned vs priced money:** unknown cost stays `null` with no fake zero payable; evening quote may price remaining units; matching return can settle unpriced quantity before price; test Tasks 1, 8 and 9.
+4. **Cross-vendor or duplicated source / purchase:** cross-vendor and over-quantity rejected; buying replacement goods and returning them only increases/decreases own stock once; no double Vendor+Supplier payable; test Tasks 9 and 10.
+5. **Backdates, settled-sale edit, customer-return ambiguity:** statements preserve dated separate balances; reversal and customer returns require source review, not auto-stock; test Tasks 3 and 11.
 
 ---
 
@@ -65,9 +65,9 @@
 
 **Files:** Create `src/vendor/vendorTypes.ts`, `src/vendor/vendorModel.ts`; Test `tests/vendorModel.test.ts`.
 
-**Interfaces:** Produces `VendorPreviewState`, `VendorPreviewCommand`, `applyVendorCommand`, `vendorBalances`, `sourceOutstanding` used by all later tasks. Commands include `set-opening`, `record-sourcing`, `issue-goods`, `settle-source`, `reverse-event` and `simulate-pos-sale`; use a discriminated union. Each command carries `operationId`; mutations remain atomic on failure.
+**Interfaces:** Produces `VendorPreviewState`, `VendorPreviewCommand`, `applyVendorCommand`, `vendorBalances`, `sourceOutstanding` used by all later tasks. Commands include `set-opening`, `record-sourcing`, **`set-source-price`**, `issue-goods`, `settle-source`, `reverse-event` and `simulate-pos-sale`; use a discriminated union. Each command carries `operationId`; mutations remain atomic on failure.
 
-- [ ] **Step 1: Write failing tests** in `tests/vendorModel.test.ts`: sourcing of 3 Pcs × 11000 paisa increases only payable by 33000; issuing 2 Pcs × 7000 increases only receivable by 14000; a payable opening of 50000 and receivable opening of 12000 remain independent; another Party with `Supplier` role remains unaffected; duplicate `operationId` is idempotent; unknown/inactive Party, cross-Vendor source and NaN/negative money fail without changing previous state.
+- [ ] **Step 1: Write failing tests** in `tests/vendorModel.test.ts`: sourcing of 3 Pcs × 11000 paisa increases only payable by 33000; **sourcing 3 Pcs at unknown price produces `unpricedBaseQty=3` with zero *new known payable* but `amountPaisa:null` on the source; price `0` (explicit agreed free) and absent price are not equivalent**; issuing 2 Pcs × 7000 increases only receivable by 14000; a payable opening of 50000 and receivable opening of 12000 remain independent; another Party with `Supplier` role remains unaffected; duplicate `operationId` is idempotent; unknown/inactive Party, cross-Vendor source and NaN/negative money fail without changing previous state.
 - [ ] **Step 2: Run red test**: `node --experimental-strip-types --test tests/vendorModel.test.ts`. Expected: FAIL because Vendor domain exports do not yet exist.
 - [ ] **Step 3: Implement** types and pure reducer. Use integer paisa and source IDs; append one ordered ledger event per economic effect, no use of `Party.balance`; freeze or copy existing state before validating.
 - [ ] **Step 4: Run green test**: same command, expected: all new tests pass. Verify invalid input does not change a JSON snapshot of input state.
@@ -79,7 +79,7 @@
 
 **Interfaces:** Consumes Task 1 reducer. Produces `getVendorPreviewSnapshot(): VendorPreviewState`, `subscribeVendorPreview(listener: () => void): () => void`, `dispatchVendorPreview(command: VendorPreviewCommand): VendorPreviewState`, `resetVendorPreviewForTest(): void`. Read Party master identities from `getPartyPreviewSnapshot()` at command time, not `data/parties` static array.
 
-- [ ] **Step 1: Write failing tests**: snapshot/revision increments exactly once for valid command; no notification on rejection or idempotent retry; subscriptions unsubscribe; seeded examples are marked `demo`, linked to existing Vendor Party IDs; inactive Vendor new transactions blocked but historical source readable.
+- [ ] **Step 1: Write failing tests**: snapshot/revision increments exactly once for valid command; no notification on rejection or idempotent retry; subscriptions unsubscribe; seeded examples include both `unpriced` and `priced` sources marked `demo`, linked to existing Vendor Party IDs; inactive Vendor new transactions blocked but historical source readable.
 - [ ] **Step 2: Run red**: `node --experimental-strip-types --test tests/vendorPreviewStore.test.ts`.
 - [ ] **Step 3: Implement** simple module store modeled on `src/data/partyPreviewStore.ts`, with a documented demo-only seed and no network/persistent storage. Avoid mutating Party preview financial sources separately.
 - [ ] **Step 4: Run green** and `npm test`; expected zero test failures.
@@ -91,7 +91,7 @@
 
 **Interfaces:** Consumes Tasks 1–2 and `IsoRange` from `src/utils/dateRange.ts`; produces `projectVendorStatement(...)` returning side, opening, rows with running balance, period inflow/outflow and closing, and `serializeVendorStatementCsv(...)`. Use stable date/sequence sorting and same sanitizer/escaping rules as `src/utils/partyStatement.ts`.
 
-- [ ] **Step 1: Write failing tests**: sourcing ৳330/paid ৳200 gives payable ৳130; issued ৳140/received ৳70 gives receivable ৳70; neither side nets with the other; date-range from 2026-10-02 carries 2026-10-01 opening, including same-day tie-break; CSV formula-cell text is escaped and BOM/quotes follow existing export convention.
+- [ ] **Step 1: Write failing tests**: sourcing ৳330/paid ৳200 gives payable ৳130; issued ৳140/received ৳70 gives receivable ৳70; neither side nets with the other; date-range from 2026-10-02 carries 2026-10-01 opening, including same-day tie-break; **unpriced source appears as `3 Pcs · Price pending` in the quantity queue/CSV but never as zero-money valued row**; CSV formula-cell text is escaped and BOM/quotes follow existing export convention.
 - [ ] **Step 2: Run red**: `node --experimental-strip-types --test tests/vendorLedger.test.ts`.
 - [ ] **Step 3: Implement** source-linked projections and print dialog. Label `Demo preview — not accounting records`; use browser print and real Blob download, no fake `sent to printer` toast. Print both side statements or an explicit selected side, never a net closing balance.
 - [ ] **Step 4: Run green** and `npm run build`; expected zero errors.
@@ -103,9 +103,9 @@
 
 **Interfaces:** Uses Vendor store and statement from Tasks 2–3. `VendorWorkspace` accepts `{party: Party}` plus callbacks for Edit/Statement/Source actions as necessary; integrates *within* `PartyDetail` without a duplicated Party master form or duplicate generic signed ledger. `VendorActionDialog` accepts `{kind: VendorSettlementKind | 'issue-goods'; vendorPartyId: string; sourceId?: string; open: boolean; onClose: () => void}`.
 
-- [ ] **Step 1: Write failing tests**: `role=Vendor` route filters only Vendor-role Parties, nav has distinct `Suppliers` and `Vendors` children, shared Party header shows two labeled balances, ledger rows show source reference and side; an unavailable permission renders a disabled button with reason; vendor status/relationship switch retains Party ID.
+- [ ] **Step 1: Write failing tests**: `role=Vendor` route filters only Vendor-role Parties, nav has distinct `Suppliers` and `Vendors` children, shared Party header shows **two money balances plus separate Unpriced source count/quantity**, ledger rows show source reference and side; an unavailable permission renders a disabled button with reason; vendor status/relationship switch retains Party ID.
 - [ ] **Step 2: Run red**: `node --experimental-strip-types --test tests/vendorWorkspace.test.ts`.
-- [ ] **Step 3: Implement** compact Vendor-specific Party body, date range/search, source detail actions; adapt common `PartyDetail` header and themed controls. Provide in-module Pay/Return/Give/Receive dialogs with `preview only` copy. For `Give Products`, reuse `TransactionCartEditor`; for money use current split payment components or extract their common editor rather than copy POS payment logic. Dialog never claims a cash/bankbook write.
+- [ ] **Step 3: Implement** compact Vendor-specific Party body, **price-pending evening queue sorted by date with Set Price / Return Goods / View Source actions**, date range/search, source detail actions; adapt common `PartyDetail` header and themed controls. Provide in-module Pay/Return/Give/Receive dialogs with `preview only` copy. For `Give Products`, reuse `TransactionCartEditor`; for money use current split payment components or extract their common editor rather than copy POS payment logic. Dialog never claims a cash/bankbook write.
 - [ ] **Step 4: Run green**, `npm run build`, `npm run test:parties`, `npm run test:party-ledger`, then initial `node scripts/vendor-workflow-browser.cjs`; expected zero failures.
 - [ ] **Step 5: Commit** new UI, nav, tests and browser script with `git commit -m "feat(vendor): add contextual Party Vendor workspace"`.
 
@@ -129,9 +129,9 @@
 
 **Interfaces:** Consumes `availableParties()/dispatchPartyPreview({type:'create-party', ...})`, `getPartyPreviewSnapshot()`, Task 5 allocator, existing `SaleStockSource`. Preserve line's `stockSource` until quantity/unit/stock/vendor changes invalidate it. New Vendor Quick Add must create Party with `roles:['Vendor']` (or add Vendor to an existing identity by the normal validated role editor).
 
-- [ ] **Step 1: Extend failing tests**: Vendor list reacts to newly created Party without reloading; party selected by `id`; cost typed in `Box` converts to base `Pcs`; cart/discount/payments/draft remain untouched; changing qty/unit clears stale Vendor/Negative decision; zero owned stock Own option removes line; same product across rows cannot double-spend inventory.
+- [ ] **Step 1: Extend failing tests**: Vendor list reacts to newly created Party without reloading; party selected by `id`; cost typed in `Box` converts to base `Pcs`; cart/discount/payments/draft remain untouched; **blank cost is valid and displays Price pending, not ৳0**; changing qty/unit clears stale Vendor/Negative decision; zero owned stock Own option removes line; same product across rows cannot double-spend inventory.
 - [ ] **Step 2: Run red browser/unit tests**: `node --experimental-strip-types --test tests/vendorStock.test.ts` and `node scripts/vendor-workflow-browser.cjs` with the established local Vite Playwright harness.
-- [ ] **Step 3: Implement** existing modal (not a fork), canonical searchable Party ID picker, inline Party editor, affordable Vendor-cost preview and affected-stock summary; keep keyboard focus/Esc/Enter stable and style via existing theme tokens. Source choices are required before simulated completion when shortage exists.
+- [ ] **Step 3: Implement** existing modal (not a fork), canonical searchable Party ID picker, inline Party editor, **optional-cost input with Price pending indicator (no fake margin)** and affected-stock summary; keep keyboard focus/Esc/Enter stable and style via existing theme tokens. Source choices are required before simulated completion when shortage exists.
 - [ ] **Step 4: Run green**: focused tests, `npm run test:pos-reorder`, `npm run test:compound-units`, `npm run build`.
 - [ ] **Step 5: Commit** `git add src/components/pos/StockShortageDialog.tsx src/components/pos/CartTable.tsx src/hooks/usePosCart.ts src/pages/Pos.tsx tests/vendorStock.test.ts scripts/vendor-workflow-browser.cjs && git commit -m "feat(pos): complete in-cart Vendor sourcing editor"`.
 
@@ -141,9 +141,9 @@
 
 **Interfaces:** `prepareVendorSalePreview(invoiceId, allocations, saleLines)` returns a typed demo sale with explicit `sourceMode:'demo'`; `applyVendorCommand(..., {type:'simulate-pos-sale', operationId, sale})` applies all Vendor sourcing allocations and events as *one* in-memory operation. Vendor workspace `View source` opens that exact preview invoice snapshot in an internal detail sheet.
 
-- [ ] **Step 1: Write failing tests**: 8 sold/5 owned/3 Vendor yields exactly one linked demo sourcing event for ৳330; retry same operation ID leaves records unchanged; invalid second line means no sale/events written; negative mode yields no Vendor payable; changing original price does not rewrite saved historical Vendor cost; POS browser verifies explicit demo-only labels in receipt and Vendor workspace source detail.
+- [ ] **Step 1: Write failing tests**: 8 sold/5 owned/3 Vendor **without entered cost** yields exactly one linked `unpriced` demo quantity obligation, **not a monetary payable**; entering known cost ৳110/Pcs yields a separate valued ৳330 source case; retry same operation ID leaves records unchanged; invalid second line means no sale/events written; negative mode yields no Vendor payable; **the UI only shows realized profit after cost confirmation or actual replacement-lot cost**; changing original price does not rewrite saved historical Vendor cost; POS browser verifies explicit demo-only labels in receipt and Vendor workspace source detail.
 - [ ] **Step 2: Run red**: `node --experimental-strip-types --test tests/vendorSalePreview.test.ts`.
-- [ ] **Step 3: Implement** pure prepared snapshot and reducer command; display `Preview / Simulate in demo` rather than false completed/posted confirmation on UI-only routes. No customer/supplier Party, sales history, stock or finance authoritative mutation. If mock record exists, label it `Demo simulation` and make it visible through its Vendor source link. Never treat local POS receipt confirmation as a real persisted invoice.
+- [ ] **Step 3: Implement** pure prepared snapshot and reducer command; persist nullable Vendor source price and show `Price pending` in receipt/source detail; display `Preview / Simulate in demo` rather than false completed/posted confirmation on UI-only routes. No customer/supplier Party, sales history, stock or finance authoritative mutation. If mock record exists, label it `Demo simulation` and make it visible through its Vendor source link. Never treat local POS receipt confirmation as a real persisted invoice.
 - [ ] **Step 4: Run green**: new test, `npm run build`, `node scripts/vendor-workflow-browser.cjs`; verify no ghost Vendor due after failed/duplicate simulation.
 - [ ] **Step 5: Commit** `git add src/vendor/vendorSalePreview.ts src/vendor/vendorTypes.ts src/vendor/vendorModel.ts src/vendor/vendorPreviewStore.ts src/pages/Pos.tsx src/components/parties/VendorWorkspace.tsx tests/vendorSalePreview.test.ts scripts/vendor-workflow-browser.cjs && git commit -m "feat(vendor): link demo POS source to Vendor preview ledger"`.
 
