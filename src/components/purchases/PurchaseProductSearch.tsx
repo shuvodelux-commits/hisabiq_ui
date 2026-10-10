@@ -10,8 +10,9 @@ type Props={
  products:Product[];
  onAdd:(product:Product)=>void;
  onCreate:()=>void;
+ ariaLabel?:string;
 };
-export const PurchaseProductSearch=forwardRef<HTMLInputElement,Props>(function PurchaseProductSearch({products,onAdd,onCreate},ref){
+export const PurchaseProductSearch=forwardRef<HTMLInputElement,Props>(function PurchaseProductSearch({products,onAdd,onCreate,ariaLabel},ref){
  return <ProductCombobox ref={ref} products={products} mode="purchase" onSelect={onAdd}
-  onCreate={onCreate} ariaLabel="Search product to add to purchase"/>;
+  onCreate={onCreate} ariaLabel={ariaLabel??"Search product to add to purchase"}/>;
 });
