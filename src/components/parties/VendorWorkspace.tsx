@@ -1,5 +1,5 @@
 import React,{useId,useMemo,useState,useSyncExternalStore} from 'react';
-import {BookOpen,FileText,HandCoins,MapPin,PackageMinus,PackagePlus,Phone,Plus,Printer,Truck} from 'lucide-react';
+import {BookOpen,FileText,MapPin,PackageMinus,Phone,Plus,Printer,Truck} from 'lucide-react';
 import {Button} from '../Button';
 import {Input} from '../Input';
 import {FormSelect} from '../FormSelect';
