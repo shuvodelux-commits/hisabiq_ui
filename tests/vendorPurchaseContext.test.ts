@@ -38,3 +38,14 @@ test('ordinary replacement purchase and matching return change stock once each',
  assert.equal(vendorBalances(state,'v1').unpricedSourceBaseQty,0);
  assert.equal(vendorBalances(state,'v1').knownPayablePaisa,0);
 });
+
+test('same Purchase invoice cannot be added twice with different operation IDs',()=>{
+ const first={type:'record-purchase-inventory' as const,operationId:'stock-receipt-1',
+  vendorPartyId:'v1',purchaseId:'PUR-DUP-100',lines:[{productId:'p1',baseQty:4}]};
+ const once=applyVendorCommand(fresh(),first);
+ assert.equal(once.inventory?.p1,9);
+ assert.throws(()=>applyVendorCommand(once,{...first,operationId:'stock-receipt-2'}),
+  /purchase.*already|duplicate.*purchase/i);
+ assert.equal(once.inventory?.p1,9);
+ assert.equal(once.revision,1);
+});
