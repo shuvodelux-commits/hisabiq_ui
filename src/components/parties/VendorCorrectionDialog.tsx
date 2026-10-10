@@ -63,9 +63,14 @@ export function VendorCorrectionDialog({
    return linkedEvent?[linkedEvent]:[];
   });
  },[impact,state]);
- const dateError=focusEvent&&targetEvent?.date>today;
- const blocked=focusEvent?Boolean(state.events.some(e=>e.kind==='reversal'&&e.reversesEventId===selected.id))
-  :!impact?.reversible;
+ const dateError=Boolean(focusEvent&&targetEvent&&targetEvent.date>today);
+ const selectedBlocker=selected?.kind==='reversal'?'A reversal cannot itself be reversed.':
+  selected&&state.events.some(e=>e.kind==='reversal'&&e.reversesEventId===selected.id)
+   ?'This ledger event has already been reversed.':
+  selected&&['sourcing','issue'].includes(selected.kind)?impact?.blocker??null:
+  selected?.kind==='pricing'&&impact?.linkedSettlementIds.length
+   ?'Reverse linked settlement(s) before reversing a confirmed Vendor price.':null;
+ const blocked=focusEvent?Boolean(selectedBlocker):!impact?.reversible;
  const submit=()=>{
   setError('');
   try{
@@ -116,6 +121,9 @@ export function VendorCorrectionDialog({
      'Known source amount: '+taka((activeSource.sourceAmountPaisa??0)/100)}</p>
     {impact?.linkedSaleInvoiceId&&<p className="mt-1">Linked sale: <strong>{impact.linkedSaleInvoiceId}</strong></p>}
    </div>}
+   {focusEvent&&selectedBlocker&&<p role="alert" className="rounded-lg border border-warning/25 bg-warning-bg/20 p-3 text-xs text-ink">
+     <AlertTriangle className="mr-1 inline size-4 text-warning"/>{selectedBlocker}
+   </p>}
    {selected&&<div className="rounded-lg border border-border p-3 text-xs">
     <p className="font-semibold capitalize text-ink">{selected.kind} · {selected.date}</p>
     <p className="mt-1 text-ink-500">{selected.description}</p>
