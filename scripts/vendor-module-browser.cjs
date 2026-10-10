@@ -9,17 +9,17 @@ async function main(){
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
   await page.goto('http://127.0.0.1:4270/#/app/vendors');
-  await page.getByRole('region',{name:'Vendor module'}).waitFor();
+  await page.getByRole('region',{name:'Vendor Sourcing module'}).waitFor();
   const nav=page.getByRole('navigation',{name:'Main'});
   await nav.getByRole('link',{name:/Vendor/}).first().waitFor();
   await page.getByRole('textbox',{name:'Search Vendors'}).fill('Shapla');
   await page.getByRole('button',{name:/Shapla Transport/}).first().click();
   const tabs=page.getByRole('tablist',{name:'Vendor work tabs'});
   assert.equal(await tabs.getByRole('tab').count(),5);
-  await tabs.getByRole('tab',{name:/Taken/}).click();
+  await tabs.getByRole('tab',{name:/Products Received/}).click();
   assert.ok(page.url().includes('tab=taken'));
   await page.reload();
-  assert.equal(await tabs.getByRole('tab',{name:/Taken/}).getAttribute('aria-selected'),'true');
+  assert.equal(await tabs.getByRole('tab',{name:/Products Received/}).getAttribute('aria-selected'),'true');
   await page.setViewportSize({width:390,height:840});
   assert.deepEqual(errors,[]);
   console.log('Top-level Vendor route, five tabs and responsive selection verified');
