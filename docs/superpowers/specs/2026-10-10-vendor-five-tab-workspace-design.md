@@ -1,122 +1,163 @@
-# Vendor workspace: five simple tabs, no action-button wall
-**Design specification — 2026-10-10 · status: for user review**
+# Vendor as a Top-Level Module; Consistent Party Profiles
+**Superpowers architecture/design specification · 2026-10-10 · revised per owner feedback · awaiting written approval**
 
-## 1. Decision and purpose
+## 1. User's clarified decision
 
-This supersedes the crowded Vendor page design, **not** the Vendor financial model approved in `2026-10-10-vendor-sourcing-ledger-design.md`. Intended users are Bangladesh shopkeepers on desktop and mobile, often using a keyboard or touch screen. The user approved the concept of five tabs and requested everyday wording throughout the UI. This document is the buildable detail for review before implementing.
+**Vendor is a TOP-LEVEL ERP module**, alongside POS, Sales and Purchases, not a subsection beneath Parties. Every Vendor operation belongs to the top-level **Vendor** workspace. **Parties** remains a general directory and profile/ledger area where a Vendor behaves like Customer, Supplier, Lender, Borrower, Owner or Payee: same profile layout, same base five profile tabs, same search, date filters and standard record actions.
 
-**Goal:** From one Vendor's Party profile, complete all Vendor tasks in the relevant tab without navigating to other ERP modules and without opening enormous scrollable dialogs.
+This revises the earlier proposal to put the Vendor's five operational tabs inside their Party profile. That former proposal is **superseded**. The already-approved *Vendor work* tabs and simple-English/Bangla language standard remain.
 
-Non-negotiables:
-- KISS: show one primary action per tab, secondary actions beside the relevant record; hide infrequent actions under a clearly labeled **More** menu.
-- Keep **one Party record** with multiple roles (Vendor/Supplier/Payee/etc.). Never require creating a second supplier record for ordinary purchases.
-- Preserve four **separate** figures: money you owe for Vendor-taken products, quantity of taken products without a price, money the Vendor owes for goods you gave, and money you owe for ordinary purchases. Never silently offset one against another; unknown price is **not ৳0**.
-- Preserve original invoices, settlement links, independent due buckets, audit events and tenant boundaries. Do not claim a demo action posts real inventory, accounts or ledger.
-- Show simple English labels with short Bangla helpers; avoid words requiring accounting training. A transaction can be paid/cleared **any time**. Do not mention `evening` anywhere in user-facing copy.
+The intent is to make a shopkeeper understand two separate concepts:
+- **Party** answers: "Who is this person or business, what do we owe each other, and what happened with them?"
+- **Vendor** answers: "What work do I need to do with goods taken or given to other shops, and how do I finish it?"
 
-## 2. Screen anatomy and layout
+The same Party identity and underlying transactions appear from both modules. No second Vendor identity, copied payments, duplicate ledger or parallel implementations.
 
-1. **Compact Party header:** avatar, name/Bangla name, phone, location and relationship badge. Top-right **More** menu: Edit Party, switch another role, opening balances, inactive/active where supported. Separate role selector stays discoverable for multi-role people. Demo badge is discreet, not repeated in every label.
-2. **Compact money summary:** four clear mini-readouts, with unit-aware **Price not set** quantity/count; monetary readouts each have their own name. Do **not** add these four balances together. Default one line on wide screens and two-up on narrow. Clicking a summary takes user to its relevant tab and filtered rows.
-3. **One horizontal underlined tab bar**, following the Party screenshot: **Ledger · হিসাব**, **Taken · নেওয়া পণ্য**, **Given · দেওয়া পণ্য**, **Purchases · কেনাকাটা**, **Payments · টাকা লেনদেন**. Use `tabs variant=line` style; accessible `tablist`, `tab`, `tabpanel`, and arrow-key navigation. Preserve tab on same-Party record updates; reset appropriately on Party change.
-4. **One contextual tab toolbar:** tab title + **one primary button** on the right; show search/date-range only where needed; optional More dropdown for print/export/opening/corrections, not a full toolbar of permanent actions.
-5. **Tab contents:** compact record rows or POS-style inline editor, not another set of nested modals. Record details may expand inline. Confirmation/correction may use a **small**, accessible dialog, never a wide editor inside a dialog.
-6. On narrow screens: tab strip scrolls horizontally without wrapping; header condenses; totals form two columns; editors stack vertically; no page-level horizontal scrollbar, no double scrollbar. Keep touch targets comfortably sized.
+## 2. Main sidebar and routes
 
-**Remove** the current eight-button action toolbar and the separate Opening Balance action row from the Vendor page. Both payable/receivable opening forms are reachable through **More → Opening Balance** (with an explicit direction selector) and remain clearly historical, noncash entries.
+Top-level navigation order near commercial workflows:
 
-## 3. Five-tab responsibility matrix
+```text
+Dashboard
+POS / New Sale
+Sales
+Purchases
+Vendor          ← NEW top-level module, directly in main sidebar
+Products & Stock
+Parties & Ledger
+Expenses
+Finance & Accounts
+...
+```
 
-| Tab | Primary action | Record-area actions and required capabilities |
+- Route: **`/app/vendors`** for the Vendor module. Root opens its own Vendor selector/list first, like Purchase list/management.
+- Optional deep link: **`/app/vendors?partyId=<canonical-party-id>&tab=taken|given|purchases|payments|ledger`**. A Party link may open a filtered Vendor workspace but the destination stays the top-level Vendor module.
+- Implement registration in `src/App.tsx`; register the leaf in `src/navigation/erpNavigation.ts`, `erpRoutePaths` and the shared desktop/mobile `ErpNavMenu`. Preserve existing commercial routes, nav checks, permissions and active-state handling.
+- Keep **Vendors** within the Parties directory role filter as a *contact-category filter*, because other roles retain their own category entries. That child link opens `/app/parties?role=Vendor`, **not** the operational Vendor module. Distinguish these in clear labels: **Vendor** (operational module) vs **Vendors** (people directory under Parties). Do not show a second full Vendor menu inside Parties.
+- Top-level sidebar entry must be a single visible item (no extra nested five tabs in sidebar). In-page tabs own the five workflows.
+
+## 3. Top-level Vendor workflow, inspired by Purchases
+
+### 3A. When no Vendor selected
+- Top-level **Vendor** page shows compact **Choose Vendor · ভেন্ডর বাছুন** searchable combobox with clear selection and **+ Add Vendor · নতুন ভেন্ডর** in the same module. Quick Add attaches Vendor role to an existing canonical Party where appropriate; never silently creates a duplicate person.
+- Show lightweight Vendor directory/list (name, phone, **You owe**, **Vendor owes**, **Price not set** count) and a useful search. Selecting one opens the five-tab workspace **within the same page**, not a huge dialog. Exclude unrelated roles; one Party can hold both Vendor and Supplier roles.
+- Optional filter **Needs price** helps find work requiring attention. No dashboard full of metric cards needed for V1.
+- Preserve selected Vendor in query state for reload/back navigation; reset per-Vendor record edits on Vendor change, with an unsaved draft warning.
+
+### 3B. When Vendor selected
+- Compact top header: back to Vendors, Vendor name (+ Bangla name), phone, area, Edit Party/profile link.
+- Compact summary row, keeping **four separate amounts/quantities**, never netting them: **You owe (Taken)**, **Price not set (quantity/count)**, **Vendor owes (Given)**, **Purchase due**. Summary links may open the corresponding filtered tab. If price unknown, show "Price not set", not ৳0. No monospaced digits.
+- Five **horizontal underline** tabs (the Party reference screenshot's style), one contextual primary action per tab. Use shadcn-style line tabs and theme tokens. No eight-button toolbar, no separate permanent opening-balance row, no row with five competing actions:
+  1. **Ledger · হিসাব**
+  2. **Taken · নেওয়া পণ্য**
+  3. **Given · দেওয়া পণ্য**
+  4. **Purchases · কেনাকাটা**
+  5. **Payments · টাকা লেনদেন**
+- Default after picking a Vendor: **Taken** if there are records whose price needs to be set; otherwise **Ledger**. Deep-link tab wins over defaults. This behavior may be simplified to Ledger for V1 if predictable tab persistence is more valuable; decide in implementation plan, never change randomly.
+
+### 3C. Work per tab
+
+| Tab | Primary button | What happens without leaving Vendor |
 |---|---|---|
-| **Ledger · হিসাব** | **Print Ledger · হিসাব প্রিন্ট** | Filter start/end dates with date-range picker; search; balance at start/end; money in/out visually distinct **and explicitly labelled**; View, Correct, Cancel Entry (audited reverse with reason), CSV export in More; link to original purchase, taken/given memo, payment or sale; include unpriced and reversed items in **Activity**, but do not invent a cash amount for them. |
-| **Taken · নেওয়া পণ্য** | **Take Products · পণ্য নিন** | See Vendor goods taken for sales (including POS shortage links) and optionally recorded directly from Vendor; filter **Price not set**, **Money due**, **Cleared** within tab; open record for **Set Price · দাম ঠিক করুন**, **Pay Money · টাকা দিন**, **Return Products · পণ্য ফেরত দিন**, **Clear Due · বাকি মেটান** (money, matching products or both), View Sale, Correct (guarded). Quantity / price / payment can be partial; quote later at any time. |
-| **Given · দেওয়া পণ্য** | **Give Products · পণ্য দিন** | Full-width POS-style **give** cart, multi-product memo, compound units, agreed price, product stock availability and unit conversion; record memo; list past memos and balance; per memo **Receive Money · টাকা নিন**, **Get Products Back · পণ্য ফেরত নিন**, partial receipts, View/Correct (guarded). Goods issued create **Vendor owes** not **You owe**. |
-| **Purchases · কেনাকাটা** | **Buy Products · পণ্য কিনুন** | Embed existing `PurchaseEditor` **directly in tab** with Vendor already selected; preserve POS-style search/cart, Enter navigation, add product from same screen, brand/category/unit Quick Add, combined-unit quantity, purchase price unit switch, discounts, attachments/supplier receipt, one/multiple payment accounts, due amount. Below or beside editor, ordinary Purchase list with View, Edit/Duplicate (where implemented), Pay Due, Return Products, Refund/adjust, Print. No separate `VendorPurchaseDialog`. Standard owned stock and ordinary Supplier payable remain separate from Taken. |
-| **Payments · টাকা লেনদেন** | **Record Payment · টাকা লেনদেন যোগ করুন** | List paid/received transactions, cash/bank/mobile banking, payment account, date/reference, **which record and which balance** they belong to. Payment form chooses **Pay / Receive**, then **Taken / Given / Purchase** due and exact source/invoice; show due before/after; split across multiple accounts; View, Correct/Cancel Entry with reason and compensation. Never create a free-floating, silently netted Vendor balance payment. |
+| **Ledger · হিসাব** | **Print Ledger · হিসাব প্রিন্ট** | Combined chronological Vendor activity with date-range, search and export; item links, color + explicit “Money in”/“Money out” labels, source-linked corrections and cancellation history. Unknown-price source appears as “Price not set”, not a made-up cash amount. Each balance type remains explicitly named. |
+| **Taken · নেওয়া পণ্য** | **Take Products · পণ্য নিন** | Record goods taken from another shop (manual or POS-linked), POS-like multi-product editor, quantity with compound units, optional price, reference/date, list of outstanding sources. Per-row **Set Price · দাম ঠিক করুন**, **Pay Money · টাকা দিন**, **Return Products · পণ্য ফেরত দিন**, **Clear Due · বাকি মেটান**, details and guarded corrections. Prices can be set and dues cleared **at any time**. |
+| **Given · দেওয়া পণ্য** | **Give Products · পণ্য দিন** | Use common POS-style multi-product cart to give owned products to a Vendor, agreed prices, stock checks, memo/date. After giving: **Receive Money · টাকা নিন** or **Get Products Back · পণ্য ফেরত নিন**, partial receipts and source audit. Vendor owes merchant; no normal customer Sale is silently created. |
+| **Purchases · কেনাকাটা** | **Buy Products · পণ্য কিনুন** | Reuse the **existing PurchaseEditor** full-width with selected Vendor prefilled. Standard owned-stock purchase, invoice, supplier memo, discount, unit switching, Quick Add, Cash/Bank/MFS split payments, outstanding Purchase due. List, print, view, correct, purchase return/refund must use the same existing Purchase route/logic; any incomplete operation clearly flagged for later verified work. **Never embed PurchaseEditor in the oversized VendorPurchaseDialog.** |
+| **Payments · টাকা লেনদেন** | **Record Payment · টাকা লেনদেন যোগ করুন** | Choose money given/received, link to **Taken/Given/Purchase** source or invoice and correct balance direction, payment accounts and splits, history with date/filter, correction/audited cancellation. Contextual **Pay** links from other tabs may preselect this tab + source; return to originating tab after recording. |
 
-**Do not duplicate a complete payment form in multiple tabs.** Context buttons in Taken, Given and Purchases open the **Payments tab prefilled** with Vendor, balance direction and source. Returning completes inside Vendor workspace; preserve the origin tab/record in a small “Back to Taken/Given/Purchase” link. The Payments tab handles every money transfer; Taken and Given can keep a compact **Clear Due** flow for money-plus-physical-stock combined actions that uses the same payment controls. Recording a goods-only return stays in Taken or Given because no money moves. **Combined money + product settlement must be one all-or-nothing user action:** validate stock, amounts, Vendor identity and payment splits before applying either half. If the demo reducer cannot guarantee that yet, mark this flow unfinished instead of pretending two independent demo commands form a safe transaction.
+Only one large editor visible at a time; product cart input on top, compact list or table below or switchable "New / History" area inside tab as needed. A modal may be used for small confirmations, previews or destructive corrections, **not full Purchase/Given/Take editors**.
 
-**“Take Products” is distinct from “Buy Products”:** POS-sourced goods are not yet ordinary owned-stock Purchases. Directly taken goods are linked Vendor source records; if no money price was agreed, **Price not set** is visible rather than automatically valuing stock.
+## 4. Parties: ALL roles use one consistent PartyDetail experience
 
-## 4. Reuse; do not fork POS or Purchase behavior
+**Important structural code change:** `src/pages/Parties.tsx` currently special-cases `relationship==='Vendor'` to render `VendorWorkspace` instead of `PartyDetail`. Remove the exception when this redesign is implemented; **Vendor uses `PartyDetail` like every other role.**
 
-- **Purchases:** `src/pages/PurchaseEditor.tsx` already supports `embedded`, `initialSupplierId`, `onCompleted` and `onCancel`. Render within Purchases tab at full available width, not inside `src/components/parties/VendorPurchaseDialog.tsx`. Preserve two-column cart + sticky checkout where width allows, single column on mobile. Do not nest scrollable dialogs or squeeze the 1440px editor into a 500px popup. Show editor only when “Buy Products” is active; existing Purchase list remains visible otherwise. After save, return to the Purchase list and refresh its snapshot. Keep cart draft when user changes tabs; warn before discarding unsaved changes or changing Party.
-- **Given:** reuse shared `PurchaseCart`/POS cart **components** and `CompoundQuantityInput` product search, inline rows, keyboard sequence and touch add—not the `PurchaseEditor` posting route (that would create a Supplier purchase) and not the POS sales posting route (that would create a Sale). Extract a common cart row/product picker only as needed, and keep Vendor **issue-goods-memo** in the Vendor domain. Prevent negative owned stock; use agreed Vendor price and unit conversions.
-- **Taken:** use the same compact multi-product cart shell where manual source entry is needed, with optional price and date/reference; keep the POS shortage `StockShortageDialog` linked to sale invoice and cart allocations. Never silently duplicate source from POS when revisiting the tab.
-- **Payments:** reuse existing payment rows/split selector and account picker across POS, Purchase and Vendor when practical. **Pay**, **Receive** and **Clear Due** must preserve different ledger sides and statuses.
-- Prefer shared shadcn-like `Tabs`, `AppSelect`/QuickAdd, date-range, accessible Dialog/AlertDialog, Button, Tooltip and DropdownMenu patterns already used in HisabIQ. Keep theme-token colors rather than new one-off dark-mode shades.
+Keep same shared Party tabs/visual grammar for all roles:
+- **Ledger · হিসাব**
+- **Invoices · বিল**
+- **Payments · টাকা লেনদেন**
+- **Notes · নোট**
+- **Attachments · ফাইল**
 
-## 5. Essential end-to-end user stories and accounting rules
+These are **profile / history views**, not the five Vendor operational tabs. Vendor is still a selectable Party role and still eligible for notes, attachments, profile edits, opening balances, general Party statement and ledger actions. Where a type of record is a Vendor memo rather than an invoice, label it by its real document type (e.g. Taken memo / Given memo), without falsely renaming it as a sale invoice.
 
-1. POS has 4 in stock, customer wants 8. Vendor provides 4; sale is linked, Vendor source appears in **Taken**. Vendor price can be unknown until later; no fictional money payable is shown.
-2. Shopkeeper agrees price at **any time**; use **Set Price**, then **Clear Due** via one or more money accounts, equivalent own-stock return, or both; partial balances survive and are reflected in **Ledger** and **Payments**. Goods fully returned before pricing can close without inventing price.
-3. Shopkeeper gives Vendor products from owned inventory; one memo can contain several different products and mixed compound quantities (e.g. Box+Pcs, Gauge+Gira). **Given** creates Vendor receivable; later Vendor gives money or matching products back, including partial receipts.
-4. Same Vendor also sells ordinary products. **Purchases** records normal stock purchase and payment/credit separately; no duplicate Party and no double stock projection. If Purchase due remains, it shows in **Purchase due**, not **Taken due**.
-5. Purchase return/refund belongs to Purchases. Never count it as a Vendor sourcing return; credit/refund flows must be represented before implementation is called complete. Existing preview functions may be incomplete here; distinguish UI design from working accounting.
-6. Wrong date/amount/product: choose **Correct · সংশোধন** from the relevant row, see related source(s), invoice and payments; an audited reverse requires actor, reason and confirmation. If a linked settlement exists, reverse the dependent payment/return first; original history remains visible. Source-linked customer return needs explicit physical-ownership review, not automatic stock increment.
-7. Vendor is also Supplier and/or Payee: Party details retain all relationships; switching role does not lose Vendor tab work. Deactivation does not erase historical statements.
+A Vendor Party profile may show one simple contextual **Open Vendor · ভেন্ডরের কাজ খুলুন** link; clicking opens `/app/vendors?partyId=<id>`, preserving the selected person. Do not embed its complete Vendor cart, payments or source editing forms inside the Party profile. Conversely, Vendor workspace includes a small **View Party** link for personal details and relationship roles.
 
-**Audit and integrity invariants:** tenant scope always from authenticated session in backend, never client-supplied IDs; original source/settlement/invoice immutable; positive whole paisa accounting for known values, `null` unknown, no phantom zeros; no implicit cross-side netting; linked idempotent operation and exact duplicate Purchase receipt protection; no claiming backend writes in preview. Existing domain constraints outrank cosmetic layout.
+**One identity, one source of truth:** existing `partyPreviewStore` and `vendorPreviewStore` currently serve different mock data projections. The implementation must adapt the new Vendor events to the **standard Party ledger/invoice/payment selectors without copying entries into the Party store or double-counting**. Define a read-only combined projection keyed by canonical Party ID and actual source IDs. No duplicate money received/paid merely because records are visible in both modules. Ordinary Supplier purchases remain on the ordinary Purchase ledger. Record correction from Party view should deep-link to the authoritative working screen or use the shared audited correction operation; never create an independent second mutation path.
 
-## 6. Plain-language dictionary (English + Bangla)
+For a Party with both Vendor and Supplier roles, the Party role switch remains standard and keeps records separate by role/balance type without hiding total financial exposure or silently netting different liabilities. An inactive Party still exposes historical records; new Vendor transactions are blocked with a clear explanation.
 
-Use short names consistently in buttons, labels, empty states, toasts, filters, emails/print wherever appropriate; leave technical domain terms in code only.
+## 5. Reuse architecture, not cloned pages
 
-| Avoid in visible UI | Use in UI |
+```text
+                         Canonical Party identity
+                                  │
+                  ┌───────────────┴────────────────┐
+                  │                                │
+     /app/vendors (work module)             /app/parties (profile)
+       Vendor chooser/list                     PartyDirectory
+       Five operational tabs                   PartyDetail for ALL roles
+       Inline carts/payments                   Ledger/Invoices/Payments/Notes/Files
+                  │                                │
+                  └───────────────┬────────────────┘
+                                  │
+                         Shared read-only projections
+                                  │
+             Existing Vendor source + Purchase + Party ledgers
+```
+
+- Route page e.g. `src/pages/Vendors.tsx` manages selector, tabs and compact summaries.
+- Reuse existing `src/vendor/vendorModel.ts`, `vendorPreviewStore.ts`, `vendorCorrection.ts`, `vendorActivity.ts`; business commands stay independent of which page starts them.
+- Use existing `PurchaseEditor embedded initialSupplierId onCompleted` in **Vendor Purchases**. No duplicated purchase posting. Purchase returns/refunds should call the same workflow as `/app/purchases`, not a Vendor-specific imitation.
+- Reuse the common POS/Purchase **product picker/cart row and CompoundQuantityInput** for Given/Taken. Reuse cart **UI and keyboard/touch behavior**, not POS sale posting, Purchase posting or a copied domain reducer for source movements.
+- Use one shared split-payment component; a payment linked to Vendor borrowing affects the Vendor source payable, one linked to a normal Purchase affects the ordinary Supplier payable, and a receipt for Given affects Vendor receivable.
+- Keep all dependent monetary and stock corrections auditable and idempotent. If **Clear Due** mixes payment with returning goods, validate and commit both as **one all-or-nothing transaction**, or mark that combination unavailable until implemented; never perform half the operation and claim full completion.
+- No true consignment in V1. UI remains demo-only until the separate NestJS backend is integrated and tested with tenant isolation.
+
+## 6. Simple English + Bangla helper; no time-based settlement
+
+| Avoid | Use |
 |---|---|
-| Evening settlement, Settlement, Reconciliation | **Clear Due · বাকি মেটান** (when clearing debt); **Pay Money · টাকা দিন** (when paying); **Receive Money · টাকা নিন** (when receiving) |
-| Vendor sourcing, Borrowed stock | **Taken Products · নেওয়া পণ্য** |
-| Goods issue, Issue memo | **Given Products · দেওয়া পণ্য**; button **Give Products · পণ্য দিন** |
+| Evening settlement, account settlement | **Clear Due · বাকি মেটান** |
+| Sourcing, borrowed stock, source event | **Taken Products · নেওয়া পণ্য** |
+| Goods issue memo | **Give Products · পণ্য দিন** |
 | Confirm Vendor source price | **Set Price · দাম ঠিক করুন** |
-| Price pending, Unpriced source | **Price not set · দাম ঠিক হয়নি** |
-| Known payable, Vendor sourcing payable | **You owe · আপনার দেনা** (tab context: “Taken products”) |
-| Vendor receivable | **Vendor owes · পাওনা** |
+| Price pending / unpriced | **Price not set · দাম ঠিক হয়নি** |
+| Known payable | **You owe · আপনার দেনা** (Taken context) |
+| Receivable | **Vendor owes · পাওনা** (Given context) |
 | Ordinary purchase payable | **Purchase due · কেনাকাটার বাকি** |
-| Balance allocation, Payment allocation | **Which bill? · কোন হিসাবের টাকা?**; **Amount · টাকার পরিমাণ** |
-| Reversal, Reverse event | **Cancel Entry · এন্ট্রি বাতিল**; explanation: “Keeps a record of the change”; ask required reason |
-| Record issue memo | **Save Given Products · দেওয়া পণ্য সেভ করুন** |
-| Source review required | **Check linked sale · বিক্রির হিসাব দেখুন** |
-| Paid in / Paid out | **Money received · টাকা পেয়েছেন** / **Money paid · টাকা দিয়েছেন** |
+| Reversal | **Cancel Entry · এন্ট্রি বাতিল** with “A record of this change will be kept” |
+| Balance allocation | **Which bill? · কোন বিলের টাকা?** |
+| Issue goods | **Give Products · পণ্য দিন** |
+| Supplier Purchase | **Buy Products · পণ্য কিনুন** |
 
-Do **not** replace all domain concepts with “Due”: always show whose debt and which bucket; the Bangla helper should carry the same meaning and be easy to read. Use no “evening” language. Keep numerals natural (no monospaced digits).
+Translate errors, empty states and hints consistently; don't expose internal terms to shopkeepers. The action is available at any date/time subject to valid transaction dates; **no “evening” wording anywhere**. Labels must make direction and source unambiguous, even if shortened.
 
-## 7. Component / code impact (design scope, not implementation authorization)
+## 7. UX quality and accessibility
 
-- Refactor `src/components/parties/VendorWorkspace.tsx` from button wall + record list into compact header/summary, five horizontal tabs, contextual toolbars, tab-local editor/list states and keyboard navigation.
-- Replace modal-first `VendorPurchaseDialog` with conditional `PurchaseEditor` mounted in Purchases tab. Preserve reusable PurchaseEditor props and test no double scrolling / role identity.
-- Refactor modal-only `VendorIssueGoodsDialog` into an **inline** `VendorGiveProductsEditor` reusing POS cart controls. Keep the existing Vendor memo reducer and validation.
-- Keep `VendorActionDialog` for small source/quote/return confirmation only if needed, but rename all copy, remove default modal as primary workflow, and route financial payments through Payments tab.
-- Retain `VendorCorrectionDialog` (reason/impact review) as a **small** destructive-action confirmation; surface through row More menus; do not put 3–5 row buttons on every record.
-- Factor accessible reusable `VendorTabs` / Party profile line-tabs shell once stable; **do not** change Customer/Supplier/Lender/Borrower operational behavior in this Vendor slice. A later approved pass can reuse the visual shell with role-specific tabs.
-- Reuse existing `src/vendor/vendorModel.ts`, `vendorPreviewStore.ts`, `vendorCorrection.ts`, `vendorActivity.ts` and ordinary Purchase demo store. Never fork or duplicate ledger logic to make tabs work.
-- Use theme tokens, current Magic Patterns visual language, current shadcn-style components, consistent dark/light popovers.
+- Desktop: wide product cart and optional sticky totals panel, compact rows, no competing toolbar and no nested scrollbars.
+- Mobile: 320–430px width tested; Vendor chooser, two-column summary when feasible, single-row horizontally scrollable tabs, single-column cart, no clipped footer or page-level horizontal scroll.
+- Dark/light: use existing theme tokens for dropdowns, date-range, tooltip, menu, dialog and popovers.
+- Keyboard: role/tab arrows, Home/End, Escape, visible focus; Enter sequence Add Product → Quantity → Add Product. Purchase shortcuts (F2/F8/F9) work only in the currently visible editor and never steal focus when another tab or dialog is active.
+- Draft preservation when switching tabs; warn before changing Vendor/Party with unsaved cart. Search and date-range state scoped to the selected Vendor.
+- Money in/out uses direction **and words**, never only green/red colors. Known sums are integer paisa; unknown values remain null; real compound unit is shown, never generic "base units" when product symbol is available.
+- Clear demo labels, no toast implying real posted inventory or cash. Empty, success, validation, disabled, insufficient stock, wrong source/Vendor, duplicates and correction-blocker states designed.
 
-## 8. States and accessibility
+## 8. Acceptance tests and dependency order
 
-- **Default:** Vendor opens with **Ledger** selected; if previous role/tab persisted during same Party session, preserve its selection.
-- **Empty:** “No taken products yet” + contextual **Take Products** only; “No payments yet” + Record Payment, etc.
-- **Incomplete:** unsaved cart/price entry remains while switching Vendor tabs; Party change triggers leave warning.
-- **Error:** invalid quantity/price/amount, missing agreed price before cash payment, insufficient stock, wrong vendor/side, duplicate operation/return, related events block correction; error directly near the field, plain-language repair path.
-- **Loading/demo:** clear one-time “Preview only · no real stock or money changed”; avoid redundant toast claiming “posted”.
-- **Theme:** dark/light dropdowns/selects/date picker use semantic tokens, no off-brand white menus.
-- **Keyboard:** left/right/Home/End tab controls, focus returns to invoker on closing dialog; search Add Product → Qty → next row Add Product; F2/F8/F9 scoped to visible embedded Purchase, not globally when other tabs open.
-- **Accessibility:** tabs correctly tied to panels, focus ring, aria labels for icon-only buttons, full keyboard access to date range, menus, quantity; clear status beyond color, ≥44px touch targets where practical.
-- **Responsive:** mobile 320–430px, tablet and desktop 1024px+, no clipped form/footer, no nested vertical scroll, no horizontal page scrolling. Dense tables can scroll **their own data area** if genuinely necessary.
+1. `/app/vendors` appears **as its own top-level nav entry** on desktop/mobile and in route-path whitelist, alongside POS/Sales/Purchases; navigation and permission tests confirm correct active sidebar state and no broken existing routes.
+2. Vendor list/chooser searches the canonical Party records, Quick Adds from module, deep-links from Party profile preselect the correct Vendor; updating role and changing Vendor never loses or mixes another Party's data.
+3. `/app/parties?role=Vendor&id=...` renders the **same PartyDetail shell** and tabs as Customer/Supplier, with correct Vendor activity, ledger, payments, notes, attachments, openings; no special VendorWorkspace; Party Vendor records link back to `/app/vendors`.
+4. Five operational Vendor tabs work, with full-sized inline POS-style editors where needed, no giant Purchase modal, one prominent action per tab; label conventions and keyboard/mobile/dark-mode checks pass.
+5. POS stock shortage → Taken (optional price) → Set Price → Clear Due via money, matching goods or both. Given multi-line memo → receive money/products. Ordinary Purchase → independently tracked due/returns/refunds without duplicate stock. Review source-linked customer returns safely.
+6. Ledger/Payments display identical underlying canonical Vendor transactions from both module and Party profile, once each. Original audit history remains visible after correct/void; no false zero, no unapproved netting, source-linked corrections validated.
+7. Verify purchase returns/refunds and correction operations before claiming they exist. Missing backend posting/tenancy/security must be stated honestly.
+8. Complete `npm test`, `npm run build`, `npm run check:ui-contract`, Vendor/POS/Purchases/Party/browser/theme/a11y checks and full CI on exact head. GitHub Actions has previously failed before starting a runner; do not call tests green until actual output confirms it. No merges/deploy without separate user approval.
 
-## 9. Acceptance gate / scope truthfulness
+## 9. Implementation handoff — pending spec approval
 
-Before claiming “all Vendor work done”, prove:
-- All five tabs accessible on mouse, touch and keyboard; each has a clearly scoped action and sensible empty state.
-- The giant Purchase modal and toolbar are gone; Purchase cart usable full-width; Give cart matches POS multi-unit semantics; no clipping at mobile width.
-- POS shortage → Taken → Set Price → Clear Due (cash, goods, mixed) → Ledger/Payments; Given multi-product → receive money/goods; ordinary Purchase → independent due and stock once.
-- Purchase refunds/returns and corrections are either demonstrably working with tests **or explicitly reported as unfinished**; do not present broken placeholders as fully implemented.
-- Ledger activity date range, statement export/print, original source links, reversing a payment/return and proper audit history.
-- Change in theme or language never makes actions ambiguous; no stale “evening settlement”, “source amount zero”, or raw technical labels in visible UI.
-- Run full unit tests, build, UI contract, Vendor/POS/Purchases/Parties/theme/browser regressions. Run GitHub CI on exact PR head. CI currently fails before runner allocation (zero steps); this must be resolved before merge. **No merge/deploy without user approval.**
+This is a **written design revision only**; it does not authorize writing application components yet. Once approved:
+1. Produce an ordered native Superpowers implementation plan, including route/nav, shared PartyDetail data projection, Vendor chooser and tabs, shared cart/payment reuse and regression gates.
+2. Execute native implementation in an isolated stacked branch above Vendor PR #57, retaining the prior financial model.
+3. Request user visual review and merge approval only after tests actually execute. Do not edit the separate production `/home/shoaib/hisabiq` NestJS project or legacy Apps Script ERP.
 
-## 10. Deliberately outside this design
-
-Real NestJS accounting and inventory posting, multi-tenant backend authorization, true consignment, and broad redesign of unrelated modules. These need their own scope and independent approval. This five-tab work changes the **Vendor UI**, not the main `hisabiq` production backend.
-
-**Outstanding handoff:** User approved the five-tab direction in conversation. This written spec needs separate user review/approval before writing the stepwise implementation plan or changing product code.
+This spec supersedes the earlier “five Vendor tabs inside Party profile” architecture. **Vendor is a top-level working module; Party profiles are uniform across relationship types.**
