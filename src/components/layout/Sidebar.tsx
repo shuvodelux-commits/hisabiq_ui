@@ -101,7 +101,7 @@ export function Sidebar() {
       aria-label="Toggle sidebar width"
       title="Toggle sidebar width"
       onClick={() => setCollapsed(value => !value)}
-      className="absolute inset-y-0 -right-1 z-10 hidden w-2 cursor-col-resize rounded-full hover:bg-sidebar-primary/15 focus-visible:bg-sidebar-primary/20 focus-visible:outline-none lg:block"
+      className="absolute inset-y-0 -right-1 z-10 hidden w-2 cursor-pointer rounded-full hover:bg-sidebar-primary/15 focus-visible:bg-sidebar-primary/20 focus-visible:outline-none lg:block"
     />
   </aside>;
 }
