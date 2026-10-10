@@ -1,5 +1,5 @@
 import type {LucideIcon} from 'lucide-react';
-import {LayoutDashboard,ShoppingCart,FileText,ReceiptText,Package,Users,Wallet,Landmark,ShieldCheck,PieChart,Settings} from 'lucide-react';
+import {LayoutDashboard,ShoppingCart,FileText,ReceiptText,Store,Package,Users,Wallet,Landmark,ShieldCheck,PieChart,Settings} from 'lucide-react';
 
 export type ErpNavChild={id:string;label:string;bn?:string;path:string;feature?:string;permission?:string};
 export type ErpNavGroup={id:string;label:string;bn?:string;icon:LucideIcon;landingPath:string;children?:readonly ErpNavChild[];permission?:string};
@@ -19,6 +19,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
   {id:'purchase-bills',label:'Purchase Bills',bn:'ক্রয় বিল',path:'/app/purchases'},
   {id:'purchase-returns',label:'Purchase Returns',bn:'ক্রয় ফেরত',path:'/app/purchases?tab=return'}
  ]},
+ {id:'vendor',label:'Vendor',bn:'ভেন্ডর',icon:Store,landingPath:'/app/vendors'},
  {id:'products',label:'Products & Stock',bn:'পণ্য ও মজুত',icon:Package,landingPath:'/app/products',children:[
   {id:'product-list',label:'Product List',bn:'পণ্যের তালিকা',path:'/app/products'},
   {id:'stock',label:'Stock, Lots & Adjustments',bn:'মজুত ও লট',path:'/app/products?view=lots'},
@@ -54,7 +55,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
 /** Verified in App.tsx of the source branch. Query-driven children share these same route paths. */
 export const erpRoutePaths=new Set([
  '/app/dashboard','/app/pos','/app/sales','/app/quotations','/app/online-sales',
- '/app/purchases','/app/purchases/new','/app/products','/app/parties','/app/expenses',
+ '/app/purchases','/app/purchases/new','/app/vendors','/app/products','/app/parties','/app/expenses',
  '/app/finance','/app/accounts','/app/daybook','/app/reconciliation','/app/audit-ledger',
  '/app/warranty','/app/reports','/app/settings/business','/app/settings/team',
  '/app/settings/data','/app/settings/personal','/app/notifications','/app/subscription',
