@@ -10,6 +10,12 @@ export type VendorActivityRow={
  sourceEventId?:string;reversed:boolean;sequence:number;
 };
 const money=(value:number)=>Math.round(value*100);
+/** Ordinary purchase dues are independent of all Vendor-source obligations. */
+export function ordinaryVendorPurchaseDuePaisa(purchases:readonly Purchase[],vendorPartyId:string):number{
+ return purchases.filter(p=>p.supplierId===vendorPartyId)
+  .reduce((total,p)=>total+Math.max(0,money(p.total)-money(p.paid)),0);
+}
+
 const isoDate=(value:string):string=>{
  if(/^\d{4}-\d\d-\d\d$/.test(value))return value;
  const m=/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/.exec(value.trim());
