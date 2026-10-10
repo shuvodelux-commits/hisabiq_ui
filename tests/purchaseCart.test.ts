@@ -57,3 +57,14 @@ test('switching units retains independently entered lot selling price', () => {
   assert.equal(base.lotSellPrice, '185');
   assert.equal(base.lotSellUnit, 'Pcs');
 });
+
+
+test('switching units preserves unknown vendor cost instead of silently setting zero', () => {
+  const received = { ...makePurchaseLine(box), cost: '' };
+  const pcs = switchPurchaseUnit(received, 'Pcs');
+  assert.equal(pcs.cost, '', 'unpriced vendor goods must stay unpriced');
+  assert.equal(baseQty(pcs), baseQty(received));
+  const back = switchPurchaseUnit(pcs, 'Box');
+  assert.equal(back.cost, '');
+  assert.equal(baseQty(back), baseQty(received));
+});
