@@ -14,10 +14,10 @@ async function main(){
   assert.equal(await page.getByRole('tab',{name:/Payments/}).count(),1);
   assert.equal(await page.getByRole('tab',{name:/Notes/}).count(),1);
   assert.equal(await page.getByRole('tab',{name:/Attachments/}).count(),1);
-  await page.getByText('You owe · দেনা').first().waitFor();
-  await page.getByText('Vendor owes · পাওনা').first().waitFor();
-  await page.getByRole('button',{name:/Open Vendor Work/}).click();
-  await page.getByRole('region',{name:'Vendor module'}).waitFor();
+  await page.getByText('Amount Payable · দেনা').first().waitFor();
+  await page.getByText('Amount Receivable · পাওনা').first().waitFor();
+  await page.getByRole('button',{name:/Open Vendor Sourcing/}).click();
+  await page.getByRole('region',{name:'Vendor Sourcing module'}).waitFor();
   assert.ok(page.url().includes('partyId=v1'));
   await page.goto('http://127.0.0.1:4271/#/app/parties?id=s1&role=Supplier');
   await page.getByRole('tab',{name:'Ledger'}).waitFor();
