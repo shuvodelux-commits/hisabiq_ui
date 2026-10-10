@@ -65,6 +65,16 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
     }catch(e){setNewVendorError(e instanceof Error?e.message:'Cannot add Vendor');}
   };
 
+  const methods:Choice[]=['Own','Negative','Vendor'];
+  const onChoiceKey=(event:React.KeyboardEvent<HTMLButtonElement>,current:Choice)=>{
+    if(!['ArrowDown','ArrowUp','ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    const i=methods.indexOf(current);
+    const next=event.key==='Home'?0:event.key==='End'?methods.length-1:
+      (i+(event.key==='ArrowDown'||event.key==='ArrowRight'?1:-1)+methods.length)%methods.length;
+    setChoice(methods[next]);
+    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next]?.focus();
+  };
   const save = () => {
     if (choice === 'Own') return onUseOwnStock();
     if (choice === 'Negative') return onResolve({ mode: 'Negative' });
@@ -74,6 +84,7 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
   };
 
   return (
+    <React.Fragment>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent role="dialog" aria-modal="true" aria-label="Stock shortage" className="sm:max-w-lg">
         <DialogHeader>
@@ -83,24 +94,24 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2">
-          <button type="button" onClick={() => setChoice('Own')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Own' ? 'border-teal-400 bg-teal-50/60' : 'border-ink-100 hover:bg-ink-50'}`}>
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-teal-700 ring-1 ring-ink-100"><PackageCheck className="size-4" /></span>
+        <div className="space-y-2" role="radiogroup" aria-label="Stock shortage method">
+          <button type="button" role="radio" aria-checked={choice==='Own'} tabIndex={choice==='Own'?0:-1} onKeyDown={e=>onChoiceKey(e,'Own')} onClick={() => setChoice('Own')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Own' ? 'border-teal-400 bg-teal-50/60' : 'border-border hover:bg-ink-50'}`}>
+            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-card text-teal-700 ring-1 ring-border"><PackageCheck className="size-4" /></span>
             <span>
               <span className="block text-sm font-medium text-ink">Own Stock <span className="font-bn text-xs font-normal text-ink-400">· নিজের স্টক</span></span>
               <span className="block text-xs text-ink-500">{availableBaseQty > 0 ? `Reduce this line to ${ownStockLabel}.` : 'No own stock is available; this removes the line.'}</span>
             </span>
           </button>
 
-          <button type="button" onClick={() => setChoice('Negative')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Negative' ? 'border-warning bg-warning-bg/70' : 'border-ink-100 hover:bg-ink-50'}`}>
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-warning ring-1 ring-ink-100"><TrendingDown className="size-4" /></span>
+          <button type="button" role="radio" aria-checked={choice==='Negative'} tabIndex={choice==='Negative'?0:-1} onKeyDown={e=>onChoiceKey(e,'Negative')} onClick={() => setChoice('Negative')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Negative' ? 'border-warning bg-warning-bg/70' : 'border-border hover:bg-ink-50'}`}>
+            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-card text-warning ring-1 ring-border"><TrendingDown className="size-4" /></span>
             <span>
               <span className="block text-sm font-medium text-ink">Negative Sale <span className="font-bn text-xs font-normal text-ink-400">· নেগেটিভ বিক্রি</span></span>
               <span className="block text-xs text-ink-500">Complete the sale now; the shortage remains negative until future stock is received.</span>
             </span>
           </button>
 
-          <button type="button" onClick={() => setChoice('Vendor')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Vendor' ? 'border-teal-400 bg-teal-50/60' : 'border-ink-100 hover:bg-ink-50'}`}>
+          <button type="button" role="radio" aria-checked={choice==='Vendor'} tabIndex={choice==='Vendor'?0:-1} onKeyDown={e=>onChoiceKey(e,'Vendor')} onClick={() => setChoice('Vendor')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Vendor' ? 'border-teal-400 bg-teal-50/60' : 'border-border hover:bg-ink-50'}`}>
             <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-card text-teal-700 ring-1 ring-border"><Truck className="size-4" /></span>
             <span>
               <span className="block text-sm font-medium text-ink">Vendor <span className="font-bn text-xs font-normal text-ink-400">· ভেন্ডর থেকে</span></span>
@@ -144,6 +155,7 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
           </Button>
         </DialogFooter>
       </DialogContent>
+    </Dialog>
       <Dialog open={newVendorOpen} onOpenChange={v=>{setNewVendorOpen(v);if(!v)setNewVendorError('');}}>
         <DialogContent role="dialog" aria-label="Quick add Vendor" className="sm:max-w-md">
           <DialogHeader><DialogTitle>Add Vendor <span className="font-bn text-sm font-normal">· নতুন ভেন্ডর</span></DialogTitle>
@@ -161,6 +173,6 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
           </form>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </React.Fragment>
   );
 }
