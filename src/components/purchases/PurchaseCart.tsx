@@ -219,7 +219,8 @@ export function PurchaseCart({
 
             <div data-testid="purchase-add-row" className={grid + ' bg-teal-50/35 px-3 py-2'}>
               <span className="text-right text-[13px] font-medium text-teal-700">{lines.length + 1}.</span>
-              <PurchaseProductSearch products={products} ref={searchRef} onAdd={onAdd} onCreate={onCreate} />
+              <PurchaseProductSearch products={products} ref={searchRef} onAdd={onAdd} onCreate={onCreate}
+                ariaLabel={variant === 'vendor-received' ? 'Search product to receive from vendor' : variant === 'vendor-issued' ? 'Search product to issue to vendor' : undefined} />
               <span className="pr-2 text-right text-[12px] text-ink-400">Qty</span>
               <span className="text-[12px] text-ink-400">Unit</span>
               <span className="text-right text-[12px] text-ink-400">Cost</span>
