@@ -16,7 +16,7 @@ import {availablePurchases} from '../../data/erpDemoStore';
 import {VendorActionDialog,type VendorActionMode} from './VendorActionDialog';
 import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import {vendorBalances,sourceOutstanding} from '../../vendor/vendorModel';
-import {projectVendorStatement} from '../../vendor/vendorLedger';
+import {projectVendorActivity} from '../../vendor/vendorActivity';
 import {products} from '../../data/products';
 import {businessToday,type IsoRange} from '../../utils/dateRange';
 import {taka} from '../../utils/currency';
@@ -58,11 +58,9 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const pending=known.filter(s=>s.sourceKind==='sourcing'&&sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
  const sourced=known.filter(s=>s.sourceKind==='sourcing');
  const issued=known.filter(s=>s.sourceKind==='issue');
- const payable=projectVendorStatement(snapshot,party.id,'payable',range);
- const receivable=projectVendorStatement(snapshot,party.id,'receivable',range);
- const allEvents=[...payable.rows,...receivable.rows].filter(e=>
-  [e.reference??'',e.description].some(v=>v.toLowerCase().includes(query.toLowerCase())))
-  .sort((a,b)=>b.date.localeCompare(a.date)||b.sequence-a.sequence);
+ const ordinaryPurchases=useMemo(()=>availablePurchases().filter(p=>p.supplierId===party.id),[party.id,purchaseRevision]);
+ const allEvents=projectVendorActivity(snapshot,party.id,ordinaryPurchases,range).filter(e=>
+  [e.reference,e.description,e.kind].some(v=>v.toLowerCase().includes(query.toLowerCase())));
  const tabs:{key:Tab;label:string;count?:number}[]=[
   {key:'activity',label:'All Activity'},
   {key:'pending',label:'Pending price',count:pending.length},
@@ -71,7 +69,6 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   {key:'purchases',label:'Purchases'}
  ];
  const list=tab==='pending'?pending:tab==='sourcing'?sourced:issued;
- const ordinaryPurchases=useMemo(()=>availablePurchases().filter(p=>p.supplierId===party.id),[party.id,purchaseRevision]);
  const openBalance=(side:VendorSide)=>{
   setOpeningSide(side);setOpeningAmount('');setOpeningDate(businessToday());setOpeningError('');
  };
@@ -189,17 +186,24 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
      <th className="p-2 text-left">Account</th><th className="p-2 text-right">Increases</th>
      <th className="p-2 text-right">Decreases</th><th className="p-2 text-right">Actions</th>
     </tr></thead><tbody>{allEvents.map(e=><tr key={e.id} className="border-b border-border/70">
-     <td className="p-2 text-ink-500">{e.date}</td><td className="p-2">{e.reference??e.kind}<p className="text-ink-500">{e.description}</p></td>
-     <td className="p-2"><span className={'inline-flex rounded px-2 py-0.5 text-[11px] capitalize '+(e.side==='payable'?'bg-warning-bg text-warning':'bg-ink-50 text-ink-600')}>
-        {e.side==='payable'?'We owe':'Vendor owes'}</span></td>
-     <td className="p-2 text-right text-ink">{e.deltaPaisa>0?taka(e.deltaPaisa/100):'—'}</td>
-     <td className="p-2 text-right text-ink">{e.deltaPaisa<0?taka(-e.deltaPaisa/100):'—'}</td>
+     <td className="p-2 text-ink-500">{e.date}</td><td className="p-2">{e.reference}
+      <p className="text-ink-500">{e.description}
+        {e.reversed&&<span className="ml-1 font-medium text-warning">(reversed · historical)</span>}
+      </p>
+     </td>
+     <td className="p-2"><span className={'inline-flex rounded px-2 py-0.5 text-[11px] '+(e.bucket==='vendor-payable'?'bg-warning-bg text-warning':'bg-ink-50 text-ink-600')}>
+        {e.bucket==='vendor-payable'?'Vendor sourcing payable':
+         e.bucket==='vendor-receivable'?'Vendor receivable':'Supplier purchase'}</span></td>
+     <td className="p-2 text-right text-ink">{e.moneyPaisa!==null&&e.moneyPaisa>0?taka(e.moneyPaisa/100):'—'}</td>
+     <td className="p-2 text-right text-ink">{e.moneyPaisa!==null&&e.moneyPaisa<0?taka(-e.moneyPaisa/100):'—'}</td>
      <td className="p-2 text-right">
-       {e.kind!=='reversal'&&<Button type="button" size="sm" variant="ghost"
-        aria-label={'Review Vendor event '+(e.reference??e.id)} onClick={()=>reviewEvent(e)}>Review</Button>}
+       {e.sourceEventId&&e.kind!=='reversal'&&<Button type="button" size="sm" variant="ghost"
+        aria-label={'Review Vendor event '+e.reference}
+        onClick={()=>{const original=snapshot.events.find(entry=>entry.id===e.sourceEventId);if(original)reviewEvent(original);}}>
+        Review</Button>}
      </td>
     </tr>)}
-    {!allEvents.length&&<tr><td colSpan={6} className="p-8 text-center text-ink-500">No valued transactions in this date range. Price-pending items are in the Pending tab.</td></tr>}
+    {!allEvents.length&&<tr><td colSpan={6} className="p-8 text-center text-ink-500">No Vendor or purchase activity matches these filters.</td></tr>}
     </tbody></table>
     {pending.length>0&&<p className="px-3 py-2 text-xs text-ink-500">Also {pending.length} unpriced source(s) — see Pending price.</p>}
    </div>:<div className="divide-y divide-border">
