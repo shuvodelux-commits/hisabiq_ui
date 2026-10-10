@@ -146,6 +146,7 @@ export function PurchaseCart({
                         onChange={(event) => onUpdate(line.id, { cost: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); if (vendor) searchRef.current?.focus(); else { lotPriceRefs.current[line.id]?.focus(); lotPriceRefs.current[line.id]?.select(); } } }} />
                     </div>
+                    {vendor ? <span className="text-right text-[11px] text-ink-500">{line.cost.trim() ? 'Price agreed' : 'Price not set'}</span> : (
                     <div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <input
@@ -159,7 +160,8 @@ export function PurchaseCart({
                       />
                       <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{line.lotSellUnit}</span>
                     </div>
-                    <span className="text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
+                    )}
+                    <span className="text-right text-[13px] font-semibold text-ink">{vendor && !line.cost.trim() ? <span className="text-xs text-warning">Price not set</span> : taka(lineAmount(line))}</span>
                     <button type="button" aria-label={'Remove ' + product.name} onClick={() => onRemove(line.id)}
                       className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger-bg hover:text-danger">
                       <Trash2 className="size-4" />
@@ -168,17 +170,17 @@ export function PurchaseCart({
                   {line.detailsOpen && (
                     <div className="border-t border-border/60 bg-ink-50/50 px-3 py-3">
                       <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="text-[12px] font-semibold text-ink">Purchase lot details <span className="font-bn font-normal text-ink-400">· লটের তথ্য</span></p>
-                        <p className="text-[10.5px] text-ink-500">Lot price applies to this batch, not the product's default price</p>
+                        <p className="text-[12px] font-semibold text-ink">{vendor ? 'Vendor product details' : 'Purchase lot details'} <span className="font-bn font-normal text-ink-400">· {vendor ? 'পণ্যের তথ্য' : 'লটের তথ্য'}</span></p>
+                        {!vendor && <p className="text-[10.5px] text-ink-500">Lot price applies to this batch, not the product's default price</p>}
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        <div className="min-w-0">
+                        {!vendor && <div className="min-w-0">
                           <p className="mb-1 text-[11px] font-medium text-ink">Lot selling price unit <span className="font-bn text-ink-500">· বিক্রয় একক</span></p>
                           <FormSelect className="w-full [&>select]:text-xs"
                             value={line.lotSellUnit} options={unitOptions(product)}
                             onChange={(event) => changeLotSellUnit(line, event.target.value)} />
                           <p className="mt-1 text-[10.5px] text-ink-500">Base {taka(lotBaseSellPrice(line))}/{product.unit} · Cost {taka(lineAmount(line))} total</p>
-                        </div>
+                        </div>}
                         <label className="block min-w-0 text-[11px] font-medium text-ink">
                           Batch / lot number <span className="font-bn font-normal text-ink-400">· ব্যাচ</span>
                           <Input className="mt-1" value={line.batchNumber} onChange={(event) => onUpdate(line.id, { batchNumber: event.target.value })}
@@ -205,7 +207,7 @@ export function PurchaseCart({
                               placeholder="Scan, type or paste serial numbers · one per line or comma separated"
                               onChange={(event) => onUpdate(line.id, { serialText: event.target.value })}
                             />
-                            <span className="mt-1 block text-[11px] font-normal text-ink-500">{count} entered · {required} mandatory · {baseQty(line)} base units purchased</span>
+                            <span className="mt-1 block text-[11px] font-normal text-ink-500">{count} entered · {required} mandatory · {baseQty(line)} base units {vendor ? (variant === 'vendor-received' ? 'received' : 'issued') : 'purchased'}</span>
                           </label>
                         )}
                       </div>
@@ -221,7 +223,7 @@ export function PurchaseCart({
               <span className="pr-2 text-right text-[12px] text-ink-400">Qty</span>
               <span className="text-[12px] text-ink-400">Unit</span>
               <span className="text-right text-[12px] text-ink-400">Cost</span>
-              <span className="text-right text-[12px] text-ink-400">Lot sale</span>
+              <span className="text-right text-[12px] text-ink-400">{vendor ? 'Price status' : 'Lot sale'}</span>
               <span className="text-right text-[12px] text-ink-400">Total</span><span />
             </div>
           </div>
@@ -229,7 +231,7 @@ export function PurchaseCart({
         {lines.length === 0 && <p className="border-t border-border p-5 text-center text-[12px] text-ink-500">Search above or tap a quick item below. <span className="font-bn">পণ্য যোগ করুন।</span></p>}
         <div className="flex items-center justify-between gap-2 border-t border-border bg-ink-50/50 px-3 py-2.5 text-xs text-ink-500">
           <span>{lines.length} product line{lines.length === 1 ? '' : 's'}</span>
-          <span className="font-medium text-ink">{lines.length ? describeQty(lines[lines.length - 1]) + ' · ' : ''}Subtotal {taka(rounded(lines.reduce((sum, line) => sum + lineAmount(line), 0)))}</span>
+          <span className="font-medium text-ink">{lines.length ? describeQty(lines[lines.length - 1]) + ' · ' : ''}{vendor ? 'Known subtotal' : 'Subtotal'} {taka(rounded(lines.reduce((sum, line) => sum + lineAmount(line), 0)))}{unpricedCount > 0 ? ' · ' + unpricedCount + ' unpriced' : ''}</span>
         </div>
       </section>
 
@@ -246,7 +248,7 @@ export function PurchaseCart({
               <ProductThumb src={product.image} size={36} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[12px] font-medium text-ink">{product.name}</span>
-                <span className="block truncate text-[11px] text-ink-500">{taka(product.purchasePrice)}/{product.unit}</span>
+                <span className="block truncate text-[11px] text-ink-500">{vendor ? 'Stock ' + formatStock(product) : taka(product.purchasePrice) + '/' + product.unit}</span>
               </span>
               <Plus className="size-4 shrink-0 text-ink-400" />
             </button>
