@@ -87,6 +87,11 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   const kind=cmd.type==='record-sourcing'?'sourcing':'issue';
   const added=source(state,cmd.vendorPartyId,kind,cmd.source);
   const next=extended(state,cmd.operationId)!;
+  if(cmd.type==='issue-goods'&&next.inventory){
+   const available=next.inventory[added.productId]??0;
+   if(available<added.baseQty)throw new Error('Insufficient owned stock to issue goods to Vendor.');
+   next.inventory[added.productId]=available-added.baseQty;
+  }
   next.sources.push(added);
   next.events.push(event(state,added,cmd.operationId));
   return next;
@@ -137,7 +142,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    throw new Error('Vendor settlement side mismatch.');
   if(moneyKind)money(cmd.amountPaisa!,'Payment');
   const seen=new Set<string>();
-  let sumPaisa=0,anyUnpriced=false;
+  let sumPaisa=0;
   const next=extended(state,cmd.operationId)!;
   for(const row of cmd.allocations){
    if(seen.has(row.sourceId))throw new Error('Duplicate Vendor settlement source.');
@@ -158,15 +163,16 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
     const count=qty(row.baseQty??0);
     if(count>linked.baseQty-outstanding.returnedBaseQty)
      throw new Error('Cannot return more stock than sourced.');
+    const receivingBack=cmd.kind==='receive-goods';
     const physicallyAvailable=next.inventory?.[linked.productId]??0;
-    if(physicallyAvailable<count)throw new Error('Insufficient owned stock to return to Vendor.');
+    if(!receivingBack&&physicallyAvailable<count)throw new Error('Insufficient owned stock to return to Vendor.');
     const prePricedReturn=linked.unitCostBasePaisa===null;
     const amount=prePricedReturn?0:amountFor(count,linked.unitCostBasePaisa!);
     if(!prePricedReturn && amount>(outstanding.monetaryDuePaisa??0))
      throw new Error('Return exceeds remaining monetary due.');
     if(row.amountPaisa!==null && row.amountPaisa!==amount)
      throw new Error('Returned goods value must match source unit price.');
-    next.inventory![linked.productId]-=count;
+    if(next.inventory)next.inventory[linked.productId]=physicallyAvailable+(receivingBack?count:-count);
     sumPaisa+=amount;
     if(prePricedReturn&&count===outstanding.unpricedBaseQty)
      next.sources=next.sources.map(s=>s.id===linked.id?{...s,pricingStatus:'closed'}:s);
