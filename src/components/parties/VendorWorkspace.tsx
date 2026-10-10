@@ -11,6 +11,7 @@ import {RoleBadge} from './RoleBadge';
 import {VendorStatementDialog} from './VendorStatementDialog';
 import {VendorPurchaseDialog} from './VendorPurchaseDialog';
 import {VendorIssueGoodsDialog} from './VendorIssueGoodsDialog';
+import {VendorCorrectionDialog} from './VendorCorrectionDialog';
 import {availablePurchases} from '../../data/erpDemoStore';
 import {VendorActionDialog,type VendorActionMode} from './VendorActionDialog';
 import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
@@ -20,7 +21,7 @@ import {products} from '../../data/products';
 import {businessToday,type IsoRange} from '../../utils/dateRange';
 import {taka} from '../../utils/currency';
 import type {Party,PartyRole} from '../../types/erp';
-import type {VendorSource,VendorSide} from '../../vendor/vendorTypes';
+import type {VendorLedgerEvent,VendorSource,VendorSide} from '../../vendor/vendorTypes';
 type Props={party:Party;onEditParty:()=>void;onRoleChange:(role:PartyRole)=>void};
 type Tab='activity'|'pending'|'sourcing'|'issued'|'purchases';
 export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
@@ -36,6 +37,15 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const tabId=useId().replace(/:/g,'');
  const [detail,setDetail]=useState<VendorSource|null>(null);
  const [actionMode,setActionMode]=useState<VendorActionMode>('details');
+ const [correctionSourceId,setCorrectionSourceId]=useState<string|null>(null);
+ const [correctionEventId,setCorrectionEventId]=useState<string|null>(null);
+ const reviewSource=(id:string)=>{setCorrectionSourceId(id);setCorrectionEventId(null);};
+ const reviewEvent=(e:VendorLedgerEvent)=>{
+   setCorrectionEventId(e.id);
+   const link=e.sourceId??snapshot.settlements.find(s=>s.operationId===e.operationId)?.allocations[0]?.sourceId??null;
+   if(link)setCorrectionSourceId(link);
+ };
+ const closeCorrection=()=>{setCorrectionSourceId(null);setCorrectionEventId(null);};
  const openAction=(source:VendorSource,mode:VendorActionMode)=>{setDetail(source);setActionMode(mode);};
  const [openingSide,setOpeningSide]=useState<VendorSide|null>(null);
  const [openingAmount,setOpeningAmount]=useState('');
@@ -176,13 +186,20 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   </div>:tab==='activity'?<div className="overflow-x-auto">
     <table className="w-full min-w-[570px] text-xs"><thead><tr className="border-b border-border bg-ink-50">
      <th className="p-2 text-left">Date</th><th className="p-2 text-left">Type & source</th>
-     <th className="p-2 text-left">Account</th><th className="p-2 text-right">Amount</th>
+     <th className="p-2 text-left">Account</th><th className="p-2 text-right">Increases</th>
+     <th className="p-2 text-right">Decreases</th><th className="p-2 text-right">Actions</th>
     </tr></thead><tbody>{allEvents.map(e=><tr key={e.id} className="border-b border-border/70">
      <td className="p-2 text-ink-500">{e.date}</td><td className="p-2">{e.reference??e.kind}<p className="text-ink-500">{e.description}</p></td>
-     <td className="p-2 capitalize">{e.side}</td>
-     <td className="p-2 text-right">{taka(e.deltaPaisa/100)}</td>
+     <td className="p-2"><span className={'inline-flex rounded px-2 py-0.5 text-[11px] capitalize '+(e.side==='payable'?'bg-warning-bg text-warning':'bg-ink-50 text-ink-600')}>
+        {e.side==='payable'?'We owe':'Vendor owes'}</span></td>
+     <td className="p-2 text-right text-ink">{e.deltaPaisa>0?taka(e.deltaPaisa/100):'—'}</td>
+     <td className="p-2 text-right text-ink">{e.deltaPaisa<0?taka(-e.deltaPaisa/100):'—'}</td>
+     <td className="p-2 text-right">
+       {e.kind!=='reversal'&&<Button type="button" size="sm" variant="ghost"
+        aria-label={'Review Vendor event '+(e.reference??e.id)} onClick={()=>reviewEvent(e)}>Review</Button>}
+     </td>
     </tr>)}
-    {!allEvents.length&&<tr><td colSpan={4} className="p-8 text-center text-ink-500">No valued transactions in this date range. Price-pending items are in the Pending tab.</td></tr>}
+    {!allEvents.length&&<tr><td colSpan={6} className="p-8 text-center text-ink-500">No valued transactions in this date range. Price-pending items are in the Pending tab.</td></tr>}
     </tbody></table>
     {pending.length>0&&<p className="px-3 py-2 text-xs text-ink-500">Also {pending.length} unpriced source(s) — see Pending price.</p>}
    </div>:<div className="divide-y divide-border">
@@ -216,6 +233,8 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
        <Button size="sm" variant="outline" aria-label={'Receive goods '+(source.reference??source.id)}
         onClick={()=>openAction(source,'receive-goods')}>Receive goods</Button>
       </>}
+      <Button size="sm" variant="ghost" aria-label={'Correct vendor source '+(source.reference??source.id)}
+       onClick={()=>reviewSource(source.id)}>Correct</Button>
       <Button size="sm" variant="outline" aria-label={'View vendor source '+(source.reference??source.id)}
        onClick={()=>openAction(source,'details')}>View source</Button>
      </div>
@@ -227,6 +246,11 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
     onClose={()=>{setIssueOpen(false);setTab('issued');}}/>
   <VendorPurchaseDialog open={purchaseOpen} vendorPartyId={party.id} vendorName={party.name}
     onClose={()=>setPurchaseOpen(false)} onSaved={()=>{setPurchaseOpen(false);setPurchaseRevision(v=>v+1);setTab('purchases');}}/>
+  <VendorCorrectionDialog
+    source={snapshot.sources.find(item=>item.id===correctionSourceId)??null}
+    event={snapshot.events.find(item=>item.id===correctionEventId)??null}
+    state={snapshot} onClose={closeCorrection}
+    onReviewEvent={reviewEvent} onBackToSource={()=>setCorrectionEventId(null)}/>
   <VendorStatementDialog open={statementOpen} onClose={()=>setStatementOpen(false)} party={party} state={snapshot} range={range}/>
   <VendorActionDialog source={detail?snapshot.sources.find(s=>s.id===detail.id)??null:null} mode={actionMode} onClose={()=>setDetail(null)}/>
   <Dialog open={!!openingSide} onOpenChange={v=>!v&&setOpeningSide(null)}>
