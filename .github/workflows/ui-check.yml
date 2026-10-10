@@ -88,6 +88,15 @@ jobs:
       - name: Check Vendor source corrections, links and audit reversals
         run: npm run test:vendor-correction
 
+      - name: Check top-level Vendor module, selector and tabs
+        run: npm run test:vendor-module
+
+      - name: Check shared Vendor Party profile
+        run: npm run test:vendor-party-profile
+
+      - name: Check inline Vendor goods cart
+        run: npm run test:vendor-goods
+
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
 
