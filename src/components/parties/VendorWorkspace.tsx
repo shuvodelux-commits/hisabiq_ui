@@ -112,17 +112,17 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
    <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Known payable">
     <p className="text-xs text-ink-500">Known payable · দেনা</p>
     <p className="mt-1 text-xl font-semibold text-ink">{taka(balance.knownPayablePaisa/100)}</p>
-    <p className="mt-0.5 text-[11px] text-ink-500">Priced Vendor sourcing only</p>
+    <p className="mt-0.5 text-[11px] text-ink-500">Priced vendor sourcing only</p>
    </div>
    <div className="rounded-lg border border-warning/25 bg-warning-bg/30 p-3" aria-label="Price pending">
     <p className="text-xs text-ink-500">Price pending · দাম বাকি</p>
     <p className="mt-1 text-xl font-semibold text-ink">{balance.unpricedSourceBaseQty} <span className="text-sm font-normal">base units</span></p>
     <p className="mt-0.5 text-[11px] text-ink-500">{balance.unpricedSourceCount} unsettled sources · Not ৳0</p>
    </div>
-   <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Vendor receivable">
-    <p className="text-xs text-ink-500">Vendor receivable · পাওনা</p>
+   <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Amount Receivable">
+    <p className="text-xs text-ink-500">Amount Receivable · পাওনা</p>
     <p className="mt-1 text-xl font-semibold text-ink">{taka(balance.knownReceivablePaisa/100)}</p>
-    <p className="mt-0.5 text-[11px] text-ink-500">Goods issued to Vendor</p>
+    <p className="mt-0.5 text-[11px] text-ink-500">Products Issued to Vendor</p>
    </div>
    <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Purchase payable">
     <p className="text-xs text-ink-500">Purchase payable · ক্রয়ের বাকি</p>
@@ -131,14 +131,14 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
    </div>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-   <Button size="sm" onClick={()=>setTab('pending')}>Set price & settle · সন্ধ্যার হিসাব</Button>
-   <Button size="sm" variant="outline" onClick={()=>setTab('sourcing')}>Pay Vendor</Button>
-   <Button size="sm" variant="outline" onClick={()=>setTab('sourcing')}>Return goods</Button>
+   <Button size="sm" onClick={()=>setTab('pending')}>Set Purchase Price & Settle · সন্ধ্যার হিসাব</Button>
+   <Button size="sm" variant="outline" onClick={()=>setTab('sourcing')}>Make Payment</Button>
+   <Button size="sm" variant="outline" onClick={()=>setTab('sourcing')}>Return Products</Button>
    <Button size="sm" variant="outline" onClick={()=>setIssueOpen(true)}><PackageMinus className="size-4"/> Give products</Button>
-   <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive money</Button>
-   <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive products</Button>
+   <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive Payment</Button>
+   <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive Returned Products</Button>
    <Button size="sm" variant="outline" onClick={()=>setPurchaseOpen(true)}><Plus className="size-4"/> Buy products</Button>
-   <Button size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Vendor statement</Button>
+   <Button size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Vendor Statement</Button>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
    <Button size="sm" variant="ghost" onClick={()=>openBalance('payable')}><BookOpen className="size-3.5"/> Payable opening</Button>
@@ -199,7 +199,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
      </td>
      <td className="p-2"><span className={'inline-flex rounded px-2 py-0.5 text-[11px] '+(e.bucket==='vendor-payable'?'bg-warning-bg text-warning':'bg-ink-50 text-ink-600')}>
         {e.bucket==='vendor-payable'?'Vendor sourcing payable':
-         e.bucket==='vendor-receivable'?'Vendor receivable':'Supplier purchase'}</span></td>
+         e.bucket==='vendor-receivable'?'Amount Receivable':'Supplier purchase'}</span></td>
      <td className="p-2 text-right text-ink">{e.moneyPaisa!==null&&e.moneyPaisa>0?taka(e.moneyPaisa/100):'—'}</td>
      <td className="p-2 text-right text-ink">{e.moneyPaisa!==null&&e.moneyPaisa<0?taka(-e.moneyPaisa/100):'—'}</td>
      <td className="p-2 text-right">
@@ -235,11 +235,11 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
       {source.sourceKind==='sourcing'&&sourceOutstanding(snapshot,source.id).returnedBaseQty<source.baseQty&&
        (sourceOutstanding(snapshot,source.id).monetaryDuePaisa===null||
         (sourceOutstanding(snapshot,source.id).monetaryDuePaisa??0)>0)&&
-       <Button size="sm" variant="outline" aria-label={'Return goods '+(source.reference??source.id)}
-        onClick={()=>openAction(source,'return')}>Return goods</Button>}
+       <Button size="sm" variant="outline" aria-label={'Return Products '+(source.reference??source.id)}
+        onClick={()=>openAction(source,'return')}>Return Products</Button>}
       {source.sourceKind==='issue'&&(sourceOutstanding(snapshot,source.id).monetaryDuePaisa??0)>0&&<>
-       <Button size="sm" variant="outline" aria-label={'Receive money '+(source.reference??source.id)}
-        onClick={()=>openAction(source,'receive-money')}>Receive money</Button>
+       <Button size="sm" variant="outline" aria-label={'Receive Payment '+(source.reference??source.id)}
+        onClick={()=>openAction(source,'receive-money')}>Receive Payment</Button>
        <Button size="sm" variant="outline" aria-label={'Receive goods '+(source.reference??source.id)}
         onClick={()=>openAction(source,'receive-goods')}>Receive goods</Button>
       </>}
@@ -265,7 +265,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
   <VendorActionDialog source={detail?snapshot.sources.find(s=>s.id===detail.id)??null:null} mode={actionMode} onClose={()=>setDetail(null)}/>
   <Dialog open={!!openingSide} onOpenChange={v=>!v&&setOpeningSide(null)}>
    <DialogContent role="dialog" aria-label="Vendor opening balance" className="sm:max-w-md">
-    <DialogHeader><DialogTitle>{openingSide==='payable'?'Vendor payable opening':'Vendor receivable opening'}</DialogTitle>
+    <DialogHeader><DialogTitle>{openingSide==='payable'?'Vendor payable opening':'Amount Receivable opening'}</DialogTitle>
      <DialogDescription>Non-cash historical balance · Demo preview only. Payable and receivable are separate.</DialogDescription>
     </DialogHeader>
     <label className="space-y-1 text-xs text-ink-500">Amount (৳)
