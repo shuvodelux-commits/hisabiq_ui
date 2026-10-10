@@ -20,7 +20,8 @@ async function main(){
   await editor.getByRole('combobox',{name:'Search product to issue to vendor'}).fill('LED Bulb');
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
-  await editor.getByRole('textbox',{name:/Quantity for/}).first().waitFor();
+  await editor.locator('[data-testid="purchase-cart-row"]').first().waitFor();
+  await editor.getByRole('textbox',{name:/quantity for/i}).first().waitFor();
   await editor.getByRole('button',{name:/Save Issued Products/}).click();
   await editor.getByRole('alert').getByText(/price/i).waitFor();
   await page.goto('http://127.0.0.1:4272/#/app/vendors?partyId=v1&tab=taken');
