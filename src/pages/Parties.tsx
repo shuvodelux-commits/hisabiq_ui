@@ -61,8 +61,9 @@ export function Parties() {
   const selected=resolvePartySelection(allParties,params.get('id')??undefined,params.get('role')??undefined);
   const party=selected?allParties.find(p=>p.id===selected.partyId):undefined;
   const relationship=selected?.relationship;
+  const completeVendorRange=Boolean(range.from)===Boolean(range.to)?range:{from:'',to:''};
   const vendorProfile=party&&relationship==='Vendor'
-   ?projectVendorPartyProfile(vendorState,availablePurchases(),party.id,range):undefined;
+   ?projectVendorPartyProfile(vendorState,availablePurchases(),party.id,completeVendorRange):undefined;
   const filtered=allParties.filter(p=>(routeGroup==='loans'?p.roles.some(r=>r==='Lender'||r==='Borrower')
     :routeGroup==='owners'?p.roles.some(r=>r==='Owner'||r==='Payee')
     :role==='All'||p.roles.includes(role))&&matchesPartySearch(p,query))
