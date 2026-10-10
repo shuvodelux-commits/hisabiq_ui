@@ -23,7 +23,7 @@ async function main(){
 
   // Clicking the text or chevron on a parent row must have identical behavior.
   const purchasesTrigger=nav.getByRole('button',{name:'Expand Purchases'});
-  await nav.getByRole('button',{name:'Collapse Purchases'}).getByText('Purchases',{exact:true}).click();
+  await nav.getByRole('button',{name:'Collapse Purchases'}).click({position:{x:82,y:20}});
   assert.equal(page.url(),before,'parent label must only collapse its group');
   assert.equal(await purchasesTrigger.getAttribute('aria-expanded'),'false');
   await purchasesTrigger.locator('svg:last-child').click();
@@ -76,7 +76,7 @@ async function main(){
   await page.setViewportSize({width:768,height:1024});
   await page.getByRole('button',{name:'Open ERP navigation'}).click();
   const mobile=page.getByRole('dialog',{name:'ERP navigation'});
-  await mobile.getByRole('button',{name:'Expand Settings'}).getByText('Settings',{exact:true}).click();
+  await mobile.getByRole('button',{name:'Expand Settings'}).click({position:{x:90,y:20}});
   await mobile.getByRole('link',{name:/Business & General/}).waitFor();
   assert.equal(await mobile.getByRole('button',{name:'Collapse Settings'}).getAttribute('aria-expanded'),'true');
   assert.deepEqual(errors,[]);
