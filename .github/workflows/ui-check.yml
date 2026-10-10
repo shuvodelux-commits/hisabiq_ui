@@ -76,6 +76,9 @@ jobs:
       - name: Check Vendor Party two-way ledger preview
         run: npm run test:vendor-workflow
 
+      - name: Check POS Vendor unknown-price sourcing
+        run: npm run test:vendor-pos
+
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
 

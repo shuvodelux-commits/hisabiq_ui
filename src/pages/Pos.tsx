@@ -20,7 +20,10 @@ import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
-import { blendedVendorUnitCost, saleAvailableStock, saleStockShortage } from '../utils/posStock';
+import { blendedVendorUnitCost } from '../utils/posStock';
+import {allocatePosStock} from '../vendor/vendorStock';
+import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
+import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -150,6 +153,7 @@ export function Pos() {
   const [invoiceNo, setInvoiceNo] = useState(242);
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
+  const [demoVendorInvoice,setDemoVendorInvoice]=useState<string|null>(null);
   const invoice = editing && sourceInvoice ? sourceInvoice.invoice : `INV-${String(invoiceNo).padStart(6, '0')}`;
   const pageTitle = handoffOrder?'Online order · POS preview':editing
     ? 'Edit sale'
@@ -264,20 +268,16 @@ export function Pos() {
     const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
 
-    const unresolvedShortageLine = cart.lines.find((line) => {
-      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
-      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
-      return saleStockShortage(line.product, stockLots, baseQty) > 0 && !line.stockSource;
-    });
+    const allocated=allocatePosStock(cart.lines.map(l=>({key:l.key,product:l.product,
+      requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
+       l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),
+      choice:l.stockSource})),stockLots);
+    const unresolvedShortageLine=cart.lines.find((_,i)=>allocated[i]?.needsSourceBaseQty>0);
     if (unresolvedShortageLine) {
       const factor = unresolvedShortageLine.product.altUnit && unresolvedShortageLine.unit === unresolvedShortageLine.product.altUnit.unit
         ? unresolvedShortageLine.product.altUnit.factor
         : 1;
-      const shortage = saleStockShortage(
-        unresolvedShortageLine.product,
-        stockLots,
-        compoundBaseQuantity(unresolvedShortageLine.qty, unresolvedShortageLine.secondaryQty, factor)
-      );
+      const shortage=allocated.find(a=>a.key===unresolvedShortageLine.key)?.needsSourceBaseQty??0;
       toast.error('Choose stock shortage handling', {
         description: `${unresolvedShortageLine.product.name}: resolve ${shortage} ${unresolvedShortageLine.product.unit} shortage before completing the sale.`
       });
@@ -333,20 +333,26 @@ export function Pos() {
       return;
     }
     const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
+    const remainingLots=stockLots.map(lot=>({...lot}));
     setCompleted({
       invoice,
       customer: cart.customerDetails.name.trim() || cart.customer?.name || undefined,
       customerPhone: cart.customerDetails.phone.trim() || undefined,
       guardianName: cart.customerDetails.guardianName.trim() || undefined,
       customerAddress: cart.customerDetails.address.trim() || undefined,
-      lines: cart.lines.map((l) => {
+      lines: cart.lines.map((l,index) => {
         const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
         const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
-        const availableStock = saleAvailableStock(l.product, stockLots);
-        const shortage = saleStockShortage(l.product, stockLots, baseQty);
-        const vendorBlendedCost = l.stockSource?.mode === 'Vendor'
-          ? blendedVendorUnitCost(baseQty, availableStock, l.product.purchasePrice, l.stockSource.unitCost)
+        const ownBaseQty=allocated[index]?.ownBaseQty??0;
+        const shortage=Math.max(0,baseQty-ownBaseQty);
+        const vendorBlendedCost = l.stockSource?.mode === 'Vendor' && l.stockSource.unitCost!==null
+          ? blendedVendorUnitCost(baseQty,ownBaseQty,l.product.purchasePrice,l.stockSource.unitCost)
           : undefined;
+        const allocatedLots=l.product.kind==='Service'?undefined:allocateLotQuantity(l.product,remainingLots,ownBaseQty).allocations;
+        for(const consumed of allocatedLots??[]){
+          const lot=remainingLots.find(item=>item.id===consumed.lotId);
+          if(lot)lot.available=Math.max(0,lot.available-consumed.quantity);
+        }
         return {
           productId: l.product.id,
           name: l.product.name,
@@ -355,15 +361,12 @@ export function Pos() {
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
-          unitCost: vendorBlendedCost ?? (editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice),
+          unitCost: l.stockSource?.mode==='Vendor' && l.stockSource.unitCost===null
+            ? undefined : vendorBlendedCost ?? (editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice),
           serials: l.serials,
           warranty: editing ? (l.historicalWarranty ?? warrantySnapshot(l.product)) : warrantySnapshot(l.product),
           stockSource: shortage > 0 ? l.stockSource : undefined,
-          lotAllocations: l.product.kind === 'Service' ? undefined : allocateLotQuantity(
-            l.product,
-            stockLots,
-            Math.min(baseQty, availableStock)
-          ).allocations
+          lotAllocations: allocatedLots
         };
       }),
       subtotal: t.subtotal,
@@ -393,6 +396,22 @@ export function Pos() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
+
+  const simulateVendorSources=()=>{
+    if(!completed || editing || demoVendorInvoice===completed.invoice)return;
+    try{
+      const allocations=allocatePosStock(cart.lines.map(l=>({key:l.key,product:l.product,
+       requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
+        l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),
+       choice:l.stockSource})),stockLots);
+      const prepared=prepareVendorSalePreview(completed.invoice,allocations,cart.lines);
+      if(!prepared.sources.length)throw new Error('No Vendor sourced shortage to simulate.');
+      dispatchVendorPreview({type:'simulate-pos-sale',operationId:'vendor-demo:'+completed.invoice,
+       sale:prepared.sale,sources:prepared.sources});
+      setDemoVendorInvoice(completed.invoice);
+      toast.success('Vendor source added to demo preview',{description:'Open Vendor Party to view Price pending. No real ledger, stock or cash posting.'});
+    }catch(error){toast.error(error instanceof Error?error.message:'Demo source could not be saved.');}
+  };
 
   const holdCurrent = () => {
     setDrafts((d) => [
@@ -444,7 +463,7 @@ export function Pos() {
   };
 
   const newSale = () => {
-    setCompleted(null);
+    setCompleted(null);setDemoVendorInvoice(null);
     cart.reset();
     setInvoiceNo((n) => n + 1);
     if (editing || duplicating || draftContext || templateContext || incomingOrderId) navigate('/app/pos', { replace: true, state: null });
@@ -465,7 +484,7 @@ export function Pos() {
             ['F2', 'Search'],
             ['Enter', 'Next'],
             ['F8', 'Paid'],
-            ['F9', 'Complete']].
+            ['F9', 'Preview']].
             map(([k, l]) =>
             <span key={k} className="flex items-center gap-1">
                 <kbd className="rounded border border-ink-200 bg-ink-50 px-1 text-[10px] text-ink-600">{k}</kbd> {l}
@@ -618,7 +637,7 @@ export function Pos() {
           onComplete={complete}
           onClear={cart.reset}
           paidRef={paidRef}
-          completeLabel={editing ? 'Update sale' : 'Complete sale'} />
+          completeLabel={editing ? 'Preview sale update' : 'Preview sale'} />
         
       </div>
 
@@ -634,18 +653,25 @@ export function Pos() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="size-5 text-success" /> {editing ? 'Sale updated' : 'Sale completed'}
+              <CheckCircle2 className="size-5 text-teal-600" /> {editing ? 'Sale update preview' : 'Sale preview · Not posted'}
             </DialogTitle>
             <DialogDescription>
               {completed?.invoice} · {taka(completed?.total ?? 0)}
-              {completed && completed.due > 0 ? ` · ${taka(completed.due)} added to ${completed.customer}’s ledger` : ' · fully paid'}
+              {completed && completed.due > 0 ? ` · Due ${taka(completed.due)} (not posted to ledger)` : ' · fully paid in preview'}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
             {completed && <ReceiptPreview {...completed} />}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => toast.success('Sent to printer', { description: 'Thermal printer · 80mm' })}>
+            {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
+              <Button variant="outline" onClick={simulateVendorSources}
+                disabled={!!demoVendorInvoice||editing}
+                title={editing?'Historical source updates are not enabled in the UI preview':
+                  demoVendorInvoice?'Demo source already recorded':'Simulate source quantity for Vendor workspace; no backend posting'}>
+                {demoVendorInvoice?'Vendor source in demo':'Simulate Vendor source'}
+              </Button>}
+            <Button variant="outline" onClick={() => window.print()}>
               <Printer className="size-4" /> Print receipt
             </Button>
             <Button onClick={() => {

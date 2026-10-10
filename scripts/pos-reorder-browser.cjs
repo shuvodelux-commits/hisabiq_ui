@@ -18,22 +18,22 @@ async function main() {
     await page.goto('http://127.0.0.1:4182/#/app/pos');
     const original = await rowOrder();
     assert.deepEqual(original, ['PVC Pipe 1" (20 ft)', 'LED Bulb 12W', 'Wire Mesh Net 3 ft']);
-    const totalBefore = await page.getByRole('button', { name: /Complete sale/ }).innerText();
+    const totalBefore = await page.getByRole('button', { name: /Preview sale/ }).innerText();
     const lastHandle = page.getByRole('button', { name: /Reorder Wire Mesh Net 3 ft/ });
     await lastHandle.focus();
     await lastHandle.press('ArrowUp');
     assert.deepEqual(await rowOrder(), ['PVC Pipe 1" (20 ft)', 'Wire Mesh Net 3 ft', 'LED Bulb 12W']);
     await lastHandle.press('ArrowUp');
     assert.deepEqual(await rowOrder(), ['Wire Mesh Net 3 ft', 'PVC Pipe 1" (20 ft)', 'LED Bulb 12W']);
-    assert.equal(await page.getByRole('button', { name: /Complete sale/ }).innerText(), totalBefore,
+    assert.equal(await page.getByRole('button', { name: /Preview sale/ }).innerText(), totalBefore,
       'changing order does not alter totals');
     const rowFocus = await page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
     assert.match(rowFocus, /Reorder Wire Mesh Net 3 ft/, 'keyboard focus remains on the moved row');
 
     await page.getByRole('button', { name: 'Exact', exact: true }).click();
-    await page.getByRole('button', { name: /Complete sale/ }).click();
+    await page.getByRole('button', { name: /Preview sale/ }).click();
     const receipt = page.locator('[data-slot="dialog-content"]').last();
-    await receipt.getByText(/Sale completed/).waitFor();
+    await receipt.getByText(/Sale preview/).waitFor();
     const printed = await receipt.locator('ol > li').evaluateAll((nodes) =>
       nodes.map((node) => node.querySelector('span')?.textContent?.trim()));
     assert.deepEqual(printed.map((text) => text?.replace(/^\d+\. /, '')), [

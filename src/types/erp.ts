@@ -166,7 +166,7 @@ export type PaymentSplit = {
 
 export type SaleStockSource =
   | { mode: 'Negative' }
-  | { mode: 'Vendor'; vendorId: string; vendorName: string; unitCost: number };
+  | { mode: 'Vendor'; vendorId: string; vendorName: string; /** Unknown until evening = null, not zero. Base-unit cost. */ unitCost: number | null };
 
 export type Sale = TransactionAuditFields & {
   id: string;
