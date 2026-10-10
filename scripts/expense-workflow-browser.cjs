@@ -48,7 +48,7 @@ async function main(){
   if(await bill.getByRole('button',{name:/Payment unavailable/}).count()){
    assert.equal(await bill.getByRole('button',{name:/Payment unavailable/}).isDisabled(),true);
   }
-  await bill.getByRole('button',{name:'Close',exact:true}).click();
+  await bill.getByRole('button',{name:'Close',exact:true}).first().click();
   assert.deepEqual(errors,[]);
   console.log('Expense Quick Add, list filters, real CSV and truthful detail actions passed');
  }finally{await browser.close();await server.close();}
