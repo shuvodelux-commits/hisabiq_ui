@@ -60,6 +60,27 @@ function event(state:VendorPreviewState,s:VendorSource,operationId:string):Vendo
 export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCommand):VendorPreviewState {
  if(state.operations.includes(cmd.operationId))return state;
  if(!cmd.operationId.trim())throw new Error('Operation ID is required.');
+ if(cmd.type==='simulate-pos-sale'){
+  if(!cmd.sale.id.trim()||!cmd.sale.invoiceId.trim()||cmd.sale.sourceMode!=='demo')
+   throw new Error('A linked demo sale and invoice are required.');
+  if(state.sales.some(s=>s.invoiceId===cmd.sale.invoiceId))
+   throw new Error('This demo invoice already has a Vendor simulation.');
+  const next=extended(state,cmd.operationId)!;
+  for(const row of cmd.sources){
+   ensureVendor(next,row.vendorPartyId);
+   if(row.source.sourceInvoiceId!==cmd.sale.invoiceId)
+    throw new Error('Vendor source must link the same demo invoice.');
+   const linked=source(next,row.vendorPartyId,'sourcing',row.source);
+   next.sources.push(linked);
+   next.events.push({...event(next,linked,cmd.operationId),id:'vendor-event:'+cmd.operationId+':'+linked.id,
+      sequence:next.events.length+1});
+  }
+  if(cmd.sale.sourceIds.length!==cmd.sources.length||
+     cmd.sale.sourceIds.some((id,i)=>id!==cmd.sources[i].source.id))
+   throw new Error('Demo invoice and source allocations differ.');
+  next.sales.push({...cmd.sale});
+  return next;
+ }
  ensureVendor(state,cmd.vendorPartyId);
  if(cmd.type==='record-sourcing'||cmd.type==='issue-goods'){
   const kind=cmd.type==='record-sourcing'?'sourcing':'issue';
