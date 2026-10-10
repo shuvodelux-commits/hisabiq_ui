@@ -30,6 +30,7 @@
     "test:vendor-module": "node scripts/vendor-module-browser.cjs",
     "test:vendor-party-profile": "node scripts/vendor-party-profile-browser.cjs",
     "test:vendor-goods": "node scripts/vendor-goods-browser.cjs",
+    "test:vendor-clear-due": "node scripts/vendor-clear-due-browser.cjs",
     "test:party-ledger": "node scripts/party-ledger-browser.cjs",
     "test:party-settlement": "node scripts/party-settlement-browser.cjs",
     "test:party-opening": "node scripts/party-opening-browser.cjs",
