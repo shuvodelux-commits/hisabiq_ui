@@ -68,5 +68,5 @@ test('multi-source split is atomic and duplicate source allocation rejected',()=
  assert.equal(vendorBalances(s,'v1').knownPayablePaisa,30000);
  assert.equal(sourceOutstanding(s,'a').monetaryDuePaisa,10000);
  assert.equal(sourceOutstanding(s,'b').monetaryDuePaisa,20000);
- assert.throws(()=>applyVendorCommand(s,{...split([{sourceId:'a',amountPaisa:15000},{sourceId:'a',amountPaisa:15000}]),operationId:'duplicated'}),/duplicate/i);
+ assert.throws(()=>applyVendorCommand(s,{...split([{sourceId:'a',amountPaisa:5000},{sourceId:'a',amountPaisa:5000}]),operationId:'duplicated'}),/duplicate/i);
 });
