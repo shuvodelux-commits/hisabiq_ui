@@ -10,9 +10,9 @@ async function main(){
  try{
   await page.goto('http://127.0.0.1:4247/#/app/vendors?partyId=v1&tab=given');
   const vendor=page.getByRole('region',{name:'Selected Vendor work'});
-  await vendor.getByRole('button',{name:'Give Products'}).click();
-  await page.getByRole('form',{name:'Give products editor'}).waitFor();
-  assert.equal(await page.getByRole('dialog',{name:'Give products to Vendor'}).count(),0);
+  await vendor.getByRole('button',{name:'Issue Products'}).click();
+  await page.getByRole('form',{name:'Issue products editor'}).waitFor();
+  assert.equal(await page.getByRole('dialog',{name:'Issue products to Vendor'}).count(),0);
   await vendor.getByRole('tab',{name:/Purchases/}).click();
   await vendor.getByRole('button',{name:'Buy Products'}).click();
   await vendor.getByText('Purchase details').waitFor();
@@ -21,7 +21,7 @@ async function main(){
   await vendor.getByRole('button',{name:'Cancel'}).last().click();
   await vendor.getByText('No purchases from this Vendor yet.').waitFor();
   assert.deepEqual(errors,[]);
-  console.log('Vendor inline Given cart and full-width Purchase editor verified');
+  console.log('Vendor inline product-issue cart and full-width Purchase editor verified');
  }finally{await browser.close();await server.close();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
