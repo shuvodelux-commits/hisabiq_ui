@@ -26,7 +26,7 @@
 ## File ownership map and stable interfaces
 
 **Domain (new):**
-- `src/vendor/vendorTypes.ts`: `VendorSide`, `VendorSource`, `VendorSettlement`, `VendorLedgerEvent`, `VendorPreviewSale`, `VendorPreviewState`, discriminated `VendorPreviewCommand`, `VendorBalances`.
+- `src/vendor/vendorTypes.ts`: `VendorSide`, `VendorSource`, `VendorSettlement`, `VendorOpening`, `VendorLedgerEvent`, `VendorPreviewSale`, `VendorPreviewState`, discriminated `VendorPreviewCommand`, `VendorBalances`.
 - `src/vendor/vendorModel.ts`: pure `applyVendorCommand(state: VendorPreviewState, command: VendorPreviewCommand): VendorPreviewState`, `vendorBalances(state, vendorPartyId): VendorBalances`, `sourceOutstanding(state, sourceId): {qty: number; amountPaisa: number}`. All transitions validate before returning new state; throw leaves old state intact.
 - `src/vendor/vendorPreviewStore.ts`: `getVendorPreviewSnapshot()`, `subscribeVendorPreview(listener)`, `dispatchVendorPreview(command)`, `resetVendorPreviewForTest()` using existing external-store convention. Demo fixtures are contained here and may link to existing `Party.id`s.
 - `src/vendor/vendorStock.ts`: `allocatePosStock(lines: readonly PosStockRequest[], lots: readonly StockLot[], now?: Date): PosStockAllocation[]` where each request is `{key:string; product:Product; requestedBaseQty:number; choice?: SaleStockSource}` and result `{key; productId; ownBaseQty; vendorBaseQty; negativeBaseQty; effectiveBaseQty; availableBeforeBaseQty}`. An explicit Own Stock clamp is a UI action, not a stored `stockSource` mode.
@@ -43,7 +43,7 @@
 - `src/types/erp.ts`: compatible optional source snapshot fields on `SaleLine`; do not break current Sale fixtures.
 
 **Tests:**
-- New `tests/vendorModel.test.ts`, `tests/vendorStock.test.ts`, `tests/vendorLedger.test.ts`, `tests/vendorSalePreview.test.ts`, `tests/vendorCorrection.test.ts`.
+- New `tests/vendorModel.test.ts`, `tests/vendorPreviewStore.test.ts`, `tests/vendorStock.test.ts`, `tests/vendorLedger.test.ts`, `tests/vendorWorkspace.test.ts`, `tests/vendorSalePreview.test.ts`, `tests/vendorSettlements.test.ts`, `tests/vendorCorrection.test.ts`.
 - New `scripts/vendor-workflow-browser.cjs`.
 - Add `test:vendor-workflow` to `package.json` and browser regression step to `.github/workflows/ui-check.yml`.
 
@@ -65,9 +65,9 @@
 
 **Files:** Create `src/vendor/vendorTypes.ts`, `src/vendor/vendorModel.ts`; Test `tests/vendorModel.test.ts`.
 
-**Interfaces:** Produces `VendorPreviewState`, `VendorPreviewCommand`, `applyVendorCommand`, `vendorBalances`, `sourceOutstanding` used by all later tasks. Commands include `record-sourcing`, `issue-goods`, `settle-source`, `reverse-event` and `simulate-pos-sale`; use a discriminated union. Each command carries `operationId`; mutations remain atomic on failure.
+**Interfaces:** Produces `VendorPreviewState`, `VendorPreviewCommand`, `applyVendorCommand`, `vendorBalances`, `sourceOutstanding` used by all later tasks. Commands include `set-opening`, `record-sourcing`, `issue-goods`, `settle-source`, `reverse-event` and `simulate-pos-sale`; use a discriminated union. Each command carries `operationId`; mutations remain atomic on failure.
 
-- [ ] **Step 1: Write failing tests** in `tests/vendorModel.test.ts`: sourcing of 3 Pcs × 11000 paisa increases only payable by 33000; issuing 2 Pcs × 7000 increases only receivable by 14000; another Party with `Supplier` role remains unaffected; duplicate `operationId` is idempotent; unknown/inactive Party, cross-Vendor source and NaN/negative money fail without changing previous state.
+- [ ] **Step 1: Write failing tests** in `tests/vendorModel.test.ts`: sourcing of 3 Pcs × 11000 paisa increases only payable by 33000; issuing 2 Pcs × 7000 increases only receivable by 14000; a payable opening of 50000 and receivable opening of 12000 remain independent; another Party with `Supplier` role remains unaffected; duplicate `operationId` is idempotent; unknown/inactive Party, cross-Vendor source and NaN/negative money fail without changing previous state.
 - [ ] **Step 2: Run red test**: `node --experimental-strip-types --test tests/vendorModel.test.ts`. Expected: FAIL because Vendor domain exports do not yet exist.
 - [ ] **Step 3: Implement** types and pure reducer. Use integer paisa and source IDs; append one ordered ledger event per economic effect, no use of `Party.balance`; freeze or copy existing state before validating.
 - [ ] **Step 4: Run green test**: same command, expected: all new tests pass. Verify invalid input does not change a JSON snapshot of input state.
@@ -117,7 +117,7 @@
 
 **Interfaces:** Implements `allocatePosStock(lines, lots, now)`. The `PosStockRequest` and `PosStockAllocation` types defined in File Ownership map are exported from `vendorStock.ts`. Consumes `SaleStockSource`, `Product`, `StockLot`, `saleAvailableStock`.
 
-- [ ] **Step 1: Write failing tests**: stock 5/request 8 -> Vendor allocation `own=5,vendor=3,negative=0`; Negative allocation `own=5,vendor=0,negative=3`; two repeated lines of 4+4 -> `own=4` and `own=1`, shortage 3; net stock 1 with positive lots 3 and OVERSOLD -2 -> only 1 own, 2 vendor; compound 1 Box 5 Pcs of 12 Pcs/Box -> 17 base units; expired-only stock and Service no-shortage; invalid/stale decisions rejected.
+- [ ] **Step 1: Write failing tests**: stock 5/request 8 -> Vendor allocation `own=5,vendor=3,negative=0`; Negative allocation `own=5,vendor=0,negative=3`; two repeated lines of 4+4 -> `own=4` and `own=1`, shortage 3; net stock 1 with positive lots 3 and OVERSOLD -2 -> only 1 own, 2 vendor; after a -3 negative sale, purchasing 6 reconciles the deficit once to net +3; compound 1 Box 5 Pcs of 12 Pcs/Box -> 17 base units; expired-only stock and Service no-shortage; invalid/stale decisions rejected.
 - [ ] **Step 2: Run red**: `node --experimental-strip-types --test tests/vendorStock.test.ts`.
 - [ ] **Step 3: Implement** product-keyed allocation across line order; reserve owned base units once, use **net sellable** cap, preserve negative/vendored quantities separately; unit conversion stays in `src/utils/posQuantity.ts`, not reimplemented.
 - [ ] **Step 4: Run green** and existing `node --experimental-strip-types --test tests/posStock.test.ts tests/posQuantity.test.ts tests/transactionCartParity.test.ts`; expected zero failures.
@@ -153,11 +153,11 @@
 
 **Files:** Modify `src/vendor/vendorTypes.ts`, `src/vendor/vendorModel.ts`, `src/components/parties/VendorActionDialog.tsx`; Test `tests/vendorModel.test.ts`, `tests/vendorSettlements.test.ts`, browser script.
 
-**Interfaces:** `settle-source` command with `sourceId`, `side`, `kind`, `amountPaisa`, optional `baseQty`, `paymentSplits`, `operationId`; use `sourceOutstanding(state, sourceId)` to guard quantities/values. `issue-goods` command with product lines and physical availability. Aggregate payment split amounts equal settled amount exactly in paisa.
+**Interfaces:** `settle-source` command with `vendorPartyId`, `side`, `kind`, `amountPaisa`, `allocations:{sourceId:string;amountPaisa:number;baseQty?:number}[]`, `paymentSplits`, `operationId`; use `sourceOutstanding(state, sourceId)` to guard quantities/values. `issue-goods` command with product lines and physical availability. Aggregate payment split amounts equal settled amount exactly in paisa.
 
-- [ ] **Step 1: Write failing tests**: payable 33000 minus paid 20000 minus linked goods return 13000 = 0; issuing 2×7000 then receive 7000 and return one unit 7000 = 0; only physically held owned units can leave; split Cash 12000 + Bank 8000 equals settlement 20000; over-settlement, wrong Vendor, wrong side, wrong source, duplicate operation ID, unavailable stock or one bad memo line reject the *whole* command.
+- [ ] **Step 1: Write failing tests**: payable 33000 minus paid 20000 minus linked goods return 13000 = 0; issuing 2×7000 then receive 7000 and return one unit 7000 = 0; only physically held owned units can leave; split Cash 12000 + Bank 8000 equals settlement 20000; a ৳300 payment distributed across two sourcing IDs as ৳200+৳100 is tracked once in each source; over-settlement, wrong Vendor, wrong side, wrong source, duplicate operation ID, unavailable stock or one bad memo line reject the *whole* command.
 - [ ] **Step 2: Run red**: `node --experimental-strip-types --test tests/vendorSettlements.test.ts`.
-- [ ] **Step 3: Implement** grouped multi-product issue memo, physical stock delta recorded only in the *demo* inventory projection, source-allocated settlement and complete reason/provenance. No real bank/cashbook posting; preview text says what was simulated. Disable unsupported advance/automatic netting actions.
+- [ ] **Step 3: Implement** grouped multi-product issue memo, source allocations (oldest-first suggestion with manually reviewable assignments), physical stock delta recorded only in the *demo* inventory projection, source-allocated settlement and complete reason/provenance. No real bank/cashbook posting; preview text says what was simulated. Disable unsupported advance/automatic netting actions.
 - [ ] **Step 4: Run green**: new and existing Vendor tests, `npm run build`, `node scripts/vendor-workflow-browser.cjs`.
 - [ ] **Step 5: Commit** `git add src/vendor/vendorTypes.ts src/vendor/vendorModel.ts src/components/parties/VendorActionDialog.tsx tests/vendorModel.test.ts tests/vendorSettlements.test.ts scripts/vendor-workflow-browser.cjs && git commit -m "feat(vendor): simulate sourced payable and issued receivable settlement"`.
 
