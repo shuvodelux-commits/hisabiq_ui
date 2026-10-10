@@ -13,7 +13,8 @@ async function main(){
   await row.getByRole('textbox',{name:/Quantity for/}).fill('100');
   await row.getByRole('button',{name:/Short/}).click();
   const dialog=page.getByRole('dialog',{name:'Stock shortage'});
-  await page.getByText('Source only the shortage from a nearby Vendor.',{exact:false}).first().click({timeout:7000});
+  await dialog.getByRole('radio',{name:/Vendor/}).click();
+  assert.equal(await dialog.getByRole('radio',{name:/Vendor/}).getAttribute('aria-checked'),'true');
   await dialog.getByRole('combobox',{name:'Vendor'}).click();
   await page.getByRole('listbox',{name:'Vendor options'}).getByRole('option').first().click();
   assert.match(await dialog.innerText(),/Price pending/i);
