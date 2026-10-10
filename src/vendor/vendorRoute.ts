@@ -20,5 +20,5 @@ export function vendorWorkLink(partyId:string,tab?:VendorWorkTab,sourceId?:strin
 export function filterVendors(parties:readonly Party[],text:string):Party[]{
  const q=text.trim().toLocaleLowerCase();
  return parties.filter(p=>p.roles.includes('Vendor')&&(!q||
- [p.name,p.nameBn??'',p.phone,p.area].some(value=>value.toLocaleLowerCase().includes(q))));
+ [p.name,p.nameBn,p.phone,p.area].some(value=>(value??'').toLocaleLowerCase().includes(q))));
 }
