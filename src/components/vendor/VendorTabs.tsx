@@ -10,6 +10,7 @@ import {VendorActionDialog,type VendorActionMode} from '../parties/VendorActionD
 import {VendorCorrectionDialog} from '../parties/VendorCorrectionDialog';
 import {VendorStatementDialog} from '../parties/VendorStatementDialog';
 import {VendorGoodsEditor} from './VendorGoodsEditor';
+import {VendorClearDuePanel} from './VendorClearDuePanel';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
@@ -41,6 +42,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const updateDirty=(value:boolean)=>{setHasUnsavedGoods(value);onDirtyChange(value);};
  const [editingGiven,setEditingGiven]=useState(false);
  const [editingPurchase,setEditingPurchase]=useState(false);
+ const [clearSourceId,setClearSourceId]=useState<string|null>(null);
  const [purchaseRevision,setPurchaseRevision]=useState(0);
  const [statementOpen,setStatementOpen]=useState(false);
  const [openingSide,setOpeningSide]=useState<VendorSide|null>(null);
@@ -187,6 +189,9 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       {profile.takenStatement.unpricedSources.length} source(s) with <strong>Price not set</strong>. See Taken tab; no money value has been assigned.</p>}
     </>}
     {(tab==='taken'||tab==='given')&&<>
+     {tab==='taken'&&clearSourceId&&snapshot.sources.find(s=>s.id===clearSourceId)&&
+      <VendorClearDuePanel key={clearSourceId} source={snapshot.sources.find(s=>s.id===clearSourceId)!}
+       onClose={()=>setClearSourceId(null)}/>}
      {(tab==='taken'?editingTaken:editingGiven')&&<div className="mb-4">
       <VendorGoodsEditor partyId={party.id} mode={tab} onDirtyChange={updateDirty}
        onCancel={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);updateDirty(false);}}
@@ -203,9 +208,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
          <p className="text-[11px] text-ink-400">{out.returnedBaseQty>0?out.returnedBaseQty+' returned':''}</p></div>
         {source.sourceKind==='sourcing'&&source.unitCostBasePaisa===null&&
           <Button size="sm" variant="outline" onClick={()=>openAction(source,'quote')}>Set Price</Button>}
-        {source.unitCostBasePaisa!==null&&(out.monetaryDuePaisa??0)>0&&
-          <Button size="sm" variant="outline" onClick={()=>openAction(source,tab==='taken'?'pay':'receive-money')}>
-           {tab==='taken'?'Pay Money':'Receive Money'}</Button>}
+        {tab==='taken'&&(out.unpricedBaseQty>0||(out.monetaryDuePaisa??0)>0)&&
+          <Button size="sm" variant="outline" onClick={()=>setClearSourceId(source.id)}>Clear Due</Button>}
+        {tab==='given'&&source.unitCostBasePaisa!==null&&(out.monetaryDuePaisa??0)>0&&
+          <Button size="sm" variant="outline" onClick={()=>openAction(source,'receive-money')}>Receive Money</Button>}
         <details className="relative text-xs"><summary className="cursor-pointer rounded border border-border px-2 py-2">More</summary>
          <div className="absolute right-0 top-full z-20 min-w-36 space-y-1 rounded-lg border border-border bg-card p-2 shadow-lg">
           <Button size="sm" variant="ghost" onClick={()=>openAction(source,'details')}>View details</Button>
