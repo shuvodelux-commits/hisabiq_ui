@@ -97,6 +97,9 @@ jobs:
       - name: Check inline Vendor goods cart
         run: npm run test:vendor-goods
 
+      - name: Check atomic Vendor Clear Due with payment and products
+        run: npm run test:vendor-clear-due
+
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
 
