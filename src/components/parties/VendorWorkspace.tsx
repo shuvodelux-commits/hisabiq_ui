@@ -10,6 +10,7 @@ import {PartyAvatar} from '../PartyAvatar';
 import {RoleBadge} from './RoleBadge';
 import {VendorStatementDialog} from './VendorStatementDialog';
 import {VendorPurchaseDialog} from './VendorPurchaseDialog';
+import {VendorIssueGoodsDialog} from './VendorIssueGoodsDialog';
 import {availablePurchases} from '../../data/erpDemoStore';
 import {VendorActionDialog,type VendorActionMode} from './VendorActionDialog';
 import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
@@ -30,6 +31,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const [query,setQuery]=useState('');
  const [statementOpen,setStatementOpen]=useState(false);
  const [purchaseOpen,setPurchaseOpen]=useState(false);
+ const [issueOpen,setIssueOpen]=useState(false);
  const [purchaseRevision,setPurchaseRevision]=useState(0);
  const tabId=useId().replace(/:/g,'');
  const [detail,setDetail]=useState<VendorSource|null>(null);
@@ -119,7 +121,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
    <Button size="sm" onClick={()=>setTab('pending')}>Set price & settle · সন্ধ্যার হিসাব</Button>
    <Button size="sm" variant="outline" onClick={()=>setTab('sourcing')}>Pay Vendor</Button>
    <Button size="sm" variant="outline" onClick={()=>setTab('sourcing')}>Return goods</Button>
-   {disabled('Give products','Goods issued memo is scheduled for Increment C.')}
+   <Button size="sm" variant="outline" onClick={()=>setIssueOpen(true)}><PackageMinus className="size-4"/> Give products</Button>
    <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive money</Button>
    <Button size="sm" variant="outline" onClick={()=>setTab('issued')}>Receive products</Button>
    <Button size="sm" variant="outline" onClick={()=>setPurchaseOpen(true)}><Plus className="size-4"/> Buy products</Button>
@@ -221,6 +223,8 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
     {!list.length&&<div className="p-8 text-center text-sm text-ink-500">No Vendor records match these filters.</div>}
    </div>}
   </div>
+  <VendorIssueGoodsDialog open={issueOpen} vendorPartyId={party.id} vendorName={party.name}
+    onClose={()=>{setIssueOpen(false);setTab('issued');}}/>
   <VendorPurchaseDialog open={purchaseOpen} vendorPartyId={party.id} vendorName={party.name}
     onClose={()=>setPurchaseOpen(false)} onSaved={()=>{setPurchaseOpen(false);setPurchaseRevision(v=>v+1);setTab('purchases');}}/>
   <VendorStatementDialog open={statementOpen} onClose={()=>setStatementOpen(false)} party={party} state={snapshot} range={range}/>
