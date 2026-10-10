@@ -15,7 +15,7 @@ async function main(){
   const editor=page.getByRole('form',{name:'Give products editor'});
   await editor.waitFor();
   assert.equal(await page.getByRole('dialog',{name:/Give products/}).count(),0,'full cart must be inline, not modal');
-  await editor.getByRole('textbox',{name:'Search products to add to Vendor memo'}).fill('LED Bulb');
+  await editor.getByRole('combobox',{name:'Search products to add to Vendor memo'}).fill('LED Bulb');
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
   await editor.getByRole('textbox',{name:/Quantity for/}).first().waitFor();
