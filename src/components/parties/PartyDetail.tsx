@@ -142,6 +142,16 @@ export function PartyDetail({
             <span>Last activity {party.lastActivity}</span>
           </div>
         </div>
+        {vendorProfile?<div className="flex flex-wrap gap-2">
+         <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
+          <p className="text-[11px] text-danger">You owe · দেনা</p>
+          <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
+         <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
+          <p className="text-[11px] text-ink-600">Vendor owes · পাওনা</p>
+          <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
+          {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
+           {vendorProfile.summary.priceNotSetBaseQty} units · Price not set</p>}
+         </div></div>:<>
         <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
           <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
             {balanceLabel}
@@ -150,8 +160,17 @@ export function PartyDetail({
             {taka(Math.abs(currentBalance))}
           </p>
         </div>
+        </>}
       </div>
 
+      {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
+        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>Pay Vendor · টাকা দিন</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>Receive Money · টাকা নিন</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
+         <BookOpen className="size-4"/> Opening Balance</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>Open Vendor Work</Button>
+        <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> Add Note</Button>
+       </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
           title={relationship==='Customer'||relationship==='Supplier'?'Record payment in browser preview':'Finance-role payments require the separate finance workflow'}
@@ -184,6 +203,7 @@ export function PartyDetail({
           <StickyNote className="size-4" /> Add note
         </Button>
       </div>
+       </>}
 
       <div className="flex gap-1 border-b border-border px-3" role="tablist">
         {tabs.map((t) =>
