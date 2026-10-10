@@ -157,7 +157,10 @@ export function VendorCorrectionDialog({
      <div className="sm:col-span-2"><p className="mb-1 text-xs font-medium text-ink">Corrected product</p>
       <AppSelect label="Corrected Vendor product" value={productId}
        options={products.filter(p=>p.kind!=='Service').map(p=>({value:p.id,label:p.name}))}
-       onChange={setProductId}/>
+       onChange={setProductId} disabled={Boolean(activeSource.sourceInvoiceId)}/>
+      {activeSource.sourceInvoiceId&&<p className="mt-1 text-[11px] text-ink-500">
+       Product is locked because this source links to customer sale {activeSource.sourceInvoiceId}. Review that invoice before changing products.
+      </p>}
      </div>
      <label className="text-xs font-medium text-ink">Corrected quantity · পরিমাণ
       <Input className="mt-1" aria-label="Corrected source quantity" inputMode="decimal"
