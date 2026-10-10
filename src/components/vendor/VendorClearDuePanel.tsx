@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useRef,useState} from 'react';
 import {Plus,Trash2} from 'lucide-react';
 import {toast} from 'sonner';
 import {Button} from '../Button';
@@ -24,6 +24,7 @@ const toPaisa=(s:string):number=>{
 };
 export function VendorClearDuePanel({source,onClose}:Props){
  const [splits,setSplits]=useState<Split[]>([{id:'s1',accountId:accounts[0]?.id??'',amount:''}]);
+ const nextId=useRef(1);
  const [returnQty,setReturnQty]=useState('');
  const [reason,setReason]=useState('');
  const [error,setError]=useState('');
@@ -65,7 +66,7 @@ export function VendorClearDuePanel({source,onClose}:Props){
   <div className="grid gap-3 sm:grid-cols-2">
    <section className="space-y-2"><div className="flex items-center justify-between">
     <strong className="text-xs text-ink">Pay Money · টাকা দিন</strong>
-    <Button type="button" size="sm" variant="ghost" onClick={()=>setSplits(rows=>[...rows,{id:'s'+(rows.length+1),accountId:accounts[0]?.id??'',amount:''}])}><Plus className="size-3"/> Account</Button></div>
+    <Button type="button" size="sm" variant="ghost" onClick={()=>setSplits(rows=>[...rows,{id:'s'+(++nextId.current),accountId:accounts[0]?.id??'',amount:''}])}><Plus className="size-3"/> Account</Button></div>
     {splits.map((row,i)=><div key={row.id} className="flex items-center gap-2">
      <div className="min-w-0 flex-1"><AppSelect label={'Payment account '+(i+1)}
       value={row.accountId} options={accounts.map(a=>({value:a.id,label:a.name}))}
