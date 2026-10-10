@@ -74,10 +74,10 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
    onDirtyChange(false);onSaved();
   }catch(e){setError(e instanceof Error?e.message:'Cannot save products.');}
  };
- return <form aria-label={mode==='given'?'Give products editor':'Take products editor'} onSubmit={submit}
+ return <form aria-label={mode==='given'?'Issue products editor':'Receive products editor'} onSubmit={submit}
   className="space-y-3 rounded-xl border border-border bg-card p-3 shadow-card sm:p-4">
   <div className="flex flex-wrap items-center justify-between gap-2">
-   <div><h3 className="font-semibold text-ink">{mode==='given'?'Give Products · পণ্য দিন':'Take Products · পণ্য নিন'}</h3>
+   <div><h3 className="font-semibold text-ink">{mode==='given'?'Issue Products · পণ্য দিন':'Receive Products · পণ্য নিন'}</h3>
     <p className="text-xs text-ink-500">Preview only · real stock and money are unchanged</p></div>
    <Button type="button" size="sm" variant="outline" onClick={cancel}>Close</Button>
   </div>
@@ -130,11 +130,11 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
   </div>
   {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
-   <div><p className="text-xs text-ink-500">{mode==='given'?'Vendor owes · পাওনা':'Agreed amount · ঠিক করা দাম'}</p>
+   <div><p className="text-xs text-ink-500">{mode==='given'?'Amount Receivable · পাওনা':'Agreed Purchase Cost · ঠিক করা দাম'}</p>
     <strong className="text-lg text-ink">{taka(total)}</strong>
     {mode==='taken'&&rows.some(x=>!x.price.trim())&&<p className="text-xs text-warning">Some products have no price yet</p>}
    </div>
-   <Button type="submit" size="sm">Save {mode==='given'?'Given':'Taken'} Products</Button>
+   <Button type="submit" size="sm">Save {mode==='given'?'Issued':'Received'} Products</Button>
   </div>
   <AddProductDialog open={addingProduct} onOpenChange={setAddingProduct}
    existingSerials={[]} onSave={p=>{createPreviewProduct(p);setCatalog(items=>[...items,p]);add(p);setAddingProduct(false);}}/>
