@@ -52,8 +52,9 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [actionMode,setActionMode]=useState<VendorActionMode>('details');
  const [correctSource,setCorrectSource]=useState<string|null>(null);
  const [correctEvent,setCorrectEvent]=useState<string|null>(null);
- const profile=useMemo(()=>projectVendorPartyProfile(snapshot,purchases,party.id,range),
-  [snapshot,purchases,party.id,range,purchaseRevision]);
+ const checkedRange=Boolean(range.from)===Boolean(range.to)?range:{from:'',to:''};
+ const profile=useMemo(()=>projectVendorPartyProfile(snapshot,purchases,party.id,checkedRange),
+  [snapshot,purchases,party.id,range.from,range.to,purchaseRevision]);
  const activeSources=snapshot.sources.filter(s=>s.vendorPartyId===party.id&&s.status==='Active');
  const taken=activeSources.filter(s=>s.sourceKind==='sourcing');
  const given=activeSources.filter(s=>s.sourceKind==='issue');
@@ -164,6 +165,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         <option value="payable">Taken · You owe</option><option value="receivable">Given · Vendor owes</option>
        </select></label>
       <AppDateRangePicker value={range} onChange={setRange} label="Vendor ledger date range"/>
+      {Boolean(range.from)!==Boolean(range.to)&&<span className="text-xs text-warning">Choose both dates to filter</span>}
       <Input className="w-full sm:ml-auto sm:w-56" value={query} onChange={e=>setQuery(e.target.value)}
        aria-label="Search Vendor ledger" placeholder="Search reference or note"/>
      </div>
@@ -273,7 +275,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    onClose={()=>{setCorrectEvent(null);setCorrectSource(null);}}
    onReviewEvent={review} onBackToSource={()=>setCorrectEvent(null)}/>
   <VendorStatementDialog open={statementOpen} onClose={()=>setStatementOpen(false)}
-   party={party} state={snapshot} range={range}/>
+   party={party} state={snapshot} range={checkedRange}/>
   {openingSide&&<div className="border-t border-border bg-ink-50 p-4">
    <div className="flex flex-wrap items-end gap-3"><label className="text-xs text-ink-500">
     Opening balance · {openingSide==='payable'?'You owe':'Vendor owes'}
