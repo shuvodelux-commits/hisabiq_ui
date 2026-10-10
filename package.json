@@ -16,6 +16,7 @@
     "test:saas": "node scripts/saas-browser.cjs",
     "test:settings": "node scripts/settings-browser.cjs",
     "test:erp-navigation": "node scripts/erp-navigation-browser.cjs",
+    "test:settings-hub": "node scripts/settings-hub-browser.cjs",
     "test:purchases": "node scripts/purchase-browser.cjs",
     "test:product-quick-add": "node scripts/product-quick-add-browser.cjs",
     "test:pos-reorder": "node scripts/pos-reorder-browser.cjs",

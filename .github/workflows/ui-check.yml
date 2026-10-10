@@ -43,6 +43,9 @@ jobs:
       - name: Check task-centered ERP navigation and deep links
         run: npm run test:erp-navigation
 
+      - name: Check tenant Settings hub and contextual entry
+        run: npm run test:settings-hub
+
       - name: Check shared Excel CSV import wizard
         run: npm run test:import-wizard
 
