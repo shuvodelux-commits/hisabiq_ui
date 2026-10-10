@@ -169,6 +169,8 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   if(!target)throw new Error('Original Vendor source audit event missing.');
   if(!cmd.replacement.id||cmd.replacement.id===original.id)
    throw new Error('Correction requires a new source ID.');
+  if(original.sourceInvoiceId&&cmd.replacement.productId!==original.productId)
+   throw new Error('Linked sale product cannot change during Vendor correction; review the sale invoice first.');
   if(original.sourceInvoiceId && cmd.replacement.sourceInvoiceId
    &&original.sourceInvoiceId!==cmd.replacement.sourceInvoiceId)
    throw new Error('Cannot change the linked sale invoice during source correction.');
