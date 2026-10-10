@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {applyVendorCommand} from '../src/vendor/vendorModel.ts';
-import {projectVendorPartyProfile} from '../src/vendor/vendorPartyProjection.ts';
+import {projectVendorPartyProfile,projectVendorPartyLedger} from '../src/vendor/vendorPartyProjection.ts';
 import type {VendorPreviewState} from '../src/vendor/vendorTypes.ts';
 import type {Purchase} from '../src/types/erp.ts';
 const blank=():VendorPreviewState=>({
@@ -47,4 +47,23 @@ test('separate date filter and source events prevent mixed running balance',()=>
  assert.equal(p.takenStatement.openingPaisa,15000);
  assert.equal(p.takenStatement.rows.length,0);
  assert.equal(p.givenStatement.closingPaisa,0);
+});
+
+test('Party Vendor ledger uses Supplier-style debit and credit but never nets its two balances',()=>{
+ let state=blank();
+ state=applyVendorCommand(state,{type:'record-sourcing',operationId:'borrowed',vendorPartyId:'v1',
+ source:{id:'src1',productId:'p1',baseQty:2,unitCostBasePaisa:10000,date:'2026-10-09'}});
+ state=applyVendorCommand(state,{type:'issue-goods',operationId:'lent',vendorPartyId:'v1',
+ source:{id:'src2',productId:'p1',baseQty:1,unitCostBasePaisa:5000,date:'2026-10-09'}});
+ const profile=projectVendorPartyProfile(state,[],'v1',{from:'',to:''});
+ const taken=projectVendorPartyLedger(profile,'payable');
+ const given=projectVendorPartyLedger(profile,'receivable');
+ assert.equal(taken.rows[0].credit,200);
+ assert.equal(taken.rows[0].debit,0);
+ assert.equal(taken.closingBalance,-200);
+ assert.equal(given.rows[0].debit,50);
+ assert.equal(given.rows[0].credit,0);
+ assert.equal(given.closingBalance,50);
+ assert.equal(taken.rows[0].sourceId,'src1');
+ assert.equal(given.rows[0].sourceId,'src2');
 });
