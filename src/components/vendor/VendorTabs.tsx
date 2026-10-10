@@ -1,6 +1,6 @@
 import React,{useId,useMemo,useState} from 'react';
 import {Link} from 'react-router-dom';
-import {BookOpen,Plus,Printer} from 'lucide-react';
+import {Plus,Printer} from 'lucide-react';
 import {toast} from 'sonner';
 import {Button} from '../Button';
 import {Input} from '../Input';
@@ -37,6 +37,8 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [query,setQuery]=useState('');
  const [side,setSide]=useState<VendorSide>('payable');
  const [editingTaken,setEditingTaken]=useState(false);
+ const [hasUnsavedGoods,setHasUnsavedGoods]=useState(false);
+ const updateDirty=(value:boolean)=>{setHasUnsavedGoods(value);onDirtyChange(value);};
  const [editingGiven,setEditingGiven]=useState(false);
  const [editingPurchase,setEditingPurchase]=useState(false);
  const [purchaseRevision,setPurchaseRevision]=useState(0);
@@ -58,6 +60,8 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const selected=selectedSource?snapshot.sources.find(s=>s.id===selectedSource)??null:null;
  const openAction=(s:VendorSource,mode:VendorActionMode)=>{setSelectedSource(s.id);setActionMode(mode);};
  const selectTab=(next:VendorWorkTab)=>{
+  if(next!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
+  if(next!==tab&&hasUnsavedGoods){updateDirty(false);setEditingTaken(false);setEditingGiven(false);}
   if(next!==tab&&editingPurchase&&!window.confirm('Leave this Purchase form? Unsaved purchase products will be lost.'))return;
   if(next!==tab&&editingPurchase){setEditingPurchase(false);onDirtyChange(false);}
   onTabChange(next);
@@ -184,8 +188,8 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
     </>}
     {(tab==='taken'||tab==='given')&&<>
      {(tab==='taken'?editingTaken:editingGiven')&&<div className="mb-4">
-      <VendorGoodsEditor partyId={party.id} mode={tab} onDirtyChange={onDirtyChange}
-       onCancel={()=>tab==='taken'?setEditingTaken(false):setEditingGiven(false)}
+      <VendorGoodsEditor partyId={party.id} mode={tab} onDirtyChange={updateDirty}
+       onCancel={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);updateDirty(false);}}
        onSaved={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);toast.success('Products saved in demo preview');}}/>
      </div>}
      <div className="divide-y divide-border rounded-lg border border-border">
