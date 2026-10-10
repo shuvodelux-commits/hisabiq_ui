@@ -20,6 +20,9 @@ async function main(){
   assert.equal(await nav.getByRole('button',{name:'Collapse Purchases'}).getAttribute('aria-expanded'),'true');
   await page.keyboard.press('Enter');
   assert.equal(page.url(),before);
+  assert.equal(await nav.getByRole('button',{name:'Expand Purchases'}).getAttribute('aria-expanded'),'false',
+    'Enter on a focused group trigger toggles its expanded state');
+  await nav.getByRole('button',{name:'Expand Purchases'}).click();
 
   // Clicking the text or chevron on a parent row must have identical behavior.
   const purchasesTrigger=nav.getByRole('button',{name:'Expand Purchases'});
