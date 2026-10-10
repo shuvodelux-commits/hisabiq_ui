@@ -11,13 +11,13 @@ async function main(){
   await page.goto('http://127.0.0.1:4244/#/app/vendors?partyId=v1&tab=taken');
   const vendor=page.getByRole('region',{name:'Selected Vendor work'});
   await vendor.waitFor();
-  await vendor.getByRole('tab',{name:/Taken/}).waitFor();
+  await vendor.getByRole('tab',{name:/Products Received/}).waitFor();
   await vendor.getByText('Price not set · দাম ঠিক হয়নি').first().waitFor();
   const nav=page.getByRole('navigation',{name:'Main'});
   await nav.getByRole('link',{name:'Vendor'}).waitFor();
   await vendor.getByRole('tab',{name:/Ledger/}).click();
   await vendor.getByRole('button',{name:'Print Ledger'}).click();
-  const dialog=page.getByRole('dialog',{name:'Vendor ledger statement'});
+  const dialog=page.getByRole('dialog',{name:'Vendor Statement'});
   await dialog.waitFor();
   const downloaded=page.waitForEvent('download');
   await dialog.getByRole('button',{name:/Export CSV/}).click();
