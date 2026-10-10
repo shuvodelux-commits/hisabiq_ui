@@ -52,7 +52,7 @@ async function main(){
   await nav.getByRole('button',{name:/Expand sidebar to open Sales/}).click();
   assert.equal(await sidebar.getAttribute('data-collapsible'),'none');
   assert.equal(await nav.getByRole('button',{name:'Collapse Sales'}).getAttribute('aria-expanded'),'true');
-  await nav.getByRole('link',{name:/Notifications & SMS/}).waitFor();
+  await nav.getByRole('link',{name:/Sales History/}).waitFor();
 
   await page.keyboard.press('Control+b');
   assert.equal(await sidebar.getAttribute('data-collapsible'),'icon','shadcn sidebar shortcut collapses');
