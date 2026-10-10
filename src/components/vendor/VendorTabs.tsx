@@ -26,8 +26,8 @@ type Props={party:Party;snapshot:VendorPreviewState;purchases:Purchase[];
  tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void};
 const labels:Record<VendorWorkTab,{english:string;bn:string;button:string}>={
  ledger:{english:'Ledger',bn:'হিসাব',button:'Print Ledger'},
- taken:{english:'Taken',bn:'নেওয়া পণ্য',button:'Take Products'},
- given:{english:'Given',bn:'দেওয়া পণ্য',button:'Give Products'},
+ taken:{english:'Products Received',bn:'পণ্য গ্রহণ',button:'Receive Products'},
+ given:{english:'Products Issued',bn:'পণ্য প্রদান',button:'Issue Products'},
  purchases:{english:'Purchases',bn:'কেনাকাটা',button:'Buy Products'},
  payments:{english:'Payments',bn:'টাকা লেনদেন',button:'Record Payment'}
 };
@@ -111,13 +111,13 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      {party.nameBn&&<span className="ml-2 font-bn text-sm font-normal text-ink-500">{party.nameBn}</span>}</h2>
      <p className="text-xs text-ink-500">{party.phone} · {party.area}</p></div></div>
    <Link to={'/app/parties?id='+encodeURIComponent(party.id)+'&role=Vendor'}
-    className="rounded-md border border-border px-3 py-2 text-xs text-ink-600 hover:bg-ink-50">View Party · পার্টি দেখুন</Link>
+    className="rounded-md border border-border px-3 py-2 text-xs text-ink-600 hover:bg-ink-50">Vendor Account · ভেন্ডর হিসাব</Link>
   </div>
   <div className="grid grid-cols-2 gap-2 border-b border-border p-3 lg:grid-cols-4">
-   {([{title:'You owe · দেনা',value:money(profile.summary.takenDuePaisa),target:'taken'},
-    {title:'Price not set · দাম ঠিক হয়নি',value:profile.summary.priceNotSetBaseQty+' units',target:'taken'},
-    {title:'Vendor owes · পাওনা',value:money(profile.summary.givenDuePaisa),target:'given'},
-    {title:'Purchase due · ক্রয়ের বাকি',value:money(profile.summary.purchaseDuePaisa),target:'purchases'}] as const).map(item=>
+   {([{title:'Amount Payable · দেনা',value:money(profile.summary.takenDuePaisa),target:'taken'},
+    {title:'Unpriced Products · দাম ঠিক হয়নি',value:profile.summary.priceNotSetBaseQty+' units',target:'taken'},
+    {title:'Amount Receivable · পাওনা',value:money(profile.summary.givenDuePaisa),target:'given'},
+    {title:'Purchase Balance Due · ক্রয়ের বাকি',value:money(profile.summary.purchaseDuePaisa),target:'purchases'}] as const).map(item=>
     <button type="button" key={item.title} onClick={()=>selectTab(item.target)}
      className="min-w-0 rounded-lg border border-border bg-ink-50/40 p-2.5 text-left hover:bg-ink-50">
      <span className="block text-xs text-ink-500">{item.title}</span>
@@ -162,7 +162,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       <label className="text-xs text-ink-500">Account
        <select aria-label="Vendor balance side" value={side} onChange={e=>setSide(e.target.value as VendorSide)}
         className="ml-2 rounded-md border border-input bg-card px-2 py-2 text-sm text-ink">
-        <option value="payable">Taken · You owe</option><option value="receivable">Given · Vendor owes</option>
+        <option value="payable">Amount Payable</option><option value="receivable">Amount Receivable</option>
        </select></label>
       <AppDateRangePicker value={range} onChange={setRange} label="Vendor ledger date range"/>
       {Boolean(range.from)!==Boolean(range.to)&&<span className="text-xs text-warning">Choose both dates to filter</span>}
@@ -188,7 +188,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
        </tr>)}
       </tbody></table></div>
      {side==='payable'&&profile.takenStatement.unpricedSources.length>0&&<p className="mt-2 text-xs text-ink-500">
-      {profile.takenStatement.unpricedSources.length} source(s) with <strong>Price not set</strong>. See Taken tab; no money value has been assigned.</p>}
+      {profile.takenStatement.unpricedSources.length} source(s) with <strong>Price not set</strong>. See Products Received; no money value has been assigned.</p>}
      {profile.activity.filter(item=>item.bucket===(side==='payable'?'vendor-payable':'vendor-receivable')
        &&item.moneyPaisa===null
        &&(item.reference+' '+item.description).toLowerCase().includes(query.toLowerCase())).length>0&&
@@ -232,19 +232,19 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         {source.sourceKind==='sourcing'&&source.unitCostBasePaisa===null&&
           <Button size="sm" variant="outline" onClick={()=>openAction(source,'quote')}>Set Price</Button>}
         {tab==='taken'&&(out.unpricedBaseQty>0||(out.monetaryDuePaisa??0)>0)&&
-          <Button size="sm" variant="outline" onClick={()=>setClearSourceId(source.id)}>Clear Due</Button>}
+          <Button size="sm" variant="outline" onClick={()=>setClearSourceId(source.id)}>Record Settlement</Button>}
         {tab==='given'&&source.unitCostBasePaisa!==null&&(out.monetaryDuePaisa??0)>0&&
           <Button size="sm" variant="outline" onClick={()=>openAction(source,'receive-money')}>Receive Money</Button>}
         <details className="relative text-xs"><summary className="cursor-pointer rounded border border-border px-2 py-2">More</summary>
          <div className="absolute right-0 top-full z-20 min-w-36 space-y-1 rounded-lg border border-border bg-card p-2 shadow-lg">
           <Button size="sm" variant="ghost" onClick={()=>openAction(source,'details')}>View details</Button>
           <Button size="sm" variant="ghost" onClick={()=>openAction(source,tab==='taken'?'return':'receive-goods')}>
-           {tab==='taken'?'Return Products':'Get Products Back'}</Button>
+           {tab==='taken'?'Return Products':'Receive Returned Products'}</Button>
           <Button size="sm" variant="ghost" onClick={()=>setCorrectSource(source.id)}>Correct</Button>
          </div></details>
        </div>;
       })}
-      {list.length===0&&<p className="p-8 text-center text-sm text-ink-500">No {tab==='taken'?'taken':'given'} products yet.</p>}
+      {list.length===0&&<p className="p-8 text-center text-sm text-ink-500">No {tab==='taken'?'received':'issued'} products yet.</p>}
      </div>
     </>}
     {tab==='purchases'&&<>
@@ -270,16 +270,16 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
          <p className="text-ink-500">{s.sourceKind==='sourcing'?'You owe':'Vendor owes'} · {products.find(p=>p.id===s.productId)?.name??s.productId}</p></div>
         <strong>{money(out.monetaryDuePaisa??0)}</strong>
         <Button size="sm" variant="outline" onClick={()=>openAction(s,s.sourceKind==='sourcing'?'pay':'receive-money')}>
-         {s.sourceKind==='sourcing'?'Pay Money':'Receive Money'}</Button>
+         {s.sourceKind==='sourcing'?'Make Payment':'Receive Payment'}</Button>
        </div>;
       })}
-      {!due.length&&<p className="p-8 text-center text-sm text-ink-500">No priced amount due. If the price is not set, open Taken first.</p>}
+      {!due.length&&<p className="p-8 text-center text-sm text-ink-500">No priced amount due. If the price is not set, open Products Received first.</p>}
      </div>
      <h4 className="mb-2 mt-5 text-sm font-semibold text-ink">Previous payments · আগের লেনদেন</h4>
      <div className="divide-y divide-border rounded-lg border border-border">
       {snapshot.settlements.filter(s=>s.vendorPartyId===party.id&&(s.kind==='pay'||s.kind==='receive-money')).map(s=>
        <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-xs">
-        <span>{s.date} · {s.kind==='pay'?'Money paid':'Money received'}</span>
+        <span>{s.date} · {s.kind==='pay'?'Payment Made':'Payment Received'}</span>
         <strong>{money(s.amountPaisa??0)}</strong>
         <span className="text-ink-500">{s.status}</span>
         <Button size="sm" variant="ghost" onClick={()=>{const e=snapshot.events.find(e=>e.operationId===s.operationId&&e.kind==='settlement');if(e)review(e);}}>Review</Button>
