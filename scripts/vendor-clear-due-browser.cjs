@@ -14,7 +14,7 @@ async function main(){
   const modal=page.getByRole('dialog',{name:'Vendor settlement'});
   await modal.getByRole('textbox',{name:'Vendor cost per Pcs'}).fill('110');
   await modal.getByRole('button',{name:'Confirm price in demo'}).click();
-  await vendor.getByRole('button',{name:'Clear Due'}).first().click();
+  await vendor.getByRole('button',{name:'Record Settlement'}).first().click();
   const form=page.getByRole('form',{name:'Clear Vendor due'});
   await form.getByRole('textbox',{name:'Money from account 1'}).fill('110');
   await form.getByRole('textbox',{name:'Products to return'}).fill('1');
@@ -24,7 +24,7 @@ async function main(){
   await vendor.getByRole('tab',{name:/Ledger/}).click();
   assert.match(await vendor.innerText(),/Money paid and products returned/i);
   assert.deepEqual(errors,[]);
-  console.log('Combined money + products Clear Due committed in one demo operation');
+  console.log('Combined money + products settlement committed in one demo operation');
  }finally{await browser.close();await server.close();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
