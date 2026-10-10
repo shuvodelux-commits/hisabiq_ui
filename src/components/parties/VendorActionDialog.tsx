@@ -66,10 +66,10 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
   }catch(err){setError(err instanceof Error?err.message:'Vendor action failed.');}
  };
  const isReadOnly=mode==='details';
- const title=isReadOnly?'Taken or Given details':
+ const title=isReadOnly?'Vendor Product Details':
   mode==='quote'?'Set Price · দাম ঠিক করুন':
-  mode==='pay'?'Pay Money · টাকা দিন':mode==='return'?'Return matching products':
-  mode==='receive-money'?'Receive Vendor money':'Receive products from Vendor';
+  mode==='pay'?'Make Payment · টাকা দিন':mode==='return'?'Return Products':
+  mode==='receive-money'?'Receive Payment':'Receive Returned Products';
  const outstanding=source?sourceOutstanding(getVendorPreviewSnapshot(),source.id):null;
  return <Dialog open={!!source} onOpenChange={v=>!v&&onClose()}>
   <DialogContent role="dialog" aria-label={isReadOnly?'Vendor source details':'Vendor settlement'}
