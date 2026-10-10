@@ -65,8 +65,8 @@ Suggested `src/vendor/vendorTypes.ts` interfaces:
 
 - `VendorSide = 'payable' | 'receivable'`.
 - `VendorSourceKind = 'sourcing' | 'issue'`; each `VendorSource` carries `id`, `vendorPartyId`, `sourceKind`, `sourceInvoiceId?`, `sourceSaleLineId?`, `memoId?`, `productId`, `baseQty`, `unitCostBasePaisa`, `sourceAmountPaisa`, `date`, `status` and immutable counterparty snapshots.
-- `VendorSettlementKind = 'pay' | 'return-to-vendor' | 'receive-money' | 'receive-goods'`; each settlement has `id`, `sourceId`, `vendorPartyId`, `side`, `date`, `baseQty?`, `amountPaisa`, `paymentSplits?`, `reason?`, `status`. Use source allocations if one payment settles several obligations.
-- `VendorLedgerEvent` carries `eventId`, `sourceId`, `reference`, `vendorPartyId`, `side`, `eventKind`, `date`, `sequence`, `deltaPaisa`, `stockDeltaBase?`, `actor`, `operationId`, `status`, correction reference. Append-only/audited semantics for corrections; no silent mutation of financial history.
+- `VendorSettlementKind = 'pay' | 'return-to-vendor' | 'receive-money' | 'receive-goods'`; each settlement has `id`, `vendorPartyId`, `side`, `date`, `amountPaisa`, `allocations: {sourceId: string; amountPaisa: number; baseQty?: number}[]`, `paymentSplits?`, `reason?`, `status`. One payment may allocate across multiple same-side sources; physical returns must be linked to an original source.
+- `VendorOpening` carries `vendorPartyId`, `side`, `openingAmountPaisa`, `date`, `reason`, `operationId`. Enter opening payable and receivable separately, never one ambiguous signed Vendor opening.\n- `VendorLedgerEvent` carries `eventId`, `sourceId`, `reference`, `vendorPartyId`, `side`, `eventKind`, `date`, `sequence`, `deltaPaisa`, `stockDeltaBase?`, `actor`, `operationId`, `status`, correction reference. Append-only/audited semantics for corrections; no silent mutation of financial history.
 - `VendorPreviewState` includes source records, settlements, events, and **clearly demo-only** POS source snapshots and simulated inventory deltas. Preview state is in-memory and not multi-tenant persistent. Backend integration later must take tenant identity exclusively from the authenticated session, never a caller-supplied tenant ID.
 
 All money arithmetic uses integer paisa; all quantities use normalized finite positive base units and an explicit unit conversion. Preserve presentation units separately for display. Preserve original owned lot cost and vendor cost separately (`ownLotAllocations`, `vendorSourcedQty`, `vendorUnitCostBasePaisa`), not only the existing blended `SaleLine.unitCost` average. Source IDs, not display names, are ledger join keys.
@@ -81,7 +81,7 @@ Keep `src/types/erp.ts` compatible with `SaleStockSource`, adding optional sourc
 - Goods given to the Vendor reduce owned physical stock and create a receivable; goods returned from Vendor restore owned stock and reduce the receivable.
 - Return goods *to* Vendor consumes genuine physically available **owned** stock and reduces a **linked payable**. It is not a sale return and may not manufacture negative stock.
 - A Vendor payment/receipt may split across Cash, Bank and MFS using existing split editor. Preview ledger records show what would change; **no cashbook/bankbook transfer is claimed without backend posting**.
-- Source allocations constrain `sum(settledQty) <= sourceQty` and `sum(settledValue) <= remaining source amount`. V1 disallows overpayment/unexplained vendor advances; implement advance credit only under a later explicit design.
+- Source allocations constrain `sum(settledQty) <= sourceQty` and `sum(settledValue) <= remaining source amount`. For a payment across multiple sourcing obligations, show oldest-first suggested allocation and allow explicit manual adjustment before confirming; the sum of allocations must match the payment exactly. V1 disallows overpayment/unexplained vendor advances; implement advance credit only under a later explicit design.
 - Two Vendor sides cannot silently net, even when the same Party also has Supplier or Customer roles. An inter-side offset would require a distinct authorized, audited action outside v1.
 
 ### Concrete worked examples
@@ -137,7 +137,7 @@ The UI prototype must not pretend to be the production backend. No Google Sheets
 2. Given two lines for the same product (4 + 4), total own allocation is <= 5 and shortage is 3, not two independent 4-unit reservations.
 3. Vendor sourcing creates demo source + payable exactly once by operation ID; retry neither repeats ledger nor changes amount.
 4. Vendor created inline with Vendor role is selected by ID; cart, payments, price, unit, keyboard focus and draft remain intact.
-5. A Payable ₱330-equivalent in integer paisa, pay ৳200 then return value ৳130 reaches exactly zero; receiving a Vendor payment never changes payable.
+5. A Payable ৳330 in integer paisa, pay ৳200 then return value ৳130 reaches exactly zero; receiving a Vendor payment never changes payable.
 6. A Receivable ৳140, receive ৳70 plus one returned piece valued ৳70 reaches zero, with one restock.
 7. Invalid cross-vendor source, inactive vendor, over-settlement, unknown product, negative/non-finite cost, expired-only stock, stale revision and duplicate operation ID are rejected without partial writes.
 8. Editing a sourced sale with downstream settlement requires reversal first. A customer return cannot invent stock or silently alter vendor payable.
