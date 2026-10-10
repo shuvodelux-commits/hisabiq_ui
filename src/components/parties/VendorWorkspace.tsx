@@ -16,7 +16,7 @@ import {availablePurchases} from '../../data/erpDemoStore';
 import {VendorActionDialog,type VendorActionMode} from './VendorActionDialog';
 import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import {vendorBalances,sourceOutstanding} from '../../vendor/vendorModel';
-import {projectVendorActivity} from '../../vendor/vendorActivity';
+import {projectVendorActivity,ordinaryVendorPurchaseDuePaisa} from '../../vendor/vendorActivity';
 import {products} from '../../data/products';
 import {businessToday,type IsoRange} from '../../utils/dateRange';
 import {taka} from '../../utils/currency';
@@ -59,6 +59,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const sourced=known.filter(s=>s.sourceKind==='sourcing');
  const issued=known.filter(s=>s.sourceKind==='issue');
  const ordinaryPurchases=useMemo(()=>availablePurchases().filter(p=>p.supplierId===party.id),[party.id,purchaseRevision]);
+ const purchasePayablePaisa=ordinaryVendorPurchaseDuePaisa(ordinaryPurchases,party.id);
  const allEvents=projectVendorActivity(snapshot,party.id,ordinaryPurchases,range).filter(e=>
   [e.reference,e.description,e.kind].some(v=>v.toLowerCase().includes(query.toLowerCase())));
  const tabs:{key:Tab;label:string;count?:number}[]=[
@@ -107,7 +108,7 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
    </div>
    <span className="rounded-lg border border-border bg-ink-50 px-2 py-1 text-[11px] font-medium text-ink-500">Demo preview · no real posting</span>
   </div>
-  <div className="grid grid-cols-1 gap-2 border-b border-border p-3 sm:grid-cols-3">
+  <div className="grid grid-cols-1 gap-2 border-b border-border p-3 sm:grid-cols-2 lg:grid-cols-4">
    <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Known payable">
     <p className="text-xs text-ink-500">Known payable · দেনা</p>
     <p className="mt-1 text-xl font-semibold text-ink">{taka(balance.knownPayablePaisa/100)}</p>
@@ -122,6 +123,11 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
     <p className="text-xs text-ink-500">Vendor receivable · পাওনা</p>
     <p className="mt-1 text-xl font-semibold text-ink">{taka(balance.knownReceivablePaisa/100)}</p>
     <p className="mt-0.5 text-[11px] text-ink-500">Goods issued to Vendor</p>
+   </div>
+   <div className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Purchase payable">
+    <p className="text-xs text-ink-500">Purchase payable · ক্রয়ের বাকি</p>
+    <p className="mt-1 text-xl font-semibold text-ink">{taka(purchasePayablePaisa/100)}</p>
+    <p className="mt-0.5 text-[11px] text-ink-500">Normal Purchases · separate supplier balance</p>
    </div>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
