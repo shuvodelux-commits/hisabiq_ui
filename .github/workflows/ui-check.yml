@@ -40,6 +40,9 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Check task-centered ERP navigation and deep links
+        run: npm run test:erp-navigation
+
       - name: Check shared Excel CSV import wizard
         run: npm run test:import-wizard
 

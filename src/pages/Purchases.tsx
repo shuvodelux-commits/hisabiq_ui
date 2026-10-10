@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
   CornerUpLeft,
@@ -57,7 +57,13 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 
 export function Purchases() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('purchases');
+  const [searchParams,setSearchParams]=useSearchParams();
+  const routeTab=searchParams.get('tab');
+  const [tab,setTab]=useState<Tab>(()=>routeTab==='return'||routeTab==='return-history'?routeTab:'purchases');
+  useEffect(()=>{setTab(routeTab==='return'||routeTab==='return-history'?routeTab:'purchases');},[routeTab]);
+  const chooseTab=(value:Tab)=>{setTab(value);setSearchParams(current=>{
+   const next=new URLSearchParams(current);if(value==='purchases')next.delete('tab');else next.set('tab',value);return next;
+  },{replace:true});};
   const [purchases] = useState<Purchase[]>(availablePurchases);
   const [detail, setDetail] = useState<BillDetail | null>(null);
   const [query, setQuery] = useState('');
@@ -138,7 +144,7 @@ export function Purchases() {
               key={id}
               role="tab"
               aria-selected={tab === id}
-              onClick={() => setTab(id)}
+              onClick={() => chooseTab(id)}
               title={helper}
               className={`flex items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${
                 tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'

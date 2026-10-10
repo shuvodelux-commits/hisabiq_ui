@@ -1,4 +1,4 @@
-import React, { useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
@@ -42,6 +42,12 @@ export function Parties() {
   const [pageSize,setPageSize]=useState(25);
   const [statementOpen,setStatementOpen]=useState(false);
   const [role,setRole]=useState<PartyRole|'All'>('All');
+  const routeRole=params.get('role'),routeGroup=params.get('group'),routeId=params.get('id');
+  useEffect(()=>{
+   if(routeId)return;
+   const known:PartyRole[]=['Customer','Supplier','Vendor','Lender','Borrower','Owner','Payee'];
+   setRole(routeGroup?'All':known.includes(routeRole as PartyRole)?routeRole as PartyRole:'All');
+  },[routeRole,routeGroup,routeId]);
   const [query,setQuery]=useState('');
   const [editing,setEditing]=useState<Party|null|undefined>(undefined);
   const [importOpen,setImportOpen]=useState(false);
@@ -51,7 +57,9 @@ export function Parties() {
   const selected=resolvePartySelection(allParties,params.get('id')??undefined,params.get('role')??undefined);
   const party=selected?allParties.find(p=>p.id===selected.partyId):undefined;
   const relationship=selected?.relationship;
-  const filtered=allParties.filter(p=>(role==='All'||p.roles.includes(role))&&matchesPartySearch(p,query))
+  const filtered=allParties.filter(p=>(routeGroup==='loans'?p.roles.some(r=>r==='Lender'||r==='Borrower')
+    :routeGroup==='owners'?p.roles.some(r=>r==='Owner'||r==='Payee')
+    :role==='All'||p.roles.includes(role))&&matchesPartySearch(p,query))
     .map(p=>({...p,balance:role!=='All'
       ?computePartyBalanceSummary(state,p.id,role).netBalance
       :p.roles.length===1?computePartyBalanceSummary(state,p.id,p.roles[0]).netBalance:0}));
@@ -137,7 +145,10 @@ export function Parties() {
       </>} />
     <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
       <PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
-        role={role} onRole={setRole} query={query} onQuery={setQuery}/>
+        role={role} onRole={value=>{
+         setRole(value);const next=new URLSearchParams(params);next.delete('group');next.delete('id');
+         if(value==='All')next.delete('role');else next.set('role',value);setParams(next);
+        }} query={query} onQuery={setQuery}/>
       {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}

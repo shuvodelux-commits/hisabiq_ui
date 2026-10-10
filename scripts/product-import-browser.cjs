@@ -32,6 +32,11 @@ async function main(){
   await page.getByRole('tab',{name:/Stock history/i}).click();
   await page.getByText('Opening',{exact:false}).first().waitFor();
   await page.reload();
+  // Navigation query params intentionally preserve Stock History across refresh.
+  const historyTab=page.getByRole('tab',{name:/Stock history/i});
+  await historyTab.waitFor();
+  assert.equal(await historyTab.getAttribute('aria-selected'),'true');
+  await page.getByRole('tab',{name:/Product list/i}).click();
   await page.getByRole('button',{name:'Import',exact:true}).click();
   const duplicate=page.getByRole('dialog',{name:'Import products'});
   await duplicate.getByLabel('Select Excel or CSV file').setInputFiles({name:'duplicate.csv',mimeType:'text/csv',buffer:Buffer.from(header+'\n'+line+'\n')});

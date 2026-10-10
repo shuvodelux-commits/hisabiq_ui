@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -11,13 +11,15 @@ import {
   User,
   Wallet,
   Languages,
-  Palette } from
+  Palette,
+  Menu,
+  X } from
 'lucide-react';
 import { ThemePicker } from './ThemePicker';
 import { Button } from '../Button';
 import { FloatingPanel } from './FloatingPanel';
 import { Calculator } from './Calculator';
-import { mobileNav } from './Sidebar';
+import { ErpNavMenu } from './ErpNavMenu';
 import { LogoMark } from '../brand/Logo';
 import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import { useCashSession } from '../../contexts/CashSessionContext';
@@ -36,10 +38,18 @@ export function TopBar() {
   const { state, personal } = useTenantSettings();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const [navOpen,setNavOpen] = useState(false);
+  const navTrigger = useRef<HTMLButtonElement>(null);
+  useEffect(()=>{if(!navOpen)return;const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape'){setNavOpen(false);navTrigger.current?.focus();}};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);},[navOpen]);
 
   return (
     <header data-print-hide className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
       <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
+        <button ref={navTrigger} type="button" aria-label="Open ERP navigation" aria-expanded={navOpen}
+          aria-controls="erp-mobile-drawer" onClick={()=>setNavOpen(true)}
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-600 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500 lg:hidden">
+          <Menu className="size-5"/>
+        </button>
         <Link to="/app/dashboard" className="lg:hidden" aria-label="HisabIQ">
           <LogoMark size={28} />
         </Link>
@@ -185,19 +195,24 @@ export function TopBar() {
         </div>
       </div>
 
-      <nav className="flex gap-1 overflow-x-auto border-t border-border px-3 py-1.5 lg:hidden" aria-label="Sections">
-        {mobileNav.map(({ to, label, bn, icon: Icon }) =>
-        <NavLink
-          key={to}
-          to={to}
-          className={({ isActive }) =>
-          `flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs ${isActive ? 'bg-teal-50 font-medium text-teal-700' : 'text-ink-600'}`
-          }>
-          
-            <Icon className="size-3.5" /> {personal.language === 'Bangla' ? bn : label}
-          </NavLink>
-        )}
-      </nav>
+      {navOpen&&<div className="fixed inset-0 z-[80] lg:hidden">
+        <button type="button" className="fixed inset-0 bg-inverse/50" aria-label="Close ERP navigation"
+          onClick={()=>{setNavOpen(false);navTrigger.current?.focus();}}/>
+        <div id="erp-mobile-drawer" role="dialog" aria-modal="true" aria-label="ERP navigation"
+          className="fixed inset-y-0 left-0 flex w-[min(87vw,320px)] flex-col border-r border-border bg-sidebar shadow-xl">
+          <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
+            <span className="text-sm font-semibold text-ink">HisabIQ · Modules</span>
+            <button type="button" autoFocus aria-label="Close navigation"
+              onClick={()=>{setNavOpen(false);navTrigger.current?.focus();}}
+              className="flex size-9 items-center justify-center rounded-lg text-ink-600 hover:bg-ink-50">
+              <X className="size-5"/>
+            </button>
+          </div>
+          <ErpNavMenu mode="mobile" onNavigate={()=>setNavOpen(false)}/>
+          <Link to="/app/support" onClick={()=>setNavOpen(false)}
+            className="border-t border-border px-5 py-3 text-sm text-ink-600">Help & Support</Link>
+        </div>
+      </div>}
     </header>);
 
 }
