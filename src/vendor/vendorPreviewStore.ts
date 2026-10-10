@@ -1,5 +1,6 @@
 import {getPartyPreviewSnapshot,subscribePartyPreview} from '../data/partyPreviewStore.ts';
 import {applyVendorCommand} from './vendorModel.ts';
+import {products} from '../data/products.ts';
 import type {VendorPreviewCommand,VendorPreviewState} from './vendorTypes.ts';
 
 /** No persistence, accounting posting or cross-module stock mutation. */
@@ -9,7 +10,8 @@ const identities=()=>getPartyPreviewSnapshot().parties.map(p=>({
 }));
 function fresh():VendorPreviewState {
  let state:VendorPreviewState={parties:identities(),sources:[],settlements:[],
-   events:[],openings:[],sales:[],operations:[],revision:0};
+   events:[],openings:[],sales:[],operations:[],revision:0,
+   inventory:Object.fromEntries(products.filter(p=>p.kind!=='Service').map(p=>[p.id,Math.max(0,p.stock)]))};
  // Source/sale/demo links intentionally use existing Party and Product fixture IDs.
  const cases:VendorPreviewCommand[]=[
  {type:'record-sourcing',operationId:'vendor-seed-unpriced',
