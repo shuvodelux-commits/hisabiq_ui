@@ -19,13 +19,13 @@ async function main(){
   assert.ok(await page.getByText('DEMO-INV-201').count()>0);
   await page.getByRole('button',{name:'View vendor source DEMO-INV-201'}).click();
   await page.getByRole('dialog',{name:'Vendor source details'}).waitFor();
-  await page.getByRole('dialog',{name:'Vendor source details'}).getByRole('button',{name:'Close'}).click();
+  await page.getByRole('dialog',{name:'Vendor source details'}).getByRole('button',{name:'Close'}).first().click();
   await page.getByRole('button',{name:/Vendor statement/}).click();
   await page.getByRole('dialog',{name:'Vendor ledger statement'}).waitFor();
   const csv=page.waitForEvent('download');
   await page.getByRole('dialog',{name:'Vendor ledger statement'}).getByRole('button',{name:/Export CSV/}).click();
   assert.match((await csv).suggestedFilename(),/vendor-ledger-/);
-  await page.getByRole('dialog',{name:'Vendor ledger statement'}).getByRole('button',{name:'Close'}).click();
+  await page.getByRole('dialog',{name:'Vendor ledger statement'}).getByRole('button',{name:'Close'}).first().click();
   await page.setViewportSize({width:375,height:800});
   assert.equal(errors.length,0,errors.join('\n'));
   console.log('Vendor workspace and statement preview smoke passed');
