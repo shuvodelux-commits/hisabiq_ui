@@ -11,6 +11,7 @@ import {
   Settings2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
 import { Button } from '../components/Button';
 import { FormSelect } from '../components/FormSelect';
 import { AppDateRangePicker } from '../components/AppDateRangePicker';
@@ -22,8 +23,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { BillDialog } from '../components/purchases/BillDialog';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
 import { expenses as seedExpenses } from '../data/purchases';
-import { availableExpenseCategories, availableParties } from '../data/erpDemoStore';
-import type { Expense } from '../types/erp';
+import { availableExpenseCategories, availableParties, createPreviewExpenseCategory, createPreviewParty } from '../data/erpDemoStore';
+import { expenseCsv, expenseStatus, filterExpenseList } from '../expenses/expenseWorkflow';
+import type { Expense, Party } from '../types/erp';
 import { taka } from '../utils/currency';
 
 type Tab = 'expenses' | 'categories' | 'payees' | 'reports';
@@ -72,7 +74,17 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 
 export function Expenses() {
   const [tab, setTab] = useState<Tab>('expenses');
-  const payees = payeesForPreview();
+  const [payees,setPayees] = useState(payeesForPreview);
+  const [categories,setCategories] = useState(availableExpenseCategories);
+  const [quickAdd,setQuickAdd] = useState<'category'|'payee'|null>(null);
+  const [quickName,setQuickName] = useState('');
+  const [quickPhone,setQuickPhone] = useState('');
+  const [quickError,setQuickError] = useState('');
+  const [expenseFormRevision,setExpenseFormRevision] = useState(0);
+  const [categoryFilter,setCategoryFilter] = useState('All categories');
+  const [payeeFilter,setPayeeFilter] = useState('All payees');
+  const [paymentFilter,setPaymentFilter] = useState('All payment methods');
+  const [statusFilter,setStatusFilter] = useState('All status');
   const [expenses, setExpenses] = useState<Expense[]>(seedExpenses);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detail, setDetail] = useState<BillDetail | null>(null);
@@ -87,14 +99,42 @@ export function Expenses() {
     ? 'Sep 2026' : formatRange(reportRange);
 
 
-  const filteredExpenses = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return expenses;
-    return expenses.filter((expense) =>
-      [expense.ref, expense.category, expense.payee, expense.note, paymentLabel(expense), expense.date, ...paymentsFor(expense).map((payment) => payment.method)]
-        .some((value) => value.toLowerCase().includes(q))
-    );
-  }, [expenses, query]);
+  const filteredExpenses = useMemo(()=>filterExpenseList(expenses,{query,category:categoryFilter,payee:payeeFilter,paymentMethod:paymentFilter,status:statusFilter}),
+    [expenses,query,categoryFilter,payeeFilter,paymentFilter,statusFilter]);
+
+  const openQuickAdd=(type:'category'|'payee')=>{
+    setQuickAdd(type);setQuickName('');setQuickPhone('');setQuickError('');
+  };
+  const closeQuickAdd=()=>{setQuickAdd(null);setQuickError('');};
+  const createQuickEntity=()=>{
+    const name=quickName.trim();
+    if(!name){setQuickError('Name is required.');return;}
+    if(quickAdd==='category'){
+      if(categories.some(item=>item.toLocaleLowerCase()===name.toLocaleLowerCase())){
+        setQuickError('Category already exists.');return;
+      }
+      createPreviewExpenseCategory(name);
+      setCategories(availableExpenseCategories());
+    }else if(quickAdd==='payee'){
+      if(availableParties().some(item=>item.name.toLocaleLowerCase()===name.toLocaleLowerCase())){
+        setQuickError('A party with this name already exists.');return;
+      }
+      const party:Party={id:'expense-payee-'+Date.now(),name,phone:quickPhone.trim(),area:'',
+        roles:['Payee'],balance:0,lastActivity:'Just now',avatarColor:'#0D7C74'};
+      createPreviewParty(party);
+      setPayees(payeesForPreview());
+    }else{return;}
+    setExpenseFormRevision(value=>value+1);
+    closeQuickAdd();
+    toast.success(name+' created in UI preview');
+  };
+  const exportExpenses=()=>{
+    const csv=expenseCsv(filteredExpenses);
+    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    const link=document.createElement('a');
+    link.href=url;link.download='hisabiq-expenses-preview.csv';document.body.appendChild(link);link.click();link.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const cash = expenses.reduce((sum, expense) =>
@@ -172,11 +212,11 @@ export function Expenses() {
                   placeholder="Search expense, payee, category or reference"
                 />
               </div>
-              <FormSelect className="w-full lg:w-40" options={['All categories', ...availableExpenseCategories()]} />
-              <FormSelect className="w-full lg:w-40" options={['All payees', ...payees.map((payee) => payee.name)]} />
-              <FormSelect className="w-full lg:w-40" options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card']} />
-              <FormSelect className="w-full lg:w-32" options={['All status', 'Active', 'Cancelled']} />
-              <Button variant="outline" size="sm" onClick={() => toast('Expense list exported')}>
+              <FormSelect aria-label="Expense category filter" className="w-full lg:w-40" value={categoryFilter} onChange={event=>setCategoryFilter(event.target.value)} options={['All categories', ...categories]} />
+              <FormSelect aria-label="Expense payee filter" className="w-full lg:w-40" value={payeeFilter} onChange={event=>setPayeeFilter(event.target.value)} options={['All payees', ...new Set([...payees.map(payee=>payee.name),...expenses.map(expense=>expense.payee)])]} />
+              <FormSelect aria-label="Expense payment filter" className="w-full lg:w-40" value={paymentFilter} onChange={event=>setPaymentFilter(event.target.value)} options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card']} />
+              <FormSelect aria-label="Expense status filter" className="w-full lg:w-32" value={statusFilter} onChange={event=>setStatusFilter(event.target.value)} options={['All status', 'Active', 'Cancelled']} />
+              <Button variant="outline" size="sm" onClick={exportExpenses}>
                 <ArrowDownToLine className="size-4" /> Export
               </Button>
             </div>
@@ -241,15 +281,13 @@ export function Expenses() {
                       </TableCell>
                       <TableCell className="py-2 text-ink-500">—</TableCell>
                       <TableCell className="py-2 text-right font-medium">{taka(expense.amount)}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone="success" dot>Active</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={expenseStatus(expense)==='Active'?'success':'neutral'} dot>{expenseStatus(expense)}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
                         <button
                           className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toast('Expense actions', { description: 'View · Edit · Print · Cancel' });
-                          }}
-                          aria-label={`Actions for ${expense.ref}`}>
+                          onClick={(event) => { event.stopPropagation(); open(); }}
+                           title="View expense details · editing and cancellation require an audited workflow"
+                           aria-label={`View ${expense.ref}`}>
                           <MoreHorizontal className="size-4" />
                         </button>
                       </TableCell>
@@ -268,7 +306,7 @@ export function Expenses() {
                 <p className="text-[13px] font-medium text-ink">Expense categories</p>
                 <p className="text-[11px] text-ink-500">Create, rename, activate or deactivate categories used when recording expenses.</p>
               </div>
-              <Button size="sm" onClick={() => toast('Add category dialog')}>
+              <Button size="sm" onClick={() => openQuickAdd('category')}>
                 <Plus className="size-4" /> Add category
               </Button>
             </div>
@@ -283,7 +321,7 @@ export function Expenses() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {availableExpenseCategories().map((category) => {
+                {categories.map((category) => {
                   const amount = expenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0);
                   return (
                     <TableRow key={category} className="text-[13px]">
@@ -294,7 +332,7 @@ export function Expenses() {
                       <TableCell className="py-2 pr-4 text-right">
                         <button
                           className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
-                          onClick={() => toast('Category actions', { description: 'Edit · Deactivate' })}>
+                          disabled title="Category changes to used records require an audited workflow" aria-label="Category changes unavailable in preview">
                           <MoreHorizontal className="size-4" />
                         </button>
                       </TableCell>
@@ -313,7 +351,7 @@ export function Expenses() {
                 <p className="text-[13px] font-medium text-ink">Expense payees</p>
                 <p className="text-[11px] text-ink-500">Reusable people and businesses you regularly pay.</p>
               </div>
-              <Button size="sm" onClick={() => toast('Add payee dialog')}>
+              <Button size="sm" onClick={() => openQuickAdd('payee')}>
                 <Plus className="size-4" /> Add payee
               </Button>
             </div>
@@ -343,7 +381,7 @@ export function Expenses() {
                       <TableCell className="py-2 pr-4 text-right">
                         <button
                           className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
-                          onClick={() => toast('Payee actions', { description: 'Edit · Deactivate · Delete' })}>
+                          disabled title="Edit payee identity in Parties; deactivation requires an audited workflow" aria-label="Payee changes unavailable in preview">
                           <MoreHorizontal className="size-4" />
                         </button>
                       </TableCell>
@@ -363,11 +401,11 @@ export function Expenses() {
                 <AppDateRangePicker label="Expense report date range" className="w-full sm:w-[280px]"
                   value={reportRange} onChange={setReportRange} />
               </div>
-              <Button size="sm" onClick={() => toast('Expense report refreshed')}>
+              <Button size="sm" variant="outline" disabled title="Report updates automatically with date range">
                 <BarChart3 className="size-4" /> Refresh
               </Button>
               <div className="flex-1" />
-              <Button variant="outline" size="sm" onClick={() => toast('Print preview opened')}>
+              <Button variant="outline" size="sm" disabled title="A dedicated Expense report print template is not yet available">
                 <Printer className="size-4" /> Print
               </Button>
             </div>
@@ -377,7 +415,7 @@ export function Expenses() {
                 {
                   title: 'By category',
                   icon: Settings2,
-                  rows: availableExpenseCategories().map((category) => ({
+                  rows: categories.map((category) => ({
                     label: category,
                     value: reportExpenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0)
                   })).filter((row) => row.value > 0)
@@ -437,6 +475,7 @@ export function Expenses() {
       </div>
 
       <BillDialog
+        key={expenseFormRevision}
         mode="expense"
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -446,7 +485,7 @@ export function Expenses() {
           setExpenses((items) => [expense, ...items]);
           setDialogOpen(false);
           setTab('expenses');
-          toast.success(`${expense.ref} saved`, { description: `${expense.category} · ${taka(expense.amount)}` });
+          toast.success(`${expense.ref} saved in UI preview`, { description: `${expense.category} · ${taka(expense.amount)} · No ledger or account payment posted` });
         }}
       />
 
