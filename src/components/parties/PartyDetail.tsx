@@ -21,12 +21,17 @@ import type { LedgerEntry, Party, PartyRole } from '../../types/erp';
 import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload, PartyOpeningPayload } from '../../types/partyLedger';
 import type { IsoRange } from '../../utils/dateRange';
 import { formatNumber, taka } from '../../utils/currency';
+import {projectVendorPartyLedger,type VendorPartyProfile} from '../../vendor/vendorPartyProjection';
+import type {VendorSide} from '../../vendor/vendorTypes';
+import type {VendorWorkTab} from '../../vendor/vendorRoute';
 
 type Tab = 'ledger' | 'invoices' | 'payments' | 'notes' | 'attachments';
 
 type PartyDetailProps = {
   party: Party;
   entries: LedgerEntry[];
+  vendorProfile?:VendorPartyProfile;
+  onOpenVendorWork?:(tab?:VendorWorkTab,sourceId?:string)=>void;
   onAddNote: (text: string) => void;
   onEditNote: (id: string, text: string) => void;
   onDeleteNote: (id: string) => void;
@@ -59,9 +64,11 @@ export function PartyDetail({
   statement, balanceSummary, visibleRows, range, onRange, kind, onKind, ledgerQuery, onLedgerQuery,
   pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
   onLedgerAction, statementOpen, onCloseStatement, sources, onRecordPayment, onRefundCredit,
-  onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening
+  onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
+  vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
   const [tab, setTab] = useState<Tab>('ledger');
+  const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
   const [editingNote, setEditingNote] = useState<LedgerEntry | null>(null);
   const [editText, setEditText] = useState('');
@@ -76,6 +83,9 @@ export function PartyDetail({
   const [editorRow,setEditorRow]=useState<PartyLedgerRow|null>(null);
   const [editorMode,setEditorMode]=useState<'edit'|'reverse'>('edit');
   const doRowAction=(action:PartyAction,row:PartyLedgerRow)=>{
+    if(vendorProfile&&action!=='view'){
+     onOpenVendorWork?.(vendorSide==='payable'?'taken':'given',row.sourceId);return;
+    }
     if(action==='view'){setViewedRow(row);return;}
     if((action==='edit'||action==='delete'||action==='reverse')&&
        /^party-(payment|refund|finance):/.test(row.sourceId??'')){
@@ -88,11 +98,18 @@ export function PartyDetail({
   const payments = entries.filter((e) => e.type === 'payment' || e.type === 'return');
   const notes = entries.filter((e) => e.type === 'note');
   const attachments = entries.filter((e) => e.attachment);
+  const shownStatement=vendorProfile?projectVendorPartyLedger(vendorProfile,vendorSide):statement;
+  const shownFiltered=vendorProfile?shownStatement.rows.filter(r=>
+    [r.reference??'',r.description].some(x=>x.toLowerCase().includes(ledgerQuery.toLowerCase()))):[];
+  const shownRows=vendorProfile?shownFiltered.slice(Math.max(0,(page-1)*pageSize),page*pageSize):visibleRows;
+  const shownPages=vendorProfile?Math.max(1,Math.ceil(shownFiltered.length/pageSize)):pages;
+  const shownActions=(r:PartyLedgerRow)=>vendorProfile?
+   [{action:'view' as const,enabled:true},{action:'source' as const,enabled:true}]:actionsForRow(r);
 
   const tabs: {id: Tab;label: string;count?: number;}[] = [
   { id: 'ledger', label: 'Ledger' },
-  { id: 'invoices', label: 'Invoices', count: invoices.length },
-  { id: 'payments', label: 'Payments', count: payments.length },
+  { id: 'invoices', label:vendorProfile?'Bills & Memos':'Invoices', count:vendorProfile?vendorProfile.documents.length:invoices.length },
+  { id: 'payments', label: 'Payments', count:vendorProfile?vendorProfile.payments.length:payments.length },
   { id: 'notes', label: 'Notes', count: notes.length },
   { id: 'attachments', label: 'Attachments', count: attachments.length }];
 
