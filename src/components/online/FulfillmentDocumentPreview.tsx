@@ -1,7 +1,7 @@
 import React from 'react';
 import {Printer} from 'lucide-react';
 import {taka} from '../../utils/currency';
-import {orderTotals,type OnlineOrder} from '../../onlineSales/onlineStore';
+import {orderTotals,lineTotal,type OnlineOrder} from '../../onlineSales/onlineStore';
 
 export type FulfillmentDocument='Order confirmation'|'Packing list'|'Delivery challan';
 export const documentTitles:FulfillmentDocument[]=['Order confirmation','Packing list','Delivery challan'];
@@ -25,8 +25,8 @@ export function FulfillmentDocumentPreview({order,kind}:{order:OnlineOrder;kind:
     <th className="text-right">Quantity</th>{showAmounts&&<><th className="text-right">Unit price</th><th className="text-right">Line total</th></>}
    </tr></thead>
    <tbody>{order.lines.map((l,i)=><tr key={l.id} className="border-b border-border/60">
-    <td className="py-2">{i+1}</td><td>{l.name}</td><td className="text-right">{l.quantity} {l.unit}</td>
-    {showAmounts&&<><td className="text-right">{taka(l.price)}</td><td className="text-right">{taka(l.price*l.quantity)}</td></>}
+    <td className="py-2">{i+1}</td><td>{l.name}</td><td className="text-right">{l.quantity} {l.unit}{l.secondaryQuantity?' '+l.secondaryQuantity+' small units':''}</td>
+    {showAmounts&&<><td className="text-right">{taka(l.price)}</td><td className="text-right">{taka(lineTotal(l))}</td></>}
    </tr>)}</tbody>
   </table>
   {showAmounts&&<div className="ml-auto max-w-xs space-y-1 text-right text-xs">

@@ -5,6 +5,7 @@ import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
 import { ProductThumb } from '../ProductThumb';
 import { PurchaseProductSearch } from './PurchaseProductSearch';
+import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
 import { formatStock, unitsFor } from '../../utils/units';
 import { taka } from '../../utils/currency';
 import { normalizeCompoundQuantity } from '../../utils/posQuantity';
@@ -99,61 +100,27 @@ export function PurchaseCart({
                         </button>
                       </div>
                     </div>
-                    {product.altUnit && line.costUnit === product.altUnit.unit ? (
-                      <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-input bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
-                        <input
-                          ref={(node) => { qtyRefs.current[line.id] = node; }}
-                          aria-label={product.altUnit.unit + ' quantity for ' + product.name}
-                          value={line.bigQty}
-                          inputMode="decimal"
-                          onChange={(event) => onUpdate(line.id, { bigQty: event.target.value.replace(/[^\d.]/g, '') })}
-                          onKeyDown={(event) => {
-                            if (event.key !== 'Enter') return;
-                            event.preventDefault();
-                            smallRefs.current[line.id]?.focus();
-                            smallRefs.current[line.id]?.select();
-                          }}
-                          className="min-w-0 flex-1 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none"
-                        />
-                        <span className="flex items-center border-l border-border px-1.5 text-[10.5px] text-ink-500">{product.altUnit.unit}</span>
-                        <input
-                          ref={(node) => { smallRefs.current[line.id] = node; }}
-                          aria-label={product.unit + ' quantity for ' + product.name}
-                          value={line.smallQty}
-                          inputMode="decimal"
-                          placeholder="0"
-                          onChange={(event) => onUpdate(line.id, { smallQty: event.target.value.replace(/[^\d.]/g, '') })}
-                          onBlur={() => normalizeQty(line, false)}
-                          onKeyDown={(event) => {
-                            if (event.key !== 'Enter') return;
-                            event.preventDefault();
-                            normalizeQty(line, false);
-                            costRefs.current[line.id]?.focus();
-                            costRefs.current[line.id]?.select();
-                          }}
-                          className="min-w-0 flex-1 border-l border-border bg-transparent px-2 text-right text-sm font-medium text-ink outline-none"
-                        />
-                        <span className="flex items-center border-l border-border px-1.5 text-[10.5px] text-ink-500">{product.unit}</span>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <input
-                          ref={(node) => { qtyRefs.current[line.id] = node; }}
-                          aria-label={'Quantity for ' + product.name}
-                          value={line.smallQty}
-                          inputMode="decimal"
-                          onChange={(event) => onUpdate(line.id, { smallQty: event.target.value.replace(/[^\d.]/g, '') })}
-                          onKeyDown={(event) => {
-                            if (event.key !== 'Enter') return;
-                            event.preventDefault();
-                            costRefs.current[line.id]?.focus();
-                            costRefs.current[line.id]?.select();
-                          }}
-                          className="h-9 w-full rounded-md border border-input bg-ink-50/50 px-2 pr-12 text-right text-sm font-medium text-ink outline-none focus:border-teal-500 focus:bg-card focus:ring-2 focus:ring-teal-500/20"
-                        />
-                        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10.5px] text-ink-500">{product.unit}</span>
-                      </div>
-                    )}
+                    <CompoundQuantityInput key={line.costUnit} product={product} unit={line.costUnit}
+                      primary={product.altUnit&&line.costUnit===product.altUnit.unit?line.bigQty:line.smallQty}
+                      secondary={line.smallQty}
+                      primaryRef={node=>{qtyRefs.current[line.id]=node;}}
+                      secondaryRef={node=>{smallRefs.current[line.id]=node;}}
+                      primaryLabel={product.altUnit&&line.costUnit===product.altUnit.unit?
+                        product.altUnit.unit+' quantity for '+product.name:'Quantity for '+product.name}
+                      secondaryLabel={product.unit+' quantity for '+product.name}
+                      onPrimaryChange={value=>onUpdate(line.id,
+                       product.altUnit&&line.costUnit===product.altUnit.unit?{bigQty:value}:{smallQty:value})}
+                      onSecondaryChange={value=>onUpdate(line.id,{smallQty:value})}
+                      onPrimaryEnter={()=>{
+                       if(product.altUnit&&line.costUnit===product.altUnit.unit){
+                        smallRefs.current[line.id]?.focus();smallRefs.current[line.id]?.select();
+                       }else{costRefs.current[line.id]?.focus();costRefs.current[line.id]?.select();}
+                      }}
+                      onSecondaryBlur={()=>normalizeQty(line,false)}
+                      onSecondaryEnter={()=>{
+                       normalizeQty(line,false);
+                       costRefs.current[line.id]?.focus();costRefs.current[line.id]?.select();
+                      }}/>
                     {unitOptions(product).length > 1 ? (
                       <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={'Unit for ' + product.name}>
                         {unitOptions(product).map((unit) => (

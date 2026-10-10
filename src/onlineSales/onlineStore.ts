@@ -1,3 +1,4 @@
+import {transactionLineTotal} from '../utils/transactionLines.ts';
 import type {Product} from '../types/erp.ts';
 import {getQuoteSnapshot,type Quotation} from '../quotations/quotePreviewStore.ts';
 
@@ -6,7 +7,7 @@ export type SalesChannel='Facebook'|'WhatsApp'|'Instagram'|'YouTube'|'TikTok'|'W
 export type PaymentMode='COD'|'Delivery charge advance'|'Partial advance'|'Fully paid';
 export type OrderStage='Draft'|'Confirmed'|'Packed'|'Handed over'|'In transit'|'Delivered'|'Failed delivery'|'Returning'|'Returned'|'Cancelled';
 export type CourierName='Steadfast'|'Pathao'|'RedX'|'Sundarban'|'Other'|'Own delivery';
-export type OnlineOrderLine={id:string;productId:string;name:string;quantity:number;unit:string;price:number};
+export type OnlineOrderLine={id:string;productId:string;name:string;quantity:number;unit:string;price:number;secondaryQuantity?:number;unitFactor?:number};
 export type OnlineOrderDraft={
  channel:SalesChannel;sourceReference:string;partyId?:string;sourceQuoteId?:string;customerName:string;
  phone:string;address:string;lines:OnlineOrderLine[];discount:number;deliveryCharge:number;
@@ -26,9 +27,17 @@ const now=()=>new Date().toISOString();
 const validMoney=(n:number,label:string)=>{if(!Number.isFinite(n)||n<0||!Number.isSafeInteger(Math.round(n*100))||Math.abs(n*100-Math.round(n*100))>1e-5)
  throw new Error(label+' must be nonnegative BDT with at most two decimals.');return Math.round(n*100);};
 const bdt=(paisa:number)=>Number((paisa/100).toFixed(2));
-export const lineTotal=(line:OnlineOrderLine)=>bdt(validMoney(line.price,'Unit price')*line.quantity);
+export const lineTotal=(line:OnlineOrderLine)=>transactionLineTotal(line);
 export const orderTotals=(order:Pick<OnlineOrderDraft,'lines'|'discount'|'deliveryCharge'|'prepaid'>)=>{
- const item=order.lines.reduce((sum,l)=>sum+Math.round(validMoney(l.price,'Unit price')*l.quantity),0);
+ const item=order.lines.reduce((sum,l)=>{
+  const unitPricePaisa=validMoney(l.price,'Unit price');
+  const factor=l.unitFactor??1,small=l.secondaryQuantity??0;
+  if(!Number.isFinite(factor)||factor<1||!Number.isFinite(small)||small<0||
+    (small>0&&(factor<=1||small>=factor)))throw new Error('Invalid compound-unit quantity.');
+  const amount=Math.round(unitPricePaisa*(l.quantity+(factor>1?small/factor:0)));
+  if(!Number.isSafeInteger(amount))throw new Error('Line total exceeds supported amount.');
+  return sum+amount;
+ },0);
  const discount=validMoney(order.discount,'Discount'),delivery=validMoney(order.deliveryCharge,'Delivery charge'),advance=validMoney(order.prepaid,'Advance received');
  if(!Number.isSafeInteger(item))throw new Error('Item total exceeds supported amount.');
  if(discount>item)throw new Error('Discount cannot exceed item subtotal.');
@@ -49,6 +58,9 @@ export function validateOnlineOrder(input:OnlineOrderDraft):string[]{
  for(const line of input.lines){
   if(!line.productId||!line.unit||!line.name.trim())errors.push('Each item requires product and unit.');
   if(!Number.isFinite(line.quantity)||line.quantity<=0||!Number.isSafeInteger(line.quantity*1000))errors.push('Quantity must be positive (up to 3 decimals).');
+  if(!Number.isFinite(line.secondaryQuantity??0)||(line.secondaryQuantity??0)<0||
+   (line.secondaryQuantity??0)>0&&((line.unitFactor??1)<=1||(line.secondaryQuantity??0)>=(line.unitFactor??1)))
+   errors.push('Small-unit quantity must be less than one large unit.');
   if(keys.has(line.id))errors.push('Repeated order line ID.');keys.add(line.id);
  }
  try{
@@ -95,7 +107,7 @@ export function draftFromAcceptedQuote(quote:Quotation):OnlineOrderDraft{
   partyId:quote.partyId,customerName:quote.customerName,phone:quote.customerPhone??'',
   address:'',note:quote.note,discount:quote.discount,deliveryCharge:0,prepaid:0,paymentMode:'COD',
   lines:quote.lines.map((line,i)=>({id:'quote-line-'+i,productId:line.productId,name:line.name,
-    quantity:line.quantity,unit:line.unit,price:line.price}))};
+    quantity:line.quantity,unit:line.unit,price:line.price,secondaryQuantity:line.secondaryQuantity,unitFactor:line.unitFactor}))};
 }
 function requireQuoteSnapshot(draft:OnlineOrderDraft){
  if(!draft.sourceQuoteId)return;
@@ -120,7 +132,7 @@ export function preparePosHandoff(orderId:string,products:readonly Product[]){
   if(!Number.isFinite(line.quantity)||line.quantity<=0||!Number.isSafeInteger(line.quantity*1000))
    throw new Error('Unsupported order quantity for POS.');
   return {key:'online-'+order.id+'-'+index,productId:product.id,qty:String(line.quantity),
-   secondaryQty:'',unit:line.unit,price:String(line.price)};
+   secondaryQty:line.secondaryQuantity?String(line.secondaryQuantity):'',unit:line.unit,price:String(line.price)};
  });
  return {orderId:order.id,number:order.number,customerName:order.customerName,phone:order.phone,
   address:order.address,partyId:order.partyId,lines,discount:order.discount,

@@ -55,6 +55,9 @@ jobs:
       - name: Check Online Sales order, COD, CRM and SMS journeys
         run: npm run test:online-sales
 
+      - name: Check shared POS compound quantity inputs and mobile geometry
+        run: npm run test:compound-units
+
       - name: Check quotations and estimates journeys
         run: npm run test:quotations
 
