@@ -12,7 +12,7 @@ import {availableParties,availablePurchases} from '../data/erpDemoStore';
 import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview} from '../data/partyPreviewStore';
 import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
 import {vendorBalances} from '../vendor/vendorModel';
-import {filterVendors,resolveVendorView,vendorWorkLink,type VendorWorkTab} from '../vendor/vendorRoute';
+import {filterVendors,resolveVendorView,type VendorWorkTab} from '../vendor/vendorRoute';
 import {taka} from '../utils/currency';
 import type {Party} from '../types/erp';
 
