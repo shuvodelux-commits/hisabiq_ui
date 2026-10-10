@@ -22,6 +22,8 @@ import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseC
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import { blendedVendorUnitCost } from '../utils/posStock';
 import {allocatePosStock} from '../vendor/vendorStock';
+import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
+import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 
 type CompletedSale = {
@@ -151,6 +153,7 @@ export function Pos() {
   const [invoiceNo, setInvoiceNo] = useState(242);
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
+  const [demoVendorInvoice,setDemoVendorInvoice]=useState<string|null>(null);
   const invoice = editing && sourceInvoice ? sourceInvoice.invoice : `INV-${String(invoiceNo).padStart(6, '0')}`;
   const pageTitle = handoffOrder?'Online order · POS preview':editing
     ? 'Edit sale'
@@ -394,6 +397,22 @@ export function Pos() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  const simulateVendorSources=()=>{
+    if(!completed || editing || demoVendorInvoice===completed.invoice)return;
+    try{
+      const allocations=allocatePosStock(cart.lines.map(l=>({key:l.key,product:l.product,
+       requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
+        l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),
+       choice:l.stockSource})),stockLots);
+      const prepared=prepareVendorSalePreview(completed.invoice,allocations,cart.lines);
+      if(!prepared.sources.length)throw new Error('No Vendor sourced shortage to simulate.');
+      dispatchVendorPreview({type:'simulate-pos-sale',operationId:'vendor-demo:'+completed.invoice,
+       sale:prepared.sale,sources:prepared.sources});
+      setDemoVendorInvoice(completed.invoice);
+      toast.success('Vendor source added to demo preview',{description:'Open Vendor Party to view Price pending. No real ledger, stock or cash posting.'});
+    }catch(error){toast.error(error instanceof Error?error.message:'Demo source could not be saved.');}
+  };
+
   const holdCurrent = () => {
     setDrafts((d) => [
     ...d,
@@ -444,7 +463,7 @@ export function Pos() {
   };
 
   const newSale = () => {
-    setCompleted(null);
+    setCompleted(null);setDemoVendorInvoice(null);
     cart.reset();
     setInvoiceNo((n) => n + 1);
     if (editing || duplicating || draftContext || templateContext || incomingOrderId) navigate('/app/pos', { replace: true, state: null });
@@ -645,6 +664,13 @@ export function Pos() {
             {completed && <ReceiptPreview {...completed} />}
           </div>
           <DialogFooter>
+            {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
+              <Button variant="outline" onClick={simulateVendorSources}
+                disabled={!!demoVendorInvoice||editing}
+                title={editing?'Historical source updates are not enabled in the UI preview':
+                  demoVendorInvoice?'Demo source already recorded':'Simulate source quantity for Vendor workspace; no backend posting'}>
+                {demoVendorInvoice?'Vendor source in demo':'Simulate Vendor source'}
+              </Button>}
             <Button variant="outline" onClick={() => window.print()}>
               <Printer className="size-4" /> Print receipt
             </Button>
