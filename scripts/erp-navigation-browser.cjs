@@ -76,7 +76,7 @@ async function main(){
       'mobile sheet must cover viewport height, not just the sticky header');
     assert.ok(bounds.width<=Math.min(320,width) + 1,
       'mobile sheet should have a comfortable max-width');
-    assert.equal(await drawer.evaluate(node=>node.parentElement===document.body),true,
+    assert.equal(await drawer.evaluate(node=>node.parentElement?.parentElement===document.body),true,
       'mobile sheet must live outside backdrop-filter header containing block');
     assert.equal(await page.evaluate(()=>document.body.style.overflow),'hidden',
       'opening a mobile sheet prevents page scrolling underneath');
