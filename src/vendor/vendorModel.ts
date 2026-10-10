@@ -89,11 +89,11 @@ function reverseVendorEvent(
   for(const allocation of settlement.allocations){
    const linked=original.sources.find(s=>s.id===allocation.sourceId&&s.status==='Active');
    if(!linked)throw new Error('Linked Vendor source missing: review before reversal.');
-   if(settlement.kind==='return-to-vendor'||settlement.kind==='receive-goods'){
+   if(settlement.kind==='return-to-vendor'||settlement.kind==='receive-goods'||settlement.kind==='pay-and-return'){
     if(!next.inventory)throw new Error('Demo inventory is unavailable for stock reversal.');
     const quantity=allocation.baseQty??0;
     const available=next.inventory[linked.productId]??0;
-    const offset=settlement.kind==='return-to-vendor'?quantity:-quantity;
+    const offset=settlement.kind==='receive-goods'?-quantity:quantity;
     if(available+offset<0)throw new Error('Cannot reverse goods receipt; owned stock already used.');
     next.inventory[linked.productId]=available+offset;
    }
@@ -103,7 +103,7 @@ function reverseVendorEvent(
   next.sources=next.sources.map(src=>{
    if(!settlement.allocations.some(a=>a.sourceId===src.id)||src.status==='Reversed')return src;
    const remaining=sourceOutstanding(next,src.id);
-   const pricingStatus=src.unitCostBasePaisa===null
+   const pricingStatus:VendorSource['pricingStatus']=src.unitCostBasePaisa===null
     ?(remaining.unpricedBaseQty>0?'unpriced':'closed')
     :((remaining.monetaryDuePaisa??0)>0?'priced':'closed');
    return {...src,pricingStatus};
@@ -326,6 +326,61 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    description:'Vendor price confirmed after sale · demo',status:'Active'});
   return finish(next,cmd);
  }
+ if(cmd.type==='clear-source-due'){
+  ensureVendor(state,cmd.vendorPartyId);
+  if(!goodDate(cmd.date))throw new Error('Choose a valid date to clear due.');
+  money(cmd.cashPaisa,'Money paid');
+  if(!Number.isFinite(cmd.returnBaseQty)||cmd.returnBaseQty<0)
+   throw new Error('Returned product quantity must not be negative.');
+  if(cmd.cashPaisa===0&&cmd.returnBaseQty===0)throw new Error('Enter money or products to clear due.');
+  const source=state.sources.find(s=>s.id===cmd.sourceId&&s.status==='Active'
+   &&s.vendorPartyId===cmd.vendorPartyId&&s.sourceKind==='sourcing');
+  if(!source)throw new Error('Wrong Vendor or missing Taken source.');
+  if(cmd.date<source.date)throw new Error('Due cannot be cleared before the products were taken.');
+  const outstanding=sourceOutstanding(state,source.id);
+  if(cmd.returnBaseQty>source.baseQty-outstanding.returnedBaseQty)
+   throw new Error('Cannot return more products than taken.');
+  if(source.unitCostBasePaisa===null&&cmd.cashPaisa>0)
+   throw new Error('Set Price before paying money.');
+  const returnedValue=source.unitCostBasePaisa===null?0:amountFor(cmd.returnBaseQty,source.unitCostBasePaisa);
+  if(source.unitCostBasePaisa!==null&&returnedValue+cmd.cashPaisa>(outstanding.monetaryDuePaisa??0))
+   throw new Error('Cash and returned products exceed the source due.');
+  const splits=cmd.paymentSplits??[];
+  if(cmd.cashPaisa===0&&splits.length)throw new Error('Do not add payment accounts when no money is paid.');
+  if(cmd.cashPaisa>0&&!splits.length)throw new Error('Choose a payment account.');
+  const ids=new Set<string>();let totalCash=0;
+  for(const item of splits){
+   if(ids.has(item.id))throw new Error('Duplicate payment split.');
+   ids.add(item.id);
+   if(!item.accountId.trim()||!['Cash','Bank','Mobile Banking'].includes(item.method))
+    throw new Error('Choose a valid payment account and method.');
+   totalCash+=money(item.amountPaisa,'Payment split');
+  }
+  if(totalCash!==cmd.cashPaisa)throw new Error('Payment split amount does not match money paid.');
+  const next=extended(state,cmd.operationId)!;
+  if(cmd.returnBaseQty>0){
+   if(!next.inventory)throw new Error('Owned stock preview is unavailable.');
+   const available=next.inventory[source.productId]??0;
+   if(available<cmd.returnBaseQty)throw new Error('Insufficient owned stock to return products.');
+   next.inventory[source.productId]=available-cmd.returnBaseQty;
+  }
+  const total=cmd.cashPaisa+returnedValue;
+  next.settlements.push({
+   id:'vendor-settlement:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
+   side:'payable',kind:'pay-and-return',date:cmd.date,amountPaisa:total||null,
+   allocations:[{sourceId:source.id,amountPaisa:cmd.cashPaisa,baseQty:cmd.returnBaseQty}],
+   paymentSplits:splits,reason:cmd.reason,status:'Active',operationId:cmd.operationId
+  });
+  next.events.push({id:'vendor-event:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
+   side:'payable',kind:'settlement',sourceId:source.id,reference:source.reference,date:cmd.date,
+   sequence:next.events.length+1,deltaPaisa:-total,operationId:cmd.operationId,
+   description:'Money paid and products returned · demo',status:'Active'});
+  const remain=sourceOutstanding(next,source.id);
+  if(remain.unpricedBaseQty===0&&remain.monetaryDuePaisa===null||
+    remain.monetaryDuePaisa===0)
+   next.sources=next.sources.map(s=>s.id===source.id?{...s,pricingStatus:'closed' as const}:s);
+  return finish(next,cmd);
+ }
  if(cmd.type==='settle-source'){
   if(!goodDate(cmd.date))throw new Error('Invalid settlement date.');
   const moneyKind=cmd.kind==='pay'||cmd.kind==='receive-money';
@@ -409,7 +464,7 @@ export function sourceOutstanding(state:VendorPreviewState,sourceId:string):Vend
  const s=state.sources.find(row=>row.id===sourceId&&row.status==='Active');
  if(!s)throw new Error('Vendor source not found.');
  const rows=state.settlements.filter(row=>row.status==='Active'&&row.allocations.some(a=>a.sourceId===sourceId));
- const returnedBaseQty=rows.filter(row=>row.kind==='return-to-vendor'||row.kind==='receive-goods')
+ const returnedBaseQty=rows.filter(row=>row.kind==='return-to-vendor'||row.kind==='receive-goods'||row.kind==='pay-and-return')
    .flatMap(row=>row.allocations.filter(a=>a.sourceId===sourceId).map(a=>a.baseQty??0))
    .reduce((a,b)=>a+b,0);
  const remaining=Math.max(0,s.baseQty-returnedBaseQty);
@@ -417,7 +472,7 @@ export function sourceOutstanding(state:VendorPreviewState,sourceId:string):Vend
  const beforePricingReturns=priced?Math.max(0,s.baseQty-(s.pricedBaseQty??s.baseQty)):0;
  const afterPricingReturns=priced?Math.max(0,returnedBaseQty-beforePricingReturns):0;
  const discountedReturn=priced?Math.round(afterPricingReturns*s.unitCostBasePaisa!):0;
- const settledCash=rows.filter(row=>row.kind==='pay'||row.kind==='receive-money')
+ const settledCash=rows.filter(row=>row.kind==='pay'||row.kind==='receive-money'||row.kind==='pay-and-return')
  .flatMap(row=>row.allocations.filter(a=>a.sourceId===sourceId).map(a=>a.amountPaisa??0))
  .reduce((a,b)=>a+b,0);
  const due=priced?Math.max(0,s.sourceAmountPaisa!-discountedReturn-settledCash):null;
