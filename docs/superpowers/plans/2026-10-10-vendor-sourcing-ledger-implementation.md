@@ -147,9 +147,21 @@
 - [ ] **Step 4: Run green**: new test, `npm run build`, `node scripts/vendor-workflow-browser.cjs`; verify no ghost Vendor due after failed/duplicate simulation.
 - [ ] **Step 5: Commit** `git add src/vendor/vendorSalePreview.ts src/vendor/vendorTypes.ts src/vendor/vendorModel.ts src/vendor/vendorPreviewStore.ts src/pages/Pos.tsx src/components/parties/VendorWorkspace.tsx tests/vendorSalePreview.test.ts scripts/vendor-workflow-browser.cjs && git commit -m "feat(vendor): link demo POS source to Vendor preview ledger"`.
 
-## Increment C — Settlement, physical exchanges and audit safety
+## Increment C — Evening pricing, settlements, ordinary purchases and audit safety
 
-### Task 8: Source-allocated payments, physical returns and goods issue/receipt
+### Task 8: Confirm source price later and expose the evening pending queue
+
+**Files:** Modify `src/vendor/vendorTypes.ts`, `src/vendor/vendorModel.ts`, `src/vendor/vendorPreviewStore.ts`, `src/vendor/vendorLedger.ts`, `src/components/parties/VendorWorkspace.tsx`, `src/components/parties/VendorActionDialog.tsx`; Test `tests/vendorPricing.test.ts`.
+
+**Interfaces:** `VendorSource.unitCostBasePaisa: number | null`, `sourceAmountPaisa: number | null`; `pricingStatus:'unpriced'|'partially-priced'|'priced'|'closed'`. New command `{type:'set-source-price'; vendorPartyId:string; sourceId:string; operationId:string; price:{unitCostBasePaisa:number}|{lumpSumPaisa:number}; actor:string; date:string}` prices only units not already returned. `sourceOutstanding` exposes `unpricedBaseQty`, `pricedBaseQty`, `returnedBaseQty`, `monetaryDuePaisa:number|null`. When no unit price is known, `null` must survive all views, exports, simulation and serialization.
+
+- [ ] **Step 1: Write failing tests**: 3 Pcs sourced unpriced => quantity 3, cost `null`, known payable unchanged, not 0-priced; evening quotation ৳110/Pcs => priced payable ৳330; return one matching Pcs before quote => price remaining two at ৳110/Pcs => ৳220; return all three before quote => closed quantity without any price or monetary payable; quote replay idempotent; no free-goods default, negative/NaN price, wrong Vendor or post-settlement requote.
+- [ ] **Step 2: Run red:** `node --experimental-strip-types --test tests/vendorPricing.test.ts`; expected failure until command exists.
+- [ ] **Step 3: Implement:** quote command with audit, source-derived known payable, `Price pending` Vendor queue sorted by date, optional in-dialog `Set Price` and `Set Price + Pay` entry. Keep source-level `COGS pending` until actual quote or replacement-lot cost, never 0.
+- [ ] **Step 4: Run green:** Vendor pricing/model/ledger unit tests and `npm run build`; all exit 0.
+- [ ] **Step 5: Commit:** `git add src/vendor/vendorTypes.ts src/vendor/vendorModel.ts src/vendor/vendorPreviewStore.ts src/vendor/vendorLedger.ts src/components/parties/VendorWorkspace.tsx src/components/parties/VendorActionDialog.tsx tests/vendorPricing.test.ts && git commit -m "feat(vendor): allow price confirmation after POS sourcing"`.
+
+### Task 9: Source-allocated payments, physical returns and goods issue/receipt
 
 **Files:** Modify `src/vendor/vendorTypes.ts`, `src/vendor/vendorModel.ts`, `src/components/parties/VendorActionDialog.tsx`; Test `tests/vendorModel.test.ts`, `tests/vendorSettlements.test.ts`, browser script.
 
@@ -161,7 +173,19 @@
 - [ ] **Step 4: Run green**: new and existing Vendor tests, `npm run build`, `node scripts/vendor-workflow-browser.cjs`.
 - [ ] **Step 5: Commit** `git add src/vendor/vendorTypes.ts src/vendor/vendorModel.ts src/components/parties/VendorActionDialog.tsx tests/vendorModel.test.ts tests/vendorSettlements.test.ts scripts/vendor-workflow-browser.cjs && git commit -m "feat(vendor): simulate sourced payable and issued receivable settlement"`.
 
-### Task 9: Guarded correction, reversal and return ambiguity
+### Task 10: Ordinary purchases within the Vendor Party profile
+
+**Files:** Create `src/components/purchases/PurchaseEntryContent.tsx`, `src/components/parties/VendorPurchaseDialog.tsx`; Modify `src/pages/PurchaseEditor.tsx`, `src/components/parties/VendorWorkspace.tsx`, `src/pages/Parties.tsx`, and only where needed `src/data/erpDemoStore.ts`; Test `tests/vendorPurchaseContext.test.ts` plus Vendor browser script.
+
+**Interfaces:** Extract current Purchase form composition as `PurchaseEntryContent` shared by the existing Purchase page and Vendor-context sheet. `VendorPurchaseDialog` consumes `{vendorPartyId:string;open:boolean;onClose:()=>void}`; preselect Vendor **Party ID**. Reuse `PurchaseCart`, `PurchasePaymentPanel`, purchase conversion/discount logic and `createPreviewPurchase`; normal Purchase never calls `record-sourcing`. Offer explicit Supplier role addition on the **same** Party when role-ledger presentation needs it.
+
+- [ ] **Step 1: Write failing tests:** `Buy Products` inside Vendor workspace preserves Party tab/date context; Vendor-only Party ID prefilled; mixed-unit quantities, discounts and split payment parity; normal 10-Pcs Purchase records one preview Purchase and own stock increase once but no Vendor sourcing payable; later returning purchased matching units against older Vendor source deducts them exactly once; paying an old Vendor source never creates a Purchase.
+- [ ] **Step 2: Run red:** `node --experimental-strip-types --test tests/vendorPurchaseContext.test.ts` and Vendor Playwright smoke.
+- [ ] **Step 3: Implement:** shared Purchase editor composition and Vendor sheet without duplicating posting arithmetic. Supplier relationship for ordinary Purchase is a separately labeled ledger, not automatically offset against sourcing payable. Demo inventory projection overlays existing Purchase receipts and Vendor-return/issue deltas coherently; production accounting remains out of scope.
+- [ ] **Step 4: Run green:** new tests, `npm run test:purchases`, `npm run test:parties`, `npm run build`, Vendor browser; all exit 0.
+- [ ] **Step 5: Commit:** `git add src/components/purchases/PurchaseEntryContent.tsx src/components/parties/VendorPurchaseDialog.tsx src/pages/PurchaseEditor.tsx src/components/parties/VendorWorkspace.tsx src/pages/Parties.tsx tests/vendorPurchaseContext.test.ts scripts/vendor-workflow-browser.cjs && git commit -m "feat(vendor): reuse Purchase entry in Vendor workspace"`.
+
+### Task 11: Guarded correction, reversal and return ambiguity
 
 **Files:** Create `src/vendor/vendorCorrection.ts`; Modify `src/vendor/vendorModel.ts`, `src/components/parties/VendorWorkspace.tsx`, `src/components/parties/VendorActionDialog.tsx`; Test `tests/vendorCorrection.test.ts`.
 
@@ -173,7 +197,7 @@
 - [ ] **Step 4: Run green**: new test, `npm test`, `npm run build`, `node scripts/vendor-workflow-browser.cjs`.
 - [ ] **Step 5: Commit** `git add src/vendor/vendorCorrection.ts src/vendor/vendorModel.ts src/components/parties/VendorWorkspace.tsx src/components/parties/VendorActionDialog.tsx tests/vendorCorrection.test.ts && git commit -m "feat(vendor): guard corrections and linked returns"`.
 
-### Task 10: Browser regression, accessibility, docs and release gate
+### Task 12: Browser regression, accessibility, docs and release gate
 
 **Files:** Modify `scripts/vendor-workflow-browser.cjs`, `package.json`, `.github/workflows/ui-check.yml`; optionally `docs/ui/erp-workflow-audit-2026-10-09.md` with verified Vendor status; Test all Vendor and affected existing suites.
 
@@ -193,7 +217,7 @@ The real `hisabiq` NestJS repository, once independently approved, must implemen
 
 1. **Review this spec + plan first**. No implementation code on the docs-only branch.
 2. When approved, create a fresh feature branch from current `main`, not from the Expense PR #51 branch.
-3. Execute Tasks 1–4 (Increment A) natively, verify, open a draft PR; then Tasks 5–7 (Increment B); then Tasks 8–10 (Increment C). Dependencies are ordered. If combined into one feature branch for integration, retain commit/checkpoint boundaries.
+3. Execute Tasks 1–4 (Increment A) natively, verify, open a draft PR; then Tasks 5–7 (Increment B); then Tasks 8–12 (Increment C). Dependencies are ordered. If combined into one feature branch for integration, retain commit/checkpoint boundaries.
 4. Re-read and compare the current `main` state before every increment; do not overwrite previously merged component/nav/theme updates.
 5. Ask for review of the actual UI/demo in Cloudflare/local preview **after** the draft PR CI is green. Merge only after explicit approval.
 
