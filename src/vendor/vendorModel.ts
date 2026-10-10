@@ -216,6 +216,26 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   return finish(next,cmd);
  }
  ensureVendor(state,cmd.vendorPartyId);
+ if(cmd.type==='record-sourcing-memo'){
+  if(!cmd.memoId.trim()||!goodDate(cmd.date)||!cmd.sources.length)
+   throw new Error('Valid memo date and products are required.');
+  const next=extended(state,cmd.operationId)!;
+  const seen=new Set<string>();
+  const sources:VendorSource[]=[];
+  for(const input of cmd.sources){
+   if(input.date!==cmd.date)throw new Error('Taken product date must match memo date.');
+   if(seen.has(input.id))throw new Error('Duplicate Taken source ID.');
+   seen.add(input.id);
+   sources.push(source({...next,sources:[...next.sources,...sources]},cmd.vendorPartyId,'sourcing',
+    {...input,memoId:cmd.memoId,reference:cmd.reference??cmd.memoId}));
+  }
+  for(const item of sources){
+   next.sources.push(item);
+   next.events.push({...event(next,item,cmd.operationId),
+    id:'vendor-event:'+cmd.operationId+':'+item.id,sequence:next.events.length+1});
+  }
+  return finish(next,cmd);
+ }
  if(cmd.type==='issue-goods-memo'){
   if(!cmd.memoId.trim()||!goodDate(cmd.date)||!cmd.sources.length)
    throw new Error('Valid memo, date and goods lines are required.');
