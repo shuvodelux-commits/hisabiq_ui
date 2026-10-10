@@ -15,14 +15,16 @@ async function main(){
   const editor=page.getByRole('form',{name:'Issue products editor'});
   await editor.waitFor();
   assert.equal(await page.getByRole('dialog',{name:/Issue products/}).count(),0,'full cart must be inline, not modal');
-  await editor.getByRole('combobox',{name:'Search products to add to Vendor memo'}).fill('LED Bulb');
+  assert.equal(await editor.locator('[data-testid="purchase-cart"]').count(),1,'Vendor issue must use canonical PurchaseCart');
+  assert.equal(await editor.locator('[data-testid="purchase-add-row"]').count(),1,'Vendor issue must use PurchaseCart inline search row');
+  await editor.getByRole('combobox',{name:'Search product to add to purchase'}).fill('LED Bulb');
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
   await editor.getByRole('textbox',{name:/Quantity for/}).first().waitFor();
   await editor.getByRole('button',{name:/Save Issued Products/}).click();
   await editor.getByRole('alert').getByText(/price/i).waitFor();
   assert.deepEqual(errors,[]);
-  console.log('Vendor Give product cart is inline, searchable and validates agreed price');
+  console.log('Vendor issue reuses PurchaseCart inline search, keyboard entry and agreed-price validation');
  }finally{await browser.close();await server.close();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
