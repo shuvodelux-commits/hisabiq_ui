@@ -42,12 +42,11 @@ async function main(){
   const download=await downloadPromise;
   assert.match(download.suggestedFilename(),/hisabiq-expenses-preview.*csv/);
 
-  await rows.first().getByRole('button',{name:/View EXP-/}).click();
+  await page.getByRole('button',{name:'View EXP-000061'}).click();
   const bill=page.locator('[data-slot="dialog-content"]').last();
   await bill.waitFor();
-  if(await bill.getByRole('button',{name:/Payment unavailable/}).count()){
-   assert.equal(await bill.getByRole('button',{name:/Payment unavailable/}).isDisabled(),true);
-  }
+  assert.equal(await bill.getByRole('button',{name:/Payment unavailable/}).isDisabled(),true,
+   'an unpaid expense must not claim to post money');
   await bill.getByRole('button',{name:'Close',exact:true}).first().click();
   assert.deepEqual(errors,[]);
   console.log('Expense Quick Add, list filters, real CSV and truthful detail actions passed');
