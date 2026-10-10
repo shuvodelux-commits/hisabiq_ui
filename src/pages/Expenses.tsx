@@ -474,6 +474,33 @@ export function Expenses() {
         )}
       </div>
 
+      <Dialog open={quickAdd!==null} onOpenChange={next=>{if(!next)closeQuickAdd();}}>
+        <DialogContent role="dialog" aria-label={quickAdd==='category'?'New expense category':'New expense payee'} className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{quickAdd==='category'?'New expense category':'New expense payee'}</DialogTitle>
+            <DialogDescription>
+              Quick Add stays in Expenses · <span className="font-bn">একই পেজে নতুন তথ্য যোগ করুন</span>. Local UI preview only.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="space-y-3" onSubmit={event=>{event.preventDefault();createQuickEntity();}}>
+            <label className="block text-[13px] font-medium text-ink">
+              {quickAdd==='category'?'Category name':'Payee name'}
+              <Input autoFocus aria-label={quickAdd==='category'?'Category name':'Payee name'} className="mt-1"
+                value={quickName} onChange={event=>{setQuickName(event.target.value);setQuickError('');}} />
+            </label>
+            {quickAdd==='payee'&&<label className="block text-[13px] font-medium text-ink">
+              Phone <span className="font-bn text-xs text-ink-400">· ফোন</span>
+              <Input aria-label="Payee phone" className="mt-1" value={quickPhone} onChange={event=>setQuickPhone(event.target.value)} />
+            </label>}
+            {quickError&&<p role="alert" className="text-xs text-danger">{quickError}</p>}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={closeQuickAdd}>Cancel</Button>
+              <Button type="submit"><Plus className="size-4"/> {quickAdd==='category'?'Create category':'Create payee'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <BillDialog
         key={expenseFormRevision}
         mode="expense"
