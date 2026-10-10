@@ -61,13 +61,13 @@ export function Vendors(){
   const v=vendorBalances(snapshot,p.id);
   return {v,waiting:v.unpricedSourceCount};
  };
- return <div className="mx-auto max-w-[1440px] min-w-0 space-y-4" role="region" aria-label="Vendor module">
-  <PageHeader title="Vendor" titleBn="ভেন্ডর" description="Take products, give products, pay, and see your Vendor accounts · Preview only" actions={party&&
+ return <div className="mx-auto max-w-[1440px] min-w-0 space-y-4" role="region" aria-label="Vendor Sourcing module">
+  <PageHeader title="Vendor Sourcing" titleBn="ভেন্ডর" description="Receive or issue products, record payments, and review vendor accounts · Preview only" actions={party&&
    <Button type="button" variant="outline" size="sm" onClick={()=>change(null)}><ArrowLeft className="size-4"/> All Vendors</Button>}/>
   {!party? <section className="rounded-xl border border-border bg-card p-4 shadow-card space-y-4">
    <div className="flex flex-wrap items-end justify-between gap-3">
     <div className="min-w-[240px] flex-1">
-     <label htmlFor="vendor-module-search" className="mb-1 block text-sm font-medium text-ink">Choose Vendor · ভেন্ডর বাছুন</label>
+     <label htmlFor="vendor-module-search" className="mb-1 block text-sm font-medium text-ink">Choose a Vendor · ভেন্ডর বাছুন</label>
      <div className="relative"><Search className="absolute left-3 top-2.5 size-4 text-ink-400"/>
       <Input id="vendor-module-search" aria-label="Search Vendors" placeholder="Name, phone or area"
        className="pl-9" value={query} onChange={e=>setQuery(e.target.value)}/>
@@ -86,9 +86,9 @@ export function Vendors(){
      <PartyAvatar name={p.name} color={p.avatarColor} image={p.image} size={40}/>
      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-ink">{p.name}</span>
       <span className="block truncate text-xs text-ink-500">{p.phone} · {p.area}</span>
-      <span className="block text-[11px] text-ink-500">{v.unpricedSourceCount} price not set</span>
+      <span className="block text-[11px] text-ink-500">{v.unpricedSourceCount} unpriced product records</span>
      </span>
-     <span className="text-right text-xs text-ink-600"><span className="block">You owe</span>
+     <span className="text-right text-xs text-ink-600"><span className="block">Amount Payable</span>
       <strong className="text-sm text-ink">{taka(v.knownPayablePaisa/100)}</strong></span>
     </button>;})}
    </div>
