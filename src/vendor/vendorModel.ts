@@ -66,9 +66,6 @@ const finish=(next:VendorPreviewState,command:VendorPreviewCommand):VendorPrevie
 };
 const activeSourceSettlements=(state:VendorPreviewState,sourceId:string)=>
  state.settlements.filter(t=>t.status==='Active'&&t.allocations.some(a=>a.sourceId===sourceId));
-const sourcePriceEvents=(state:VendorPreviewState,sourceId:string)=>
- state.events.filter(e=>e.kind==='pricing'&&e.sourceId===sourceId
- &&!state.events.some(r=>r.kind==='reversal'&&r.reversesEventId===e.id));
 
 /** Appends a compensating audit event; never silently deletes original history. */
 function reverseVendorEvent(
