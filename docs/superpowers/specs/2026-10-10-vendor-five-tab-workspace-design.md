@@ -67,24 +67,44 @@ Finance & Accounts
 
 Only one large editor visible at a time; product cart input on top, compact list or table below or switchable "New / History" area inside tab as needed. A modal may be used for small confirmations, previews or destructive corrections, **not full Purchase/Given/Take editors**.
 
-## 4. Parties: ALL roles use one consistent PartyDetail experience
+## 4. Parties: same visual profile, Vendor-appropriate information and actions
 
-**Important structural code change:** `src/pages/Parties.tsx` currently special-cases `relationship==='Vendor'` to render `VendorWorkspace` instead of `PartyDetail`. Remove the exception when this redesign is implemented; **Vendor uses `PartyDetail` like every other role.**
+The user's **Supplier Party profile screenshot (2026-10-10)** is the **visual and interaction reference** for **every Party role**, including Vendor. The Vendor Party profile must **look like that Supplier screenshot**, not like a second mini-Vendor dashboard. Use the same:
+- Avatar, name with Bangla, phone, place, roles, Edit Party control and compact balance header
+- One modest horizontal quick-action toolbar below the header (no button wall)
+- **Ledger | Invoices | Payments | Notes | Attachments** in the same position and same active underline/badge style
+- Date-range picker, transaction filter, search, page size, clear filters and Print Statement
+- Opening balance / period debit / period credit summary row
+- Compact ledger with **Date | Particulars | Debit | Credit | Running | Actions**, badges, short descriptions and row “…” menu; keyboard/touch/print layout identical to Supplier
 
-Keep same shared Party tabs/visual grammar for all roles:
-- **Ledger · হিসাব**
-- **Invoices · বিল**
-- **Payments · টাকা লেনদেন**
-- **Notes · নোট**
-- **Attachments · ফাইল**
+**Structural requirement:** `src/pages/Parties.tsx` currently special-cases `relationship==='Vendor'` to render `VendorWorkspace`, instead of the standard `PartyDetail`. Remove this special case when implementing. All roles render **`PartyDetail` or one shared composition based on it**. Do NOT relocate the five operational Vendor tabs into Party. The Vendor module remains a **top-level** `/app/vendors` page for complete work.
 
-These are **profile / history views**, not the five Vendor operational tabs. Vendor is still a selectable Party role and still eligible for notes, attachments, profile edits, opening balances, general Party statement and ledger actions. Where a type of record is a Vendor memo rather than an invoice, label it by its real document type (e.g. Taken memo / Given memo), without falsely renaming it as a sale invoice.
+### 4A. Vendor Party quick actions in this shared profile
 
-A Vendor Party profile may show one simple contextual **Open Vendor · ভেন্ডরের কাজ খুলুন** link; clicking opens `/app/vendors?partyId=<id>`, preserving the selected person. Do not embed its complete Vendor cart, payments or source editing forms inside the Party profile. Conversely, Vendor workspace includes a small **View Party** link for personal details and relationship roles.
+The profile must be useful without becoming a second working module:
 
-**One identity, one source of truth:** existing `partyPreviewStore` and `vendorPreviewStore` currently serve different mock data projections. The implementation must adapt the new Vendor events to the **standard Party ledger/invoice/payment selectors without copying entries into the Party store or double-counting**. Define a read-only combined projection keyed by canonical Party ID and actual source IDs. No duplicate money received/paid merely because records are visible in both modules. Ordinary Supplier purchases remain on the ordinary Purchase ledger. Record correction from Party view should deep-link to the authoritative working screen or use the shared audited correction operation; never create an independent second mutation path.
+| Same position as Supplier screenshot | Vendor-specific behavior |
+|---|---|
+| Primary **Pay Vendor · টাকা দিন** | Records a payment **against a chosen outstanding Taken source**, never a generic unlabeled balance. Prefer the existing small Party-style payment dialog backed by the **same Vendor settlement command/service** as `/app/vendors`. Allow split accounts where shared controls already support them. Must not create an independent Party-only transaction. |
+| Secondary **Receive Money · টাকা নিন** | Records money received **against a chosen Given memo/amount owed by Vendor**. Same shared Vendor payment operation and exact source reference. Display only if applicable; otherwise offer a clear empty state through Payments tab, not a fake success. |
+| **Opening Balance · শুরুর হিসাব** | One compact action with an explicit choice **You owe** vs **Vendor owes**, supports dated opening/edit where permitted. Reuse the existing Vendor opening commands and audit rules. Ordinary Purchase opening belongs under Supplier relationship, not Vendor source payable. |
+| **Open Vendor Work · ভেন্ডরের কাজ** | Navigates to `/app/vendors?partyId=<canonical-id>` with Vendor preselected. This is the entry to Take Products, Give Products, set prices, return goods, partial/mixed clear due and other full Vendor work. |
+| **Add Note · নোট লিখুন** | Opens the same Notes tab/editor as any Party; attachments likewise stay in the common Party UI. |
 
-For a Party with both Vendor and Supplier roles, the Party role switch remains standard and keeps records separate by role/balance type without hiding total financial exposure or silently netting different liabilities. An inactive Party still exposes historical records; new Vendor transactions are blocked with a clear explanation.
+Do **not** display irrelevant **Refund Credit**, **New Invoice**, or **Send Statement** buttons as disabled clutter. Where a genuinely supported action exists, offer it in the same compact placement or related tab. **Print Statement** remains in the Ledger filter bar, just like the screenshot. Infrequent corrections/cancellations belong under the row **…** menu with required reason and source review; keep source-linked audit history.
+
+**Quick actions do not duplicate implementation.** If direct Pay Vendor / Receive Money in the Party profile cannot use the same validated Vendor money command or cannot target an exact source, do **not** fake a posting. Provide a link to the **Payments** tab of the top-level Vendor module prefilled with the correct Vendor, direction and source until shared action support is verified. The user should not need to reselect the Vendor.
+
+### 4B. Vendor ledger and document tabs — same visuals, different data
+
+- **Ledger:** display **real Vendor taken/given source and settlement events**, along with their canonical references. Preserve both payable and receivable sides without **netting**. Because the screenshot has only one **Running** column, a Vendor ledger must offer a simple **Taken (You owe)** / **Given (Vendor owes)** balance filter with the proper running balance **for that side**. If **All activity** shows both sides, do not show a fabricated combined running number; use `—` or a clearly labeled per-side balance. Display **Price not set** for unpriced sources without pretending its monetary value is ৳0. Debit/Credit are always shown with a short **Money paid / Money received / Amount owed increased** description matching the selected account; color supplements the words, never replaces them. Period summaries and print/export are scoped to the chosen side or separately categorized.
+- **Header balance:** preserve the same top-right balance-card visual language shown in the screenshot. Unlike Supplier's single balance, a Vendor can have **You owe** and **Vendor owes** simultaneously; show them as **two separate compact figures** (stacked or side by side depending on width), with a small **Price not set** indicator as needed. Do not display a misleading net figure or invent an amount for unpriced goods. Ordinary **Purchase due** is shown in the Vendor full module's fourth summary and in the relevant Supplier relationship, never silently mixed into these two figures.
+- **Invoices/Bills:** retain the tab slot and layout from the shared profile, but present the actual document kind. For Vendor relationship, label the tab **Bills & Memos · বিল ও মেমো** if there are Taken/Given memos; include references to linked POS sales and ordinary Purchase bills only where the relationship and record type truly applies. **Do not call a Given memo a sales invoice**. Counts, viewing and print links come from the original records.
+- **Payments:** same compact Payments tab as Customer/Supplier, with Vendor-specific **Money paid / Money received** descriptions, linked source/memo, date, account, amount and action menu. No duplicate ledger entries or cloned payment records; cancellations use the Vendor audited reversal command.
+- **Notes and Attachments:** **identical** UI and behavior for Vendor, Supplier, Customer, Lender, Borrower etc. Preserve profile identity and relationships when switching role.
+- An inactive Vendor remains visible in history; block new money/stock movement with a clear reason.
+
+**Single source of truth:** Current `partyPreviewStore` and `vendorPreviewStore` contain different demo projections. Adapt the Vendor events into the **standard Party ledger/invoice/payment selectors** keyed by canonical Party ID + source ID. Do not copy the Vendor transactions into Party store or double count ordinary Purchases. One Party may be both Vendor and Supplier; the role switch must show the appropriate financial side without losing other roles' history. The same event must appear and reconcile consistently in both the Party profile and top-level Vendor workspace.
 
 ## 5. Reuse architecture, not cloned pages
 
@@ -146,7 +166,7 @@ Translate errors, empty states and hints consistently; don't expose internal ter
 
 1. `/app/vendors` appears **as its own top-level nav entry** on desktop/mobile and in route-path whitelist, alongside POS/Sales/Purchases; navigation and permission tests confirm correct active sidebar state and no broken existing routes.
 2. Vendor list/chooser searches the canonical Party records, Quick Adds from module, deep-links from Party profile preselect the correct Vendor; updating role and changing Vendor never loses or mixes another Party's data.
-3. `/app/parties?role=Vendor&id=...` renders the **same PartyDetail shell** and tabs as Customer/Supplier, with correct Vendor activity, ledger, payments, notes, attachments, openings; no special VendorWorkspace; Party Vendor records link back to `/app/vendors`.
+3. `/app/parties?role=Vendor&id=...` matches the **supplied Supplier profile screenshot** in header, action row, five standard profile tabs, filters, debit/credit/running ledger, print and row menus; Vendor-specific Pay/Receive/Opening Balance actions use authoritative source-linked Vendor operations, not duplicate postings. Taken/Given sides never net. No special VendorWorkspace; Vendor profile links back to `/app/vendors`.
 4. Five operational Vendor tabs work, with full-sized inline POS-style editors where needed, no giant Purchase modal, one prominent action per tab; label conventions and keyboard/mobile/dark-mode checks pass.
 5. POS stock shortage → Taken (optional price) → Set Price → Clear Due via money, matching goods or both. Given multi-line memo → receive money/products. Ordinary Purchase → independently tracked due/returns/refunds without duplicate stock. Review source-linked customer returns safely.
 6. Ledger/Payments display identical underlying canonical Vendor transactions from both module and Party profile, once each. Original audit history remains visible after correct/void; no false zero, no unapproved netting, source-linked corrections validated.
