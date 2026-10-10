@@ -27,7 +27,7 @@ async function main(){
   await workspace.getByRole('button',{name:/Buy products/}).first().click();
   const purchase=page.getByRole('dialog',{name:'Buy products from Vendor'});
   await purchase.waitFor();
-  assert.ok(await purchase.getByText('New purchase',{exact:false}).count()>=0);
+  assert.ok((await purchase.innerText()).includes('Purchase details'));
   assert.ok(await purchase.getByText(/Supplier memo/).count()>=1);
   await purchase.getByRole('button',{name:'Cancel'}).last().click();
   await purchase.waitFor({state:'hidden'});
