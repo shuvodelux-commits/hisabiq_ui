@@ -12,8 +12,7 @@ async function main(){
   const row=page.locator('[data-testid="pos-cart-row"]').first();
   await row.getByRole('textbox',{name:/Quantity for/}).fill('100');
   await row.getByRole('button',{name:/Short/}).click();
-  const dialog=page.getByRole('dialog').filter({hasText:'Stock shortage'}).first();
-  console.log('DEBUG STOCK dialog_count=',await page.getByRole('dialog').count(), 'texts=',(await page.getByRole('dialog').allInnerTexts()).map(x=>x.slice(0,320)), 'pageerrors=',errors);
+  const dialog=page.getByRole('dialog',{name:'Stock shortage'});
   await page.getByText('Source only the shortage from a nearby Vendor.',{exact:false}).first().click({timeout:7000});
   await dialog.getByRole('combobox',{name:'Vendor'}).click();
   await page.getByRole('listbox',{name:'Vendor options'}).getByRole('option').first().click();
