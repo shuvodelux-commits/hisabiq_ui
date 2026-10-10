@@ -83,6 +83,17 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   return next;
  }
  ensureVendor(state,cmd.vendorPartyId);
+ if(cmd.type==='record-purchase-inventory'){
+  if(!cmd.purchaseId.trim()||!cmd.lines.length)throw new Error('Purchase reference and product lines required.');
+  const next=extended(state,cmd.operationId)!;
+  if(!next.inventory)next.inventory={};
+  for(const line of cmd.lines){
+   if(!line.productId.trim())throw new Error('Purchase product is required.');
+   qty(line.baseQty);
+   next.inventory[line.productId]=(next.inventory[line.productId]??0)+line.baseQty;
+  }
+  return next;
+ }
  if(cmd.type==='record-sourcing'||cmd.type==='issue-goods'){
   const kind=cmd.type==='record-sourcing'?'sourcing':'issue';
   const added=source(state,cmd.vendorPartyId,kind,cmd.source);
