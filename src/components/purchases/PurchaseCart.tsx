@@ -19,6 +19,7 @@ import type { Product } from '../../types/erp';
 type Props = {
   lines: PurchaseCartLine[];
   products: Product[];
+  variant?: 'purchase' | 'vendor-received' | 'vendor-issued';
   searchRef: React.RefObject<HTMLInputElement>;
   qtyRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   smallRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
@@ -36,8 +37,11 @@ const entryInput = 'h-9 w-full min-w-0 rounded-md border border-input bg-card px
 const unitOptions = unitsFor;
 
 export function PurchaseCart({
-  lines, products, searchRef, qtyRefs, smallRefs, costRefs, lotPriceRefs, onAdd, onCreate, onUpdate, onRemove, onCostUnitChange
+  lines, products, searchRef, qtyRefs, smallRefs, costRefs, lotPriceRefs, onAdd, onCreate, onUpdate, onRemove, onCostUnitChange, variant = 'purchase'
 }: Props) {
+  const vendor = variant !== 'purchase';
+  const label = variant === 'vendor-received' ? 'Products received' : 'Products issued';
+  const unpricedCount = vendor ? lines.filter(line => !line.cost.trim()).length : 0;
   const quickItems = products.filter((p) => p.active && p.kind !== 'Service').slice(0, 8);
 
   const normalizeQty = (line: PurchaseCartLine, moveToSearch: boolean) => {
@@ -58,7 +62,7 @@ export function PurchaseCart({
       <section className="rounded-xl border border-border bg-card shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5">
           <div>
-            <p className="text-[13px] font-semibold text-ink">Purchase cart <span className="font-bn text-[11px] font-normal text-ink-400">· ক্রয়ের পণ্য</span></p>
+            <p className="text-[13px] font-semibold text-ink">{vendor ? label + ' cart' : 'Purchase cart'} <span className="font-bn text-[11px] font-normal text-ink-400">· {vendor ? (variant === 'vendor-received' ? 'পণ্য গ্রহণ' : 'পণ্য প্রদান') : 'ক্রয়ের পণ্য'}</span></p>
             <p className="text-[11px] text-ink-500">Add products inline, same as POS · 2 Box 5 Pcs / 1 Gauge 12 Gira</p>
           </div>
           <Button size="sm" variant="outline" onClick={onCreate}>
@@ -69,7 +73,7 @@ export function PurchaseCart({
         <div className="overflow-x-auto">
           <div className={grid + ' border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400'}>
             <span className="text-right">#</span><span>Product</span><span className="text-right">Quantity</span>
-            <span>Cost in</span><span className="text-right">Unit cost</span><span className="text-right">Lot sale</span><span className="text-right">Total</span><span aria-hidden="true" />
+            <span>{variant === 'vendor-issued' ? 'Price in' : 'Cost in'}</span><span className="text-right">{variant === 'vendor-issued' ? 'Unit price' : 'Unit cost'}</span><span className="text-right">{vendor ? 'Price status' : 'Lot sale'}</span><span className="text-right">Total</span><span aria-hidden="true" />
           </div>
           <div data-testid="purchase-cart" className="divide-y divide-border">
             {lines.map((line, index) => {
@@ -95,7 +99,7 @@ export function PurchaseCart({
                           className="mt-1 inline-flex max-w-full items-center gap-1 rounded bg-ink-50 px-1.5 py-0.5 text-[10.5px] text-ink-600 hover:bg-teal-50 hover:text-teal-700">
                           {showSerials ? <ScanLine className="size-3" /> : <ChevronDown className="size-3" />}
                           {showSerials ? 'Serials ' + count + '/' + Math.max(required, Math.ceil(baseQty(line))) + ' · ' : ''}
-                          Lot sale {taka(lotBaseSellPrice(line))}/{product.unit}
+                          {vendor ? 'Product details' : 'Lot sale ' + taka(lotBaseSellPrice(line)) + '/' + product.unit}
                           {line.detailsOpen ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
                         </button>
                       </div>
@@ -136,10 +140,11 @@ export function PurchaseCart({
                     <div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <input ref={(node) => { costRefs.current[line.id] = node; }}
-                        aria-label={'Purchase cost for ' + product.name} inputMode="decimal" value={line.cost}
+                        aria-label={(variant === 'purchase' ? 'Purchase cost' : 'Price') + ' for ' + product.name} inputMode="decimal" value={line.cost}
+                        placeholder={variant === 'vendor-received' ? 'Price pending' : undefined}
                         className={entryInput + ' pl-5'}
                         onChange={(event) => onUpdate(line.id, { cost: event.target.value.replace(/[^\d.]/g, '') })}
-                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); lotPriceRefs.current[line.id]?.focus(); lotPriceRefs.current[line.id]?.select(); } }} />
+                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); if (vendor) searchRef.current?.focus(); else { lotPriceRefs.current[line.id]?.focus(); lotPriceRefs.current[line.id]?.select(); } } }} />
                     </div>
                     <div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
