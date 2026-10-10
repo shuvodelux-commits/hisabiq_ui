@@ -465,7 +465,7 @@ export function Pos() {
             ['F2', 'Search'],
             ['Enter', 'Next'],
             ['F8', 'Paid'],
-            ['F9', 'Complete']].
+            ['F9', 'Preview']].
             map(([k, l]) =>
             <span key={k} className="flex items-center gap-1">
                 <kbd className="rounded border border-ink-200 bg-ink-50 px-1 text-[10px] text-ink-600">{k}</kbd> {l}
@@ -618,7 +618,7 @@ export function Pos() {
           onComplete={complete}
           onClear={cart.reset}
           paidRef={paidRef}
-          completeLabel={editing ? 'Update sale' : 'Complete sale'} />
+          completeLabel={editing ? 'Preview sale update' : 'Preview sale'} />
         
       </div>
 
@@ -634,18 +634,18 @@ export function Pos() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="size-5 text-success" /> {editing ? 'Sale updated' : 'Sale completed'}
+              <CheckCircle2 className="size-5 text-teal-600" /> {editing ? 'Sale update preview' : 'Sale preview · Not posted'}
             </DialogTitle>
             <DialogDescription>
               {completed?.invoice} · {taka(completed?.total ?? 0)}
-              {completed && completed.due > 0 ? ` · ${taka(completed.due)} added to ${completed.customer}’s ledger` : ' · fully paid'}
+              {completed && completed.due > 0 ? ` · Due ${taka(completed.due)} (not posted to ledger)` : ' · fully paid in preview'}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
             {completed && <ReceiptPreview {...completed} />}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => toast.success('Sent to printer', { description: 'Thermal printer · 80mm' })}>
+            <Button variant="outline" onClick={() => window.print()}>
               <Printer className="size-4" /> Print receipt
             </Button>
             <Button onClick={() => {
