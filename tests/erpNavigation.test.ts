@@ -7,7 +7,7 @@ const allPaths=new Set(erpNavigation.flatMap(g=>[g.landingPath,...(g.children??[
 const allowAll:NavigationContext={availablePaths:allPaths,enabledFeatures:new Set(['quotations','online-sales','notifications']),canAccess:()=>true};
 
 test('approved KISS hierarchy has only two levels, POS single click and Settings last',()=>{
- assert.deepEqual(erpNavigation.map(g=>g.id),['dashboard','pos','sales','purchases','products','parties','expenses','finance','warranty','reports','settings']);
+ assert.deepEqual(erpNavigation.map(g=>g.id),['dashboard','pos','sales','purchases','vendor','products','parties','expenses','finance','warranty','reports','settings']);
  assert.equal(erpNavigation.find(g=>g.id==='pos')?.children?.length??0,0);
  assert.ok(erpNavigation.every(g=>!g.children?.some(c=>'children' in c)));
  const ids=erpNavigation.flatMap(g=>[g.id,...(g.children??[]).map(c=>c.id)]);

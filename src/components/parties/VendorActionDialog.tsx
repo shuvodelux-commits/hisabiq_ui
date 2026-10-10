@@ -39,7 +39,7 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
    if(mode==='quote'){
     const unitCostBasePaisa=toPaisa(price,'Vendor unit cost');
     dispatchVendorPreview({type:'set-source-price',operationId:op,vendorPartyId:source.vendorPartyId,
-     sourceId:source.id,unitCostBasePaisa,date:businessToday(),reason:'Evening confirmed Vendor quote'});
+     sourceId:source.id,unitCostBasePaisa,date:businessToday(),reason:'Agreed Vendor price'});
    }else if(['pay','receive-money','return','receive-goods'].includes(mode)){
     const moneyAction=mode==='pay'||mode==='receive-money';
     const count=moneyAction?undefined:Number(qty);
@@ -66,9 +66,9 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
   }catch(err){setError(err instanceof Error?err.message:'Vendor action failed.');}
  };
  const isReadOnly=mode==='details';
- const title=isReadOnly?'Vendor source details':
-  mode==='quote'?'Confirm evening source price':
-  mode==='pay'?'Pay Vendor':mode==='return'?'Return matching products':
+ const title=isReadOnly?'Taken or Given details':
+  mode==='quote'?'Set Price · দাম ঠিক করুন':
+  mode==='pay'?'Pay Money · টাকা দিন':mode==='return'?'Return matching products':
   mode==='receive-money'?'Receive Vendor money':'Receive products from Vendor';
  const outstanding=source?sourceOutstanding(getVendorPreviewSnapshot(),source.id):null;
  return <Dialog open={!!source} onOpenChange={v=>!v&&onClose()}>
@@ -84,8 +84,8 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
       <div><dt className="text-ink-500">Date</dt><dd>{source.date}</dd></div>
       <div><dt className="text-ink-500">Product</dt><dd>{product?.name??source.productId}</dd></div>
       <div><dt className="text-ink-500">Source quantity</dt><dd>{source.baseQty} {product?.unit??'units'}</dd></div>
-      <div><dt className="text-ink-500">Unit cost</dt><dd>{source.unitCostBasePaisa===null?'Price pending':taka(source.unitCostBasePaisa/100)}</dd></div>
-      <div><dt className="text-ink-500">Known remaining</dt><dd>{outstanding?.monetaryDuePaisa===null?'Not priced':taka((outstanding?.monetaryDuePaisa??0)/100)}</dd></div>
+      <div><dt className="text-ink-500">Unit cost</dt><dd>{source.unitCostBasePaisa===null?'Price not set':taka(source.unitCostBasePaisa/100)}</dd></div>
+      <div><dt className="text-ink-500">Known remaining</dt><dd>{outstanding?.monetaryDuePaisa===null?'Price not set':taka((outstanding?.monetaryDuePaisa??0)/100)}</dd></div>
       <div><dt className="text-ink-500">Unpriced quantity</dt><dd>{outstanding?.unpricedBaseQty??0} {product?.unit??'units'}</dd></div>
       <div><dt className="text-ink-500">Goods already returned</dt><dd>{outstanding?.returnedBaseQty??0} {product?.unit??'units'}</dd></div>
      </dl>

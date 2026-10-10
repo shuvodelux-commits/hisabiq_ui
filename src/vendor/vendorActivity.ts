@@ -46,7 +46,7 @@ export function projectVendorActivity(
  for(const event of state.events){
   if(event.vendorPartyId!==vendorPartyId||!isWithin(event.date))continue;
   const source=state.sources.find(s=>s.id===event.sourceId);
-  const isUnknownSource=(event.kind==='sourcing'&&event.description.includes('Price pending'))
+  const isUnknownSource=(event.kind==='sourcing'&&(event.description.includes('Price not set')||event.description.includes('Price pending')))
    || (event.kind==='reversal'&&event.deltaPaisa===0&&Boolean(event.reversesEventId));
   activity.push({
    id:event.id,date:event.date,kind:event.kind,sourceEventId:event.id,

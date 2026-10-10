@@ -21,12 +21,17 @@ import type { LedgerEntry, Party, PartyRole } from '../../types/erp';
 import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload, PartyOpeningPayload } from '../../types/partyLedger';
 import type { IsoRange } from '../../utils/dateRange';
 import { formatNumber, taka } from '../../utils/currency';
+import {projectVendorPartyLedger,type VendorPartyProfile} from '../../vendor/vendorPartyProjection';
+import type {VendorSide} from '../../vendor/vendorTypes';
+import type {VendorWorkTab} from '../../vendor/vendorRoute';
 
 type Tab = 'ledger' | 'invoices' | 'payments' | 'notes' | 'attachments';
 
 type PartyDetailProps = {
   party: Party;
   entries: LedgerEntry[];
+  vendorProfile?:VendorPartyProfile;
+  onOpenVendorWork?:(tab?:VendorWorkTab,sourceId?:string)=>void;
   onAddNote: (text: string) => void;
   onEditNote: (id: string, text: string) => void;
   onDeleteNote: (id: string) => void;
@@ -59,9 +64,11 @@ export function PartyDetail({
   statement, balanceSummary, visibleRows, range, onRange, kind, onKind, ledgerQuery, onLedgerQuery,
   pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
   onLedgerAction, statementOpen, onCloseStatement, sources, onRecordPayment, onRefundCredit,
-  onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening
+  onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
+  vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
   const [tab, setTab] = useState<Tab>('ledger');
+  const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
   const [editingNote, setEditingNote] = useState<LedgerEntry | null>(null);
   const [editText, setEditText] = useState('');
@@ -76,6 +83,9 @@ export function PartyDetail({
   const [editorRow,setEditorRow]=useState<PartyLedgerRow|null>(null);
   const [editorMode,setEditorMode]=useState<'edit'|'reverse'>('edit');
   const doRowAction=(action:PartyAction,row:PartyLedgerRow)=>{
+    if(vendorProfile&&action!=='view'){
+     onOpenVendorWork?.(vendorSide==='payable'?'taken':'given',row.sourceId);return;
+    }
     if(action==='view'){setViewedRow(row);return;}
     if((action==='edit'||action==='delete'||action==='reverse')&&
        /^party-(payment|refund|finance):/.test(row.sourceId??'')){
@@ -88,11 +98,18 @@ export function PartyDetail({
   const payments = entries.filter((e) => e.type === 'payment' || e.type === 'return');
   const notes = entries.filter((e) => e.type === 'note');
   const attachments = entries.filter((e) => e.attachment);
+  const shownStatement=vendorProfile?projectVendorPartyLedger(vendorProfile,vendorSide):statement;
+  const shownFiltered=vendorProfile?shownStatement.rows.filter(r=>
+    [r.reference??'',r.description].some(x=>x.toLowerCase().includes(ledgerQuery.toLowerCase()))):[];
+  const shownRows=vendorProfile?shownFiltered.slice(Math.max(0,(page-1)*pageSize),page*pageSize):visibleRows;
+  const shownPages=vendorProfile?Math.max(1,Math.ceil(shownFiltered.length/pageSize)):pages;
+  const shownActions=(r:PartyLedgerRow)=>vendorProfile?
+   [{action:'view' as const,enabled:true},{action:'source' as const,enabled:true}]:actionsForRow(r);
 
   const tabs: {id: Tab;label: string;count?: number;}[] = [
   { id: 'ledger', label: 'Ledger' },
-  { id: 'invoices', label: 'Invoices', count: invoices.length },
-  { id: 'payments', label: 'Payments', count: payments.length },
+  { id: 'invoices', label:vendorProfile?'Bills & Memos':'Invoices', count:vendorProfile?vendorProfile.documents.length:invoices.length },
+  { id: 'payments', label: 'Payments', count:vendorProfile?vendorProfile.payments.length:payments.length },
   { id: 'notes', label: 'Notes', count: notes.length },
   { id: 'attachments', label: 'Attachments', count: attachments.length }];
 
@@ -125,6 +142,16 @@ export function PartyDetail({
             <span>Last activity {party.lastActivity}</span>
           </div>
         </div>
+        {vendorProfile?<div className="flex flex-wrap gap-2">
+         <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
+          <p className="text-[11px] text-danger">You owe · দেনা</p>
+          <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
+         <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
+          <p className="text-[11px] text-ink-600">Vendor owes · পাওনা</p>
+          <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
+          {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
+           {vendorProfile.summary.priceNotSetBaseQty} units · Price not set</p>}
+         </div></div>:<>
         <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
           <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
             {balanceLabel}
@@ -133,8 +160,17 @@ export function PartyDetail({
             {taka(Math.abs(currentBalance))}
           </p>
         </div>
+        </>}
       </div>
 
+      {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
+        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>Pay Vendor · টাকা দিন</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>Receive Money · টাকা নিন</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
+         <BookOpen className="size-4"/> Opening Balance</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>Open Vendor Work</Button>
+        <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> Add Note</Button>
+       </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
           title={relationship==='Customer'||relationship==='Supplier'?'Record payment in browser preview':'Finance-role payments require the separate finance workflow'}
@@ -167,6 +203,7 @@ export function PartyDetail({
           <StickyNote className="size-4" /> Add note
         </Button>
       </div>
+       </>}
 
       <div className="flex gap-1 border-b border-border px-3" role="tablist">
         {tabs.map((t) =>
@@ -187,7 +224,7 @@ export function PartyDetail({
         )}
       </div>
 
-      {entries.length === 0 && tab !== 'notes' && tab !== 'ledger' ?
+      {(vendorProfile?(!vendorProfile.documents.length&&!vendorProfile.payments.length&&!notes.length):entries.length===0) && tab !== 'notes' && tab !== 'ledger' ?
       <div className="px-4 py-14 text-center">
           <Receipt className="mx-auto size-8 text-helper" />
           <p className="mt-2 font-medium text-ink">No transactions in this period</p>
@@ -196,20 +233,45 @@ export function PartyDetail({
 
       <div>
           {tab === 'ledger' && <>
+            {vendorProfile&&<div className="flex flex-wrap items-center gap-2 border-b border-border bg-ink-50 px-3 py-2 text-xs">
+              <span>Account · কোন হিসাব?</span>
+              <Button size="sm" variant={vendorSide==='payable'?'default':'outline'}
+               onClick={()=>{setVendorSide('payable');onPage(1);}}>Taken · You owe</Button>
+              <Button size="sm" variant={vendorSide==='receivable'?'default':'outline'}
+               onClick={()=>{setVendorSide('receivable');onPage(1);}}>Given · Vendor owes</Button>
+              <span className="ml-auto text-ink-500">Separate running balances</span>
+             </div>}
             <PartyLedgerToolbar range={range} onRange={onRange} kind={kind} onKind={onKind}
               query={ledgerQuery} onQuery={onLedgerQuery} pageSize={pageSize} onPageSize={onPageSize}
               onStatement={onStatement} onReset={onResetLedger}/>
-            <LedgerTable statement={statement} visibleRows={visibleRows} actionsForRow={actionsForRow}
+            <LedgerTable statement={shownStatement} visibleRows={shownRows} actionsForRow={shownActions}
               onAction={doRowAction} onOpenAttachment={()=>toast('No document available in preview')}/>
             <div className="flex items-center justify-between gap-2 px-4 py-2 text-xs text-ink-500">
-              <span>Page {page} of {pages} · {statement.rows.length} dated transactions</span>
+              <span>Page {page} of {shownPages} · {shownFiltered.length||shownStatement.rows.length} dated transactions</span>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" disabled={page<=1} onClick={()=>onPage(page-1)}>Previous</Button>
-                <Button size="sm" variant="outline" disabled={page>=pages} onClick={()=>onPage(page+1)}>Next</Button>
+                <Button size="sm" variant="outline" disabled={page>=shownPages} onClick={()=>onPage(page+1)}>Next</Button>
               </div>
             </div>
+            {vendorProfile&&vendorSide==='payable'&&vendorProfile.takenStatement.unpricedSources.length>0&&
+             <p className="px-4 py-2 text-xs text-ink-500">Price not set · দাম ঠিক হয়নি — {vendorProfile.takenStatement.unpricedSources.length} taken record(s). No money amount assigned.</p>}
           </>}
-          {(tab === 'invoices' || tab === 'payments') &&
+          {(tab === 'invoices' || tab === 'payments') && vendorProfile&&
+           <ul className="divide-y divide-border">
+            {(tab==='invoices'?vendorProfile.documents:vendorProfile.payments).map(item=>
+             <li key={item.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-xs">
+              <span className="min-w-0 flex-1"><strong className="text-ink">{item.reference}</strong>
+               <span className="ml-2 text-ink-400">{item.date}</span>
+               <p className="mt-1 text-ink-500">{item.description}</p></span>
+              <strong className="text-ink">{item.moneyPaisa===null?'Price not set':taka(Math.abs(item.moneyPaisa)/100)}</strong>
+              <Button size="sm" variant="ghost" onClick={()=>onOpenVendorWork?.(
+                item.bucket==='vendor-receivable'?'given':item.bucket==='supplier-purchase'?'purchases':'taken',
+                item.sourceEventId)}>View</Button>
+             </li>)}
+            {!(tab==='invoices'?vendorProfile.documents:vendorProfile.payments).length&&
+             <li className="p-8 text-center text-xs text-ink-500">No records yet.</li>}
+           </ul>}
+          {(tab === 'invoices' || tab === 'payments') && !vendorProfile &&
         <ul className="divide-y divide-border">
               {(tab === 'invoices' ? invoices : payments).map((e) =>
           <li key={e.id} className="flex items-center gap-3 px-4 py-2.5 text-[13px]">
@@ -288,7 +350,7 @@ export function PartyDetail({
 
       <PartyOpeningDialog open={openingOpen} onClose={()=>setOpeningOpen(false)}
         party={party} relationship={relationship} existing={existingOpening} onSubmit={onSetOpening}/>
-      <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={statement}/>
+      <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={shownStatement}/>
       {(relationship==='Customer'||relationship==='Supplier')&&<>
         <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}
           onClose={()=>setPaymentOpen(false)} onSubmit={onRecordPayment}/>

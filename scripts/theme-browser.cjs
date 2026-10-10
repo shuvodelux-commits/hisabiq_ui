@@ -79,10 +79,10 @@ async function main() {
       // Theme switching must preserve compound quantities already in the cart.
       assert.equal(await page.locator('input[value="12"]').count() > 0, true);
       await page.getByRole('button', { name: 'Exact', exact: true }).click();
-      await page.getByRole('button', { name: /Complete sale/ }).hover();
+      await page.getByRole('button', { name: /Preview sale/ }).hover();
       await check('POS: paid and primary hover', theme);
-      await page.getByRole('button', { name: /Complete sale/ }).click();
-      await check('POS: completed receipt', theme);
+      await page.getByRole('button', { name: /Preview sale/ }).click();
+      await check('POS: preview receipt', theme);
       await page.locator('[data-slot="dialog-content"]').getByRole('button', { name: 'Close', exact: true }).first().click();
       await go('pos');
       await page.setViewportSize({ width: 390, height: 844 });

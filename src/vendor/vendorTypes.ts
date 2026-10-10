@@ -6,7 +6,7 @@
 export type VendorSide = 'payable' | 'receivable';
 export type VendorSourceKind = 'sourcing' | 'issue';
 export type VendorPricingStatus = 'unpriced' | 'partially-priced' | 'priced' | 'closed';
-export type VendorSettlementKind = 'pay' | 'return-to-vendor' | 'receive-money' | 'receive-goods';
+export type VendorSettlementKind = 'pay' | 'return-to-vendor' | 'receive-money' | 'receive-goods' | 'pay-and-return';
 
 export type VendorPartyIdentity = {
  id:string; roles:readonly string[]; status?:'Active'|'Inactive';
@@ -57,10 +57,11 @@ export type VendorPreviewState = {
 export type VendorPreviewCommand =
  | {type:'record-sourcing'|'issue-goods';operationId:string;vendorPartyId:string;source:VendorSourceInput}
  | {type:'record-purchase-inventory';operationId:string;vendorPartyId:string;purchaseId:string;lines:Array<{productId:string;baseQty:number}>}
- | {type:'issue-goods-memo';operationId:string;vendorPartyId:string;memoId:string;date:string;reference?:string;sources:VendorSourceInput[]}
+ | {type:'issue-goods-memo'|'record-sourcing-memo';operationId:string;vendorPartyId:string;memoId:string;date:string;reference?:string;sources:VendorSourceInput[]}
  | {type:'set-opening';operationId:string;vendorPartyId:string;side:VendorSide;amountPaisa:number;date:string;reason?:string}
  | {type:'set-source-price';operationId:string;vendorPartyId:string;sourceId:string;date:string;unitCostBasePaisa:number;reason?:string}
  | {type:'settle-source';operationId:string;vendorPartyId:string;side:VendorSide;kind:VendorSettlementKind;date:string;amountPaisa:number|null;allocations:VendorSettlementAllocation[];paymentSplits?:VendorSettlement['paymentSplits'];reason?:string}
+ | {type:'clear-source-due';operationId:string;vendorPartyId:string;sourceId:string;date:string;cashPaisa:number;returnBaseQty:number;paymentSplits:VendorSettlement['paymentSplits'];reason?:string}
  | {type:'reverse-event';operationId:string;vendorPartyId:string;eventId:string;date:string;reason:string;actor:string}
  | {type:'correct-source';operationId:string;vendorPartyId:string;sourceId:string;date:string;reason:string;actor:string;replacement:VendorSourceInput}
  | {type:'simulate-pos-sale';operationId:string;sale:VendorPreviewSale;sources:Array<{vendorPartyId:string;source:VendorSourceInput}>};
