@@ -101,7 +101,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   }catch(e){setOpeningError(e instanceof Error?e.message:'Could not save opening balance.');}
  };
  const list=tab==='taken'?taken:given;
- return <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
+ return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
    <div className="flex min-w-0 items-center gap-3"><PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={46}/>
     <div className="min-w-0"><h2 className="truncate text-lg font-semibold text-ink">{party.name}
@@ -220,7 +220,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
     </>}
     {tab==='purchases'&&<>
      {editingPurchase?<div className="mb-4">
-      <PurchaseEditor embedded initialSupplierId={party.id} onCompleted={savePurchase}
+      <PurchaseEditor embedded initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
        onCancel={()=>{setEditingPurchase(false);onDirtyChange(false);}}/>
      </div>:null}
      <div className="divide-y divide-border rounded-lg border border-border">
