@@ -85,6 +85,6 @@ export function switchPurchaseUnit(line: PurchaseCartLine, nextUnit: string): Pu
     costUnit: nextUnit,
     bigQty: String(large),
     smallQty: String(small),
-    cost: String(Math.round(priceInUnit(unitCost, product, nextUnit) * 10000) / 10000)
+    cost: line.cost.trim() === '' ? '' : String(Math.round(priceInUnit(unitCost, product, nextUnit) * 10000) / 10000)
   };
 }
