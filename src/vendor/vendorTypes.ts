@@ -50,6 +50,8 @@ export type VendorPreviewState = {
  operations:string[];revision:number;
  /** Replay protection: exact retry is a no-op; conflicting payload must reject. */
  operationPayloads?:Record<string,string>;
+ /** Standard Purchases received in demo inventory once per invoice ID. */
+ recordedPurchaseIds?:string[];
  /** Simulated available owned product quantity; never production stock. */ inventory?:Record<string,number>;
 };
 export type VendorPreviewCommand =
