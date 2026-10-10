@@ -134,3 +134,15 @@ test('customer return from sourced sale needs physical receipt decision; no auto
  assert.equal(impact.requiresCustomerReturnReview,true);
  assert.equal(state.inventory?.p1,10);
 });
+
+test('source linked to a customer sale cannot silently switch to another product',()=>{
+ const state=borrow(fresh());
+ assert.throws(()=>applyVendorCommand(state,{
+  type:'correct-source',operationId:'switch-product',vendorPartyId:'v1',sourceId:'src1',
+  actor:'Demo operator',date:'2026-10-10',reason:'Vendor supplied wrong product',
+  replacement:{id:'replacement-product',productId:'p2',baseQty:3,
+   unitCostBasePaisa:11000,date:'2026-10-08',sourceInvoiceId:'INV-1'}
+ }),/linked sale.*product|product.*linked sale/i);
+ assert.equal(state.sources.length,1);
+ assert.equal(state.sources[0].productId,'p1');
+});
