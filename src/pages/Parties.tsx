@@ -13,7 +13,7 @@ import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { PartyImportDialog } from '../components/parties/PartyImportDialog';
 import {PartyExcelImportDialog} from '../components/parties/PartyExcelImportDialog';
 import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
-import { availableParties } from '../data/erpDemoStore';
+import { availableParties, availablePurchases } from '../data/erpDemoStore';
 import { matchesPartySearch, resolvePartySelection } from '../utils/partyIdentity';
 import type { Party, PartyRole, LedgerEntry, LedgerEntryType } from '../types/erp';
 import type { PartyDraft, PartyLedgerSource, PartyLedgerRow, PartyAction, PartyOpeningPayload } from '../types/partyLedger';
