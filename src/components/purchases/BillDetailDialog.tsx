@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, FileImage, HandCoins } from 'lucide-react';
-import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
 import { StatusBadge } from '../StatusBadge';
@@ -43,9 +42,7 @@ export function BillDetailDialog({ bill, onClose }: {bill: BillDetail | null;onC
               <div className="p-6 text-center text-sm text-ink-500">
                     <FileImage className="mx-auto mb-2 size-8 text-helper" />
                     No receipt attached
-                    <button onClick={() => toast('Choose a photo to attach')} className="mt-2 block w-full text-xs font-medium text-teal-700 hover:underline">
-                      Attach receipt photo
-                    </button>
+                    <p className="mt-2 text-xs text-ink-500">Receipt attachment is unavailable in detail preview. Add a receipt when creating the expense or bill.</p>
                   </div>
               }
               </div>
@@ -90,13 +87,9 @@ export function BillDetailDialog({ bill, onClose }: {bill: BillDetail | null;onC
             <DialogFooter>
               <Button variant="outline" onClick={onClose}>Close</Button>
               {due > 0 &&
-            <Button
-              onClick={() => {
-                toast.success('Payment recorded', { description: `${taka(due)} to ${bill.party}` });
-                onClose();
-              }}>
+            <Button disabled title="Payment posting is unavailable in this UI preview; no money or ledger event is recorded.">
               
-                  <HandCoins className="size-4" /> Pay {taka(due)}
+                  <HandCoins className="size-4" /> Payment unavailable · {taka(due)}
                 </Button>
             }
             </DialogFooter>
