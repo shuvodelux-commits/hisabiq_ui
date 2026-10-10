@@ -123,7 +123,7 @@ function reverseVendorEvent(
    if(linked.unitCostBasePaisa===null)throw new Error('Source price already unconfirmed.');
    next.sources=next.sources.map(t=>t.id===linked.id?{...t,
     unitCostBasePaisa:null,sourceAmountPaisa:null,pricedBaseQty:undefined,
-    pricingStatus:sourceOutstanding(original,t.id).returnedBaseQty>=t.baseQty?'closed':'unpriced'}:t);
+    pricingStatus:sourceOutstanding(original,t.id).returnedBaseQty>=t.baseQty?'closed' as const:'unpriced' as const}:t);
   }else{
    const impact=vendorCorrectionImpact(original,linked.id);
    if(!impact.reversible)throw new Error(impact.blocker??'Source correction is blocked.');
