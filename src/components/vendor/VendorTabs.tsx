@@ -194,7 +194,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      {tab==='taken'&&clearSourceId&&snapshot.sources.find(s=>s.id===clearSourceId)&&
       <VendorClearDuePanel key={clearSourceId} source={snapshot.sources.find(s=>s.id===clearSourceId)!}
        onClose={()=>setClearSourceId(null)}/>}
-     {(tab==='taken'?editingTaken:editingGiven')&&<div className="mb-4">
+     {(tab==='taken'?editingTaken:editingGiven)&&<div className="mb-4">
       <VendorGoodsEditor partyId={party.id} mode={tab} onDirtyChange={updateDirty}
        onCancel={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);updateDirty(false);}}
        onSaved={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);toast.success('Products saved in demo preview');}}/>
