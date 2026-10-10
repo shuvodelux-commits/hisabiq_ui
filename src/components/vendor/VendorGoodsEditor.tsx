@@ -1,140 +1,122 @@
-import React,{useMemo,useRef,useState} from 'react';
-import {Plus,Trash2} from 'lucide-react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Button} from '../Button';
 import {Input} from '../Input';
-import {AppSelect} from '../AppSelect';
 import {AppDatePicker} from '../AppDateRangePicker';
-import {ProductCombobox} from '../pos/ProductCombobox';
-import {CompoundQuantityInput} from '../transactions/CompoundQuantityInput';
+import {PurchaseCart} from '../purchases/PurchaseCart';
 import {AddProductDialog} from '../products/AddProductDialog';
 import {availableProducts,createPreviewProduct} from '../../data/erpDemoStore';
 import {businessToday} from '../../utils/dateRange';
-import {compoundBaseQuantity,compoundLineTotal} from '../../utils/posQuantity';
 import {dispatchVendorPreview,getVendorPreviewSnapshot} from '../../vendor/vendorPreviewStore';
+import {makeVendorCartLine,makeVendorSourceInputs} from '../../vendor/vendorCartAdapter';
+import {lineAmount,rounded,switchPurchaseUnit,type PurchaseCartLine} from '../../utils/purchaseCart';
 import {taka} from '../../utils/currency';
 import type {Product} from '../../types/erp';
 
-type Line={key:string;productId:string;unit:string;qty:string;smallQty:string;price:string};
 type Props={partyId:string;mode:'taken'|'given';onSaved:()=>void;onCancel:()=>void;onDirtyChange:(dirty:boolean)=>void};
-const makeLine=(p:Product,key:string):Line=>({key,productId:p.id,unit:p.altUnit?.unit??p.unit,qty:'1',smallQty:'',price:''});
 
+/**
+ * Vendor product movements use the same PurchaseCart component and two-column
+ * transaction layout as Purchases. Only memo validation/posting differs.
+ */
 export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:Props){
  const [catalog,setCatalog]=useState(()=>availableProducts().filter(p=>p.kind!=='Service'));
- const [rows,setRows]=useState<Line[]>([]);
+ const [rows,setRows]=useState<PurchaseCartLine[]>([]);
  const [date,setDate]=useState(businessToday());
  const [memo,setMemo]=useState('');
  const [error,setError]=useState('');
  const [addingProduct,setAddingProduct]=useState(false);
- const [counter,setCounter]=useState(0);
+ const [lastAdded,setLastAdded]=useState<string|null>(null);
  const searchRef=useRef<HTMLInputElement>(null);
- const quantityRef=useRef<HTMLInputElement>(null);
- const byId=useMemo(()=>new Map(catalog.map(p=>[p.id,p] as const)),[catalog]);
- const dirty=()=>onDirtyChange(true);
+ const qtyRefs=useRef<Record<string,HTMLInputElement|null>>({});
+ const smallRefs=useRef<Record<string,HTMLInputElement|null>>({});
+ const costRefs=useRef<Record<string,HTMLInputElement|null>>({});
+ const lotPriceRefs=useRef<Record<string,HTMLInputElement|null>>({});
+ const received=mode==='taken';
+ const total=useMemo(()=>rounded(rows.reduce((sum,row)=>sum+lineAmount(row),0)),[rows]);
+ const unpricedCount=rows.filter(row=>!row.cost.trim()).length;
+
+ useEffect(()=>{
+  if(!lastAdded)return;
+  qtyRefs.current[lastAdded]?.focus();
+  qtyRefs.current[lastAdded]?.select();
+ },[lastAdded,rows.length]);
+
+ const dirty=()=>{onDirtyChange(true);setError('');};
  const add=(p:Product)=>{
-  const next=counter+1;setCounter(next);
-  setRows(items=>[...items,makeLine(p,'vrow-'+next)]);
-  dirty();setError('');
-  window.requestAnimationFrame(()=>quantityRef.current?.focus());
+  const next=makeVendorCartLine(p);
+  setRows(current=>[...current,next]);
+  setLastAdded(next.id);
+  dirty();
  };
- const change=(id:string,patch:Partial<Line>)=>{
-  setRows(items=>items.map(item=>item.key===id?{...item,...patch}:item));dirty();setError('');
+ const change=(id:string,patch:Partial<PurchaseCartLine>)=>{
+  setRows(current=>current.map(line=>line.id===id?{...line,...patch}:line));
+  dirty();
  };
- const cancel=()=>{onDirtyChange(false);onCancel();};
- const total=rows.reduce((sum,line)=>{
-  const p=byId.get(line.productId);
-  if(!p)return sum;
-  const factor=p.altUnit&&line.unit===p.altUnit.unit?p.altUnit.factor:1;
-  return sum+compoundLineTotal(line.qty,line.smallQty,factor,line.price);
- },0);
- const submit=(event:React.FormEvent)=>{
+ const selectCostUnit=(line:PurchaseCartLine,unit:string)=>{
+  setRows(current=>current.map(row=>row.id===line.id?switchPurchaseUnit(row,unit):row));
+  dirty();
+ };
+ const close=()=>{onDirtyChange(false);onCancel();};
+ const save=(event:React.FormEvent)=>{
   event.preventDefault();
   try{
-   if(!rows.length)throw new Error('Add at least one product.');
    const snapshot=getVendorPreviewSnapshot();
    const operationId='vendor-'+mode+'-'+partyId+'-'+snapshot.revision;
-   const reference=memo.trim()||((mode==='given'?'V-GV-':'V-TK-')+String(snapshot.revision+1).padStart(4,'0'));
-   const sources=rows.map((line,i)=>{
-    const p=byId.get(line.productId);
-    if(!p)throw new Error('Select a valid product for every row.');
-    const factor=p.altUnit&&line.unit===p.altUnit.unit?p.altUnit.factor:1;
-    const baseQty=compoundBaseQuantity(line.qty,line.smallQty,factor);
-    if(!Number.isFinite(baseQty)||baseQty<=0)throw new Error('Enter a valid quantity for '+p.name+'.');
-    const price=Number(line.price);
-    if(mode==='given'&&(!line.price.trim()||!Number.isFinite(price)||price<=0))
-     throw new Error('Enter the agreed price for '+p.name+'.');
-    if(line.price.trim()&&(!Number.isFinite(price)||price<=0))
-     throw new Error('Price must be a positive number.');
-    const unitCostBasePaisa=line.price.trim()?Math.round(price*100/factor):null;
-    if(unitCostBasePaisa!==null&&(!Number.isSafeInteger(unitCostBasePaisa)||unitCostBasePaisa<=0))
-     throw new Error('Price is too small for the selected unit.');
-    return {id:operationId+':'+i,productId:p.id,baseQty,unitCostBasePaisa,date};
+   const reference=memo.trim()||((received?'V-TK-':'V-GV-')+String(snapshot.revision+1).padStart(4,'0'));
+   const sources=makeVendorSourceInputs(rows,mode,operationId,date);
+   dispatchVendorPreview({
+    type:received?'record-sourcing-memo':'issue-goods-memo',
+    operationId,vendorPartyId:partyId,memoId:operationId,date,reference,sources
    });
-   dispatchVendorPreview({type:mode==='given'?'issue-goods-memo':'record-sourcing-memo',
-    operationId,vendorPartyId:partyId,memoId:operationId,date,reference,sources});
-   onDirtyChange(false);onSaved();
+   onDirtyChange(false);
+   onSaved();
   }catch(e){setError(e instanceof Error?e.message:'Cannot save products.');}
  };
- return <form aria-label={mode==='given'?'Issue products editor':'Receive products editor'} onSubmit={submit}
-  className="space-y-3 rounded-xl border border-border bg-card p-3 shadow-card sm:p-4">
+
+ return <form aria-label={received?'Receive products editor':'Issue products editor'} onSubmit={save}
+  className="space-y-3">
   <div className="flex flex-wrap items-center justify-between gap-2">
-   <div><h3 className="font-semibold text-ink">{mode==='given'?'Issue Products · পণ্য দিন':'Receive Products · পণ্য নিন'}</h3>
+   <div><h3 className="text-sm font-semibold text-ink">{received?'Receive Products · পণ্য নিন':'Issue Products · পণ্য দিন'}</h3>
     <p className="text-xs text-ink-500">Preview only · real stock and money are unchanged</p></div>
-   <Button type="button" size="sm" variant="outline" onClick={cancel}>Close</Button>
+   <Button type="button" size="sm" variant="outline" onClick={close}>Close</Button>
   </div>
-  <div className="grid gap-3 sm:grid-cols-2">
-   <label className="text-xs font-medium text-ink">Memo / reference
-    <Input className="mt-1" aria-label="Vendor memo reference" value={memo} onChange={e=>{setMemo(e.target.value);dirty();}} placeholder="Auto if empty"/>
-   </label>
-   <div className="text-xs font-medium text-ink">Date · তারিখ
-    <AppDatePicker label="Vendor memo date" value={date} onChange={v=>{setDate(v);dirty();}}/>
+  <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
+   <div className="min-w-0">
+    <PurchaseCart variant={received?'vendor-received':'vendor-issued'}
+     lines={rows} products={catalog} searchRef={searchRef}
+     qtyRefs={qtyRefs} smallRefs={smallRefs} costRefs={costRefs} lotPriceRefs={lotPriceRefs}
+     onAdd={add} onCreate={()=>setAddingProduct(true)} onUpdate={change}
+     onRemove={id=>{setRows(items=>items.filter(line=>line.id!==id));dirty();}}
+     onCostUnitChange={selectCostUnit}/>
    </div>
-  </div>
-  <div className="space-y-2">
-   <label className="block text-xs font-medium text-ink">Add product · পণ্য যোগ করুন</label>
-   <ProductCombobox mode="purchase" products={catalog} ref={searchRef} onSelect={add}
-    onCreate={()=>setAddingProduct(true)} ariaLabel="Search products to add to Vendor memo"/>
-   {rows.map((line,i)=>{
-    const p=byId.get(line.productId);
-    if(!p)return null;
-    const factor=p.altUnit&&line.unit===p.altUnit.unit?p.altUnit.factor:1;
-    const own=getVendorPreviewSnapshot().inventory?.[p.id]??p.stock;
-    return <div key={line.key} className="rounded-lg border border-border bg-card p-3">
-     <div className="mb-2 flex items-center gap-2">
-      <strong className="text-xs text-ink-500">{i+1}.</strong>
-      <span className="min-w-0 flex-1 text-sm font-medium text-ink">{p.name}</span>
-      <span className="text-xs text-ink-500">Own: {own} {p.unit}</span>
-      <Button type="button" size="sm" variant="ghost" aria-label={'Remove '+p.name}
-       onClick={()=>{setRows(items=>items.filter(x=>x.key!==line.key));dirty();}}><Trash2 className="size-4"/></Button>
+   <aside className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card lg:sticky lg:top-4">
+    <div className="space-y-3 border-b border-border p-4">
+     <div><h4 className="text-[13px] font-semibold text-ink">Vendor transaction details</h4>
+      <p className="text-xs text-ink-500">সোর্সিং পণ্যের তথ্য</p></div>
+     <label className="block text-xs font-medium text-ink">Memo / reference
+      <Input className="mt-1" aria-label="Vendor memo reference" value={memo}
+       onChange={e=>{setMemo(e.target.value);dirty();}} placeholder="Auto if empty"/>
+     </label>
+     <div className="text-xs font-medium text-ink">Date · তারিখ
+      <AppDatePicker label="Vendor memo date" value={date} onChange={value=>{setDate(value);dirty();}}/>
      </div>
-     <div className="grid gap-3 sm:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)]">
-      <div><p className="mb-1 text-xs text-ink-500">Quantity · পরিমাণ</p>
-       <CompoundQuantityInput product={p} unit={line.unit} primary={line.qty} secondary={line.smallQty}
-        primaryRef={i===rows.length-1?quantityRef:undefined}
-        onPrimaryChange={v=>change(line.key,{qty:v})}
-        onSecondaryChange={v=>change(line.key,{smallQty:v})}
-        primaryLabel={'Quantity for '+p.name} secondaryLabel={'Small quantity for '+p.name}
-        onPrimaryEnter={line.unit===p.unit?()=>searchRef.current?.focus():undefined}
-        onSecondaryEnter={()=>searchRef.current?.focus()}/>
-      </div>
-      <div><p className="mb-1 text-xs text-ink-500">Price in · দাম কোন এককে</p>
-       <AppSelect label={'Price unit for '+p.name} value={line.unit} onChange={unit=>change(line.key,{unit,smallQty:'',price:''})}
-        options={[p.unit,...(p.altUnit?[p.altUnit.unit]:[])]}/></div>
-      <label className="text-xs text-ink-500">Price / {line.unit} {mode==='taken'?'· optional':''}
-       <Input className="mt-1" aria-label={'Price for '+p.name} inputMode="decimal" value={line.price}
-        placeholder={mode==='taken'?'Price not set':'৳'} onChange={e=>change(line.key,{price:e.target.value.replace(/[^\d.]/g,'')})}/></label>
+    </div>
+    <div className="space-y-3 p-4">
+     <div className="flex items-center justify-between text-xs text-ink-600">
+      <span>Product lines</span><strong className="text-ink">{rows.length}</strong>
      </div>
-     <p className="mt-1 text-right text-xs text-ink-600">{line.price.trim()?taka(compoundLineTotal(line.qty,line.smallQty,factor,line.price)):'Price not set · দাম ঠিক হয়নি'}</p>
-    </div>;
-   })}
-   <Button type="button" size="sm" variant="outline" onClick={()=>searchRef.current?.focus()}><Plus className="size-4"/> Add another product</Button>
-  </div>
-  {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
-  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
-   <div><p className="text-xs text-ink-500">{mode==='given'?'Amount Receivable · পাওনা':'Agreed Purchase Cost · ঠিক করা দাম'}</p>
-    <strong className="text-lg text-ink">{taka(total)}</strong>
-    {mode==='taken'&&rows.some(x=>!x.price.trim())&&<p className="text-xs text-warning">Some products have no price yet</p>}
-   </div>
-   <Button type="submit" size="sm">Save {mode==='given'?'Issued':'Received'} Products</Button>
+     {unpricedCount>0&&<div className="flex items-center justify-between text-xs text-warning">
+      <span>Price not set · দাম ঠিক হয়নি</span><strong>{unpricedCount}</strong>
+     </div>}
+     <div className="rounded-xl bg-inverse p-4 text-white">
+      <p className="text-xs text-[#B7C2CF]">{received?'Agreed Purchase Cost · ঠিক করা দাম':'Amount Receivable · পাওনা'}</p>
+      <p className="mt-1 text-right text-3xl font-semibold">{taka(total)}</p>
+      {unpricedCount>0&&<p className="mt-1 text-right text-xs text-[#B7C2CF]">Plus {unpricedCount} unpriced product{unpricedCount===1?'':'s'}</p>}
+     </div>
+     {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
+     <Button type="submit" className="w-full" size="sm">Save {received?'Received':'Issued'} Products</Button>
+    </div>
+   </aside>
   </div>
   <AddProductDialog open={addingProduct} onOpenChange={setAddingProduct}
    existingSerials={[]} onSave={p=>{createPreviewProduct(p);setCatalog(items=>[...items,p]);add(p);setAddingProduct(false);}}/>
