@@ -6,7 +6,9 @@ import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
-import { VendorWorkspace } from '../components/parties/VendorWorkspace';
+import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
+import {projectVendorPartyProfile} from '../vendor/vendorPartyProjection';
+import {vendorWorkLink,type VendorWorkTab} from '../vendor/vendorRoute';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { PartyImportDialog } from '../components/parties/PartyImportDialog';
 import {PartyExcelImportDialog} from '../components/parties/PartyExcelImportDialog';
@@ -54,10 +56,13 @@ export function Parties() {
   const [importOpen,setImportOpen]=useState(false);
   const [legacyImportOpen,setLegacyImportOpen]=useState(false);
   const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
+  const vendorState=useSyncExternalStore(subscribeVendorPreview,getVendorPreviewSnapshot);
   const allParties=availableParties();
   const selected=resolvePartySelection(allParties,params.get('id')??undefined,params.get('role')??undefined);
   const party=selected?allParties.find(p=>p.id===selected.partyId):undefined;
   const relationship=selected?.relationship;
+  const vendorProfile=party&&relationship==='Vendor'
+   ?projectVendorPartyProfile(vendorState,availablePurchases(),party.id,range):undefined;
   const filtered=allParties.filter(p=>(routeGroup==='loans'?p.roles.some(r=>r==='Lender'||r==='Borrower')
     :routeGroup==='owners'?p.roles.some(r=>r==='Owner'||r==='Payee')
     :role==='All'||p.roles.includes(role))&&matchesPartySearch(p,query))
@@ -150,8 +155,10 @@ export function Parties() {
          setRole(value);const next=new URLSearchParams(params);next.delete('group');next.delete('id');
          if(value==='All')next.delete('role');else next.set('role',value);setParams(next);
         }} query={query} onQuery={setQuery}/>
-      {party&&relationship?relationship==='Vendor'?<VendorWorkspace key={party.id+'-Vendor'} party={party}
-        onEditParty={()=>setEditing(party)} onRoleChange={changeRole}/>:<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
+      {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
+        vendorProfile={vendorProfile}
+        onOpenVendorWork={(tab?:VendorWorkTab,sourceId?:string)=>
+          navigate(vendorWorkLink(party.id,tab,sourceId))}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}
         statement={statement!} balanceSummary={summary!} visibleRows={visibleRows}
