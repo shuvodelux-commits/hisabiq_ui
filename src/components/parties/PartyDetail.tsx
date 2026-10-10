@@ -144,10 +144,10 @@ export function PartyDetail({
         </div>
         {vendorProfile?<div className="flex flex-wrap gap-2">
          <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
-          <p className="text-[11px] text-danger">You owe · দেনা</p>
+          <p className="text-[11px] text-danger">Amount Payable · দেনা</p>
           <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
          <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
-          <p className="text-[11px] text-ink-600">Vendor owes · পাওনা</p>
+          <p className="text-[11px] text-ink-600">Amount Receivable · পাওনা</p>
           <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
           {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
            {vendorProfile.summary.priceNotSetBaseQty} units · Price not set</p>}
@@ -164,11 +164,11 @@ export function PartyDetail({
       </div>
 
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
-        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>Pay Vendor · টাকা দিন</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>Receive Money · টাকা নিন</Button>
+        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>Make Payment · টাকা দিন</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>Receive Payment · টাকা নিন</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
          <BookOpen className="size-4"/> Opening Balance</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>Open Vendor Work</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>Open Vendor Sourcing</Button>
         <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> Add Note</Button>
        </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
@@ -236,9 +236,9 @@ export function PartyDetail({
             {vendorProfile&&<div className="flex flex-wrap items-center gap-2 border-b border-border bg-ink-50 px-3 py-2 text-xs">
               <span>Account · কোন হিসাব?</span>
               <Button size="sm" variant={vendorSide==='payable'?'default':'outline'}
-               onClick={()=>{setVendorSide('payable');onPage(1);}}>Taken · You owe</Button>
+               onClick={()=>{setVendorSide('payable');onPage(1);}}>Amount Payable</Button>
               <Button size="sm" variant={vendorSide==='receivable'?'default':'outline'}
-               onClick={()=>{setVendorSide('receivable');onPage(1);}}>Given · Vendor owes</Button>
+               onClick={()=>{setVendorSide('receivable');onPage(1);}}>Amount Receivable</Button>
               <span className="ml-auto text-ink-500">Separate running balances</span>
              </div>}
             <PartyLedgerToolbar range={range} onRange={onRange} kind={kind} onKind={onKind}
@@ -254,7 +254,7 @@ export function PartyDetail({
               </div>
             </div>
             {vendorProfile&&vendorSide==='payable'&&vendorProfile.takenStatement.unpricedSources.length>0&&
-             <p className="px-4 py-2 text-xs text-ink-500">Price not set · দাম ঠিক হয়নি — {vendorProfile.takenStatement.unpricedSources.length} taken record(s). No money amount assigned.</p>}
+             <p className="px-4 py-2 text-xs text-ink-500">Price not set · দাম ঠিক হয়নি — {vendorProfile.takenStatement.unpricedSources.length} unpriced product record(s). No money amount assigned.</p>}
           </>}
           {(tab === 'invoices' || tab === 'payments') && vendorProfile&&
            <ul className="divide-y divide-border">
