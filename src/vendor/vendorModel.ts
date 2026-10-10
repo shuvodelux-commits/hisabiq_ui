@@ -58,7 +58,7 @@ function event(state:VendorPreviewState,s:VendorSource,operationId:string):Vendo
  kind:s.sourceKind,date:s.date,sequence:state.events.length+1,
  sourceId:s.id,reference:s.reference,deltaPaisa:s.sourceAmountPaisa??0,
  operationId,status:'Active',description:s.sourceAmountPaisa===null
- ?'Price pending · unpriced sourced quantity':'Linked '+s.sourceKind};
+ ?'Price not set · দাম ঠিক হয়নি':(s.sourceKind==='sourcing'?'Products taken':'Products given')};
 }
 
 const finish=(next:VendorPreviewState,command:VendorPreviewCommand):VendorPreviewState=>{
@@ -323,7 +323,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   next.events.push({id:'vendor-event:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
    side:'payable',kind:'pricing',sourceId:existing.id,reference:existing.reference,
    date:cmd.date,sequence:next.events.length+1,deltaPaisa:amount,operationId:cmd.operationId,
-   description:'Vendor price confirmed after sale · demo',status:'Active'});
+   description:'Price set · দাম ঠিক করা হয়েছে',status:'Active'});
   return finish(next,cmd);
  }
  if(cmd.type==='clear-source-due'){
@@ -448,7 +448,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   next.events.push({id:'vendor-event:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
     side:cmd.side,kind:'settlement',sourceId:cmd.allocations.length===1?cmd.allocations[0].sourceId:undefined,
     date:cmd.date,sequence:next.events.length+1,deltaPaisa:-sumPaisa,operationId:cmd.operationId,
-    description:moneyKind?'Vendor money settlement · demo':'Matching goods returned · demo',
+    description:moneyKind?(cmd.kind==='pay'?'Money paid':'Money received'):(cmd.kind==='return-to-vendor'?'Products returned':'Products received'),
     status:'Active'});
   next.sources=next.sources.map(src=>{
    if(!seen.has(src.id)||src.pricingStatus==='closed')return src;
