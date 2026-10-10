@@ -98,7 +98,7 @@ function reverseVendorEvent(
     next.inventory[linked.productId]=available+offset;
    }
   }
-  next.settlements=next.settlements.map(t=>t.id===settlement.id?{...t,status:'Reversed'}:t);
+  next.settlements=next.settlements.map(t=>t.id===settlement.id?{...t,status:'Reversed' as const}:t);
   // Reopen settled sources based on their remaining quantity / money.
   next.sources=next.sources.map(src=>{
    if(!settlement.allocations.some(a=>a.sourceId===src.id)||src.status==='Reversed')return src;
@@ -112,7 +112,7 @@ function reverseVendorEvent(
   const opening=original.openings.find(o=>o.operationId===target.operationId
    &&o.vendorPartyId===command.vendorPartyId&&o.side===target.side&&o.status!=='Reversed');
   if(!opening)throw new Error('Opening balance already reversed.');
-  next.openings=next.openings.map(o=>o.id===opening.id?{...o,status:'Reversed'}:o);
+  next.openings=next.openings.map(o=>o.id===opening.id?{...o,status:'Reversed' as const}:o);
  }else{
   const linked=original.sources.find(t=>t.id===target.sourceId&&t.vendorPartyId===command.vendorPartyId
    &&t.status==='Active');
@@ -130,7 +130,7 @@ function reverseVendorEvent(
    if(target.kind==='issue'&&next.inventory){
     next.inventory[linked.productId]=(next.inventory[linked.productId]??0)+linked.baseQty;
    }
-   next.sources=next.sources.map(t=>t.id===linked.id?{...t,status:'Reversed'}:t);
+   next.sources=next.sources.map(t=>t.id===linked.id?{...t,status:'Reversed' as const}:t);
   }
  }
  next.events.push({
@@ -297,7 +297,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   const next=extended(state,cmd.operationId)!;
   next.sources=next.sources.map(s=>s.id!==existing.id?s:{...s,
     unitCostBasePaisa:cmd.unitCostBasePaisa,sourceAmountPaisa:amount,
-    pricedBaseQty:remaining,pricingStatus:'priced'});
+    pricedBaseQty:remaining,pricingStatus:'priced' as const});
   next.events.push({id:'vendor-event:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
    side:'payable',kind:'pricing',sourceId:existing.id,reference:existing.reference,
    date:cmd.date,sequence:next.events.length+1,deltaPaisa:amount,operationId:cmd.operationId,
@@ -345,7 +345,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
     if(next.inventory)next.inventory[linked.productId]=physicallyAvailable+(receivingBack?count:-count);
     sumPaisa+=amount;
     if(prePricedReturn&&count===outstanding.unpricedBaseQty)
-     next.sources=next.sources.map(s=>s.id===linked.id?{...s,pricingStatus:'closed'}:s);
+     next.sources=next.sources.map(s=>s.id===linked.id?{...s,pricingStatus:'closed' as const}:s);
    }
   }
   if(moneyKind){
