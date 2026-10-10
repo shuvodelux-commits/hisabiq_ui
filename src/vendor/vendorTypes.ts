@@ -15,6 +15,7 @@ export type VendorSource = {
  id:string; vendorPartyId:string; sourceKind:VendorSourceKind;
  productId:string; baseQty:number; unitCostBasePaisa:number|null;
  sourceAmountPaisa:number|null; pricingStatus:VendorPricingStatus;
+ /** Quantity priced at original quote after any earlier in-kind returns. */ pricedBaseQty?:number;
  date:string; reference?:string; sourceInvoiceId?:string; sourceSaleLineId?:string;
  memoId?:string; status:'Active'|'Reversed';
 };
@@ -45,6 +46,7 @@ export type VendorPreviewState = {
  settlements:VendorSettlement[];events:VendorLedgerEvent[];
  openings:VendorOpening[];sales:VendorPreviewSale[];
  operations:string[];revision:number;
+ /** Simulated available owned product quantity; never production stock. */ inventory?:Record<string,number>;
 };
 export type VendorPreviewCommand =
  | {type:'record-sourcing'|'issue-goods';operationId:string;vendorPartyId:string;source:VendorSourceInput}
