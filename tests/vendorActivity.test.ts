@@ -52,3 +52,14 @@ test('ordinary Purchase payable is a separate summary and not netted against Ven
  assert.equal(ordinaryVendorPurchaseDuePaisa([{...bought,supplierId:'other'}],'v1'),0);
  assert.equal(ordinaryVendorPurchaseDuePaisa([{...bought,paid:2000}],'v1'),0);
 });
+
+test('source recorded with unknown price stays labelled pending in audit after a later quote',()=>{
+ let state=applyVendorCommand(fresh(),{type:'record-sourcing',operationId:'borrow-later',
+  vendorPartyId:'v1',source:{id:'later',productId:'p1',baseQty:3,
+   unitCostBasePaisa:null,date:'2026-10-09'}});
+ state=applyVendorCommand(state,{type:'set-source-price',operationId:'quote-later',
+  vendorPartyId:'v1',sourceId:'later',unitCostBasePaisa:11000,date:'2026-10-10'});
+ const rows=projectVendorActivity(state,'v1',[],{from:'',to:''});
+ assert.equal(rows.find(r=>r.kind==='sourcing')?.moneyPaisa,null);
+ assert.equal(rows.find(r=>r.kind==='pricing')?.moneyPaisa,33000);
+});
