@@ -15,13 +15,13 @@ async function main(){
   await modal.getByRole('textbox',{name:'Vendor cost per Pcs'}).fill('110');
   await modal.getByRole('button',{name:'Confirm price in demo'}).click();
   await vendor.getByText('৳330').first().waitFor();
-  await vendor.getByRole('button',{name:'Clear Due'}).first().click();
+  await vendor.getByRole('button',{name:'Record Settlement'}).first().click();
   const clear=page.getByRole('form',{name:'Clear Vendor due'});
   await clear.getByRole('textbox',{name:'Money from account 1'}).fill('200');
   await clear.getByRole('button',{name:'Save Due Change'}).click();
   await clear.waitFor({state:'hidden'});
   await vendor.getByText('৳130').first().waitFor();
-  await vendor.getByRole('button',{name:'Clear Due'}).first().click();
+  await vendor.getByRole('button',{name:'Record Settlement'}).first().click();
   await clear.getByRole('textbox',{name:'Products to return'}).fill('1');
   await clear.getByRole('button',{name:'Save Due Change'}).click();
   await clear.waitFor({state:'hidden'});
