@@ -50,6 +50,7 @@ export type VendorPreviewState = {
 };
 export type VendorPreviewCommand =
  | {type:'record-sourcing'|'issue-goods';operationId:string;vendorPartyId:string;source:VendorSourceInput}
+ | {type:'record-purchase-inventory';operationId:string;vendorPartyId:string;purchaseId:string;lines:Array<{productId:string;baseQty:number}>}
  | {type:'set-opening';operationId:string;vendorPartyId:string;side:VendorSide;amountPaisa:number;date:string;reason?:string}
  | {type:'set-source-price';operationId:string;vendorPartyId:string;sourceId:string;date:string;unitCostBasePaisa:number;reason?:string}
  | {type:'settle-source';operationId:string;vendorPartyId:string;side:VendorSide;kind:VendorSettlementKind;date:string;amountPaisa:number|null;allocations:VendorSettlementAllocation[];paymentSplits?:VendorSettlement['paymentSplits'];reason?:string}
