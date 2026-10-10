@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {applyVendorCommand} from '../src/vendor/vendorModel.ts';
-import {projectVendorActivity} from '../src/vendor/vendorActivity.ts';
+import {projectVendorActivity,ordinaryVendorPurchaseDuePaisa} from '../src/vendor/vendorActivity.ts';
 import type {VendorPreviewState} from '../src/vendor/vendorTypes.ts';
 import type {Purchase} from '../src/types/erp.ts';
 const fresh=():VendorPreviewState=>({parties:[{id:'v1',roles:['Vendor'],status:'Active'}],sources:[],
@@ -45,4 +45,10 @@ test('date filters apply to purchase and sources without hiding previous-date au
  assert.deepEqual(projectVendorActivity(s,'v1',[bought],{from:'2026-10-10',to:'2026-10-10'})
    .map(row=>row.kind),['purchase','purchase-payment']);
  assert.equal(projectVendorActivity(s,'v1',[{...bought,supplierId:'s1'}],{from:'',to:''}).length,1);
+});
+
+test('ordinary Purchase payable is a separate summary and not netted against Vendor sourcing',()=>{
+ assert.equal(ordinaryVendorPurchaseDuePaisa([bought],'v1'),80000);
+ assert.equal(ordinaryVendorPurchaseDuePaisa([{...bought,supplierId:'other'}],'v1'),0);
+ assert.equal(ordinaryVendorPurchaseDuePaisa([{...bought,paid:2000}],'v1'),0);
 });
