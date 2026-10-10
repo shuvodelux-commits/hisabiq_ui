@@ -189,6 +189,27 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       </tbody></table></div>
      {side==='payable'&&profile.takenStatement.unpricedSources.length>0&&<p className="mt-2 text-xs text-ink-500">
       {profile.takenStatement.unpricedSources.length} source(s) with <strong>Price not set</strong>. See Taken tab; no money value has been assigned.</p>}
+     {profile.activity.filter(item=>item.bucket===(side==='payable'?'vendor-payable':'vendor-receivable')
+       &&item.moneyPaisa===null
+       &&(item.reference+' '+item.description).toLowerCase().includes(query.toLowerCase())).length>0&&
+      <div className="mt-3 rounded-lg border border-border">
+       <h4 className="border-b border-border bg-ink-50 px-3 py-2 text-xs font-semibold text-ink">
+        Records without a money amount · দাম ঠিক হয়নি / সংশোধন
+       </h4>
+       {profile.activity.filter(item=>item.bucket===(side==='payable'?'vendor-payable':'vendor-receivable')
+         &&item.moneyPaisa===null
+         &&(item.reference+' '+item.description).toLowerCase().includes(query.toLowerCase())).map(item=>
+        <div key={item.id} className="flex flex-wrap items-center gap-3 border-b border-border/60 px-3 py-2 text-xs">
+         <span className="text-ink-500">{item.date}</span>
+         <div className="min-w-0 flex-1"><strong className="text-ink">{item.reference}</strong>
+          <p className="text-ink-500">{item.description}</p></div>
+         <span className="text-ink-500">No money amount</span>
+         {item.sourceEventId&&item.kind!=='reversal'&&
+          <Button type="button" size="sm" variant="ghost" onClick={()=>{
+           const entry=snapshot.events.find(e=>e.id===item.sourceEventId);if(entry)review(entry);
+          }}>Review</Button>}
+        </div>)}
+      </div>}
     </>}
     {(tab==='taken'||tab==='given')&&<>
      {tab==='taken'&&clearSourceId&&snapshot.sources.find(s=>s.id===clearSourceId)&&
