@@ -36,7 +36,7 @@ export function VendorStatementDialog({open,onClose,party,state,range}:Props){
      <div><strong>{party.name}</strong><p className="text-xs text-ink-500">{party.phone} · {party.area}</p></div>
      <div className="text-xs text-ink-500">HisabIQ · Demo preview
       <p>{range.from||'All time'} — {range.to||'Today'}</p>
-      <p>Account: {side==='payable'?'Sourcing payable':'Issued-goods receivable'}</p>
+      <p>Account: {side==='payable'?'Taken products payable':'Given products receivable'}</p>
      </div>
     </div>
     <div className="text-sm">Opening: <strong>{taka(statement.openingPaisa/100)}</strong></div>
@@ -56,7 +56,7 @@ export function VendorStatementDialog({open,onClose,party,state,range}:Props){
       </tr>)}</tbody>
     </table></div>
     {side==='payable'&&statement.unpricedSources.length>0&&<div className="rounded-lg border border-warning/20 bg-warning-bg/30 p-3 text-xs">
-      <p className="font-semibold">Price pending · দাম পরে নির্ধারণ</p>
+      <p className="font-semibold">Price not set · দাম পরে নির্ধারণ</p>
       {statement.unpricedSources.map(source=><p key={source.id} className="mt-1">
        {source.reference??source.id} · {source.productId} · {source.baseQty} base units · Unpriced (not ৳0)
       </p>)}
