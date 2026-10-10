@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { AlertTriangle, PackageCheck, TrendingDown, Truck } from 'lucide-react';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
-import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
 import { Input } from '../Input';
-import { parties } from '../../data/parties';
+import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../../data/partyPreviewStore';
 import type { CartLine } from '../../hooks/usePosCart';
 import type { SaleStockSource } from '../../types/erp';
 import { taka } from '../../utils/currency';
@@ -22,23 +22,28 @@ type StockShortageDialogProps = {
   onResolve: (source: SaleStockSource) => void;
 };
 
-const vendors = parties.filter((party) => party.roles.includes('Vendor'));
-
 export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, open, onOpenChange, onUseOwnStock, onResolve }: StockShortageDialogProps) {
   const [choice, setChoice] = useState<Choice>('Own');
-  const [vendorName, setVendorName] = useState('');
+  const partiesState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
+  const vendors=partiesState.parties.filter(p=>p.roles.includes('Vendor')&&p.status!=='Inactive');
+  const [vendorId, setVendorId] = useState('');
+  const [newVendorOpen,setNewVendorOpen]=useState(false);
+  const [newVendorName,setNewVendorName]=useState('');
+  const [newVendorPhone,setNewVendorPhone]=useState('');
+  const [newVendorArea,setNewVendorArea]=useState('');
+  const [newVendorError,setNewVendorError]=useState('');
   const [vendorCost, setVendorCost] = useState('');
 
   const factor = line?.product.altUnit && line.unit === line.product.altUnit.unit ? line.product.altUnit.factor : 1;
   const displayUnit = line?.unit ?? '';
-  const vendor = vendors.find((item) => item.name === vendorName) ?? null;
+  const vendor = vendors.find((item) => item.id === vendorId) ?? null;
 
   useEffect(() => {
     if (!open || !line) return;
     const source = line.stockSource;
     setChoice(source?.mode === 'Vendor' ? 'Vendor' : source?.mode === 'Negative' ? 'Negative' : 'Own');
-    setVendorName(source?.mode === 'Vendor' ? source.vendorName : vendors[0]?.name ?? '');
-    setVendorCost(source?.mode === 'Vendor' ? String(source.unitCost * factor) : '');
+    setVendorId(source?.mode === 'Vendor' ? source.vendorId : '');
+    setVendorCost(source?.mode === 'Vendor' && source.unitCost!==null ? String(source.unitCost * factor) : '');
   }, [factor, line, open]);
 
   const ownStockLabel = useMemo(() => line ? formatStock({ ...line.product, stock: availableBaseQty }) : '', [availableBaseQty, line]);
@@ -47,13 +52,25 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
   const requestedBaseQty = availableBaseQty + shortageBaseQty;
   const requestedLabel = formatStock({ ...line.product, stock: requestedBaseQty });
   const shortageLabel = formatStock({ ...line.product, stock: shortageBaseQty });
-  const costNumber = parseFloat(vendorCost) || 0;
+  const pricePending=!vendorCost.trim();
+  const costNumber=pricePending?null:Number(vendorCost);
+  const validCost=pricePending || (costNumber!==null&&Number.isFinite(costNumber)&&costNumber>0);
+  const createVendor=()=>{
+    try{
+      const known=new Set(partiesState.parties.map(p=>p.id));
+      const next=dispatchPartyPreview({type:'create-party',party:{name:newVendorName.trim(),phone:newVendorPhone.trim(),area:newVendorArea.trim(),roles:['Vendor']}});
+      const created=next.parties.find(p=>!known.has(p.id));
+      if(!created)throw new Error('Could not create Vendor.');
+      setVendorId(created.id);setNewVendorOpen(false);setNewVendorName('');setNewVendorPhone('');setNewVendorArea('');setNewVendorError('');
+    }catch(e){setNewVendorError(e instanceof Error?e.message:'Cannot add Vendor');}
+  };
 
   const save = () => {
     if (choice === 'Own') return onUseOwnStock();
     if (choice === 'Negative') return onResolve({ mode: 'Negative' });
-    if (!vendor || costNumber <= 0) return;
-    onResolve({ mode: 'Vendor', vendorId: vendor.id, vendorName: vendor.name, unitCost: costNumber / factor });
+    if (!vendor || !validCost) return;
+    onResolve({ mode: 'Vendor', vendorId: vendor.id, vendorName: vendor.name,
+      unitCost: costNumber===null?null:costNumber / factor });
   };
 
   return (
@@ -83,28 +100,34 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
             </span>
           </button>
 
-          <button type="button" onClick={() => setChoice('Vendor')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Vendor' ? 'border-blue-300 bg-blue-50/70' : 'border-ink-100 hover:bg-ink-50'}`}>
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-700 ring-1 ring-ink-100"><Truck className="size-4" /></span>
+          <button type="button" onClick={() => setChoice('Vendor')} className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left ${choice === 'Vendor' ? 'border-teal-400 bg-teal-50/60' : 'border-ink-100 hover:bg-ink-50'}`}>
+            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-card text-teal-700 ring-1 ring-border"><Truck className="size-4" /></span>
             <span>
               <span className="block text-sm font-medium text-ink">Vendor <span className="font-bn text-xs font-normal text-ink-400">· ভেন্ডর থেকে</span></span>
-              <span className="block text-xs text-ink-500">Source only the shortage from a vendor and record its cost.</span>
+              <span className="block text-xs text-ink-500">Source only the shortage from a nearby Vendor. You can agree the cost later · দাম পরে।</span>
             </span>
           </button>
         </div>
 
         {choice === 'Vendor' && (
-          <div className="space-y-3 rounded-xl border border-blue-100 bg-blue-50/40 p-3">
-            <label className="block">
-              <span className="mb-1 block text-xs font-medium text-ink-600">Vendor</span>
-              <FormSelect value={vendorName} onChange={(event) => setVendorName(event.target.value)} options={vendors.map((item) => item.name)} />
-            </label>
+          <div className="space-y-3 rounded-xl border border-border bg-ink-50/30 p-3">
+            <div className="block">
+              <span className="mb-1 block text-xs font-medium text-ink-600">Vendor · কাছের দোকান</span>
+              <div className="flex gap-1">
+                <AppSelect label="Vendor" value={vendorId} onChange={setVendorId}
+                  options={vendors.map(item=>({value:item.id,label:item.name}))} placeholder="Choose Vendor"/>
+                <Button size="sm" variant="outline" aria-label="Quick add vendor" onClick={()=>setNewVendorOpen(true)}>+ New</Button>
+              </div>
+            </div>
             <div>
-              <p className="mb-1 text-xs font-medium text-ink-600">Vendor cost per {displayUnit}</p>
+              <p className="mb-1 text-xs font-medium text-ink-600">Vendor cost per {displayUnit} (optional)</p>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-                <Input value={vendorCost} onChange={(event) => setVendorCost(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="0" className="pl-7 text-right" />
+                <Input value={vendorCost} onChange={(event) => setVendorCost(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="Leave blank — price pending" className="pl-7 text-right" />
               </div>
-              {costNumber > 0 && factor > 1 && <p className="mt-1 text-[11px] text-ink-500">{taka(costNumber)} / {displayUnit} = {taka(costNumber / factor)} / {line.product.unit}</p>}
+              {pricePending?<p className="mt-1 text-[11px] font-medium text-warning">Price pending · দাম পরে নির্ধারণ — record quantity now, settle with Vendor later.</p>
+                :validCost&&costNumber!==null&&factor>1?<p className="mt-1 text-[11px] text-ink-500">{taka(costNumber)} / {displayUnit} = {taka(costNumber / factor)} / {line.product.unit}</p>:null}
+              {!validCost&&<p role="alert" className="mt-1 text-xs text-danger">Enter a positive cost or leave blank for pending price.</p>
             </div>
           </div>
         )}
@@ -116,11 +139,28 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save} disabled={choice === 'Vendor' && (!vendor || costNumber <= 0)}>
+          <Button onClick={save} disabled={choice === 'Vendor' && (!vendor || !validCost)}>
             {choice === 'Own' ? 'Use own stock' : choice === 'Negative' ? 'Allow negative sale' : 'Use vendor'}
           </Button>
         </DialogFooter>
       </DialogContent>
+      <Dialog open={newVendorOpen} onOpenChange={v=>{setNewVendorOpen(v);if(!v)setNewVendorError('');}}>
+        <DialogContent role="dialog" aria-label="Quick add Vendor" className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Add Vendor <span className="font-bn text-sm font-normal">· নতুন ভেন্ডর</span></DialogTitle>
+           <DialogDescription>Create the nearby shop here. Your cart and payments stay unchanged.</DialogDescription></DialogHeader>
+          <form onSubmit={e=>{e.preventDefault();createVendor();}} className="space-y-3">
+            <label className="block text-xs font-medium text-ink">Vendor name *
+              <Input aria-label="New Vendor name" value={newVendorName} onChange={e=>setNewVendorName(e.target.value)} required/></label>
+            <label className="block text-xs font-medium text-ink">Phone
+              <Input aria-label="New Vendor phone" value={newVendorPhone} onChange={e=>setNewVendorPhone(e.target.value)}/></label>
+            <label className="block text-xs font-medium text-ink">Area
+              <Input aria-label="New Vendor area" value={newVendorArea} onChange={e=>setNewVendorArea(e.target.value)}/></label>
+            {newVendorError&&<p role="alert" className="text-xs text-danger">{newVendorError}</p>}
+            <DialogFooter><Button type="button" variant="outline" onClick={()=>setNewVendorOpen(false)}>Cancel</Button>
+              <Button type="submit">Add & select Vendor</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
