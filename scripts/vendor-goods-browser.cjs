@@ -23,6 +23,13 @@ async function main(){
   await editor.getByRole('textbox',{name:/Quantity for/}).first().waitFor();
   await editor.getByRole('button',{name:/Save Issued Products/}).click();
   await editor.getByRole('alert').getByText(/price/i).waitFor();
+  await page.goto('http://127.0.0.1:4272/#/app/vendors?partyId=v1&tab=taken');
+  const received=page.getByRole('region',{name:'Selected Vendor work'});
+  await received.getByRole('button',{name:/Receive Products/}).first().click();
+  const receiveEditor=page.getByRole('form',{name:'Receive products editor'});
+  await receiveEditor.waitFor();
+  assert.equal(await receiveEditor.locator('[data-testid="purchase-cart"]').count(),1,'Vendor receive must use canonical PurchaseCart');
+  assert.equal(await receiveEditor.locator('[data-testid="purchase-add-row"]').count(),1,'Vendor receive must use PurchaseCart inline search');
   assert.deepEqual(errors,[]);
   console.log('Vendor issue reuses PurchaseCart inline search, keyboard entry and agreed-price validation');
  }finally{await browser.close();await server.close();}
