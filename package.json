@@ -24,6 +24,7 @@
     "test:parties": "node scripts/party-browser.cjs",
     "test:vendor-workflow": "node scripts/vendor-workflow-browser.cjs",
     "test:vendor-pos": "node scripts/vendor-pos-browser.cjs",
+    "test:vendor-evening": "node scripts/vendor-evening-browser.cjs",
     "test:party-ledger": "node scripts/party-ledger-browser.cjs",
     "test:party-settlement": "node scripts/party-settlement-browser.cjs",
     "test:party-opening": "node scripts/party-opening-browser.cjs",
