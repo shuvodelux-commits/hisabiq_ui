@@ -41,8 +41,11 @@ async function main(){
   await page.getByRole('tab',{name:'Purchase return'}).waitFor();
   assert.equal(await page.getByRole('tab',{name:'Purchase return'}).getAttribute('aria-selected'),'true');
   await page.goto(base+'/app/parties?role=Supplier');
-  await nav.getByRole('link',{name:/Suppliers & Vendors/}).waitFor();
-  assert.equal(await nav.getByRole('link',{name:/Suppliers & Vendors/}).getAttribute('aria-current'),'page');
+  await nav.getByRole('link',{name:'Suppliers'}).waitFor();
+  assert.equal(await nav.getByRole('link',{name:'Suppliers'}).getAttribute('aria-current'),'page');
+  await page.goto(base+'/app/parties?id=v1&role=Vendor');
+  await nav.getByRole('link',{name:'Vendors'}).waitFor();
+  assert.equal(await nav.getByRole('link',{name:'Vendors'}).getAttribute('aria-current'),'page');
   await page.goto(base+'/app/products?view=lots');
   assert.equal(await nav.getByRole('link',{name:/Stock, Lots & Adjustments/}).getAttribute('aria-current'),'page');
   await page.goto(base+'/app/notifications');
