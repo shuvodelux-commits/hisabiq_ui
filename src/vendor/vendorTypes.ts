@@ -52,7 +52,7 @@ export type VendorPreviewCommand =
  | {type:'set-source-price';operationId:string;vendorPartyId:string;sourceId:string;date:string;unitCostBasePaisa:number;reason?:string}
  | {type:'settle-source';operationId:string;vendorPartyId:string;side:VendorSide;kind:VendorSettlementKind;date:string;amountPaisa:number|null;allocations:VendorSettlementAllocation[];paymentSplits?:VendorSettlement['paymentSplits'];reason?:string}
  | {type:'reverse-event';operationId:string;vendorPartyId:string;eventId:string;date:string;reason:string}
- | {type:'simulate-pos-sale';operationId:string;vendorPartyId:string;sale:VendorPreviewSale;sources:VendorSourceInput[]};
+ | {type:'simulate-pos-sale';operationId:string;sale:VendorPreviewSale;sources:Array<{vendorPartyId:string;source:VendorSourceInput}>};
 export type VendorBalances = {
  knownPayablePaisa:number;knownReceivablePaisa:number;
  unpricedSourceBaseQty:number;unpricedSourceCount:number;
