@@ -46,6 +46,9 @@ jobs:
       - name: Check tenant Settings hub and contextual entry
         run: npm run test:settings-hub
 
+      - name: Check Expense workflow actions and Quick Add
+        run: npm run test:expense-workflow
+
       - name: Check shared Excel CSV import wizard
         run: npm run test:import-wizard
 
