@@ -14,7 +14,8 @@ import { compoundBaseQuantity, compoundLineTotal, normalizeCompoundQuantity } fr
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
 import { availableSerials, productStockBreakdown, requiredSerialCount } from '../../utils/productFeatures';
-import { quantityFromBaseStock, saleAvailableStock, saleStockShortage } from '../../utils/posStock';
+import { quantityFromBaseStock } from '../../utils/posStock';
+import {allocatePosStock} from '../../vendor/vendorStock';
 
 type CartTableProps = {
   lines: CartLine[];
@@ -92,6 +93,9 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
   const [serialLine, setSerialLine] = useState<CartLine | null>(null);
   const [shortageLine, setShortageLine] = useState<CartLine | null>(null);
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
+  const allocations=allocatePosStock(lines.map(l=>({key:l.key,product:l.product,
+   requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
+    l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),choice:l.stockSource})),stockLots);
 
   useEffect(() => {
     if (lastAdded) {
@@ -137,7 +141,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
             const purchasePrice = factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
-            const shortage = saleStockShortage(l.product, stockLots, baseQty);
+            const shortage = Math.max(0,baseQty-(allocations[i]?.ownBaseQty??0));
             return (
               <SortableCartRow key={l.key} line={l} index={i} count={lines.length} onMove={onMove}>
                 <div className="flex min-w-0 items-center gap-2.5">
@@ -179,7 +183,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                             ? `Short ${formatStock({ ...l.product, stock: shortage })} · choose source`
                             : l.stockSource.mode === 'Negative'
                               ? `Negative sale · ${formatStock({ ...l.product, stock: shortage })}`
-                              : `${l.stockSource.vendorName} · ${formatStock({ ...l.product, stock: shortage })}`}
+                              : `${l.stockSource.vendorName}${l.stockSource.unitCost===null?' · Price pending':''} · ${formatStock({ ...l.product, stock: shortage })}`}
                         </button>
                       )}
                     </div>
@@ -296,8 +300,9 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
       {shortageLine && (() => {
         const factor = shortageLine.product.altUnit && shortageLine.unit === shortageLine.product.altUnit.unit ? shortageLine.product.altUnit.factor : 1;
         const baseQty = compoundBaseQuantity(shortageLine.qty, shortageLine.secondaryQty, factor);
-        const available = saleAvailableStock(shortageLine.product, stockLots);
-        const shortage = saleStockShortage(shortageLine.product, stockLots, baseQty);
+        const allocation=allocations.find(a=>a.key===shortageLine.key);
+        const available=allocation?.ownBaseQty??0;
+        const shortage=Math.max(0,baseQty-available);
         return (
           <StockShortageDialog
             line={shortageLine}
