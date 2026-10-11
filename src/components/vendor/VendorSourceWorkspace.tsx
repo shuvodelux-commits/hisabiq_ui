@@ -2,6 +2,7 @@ import React,{useMemo,useState} from 'react';
 import {CheckCircle2,ChevronRight,Search} from 'lucide-react';
 import {toast} from 'sonner';
 import {Button} from '../Button';
+import {StatusBadge} from '../StatusBadge';
 import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
 import {VendorActionDialog} from '../parties/VendorActionDialog';
@@ -102,12 +103,12 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
   const canSettle=Boolean(pending&&(pending.unpricedBaseQty>0||(pending.monetaryDuePaisa??0)>0));
   const product=selected?products.find(p=>p.id===selected.productId):undefined;
   return <section role="region" aria-label={mode==='taken'?'Taken product workplace':'Given product workplace'}
-    className="grid min-w-0 gap-3 xl:grid-cols-[minmax(310px,0.82fr)_minmax(0,1.18fr)] lg:items-start">
+    className="grid min-w-0 gap-3 xl:grid-cols-[minmax(300px,0.85fr)_minmax(0,1.15fr)] xl:items-start">
     <div className="min-w-0 overflow-hidden rounded-lg border border-border bg-card">
       <div className="border-b border-border p-3">
         <h4 className="text-sm font-semibold text-ink">
-          {mode==='taken'?'Goods taken / invoices · নেওয়া মেমো':'Goods given / memos · দেওয়া মেমো'}
-          <span className="ml-2 text-xs font-normal text-ink-500">{groups.length}</span>
+          {mode==='taken'?'Taken Memos · নেওয়া মেমো':'Given Memos · দেওয়া মেমো'}
+          <span className="ml-2 text-xs font-normal text-ink-500">({groups.length})</span>
         </h4>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <div className="relative min-w-[160px] flex-1">
@@ -131,14 +132,16 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
             <span className="min-w-0 flex-1">
               <span className="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
                 <span className="truncate">{g.key}</span>
-                {g.unpriced&&<span className="rounded bg-warning-bg px-1.5 py-0.5 text-[11px] font-medium text-warning">Price not set</span>}
+                {g.unpriced?<StatusBadge tone="warning">Price Pending</StatusBadge>:
+                  g.needsAction?<StatusBadge tone="danger">Due</StatusBadge>:
+                  <StatusBadge tone="success">Settled</StatusBadge>}
               </span>
               <span className="mt-1 block text-xs text-ink-500">{g.date} · {g.lines.map(s=>productName(s)).join(', ')}</span>
-              <span className="mt-1 block text-[11px] text-ink-500">{g.lines.length} product(s) · {g.needsAction?'Needs settlement':'Settled'}</span>
+              <span className="mt-1 block text-[11px] text-ink-500">{g.lines.length} {g.lines.length===1?'product':'products'}</span>
             </span>
             <span className="shrink-0 text-right text-xs font-semibold text-ink">
-              {g.unpriced&&!g.duePaisa?'Price pending':money(g.duePaisa)}
-              {g.unpriced&&<span className="block text-[11px] font-normal text-warning">+ unknown cost</span>}
+              {g.unpriced&&!g.duePaisa?'—':money(g.duePaisa)}
+              {g.unpriced&&g.duePaisa>0&&<span className="block text-[11px] font-normal text-warning">+ Price Pending</span>}
             </span>
             <ChevronRight className="size-4 shrink-0 text-ink-400"/>
           </button>;
@@ -153,11 +156,11 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
           <div className="min-w-0">
             <h4 className="text-sm font-semibold text-ink">
-              {mode==='taken'?'Record settlement · হিসাব মেটান':'Receive settlement · পাওনা নিন'}
+              {mode==='taken'?'Settle Memo · হিসাব মেটান':'Receive Settlement · পাওনা নিন'}
             </h4>
             <p className="mt-1 truncate text-xs text-ink-500">{selected.reference??selected.id} · {selected.date}</p>
           </div>
-          <Button type="button" variant="ghost" size="sm" onClick={()=>onCorrect(selected.id)}>Review / Correct</Button>
+          <Button type="button" variant="ghost" size="sm" onClick={()=>onCorrect(selected.id)}>Correct</Button>
         </div>
         {currentGroup&&currentGroup.lines.length>1&&<div className="flex flex-wrap gap-1.5 border-b border-border py-3">
           {currentGroup.lines.map(s=><button type="button" key={s.id} aria-pressed={selected.id===s.id}
@@ -168,14 +171,14 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
         <div className="my-3 grid grid-cols-2 gap-3 rounded-lg border border-border bg-ink-50/50 p-3 text-xs sm:grid-cols-3">
           <div><span className="block text-ink-500">Product · পণ্য</span><strong className="text-ink">{product?.name??selected.productId}</strong></div>
           <div><span className="block text-ink-500">Quantity · পরিমাণ</span><strong className="text-ink">{selected.baseQty} {product?.unit??'units'}</strong></div>
-          <div><span className="block text-ink-500">{mode==='taken'?'You owe · দেনা':'Vendor owes · পাওনা'}</span><strong className="text-ink">{pending?.monetaryDuePaisa===null?'Price not set':money(pending?.monetaryDuePaisa??0)}</strong></div>
+          <div><span className="block text-ink-500">{mode==='taken'?'You Owe · দেনা':'Vendor Owes · পাওনা'}</span><strong className="text-ink">{pending?.monetaryDuePaisa===null?'Price not set':money(pending?.monetaryDuePaisa??0)}</strong></div>
         </div>
         {mode==='taken'? <div className="space-y-3">
           {pending&&pending.unpricedBaseQty>0&&<VendorPriceForm key={selected.id} source={selected}/>}
           {canSettle?<VendorClearDuePanel key={selected.id+'-'+snapshot.revision} source={selected}
             onClose={()=>{}} hideClose/>:
             <p className="flex items-center gap-2 rounded-lg bg-ink-50 p-3 text-xs text-ink-600">
-              <CheckCircle2 className="size-4 text-teal-600"/> This source is settled. Use Review / Correct for audited changes.</p>}
+              <CheckCircle2 className="size-4 text-teal-600"/> This memo is settled. Use Correct to review earlier changes.</p>}
         </div>:<div className="space-y-3">
           {canSettle&&selected.unitCostBasePaisa!==null?<div>
             <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Vendor receiving method">
