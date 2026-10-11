@@ -26,9 +26,10 @@ export function VendorPaymentsWorkspace({partyId,snapshot,sources,purchases,sour
  const incoming=outstanding.filter(s=>s.sourceKind==='issue');
  const outgoing=outstanding.filter(s=>s.sourceKind==='sourcing');
  const candidates=intent==='receive'?incoming:intent==='make'?outgoing:outgoing.length?outgoing:incoming;
- const explicit=(selectedId??(!ignoreLink?sourceId:null));
- const selected=outstanding.find(s=>s.id===explicit&&(!intent||(intent==='make'?s.sourceKind==='sourcing':s.sourceKind==='issue')))
-   ??candidates[0]??null;
+ const linked=(!ignoreLink&&sourceId)?outstanding.find(s=>s.id===sourceId
+  &&(!intent||(intent==='make'?s.sourceKind==='sourcing':s.sourceKind==='issue'))):null;
+ const selected=(selectedId?outstanding.find(s=>s.id===selectedId):null)
+  ??linked??candidates[0]??null;
  const history=snapshot.settlements.filter(s=>s.vendorPartyId===partyId&&s.status==='Active'
   &&(s.kind==='pay'||s.kind==='receive-money'||s.kind==='pay-and-return'));
  const purchaseDue=purchases.filter(p=>p.supplierId===partyId).reduce((sum,p)=>sum+Math.max(0,p.total-p.paid),0);
