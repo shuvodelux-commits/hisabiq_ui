@@ -89,7 +89,7 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
  const body=<>
    {!inline&&<DialogHeader>
     <DialogTitle>{title}</DialogTitle>
-    <DialogDescription>UI preview only. Real cashbook and inventory are not posted.</DialogDescription>
+    <DialogDescription>Record against the selected Vendor memo.</DialogDescription>
    </DialogHeader>}
    {source&&<div className="space-y-3 text-sm">
     {!inline&&<div className="rounded-lg border border-border bg-ink-50/40 p-3 text-xs">
@@ -111,9 +111,7 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
     </label>}
     {isMoney&&<>
       <div className="flex items-center justify-between gap-2">
-       <span className="text-xs font-semibold text-ink">Payment account & amount <span className="font-bn font-normal text-ink-500">· মাধ্যম ও টাকা</span></span>
-       <Button type="button" size="sm" variant="ghost" onClick={()=>
-        setSplits([{id:'primary',accountId:splits[0]?.accountId??defaultAccount,amount:String(duePaisa/100)}])}>Full due</Button>
+       <span className="text-xs font-semibold text-ink">Payment Accounts <span className="font-bn font-normal text-ink-500">· পেমেন্টের মাধ্যম</span></span>
       </div>
       <div className="space-y-2">
        {splits.map((split,i)=><div key={split.id} className="grid grid-cols-[minmax(0,1fr)_minmax(95px,120px)_auto] items-center gap-2">
@@ -146,12 +144,12 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
     {error&&<p role="alert" className="rounded-lg bg-danger-bg p-2 text-xs text-danger">{error}</p>}
    </div>}
    <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-    <span className="text-[11px] text-ink-500">Demo only · no actual money posted</span>
+    <span className="text-[11px] text-ink-500">{isMoney?'Account amounts are added automatically.':''}</span>
     <div className="flex gap-2">
      {!inline&&<Button size="sm" variant="outline" onClick={onClose}>Close</Button>}
      {!isReadOnly&&<Button size="sm" onClick={submit}>
-      {mode==='quote'?'Confirm price in demo':mode==='pay'?'Record demo payment':
-       mode==='return'?'Record demo return':mode==='receive-money'?'Record demo receipt':'Record demo goods receipt'}
+      {mode==='quote'?'Confirm Price':mode==='pay'?'Save Payment':
+       mode==='return'?'Save Return':mode==='receive-money'?'Save Receipt':'Save Goods Receipt'}
      </Button>}
     </div>
    </div>
