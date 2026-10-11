@@ -66,6 +66,9 @@ jobs:
       - name: Check atomic Vendor Clear Due with payment and products
         run: npm run test:vendor-clear-due
 
+      - name: Check Vendor receipt uses one amount per payment account
+        run: npm run test:vendor-receipt
+
       - name: Check task-centered ERP navigation and deep links
         run: npm run test:erp-navigation
 
