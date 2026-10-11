@@ -14,6 +14,12 @@ async function main(){
   await page.getByRole('form',{name:'Issue products editor'}).waitFor();
   assert.equal(await page.getByRole('dialog',{name:'Issue products to Vendor'}).count(),0);
   await vendor.getByRole('tab',{name:/Purchases/}).click();
+  const purchaseWorkspace=vendor.locator('[data-testid="vendor-purchases-workspace"]');
+  await purchaseWorkspace.waitFor();
+  const purchaseList=purchaseWorkspace.locator('[data-testid="vendor-purchases-list"]');
+  const purchaseDetail=purchaseWorkspace.locator('[data-testid="vendor-purchases-detail"]');
+  await purchaseList.waitFor();
+  await purchaseDetail.getByText('No purchases from this Vendor yet.').waitFor();
   await vendor.getByRole('button',{name:'Buy Products'}).click();
   await vendor.getByText('Purchase details').waitFor();
   assert.ok(await vendor.getByText(/Supplier memo/).count()>=1);
