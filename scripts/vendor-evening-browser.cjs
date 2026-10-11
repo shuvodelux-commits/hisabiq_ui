@@ -19,12 +19,12 @@ async function main(){
   const clear=page.getByRole('form',{name:'Record Vendor Settlement'});
   await clear.getByRole('textbox',{name:'Money from account 1'}).fill('200');
   await clear.getByRole('button',{name:'Save Settlement'}).click();
-  await clear.waitFor({state:'hidden'});
+  await clear.waitFor();
   await vendor.getByText('৳130').first().waitFor();
   await vendor.getByRole('button',{name:'Record Settlement'}).first().click();
   await clear.getByRole('textbox',{name:'Products to return'}).fill('1');
   await clear.getByRole('button',{name:'Save Settlement'}).click();
-  await clear.waitFor({state:'hidden'});
+  await clear.waitFor();
   await vendor.getByText('৳20').first().waitFor();
   assert.deepEqual(errors,[]);
   console.log('Vendor set price, partial money payment and product return verified');
