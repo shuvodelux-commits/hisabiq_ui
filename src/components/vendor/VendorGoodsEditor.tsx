@@ -1,5 +1,5 @@
 import React,{useMemo,useRef,useState} from 'react';
-import {Plus,Trash2} from 'lucide-react';
+import {Trash2} from 'lucide-react';
 import {Button} from '../Button';
 import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
@@ -77,12 +77,12 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
  return <form aria-label={mode==='given'?'Give products editor':'Take products editor'} onSubmit={submit}
   className="space-y-3 rounded-xl border border-border bg-card p-3 shadow-card sm:p-4">
   <div className="flex flex-wrap items-center justify-between gap-2">
-   <div><h3 className="font-semibold text-ink">{mode==='given'?'Give Products · পণ্য দিন':'Take Products · পণ্য নিন'}</h3>
-    <p className="text-xs text-ink-500">Preview only · real stock and money are unchanged</p></div>
-   <Button type="button" size="sm" variant="outline" onClick={cancel}>Close</Button>
+   <div><h3 className="text-sm font-semibold text-ink">{mode==='given'?'Give Products · পণ্য দিন':'Take Products · পণ্য নিন'}</h3>
+    <p className="font-bn text-xs text-ink-500">{mode==='given'?'ভেন্ডরকে পণ্য দেওয়া':'ভেন্ডর থেকে পণ্য নেওয়া'}</p></div>
+   <Button type="button" size="sm" variant="outline" onClick={cancel}>Cancel</Button>
   </div>
   <div className="grid gap-3 sm:grid-cols-2">
-   <label className="text-xs font-medium text-ink">Memo / reference
+   <label className="text-xs font-medium text-ink">Memo / Reference · মেমো
     <Input className="mt-1" aria-label="Vendor memo reference" value={memo} onChange={e=>{setMemo(e.target.value);dirty();}} placeholder="Auto if empty"/>
    </label>
    <div className="text-xs font-medium text-ink">Date · তারিখ
@@ -126,7 +126,7 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
      <p className="mt-1 text-right text-xs text-ink-600">{line.price.trim()?taka(compoundLineTotal(line.qty,line.smallQty,factor,line.price)):'Price not set · দাম ঠিক হয়নি'}</p>
     </div>;
    })}
-   <Button type="button" size="sm" variant="outline" onClick={()=>searchRef.current?.focus()}><Plus className="size-4"/> Add another product</Button>
+   
   </div>
   {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
