@@ -13,7 +13,7 @@ import {products} from '../../data/products';
 import type {VendorSource} from '../../vendor/vendorTypes';
 
 type Split={id:string;accountId:string;amount:string};
-type Props={source:VendorSource;onClose:()=>void};
+type Props={source:VendorSource;onClose:()=>void;hideClose?:boolean};
 const accounts=financeAccounts.filter(x=>x.status==='Active'&&['Cash','Bank','Mobile Banking'].includes(x.type));
 const toPaisa=(s:string):number=>{
  if(!s.trim())return 0;
@@ -22,7 +22,7 @@ const toPaisa=(s:string):number=>{
   throw new Error('Use a valid money amount with up to two decimal places.');
  return cents;
 };
-export function VendorClearDuePanel({source,onClose}:Props){
+export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
  const [splits,setSplits]=useState<Split[]>([{id:'s1',accountId:accounts[0]?.id??'',amount:''}]);
  const nextId=useRef(1);
  const [returnQty,setReturnQty]=useState('');
@@ -57,7 +57,7 @@ export function VendorClearDuePanel({source,onClose}:Props){
   <div className="flex flex-wrap justify-between gap-2"><div>
    <h4 className="font-semibold text-ink">Clear Due · বাকি মেটান</h4>
    <p className="text-xs text-ink-500">{source.reference??source.id} · {product?.name??source.productId}</p>
-  </div><Button size="sm" variant="outline" type="button" onClick={onClose}>Close</Button></div>
+  </div>{!hideClose&&<Button size="sm" variant="outline" type="button" onClick={onClose}>Close</Button>}</div>
   <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
    <div><p className="text-ink-500">Still due</p><strong>{due===null?'Price not set':taka(due)}</strong></div>
    <div><p className="text-ink-500">Products still out</p><strong>{source.baseQty-outstanding.returnedBaseQty} {product?.unit??'units'}</strong></div>
