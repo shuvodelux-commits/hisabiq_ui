@@ -179,7 +179,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
         </div>:<div className="space-y-3">
           {canSettle&&selected.unitCostBasePaisa!==null?<div>
             <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Vendor receiving method">
-              <Button type="button" size="sm" variant={givenAction==='receive-money'?'primary':'outline'}
+              <Button type="button" size="sm" variant={givenAction==='receive-money'?undefined:'outline'}
                 onClick={()=>setGivenAction('receive-money')}>Receive Money · টাকা নিন</Button>
               <Button type="button" size="sm" variant={givenAction==='receive-goods'?'primary':'outline'}
                 onClick={()=>setGivenAction('receive-goods')}>Receive Products · মাল ফেরত নিন</Button>
