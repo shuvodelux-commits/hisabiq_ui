@@ -17,10 +17,10 @@ async function main(){
   await vendor.getByText('৳330').first().waitFor();
   const clear=page.getByRole('form',{name:'Clear Vendor due'});
   await clear.getByRole('textbox',{name:'Money from account 1'}).fill('200');
-  await clear.getByRole('button',{name:'Save Due Change'}).click();
+  await clear.getByRole('button',{name:'Save Settlement'}).click();
   await vendor.getByText('৳130').first().waitFor();
   await clear.getByRole('textbox',{name:'Products to return'}).fill('1');
-  await clear.getByRole('button',{name:'Save Due Change'}).click();
+  await clear.getByRole('button',{name:'Save Settlement'}).click();
   // The settlement editor stays open beside the invoice list after saving.
   await vendor.getByText('৳20').first().waitFor();
   assert.deepEqual(errors,[]);
