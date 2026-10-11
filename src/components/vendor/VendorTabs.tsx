@@ -10,13 +10,13 @@ import {VendorActionDialog,type VendorActionMode} from '../parties/VendorActionD
 import {VendorCorrectionDialog} from '../parties/VendorCorrectionDialog';
 import {VendorStatementDialog} from '../parties/VendorStatementDialog';
 import {VendorGoodsEditor} from './VendorGoodsEditor';
-import {VendorClearDuePanel} from './VendorClearDuePanel';
+import {VendorSourceWorkspace} from './VendorSourceWorkspace';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
 import {dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import {vendorWorkTabs,type VendorWorkTab} from '../../vendor/vendorRoute';
-import {businessToday,type IsoRange} from '../../utils/dateRange';
+import {type IsoRange} from '../../utils/dateRange';
 import {taka} from '../../utils/currency';
 import {products} from '../../data/products';
 import type {Purchase,Party} from '../../types/erp';
@@ -42,12 +42,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const updateDirty=(value:boolean)=>{setHasUnsavedGoods(value);onDirtyChange(value);};
  const [editingGiven,setEditingGiven]=useState(false);
  const [editingPurchase,setEditingPurchase]=useState(false);
- const [clearSourceId,setClearSourceId]=useState<string|null>(null);
+
  const [purchaseRevision,setPurchaseRevision]=useState(0);
  const [statementOpen,setStatementOpen]=useState(false);
- const [openingSide,setOpeningSide]=useState<VendorSide|null>(null);
- const [openingAmount,setOpeningAmount]=useState('');
- const [openingError,setOpeningError]=useState('');
+
  const [selectedSource,setSelectedSource]=useState<string|null>(sourceId);
  const [actionMode,setActionMode]=useState<VendorActionMode>('details');
  const [correctSource,setCorrectSource]=useState<string|null>(null);
@@ -59,7 +57,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const taken=activeSources.filter(s=>s.sourceKind==='sourcing');
  const given=activeSources.filter(s=>s.sourceKind==='issue');
  const due=activeSources.filter(s=>(s.unitCostBasePaisa!==null&&(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0));
- const activity=profile.activity.filter(x=>(x.reference+' '+x.description).toLowerCase().includes(query.toLowerCase()));
+
  const selected=selectedSource?snapshot.sources.find(s=>s.id===selectedSource)??null:null;
  const openAction=(s:VendorSource,mode:VendorActionMode)=>{setSelectedSource(s.id);setActionMode(mode);};
  const selectTab=(next:VendorWorkTab)=>{
@@ -93,17 +91,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   }catch(e){toast.error('Purchase created in preview. Stock projection needs review: '+String(e));}
   setPurchaseRevision(n=>n+1);setEditingPurchase(false);onDirtyChange(false);
  };
- const opening=()=>{
-  try{
-   if(!openingSide)return;
-   const n=Number(openingAmount);
-   if(!Number.isFinite(n)||n<=0||!Number.isSafeInteger(Math.round(n*100)))throw new Error('Enter a valid opening amount.');
-   dispatchVendorPreview({type:'set-opening',operationId:'vendor-opening-'+party.id+'-'+snapshot.revision,
-    vendorPartyId:party.id,side:openingSide,date:businessToday(),amountPaisa:Math.round(n*100)});
-   setOpeningSide(null);setOpeningAmount('');setOpeningError('');
-  }catch(e){setOpeningError(e instanceof Error?e.message:'Could not save opening balance.');}
- };
- const list=tab==='taken'?taken:given;
  return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
    <div className="flex min-w-0 items-center gap-3"><PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={46}/>
@@ -143,13 +130,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-3">
     <h3 className="text-sm font-semibold text-ink">{labels[tab].english} · <span className="font-bn font-normal text-ink-500">{labels[tab].bn}</span></h3>
     <div className="flex flex-wrap gap-2">
-     {tab==='ledger'&&<details className="relative text-xs">
-       <summary className="cursor-pointer rounded-md border border-border px-3 py-2">More · আরও</summary>
-       <div className="absolute right-0 top-full z-20 min-w-48 rounded-lg border border-border bg-card p-2 shadow-lg">
-        <Button type="button" variant="ghost" size="sm" onClick={()=>{setOpeningSide('payable');setOpeningError('');}}>You owe opening</Button>
-        <Button type="button" variant="ghost" size="sm" onClick={()=>{setOpeningSide('receivable');setOpeningError('');}}>Vendor owes opening</Button>
-       </div>
-      </details>}
      <Button type="button" size="sm" onClick={primary}>
       {tab==='ledger'?<Printer className="size-4"/>:<Plus className="size-4"/>}
       {labels[tab].button}
@@ -212,42 +192,15 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       </div>}
     </>}
     {(tab==='taken'||tab==='given')&&<>
-     {tab==='taken'&&clearSourceId&&snapshot.sources.find(s=>s.id===clearSourceId)&&
-      <VendorClearDuePanel key={clearSourceId} source={snapshot.sources.find(s=>s.id===clearSourceId)!}
-       onClose={()=>setClearSourceId(null)}/>}
-     {(tab==='taken'?editingTaken:editingGiven)&&<div className="mb-4">
-      <VendorGoodsEditor partyId={party.id} mode={tab} onDirtyChange={updateDirty}
-       onCancel={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);updateDirty(false);}}
-       onSaved={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);toast.success('Products saved in demo preview');}}/>
-     </div>}
-     <div className="divide-y divide-border rounded-lg border border-border">
-      {list.map(source=>{
-       const p=products.find(x=>x.id===source.productId);
-       const out=sourceOutstanding(snapshot,source.id);
-       return <div key={source.id} className="flex flex-wrap items-center gap-2 p-3 text-sm">
-        <div className="min-w-0 flex-1"><p className="font-medium text-ink">{source.reference??source.id} · {p?.name??source.productId}</p>
-         <p className="text-xs text-ink-500">{source.date} · {source.baseQty} {p?.unit??'units'}</p></div>
-        <div className="text-right text-xs text-ink-600">{source.unitCostBasePaisa===null?'Price not set · দাম ঠিক হয়নি':money(out.monetaryDuePaisa??0)}
-         <p className="text-[11px] text-ink-400">{out.returnedBaseQty>0?out.returnedBaseQty+' returned':''}</p></div>
-        {source.sourceKind==='sourcing'&&source.unitCostBasePaisa===null&&
-          <Button size="sm" variant="outline" onClick={()=>openAction(source,'quote')}>Set Price</Button>}
-        {tab==='taken'&&(out.unpricedBaseQty>0||(out.monetaryDuePaisa??0)>0)&&
-          <Button size="sm" variant="outline" onClick={()=>setClearSourceId(source.id)}>Clear Due</Button>}
-        {tab==='given'&&source.unitCostBasePaisa!==null&&(out.monetaryDuePaisa??0)>0&&
-          <Button size="sm" variant="outline" onClick={()=>openAction(source,'receive-money')}>Receive Money</Button>}
-        <details className="relative text-xs"><summary className="cursor-pointer rounded border border-border px-2 py-2">More</summary>
-         <div className="absolute right-0 top-full z-20 min-w-36 space-y-1 rounded-lg border border-border bg-card p-2 shadow-lg">
-          <Button size="sm" variant="ghost" onClick={()=>openAction(source,'details')}>View details</Button>
-          <Button size="sm" variant="ghost" onClick={()=>openAction(source,tab==='taken'?'return':'receive-goods')}>
-           {tab==='taken'?'Return Products':'Get Products Back'}</Button>
-          <Button size="sm" variant="ghost" onClick={()=>setCorrectSource(source.id)}>Correct</Button>
-         </div></details>
-       </div>;
-      })}
-      {list.length===0&&<p className="p-8 text-center text-sm text-ink-500">No {tab==='taken'?'taken':'given'} products yet.</p>}
-     </div>
-    </>}
-    {tab==='purchases'&&<>
+      {(tab==='taken'?editingTaken:editingGiven)&&<div className="mb-4">
+       <VendorGoodsEditor partyId={party.id} mode={tab} onDirtyChange={updateDirty}
+        onCancel={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);updateDirty(false);}}
+        onSaved={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);toast.success('Products saved in demo preview');}}/>
+      </div>}
+      <VendorSourceWorkspace key={tab} mode={tab} sources={tab==='taken'?taken:given}
+        snapshot={snapshot} sourceId={sourceId} onCorrect={setCorrectSource}/>
+     </>}
+     {tab==='purchases'&&<>
      {editingPurchase?<div className="mb-4">
       <PurchaseEditor embedded initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
        onCancel={()=>{setEditingPurchase(false);onDirtyChange(false);}}/>
@@ -297,15 +250,5 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    onReviewEvent={review} onBackToSource={()=>setCorrectEvent(null)}/>
   <VendorStatementDialog open={statementOpen} onClose={()=>setStatementOpen(false)}
    party={party} state={snapshot} range={checkedRange}/>
-  {openingSide&&<div className="border-t border-border bg-ink-50 p-4">
-   <div className="flex flex-wrap items-end gap-3"><label className="text-xs text-ink-500">
-    Opening balance · {openingSide==='payable'?'You owe':'Vendor owes'}
-    <Input aria-label="Vendor opening amount" inputMode="decimal" value={openingAmount}
-     onChange={e=>setOpeningAmount(e.target.value)}/></label>
-    <Button size="sm" onClick={opening}>Save Opening</Button>
-    <Button size="sm" variant="outline" onClick={()=>setOpeningSide(null)}>Cancel</Button>
-   </div>
-   {openingError&&<p role="alert" className="mt-1 text-xs text-danger">{openingError}</p>}
-  </div>}
- </div>;
+   </div>;
 }
