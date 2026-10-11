@@ -12,7 +12,7 @@ import {availableParties,availablePurchases} from '../data/erpDemoStore';
 import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview} from '../data/partyPreviewStore';
 import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
 import {vendorBalances} from '../vendor/vendorModel';
-import {filterVendors,resolveVendorView,type VendorWorkTab} from '../vendor/vendorRoute';
+import {filterVendors,resolveVendorView,resolveVendorPaymentIntent,type VendorWorkTab} from '../vendor/vendorRoute';
 import {taka} from '../utils/currency';
 import type {Party} from '../types/erp';
 
@@ -97,6 +97,6 @@ export function Vendors(){
   <VendorTabs key={party.id} party={party} snapshot={snapshot}
    purchases={availablePurchases().filter(p=>p.supplierId===party.id)}
    tab={view.tab} onTabChange={tab=>change(party.id,tab)}
-   sourceId={params.get('sourceId')} onDirtyChange={setDirty}/>}
+   sourceId={params.get('sourceId')} paymentIntent={resolveVendorPaymentIntent(params.toString())} onDirtyChange={setDirty}/>}
  </div>;
 }
