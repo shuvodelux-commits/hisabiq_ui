@@ -288,6 +288,32 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   next.events.push(event(state,added,cmd.operationId));
   return finish(next,cmd);
  }
+ if(cmd.type==='update-opening'){
+  ensureVendor(state,cmd.vendorPartyId);
+  if(!goodDate(cmd.date))throw new Error('Invalid opening date.');
+  if(!Number.isSafeInteger(cmd.amountPaisa)||cmd.amountPaisa<0)
+   throw new Error('Opening amount must be a nonnegative integer paisa value.');
+  const existing=state.openings.find(o=>o.vendorPartyId===cmd.vendorPartyId&&o.side===cmd.side&&o.status!=='Reversed');
+  if(!existing&&cmd.amountPaisa===0)throw new Error('No Vendor opening balance exists to clear.');
+  const next=extended(state,cmd.operationId)!;
+  if(existing){
+   const target=state.events.find(e=>e.kind==='opening'&&e.operationId===existing.operationId
+    &&e.vendorPartyId===cmd.vendorPartyId&&e.side===cmd.side);
+   if(!target)throw new Error('Vendor opening event missing; review before correction.');
+   reverseVendorEvent(state,next,target,{operationId:cmd.operationId,vendorPartyId:cmd.vendorPartyId,
+    date:cmd.date,reason:cmd.reason?.trim()||'Opening balance corrected',actor:'Preview user'});
+  }
+  if(cmd.amountPaisa>0){
+   next.openings.push({id:'vendor-opening:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
+    side:cmd.side,openingAmountPaisa:cmd.amountPaisa,date:cmd.date,reason:cmd.reason,
+    operationId:cmd.operationId,status:'Active'});
+   next.events.push({id:'vendor-event:'+cmd.operationId+':opening',vendorPartyId:cmd.vendorPartyId,
+    side:cmd.side,kind:'opening',date:cmd.date,sequence:next.events.length+1,
+    deltaPaisa:cmd.amountPaisa,description:'Opening balance (non-cash)',
+    operationId:cmd.operationId,status:'Active'});
+  }
+  return finish(next,cmd);
+ }
  if(cmd.type==='set-opening'){
   money(cmd.amountPaisa,'Opening amount');
   if(!goodDate(cmd.date))throw new Error('Invalid opening date.');
