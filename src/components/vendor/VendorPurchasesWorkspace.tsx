@@ -37,7 +37,7 @@ export function VendorPurchasesWorkspace({
     <span className="mt-1 block text-xs text-ink">{p.total>p.paid?'Due '+taka(Math.max(0,p.total-p.paid)):'Paid'} · {taka(p.total)}</span>
    </button>)}
    {!filtered.length&&<p className="p-8 text-center text-xs text-ink-500">
-    {records.length?'No matching Purchase invoices.':'No purchases from this Vendor yet.'}</p>}
+    {records.length?'No matching Purchase invoices.':'No purchase invoices found for this Vendor.'}</p>}
   </div>
  </section>;
  const detail=<section data-testid="vendor-purchases-detail" aria-label="Selected Vendor purchase" className="rounded-lg border border-border bg-card p-3 shadow-xs sm:p-4">
