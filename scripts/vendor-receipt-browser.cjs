@@ -22,7 +22,7 @@ async function main(){
   await receipt.getByRole('button',{name:/Add account/}).click();
   await receipt.getByRole('textbox',{name:'Split amount 2'}).fill('28');
   await receipt.getByText('৳78').first().waitFor();
-  await receipt.getByRole('button',{name:'Record demo receipt'}).click();
+  await receipt.getByRole('button',{name:'Save Receipt'}).click();
   await work.getByText('৳50').first().waitFor();
   assert.deepEqual(errors,[]);
   console.log('Single-entry Vendor receipt amount and two-account split verified');
