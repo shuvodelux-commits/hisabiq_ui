@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {resolveVendorView,vendorWorkLink,filterVendors} from '../src/vendor/vendorRoute.ts';
+import {resolveVendorView,vendorWorkLink,filterVendors,resolveVendorPaymentIntent} from '../src/vendor/vendorRoute.ts';
 import type {Party} from '../src/types/erp.ts';
 const vendors=[{id:'v1',name:'Shapla Transport',phone:'01911-305566',roles:['Vendor'],status:'Active'},
 {id:'v2',name:'Bismillah Steel',phone:'01811-555555',roles:['Supplier','Vendor'],status:'Active'},
@@ -21,4 +21,13 @@ test('invalid Party or tab cannot access another role or unknown Vendor',()=>{
 test('canonical deep link preserves selected Vendor and tab',()=>{
  assert.equal(vendorWorkLink('v1','payments','given-17'),'/app/vendors?partyId=v1&tab=payments&sourceId=given-17');
  assert.equal(vendorWorkLink('v2'),'/app/vendors?partyId=v2');
+});
+
+test('Party payment shortcuts retain source direction without choosing the opposite balance',()=>{
+ assert.equal(vendorWorkLink('v1','payments','source-2','receive'),
+  '/app/vendors?partyId=v1&tab=payments&sourceId=source-2&intent=receive');
+ assert.equal(vendorWorkLink('v1','payments',undefined,'make'),
+  '/app/vendors?partyId=v1&tab=payments&intent=make');
+ assert.equal(resolveVendorPaymentIntent('?partyId=v1&tab=payments&intent=receive'),'receive');
+ assert.equal(resolveVendorPaymentIntent('?partyId=v1&tab=payments&intent=malformed'),null);
 });
