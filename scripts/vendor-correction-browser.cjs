@@ -10,7 +10,7 @@ async function main(){
  try{
   await page.goto('http://127.0.0.1:4252/#/app/vendors?partyId=v1&tab=taken');
   const vendor=page.getByRole('region',{name:'Selected Vendor work'});
-  await vendor.getByRole('region',{name:'Taken product workplace'}).getByRole('button',{name:'Review / Correct'}).click();
+  await vendor.getByRole('region',{name:'Taken product workplace'}).getByRole('button',{name:'Correct'}).click();
   const review=page.getByRole('dialog',{name:'Review Vendor correction'});
   await review.waitFor();
   const save=review.getByRole('button',{name:'Save corrected demo source'});
