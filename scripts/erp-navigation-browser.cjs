@@ -74,6 +74,13 @@ async function main(){
   await drawer.waitFor();
   // Regression: a sticky, backdrop-blurred header must never confine the mobile sheet.
   const assertFullscreen=async(width,height)=>{
+    // Dynamic viewport units settle on the next layout after a tablet resize.
+    // Wait for the required geometry; preserve all fullscreen assertions below.
+    await page.waitForFunction(({width,height})=>{
+      const sheet=document.getElementById('erp-mobile-drawer');
+      const bounds=sheet?.getBoundingClientRect();
+      return innerWidth===width&&innerHeight===height&&bounds&&Math.abs(bounds.y)<2&&bounds.height>=height-2;
+    },{width,height});
     const bounds=await drawer.boundingBox();
     assert.ok(bounds && Math.abs(bounds.y)<2 && bounds.height>=height-2,
       'mobile sheet must cover viewport height, not just the sticky header');
