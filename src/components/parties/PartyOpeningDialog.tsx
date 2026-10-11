@@ -13,11 +13,13 @@ export const openingDirectionLabels=(role:PartyRole)=>({
  debit:role==='Customer'?'Customer owes us · কাস্টমারের কাছে পাওনা'
   :role==='Supplier'?'Supplier owes us (advance) · সরবরাহকারীর কাছে পাওনা'
   :role==='Borrower'?'Borrower owes us · ঋণগ্রহীতার কাছে পাওনা'
+  :role==='Vendor'?'Vendor owes us · ভেন্ডরের কাছে পাওনা'
   :'They owe us · আমাদের পাওনা',
  credit:role==='Customer'?'We owe customer · কাস্টমার আমাদের কাছে পাবে'
   :role==='Supplier'?'We owe supplier · সরবরাহকারীর পাওনা'
   :role==='Owner'?'We owe owner (capital) · মালিকের মূলধন'
   :role==='Lender'?'We owe lender · ঋণদাতার পাওনা'
+  :role==='Vendor'?'We owe the vendor · ভেন্ডরের পাওনা'
   :'We owe them · আমাদের দেনা'
 });
 export const defaultOpeningSide=(role:PartyRole):'debit'|'credit'=>
@@ -26,21 +28,22 @@ export const defaultOpeningSide=(role:PartyRole):'debit'|'credit'=>
 type Props={
  open:boolean;party:Party;relationship:PartyRole;
  existing?:PartySourceRecord;
+ defaultSide?:'debit'|'credit';
  onClose:()=>void;onSubmit:(payload:PartyOpeningPayload)=>void;
 };
-export function PartyOpeningDialog({open,party,relationship,existing,onClose,onSubmit}:Props){
+export function PartyOpeningDialog({open,party,relationship,existing,defaultSide,onClose,onSubmit}:Props){
  const [amount,setAmount]=useState('');
- const [side,setSide]=useState<'debit'|'credit'>(defaultOpeningSide(relationship));
+ const [side,setSide]=useState<'debit'|'credit'>(defaultSide??defaultOpeningSide(relationship));
  const [date,setDate]=useState(businessToday());
  const [note,setNote]=useState('');
  const [error,setError]=useState('');
  useEffect(()=>{
   if(open){
    setAmount(existing?String(existing.debit||existing.credit):'');
-   setSide(existing?.credit?'credit':existing?.debit?'debit':defaultOpeningSide(relationship));
+   setSide(existing?.credit?'credit':existing?.debit?'debit':defaultSide??defaultOpeningSide(relationship));
    setDate(existing?.date??businessToday());setNote('');setError('');
   }
- },[open,relationship,party.id,existing?.id]);
+ },[open,relationship,party.id,existing?.id,defaultSide]);
  const names=openingDirectionLabels(relationship);
  const submit=(e:React.FormEvent)=>{
   e.preventDefault();setError('');
