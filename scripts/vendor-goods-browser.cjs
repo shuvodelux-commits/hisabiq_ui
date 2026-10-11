@@ -11,6 +11,12 @@ async function main(){
   await page.goto('http://127.0.0.1:4272/#/app/vendors?partyId=v1&tab=given');
   const work=page.getByRole('region',{name:'Selected Vendor work'});
   await work.waitFor();
+  const issuedWorkspace=work.locator('[data-testid="vendor-issued-workspace"]');
+  await issuedWorkspace.waitFor();
+  await issuedWorkspace.locator('[data-testid="vendor-issued-list"]').waitFor();
+  const issuedDetail=issuedWorkspace.locator('[data-testid="vendor-issued-detail"]');
+  await issuedDetail.getByText('DEMO-MEMO-16').first().waitFor();
+  await issuedDetail.getByRole('button',{name:'Receive Payment'}).waitFor();
   await work.getByRole('button',{name:/Issue Products/}).first().click();
   const editor=page.getByRole('form',{name:'Issue products editor'});
   await editor.waitFor();
