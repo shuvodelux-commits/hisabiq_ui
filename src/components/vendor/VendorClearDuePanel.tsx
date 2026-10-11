@@ -49,7 +49,8 @@ export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
    dispatchVendorPreview({type:'clear-source-due',operationId:'vendor-clear-'+source.id+'-'+state.revision,
     vendorPartyId:source.vendorPartyId,sourceId:source.id,date:businessToday(),
     cashPaisa,returnBaseQty:goods,paymentSplits,reason:reason.trim()||undefined});
-   toast.success('Due updated in preview · no real money or stock posted');
+   // Inline settlement updates immediately; avoid a toast over the next Save button.
+   if(!hideClose)toast.success('Due updated in preview · no real money or stock posted');
    onClose();
   }catch(e){setError(e instanceof Error?e.message:'Could not clear the due.');}
  };
