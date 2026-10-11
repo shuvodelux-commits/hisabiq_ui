@@ -76,18 +76,18 @@ These five easily missed inputs must be tested in the owning tasks:
 
 ### Task 3: Reuse Vendor action form and shared finance split inputs
 
-**Files:** Create `src/vendor/vendorPaymentAdapter.ts`, `tests/vendorPaymentAdapter.test.ts`, `src/components/vendor/VendorSourceActionForm.tsx`; modify `src/components/parties/VendorActionDialog.tsx` and `scripts/vendor-context-browser.cjs`.
+**Files:** Create `src/vendor/vendorPaymentAdapter.ts`, `tests/vendorPaymentAdapter.test.ts`, `src/components/vendor/VendorSourceActionForm.tsx`; modify `src/components/parties/VendorActionDialog.tsx`, `src/components/vendor/VendorClearDuePanel.tsx`, `scripts/vendor-context-browser.cjs` and `scripts/vendor-clear-due-browser.cjs`.
 
 **Interfaces:**
 - `vendorPaymentSplits(rows:readonly FinancePaymentDraft[],accounts:readonly FinanceAccount[],expectedPaisa:number):NonNullable<VendorSettlement['paymentSplits']>` validates method/account consistency, positive two-decimal amounts, exact sum in integer paisa and unique row IDs. Do **not** let `normalizeFinancePaymentSplits` silently fill a blank row or use floating total fallback.
 - `VendorSourceActionForm({source,mode,onSaved,onCancel}:{source:VendorSource;mode:Exclude<VendorActionMode,'details'>;onSaved:()=>void;onCancel?:()=>void})`; the existing dialog wraps this body and keeps its read-only details mode.
 - A single submission path dispatches existing `set-source-price` or `settle-source` commands (no new transaction record type).
 
-- [ ] **Step 1 — Red test:** Assert matching Cash/Bank/MFS rows yield exactly the expected integer-paisa split total; wrong account type, missing amount, >2 decimals, duplicate IDs, mismatched sum, negative/NaN values reject; unknown-price payable disallows money while a permitted matching-goods return remains possible.
-- [ ] **Step 2 — Verify red:** Run `npm test` and `npm run test:vendor-context`.
-- [ ] **Step 3 — Implement:** Extract existing VendorActionDialog action-body and dispatch path; use actual `FinancePaymentSplitEditor`, convert its `FinancePaymentDraft` through the validated Vendor adapter. Keep wrapper modal for existing callers; no Customer/Supplier PartyPaymentDialog coercion.
-- [ ] **Step 4 — Verify green:** Re-run above plus `npm run test:vendor-evening`; verify exactly one settlement event and source correct after a confirmed submit.
-- [ ] **Step 5 — Commit:** `git add src/vendor/vendorPaymentAdapter.ts tests/vendorPaymentAdapter.test.ts src/components/vendor/VendorSourceActionForm.tsx src/components/parties/VendorActionDialog.tsx scripts/vendor-context-browser.cjs && git commit -m "refactor(vendor): share source actions and finance payment inputs"`.
+- [ ] **Step 1 — Red test:** Assert matching Cash/Bank/MFS rows yield exactly the expected integer-paisa split total; wrong account type, missing amount, >2 decimals, duplicate IDs, mismatched sum, negative/NaN values reject; unknown-price payable disallows money while a permitted matching-goods return remains possible. Browser-test both the extracted action body and existing Received `VendorClearDuePanel` use the real `FinancePaymentSplitEditor`, retain account labels and submit only once.
+- [ ] **Step 2 — Verify red:** Run `npm test`, `npm run test:vendor-context` and `npm run test:vendor-clear-due`.
+- [ ] **Step 3 — Implement:** Extract existing VendorActionDialog action-body and dispatch path; use the actual `FinancePaymentSplitEditor`, converting `FinancePaymentDraft` through the validated Vendor adapter. Replace the handwritten split-account rows in `VendorClearDuePanel` with that same editor/adapter, preserving its original `clear-source-due` combined cash + product-return command, validation and alignment. Keep the existing action dialog wrapper; no Customer/Supplier PartyPaymentDialog coercion.
+- [ ] **Step 4 — Verify green:** Re-run all three tests plus `npm run test:vendor-evening`; verify exactly one settlement event and source correct after a confirmed submit, including cash + product-return settlement.
+- [ ] **Step 5 — Commit:** `git add src/vendor/vendorPaymentAdapter.ts tests/vendorPaymentAdapter.test.ts src/components/vendor/VendorSourceActionForm.tsx src/components/parties/VendorActionDialog.tsx src/components/vendor/VendorClearDuePanel.tsx scripts/vendor-context-browser.cjs scripts/vendor-clear-due-browser.cjs && git commit -m "refactor(vendor): share source actions and finance payment inputs"`.
 
 ### Task 4: Products Issued split workspace
 
@@ -134,7 +134,7 @@ These five easily missed inputs must be tested in the owning tasks:
 
 ### Task 7: Ledger toolbar, transactions and single Party opening balance
 
-**Files:** Create `src/components/vendor/VendorLedgerWorkspace.tsx`; modify `src/components/vendor/VendorTabs.tsx`, `src/components/parties/PartyDetail.tsx`, `src/pages/Parties.tsx`, `scripts/vendor-correction-browser.cjs`, `scripts/party-opening-browser.cjs`, `scripts/party-ledger-browser.cjs`; add unit test to `tests/vendorPartyProjection.test.ts` if this file exists, otherwise create `tests/vendorOpeningAdapter.test.ts`.
+**Files:** Create `src/components/vendor/VendorLedgerWorkspace.tsx`; modify `src/components/vendor/VendorTabs.tsx`, `src/components/parties/PartyDetail.tsx`, `src/pages/Parties.tsx`, `scripts/vendor-correction-browser.cjs`, `scripts/party-opening-browser.cjs`, `scripts/party-ledger-browser.cjs`; extend existing `tests/vendorPartyProjection.test.ts` for single-source Vendor opening direction and projection.
 
 **Interfaces:**
 - `VendorLedgerWorkspace({profile,snapshot,party,onReview,onPrint}:{profile:VendorPartyProfile;snapshot:VendorPreviewState;party:Party;onReview:(event:VendorLedgerEvent)=>void;onPrint:()=>void})`; preserve balance-side, date-range, query and statement projection without netting payable/receivable.
