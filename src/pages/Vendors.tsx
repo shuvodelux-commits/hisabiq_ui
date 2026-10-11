@@ -14,7 +14,6 @@ import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorP
 import {sourceOutstanding,vendorBalances} from '../vendor/vendorModel';
 import {filterVendors,resolveVendorView,type VendorWorkTab} from '../vendor/vendorRoute';
 import {taka} from '../utils/currency';
-import type {Party} from '../types/erp';
 
 export function Vendors(){
  const [params,setParams]=useSearchParams();
