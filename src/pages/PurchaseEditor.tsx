@@ -29,8 +29,8 @@ const todayISO = () => {
   const date = new Date();
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
 };
-type PurchaseEditorProps={initialSupplierId?:string;lockedSupplierId?:string;embedded?:boolean;onCompleted?:(purchase:Purchase)=>void;onCancel?:()=>void};
-export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=false,onCompleted,onCancel}:PurchaseEditorProps={}) {
+type PurchaseEditorProps={initialSupplierId?:string;lockedSupplierId?:string;embedded?:boolean;active?:boolean;onCompleted?:(purchase:Purchase)=>void;onCancel?:()=>void};
+export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=false,active=true,onCompleted,onCancel}:PurchaseEditorProps={}) {
   const navigate = useNavigate();
   const { state: settingsState } = useTenantSettings();
   const [products, setProducts] = useState(() => availableProducts().filter((product) => product.kind !== 'Service'));
@@ -173,7 +173,7 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
   // Shortcuts mirror the POS workflow; dialogs retain their own keyboard handling.
   useEffect(() => {
     const handlePurchaseShortcuts = (event: KeyboardEvent) => {
-      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (!active || event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
       const dialogOpen = Array.from(document.querySelectorAll('[data-slot="dialog-content"]'))
         .some((node) => (node as HTMLElement).getClientRects().length > 0);
       if (dialogOpen) return;

@@ -12,7 +12,7 @@ async function main(){
   const vendor=page.getByRole('region',{name:'Selected Vendor work'});
   await vendor.waitFor();
   await vendor.getByRole('tab',{name:/Taken/}).waitFor();
-  await vendor.getByText('Price not set · দাম ঠিক হয়নি').first().waitFor();
+  await vendor.getByRole('form',{name:'Set Vendor price'}).waitFor();
   const nav=page.getByRole('navigation',{name:'Main'});
   await nav.getByRole('link',{name:'Vendor'}).waitFor();
   await vendor.getByRole('tab',{name:/Ledger/}).click();

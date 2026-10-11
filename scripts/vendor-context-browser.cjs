@@ -14,11 +14,17 @@ async function main(){
   await page.getByRole('form',{name:'Give products editor'}).waitFor();
   assert.equal(await page.getByRole('dialog',{name:'Give products to Vendor'}).count(),0);
   await vendor.getByRole('tab',{name:/Purchases/}).click();
-  await vendor.getByRole('button',{name:'Buy Products'}).click();
+  assert.equal(await vendor.getByRole('button',{name:'Buy Products'}).count(),0,'Purchase editor opens when tab is selected');
   await vendor.getByText('Purchase details').waitFor();
   assert.ok(await vendor.getByText(/Supplier memo/).count()>=1);
+  const memo=vendor.getByRole('textbox',{name:/Supplier memo no/});
+  await memo.fill('PO-KEEP-001');
+  await vendor.getByRole('tab',{name:/Given/}).click();
+  await vendor.getByRole('tab',{name:/Purchases/}).click();
+  assert.equal(await vendor.getByRole('textbox',{name:/Supplier memo no/}).inputValue(),'PO-KEEP-001','Purchases tab retains its draft');
   assert.equal(await page.getByRole('dialog',{name:'Buy products from Vendor'}).count(),0);
   await vendor.getByRole('button',{name:'Cancel'}).last().click();
+  await vendor.getByText(/Previous Purchases/).click();
   await vendor.getByText('No purchases from this Vendor yet.').waitFor();
   assert.deepEqual(errors,[]);
   console.log('Vendor inline Given cart and full-width Purchase editor verified');

@@ -13,7 +13,7 @@ import {products} from '../../data/products';
 import type {VendorSource} from '../../vendor/vendorTypes';
 
 type Split={id:string;accountId:string;amount:string};
-type Props={source:VendorSource;onClose:()=>void};
+type Props={source:VendorSource;onClose:()=>void;hideClose?:boolean};
 const accounts=financeAccounts.filter(x=>x.status==='Active'&&['Cash','Bank','Mobile Banking'].includes(x.type));
 const toPaisa=(s:string):number=>{
  if(!s.trim())return 0;
@@ -22,7 +22,7 @@ const toPaisa=(s:string):number=>{
   throw new Error('Use a valid money amount with up to two decimal places.');
  return cents;
 };
-export function VendorClearDuePanel({source,onClose}:Props){
+export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
  const [splits,setSplits]=useState<Split[]>([{id:'s1',accountId:accounts[0]?.id??'',amount:''}]);
  const nextId=useRef(1);
  const [returnQty,setReturnQty]=useState('');
@@ -49,21 +49,23 @@ export function VendorClearDuePanel({source,onClose}:Props){
    dispatchVendorPreview({type:'clear-source-due',operationId:'vendor-clear-'+source.id+'-'+state.revision,
     vendorPartyId:source.vendorPartyId,sourceId:source.id,date:businessToday(),
     cashPaisa,returnBaseQty:goods,paymentSplits,reason:reason.trim()||undefined});
-   toast.success('Due updated in preview · no real money or stock posted');
+   // Inline settlement updates immediately; avoid a toast over the next Save button.
+   if(!hideClose)toast.success('Due updated in preview · no real money or stock posted');
    onClose();
   }catch(e){setError(e instanceof Error?e.message:'Could not clear the due.');}
  };
- return <form onSubmit={save} aria-label="Clear Vendor due" className="mb-4 space-y-3 rounded-xl border border-border bg-ink-50/40 p-3 sm:p-4">
+ return <form onSubmit={save} aria-label="Clear Vendor due" className={hideClose?
+ "space-y-3 border-t border-border pt-4":"mb-4 space-y-3 rounded-xl border border-border bg-ink-50/40 p-3 sm:p-4"}>
   <div className="flex flex-wrap justify-between gap-2"><div>
-   <h4 className="font-semibold text-ink">Clear Due · বাকি মেটান</h4>
-   <p className="text-xs text-ink-500">{source.reference??source.id} · {product?.name??source.productId}</p>
-  </div><Button size="sm" variant="outline" type="button" onClick={onClose}>Close</Button></div>
-  <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
+   <h4 className="text-sm font-semibold text-ink">{hideClose?'Settlement · হিসাব মেটান':'Clear Due · বাকি মেটান'}</h4>
+   {!hideClose&&<p className="text-xs text-ink-500">{source.reference??source.id} · {product?.name??source.productId}</p>}
+  </div>{!hideClose&&<Button size="sm" variant="outline" type="button" onClick={onClose}>Close</Button>}</div>
+  {!hideClose&&<div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
    <div><p className="text-ink-500">Still due</p><strong>{due===null?'Price not set':taka(due)}</strong></div>
    <div><p className="text-ink-500">Products still out</p><strong>{source.baseQty-outstanding.returnedBaseQty} {product?.unit??'units'}</strong></div>
    <div><p className="text-ink-500">After this</p><strong>{due===null?'Price not set':taka(Math.max(0,due-cash-goodsValue))}</strong></div>
-  </div>
-  <div className="grid gap-3 sm:grid-cols-2">
+  </div>}
+  <div className="grid gap-3 xl:grid-cols-2">
    <section className="space-y-2"><div className="flex items-center justify-between">
     <strong className="text-xs text-ink">Pay Money · টাকা দিন</strong>
     <Button type="button" size="sm" variant="ghost" onClick={()=>setSplits(rows=>[...rows,{id:'s'+(++nextId.current),accountId:accounts[0]?.id??'',amount:''}])}><Plus className="size-3"/> Account</Button></div>
@@ -89,8 +91,8 @@ export function VendorClearDuePanel({source,onClose}:Props){
   {source.unitCostBasePaisa===null&&<p className="text-xs text-warning">Price not set. You can return products now; set the price before paying money.</p>}
   {error&&<p role="alert" className="rounded-lg bg-danger-bg p-2 text-xs text-danger">{error}</p>}
   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-   <span className="text-xs text-ink-500">Money: {taka(cash)} · Products: {goods} · Demo only</span>
-   <Button size="sm" type="submit">Save Due Change</Button>
+   <span className="text-xs text-ink-500">{hideClose?'Remaining after: ':'Money: '+taka(cash)+' · Products: '+goods+' · Demo only'}{hideClose?(due===null?'Price not set':taka(Math.max(0,due-cash-goodsValue))):''}</span>
+   <Button size="sm" type="submit">Save Settlement</Button>
   </div>
  </form>;
 }
