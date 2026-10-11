@@ -8,7 +8,7 @@ import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
 import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
 import {projectVendorPartyProfile} from '../vendor/vendorPartyProjection';
-import {vendorWorkLink,type VendorWorkTab} from '../vendor/vendorRoute';
+import {vendorWorkLink,type VendorWorkTab,type VendorPaymentIntent} from '../vendor/vendorRoute';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { PartyImportDialog } from '../components/parties/PartyImportDialog';
 import {PartyExcelImportDialog} from '../components/parties/PartyExcelImportDialog';
@@ -158,8 +158,8 @@ export function Parties() {
         }} query={query} onQuery={setQuery}/>
       {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
         vendorProfile={vendorProfile}
-        onOpenVendorWork={(tab?:VendorWorkTab,sourceId?:string)=>
-          navigate(vendorWorkLink(party.id,tab,sourceId))}
+        onOpenVendorWork={(tab?:VendorWorkTab,sourceId?:string,intent?:VendorPaymentIntent)=>
+          navigate(vendorWorkLink(party.id,tab,sourceId,intent))}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}
         statement={statement!} balanceSummary={summary!} visibleRows={visibleRows}
