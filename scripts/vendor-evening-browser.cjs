@@ -21,7 +21,7 @@ async function main(){
   await vendor.getByText('৳130').first().waitFor();
   await clear.getByRole('textbox',{name:'Products to return'}).fill('1');
   await clear.getByRole('button',{name:'Save Due Change'}).click();
-  await clear.waitFor({state:'hidden'});
+  // The settlement editor stays open beside the invoice list after saving.
   await vendor.getByText('৳20').first().waitFor();
   assert.deepEqual(errors,[]);
   console.log('Vendor set price, partial money payment and product return verified');
