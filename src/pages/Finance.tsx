@@ -772,9 +772,9 @@ export function Finance() {
 
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.25fr_1fr]">
-            <section className="space-y-4">
+            <section className="min-w-0 space-y-4">
               <div className="rounded-xl border border-border">
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Business relationship balances</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower balances never cross-net.</p>
@@ -802,7 +802,7 @@ export function Finance() {
               </div>
 
               <div className="rounded-xl border border-border">
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Recent loans & owner money</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower money stays separate.</p>
@@ -839,7 +839,7 @@ export function Finance() {
               </div>
             </section>
 
-            <section className="space-y-4">
+            <section className="min-w-0 space-y-4">
               <div className="rounded-xl border border-border p-4">
                 <p className="text-sm font-semibold text-ink">Money Accounts</p>
                 <p className="mb-3 text-[11px] text-ink-500">Live balances by money account.</p>
@@ -1124,7 +1124,7 @@ export function Finance() {
             </div>
 
             <div className="mt-5 rounded-xl border border-border">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">Transfer history</p>
                   <p className="text-[11px] text-ink-500">Transfers between business money accounts.</p>
