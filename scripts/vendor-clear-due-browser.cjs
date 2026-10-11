@@ -19,7 +19,7 @@ async function main(){
   await form.getByRole('textbox',{name:'Money from account 1'}).fill('110');
   await form.getByRole('textbox',{name:'Products to return'}).fill('1');
   await form.getByRole('button',{name:'Save Settlement'}).click();
-  await form.waitFor({state:'hidden'});
+  await form.waitFor();
   await vendor.getByText('৳110').first().waitFor();
   await vendor.getByRole('tab',{name:/Ledger/}).click();
   assert.match(await vendor.innerText(),/Money paid and products returned/i);
