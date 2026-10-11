@@ -20,6 +20,32 @@ async function main(){
   assert.ok(page.url().includes('tab=taken'));
   await page.reload();
   assert.equal(await tabs.getByRole('tab',{name:/Products Received/}).getAttribute('aria-selected'),'true');
+  for(const [name,selector] of [
+    ['Products Issued','vendor-issued-workspace'],
+    ['Purchases','vendor-purchases-workspace'],
+    ['Payments','vendor-payments-workspace']
+  ]){
+    await tabs.getByRole('tab',{name:new RegExp(name)}).click();
+    const layout=page.locator('[data-testid="'+selector+'"]');
+    await layout.waitFor();
+    const left=layout.locator('[data-testid="'+selector+'-list"]');
+    const right=layout.locator('[data-testid="'+selector+'-detail"]');
+    const desktopLeft=await left.boundingBox(),desktopRight=await right.boundingBox();
+    assert.ok(desktopLeft&&desktopRight&&desktopRight.x>=desktopLeft.x+desktopLeft.width-3,
+      name+' should use two-column desktop list and working panel');
+    assert.ok(desktopRight.width>desktopLeft.width,name+' detail workspace should be wider');
+    await page.setViewportSize({width:390,height:840});
+    const mobileLeft=await left.boundingBox(),mobileRight=await right.boundingBox();
+    assert.ok(mobileLeft&&mobileRight&&mobileRight.y>=mobileLeft.y+mobileLeft.height-3,
+      name+' should stack list over detail on mobile');
+    await page.setViewportSize({width:1280,height:900});
+  }
+  await tabs.getByRole('tab',{name:/Ledger/}).click();
+  await page.locator('[data-testid="vendor-ledger-workspace"]').waitFor();
+  const toolbar=await tabs.boundingBox();
+  const print=await page.getByRole('button',{name:'Print Ledger'}).boundingBox();
+  assert.ok(toolbar&&print&&Math.abs(toolbar.y-print.y)<30,
+    'Print Ledger belongs in the top tab toolbar, not a second row');
   await page.setViewportSize({width:390,height:840});
   assert.deepEqual(errors,[]);
   console.log('Top-level Vendor route, five tabs and responsive selection verified');
