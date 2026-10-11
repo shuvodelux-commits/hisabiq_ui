@@ -24,6 +24,7 @@ async function main(){
   assert.equal(await vendor.getByRole('textbox',{name:/Supplier memo no/}).inputValue(),'PO-KEEP-001','Purchases tab retains its draft');
   assert.equal(await page.getByRole('dialog',{name:'Buy products from Vendor'}).count(),0);
   await vendor.getByRole('button',{name:'Cancel'}).last().click();
+  await vendor.getByText(/Previous Purchases/).click();
   await vendor.getByText('No purchases from this Vendor yet.').waitFor();
   assert.deepEqual(errors,[]);
   console.log('Vendor inline Given cart and full-width Purchase editor verified');
