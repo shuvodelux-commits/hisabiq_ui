@@ -42,12 +42,14 @@ export function FinancePaymentSplitEditor({
   accounts,
   rows,
   onChange,
-  totalAmount
+  totalAmount,
+  amountAriaLabel
 }: {
   accounts: FinanceAccount[];
   rows: FinancePaymentDraft[];
   onChange: (rows: FinancePaymentDraft[]) => void;
   totalAmount: number;
+  amountAriaLabel?: (index:number)=>string;
 }) {
   const normalized = normalizeFinancePaymentSplits(rows, accounts, totalAmount);
   const splitTotal = normalized.reduce((sum, row) => sum + row.amount, 0);
@@ -72,7 +74,7 @@ export function FinancePaymentSplitEditor({
         <Button variant="outline" size="sm" onClick={add}><Plus className="size-3.5" /> Add</Button>
       </div>
       <div className="space-y-2 p-3">
-        {rows.map((row) => {
+        {rows.map((row,index) => {
           const available = accountsForFinanceMethod(accounts, row.method);
           const selected = available.find((item) => item.id === row.accountId) ?? available[0];
           return (
@@ -95,6 +97,7 @@ export function FinancePaymentSplitEditor({
                 options={available.map((item) => item.name)}
               />
               <Input
+                aria-label={amountAriaLabel?.(index)}
                 className="text-right"
                 inputMode="decimal"
                 value={row.amount}
