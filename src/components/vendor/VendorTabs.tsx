@@ -104,18 +104,19 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
     </p>
     <p className="text-xs text-ink-500">{unpricedMemos>0
      ?(payable>0?'Plus ':'')+unpricedMemos+' product line(s) with no price. No money due is recorded for those items yet.'
-     :payable>0?'You can pay or return products to settle.':'Nothing to pay.'}</p>
+     :payable>0?(payableSource?'Pay or return products to settle.':'Opening balance: review it in Ledger or Party.'):'Nothing to pay.'}</p>
     {(unpricedMemos>0||payable>0)&&<Button type="button" size="sm"
-      variant={unpricedMemos>0?undefined:'outline'} onClick={()=>selectTab('taken',unpricedSource?.id??payableSource?.id)}>
-      {unpricedMemos>0?'Set Price · দাম ঠিক করুন':'Pay or Return · টাকা / পণ্য দিন'}
+      variant={unpricedMemos>0?undefined:'outline'}
+      onClick={()=>selectTab(unpricedSource||payableSource?'taken':'ledger',unpricedSource?.id??payableSource?.id)}>
+      {unpricedMemos>0?'Set Price · দাম ঠিক করুন':payableSource?'Pay or Return · টাকা / পণ্য দিন':'View Ledger · হিসাব দেখুন'}
      </Button>}
    </div>
    <div className="min-w-0 space-y-2 border-t border-border p-4 md:border-t-0">
     <p className="text-xs text-ink-500">Vendor owes · পাওনা</p>
     <p className="text-xl font-semibold text-ink">{money(receivable)}</p>
-    <p className="text-xs text-ink-500">{receivable>0?'Receive money or matching products.':'Nothing to receive.'}</p>
+    <p className="text-xs text-ink-500">{receivable>0?(receivableSource?'Receive money or matching products.':'Balance without an open memo. Review Ledger or Party.'):'Nothing to receive.'}</p>
     {receivable>0&&<Button type="button" size="sm" variant="outline"
-      onClick={()=>selectTab('given',receivableSource?.id)}>Receive Settlement · পাওনা নিন</Button>}
+      onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>{receivableSource?'Receive Settlement · পাওনা নিন':'View Ledger · হিসাব দেখুন'}</Button>}
    </div>
    <button type="button" onClick={()=>selectTab('purchases')}
     className="col-span-full min-w-0 border-t border-border px-4 py-2 text-left text-xs text-ink-500 hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500">
