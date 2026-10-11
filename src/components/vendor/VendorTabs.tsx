@@ -209,7 +209,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       </section>
      </div>}
      {tab==='payments'&&<>
-      <VendorPaymentsWorkspace partyId={party.id} state={snapshot} sources={activeSources}
+      <VendorPaymentsWorkspace partyId={party.id} state={snapshot} sources={activeSources} sourceId={sourceId}
        onReview={review} onOpenTaken={()=>selectTab('taken')}/>
       {profile.summary.purchaseDuePaisa>0&&<p className="mt-3 rounded-md bg-ink-50 p-3 text-xs text-ink-500">
        Ordinary Purchase due {money(profile.summary.purchaseDuePaisa)} stays linked to its Purchase invoice.
