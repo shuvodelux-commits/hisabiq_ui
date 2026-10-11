@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
-import { Input } from '../components/Input';
+import {downloadReport,printReport} from '../utils/reportOutput';
 import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
@@ -29,10 +29,9 @@ function statusTone(status: UnifiedTransaction['status']) {
 export function Daybook() {
   const navigate = useNavigate();
   const { entryDateView, setEntryDateView } = useUserPreferences();
-  const [transactions, setTransactions] = useState<UnifiedTransaction[]>(daybookTransactions);
+  const [transactions] = useState<UnifiedTransaction[]>(daybookTransactions);
   const [detail, setDetail] = useState<UnifiedTransaction | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UnifiedTransaction | null>(null);
-  const [deleteReason, setDeleteReason] = useState('');
   const [filters, setFilters] = useState<DaybookFilterState>({
     search: '',
     from: '2026-10-07',
@@ -58,10 +57,12 @@ export function Daybook() {
     navigate(transaction.sourceRoute || '/app/daybook');
   };
 
-  const printTransaction = (transaction: UnifiedTransaction) => {
-    setDetail(transaction);
-    requestAnimationFrame(() => window.print());
+  const reportHeaders=['Date','Type','Reference','Party','Details','Account','Money in','Money out','Posted by','Status'];
+  const reportRow=(transaction:UnifiedTransaction)=>[dateForView(transaction,entryDateView),transaction.type,transaction.reference,transaction.party??'',transaction.details??'',transaction.accounts.join(' + '),transaction.moneyIn,transaction.moneyOut,transaction.postedBy,transaction.status];
+  const print=(rows:UnifiedTransaction[],title='Day Book')=>{
+    if(!printReport({title,subtitle:`${filters.from||'All dates'} — ${filters.to||'All dates'} · ${entryDateView==='created'?'Created date':'Transaction date'}`,headers:reportHeaders,rows:rows.map(reportRow)}))toast.error('Allow the print preview window, then try again.');
   };
+  const printTransaction=(transaction:UnifiedTransaction)=>print([transaction],transaction.reference);
 
   const duplicateTransaction = (transaction: UnifiedTransaction) => {
     if (transaction.source === 'sale') {
@@ -69,47 +70,14 @@ export function Daybook() {
     }
   };
 
-  const exportDaybook = () => {
-    const rows = filtered.map((transaction) => [
-      dateForView(transaction, entryDateView), transaction.type, transaction.reference,
-      transaction.party ?? '', transaction.details ?? '', transaction.accounts.join(' + '),
-      transaction.moneyIn, transaction.moneyOut, transaction.postedBy, transaction.status
-    ]);
-    const csv = [['Date', 'Type', 'Reference', 'Party', 'Details', 'Account', 'Money In', 'Money Out', 'Posted by', 'Status'], ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'hisabiq-daybook.csv';
-    anchor.click();
-    URL.revokeObjectURL(url);
-    toast.success('Daybook exported');
-  };
-
-  const deleteTransaction = () => {
-    if (!deleteTarget) return;
-    if (!deleteReason.trim()) {
-      toast.error('Enter a reason for deleting this transaction');
-      return;
-    }
-    const now = '2026-10-07T15:20:00+06:00';
-    setTransactions((current) => current.map((item) =>
-      item.id === deleteTarget.id
-        ? { ...item, status: 'Deleted', deletedAt: now, deletedBy: 'Shuvo', deleteReason: deleteReason.trim(), updatedAt: now, updatedBy: 'Shuvo' }
-        : item
-    ));
-    setDetail((current) => current?.id === deleteTarget.id ? { ...current, status: 'Deleted', deletedAt: now, deletedBy: 'Shuvo', deleteReason: deleteReason.trim(), updatedAt: now, updatedBy: 'Shuvo' } : current);
-    toast.success('Transaction deleted safely', { description: 'History is kept for audit.' });
-    setDeleteTarget(null);
-    setDeleteReason('');
-  };
+  const exportDaybook=()=>downloadReport('hisabiq-daybook.csv',reportHeaders,filtered.map(reportRow));
 
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
         title="Daybook"
         titleBn="দৈনিক লেনদেন"
-        description="Find, open, edit and manage all business transactions in one place."
+        description="Money in and money out · টাকা আসা–যাওয়া. UI preview; review changes at the source."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
@@ -125,7 +93,7 @@ export function Daybook() {
             </button>
             </div>
             <Button variant="outline" size="sm" onClick={exportDaybook}><ArrowDownToLine className="size-4" /> Export</Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
+            <Button variant="outline" size="sm" onClick={() => print(filtered)}><Printer className="size-4" /> Print</Button>
           </div>
         }
       />
@@ -233,19 +201,16 @@ export function Daybook() {
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Delete transaction?</DialogTitle>
+            <DialogTitle>Review source reversal · লেনদেন যাচাই</DialogTitle>
           </DialogHeader>
           <div className="rounded-lg border border-danger/20 bg-danger/5 px-3 py-2.5">
             <p className="text-[13px] font-medium text-danger">{deleteTarget?.type} · {deleteTarget?.reference}</p>
-            <p className="mt-1 font-bn text-[11px] text-ink-500">মুছে দিলে টাকা, বাকি ও হিসাবের প্রভাব নিরাপদভাবে বাতিল হবে। আগের ইতিহাস রাখা হবে।</p>
+            <p className="mt-1 font-bn text-[11px] text-ink-500">দৈনিক খাতা থেকে আলাদা করে লেনদেন মুছবেন না। মূল লেনদেন ও তার প্রভাব যাচাই করুন।</p>
           </div>
-          <label className="text-[13px] font-medium text-ink">
-            Reason for delete <span className="font-bn text-[11px] font-normal text-ink-400">· কেন মুছছেন</span>
-            <Input className="mt-1.5" value={deleteReason} onChange={(event) => setDeleteReason(event.target.value)} placeholder="e.g. Wrong transaction entered" />
-          </label>
+          <p className="text-sm text-ink-600">Day Book is a transaction view. Open the source audit to review its full money, due and stock impact. This preview cannot reverse a source by deleting a display row.</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button onClick={deleteTransaction}>Delete</Button>
+            <Button onClick={()=>{if(deleteTarget){navigate(`/app/audit-ledger?openRef=${encodeURIComponent(deleteTarget.reference)}`);setDeleteTarget(null);}}}>Review source audit</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
