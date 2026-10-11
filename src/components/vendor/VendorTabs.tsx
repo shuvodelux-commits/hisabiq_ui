@@ -11,6 +11,7 @@ import {VendorCorrectionDialog} from '../parties/VendorCorrectionDialog';
 import {VendorStatementDialog} from '../parties/VendorStatementDialog';
 import {VendorGoodsEditor} from './VendorGoodsEditor';
 import {VendorReceivedWorkspace} from './VendorReceivedWorkspace';
+import {VendorIssuedWorkspace} from './VendorIssuedWorkspace';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
@@ -213,34 +214,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      partyId={party.id} snapshot={snapshot} sources={taken} sourceId={sourceId}
      editing={editingTaken} onEditingChange={setEditingTaken} dirty={hasUnsavedGoods}
      onDirtyChange={updateDirty} onAction={openAction} onCorrect={setCorrectSource}/>}
-    {tab==='given'&&<>
-     {editingGiven&&<div className="mb-4">
-      <VendorGoodsEditor partyId={party.id} mode="given" onDirtyChange={updateDirty}
-       onCancel={()=>{setEditingGiven(false);updateDirty(false);}}
-       onSaved={()=>{setEditingGiven(false);toast.success('Products saved in demo preview');}}/>
-     </div>}
-     <div className="divide-y divide-border rounded-lg border border-border">
-      {given.map(source=>{
-       const p=products.find(x=>x.id===source.productId);
-       const out=sourceOutstanding(snapshot,source.id);
-       return <div key={source.id} className="flex flex-wrap items-center gap-2 p-3 text-sm">
-        <div className="min-w-0 flex-1"><p className="font-medium text-ink">{source.reference??source.id} · {p?.name??source.productId}</p>
-         <p className="text-xs text-ink-500">{source.date} · {source.baseQty} {p?.unit??'units'}</p></div>
-        <div className="text-right text-xs text-ink-600">{source.unitCostBasePaisa===null?'Price not set · দাম ঠিক হয়নি':money(out.monetaryDuePaisa??0)}
-         <p className="text-[11px] text-ink-400">{out.returnedBaseQty>0?out.returnedBaseQty+' returned':''}</p></div>
-        {source.unitCostBasePaisa!==null&&(out.monetaryDuePaisa??0)>0&&
-         <Button size="sm" variant="outline" onClick={()=>openAction(source,'receive-money')}>Receive Money</Button>}
-        <details className="relative text-xs"><summary className="cursor-pointer rounded border border-border px-2 py-2">More</summary>
-         <div className="absolute right-0 top-full z-20 min-w-36 space-y-1 rounded-lg border border-border bg-card p-2 shadow-lg">
-          <Button size="sm" variant="ghost" onClick={()=>openAction(source,'details')}>View details</Button>
-          <Button size="sm" variant="ghost" onClick={()=>openAction(source,'receive-goods')}>Receive Returned Products</Button>
-          <Button size="sm" variant="ghost" onClick={()=>setCorrectSource(source.id)}>Correct</Button>
-         </div></details>
-       </div>;
-      })}
-      {given.length===0&&<p className="p-8 text-center text-sm text-ink-500">No issued products yet.</p>}
-     </div>
-    </>}
+    {tab==='given'&&<VendorIssuedWorkspace
+     partyId={party.id} snapshot={snapshot} sources={given} sourceId={sourceId}
+     editing={editingGiven} onEditingChange={setEditingGiven} dirty={hasUnsavedGoods}
+     onDirtyChange={updateDirty} onAction={openAction} onCorrect={setCorrectSource}/>}
     {tab==='purchases'&&<>
      {editingPurchase?<div className="mb-4">
       <PurchaseEditor embedded initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
