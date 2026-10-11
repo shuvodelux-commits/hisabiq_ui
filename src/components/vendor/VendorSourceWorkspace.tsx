@@ -102,7 +102,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
   const canSettle=Boolean(pending&&(pending.unpricedBaseQty>0||(pending.monetaryDuePaisa??0)>0));
   const product=selected?products.find(p=>p.id===selected.productId):undefined;
   return <section role="region" aria-label={mode==='taken'?'Taken product workplace':'Given product workplace'}
-    className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.95fr)] lg:items-start">
+    className="grid min-w-0 gap-3 xl:grid-cols-[minmax(310px,0.82fr)_minmax(0,1.18fr)] lg:items-start">
     <div className="min-w-0 overflow-hidden rounded-lg border border-border bg-card">
       <div className="border-b border-border p-3">
         <h4 className="text-sm font-semibold text-ink">
@@ -137,7 +137,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
               <span className="mt-1 block text-[11px] text-ink-500">{g.lines.length} product(s) · {g.needsAction?'Needs settlement':'Settled'}</span>
             </span>
             <span className="shrink-0 text-right text-xs font-semibold text-ink">
-              {money(g.duePaisa)}
+              {g.unpriced&&!g.duePaisa?'Price pending':money(g.duePaisa)}
               {g.unpriced&&<span className="block text-[11px] font-normal text-warning">+ unknown cost</span>}
             </span>
             <ChevronRight className="size-4 shrink-0 text-ink-400"/>
@@ -148,8 +148,8 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
         </p>}
       </div>
     </div>
-    <div className="min-w-0 space-y-3 lg:sticky lg:top-4">
-      {selected?<div className="min-w-0 rounded-lg border border-border bg-card p-3 shadow-card">
+    <div className="min-w-0 xl:sticky xl:top-4">
+      {selected?<div className="min-w-0 rounded-lg border border-border bg-card p-4 shadow-card sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
           <div className="min-w-0">
             <h4 className="text-sm font-semibold text-ink">
@@ -165,10 +165,10 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
             className={'rounded-md border px-2.5 py-1.5 text-xs '+(selected.id===s.id?'border-teal-500 bg-teal-50 text-teal-800 dark:bg-teal-900/20 dark:text-teal-200':'border-border text-ink-600 hover:bg-ink-50')}>
             {productName(s)}</button>)}
         </div>}
-        <div className="grid grid-cols-2 gap-2 py-3 text-xs sm:grid-cols-3">
+        <div className="my-3 grid grid-cols-2 gap-3 rounded-lg border border-border bg-ink-50/50 p-3 text-xs sm:grid-cols-3">
           <div><span className="block text-ink-500">Product · পণ্য</span><strong className="text-ink">{product?.name??selected.productId}</strong></div>
-          <div><span className="block text-ink-500">Taken / given</span><strong className="text-ink">{selected.baseQty} {product?.unit??'units'}</strong></div>
-          <div><span className="block text-ink-500">Still due</span><strong className="text-ink">{pending?.monetaryDuePaisa===null?'Price not set':money(pending?.monetaryDuePaisa??0)}</strong></div>
+          <div><span className="block text-ink-500">Quantity · পরিমাণ</span><strong className="text-ink">{selected.baseQty} {product?.unit??'units'}</strong></div>
+          <div><span className="block text-ink-500">{mode==='taken'?'You owe · দেনা':'Vendor owes · পাওনা'}</span><strong className="text-ink">{pending?.monetaryDuePaisa===null?'Price not set':money(pending?.monetaryDuePaisa??0)}</strong></div>
         </div>
         {mode==='taken'? <div className="space-y-3">
           {pending&&pending.unpricedBaseQty>0&&<VendorPriceForm key={selected.id} source={selected}/>}
