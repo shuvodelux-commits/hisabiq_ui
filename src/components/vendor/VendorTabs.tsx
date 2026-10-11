@@ -45,6 +45,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [clearSourceId,setClearSourceId]=useState<string|null>(null);
  const [receivedSearch,setReceivedSearch]=useState('');
  const [receivedDismissed,setReceivedDismissed]=useState(false);
+ const [settlementRevision,setSettlementRevision]=useState(0);
  const [purchaseRevision,setPurchaseRevision]=useState(0);
  const [statementOpen,setStatementOpen]=useState(false);
  const [openingSide,setOpeningSide]=useState<VendorSide|null>(null);
@@ -65,7 +66,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   const outstanding=sourceOutstanding(snapshot,source.id);
   return outstanding.unpricedBaseQty>0||(outstanding.monetaryDuePaisa??0)>0;
  });
- const currentReceivedId=[clearSourceId,sourceId,receivedNeedsAttention[0]?.id,taken[0]?.id]
+ const currentReceivedId=[clearSourceId,sourceId,receivedNeedsAttention[0]?.id]
   .find(id=>id&&taken.some(source=>source.id===id))??null;
  const currentReceived=taken.find(source=>source.id===currentReceivedId)??null;
  const visibleReceived=taken.filter(source=>{
@@ -118,7 +119,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    setOpeningSide(null);setOpeningAmount('');setOpeningError('');
   }catch(e){setOpeningError(e instanceof Error?e.message:'Could not save opening balance.');}
  };
- const list=tab==='taken'?taken:given;
  return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
    <div className="flex min-w-0 items-center gap-3"><PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={46}/>
@@ -290,9 +290,9 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
          onCancel={()=>{setEditingTaken(false);updateDirty(false);setReceivedDismissed(false);}}
          onSaved={()=>{setEditingTaken(false);setReceivedDismissed(false);toast.success('Products saved in demo preview');}}/>:
         currentReceived&&!receivedDismissed?
-        <VendorClearDuePanel key={currentReceived.id} source={currentReceived}
+        <VendorClearDuePanel key={currentReceived.id+'-'+settlementRevision} source={currentReceived}
          onClose={()=>setReceivedDismissed(true)}
-         onSaved={()=>{setClearSourceId(null);setReceivedDismissed(false);}}/>:
+         onSaved={()=>{setClearSourceId(null);setReceivedDismissed(false);setSettlementRevision(n=>n+1);}}/>:
         <div className="flex min-h-40 flex-col items-center justify-center gap-3 p-5 text-center">
          <p className="text-sm text-ink-500">{currentReceived?'Select a received invoice to record a settlement.':'No received invoices yet.'}</p>
          {currentReceived?
