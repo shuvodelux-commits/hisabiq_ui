@@ -1,9 +1,10 @@
-import React,{useId,useMemo,useState} from 'react';
+import React,{useEffect,useId,useMemo,useState} from 'react';
 import {Link} from 'react-router-dom';
 import {Plus,Printer} from 'lucide-react';
 import {toast} from 'sonner';
 import {Button} from '../Button';
 import {Input} from '../Input';
+import {AppSelect} from '../AppSelect';
 import {PartyAvatar} from '../PartyAvatar';
 import {AppDateRangePicker} from '../AppDateRangePicker';
 import {VendorActionDialog,type VendorActionMode} from '../parties/VendorActionDialog';
@@ -41,9 +42,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [hasUnsavedGoods,setHasUnsavedGoods]=useState(false);
  const updateDirty=(value:boolean)=>{setHasUnsavedGoods(value);onDirtyChange(value);};
  const [editingGiven,setEditingGiven]=useState(false);
- const [editingPurchase,setEditingPurchase]=useState(false);
+ const [purchaseOpened,setPurchaseOpened]=useState(tab==='purchases');
 
  const [purchaseRevision,setPurchaseRevision]=useState(0);
+ useEffect(()=>{if(tab==='purchases')setPurchaseOpened(true);},[tab]);
  const [statementOpen,setStatementOpen]=useState(false);
 
  const [selectedSource,setSelectedSource]=useState<string|null>(sourceId);
@@ -63,15 +65,12 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const selectTab=(next:VendorWorkTab)=>{
   if(next!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
   if(next!==tab&&hasUnsavedGoods){updateDirty(false);setEditingTaken(false);setEditingGiven(false);}
-  if(next!==tab&&editingPurchase&&!window.confirm('Leave this Purchase form? Unsaved purchase products will be lost.'))return;
-  if(next!==tab&&editingPurchase){setEditingPurchase(false);onDirtyChange(false);}
   onTabChange(next);
  };
  const primary=()=>{
   if(tab==='ledger'){setStatementOpen(true);return;}
   if(tab==='taken'){setEditingTaken(true);return;}
   if(tab==='given'){setEditingGiven(true);return;}
-  if(tab==='purchases'){setEditingPurchase(true);return;}
   if(tab==='payments'){
    const first=due[0];
    if(first)openAction(first,first.sourceKind==='sourcing'?'pay':'receive-money');
@@ -89,7 +88,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    dispatchVendorPreview({type:'record-purchase-inventory',operationId:'vendor-normal-purchase:'+p.id,
     vendorPartyId:party.id,purchaseId:p.id,lines:(p.inventoryLines??[]).map(l=>({productId:l.productId,baseQty:l.quantity}))});
   }catch(e){toast.error('Purchase created in preview. Stock projection needs review: '+String(e));}
-  setPurchaseRevision(n=>n+1);setEditingPurchase(false);onDirtyChange(false);
+  setPurchaseRevision(n=>n+1);onDirtyChange(false);
  };
  return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
@@ -130,20 +129,18 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-3">
     <h3 className="text-sm font-semibold text-ink">{labels[tab].english} · <span className="font-bn font-normal text-ink-500">{labels[tab].bn}</span></h3>
     <div className="flex flex-wrap gap-2">
-     <Button type="button" size="sm" onClick={primary}>
+     {tab!=='purchases'&&<Button type="button" size="sm" onClick={primary}>
       {tab==='ledger'?<Printer className="size-4"/>:<Plus className="size-4"/>}
       {labels[tab].button}
-     </Button>
+     </Button>}
     </div>
    </div>
    <div className="p-3 sm:p-4">
     {tab==='ledger'&&<>
      <div className="mb-3 flex flex-wrap items-center gap-2">
-      <label className="text-xs text-ink-500">Account
-       <select aria-label="Vendor balance side" value={side} onChange={e=>setSide(e.target.value as VendorSide)}
-        className="ml-2 rounded-md border border-input bg-card px-2 py-2 text-sm text-ink">
-        <option value="payable">Taken · You owe</option><option value="receivable">Given · Vendor owes</option>
-       </select></label>
+      <div className="min-w-[195px]"><AppSelect label="Vendor balance side" value={side}
+        onChange={value=>setSide(value as VendorSide)}
+        options={[{value:'payable',label:'Taken · You owe'},{value:'receivable',label:'Given · Vendor owes'}]}/></div>
       <AppDateRangePicker value={range} onChange={setRange} label="Vendor ledger date range"/>
       {Boolean(range.from)!==Boolean(range.to)&&<span className="text-xs text-warning">Choose both dates to filter</span>}
       <Input className="w-full sm:ml-auto sm:w-56" value={query} onChange={e=>setQuery(e.target.value)}
@@ -200,20 +197,30 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       <VendorSourceWorkspace key={tab} mode={tab} sources={tab==='taken'?taken:given}
         snapshot={snapshot} sourceId={sourceId} onCorrect={setCorrectSource}/>
      </>}
-     {tab==='purchases'&&<>
-     {editingPurchase?<div className="mb-4">
-      <PurchaseEditor embedded initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
-       onCancel={()=>{setEditingPurchase(false);onDirtyChange(false);}}/>
-     </div>:null}
-     <div className="divide-y divide-border rounded-lg border border-border">
-      {purchases.map(p=><div key={p.id} className="flex flex-wrap items-center gap-3 p-3 text-xs">
-       <div className="min-w-0 flex-1"><strong>{p.ref}</strong><p className="text-ink-500">{p.date} · {p.items}</p></div>
-       <strong>{taka(p.total)}</strong><span className="text-ink-500">{p.total>p.paid?'Due '+taka(p.total-p.paid):'Paid'}</span>
-      </div>)}
-      {!purchases.length&&<p className="p-8 text-center text-sm text-ink-500">No purchases from this Vendor yet.</p>}
-     </div>
-    </>}
-    {tab==='payments'&&<>
+     {(tab==='purchases'||purchaseOpened)&&<div className={tab==='purchases'?'space-y-4':'hidden'} aria-hidden={tab!=='purchases'}>
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-ink-50/40 px-3 py-2">
+        <div><strong className="text-sm text-ink">New purchase · নতুন ক্রয়</strong>
+         <p className="text-xs text-ink-500">The existing Purchase cart opens automatically. Vendor is selected.</p></div>
+        <span className="text-xs text-ink-500">{purchases.length} previous invoice(s)</span>
+      </div>
+      <div onChangeCapture={()=>onDirtyChange(true)}>
+        <PurchaseEditor key={purchaseRevision} embedded active={tab==='purchases'}
+          initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
+          onCancel={()=>{setPurchaseRevision(n=>n+1);onDirtyChange(false);}}/>
+      </div>
+      <section className="overflow-hidden rounded-lg border border-border">
+        <div className="border-b border-border bg-ink-50/40 px-3 py-2 text-sm font-semibold text-ink">Previous purchases · আগের ক্রয়</div>
+        <div className="divide-y divide-border">
+          {purchases.map(p=><div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 p-3 text-xs">
+            <div className="min-w-0"><strong className="text-ink">{p.ref}</strong><p className="truncate text-ink-500">{p.date} · {p.items}</p></div>
+            <strong className="text-ink">{taka(p.total)}</strong>
+            <span className="text-ink-500">{p.total>p.paid?'Due '+taka(p.total-p.paid):'Paid'}</span>
+          </div>)}
+          {!purchases.length&&<p className="p-6 text-center text-sm text-ink-500">No purchases from this Vendor yet.</p>}
+        </div>
+      </section>
+     </div>}
+     {tab==='payments'&&<>
      <p className="mb-3 text-xs text-ink-500">Choose the bill you are paying or receiving money for. Payments remain linked to that record.</p>
      <div className="divide-y divide-border rounded-lg border border-border">
       {due.map(s=>{
