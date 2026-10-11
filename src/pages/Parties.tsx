@@ -6,7 +6,7 @@ import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
-import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
+import {getVendorPreviewSnapshot,subscribeVendorPreview,dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import {projectVendorPartyProfile} from '../vendor/vendorPartyProjection';
 import {vendorWorkLink,type VendorWorkTab,type VendorPaymentIntent} from '../vendor/vendorRoute';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
@@ -157,7 +157,7 @@ export function Parties() {
          if(value==='All')next.delete('role');else next.set('role',value);setParams(next);
         }} query={query} onQuery={setQuery}/>
       {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
-        vendorProfile={vendorProfile}
+        vendorProfile={vendorProfile} vendorOpenings={vendorState.openings}
         onOpenVendorWork={(tab?:VendorWorkTab,sourceId?:string,intent?:VendorPaymentIntent)=>
           navigate(vendorWorkLink(party.id,tab,sourceId,intent))}
         relationship={relationship} onRoleChange={changeRole}
@@ -175,7 +175,18 @@ export function Parties() {
         onRecordPayment={payload=>{dispatchPartyPreview({type:'record-payment',payload});toast.success('Payment recorded in preview (no bank posting)');}}
         onRefundCredit={payload=>{dispatchPartyPreview({type:'refund-credit',payload});toast.success('Credit refund recorded in preview (no bank posting)');}}
         onRecordFinance={payload=>{dispatchPartyPreview({type:'record-finance',payload});toast.success('Capital / loan transaction saved in preview (no bank posting)');}}
-        onSetOpening={payload=>{dispatchPartyPreview({type:'set-opening',payload});toast.success('Opening balance updated in preview; previous amount retained in audit');}}
+        onSetOpening={payload=>{
+         if(payload.relationship==='Vendor'){
+          if(!Number.isFinite(payload.amount)||payload.amount<0||
+             Math.abs(payload.amount-Math.round(payload.amount*100)/100)>1e-7)
+           throw new Error('Opening amount must be nonnegative with at most two decimal places.');
+          dispatchVendorPreview({type:'update-opening',
+           operationId:'vendor-party-opening:'+payload.partyId+':'+vendorState.revision,
+           vendorPartyId:payload.partyId,side:payload.side==='credit'?'payable':'receivable',
+           amountPaisa:Math.round(payload.amount*100),date:payload.date,reason:payload.note});
+         }else dispatchPartyPreview({type:'set-opening',payload});
+         toast.success('Opening balance updated in preview; previous entry preserved in audit');
+        }}
         onEditSourcePayment={(sourceId,payload,reason)=>{
           dispatchPartyPreview({type:'edit-source-payment',sourceId,payload,reason});
           toast.success('Preview payment corrected; dependent balances recalculated');
