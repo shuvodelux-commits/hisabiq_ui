@@ -16,6 +16,17 @@ async function main(){
   assert.equal(await page.getByRole('tab',{name:/Attachments/}).count(),1);
   await page.getByText('Amount Payable · দেনা').first().waitFor();
   await page.getByText('Amount Receivable · পাওনা').first().waitFor();
+  await page.getByRole('button',{name:/Opening Balance/}).click();
+  const vendorOpening=page.getByRole('dialog',{name:'Party opening balance'});
+  await vendorOpening.waitFor();
+  await vendorOpening.getByRole('textbox',{name:'Opening balance amount'}).fill('300');
+  await vendorOpening.getByRole('button',{name:'Save opening balance'}).click();
+  await vendorOpening.waitFor({state:'hidden'});
+  await page.getByRole('button',{name:/Opening Balance/}).click();
+  await vendorOpening.getByRole('textbox',{name:'Opening balance amount'}).fill('220');
+  await vendorOpening.getByRole('button',{name:'Save opening balance'}).click();
+  await vendorOpening.waitFor({state:'hidden'});
+  await page.getByText('৳220').first().waitFor();
   await page.getByRole('button',{name:/Open Vendor Sourcing/}).click();
   await page.getByRole('region',{name:'Vendor Sourcing module'}).waitFor();
   assert.ok(page.url().includes('partyId=v1'));
