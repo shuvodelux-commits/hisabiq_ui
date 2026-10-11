@@ -8,14 +8,14 @@ import {products} from '../../data/products';
 import {taka} from '../../utils/currency';
 import type {VendorLedgerEvent,VendorPreviewState,VendorSource} from '../../vendor/vendorTypes';
 
-type Props={partyId:string;state:VendorPreviewState;sources:VendorSource[];
+type Props={partyId:string;state:VendorPreviewState;sources:VendorSource[];sourceId?:string|null;
  onReview:(event:VendorLedgerEvent)=>void;onOpenTaken:()=>void};
 const money=(paisa:number)=>taka(paisa/100);
 
 /** Selecting a pending source reveals the shared money form in place — no second modal or amount entry. */
-export function VendorPaymentsWorkspace({partyId,state,sources,onReview,onOpenTaken}:Props){
+export function VendorPaymentsWorkspace({partyId,state,sources,sourceId,onReview,onOpenTaken}:Props){
  const [search,setSearch]=useState('');
- const [selectedId,setSelectedId]=useState<string|null>(null);
+ const [selectedId,setSelectedId]=useState<string|null>(sourceId??null);
  const due=sources.filter(s=>s.unitCostBasePaisa!==null&&
   (sourceOutstanding(state,s.id).monetaryDuePaisa??0)>0);
  const shown=due.filter(s=>(s.reference+' '+s.productId+' '+
