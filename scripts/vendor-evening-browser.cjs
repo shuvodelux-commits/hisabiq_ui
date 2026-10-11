@@ -19,7 +19,6 @@ async function main(){
   await clear.getByRole('textbox',{name:'Money from account 1'}).fill('200');
   await clear.getByRole('button',{name:'Save Due Change'}).click();
   await vendor.getByText('৳130').first().waitFor();
-  await vendor.getByRole('button',{name:'Clear Due'}).first().click();
   await clear.getByRole('textbox',{name:'Products to return'}).fill('1');
   await clear.getByRole('button',{name:'Save Due Change'}).click();
   await clear.waitFor({state:'hidden'});
