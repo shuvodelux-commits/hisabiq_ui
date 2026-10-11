@@ -19,7 +19,7 @@ export function VendorPurchasesWorkspace({
  const records=purchases.filter(p=>p.supplierId===partyId);
  const filtered=records.filter(p=>[p.ref,p.date,p.items].some(x=>String(x??'').toLowerCase().includes(search.trim().toLowerCase())));
  const selected=records.find(p=>p.id===selectedId)??records.find(p=>p.total>p.paid)??records[0]??null;
- const list=<section aria-label="Vendor purchase invoices" className="rounded-lg border border-border bg-card">
+ const list=<section data-testid="vendor-purchases-list" aria-label="Vendor purchase invoices" className="rounded-lg border border-border bg-card">
   <div className="flex justify-between gap-2 border-b border-border px-3 py-2.5">
    <h4 className="text-xs font-semibold text-ink">Purchase invoices · <span className="font-bn font-normal text-ink-500">ক্রয়ের বিল</span></h4>
    <span className="text-xs text-ink-500">{records.length} invoices</span>
@@ -41,7 +41,7 @@ export function VendorPurchasesWorkspace({
     {records.length?'No matching Purchase invoices.':'No purchases from this Vendor yet.'}</p>}
   </div>
  </section>;
- const detail=<section aria-label="Selected Vendor purchase" className="rounded-lg border border-border bg-card p-3 shadow-xs sm:p-4">
+ const detail=<section data-testid="vendor-purchases-detail" aria-label="Selected Vendor purchase" className="rounded-lg border border-border bg-card p-3 shadow-xs sm:p-4">
   {editing?<PurchaseEditor embedded initialSupplierId={partyId} lockedSupplierId={partyId}
    onCompleted={onSave} onCancel={()=>{onDirtyChange(false);onEditingChange(false);}}/>:
    selected?<div className="space-y-4">
