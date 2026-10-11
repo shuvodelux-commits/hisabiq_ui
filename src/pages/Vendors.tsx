@@ -29,7 +29,7 @@ export function Vendors(){
  const [dirty,setDirty]=useState(false);
  const change=(nextId:string|null,tab?:VendorWorkTab,sourceId?:string)=>{
   if(party?.id!==nextId&&dirty&&typeof window!=='undefined'&&!window.confirm('You have unsaved products. Leave without saving?'))return;
-  setDirty(false);
+  if(party?.id!==nextId)setDirty(false);
   if(!nextId){setParams({});return;}
   const q=new URLSearchParams({partyId:nextId});
   if(tab)q.set('tab',tab);
