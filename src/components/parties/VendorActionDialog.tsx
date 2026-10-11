@@ -1,7 +1,8 @@
 import React,{useEffect,useState} from 'react';
 import {Button} from '../Button';
 import {Input} from '../Input';
-import {AppSelect} from '../AppSelect';
+import {FinancePaymentSplitEditor,type FinancePaymentDraft} from '../finance/FinancePaymentSplitEditor';
+import {vendorPaymentSplits} from '../../vendor/vendorPaymentAdapter';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '../Dialog';
 import {taka} from '../../utils/currency';
 import {businessToday} from '../../utils/dateRange';
@@ -12,8 +13,7 @@ import type {VendorSource,VendorSettlementKind} from '../../vendor/vendorTypes';
 import {products} from '../../data/products';
 
 export type VendorActionMode='details'|'quote'|'pay'|'return'|'receive-money'|'receive-goods';
-type Props={source:VendorSource|null;mode?:VendorActionMode;onClose:()=>void};
-type SplitDraft={id:string;accountId:string;amount:string};
+type Props={source:VendorSource|null;mode?:VendorActionMode;onClose:()=>void;onSaved?:()=>void;embedded?:boolean};
 const accounts=financeAccounts.filter(a=>a.status==='Active'&&['Cash','Bank','Mobile Banking'].includes(a.type));
 const toPaisa=(value:string,label:string):number=>{
  const n=Number(value);
@@ -22,14 +22,14 @@ const toPaisa=(value:string,label:string):number=>{
   throw new Error(label+' must be positive with at most two decimal places.');
  return Math.round(n*100);
 };
-export function VendorActionDialog({source,mode='details',onClose}:Props){
+export function VendorActionDialog({source,mode='details',onClose,onSaved,embedded=false}:Props){
  const product=products.find(p=>p.id===source?.productId);
  const [price,setPrice]=useState('');
  const [amount,setAmount]=useState('');
  const [qty,setQty]=useState('');
- const [splits,setSplits]=useState<SplitDraft[]>([{id:'primary',accountId:'acc-cash',amount:''}]);
+ const [splits,setSplits]=useState<FinancePaymentDraft[]>([{id:'primary',method:'Cash',accountId:'acc-cash',amount:''}]);
  const [error,setError]=useState('');
- useEffect(()=>{setPrice('');setAmount('');setQty('');setSplits([{id:'primary',accountId:'acc-cash',amount:''}]);setError('');},
+ useEffect(()=>{setPrice('');setAmount('');setQty('');setSplits([{id:'primary',method:'Cash',accountId:'acc-cash',amount:''}]);setError('');},
   [source?.id,mode]);
  const submit=()=>{
   if(!source)return;
@@ -48,13 +48,7 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
     const pricePaisa=source.unitCostBasePaisa;
     const paidPaisa=moneyAction?toPaisa(amount,'Payment amount'):null;
     const returnPaisa=moneyAction?null:pricePaisa===null?null:Math.round(count!*pricePaisa);
-    const rows=moneyAction?splits.map((split,i)=>{
-     const account=accounts.find(a=>a.id===split.accountId);
-     if(!account)throw new Error('Choose a valid payment account.');
-     const splitAmount=splits.length===1&&!split.amount.trim()?paidPaisa!:toPaisa(split.amount,'Split amount');
-     return {id:split.id+'-'+i,accountId:account.id,
-      method:account.type as 'Cash'|'Bank'|'Mobile Banking',amountPaisa:splitAmount};
-    }):undefined;
+    const rows=moneyAction?vendorPaymentSplits(splits,accounts,paidPaisa!):undefined;
     const kind:VendorSettlementKind=mode==='return'?'return-to-vendor':mode==='receive-goods'?'receive-goods':mode;
     dispatchVendorPreview({type:'settle-source',operationId:op,vendorPartyId:source.vendorPartyId,
      side:kind==='pay'||kind==='return-to-vendor'?'payable':'receivable',
@@ -62,7 +56,7 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
      allocations:[{sourceId:source.id,amountPaisa:paidPaisa??returnPaisa,baseQty:count}],
      paymentSplits:rows,reason:moneyAction?'Demo money settlement':'Matching products handed over in demo'});
    }
-   onClose();
+   (onSaved??onClose)();
   }catch(err){setError(err instanceof Error?err.message:'Vendor action failed.');}
  };
  const isReadOnly=mode==='details';
@@ -71,9 +65,7 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
   mode==='pay'?'Make Payment · টাকা দিন':mode==='return'?'Return Products':
   mode==='receive-money'?'Receive Payment':'Receive Returned Products';
  const outstanding=source?sourceOutstanding(getVendorPreviewSnapshot(),source.id):null;
- return <Dialog open={!!source} onOpenChange={v=>!v&&onClose()}>
-  <DialogContent role="dialog" aria-label={isReadOnly?'Vendor source details':'Vendor settlement'}
-    className="max-h-[92vh] overflow-y-auto sm:max-w-md">
+ const content=<>
    <DialogHeader>
     <DialogTitle>{title}</DialogTitle>
     <DialogDescription>Demo preview — not accounting records, real cashbook or posted inventory.</DialogDescription>
@@ -97,21 +89,11 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
      {(mode==='pay'||mode==='receive-money')&&<>
       <label className="block space-y-1 text-xs font-medium text-ink">
        Amount (৳)
-       <Input aria-label={mode==='pay'?'Pay amount':'Receive amount'} value={amount} inputMode="decimal" onChange={e=>setAmount(e.target.value)}/>
+       <Input aria-label={mode==='pay'?'Pay amount':'Receive amount'} value={amount} inputMode="decimal" onChange={e=>{setAmount(e.target.value);if(splits.length===1)setSplits([{...splits[0],amount:e.target.value}]);}}/>
       </label>
-      <div className="space-y-2 rounded-lg border border-border p-2">
-       <p className="text-xs font-semibold text-ink">Payment sources · একাধিক পেমেন্ট</p>
-       {splits.map((split,i)=><div key={split.id} className="grid grid-cols-[minmax(0,1fr)_95px] items-center gap-2">
-        <AppSelect label={'Payment account '+(i+1)} value={split.accountId}
-         options={accounts.map(a=>({value:a.id,label:a.name}))}
-         onChange={v=>setSplits(prev=>prev.map(row=>row.id===split.id?{...row,accountId:v}:row))}/>
-        <Input aria-label={'Split amount '+(i+1)} inputMode="decimal" value={split.amount}
-         placeholder={splits.length===1?'All':''} onChange={e=>setSplits(prev=>prev.map(row=>row.id===split.id?{...row,amount:e.target.value}:row))}/>
-       </div>)}
-       <Button type="button" size="sm" variant="outline" onClick={()=>setSplits(prev=>[...prev,{id:'split-'+prev.length,accountId:'acc-cash',amount:''}])}>+ Payment source</Button>
-       {splits.length>1&&<Button type="button" size="sm" variant="ghost" onClick={()=>setSplits(prev=>prev.slice(0,-1))}>Remove last</Button>}
-       <p className="text-[11px] text-ink-500">Demo allocation only; account balances will not change.</p>
-      </div>
+      <FinancePaymentSplitEditor accounts={accounts} rows={splits}
+       onChange={setSplits} totalAmount={Number(amount)||0}
+       amountAriaLabel={index=>'Split amount '+(index+1)}/>
      </>}
      {(mode==='return'||mode==='receive-goods')&&<label className="block space-y-1 text-xs font-medium text-ink">
       Matching product quantity · ফেরত পণ্য
@@ -127,6 +109,12 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
       mode==='return'?'Record demo return':mode==='receive-money'?'Record demo receipt':'Record demo goods receipt'}
     </Button>}
    </div>
-  </DialogContent>
+
+ </>;
+ if(embedded)return <section data-testid="vendor-inline-source-action" aria-label="Vendor source action"
+  className="space-y-3 text-sm">{content}</section>;
+ return <Dialog open={!!source} onOpenChange={v=>!v&&onClose()}>
+  <DialogContent role="dialog" aria-label={isReadOnly?'Vendor source details':'Vendor settlement'}
+   className="max-h-[92vh] overflow-y-auto sm:max-w-md">{content}</DialogContent>
  </Dialog>;
 }
