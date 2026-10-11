@@ -227,9 +227,9 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       </div>}
     </>}
     {tab==='taken'&&
-     <div data-testid="vendor-received-workspace" className="grid min-w-0 items-start gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+     <div data-testid="vendor-received-workspace" className="grid min-w-0 items-start gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
       <section data-testid="vendor-received-memo-list"
-       aria-label="Received invoices" className={'min-w-0 rounded-lg border border-border bg-card '+(editingTaken?'xl:hidden':'')}>
+       aria-label="Received invoices" className={'min-w-0 rounded-lg border border-border bg-card '+(editingTaken?'lg:hidden':'')}>
        <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
         <h4 className="text-xs font-semibold text-ink">Received invoices <span className="font-bn font-normal text-ink-500">· প্রাপ্ত পণ্য</span></h4>
         <span className="text-xs text-ink-500">{taken.length} records</span>
@@ -284,7 +284,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
        </div>
       </section>
       <section data-testid="vendor-received-detail" aria-label="Received products workspace"
-       className={'min-w-0 rounded-lg border border-border bg-card p-3 shadow-xs sm:p-4 '+(editingTaken?'xl:col-span-2':'')}>
+       className={'min-w-0 rounded-lg border border-border bg-card p-3 shadow-xs sm:p-4 '+(editingTaken?'lg:col-span-2':'')}>
        {editingTaken?
         <VendorGoodsEditor partyId={party.id} mode="taken" onDirtyChange={updateDirty}
          onCancel={()=>{setEditingTaken(false);updateDirty(false);setReceivedDismissed(false);}}
