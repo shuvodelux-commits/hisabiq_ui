@@ -23,12 +23,12 @@ import type {VendorLedgerEvent,VendorPreviewState,VendorSide} from '../../vendor
 
 type Props={party:Party;snapshot:VendorPreviewState;purchases:Purchase[];
  tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void};
-const labels:Record<VendorWorkTab,{english:string;bn:string;button:string}>={
+const labels:Record<VendorWorkTab,{english:string;bn:string;button?:string}>={
  ledger:{english:'Ledger',bn:'হিসাব',button:'Print Ledger'},
  taken:{english:'Taken',bn:'নেওয়া পণ্য',button:'Take Products'},
  given:{english:'Given',bn:'দেওয়া পণ্য',button:'Give Products'},
- purchases:{english:'Purchases',bn:'কেনাকাটা',button:'Buy Products'},
- payments:{english:'Payments',bn:'টাকা লেনদেন',button:'Record Payment'}
+ purchases:{english:'Purchases',bn:'ক্রয়'},
+ payments:{english:'Payments',bn:'পেমেন্ট'}
 };
 const money=(v:number)=>taka(v/100);
 export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,onDirtyChange}:Props){
@@ -85,11 +85,11 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      {party.nameBn&&<span className="ml-2 font-bn text-sm font-normal text-ink-500">{party.nameBn}</span>}</h2>
      <p className="text-xs text-ink-500">{party.phone} · {party.area}</p></div></div>
    <Link to={'/app/parties?id='+encodeURIComponent(party.id)+'&role=Vendor'}
-    className="rounded-md border border-border px-3 py-2 text-xs text-ink-600 hover:bg-ink-50">View Party · পার্টি দেখুন</Link>
+    className="rounded-md border border-border px-3 py-2 text-xs text-ink-600 hover:bg-ink-50">Party Profile · পার্টি</Link>
   </div>
   <div className="grid grid-cols-2 gap-2 border-b border-border p-3 lg:grid-cols-4">
    {([{title:'You owe · দেনা',value:money(profile.summary.takenDuePaisa),target:'taken'},
-    {title:'Price not set · দাম ঠিক হয়নি',value:profile.summary.priceNotSetBaseQty+' units',target:'taken'},
+    {title:'Price not set · দাম ঠিক হয়নি',value:profile.takenStatement.unpricedSources.length+' memos',target:'taken'},
     {title:'Vendor owes · পাওনা',value:money(profile.summary.givenDuePaisa),target:'given'},
     {title:'Purchase due · ক্রয়ের বাকি',value:money(profile.summary.purchaseDuePaisa),target:'purchases'}] as const).map(item=>
     <button type="button" key={item.title} onClick={()=>selectTab(item.target)}
@@ -114,16 +114,13 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
   </div>
   <section id={base+'-panel'} role="tabpanel" aria-labelledby={base+'-'+tab} className="min-w-0">
-   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-3">
-    <h3 className="text-sm font-semibold text-ink">{labels[tab].english} · <span className="font-bn font-normal text-ink-500">{labels[tab].bn}</span></h3>
-    <div className="flex flex-wrap gap-2">
-     {tab!=='purchases'&&tab!=='payments'&&<Button type="button" size="sm" onClick={primary}>
+   {(tab==='ledger'||tab==='taken'||tab==='given')&&<div className="flex justify-end border-b border-border px-3 py-2">
+     <Button type="button" size="sm" onClick={primary}>
       {tab==='ledger'?<Printer className="size-4"/>:<Plus className="size-4"/>}
       {labels[tab].button}
-     </Button>}
-    </div>
-   </div>
-   <div className="p-3 sm:p-4">
+     </Button>
+    </div>}
+    <div className="p-3 sm:p-4">
     {tab==='ledger'&&<>
      <div className="mb-3 flex flex-wrap items-center gap-2">
       <div className="min-w-[195px]"><AppSelect label="Vendor balance side" value={side}
@@ -180,23 +177,21 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       {(tab==='taken'?editingTaken:editingGiven)&&<div className="mb-4">
        <VendorGoodsEditor partyId={party.id} mode={tab} onDirtyChange={updateDirty}
         onCancel={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);updateDirty(false);}}
-        onSaved={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);toast.success('Products saved in demo preview');}}/>
+        onSaved={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);toast.success('Products saved · Preview only');}}/>
       </div>}
       <VendorSourceWorkspace key={tab} mode={tab} sources={tab==='taken'?taken:given}
         snapshot={snapshot} sourceId={sourceId} onCorrect={setCorrectSource}/>
      </>}
      {(tab==='purchases'||purchaseOpened)&&<div className={tab==='purchases'?'space-y-4':'hidden'} aria-hidden={tab!=='purchases'}>
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-ink-50/40 px-3 py-2">
-        <div><strong className="text-sm text-ink">New purchase · নতুন ক্রয়</strong>
-         <p className="text-xs text-ink-500">The existing Purchase cart opens automatically. Vendor is selected.</p></div>
-        <span className="text-xs text-ink-500">{purchases.length} previous invoice(s)</span>
-      </div>
       <div onChangeCapture={()=>onDirtyChange(true)}>
         <PurchaseEditor key={purchaseRevision} embedded active={tab==='purchases'}
           initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
           onCancel={()=>{setPurchaseRevision(n=>n+1);onDirtyChange(false);}}/>
       </div>
-      <section className="overflow-hidden rounded-lg border border-border">
+      <details className="overflow-hidden rounded-lg border border-border">
+       <summary className="cursor-pointer bg-ink-50/40 px-3 py-2 text-sm font-semibold text-ink">
+        Previous Purchases · আগের ক্রয় ({purchases.length})
+       </summary>
         <div className="border-b border-border bg-ink-50/40 px-3 py-2 text-sm font-semibold text-ink">Previous purchases · আগের ক্রয়</div>
         <div className="divide-y divide-border">
           {purchases.map(p=><div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 p-3 text-xs">
@@ -206,11 +201,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
           </div>)}
           {!purchases.length&&<p className="p-6 text-center text-sm text-ink-500">No purchases from this Vendor yet.</p>}
         </div>
-      </section>
+      </details>
      </div>}
      {tab==='payments'&&<>
-      <VendorPaymentsWorkspace partyId={party.id} state={snapshot} sources={activeSources} sourceId={sourceId}
-       onReview={review} onOpenTaken={()=>selectTab('taken')}/>
+      <VendorPaymentsWorkspace state={snapshot} sources={activeSources} sourceId={sourceId}/>
       {profile.summary.purchaseDuePaisa>0&&<p className="mt-3 rounded-md bg-ink-50 p-3 text-xs text-ink-500">
        Ordinary Purchase due {money(profile.summary.purchaseDuePaisa)} stays linked to its Purchase invoice.
       </p>}
