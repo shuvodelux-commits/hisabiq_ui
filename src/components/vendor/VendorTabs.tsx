@@ -10,7 +10,7 @@ import {VendorActionDialog,type VendorActionMode} from '../parties/VendorActionD
 import {VendorCorrectionDialog} from '../parties/VendorCorrectionDialog';
 import {VendorStatementDialog} from '../parties/VendorStatementDialog';
 import {VendorGoodsEditor} from './VendorGoodsEditor';
-import {VendorClearDuePanel} from './VendorClearDuePanel';
+import {VendorReceivedWorkspace} from './VendorReceivedWorkspace';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
@@ -42,10 +42,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const updateDirty=(value:boolean)=>{setHasUnsavedGoods(value);onDirtyChange(value);};
  const [editingGiven,setEditingGiven]=useState(false);
  const [editingPurchase,setEditingPurchase]=useState(false);
- const [clearSourceId,setClearSourceId]=useState<string|null>(null);
- const [receivedSearch,setReceivedSearch]=useState('');
- const [receivedDismissed,setReceivedDismissed]=useState(false);
- const [settlementRevision,setSettlementRevision]=useState(0);
  const [purchaseRevision,setPurchaseRevision]=useState(0);
  const [statementOpen,setStatementOpen]=useState(false);
  const [openingSide,setOpeningSide]=useState<VendorSide|null>(null);
@@ -61,19 +57,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const activeSources=snapshot.sources.filter(s=>s.vendorPartyId===party.id&&s.status==='Active');
  const taken=activeSources.filter(s=>s.sourceKind==='sourcing');
  const given=activeSources.filter(s=>s.sourceKind==='issue');
- // Keep the first unsettled receipt selected unless a row or deep link was chosen.
- const receivedNeedsAttention=taken.filter(source=>{
-  const outstanding=sourceOutstanding(snapshot,source.id);
-  return outstanding.unpricedBaseQty>0||(outstanding.monetaryDuePaisa??0)>0;
- });
- const currentReceivedId=[clearSourceId,sourceId,receivedNeedsAttention[0]?.id]
-  .find(id=>id&&taken.some(source=>source.id===id))??null;
- const currentReceived=taken.find(source=>source.id===currentReceivedId)??null;
- const visibleReceived=taken.filter(source=>{
-  const product=products.find(p=>p.id===source.productId);
-  return [source.reference??source.id,product?.name,source.date]
-   .some(value=>(value??'').toLowerCase().includes(receivedSearch.trim().toLowerCase()));
- });
  const due=activeSources.filter(s=>(s.unitCostBasePaisa!==null&&(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0));
  const activity=profile.activity.filter(x=>(x.reference+' '+x.description).toLowerCase().includes(query.toLowerCase()));
  const selected=selectedSource?snapshot.sources.find(s=>s.id===selectedSource)??null:null;
@@ -87,7 +70,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  };
  const primary=()=>{
   if(tab==='ledger'){setStatementOpen(true);return;}
-  if(tab==='taken'){setReceivedDismissed(false);setEditingTaken(true);return;}
+  if(tab==='taken'){setEditingTaken(true);return;}
   if(tab==='given'){setEditingGiven(true);return;}
   if(tab==='purchases'){setEditingPurchase(true);return;}
   if(tab==='payments'){
@@ -226,81 +209,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         </div>)}
       </div>}
     </>}
-    {tab==='taken'&&
-     <div data-testid="vendor-received-workspace" className="grid min-w-0 items-start gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-      <section data-testid="vendor-received-memo-list"
-       aria-label="Received invoices" className={'min-w-0 rounded-lg border border-border bg-card '+(editingTaken?'lg:hidden':'')}>
-       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
-        <h4 className="text-xs font-semibold text-ink">Received invoices <span className="font-bn font-normal text-ink-500">· প্রাপ্ত পণ্য</span></h4>
-        <span className="text-xs text-ink-500">{taken.length} records</span>
-       </div>
-       <div className="border-b border-border px-3 py-2">
-        <Input aria-label="Search received invoices" placeholder="Search memo or product"
-         value={receivedSearch} onChange={event=>setReceivedSearch(event.target.value)}/>
-       </div>
-       <div className="max-h-[min(70vh,700px)] divide-y divide-border overflow-y-auto">
-        {visibleReceived.map(source=>{
-         const p=products.find(x=>x.id===source.productId);
-         const outstanding=sourceOutstanding(snapshot,source.id);
-         const moneyDue=outstanding.monetaryDuePaisa??0;
-         const active=!editingTaken&&!receivedDismissed&&currentReceivedId===source.id;
-         return <div key={source.id} className={'flex min-w-0 items-start gap-2 p-2.5 '+(active?'bg-teal-50/70 dark:bg-teal-900/20':'hover:bg-ink-50/40')}>
-          <button type="button" aria-pressed={active}
-           className="min-w-0 flex-1 rounded-md px-1 py-0.5 text-left focus-visible:outline-2 focus-visible:outline-teal-600"
-           onClick={()=>{
-            if(editingTaken&&hasUnsavedGoods&&!window.confirm('Leave the unsaved receipt?'))return;
-            if(editingTaken)updateDirty(false);
-            setEditingTaken(false);setClearSourceId(source.id);setReceivedDismissed(false);
-           }}>
-           <span className="block truncate text-xs font-semibold text-ink">{source.reference??source.id} · {p?.name??source.productId}</span>
-           <span className="mt-1 block text-[11px] text-ink-500">{source.date} · {source.baseQty-outstanding.returnedBaseQty} {p?.unit??'units'} outstanding</span>
-           <span className={'mt-1 block text-xs font-medium '+(source.unitCostBasePaisa===null?'text-warning':'text-ink')}>
-            {source.unitCostBasePaisa===null?'Price not set · দাম ঠিক হয়নি':money(moneyDue)+' due'}
-           </span>
-          </button>
-          <div className="flex shrink-0 flex-col items-end gap-1">
-           {source.unitCostBasePaisa===null&&
-            <Button type="button" size="sm" variant="outline" onClick={()=>openAction(source,'quote')}>Set Price</Button>}
-           {(outstanding.unpricedBaseQty>0||moneyDue>0)&&
-            <Button type="button" size="sm" variant="outline" onClick={()=>{
-             if(editingTaken&&hasUnsavedGoods&&!window.confirm('Leave the unsaved receipt?'))return;
-             if(editingTaken)updateDirty(false);
-             setEditingTaken(false);setClearSourceId(source.id);setReceivedDismissed(false);
-            }}>Record Settlement</Button>}
-           <details className="relative text-xs"><summary className="cursor-pointer rounded border border-border px-2 py-1">More</summary>
-            <div className="absolute right-0 top-full z-20 min-w-36 space-y-1 rounded-lg border border-border bg-card p-2 shadow-lg">
-             <Button size="sm" variant="ghost" onClick={()=>openAction(source,'details')}>View details</Button>
-             <Button size="sm" variant="ghost" onClick={()=>openAction(source,'return')}>Return Products</Button>
-             <Button size="sm" variant="ghost" onClick={()=>setCorrectSource(source.id)}>Correct</Button>
-            </div>
-           </details>
-          </div>
-         </div>;
-        })}
-        {visibleReceived.length===0&&
-         <p className="px-3 py-8 text-center text-xs text-ink-500">
-          {taken.length?'No matching received invoices.':'No received products yet. Use Receive Products to add the first memo.'}
-         </p>}
-       </div>
-      </section>
-      <section data-testid="vendor-received-detail" aria-label="Received products workspace"
-       className={'min-w-0 rounded-lg border border-border bg-card p-3 shadow-xs sm:p-4 '+(editingTaken?'lg:col-span-2':'')}>
-       {editingTaken?
-        <VendorGoodsEditor partyId={party.id} mode="taken" onDirtyChange={updateDirty}
-         onCancel={()=>{setEditingTaken(false);updateDirty(false);setReceivedDismissed(false);}}
-         onSaved={()=>{setEditingTaken(false);setReceivedDismissed(false);toast.success('Products saved in demo preview');}}/>:
-        currentReceived&&!receivedDismissed?
-        <VendorClearDuePanel key={currentReceived.id+'-'+settlementRevision} source={currentReceived}
-         onClose={()=>setReceivedDismissed(true)}
-         onSaved={()=>{setClearSourceId(null);setReceivedDismissed(false);setSettlementRevision(n=>n+1);}}/>:
-        <div className="flex min-h-40 flex-col items-center justify-center gap-3 p-5 text-center">
-         <p className="text-sm text-ink-500">{currentReceived?'Select a received invoice to record a settlement.':'No received invoices yet.'}</p>
-         {currentReceived?
-          <Button size="sm" onClick={()=>setReceivedDismissed(false)}>Open Settlement</Button>:
-          <Button size="sm" onClick={()=>{setEditingTaken(true);setReceivedDismissed(false);}}>Receive Products</Button>}
-        </div>}
-      </section>
-     </div>}
+    {tab==='taken'&&<VendorReceivedWorkspace
+     partyId={party.id} snapshot={snapshot} sources={taken} sourceId={sourceId}
+     editing={editingTaken} onEditingChange={setEditingTaken} dirty={hasUnsavedGoods}
+     onDirtyChange={updateDirty} onAction={openAction} onCorrect={setCorrectSource}/>}
     {tab==='given'&&<>
      {editingGiven&&<div className="mb-4">
       <VendorGoodsEditor partyId={party.id} mode="given" onDirtyChange={updateDirty}
