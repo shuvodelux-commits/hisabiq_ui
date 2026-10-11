@@ -1,5 +1,4 @@
 import React,{useState} from 'react';
-import {Button} from '../Button';
 import {Input} from '../Input';
 import {VendorMasterDetailLayout} from './VendorMasterDetailLayout';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
@@ -60,7 +59,7 @@ export function VendorPurchasesWorkspace({
    </div>:
    <div className="flex min-h-40 flex-col items-center justify-center gap-3 p-5 text-center">
     <p className="text-sm text-ink-500">No purchases from this Vendor yet.</p>
-    <Button size="sm" onClick={()=>onEditingChange(true)}>Buy Products</Button>
+    <p className="text-xs text-ink-500">Use Buy Products in the tab toolbar to record a purchase.</p>
    </div>}
  </section>;
  return <VendorMasterDetailLayout testId="vendor-purchases-workspace"
