@@ -1,6 +1,5 @@
 import React,{useMemo,useState} from 'react';
 import {CheckCircle2,ChevronRight,Search} from 'lucide-react';
-import {toast} from 'sonner';
 import {Button} from '../Button';
 import {StatusBadge} from '../StatusBadge';
 import {Input} from '../Input';
@@ -48,7 +47,7 @@ function VendorPriceForm({source}: {source:VendorSource}){
         vendorPartyId:source.vendorPartyId,sourceId:source.id,date:businessToday(),
         unitCostBasePaisa:basePaisa,reason:'Agreed price confirmed in Vendor workplace'
       });
-      toast.success('Price saved for this Vendor source · Preview only');
+      
     }catch(e){setError(e instanceof Error?e.message:'Could not set Vendor cost.');}
   };
   return <form aria-label="Set Vendor price" onSubmit={submit}
