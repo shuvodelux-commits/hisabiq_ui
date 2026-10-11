@@ -10,16 +10,15 @@ async function main(){
  try{
   await page.goto('http://127.0.0.1:4273/#/app/vendors?partyId=v1&tab=taken');
   const vendor=page.getByRole('region',{name:'Selected Vendor work'});
-  await vendor.getByRole('button',{name:'Set Price'}).first().click();
-  const modal=page.getByRole('dialog',{name:'Vendor settlement'});
-  await modal.getByRole('textbox',{name:'Vendor cost per Pcs'}).fill('110');
-  await modal.getByRole('button',{name:'Confirm price in demo'}).click();
-  await vendor.getByRole('button',{name:'Clear Due'}).first().click();
+  const work=vendor.getByRole('region',{name:'Taken product workplace'});
+  const price=work.getByRole('form',{name:'Set Vendor price'});
+  await price.getByRole('textbox',{name:'Agreed cost per Pcs'}).fill('110');
+  await price.getByRole('button',{name:'Confirm Vendor Price'}).click();
   const form=page.getByRole('form',{name:'Clear Vendor due'});
   await form.getByRole('textbox',{name:'Money from account 1'}).fill('110');
   await form.getByRole('textbox',{name:'Products to return'}).fill('1');
   await form.getByRole('button',{name:'Save Due Change'}).click();
-  await form.waitFor({state:'hidden'});
+  await work.getByRole('form',{name:'Clear Vendor due'}).waitFor();
   await vendor.getByText('৳110').first().waitFor();
   await vendor.getByRole('tab',{name:/Ledger/}).click();
   assert.match(await vendor.innerText(),/Money paid and products returned/i);
