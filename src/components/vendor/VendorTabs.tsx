@@ -96,8 +96,8 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    <Link to={'/app/parties?id='+encodeURIComponent(party.id)+'&role=Vendor'}
     className="rounded-md border border-border px-3 py-2 text-xs text-ink-600 hover:bg-ink-50">Party Profile · পার্টি</Link>
   </div>
-  <div className="grid border-b border-border md:grid-cols-2" role="group" aria-label="Vendor balances, kept separate">
-   <div className="min-w-0 space-y-2 p-4 md:border-r md:border-border">
+  <div className="grid grid-cols-2 border-b border-border" role="group" aria-label="Vendor balances, kept separate">
+   <div className="min-w-0 space-y-2 p-3 border-r border-border sm:p-4">
     <p className="text-xs text-ink-500">You owe · দেনা</p>
     <p className={'text-xl font-semibold '+(unpricedMemos>0&&payable===0?'text-warning':'text-ink')}>
      {unpricedMemos>0&&payable===0?'Price not set':money(payable)}
@@ -106,16 +106,16 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      ?(payable>0?'Plus ':'')+unpricedMemos+' product line(s) with no price. No money due is recorded for those items yet.'
      :payable>0?(payableSource?'Pay or return products to settle.':'Opening balance: review it in Ledger or Party.'):'Nothing to pay.'}</p>
     {(unpricedMemos>0||payable>0)&&<Button type="button" size="sm"
-      variant={unpricedMemos>0?undefined:'outline'}
+      variant={unpricedMemos>0?undefined:'outline'} className="h-auto min-h-11 w-full whitespace-normal py-2 sm:w-auto"
       onClick={()=>selectTab(unpricedSource||payableSource?'taken':'ledger',unpricedSource?.id??payableSource?.id)}>
       {unpricedMemos>0?'Set Price · দাম ঠিক করুন':payableSource?'Pay or Return · টাকা / পণ্য দিন':'View Ledger · হিসাব দেখুন'}
      </Button>}
    </div>
-   <div className="min-w-0 space-y-2 border-t border-border p-4 md:border-t-0">
+   <div className="min-w-0 space-y-2 p-3 sm:p-4">
     <p className="text-xs text-ink-500">Vendor owes · পাওনা</p>
     <p className="text-xl font-semibold text-ink">{money(receivable)}</p>
     <p className="text-xs text-ink-500">{receivable>0?(receivableSource?'Receive money or matching products.':'Balance without an open memo. Review Ledger or Party.'):'Nothing to receive.'}</p>
-    {receivable>0&&<Button type="button" size="sm" variant="outline"
+    {receivable>0&&<Button type="button" size="sm" variant="outline" className="h-auto min-h-11 w-full whitespace-normal py-2 sm:w-auto"
       onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>{receivableSource?'Receive Settlement · পাওনা নিন':'View Ledger · হিসাব দেখুন'}</Button>}
    </div>
    <button type="button" onClick={()=>selectTab('purchases')}
@@ -124,10 +124,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </button>
   </div>
   <div className="overflow-x-auto border-b border-border scrollbar-thin">
-   <div className="flex min-w-max gap-2 px-3" role="tablist" aria-label="Vendor work tabs">
+   <div className="grid grid-cols-5 gap-0 px-1 sm:flex sm:min-w-max sm:gap-2 sm:px-3" role="tablist" aria-label="Vendor work tabs">
     {vendorWorkTabs.map((key,index)=><button type="button" key={key}
      id={base+'-'+key} role="tab" aria-selected={tab===key} aria-controls={base+'-panel'} tabIndex={tab===key?0:-1}
-     className={'erp-tab px-3 py-3 text-sm font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active border-b-2 border-teal-600 text-ink':'text-ink-500')}
+     className={'erp-tab min-w-0 px-1 py-3 text-xs sm:px-3 sm:text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active border-b-2 border-teal-600 text-ink':'text-ink-500')}
      onClick={()=>selectTab(key)} onKeyDown={e=>{
       if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
       e.preventDefault();
@@ -135,7 +135,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
        (index+(e.key==='ArrowRight'?1:-1)+vendorWorkTabs.length)%vendorWorkTabs.length;
       selectTab(vendorWorkTabs[next]);
       e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
-     }}>{labels[key].english} <span className="font-bn text-[11px] text-ink-400">{labels[key].bn}</span></button>)}
+     }}>{labels[key].english} <span className="block sm:inline font-bn text-[10px] sm:text-[11px] text-ink-400">{labels[key].bn}</span></button>)}
    </div>
   </div>
   <section id={base+'-panel'} role="tabpanel" aria-labelledby={base+'-'+tab} className="min-w-0">
