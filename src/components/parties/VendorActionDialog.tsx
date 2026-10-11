@@ -12,7 +12,7 @@ import type {VendorSource,VendorSettlementKind} from '../../vendor/vendorTypes';
 import {products} from '../../data/products';
 
 export type VendorActionMode='details'|'quote'|'pay'|'return'|'receive-money'|'receive-goods';
-type Props={source:VendorSource|null;mode?:VendorActionMode;onClose:()=>void};
+type Props={source:VendorSource|null;mode?:VendorActionMode;onClose:()=>void;inline?:boolean};
 type SplitDraft={id:string;accountId:string;amount:string};
 const accounts=financeAccounts.filter(a=>a.status==='Active'&&['Cash','Bank','Mobile Banking'].includes(a.type));
 const toPaisa=(value:string,label:string):number=>{
@@ -22,7 +22,7 @@ const toPaisa=(value:string,label:string):number=>{
   throw new Error(label+' must be positive with at most two decimal places.');
  return Math.round(n*100);
 };
-export function VendorActionDialog({source,mode='details',onClose}:Props){
+export function VendorActionDialog({source,mode='details',onClose,inline=false}:Props){
  const product=products.find(p=>p.id===source?.productId);
  const [price,setPrice]=useState('');
  const [amount,setAmount]=useState('');
@@ -71,9 +71,7 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
   mode==='pay'?'Pay Money · টাকা দিন':mode==='return'?'Return matching products':
   mode==='receive-money'?'Receive Vendor money':'Receive products from Vendor';
  const outstanding=source?sourceOutstanding(getVendorPreviewSnapshot(),source.id):null;
- return <Dialog open={!!source} onOpenChange={v=>!v&&onClose()}>
-  <DialogContent role="dialog" aria-label={isReadOnly?'Vendor source details':'Vendor settlement'}
-    className="max-h-[92vh] overflow-y-auto sm:max-w-md">
+ const body=<>
    <DialogHeader>
     <DialogTitle>{title}</DialogTitle>
     <DialogDescription>Demo preview — not accounting records, real cashbook or posted inventory.</DialogDescription>
@@ -121,12 +119,16 @@ export function VendorActionDialog({source,mode='details',onClose}:Props){
      {error&&<p role="alert" className="text-xs text-danger">{error}</p>}
     </div>}
    <div className="flex justify-end gap-2">
-    <Button size="sm" variant="outline" onClick={onClose}>Close</Button>
+    {!inline&&<Button size="sm" variant="outline" onClick={onClose}>Close</Button>}
     {!isReadOnly&&<Button size="sm" onClick={submit}>
      {mode==='quote'?'Confirm price in demo':mode==='pay'?'Record demo payment':
       mode==='return'?'Record demo return':mode==='receive-money'?'Record demo receipt':'Record demo goods receipt'}
     </Button>}
    </div>
-  </DialogContent>
- </Dialog>;
+  </>;
+ return inline?<section role="region" aria-label="Vendor settlement workspace" className="space-y-3">{body}</section>:
+  <Dialog open={!!source} onOpenChange={v=>!v&&onClose()}>
+   <DialogContent role="dialog" aria-label={isReadOnly?'Vendor source details':'Vendor settlement'}
+    className="max-h-[92vh] overflow-y-auto sm:max-w-md">{body}</DialogContent>
+  </Dialog>;
 }
