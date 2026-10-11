@@ -12,7 +12,7 @@ import {VendorStatementDialog} from '../parties/VendorStatementDialog';
 import {VendorGoodsEditor} from './VendorGoodsEditor';
 import {VendorReceivedWorkspace} from './VendorReceivedWorkspace';
 import {VendorIssuedWorkspace} from './VendorIssuedWorkspace';
-import {PurchaseEditor} from '../../pages/PurchaseEditor';
+import {VendorPurchasesWorkspace} from './VendorPurchasesWorkspace';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
 import {dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
@@ -218,19 +218,9 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      partyId={party.id} snapshot={snapshot} sources={given} sourceId={sourceId}
      editing={editingGiven} onEditingChange={setEditingGiven} dirty={hasUnsavedGoods}
      onDirtyChange={updateDirty} onAction={openAction} onCorrect={setCorrectSource}/>}
-    {tab==='purchases'&&<>
-     {editingPurchase?<div className="mb-4">
-      <PurchaseEditor embedded initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
-       onCancel={()=>{setEditingPurchase(false);onDirtyChange(false);}}/>
-     </div>:null}
-     <div className="divide-y divide-border rounded-lg border border-border">
-      {purchases.map(p=><div key={p.id} className="flex flex-wrap items-center gap-3 p-3 text-xs">
-       <div className="min-w-0 flex-1"><strong>{p.ref}</strong><p className="text-ink-500">{p.date} · {p.items}</p></div>
-       <strong>{taka(p.total)}</strong><span className="text-ink-500">{p.total>p.paid?'Due '+taka(p.total-p.paid):'Paid'}</span>
-      </div>)}
-      {!purchases.length&&<p className="p-8 text-center text-sm text-ink-500">No purchases from this Vendor yet.</p>}
-     </div>
-    </>}
+    {tab==='purchases'&&<VendorPurchasesWorkspace
+     partyId={party.id} purchases={purchases} editing={editingPurchase}
+     onEditingChange={setEditingPurchase} onSave={savePurchase} onDirtyChange={onDirtyChange}/>}
     {tab==='payments'&&<>
      <p className="mb-3 text-xs text-ink-500">Choose the bill you are paying or receiving money for. Payments remain linked to that record.</p>
      <div className="divide-y divide-border rounded-lg border border-border">
