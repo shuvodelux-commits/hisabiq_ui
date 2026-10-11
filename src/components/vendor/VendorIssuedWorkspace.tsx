@@ -44,7 +44,7 @@ export function VendorIssuedWorkspace({
   if(editing)onDirtyChange(false);
   onEditingChange(false);setSelectedId(id);setIgnoreLink(true);setAction(null);setDismissed(false);
  };
- const list=<section aria-label="Issued memos" className="min-w-0 rounded-lg border border-border bg-card">
+ const list=<section data-testid="vendor-issued-list" aria-label="Issued memos" className="min-w-0 rounded-lg border border-border bg-card">
   <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
    <h4 className="text-xs font-semibold text-ink">Issued memos <span className="font-bn font-normal text-ink-500">· প্রদানকৃত পণ্য</span></h4>
    <span className="text-xs text-ink-500">{sources.length} records</span>
@@ -68,7 +68,7 @@ export function VendorIssuedWorkspace({
    {!matching.length&&<p className="p-8 text-center text-xs text-ink-500">{sources.length?'No matching issued memos.':'No issued products yet.'}</p>}
   </div>
  </section>;
- const detail=<section aria-label="Issued products workspace" className="min-w-0 rounded-lg border border-border bg-card p-3 shadow-xs sm:p-4">
+ const detail=<section data-testid="vendor-issued-detail" aria-label="Issued products workspace" className="min-w-0 rounded-lg border border-border bg-card p-3 shadow-xs sm:p-4">
   {editing?
    <VendorGoodsEditor partyId={partyId} mode="given" onDirtyChange={onDirtyChange}
     onCancel={()=>{onEditingChange(false);onDirtyChange(false);}}
