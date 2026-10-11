@@ -7,21 +7,19 @@ import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
 import {PartyAvatar} from '../PartyAvatar';
 import {AppDateRangePicker} from '../AppDateRangePicker';
-import {VendorActionDialog,type VendorActionMode} from '../parties/VendorActionDialog';
 import {VendorCorrectionDialog} from '../parties/VendorCorrectionDialog';
 import {VendorStatementDialog} from '../parties/VendorStatementDialog';
 import {VendorGoodsEditor} from './VendorGoodsEditor';
 import {VendorSourceWorkspace} from './VendorSourceWorkspace';
+import {VendorPaymentsWorkspace} from './VendorPaymentsWorkspace';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
-import {sourceOutstanding} from '../../vendor/vendorModel';
 import {dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import {vendorWorkTabs,type VendorWorkTab} from '../../vendor/vendorRoute';
 import {type IsoRange} from '../../utils/dateRange';
 import {taka} from '../../utils/currency';
-import {products} from '../../data/products';
 import type {Purchase,Party} from '../../types/erp';
-import type {VendorLedgerEvent,VendorPreviewState,VendorSource,VendorSide} from '../../vendor/vendorTypes';
+import type {VendorLedgerEvent,VendorPreviewState,VendorSide} from '../../vendor/vendorTypes';
 
 type Props={party:Party;snapshot:VendorPreviewState;purchases:Purchase[];
  tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void};
@@ -48,8 +46,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  useEffect(()=>{if(tab==='purchases')setPurchaseOpened(true);},[tab]);
  const [statementOpen,setStatementOpen]=useState(false);
 
- const [selectedSource,setSelectedSource]=useState<string|null>(sourceId);
- const [actionMode,setActionMode]=useState<VendorActionMode>('details');
  const [correctSource,setCorrectSource]=useState<string|null>(null);
  const [correctEvent,setCorrectEvent]=useState<string|null>(null);
  const checkedRange=Boolean(range.from)===Boolean(range.to)?range:{from:'',to:''};
@@ -58,10 +54,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const activeSources=snapshot.sources.filter(s=>s.vendorPartyId===party.id&&s.status==='Active');
  const taken=activeSources.filter(s=>s.sourceKind==='sourcing');
  const given=activeSources.filter(s=>s.sourceKind==='issue');
- const due=activeSources.filter(s=>(s.unitCostBasePaisa!==null&&(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0));
 
- const selected=selectedSource?snapshot.sources.find(s=>s.id===selectedSource)??null:null;
- const openAction=(s:VendorSource,mode:VendorActionMode)=>{setSelectedSource(s.id);setActionMode(mode);};
  const selectTab=(next:VendorWorkTab)=>{
   if(next!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
   if(next!==tab&&hasUnsavedGoods){updateDirty(false);setEditingTaken(false);setEditingGiven(false);}
@@ -71,11 +64,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   if(tab==='ledger'){setStatementOpen(true);return;}
   if(tab==='taken'){setEditingTaken(true);return;}
   if(tab==='given'){setEditingGiven(true);return;}
-  if(tab==='payments'){
-   const first=due[0];
-   if(first)openAction(first,first.sourceKind==='sourcing'?'pay':'receive-money');
-   else toast('No priced amount due. Set a price or choose an earlier payment.');
-  }
  };
  const review=(event:VendorLedgerEvent)=>{
   setCorrectEvent(event.id);
@@ -129,7 +117,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-3">
     <h3 className="text-sm font-semibold text-ink">{labels[tab].english} · <span className="font-bn font-normal text-ink-500">{labels[tab].bn}</span></h3>
     <div className="flex flex-wrap gap-2">
-     {tab!=='purchases'&&<Button type="button" size="sm" onClick={primary}>
+     {tab!=='purchases'&&tab!=='payments'&&<Button type="button" size="sm" onClick={primary}>
       {tab==='ledger'?<Printer className="size-4"/>:<Plus className="size-4"/>}
       {labels[tab].button}
      </Button>}
@@ -221,36 +209,15 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       </section>
      </div>}
      {tab==='payments'&&<>
-     <p className="mb-3 text-xs text-ink-500">Choose the bill you are paying or receiving money for. Payments remain linked to that record.</p>
-     <div className="divide-y divide-border rounded-lg border border-border">
-      {due.map(s=>{
-       const out=sourceOutstanding(snapshot,s.id);
-       return <div key={s.id} className="flex flex-wrap items-center gap-3 p-3 text-xs">
-        <div className="min-w-0 flex-1"><strong>{s.reference??s.id}</strong>
-         <p className="text-ink-500">{s.sourceKind==='sourcing'?'You owe':'Vendor owes'} · {products.find(p=>p.id===s.productId)?.name??s.productId}</p></div>
-        <strong>{money(out.monetaryDuePaisa??0)}</strong>
-        <Button size="sm" variant="outline" onClick={()=>openAction(s,s.sourceKind==='sourcing'?'pay':'receive-money')}>
-         {s.sourceKind==='sourcing'?'Pay Money':'Receive Money'}</Button>
-       </div>;
-      })}
-      {!due.length&&<p className="p-8 text-center text-sm text-ink-500">No priced amount due. If the price is not set, open Taken first.</p>}
-     </div>
-     <h4 className="mb-2 mt-5 text-sm font-semibold text-ink">Previous payments · আগের লেনদেন</h4>
-     <div className="divide-y divide-border rounded-lg border border-border">
-      {snapshot.settlements.filter(s=>s.vendorPartyId===party.id&&(s.kind==='pay'||s.kind==='receive-money')).map(s=>
-       <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-xs">
-        <span>{s.date} · {s.kind==='pay'?'Money paid':'Money received'}</span>
-        <strong>{money(s.amountPaisa??0)}</strong>
-        <span className="text-ink-500">{s.status}</span>
-        <Button size="sm" variant="ghost" onClick={()=>{const e=snapshot.events.find(e=>e.operationId===s.operationId&&e.kind==='settlement');if(e)review(e);}}>Review</Button>
-       </div>)}
-     </div>
-     {profile.summary.purchaseDuePaisa>0&&<p className="mt-3 rounded-md bg-ink-50 p-3 text-xs text-ink-500">
-      Ordinary Purchase due {money(profile.summary.purchaseDuePaisa)} is separate; pay against the original Purchase bill. No Vendor sourcing payment will be applied automatically.</p>}
-    </>}
+      <VendorPaymentsWorkspace partyId={party.id} state={snapshot} sources={activeSources}
+       onReview={review} onOpenTaken={()=>selectTab('taken')}/>
+      {profile.summary.purchaseDuePaisa>0&&<p className="mt-3 rounded-md bg-ink-50 p-3 text-xs text-ink-500">
+       Ordinary Purchase due {money(profile.summary.purchaseDuePaisa)} stays linked to its Purchase invoice.
+      </p>}
+     </>}
    </div>
   </section>
-  <VendorActionDialog source={selected} mode={actionMode} onClose={()=>setSelectedSource(null)}/>
+
   <VendorCorrectionDialog source={snapshot.sources.find(s=>s.id===correctSource)??null}
    event={snapshot.events.find(e=>e.id===correctEvent)??null} state={snapshot}
    onClose={()=>{setCorrectEvent(null);setCorrectSource(null);}}
