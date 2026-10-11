@@ -17,6 +17,8 @@ async function main(){
   const tabs=page.getByRole('tablist',{name:'Vendor work tabs'});
   assert.equal(await tabs.getByRole('tab').count(),5);
   await tabs.getByRole('tab',{name:/Taken/}).click();
+  await page.getByRole('region',{name:'Taken product workplace'}).waitFor();
+  assert.equal(await page.getByRole('form',{name:'Set Vendor price'}).count(),1,'unpriced source editable inside Vendor workplace');
   assert.ok(page.url().includes('tab=taken'));
   await page.reload();
   assert.equal(await tabs.getByRole('tab',{name:/Taken/}).getAttribute('aria-selected'),'true');
