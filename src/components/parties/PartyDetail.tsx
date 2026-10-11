@@ -23,7 +23,7 @@ import type { IsoRange } from '../../utils/dateRange';
 import { formatNumber, taka } from '../../utils/currency';
 import {projectVendorPartyLedger,type VendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import type {VendorSide} from '../../vendor/vendorTypes';
-import type {VendorWorkTab} from '../../vendor/vendorRoute';
+import type {VendorWorkTab,VendorPaymentIntent} from '../../vendor/vendorRoute';
 
 type Tab = 'ledger' | 'invoices' | 'payments' | 'notes' | 'attachments';
 
@@ -31,7 +31,7 @@ type PartyDetailProps = {
   party: Party;
   entries: LedgerEntry[];
   vendorProfile?:VendorPartyProfile;
-  onOpenVendorWork?:(tab?:VendorWorkTab,sourceId?:string)=>void;
+  onOpenVendorWork?:(tab?:VendorWorkTab,sourceId?:string,intent?:VendorPaymentIntent)=>void;
   onAddNote: (text: string) => void;
   onEditNote: (id: string, text: string) => void;
   onDeleteNote: (id: string) => void;
@@ -164,8 +164,8 @@ export function PartyDetail({
       </div>
 
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
-        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>Make Payment · টাকা দিন</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>Receive Payment · টাকা নিন</Button>
+        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments',undefined,'make')}>Make Payment · টাকা দিন</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments',undefined,'receive')}>Receive Payment · টাকা নিন</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
          <BookOpen className="size-4"/> Opening Balance</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>Open Vendor Sourcing</Button>
