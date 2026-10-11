@@ -22,7 +22,7 @@ import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary,
 import type { IsoRange } from '../../utils/dateRange';
 import { formatNumber, taka } from '../../utils/currency';
 import {projectVendorPartyLedger,type VendorPartyProfile} from '../../vendor/vendorPartyProjection';
-import type {VendorSide} from '../../vendor/vendorTypes';
+import type {VendorSide,VendorOpening} from '../../vendor/vendorTypes';
 import type {VendorWorkTab,VendorPaymentIntent} from '../../vendor/vendorRoute';
 
 type Tab = 'ledger' | 'invoices' | 'payments' | 'notes' | 'attachments';
@@ -31,6 +31,7 @@ type PartyDetailProps = {
   party: Party;
   entries: LedgerEntry[];
   vendorProfile?:VendorPartyProfile;
+  vendorOpenings?:readonly VendorOpening[];
   onOpenVendorWork?:(tab?:VendorWorkTab,sourceId?:string,intent?:VendorPaymentIntent)=>void;
   onAddNote: (text: string) => void;
   onEditNote: (id: string, text: string) => void;
@@ -65,7 +66,7 @@ export function PartyDetail({
   pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
   onLedgerAction, statementOpen, onCloseStatement, sources, onRecordPayment, onRefundCredit,
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
-  vendorProfile,onOpenVendorWork
+  vendorProfile,vendorOpenings,onOpenVendorWork
 }: PartyDetailProps) {
   const [tab, setTab] = useState<Tab>('ledger');
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
@@ -79,7 +80,17 @@ export function PartyDetail({
   const [refundOpen,setRefundOpen] = useState(false);
   const [financeOpen,setFinanceOpen]=useState(false);
   const [openingOpen,setOpeningOpen]=useState(false);
-  const existingOpening=activePartyOpening(sources,party.id,relationship);
+  const activeVendorOpening=vendorOpenings?.find(o=>o.vendorPartyId===party.id
+   &&o.side===vendorSide&&o.status!=='Reversed');
+  const existingOpening:PartySourceRecord|undefined=vendorProfile
+   ?activeVendorOpening?{
+     id:activeVendorOpening.id,partyId:party.id,relationship:'Vendor',kind:'opening',
+     date:activeVendorOpening.date,sequence:0,description:'Vendor opening balance',
+     debit:vendorSide==='receivable'?activeVendorOpening.openingAmountPaisa/100:0,
+     credit:vendorSide==='payable'?activeVendorOpening.openingAmountPaisa/100:0,
+     status:'Active'
+    }:undefined
+   :activePartyOpening(sources,party.id,relationship);
   const [editorRow,setEditorRow]=useState<PartyLedgerRow|null>(null);
   const [editorMode,setEditorMode]=useState<'edit'|'reverse'>('edit');
   const doRowAction=(action:PartyAction,row:PartyLedgerRow)=>{
@@ -166,7 +177,7 @@ export function PartyDetail({
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" onClick={()=>onOpenVendorWork?.('payments',undefined,'make')}>Make Payment · টাকা দিন</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments',undefined,'receive')}>Receive Payment · টাকা নিন</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
+        <Button size="sm" variant="outline" onClick={()=>setOpeningOpen(true)}>
          <BookOpen className="size-4"/> Opening Balance</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>Open Vendor Sourcing</Button>
         <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> Add Note</Button>
@@ -349,7 +360,9 @@ export function PartyDetail({
       }
 
       <PartyOpeningDialog open={openingOpen} onClose={()=>setOpeningOpen(false)}
-        party={party} relationship={relationship} existing={existingOpening} onSubmit={onSetOpening}/>
+        party={party} relationship={relationship} existing={existingOpening}
+        defaultSide={vendorProfile?(vendorSide==='payable'?'credit':'debit'):undefined}
+        onSubmit={onSetOpening}/>
       <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={shownStatement}/>
       {(relationship==='Customer'||relationship==='Supplier')&&<>
         <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}
