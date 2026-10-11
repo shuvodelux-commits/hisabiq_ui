@@ -72,6 +72,9 @@ export function VendorClearDuePanel({source,onClose,onSaved}:Props){
      <strong className="text-xs text-ink">Make Payment · টাকা দিন</strong>
      <Button type="button" size="sm" variant="ghost" onClick={()=>setSplits(rows=>[...rows,{id:'s'+(++nextId.current),accountId:accounts[0]?.id??'',amount:''}])}><Plus className="size-3"/> Account</Button>
     </div>
+    <div className="mb-1 grid grid-cols-[minmax(0,1fr)_100px_auto] gap-2 text-[11px] text-ink-500">
+     <span>Payment account</span><span className="text-right">Amount</span><span className="w-0"/>
+    </div>
     <div className="space-y-2">
      {splits.map((row,i)=><div key={row.id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_100px_auto] items-center gap-2">
       <AppSelect label={'Payment account '+(i+1)} value={row.accountId}
