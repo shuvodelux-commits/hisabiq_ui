@@ -17,7 +17,7 @@ async function main(){
   const form=page.getByRole('form',{name:'Clear Vendor due'});
   await form.getByRole('textbox',{name:'Money from account 1'}).fill('110');
   await form.getByRole('textbox',{name:'Products to return'}).fill('1');
-  await form.getByRole('button',{name:'Save Due Change'}).click();
+  await form.getByRole('button',{name:'Save Settlement'}).click();
   await work.getByRole('form',{name:'Clear Vendor due'}).waitFor();
   await vendor.getByText('৳110').first().waitFor();
   await vendor.getByRole('tab',{name:/Ledger/}).click();
