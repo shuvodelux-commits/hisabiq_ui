@@ -26,7 +26,7 @@ async function main(){
   assert.ok(listBox&&detailBox&&detailBox.x>listBox.x+listBox.width-4,
     'desktop memo list must be left of settlement workspace');
   assert.ok(detailBox.width>listBox.width,'settlement workspace uses 60% of desktop width');
-  assert.equal(await memoList.getByRole('button',{name:/DEMO-INV-202/}).count(),1,
+  assert.equal(await memoList.getByRole('button',{name:/DEMO-INV-201/}).count(),1,
     'invoices remain selectable without opening another form');
   // Existing Receive Products action swaps in the *actual* shared purchase cart.
   await vendor.getByRole('button',{name:/Receive Products/}).first().click();
