@@ -65,11 +65,7 @@ export function VendorActionDialog({source,mode='details',onClose,onSaved,embedd
   mode==='pay'?'Make Payment · টাকা দিন':mode==='return'?'Return Products':
   mode==='receive-money'?'Receive Payment':'Receive Returned Products';
  const outstanding=source?sourceOutstanding(getVendorPreviewSnapshot(),source.id):null;
- const content=<>
-   <DialogHeader>
-    <DialogTitle>{title}</DialogTitle>
-    <DialogDescription>Demo preview — not accounting records, real cashbook or posted inventory.</DialogDescription>
-   </DialogHeader>
+ const body=<>
    {source&&<div className="space-y-3 text-sm">
      <dl className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-ink-50/30 p-3 text-xs">
       <div><dt className="text-ink-500">Vendor source</dt><dd className="font-semibold text-ink">{source.reference??source.id}</dd></div>
@@ -112,9 +108,17 @@ export function VendorActionDialog({source,mode='details',onClose,onSaved,embedd
 
  </>;
  if(embedded)return <section data-testid="vendor-inline-source-action" aria-label="Vendor source action"
-  className="space-y-3 text-sm">{content}</section>;
+  className="space-y-3 text-sm">
+  <div><h3 className="text-sm font-semibold text-ink">{title}</h3>
+   <p className="text-xs text-ink-500">Demo preview — no real money or stock posting.</p></div>
+  {body}
+ </section>;
  return <Dialog open={!!source} onOpenChange={v=>!v&&onClose()}>
   <DialogContent role="dialog" aria-label={isReadOnly?'Vendor source details':'Vendor settlement'}
-   className="max-h-[92vh] overflow-y-auto sm:max-w-md">{content}</DialogContent>
+   className="max-h-[92vh] overflow-y-auto sm:max-w-md">
+   <DialogHeader><DialogTitle>{title}</DialogTitle>
+    <DialogDescription>Demo preview — not accounting records, real cashbook or posted inventory.</DialogDescription></DialogHeader>
+   {body}
+  </DialogContent>
  </Dialog>;
 }
