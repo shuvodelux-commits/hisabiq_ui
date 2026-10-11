@@ -13,10 +13,11 @@ import {VendorGoodsEditor} from './VendorGoodsEditor';
 import {VendorReceivedWorkspace} from './VendorReceivedWorkspace';
 import {VendorIssuedWorkspace} from './VendorIssuedWorkspace';
 import {VendorPurchasesWorkspace} from './VendorPurchasesWorkspace';
+import {VendorPaymentsWorkspace} from './VendorPaymentsWorkspace';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
 import {dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
-import {vendorWorkTabs,type VendorWorkTab} from '../../vendor/vendorRoute';
+import {vendorWorkTabs,type VendorWorkTab,type VendorPaymentIntent} from '../../vendor/vendorRoute';
 import {businessToday,type IsoRange} from '../../utils/dateRange';
 import {taka} from '../../utils/currency';
 import {products} from '../../data/products';
@@ -24,7 +25,7 @@ import type {Purchase,Party} from '../../types/erp';
 import type {VendorLedgerEvent,VendorPreviewState,VendorSource,VendorSide} from '../../vendor/vendorTypes';
 
 type Props={party:Party;snapshot:VendorPreviewState;purchases:Purchase[];
- tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void};
+ tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void;paymentIntent?:VendorPaymentIntent|null};
 const labels:Record<VendorWorkTab,{english:string;bn:string;button:string}>={
  ledger:{english:'Ledger',bn:'হিসাব',button:'Print Ledger'},
  taken:{english:'Products Received',bn:'পণ্য গ্রহণ',button:'Receive Products'},
@@ -33,7 +34,7 @@ const labels:Record<VendorWorkTab,{english:string;bn:string;button:string}>={
  payments:{english:'Payments',bn:'টাকা লেনদেন',button:'Record Payment'}
 };
 const money=(v:number)=>taka(v/100);
-export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,onDirtyChange}:Props){
+export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,onDirtyChange,paymentIntent}:Props){
  const base=useId().replace(/:/g,'');
  const [range,setRange]=useState<IsoRange>({from:'',to:''});
  const [query,setQuery]=useState('');
@@ -74,11 +75,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   if(tab==='taken'){setEditingTaken(true);return;}
   if(tab==='given'){setEditingGiven(true);return;}
   if(tab==='purchases'){setEditingPurchase(true);return;}
-  if(tab==='payments'){
-   const first=due[0];
-   if(first)openAction(first,first.sourceKind==='sourcing'?'pay':'receive-money');
-   else toast('No priced amount due. Set a price or choose an earlier payment.');
-  }
  };
  const review=(event:VendorLedgerEvent)=>{
   setCorrectEvent(event.id);
@@ -149,10 +145,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         <Button type="button" variant="ghost" size="sm" onClick={()=>{setOpeningSide('receivable');setOpeningError('');}}>Vendor owes opening</Button>
        </div>
       </details>}
-     <Button type="button" size="sm" onClick={primary}>
+     {tab!=='payments'&&<Button type="button" size="sm" onClick={primary}>
       {tab==='ledger'?<Printer className="size-4"/>:<Plus className="size-4"/>}
       {labels[tab].button}
-     </Button>
+     </Button>}
     </div>
    </div>
    <div className="p-3 sm:p-4">
@@ -221,34 +217,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
     {tab==='purchases'&&<VendorPurchasesWorkspace
      partyId={party.id} purchases={purchases} editing={editingPurchase}
      onEditingChange={setEditingPurchase} onSave={savePurchase} onDirtyChange={onDirtyChange}/>}
-    {tab==='payments'&&<>
-     <p className="mb-3 text-xs text-ink-500">Choose the bill you are paying or receiving money for. Payments remain linked to that record.</p>
-     <div className="divide-y divide-border rounded-lg border border-border">
-      {due.map(s=>{
-       const out=sourceOutstanding(snapshot,s.id);
-       return <div key={s.id} className="flex flex-wrap items-center gap-3 p-3 text-xs">
-        <div className="min-w-0 flex-1"><strong>{s.reference??s.id}</strong>
-         <p className="text-ink-500">{s.sourceKind==='sourcing'?'You owe':'Vendor owes'} · {products.find(p=>p.id===s.productId)?.name??s.productId}</p></div>
-        <strong>{money(out.monetaryDuePaisa??0)}</strong>
-        <Button size="sm" variant="outline" onClick={()=>openAction(s,s.sourceKind==='sourcing'?'pay':'receive-money')}>
-         {s.sourceKind==='sourcing'?'Make Payment':'Receive Payment'}</Button>
-       </div>;
-      })}
-      {!due.length&&<p className="p-8 text-center text-sm text-ink-500">No priced amount due. If the price is not set, open Products Received first.</p>}
-     </div>
-     <h4 className="mb-2 mt-5 text-sm font-semibold text-ink">Previous payments · আগের লেনদেন</h4>
-     <div className="divide-y divide-border rounded-lg border border-border">
-      {snapshot.settlements.filter(s=>s.vendorPartyId===party.id&&(s.kind==='pay'||s.kind==='receive-money')).map(s=>
-       <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-xs">
-        <span>{s.date} · {s.kind==='pay'?'Payment Made':'Payment Received'}</span>
-        <strong>{money(s.amountPaisa??0)}</strong>
-        <span className="text-ink-500">{s.status}</span>
-        <Button size="sm" variant="ghost" onClick={()=>{const e=snapshot.events.find(e=>e.operationId===s.operationId&&e.kind==='settlement');if(e)review(e);}}>Review</Button>
-       </div>)}
-     </div>
-     {profile.summary.purchaseDuePaisa>0&&<p className="mt-3 rounded-md bg-ink-50 p-3 text-xs text-ink-500">
-      Ordinary Purchase due {money(profile.summary.purchaseDuePaisa)} is separate; pay against the original Purchase bill. No Vendor sourcing payment will be applied automatically.</p>}
-    </>}
+    {tab==='payments'&&<VendorPaymentsWorkspace
+     partyId={party.id} snapshot={snapshot} sources={activeSources} purchases={purchases}
+     sourceId={sourceId} intent={paymentIntent}
+     onOpenPurchases={()=>selectTab('purchases')} onReview={review}/>}
    </div>
   </section>
   <VendorActionDialog source={selected} mode={actionMode} onClose={()=>setSelectedSource(null)}/>
