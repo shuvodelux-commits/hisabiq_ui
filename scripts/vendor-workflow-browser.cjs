@@ -41,6 +41,14 @@ async function main(){
   assert.ok(mobileList&&mobilePanel&&mobilePanel.y>=mobileList.y+mobileList.height-3,
     'mobile invoice list must stack before settlement editor');
   await page.setViewportSize({width:1250,height:850});
+  // Once all unpriced goods are returned, keep the completed invoice browsable
+  // without offering another payment against a closed obligation.
+  await settlement.getByRole('textbox',{name:'Products to return'}).fill('3');
+  await settlement.getByRole('button',{name:'Save Settlement'}).click();
+  await workPanel.getByText('No outstanding balance').waitFor();
+  assert.equal(await settlement.count(),0,'fully settled invoice must be read-only');
+  await memoList.getByRole('button',{name:/DEMO-INV-201/}).click();
+  await workPanel.getByText('No outstanding balance').waitFor();
   const nav=page.getByRole('navigation',{name:'Main'});
   await nav.getByRole('link',{name:'Vendor'}).waitFor();
   await vendor.getByRole('tab',{name:/Ledger/}).click();
