@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowDownLeft,
@@ -52,6 +52,7 @@ import {
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
 import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
+import { amountInWords } from '../utils/amountInWords';
 
 type Tab = 'overview' | 'transactions' | 'counter' | 'accounts' | 'cheques' | 'cash';
 
@@ -121,6 +122,8 @@ function TransactionDialog({
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
   const [backdateReason, setBackdateReason] = useState('');
+  const [reviewFinance, setReviewFinance] = useState(false);
+  useEffect(() => setReviewFinance(false), [type, person, paymentRows, amount, date, reference, note, backdateReason, open]);
 
   const meta = financeTypeMeta[type];
   const rolePeople = people.filter((item) => !meta.role || item.roles.includes(meta.role));
@@ -148,6 +151,7 @@ function TransactionDialog({
       toast.error('Payment split must equal the transaction amount');
       return;
     }
+    if (!reviewFinance) {setReviewFinance(true);return;}
     const firstPayment = paymentSplits[0];
 
     onSave({
@@ -250,9 +254,15 @@ function TransactionDialog({
           </label>
         </div>
 
+        <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">Amount in words: {amountInWords(Number(amount)||0)}</p>
+        {reviewFinance && <section role="status" className="space-y-1 rounded-lg border border-border bg-ink-50 p-3 text-sm">
+          <p className="font-semibold">Review finance transaction</p>
+          <p>{selectedPerson?.name} · {type} · {date}</p><p>{taka(Number(amount)||0)} · {amountInWords(Number(amount)||0)}</p>
+          <p>Payment source total: {taka(paymentTotal)} · {isOpening?'Opening balance only':'Cash/bank movement'}</p>
+        </section>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>Save transaction</Button>
+          <Button onClick={save}>{reviewFinance?'Confirm finance transaction':'Review transaction'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
