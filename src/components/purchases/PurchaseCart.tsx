@@ -1,3 +1,4 @@
+import {NumericInput} from '../NumericInput';
 import React from 'react';
 import { ChevronDown, ChevronUp, PackagePlus, Plus, ScanLine, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
@@ -81,7 +82,7 @@ export function PurchaseCart({
               const showExpiry = Boolean(product.expiry?.enabled);
               return (
                 <div key={line.id} data-testid="purchase-cart-row" className="bg-card">
-                  <div data-cart-row="purchase" className={grid + ' px-3 py-1.5'}>
+                  <div data-cart-row="purchase" data-compound={Boolean(product.altUnit&&line.costUnit===product.altUnit.unit)} className={grid + ' px-3 py-1.5'}>
                     <span className="text-right text-[13px] text-ink-400">{index + 1}.</span>
                     <div className="flex min-w-0 items-center gap-2.5">
                       <ProductThumb src={product.image} size={34} />
@@ -136,7 +137,7 @@ export function PurchaseCart({
                     ) : <span className="px-2 text-sm text-ink-600">{product.unit}</span>}</div>
                     <div data-cart-field="Unit cost · ক্রয়মূল্য"><div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
-                      <input ref={(node) => { costRefs.current[line.id] = node; }}
+                      <NumericInput ref={(node) => { costRefs.current[line.id] = node; }}
                         aria-label={'Purchase cost for ' + product.name} inputMode="decimal" value={line.cost} readOnly={sourceLocked}
                         className={entryInput + ' pl-5'}
                         onChange={(event) => onUpdate(line.id, { cost: event.target.value.replace(/[^\d.]/g, '') })}
@@ -144,7 +145,7 @@ export function PurchaseCart({
                     </div></div>
                     <div data-cart-field="Lot sale · বিক্রয়মূল্য"><div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
-                      <input
+                      <NumericInput stepperInset={48}
                         ref={(node) => { lotPriceRefs.current[line.id] = node; }}
                         aria-label={'Lot selling price for ' + product.name}
                         inputMode="decimal"

@@ -1,3 +1,4 @@
+import {NumericInput} from '../NumericInput';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import { AlertTriangle, Eye, GripVertical, ScanLine, X } from 'lucide-react';
@@ -28,7 +29,7 @@ type CartTableProps = {
   searchRef: React.RefObject<HTMLInputElement>;
 };
 
-const grid = 'grid min-w-[850px] grid-cols-[56px_minmax(180px,1fr)_168px_108px_96px_104px_28px] items-center gap-2';
+const grid = 'grid min-w-[850px] grid-cols-[56px_minmax(180px,1fr)_168px_108px_112px_104px_28px] items-center gap-2';
 
 const cellInput =
 'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
@@ -51,7 +52,7 @@ function SortableCartRow({
       dragControls={controls}
       dragListener={false}
       dragMomentum={false}
-      data-testid="pos-cart-row" data-cart-row="sale"
+      data-testid="pos-cart-row" data-cart-row="sale" data-compound={Boolean(line.product.altUnit&&line.unit===line.product.altUnit.unit)}
       data-line-key={line.key}
       className={`${grid} relative bg-card px-3 py-1.5`}
       initial={{ opacity: 0 }}
@@ -220,7 +221,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                 }</div>
                 <div data-cart-field="Price · দাম"><div className="relative">
                   <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
-                  <input
+                  <NumericInput stepperInset={28}
                     aria-label={`Price for ${l.product.name}`}
                     value={l.price}
                     inputMode="decimal"

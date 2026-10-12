@@ -31,7 +31,7 @@ async function main(){
   assert.equal(await dlg.getByRole('combobox',{name:'Add product to quotation'}).evaluate(el=>document.activeElement===el),true);
   await pcs.fill('0');
   await pcs.press('Enter');
-  await dlg.getByLabel('Quotation discount').fill('50');
+  await dlg.getByLabel('Quotation discount', {exact:true}).fill('50');
   await dlg.getByText('3,050',{exact:false}).first().waitFor();
   await dlg.getByRole('button',{name:'Save draft'}).click();
   await dlg.waitFor({state:'hidden'});

@@ -141,7 +141,7 @@ async function main() {
     await page.getByText('Queued',{exact:true}).waitFor();
     await go('/saas/services/ORD-1001');
     await page.getByRole('button',{name:'Quote',exact:true}).click();
-    await page.getByLabel('Quoted price (BDT)').fill('1500');
+    await page.getByLabel('Quoted price (BDT)', {exact:true}).fill('1500');
     await page.getByRole('button',{name:'Confirm quote',exact:true}).click();
     await page.getByRole('button',{name:'Approve',exact:true}).click();
     await page.getByRole('button',{name:'Confirm approve',exact:true}).click();

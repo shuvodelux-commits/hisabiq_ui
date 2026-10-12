@@ -1,3 +1,4 @@
+import {NumericInput} from '../NumericInput';
 import React, {useEffect,useRef} from 'react';
 import {ArrowDown,ArrowUp,X} from 'lucide-react';
 import {ProductCombobox} from '../pos/ProductCombobox';
@@ -55,7 +56,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
     const large=product?.altUnit&&line.unit===product.altUnit.unit;
     const factor=large?product!.altUnit!.factor:1;
     const canChange=!locked;
-    return <div data-testid="transaction-cart-row" data-cart-row="shared" key={line.id} className={grid+' px-3 py-1.5 hover:bg-ink-50/40'}>
+    return <div data-testid="transaction-cart-row" data-cart-row="shared" data-compound={Boolean(large)} key={line.id} className={grid+' px-3 py-1.5 hover:bg-ink-50/40'}>
      <span className="text-right text-sm text-ink-400">{i+1}.</span>
      <div className="flex min-w-0 items-center gap-2.5">
       <ProductThumb size={32} src={product?.image}/>
@@ -104,7 +105,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
        </button>)}
       </div> : <span className="px-2 text-sm text-ink-600">{line.unit}</span>}</div>
      <div data-cart-field="Price · দাম"><div className="relative"><span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
-      <input aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
+      <NumericInput aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
        disabled={!canChange} value={line.price} onChange={event=>onUpdate(line.id,{price:Number(event.target.value)} as Partial<L>)}
        onKeyDown={backToProduct} className={input+' pl-5'}/></div></div>
      <strong data-cart-field="Total · মোট" className="text-right text-[13px] text-ink">{taka(transactionLineTotal({...line,unitFactor:factor}))}</strong>
