@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '../components/Dialog';
 import { CartTable } from '../components/pos/CartTable';
 import { CheckoutPanel } from '../components/pos/CheckoutPanel';
+import { TransactionReviewDialog } from '../components/TransactionReviewDialog';
 import { DraftsMenu } from '../components/pos/DraftsMenu';
 import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine, type ReceiptBranding } from '../components/brand/ReceiptPreview';
@@ -153,6 +154,7 @@ export function Pos() {
   const [invoiceNo, setInvoiceNo] = useState(242);
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
+  const [reviewSaleOpen, setReviewSaleOpen] = useState(false);
   const [demoVendorInvoice,setDemoVendorInvoice]=useState<string|null>(null);
   const invoice = editing && sourceInvoice ? sourceInvoice.invoice : `INV-${String(invoiceNo).padStart(6, '0')}`;
   const pageTitle = handoffOrder?'Online order · POS preview':editing
@@ -387,7 +389,7 @@ export function Pos() {
         paidRef.current?.focus();
       } else if (e.key === 'F9') {
         e.preventDefault();
-        complete();
+        if (!reviewSaleOpen) setReviewSaleOpen(true);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -631,13 +633,23 @@ export function Pos() {
           onDiscountMode={cart.setDiscountMode}
           payments={cart.payments}
           onPayments={cart.setPayments}
-          onComplete={complete}
+          onComplete={() => setReviewSaleOpen(true)}
           onClear={cart.reset}
           paidRef={paidRef}
           completeLabel={editing ? 'Preview sale update' : 'Preview sale'} />
         
       </div>
 
+      <TransactionReviewDialog open={reviewSaleOpen} onClose={() => setReviewSaleOpen(false)}
+        onConfirm={() => {setReviewSaleOpen(false);complete();}}
+        title={editing ? 'Review sale update' : 'Review sale'} amount={cart.totals.total}
+        confirmLabel={editing ? 'Confirm sale preview update' : 'Confirm sale preview'}
+        details={[
+          {label:'Customer',value:cart.customer?.name || cart.customerDetails.name || 'Walk-in customer'},
+          {label:'Products',value:String(cart.lines.length)+' lines'},
+          {label:'Paid',value:taka(cart.totals.paidNum)},
+          {label:'Due',value:taka(cart.totals.due)}
+        ]}/>
       <Dialog open={!!completed} onOpenChange={(open) => {
         if (open) return;
         if (editing) {
