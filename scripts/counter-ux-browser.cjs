@@ -85,6 +85,12 @@ async function main(){
    await page.getByRole('searchbox',{name:'Global search'}).fill('Rahman');
    await page.getByRole('button',{name:'Clear global search'}).click();
    assert.equal(await page.getByRole('searchbox',{name:'Global search'}).inputValue(),'','global search supports explicit quick clear');
+   await page.getByRole('searchbox',{name:'Global search'}).fill('Rahman');
+   await page.getByRole('button',{name:'Run global search'}).click();
+   assert.match(page.url(),/\/app\/search\?q=Rahman/,'global search URL contains the current query');
+   await page.getByRole('button',{name:'Clear global search'}).click();
+   assert.match(page.url(),/\/#\/app\/search$/,'clearing global search also resets results URL');
+   assert.equal(await page.getByRole('searchbox',{name:'Global search'}).inputValue(),'');
    await page.goto('http://127.0.0.1:4378/#/app/pos');
    const productQuery=page.locator('input[aria-label="Add product"]');
    await productQuery.fill('valve');
