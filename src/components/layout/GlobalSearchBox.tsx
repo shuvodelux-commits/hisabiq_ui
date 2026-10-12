@@ -86,7 +86,7 @@ export function GlobalSearchBox(){
       id={listId+'-option-'+index} type="button" role="option" aria-selected={selected===index}
       onMouseDown={event=>event.preventDefault()}
       onMouseEnter={()=>setActive(index)} onClick={()=>openResult(item)}
-      className={'flex min-h-12 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 '+(selected===index?'bg-teal-50 text-teal-800 dark:bg-teal-900/20 dark:text-teal-200':'hover:bg-ink-50')}>
+      className={'flex min-h-12 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 '+(selected===index?'bg-accent text-accent-foreground ring-1 ring-inset ring-primary/25':'text-ink hover:bg-ink-50')}>
       <span className="min-w-0 flex-1"><span className="block truncate font-medium">{item.label}</span>
        <span className="block truncate text-xs text-ink-500">{item.helper}</span></span>
       <span className="shrink-0 text-[10px] text-ink-500">{item.kind}</span>
