@@ -33,8 +33,9 @@ export function validatePartySplits(splits:readonly PartyMoneySplit[],amount:num
 }
 export function validatePartyPayment(payload:PartyPaymentPayload):void {
   validateBusinessDate(payload.date);
-  if(toPaisa(payload.amount,'Payment')<=0)throw new Error('Payment amount must be positive.');
+  const cash=toPaisa(payload.amount,'Payment');
   const discount=toPaisa(payload.discount??0,'Discount');
+  if(cash+discount<=0)throw new Error('Cash payment or settlement must be positive.');
   if(discount&&!payload.reason?.trim())throw new Error('Discount requires a reason.');
   validatePartySplits(payload.splits,payload.amount);
 }

@@ -45,6 +45,12 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Check Counter quick-clear, Bangla words and settlement
+        run: npm run test:counter-ux
+
+      - name: Check rendered light and dark themes
+        run: npm run test:theme
+
       - name: Check Vendor Party two-way ledger preview
         run: npm run test:vendor-workflow
 
@@ -125,9 +131,6 @@ jobs:
 
       - name: Check themed selects and date-range filters
         run: npm run test:themed-filters
-
-      - name: Check rendered light and dark themes
-        run: npm run test:theme
 
       - name: Check SaaS administration journeys and contrast
         run: npm run test:saas

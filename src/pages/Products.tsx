@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
+import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { ProductThumb } from '../components/ProductThumb';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
@@ -394,8 +395,8 @@ export function Products() {
       <div className="rounded-xl border border-border bg-card shadow-card">
         <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
           <div className="relative w-full max-w-xs">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-            <input
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+            <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search name, বাংলা, SKU…"

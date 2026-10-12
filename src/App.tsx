@@ -94,6 +94,7 @@ export function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="search" element={<GlobalSearch />} />
           <Route path="pos" element={<Pos />} />
+          <Route path="counter" element={<Finance counterOnly />} />
           <Route path="sales" element={<Sales />} />
           <Route path="quotations" element={<Quotations />} />
           <Route path="online-sales" element={<OnlineSales />} />

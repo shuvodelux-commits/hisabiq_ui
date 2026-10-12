@@ -181,7 +181,7 @@ export function Purchases() {
           <>
             <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1 sm:max-w-md">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                 <Input
                   aria-label="Search purchases"
                   value={query}

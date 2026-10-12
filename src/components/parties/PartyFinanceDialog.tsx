@@ -13,6 +13,7 @@ import { validateBusinessDate, validatePartySplits, toPaisa } from '../../utils/
 import type { Party } from '../../types/erp';
 import type { PartyFinancePayload, PartyMoneySplit } from '../../types/partyLedger';
 import { taka } from '../../utils/currency';
+import { amountInWords } from '../../utils/amountInWords';
 
 type Props={open:boolean;party:Party;relationship:FinanceRole;onClose:()=>void;onSubmit:(payload:PartyFinancePayload)=>void};
 const available:Record<FinanceRole,FinanceTransactionType[]>={
@@ -93,6 +94,7 @@ export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Pr
     </label>
     {review&&<div role="status" className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800">
       <strong>Review finance transaction</strong><p>{party.name} · {type} · {date} · {taka(money)}</p>
+      <p className="mt-1 font-medium">{amountInWords(money)}</p>
       <p>{opening?'Relationship balance only, no money movement':
         (meta?.direction==='in'?'Money into business: ':'Money out of business: ')+taka(money)}</p>
       <p>Changes this one source and adds an audit record in preview only.</p>

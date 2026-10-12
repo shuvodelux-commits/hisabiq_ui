@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react';
 import { PartyAvatar } from '../PartyAvatar';
+import { Input } from '../Input';
 import { RoleBadge } from './RoleBadge';
 import { partyRoles } from '../../data/parties';
 import type { Party, PartyRole } from '../../types/erp';
@@ -20,8 +21,8 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
     <div className="flex min-h-0 min-w-0 flex-col rounded-xl border border-border bg-card shadow-card">
       <div className="space-y-2 border-b border-border p-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-          <input
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+          <Input
             value={query}
             onChange={(e) => onQuery(e.target.value)}
             placeholder="Search name or phone…"

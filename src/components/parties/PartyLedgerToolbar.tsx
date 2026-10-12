@@ -27,7 +27,7 @@ export function PartyLedgerToolbar({range,onRange,kind,onKind,query,onQuery,page
     <AppDateRangePicker label="Party ledger date range" value={range} onChange={onRange}/>
     <AppSelect compact label="Transaction type" value={kind} onChange={onKind} options={kinds}/>
     <div className="relative min-w-[150px] flex-1">
-      <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-ink-400"/>
+      <Search className="pointer-events-none absolute z-10 left-2 top-1/2 size-4 -translate-y-1/2 text-ink-400"/>
       <Input aria-label="Search ledger transactions" value={query} onChange={event=>onQuery(event.target.value)}
         placeholder="Search reference or note" className="pl-8"/>
     </div>

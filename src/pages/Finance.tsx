@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowDownLeft,
@@ -14,7 +14,6 @@ import {
   Plus,
   RefreshCw,
   Search,
-  Trash2,
   UserRoundCog,
   WalletCards
 } from 'lucide-react';
@@ -24,6 +23,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
+import { CounterWorkspace } from '../components/finance/CounterWorkspace';
 import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog } from '../components/finance/FinanceRecordDialogs';
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
@@ -48,10 +48,9 @@ import {
   type FinanceTransactionType,
   type CashSessionRecord
 } from '../data/financeAccounts';
-import { expenseCategories } from '../data/purchases';
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
-import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
+import { amountInWords } from '../utils/amountInWords';
 
 type Tab = 'overview' | 'transactions' | 'counter' | 'accounts' | 'cheques' | 'cash';
 
@@ -121,6 +120,8 @@ function TransactionDialog({
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
   const [backdateReason, setBackdateReason] = useState('');
+  const [reviewFinance, setReviewFinance] = useState(false);
+  useEffect(() => setReviewFinance(false), [type, person, paymentRows, amount, date, reference, note, backdateReason, open]);
 
   const meta = financeTypeMeta[type];
   const rolePeople = people.filter((item) => !meta.role || item.roles.includes(meta.role));
@@ -148,6 +149,7 @@ function TransactionDialog({
       toast.error('Payment split must equal the transaction amount');
       return;
     }
+    if (!reviewFinance) {setReviewFinance(true);return;}
     const firstPayment = paymentSplits[0];
 
     onSave({
@@ -250,9 +252,15 @@ function TransactionDialog({
           </label>
         </div>
 
+        <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">Amount in words: {amountInWords(Number(amount)||0)}</p>
+        {reviewFinance && <section role="status" className="space-y-1 rounded-lg border border-border bg-ink-50 p-3 text-sm">
+          <p className="font-semibold">Review finance transaction</p>
+          <p>{selectedPerson?.name} · {type} · {date}</p><p>{taka(Number(amount)||0)} · {amountInWords(Number(amount)||0)}</p>
+          <p>Payment source total: {taka(paymentTotal)} · {isOpening?'Opening balance only':'Cash/bank movement'}</p>
+        </section>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>Save transaction</Button>
+          <Button onClick={save}>{reviewFinance?'Confirm finance transaction':'Review transaction'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -361,6 +369,8 @@ function TransferDialog({
   const [to, setTo] = useState(active[1]?.name ?? '');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
+  const [reviewTransfer, setReviewTransfer] = useState(false);
+  React.useEffect(() => setReviewTransfer(false), [from, to, amount, reference, open]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -382,6 +392,7 @@ function TransferDialog({
       toast.error('Choose two different accounts');
       return;
     }
+    if (!reviewTransfer) {setReviewTransfer(true);return;}
     onSave({
       id: nextId,
       date: '06 Oct 2026',
@@ -424,19 +435,25 @@ function TransferDialog({
           </label>
         </div>
 
+        <p className="rounded-md bg-ink-50 px-3 py-2 text-xs text-ink-500" aria-live="polite">{amountInWords(Number(amount)||0)}</p>
+        {reviewTransfer&&<div role="status" className="rounded-xl border border-border bg-ink-50 p-3 text-sm">
+          <p className="font-semibold">Check transfer before recording</p>
+          <p className="mt-1">{from} → {to}</p><p>{taka(Number(amount)||0)}</p><p>{amountInWords(Number(amount)||0)}</p>
+        </div>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>Transfer</Button>
+          <Button onClick={save}>{reviewTransfer?'Confirm transfer':'Review transfer'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-export function Finance() {
+export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {}) {
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
-  const [tab, setTab] = useState<Tab>('overview');
+  const [financeTab, setTab] = useState<Tab>('overview');
+  const tab: Tab = counterOnly ? 'counter' : financeTab;
   const [accounts, setAccounts] = useState<FinanceAccount[]>(seedAccounts);
   const [transactions, setTransactions] = useState<FinanceTransaction[]>(seedTransactions);
   const [transfers, setTransfers] = useState<AccountTransfer[]>(seedTransfers);
@@ -455,15 +472,6 @@ export function Finance() {
   const [transferAction, setTransferAction] = useState<AccountTransfer | null>(null);
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All transaction types');
-  const [counterType, setCounterType] = useState<'Customer Receive' | 'Supplier Pay' | 'Expense' | 'Bank Transfer'>('Customer Receive');
-  const [counterParty, setCounterParty] = useState('');
-  const [counterAmount, setCounterAmount] = useState('');
-  const [counterAccount, setCounterAccount] = useState(accounts[1]?.name ?? accounts[0]?.name ?? '');
-  const [counterPayments, setCounterPayments] = useState<Array<{ id: string; method: string; account: string; amount: string }>>([
-    { id: 'counter-payment-1', method: 'Cash', account: accounts.find((item) => item.type === 'Cash')?.name ?? '', amount: '' }
-  ]);
-  const [counterNote, setCounterNote] = useState('');
-
   const applyTransactionMovement = (list: FinanceAccount[], transaction: FinanceTransaction, factor = 1) => {
     if (transaction.direction === 'none' || transaction.status === 'Reversed') return list;
     const splits = transaction.paymentAccounts?.length
@@ -636,83 +644,13 @@ export function Finance() {
     { label: 'Borrower receivable', value: taka(relationshipSummary.borrowerReceivable), sub: 'Money others still owe us', icon: ArrowUpRight, tone: 'text-teal-700' }
   ];
 
-  const counterAccountsForMethod = (method: string) => accounts.filter((item) => {
-    if (item.status !== 'Active') return false;
-    if (method === 'Cash') return item.type === 'Cash' || item.type === 'Petty Cash';
-    if (method === 'Bank') return item.type === 'Bank';
-    return item.type === 'Mobile Banking';
-  });
-
-  const normalizedCounterPayments = counterPayments.map((row, index) => ({
-    ...row,
-    amountNumber: parseFloat(row.amount) || (counterPayments.length === 1 && index === 0 ? (parseFloat(counterAmount) || 0) : 0)
-  })).filter((row) => row.account && row.amountNumber > 0);
-  const counterSplitTotal = normalizedCounterPayments.reduce((sum, row) => sum + row.amountNumber, 0);
-
-  const counterPartyOptions = counterType === 'Customer Receive'
-    ? parties.filter((item) => item.roles.includes('Customer')).map((item) => item.name)
-    : counterType === 'Supplier Pay'
-      ? parties.filter((item) => item.roles.includes('Supplier')).map((item) => item.name)
-      : counterType === 'Expense'
-        ? expenseCategories
-        : accounts.map((item) => item.name);
-
-  const postCounter = () => {
-    const value = parseFloat(counterAmount) || 0;
-    if (!value) return toast.error('Enter an amount');
-
-    if (counterType === 'Bank Transfer') {
-      const from = counterParty || accounts[0]?.name || '';
-      const to = counterAccount;
-      if (!from || !to || from === to) return toast.error('Choose two different accounts');
-      const transfer: AccountTransfer = {
-        id: 'TRF-' + String(42 + transfers.length - seedTransfers.length).padStart(6, '0'),
-        date: '06 Oct 2026',
-        from,
-        to,
-        amount: value,
-        reference: counterNote || undefined,
-        status: 'Completed'
-      };
-      setTransfers((current) => [transfer, ...current]);
-      setAccounts((current) => current.map((account) => {
-        if (account.name === from) return { ...account, balance: account.balance - value, lastActivity: 'Just now' };
-        if (account.name === to) return { ...account, balance: account.balance + value, lastActivity: 'Just now' };
-        return account;
-      }));
-      toast.success('Account transfer completed', { description: taka(value) + ' · ' + from + ' → ' + to });
-    } else {
-      if (!normalizedCounterPayments.length) return toast.error('Add at least one payment source');
-      if (Math.abs(counterSplitTotal - value) > 0.001) return toast.error('Payment split must equal the transaction amount');
-      const incoming = counterType === 'Customer Receive';
-      setAccounts((current) => current.map((account) => {
-        const movement = normalizedCounterPayments
-          .filter((payment) => payment.account === account.name)
-          .reduce((sum, payment) => sum + payment.amountNumber, 0);
-        if (!movement) return account;
-        return { ...account, balance: account.balance + (incoming ? movement : -movement), lastActivity: 'Just now' };
-      }));
-      const verbs = {
-        'Customer Receive': 'Customer payment received',
-        'Supplier Pay': 'Supplier payment recorded',
-        Expense: 'Expense recorded'
-      } as const;
-      toast.success(verbs[counterType], {
-        description: taka(value) + ' · ' + (counterParty || counterType) + (normalizedCounterPayments.length > 1 ? ' · Multiple payments' : '')
-      });
-    }
-    setCounterAmount('');
-    setCounterPayments([{ id: 'counter-payment-' + Date.now(), method: 'Cash', account: accounts.find((item) => item.status === 'Active' && item.type === 'Cash')?.name ?? '', amount: '' }]);
-    setCounterNote('');
-  };
-
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
-        title="Finance"
-        titleBn="টাকা-পয়সা"
-        description="Cash, bank, mobile banking, loans, cheques and everyday money movement."
-        actions={
+        title={counterOnly ? 'Counter' : 'Finance'}
+        titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
+        description={counterOnly ? 'Receive customer payments, pay suppliers, record expenses and transfer money.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
+        actions={counterOnly ? undefined : (
           <>
             <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
               <UserRoundCog className="size-4" /> Finance people
@@ -724,10 +662,10 @@ export function Finance() {
               <Plus className="size-4" /> New transaction
             </Button>
           </>
-        }
+        )}
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
+      {!counterOnly && <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
         {summaryCards.map(({ label, value, sub, icon: Icon, tone }) => (
           <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <div className="flex items-start justify-between gap-2">
@@ -738,9 +676,9 @@ export function Finance() {
             <p className="mt-0.5 text-[10.5px] text-ink-400">{sub}</p>
           </div>
         ))}
-      </div>
+      </div>}
 
-      {(pdcCount > 0 || bouncedCount > 0 || varianceSessions > 0) && (
+      {!counterOnly && (pdcCount > 0 || bouncedCount > 0 || varianceSessions > 0) && (
         <div className="flex flex-wrap gap-2 rounded-xl border border-warning/20 bg-warning/5 p-3">
           <button onClick={() => setTab('cheques')} className="rounded-lg border border-warning/20 bg-card px-3 py-2 text-left hover:bg-warning/5">
             <p className="text-[12px] font-medium text-ink">{pdcCount} post-dated cheque{pdcCount === 1 ? '' : 's'}</p>
@@ -752,7 +690,7 @@ export function Finance() {
       )}
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
+        {!counterOnly && <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -766,7 +704,7 @@ export function Finance() {
               {label}
             </button>
           ))}
-        </div>
+        </div>}
 
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.25fr_1fr]">
@@ -864,7 +802,7 @@ export function Finance() {
                 <p className="text-sm font-semibold text-ink">Quick tools</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[
-                    { label: 'Counter', helper: 'Receive / pay', icon: BriefcaseBusiness, action: () => setTab('counter') },
+                    { label: 'Counter', helper: 'Receive / pay', icon: BriefcaseBusiness, action: () => navigate('/app/counter') },
                     { label: 'Transfer', helper: 'Between accounts', icon: ArrowLeftRight, action: () => setTransferOpen(true) },
                     { label: 'Reconcile', helper: 'Bank statement', icon: CheckCircle2, action: () => navigate('/app/reconciliation') },
                     { label: 'Daybook', helper: 'All transactions', icon: BookOpen, action: () => navigate('/app/daybook') }
@@ -885,7 +823,7 @@ export function Finance() {
           <>
             <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1 lg:max-w-md">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                 <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" placeholder="Search finance transaction, party or reference" />
               </div>
               <FormSelect className="w-full lg:w-48" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} options={['All transaction types', ...financeTypeOptions]} />
@@ -941,129 +879,7 @@ export function Finance() {
           </>
         )}
 
-        {tab === 'counter' && (
-          <div className="mx-auto max-w-4xl p-4">
-            <div className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-              {(['Customer Receive', 'Supplier Pay', 'Expense', 'Bank Transfer'] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => {
-                    setCounterType(type);
-                    setCounterParty(type === 'Bank Transfer' ? (accounts[0]?.name ?? '') : '');
-                    setCounterAccount(type === 'Bank Transfer' ? (accounts[1]?.name ?? accounts[0]?.name ?? '') : counterAccount);
-                    setCounterAmount('');
-                    setCounterPayments([{ id: 'counter-payment-' + Date.now(), method: 'Cash', account: accounts.find((item) => item.status === 'Active' && item.type === 'Cash')?.name ?? '', amount: '' }]);
-                  }}
-                  className={`rounded-xl border p-3 text-left transition-colors ${
-                    counterType === type ? 'border-teal-200 bg-teal-50' : 'border-border bg-card hover:bg-ink-50'
-                  }`}>
-                  <p className={`text-[13px] font-semibold ${counterType === type ? 'text-teal-800' : 'text-ink'}`}>{type}</p>
-                  <p className="mt-0.5 text-[10.5px] text-ink-400">
-                    {type === 'Customer Receive' ? 'Receive customer money' :
-                      type === 'Supplier Pay' ? 'Pay supplier balance' :
-                      type === 'Expense' ? 'Quick expense entry' : 'Move money between accounts'}
-                  </p>
-                </button>
-              ))}
-            </div>
-
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="mb-4">
-                <p className="text-sm font-semibold text-ink">{counterType}</p>
-                <p className="text-[11px] text-ink-500">Quick-entry only. Full history and editing stay in their original modules.</p>
-              </div>
-
-              {counterType === 'Bank Transfer' ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="text-[13px] font-medium text-ink">
-                    From account
-                    <FormSelect className="mt-1.5" value={counterParty || accounts[0]?.name} onChange={(event) => setCounterParty(event.target.value)} options={accounts.map((item) => item.name)} />
-                  </label>
-                  <label className="text-[13px] font-medium text-ink">
-                    To account
-                    <FormSelect className="mt-1.5" value={counterAccount} onChange={(event) => setCounterAccount(event.target.value)} options={accounts.map((item) => item.name)} />
-                  </label>
-                </div>
-              ) : (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="text-[13px] font-medium text-ink">
-                    {counterType === 'Customer Receive' ? 'Customer' : counterType === 'Supplier Pay' ? 'Supplier' : 'Expense category'}
-                    <FormSelect
-                      className="mt-1.5"
-                      value={counterParty || counterPartyOptions[0] || ''}
-                      onChange={(event) => setCounterParty(event.target.value)}
-                      options={counterPartyOptions}
-                    />
-                  </label>
-                  {counterType === 'Expense' && (
-                    <label className="text-[13px] font-medium text-ink">
-                      Payee
-                      <FormSelect className="mt-1.5" options={parties.filter((item) => item.roles.includes('Payee') || item.roles.includes('Vendor')).map((item) => item.name)} />
-                    </label>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="text-[13px] font-medium text-ink">
-                  Amount
-                  <div className="relative mt-1.5">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-                    <Input value={counterAmount} onChange={(event) => setCounterAmount(event.target.value.replace(/[^\d.]/g, ''))} className="pl-7 text-right" inputMode="decimal" placeholder="0" />
-                  </div>
-                </label>
-
-                {counterType !== 'Bank Transfer' && (
-                  <div className="sm:col-span-2 rounded-xl border border-border">
-                    <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-                      <div>
-                        <p className="text-[12.5px] font-semibold text-ink">Payment sources</p>
-                        <p className="font-bn text-[10.5px] text-ink-400">Cash + Bank + Mobile Banking একসাথে ব্যবহার করা যাবে</p>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => {
-                        const method = 'Cash';
-                        const first = counterAccountsForMethod(method)[0];
-                        setCounterPayments((current) => [...current, { id: 'counter-payment-' + Date.now(), method, account: first?.name ?? '', amount: '' }]);
-                      }}><Plus className="size-3.5" /> Add</Button>
-                    </div>
-                    <div className="space-y-2 p-3">
-                      {counterPayments.map((row) => {
-                        const available = counterAccountsForMethod(row.method);
-                        return (
-                          <div key={row.id} className="grid gap-2 sm:grid-cols-[130px_1fr_120px_32px]">
-                            <FormSelect value={row.method} onChange={(event) => {
-                              const method = event.target.value;
-                              const first = counterAccountsForMethod(method)[0];
-                              setCounterPayments((current) => current.map((item) => item.id === row.id ? { ...item, method, account: first?.name ?? '' } : item));
-                            }} options={['Cash', 'Bank', 'Mobile Banking']} />
-                            <FormSelect value={row.account || available[0]?.name || ''} onChange={(event) => setCounterPayments((current) => current.map((item) => item.id === row.id ? { ...item, account: event.target.value } : item))} options={available.map((item) => item.name)} />
-                            <Input className="text-right" inputMode="decimal" value={row.amount} onChange={(event) => setCounterPayments((current) => current.map((item) => item.id === row.id ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))} placeholder={counterPayments.length === 1 ? counterAmount || '0' : '0'} />
-                            <button type="button" disabled={counterPayments.length === 1} onClick={() => setCounterPayments((current) => current.filter((item) => item.id !== row.id))} className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger disabled:opacity-30" aria-label="Remove payment source"><Trash2 className="size-3.5" /></button>
-                          </div>
-                        );
-                      })}
-                      <div className="flex items-center justify-between border-t border-border pt-2 text-[11px]">
-                        <span className="text-ink-400">Split total</span>
-                        <span className={Math.abs(counterSplitTotal - (parseFloat(counterAmount) || 0)) < 0.001 ? 'font-medium text-success' : 'font-medium text-warning'}>{taka(counterSplitTotal)}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <label className="text-[13px] font-medium text-ink">
-                  Note
-                  <Input className="mt-1.5" value={counterNote} onChange={(event) => setCounterNote(event.target.value)} placeholder="Optional" />
-                </label>
-              </div>
-
-              <div className="mt-4 flex justify-end">
-                <Button onClick={postCounter}>
-                  {counterType === 'Customer Receive' ? 'Receive' : counterType === 'Supplier Pay' ? 'Pay supplier' : counterType === 'Expense' ? 'Add expense' : 'Transfer'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} />}
 
         {tab === 'accounts' && (
           <div className="p-4">

@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { ProductThumb } from '../ProductThumb';
 import { products as seedProducts } from '../../data/products';
 import { stockLots } from '../../data/productInventory';
@@ -268,7 +268,13 @@ ref)
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         placeholder="Add product… name, SKU or বাংলা"
-        className="h-10 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 pr-12 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+        className={`h-10 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${query ? 'pr-20' : 'pr-12'}`} />
+      {query&&<button type="button" aria-label="Clear product search" title="Clear product search"
+        onMouseDown={event=>event.preventDefault()}
+        onClick={()=>{setQuery('');setActive(0);setOpen(true);inputRef.current?.focus();}}
+        className="absolute right-11 top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-400 hover:bg-ink-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-teal-500/30">
+        <X className="size-4" aria-hidden="true"/>
+      </button>}
       <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500">
         F2
       </kbd>

@@ -12,6 +12,7 @@ import { customerSettlementAsOf, supplierSettlementAsOf } from '../../utils/part
 import type { PartySourceRecord, PartyPaymentPayload } from '../../types/partyLedger';
 import type { Party } from '../../types/erp';
 import { taka } from '../../utils/currency';
+import { amountInWords } from '../../utils/amountInWords';
 
 type Props = { open:boolean; party:Party; relationship:'Customer'|'Supplier'; sources:readonly PartySourceRecord[];
   onClose:()=>void; onSubmit:(payload:PartyPaymentPayload)=>void };
@@ -91,10 +92,12 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
           <Input aria-label="Payment reason" value={reason} onChange={event=>{setReason(event.target.value);setReview(false);}} placeholder="Required when discount is applied"/>
         </label>}
         <FinancePaymentSplitEditor accounts={financeAccounts} rows={splits} onChange={value=>{setSplits(value);setReview(false);}} totalAmount={net}/>
+        <p className="rounded-md bg-ink-50 px-3 py-2 text-xs text-ink-500" aria-live="polite">Amount in words: {amountInWords(net)}</p>
         {review&&<div className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800" role="status">
           <p className="font-semibold">Review before recording</p>
           <p>{action} · {party.name} · {date}</p>
           <p>Cash movement {taka(net)} · Discount {taka(rebate)} · Due after {taka(Math.max(0,due-net-rebate))}</p>
+          <p className="mt-1 font-medium">{amountInWords(net)}</p>
           <p className="mt-1">Confirm records one auditable preview source. No banking transaction will occur.</p>
         </div>}
         {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}

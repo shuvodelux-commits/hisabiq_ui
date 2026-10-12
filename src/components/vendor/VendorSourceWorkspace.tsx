@@ -118,7 +118,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
         </h4>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <div className="relative min-w-[160px] flex-1">
-            <Search className="absolute left-2.5 top-2.5 size-4 text-ink-400"/>
+            <Search className="pointer-events-none absolute z-10 left-2.5 top-2.5 size-4 text-ink-400"/>
             <Input aria-label="Search Vendor source invoices" value={search} onChange={e=>setSearch(e.target.value)}
               placeholder="Invoice, memo or product" className="pl-8"/>
           </div>

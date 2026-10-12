@@ -1,5 +1,6 @@
 import { LogoMark } from './Logo';
 import { formatNumber } from '../../utils/currency';
+import { amountInWords } from '../../utils/amountInWords';
 import type { WarrantySnapshot } from '../../types/erp';
 
 export type ReceiptLine = {name: string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;};
@@ -60,6 +61,7 @@ export function ReceiptPreview(p: ReceiptPreviewProps) {
         {p.discount > 0 && <div className="flex justify-between"><span>Discount</span><span className="">−{n(p.discount)}</span></div>}
         <div className="flex justify-between"><span>Rounding</span><span className="">{p.rounding >= 0 ? '+' : '−'}{n(Math.abs(p.rounding))}</span></div>
         <div className="flex justify-between pt-1 text-[14px] font-semibold"><span>Total</span><span className="">৳{n(p.total)}</span></div>
+        <div className="text-[11px] leading-5">{amountInWords(p.total)}</div>
         <div className="flex justify-between"><span>Paid ({p.method})</span><span className="">{n(p.paid)}</span></div>
         {p.due > 0 && <div className="flex justify-between font-medium"><span>Due</span><span className="">{n(p.due)}</span></div>}
       </div>

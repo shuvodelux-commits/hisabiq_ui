@@ -46,11 +46,13 @@ async function main() {
       await quick.getByRole('button',{name:'Add expense category',exact:true}).click();
       assert.equal(await form.getByRole('textbox',{name:'Description / remarks',exact:true}).inputValue(),'Counter delivery test');
       await form.getByRole('textbox',{name:'Expense amount',exact:true}).fill('-20');
-      await form.getByRole('button',{name:'Save expense',exact:true}).click();
+      await form.getByRole('button',{name:'Review expense',exact:true}).click();
       assert.match(await form.getByRole('alert').innerText(),/nonnegative/);
       await form.getByRole('textbox',{name:'Expense amount',exact:true}).fill('500');
       await form.getByRole('textbox',{name:'Payment amount 1',exact:true}).fill('100');
-      await form.getByRole('button',{name:'Save expense',exact:true}).click();
+      await form.getByRole('button',{name:'Review expense',exact:true}).click();
+      assert.match(await form.getByRole('region',{name:'Expense correction impact'}).innerText(),/পাঁচশত টাকা মাত্র/);
+      await form.getByRole('button',{name:'Confirm expense preview',exact:true}).click();
       await form.waitFor({state:'hidden'});
       await page.getByRole('button',{name:'Actions for EXP-000062',exact:true}).click();
       await page.getByRole('button',{name:'Correct',exact:true}).click();
@@ -61,7 +63,7 @@ async function main() {
       assert.match(await edit.getByRole('alert').innerText(),/reason/);
       await edit.getByRole('textbox',{name:'Expense correction reason',exact:true}).fill('Correct delivery charge');
       await edit.getByRole('button',{name:'Review changes',exact:true}).click();
-      assert.match(await edit.getByRole('region',{name:'Expense correction impact'}).innerText(),/৳500.*৳600/);
+      const correctionReview=await edit.getByRole('region',{name:'Expense correction impact'}).innerText();assert.match(correctionReview,/Previous amount ৳500/);assert.match(correctionReview,/৳600/);
       await edit.getByRole('button',{name:'Confirm preview correction',exact:true}).click();
       const detail=page.getByRole('dialog',{name:'Bill details',exact:true});
       await detail.waitFor();

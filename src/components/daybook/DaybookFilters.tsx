@@ -36,7 +36,7 @@ export function DaybookFilters({
     <div className="space-y-2 border-b border-border p-3">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
         <div className="relative min-w-0 flex-1 lg:max-w-md">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+          <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
           <Input value={value.search} onChange={(event) => set('search', event.target.value)} className="pl-8" placeholder="Search transaction, party, reference or amount" />
         </div>
         <AppDateRangePicker label="Daybook date range" className="w-full sm:w-[265px]"

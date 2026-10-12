@@ -237,10 +237,10 @@ export function DataTable<T extends { id: string }>({
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3">
           <div className="relative w-full sm:w-72">
             <Search
-              className="absolute left-3 top-2.5 text-ink-500"
+              className="pointer-events-none absolute left-3 top-2.5 z-10 text-ink-500"
               size={15}
             />
-            <input
+            <Input
               aria-label="Search records"
               value={q}
               onChange={(e) => set("q", e.target.value)}

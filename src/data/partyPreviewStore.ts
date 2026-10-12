@@ -6,6 +6,7 @@ import { validatePartyPayment, validatePartyRefund, validatePartySplits, validat
 import { financeTypeMeta } from '../utils/partyFinance.ts';
 import { validateOpening,activePartyOpening,isPartyOpening,makeOpeningSource } from '../utils/partyOpening.ts';
 import { customerSettlementAsOf, supplierSettlementAsOf, validateCustomerPayment, validateCustomerRefund } from '../utils/partySettlement.ts';
+import { counterOpenInvoices } from '../utils/counterAllocation.ts';
 import type { Party, PartyRole } from '../types/erp';
 import type {PartyImportPlan} from '../import/partyImport.ts';
 import type {ImportResult} from '../import/importTypes.ts';
@@ -294,6 +295,12 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
           &&row.kind===kind&&row.status==='Active'&&row.date<=payload.date
           &&(row.reference===invoiceId||row.id===invoiceId));
         if(!matching)throw new Error('Invoice or purchase reference must belong to this party and predate payment.');
+        if(payload.relationship==='Customer'){
+          const remaining=counterOpenInvoices(sources,party.id,payload.date).find(row=>row.id===matching.id);
+          const settlementAmount=total+((payload as PartyPaymentPayload).discount??0);
+          if(!remaining||Math.round(settlementAmount*100)>Math.round(remaining.due*100))
+            throw new Error('Payment exceeds this invoice outstanding due. Refresh the customer balance and try again.');
+        }
       }
     }
     const op=payload.operationId;
@@ -314,12 +321,12 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
       id,partyId:party.id,relationship:payload.relationship,kind,date:payload.date,
       sequence:Math.max(0,...sources.map(row=>row.sequence))+1,
       reference:id.replace('party-','').toUpperCase(),
-      description:(isRefund?'Credit refunded':'Payment recorded')+' · '+party.name+
+      description:(isRefund?'Credit refunded':!total&&discount?'Discount / settlement recorded':'Payment recorded')+' · '+party.name+
         (payload.reason?.trim()?' · '+payload.reason.trim():''),
       debit,credit,amountPaid:total,discount,provenance:'verified',
       invoiceId:!isRefund?(payload as PartyPaymentPayload).invoiceId:undefined,
       paymentSplits:payload.splits.map(row=>({...row})),
-      method:payload.splits.length===1?payload.splits[0].method:'Multiple',
+      method:payload.splits.length===1?payload.splits[0].method:payload.splits.length?'Multiple':discount?'Settlement':undefined,
       accountId:payload.splits.length===1?payload.splits[0].accountId:undefined,
       status:'Active'
     };

@@ -7,6 +7,7 @@ import { Input } from '../Input';
 import type { PurchaseDiscountMode } from '../../utils/purchaseCheckout';
 import { paymentRemainder } from '../../utils/purchaseCheckout';
 import { formatNumber, taka } from '../../utils/currency';
+import { amountInWords } from '../../utils/amountInWords';
 
 import {makePurchasePaymentRow,purchasePaymentAccounts,methods,type PurchasePaymentMethod,type PurchasePaymentRow} from '../../utils/purchasePaymentMethods';
 export {makePurchasePaymentRow,purchasePaymentAccounts} from '../../utils/purchasePaymentMethods';
@@ -94,6 +95,7 @@ export function PurchasePaymentPanel(props: Props) {
         <p data-testid="purchase-net-total" className="mt-0.5 text-right text-[34px] font-semibold leading-tight tracking-tight">
           {taka(totals.total)}
         </p>
+        <p className="mt-1 text-right text-[11px] leading-5 text-[#B7C2CF]" aria-live="polite">{amountInWords(totals.total)}</p>
       </div>
 
       <div className="space-y-3 p-4">

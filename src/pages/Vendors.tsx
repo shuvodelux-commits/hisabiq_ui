@@ -69,7 +69,7 @@ export function Vendors(){
    <div className="flex flex-wrap items-end justify-between gap-3">
     <div className="min-w-0 w-full sm:w-auto flex-1">
      <label htmlFor="vendor-module-search" className="mb-1 block text-sm font-medium text-ink">Choose Vendor · ভেন্ডর বাছুন</label>
-     <div className="relative"><Search className="absolute left-3 top-2.5 size-4 text-ink-400"/>
+     <div className="relative"><Search className="pointer-events-none absolute z-10 left-3 top-2.5 size-4 text-ink-400"/>
       <Input id="vendor-module-search" aria-label="Search Vendors" placeholder="Name, phone or area"
        className="pl-9" value={query} onChange={e=>setQuery(e.target.value)}/>
      </div>
