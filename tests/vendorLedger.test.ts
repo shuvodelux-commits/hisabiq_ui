@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {applyVendorCommand} from '../src/vendor/vendorModel.ts';
 import {projectVendorStatement,serializeVendorStatementCsv} from '../src/vendor/vendorLedger.ts';
 import type {VendorPreviewState} from '../src/vendor/vendorTypes.ts';
-let base:VendorPreviewState={parties:[{id:'v1',roles:['Vendor'],status:'Active'}],
+const base:VendorPreviewState={parties:[{id:'v1',roles:['Vendor'],status:'Active'}],
  sources:[],settlements:[],events:[],openings:[],sales:[],operations:[],revision:0};
 const add=(state:VendorPreviewState,operationId:string,date:string,cost:number|null)=>applyVendorCommand(state,{
  type:'record-sourcing',vendorPartyId:'v1',operationId,source:{id:'source-'+operationId,

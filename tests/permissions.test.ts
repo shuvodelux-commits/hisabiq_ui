@@ -28,6 +28,14 @@ test('Audit correction and delete require both Audit Ledger and source permissio
   assert.equal(mod.canAuditAction('delete', source, granted), false);
 });
 
+test('opening-balance audit actions require Accounts permission and cannot borrow Finance permission', async () => {
+  const mod = await permissionsModule();
+  assert.equal(mod.sourcePermissionGroup('opening-balance'), 'accounts');
+  assert.equal(mod.canAuditAction('correct','opening-balance',new Set(['audit.view','audit.correct','finance.edit'])),false);
+  assert.equal(mod.canAuditAction('correct','opening-balance',new Set(['audit.view','audit.correct','accounts.edit'])),true);
+  assert.equal(mod.canAuditAction('delete','opening-balance',new Set(['audit.view','audit.delete','accounts.edit'])),false);
+});
+
 test('source groups map finance and accounting records to their owning modules', async () => {
   const mod = await permissionsModule();
   assert.equal(mod.sourcePermissionGroup('transfer'), 'finance');

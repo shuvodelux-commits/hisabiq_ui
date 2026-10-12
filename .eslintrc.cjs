@@ -6,7 +6,9 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  // Magic Patterns' precompiled vendor bundle is checked through its declarations
+  // and runtime browser suite; lint authored source, not minified library output.
+  ignorePatterns: ['dist', '.eslintrc.cjs', 'src/_designSystem/**/library.js'],
   parser: '@typescript-eslint/parser',
   plugins: ['react-refresh'],
   rules: {

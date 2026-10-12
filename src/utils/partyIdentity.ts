@@ -9,7 +9,7 @@ export function validatePartyDraft(draft: PartyDraft, existing: Party[], editing
   if (!draft.roles?.length || !draft.roles.every(role => roles.includes(role))) errors.push('Choose at least one valid role.');
   if (new Set(draft.roles).size !== draft.roles.length) errors.push('Duplicate roles are not permitted.');
   if (draft.id && draft.id !== editingId && existing.some(p => p.id === draft.id)) errors.push('Party ID already exists.');
-  if (draft.phone && !/^[\d\s+()\-]{3,30}$/.test(draft.phone)) errors.push('Enter a valid phone number.');
+  if (draft.phone && !/^[\d\s+()-]{3,30}$/.test(draft.phone)) errors.push('Enter a valid phone number.');
   return errors;
 }
 
