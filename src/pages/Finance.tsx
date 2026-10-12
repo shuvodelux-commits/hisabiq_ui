@@ -14,7 +14,6 @@ import {
   Plus,
   RefreshCw,
   Search,
-  Trash2,
   UserRoundCog,
   WalletCards
 } from 'lucide-react';
@@ -50,7 +49,6 @@ import {
   type CashSessionRecord
 } from '../data/financeAccounts';
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
-import { parties } from '../data/parties';
 import { taka } from '../utils/currency';
 import { amountInWords } from '../utils/amountInWords';
 
