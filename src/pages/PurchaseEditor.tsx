@@ -174,6 +174,12 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
     else navigate('/app/purchases');
   };
 
+  const requestReview=()=>{
+    const message=validate();
+    if(message){setError(message);toast.error(message);return;}
+    setError('');setReviewPurchaseOpen(true);
+  };
+
   // Shortcuts mirror the POS workflow; dialogs retain their own keyboard handling.
   useEffect(() => {
     const handlePurchaseShortcuts = (event: KeyboardEvent) => {
@@ -190,7 +196,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
         paymentAmountRef.current?.select();
       } else if (event.key === 'F9') {
         event.preventDefault();
-        setReviewPurchaseOpen(true);
+        requestReview();
       }
     };
     window.addEventListener('keydown', handlePurchaseShortcuts);
@@ -281,7 +287,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             onPayments={setPayments}
             paidRef={paymentAmountRef}
             actionLabel={initialPurchase?"Review correction":undefined}
-            onComplete={() => setReviewPurchaseOpen(true)}
+            onComplete={requestReview}
           />
           </div>
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
