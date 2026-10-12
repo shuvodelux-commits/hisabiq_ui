@@ -130,7 +130,7 @@ export function TopBar() {
             className="h-9 w-full min-w-0 appearance-none rounded-lg border border-border bg-ink-50 pl-9 pr-24 text-sm text-ink placeholder:text-ink-400 focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:pr-36 [&::-webkit-search-cancel-button]:hidden" />
           {searchQuery&&<button type="button" aria-label="Clear global search" title="Clear global search"
             onMouseDown={event=>event.preventDefault()}
-            onClick={()=>{setSearchQuery('');searchInput.current?.focus();}}
+            onClick={()=>{setSearchQuery('');if(pathname==='/app/search')navigate('/app/search',{replace:true});searchInput.current?.focus();}}
             className="absolute right-[68px] top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-400 hover:bg-ink-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-teal-500/30 sm:right-[109px]">
             <X className="size-4" aria-hidden="true"/>
           </button>}
