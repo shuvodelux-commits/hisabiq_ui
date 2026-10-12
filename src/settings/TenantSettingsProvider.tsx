@@ -32,7 +32,7 @@ function readInitial() {
     if (raw) {
       try {
         const value = JSON.parse(raw);
-        if (validPersonal(value)) personal = value;
+        if (validPersonal(value)) personal = { ...personalDefaults, ...value };
       } catch {
         /* Recover preferences without discarding valid business settings. */
       }
