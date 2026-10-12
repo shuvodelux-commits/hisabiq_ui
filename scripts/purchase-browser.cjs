@@ -145,6 +145,7 @@ async function main() {
     assert.match(page.url(), /purchases\/new/, 'F9 validates instead of navigating on an incomplete purchase');
     await page.goto('http://127.0.0.1:4177/#/app/pos');
     const posCart = page.getByTestId('pos-cart');
+    await posCart.getByTestId('pos-add-row').waitFor();
     const posOrder = await posCart.locator(':scope > *').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-testid')));
     assert.equal(posOrder[posOrder.length - 1], 'pos-add-row', 'POS inline search must be last');
     assert.equal(await posCart.getByTestId('pos-cart-row').count() >= 1, true, 'sale rows remain in the cart');
