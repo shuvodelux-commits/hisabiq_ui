@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { AppSelect } from './AppSelect';
+import { AppSelect, type SelectOption } from './AppSelect';
 
 type FormSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
-  options: string[];
+  options: SelectOption[];
 };
 
 /**
@@ -21,9 +21,12 @@ export function FormSelect({
   id,
   ...other
 }: FormSelectProps) {
-  const [local, setLocal] = useState<string>(() => String(defaultValue ?? options[0] ?? ''));
+  const first = options[0];
+  const firstValue = typeof first === 'string' ? first : first?.value ?? '';
+  const firstLabel = typeof first === 'string' ? first : first?.label;
+  const [local, setLocal] = useState<string>(() => String(defaultValue ?? firstValue));
   const selected = value === undefined ? local : String(value);
-  const label = String(other['aria-label'] ?? title ?? name ?? options[0] ?? 'Select option');
+  const label = String(other['aria-label'] ?? title ?? name ?? firstLabel ?? 'Select option');
   const update = (next: string) => {
     if (value === undefined) setLocal(next);
     // Existing callers only read event.target.value. The form-select adapter

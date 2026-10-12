@@ -28,7 +28,8 @@ const label=(source:PartyLedgerRow['source'])=>({
   sale:'Invoice',purchase:'Purchase',finance:'Finance',opening:'Opening',
   note:'Note','sale-return':'Sales return','purchase-return':'Purchase return',
   'customer-payment':'Payment','supplier-payment':'Payment',
-  'customer-credit-refund':'Credit refund',expense:'Expense'
+  'customer-credit-refund':'Credit refund','supplier-credit-refund':'Supplier refund',
+  'customer-credit-apply':'Credit used',expense:'Expense'
 })[source]??source;
 const impactTone:Record<LedgerImpact['kind'],string>={
  in:'text-emerald-700 dark:text-emerald-400',

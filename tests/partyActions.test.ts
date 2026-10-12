@@ -37,3 +37,13 @@ test('customer refund permission follows customer payments, finance has its own 
   const finance={...sale,relationship:'Lender' as const,source:'finance' as const};
   assert.equal(avail(finance,['finance.view','finance.edit']).find(x=>x.action==='edit')?.enabled,true);
 });
+
+test('supplier refund actions are purchase-owned and credit application is read-only',()=>{
+  const refund={...sale,source:'supplier-credit-refund' as const,relationship:'Supplier' as const};
+  assert.equal(avail(refund,['purchases.view','purchases.edit']).find(x=>x.action==='edit')?.enabled,true);
+  assert.equal(avail(refund,['sales.edit']).find(x=>x.action==='edit')?.enabled,false);
+  assert.equal(avail(refund,['purchases.view']).find(x=>x.action==='print')?.enabled,true);
+  const used={...sale,source:'customer-credit-apply' as const};
+  assert.deepEqual(avail(used,['sales.view','sales.edit','sales.delete']).map(x=>x.action),['view','print']);
+  assert.ok(avail(used,['sales.view']).every(x=>x.enabled));
+});
