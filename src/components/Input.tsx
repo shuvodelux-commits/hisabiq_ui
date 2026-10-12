@@ -23,7 +23,7 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
  const numeric=props.type==='number'||props.inputMode==='decimal'||props.inputMode==='numeric'&&props.type!=='tel';
  if(numeric)return <NumericInput {...props} ref={setRef}/>;
  const value=props.value;
- const searchLike=props.type==='search'||/\b(search|find|filter|lookup)\b/i.test(
+ const searchLike=props.type==='search'||/(?:\b(?:search|find|filter|lookup)\b|খুঁজ|খোঁজ|অনুসন্ধান|সার্চ|ফিল্টার)/i.test(
   [props['aria-label'],props.placeholder,props.name,props.id].filter(Boolean).join(' '));
  const supportsClear=(clearable??searchLike)&&
   !props.disabled&&!props.readOnly&&(!!onClear||!!props.onChange);
