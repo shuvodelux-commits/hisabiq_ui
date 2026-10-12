@@ -1,7 +1,7 @@
 name: Numeric Steppers Check
 on:
   pull_request:
-    paths: ['src/components/Input.tsx', 'src/components/NumericInput.tsx', 'src/components/MoneyUnitInput.tsx', 'src/components/transactions/**', 'src/components/pos/**', 'src/components/purchases/**', 'src/index.css', 'src/utils/numericStep.ts', 'tests/numericStep.test.ts', 'scripts/numeric-steppers-browser.cjs', '.github/workflows/numeric-steppers-check.yml']
+    paths: ['src/components/Input.tsx', 'src/components/NumericInput.tsx', 'src/components/MoneyUnitInput.tsx', 'src/components/transactions/**', 'src/components/pos/**', 'src/components/purchases/**', 'src/index.css', 'src/utils/numericStep.ts', 'tests/numericStep.test.ts', 'scripts/numeric-steppers-browser.cjs', 'scripts/pos-responsive-cart-browser.cjs', '.github/workflows/numeric-steppers-check.yml']
 permissions:
   contents: read
 jobs:
@@ -18,5 +18,6 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: node scripts/numeric-steppers-browser.cjs
       - run: node scripts/mobile-carts-browser.cjs
+      - run: node scripts/pos-responsive-cart-browser.cjs
       - run: npm run test:compound-units
       - run: npm run test:product-quick-add
