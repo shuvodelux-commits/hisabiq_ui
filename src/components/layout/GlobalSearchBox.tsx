@@ -16,7 +16,7 @@ export function GlobalSearchBox(){
  const field=useRef<HTMLInputElement>(null);
  const root=useRef<HTMLDivElement>(null);
  const listId=useId();
- const records=useMemo(()=>globalSearchRecords(state,actorId,personal.language),[state,actorId,personal.language]);
+ const records=useMemo(()=>globalSearchRecords(state,actorId,personal.language),[state,actorId,personal.language,query]);
  const results=useMemo(()=>query.trim()?searchResults(records,query,personal.searchMode??'Default').slice(0,8):[],[query,records,personal.searchMode]);
  const visible=open&&Boolean(query.trim());
  const selected=Math.min(active,Math.max(0,results.length-1));
