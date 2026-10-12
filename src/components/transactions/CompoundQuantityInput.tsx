@@ -53,12 +53,12 @@ export function CompoundQuantityInput({product,unit,primary,secondary='',onPrima
   event.preventDefault();event.stopPropagation();next?.();
  };
  if(large)return <div data-numeric-joined data-testid="compound-quantity" className="flex h-9 w-full min-w-0 max-w-full items-stretch overflow-hidden rounded-md border border-input bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
-  <NumericInput ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
+  <NumericInput stepperCompact ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter??(()=>secondaryInput.current?.focus()))}
    className="h-full w-0 min-w-0 flex-1 bg-transparent px-1.5 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
   <span className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{product.altUnit!.unit}</span>
-  <NumericInput ref={node=>refTo(node,'secondary')} type="text" inputMode="decimal" autoComplete="off"
+  <NumericInput stepperCompact ref={node=>refTo(node,'secondary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={secondaryLabel??product.unit+' quantity'} disabled={disabled} placeholder="0" value={secondaryText}
    onChange={event=>updateSecondary(event.target.value)}
    onBlur={onSecondaryBlur} onKeyDown={event=>onEnter(event,onSecondaryEnter)}
@@ -66,7 +66,7 @@ export function CompoundQuantityInput({product,unit,primary,secondary='',onPrima
   <span className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{product.unit}</span>
  </div>;
  return <div data-testid="single-quantity" className="relative h-9 w-full min-w-0">
-  <NumericInput ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
+  <NumericInput stepperInset={34} ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter)}
    className="h-9 w-full min-w-0 rounded-md border border-input bg-ink-50/50 px-2 pr-12 text-right text-sm font-medium text-ink outline-none focus:border-teal-500 focus:bg-card focus:ring-2 focus:ring-teal-500/20 disabled:opacity-60"/>
