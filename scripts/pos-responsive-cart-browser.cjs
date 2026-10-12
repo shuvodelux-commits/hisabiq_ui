@@ -97,6 +97,25 @@ async function main() {
           await quantity.press('ArrowUp');
           assert.notEqual(await quantity.inputValue(), original, name + ': stepping remains functional');
         }
+        // Sidebar collapse changes available space without changing viewport orientation.
+        if (width === 1180 && theme === 'light') {
+          await page.getByRole('button', { name: 'Collapse sidebar' }).first().click();
+          await page.waitForFunction(() => document.querySelector('.pos-screen').getBoundingClientRect().width >= 1056);
+          const expandedRoom = await page.evaluate(() => {
+            const cart = document.querySelector('[data-cart-kind="sale"]').getBoundingClientRect();
+            const payment = document.querySelector('[data-pos-checkout]').getBoundingClientRect();
+            return { beside: payment.left >= cart.right - 2 };
+          });
+          assert.ok(expandedRoom.beside, 'Collapsing sidebar should allow side-by-side checkout in landscape');
+          await page.getByRole('button', { name: 'Expand sidebar' }).first().click();
+          await page.waitForFunction(() => document.querySelector('.pos-screen').getBoundingClientRect().width < 1056);
+          const smallRoom = await page.evaluate(() => {
+            const cart = document.querySelector('[data-cart-kind="sale"]').getBoundingClientRect();
+            const payment = document.querySelector('[data-pos-checkout]').getBoundingClientRect();
+            return { stacked: payment.top > cart.bottom };
+          });
+          assert.ok(smallRoom.stacked, 'Expanded sidebar should restore stacked checkout when space is tight');
+        }
         assert.deepEqual(errors, [], name + ': no browser exceptions');
         if (process.env.POS_RESPONSIVE_SCREENSHOTS && theme === 'light') {
           const filename = name.replace(/[^a-z0-9]+/g, '-');
