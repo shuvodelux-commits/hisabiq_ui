@@ -321,12 +321,12 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
       id,partyId:party.id,relationship:payload.relationship,kind,date:payload.date,
       sequence:Math.max(0,...sources.map(row=>row.sequence))+1,
       reference:id.replace('party-','').toUpperCase(),
-      description:(isRefund?'Credit refunded':'Payment recorded')+' · '+party.name+
+      description:(isRefund?'Credit refunded':!total&&discount?'Discount / settlement recorded':'Payment recorded')+' · '+party.name+
         (payload.reason?.trim()?' · '+payload.reason.trim():''),
       debit,credit,amountPaid:total,discount,provenance:'verified',
       invoiceId:!isRefund?(payload as PartyPaymentPayload).invoiceId:undefined,
       paymentSplits:payload.splits.map(row=>({...row})),
-      method:payload.splits.length===1?payload.splits[0].method:'Multiple',
+      method:payload.splits.length===1?payload.splits[0].method:payload.splits.length?'Multiple':discount?'Settlement':undefined,
       accountId:payload.splits.length===1?payload.splits[0].accountId:undefined,
       status:'Active'
     };
