@@ -76,7 +76,7 @@ export function LedgerView({
           </div>
           <label className="text-[12px] font-medium text-ink">
             Search
-            <div className="relative mt-1.5"><Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" /><Input className="pl-8" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Reference or details" /></div>
+            <div className="relative mt-1.5"><Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" /><Input className="pl-8" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Reference or details" /></div>
           </label>
         </div>
         <div className="flex flex-wrap items-end justify-between gap-2 xl:justify-end">
