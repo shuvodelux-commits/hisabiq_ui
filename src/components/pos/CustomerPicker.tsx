@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, UserRound, X } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
+import { Input } from '../Input';
 import { PartyAvatar } from '../PartyAvatar';
 import { parties } from '../../data/parties';
 import { taka } from '../../utils/currency';
@@ -60,7 +61,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
       {(close) =>
       <div>
           <div className="border-b border-border p-2">
-            <input
+            <Input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
