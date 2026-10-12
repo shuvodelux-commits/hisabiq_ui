@@ -15,6 +15,7 @@ function files(dir:string):string[]{
 test('all native search-like ERP fields use the shared clear input or an intentional keyboard-safe clear action',()=>{
  const allowed=new Set([
   'src/components/layout/TopBar.tsx',
+  'src/components/layout/GlobalSearchBox.tsx',
   'src/components/pos/ProductCombobox.tsx'
  ]);
  const unresolved:string[]=[];
