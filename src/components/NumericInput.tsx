@@ -4,8 +4,8 @@ import {Input as DesignInput} from '../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-
 import {wholeNumberStep} from '../utils/numericStep';
 
 /** Existing HisabIQ input with focus/hover steppers; all changes use the original React onChange path. */
-type NumericProps=InputHTMLAttributes<HTMLInputElement>&{stepperInset?:number};
-export const NumericInput=forwardRef<HTMLInputElement,NumericProps>(function NumericInput({className='',onKeyDown,disabled,readOnly,min=0,max,type='text',stepperInset=0,style,...props},forwardedRef){
+type NumericProps=InputHTMLAttributes<HTMLInputElement>&{stepperInset?:number;stepperCompact?:boolean};
+export const NumericInput=forwardRef<HTMLInputElement,NumericProps>(function NumericInput({className='',onKeyDown,disabled,readOnly,min=0,max,type='text',stepperInset=0,stepperCompact=false,style,...props},forwardedRef){
  const input=useRef<HTMLInputElement|null>(null);
  const editable=!disabled&&!readOnly;
  const layout=(/(?:^|\s)h-/.test(className)?'':'h-9 ')+(/(?:^|\s)(?:w-|flex-1)/.test(className)?'':'w-full ')+className;
@@ -23,12 +23,12 @@ export const NumericInput=forwardRef<HTMLInputElement,NumericProps>(function Num
   const setter=prototype&&Object.getOwnPropertyDescriptor(prototype,'value')?.set;
   setter?.call(node,next);node.dispatchEvent(new Event('input',{bubbles:true}));
  };
- return <span style={{...style,'--numeric-inset':stepperInset+'px'} as CSSProperties} data-numeric-input data-editable={editable?'true':'false'} className={'relative inline-flex min-w-0 items-stretch rounded-md border border-input bg-card text-sm text-ink '+(layout+(className?'':' px-3 py-1')).replace(/\bfocus:/g,'focus-within:')}>
+ return <span style={{...style,'--numeric-inset':stepperInset+'px'} as CSSProperties} data-numeric-input data-stepper-size={stepperCompact?'compact':'standard'} data-editable={editable?'true':'false'} className={'relative inline-flex min-w-0 items-stretch rounded-md border border-input bg-card text-sm text-ink '+(layout+(className?'':' px-3 py-1')).replace(/\bfocus:/g,'focus-within:')}>
   <DesignInput {...props} type={type} min={min} max={max} disabled={disabled} readOnly={readOnly}
    ref={node=>{input.current=node;if(typeof forwardedRef==='function')forwardedRef(node);else if(forwardedRef)forwardedRef.current=node;}}
-   className={className+" numeric-input-control !h-full !w-full !min-w-0 !rounded-none !border-0 !bg-transparent !py-0 !text-inherit !shadow-none !outline-none !ring-0 !ring-offset-0"}
+   className={className+" numeric-input-control !h-full !min-h-0 !w-full !min-w-0 !flex-1 !rounded-none !border-0 !bg-transparent !py-0 !text-inherit !shadow-none !outline-none !ring-0 !ring-offset-0"}
    onKeyDown={event=>{onKeyDown?.(event);if(event.defaultPrevented||event.altKey||event.ctrlKey||event.metaKey||event.nativeEvent.isComposing||!editable)return;if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();event.stopPropagation();step(event.key==='ArrowUp'?1:-1);}}}/>
-  {editable&&<span data-number-stepper className="absolute inset-y-0 flex flex-col justify-center" aria-label={'Adjust '+label}>
+  {editable&&<span data-number-stepper className="absolute flex flex-col justify-center" aria-label={'Adjust '+label}>
    <button type="button" tabIndex={-1} aria-label={'Increase '+label} title="Increase by 1" onPointerDown={event=>{event.preventDefault();input.current?.focus();}} onClick={()=>step(1)} className="flex min-h-0 flex-1 items-center justify-center rounded-sm text-ink-500 hover:bg-ink-50 hover:text-ink"><ChevronUp className="size-3"/></button>
    <button type="button" tabIndex={-1} aria-label={'Decrease '+label} title="Decrease by 1" onPointerDown={event=>{event.preventDefault();input.current?.focus();}} onClick={()=>step(-1)} className="flex min-h-0 flex-1 items-center justify-center rounded-sm text-ink-500 hover:bg-ink-50 hover:text-ink"><ChevronDown className="size-3"/></button>
   </span>}
