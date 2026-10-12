@@ -48,7 +48,7 @@ async function inspectCart(page, kind, name) {
   if (!info.header) {
     assert.equal(info.columns[1].gridRow, '1', name + ': product at top of compact row');
     assert.equal(info.columns[kind === 'purchase' ? 6 : 5].gridRow, '1', name + ': total at top of compact row');
-    assert.ok(info.row.height < 210, name + ': compact row is not an oversized mobile card');
+    assert.ok(info.row.height < 210, name + ': compact row is not an oversized mobile card (height ' + info.row.height + 'px, columns ' + JSON.stringify(info.columns.map(c => ({height:c.box.height, gridRow:c.gridRow}))) + ')');
   }
   return info;
 }
