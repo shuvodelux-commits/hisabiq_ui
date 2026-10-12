@@ -155,7 +155,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
     {(type==='Customer Receive'||type==='Supplier Pay')&&<div className="rounded-xl border border-border bg-card p-4">
      <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?'Find customer':'Find supplier'}</label>
      <div className="relative">
-      <Search aria-hidden="true" className="absolute left-3 top-2.5 size-4 text-ink-400"/>
+      <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-2.5 z-10 size-4 text-ink-400"/>
       <Input className="pl-9" aria-label={type==='Customer Receive'?'Search customer':'Search supplier'} value={search}
        placeholder="Search name, phone or area" onFocus={()=>setSearching(true)}
        onClear={clearParty}
