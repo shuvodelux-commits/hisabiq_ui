@@ -124,6 +124,10 @@ async function main() {
 
     assert.match(await purchasePaymentPanel.innerText(), /Supplier due/);
     await page.getByRole('button', { name: 'Complete purchase' }).click();
+    const reviewPurchase = page.getByRole('dialog', { name: 'Review purchase', exact: true });
+    await reviewPurchase.waitFor();
+    assert.match(await reviewPurchase.innerText(), /টাকা মাত্র/, 'Bangla amount wording is shown before posting');
+    await reviewPurchase.getByRole('button', { name: 'Confirm purchase preview' }).click();
     await page.getByRole('heading', { name: 'Purchases', exact: true }).waitFor();
     await page.getByRole('link', { name: 'Browser QA Supplier' }).waitFor();
     const savedRow = page.locator('tbody tr').filter({ hasText: 'Browser QA Supplier' });
