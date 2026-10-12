@@ -11,6 +11,13 @@ async function main(){
  try{
   await page.goto(base+'/app/quotations');
   const nav=page.getByRole('navigation',{name:'Main'});
+  const firstThree=await nav.locator(':scope > div > div > a, :scope > div > div > button').evaluateAll(nodes=>nodes.slice(0,3).map(node=>node.getAttribute('href')?.split('#')[1]));
+  assert.deepEqual(firstThree,['/app/dashboard','/app/pos','/app/counter'],'most-used modules come first');
+  await nav.getByRole('link',{name:/Counter/}).click();
+  assert.ok(page.url().includes('/app/counter'),'Counter has its own top-level route');
+  await page.getByText('Receive customer payments, pay suppliers, record expenses and transfer money.').waitFor();
+  assert.equal(await nav.getByRole('link',{name:/Counter/}).getAttribute('aria-current'),'page');
+  await page.goto(base+'/app/quotations');
   await nav.getByRole('link',{name:/Quotations & Estimates/}).waitFor();
   assert.equal(await nav.getByRole('link',{name:/Quotations & Estimates/}).getAttribute('aria-current'),'page');
   assert.equal(await nav.getByRole('button',{name:'Collapse Sales'}).getAttribute('aria-expanded'),'true');
