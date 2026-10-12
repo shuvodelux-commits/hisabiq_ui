@@ -37,7 +37,7 @@ async function inspectCart(page, kind, name) {
     };
   });
   const threshold = kind === 'purchase' ? 840 : 720;
-  assert.equal(info.header, info.root.width >= threshold, name + ' should switch table at its measured cart width');
+  assert.equal(info.header, info.width >= threshold, name + ' should switch table at inner container width ' + info.width + 'px');
   assert.ok(info.scrollWidth <= info.width + 2, name + ': cart must not scroll sideways');
   assert.ok(info.row.width <= info.root.width + 1, name + ': row stays inside cart');
   for (const part of info.columns) {
