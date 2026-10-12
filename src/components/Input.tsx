@@ -1,6 +1,52 @@
-import {forwardRef,type InputHTMLAttributes} from 'react';
+import {forwardRef,useRef,type InputHTMLAttributes} from 'react';
+import {X} from 'lucide-react';
 import {Input as DesignInput} from '../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9';
 import {NumericInput} from './NumericInput';
-export const Input=forwardRef<HTMLInputElement,InputHTMLAttributes<HTMLInputElement>>(function Input(props,ref){
- return props.type==='number'||props.inputMode==='decimal'||props.inputMode==='numeric'&&props.type!=='tel'?<NumericInput {...props} ref={ref}/>:<DesignInput {...props} ref={ref}/>;
+
+export type InputProps=InputHTMLAttributes<HTMLInputElement>&{
+ /** Explicitly show a quick-clear button for a controlled text input. */
+ clearable?:boolean;
+ /** Override standard onChange-based clearing when multiple related fields must reset. */
+ onClear?:()=>void;
+};
+/** Search/find/filter inputs across the ERP have one consistent quick-clear action.
+ * Numeric fields retain the NumericInput layout and never receive a clear overlay.
+ */
+export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
+ clearable,onClear,...props
+},ref){
+ const internalRef=useRef<HTMLInputElement|null>(null);
+ const setRef=(node:HTMLInputElement|null)=>{
+  internalRef.current=node;
+  if(typeof ref==='function')ref(node);else if(ref)ref.current=node;
+ };
+ const numeric=props.type==='number'||props.inputMode==='decimal'||props.inputMode==='numeric'&&props.type!=='tel';
+ if(numeric)return <NumericInput {...props} ref={setRef}/>;
+ const value=props.value;
+ const searchLike=props.type==='search'||/\b(search|find|filter|lookup)\b/i.test(
+  [props['aria-label'],props.placeholder,props.name,props.id].filter(Boolean).join(' '));
+ const canClear=(clearable??searchLike)&&typeof value==='string'&&value.length>0&&
+  !props.disabled&&!props.readOnly&&(!!onClear||!!props.onChange);
+ if(!canClear)return <DesignInput {...props} ref={setRef}/>;
+ const clear=()=>{
+  const input=internalRef.current;
+  if(onClear)onClear();
+  else if(input){
+   // Use the native value setter so React's controlled input tracker
+   // observes the input event and invokes the original onChange handler.
+   const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')?.set;
+   setter?.call(input,'');
+   input.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  input?.focus();
+ };
+ return <span className="relative block w-full min-w-0">
+  <DesignInput {...props} ref={setRef}
+   className={(props.className??'')+' pr-10 [&::-webkit-search-cancel-button]:hidden'}/>
+  <button type="button" aria-label={'Clear '+(props['aria-label']||props.placeholder||'input')}
+   title="Clear" onMouseDown={event=>event.preventDefault()} onClick={clear}
+   className="absolute right-1.5 top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">
+   <X className="size-4" aria-hidden="true"/>
+  </button>
+ </span>;
 });
