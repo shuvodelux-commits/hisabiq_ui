@@ -37,7 +37,7 @@ export function Reports() {
         titleBn="রিপোর্ট"
         description="Business reports, profit, receivables, payables and operational books."
         actions={
-        <div className="flex rounded-lg bg-card p-0.5 shadow-card ring-1 ring-ink-100" role="radiogroup" aria-label="Period">
+        <div className="flex flex-wrap rounded-lg bg-card p-0.5 shadow-card ring-1 ring-ink-100" role="radiogroup" aria-label="Period">
             {periods.map((p) =>
           <button
             key={p}
