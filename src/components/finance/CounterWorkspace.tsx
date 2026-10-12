@@ -30,6 +30,8 @@ export function CounterWorkspace({accounts,setAccounts}:{
  const [search,setSearch]=useState('');
  const [searching,setSearching]=useState(false);
  const [allocation,setAllocation]=useState('');
+ const [discountInput,setDiscountInput]=useState('');
+ const [discountReason,setDiscountReason]=useState('');
  const [rows,setRows]=useState<Row[]>([]);
  const [amount,setAmount]=useState('');
  const [expenseCategory,setExpenseCategory]=useState('');
@@ -56,29 +58,45 @@ export function CounterWorkspace({accounts,setAccounts}:{
  const chosen=openInvoices.find(i=>i.id===allocation);
  const maxDue=chosen?Math.min(chosen.due,settlement?.invoiceDue??0):settlement?.invoiceDue??0;
  const total=type==='Bank Transfer'?Number(amount)||0:money(effectiveRows.reduce((n,r)=>n+(Number(r.amount)||0),0));
- const predicted=settlement?money(settlement.netBalance+(type==='Customer Receive'?-total:total)):0;
+ const discount=Number(discountInput)||0;
+ const dueReduction=money(total+discount);
+ // In a customer receipt the balance moves down; in a supplier payment it moves up.
+ // The discount changes the ledger only, never an account's cash balance.
+ const predicted=settlement?money(settlement.netBalance+(type==='Customer Receive'?-dueReduction:dueReduction)):0;
  const methods:Row['method'][]=['Cash','Bank','Mobile Banking'];
  const accountOptions=(method:Row['method'])=>accounts.filter(a=>a.status==='Active'&&(
   method==='Cash'?(a.type==='Cash'||a.type==='Petty Cash'):a.type===method));
- const splits:PartyMoneySplit[]=effectiveRows.map(r=>({id:r.id,method:r.method,accountId:r.accountId,amount:Number(r.amount)}));
- const olderAllocation=counterAllocateOldest(openInvoices,total);
- const previewAllocation=chosen?[{invoice:chosen.reference,amount:Math.min(chosen.due,total)}]:olderAllocation;
+ const splits:PartyMoneySplit[]=effectiveRows.filter(r=>r.amount.trim()!==''&&Number(r.amount)>0)
+  .map(r=>({id:r.id,method:r.method,accountId:r.accountId,amount:Number(r.amount)}));
+ const olderAllocation=counterAllocateOldest(openInvoices,dueReduction);
+ const previewAllocation=chosen?[{invoice:chosen.reference,amount:Math.min(chosen.due,dueReduction)}]:olderAllocation;
  const reset=()=>{
   setPartyId('');setSearch('');setSearching(false);setAllocation('');
-  setRows([]);setAmount('');setNote('');setError('');setReview(false);setSubmitted(false);
+  setRows([]);setAmount('');setDiscountInput('');setDiscountReason('');
+  setNote('');setError('');setReview(false);setSubmitted(false);
  };
  const changeType=(next:Action)=>{setType(next);reset();};
- const selectParty=(p:Party)=>{setPartyId(p.id);setSearch(p.name);setSearching(false);setAllocation('');setError('');setReview(false);setSubmitted(false);};
+ const clearParty=()=>{setPartyId('');setSearch('');setAllocation('');setRows([]);
+  setDiscountInput('');setDiscountReason('');setError('');setReview(false);setSubmitted(false);setSearching(true);};
+ const selectParty=(p:Party)=>{if(p.id!==partyId){setRows([]);setDiscountInput('');setDiscountReason('');}
+  setPartyId(p.id);setSearch(p.name);setSearching(false);setAllocation('');setError('');setReview(false);setSubmitted(false);};
  const editRows=(next:Row[])=>{setRows(next);setReview(false);setError('');setSubmitted(false);};
  const addRow=()=>{
   const next:Row={id:'counter-'+Date.now()+'-'+effectiveRows.length,method:'Cash',accountId:cashAccount?.id??'',amount:''};
   editRows([...effectiveRows,next]);
  };
- const fillDue=()=>{const next=money(maxDue);if(next<=0)return;
-  editRows(effectiveRows.map((r,i)=>({...r,amount:i===0?String(next):''})));
+ const fillDue=()=>{const next=Math.max(0,money(maxDue-discount));
+  editRows(effectiveRows.map((r,i)=>({...r,amount:i===0&&next>0?String(next):''})));
  };
  const validate=()=>{
-  if(!Number.isFinite(total)||total<=0||Math.round(total*100)!==total*100) return 'Enter a valid payment amount (up to two decimal places).';
+  if(!Number.isFinite(total)||total<0||!Number.isSafeInteger(Math.round(total*100))||Math.abs(total-money(total))>0.000001)
+   return 'Enter a valid amount with up to two decimal places.';
+  const isParty=type==='Customer Receive'||type==='Supplier Pay';
+  if(discountInput.trim()&&!/^\\d+(?:\\.\\d{1,2})?$/.test(discountInput.trim()))
+   return 'Discount / settlement must be a nonnegative amount with up to two decimals.';
+  if(isParty&&discount>0&&!discountReason.trim())return 'Enter a reason for the discount / settlement.';
+  if((!isParty||type==='Bank Transfer')&&total<=0)return 'Enter a positive transaction amount.';
+  if(isParty&&dueReduction<=0)return 'Enter money received/paid or a discount / settlement amount.';
   if(type==='Bank Transfer'){
    if(!from||!to||from===to)return 'Choose two different active money accounts.';
    if(!accounts.find(a=>a.id===from&&a.status==='Active')||!accounts.find(a=>a.id===to&&a.status==='Active'))return 'Account is no longer active.';
@@ -86,12 +104,13 @@ export function CounterWorkspace({accounts,setAccounts}:{
   }
   if(type==='Expense'&&!expenseCategory.trim())return 'Select an expense category.';
   if(type!=='Expense'&&!selected)return 'Select a customer or supplier.';
-  if(splits.some(s=>!validMoney(String(s.amount))))return 'Each payment source needs a positive amount (up to two decimals).';
+  if(effectiveRows.some(row=>row.amount.trim()!==''&&!validMoney(row.amount)))
+   return 'Each entered payment amount must be positive with up to two decimals.';
+  if(total>0&&!splits.length)return 'Add a payment account for the cash amount.';
   if(new Set(splits.map(s=>s.id)).size!==splits.length)return 'Duplicate payment source row.';
   if(splits.some(s=>!accountOptions(s.method).some(a=>a.id===s.accountId)))return 'Choose a valid active account for every payment.';
-  if(type==='Customer Receive'||type==='Supplier Pay'){
-   if(total>money(maxDue)+0.001)return chosen?'Payment exceeds the selected invoice outstanding balance.':'Payment exceeds the outstanding due. Record an advance separately.';
-  }
+  if(isParty&&dueReduction>money(maxDue)+0.001)
+   return chosen?'Cash plus settlement exceeds the selected invoice due.':'Cash plus settlement exceeds outstanding due. Record an advance separately.';
   return '';
  };
  const beginReview=()=>{const message=validate();if(message){setError(message);return;}setError('');setReviewRevision(state.revision);setReview(true);};
@@ -103,7 +122,9 @@ export function CounterWorkspace({accounts,setAccounts}:{
   try{
    if((type==='Customer Receive'||type==='Supplier Pay')&&selected){
     const payload:PartyPaymentPayload={partyId:selected.id,relationship:type==='Customer Receive'?'Customer':'Supplier',
-     date,amount:total,invoiceId:chosen?.reference,reason:note,splits,operationId:'counter-'+Date.now()};
+     date,amount:total,discount,invoiceId:chosen?.reference,
+     reason:discount>0?[discountReason.trim(),note.trim()].filter(Boolean).join(' · '):note.trim(),
+     splits,operationId:'counter-'+Date.now()};
     dispatchPartyPreview({type:'record-payment',payload});
    }
    setAccounts(current=>current.map(account=>{
@@ -114,7 +135,8 @@ export function CounterWorkspace({accounts,setAccounts}:{
    }));
    setReview(false);setSubmitted(true);setError('');
    toast.success(names[type]+' recorded in preview',{description:taka(total)+(selected?' · '+selected.name:'')});
-   setRows([]);setAmount('');setNote('');setAllocation('');
+   setRows([]);setAmount('');setDiscountInput('');setDiscountReason('');
+   setNote('');setAllocation('');
   }catch(e){setError(e instanceof Error?e.message:'Could not record this transaction.');setReview(false);}
   finally{busy.current=false;}
  };
@@ -136,7 +158,9 @@ export function CounterWorkspace({accounts,setAccounts}:{
       <Search aria-hidden="true" className="absolute left-3 top-2.5 size-4 text-ink-400"/>
       <Input className="pl-9" aria-label={type==='Customer Receive'?'Search customer':'Search supplier'} value={search}
        placeholder="Search name, phone or area" onFocus={()=>setSearching(true)}
-       onChange={e=>{setSearch(e.target.value);setPartyId('');setAllocation('');setSearching(true);setReview(false);}}
+       onClear={clearParty}
+       onChange={e=>{if(partyId){setRows([]);setDiscountInput('');setDiscountReason('');}
+        setSearch(e.target.value);setPartyId('');setAllocation('');setSearching(true);setReview(false);}}
        onKeyDown={e=>{if(e.key==='Escape')setSearching(false);if(e.key==='Enter'&&filtered[0]){e.preventDefault();selectParty(filtered[0]);}}}/>
      </div>
      {searching&&<div role="listbox" aria-label="Matching parties" className="mt-1 max-h-52 overflow-auto rounded-lg border border-border bg-popover p-1 shadow-card">
@@ -174,6 +198,27 @@ export function CounterWorkspace({accounts,setAccounts}:{
       {previewAllocation.map((row,i)=><div key={row.invoice+i} className="flex justify-between gap-3"><span>{row.invoice}</span><strong>{taka(row.amount)}</strong></div>)}
      </div>}
     </div>}
+    {(type==='Customer Receive'||type==='Supplier Pay')&&selected&&
+     <section className="rounded-xl border border-border bg-card p-4" aria-label="Discount and settlement">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+       <div><h3 className="text-sm font-semibold">Discount / settlement <span className="font-bn font-normal text-ink-500">· ছাড় / সমন্বয়</span></h3>
+        <p className="mt-1 text-xs text-ink-500">Optional. Reduces the due balance without moving cash.</p></div>
+       {discount>0&&<span className="rounded-md bg-ink-50 px-2 py-1 text-xs text-ink-600">Balance reduced by {taka(discount)}</span>}
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)]">
+       <label className="block text-xs font-medium text-ink">Settlement amount
+        <Input className="mt-1 text-right" inputMode="decimal" aria-label="Settlement discount amount"
+         placeholder="0.00" value={discountInput}
+         onChange={e=>{setDiscountInput(e.target.value);setReview(false);setError('');}}/>
+       </label>
+       <label className="block text-xs font-medium text-ink">
+        Reason {discount>0&&<span className="text-danger">*</span>}
+        <Input className="mt-1" aria-label="Settlement reason" placeholder="Why is this balance reduced?"
+         value={discountReason} onChange={e=>{setDiscountReason(e.target.value);setReview(false);}}/>
+       </label>
+      </div>
+      {discount>0&&<p className="mt-2 text-xs text-ink-500">Cash paid {taka(total)} + settlement {taka(discount)} = due reduced by {taka(dueReduction)}.</p>}
+     </section>}
     {type==='Expense'&&<label className="block rounded-xl border border-border bg-card p-4 text-sm font-semibold">Expense category
       <Input className="mt-2" value={expenseCategory} onChange={e=>setExpenseCategory(e.target.value)} placeholder="e.g. Transport"/>
     </label>}
@@ -211,8 +256,11 @@ export function CounterWorkspace({accounts,setAccounts}:{
          className="row-start-1 col-start-3 flex size-9 items-center justify-center text-ink-500 hover:text-danger disabled:opacity-30 sm:row-auto sm:col-auto"><Trash2 className="size-4"/></button>
        </div>;
       })}
-      <div className="flex items-center justify-between gap-3 border-t border-border pt-3"><span className="text-sm text-ink-500">Automatically calculated total</span>
-       <strong className="text-xl text-ink" aria-live="polite">{taka(total)}</strong></div>
+      <div className="space-y-1 border-t border-border pt-3">
+       <div className="flex items-center justify-between gap-3"><span className="text-sm text-ink-500">Automatically calculated cash total</span>
+        <strong className="text-xl text-ink" aria-live="polite">{taka(total)}</strong></div>
+       {discount>0&&<div className="flex justify-between gap-3 text-xs text-ink-500"><span>Including settlement, due reduces by</span><strong>{taka(dueReduction)}</strong></div>}
+      </div>
      </div>
     </div>}
     <label className="block rounded-xl border border-border bg-card p-4 text-sm font-semibold">Reference / note (optional)
@@ -221,16 +269,18 @@ export function CounterWorkspace({accounts,setAccounts}:{
    </div>
    <aside className="h-fit rounded-xl border border-border bg-card p-4 xl:sticky xl:top-4">
     <h3 className="mb-3 text-sm font-semibold">Transaction summary</h3>
-    <p className="text-xs text-ink-500">Total amount</p><p className="text-2xl font-semibold text-ink" aria-live="polite">{taka(total)}</p>
+    <p className="text-xs text-ink-500">{type==='Customer Receive'?'Money received':type==='Supplier Pay'?'Money paid':'Total amount'}</p>
+    <p className="text-2xl font-semibold text-ink" aria-live="polite">{taka(total)}</p>
     <p className="mt-1 text-xs leading-5 text-ink-500" aria-live="polite">{amountInWords(total)}</p>
     {settlement&&<div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
      <div className="flex justify-between gap-2"><span>Before payment</span><strong>{taka(settlement.netBalance)}</strong></div>
-     <div className="flex justify-between gap-2"><span>{type==='Customer Receive'?'Receive':'Pay'}</span><strong>{taka(total)}</strong></div>
+     <div className="flex justify-between gap-2"><span>{type==='Customer Receive'?'Receive cash':'Pay cash'}</span><strong>{taka(total)}</strong></div>
+     {discount>0&&<div className="flex justify-between gap-2"><span>Discount / settlement</span><strong>{taka(discount)}</strong></div>}
      <div className="flex justify-between gap-2 border-t border-border pt-2"><span>Balance after</span><strong className={highlight(predicted)}>{taka(predicted)}</strong></div>
     </div>}
     {submitted&&<div role="status" className="mt-3 rounded-lg border border-success/20 bg-success/5 p-3 text-xs text-success"><CheckCircle2 className="mb-1 size-4"/> Recorded in preview. Ledger balance is updated.</div>}
     {error&&<p role="alert" className="mt-3 rounded-lg border border-danger/30 bg-danger-bg p-3 text-xs text-danger">{error}</p>}
-    <Button className="mt-4 w-full" onClick={beginReview} disabled={total<=0}>{'Review '+names[type].toLowerCase()}</Button>
+    <Button className="mt-4 w-full" onClick={beginReview} disabled={type==='Bank Transfer'||type==='Expense'?total<=0:dueReduction<=0}>{'Review '+names[type].toLowerCase()}</Button>
    </aside>
   </div>
   <Dialog open={review} onOpenChange={setReview}>
@@ -239,11 +289,17 @@ export function CounterWorkspace({accounts,setAccounts}:{
      <DialogDescription>Check the party, amount, payment accounts and updated balance before recording.</DialogDescription></DialogHeader>
     <div className="space-y-3 text-sm">
      <div className="rounded-xl border border-border bg-ink-50 p-4">
-      <p className="text-xs text-ink-500">Total transaction amount</p>
+      <p className="text-xs text-ink-500">Cash amount</p>
       <p className="text-2xl font-semibold">{taka(total)}</p>
       <p className="mt-1 text-xs text-ink-500">{amountInWords(total)}</p>
      </div>
      {selected&&<p><strong>{payerRole}: </strong>{selected.name} · {selected.phone}</p>}
+     {discount>0&&<div className="rounded-lg border border-border p-3">
+      <div className="flex justify-between gap-2"><span>Discount / settlement</span><strong>{taka(discount)}</strong></div>
+      <p className="mt-1 text-xs text-ink-500">{amountInWords(discount)}</p>
+      <p className="mt-2"><strong>Reason:</strong> {discountReason.trim()}</p>
+      <p className="mt-1 border-t border-border pt-2 font-semibold">Total due reduction: {taka(dueReduction)}</p>
+     </div>}
      {chosen&&<p><strong>Invoice:</strong> {chosen.reference} · outstanding {taka(chosen.due)}</p>}
      {!chosen&&type==='Customer Receive'&&<p><strong>Allocation:</strong> Oldest outstanding first</p>}
      {type==='Bank Transfer'?<p>{accounts.find(a=>a.id===from)?.name} → {accounts.find(a=>a.id===to)?.name}</p>
