@@ -553,7 +553,7 @@ function SettingsPageContent() {
       <div className="grid min-w-0 gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
         <aside className="min-w-0 space-y-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-500" />
+            <Search className="pointer-events-none absolute z-10 left-3 top-1/2 size-4 -translate-y-1/2 text-ink-500" />
             <Input
               aria-label="Search settings"
               className="pl-9"
