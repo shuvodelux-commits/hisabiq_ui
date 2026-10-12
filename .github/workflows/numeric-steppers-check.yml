@@ -16,9 +16,9 @@ jobs:
       - run: npx tsc --noEmit
       - run: node --experimental-strip-types --test tests/numericStep.test.ts
       - run: npx playwright install --with-deps chromium
+      - run: node scripts/shared-cart-responsive-browser.cjs
       - run: node scripts/numeric-steppers-browser.cjs
       - run: node scripts/mobile-carts-browser.cjs
       - run: node scripts/pos-responsive-cart-browser.cjs
-      - run: node scripts/shared-cart-responsive-browser.cjs
       - run: npm run test:compound-units
       - run: npm run test:product-quick-add
