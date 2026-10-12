@@ -36,7 +36,7 @@ async function inspectCart(page, kind, name) {
       add: rect(root.querySelector('[data-cart-add]')),
     };
   });
-  const threshold = kind === 'purchase' ? 840 : 720;
+  const threshold = kind === 'purchase' ? 840 : 780;
   assert.equal(info.header, info.width >= threshold, name + ' should switch table at inner container width ' + info.width + 'px');
   assert.ok(info.scrollWidth <= info.width + 2, name + ': cart must not scroll sideways');
   assert.ok(info.row.width <= info.root.width + 1, name + ': row stays inside cart');
