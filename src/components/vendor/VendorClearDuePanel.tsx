@@ -34,6 +34,13 @@ export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
  const goods=Number(returnQty)||0;
  const goodsValue=source.unitCostBasePaisa===null?0:goods*source.unitCostBasePaisa/100;
  const due=outstanding.monetaryDuePaisa===null?null:outstanding.monetaryDuePaisa/100;
+ const priceMissing=source.unitCostBasePaisa===null;
+ const stillOut=Math.max(0,source.baseQty-outstanding.returnedBaseQty);
+ const ownedAvailable=Math.max(0,getVendorPreviewSnapshot().inventory?.[source.productId]??0);
+ const maxByDue=priceMissing?stillOut:Math.max(0,Math.floor(((outstanding.monetaryDuePaisa??0)/source.unitCostBasePaisa)*1000)/1000);
+ const maxReturn=Math.max(0,Math.min(stillOut,ownedAvailable,maxByDue));
+ const afterThis=due===null?(Math.max(0,stillOut-goods)+' '+(product?.unit??'units')+' still out')
+  :taka(Math.max(0,due-cash-goodsValue));
  const save=(event:React.FormEvent)=>{
   event.preventDefault();setError('');
   try{
@@ -63,10 +70,12 @@ export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
   {!hideClose&&<div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
    <div><p className="text-ink-500">Still due</p><strong>{due===null?'Price not set':taka(due)}</strong></div>
    <div><p className="text-ink-500">Products still out</p><strong>{source.baseQty-outstanding.returnedBaseQty} {product?.unit??'units'}</strong></div>
-   <div><p className="text-ink-500">After this</p><strong>{due===null?'Price not set':taka(Math.max(0,due-cash-goodsValue))}</strong></div>
+   <div><p className="text-ink-500">After this</p><strong>{afterThis}</strong></div>
   </div>}
   <div className="grid gap-3 xl:grid-cols-2">
-   <section className="space-y-2"><div className="flex items-center justify-between">
+   <fieldset disabled={priceMissing} className="min-w-0 space-y-2 rounded-lg border border-border bg-card p-3 disabled:opacity-60">
+    <legend className="sr-only">Pay Money</legend>
+    <div className="flex items-center justify-between">
     <strong className="text-xs text-ink">Pay Money · টাকা দিন</strong>
     <Button type="button" size="sm" variant="ghost" onClick={()=>setSplits(rows=>[...rows,{id:'s'+(++nextId.current),accountId:accounts[0]?.id??'',amount:''}])}><Plus className="size-3"/> Account</Button></div>
     {splits.map((row,i)=><div key={row.id} className="flex items-center gap-2">
@@ -78,12 +87,21 @@ export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
      {splits.length>1&&<Button type="button" size="sm" variant="ghost"
       aria-label={'Remove payment account '+(i+1)} onClick={()=>setSplits(rows=>rows.filter(s=>s.id!==row.id))}><Trash2 className="size-3"/></Button>}
     </div>)}
-   </section>
-   <section className="space-y-2"><strong className="text-xs text-ink">Return Products · পণ্য ফেরত দিন</strong>
+    {priceMissing&&<p className="text-xs text-warning">Set the price before paying money.</p>}
+   </fieldset>
+   <section className="min-w-0 space-y-2 rounded-lg border border-border bg-card p-3">
+    <strong className="text-xs text-ink">Return Products · পণ্য ফেরত দিন</strong>
     <label className="block text-xs text-ink-500">Quantity in {product?.unit??'units'}
-     <Input className="mt-1" aria-label="Products to return" inputMode="decimal" value={returnQty}
-      onChange={e=>setReturnQty(e.target.value)} placeholder="0"/></label>
-    <p className="text-[11px] text-ink-500">Must be the same product. Return stock is checked before saving.</p>
+     <div className="mt-1 flex min-w-0 flex-wrap gap-2">
+      <Input className="min-w-[8rem] flex-1" aria-label="Products to return" inputMode="decimal" value={returnQty}
+       onChange={e=>setReturnQty(e.target.value)} placeholder="0"/>
+      <Button type="button" size="sm" variant="outline" disabled={maxReturn===0}
+       onClick={()=>setReturnQty(String(maxReturn))}>
+        {maxReturn===stillOut?'All ':'Max '}{maxReturn}
+      </Button>
+     </div>
+    </label>
+    <p className="text-[11px] text-ink-500">Same product only. Maximum return respects owned stock and remaining due.</p>
    </section>
   </div>
   <label className="block text-xs text-ink-500">Note · optional
@@ -91,7 +109,7 @@ export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
   {source.unitCostBasePaisa===null&&<p className="text-xs text-warning">Price not set. You can return products now; set the price before paying money.</p>}
   {error&&<p role="alert" className="rounded-lg bg-danger-bg p-2 text-xs text-danger">{error}</p>}
   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-   <span className="text-xs text-ink-500">{hideClose?'Remaining after: ':'Money: '+taka(cash)+' · Products: '+goods+' · Demo only'}{hideClose?(due===null?'Price not set':taka(Math.max(0,due-cash-goodsValue))):''}</span>
+   <span className="text-xs text-ink-500">{hideClose?'Remaining after: ':'Money: '+taka(cash)+' · Products: '+goods+' · Demo only'}{hideClose?afterThis:''}</span>
    <Button size="sm" type="submit">Save Settlement</Button>
   </div>
  </form>;

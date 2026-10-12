@@ -14,6 +14,7 @@ import {VendorSourceWorkspace} from './VendorSourceWorkspace';
 import {VendorPaymentsWorkspace} from './VendorPaymentsWorkspace';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
+import {sourceOutstanding} from '../../vendor/vendorModel';
 import {dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import {vendorWorkTabs,type VendorWorkTab} from '../../vendor/vendorRoute';
 import {type IsoRange} from '../../utils/dateRange';
@@ -22,7 +23,7 @@ import type {Purchase,Party} from '../../types/erp';
 import type {VendorLedgerEvent,VendorPreviewState,VendorSide} from '../../vendor/vendorTypes';
 
 type Props={party:Party;snapshot:VendorPreviewState;purchases:Purchase[];
- tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void};
+ tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab,sourceId?:string)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void};
 const labels:Record<VendorWorkTab,{english:string;bn:string;button?:string}>={
  ledger:{english:'Ledger',bn:'হিসাব',button:'Print Ledger'},
  taken:{english:'Taken',bn:'নেওয়া পণ্য',button:'Take Products'},
@@ -54,11 +55,19 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const activeSources=snapshot.sources.filter(s=>s.vendorPartyId===party.id&&s.status==='Active');
  const taken=activeSources.filter(s=>s.sourceKind==='sourcing');
  const given=activeSources.filter(s=>s.sourceKind==='issue');
+ const unpricedMemos=profile.summary.priceNotSetCount;
+ const payable=profile.summary.takenDuePaisa;
+ const receivable=profile.summary.givenDuePaisa;
+ const unpricedSource=taken.find(s=>sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
+ const payableSource=taken.find(s=>(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
+ const receivableSource=given.find(s=>(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
+ const statement=side==='payable'?profile.takenStatement:profile.givenStatement;
+ const ledgerRows=statement.rows.filter(e=>(e.reference+' '+e.description).toLowerCase().includes(query.toLowerCase()));
 
- const selectTab=(next:VendorWorkTab)=>{
+ const selectTab=(next:VendorWorkTab,selectedSourceId?:string)=>{
   if(next!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
   if(next!==tab&&hasUnsavedGoods){updateDirty(false);setEditingTaken(false);setEditingGiven(false);}
-  onTabChange(next);
+  onTabChange(next,selectedSourceId);
  };
  const primary=()=>{
   if(tab==='ledger'){setStatementOpen(true);return;}
@@ -87,16 +96,32 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    <Link to={'/app/parties?id='+encodeURIComponent(party.id)+'&role=Vendor'}
     className="rounded-md border border-border px-3 py-2 text-xs text-ink-600 hover:bg-ink-50">Party Profile · পার্টি</Link>
   </div>
-  <div className="grid grid-cols-2 gap-2 border-b border-border p-3 lg:grid-cols-4">
-   {([{title:'You owe · দেনা',value:money(profile.summary.takenDuePaisa),target:'taken'},
-    {title:'Price not set · দাম ঠিক হয়নি',value:profile.takenStatement.unpricedSources.length+' memos',target:'taken'},
-    {title:'Vendor owes · পাওনা',value:money(profile.summary.givenDuePaisa),target:'given'},
-    {title:'Purchase due · ক্রয়ের বাকি',value:money(profile.summary.purchaseDuePaisa),target:'purchases'}] as const).map(item=>
-    <button type="button" key={item.title} onClick={()=>selectTab(item.target)}
-     className="min-w-0 rounded-lg border border-border bg-ink-50/40 p-2.5 text-left hover:bg-ink-50">
-     <span className="block text-xs text-ink-500">{item.title}</span>
-     <strong className="mt-1 block truncate text-lg font-semibold text-ink">{item.value}</strong>
-    </button>)}
+  <div className="grid border-b border-border md:grid-cols-2" role="group" aria-label="Vendor balances, kept separate">
+   <div className="min-w-0 space-y-2 p-4 md:border-r md:border-border">
+    <p className="text-xs text-ink-500">You owe · দেনা</p>
+    <p className={'text-xl font-semibold '+(unpricedMemos>0&&payable===0?'text-warning':'text-ink')}>
+     {unpricedMemos>0&&payable===0?'Price not set':money(payable)}
+    </p>
+    <p className="text-xs text-ink-500">{unpricedMemos>0
+     ?(payable>0?'Plus ':'')+unpricedMemos+' product line(s) with no price. No money due is recorded for those items yet.'
+     :payable>0?(payableSource?'Pay or return products to settle.':'Opening balance: review it in Ledger or Party.'):'Nothing to pay.'}</p>
+    {(unpricedMemos>0||payable>0)&&<Button type="button" size="sm"
+      variant={unpricedMemos>0?undefined:'outline'}
+      onClick={()=>selectTab(unpricedSource||payableSource?'taken':'ledger',unpricedSource?.id??payableSource?.id)}>
+      {unpricedMemos>0?'Set Price · দাম ঠিক করুন':payableSource?'Pay or Return · টাকা / পণ্য দিন':'View Ledger · হিসাব দেখুন'}
+     </Button>}
+   </div>
+   <div className="min-w-0 space-y-2 border-t border-border p-4 md:border-t-0">
+    <p className="text-xs text-ink-500">Vendor owes · পাওনা</p>
+    <p className="text-xl font-semibold text-ink">{money(receivable)}</p>
+    <p className="text-xs text-ink-500">{receivable>0?(receivableSource?'Receive money or matching products.':'Balance without an open memo. Review Ledger or Party.'):'Nothing to receive.'}</p>
+    {receivable>0&&<Button type="button" size="sm" variant="outline"
+      onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>{receivableSource?'Receive Settlement · পাওনা নিন':'View Ledger · হিসাব দেখুন'}</Button>}
+   </div>
+   <button type="button" onClick={()=>selectTab('purchases')}
+    className="col-span-full min-w-0 border-t border-border px-4 py-2 text-left text-xs text-ink-500 hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500">
+    Purchase due · ক্রয়ের বাকি <strong className="font-semibold text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
+   </button>
   </div>
   <div className="overflow-x-auto border-b border-border scrollbar-thin">
    <div className="flex min-w-max gap-2 px-3" role="tablist" aria-label="Vendor work tabs">
@@ -115,7 +140,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   </div>
   <section id={base+'-panel'} role="tabpanel" aria-labelledby={base+'-'+tab} className="min-w-0">
    {(tab==='ledger'||tab==='taken'||tab==='given')&&<div className="flex justify-end border-b border-border px-3 py-2">
-     <Button type="button" size="sm" onClick={primary}>
+     <Button type="button" size="sm" variant={tab==='ledger'?'outline':undefined} onClick={primary}>
       {tab==='ledger'?<Printer className="size-4"/>:<Plus className="size-4"/>}
       {labels[tab].button}
      </Button>
@@ -131,16 +156,16 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       <Input className="w-full sm:ml-auto sm:w-56" value={query} onChange={e=>setQuery(e.target.value)}
        aria-label="Search Vendor ledger" placeholder="Search reference or note"/>
      </div>
-     <div className="mb-2 flex flex-wrap justify-between gap-2 bg-ink-50 px-3 py-2 text-xs text-ink-600">
-      <span>Opening: {money((side==='payable'?profile.takenStatement:profile.givenStatement).openingPaisa)}</span>
-      <span>Increased: {money((side==='payable'?profile.takenStatement:profile.givenStatement).periodIncreasePaisa)}</span>
-      <span>Decreased: {money((side==='payable'?profile.takenStatement:profile.givenStatement).periodDecreasePaisa)}</span>
-     </div>
+     {(statement.rows.length>0||statement.openingPaisa!==0)&&<div className="mb-2 flex flex-wrap justify-between gap-2 bg-ink-50 px-3 py-2 text-xs text-ink-600">
+      <span>Opening: {money(statement.openingPaisa)}</span>
+      <span>Increased: {money(statement.periodIncreasePaisa)}</span>
+      <span>Decreased: {money(statement.periodDecreasePaisa)}</span>
+     </div>}
      <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-xs">
       <thead><tr className="border-b border-border bg-ink-50">
        {['Date','Details','Increase','Decrease','Running','Actions'].map(x=><th key={x} className="p-2 text-left">{x}</th>)}
       </tr></thead><tbody>
-      {(side==='payable'?profile.takenStatement:profile.givenStatement).rows.filter(e=>(e.reference+' '+e.description).toLowerCase().includes(query.toLowerCase())).map(e=>
+      {ledgerRows.map(e=>
        <tr key={e.id} className="border-b border-border/70"><td className="p-2 text-ink-500">{e.date}</td>
         <td className="p-2 font-medium text-ink">{e.reference??e.kind}<p className="font-normal text-ink-500">{e.description}</p></td>
         <td className="p-2 text-right">{e.deltaPaisa>0?money(e.deltaPaisa):'—'}</td>
@@ -148,9 +173,13 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         <td className="p-2 text-right font-semibold">{money(e.runningPaisa)}</td>
         <td className="p-2 text-right"><Button size="sm" variant="ghost" onClick={()=>review(e)}>Review</Button></td>
        </tr>)}
+       {ledgerRows.length===0&&<tr><td colSpan={6} className="p-6 text-center text-ink-500">No transactions in this view.</td></tr>}
       </tbody></table></div>
-     {side==='payable'&&profile.takenStatement.unpricedSources.length>0&&<p className="mt-2 text-xs text-ink-500">
-      {profile.takenStatement.unpricedSources.length} source(s) with <strong>Price not set</strong>. See Taken tab; no money value has been assigned.</p>}
+     {side==='payable'&&profile.takenStatement.unpricedSources.length>0&&
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-warning-bg p-3 text-xs text-warning">
+       <span>{profile.takenStatement.unpricedSources.length} source(s) with <strong>Price not set</strong>. No money due is added until pricing.</span>
+       <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('taken')}>Open Taken · নেওয়া পণ্য</Button>
+      </div>}
      {profile.activity.filter(item=>item.bucket===(side==='payable'?'vendor-payable':'vendor-receivable')
        &&item.moneyPaisa===null
        &&(item.reference+' '+item.description).toLowerCase().includes(query.toLowerCase())).length>0&&
@@ -179,7 +208,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         onCancel={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);updateDirty(false);}}
         onSaved={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);toast.success('Products saved · Preview only');}}/>
       </div>}
-      <VendorSourceWorkspace key={tab} mode={tab} sources={tab==='taken'?taken:given}
+      <VendorSourceWorkspace key={tab+'-'+(sourceId??'')} mode={tab} sources={tab==='taken'?taken:given}
         snapshot={snapshot} sourceId={sourceId} onCorrect={setCorrectSource}/>
      </>}
      {(tab==='purchases'||purchaseOpened)&&<div className={tab==='purchases'?'space-y-4':'hidden'} aria-hidden={tab!=='purchases'}>
