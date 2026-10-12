@@ -13,7 +13,7 @@ function fresh():VendorPreviewState {
    events:[],openings:[],sales:[],operations:[],revision:0,
    inventory:Object.fromEntries(products.filter(p=>p.kind!=='Service').map(p=>[p.id,Math.max(0,p.stock)]))};
  // Source/sale/demo links intentionally use existing Party and Product fixture IDs.
- const cases:VendorPreviewCommand[]=[
+ const cases=[
  {type:'record-sourcing',operationId:'vendor-seed-unpriced',
   vendorPartyId:'v1',source:{id:'vendor-seed-source-pending',productId:'p1',
   baseQty:3,date:'2026-10-09',unitCostBasePaisa:null,reference:'DEMO-INV-201'}},
@@ -23,7 +23,7 @@ function fresh():VendorPreviewState {
  {type:'issue-goods',operationId:'vendor-seed-issued',
   vendorPartyId:'v1',source:{id:'vendor-seed-goods-issued',productId:'p2',
   baseQty:1,date:'2026-10-08',unitCostBasePaisa:12800,reference:'DEMO-MEMO-16'}}
- ];
+ ] satisfies VendorPreviewCommand[];
  for(const cmd of cases)if(state.parties.some(p=>p.id===cmd.vendorPartyId&&p.roles.includes('Vendor')))
    state=applyVendorCommand(state,cmd);
  return state;

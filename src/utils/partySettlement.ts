@@ -31,7 +31,7 @@ function settle(events:readonly PartySourceRecord[],partyId:string,asOf:string,r
   let due=0,discount=0,consumed=0,refunded=0;
   const seen=new Set<string>();
   const lots:CreditLot[]=[];
-  const useCredit=(need:number,requireVerified=false)=>{
+  const consumeCredit=(need:number,requireVerified=false)=>{
     let remaining=need;
     for(const lot of lots){
       if(!remaining)break;
@@ -44,7 +44,7 @@ function settle(events:readonly PartySourceRecord[],partyId:string,asOf:string,r
   const addDue=(amountCents:number)=>{
     due+=amountCents;
     if(due>0){
-      const applied=useCredit(due);
+      const applied=consumeCredit(due);
       due-=applied;
       consumed+=applied;
     }
@@ -76,11 +76,11 @@ function settle(events:readonly PartySourceRecord[],partyId:string,asOf:string,r
       decreaseDue(isCustomer?credit:debit,'return',e.id,verified);
     }else if((isCustomer&&e.kind==='customer-credit-refund')||(!isCustomer&&e.kind==='supplier-credit-refund')){
       const refund=isCustomer?debit:credit;
-      if(useCredit(refund,true)!==refund)throw new Error('Refund exceeds available verified credit as of event date.');
+      if(consumeCredit(refund,true)!==refund)throw new Error('Refund exceeds available verified credit as of event date.');
       refunded+=refund;
     }else if(isCustomer&&e.kind==='customer-credit-apply'){
       const toApply=credit;
-      if(toApply>due||useCredit(toApply)!==toApply)throw new Error('Credit application exceeds open invoice or available credit.');
+      if(toApply>due||consumeCredit(toApply)!==toApply)throw new Error('Credit application exceeds open invoice or available credit.');
       due-=toApply;consumed+=toApply;
     }else if(e.kind==='opening'){
       if(isCustomer&&debit) addDue(debit);

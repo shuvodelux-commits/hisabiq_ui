@@ -13,7 +13,7 @@ export type VendorPartyIdentity = {
 };
 export type VendorSource = {
  id:string; vendorPartyId:string; sourceKind:VendorSourceKind;
- productId:string; baseQty:number; unitCostBasePaisa:number|null;
+ productId:string; baseQty:number; readonly unitCostBasePaisa:number|null;
  sourceAmountPaisa:number|null; pricingStatus:VendorPricingStatus;
  /** Quantity priced at original quote after any earlier in-kind returns. */ pricedBaseQty?:number;
  date:string; reference?:string; sourceInvoiceId?:string; sourceSaleLineId?:string;

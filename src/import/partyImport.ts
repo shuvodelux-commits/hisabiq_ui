@@ -92,7 +92,7 @@ export function planPartyImport(
    const sameFileKey=partyId?'id:'+partyId:normalized?'phone:'+normalized:'row:'+row.sourceRow;
    if(seen.has(sameFileKey))throw new Error('Duplicate identity in the same import file.');
    seen.add(sameFileKey);
-   if(phone&&!/^[\d\s+()\-]{3,30}$/.test(phone))throw new Error('Invalid phone format; preserve the original leading zero.');
+   if(phone&&!/^[\d\s+()-]{3,30}$/.test(phone))throw new Error('Invalid phone format; preserve the original leading zero.');
    const matched=partyId?existing.parties.find(p=>p.id===partyId):
      normalized?existing.parties.filter(p=>normalizePhone(p.phone)===normalized):[];
    const candidate=Array.isArray(matched)?matched.length===1?matched[0]:undefined:matched;

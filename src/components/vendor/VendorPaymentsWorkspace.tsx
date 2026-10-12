@@ -64,7 +64,7 @@ export function VendorPaymentsWorkspace({state,sources,sourceId}:Props){
       <strong className="text-lg text-ink">{money(outstanding?.monetaryDuePaisa??0)}</strong>
      </div>
      <VendorActionDialog key={selected.id+'-'+state.revision} inline source={selected}
-       mode={selected.sourceKind==='sourcing'?'pay':'receive-money'} onClose={()=>{}}/>
+       mode={selected.sourceKind==='sourcing'?'pay':'receive-money'} onClose={()=>undefined}/>
     </div>:<div className="flex min-h-52 flex-col items-center justify-center gap-2 text-center text-xs text-ink-500">
       <CheckCircle2 className="size-7 text-teal-600"/><strong className="text-sm text-ink">No outstanding payments</strong>
       <p>All known Vendor money dues are settled.</p>

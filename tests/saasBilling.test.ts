@@ -7,7 +7,7 @@ const now = "2026-10-08T00:00:00Z";
 test("verification allocates once and activates only full settlement", () => {
   const s = seed();
   s.payments[0].amount = 40000;
-  let r = applyCommand(
+  const r = applyCommand(
     s,
     a,
     { id: "v", type: "payment.verify", target: "PAY-1001", data: {} },

@@ -9,7 +9,7 @@ export function smsBalance(s: SaasState, tenant: string, now: string) {
     .reduce((v, x) => v + x.units, 0);
 }
 export function segments(value: string) {
-  const unicode = /[^\x00-\x7F]/.test(value);
+  const unicode = Array.from(value).some(character => character.charCodeAt(0) > 127);
   const limit = unicode ? 70 : 160;
   return value.length <= limit
     ? 1

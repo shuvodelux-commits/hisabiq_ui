@@ -21,7 +21,7 @@ test('theme initializes before rendering and resolves preferences safely', () =>
 
 test('theme still follows the OS when browser storage is unavailable', () => {
   assert.ok(script, 'missing theme initializer');
-  const root = { dataset: {}, style: {} as Record<string, string>, classList: { toggle: () => {} } };
+  const root = { dataset: {}, style: {} as Record<string, string>, classList: { toggle: () => undefined } };
   vm.runInNewContext(script, { document: { documentElement: root }, localStorage: { getItem: () => { throw Error('blocked'); } }, window: { matchMedia: () => ({ matches: true }) } });
   assert.equal(root.style.colorScheme, 'dark');
 });
