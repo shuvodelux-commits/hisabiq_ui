@@ -43,7 +43,7 @@ export function DaybookActions({
           {extra.includes('print') && <button className={itemClass} onClick={() => { close(); onPrint(transaction); }}><Printer className="size-3.5" /> Print</button>}
           {extra.includes('duplicate') && transaction.status !== 'Deleted' && <button className={itemClass} onClick={() => { close(); onDuplicate(transaction); }}><Copy className="size-3.5" /> Duplicate</button>}
           {extra.includes('go-source') && canOpen && <button className={itemClass} onClick={() => { close(); onGoToSource(transaction); }}><ExternalLink className="size-3.5" /> Go to source</button>}
-          {availability.delete && transaction.status !== 'Deleted' && <button className={`${itemClass} text-danger`} onClick={() => { close(); onDelete(transaction); }}><Trash2 className="size-3.5" /> Delete</button>}
+          {availability.delete && transaction.status !== 'Deleted' && <button className={`${itemClass} text-danger`} onClick={() => { close(); onDelete(transaction); }}><Trash2 className="size-3.5" /> Review reversal</button>}
         </div>
       )}
     </FloatingPanel>

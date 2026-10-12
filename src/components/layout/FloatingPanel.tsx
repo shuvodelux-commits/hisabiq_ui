@@ -122,6 +122,7 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
             <motion.div
               ref={panelRef}
               role="dialog"
+              data-dialog-owner={triggerRef.current?.closest<HTMLElement>('[data-dialog-id]')?.dataset.dialogId}
               aria-label={label}
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}

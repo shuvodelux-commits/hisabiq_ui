@@ -435,7 +435,7 @@ function TransferDialog({
 
 export function Finance() {
   const navigate = useNavigate();
-  const { setOpen: setCashDialogOpen, sessionOpen } = useCashSession();
+  const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
   const [tab, setTab] = useState<Tab>('overview');
   const [accounts, setAccounts] = useState<FinanceAccount[]>(seedAccounts);
   const [transactions, setTransactions] = useState<FinanceTransaction[]>(seedTransactions);
@@ -770,9 +770,9 @@ export function Finance() {
 
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.25fr_1fr]">
-            <section className="space-y-4">
+            <section className="min-w-0 space-y-4">
               <div className="rounded-xl border border-border">
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Business relationship balances</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower balances never cross-net.</p>
@@ -800,7 +800,7 @@ export function Finance() {
               </div>
 
               <div className="rounded-xl border border-border">
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Recent loans & owner money</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower money stays separate.</p>
@@ -837,7 +837,7 @@ export function Finance() {
               </div>
             </section>
 
-            <section className="space-y-4">
+            <section className="min-w-0 space-y-4">
               <div className="rounded-xl border border-border p-4">
                 <p className="text-sm font-semibold text-ink">Money Accounts</p>
                 <p className="mb-3 text-[11px] text-ink-500">Live balances by money account.</p>
@@ -1122,7 +1122,7 @@ export function Finance() {
             </div>
 
             <div className="mt-5 rounded-xl border border-border">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">Transfer history</p>
                   <p className="text-[11px] text-ink-500">Transfers between business money accounts.</p>
@@ -1237,15 +1237,15 @@ export function Finance() {
               {sessionOpen ? (
                 <>
                   <div className="mt-4 rounded-lg bg-ink-50 p-3">
-                    <p className="text-[11px] text-ink-400">{cashSessions[0].id} · opened {cashSessions[0].openedAt}</p>
+                    <p className="text-[11px] text-ink-400">Current preview session · resets on reload</p>
                     <div className="mt-2 grid grid-cols-2 gap-3">
                       <div>
                         <p className="text-[10.5px] text-ink-400">Opening cash</p>
-                        <p className="text-sm font-semibold text-ink">{taka(cashSessions[0].openingCash)}</p>
+                        <p className="text-sm font-semibold text-ink">{taka(openingCash)}</p>
                       </div>
                       <div>
                         <p className="text-[10.5px] text-ink-400">Expected now</p>
-                        <p className="text-sm font-semibold text-ink">{taka(cashSessions[0].expectedCash)}</p>
+                        <p className="text-sm font-semibold text-ink">{taka(expectedCash)}</p>
                       </div>
                     </div>
                   </div>
@@ -1255,7 +1255,8 @@ export function Finance() {
                 <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>Open cash session</Button>
               )}
 
-              <button onClick={() => navigate('/app/reconciliation')} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
+              {lastCount&&<p className="mt-3 text-xs text-ink-600" role="status">Last count: {taka(lastCount.counted)} · {lastCount.closed?'Closed':'Saved'}{lastCount.note?' · '+lastCount.note:''}</p>}
+              <button onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
                 <RefreshCw className="size-3.5" /> Cash reconciliation
               </button>
             </section>

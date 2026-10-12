@@ -1,3 +1,7 @@
+import {useSearchParams} from 'react-router-dom';
+import {AppDatePicker} from '../components/AppDateRangePicker';
+import {expenseDateIso,formatDay} from '../utils/dateRange';
+import {reconciliationMatchError,canCompleteReconciliation,reconciliationCsv} from '../utils/reconciliation';
 import { AppSelect } from '../components/AppSelect';
 import { useMemo, useState } from 'react';
 import {
@@ -48,77 +52,37 @@ function ReconciliationBadge({ status }: { status: ReconciliationStatus }) {
   return <StatusBadge tone={statusTone[status]} dot>{status}</StatusBadge>;
 }
 
-function UploadStatementDialog({
-  open,
-  accountName,
-  onOpenChange,
-  onImport
-}: {
-  open: boolean;
-  accountName: string;
-  onOpenChange: (open: boolean) => void;
-  onImport: (fileName: string) => void;
-}) {
-  const [fileName, setFileName] = useState('');
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Upload bank statement <span className="font-bn text-sm font-normal text-ink-500">স্টেটমেন্ট আপলোড</span></DialogTitle>
-          <DialogDescription>{accountName} · PDF statements are shown here as a UI workflow preview.</DialogDescription>
-        </DialogHeader>
-
-        <label className="block rounded-xl border border-dashed border-ink-200 bg-ink-50/50 p-6 text-center hover:bg-ink-50">
-          <FileUp className="mx-auto size-7 text-teal-700" />
-          <p className="mt-2 text-sm font-medium text-ink">{fileName || 'Choose statement PDF'}</p>
-          <p className="mt-1 text-xs text-ink-500">PDF · one account per statement</p>
-          <input
-            type="file"
-            accept=".pdf,application/pdf"
-            className="sr-only"
-            onChange={(event) => setFileName(event.target.files?.[0]?.name ?? '')}
-          />
-        </label>
-
-        <div className="rounded-lg bg-teal-50 px-3 py-2 text-xs text-teal-800">
-          After import, HisabIQ will show statement transactions beside ERP transactions for review, matching and inline correction.
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button
-            disabled={!fileName}
-            onClick={() => {
-              onImport(fileName);
-              setFileName('');
-              onOpenChange(false);
-            }}>
-            <FileUp className="size-4" /> Import statement
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+function UploadStatementDialog({open,onOpenChange}:{open:boolean;onOpenChange:(open:boolean)=>void}) {
+ return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent role="dialog" aria-modal="true" className="sm:max-w-lg">
+  <DialogHeader><DialogTitle>Bank statement import</DialogTitle>
+   <DialogDescription>PDF reading is not connected yet. The transactions on this screen are sample data; choosing a file would not import its contents.</DialogDescription></DialogHeader>
+  <p className="text-sm text-ink-600 font-bn">এখন নমুনা তথ্য দিয়ে হিসাব মিলানো দেখুন। আসল ব্যাংক স্টেটমেন্ট আমদানি এখনো চালু হয়নি।</p>
+  <DialogFooter><Button onClick={()=>onOpenChange(false)}>Back to sample transactions</Button></DialogFooter>
+ </DialogContent></Dialog>;
 }
 
 function ErpEditor({
   transaction,
   statement,
   onSave,
-  onMatch
+  onMatch,
+  matchError
 }: {
   transaction: ErpReconciliationTransaction;
   statement: StatementTransaction;
   onSave: (transaction: ErpReconciliationTransaction) => void;
   onMatch: () => void;
+  matchError: string|null;
 }) {
-  const [date, setDate] = useState(transaction.date);
+  const [date, setDate] = useState(expenseDateIso(transaction.date));
   const [party, setParty] = useState(transaction.party);
   const [amount, setAmount] = useState(String(transaction.amount));
   const [reference, setReference] = useState(transaction.reference);
 
-  const amountNumber = parseFloat(amount) || 0;
+  const [reason,setReason]=useState('');
+  const amountNumber = Number(amount);
+  const valid=Boolean(date&&amount.trim()&&Number.isFinite(amountNumber)&&amountNumber>0&&reason.trim());
+  const dirty=date!==expenseDateIso(transaction.date)||party!==transaction.party||amountNumber!==transaction.amount||reference!==transaction.reference;
   const amountDiff = statement.amount - amountNumber;
 
   return (
@@ -137,7 +101,7 @@ function ErpEditor({
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="text-[12px] font-medium text-ink">
             Date
-            <Input className="mt-1" value={date} onChange={(event) => setDate(event.target.value)} />
+            <AppDatePicker className="mt-1" label="Transaction date" value={date} onChange={setDate} />
           </label>
           <label className="text-[12px] font-medium text-ink">
             Party
@@ -163,17 +127,22 @@ function ErpEditor({
           </label>
         </div>
 
+        <label className="mt-3 block text-xs text-ink-600">Why change this? · কারণ<Input className="mt-1" value={reason} onChange={event=>setReason(event.target.value)} placeholder="Required for a preview correction" /></label>
+        {(matchError||dirty)&&<p role="status" className="mt-2 text-xs text-warning">{dirty?'Save the correction before matching.':matchError}</p>}
         <div className="mt-3 flex flex-wrap justify-end gap-2">
           <Button
             variant="outline"
             size="sm"
+            disabled={!valid||!dirty}
             onClick={() => {
-              onSave({ ...transaction, date, party, amount: amountNumber, reference });
-              toast.success('ERP transaction updated');
+              if(!valid)return;
+              onSave({ ...transaction, date:formatDay(date), party, partyId:parties.find(item=>item.name===party)?.id, amount: amountNumber, reference });
+              setReason('');
+              toast.success('Sample transaction updated', {description:reason});
             }}>
-            Save inline fix
+            Save preview correction
           </Button>
-          <Button size="sm" onClick={onMatch}>
+          <Button size="sm" disabled={Boolean(matchError)||dirty} onClick={onMatch}>
             <Link2 className="size-4" /> Match transaction
           </Button>
         </div>
@@ -190,7 +159,12 @@ function ErpEditor({
 
 export function Reconciliation() {
   const [tab, setTab] = useState<Tab>('reconcile');
-  const [accountId, setAccountId] = useState(reconciliationAccounts[0].id);
+  const [params]=useSearchParams();
+  const [accountId, setAccountId] = useState(()=>reconciliationAccounts.find(item=>item.id===params.get('accountId')||item.name===params.get('account'))?.id??reconciliationAccounts[0].id);
+  const [history,setHistory]=useState(reconciliationHistory);
+  const [historyItem,setHistoryItem]=useState<(typeof reconciliationHistory)[number]|null>(null);
+  const [completed,setCompleted]=useState<Record<string,boolean>>({});
+  const [showRows,setShowRows]=useState(false);
   const [statement, setStatement] = useState<StatementTransaction[]>(seedStatement);
   const [erp, setErp] = useState<ErpReconciliationTransaction[]>(seedErp);
   const [query, setQuery] = useState('');
@@ -200,7 +174,7 @@ export function Reconciliation() {
   );
   const [selectedErpId, setSelectedErpId] = useState('');
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [statementFile, setStatementFile] = useState<Record<string, string>>({
+  const [statementFile] = useState<Record<string, string>>({
     'acc-bank-dbbl': 'DBBL-Sep-2026.pdf',
     'acc-bkash': 'bKash-Sep-2026.pdf'
   });
@@ -218,7 +192,7 @@ export function Reconciliation() {
     });
   }, [accountStatement, query, statusFilter]);
 
-  const selectedStatement = accountStatement.find((item) => item.id === selectedStatementId) ?? accountStatement[0] ?? null;
+  const selectedStatement = filtered.find((item) => item.id === selectedStatementId) ?? filtered[0] ?? null;
   const accountErp = erp.filter((item) => item.accountId === accountId);
 
   const candidateIds = selectedStatement
@@ -235,7 +209,8 @@ export function Reconciliation() {
 
   const candidates = candidateIds
     .map((id) => accountErp.find((item) => item.id === id))
-    .filter((item): item is ErpReconciliationTransaction => Boolean(item));
+    .filter((item): item is ErpReconciliationTransaction => Boolean(item))
+    .filter(item=>!statement.some(row=>row.id!==selectedStatement?.id&&row.status==='Matched'&&row.matchedErpId===item.id));
 
   const activeErpId = selectedErpId && candidates.some((item) => item.id === selectedErpId)
     ? selectedErpId
@@ -267,22 +242,24 @@ export function Reconciliation() {
   const statementClosing = account.balance + initialDifference;
   const erpClosing = account.balance + erpAdjustment;
   const difference = statementClosing - erpClosing;
-  const canFinish = reviewCount === 0 && unmatchedCount === 0 && Math.abs(difference) < 0.005;
+  const canFinish = !completed[accountId]&&canCompleteReconciliation(accountStatement,accountErp,difference);
 
   const summary = [
     { label: 'Statement closing', value: taka(statementClosing), sub: statementFile[accountId] ?? 'No statement uploaded' },
     { label: 'ERP balance', value: taka(erpClosing), sub: account.detail ?? account.type },
     { label: 'Matched', value: `${matchedCount}/${accountStatement.length}`, sub: `${reviewCount} review · ${unmatchedCount} unmatched`, tone: 'text-success' },
-    { label: 'Difference', value: taka(Math.abs(difference)), sub: difference === 0 ? 'Fully reconciled' : 'Needs reconciliation', tone: difference === 0 ? 'text-success' : 'text-danger' }
+    { label: 'Difference', value: taka(Math.abs(difference)), sub: completed[accountId]?'Preview saved':difference===0?'Balances agree; review all rows':'Needs review', tone: difference === 0 ? 'text-success' : 'text-danger' }
   ];
 
   const selectStatement = (item: StatementTransaction) => {
     setSelectedStatementId(item.id);
+    setShowRows(false);
     setSelectedErpId(item.matchedErpId ?? item.suggestedErpId ?? '');
   };
 
   const updateSelectedStatus = (status: ReconciliationStatus, matchedErpId?: string) => {
     if (!selectedStatement) return;
+    setCompleted(current=>({...current,[accountId]:false}));
     setStatement((items) => items.map((item) => item.id === selectedStatement.id ? {
       ...item,
       status,
@@ -291,8 +268,12 @@ export function Reconciliation() {
   };
 
   const matchSelected = (erpId: string) => {
+    const entry=erp.find(item=>item.id===erpId);
+    if(!selectedStatement||!entry)return;
+    const error=reconciliationMatchError(selectedStatement,entry,statement);
+    if(error){toast.error(error);return;}
     updateSelectedStatus('Matched', erpId);
-    toast.success('Transaction matched');
+    toast.success('Matched in preview');
   };
 
   const createFromStatement = () => {
@@ -310,11 +291,12 @@ export function Reconciliation() {
     setErp((items) => [next, ...items]);
     setSelectedErpId(next.id);
     updateSelectedStatus('Matched', next.id);
-    toast.success('ERP transaction created and matched');
+    toast.success('Sample transaction created and matched');
   };
 
   const switchAccount = (nextId: string) => {
     setAccountId(nextId);
+    setShowRows(false);
     const first = statement.find((item) => item.accountId === nextId);
     setSelectedStatementId(first?.id ?? '');
     setSelectedErpId('');
@@ -327,14 +309,17 @@ export function Reconciliation() {
       <PageHeader
         title="Account reconciliation"
         titleBn="হিসাব মিলানো"
-        description="Upload a bank or wallet statement, match it against ERP transactions, and fix differences inline."
+        description="Match money in and money out · টাকা আসা–যাওয়া মিলান. Sample data only; changes last until this page reloads."
         actions={
           <>
-            <Button variant="outline" size="sm" onClick={() => toast('Reconciliation list exported')}>
+            <Button variant="outline" size="sm" onClick={() => {
+              const url=URL.createObjectURL(new Blob([reconciliationCsv(filtered)],{type:'text/csv;charset=utf-8'}));
+              const link=document.createElement('a');link.href=url;link.download='reconciliation-'+accountId+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+            }}>
               <ArrowDownToLine className="size-4" /> Export
             </Button>
             <Button size="sm" onClick={() => setUploadOpen(true)}>
-              <FileUp className="size-4" /> Upload statement
+              <FileUp className="size-4" /> Statement import
             </Button>
           </>
         }
@@ -395,17 +380,22 @@ export function Reconciliation() {
               </p>
               <Button
                 size="sm"
-                disabled={!canFinish}
-                onClick={() => toast.success('Reconciliation completed', { description: `${account.name} · statement and ERP balances agree` })}>
-                <CheckCircle2 className="size-4" /> Finish reconciliation
+                disabled={!canFinish} title={canFinish?'Save this sample review':'Match every statement row and resolve the balance difference first'}
+                onClick={() => {
+                  if(!canFinish)return;
+                  setHistory(items=>[{id:'PREVIEW-'+Date.now(),accountId,accountName:account.name,period:'Sample statement review',statementFile:statementFile[accountId]??'Sample',statementClosing,erpClosing,matched:matchedCount,review:0,status:'Completed'},...items]);
+                  setCompleted(current=>({...current,[accountId]:true}));setTab('history');toast.success('Review saved in this preview');
+                }}>
+                <CheckCircle2 className="size-4" /> {completed[accountId]?'Preview saved':'Save reviewed preview'}
               </Button>
             </div>
-            <div className="grid min-h-[620px] lg:grid-cols-2">
-            <section className="border-b border-border lg:border-b-0 lg:border-r">
+            <div className="p-3 lg:hidden"><Button variant="outline" className="min-h-11 w-full" aria-expanded={showRows} onClick={()=>setShowRows(!showRows)}>{showRows?'Back to selected transaction':'Choose statement transaction · লেনদেন বাছুন'}</Button></div>
+            <div className="grid lg:min-h-[620px] lg:grid-cols-2">
+            <section className={(showRows?'block':'hidden')+' min-w-0 border-b border-border lg:block lg:border-b-0 lg:border-r'}>
               <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
                   <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                  <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" placeholder="Search statement transaction" />
+                  <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" aria-label="Search statement transactions" placeholder="Search statement transaction" />
                 </div>
                 <FormSelect
                   className="w-full sm:w-36"
@@ -447,7 +437,7 @@ export function Reconciliation() {
               </div>
             </section>
 
-            <section className="min-w-0 bg-ink-50/30">
+            <section className={(showRows?'hidden':'block')+' min-w-0 bg-ink-50/30 lg:block'}>
               {!selectedStatement ? (
                 <div className="flex h-full min-h-96 flex-col items-center justify-center p-6 text-center">
                   <Link2 className="size-8 text-helper" />
@@ -479,7 +469,7 @@ export function Reconciliation() {
                       ) : (
                         <>
                           <Button variant="outline" size="sm" onClick={createFromStatement}>
-                            <Plus className="size-4" /> Create ERP transaction
+                            <Plus className="size-4" /> Create sample transaction
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => { updateSelectedStatus('Ignored'); toast('Statement row ignored'); }}>
                             <X className="size-4" /> Ignore
@@ -493,7 +483,7 @@ export function Reconciliation() {
                     <div className="rounded-xl border border-border bg-card">
                       <div className="border-b border-border p-3">
                         <p className="text-[13px] font-medium text-ink">ERP matches</p>
-                        <p className="mt-0.5 text-[11px] text-ink-500">Choose a transaction, then fix date, party, amount or reference inline before matching.</p>
+                        <p className="mt-0.5 text-[11px] text-ink-500">Compare account, money direction and amount. Correct sample data only after checking the source.</p>
                       </div>
                       <div className="divide-y divide-border">
                         {candidates.map((item) => (
@@ -515,10 +505,11 @@ export function Reconciliation() {
 
                   {selectedErp ? (
                     <ErpEditor
-                      key={selectedErp.id}
+                      key={selectedStatement.id+selectedErp.id}
                       transaction={selectedErp}
                       statement={selectedStatement}
-                      onSave={(updated) => setErp((items) => items.map((item) => item.id === updated.id ? updated : item))}
+                      onSave={(updated) => {setErp((items) => items.map((item) => item.id === updated.id ? updated : item));setCompleted(current=>({...current,[accountId]:false}));updateSelectedStatus('Review');}}
+                      matchError={reconciliationMatchError(selectedStatement,selectedErp,statement)}
                       onMatch={() => matchSelected(selectedErp.id)}
                     />
                   ) : (
@@ -549,7 +540,7 @@ export function Reconciliation() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reconciliationHistory.map((item) => {
+              {history.filter(item=>item.accountId===accountId).map((item) => {
                 const diff = item.statementClosing - item.erpClosing;
                 return (
                   <TableRow key={item.id} className="text-[13px]">
@@ -567,7 +558,7 @@ export function Reconciliation() {
                     </TableCell>
                     <TableCell className="py-2 pr-4 text-right">
                       <button
-                        onClick={() => toast(`${item.id} opened`)}
+                        onClick={() => setHistoryItem(item)}
                         className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
                         aria-label={`Open ${item.id}`}>
                         <MoreHorizontal className="size-4" />
@@ -581,16 +572,11 @@ export function Reconciliation() {
         )}
       </div>
 
-      <UploadStatementDialog
-        open={uploadOpen}
-        accountName={account.name}
-        onOpenChange={setUploadOpen}
-        onImport={(fileName) => {
-          setStatementFile((files) => ({ ...files, [accountId]: fileName }));
-          toast.success('Statement imported', { description: `${fileName} · transactions ready for review` });
-        }}
-      />
+      <UploadStatementDialog open={uploadOpen} onOpenChange={setUploadOpen} />
+      <Dialog open={Boolean(historyItem)} onOpenChange={open=>!open&&setHistoryItem(null)}><DialogContent role="dialog" aria-modal="true" className="sm:max-w-lg">
+       <DialogHeader><DialogTitle>Reconciliation review</DialogTitle><DialogDescription>Sample history only · no bank or ledger posting.</DialogDescription></DialogHeader>
+       {historyItem&&<dl className="space-y-3 text-sm">{[['Account',historyItem.accountName],['Period',historyItem.period],['Statement',historyItem.statementFile],['Bank closing',taka(historyItem.statementClosing)],['ERP closing',taka(historyItem.erpClosing)],['Matched',String(historyItem.matched)],['Status',historyItem.status]].map(([label,value])=><div key={label} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="font-medium text-ink">{value}</dd></div>)}</dl>}
+      </DialogContent></Dialog>
     </div>
   );
 }
-
