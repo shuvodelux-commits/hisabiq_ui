@@ -108,6 +108,9 @@ jobs:
       - name: Check Party profile and CSV workflows
         run: npm run test:parties
 
+      - name: Check Counter quick-clear, Bangla words and settlement
+        run: npm run test:counter-ux
+
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
 
