@@ -17,6 +17,7 @@ import {
 import type { Product } from '../../types/erp';
 
 type Props = {
+  sourceLocked?: boolean;
   lines: PurchaseCartLine[];
   products: Product[];
   searchRef: React.RefObject<HTMLInputElement>;
@@ -36,7 +37,7 @@ const entryInput = 'h-9 w-full min-w-0 rounded-md border border-input bg-card px
 const unitOptions = unitsFor;
 
 export function PurchaseCart({
-  lines, products, searchRef, qtyRefs, smallRefs, costRefs, lotPriceRefs, onAdd, onCreate, onUpdate, onRemove, onCostUnitChange
+  sourceLocked=false, lines, products, searchRef, qtyRefs, smallRefs, costRefs, lotPriceRefs, onAdd, onCreate, onUpdate, onRemove, onCostUnitChange
 }: Props) {
   const quickItems = products.filter((p) => p.active && p.kind !== 'Service').slice(0, 8);
 
@@ -55,19 +56,19 @@ export function PurchaseCart({
 
   return (
     <>
-      <section className="rounded-xl border border-border bg-card shadow-card">
+      <section data-cart-kind="purchase" className="rounded-xl border border-border bg-card shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5">
           <div>
             <p className="text-[13px] font-semibold text-ink">Purchase cart <span className="font-bn text-[11px] font-normal text-ink-400">· ক্রয়ের পণ্য</span></p>
             <p className="text-[11px] text-ink-500">Add products inline, same as POS · 2 Box 5 Pcs / 1 Gauge 12 Gira</p>
           </div>
-          <Button size="sm" variant="outline" onClick={onCreate}>
+          <Button disabled={sourceLocked} size="sm" variant="outline" onClick={onCreate}>
             <PackagePlus className="size-4" /> New product <span className="font-bn text-[11px] font-normal">· নতুন পণ্য</span>
           </Button>
         </div>
 
         <div className="overflow-x-auto">
-          <div className={grid + ' border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400'}>
+          <div data-cart-header className={grid + ' border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400'}>
             <span className="text-right">#</span><span>Product</span><span className="text-right">Quantity</span>
             <span>Cost in</span><span className="text-right">Unit cost</span><span className="text-right">Lot sale</span><span className="text-right">Total</span><span aria-hidden="true" />
           </div>
@@ -80,7 +81,7 @@ export function PurchaseCart({
               const showExpiry = Boolean(product.expiry?.enabled);
               return (
                 <div key={line.id} data-testid="purchase-cart-row" className="bg-card">
-                  <div className={grid + ' px-3 py-1.5'}>
+                  <div data-cart-row="purchase" className={grid + ' px-3 py-1.5'}>
                     <span className="text-right text-[13px] text-ink-400">{index + 1}.</span>
                     <div className="flex min-w-0 items-center gap-2.5">
                       <ProductThumb src={product.image} size={34} />
@@ -100,7 +101,7 @@ export function PurchaseCart({
                         </button>
                       </div>
                     </div>
-                    <CompoundQuantityInput key={line.costUnit} product={product} unit={line.costUnit}
+                    <div data-cart-field="Quantity · পরিমাণ"><CompoundQuantityInput key={line.costUnit} product={product} unit={line.costUnit}
                       primary={product.altUnit&&line.costUnit===product.altUnit.unit?line.bigQty:line.smallQty}
                       secondary={line.smallQty}
                       primaryRef={node=>{qtyRefs.current[line.id]=node;}}
@@ -120,8 +121,8 @@ export function PurchaseCart({
                       onSecondaryEnter={()=>{
                        normalizeQty(line,false);
                        costRefs.current[line.id]?.focus();costRefs.current[line.id]?.select();
-                      }}/>
-                    {unitOptions(product).length > 1 ? (
+                      }}/></div>
+                    <div data-cart-field="Cost in · একক">{unitOptions(product).length > 1 ? (
                       <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={'Unit for ' + product.name}>
                         {unitOptions(product).map((unit) => (
                           <button key={unit} type="button" role="radio" aria-checked={line.costUnit === unit}
@@ -132,35 +133,35 @@ export function PurchaseCart({
                           </button>
                         ))}
                       </div>
-                    ) : <span className="px-2 text-sm text-ink-600">{product.unit}</span>}
-                    <div className="relative">
+                    ) : <span className="px-2 text-sm text-ink-600">{product.unit}</span>}</div>
+                    <div data-cart-field="Unit cost · ক্রয়মূল্য"><div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <input ref={(node) => { costRefs.current[line.id] = node; }}
-                        aria-label={'Purchase cost for ' + product.name} inputMode="decimal" value={line.cost}
+                        aria-label={'Purchase cost for ' + product.name} inputMode="decimal" value={line.cost} readOnly={sourceLocked}
                         className={entryInput + ' pl-5'}
                         onChange={(event) => onUpdate(line.id, { cost: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); lotPriceRefs.current[line.id]?.focus(); lotPriceRefs.current[line.id]?.select(); } }} />
-                    </div>
-                    <div className="relative">
+                    </div></div>
+                    <div data-cart-field="Lot sale · বিক্রয়মূল্য"><div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <input
                         ref={(node) => { lotPriceRefs.current[line.id] = node; }}
                         aria-label={'Lot selling price for ' + product.name}
                         inputMode="decimal"
-                        value={line.lotSellPrice}
+                        value={line.lotSellPrice} readOnly={sourceLocked}
                         className={entryInput + ' pl-5 pr-12'}
                         onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
                       />
                       <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{line.lotSellUnit}</span>
-                    </div>
-                    <span className="text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
+                    </div></div>
+                    <span data-cart-field="Total · মোট" className="text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
                     <button type="button" aria-label={'Remove ' + product.name} onClick={() => onRemove(line.id)}
                       className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger-bg hover:text-danger">
                       <Trash2 className="size-4" />
                     </button>
                   </div>
-                  {line.detailsOpen && (
+                  {!sourceLocked && line.detailsOpen && (
                     <div className="border-t border-border/60 bg-ink-50/50 px-3 py-3">
                       <div className="mb-2 flex items-center justify-between gap-2">
                         <p className="text-[12px] font-semibold text-ink">Purchase lot details <span className="font-bn font-normal text-ink-400">· লটের তথ্য</span></p>
@@ -210,7 +211,7 @@ export function PurchaseCart({
               );
             })}
 
-            <div data-testid="purchase-add-row" className={grid + ' bg-teal-50/35 px-3 py-2'}>
+            {!sourceLocked && <div data-testid="purchase-add-row" data-cart-add className={grid + ' bg-teal-50/35 px-3 py-2'}>
               <span className="text-right text-[13px] font-medium text-teal-700">{lines.length + 1}.</span>
               <PurchaseProductSearch products={products} ref={searchRef} onAdd={onAdd} onCreate={onCreate} />
               <span className="pr-2 text-right text-[12px] text-ink-400">Qty</span>
@@ -218,7 +219,7 @@ export function PurchaseCart({
               <span className="text-right text-[12px] text-ink-400">Cost</span>
               <span className="text-right text-[12px] text-ink-400">Lot sale</span>
               <span className="text-right text-[12px] text-ink-400">Total</span><span />
-            </div>
+            </div>}
           </div>
         </div>
         {lines.length === 0 && <p className="border-t border-border p-5 text-center text-[12px] text-ink-500">Search above or tap a quick item below. <span className="font-bn">পণ্য যোগ করুন।</span></p>}
@@ -228,7 +229,7 @@ export function PurchaseCart({
         </div>
       </section>
 
-      <section>
+      {!sourceLocked && <section>
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <p className="text-[13px] font-semibold text-ink">Quick items <span className="font-bn text-[11px] font-normal text-ink-400">· দ্রুত যোগ</span></p>
           <span className="text-[11px] text-ink-500">Tap to add · touch friendly</span>
@@ -247,7 +248,7 @@ export function PurchaseCart({
             </button>
           ))}
         </div>
-      </section>
+      </section>}
     </>
   );
 }

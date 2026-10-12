@@ -1,0 +1,20 @@
+name: Purchase Source Workflows Check
+on:
+  pull_request:
+    paths: ['src/components/purchases/**', 'src/pages/Purchases.tsx', 'src/pages/PurchaseEditor.tsx', 'src/data/erpDemoStore.ts', 'src/utils/purchaseSource.ts', 'src/types/erp.ts', 'tests/purchaseSource.test.ts', 'scripts/purchase-source-workflows-browser.cjs', '.github/workflows/purchase-source-workflows-check.yml']
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: node --experimental-strip-types --test tests/purchaseSource.test.ts
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/purchase-source-workflows-browser.cjs
+      - run: npm run test:purchases
