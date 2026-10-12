@@ -174,3 +174,126 @@
   [data-cart-row="purchase"][data-compound="true"] > :nth-child(6) { grid-column: 1 / 4; grid-row: 4; }
   [data-cart-row="purchase"][data-compound="true"] > :nth-child(7) { grid-column: 4 / 7; grid-row: 4; }
 }
+
+
+/* POS cart: container-aware desktop table, not the generic mobile transaction cards.
+   Breakpoints use actual available workspace/cart width, accounting for the ERP sidebar. */
+.pos-screen {
+  min-width: 0;
+  container: pos-screen / inline-size;
+}
+[data-pos-layout] { min-width: 0; }
+[data-cart-kind="sale"] {
+  min-width: 0;
+  container: pos-cart / inline-size;
+}
+[data-cart-kind="sale"] [data-cart-row],
+[data-cart-kind="sale"] [data-cart-header],
+[data-cart-kind="sale"] [data-cart-add] { min-width: 0 !important; }
+
+/* Two columns only when there is enough room for a real table beside checkout. */
+@container pos-screen (min-width: 1160px) {
+  [data-pos-layout] {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+  }
+  [data-pos-checkout] { position: sticky; top: 72px; align-self: start; }
+  [data-pos-checkout] [data-pos-customer-fields] { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The actual desktop table is kept on tablets/laptops whenever the cart itself fits. */
+@container pos-cart (min-width: 760px) {
+  [data-cart-kind="sale"] [data-cart-header],
+  [data-cart-kind="sale"] [data-cart-row],
+  [data-cart-kind="sale"] [data-cart-add] {
+    grid-template-columns: 38px minmax(150px, 1fr) minmax(154px, 172px) minmax(86px, 102px) minmax(106px, 112px) minmax(88px, 106px) 28px;
+    gap: 6px;
+  }
+  [data-cart-kind="sale"] [data-cart-header] { display: grid; }
+  [data-cart-kind="sale"] [data-cart-row] { padding-top: 6px; padding-bottom: 6px; }
+  [data-cart-kind="sale"] [data-cart-row] > * { grid-column: auto; grid-row: auto; }
+  [data-cart-kind="sale"] [data-cart-row] > [data-cart-field] { display: contents; }
+  [data-cart-kind="sale"] [data-cart-row] > [data-cart-field]::before { content: none; }
+  [data-cart-kind="sale"] [data-cart-row] input,
+  [data-cart-kind="sale"] [data-cart-row] button { min-height: 0; }
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="compound-quantity"],
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-kind="sale"] [data-cart-row] [role="radiogroup"] { height: 36px; }
+  [data-cart-kind="sale"] [data-cart-add] > :nth-child(n) { display: revert; }
+}
+
+/* Narrow POS stays a dense table-like editor:
+   product/total on the first line, editable quantity/unit/price directly below. */
+@container pos-cart (max-width: 759px) {
+  [data-cart-kind="sale"] [data-cart-header] { display: none; }
+  [data-cart-kind="sale"] [data-cart-row] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 5px 6px;
+    padding: 8px 10px;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > [data-cart-field] {
+    display: block;
+    min-width: 0;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > [data-cart-field]::before {
+    content: none;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(2) { grid-column: 2 / 9; grid-row: 1; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(3) { grid-column: 1 / 7; grid-row: 2; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) { grid-column: 7 / 10; grid-row: 2; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(5) { grid-column: 10 / 13; grid-row: 2; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(6) {
+    grid-column: 9 / 12;
+    grid-row: 1;
+    align-self: center;
+    text-align: right;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(7) {
+    grid-column: 12;
+    grid-row: 1;
+    justify-self: end;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(3)::before,
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4)::before,
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(5)::before {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--muted-foreground);
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: 500;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(3)::before { content: "Qty"; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4)::before { content: "Unit"; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(5)::before { content: "Price"; }
+  [data-cart-kind="sale"] [data-cart-row] input,
+  [data-cart-kind="sale"] [data-cart-row] button { min-height: 0; }
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="compound-quantity"],
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-kind="sale"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(7) { width: 30px; height: 34px; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) [role="radiogroup"] { min-width: 0; }
+  [data-cart-kind="sale"] [data-cart-add] {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  [data-cart-kind="sale"] [data-cart-add] > :nth-child(n + 3) { display: none; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(2) p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* On phones, don't crush compound quantities or the price-eye icon into tiny cells. */
+@container pos-cart (max-width: 519px) {
+  [data-cart-kind="sale"] [data-cart-row] {
+    grid-template-rows: auto auto auto;
+    gap: 4px 6px;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(3) { grid-column: 1 / -1; grid-row: 2; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) { grid-column: 1 / 6; grid-row: 3; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(5) { grid-column: 6 / -1; grid-row: 3; }
+}
