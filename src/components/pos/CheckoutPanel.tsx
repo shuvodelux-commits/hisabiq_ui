@@ -98,7 +98,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
   };
 
   return (
-    <aside className="flex flex-col rounded-xl border border-border bg-card shadow-card xl:sticky xl:top-[72px]">
+    <aside data-pos-checkout className="flex min-w-0 flex-col rounded-xl border border-border bg-card shadow-card min-[1600px]:sticky min-[1600px]:top-[72px]">
       <div className="space-y-3 border-b border-border p-4">
         <div className="flex items-center justify-between">
           <div>
@@ -116,7 +116,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">
             Invoice customer details <span className="font-bn normal-case tracking-normal">· কাস্টমার তথ্য</span>
           </p>
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-2 min-[1600px]:grid-cols-1">
             <Input
               value={customerDetails.name}
               onChange={(event) => updateDetails({ name: event.target.value })}
