@@ -28,7 +28,7 @@ async function main(){
   await search.fill('Karim');await search.press('Enter');assert.match(await page.getByRole('alert').innerText(),/Several purchases/);assert.match(await source.innerText(),/No purchase selected/);
   await search.fill('NOT-A-BILL');await search.press('Enter');assert.match(await page.getByRole('alert').innerText(),/No purchase found/);
   await search.fill('PUR-000117');await search.press('Enter');assert.match(await source.innerText(),/PUR-000117/);
-  await page.getByRole('tab',{name:/Return history/}).click();assert.match(await page.locator('main').innerText(),/Sample history/);const downloading=page.waitForEvent('download');await page.getByRole('button',{name:'Export',exact:true}).click();const download=await downloading;assert.match(await fs.readFile(await download.path(),'utf8'),/PR-000028/);
+  await page.getByRole('tab',{name:/Return history/}).click();assert.match(await page.locator('main').innerText(),/Preview and sample history/);const downloading=page.waitForEvent('download');await page.getByRole('button',{name:'Export',exact:true}).click();const download=await downloading;assert.match(await fs.readFile(await download.path(),'utf8'),/PR-000028/);
   assert.deepEqual(errors,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await context.close();console.log(`Purchase filters, source actions, print/CSV and honest return review passed: ${width}px ${theme}`);
  }}finally{await browser.close();await server.close();}

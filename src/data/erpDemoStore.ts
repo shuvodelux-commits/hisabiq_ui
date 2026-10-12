@@ -1,4 +1,7 @@
-import type { LedgerEntry, Party, Product, Purchase, StockLot } from '../types/erp';
+import {demoPermissions,sourcePermissionGroup} from '../utils/permissions.ts';
+import {purchasePosition, returnedQuantity, sourceEditable, validatePurchaseSource, validatePurchaseSplits, purchaseReturnQuote, type PurchaseSourceEvent} from '../utils/purchaseSource.ts';
+import {toPaisa,validateBusinessDate} from '../utils/partyPayment.ts';
+import type { LedgerEntry, Party, Product, Purchase, StockLot, PaymentSplit } from '../types/erp';
 import { purchases as seedPurchases, expenseCategories } from './purchases.ts';
 import { ledgerEntries as seedLedgerEntries } from './parties.ts';
 import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore.ts';
@@ -14,11 +17,43 @@ const createdCategories: string[] = [];
 const inactiveExpenseCategories = new Set<string>();
 const renamedExpenseCategories = new Map<string, string>();
 const createdPurchases: Purchase[] = [];
+const purchaseEvents: PurchaseSourceEvent[] = [];
+export const availablePurchaseEvents = () => structuredClone(purchaseEvents);
+export const purchaseRevision = (purchase:Purchase) => purchase.sourceRevision ?? 0;
+export function mutatePreviewPurchase(expected:Purchase, operation:{kind:'correction';next:Purchase;reason:string;date:string}|{kind:'payment';payments:PaymentSplit[];reason:string;date:string}|{kind:'return';lines:{index:number;quantity:number}[];settlement:'credit'|'cash';payments:PaymentSplit[];reason:string;date:string}) {
+ if(!demoPermissions.has(sourcePermissionGroup('purchase')+'.edit'))throw new Error('Purchase editing permission is required.');
+ const index=createdPurchases.findIndex(p=>p.id===expected.id);const current=createdPurchases[index];
+ if(!current||!sourceEditable(current))throw new Error('This sample bill needs complete source data from integration.');
+ if(purchaseRevision(current)!==purchaseRevision(expected))throw new Error('Purchase changed. Close and reopen this action.');
+ validateBusinessDate(operation.date);
+ if(operation.date<(current.businessDate??operation.date))throw new Error('Payment or return cannot predate the purchase.');
+ if(!operation.reason.trim())throw new Error('Add a reason or payment reference.');
+ let next=structuredClone(current);let amount=0;let refund=0;
+ if(operation.kind==='correction'){
+  if(purchaseEvents.some(e=>e.purchaseId===current.id&&e.kind!=='correction'))throw new Error('Payments or returns exist. Source allocation review is required before correction.');
+  if(operation.next.id!==current.id||operation.next.ref!==current.ref||operation.next.supplierId!==current.supplierId)throw new Error('Original purchase identity and supplier must stay unchanged.');
+  validatePurchaseSource(operation.next);next=structuredClone(operation.next);
+ }else if(operation.kind==='payment'){
+  amount=operation.payments.reduce((sum,row)=>sum+toPaisa(row.amount,'Payment'),0)/100;
+  if(amount<=0||amount>purchasePosition(current,purchaseEvents).due)throw new Error('Payment must be positive and no more than supplier due.');
+  validatePurchaseSplits(operation.payments,amount);next.paid=(toPaisa(current.paid,'Paid')+toPaisa(amount,'Payment'))/100;
+  next.payments=[...(current.payments??[]),...operation.payments];
+ }else{
+  const quote=purchaseReturnQuote(current,operation.lines,purchaseEvents);amount=quote.amount;
+  refund=operation.settlement==='cash'?quote.excess:0;
+  validatePurchaseSplits(operation.payments,refund);
+ }
+ next.sourceRevision=purchaseRevision(current)+1;
+ const event:PurchaseSourceEvent={id:'purchase-event-'+current.id+'-'+next.sourceRevision,purchaseId:current.id,kind:operation.kind,date:operation.date,reason:operation.reason.trim(),before:structuredClone(current),after:structuredClone(next),amount,refund,
+  ...(operation.kind==='return'?{lines:operation.lines.filter(l=>l.quantity>0),settlement:operation.settlement}:{}),...(operation.kind!=='correction'?{payments:operation.payments}:{})};
+ createdPurchases[index]=next;purchaseEvents.push(event);return structuredClone(next);
+}
+
 
 export const availableProducts = () => getProductImportPreviewSnapshot().products.map((product) => ({
   ...product,
   stock: product.stock + createdPurchases.reduce((sum, purchase) =>
-    sum + (purchase.inventoryLines ?? []).filter((line) => line.productId === product.id).reduce((qty, line) => qty + line.quantity, 0), 0)
+    sum + (purchase.inventoryLines ?? []).reduce((qty, line, index) => qty + (line.productId === product.id ? line.quantity-returnedQuantity(purchase.id,index,purchaseEvents) : 0), 0), 0)
 }));
 export type ProductUnitOption = { name: string; symbol: string };
 const initialProductUnits: ProductUnitOption[] = [
@@ -56,15 +91,20 @@ export function createPreviewProductUnit(name: string, symbol: string) {
 export const availableParties = () => getPartyPreviewSnapshot().parties.map((party) => ({
   ...party,
   balance: party.balance - createdPurchases.filter((purchase) => purchase.supplierId === party.id)
-    .reduce((sum, purchase) => sum + purchase.total - purchase.paid, 0)
+    .reduce((sum, purchase) => { const position=purchasePosition(purchase,purchaseEvents); return sum+position.due-position.credit; }, 0)
 }));
 export const availableLedgerEntries = (): LedgerEntry[] => [
   ...seedLedgerEntries,
+  ...purchaseEvents.filter(e=>e.kind==='payment').map(e=>({id:e.id,partyId:e.before.supplierId,date:e.date,type:'payment' as const,ref:e.before.ref,description:'Purchase payment · '+e.reason,debit:e.amount,credit:0})),
+  ...purchaseEvents.filter(e=>e.kind==='return').flatMap(e=>[
+   {id:e.id,partyId:e.before.supplierId,date:e.date,type:'return' as const,ref:e.before.ref,description:'Purchase return · '+e.reason,debit:e.amount,credit:0},
+   ...(e.refund>0?[{id:e.id+'-refund',partyId:e.before.supplierId,date:e.date,type:'payment' as const,ref:e.before.ref,description:'Supplier cash refund',debit:0,credit:e.refund}]:[])
+  ]),
   ...createdPurchases.flatMap((purchase) => [
     { id: purchase.id + '-bill', partyId: purchase.supplierId, date: purchase.date, type: 'purchase' as const,
       ref: purchase.ref, description: purchase.items, debit: 0, credit: purchase.total },
-    ...(purchase.paid > 0 ? [{ id: purchase.id + '-payment', partyId: purchase.supplierId, date: purchase.date,
-      type: 'payment' as const, ref: purchase.ref, description: 'Purchase payment', debit: purchase.paid, credit: 0 }] : [])
+    ...((purchase.paid-purchaseEvents.filter(e=>e.purchaseId===purchase.id&&e.kind==='payment').reduce((sum,e)=>sum+e.amount,0)) > 0 ? [{ id: purchase.id + '-payment', partyId: purchase.supplierId, date: purchase.date,
+      type: 'payment' as const, ref: purchase.ref, description: 'Purchase payment', debit: purchase.paid-purchaseEvents.filter(e=>e.purchaseId===purchase.id&&e.kind==='payment').reduce((sum,e)=>sum+e.amount,0), credit: 0 }] : [])
   ])
 ];
 export const expenseCategoryRecords = () => [...expenseCategories, ...createdCategories].map(original => {
@@ -82,7 +122,7 @@ export const availableStockLots = (): StockLot[] => [
     label: 'Purchase lot',
     receivedAt: purchase.date,
     quantity: line.quantity,
-    available: line.quantity,
+    available: line.quantity-returnedQuantity(purchase.id,index,purchaseEvents),
     unitCost: line.unitCost ?? 0,
     sellingPrice: line.lotSellingPrice,
     source: 'Purchase' as const,
@@ -128,5 +168,5 @@ export function renamePreviewExpenseCategory(previous: string, next: string) {
   if (inactiveExpenseCategories.delete(previous)) inactiveExpenseCategories.add(name);
 }
 export function createPreviewPurchase(purchase: Purchase) {
-  if (!availablePurchases().some((item) => item.id === purchase.id)) createdPurchases.unshift(purchase);
+  if (!availablePurchases().some((item) => item.id === purchase.id)) { if(purchase.cartSnapshot)validatePurchaseSource(purchase); createdPurchases.unshift(structuredClone(purchase)); }
 }
