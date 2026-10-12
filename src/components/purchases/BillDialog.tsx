@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
@@ -132,7 +132,8 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   const [correctionReason, setCorrectionReason] = useState('');
   const [review, setReview] = useState(false);
   useEffect(() => { setReview(false); }, [amount, paymentRows, party, category, date, description, notes, photos, correctionReason]);
-  useEffect(() => {
+  // Initialize source values before the correction dialog becomes visible.
+  useLayoutEffect(() => {
     if (!open) return;
     const options = availableParties().filter(item => item.status !== 'Inactive' && item.roles.some(role => mode === 'purchase' ? role === 'Supplier' || role === 'Vendor' : role === 'Payee' || role === 'Vendor'));
     const categories = availableExpenseCategories();
