@@ -92,7 +92,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
   if(!Number.isFinite(total)||total<0||!Number.isSafeInteger(Math.round(total*100))||Math.abs(total-money(total))>0.000001)
    return 'Enter a valid amount with up to two decimal places.';
   const isParty=type==='Customer Receive'||type==='Supplier Pay';
-  if(discountInput.trim()&&!/^\\d+(?:\\.\\d{1,2})?$/.test(discountInput.trim()))
+  if(discountInput.trim()&&!/^\d+(?:\.\d{1,2})?$/.test(discountInput.trim()))
    return 'Discount / settlement must be a nonnegative amount with up to two decimals.';
   if(isParty&&discount>0&&!discountReason.trim())return 'Enter a reason for the discount / settlement.';
   if(!isParty&&total<=0)return 'Enter a positive transaction amount.';
