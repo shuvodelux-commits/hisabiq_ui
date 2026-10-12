@@ -118,7 +118,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
   }catch(e){setError(e instanceof Error?e.message:'Could not record this transaction.');setReview(false);}
   finally{busy.current=false;}
  };
- const highlight=(value:number)=>value>0?'text-danger':value<0?'text-success':'text-ink';
+ const highlight=(value:number)=>value===0?'text-ink':payerRole==='Supplier'?(value<0?'text-danger':'text-success'):(value>0?'text-danger':'text-success');
  return <section className="space-y-4 p-3 sm:p-4">
   <div className="grid grid-cols-2 gap-2 lg:grid-cols-4" role="group" aria-label="Counter transaction type">
    {kinds.map(item=><button type="button" key={item} aria-pressed={type===item} onClick={()=>changeType(item)}
