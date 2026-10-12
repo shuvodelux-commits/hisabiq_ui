@@ -95,7 +95,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
   if(discountInput.trim()&&!/^\\d+(?:\\.\\d{1,2})?$/.test(discountInput.trim()))
    return 'Discount / settlement must be a nonnegative amount with up to two decimals.';
   if(isParty&&discount>0&&!discountReason.trim())return 'Enter a reason for the discount / settlement.';
-  if((!isParty||type==='Bank Transfer')&&total<=0)return 'Enter a positive transaction amount.';
+  if(!isParty&&total<=0)return 'Enter a positive transaction amount.';
   if(isParty&&dueReduction<=0)return 'Enter money received/paid or a discount / settlement amount.';
   if(type==='Bank Transfer'){
    if(!from||!to||from===to)return 'Choose two different active money accounts.';
