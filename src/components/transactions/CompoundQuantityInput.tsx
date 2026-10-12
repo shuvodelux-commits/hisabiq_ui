@@ -69,7 +69,7 @@ export function CompoundQuantityInput({product,unit,primary,secondary='',onPrima
   <NumericInput stepperInset={34} ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter)}
-   className="h-9 w-full min-w-0 rounded-md border border-input bg-ink-50/50 px-2 pr-12 text-right text-sm font-medium text-ink outline-none focus:border-teal-500 focus:bg-card focus:ring-2 focus:ring-teal-500/20 disabled:opacity-60"/>
+   className="h-full w-full min-w-0 rounded-md border border-input bg-ink-50/50 px-2 pr-12 text-right text-sm font-medium text-ink outline-none focus:border-teal-500 focus:bg-card focus:ring-2 focus:ring-teal-500/20 disabled:opacity-60"/>
   <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10.5px] text-ink-500">{unit}</span>
  </div>;
 }
