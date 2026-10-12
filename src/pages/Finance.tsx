@@ -369,6 +369,8 @@ function TransferDialog({
   const [to, setTo] = useState(active[1]?.name ?? '');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
+  const [reviewTransfer, setReviewTransfer] = useState(false);
+  React.useEffect(() => setReviewTransfer(false), [from, to, amount, reference, open]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -390,6 +392,7 @@ function TransferDialog({
       toast.error('Choose two different accounts');
       return;
     }
+    if (!reviewTransfer) {setReviewTransfer(true);return;}
     onSave({
       id: nextId,
       date: '06 Oct 2026',
@@ -432,9 +435,14 @@ function TransferDialog({
           </label>
         </div>
 
+        <p className="rounded-md bg-ink-50 px-3 py-2 text-xs text-ink-500" aria-live="polite">{amountInWords(Number(amount)||0)}</p>
+        {reviewTransfer&&<div role="status" className="rounded-xl border border-border bg-ink-50 p-3 text-sm">
+          <p className="font-semibold">Check transfer before recording</p>
+          <p className="mt-1">{from} → {to}</p><p>{taka(Number(amount)||0)}</p><p>{amountInWords(Number(amount)||0)}</p>
+        </div>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>Transfer</Button>
+          <Button onClick={save}>{reviewTransfer?'Confirm transfer':'Review transfer'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
