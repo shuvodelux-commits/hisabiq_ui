@@ -41,6 +41,10 @@ async function main(){
   const keyboardContrast=await checkSelectedContrast();
   assert(keyboardContrast.title>=4.5&&keyboardContrast.helper>=4.5,
     'Keyboard-highlighted result must retain WCAG AA contrast in '+theme+': '+JSON.stringify(keyboardContrast));
+  await list.getByRole('option').last().hover();
+  const hoverContrast=await checkSelectedContrast();
+  assert(hoverContrast.title>=4.5&&hoverContrast.helper>=4.5,
+    'Mouse-hovered result must retain WCAG AA contrast in '+theme+': '+JSON.stringify(hoverContrast));
   await field.fill('এলইডি');await list.waitFor();
   await list.getByRole('option',{name:/LED Bulb 12W/}).click();
   const product=page.getByRole('textbox',{name:'Search products'});
