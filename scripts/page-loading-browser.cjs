@@ -1,7 +1,7 @@
 // Test production chunks, not Vite's development modules.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
-const erp = ['dashboard','pos','sales','quotations','online-sales','notifications','warranty','reconciliation','finance','daybook','accounts','audit-ledger','products','parties','purchases','purchases/new','vendors','expenses','reports','settings/business','subscription','support'];
+const erp = ['dashboard','search?q=LED','pos','sales','quotations','online-sales','notifications','warranty','reconciliation','finance','daybook','accounts','audit-ledger','products','parties','purchases','purchases/new','vendors','expenses','reports','settings/business','subscription','support'];
 const saas = ['overview','tenants','tenants/t1','plans','subscriptions','invoices','invoices/SAAS-1001','payments','payments/PAY-1001','sms','services','services/ORD-1001','support','support/TKT-1001','knowledge','team','announcements','reports','audit','settings'];
 async function main() {
   const { preview } = await import('vite');
@@ -17,7 +17,7 @@ async function main() {
       const requests=[]; page.on('request',r => requests.push(r.url()));
       await page.goto(base+'/app/dashboard');
       await page.locator('main h1').first().waitFor();
-      assert(!requests.some(url => /\/assets\/(Pos|Products|Expenses|Reports)-/.test(url)), 'dashboard must not download unrelated page code');
+      assert(!requests.some(url => /\/assets\/(Pos|Products|Expenses|Reports|GlobalSearch)-/.test(url)), 'dashboard must not download unrelated page code');
       for (const route of [...erp.map(p=>'/app/'+p),...saas.map(p=>'/saas/'+p),'/design-system']) {
         await page.goto(base+route);
         await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]') && !!document.querySelector('h1,h2'));
@@ -27,7 +27,7 @@ async function main() {
       }
       assert.deepEqual(errors,[]);
       await context.close();
-      console.log('PASS '+theme+': 43 production deep links, page chunks and theme');
+      console.log('PASS '+theme+': 44 production deep links, page chunks and theme');
       for (const width of [320,390,768,1024,1440]) {
         const c = await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
         await c.addInitScript(value => localStorage.setItem('hisabiq-theme',value),theme);
