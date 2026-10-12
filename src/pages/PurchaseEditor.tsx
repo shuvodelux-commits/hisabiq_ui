@@ -196,7 +196,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   });
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4 pb-8">
+    <div data-purchase-workspace className="purchase-workspace mx-auto max-w-[1440px] min-w-0 space-y-4 pb-8">
       {!embedded&&<PageHeader
         title="New purchase" titleBn="নতুন ক্রয়"
         description={purchaseRef + ' · Add products like a POS cart, then choose payment sources.'}
@@ -211,7 +211,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
         </>}
       />}
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
+      <div data-purchase-layout className="grid min-w-0 grid-cols-1 items-start gap-4">
         <div className="min-w-0 space-y-4">
           <PurchaseCart
             lines={lines}
@@ -236,7 +236,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
           </section>
         </div>
 
-        <aside className="min-w-0 space-y-3 lg:sticky lg:top-4">
+        <aside data-purchase-checkout className="min-w-0 space-y-3">
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
       <section className="border-b border-border p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
@@ -244,7 +244,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
           <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="block min-w-0 text-[12px] font-medium text-ink lg:col-span-2">
+          <div className="block min-w-0 text-[12px] font-medium text-ink sm:col-span-2">
             Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
             <div className="mt-1">
               {(lockedSupplierId||initialPurchase)?<div className="rounded-md border border-border bg-ink-50 px-3 py-2 text-sm text-ink">
