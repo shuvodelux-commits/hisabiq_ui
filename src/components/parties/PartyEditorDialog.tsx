@@ -16,6 +16,7 @@ type Props = {
   onClose: () => void;
   existingOpenings?: PartySourceRecord[];
   onSave: (party: PartyDraft, openings:Omit<PartyOpeningPayload,'partyId'>[]) => void;
+  defaultRole?: PartyRole;
 };
 
 const fresh = (party?: Party | null):PartyDraft => ({
@@ -26,7 +27,7 @@ const fresh = (party?: Party | null):PartyDraft => ({
 });
 
 type OpeningDraft={amount:string;side:'debit'|'credit';date:string};
-export function PartyEditorDialog({open,party,existingOpenings=[],onClose,onSave}:Props) {
+export function PartyEditorDialog({open,party,existingOpenings=[],onClose,onSave,defaultRole='Customer'}:Props) {
   const [draft,setDraft]=useState<PartyDraft>(()=>fresh(party));
   const [error,setError]=useState('');
   const [openings,setOpenings]=useState<Partial<Record<PartyRole,OpeningDraft>>>({});
@@ -41,7 +42,7 @@ export function PartyEditorDialog({open,party,existingOpenings=[],onClose,onSave
   const changeOpening=(role:PartyRole,patch:Partial<OpeningDraft>)=>setOpenings(prev=>({
     ...prev,[role]:{...opening(role),...patch}
   }));
-  useEffect(()=>{if(open){setDraft(fresh(party));setOpenings({});setError('');}},[open,party]);
+  useEffect(()=>{if(open){setDraft({...fresh(party),roles:party?.roles??[defaultRole]});setOpenings({});setError('');}},[open,party,defaultRole]);
   const update=(patch:Partial<PartyDraft>)=>setDraft(current=>({...current,...patch}));
   const toggleRole=(role:PartyRole,checked:boolean)=>update({
     roles:checked

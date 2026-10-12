@@ -307,6 +307,7 @@ export type Expense = TransactionAuditFields & {
   method: PaymentMethod;
   payments?: PaymentSplit[];
   receipt?: string;
+  backdateReason?: string;
 };
 
 export type DashboardWidgetId =

@@ -11,6 +11,8 @@ const createdProductCategories: string[] = [];
 const createdProductBrands: string[] = [];
 const createdProductUnits: ProductUnitOption[] = [];
 const createdCategories: string[] = [];
+const inactiveExpenseCategories = new Set<string>();
+const renamedExpenseCategories = new Map<string, string>();
 const createdPurchases: Purchase[] = [];
 
 export const availableProducts = () => getProductImportPreviewSnapshot().products.map((product) => ({
@@ -65,7 +67,11 @@ export const availableLedgerEntries = (): LedgerEntry[] => [
       type: 'payment' as const, ref: purchase.ref, description: 'Purchase payment', debit: purchase.paid, credit: 0 }] : [])
   ])
 ];
-export const availableExpenseCategories = () => [...expenseCategories, ...createdCategories];
+export const expenseCategoryRecords = () => [...expenseCategories, ...createdCategories].map(original => {
+  const name = renamedExpenseCategories.get(original) ?? original;
+  return { name, active: !inactiveExpenseCategories.has(name) };
+});
+export const availableExpenseCategories = () => expenseCategoryRecords().filter(category => category.active).map(category => category.name);
 export const availablePurchases = () => [...createdPurchases, ...seedPurchases];
 
 /** Purchase lots in the design preview; in the backend each lot will be posted atomically with its purchase. */
@@ -103,7 +109,23 @@ export function createPreviewParty(party: Party) {
   }
 }
 export function createPreviewExpenseCategory(category: string) {
-  if (!availableExpenseCategories().some((item) => item.toLowerCase() === category.toLowerCase())) createdCategories.push(category);
+  const name = category.trim();
+  if (!name) throw new Error('Category name is required.');
+  if (expenseCategoryRecords().some(item => isSame(item.name, name))) throw new Error('This category already exists.');
+  createdCategories.push(name);
+}
+export function setPreviewExpenseCategoryActive(name: string, active: boolean) {
+  if (!expenseCategoryRecords().some(item => item.name === name)) throw new Error('Category not found.');
+  if (active) inactiveExpenseCategories.delete(name); else inactiveExpenseCategories.add(name);
+}
+export function renamePreviewExpenseCategory(previous: string, next: string) {
+  const name = next.trim();
+  if (!name) throw new Error('Category name is required.');
+  if (expenseCategoryRecords().some(item => item.name !== previous && isSame(item.name, name))) throw new Error('This category already exists.');
+  const original = [...expenseCategories, ...createdCategories].find(item => (renamedExpenseCategories.get(item) ?? item) === previous);
+  if (!original) throw new Error('Category not found.');
+  renamedExpenseCategories.set(original, name);
+  if (inactiveExpenseCategories.delete(previous)) inactiveExpenseCategories.add(name);
 }
 export function createPreviewPurchase(purchase: Purchase) {
   if (!availablePurchases().some((item) => item.id === purchase.id)) createdPurchases.unshift(purchase);

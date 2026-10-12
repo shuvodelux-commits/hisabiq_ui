@@ -1,0 +1,26 @@
+name: Expense Workflow Check
+on:
+  pull_request:
+    paths:
+      - 'src/pages/Expenses.tsx'
+      - 'src/components/purchases/Bill*.tsx'
+      - 'src/components/QuickAddSelect.tsx'
+      - 'src/components/parties/PartyEditorDialog.tsx'
+      - 'src/data/expensePreviewStore.ts'
+      - 'src/data/erpDemoStore.ts'
+      - 'src/utils/reportOutput.ts'
+      - 'scripts/expense-workflows-browser.cjs'
+      - 'tests/expensePreview.test.ts'
+      - '.github/workflows/expense-workflow-check.yml'
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: node --experimental-strip-types --test tests/expensePreview.test.ts
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/expense-workflows-browser.cjs
