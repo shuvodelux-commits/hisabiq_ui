@@ -468,7 +468,7 @@ export function Pos() {
   };
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
+    <div className="pos-screen mx-auto max-w-[1440px] min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-baseline gap-2">
           <h1 className="text-xl font-semibold tracking-tight">{pageTitle}</h1>
@@ -571,7 +571,7 @@ export function Pos() {
         </div>
       )}
 
-      <div data-pos-layout className="grid min-w-0 grid-cols-1 gap-4 min-[1600px]:grid-cols-[minmax(0,1fr)_380px]">
+      <div data-pos-layout className="pos-columns grid min-w-0 grid-cols-1 gap-4">
         <div className="min-w-0 space-y-4">
           <CartTable
             lines={cart.lines}
