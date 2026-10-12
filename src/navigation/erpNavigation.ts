@@ -1,5 +1,5 @@
 import type {LucideIcon} from 'lucide-react';
-import {LayoutDashboard,ShoppingCart,FileText,ReceiptText,Store,Package,Users,Wallet,Landmark,ShieldCheck,PieChart,Settings} from 'lucide-react';
+import {LayoutDashboard,ShoppingCart,HandCoins,FileText,ReceiptText,Store,Package,Users,Wallet,Landmark,ShieldCheck,PieChart,Settings} from 'lucide-react';
 
 export type ErpNavChild={id:string;label:string;bn?:string;path:string;feature?:string;permission?:string};
 export type ErpNavGroup={id:string;label:string;bn?:string;icon:LucideIcon;landingPath:string;children?:readonly ErpNavChild[];permission?:string};
@@ -8,6 +8,7 @@ export type ErpNavGroup={id:string;label:string;bn?:string;icon:LucideIcon;landi
 export const erpNavigation:readonly ErpNavGroup[]=[
  {id:'dashboard',label:'Dashboard',bn:'ড্যাশবোর্ড',icon:LayoutDashboard,landingPath:'/app/dashboard'},
  {id:'pos',label:'POS / New Sale',bn:'নতুন বিক্রি',icon:ShoppingCart,landingPath:'/app/pos'},
+ {id:'counter',label:'Counter',bn:'কাউন্টার',icon:HandCoins,landingPath:'/app/counter'},
  {id:'sales',label:'Sales',bn:'বিক্রয়',icon:FileText,landingPath:'/app/sales',children:[
   {id:'sales-history',label:'Sales History',bn:'বিক্রয় তালিকা',path:'/app/sales'},
   {id:'quotations',label:'Quotations & Estimates',bn:'মূল্য প্রস্তাব',path:'/app/quotations',feature:'quotations'},
@@ -54,7 +55,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
 ];
 /** Verified in App.tsx of the source branch. Query-driven children share these same route paths. */
 export const erpRoutePaths=new Set([
- '/app/dashboard','/app/pos','/app/sales','/app/quotations','/app/online-sales',
+ '/app/dashboard','/app/pos','/app/counter','/app/sales','/app/quotations','/app/online-sales',
  '/app/purchases','/app/purchases/new','/app/vendors','/app/products','/app/parties','/app/expenses',
  '/app/finance','/app/accounts','/app/daybook','/app/reconciliation','/app/audit-ledger',
  '/app/warranty','/app/reports','/app/settings/business','/app/settings/team',
