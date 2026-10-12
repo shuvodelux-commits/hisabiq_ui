@@ -17,11 +17,6 @@ const sizes = [
   [1600, 900, 'wide desktop'],
   [1920, 1080, 'wide monitor'],
 ];
-const rect = (element) => {
-  const r = element.getBoundingClientRect();
-  return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
-};
-
 async function main() {
   const { createServer } = await import('vite');
   const server = await createServer({ server: { host: '127.0.0.1', port: 4327, strictPort: true } });
