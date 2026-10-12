@@ -32,7 +32,7 @@ export function VendorPaymentsWorkspace({state,sources,sourceId}:Props){
     <div className="border-b border-border p-3">
      <h4 className="text-sm font-semibold text-ink">Outstanding invoices · বাকি মেমো</h4>
      <p className="mt-1 text-xs text-ink-500">Choose a memo to record payment.</p>
-     <div className="relative mt-3"><Search className="absolute left-2.5 top-2.5 size-4 text-ink-400"/>
+     <div className="relative mt-3"><Search className="pointer-events-none absolute z-10 left-2.5 top-2.5 size-4 text-ink-400"/>
       <Input aria-label="Search Vendor payment invoices" value={search} onChange={e=>setSearch(e.target.value)}
         placeholder="Search invoice or product" className="pl-8"/>
      </div>
