@@ -45,6 +45,9 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Check Counter quick-clear, Bangla words and settlement
+        run: npm run test:counter-ux
+
       - name: Check Vendor Party two-way ledger preview
         run: npm run test:vendor-workflow
 
@@ -107,9 +110,6 @@ jobs:
 
       - name: Check Party profile and CSV workflows
         run: npm run test:parties
-
-      - name: Check Counter quick-clear, Bangla words and settlement
-        run: npm run test:counter-ux
 
       - name: Check date-filtered Party ledger and print
         run: npm run test:party-ledger
