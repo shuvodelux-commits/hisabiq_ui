@@ -42,7 +42,7 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
   }
   input?.focus();
  };
- return <span className="relative block w-full min-w-0">
+ return <span className="relative block min-w-0 flex-1">
   <DesignInput {...props} ref={setRef}
    className={(props.className??'')+' pr-10 [&::-webkit-search-cancel-button]:hidden'}/>
   {canClear&&<button type="button" aria-label={'Clear '+(props['aria-label']||props.placeholder||'input')}
