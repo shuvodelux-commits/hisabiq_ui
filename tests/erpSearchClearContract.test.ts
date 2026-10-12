@@ -22,10 +22,10 @@ test('all native search-like ERP fields use the shared clear input or an intenti
  for(const path of files('src')){
   const name=relative('.',path).replaceAll('\\','/');
   const code=readFileSync(path,'utf8');
-  const nativeTags=[...code.matchAll(/<input\\b[\\s\\S]*?\\/>/g)];
+  const nativeTags=[...code.matchAll(/<input\b[\s\S]*?\/>/g)];
   for(const match of nativeTags){
    const tag=match[0];
-   if(!/(?:placeholder|aria-label)\\s*=\\s*["'][^"']*\\b(search|find|filter|lookup|add product)\\b/i.test(tag)&&
+   if(!/(?:placeholder|aria-label)\s*=\s*["'][^"']*\b(search|find|filter|lookup|add product)\b/i.test(tag)&&
       !/type=["']search["']/.test(tag))continue;
    nativeCount++;
    if(!allowed.has(name))unresolved.push(name+': '+tag.slice(0,100));
