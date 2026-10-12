@@ -126,6 +126,14 @@ async function main() {
     await page.getByRole('button', { name: 'Complete purchase' }).click();
     await page.getByRole('heading', { name: 'Purchases', exact: true }).waitFor();
     await page.getByRole('link', { name: 'Browser QA Supplier' }).waitFor();
+    const savedRow = page.locator('tbody tr').filter({ hasText: 'Browser QA Supplier' });
+    await savedRow.getByRole('button', { name: /^Actions for/ }).click();
+    await page.getByRole('button', { name: 'Review return', exact: true }).click();
+    const snapshots = page.getByRole('region', { name: 'Purchase source item snapshots' });
+    assert.match(await snapshots.innerText(), /LED Bulb 12W/);
+    assert.doesNotMatch(await snapshots.innerText(), /cost not available/, 'created purchase preserves its recorded cost');
+    assert.equal(await page.getByRole('button', { name: 'Complete return', exact: true }).count(), 0,
+      'historical return allocations are still required even when original purchase lines exist');
 
     await page.goto('http://127.0.0.1:4177/#/app/parties');
     await page.getByText('Browser QA Supplier', { exact: true }).last().waitFor();
