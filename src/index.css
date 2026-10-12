@@ -192,9 +192,9 @@
 [data-cart-kind="sale"] [data-cart-add] { min-width: 0 !important; }
 
 /* Two columns only when there is enough room for a real table beside checkout. */
-@container pos-screen (min-width: 1160px) {
+@container pos-screen (min-width: 1056px) {
   [data-pos-layout] {
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: minmax(0, 1fr) 340px;
     align-items: start;
   }
   [data-pos-checkout] { position: sticky; top: 72px; align-self: start; }
@@ -202,11 +202,11 @@
 }
 
 /* The actual desktop table is kept on tablets/laptops whenever the cart itself fits. */
-@container pos-cart (min-width: 760px) {
+@container pos-cart (min-width: 700px) {
   [data-cart-kind="sale"] [data-cart-header],
   [data-cart-kind="sale"] [data-cart-row],
   [data-cart-kind="sale"] [data-cart-add] {
-    grid-template-columns: 38px minmax(150px, 1fr) minmax(154px, 172px) minmax(86px, 102px) minmax(106px, 112px) minmax(88px, 106px) 28px;
+    grid-template-columns: 36px minmax(130px, 1fr) minmax(158px, 168px) minmax(78px, 92px) minmax(104px, 108px) minmax(82px, 100px) 28px;
     gap: 6px;
   }
   [data-cart-kind="sale"] [data-cart-header] { display: grid; }
@@ -224,7 +224,7 @@
 
 /* Narrow POS stays a dense table-like editor:
    product/total on the first line, editable quantity/unit/price directly below. */
-@container pos-cart (max-width: 759px) {
+@container pos-cart (max-width: 699px) {
   [data-cart-kind="sale"] [data-cart-header] { display: none; }
   [data-cart-kind="sale"] [data-cart-row] {
     grid-template-columns: repeat(12, minmax(0, 1fr));
