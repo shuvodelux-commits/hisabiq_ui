@@ -629,7 +629,6 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   ];
 
   return (
-    <div className="mx-auto  return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
         title={counterOnly ? 'Counter' : 'Finance'}
