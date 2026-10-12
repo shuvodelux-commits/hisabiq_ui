@@ -5,7 +5,7 @@ export type GlobalSearchMode = 'Default'|'Advanced';
 export function normalizeSearch(text:string):string {
  return text.normalize('NFC').toLocaleLowerCase().replace(/[০-৯]/g,digit=>String('০১২৩৪৫৬৭৮৯'.indexOf(digit))).trim();
 }
-const parts=(text:string)=>normalizeSearch(text).match(/[\p{L}\p{N}]+/gu)??[];
+const parts=(text:string)=>normalizeSearch(text).match(/[\p{L}\p{M}\p{N}]+/gu)??[];
 /** At most one character edit for longer words; protects short SKU/number queries from noise. */
 function closeSpelling(a:string,b:string):boolean {
  if(a.length<4||b.length<4||Math.abs(a.length-b.length)>1)return false;
