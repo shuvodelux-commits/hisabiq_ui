@@ -13,11 +13,6 @@ const viewports = [
   [1366, 768, 'small laptop'],
   [1600, 900, 'desktop'],
 ];
-const frame = (node) => {
-  const r = node.getBoundingClientRect();
-  return { x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom };
-};
-
 async function inspectCart(page, kind, name) {
   const info = await page.locator('[data-cart-kind="' + kind + '"]').evaluate((root) => {
     const rect = (node) => {
