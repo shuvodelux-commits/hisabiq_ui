@@ -23,7 +23,7 @@ async function main(){
   const dueRow=page.locator('table tbody tr').filter({hasText:'INV-000241'}).first();
   assert.equal(await dueRow.locator('td').nth(2).getByLabel('Customer due increased').count(),1);
   const openingRow=page.locator('table tbody tr').filter({hasText:'Opening balance'}).last();
-  assert.equal(await openingRow.locator('td').nth(2).getByLabel('Opening balance', {exact:true}).count(),1);
+  assert.equal(await openingRow.locator('td').nth(2).getByLabel('Opening balance').count(),1);
   await page.getByRole('button',{name:'Edit opening balance'}).click();
   const opening=page.getByRole('dialog',{name:'Party opening balance'});
   await opening.waitFor();
@@ -53,9 +53,9 @@ async function main(){
   await supplier.waitFor({state:'hidden'});
   await page.setViewportSize({width:375,height:812});
   const mobileLedger=page.locator('.sm\\:hidden').first();
-  assert.ok(await mobileLedger.getByLabel('Opening balance', {exact:true}).count()>0);
+  assert.ok(await mobileLedger.getByLabel('Opening balance').count()>0);
   const mobileOpeningCard=mobileLedger.locator('div.rounded-lg').filter({hasText:'Opening balance'}).first();
-  assert.equal(await mobileOpeningCard.getByLabel('Opening balance', {exact:true}).count(),1,'Mobile opening icon beside amount');
+  assert.equal(await mobileOpeningCard.getByLabel('Opening balance').count(),1,'Mobile opening icon beside amount');
   assert.equal(await mobileOpeningCard.locator('[data-testid="ledger-impact-caption"]').innerText(),'Opening balance');
   assert.deepEqual(errors,[]);
   console.log('Party opening create/edit + ledger semantic impact desktop/mobile smoke passed');

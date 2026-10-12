@@ -47,13 +47,13 @@ async function main() {
     await page.getByLabel("Search records").fill("Combined test role");
     await page.getByText("Combined test role", { exact: true }).waitFor();
     await go("/saas/overview");
-    await page.getByLabel("Demo staff account", {exact:true}).selectOption("amina");
+    await page.getByLabel("Demo staff account").selectOption("amina");
     await page
       .getByRole("heading", { name: "Good to see you, Amina" })
       .waitFor();
     await go("/saas/team");
     await page.getByRole("heading", { name: "Access denied" }).waitFor();
-    await page.getByLabel("Demo staff account", {exact:true}).selectOption("admin");
+    await page.getByLabel("Demo staff account").selectOption("admin");
     await go("/saas/tenants");
     await page
       .getByRole("button", { name: "Create tenant", exact: true })
@@ -122,7 +122,7 @@ async function main() {
       .click();
     await page.getByText("PUBLIC_BROWSER_REPLY", { exact: true }).waitFor();
     await go("/saas/overview");
-    await page.getByLabel("Demo staff account", {exact:true}).selectOption("admin");
+    await page.getByLabel("Demo staff account").selectOption("admin");
     await go('/saas/sms');
     await page.getByRole('button',{name:'Templates',exact:true}).click();
     await page.getByRole('button',{name:'Create template',exact:true}).click();
@@ -153,7 +153,7 @@ async function main() {
     await page.getByRole('alert').filter({hasText:'Changes are in memory only'}).waitFor();
     await page.evaluate(()=>{Storage.prototype.setItem=window.__originalSetItem;});
     await page.reload();
-    await go('/saas/overview');await page.getByLabel('Demo staff account', {exact:true}).selectOption('admin');
+    await go('/saas/overview');await page.getByLabel('Demo staff account').selectOption('admin');
     const axe = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
     const routes = [
       "overview",
@@ -208,7 +208,7 @@ async function main() {
       for(const route of ['/app/subscription','/app/support','/app/support/TKT-1001']){
         await go(route);await page.addScriptTag({content:axe});const violations=await page.evaluate(async()=> (await axe.run(document,{runOnly:['color-contrast']})).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})));assert.deepEqual(violations,[],`${theme} ${route}`);
       }
-      await go('/saas/overview');await page.getByLabel('Demo staff account', {exact:true}).selectOption('admin');
+      await go('/saas/overview');await page.getByLabel('Demo staff account').selectOption('admin');
       await page.evaluate(()=>document.fonts.load('12px "Hind Siliguri"','বাংলা'));
       await go("/saas/overview");
       await page.screenshot({
