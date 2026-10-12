@@ -104,7 +104,7 @@ export function ChartOfAccountsView({
 
       <div className="mb-3 flex flex-col gap-2 sm:flex-row">
         <div className="relative min-w-0 flex-1 sm:max-w-sm">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+          <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
           <Input className="pl-8" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search code, account or group" />
         </div>
         <FormSelect className="sm:w-44" value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)} options={['All groups', ...groups]} />
