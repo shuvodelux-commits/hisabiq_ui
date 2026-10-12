@@ -6,8 +6,9 @@ async function main(){
  await server.listen();
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
  try{
- for(const width of [320,390,768,1440]){
+ for(const theme of ['light','dark'])for(const width of [320,390,768,1440]){
   const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
+  await context.addInitScript(selectedTheme=>localStorage.setItem('hisabiq-theme',selectedTheme),theme);
   const page=await context.newPage(),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   const root='http://127.0.0.1:4260/#';
@@ -17,6 +18,29 @@ async function main(){
   await field.waitFor();
   await page.keyboard.press('Control+k');
   assert(await field.evaluate(node=>document.activeElement===node));
+  await field.fill('in');await list.waitFor();
+  const activeRow=list.getByRole('option',{selected:true});
+  async function checkSelectedContrast(){
+   return await activeRow.evaluate(row=>{
+    const channel=value=>Array.from(value.matchAll(/[\\d.]+/g)).slice(0,3).map(match=>Number(match[0]));
+    const brightness=rgb=>rgb.map(value=>value/255).map(value=>value<=0.04045?value/12.92:Math.pow((value+0.055)/1.055,2.4)).reduce((sum,value,index)=>sum+value*[0.2126,0.7152,0.0722][index],0);
+    const background=brightness(channel(getComputedStyle(row).backgroundColor));
+    const ratio=node=>{
+     const foreground=brightness(channel(getComputedStyle(node).color));
+     return (Math.max(background,foreground)+0.05)/(Math.min(background,foreground)+0.05);
+    };
+    const title=row.querySelector('span > span:first-child');
+    const helper=row.querySelector('span > span:nth-child(2)');
+    return {title:title?ratio(title):0,helper:helper?ratio(helper):0};
+   });
+  }
+  const initialContrast=await checkSelectedContrast();
+  assert(initialContrast.title>=4.5&&initialContrast.helper>=4.5,
+    'Selected result title and helper must retain WCAG AA contrast in '+theme+': '+JSON.stringify(initialContrast));
+  await field.press('ArrowDown');
+  const keyboardContrast=await checkSelectedContrast();
+  assert(keyboardContrast.title>=4.5&&keyboardContrast.helper>=4.5,
+    'Keyboard-highlighted result must retain WCAG AA contrast in '+theme+': '+JSON.stringify(keyboardContrast));
   await field.fill('এলইডি');await list.waitFor();
   await list.getByRole('option',{name:/LED Bulb 12W/}).click();
   const product=page.getByRole('textbox',{name:'Search products'});
@@ -35,7 +59,7 @@ async function main(){
   await page.waitForFunction(()=>location.hash.includes('/app/products?q=ELC-1201'));
   await field.fill('Rahman');await page.getByRole('button',{name:'Clear global search'}).click();
   assert.equal(await field.inputValue(),'');
-  if(width===390){
+  if(width===390&&theme==='light'){
    await field.fill('ulb');await list.getByText(/No matching records/).waitFor();
    await page.goto(root+'/app/settings/personal');
    const mode=page.getByRole('combobox',{name:'Search matching'});await mode.click();
@@ -47,7 +71,7 @@ async function main(){
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   assert.deepEqual(errors,[]);
   await context.close();
-  console.log('Instant global search passed '+width+'px');
+  console.log('Instant global search and selection contrast passed '+width+'px '+theme);
  }
  }finally{await browser.close();await server.close();}
 }
