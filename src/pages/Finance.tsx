@@ -433,10 +433,11 @@ function TransferDialog({
   );
 }
 
-export function Finance() {
+export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {}) {
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
-  const [tab, setTab] = useState<Tab>('overview');
+  const [financeTab, setTab] = useState<Tab>('overview');
+  const tab: Tab = counterOnly ? 'counter' : financeTab;
   const [accounts, setAccounts] = useState<FinanceAccount[]>(seedAccounts);
   const [transactions, setTransactions] = useState<FinanceTransaction[]>(seedTransactions);
   const [transfers, setTransfers] = useState<AccountTransfer[]>(seedTransfers);
@@ -709,10 +710,10 @@ export function Finance() {
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
-        title="Finance"
-        titleBn="টাকা-পয়সা"
-        description="Cash, bank, mobile banking, loans, cheques and everyday money movement."
-        actions={
+        title={counterOnly ? 'Counter' : 'Finance'}
+        titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
+        description={counterOnly ? 'Receive customer payments, pay suppliers, record expenses and transfer money.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
+        actions={counterOnly ? undefined : (
           <>
             <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
               <UserRoundCog className="size-4" /> Finance people
@@ -724,10 +725,10 @@ export function Finance() {
               <Plus className="size-4" /> New transaction
             </Button>
           </>
-        }
+        )}
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
+      {!counterOnly && <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
         {summaryCards.map(({ label, value, sub, icon: Icon, tone }) => (
           <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <div className="flex items-start justify-between gap-2">
@@ -738,9 +739,9 @@ export function Finance() {
             <p className="mt-0.5 text-[10.5px] text-ink-400">{sub}</p>
           </div>
         ))}
-      </div>
+      </div>}
 
-      {(pdcCount > 0 || bouncedCount > 0 || varianceSessions > 0) && (
+      {!counterOnly && (pdcCount > 0 || bouncedCount > 0 || varianceSessions > 0) && (
         <div className="flex flex-wrap gap-2 rounded-xl border border-warning/20 bg-warning/5 p-3">
           <button onClick={() => setTab('cheques')} className="rounded-lg border border-warning/20 bg-card px-3 py-2 text-left hover:bg-warning/5">
             <p className="text-[12px] font-medium text-ink">{pdcCount} post-dated cheque{pdcCount === 1 ? '' : 's'}</p>
@@ -752,7 +753,7 @@ export function Finance() {
       )}
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
+        {!counterOnly && <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -766,7 +767,7 @@ export function Finance() {
               {label}
             </button>
           ))}
-        </div>
+        </div>}
 
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.25fr_1fr]">
@@ -864,7 +865,7 @@ export function Finance() {
                 <p className="text-sm font-semibold text-ink">Quick tools</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[
-                    { label: 'Counter', helper: 'Receive / pay', icon: BriefcaseBusiness, action: () => setTab('counter') },
+                    { label: 'Counter', helper: 'Receive / pay', icon: BriefcaseBusiness, action: () => navigate('/app/counter') },
                     { label: 'Transfer', helper: 'Between accounts', icon: ArrowLeftRight, action: () => setTransferOpen(true) },
                     { label: 'Reconcile', helper: 'Bank statement', icon: CheckCircle2, action: () => navigate('/app/reconciliation') },
                     { label: 'Daybook', helper: 'All transactions', icon: BookOpen, action: () => navigate('/app/daybook') }
