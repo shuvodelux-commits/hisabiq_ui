@@ -21,6 +21,7 @@ import { salesInvoices } from '../data/sales';
 import type { Product, ProductOffer, StockLot, StockMovement } from '../types/erp';
 import { formatStock, stockStatus, type StockStatus } from '../utils/units';
 import { taka } from '../utils/currency';
+import { downloadReport } from '../utils/reportOutput';
 
 const statusMeta: Record<StockStatus, {label: string;tone: StatusTone;}> = {
   in: { label: 'In stock', tone: 'success' },
@@ -345,7 +346,7 @@ export function Products() {
         }
         actions={view === 'list' ? (
           <>
-            <Button variant="outline" size="sm" onClick={() => toast('Exported products.xlsx')}>
+            <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-products.csv',['Name','Bangla name','SKU','Category','Brand','Base unit','Stock (base unit)','Minimum stock (base unit)','Purchase price (base unit)','Selling price (base unit)','Active'],filtered.map(p => [p.name,p.nameBn ?? '',p.sku,p.category,p.brand ?? '',p.unit,p.stock,p.minStock,p.purchasePrice,p.sellPrice,p.active ? 'Yes' : 'No']))}>
               <Download className="size-4" /> Export
             </Button>
             <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>

@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowDownToLine, BookOpen, FileText, Landmark, MoreHorizontal, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -22,6 +22,7 @@ import { balanceSheet, postingForTransaction, profitAndLoss, trialBalance } from
 import { taka } from '../utils/currency';
 
 type Tab = 'overview' | 'vouchers' | 'ledger' | 'trial' | 'statements' | 'chart';
+const validTabs:Tab[] = ['overview','vouchers','ledger','trial','statements','chart'];
 
 function sourceLabel(source: AccountingSourceTransaction['source']) {
   if (source === 'receipt-voucher') return 'Receipt Voucher';
@@ -72,7 +73,11 @@ function rowBalance(postings: Posting[], accountId: string) {
 export function Accounts() {
   const navigate = useNavigate();
   const { terminologyMode, setTerminologyMode, entryDateView } = useUserPreferences();
-  const [tab, setTab] = useState<Tab>('overview');
+  const [params,setParams] = useSearchParams();
+  const requestedTab = params.get('tab');
+  const [tab, setTab] = useState<Tab>(() => validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview');
+  useEffect(() => { setTab(validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview'); }, [requestedTab]);
+  const chooseTab = (nextTab: Tab) => { setTab(nextTab); setParams(current => { const next = new URLSearchParams(current); if (nextTab === 'overview') next.delete('tab'); else next.set('tab',nextTab); return next; }, {replace:true}); };
   const [sources, setSources] = useState<AccountingSourceTransaction[]>(seedSources);
   const [voucherOpen, setVoucherOpen] = useState(false);
   const [voucherType, setVoucherType] = useState<VoucherType>('receipt');
@@ -184,7 +189,7 @@ export function Accounts() {
               key={id}
               role="tab"
               aria-selected={tab === id}
-              onClick={() => setTab(id)}
+              onClick={() => chooseTab(id)}
               className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
               <span className="font-bn text-[10.5px] font-normal text-ink-400">{helper}</span>
@@ -200,7 +205,7 @@ export function Accounts() {
                   <p className="text-sm font-semibold text-ink">Recent accounting entries</p>
                   <p className="font-bn text-[11px] text-ink-400">Sales, Purchase, Expense ও Finance থেকে নিজে থেকেই হিসাব তৈরি হয়</p>
                 </div>
-                <button onClick={() => setTab('vouchers')} className="text-xs font-medium text-teal-700 hover:underline">View all</button>
+                <button onClick={() => chooseTab('vouchers')} className="text-xs font-medium text-teal-700 hover:underline">View all</button>
               </div>
               <div className="divide-y divide-border">
                 {sources.slice().reverse().slice(0, 6).map((source) => (

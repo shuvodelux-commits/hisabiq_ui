@@ -33,6 +33,16 @@ import { customerCredits as seedCredits, saleTemplates, salesDrafts, salesInvoic
 import { products } from '../data/products';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn } from '../types/erp';
 import { taka } from '../utils/currency';
+import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
+import { downloadReport, printReport } from '../utils/reportOutput';
+const printInvoice = (invoice: SalesInvoice) => {
+  const view = window.open('', '_blank');
+  if (!view) { toast.error('Allow the print popup and try again.'); return; }
+  view.opener = null;
+  void import('../components/brand/printReceipt').then(({printReceipt}) => printReceipt(invoiceReceipt(invoice), view))
+    .catch(() => { view.close(); toast.error('Could not open the print document. Try again.'); });
+};
+const printReturn = (item: SalesReturn) => { if (!printReport(returnDocument(item))) toast.error('Allow the print popup and try again.'); };
 
 type Tab = 'sales' | 'return' | 'returns' | 'credits' | 'drafts';
 
@@ -135,9 +145,7 @@ function PaymentStatus({ invoice }: { invoice: SalesInvoice }) {
   return <StatusBadge tone={statusTone[invoice.status]} dot>{invoice.status}</StatusBadge>;
 }
 
-function invoiceQty(line: SalesInvoice['lines'][number]) {
-  return line.quantity.toLowerCase().includes(line.unit.toLowerCase()) ? line.quantity : `${line.quantity} ${line.unit}`;
-}
+const invoiceQty = invoiceQuantity;
 
 function returnLimit(line: SalesInvoice['lines'][number]) {
   return line.returnableQuantity ?? (parseFloat(line.quantity) || 0);
@@ -200,7 +208,7 @@ function InvoiceActions({
               <UserRound className="size-4 text-ink-400" /> Customer ledger
             </button>
           )}
-          <button className={itemClass} onClick={() => { close(); toast.success('Invoice sent to printer'); }}>
+          <button className={itemClass} onClick={() => { close(); printInvoice(invoice); }}>
             <Printer className="size-4 text-ink-400" /> Print
           </button>
         </div>
@@ -301,29 +309,7 @@ function InvoiceDialog({
               </div>
 
               <div className="rounded-xl bg-ink-50 py-4">
-                <ReceiptPreview
-                  invoice={invoice.invoice}
-                  customer={invoice.party === 'Walk-in customer' ? undefined : invoice.party}
-                  customerPhone={invoice.phone}
-                  guardianName={invoice.guardianName}
-                  customerAddress={invoice.address}
-                  lines={invoice.lines.map((line) => ({
-                    name: line.name,
-                    qty: invoiceQty(line),
-                    price: line.price,
-                    total: line.total,
-                    serials: line.serials,
-                    warranty: line.warranty
-                  }))}
-                  subtotal={invoice.subtotal}
-                  discount={invoice.discount}
-                  rounding={invoice.rounding}
-                  total={invoice.total}
-                  paid={invoice.paid}
-                  due={invoice.due}
-                  method={invoice.payments.length > 1 ? 'Multiple' : invoice.method}
-                  dateTime={`${invoice.date}, ${invoice.time}`}
-                />
+                <ReceiptPreview {...invoiceReceipt(invoice)} />
               </div>
             </div>
 
@@ -335,7 +321,7 @@ function InvoiceDialog({
                   <BookOpen className="size-4" /> Ledger
                 </Button>
               )}
-              <Button variant="outline" onClick={() => toast.success('Invoice sent to printer')}>
+              <Button variant="outline" onClick={() => printInvoice(invoice)}>
                 <Printer className="size-4" /> Print
               </Button>
               <Button variant="outline" onClick={() => navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`)}>
@@ -653,6 +639,7 @@ export function Sales() {
   },{replace:true});};
   const [invoices, setInvoices] = useState<SalesInvoice[]>(seedInvoices);
   const [returns, setReturns] = useState<SalesReturn[]>(seedReturns);
+  const [returnDetail, setReturnDetail] = useState<SalesReturn | null>(null);
   const [credits, setCredits] = useState<CustomerCredit[]>(seedCredits);
   const [drafts, setDrafts] = useState(salesDrafts);
   const [templates, setTemplates] = useState(saleTemplates);
@@ -1037,7 +1024,7 @@ export function Sales() {
                 options={['All payments', ...paymentMethods]}
               />
               <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
-              <Button variant="outline" size="sm" onClick={() => toast('Sales list exported')}>
+              <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-sales.csv', ['Invoice','Date','Customer','Phone','Items','Total','Paid','Due','Payment','Status'], filtered.map(invoice => [invoice.invoice,invoice.date,invoice.party,invoice.phone ?? '',invoice.lines.map(line => line.name+' · '+invoiceQty(line)).join('; '),invoice.total,invoice.paid,invoice.due,invoice.payments.map(p => p.method).join(' + ') || invoice.method,invoice.status]))}>
                 <ArrowDownToLine className="size-4" /> Export
               </Button>
             </div>
@@ -1354,10 +1341,10 @@ export function Sales() {
                       )}>
                       {(close) => (
                         <div className="py-1">
-                          <button onClick={() => { close(); toast(`${item.id} opened`, { description: item.items }); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                          <button onClick={() => { close(); setReturnDetail(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <FileText className="size-4 text-ink-400" /> View return
                           </button>
-                          <button onClick={() => { close(); toast.success(`${item.id} sent to printer`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                          <button onClick={() => { close(); printReturn(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <Printer className="size-4 text-ink-400" /> Print
                           </button>
                           <button onClick={() => { close(); navigate('/app/parties'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
@@ -1620,6 +1607,13 @@ export function Sales() {
         onApply={applyCustomerCredit}
         onRefund={refundCustomerCredit}
       />
+      <Dialog open={!!returnDetail} onOpenChange={open => !open && setReturnDetail(null)}>
+        <DialogContent role="dialog" aria-label="Sales return details" className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader><DialogTitle>{returnDetail?.id}</DialogTitle><DialogDescription>Return source preview · no new refund or stock movement.</DialogDescription></DialogHeader>
+          {returnDetail && <dl className="space-y-2 text-sm">{returnDocument(returnDetail).rows.map(([label,value]) => <div key={String(label)} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="max-w-full break-words text-ink">{value}</dd></div>)}</dl>}
+          <DialogFooter><Button variant="outline" onClick={() => setReturnDetail(null)}>Close</Button><Button onClick={() => returnDetail && printReturn(returnDetail)}>Print return</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
