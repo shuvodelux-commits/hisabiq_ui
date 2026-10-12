@@ -73,3 +73,12 @@
   #party-statement-print tr { break-inside: avoid; page-break-inside: avoid; }
   #party-statement-print table { width: 100%; }
 }
+
+/* Forms stay reachable on phones, tablets and with the on-screen keyboard. */
+[data-dialog-root] { max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; }
+@media (pointer: coarse) {
+  .erp-workspace button:not([role="option"]),
+  .erp-workspace input:not([type="checkbox"]):not([type="radio"]),
+  [data-dialog-root] button,
+  [data-dialog-root] input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
+}
