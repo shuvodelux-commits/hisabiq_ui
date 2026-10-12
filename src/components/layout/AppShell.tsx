@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import { PageBoundary } from './PageBoundary';
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { CashSessionDialog } from "./CashSessionDialog";
@@ -30,7 +31,7 @@ function Workspace() {
                   {warning}
                 </p>
               )}
-              <Outlet />
+              <PageBoundary><Outlet /></PageBoundary>
             </main>
           </div>
         </div>

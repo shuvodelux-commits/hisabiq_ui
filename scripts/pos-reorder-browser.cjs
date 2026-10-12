@@ -16,6 +16,7 @@ async function main() {
     nodes.map((node) => node.querySelector('p')?.textContent?.trim()));
   try {
     await page.goto('http://127.0.0.1:4182/#/app/pos');
+    await page.getByTestId('pos-cart-row').first().waitFor();
     const original = await rowOrder();
     assert.deepEqual(original, ['PVC Pipe 1" (20 ft)', 'LED Bulb 12W', 'Wire Mesh Net 3 ft']);
     const totalBefore = await page.getByRole('button', { name: /Preview sale/ }).innerText();
