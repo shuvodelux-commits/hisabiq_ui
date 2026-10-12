@@ -31,6 +31,10 @@ async function main(){const{createServer}=await import('vite');const server=awai
  const discountIdle=await discount.evaluate(n=>({right:getComputedStyle(n).paddingRight,height:n.getBoundingClientRect().height}));
  await discount.focus();
  assert.deepEqual(await discount.evaluate(n=>({right:getComputedStyle(n).paddingRight,height:n.getBoundingClientRect().height})),discountIdle,'Discount value must not shift when arrows appear');
+ const single=page.locator('[data-testid="single-quantity"]').first();
+ await single.locator('input').focus();
+ const joined=await single.evaluate(n=>{const shell=n.getBoundingClientRect(),field=n.querySelector('[data-numeric-input]').getBoundingClientRect(),arrows=n.querySelector('[data-number-stepper]').getBoundingClientRect(),unit=n.lastElementChild.getBoundingClientRect();return{sameHeight:Math.abs(shell.height-field.height)<=1,noOverlap:arrows.right<=unit.left+1,centered:Math.abs((field.top+field.bottom)/2-(arrows.top+arrows.bottom)/2)<=1};});
+ assert.ok(joined.sameHeight&&joined.noOverlap&&joined.centered,'Single quantity value, spinner and unit must stay in separate aligned areas');
  const posQuantity=page.locator('[data-testid="compound-quantity"] input').first();await posQuantity.fill('1.25');await posQuantity.press('ArrowUp');assert.equal(await posQuantity.inputValue(),'2.25');await posQuantity.press('ArrowDown');assert.equal(await posQuantity.inputValue(),'1.25');
  if(width<640){const row=page.locator('[data-cart-row="sale"][data-compound="true"]').first();const quantityBox=await row.getByTestId('compound-quantity').boundingBox();const rowBox=await row.boundingBox();assert.ok(quantityBox.width>rowBox.width*0.8,'Phone compound quantity uses a full readable row');}
  assert.deepEqual(errors,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await context.close();console.log('Hover/focus steppers, exact whole-unit keys, React totals and Enter/F2 passed: '+width+'px '+theme);
