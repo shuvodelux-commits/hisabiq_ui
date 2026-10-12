@@ -191,7 +191,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           </span>
         </div>
         <p className="mt-0.5 text-right text-[34px] font-semibold leading-tight tracking-tight">{taka(totals.total)}</p>
-        <p className="mt-1 text-right text-[11px] leading-5 text-ink-500" aria-live="polite">{amountInWords(totals.total)}</p>
+        <p className="mt-1 text-right text-[11px] leading-5 text-[#B7C2CF]" aria-live="polite">{amountInWords(totals.total)}</p>
       </div>
 
       <div className="space-y-3 p-4">
