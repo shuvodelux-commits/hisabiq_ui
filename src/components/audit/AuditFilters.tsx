@@ -47,7 +47,7 @@ export function AuditFilters({
     <div className="space-y-2 border-b border-border p-3">
       <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
         <div className="relative min-w-0 flex-1 xl:max-w-md">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+          <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
           <Input className="pl-8" value={value.search} onChange={(event) => patch({ search: event.target.value })} placeholder="Search invoice, voucher, party, account, reference or amount" />
         </div>
         <AppDateRangePicker label="Audit date range" className="w-full sm:w-[265px]"
