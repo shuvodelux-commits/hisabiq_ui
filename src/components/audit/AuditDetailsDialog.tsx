@@ -1,4 +1,6 @@
 import React, { useMemo } from 'react';
+import {toast} from 'sonner';
+import {printReport} from '../../utils/reportOutput';
 import { ExternalLink, Pencil, Printer, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
@@ -112,7 +114,10 @@ export function AuditDetailsDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
+          <Button variant="outline" onClick={() => {
+            const rows=(posting?.lines??[]).map(line=>[accountMap.get(line.accountId)??line.accountId,line.debit,line.credit]);
+            if(!printReport({title:source.reference,subtitle:`${source.transactionDate} · ${source.party??''} · Amount ${taka(source.amount)} · Paid ${taka(source.paid??0)} · Due ${taka(source.due??0)} · ${source.status}`,headers:['Account','Debit','Credit'],rows}))toast.error('Allow the print preview window, then try again.');
+          }}><Printer className="size-4" /> Print</Button>
           <Button variant="outline" onClick={() => onGoToSource(source)}><ExternalLink className="size-4" /> Go to source</Button>
           {source.status === 'Posted' && availability.correct && <Button variant="outline" onClick={() => onEdit(source)}><Pencil className="size-4" /> Correct</Button>}
           {source.status === 'Posted' && availability.delete && <Button variant="outline" onClick={() => onDelete(source)}><Trash2 className="size-4" /> Delete</Button>}

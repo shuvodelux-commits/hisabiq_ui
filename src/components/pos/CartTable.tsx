@@ -51,7 +51,7 @@ function SortableCartRow({
       dragControls={controls}
       dragListener={false}
       dragMomentum={false}
-      data-testid="pos-cart-row"
+      data-testid="pos-cart-row" data-cart-row="sale"
       data-line-key={line.key}
       className={`${grid} relative bg-card px-3 py-1.5`}
       initial={{ opacity: 0 }}
@@ -120,8 +120,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
   };
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
-      <div className={`${grid} border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400`}>
+    <div data-cart-kind="sale" className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
+      <div data-cart-header className={`${grid} border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400`}>
         <span className="text-right">#</span>
         <span>Product</span>
         <span className="text-right">Quantity</span>
@@ -189,7 +189,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     </div>
                   </div>
                 </div>
-                <CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
+                <div data-cart-field="Quantity · পরিমাণ"><CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
                   primaryRef={el=>{qtyRefs.current[l.key]=el;}} secondaryRef={el=>{secondaryQtyRefs.current[l.key]=el;}}
                   primaryLabel={factor>1?`${l.product.altUnit!.unit} quantity for ${l.product.name}`:`Quantity for ${l.product.name}`}
                   secondaryLabel={`${l.product.unit} quantity for ${l.product.name}`}
@@ -197,8 +197,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   onSecondaryChange={value=>onUpdate(l.key,{secondaryQty:value})}
                   onPrimaryEnter={()=>{if(factor>1){secondaryQtyRefs.current[l.key]?.focus();secondaryQtyRefs.current[l.key]?.select();}else searchRef.current?.focus();}}
                   onSecondaryBlur={()=>commitSecondary(l,false)}
-                  onSecondaryEnter={()=>commitSecondary(l,true)}/>
-                {units.length > 1 ?
+                  onSecondaryEnter={()=>commitSecondary(l,true)}/></div>
+                <div data-cart-field="Price in · একক">{units.length > 1 ?
                 <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label="Unit">
                     {units.map((u) =>
                   <button
@@ -217,8 +217,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   </div> :
 
                 <span className="px-2 text-sm text-ink-600">{l.unit}</span>
-                }
-                <div className="relative">
+                }</div>
+                <div data-cart-field="Price · দাম"><div className="relative">
                   <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
                   <input
                     aria-label={`Price for ${l.product.name}`}
@@ -240,8 +240,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                       Cost {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}
                     </div>
                   }
-                </div>
-                <span className="text-right text-sm font-semibold text-ink">
+                </div></div>
+                <span data-cart-field="Total · মোট" className="text-right text-sm font-semibold text-ink">
                   ৳{formatNumber(lineTotal, lineTotal % 1 ? 2 : 0)}
                 </span>
                 <button
@@ -257,7 +257,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
           })}
           </AnimatePresence>
         </Reorder.Group>
-        <div data-testid="pos-add-row" className={`${grid} border-t border-border bg-teal-50/35 px-3 py-2`}>
+        <div data-testid="pos-add-row" data-cart-add className={`${grid} border-t border-border bg-teal-50/35 px-3 py-2`}>
           <span className="pr-3 text-right text-sm text-teal-600">{lines.length + 1}.</span>
           <ProductCombobox ref={searchRef} onSelect={onAdd} />
           <span className="pr-2 text-right text-sm text-helper">Qty</span>
