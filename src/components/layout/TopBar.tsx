@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   Calculator as CalculatorIcon,
@@ -91,30 +91,30 @@ export function TopBar() {
   return (
     <>
     <header data-print-hide className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
-      <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
+      <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 sm:h-14 sm:flex-nowrap sm:gap-3 sm:px-4 sm:py-0 lg:px-6">
         <button ref={navTrigger} type="button" aria-label="Open ERP navigation" aria-expanded={navOpen}
           aria-controls="erp-mobile-drawer" onClick={()=>setNavOpen(true)}
           className="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-600 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500 lg:hidden">
           <Menu className="size-5"/>
         </button>
-        <Link to="/app/dashboard" className="lg:hidden" aria-label="HisabIQ">
+        <Link to="/app/dashboard" className="shrink-0 lg:hidden" aria-label="HisabIQ">
           <LogoMark size={28} />
         </Link>
 
-        <div className="relative max-w-md flex-1">
+        <div className="relative order-last w-full min-w-0 basis-full sm:order-none sm:max-w-md sm:basis-auto sm:flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
           <input
             type="search"
             placeholder="Search products, parties, invoices…"
             aria-label="Global search"
-            className="h-9 w-full rounded-lg border border-border bg-ink-50 pl-9 pr-14 text-sm text-ink placeholder:text-ink-400 focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+            className="h-9 w-full min-w-0 rounded-lg border border-border bg-ink-50 pl-9 pr-3 text-sm text-ink placeholder:text-ink-400 focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:pr-14" />
           
-          <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500">
+          <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500 sm:block">
             Ctrl K
           </kbd>
         </div>
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <ThemePicker />
           {pathname !== '/app/pos' &&
           <Button size="sm" className="hidden md:inline-flex" onClick={() => navigate('/app/pos')}>
