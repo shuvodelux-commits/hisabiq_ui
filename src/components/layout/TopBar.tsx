@@ -35,7 +35,7 @@ const toneDot = {
 };
 
 export function TopBar() {
-  const { setOpen, sessionOpen } = useCashSession();
+  const { setOpen, sessionOpen, expectedCash } = useCashSession();
   const { state, personal } = useTenantSettings();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -131,7 +131,7 @@ export function TopBar() {
             {sessionOpen ?
             <>
                 <span>Cash</span>
-                <span className="font-medium tabular-nums text-ink">{taka(48250)}</span>
+                <span className="font-medium tabular-nums text-ink">{taka(expectedCash)}</span>
               </> :
 
             <span>Open cash session</span>
