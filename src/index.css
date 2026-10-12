@@ -348,11 +348,11 @@
   [data-cart-kind="purchase"] [data-cart-row] [role="radiogroup"] { height: 36px; }
   [data-cart-kind="purchase"] [data-cart-add] > :nth-child(n) { display: revert; }
 }
-@container shared-cart (min-width: 720px) {
+@container shared-cart (min-width: 780px) {
   [data-cart-kind="shared"] [data-cart-header],
   [data-cart-kind="shared"] [data-cart-row],
   [data-cart-kind="shared"] [data-cart-add] {
-    grid-template-columns: 34px minmax(135px, 1fr) 156px 78px 96px 84px 50px;
+    grid-template-columns: 34px minmax(135px, 1fr) 196px 88px 100px 90px 50px;
     gap: 6px;
   }
   [data-cart-kind="shared"] [data-cart-header] { display: grid; }
@@ -426,7 +426,7 @@
 }
 
 /* Quotes and online orders use the same responsive row hierarchy. */
-@container shared-cart (max-width: 719px) {
+@container shared-cart (max-width: 779px) {
   [data-cart-kind="shared"] [data-cart-header] { display: none; }
   [data-cart-kind="shared"] [data-cart-row] {
     grid-template-columns: repeat(12, minmax(0, 1fr));
