@@ -198,27 +198,6 @@ export function CounterWorkspace({accounts,setAccounts}:{
       {previewAllocation.map((row,i)=><div key={row.invoice+i} className="flex justify-between gap-3"><span>{row.invoice}</span><strong>{taka(row.amount)}</strong></div>)}
      </div>}
     </div>}
-    {(type==='Customer Receive'||type==='Supplier Pay')&&selected&&
-     <section className="rounded-xl border border-border bg-card p-4" aria-label="Discount and settlement">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-       <div><h3 className="text-sm font-semibold">Discount / settlement <span className="font-bn font-normal text-ink-500">· ছাড় / সমন্বয়</span></h3>
-        <p className="mt-1 text-xs text-ink-500">Optional. Reduces the due balance without moving cash.</p></div>
-       {discount>0&&<span className="rounded-md bg-ink-50 px-2 py-1 text-xs text-ink-600">Balance reduced by {taka(discount)}</span>}
-      </div>
-      <div className="mt-3 grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)]">
-       <label className="block text-xs font-medium text-ink">Settlement amount
-        <Input className="mt-1 text-right" inputMode="decimal" aria-label="Settlement discount amount"
-         placeholder="0.00" value={discountInput}
-         onChange={e=>{setDiscountInput(e.target.value);setReview(false);setError('');}}/>
-       </label>
-       <label className="block text-xs font-medium text-ink">
-        Reason {discount>0&&<span className="text-danger">*</span>}
-        <Input className="mt-1" aria-label="Settlement reason" placeholder="Why is this balance reduced?"
-         value={discountReason} onChange={e=>{setDiscountReason(e.target.value);setReview(false);}}/>
-       </label>
-      </div>
-      {discount>0&&<p className="mt-2 text-xs text-ink-500">Cash paid {taka(total)} + settlement {taka(discount)} = due reduced by {taka(dueReduction)}.</p>}
-     </section>}
     {type==='Expense'&&<label className="block rounded-xl border border-border bg-card p-4 text-sm font-semibold">Expense category
       <Input className="mt-2" value={expenseCategory} onChange={e=>setExpenseCategory(e.target.value)} placeholder="e.g. Transport"/>
     </label>}
@@ -256,6 +235,24 @@ export function CounterWorkspace({accounts,setAccounts}:{
          className="row-start-1 col-start-3 flex size-9 items-center justify-center text-ink-500 hover:text-danger disabled:opacity-30 sm:row-auto sm:col-auto"><Trash2 className="size-4"/></button>
        </div>;
       })}
+      {(type==='Customer Receive'||type==='Supplier Pay')&&selected&&
+      <section className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Discount and settlement">
+       <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-xs font-semibold text-ink">Discount / settlement <span className="font-bn font-normal text-ink-500">· ছাড় / সমন্বয়</span></h3>
+        <span className="text-[11px] text-ink-500">Reduces due · no cash movement</span>
+       </div>
+       <div className="mt-2 grid gap-2 sm:grid-cols-[180px_minmax(0,1fr)]">
+        <label className="text-xs font-medium text-ink-600">Settlement amount
+         <Input className="mt-1 text-right" inputMode="decimal" aria-label="Settlement discount amount" placeholder="0.00"
+          value={discountInput} onChange={ev=>{setDiscountInput(ev.target.value);setReview(false);setError('');}}/>
+        </label>
+        {discount>0&&<label className="text-xs font-medium text-ink-600">Reason <span className="text-danger">*</span>
+         <Input className="mt-1" aria-label="Settlement reason" placeholder="Why is the balance reduced?" value={discountReason}
+          onChange={ev=>{setDiscountReason(ev.target.value);setReview(false);}}/>
+        </label>}
+       </div>
+       {discount>0&&<p className="mt-2 text-xs text-ink-500">Cash {taka(total)} + settlement {taka(discount)} = total due reduction {taka(dueReduction)}</p>}
+      </section>}
       <div className="space-y-1 border-t border-border pt-3">
        <div className="flex items-center justify-between gap-3"><span className="text-sm text-ink-500">Automatically calculated cash total</span>
         <strong className="text-xl text-ink" aria-live="polite">{taka(total)}</strong></div>
