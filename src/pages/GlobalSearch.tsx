@@ -22,7 +22,10 @@ export function GlobalSearch() {
   const modules=new Map<string,SearchResult>();
   for(const group of nav) {
     for(const child of [{id:group.id,label:group.label,bn:group.bn,path:group.landingPath},...(group.children??[])]) {
-      if(!modules.has(child.path)) modules.set(child.path,{id:child.id,kind:'Module',label:personal.language==='Bangla'?(child.bn??child.label):child.label,helper:personal.language==='Bangla'?child.label:(child.bn??''),path:child.path});
+      const existing=modules.get(child.path);
+      const keywords=[existing?.keywords,child.label,child.bn].filter(Boolean).join(' ');
+      if(existing) existing.keywords=keywords;
+      else modules.set(child.path,{id:child.id,kind:'Module',label:personal.language==='Bangla'?(child.bn??child.label):child.label,helper:personal.language==='Bangla'?child.label:(personal.language==='English'?'':child.bn??''),path:child.path,keywords});
     }
   }
   const paths=new Set([...modules.keys()].map(path=>path.split('?')[0]));

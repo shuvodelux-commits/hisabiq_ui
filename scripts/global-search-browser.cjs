@@ -22,6 +22,7 @@ async function main(){
   await submit('PUR-000118');await results.getByRole('link',{name:/PUR-000118/}).click();
   await page.getByRole('button',{name:'Actions for PUR-000118',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Actions for PUR-000117',exact:true}).count(),0);
   await submit('Rahman');const partyLink=results.getByRole('link').filter({hasText:'Party'}).first();await partyLink.click();await page.waitForFunction(()=>location.hash.includes('/app/parties?id='));
+  await submit('Cash');await results.getByRole('link',{name:/Finance/}).click();await page.waitForFunction(()=>location.hash.includes('/app/finance'));
   await submit('হিসাব মিলানো');await results.getByRole('link',{name:/Reconciliation/}).click();await page.waitForFunction(()=>location.hash.includes('/app/reconciliation'));
   await submit('zzzz-no-record');await page.getByRole('status').filter({hasText:'No matching records'}).waitFor();
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
