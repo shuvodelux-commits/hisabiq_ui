@@ -35,7 +35,7 @@ async function main() {
     await page.getByRole('button', { name: /Preview sale/ }).click();
     const review = page.getByRole('dialog', { name: 'Review sale', exact: true });
     await review.waitFor();
-    assert.match(await review.innerText(), /Taka Only/, 'amount in words appears before sale completion');
+    assert.match(await review.innerText(), /টাকা মাত্র/, 'amount in words appears before sale completion');
     await review.getByRole('button', { name: 'Confirm sale preview' }).click();
     const receipt = page.locator('[data-slot="dialog-content"]').last();
     await receipt.getByText(/Sale preview/).waitFor();
