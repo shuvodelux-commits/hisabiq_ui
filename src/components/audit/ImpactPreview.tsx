@@ -18,7 +18,6 @@ function fieldLabel(field: string) {
     paid: 'Paid',
     paymentAccounts: 'Payment account',
     description: 'Description',
-    note: 'Note',
     quantity: 'Quantity',
     reference: 'Reference',
     note: 'Internal note',

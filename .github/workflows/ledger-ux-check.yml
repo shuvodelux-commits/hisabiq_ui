@@ -1,0 +1,22 @@
+name: Ledger UX Check
+on:
+  pull_request:
+    paths:
+      - 'src/pages/Daybook.tsx'
+      - 'src/pages/AuditLedger.tsx'
+      - 'src/components/daybook/**'
+      - 'src/components/audit/**'
+      - 'src/utils/reportOutput.ts'
+      - 'scripts/daybook-audit-browser.cjs'
+      - '.github/workflows/ledger-ux-check.yml'
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/daybook-audit-browser.cjs
