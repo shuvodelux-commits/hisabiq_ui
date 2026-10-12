@@ -32,6 +32,9 @@ import { salesInvoices } from '../data/sales';
 import { warrantyCases as seedCases } from '../data/warranty';
 import type { WarrantyCase, WarrantyRoute, WarrantyStatus } from '../types/erp';
 
+import { printReport, downloadReport, type Report } from '../utils/reportOutput';
+const warrantyDocument = (item: WarrantyCase): Report => ({title:item.id,subtitle:'Warranty receipt preview',headers:['Field','Value'],rows:[['Received',item.receivedAt],['Customer',item.customer],['Phone',item.phone ?? '—'],['Invoice',item.invoice],['Product',item.product],['Serial',item.serial ?? '—'],['Issue',item.issue],['Status',item.status],['Route',item.route],['Supplier',item.supplier ?? '—'],['Supplier reference',item.supplierRef ?? '—'],['Expected date',item.expectedDate ?? '—'],['Resolution',item.resolution ?? '—'],['Temporary replacement',item.replacement?.product ?? '—'],...item.events.map(event => [event.date,event.title+(event.note ? ' · '+event.note : '')]) ]});
+const printWarranty = (item: WarrantyCase) => { if (!printReport(warrantyDocument(item))) toast.error('Allow the print popup and try again.'); };
 type Tab = 'cases' | 'supplier' | 'history';
 
 const openStatuses: WarrantyStatus[] = [
@@ -142,7 +145,7 @@ function WarrantyActions({
               <UserRound className="size-4 text-ink-400" /> Customer ledger
             </button>
           )}
-          <button className={itemClass} onClick={() => { close(); toast.success(`${item.id} sent to printer`); }}>
+          <button className={itemClass} onClick={() => { close(); printWarranty(item); }}>
             <Printer className="size-4 text-ink-400" /> Print receipt
           </button>
           {openStatuses.includes(item.status) && (
@@ -263,7 +266,7 @@ function WarrantyDetailDialog({
                   <UserRound className="size-4" /> Customer
                 </Button>
               )}
-              <Button variant="outline" onClick={() => toast.success(`${item.id} sent to printer`)}>
+              <Button variant="outline" onClick={() => printWarranty(item)}>
                 <Printer className="size-4" /> Print
               </Button>
               {openStatuses.includes(item.status) && !item.replacement && (
@@ -813,7 +816,7 @@ export function Warranty() {
         description="Receive warranty products, track supplier/manufacturer handoffs, temporary replacements and customer delivery."
         actions={
           <>
-            <Button variant="outline" size="sm" onClick={() => toast('Warranty list exported')}>
+            <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-warranty.csv',['Case','Received','Customer','Phone','Invoice','Product','Serial','Issue','Status','Route','Supplier','Supplier reference','Expected date'],filtered.map(item => [item.id,item.receivedAt,item.customer,item.phone ?? '',item.invoice,item.product,item.serial ?? '',item.issue,item.status,item.route,item.supplier ?? '',item.supplierRef ?? '',item.expectedDate ?? '']))}>
               <ArrowDownToLine className="size-4" /> Export
             </Button>
             <Button size="sm" onClick={() => setIntakeOpen(true)}>
