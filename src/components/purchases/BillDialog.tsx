@@ -17,6 +17,7 @@ import { AppDatePicker } from '../AppDateRangePicker';
 import { businessToday, expenseDateIso } from '../../utils/dateRange';
 import { validateBusinessDate, toPaisa } from '../../utils/partyPayment';
 import { taka } from '../../utils/currency';
+import { amountInWords } from '../../utils/amountInWords';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 
 type BillDialogProps = {
@@ -241,6 +242,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       return;
     }
 
+    if (mode === 'expense' && !review) {setError('');setReview(true);return;}
     const selectedParty = list.find((item) => item.name === party);
     if (!selectedParty && !expense) { setError('Choose an active payee or supplier.'); return; }
     if (mode === 'purchase') {
@@ -645,6 +647,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               </p>
             </div>
           </div>
+          <p className="px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">Amount in words: {amountInWords(totalNum)}</p>
         </section>
 
         {mode === 'purchase' && (
@@ -679,17 +682,18 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           <Input aria-label="Expense correction reason" value={correctionReason} onChange={event => setCorrectionReason(event.target.value)} />
         </label>}
         {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
-        {expense && review && <section aria-label="Expense correction impact" className="space-y-2 rounded-lg border border-border bg-ink-50 p-3 text-xs">
-          <p className="font-semibold text-ink">Review preview changes · পরিবর্তন দেখুন</p>
-          <p>Total: {taka(expense.amount)} → {taka(totalNum)}</p><p>Paid: {taka(expense.paid)} → {taka(paymentTotal)}</p>
-          <p>Due: {taka(expense.amount - expense.paid)} → {taka(due)}</p>
-          <p>{expense.payee} → {party} · {expense.category} → {category}</p>
-          <p className="text-ink-500">{correctionReason} · No cash or backend ledger is posted.</p>
+        {mode === 'expense' && review && <section aria-label="Expense correction impact" className="space-y-2 rounded-lg border border-border bg-ink-50 p-3 text-xs">
+          <p className="font-semibold text-ink">Review expense before recording · নিশ্চিত করুন</p>
+          <p className="text-lg font-semibold">{taka(totalNum)}</p><p>{amountInWords(totalNum)}</p>
+          <p>Paid {taka(paymentTotal)} · Due {taka(due)}</p>
+          <p>{expense ? expense.payee + ' → ' : ''}{party} · {category}</p>
+          {expense && <p>Previous amount {taka(expense.amount)} · Reason: {correctionReason}</p>}
+          <p className="text-ink-500">Preview only. No bank or backend ledger is posted.</p>
         </section>}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{mode === 'purchase' ? 'Complete purchase' : expense ? review ? 'Confirm preview correction' : 'Review changes' : 'Save expense'}</Button>
+          <Button onClick={save}>{mode === 'purchase' ? 'Complete purchase' : expense ? review ? 'Confirm preview correction' : 'Review changes' : review ? 'Confirm expense preview' : 'Review expense'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
