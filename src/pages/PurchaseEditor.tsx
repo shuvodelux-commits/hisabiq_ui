@@ -10,6 +10,7 @@ import { QuickAddSelect } from '../components/QuickAddSelect';
 import { PhotoUploader } from '../components/products/PhotoUploader';
 import { AddProductDialog } from '../components/products/AddProductDialog';
 import { PurchaseCart } from '../components/purchases/PurchaseCart';
+import { TransactionReviewDialog } from '../components/TransactionReviewDialog';
 import { PurchasePaymentPanel, makePurchasePaymentRow, type PurchasePaymentRow } from '../components/purchases/PurchasePaymentPanel';
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { calculatePurchaseCheckout, type PurchaseDiscountMode } from '../utils/purchaseCheckout';
@@ -45,6 +46,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   const [photos, setPhotos] = useState<string[]>(()=>initialPurchase?.receipt?[initialPurchase.receipt]:[]);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [error, setError] = useState('');
+  const [reviewPurchaseOpen, setReviewPurchaseOpen] = useState(false);
   const [lastAdded, setLastAdded] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -188,7 +190,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
         paymentAmountRef.current?.select();
       } else if (event.key === 'F9') {
         event.preventDefault();
-        save();
+        setReviewPurchaseOpen(true);
       }
     };
     window.addEventListener('keydown', handlePurchaseShortcuts);
@@ -279,7 +281,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             onPayments={setPayments}
             paidRef={paymentAmountRef}
             actionLabel={initialPurchase?"Review correction":undefined}
-            onComplete={save}
+            onComplete={() => setReviewPurchaseOpen(true)}
           />
           </div>
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
@@ -290,6 +292,16 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
         </aside>
       </div>
 
+      <TransactionReviewDialog open={reviewPurchaseOpen} onClose={() => setReviewPurchaseOpen(false)}
+        onConfirm={() => {setReviewPurchaseOpen(false);save();}}
+        title={initialPurchase ? 'Review purchase correction' : 'Review purchase'} amount={total}
+        confirmLabel={initialPurchase ? 'Confirm correction preview' : 'Confirm purchase preview'}
+        details={[
+          {label:'Supplier',value:supplier?.name ?? 'Select supplier'},
+          {label:'Products',value:String(lines.length)+' lines'},
+          {label:'Paid',value:taka(paid)},
+          {label:'Due',value:taka(due)}
+        ]}/>
       <AddProductDialog open={productDialogOpen} onOpenChange={setProductDialogOpen} onSave={addCreatedProduct}
         existingSerials={[...stockLots.flatMap((lot) => lot.serials ?? []), ...salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? []))]} />
     </div>
