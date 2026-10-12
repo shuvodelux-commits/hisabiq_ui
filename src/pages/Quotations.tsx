@@ -210,7 +210,7 @@ export function Quotations(){
   <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
    <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
     <div className="relative min-w-[180px] flex-1 sm:max-w-sm">
-     <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400"/>
+     <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400"/>
      <Input aria-label="Search quotations" className="pl-8" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search quote, customer or item…"/>
     </div>
     <div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(s=>
