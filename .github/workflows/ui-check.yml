@@ -27,6 +27,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check strict TypeScript
+        run: npx tsc --noEmit
+
+      - name: Lint authored UI source
+        run: npm run lint
+
       - name: Enforce POS V2 design contract
         run: npm run check:ui-contract
 

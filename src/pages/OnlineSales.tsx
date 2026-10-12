@@ -1,8 +1,9 @@
-import React,{useEffect,useMemo,useState,useSyncExternalStore} from 'react';
+import '../notifications/erpNotificationRules'; // Keep existing module initialization.
+import {useEffect,useMemo,useState,useSyncExternalStore} from 'react';
 import {Link,useNavigate,useSearchParams} from 'react-router-dom';
 import {toast} from 'sonner';
 import {ErpNotificationsWorkbench} from './ErpNotifications';
-import {Bell,Box,Check,ChevronRight,ClipboardList,Copy,FileText,MessageSquare,PackageCheck,Plus,Search,Send,Truck,Users,Wallet} from 'lucide-react';
+import {Check,ChevronRight,FileText,Plus} from 'lucide-react';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
 import {Input} from '../components/Input';
@@ -20,9 +21,6 @@ import {FulfillmentDocumentPreview,fulfillmentPrintCss,printFulfillment,document
 import {orderTotals,createOnlineOrder,reviseOnlineDraft,updateOrderStage,setOrderCourier,recordCourierCod,recordCourierPayout,courierClearing,draftFromAcceptedQuote,existingOrderForQuote,preparePosHandoff,
  getOnlineSnapshot,subscribeOnline,upsertSalesLead,type SalesChannel,type PaymentMode,type OnlineOrderDraft,type OnlineOrder,type OrderStage,type CourierName,type SalesLead,type LeadStage
 } from '../onlineSales/onlineStore';
-import {notificationEvents,subscribeNotificationRules,getNotificationSnapshot,updateNotificationRule,
- notificationEligibility,renderNotificationPreview,type ErpNotificationEvent
-} from '../notifications/erpNotificationRules';
 
 const channels:SalesChannel[]=['Facebook','WhatsApp','Instagram','YouTube','TikTok','Website','Other'];
 const courierNames:CourierName[]=['Steadfast','Pathao','RedX','Sundarban','Other','Own delivery'];

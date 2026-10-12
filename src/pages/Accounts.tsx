@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import '../utils/accountingLabels'; // Keep existing module initialization.
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowDownToLine, BookOpen, FileText, Landmark, MoreHorizontal, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,7 +18,6 @@ import { ChartOfAccountsView } from '../components/accounts/ChartOfAccountsView'
 import { useUserPreferences } from '../contexts/UserPreferencesContext';
 import { accountingAccounts, accountingSources as seedSources } from '../data/accounting';
 import type { AccountingSourceTransaction, Posting, VoucherType } from '../types/accounting';
-import { accountingAccountLabel } from '../utils/accountingLabels';
 import { balanceSheet, postingForTransaction, profitAndLoss, trialBalance } from '../utils/accountingProjection';
 import { taka } from '../utils/currency';
 

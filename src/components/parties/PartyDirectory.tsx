@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search } from 'lucide-react';
 import { PartyAvatar } from '../PartyAvatar';
 import { RoleBadge } from './RoleBadge';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Copy, ExternalLink, Eye, MoreHorizontal, Pencil, Printer, Trash2 } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import type { UnifiedTransaction } from '../../types/transactions';

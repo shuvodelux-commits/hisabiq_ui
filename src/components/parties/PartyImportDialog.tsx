@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
 import { parsePartyCsv, type PartyCsvResult } from '../../utils/partyImport';

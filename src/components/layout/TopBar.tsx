@@ -36,7 +36,7 @@ const toneDot = {
 
 export function TopBar() {
   const { setOpen, sessionOpen } = useCashSession();
-  const { state, personal } = useTenantSettings();
+  const { state } = useTenantSettings();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [navOpen,setNavOpen] = useState(false);

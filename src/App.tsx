@@ -1,4 +1,3 @@
-import React from 'react';
 import { TenantSettingsPage } from './settings/TenantSettingsPage';
 import {SaasProvider} from './saas/SaasProvider';
 import {SaasShell,Guard} from './saas/SaasShell';

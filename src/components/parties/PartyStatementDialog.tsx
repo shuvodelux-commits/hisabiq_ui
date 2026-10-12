@@ -1,4 +1,3 @@
-import React from 'react';
 import { Download, Printer } from 'lucide-react';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../Dialog';

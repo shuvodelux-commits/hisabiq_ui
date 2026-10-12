@@ -1,4 +1,3 @@
-import React from 'react';
 import { Reorder } from 'framer-motion';
 import { GripVertical, RotateCcw } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';

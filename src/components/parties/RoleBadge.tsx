@@ -1,4 +1,3 @@
-import React from 'react';
 import { StatusBadge, type StatusTone } from '../StatusBadge';
 import type { PartyRole } from '../../types/erp';
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Paperclip, StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { StatusBadge, type StatusTone } from '../StatusBadge';

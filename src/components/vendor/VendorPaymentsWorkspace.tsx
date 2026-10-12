@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import {useState} from 'react';
 import {CheckCircle2,Search} from 'lucide-react';
 import {Input} from '../Input';
 import {VendorActionDialog} from '../parties/VendorActionDialog';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Check, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { SectionHeader } from './SectionHeader';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, UserRound, X } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import { PartyAvatar } from '../PartyAvatar';

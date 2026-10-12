@@ -1,5 +1,5 @@
 import { AppSelect } from '../components/AppSelect';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ArrowDownToLine,
   CheckCircle2,

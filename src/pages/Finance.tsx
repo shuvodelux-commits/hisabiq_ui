@@ -14,10 +14,8 @@ import {
   Plus,
   RefreshCw,
   Search,
-  Settings2,
   Trash2,
   UserRoundCog,
-  Wallet,
   WalletCards
 } from 'lucide-react';
 import { toast } from 'sonner';
