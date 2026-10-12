@@ -1,7 +1,6 @@
-import React,{useMemo,useState,useSyncExternalStore} from 'react';
+import {useMemo,useState,useSyncExternalStore} from 'react';
 import {Link} from 'react-router-dom';
 import {toast} from 'sonner';
-import {Bell,Search,MessageSquareText,ShieldCheck,Settings2} from 'lucide-react';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
 import {Input} from '../components/Input';
@@ -70,7 +69,7 @@ export function ErpNotificationsWorkbench({embedded=false}:{embedded?:boolean}){
       </button>
       <label className="flex shrink-0 items-center gap-1 text-xs text-ink-500">
        <input type="checkbox" aria-label={'Enable SMS '+ev.id} checked={rules[ev.id].enabled}
-        onChange={e=>{try{updateNotificationRule(ev.id,{enabled:e.target.checked});choose(ev.id);}catch{}}}/>
+        onChange={e=>{try{updateNotificationRule(ev.id,{enabled:e.target.checked});choose(ev.id);}catch(error){setError(error instanceof Error?error.message:'Could not update this notification rule.');}}}/>
        {rules[ev.id].enabled?'On':'Off'}
       </label>
      </div>)}

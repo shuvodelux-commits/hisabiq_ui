@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {businessToday} from '../utils/dateRange';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Keyboard } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,7 +16,7 @@ import { calculatePurchaseCheckout, type PurchaseDiscountMode } from '../utils/p
 import { stockLots } from '../data/productInventory';
 import { salesInvoices } from '../data/sales';
 import { purchases as seedPurchases } from '../data/purchases';
-import { availableParties, availableProducts, availablePurchases, createPreviewParty, createPreviewProduct, createPreviewPurchase } from '../data/erpDemoStore';
+import { availableParties, availableProducts, availableStockLots, availablePurchases, createPreviewParty, createPreviewProduct, createPreviewPurchase } from '../data/erpDemoStore';
 import type { Party, PaymentSplit, Product, Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../utils/productFeatures';
@@ -25,26 +26,23 @@ import {purchaseSupplierGuard} from '../utils/purchaseSupplierGuard';
 type Line = PurchaseCartLine;
 
 const uid = () => Math.random().toString(36).slice(2, 10);
-const todayISO = () => {
-  const date = new Date();
-  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
-};
-type PurchaseEditorProps={initialSupplierId?:string;lockedSupplierId?:string;embedded?:boolean;active?:boolean;onCompleted?:(purchase:Purchase)=>void;onCancel?:()=>void};
-export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=false,active=true,onCompleted,onCancel}:PurchaseEditorProps={}) {
+const todayISO = businessToday;
+type PurchaseEditorProps={initialPurchase?:Purchase;onSaveSource?:(purchase:Purchase)=>void;initialSupplierId?:string;lockedSupplierId?:string;embedded?:boolean;active?:boolean;onCompleted?:(purchase:Purchase)=>void;onCancel?:()=>void};
+export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,lockedSupplierId,embedded=false,active=true,onCompleted,onCancel}:PurchaseEditorProps={}) {
   const navigate = useNavigate();
   const { state: settingsState } = useTenantSettings();
   const [products, setProducts] = useState(() => availableProducts().filter((product) => product.kind !== 'Service'));
   const [suppliers, setSuppliers] = useState(() => availableParties().filter((party) => party.roles.includes('Supplier') || party.roles.includes('Vendor')));
-  const [supplierId, setSupplierId] = useState(initialSupplierId??'');
-  const [date, setDate] = useState(todayISO);
+  const [supplierId, setSupplierId] = useState(initialPurchase?.supplierId??initialSupplierId??'');
+  const [date, setDate] = useState(()=>initialPurchase?.businessDate??todayISO());
   const [backdateReason, setBackdateReason] = useState('');
-  const [referenceNo, setReferenceNo] = useState('');
-  const [notes, setNotes] = useState('');
-  const [lines, setLines] = useState<Line[]>([]);
-  const [payments, setPayments] = useState<PurchasePaymentRow[]>([makePurchasePaymentRow()]);
-  const [discount, setDiscount] = useState('');
+  const [referenceNo, setReferenceNo] = useState(initialPurchase?.memoNo??'');
+  const [notes, setNotes] = useState(initialPurchase?.notes??'');
+  const [lines, setLines] = useState<Line[]>(()=>structuredClone(initialPurchase?.cartSnapshot??[]));
+  const [payments, setPayments] = useState<PurchasePaymentRow[]>(()=>initialPurchase?.payments?.length?initialPurchase.payments.map(p=>({...p,method:p.method as PurchasePaymentRow["method"],account:p.account??"",amount:String(p.amount)})):[makePurchasePaymentRow()]);
+  const [discount, setDiscount] = useState(String(initialPurchase?.discount??''));
   const [discountMode, setDiscountMode] = useState<PurchaseDiscountMode>('amount');
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<string[]>(()=>initialPurchase?.receipt?[initialPurchase.receipt]:[]);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [error, setError] = useState('');
   const [lastAdded, setLastAdded] = useState('');
@@ -56,9 +54,9 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
   const paymentAmountRef = useRef<HTMLInputElement>(null);
 
   const supplier = suppliers.find((party) => party.id === supplierId);
-  const purchaseRef = 'PUR-' + String(119 + availablePurchases().length - seedPurchases.length).padStart(6, '0');
+  const purchaseRef = initialPurchase?.ref ?? 'PUR-' + String(119 + availablePurchases().length - seedPurchases.length).padStart(6, '0');
   const subtotal = useMemo(() => rounded(lines.reduce((sum, line) => sum + lineAmount(line), 0)), [lines]);
-  const totals = calculatePurchaseCheckout(subtotal, discount, discountMode, settingsState.sections.sales.rounding, payments);
+  const totals = calculatePurchaseCheckout(subtotal, discount, discountMode, initialPurchase?.roundingRule??settingsState.sections.sales.rounding, payments);
   const { total, due, excess } = totals;
   const paid = totals.paidNum;
 
@@ -109,7 +107,7 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
     const wrongSupplier=purchaseSupplierGuard(supplier.id,lockedSupplierId);
     if(wrongSupplier)return wrongSupplier;
     if (!date) return 'Select a purchase date.';
-    if (date < todayISO() && !backdateReason.trim()) return 'Add a reason for backdating this purchase.';
+    if (!initialPurchase && date < todayISO() && !backdateReason.trim()) return 'Add a reason for backdating this purchase.';
     if (lines.length === 0) return 'Add at least one product to the cart.';
     if (lines.some((line) => baseQty(line) <= 0)) return 'All purchase products need a quantity greater than zero.';
     if (lines.some((line) => !Number.isFinite(Number(line.cost)) || Number(line.cost) <= 0)) return 'Enter a valid purchase cost for every product.';
@@ -117,7 +115,7 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
     if (excess > 0) return 'Payments exceed the purchase total by ' + taka(excess) + '.';
 
     const existingSerials = [
-      ...stockLots.flatMap((lot) => lot.serials ?? []),
+      ...availableStockLots().filter(lot=>lot.reference!==initialPurchase?.ref).flatMap((lot) => lot.serials ?? []),
       ...salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? []))
     ];
     const seen: string[] = [];
@@ -144,7 +142,10 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
       id: row.id, method: row.method, account: row.account, amount: rounded(amountOf(row.amount))
     }));
     const purchase: Purchase = {
-      id: 'pu-' + uid(),
+      ...initialPurchase,
+      id: initialPurchase?.id??'pu-' + uid(),
+      businessDate:date,roundingRule:initialPurchase?.roundingRule??settingsState.sections.sales.rounding,
+      sourceRevision:initialPurchase?.sourceRevision??0,cartSnapshot:structuredClone(lines),
       ref: purchaseRef,
       date: new Date(date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       supplierId: supplier.id, supplier: supplier.name,
@@ -164,7 +165,8 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
         expiryDate: line.expiryDate || undefined
       }))
     };
-    createPreviewPurchase(purchase);
+    if(onSaveSource){onSaveSource(purchase);return;}
+    try{createPreviewPurchase(purchase);}catch(e){setError(e instanceof Error?e.message:"Invalid purchase.");return;}
     toast.success(purchase.ref + ' saved', { description: due > 0 ? taka(due) + ' payable to ' + supplier.name : 'Fully paid' });
     if(onCompleted)onCompleted(purchase);
     else navigate('/app/purchases');
@@ -194,7 +196,7 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
   });
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4 pb-8">
+    <div data-purchase-workspace className="purchase-workspace mx-auto max-w-[1440px] min-w-0 space-y-4 pb-8">
       {!embedded&&<PageHeader
         title="New purchase" titleBn="নতুন ক্রয়"
         description={purchaseRef + ' · Add products like a POS cart, then choose payment sources.'}
@@ -209,7 +211,7 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
         </>}
       />}
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
+      <div data-purchase-layout className="grid min-w-0 grid-cols-1 items-start gap-4">
         <div className="min-w-0 space-y-4">
           <PurchaseCart
             lines={lines}
@@ -234,7 +236,7 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
           </section>
         </div>
 
-        <aside className="min-w-0 space-y-3 lg:sticky lg:top-4">
+        <aside data-purchase-checkout className="min-w-0 space-y-3">
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
       <section className="border-b border-border p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
@@ -242,11 +244,11 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
           <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="block min-w-0 text-[12px] font-medium text-ink lg:col-span-2">
+          <div className="block min-w-0 text-[12px] font-medium text-ink sm:col-span-2">
             Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
             <div className="mt-1">
-              {lockedSupplierId?<div className="rounded-md border border-border bg-ink-50 px-3 py-2 text-sm text-ink">
-                {supplier?.name??'Selected Vendor'} <span className="text-xs text-ink-500">· Vendor selected</span>
+              {(lockedSupplierId||initialPurchase)?<div className="rounded-md border border-border bg-ink-50 px-3 py-2 text-sm text-ink">
+                {supplier?.name??'Selected supplier'} <span className="text-xs text-ink-500">· Original supplier</span>
                </div>:<QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
                 onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
                 onCreate={addSupplier} showContact placeholder="Supplier or business name" />}
@@ -276,6 +278,7 @@ export function PurchaseEditor({initialSupplierId,lockedSupplierId,embedded=fals
             payments={payments}
             onPayments={setPayments}
             paidRef={paymentAmountRef}
+            actionLabel={initialPurchase?"Review correction":undefined}
             onComplete={save}
           />
           </div>

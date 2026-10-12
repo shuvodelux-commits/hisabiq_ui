@@ -1,4 +1,3 @@
-import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../Dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { StatusBadge } from '../StatusBadge';

@@ -1,4 +1,3 @@
-import React from 'react';
 
 export type LogoTone = 'color' | 'inverse' | 'mono-ink' | 'mono-white' | 'teal';
 

@@ -1,4 +1,4 @@
-import React,{useEffect,useState} from 'react';
+import {useEffect,useState} from 'react';
 import {Plus,Trash2} from 'lucide-react';
 import {Button} from '../Button';
 import {Input} from '../Input';
@@ -55,7 +55,7 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
     dispatchVendorPreview({type:'set-source-price',operationId:op,vendorPartyId:source.vendorPartyId,
      sourceId:source.id,unitCostBasePaisa:toPaisa(price,'Vendor unit cost'),
      date:businessToday(),reason:'Agreed Vendor price'});
-   }else if(['pay','receive-money','return','receive-goods'].includes(mode)){
+   }else if(mode==='pay'||mode==='receive-money'||mode==='return'||mode==='receive-goods'){
     const count=isMoney?undefined:Number(qty);
     if(!isMoney&&(!Number.isFinite(count)||count!<=0))
      throw new Error('Enter a positive matching product quantity.');

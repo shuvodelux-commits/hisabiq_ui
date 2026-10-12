@@ -1,4 +1,3 @@
-import React from 'react';
 import { LogoMark } from './Logo';
 import { formatNumber } from '../../utils/currency';
 import type { WarrantySnapshot } from '../../types/erp';
@@ -6,7 +5,7 @@ import type { WarrantySnapshot } from '../../types/erp';
 export type ReceiptLine = {name: string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;};
 export type ReceiptBranding = { name: string; nameBn: string; address: string; phone: string; logo: string; showLogo: boolean; footer: string };
 
-type ReceiptPreviewProps = {
+export type ReceiptPreviewProps = {
   invoice: string;
   customer?: string;
   customerPhone?: string;

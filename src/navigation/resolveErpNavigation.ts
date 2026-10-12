@@ -1,4 +1,4 @@
-import type {ErpNavGroup,ErpNavChild} from './erpNavigation.ts';
+import type {ErpNavGroup} from './erpNavigation.ts';
 
 export type NavigationContext={
  availablePaths:ReadonlySet<string>;

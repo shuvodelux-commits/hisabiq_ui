@@ -1,5 +1,5 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -274,9 +274,6 @@ export function Pos() {
       choice:l.stockSource})),stockLots);
     const unresolvedShortageLine=cart.lines.find((_,i)=>allocated[i]?.needsSourceBaseQty>0);
     if (unresolvedShortageLine) {
-      const factor = unresolvedShortageLine.product.altUnit && unresolvedShortageLine.unit === unresolvedShortageLine.product.altUnit.unit
-        ? unresolvedShortageLine.product.altUnit.factor
-        : 1;
       const shortage=allocated.find(a=>a.key===unresolvedShortageLine.key)?.needsSourceBaseQty??0;
       toast.error('Choose stock shortage handling', {
         description: `${unresolvedShortageLine.product.name}: resolve ${shortage} ${unresolvedShortageLine.product.unit} shortage before completing the sale.`
@@ -471,7 +468,7 @@ export function Pos() {
   };
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
+    <div className="pos-screen mx-auto max-w-[1440px] min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-baseline gap-2">
           <h1 className="text-xl font-semibold tracking-tight">{pageTitle}</h1>
@@ -574,7 +571,7 @@ export function Pos() {
         </div>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div data-pos-layout className="pos-columns grid min-w-0 grid-cols-1 gap-4">
         <div className="min-w-0 space-y-4">
           <CartTable
             lines={cart.lines}
@@ -594,7 +591,7 @@ export function Pos() {
               </h2>
               <span className="text-xs text-ink-500">Tap to add · touch friendly</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 min-[375px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {quickItems.map((p) =>
               <button
                 key={p.id}
@@ -604,13 +601,13 @@ export function Pos() {
                   <ProductThumb src={p.image} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-medium text-ink">{p.name}</span>
-                    <span className="block text-xs text-ink-500">
+                    <span className="flex flex-wrap gap-x-1 text-xs text-ink-500">
                       {(() => {
                         const offer = activeOfferFor(p.id, productOffers);
                         const displayUnit = p.stockViewUnit ?? p.altUnit?.unit ?? p.unit;
                         const normalPrice = effectivePriceForUnit(p, undefined, displayUnit);
                         const price = effectivePriceForUnit(p, offer, displayUnit);
-                        return <>{offer && <span className="mr-1 text-[10px] text-ink-400 line-through">{taka(normalPrice)}</span>}{taka(price, price % 1 ? 2 : 0)}/{displayUnit}</>;
+                        return <>{offer && <span className="text-[10px] text-ink-400 line-through">{taka(normalPrice)}</span>}<span>{taka(price, price % 1 ? 2 : 0)}/{displayUnit}</span></>;
                       })()}
                     </span>
                   </span>

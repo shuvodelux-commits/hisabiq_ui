@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
@@ -121,7 +121,7 @@ export function AuditEditDialog({
 
   return (
     <Dialog open={!!source} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent role="dialog" aria-label="Correct transaction" className="max-h-[92dvh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{review ? 'Review changes' : 'Correct transaction'} <span className="font-bn text-sm font-normal text-ink-400">· হিসাব ঠিক করুন</span></DialogTitle>
         </DialogHeader>
@@ -162,6 +162,7 @@ export function AuditEditDialog({
                 <label className="text-[13px] font-medium text-ink sm:col-span-2">
                   Party / Person <span className="font-bn text-[11px] font-normal text-ink-400">· যার সাথে লেনদেন</span>
                   <FormSelect
+                    aria-label="Party / Person"
                     className="mt-1.5"
                     value={partyId}
                     onChange={(event) => {

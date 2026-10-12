@@ -1,47 +1,59 @@
-import React from 'react';
-import { TenantSettingsPage } from './settings/TenantSettingsPage';
+import { lazy } from 'react';
+import { PageBoundary } from './components/layout/PageBoundary';
+
 import {SaasProvider} from './saas/SaasProvider';
 import {SaasShell,Guard} from './saas/SaasShell';
-import {PlansPage} from './saas/billing/PlansPage';
-import {SubscriptionsPage} from './saas/billing/SubscriptionsPage';
-import {InvoicesPage,InvoicePage} from './saas/billing/InvoicesPage';
-import {PaymentsPage,PaymentReview} from './saas/billing/PaymentsPage';
-import {SmsPage} from './saas/messaging/SmsPage';
-import {ServicesPage,ServiceOrderPage} from './saas/services/ServicesPage';
-import {TicketsPage,TicketPage} from './saas/support/TicketsPage';
-import {KnowledgePage} from './saas/support/KnowledgePage';
-import {TenantSubscription,TenantSupport} from './saas/TenantPortal';
-import {AnnouncementsPage} from './saas/admin/AnnouncementsPage';
-import {ReportsPage as SaasReports} from './saas/admin/ReportsPage';
-import {AuditPage} from './saas/admin/AuditPage';
-import {SettingsPage} from './saas/admin/SettingsPage';
-import {OverviewPage} from './saas/OverviewPage';
-import {TeamPage} from './saas/admin/TeamPage';
-import {TenantsPage,TenantPage} from './saas/tenants/TenantsPage';
+
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useTheme } from './contexts/ThemeContext';
 import { Toaster } from 'sonner';
-import { BrandGuide } from './pages/BrandGuide';
+
 import { AppShell } from './components/layout/AppShell';
-import { Dashboard } from './pages/Dashboard';
-import { Pos } from './pages/Pos';
-import { Sales } from './pages/Sales';
-import {OnlineSales} from './pages/OnlineSales';
-import {ErpNotifications} from './pages/ErpNotifications';
-import {Quotations} from './pages/Quotations';
-import { Warranty } from './pages/Warranty';
-import { Reconciliation } from './pages/Reconciliation';
-import { Finance } from './pages/Finance';
-import { Products } from './pages/Products';
-import { Parties } from './pages/Parties';
-import { Purchases } from './pages/Purchases';
-import { Vendors } from './pages/Vendors';
-import { PurchaseEditor } from './pages/PurchaseEditor';
-import { Expenses } from './pages/Expenses';
-import { Reports } from './pages/Reports';
-import { Daybook } from './pages/Daybook';
-import { Accounts } from './pages/Accounts';
-import { AuditLedger } from './pages/AuditLedger';
+
+const TenantSettingsPage = lazy(() => import('./settings/TenantSettingsPage').then(module => ({ default: module.TenantSettingsPage })));
+const PlansPage = lazy(() => import('./saas/billing/PlansPage').then(module => ({ default: module.PlansPage })));
+const SubscriptionsPage = lazy(() => import('./saas/billing/SubscriptionsPage').then(module => ({ default: module.SubscriptionsPage })));
+const InvoicesPage = lazy(() => import('./saas/billing/InvoicesPage').then(module => ({ default: module.InvoicesPage })));
+const InvoicePage = lazy(() => import('./saas/billing/InvoicesPage').then(module => ({ default: module.InvoicePage })));
+const PaymentsPage = lazy(() => import('./saas/billing/PaymentsPage').then(module => ({ default: module.PaymentsPage })));
+const PaymentReview = lazy(() => import('./saas/billing/PaymentsPage').then(module => ({ default: module.PaymentReview })));
+const SmsPage = lazy(() => import('./saas/messaging/SmsPage').then(module => ({ default: module.SmsPage })));
+const ServicesPage = lazy(() => import('./saas/services/ServicesPage').then(module => ({ default: module.ServicesPage })));
+const ServiceOrderPage = lazy(() => import('./saas/services/ServicesPage').then(module => ({ default: module.ServiceOrderPage })));
+const TicketsPage = lazy(() => import('./saas/support/TicketsPage').then(module => ({ default: module.TicketsPage })));
+const TicketPage = lazy(() => import('./saas/support/TicketsPage').then(module => ({ default: module.TicketPage })));
+const KnowledgePage = lazy(() => import('./saas/support/KnowledgePage').then(module => ({ default: module.KnowledgePage })));
+const TenantSubscription = lazy(() => import('./saas/TenantPortal').then(module => ({ default: module.TenantSubscription })));
+const TenantSupport = lazy(() => import('./saas/TenantPortal').then(module => ({ default: module.TenantSupport })));
+const AnnouncementsPage = lazy(() => import('./saas/admin/AnnouncementsPage').then(module => ({ default: module.AnnouncementsPage })));
+const SaasReports = lazy(() => import('./saas/admin/ReportsPage').then(module => ({ default: module.ReportsPage })));
+const AuditPage = lazy(() => import('./saas/admin/AuditPage').then(module => ({ default: module.AuditPage })));
+const SettingsPage = lazy(() => import('./saas/admin/SettingsPage').then(module => ({ default: module.SettingsPage })));
+const OverviewPage = lazy(() => import('./saas/OverviewPage').then(module => ({ default: module.OverviewPage })));
+const TeamPage = lazy(() => import('./saas/admin/TeamPage').then(module => ({ default: module.TeamPage })));
+const TenantsPage = lazy(() => import('./saas/tenants/TenantsPage').then(module => ({ default: module.TenantsPage })));
+const TenantPage = lazy(() => import('./saas/tenants/TenantsPage').then(module => ({ default: module.TenantPage })));
+const BrandGuide = lazy(() => import('./pages/BrandGuide').then(module => ({ default: module.BrandGuide })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const Pos = lazy(() => import('./pages/Pos').then(module => ({ default: module.Pos })));
+const Sales = lazy(() => import('./pages/Sales').then(module => ({ default: module.Sales })));
+const OnlineSales = lazy(() => import('./pages/OnlineSales').then(module => ({ default: module.OnlineSales })));
+const ErpNotifications = lazy(() => import('./pages/ErpNotifications').then(module => ({ default: module.ErpNotifications })));
+const Quotations = lazy(() => import('./pages/Quotations').then(module => ({ default: module.Quotations })));
+const Warranty = lazy(() => import('./pages/Warranty').then(module => ({ default: module.Warranty })));
+const Reconciliation = lazy(() => import('./pages/Reconciliation').then(module => ({ default: module.Reconciliation })));
+const Finance = lazy(() => import('./pages/Finance').then(module => ({ default: module.Finance })));
+const Products = lazy(() => import('./pages/Products').then(module => ({ default: module.Products })));
+const Parties = lazy(() => import('./pages/Parties').then(module => ({ default: module.Parties })));
+const Purchases = lazy(() => import('./pages/Purchases').then(module => ({ default: module.Purchases })));
+const Vendors = lazy(() => import('./pages/Vendors').then(module => ({ default: module.Vendors })));
+const PurchaseEditor = lazy(() => import('./pages/PurchaseEditor').then(module => ({ default: module.PurchaseEditor })));
+const Expenses = lazy(() => import('./pages/Expenses').then(module => ({ default: module.Expenses })));
+const Reports = lazy(() => import('./pages/Reports').then(module => ({ default: module.Reports })));
+const Daybook = lazy(() => import('./pages/Daybook').then(module => ({ default: module.Daybook })));
+const Accounts = lazy(() => import('./pages/Accounts').then(module => ({ default: module.Accounts })));
+const AuditLedger = lazy(() => import('./pages/AuditLedger').then(module => ({ default: module.AuditLedger })));
+const GlobalSearch = lazy(() => import('./pages/GlobalSearch').then(module => ({ default: module.GlobalSearch })));
 
 export function App() {
   const { resolvedTheme } = useTheme();
@@ -50,7 +62,7 @@ export function App() {
       <Toaster theme={resolvedTheme} position="bottom-right" toastOptions={{ style: { fontFamily: 'Geist' } }} />
       <Routes>
         <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
-        <Route path="/design-system" element={<BrandGuide />} />
+        <Route path="/design-system" element={<PageBoundary><BrandGuide /></PageBoundary>} />
         <Route path="/saas" element={<SaasShell />}>
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<OverviewPage />} />
@@ -80,6 +92,7 @@ export function App() {
           <Route path="settings" element={<Navigate to="business" replace />} />
           <Route path="settings/:section" element={<TenantSettingsPage />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="search" element={<GlobalSearch />} />
           <Route path="pos" element={<Pos />} />
           <Route path="sales" element={<Sales />} />
           <Route path="quotations" element={<Quotations />} />

@@ -1,5 +1,3 @@
-import React from 'react';
-import {Printer} from 'lucide-react';
 import {taka} from '../../utils/currency';
 import {orderTotals,lineTotal,type OnlineOrder} from '../../onlineSales/onlineStore';
 

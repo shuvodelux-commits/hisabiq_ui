@@ -25,7 +25,7 @@ async function main(){
   await quote.getByRole('button',{name:'Create online order'}).click();
   const editor=page.getByRole('dialog',{name:'New online order'});
   await editor.getByText('Linked accepted quotation',{exact:false}).waitFor();
-  assert.equal(await editor.getByLabel('Order quantity row 1').isDisabled(),true);
+  assert.equal(await editor.getByLabel('Order Quantity row 1', {exact:true}).isDisabled(),true);
   await editor.getByRole('button',{name:'Save order draft'}).click();
   await editor.waitFor({state:'hidden'});
   const order=page.locator('div.rounded-lg.border').filter({hasText:'Rahman Hardware'}).filter({hasText:'ON-000104'}).first();

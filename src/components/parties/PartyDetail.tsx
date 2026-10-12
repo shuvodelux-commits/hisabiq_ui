@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
@@ -205,14 +205,14 @@ export function PartyDetail({
       </div>
        </>}
 
-      <div className="flex gap-1 border-b border-border px-3" role="tablist">
+      <div className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
         {tabs.map((t) =>
         <button
           key={t.id}
           role="tab"
           aria-selected={tab === t.id}
           onClick={() => setTab(t.id)}
-          className={`flex items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors ${
+          className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors ${
           tab === t.id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`
           }>
           

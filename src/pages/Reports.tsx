@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ArrowDownRight, ArrowUpRight, BookOpen, ChevronRight, FileSpreadsheet, Landmark, Scale, Wallet, Boxes } from 'lucide-react';
-import { toast } from 'sonner';
 import { PageHeader } from '../components/PageHeader';
 import { Panel } from '../components/Panel';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
@@ -10,6 +9,7 @@ import { DaybookDialog } from '../components/reports/DaybookDialog';
 import { useCashSession } from '../contexts/CashSessionContext';
 import { aging, expenseBreakdown, monthlyProfit, profitSummary } from '../data/finance';
 import { taka, takaCompact } from '../utils/currency';
+import { downloadReport } from '../utils/reportOutput';
 
 const periods = ['Today', 'This week', 'September', 'Quarter', 'FY 2026–27'];
 
@@ -26,8 +26,8 @@ export function Reports() {
   { icon: BookOpen, title: 'Daybook', bn: 'দৈনিক খাতা', desc: 'Every entry today, in order', onClick: () => setDaybookOpen(true) },
   { icon: Wallet, title: 'Cash reconciliation', bn: 'ক্যাশ মিলানো', desc: 'Count drawer, find short/over', onClick: () => openCash(true) },
   { icon: Landmark, title: 'Account reconciliation', bn: 'হিসাব মিলানো', desc: 'Match bank or wallet statements', onClick: () => navigate('/app/reconciliation') },
-  { icon: Scale, title: 'Profit & Loss', bn: 'লাভ-ক্ষতি', desc: 'Statement for any period', onClick: () => toast('Opening Profit & Loss…') },
-  { icon: Boxes, title: 'Stock valuation', bn: 'স্টকের মূল্য', desc: 'Value at cost and sale price', onClick: () => toast('Opening stock valuation…') }];
+  { icon: Scale, title: 'Profit & Loss', bn: 'লাভ-ক্ষতি', desc: 'Statement for any period', onClick: () => navigate('/app/accounts?tab=statements') },
+  { icon: Boxes, title: 'Stock valuation', bn: 'স্টকের মূল্য', desc: 'Value at cost and sale price', onClick: () => navigate('/app/products?view=lots') }];
 
 
   return (
@@ -37,14 +37,15 @@ export function Reports() {
         titleBn="রিপোর্ট"
         description="Business reports, profit, receivables, payables and operational books."
         actions={
-        <div className="flex rounded-lg bg-card p-0.5 shadow-card ring-1 ring-ink-100" role="radiogroup" aria-label="Period">
+        <div className="flex flex-wrap rounded-lg bg-card p-0.5 shadow-card ring-1 ring-ink-100" role="radiogroup" aria-label="Period">
             {periods.map((p) =>
           <button
             key={p}
             role="radio"
+            disabled={p !== 'September'} title={p !== 'September' ? 'Only September demo figures are available.' : undefined}
             aria-checked={period === p}
             onClick={() => setPeriod(p)}
-            className={`h-7 rounded-md px-2.5 text-xs font-medium ${period === p ? 'bg-inverse text-white' : 'text-ink-600 hover:bg-ink-50'}`}>
+            className={`h-7 rounded-md px-2.5 text-xs font-medium ${period === p ? 'bg-inverse text-white' : 'text-ink-600 hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-50'}`}>
             
                 {p}
               </button>
@@ -53,6 +54,7 @@ export function Reports() {
         } />
       
 
+      <p className="text-xs text-ink-500">September sample figures · other periods need source data.</p>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         {profitSummary.map((s, i) => {
           const good = i === 3 ? s.change < 0 : s.change > 0;
@@ -176,7 +178,7 @@ export function Reports() {
               </li>
             )}
             <li>
-              <button onClick={() => toast('Exported September report.xlsx')} className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-ink-200 py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
+              <button onClick={() => downloadReport('hisabiq-demo-reports.csv',['Section','Label','Value 1','Value 2'],[['Dataset','September sample figures; not live accounting', '', ''],['Columns','Value 1 / Value 2 meanings are stated per section', '', ''],...profitSummary.map(item => ['September profit summary',item.label,item.value,'']),...monthlyProfit.map(item => ['Monthly gross / net',item.month,item.gross,item.net]),...expenseBreakdown.map(item => ['September expense categories',item.name,item.value,'']),...aging.map(item => ['Receivable / payable aging',item.bucket,item.receivable,item.payable])])} className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-ink-200 py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
                 <FileSpreadsheet className="size-3.5" /> Export for accountant
               </button>
             </li>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { PageBoundary } from '../components/layout/PageBoundary';
 import {
   LayoutDashboard,
   Building2,
@@ -181,7 +182,7 @@ export function SaasShell() {
         )}
         <main key={actor.id} className="p-4 lg:p-6">
           {valid ? (
-            <Outlet />
+            <PageBoundary><Outlet /></PageBoundary>
           ) : (
             <div className="rounded-xl border border-border bg-card p-8">
               <h1 className="text-lg font-semibold">Staff access required</h1>

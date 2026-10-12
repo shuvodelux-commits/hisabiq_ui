@@ -16,7 +16,7 @@ export function WidgetFrame({ editing, label, onHide, onMove, className = '', ch
     <motion.div
       layout
       transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-      className={`relative ${className}`}>
+      className={`relative min-w-0 ${className}`}>
       
       <div className={editing ? 'pointer-events-none select-none opacity-90' : ''}>{children}</div>
       {editing &&

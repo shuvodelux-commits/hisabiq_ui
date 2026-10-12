@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ArrowDownToLine, Eye, MoreHorizontal, Pencil, Printer, ShieldCheck, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import {downloadReport,printReport} from '../utils/reportOutput';
 import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
 import { Input } from '../components/Input';
@@ -132,7 +133,7 @@ export function AuditLedger() {
     sourceId: deleteSource.id,
     reason: deleteReason.trim() || 'preview',
     user: 'Shuvo',
-    at: '2026-10-07T16:35:00+06:00'
+    at: new Date().toISOString()
   }, state) : { allowed: false, message: undefined };
   const deleteImpacts = deleteSource ? auditDeleteImpact(deleteSource) : [];
 
@@ -159,44 +160,28 @@ export function AuditLedger() {
         sourceId: deleteSource.id,
         reason: deleteReason,
         user: 'Shuvo',
-        at: '2026-10-07T16:35:00+06:00'
+        at: new Date().toISOString()
       }, state);
       setState(next);
       setDeleteId(null);
       setDeleteReason('');
-      toast.success('Transaction deleted safely', { description: 'The complete balanced posting was undone and audit history was kept.' });
+      toast.success('Sample posting reversed', { description: 'Audit history is retained in this preview; live sources are not connected.' });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Could not delete transaction');
     }
   };
 
-  const exportAudit = () => {
-    const rows = filtered.map((source) => {
-      const timeline = auditTimelineFor(state, source.id);
-      const last = timeline[0];
-      return [
-        source.transactionDate, source.createdAt.slice(0, 10), source.source, source.reference,
-        source.party ?? '', sourceLabel(source), accountLabel(source), source.amount,
-        source.postedBy, last?.user ?? '', source.status
-      ];
-    });
-    const csv = [['Transaction Date', 'Created Date', 'Type', 'Reference', 'Party', 'Source', 'Account', 'Amount', 'Posted by', 'Last changed by', 'Status'], ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'hisabiq-audit-ledger.csv';
-    anchor.click();
-    URL.revokeObjectURL(url);
-    toast.success('Audit Ledger exported');
-  };
+  const reportHeaders=['Transaction date','Created date','Type','Reference','Party','Source','Account','Amount','Posted by','Last changed by','Status'];
+  const reportRows=filtered.map(source=>[source.transactionDate,source.createdAt.slice(0,10),source.source,source.reference,source.party??'',sourceLabel(source),accountLabel(source),source.amount,source.postedBy,auditTimelineFor(state,source.id)[0]?.user??'',source.status]);
+  const exportAudit=()=>downloadReport('hisabiq-audit-ledger.csv',reportHeaders,reportRows);
+  const printAudit=()=>{if(!printReport({title:'Audit Ledger',subtitle:`${filters.from||'All dates'} — ${filters.to||'All dates'} · ${entryDateView==='created'?'Created date':'Transaction date'}`,headers:reportHeaders,rows:reportRows}))toast.error('Allow the print preview window, then try again.');};
 
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
         title="Audit Ledger"
         titleBn="হিসাব যাচাই"
-        description="Review who posted a transaction, inspect its accounting effect, and safely correct posted records."
+        description="Review source records and changes · মূল লেনদেন যাচাই. UI preview only; no live ledger posting."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
@@ -204,7 +189,7 @@ export function AuditLedger() {
               <button onClick={() => setEntryDateView('created')} className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'created' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>Created Date</button>
             </div>
             <Button variant="outline" size="sm" onClick={exportAudit}><ArrowDownToLine className="size-4" /> Export</Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
+            <Button variant="outline" size="sm" onClick={printAudit}><Printer className="size-4" /> Print</Button>
           </div>
         }
       />

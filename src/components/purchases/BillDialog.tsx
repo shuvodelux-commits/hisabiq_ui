@@ -1,6 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -13,7 +12,10 @@ import { products } from '../../data/products';
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
 import { expenseCategories } from '../../data/purchases';
-import type { Expense, PaymentMethod, PaymentSplit, Product, Purchase } from '../../types/erp';
+import type { Expense, Party, PaymentMethod, PaymentSplit, Product, Purchase } from '../../types/erp';
+import { AppDatePicker } from '../AppDateRangePicker';
+import { businessToday, expenseDateIso } from '../../utils/dateRange';
+import { validateBusinessDate, toPaisa } from '../../utils/partyPayment';
 import { taka } from '../../utils/currency';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 
@@ -24,6 +26,8 @@ type BillDialogProps = {
   nextRef: string;
   onSavePurchase: (p: Purchase) => void;
   onSaveExpense: (e: Expense) => void;
+  expense?: Expense | null;
+  onSaveCorrection?: (e: Expense, reason: string) => void;
 };
 
 type PurchaseLine = {
@@ -57,8 +61,6 @@ const accountsByMethod: Record<StandardPaymentMethod, string[]> = {
   bKash: ['bKash Business · 01711•••412'],
   Nagad: ['Nagad Merchant · 01819•••771']
 };
-const dateNow = new Date();
-const today = [dateNow.getFullYear(), String(dateNow.getMonth() + 1).padStart(2, '0'), String(dateNow.getDate()).padStart(2, '0')].join('-');
 const stockProducts = products.filter((product) => product.kind !== 'Service');
 
 function productFor(line: PurchaseLine): Product {
@@ -111,7 +113,8 @@ function newLine(seedIndex = 1): PurchaseLine {
   };
 }
 
-export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, onSaveExpense }: BillDialogProps) {
+export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, onSaveExpense, expense, onSaveCorrection }: BillDialogProps) {
+  const today = businessToday();
   const [party, setParty] = useState(mode === 'purchase' ? suppliers[0].name : payees[0].name);
   const [partyOptions, setPartyOptions] = useState<Party[]>(() => availableParties().filter((item) => item.roles.some((role) => mode === 'purchase' ? role === 'Supplier' || role === 'Vendor' : role === 'Payee' || role === 'Vendor')));
   const [categoryOptions, setCategoryOptions] = useState(availableExpenseCategories);
@@ -126,12 +129,29 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   const [photos, setPhotos] = useState<string[]>([]);
   const [lines, setLines] = useState<PurchaseLine[]>([newLine()]);
   const [error, setError] = useState('');
+  const [correctionReason, setCorrectionReason] = useState('');
+  const [review, setReview] = useState(false);
+  useEffect(() => { setReview(false); }, [amount, paymentRows, party, category, date, description, notes, photos, correctionReason]);
+  // Initialize source values before the correction dialog becomes visible.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const options = availableParties().filter(item => item.status !== 'Inactive' && item.roles.some(role => mode === 'purchase' ? role === 'Supplier' || role === 'Vendor' : role === 'Payee' || role === 'Vendor'));
+    const categories = availableExpenseCategories();
+    setPartyOptions(options); setCategoryOptions(categories); setError(''); setCorrectionReason('');
+    setDate(expense ? expenseDateIso(expense.date) : businessToday()); setBackdateReason('');
+    setParty(expense?.payee ?? options[0]?.name ?? '');
+    setCategory(expense?.category ?? categories[0] ?? '');
+    setDescription(expense?.note ?? ''); setReferenceNo(''); setNotes('');
+    setAmount(expense ? String(expense.amount) : ''); setPhotos(expense?.receipt ? [expense.receipt] : []);
+    const payments = expense?.payments?.length ? expense.payments : expense && expense.paid > 0 ? [{ id: 'legacy-' + expense.id, method: expense.method, amount: expense.paid, account: '' }] : [];
+    setPaymentRows(payments.length ? payments.map(row => ({ id: row.id, method: row.method as StandardPaymentMethod, amount: String(row.amount), account: row.account ?? '' })) : [newPaymentRow()]);
+  }, [open, expense, mode]);
 
-  const isBackdated = date !== today;
+  const isBackdated = date < today && !expense;
   const list = partyOptions;
   const purchaseTotal = useMemo(() => lines.reduce((sum, line) => sum + lineTotal(line), 0), [lines]);
   const totalNum = mode === 'purchase' ? purchaseTotal : parseFloat(amount) || 0;
-  const paymentTotal = paymentRows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+  const paymentTotal = paymentRows.reduce((sum, row) => sum + Math.round((Number(row.amount) || 0) * 100), 0) / 100;
   const paidNum = Math.min(paymentTotal, totalNum);
   const due = Math.max(totalNum - paidNum, 0);
   const overpaid = Math.max(paymentTotal - totalNum, 0);
@@ -196,6 +216,18 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   };
 
   const save = () => {
+    try {
+      validateBusinessDate(date);
+      if (mode === 'expense') toPaisa(Number(amount), 'Expense amount');
+      toPaisa(totalNum, 'Amount');
+      for (const row of paymentRows) {
+        if (!row.amount.trim()) continue;
+        toPaisa(Number(row.amount), 'Payment');
+        if (Number(row.amount) > 0 && !accountsByMethod[row.method]?.includes(row.account)) throw new Error('Choose a valid payment account.');
+      }
+      if (!party.trim() || !category.trim()) throw new Error('Choose a payee and category.');
+      if (expense && !correctionReason.trim()) throw new Error('Enter a reason for the correction.');
+    } catch (e) { setError(e instanceof Error ? e.message : 'Review the entered amounts.'); return; }
     if (!totalNum) {
       setError(mode === 'purchase' ? 'Add at least one purchase item with quantity and cost.' : 'Enter the expense amount.');
       return;
@@ -210,6 +242,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
     }
 
     const selectedParty = list.find((item) => item.name === party);
+    if (!selectedParty && !expense) { setError('Choose an active payee or supplier.'); return; }
     if (mode === 'purchase') {
       const existingSerials = [
         ...stockLots.flatMap((lot) => lot.serials ?? []),
@@ -272,20 +305,28 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       });
     } else {
       const combinedNote = [description, referenceNo ? `Ref: ${referenceNo}` : '', notes].filter(Boolean).join(' · ');
-      onSaveExpense({
-        id: `e${Date.now()}`,
-        ref: nextRef,
+      const saved: Expense = {
+        ...expense,
+        id: expense?.id ?? `e${Date.now()}`,
+        ref: expense?.ref ?? nextRef,
         date: new Date(date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         category,
         payee: party,
-        payeeId: selectedParty?.id,
+        payeeId: selectedParty?.id ?? (expense?.payee === party ? expense.payeeId : undefined),
         note: combinedNote || 'Expense',
         amount: totalNum,
         paid: paidNum,
         method: paymentSplits[0]?.method ?? 'Cash',
         payments: paymentSplits,
-        receipt: photos[0]
-      });
+        receipt: photos[0],
+        backdateReason: expense?.backdateReason ?? (isBackdated ? backdateReason.trim() : undefined)
+      };
+      try {
+        if (expense && onSaveCorrection) {
+          if (!review) { setReview(true); setError(''); return; }
+          onSaveCorrection(saved, correctionReason);
+        } else onSaveExpense(saved);
+      } catch (e) { setError(e instanceof Error ? e.message : 'Could not save the expense.'); return; }
     }
 
     reset();
@@ -293,14 +334,14 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={mode === 'purchase' ? 'max-h-[92vh] overflow-y-auto sm:max-w-4xl scrollbar-thin' : 'max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin'}>
+      <DialogContent role="dialog" aria-label={mode === 'purchase' ? 'New purchase' : expense ? 'Correct expense' : 'Add expense'} className={mode === 'purchase' ? 'max-h-[92vh] overflow-y-auto sm:max-w-4xl scrollbar-thin' : 'max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin'}>
         <DialogHeader>
           <DialogTitle>
-            {mode === 'purchase' ? 'New purchase' : 'Add expense'}{' '}
+            {mode === 'purchase' ? 'New purchase' : expense ? 'Correct expense' : 'Add expense'}{' '}
             <span className="font-bn text-sm font-normal text-ink-500">{mode === 'purchase' ? 'ক্রয়' : 'খরচ'}</span>
           </DialogTitle>
           <DialogDescription>
-            {nextRef} · Keep the operational detail from the legacy ERP, presented in the HisabIQ design system.
+            {expense?.ref ?? nextRef} · UI preview. Cash and ledger posting require backend integration.
           </DialogDescription>
         </DialogHeader>
 
@@ -320,7 +361,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
           <label className="block text-[13px] font-medium text-ink">
             {mode === 'purchase' ? 'Purchase date' : 'Expense date'}
-            <Input className="mt-1.5" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            <AppDatePicker className="mt-1.5" label={mode === 'purchase' ? 'Purchase date' : 'Expense date'} value={date} onChange={setDate} />
           </label>
 
           {isBackdated && (
@@ -474,8 +515,9 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               <div className="relative mt-1.5">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
                 <Input
+                  aria-label="Expense amount"
                   value={amount}
-                  onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))}
+                  onChange={(event) => setAmount(event.target.value)}
                   className="pl-7 text-right"
                   inputMode="decimal"
                   placeholder="0"
@@ -565,8 +607,9 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                   <div className="relative mt-1">
                     <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
                     <Input
+                      aria-label={`Payment amount ${index + 1}`}
                       value={row.amount}
-                      onChange={(event) => updatePayment(row.id, { amount: event.target.value.replace(/[^\d.]/g, '') })}
+                      onChange={(event) => updatePayment(row.id, { amount: event.target.value })}
                       inputMode="decimal"
                       className="pl-6 text-right"
                       placeholder="0"
@@ -632,11 +675,21 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           />
         </div>
 
+        {expense && <label className="block space-y-1 text-xs font-medium text-ink">Reason for correction · কেন পরিবর্তন
+          <Input aria-label="Expense correction reason" value={correctionReason} onChange={event => setCorrectionReason(event.target.value)} />
+        </label>}
         {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
+        {expense && review && <section aria-label="Expense correction impact" className="space-y-2 rounded-lg border border-border bg-ink-50 p-3 text-xs">
+          <p className="font-semibold text-ink">Review preview changes · পরিবর্তন দেখুন</p>
+          <p>Total: {taka(expense.amount)} → {taka(totalNum)}</p><p>Paid: {taka(expense.paid)} → {taka(paymentTotal)}</p>
+          <p>Due: {taka(expense.amount - expense.paid)} → {taka(due)}</p>
+          <p>{expense.payee} → {party} · {expense.category} → {category}</p>
+          <p className="text-ink-500">{correctionReason} · No cash or backend ledger is posted.</p>
+        </section>}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{mode === 'purchase' ? 'Complete purchase' : 'Save expense'}</Button>
+          <Button onClick={save}>{mode === 'purchase' ? 'Complete purchase' : expense ? review ? 'Confirm preview correction' : 'Review changes' : 'Save expense'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,13 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/Dialog';
+import {PurchaseSourceDialog} from '../components/purchases/PurchaseSourceDialog';
+import {purchasePosition,sourceEditable,sourceReturnable} from '../utils/purchaseSource';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
-  CornerUpLeft,
   FileText,
   MoreHorizontal,
   Paperclip,
   Plus,
-  RefreshCw,
   Search,
   Undo2
 } from 'lucide-react';
@@ -19,13 +20,16 @@ import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
-import { availablePurchases } from '../data/erpDemoStore';
+import { availablePurchases, availablePurchaseEvents } from '../data/erpDemoStore';
 import type { Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
+import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { printReport, downloadReport } from '../utils/reportOutput';
+import { availableProducts } from '../data/erpDemoStore';
 
 type Tab = 'purchases' | 'return' | 'return-history';
 
-const returnHistory = [
+const sampleReturnHistory = [
   { id: 'PR-000028', date: '29 Sep 2026', purchase: 'PUR-000117', supplier: 'Bismillah Steel House', items: 'MS Angle 1.5" · 45 Kg', amount: 4410, method: 'Supplier credit' },
   { id: 'PR-000027', date: '24 Sep 2026', purchase: 'PUR-000115', supplier: 'Hossain Electric', items: 'Ceiling Fan Regulator · 2 Pcs', amount: 510, method: 'Cash refund' },
   { id: 'PR-000026', date: '18 Sep 2026', purchase: 'PUR-000114', supplier: 'Bismillah Steel House', items: 'GI Wire 14 SWG · 12 Kg', amount: 1512, method: 'Supplier credit' }
@@ -64,49 +68,62 @@ export function Purchases() {
   const chooseTab=(value:Tab)=>{setTab(value);setSearchParams(current=>{
    const next=new URLSearchParams(current);if(value==='purchases')next.delete('tab');else next.set('tab',value);return next;
   },{replace:true});};
-  const [purchases] = useState<Purchase[]>(availablePurchases);
+  const [purchases,setPurchases] = useState<Purchase[]>(availablePurchases);
+  const [sourceAction,setSourceAction]=useState<{purchase:Purchase;mode:'correction'|'payment'|'return'}|null>(null);
+  const [events,setEvents]=useState(availablePurchaseEvents);
+  const returnHistory=[...events.filter(e=>e.kind==='return').map(e=>({id:e.id,date:e.date,purchase:e.before.ref,supplier:e.before.supplier,items:(e.lines??[]).map(l=>(e.before.cartSnapshot?.[l.index].product.name??'Product')+' · '+l.quantity+' base units').join(', '),amount:e.amount,method:e.settlement==='cash'?'Refund '+taka(e.refund):'Supplier credit'})),...sampleReturnHistory];
+  const [historySource,setHistorySource]=useState<Purchase|null>(null);
+  const position=(p:Purchase)=>purchasePosition(p,events);
+  const updated=(p:Purchase)=>{setPurchases(availablePurchases());setEvents(availablePurchaseEvents());setReturnPurchase(p);setSourceAction(null);toast.success('Purchase preview saved',{description:'Source history retained; backend posting is not connected.'});};
   const [detail, setDetail] = useState<BillDetail | null>(null);
-  const [query, setQuery] = useState('');
+  const routeQuery=searchParams.get('q') ?? '';
+  const [query, setQuery] = useState(routeQuery);
+  useEffect(()=>setQuery(routeQuery),[routeQuery]);
   const [returnQuery, setReturnQuery] = useState('');
   const [returnPurchase, setReturnPurchase] = useState<Purchase | null>(null);
-  const [refundMethod, setRefundMethod] = useState('Adjust supplier due');
+  const [supplierFilter, setSupplierFilter] = useState('All suppliers');
+  const [statusFilter, setStatusFilter] = useState('All status');
+  const [returnError, setReturnError] = useState('');
+  const openBill = (p: Purchase) => setDetail({ref: p.ref, date: p.date, party: p.supplier, partyId: p.supplierId, description: p.items, total: position(p).total, paid: position(p).paid, payments: p.payments, receipt: p.receipt});
+  const resetFilters = () => { setQuery(''); setSupplierFilter('All suppliers'); setStatusFilter('All status'); };
+  const printPurchase = (p: Purchase) => { if (!printReport({title: p.ref, subtitle: 'Purchase bill preview', headers: ['Field', 'Value'], rows: [['Date',p.date],['Supplier',p.supplier],['Items',p.items],['Total',p.total],['Paid',p.paid],['Due',p.total-p.paid]]})) toast.error('Allow the print popup and try again.'); };
+  const reviewReturn = (p: Purchase) => { setReturnPurchase(p); setReturnQuery(p.ref); setReturnError(''); chooseTab('return'); };
 
-  const filteredPurchases = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return purchases;
-    return purchases.filter((p) =>
-      [p.ref, p.supplier, p.items, p.date].some((value) => value.toLowerCase().includes(q))
-    );
-  }, [purchases, query]);
+  const filteredPurchases = useMemo(() => purchases.filter(p => {
+    const q = query.trim().toLocaleLowerCase();
+    const status = position(p).paid >= position(p).total ? 'Paid' : position(p).paid > 0 ? 'Partial' : 'Due';
+    return (supplierFilter === 'All suppliers' || p.supplier === supplierFilter)
+      && (statusFilter === 'All status' || status === statusFilter)
+      && (!q || [p.ref,p.supplier,p.items,p.date].some(value => value.toLocaleLowerCase().includes(q)));
+  }), [purchases,events,query,supplierFilter,statusFilter]);
 
-  const purchaseTotal = purchases.reduce((sum, p) => sum + p.total, 0);
-  const paidTotal = purchases.reduce((sum, p) => sum + p.paid, 0);
+  const purchaseTotal = purchases.reduce((sum, p) => sum + position(p).total, 0);
+  const paidTotal = purchases.reduce((sum, p) => sum + position(p).paid, 0);
   const supplierDue = purchaseTotal - paidTotal;
   const returnsTotal = returnHistory.reduce((sum, item) => sum + item.amount, 0);
 
   const summary = [
-    { label: 'Purchases · Sep', value: taka(purchaseTotal), sub: `${purchases.length} purchase invoices` },
+    { label: 'Purchase total', value: taka(purchaseTotal), sub: `${purchases.length} purchase invoices` },
     { label: 'Due to suppliers', value: taka(supplierDue), sub: 'Supplier payable · দেনা', tone: 'text-danger' },
-    { label: 'Paid · Sep', value: taka(paidTotal), sub: 'Cash, bank & mobile' },
-    { label: 'Purchase returns', value: taka(returnsTotal), sub: `${returnHistory.length} return memos`, tone: 'text-warning' }
+    { label: 'Paid total', value: taka(paidTotal), sub: 'Cash, bank & mobile' },
+    { label: 'Preview returns', value: taka(returnsTotal), sub: `${returnHistory.length} preview / sample memos`, tone: 'text-warning' }
   ];
 
   const selectReturnPurchase = () => {
-    const q = returnQuery.trim().toLowerCase();
-    const match = purchases.find((p) =>
-      !q || p.ref.toLowerCase().includes(q) || p.supplier.toLowerCase().includes(q)
-    );
-    if (!match) {
-      toast.error('No purchase found');
-      return;
-    }
-    setReturnPurchase(match);
+    const q = returnQuery.trim().toLocaleLowerCase();
+    setReturnPurchase(null);
+    if (!q) { setReturnError('Enter the purchase reference or supplier name.'); return; }
+    const exact = purchases.find(p => p.ref.toLocaleLowerCase() === q);
+    const matches = exact ? [exact] : purchases.filter(p => p.ref.toLocaleLowerCase().includes(q) || p.supplier.toLocaleLowerCase().includes(q));
+    if (!matches.length) { setReturnError('No purchase found. Check the reference.'); return; }
+    if (matches.length > 1) { setReturnError('Several purchases match. Enter the exact purchase reference.'); return; }
+    setReturnError(''); setReturnPurchase(matches[0]);
   };
 
   const tabs: Array<[Tab, string, string]> = [
     ['purchases', 'Purchases', 'Purchase list & management'],
-    ['return', 'Purchase return', 'Find purchase & return items'],
-    ['return-history', 'Return history', 'Completed purchase returns']
+    ['return', 'Purchase return', 'Review original purchase and return data'],
+    ['return-history', 'Return history', 'Sample return history']
   ];
 
   return (
@@ -162,20 +179,21 @@ export function Purchases() {
 
         {tab === 'purchases' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1 sm:max-w-md">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                 <Input
+                  aria-label="Search purchases"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   className="pl-8"
                   placeholder="Search purchase ID, supplier or product"
                 />
               </div>
-              <FormSelect className="w-full sm:w-40" options={['All suppliers', ...Array.from(new Set(purchases.map((purchase) => purchase.supplier)))]} />
-              <FormSelect className="w-full sm:w-36" options={['All status', 'Paid', 'Partial', 'Due']} />
-              <Button variant="outline" size="sm" onClick={() => toast('Purchase list refreshed')}>
-                <RefreshCw className="size-4" /> Refresh
+              <FormSelect aria-label="Purchase supplier filter" className="w-full sm:w-40" value={supplierFilter} onChange={e => setSupplierFilter(e.target.value)} options={['All suppliers', ...Array.from(new Set(purchases.map(p => p.supplier)))]} />
+              <FormSelect aria-label="Purchase status filter" className="w-full sm:w-36" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Paid', 'Partial', 'Due']} />
+              <Button variant="outline" size="sm" onClick={resetFilters}>
+                Reset filters
               </Button>
             </div>
 
@@ -195,18 +213,7 @@ export function Purchases() {
               </TableHeader>
               <TableBody>
                 {filteredPurchases.map((p) => {
-                  const open = () =>
-                    setDetail({
-                      ref: p.ref,
-                      date: p.date,
-                      party: p.supplier,
-                      partyId: p.supplierId,
-                      description: p.items,
-                      total: p.total,
-                      paid: p.paid,
-                      payments: p.payments,
-                      receipt: p.receipt
-                    });
+                  const open = () => openBill(p);
                   return (
                     <TableRow key={p.id} className="cursor-pointer text-[13px]" onClick={open}>
                       <TableCell className="py-2 pl-4">
@@ -223,26 +230,30 @@ export function Purchases() {
                       </TableCell>
                       <TableCell className="max-w-[260px] truncate py-2 text-ink-600">{p.items}</TableCell>
                       <TableCell className="py-2"><ReceiptThumb src={p.receipt} onClick={open} /></TableCell>
-                      <TableCell className="py-2 text-right font-medium">{taka(p.total)}</TableCell>
-                      <TableCell className="py-2 text-right text-ink-600">{taka(p.paid)}</TableCell>
-                      <TableCell className={`py-2 text-right ${p.total - p.paid > 0 ? 'font-medium text-danger' : 'text-ink-400'}`}>
-                        {p.total - p.paid > 0 ? taka(p.total - p.paid) : '—'}
+                      <TableCell className="py-2 text-right font-medium">{taka(position(p).total)}</TableCell>
+                      <TableCell className="py-2 text-right text-ink-600">{taka(position(p).paid)}</TableCell>
+                      <TableCell className={`py-2 text-right ${position(p).due > 0 ? 'font-medium text-danger' : 'text-ink-400'}`}>
+                        {position(p).due > 0 ? taka(position(p).due) : '—'}
                       </TableCell>
-                      <TableCell className="py-2"><PayStatus total={p.total} paid={p.paid} /></TableCell>
+                      <TableCell className="py-2"><PayStatus total={position(p).total} paid={position(p).paid} /></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
-                        <button
-                          className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toast('Purchase actions', { description: 'View · Edit · Return · Print · Delete' });
-                          }}
-                          aria-label={`Actions for ${p.ref}`}>
-                          <MoreHorizontal className="size-4" />
-                        </button>
+                        <div onClick={e => e.stopPropagation()}>
+                          <FloatingPanel label={`Actions for ${p.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`Actions for ${p.ref}`}><MoreHorizontal className="size-4" /></button>}>
+                            {close => <div className="p-1 text-left text-xs">
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();openBill(p);}}>View bill</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();printPurchase(p);}}>Print bill</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||events.some(e=>e.purchaseId===p.id&&e.kind!=='correction')} title="Complete original snapshots and no later allocations required" onClick={()=>{close();setSourceAction({purchase:p,mode:'correction'});}}>Correct purchase</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||position(p).due<=0} title="Payment needs a complete source bill with supplier due" onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>Pay due</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();reviewReturn(p);}}>Review return</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={()=>{close();setHistorySource(p);}}>Source history</Button>
+                            </div>}
+                          </FloatingPanel>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
                 })}
+                {!filteredPurchases.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">No purchases match these filters. <button onClick={resetFilters} className="text-teal-700 underline">Reset filters</button></TableCell></TableRow>}
               </TableBody>
             </Table>
           </>
@@ -266,24 +277,26 @@ export function Purchases() {
                     value={returnQuery}
                     onChange={(e) => setReturnQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && selectReturnPurchase()}
+                    aria-label="Find purchase reference"
                     placeholder="PUR-000117 or supplier name"
                   />
                   <Button className="w-full" onClick={selectReturnPurchase}>
                     <Search className="size-4" /> Find purchase
                   </Button>
+                  {returnError && <p role="alert" className="text-xs text-danger">{returnError}</p>}
                 </div>
                 <div className="mt-4 border-t border-border pt-3 text-xs text-ink-500">
-                  Return workflow keeps the original purchase price and unit conversion, then posts the refund to cash or supplier credit.
+                  Returns need original item prices, historical units and remaining returnable quantities. No refund or stock movement is posted in this source review.
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-card">
+              <div role="region" aria-label="Purchase return source" className="min-w-0 rounded-xl border border-border bg-card">
                 {!returnPurchase ? (
                   <div className="flex min-h-64 flex-col items-center justify-center px-6 text-center">
                     <Undo2 className="mb-3 size-8 text-helper" />
                     <p className="text-sm font-medium text-ink">No purchase selected</p>
                     <p className="mt-1 max-w-md text-xs text-ink-500">
-                      Find a purchase first. HisabIQ will load the original items, historical units and quantities available to return.
+                      Enter a purchase reference to review its source. Never calculate a refund from a bill summary.
                     </p>
                   </div>
                 ) : (
@@ -293,50 +306,30 @@ export function Purchases() {
                         <p className="text-sm font-semibold text-ink">{returnPurchase.ref}</p>
                         <p className="text-xs text-ink-500">{returnPurchase.supplier} · {returnPurchase.date}</p>
                       </div>
-                      <StatusBadge tone="teal">Original purchase loaded</StatusBadge>
+                      <StatusBadge tone="teal">Source review</StatusBadge>
                     </div>
-                    <div className="p-4">
-                      <div className="rounded-lg border border-border">
-                        <div className="grid grid-cols-[1fr_100px_120px] gap-2 border-b border-border bg-ink-50/50 px-3 py-2 text-xs font-medium text-ink-500">
-                          <span>Item</span>
-                          <span>Return qty</span>
-                          <span className="text-right">Refund</span>
-                        </div>
-                        <div className="grid grid-cols-[1fr_100px_120px] items-center gap-2 px-3 py-3 text-[13px]">
-                          <div>
-                            <p className="font-medium text-ink">{returnPurchase.items.split(',')[0]}</p>
-                            <p className="text-[11px] text-ink-400">Historical unit conversion preserved</p>
-                          </div>
-                          <Input defaultValue="1" inputMode="decimal" />
-                          <p className="text-right font-medium">{taka(Math.round(returnPurchase.total * 0.1))}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <label className="text-[13px] font-medium text-ink">
-                          Refund method
-                          <FormSelect
-                            className="mt-1.5"
-                            value={refundMethod}
-                            onChange={(e) => setRefundMethod(e.target.value)}
-                            options={['Adjust supplier due', 'Cash refund']}
-                          />
-                        </label>
-                        <label className="text-[13px] font-medium text-ink">
-                          Return date
-                          <Input className="mt-1.5" defaultValue="06 Oct 2026" />
-                        </label>
-                        <label className="text-[13px] font-medium text-ink sm:col-span-2">
-                          Return reason
-                          <Input className="mt-1.5" placeholder="Damaged, wrong item, excess quantity…" />
-                        </label>
-                      </div>
-
-                      <div className="mt-4 flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setReturnPurchase(null)}>Cancel</Button>
-                        <Button onClick={() => toast.success('Purchase return prepared', { description: `Refund via ${refundMethod}` })}>
-                          <CornerUpLeft className="size-4" /> Complete return
-                        </Button>
+                    <div className="space-y-3 p-4">
+                      <p className="text-sm text-ink">{returnPurchase.items}</p>
+                      <dl className="grid grid-cols-3 gap-2 rounded-lg bg-ink-50 p-3 text-xs">
+                        <div><dt className="text-ink-500">Bill total</dt><dd className="font-semibold">{taka(returnPurchase.total)}</dd></div>
+                        <div><dt className="text-ink-500">Paid</dt><dd>{taka(returnPurchase.paid)}</dd></div>
+                        <div><dt className="text-ink-500">Due</dt><dd>{taka(returnPurchase.total-returnPurchase.paid)}</dd></div>
+                      </dl>
+                      {!!returnPurchase.inventoryLines?.length && <section aria-label="Purchase source item snapshots" className="space-y-2 rounded-lg border border-border p-3 text-xs">
+                        <h4 className="font-semibold text-ink">Original item snapshots</h4>
+                        {returnPurchase.inventoryLines.map((line,i) => <div key={i} className="flex flex-wrap justify-between gap-2 border-t border-border pt-2">
+                          <span>{availableProducts().find(p => p.id === line.productId)?.name ?? line.productId}</span>
+                          <span>{line.quantity} base units · cost {line.unitCost === undefined ? 'not available' : taka(line.unitCost)} per base unit</span>
+                        </div>)}
+                      </section>}
+                      {sourceReturnable(returnPurchase)?<Button onClick={()=>setSourceAction({purchase:returnPurchase,mode:'return'})}>Choose return quantities</Button>:                      <div role="status" className="rounded-lg border border-border bg-warning-bg p-3 text-xs text-ink-700">
+                        <p className="font-semibold">Return quantities unavailable · ফেরতযোগ্য পরিমাণ নেই</p>
+                        <p className="mt-1">Check the original bill and previous returns first. Summary-only bills and tracked-stock returns need verified original units, serials/batches and allocation data from integration.</p>
+                        <p className="mt-1">No return, refund or supplier credit has been recorded.</p>
+                      </div>}
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button variant="outline" onClick={() => setReturnPurchase(null)}>Choose another purchase</Button>
+                        <Button onClick={() => openBill(returnPurchase)}>View original bill</Button>
                       </div>
                     </div>
                   </>
@@ -348,12 +341,12 @@ export function Purchases() {
 
         {tab === 'return-history' && (
           <>
-            <div className="flex items-center justify-between gap-3 border-b border-border p-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Purchase return history</p>
-                <p className="text-[11px] text-ink-500">Completed returns, refund method and source purchase.</p>
+                <p className="text-[11px] text-ink-500">Preview and sample history · refunds and source purchases. Not live accounting records.</p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => toast('Return history exported')}>
+              <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-purchase-return-preview.csv', ['Reference','Date','Purchase','Supplier','Items','Amount','Method'], returnHistory.map(item => [item.id,item.date,item.purchase,item.supplier,item.items,item.amount,item.method]))}>
                 <ArrowDownToLine className="size-4" /> Export
               </Button>
             </div>
@@ -390,6 +383,14 @@ export function Purchases() {
         )}
       </div>
 
+      {sourceAction&&<PurchaseSourceDialog key={sourceAction.purchase.id+'-'+sourceAction.purchase.sourceRevision+'-'+sourceAction.mode} purchase={sourceAction.purchase} mode={sourceAction.mode} onClose={()=>setSourceAction(null)} onSaved={updated}/>}
+      {historySource&&<Dialog open onOpenChange={value=>!value&&setHistorySource(null)}><DialogContent role="dialog" aria-modal="true" aria-label="Purchase source history" className="space-y-2 rounded-xl border border-border bg-card p-4 text-sm text-ink">
+        <DialogHeader><DialogTitle>Source history · {historySource.ref}</DialogTitle><DialogDescription>UI preview source changes; backend posting is not connected.</DialogDescription></DialogHeader>
+        <p>Supplier credit {taka(position(historySource).credit)} · Returns {taka(position(historySource).returned)}</p>
+        {events.filter(e=>e.purchaseId===historySource.id).map(e=><p key={e.id}>{e.date} · {e.kind} · {e.reason} · {taka(e.amount)} {e.kind==='return'?' · '+e.settlement:''}</p>)}
+        {!events.some(e=>e.purchaseId===historySource.id)&&<p>No changes recorded in this preview.</p>}
+        <Button onClick={()=>setHistorySource(null)}>Close history</Button>
+      </DialogContent></Dialog>}
       <BillDetailDialog bill={detail} onClose={() => setDetail(null)} />
     </div>
   );

@@ -289,6 +289,11 @@ export type Purchase = TransactionAuditFields & {
   payments?: PaymentSplit[];
   receipt?: string;
   inventoryLines?: PurchaseInventoryLine[];
+  /** Entered units/prices retained for source editing; never reconstruct from current master data. */
+  cartSnapshot?: {id:string;product:Product;bigQty:string;smallQty:string;cost:string;costUnit:string;lotSellPrice:string;lotSellUnit:string;detailsOpen:boolean;serialText:string;batchNumber:string;manufactureDate:string;expiryDate:string}[];
+  businessDate?: string;
+  roundingRule?: "Nearest ৳5" | "Nearest ৳1" | "No rounding";
+  sourceRevision?: number;
   memoNo?: string;
   notes?: string;
   backdateReason?: string;
@@ -307,6 +312,7 @@ export type Expense = TransactionAuditFields & {
   method: PaymentMethod;
   payments?: PaymentSplit[];
   receipt?: string;
+  backdateReason?: string;
 };
 
 export type DashboardWidgetId =

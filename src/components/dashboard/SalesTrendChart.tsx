@@ -1,4 +1,3 @@
-import React from 'react';
 import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { salesTrend } from '../../data/dashboard';
 import { taka, takaCompact } from '../../utils/currency';

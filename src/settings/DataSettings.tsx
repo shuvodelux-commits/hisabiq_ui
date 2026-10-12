@@ -8,7 +8,6 @@ import {
   Button,
   SettingCard,
   SettingsDialog,
-  controlClass,
   download,
 } from "./ui";
 import { sectionNames } from "./fields";

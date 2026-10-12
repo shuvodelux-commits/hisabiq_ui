@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowDownToLine,
@@ -21,9 +21,14 @@ import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { BillDialog } from '../components/purchases/BillDialog';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
-import { expenses as seedExpenses } from '../data/purchases';
-import { availableExpenseCategories, availableParties } from '../data/erpDemoStore';
-import type { Expense } from '../types/erp';
+import { getExpensePreviewSnapshot, subscribeExpensePreview, savePreviewExpense, cancelPreviewExpense, attachPreviewExpenseReceipt } from '../data/expensePreviewStore';
+import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
+import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
+import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/Dialog';
+import { printReport, downloadReport } from '../utils/reportOutput';
+import { availableParties, expenseCategoryRecords, createPreviewExpenseCategory, renamePreviewExpenseCategory, setPreviewExpenseCategoryActive } from '../data/erpDemoStore';
+import type { Expense, Party } from '../types/erp';
 import { taka } from '../utils/currency';
 
 type Tab = 'expenses' | 'categories' | 'payees' | 'reports';
@@ -48,7 +53,7 @@ const payeesForPreview = () => availableParties()
     id: party.id,
     name: party.name,
     phone: party.phone,
-    active: true,
+    active: party.status !== 'Inactive',
     lastUsed: party.lastActivity
   }));
 
@@ -72,14 +77,36 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 
 export function Expenses() {
   const [tab, setTab] = useState<Tab>('expenses');
+  const { expenses, audit } = useSyncExternalStore(subscribeExpensePreview, getExpensePreviewSnapshot);
+  useSyncExternalStore(subscribePartyPreview, getPartyPreviewSnapshot);
   const payees = payeesForPreview();
-  const [expenses, setExpenses] = useState<Expense[]>(seedExpenses);
+  const [, refreshCategories] = useState(0);
+  const categories = expenseCategoryRecords();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [detail, setDetail] = useState<BillDetail | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = expenses.find(item => item.id === selectedId);
+  const detail: BillDetail | null = selected ? { ref: selected.ref, date: selected.date, party: selected.payee, partyId: selected.payeeId, category: selected.category, description: selected.note, total: selected.amount, paid: selected.paid, payments: selected.payments, receipt: selected.receipt, cancelled: selected.recordStatus === 'Deleted' } : null;
+  const [editing, setEditing] = useState<Expense | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState('All categories');
+  const [payeeFilter, setPayeeFilter] = useState('All payees');
+  const [methodFilter, setMethodFilter] = useState('All payment methods');
+  const [statusFilter, setStatusFilter] = useState('Active');
+  const [categoryEditor, setCategoryEditor] = useState<{ previous?: string; name: string } | null>(null);
+  const [payeeEditor, setPayeeEditor] = useState<{ party?: Party } | null>(null);
+  const [cancelling, setCancelling] = useState<Expense | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [actionError, setActionError] = useState('');
+  const activeExpenses = expenses.filter(item => item.recordStatus !== 'Deleted');
+  const resetFilters = () => { setQuery(''); setCategoryFilter('All categories'); setPayeeFilter('All payees'); setMethodFilter('All payment methods'); setStatusFilter('Active'); };
+  const reportFor = (items: Expense[], title = 'Expense list') => ({ title, subtitle: 'Expense source preview', headers: ['Reference', 'Date', 'Category', 'Payee', 'Details', 'Amount', 'Paid', 'Due', 'Status'], rows: items.map(e => [e.ref, e.date, e.category, e.payee, e.note, e.amount, e.paid, e.amount - e.paid, e.recordStatus === 'Deleted' ? 'Cancelled' : 'Active']) });
+  const printExpenses = (items: Expense[], title?: string) => { if (!printReport(reportFor(items, title))) toast.error('Allow the print popup and try again.'); };
+  const exportExpenses = (items: Expense[], filename: string) => { const report = reportFor(items); downloadReport(filename, report.headers, report.rows); };
+  const openCorrection = (expense: Expense) => { setSelectedId(null); setEditing(expense); setDialogOpen(true); };
   const [query, setQuery] = useState('');
   // Keep the initial demonstration report on September's seeded expense entries.
   const [reportRange, setReportRange] = useState<IsoRange>({ from: '2026-09-01', to: '2026-09-30' });
   const reportExpenses = useMemo(() => expenses.filter((expense) => {
+    if (expense.recordStatus === 'Deleted') return false;
     const day = expenseDateIso(expense.date);
     return !!day && (!reportRange.from || day >= reportRange.from) && (!reportRange.to || day <= reportRange.to);
   }), [expenses, reportRange.from, reportRange.to]);
@@ -87,21 +114,19 @@ export function Expenses() {
     ? 'Sep 2026' : formatRange(reportRange);
 
 
-  const filteredExpenses = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return expenses;
-    return expenses.filter((expense) =>
-      [expense.ref, expense.category, expense.payee, expense.note, paymentLabel(expense), expense.date, ...paymentsFor(expense).map((payment) => payment.method)]
-        .some((value) => value.toLowerCase().includes(q))
-    );
-  }, [expenses, query]);
-
-  const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const cash = expenses.reduce((sum, expense) =>
-    sum + paymentsFor(expense).filter((payment) => payment.method === 'Cash').reduce((paymentSum, payment) => paymentSum + payment.amount, 0), 0);
-  const bankAndMfs = expenses.reduce((sum, expense) =>
-    sum + paymentsFor(expense).filter((payment) => payment.method !== 'Cash').reduce((paymentSum, payment) => paymentSum + payment.amount, 0), 0);
-  const categoryCount = new Set(expenses.map((expense) => expense.category)).size;
+  const filteredExpenses = useMemo(() => expenses.filter(expense => {
+    const q = query.trim().toLocaleLowerCase();
+    const active = expense.recordStatus !== 'Deleted';
+    return (statusFilter === 'All status' || active === (statusFilter === 'Active'))
+      && (categoryFilter === 'All categories' || expense.category === categoryFilter)
+      && (payeeFilter === 'All payees' || expense.payee === payeeFilter)
+      && (methodFilter === 'All payment methods' || paymentsFor(expense).some(payment => payment.method === methodFilter))
+      && (!q || [expense.ref, expense.category, expense.payee, expense.note, paymentLabel(expense), expense.date].some(value => value.toLocaleLowerCase().includes(q)));
+  }), [expenses, query, categoryFilter, payeeFilter, methodFilter, statusFilter]);
+  const total = activeExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const cash = activeExpenses.reduce((sum, expense) => sum + paymentsFor(expense).filter(p => p.method === 'Cash').reduce((paid, p) => paid + p.amount, 0), 0);
+  const bankAndMfs = activeExpenses.reduce((sum, expense) => sum + paymentsFor(expense).filter(p => p.method !== 'Cash').reduce((paid, p) => paid + p.amount, 0), 0);
+  const categoryCount = new Set(activeExpenses.map(expense => expense.category)).size;
 
   const tabs: Array<[Tab, string, string]> = [
     ['expenses', 'Expense list', 'History, filters, edit and cancel'],
@@ -111,10 +136,10 @@ export function Expenses() {
   ];
 
   const summary = [
-    { label: 'Expenses · Sep', value: taka(total), sub: `${expenses.length} expense entries` },
+    { label: 'Active expenses', value: taka(total), sub: `${activeExpenses.length} active entries` },
     { label: 'Cash expenses', value: taka(cash), sub: 'Paid from cash' },
     { label: 'Bank & mobile', value: taka(bankAndMfs), sub: 'Bank, bKash, Nagad & card' },
-    { label: 'Categories used', value: String(categoryCount), sub: 'Active this month' }
+    { label: 'Categories used', value: String(categoryCount), sub: 'Used in active entries' }
   ];
 
   return (
@@ -124,12 +149,13 @@ export function Expenses() {
         titleBn="খরচ"
         description="Record operating expenses, manage categories and payees, and review expense reports."
         actions={
-          <Button size="sm" onClick={() => setDialogOpen(true)}>
+          <Button size="sm" onClick={() => { setEditing(null); setDialogOpen(true); }}>
             <Plus className="size-4" /> Add expense
           </Button>
         }
       />
 
+      <p className="text-xs text-ink-500">UI preview · changes stay in this browser session. Cash and ledger posting require backend integration.</p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((item) => (
           <div key={item.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
@@ -172,11 +198,12 @@ export function Expenses() {
                   placeholder="Search expense, payee, category or reference"
                 />
               </div>
-              <FormSelect className="w-full lg:w-40" options={['All categories', ...availableExpenseCategories()]} />
-              <FormSelect className="w-full lg:w-40" options={['All payees', ...payees.map((payee) => payee.name)]} />
-              <FormSelect className="w-full lg:w-40" options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card']} />
-              <FormSelect className="w-full lg:w-32" options={['All status', 'Active', 'Cancelled']} />
-              <Button variant="outline" size="sm" onClick={() => toast('Expense list exported')}>
+              <FormSelect aria-label="Expense category filter" className="w-full lg:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={['All categories', ...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
+              <FormSelect aria-label="Expense payee filter" className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={['All payees', ...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
+              <FormSelect aria-label="Expense payment filter" className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card']} />
+              <FormSelect aria-label="Expense status filter" className="w-full lg:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled']} />
+              <Button variant="ghost" size="sm" onClick={resetFilters}>Reset</Button>
+              <Button variant="outline" size="sm" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
                 <ArrowDownToLine className="size-4" /> Export
               </Button>
             </div>
@@ -197,19 +224,7 @@ export function Expenses() {
               </TableHeader>
               <TableBody>
                 {filteredExpenses.map((expense) => {
-                  const open = () =>
-                    setDetail({
-                      ref: expense.ref,
-                      date: expense.date,
-                      party: expense.payee,
-                      partyId: expense.payeeId,
-                      description: expense.note,
-                      category: expense.category,
-                      total: expense.amount,
-                      paid: expense.paid,
-                      payments: expense.payments,
-                      receipt: expense.receipt
-                    });
+                  const open = () => setSelectedId(expense.id);
                   return (
                     <TableRow key={expense.id} className="cursor-pointer text-[13px]" onClick={open}>
                       <TableCell className="py-2 pl-4">
@@ -241,21 +256,23 @@ export function Expenses() {
                       </TableCell>
                       <TableCell className="py-2 text-ink-500">—</TableCell>
                       <TableCell className="py-2 text-right font-medium">{taka(expense.amount)}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone="success" dot>Active</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={expense.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{expense.recordStatus === 'Deleted' ? 'Cancelled' : 'Active'}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
-                        <button
-                          className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toast('Expense actions', { description: 'View · Edit · Print · Cancel' });
-                          }}
-                          aria-label={`Actions for ${expense.ref}`}>
-                          <MoreHorizontal className="size-4" />
-                        </button>
+                        <div onClick={event => event.stopPropagation()}>
+                          <FloatingPanel label={`Actions for ${expense.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`Actions for ${expense.ref}`}><MoreHorizontal className="size-4" /></button>}>
+                            {close => <div className="p-1 text-left text-xs">
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); open(); }}>View</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); openCorrection(expense); }}>Correct</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); printExpenses([expense], expense.ref); }}>Print</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start text-danger" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); setCancelling(expense); setCancelReason(''); setActionError(''); }}>Cancel expense</Button>
+                            </div>}
+                          </FloatingPanel>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
                 })}
+                {!filteredExpenses.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">No expenses match these filters. <button className="text-teal-700 underline" onClick={resetFilters}>Reset filters</button></TableCell></TableRow>}
               </TableBody>
             </Table>
           </>
@@ -266,9 +283,9 @@ export function Expenses() {
             <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Expense categories</p>
-                <p className="text-[11px] text-ink-500">Create, rename, activate or deactivate categories used when recording expenses.</p>
+                <p className="text-[11px] text-ink-500">Manage categories for new entries. Renaming keeps historical expense labels.</p>
               </div>
-              <Button size="sm" onClick={() => toast('Add category dialog')}>
+              <Button size="sm" onClick={() => { setCategoryEditor({name: ''}); setActionError(''); }}>
                 <Plus className="size-4" /> Add category
               </Button>
             </div>
@@ -277,26 +294,25 @@ export function Expenses() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">Category</TableHead>
                   <TableHead className="h-9 text-xs">Description</TableHead>
-                  <TableHead className="h-9 text-right text-xs">This month</TableHead>
+                  <TableHead className="h-9 text-right text-xs">Active total</TableHead>
                   <TableHead className="h-9 text-xs">Status</TableHead>
                   <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {availableExpenseCategories().map((category) => {
-                  const amount = expenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0);
+                {categories.map(({name: category, active}) => {
+                  const amount = activeExpenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0);
                   return (
                     <TableRow key={category} className="text-[13px]">
                       <TableCell className="py-2 pl-4 font-medium text-ink">{category}</TableCell>
                       <TableCell className="py-2 text-ink-500">Operating expense category</TableCell>
                       <TableCell className="py-2 text-right">{amount ? taka(amount) : '—'}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone="success" dot>Active</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={active ? 'success' : 'neutral'} dot>{active ? 'Active' : 'Inactive'}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
-                        <button
-                          className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
-                          onClick={() => toast('Category actions', { description: 'Edit · Deactivate' })}>
-                          <MoreHorizontal className="size-4" />
-                        </button>
+                        <div className="flex flex-wrap justify-end gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => { setCategoryEditor({previous: category, name: category}); setActionError(''); }}>Edit</Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{active ? 'Deactivate' : 'Activate'}</Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -311,9 +327,9 @@ export function Expenses() {
             <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">Expense payees</p>
-                <p className="text-[11px] text-ink-500">Reusable people and businesses you regularly pay.</p>
+                <p className="text-[11px] text-ink-500">Reusable payees. Payees with linked transactions cannot be deactivated.</p>
               </div>
-              <Button size="sm" onClick={() => toast('Add payee dialog')}>
+              <Button size="sm" onClick={() => setPayeeEditor({})}>
                 <Plus className="size-4" /> Add payee
               </Button>
             </div>
@@ -330,7 +346,7 @@ export function Expenses() {
               </TableHeader>
               <TableBody>
                 {payees.map((payee) => {
-                  const paid = expenses.filter((expense) => expense.payeeId === payee.id).reduce((sum, expense) => sum + expense.paid, 0);
+                  const paid = activeExpenses.filter((expense) => expense.payeeId === payee.id).reduce((sum, expense) => sum + expense.paid, 0);
                   return (
                     <TableRow key={payee.id} className="text-[13px]">
                       <TableCell className="py-2 pl-4">
@@ -339,13 +355,12 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-600">{payee.phone || '—'}</TableCell>
                       <TableCell className="py-2 text-ink-500">{payee.lastUsed}</TableCell>
                       <TableCell className="py-2 text-right">{paid ? taka(paid) : '—'}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone="success" dot>Active</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={payee.active ? 'success' : 'neutral'} dot>{payee.active ? 'Active' : 'Inactive'}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
-                        <button
-                          className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
-                          onClick={() => toast('Payee actions', { description: 'Edit · Deactivate · Delete' })}>
-                          <MoreHorizontal className="size-4" />
-                        </button>
+                        <div className="flex flex-wrap justify-end gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => setPayeeEditor({party: availableParties().find(p => p.id === payee.id)})}>Edit</Button>
+                          <Button variant="ghost" size="sm" disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')} title="Linked transaction history is retained; linked payees cannot be deactivated." onClick={() => { try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : 'Could not deactivate payee.'); } }}>Deactivate</Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -363,11 +378,9 @@ export function Expenses() {
                 <AppDateRangePicker label="Expense report date range" className="w-full sm:w-[280px]"
                   value={reportRange} onChange={setReportRange} />
               </div>
-              <Button size="sm" onClick={() => toast('Expense report refreshed')}>
-                <BarChart3 className="size-4" /> Refresh
-              </Button>
+
               <div className="flex-1" />
-              <Button variant="outline" size="sm" onClick={() => toast('Print preview opened')}>
+              <Button variant="outline" size="sm" onClick={() => printExpenses(reportExpenses, 'Expense report · ' + reportPeriod)}>
                 <Printer className="size-4" /> Print
               </Button>
             </div>
@@ -377,7 +390,7 @@ export function Expenses() {
                 {
                   title: 'By category',
                   icon: Settings2,
-                  rows: availableExpenseCategories().map((category) => ({
+                  rows: Array.from(new Set(reportExpenses.map(e => e.category))).map((category) => ({
                     label: category,
                     value: reportExpenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0)
                   })).filter((row) => row.value > 0)
@@ -416,6 +429,7 @@ export function Expenses() {
                       </div>
                     </div>
                     <div className="space-y-3">
+                      {!group.rows.length && <p className="text-xs text-ink-500">No expenses in this date range.</p>}
                       {group.rows.map((row) => (
                         <div key={row.label}>
                           <div className="mb-1 flex items-center justify-between gap-3 text-xs">
@@ -436,22 +450,40 @@ export function Expenses() {
         )}
       </div>
 
-      <BillDialog
-        mode="expense"
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        nextRef={`EXP-${String(62 + expenses.length - seedExpenses.length).padStart(6, '0')}`}
+      <BillDialog mode="expense" open={dialogOpen} expense={editing}
+        onOpenChange={open => { setDialogOpen(open); if (!open) setEditing(null); }}
+        nextRef={`EXP-${String(Math.max(61, ...expenses.map(e => Number(e.ref.replace('EXP-', '')) || 0)) + 1).padStart(6, '0')}`}
         onSavePurchase={() => undefined}
-        onSaveExpense={(expense) => {
-          setExpenses((items) => [expense, ...items]);
-          setDialogOpen(false);
-          setTab('expenses');
-          toast.success(`${expense.ref} saved`, { description: `${expense.category} · ${taka(expense.amount)}` });
-        }}
-      />
-
-      <BillDetailDialog bill={detail} onClose={() => setDetail(null)} />
+        onSaveExpense={expense => { savePreviewExpense(expense); setDialogOpen(false); setEditing(null); setTab('expenses'); resetFilters(); toast.success(`${expense.ref} saved in preview`); }}
+        onSaveCorrection={(expense, reason) => { savePreviewExpense(expense, reason); setDialogOpen(false); setEditing(null); setSelectedId(expense.id); toast.success('Expense preview corrected'); }} />
+      <BillDetailDialog bill={detail} onClose={() => setSelectedId(null)}
+        onEdit={selected && selected.recordStatus !== 'Deleted' ? () => openCorrection(selected) : undefined}
+        onPay={selected && selected.recordStatus !== 'Deleted' ? () => openCorrection(selected) : undefined}
+        onReceiptChange={selected && selected.recordStatus !== 'Deleted' ? receipt => attachPreviewExpenseReceipt(selected.id, receipt) : undefined}
+        history={audit.filter(e => e.expenseId === selectedId).map(e => `${e.action} · ${e.reason || 'New expense'} · ${new Date(e.at).toLocaleString('en-GB', {timeZone: 'Asia/Dhaka'})}`)} />
+      <Dialog open={!!categoryEditor} onOpenChange={open => !open && setCategoryEditor(null)}>
+        <DialogContent role="dialog" aria-label="Expense category editor" className="max-h-[92dvh] overflow-y-auto sm:max-w-md">
+          <DialogHeader><DialogTitle>{categoryEditor?.previous ? 'Edit category' : 'Add category'}</DialogTitle><DialogDescription>Choose a short name · খরচের ধরন</DialogDescription></DialogHeader>
+          <form onSubmit={event => { event.preventDefault(); if (!categoryEditor) return; try { if (categoryEditor.previous) renamePreviewExpenseCategory(categoryEditor.previous, categoryEditor.name); else createPreviewExpenseCategory(categoryEditor.name); refreshCategories(n => n + 1); setCategoryEditor(null); } catch(e) { setActionError(e instanceof Error ? e.message : 'Could not save category.'); } }} className="space-y-3">
+            <label className="block space-y-1 text-xs font-medium text-ink">Category name<Input autoFocus aria-label="Category name" value={categoryEditor?.name ?? ''} onChange={event => setCategoryEditor(current => current ? {...current, name: event.target.value} : null)} /></label>
+            {actionError && <p role="alert" className="text-xs text-danger">{actionError}</p>}
+            <DialogFooter><Button type="button" variant="outline" onClick={() => setCategoryEditor(null)}>Cancel</Button><Button type="submit">Save category</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <PartyEditorDialog open={!!payeeEditor} party={payeeEditor?.party} defaultRole="Payee" onClose={() => setPayeeEditor(null)} onSave={(party, openings) => {
+        if (!party.roles.includes('Payee') && !party.roles.includes('Vendor')) throw new Error('Keep the Payee or Vendor relationship for expense entries.');
+        if (payeeEditor?.party) dispatchPartyPreview({type: 'update-party', id: payeeEditor.party.id, patch: party, openings}); else dispatchPartyPreview({type: 'create-party', party, openings});
+      }} />
+      <Dialog open={!!cancelling} onOpenChange={open => !open && setCancelling(null)}>
+        <DialogContent role="dialog" aria-label="Cancel expense preview" className="max-h-[92dvh] overflow-y-auto sm:max-w-md">
+          <DialogHeader><DialogTitle>Cancel {cancelling?.ref}?</DialogTitle><DialogDescription>The original preview record stays in history. This does not refund money or reverse backend ledger entries.</DialogDescription></DialogHeader>
+          <p className="text-sm">{cancelling?.payee} · {taka(cancelling?.amount ?? 0)}</p>
+          <label className="space-y-1 text-xs font-medium text-ink">Reason · কেন বাতিল<Input aria-label="Expense cancellation reason" value={cancelReason} onChange={e => setCancelReason(e.target.value)} /></label>
+          {actionError && <p role="alert" className="text-xs text-danger">{actionError}</p>}
+          <DialogFooter><Button variant="outline" onClick={() => setCancelling(null)}>Keep expense</Button><Button onClick={() => { if (!cancelling) return; try { cancelPreviewExpense(cancelling.id, cancelReason); setCancelling(null); toast.success('Expense cancelled in preview'); } catch(e) { setActionError(e instanceof Error ? e.message : 'Cannot cancel expense.'); } }}>Confirm cancellation</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-

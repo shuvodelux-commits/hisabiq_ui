@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, ScanLine, Tag } from 'lucide-react';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
@@ -362,7 +362,7 @@ export function StockAdjustmentDialog({
           <div>
             <label className="mb-1.5 block text-[13px] font-medium text-ink">Quantity <span className="font-bn text-[11px] font-normal text-ink-400">· পরিমাণ</span></label>
             <div className="flex gap-2">
-              <Input value={quantity} onChange={(e) => { const cleaned = mode === 'Set exact stock' ? e.target.value.replace(/[^\d.-]/g, '') : e.target.value.replace(/[^\d.]/g, ''); setQuantity(cleaned); setError(''); }} inputMode="decimal" placeholder="0" className="text-right" autoFocus />
+              <Input min={mode==='Set exact stock'?Number.MIN_SAFE_INTEGER:0} value={quantity} onChange={(e) => { const cleaned = mode === 'Set exact stock' ? e.target.value.replace(/[^\d.-]/g, '') : e.target.value.replace(/[^\d.]/g, ''); setQuantity(cleaned); setError(''); }} inputMode="decimal" placeholder="0" className="text-right" autoFocus />
               <FormSelect value={selectedUnit} onChange={(e) => setUnit(e.target.value)} options={units} className="w-32 shrink-0" />
             </div>
           </div>
@@ -457,7 +457,7 @@ export function StockLotDialog({
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-[13px] font-medium text-ink">Quantity <span className="font-bn text-[11px] text-ink-400">· পরিমাণ</span><div className="mt-1.5 flex gap-2"><Input value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="text-right" /><FormSelect value={selectedUnit} onChange={(e) => setUnit(e.target.value)} options={units} className="w-28 shrink-0" /></div></label>
-            <label className="text-[13px] font-medium text-ink">Unit cost <span className="font-bn text-[11px] text-ink-400">· ক্রয় মূল্য</span><Input className="mt-1.5 text-right" value={unitCost} onChange={(e) => setUnitCost(e.target.value.replace(/[^\d.]/g, ''))} /></label>
+            <label className="text-[13px] font-medium text-ink">Unit cost <span className="font-bn text-[11px] text-ink-400">· ক্রয় মূল্য</span><Input inputMode="decimal" className="mt-1.5 text-right" value={unitCost} onChange={(e) => setUnitCost(e.target.value.replace(/[^\d.]/g, ''))} /></label>
             <label className="text-[13px] font-medium text-ink">Purchase ref. <span className="font-bn text-[11px] text-ink-400">· রেফারেন্স</span><Input className="mt-1.5" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="PUR-1049" /></label>
             {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">Batch number <span className="font-bn text-[11px] text-ink-400">· ব্যাচ</span><Input className="mt-1.5" value={batch} onChange={(e) => setBatch(e.target.value)} /></label>}
             {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">Manufacture date <span className="font-bn text-[11px] text-ink-400">· উৎপাদন</span><Input className="mt-1.5" type="date" value={manufactureDate} onChange={(e) => setManufactureDate(e.target.value)} /></label>}

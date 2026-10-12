@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react';
+import {forwardRef} from 'react';
 import type {Product} from '../../types/erp';
 import {ProductCombobox} from '../pos/ProductCombobox';
 

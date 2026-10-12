@@ -1,4 +1,4 @@
-import React,{useId,useMemo,useState,useSyncExternalStore} from 'react';
+import {useId,useMemo,useState,useSyncExternalStore} from 'react';
 import {BookOpen,FileText,MapPin,PackageMinus,Phone,Plus,Printer,Truck} from 'lucide-react';
 import {Button} from '../Button';
 import {Input} from '../Input';
@@ -85,8 +85,6 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
    setOpeningSide(null);
   }catch(error){setOpeningError(error instanceof Error?error.message:'Cannot save demo opening');}
  };
- const disabled=(label:string,explanation:string)=><Button key={label} size="sm" variant="outline" disabled title={explanation}>
-   {label}</Button>;
  return <section aria-label="Vendor workspace" className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card">
   <div className="flex flex-wrap items-start gap-3 border-b border-border p-4">
    <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={48}/>

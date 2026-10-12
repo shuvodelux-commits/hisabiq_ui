@@ -182,7 +182,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
         {mode==='taken'? <div className="space-y-3">
           {pending&&pending.unpricedBaseQty>0&&<VendorPriceForm key={selected.id} source={selected}/>}
           {canSettle?<VendorClearDuePanel key={selected.id+'-'+snapshot.revision} source={selected}
-            onClose={()=>{}} hideClose/>:
+            onClose={()=>undefined} hideClose/>:
             <p className="flex items-center gap-2 rounded-lg bg-ink-50 p-3 text-xs text-ink-600">
               <CheckCircle2 className="size-4 text-teal-600"/> This memo is settled. Use Correct to review earlier changes.</p>}
         </div>:<div className="space-y-3">
@@ -194,7 +194,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
                 onClick={()=>setGivenAction('receive-goods')}>Receive Products · মাল ফেরত নিন</Button>
             </div>
             <VendorActionDialog key={selected.id+givenAction+snapshot.revision} inline source={selected}
-              mode={givenAction} onClose={()=>{}}/>
+              mode={givenAction} onClose={()=>undefined}/>
           </div>:<p className="flex items-center gap-2 rounded-lg bg-ink-50 p-3 text-xs text-ink-600">
             <CheckCircle2 className="size-4 text-teal-600"/> This Vendor memo has no remaining due.</p>}
         </div>}

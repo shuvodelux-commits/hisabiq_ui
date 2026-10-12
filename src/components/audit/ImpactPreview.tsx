@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import type { AuditImpact } from '../../types/audit';
 import { taka } from '../../utils/currency';
@@ -18,7 +17,6 @@ function fieldLabel(field: string) {
     paid: 'Paid',
     paymentAccounts: 'Payment account',
     description: 'Description',
-    note: 'Note',
     quantity: 'Quantity',
     reference: 'Reference',
     note: 'Internal note',

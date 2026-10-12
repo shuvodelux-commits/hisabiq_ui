@@ -81,7 +81,7 @@ export function AppSelect({
 
   const onKeyboard = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (disabled) return;
-    if (event.key === 'Escape') { event.preventDefault(); setOpen(false); return; }
+    if (event.key === 'Escape' && open) { event.preventDefault(); event.stopPropagation(); setOpen(false); return; }
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       if (!open) { setActive(Math.max(0, chosen)); setOpen(true); }

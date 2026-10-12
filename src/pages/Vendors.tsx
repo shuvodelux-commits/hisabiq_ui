@@ -1,4 +1,4 @@
-import React,{useMemo,useState,useSyncExternalStore} from 'react';
+import {useMemo,useState,useSyncExternalStore} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import {ArrowLeft,ChevronRight,Search} from 'lucide-react';
 import {toast} from 'sonner';

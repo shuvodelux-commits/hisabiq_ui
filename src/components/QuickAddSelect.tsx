@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from './Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './Dialog';
@@ -41,8 +41,10 @@ export function QuickAddSelect({ label, value, options, onChange, onCreate, show
     if (options.some((option) => [trimmed, value].some((entry) => option.toLocaleLowerCase() === entry.toLocaleLowerCase()))) {
       return setError('This ' + label.toLocaleLowerCase() + ' already exists. Select it from the list.');
     }
-    onCreate(trimmed, phone.trim(), area.trim(), value);
-    close();
+    try {
+      onCreate(trimmed, phone.trim(), area.trim(), value);
+      close();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Could not create this item.'); }
   };
 
   return (

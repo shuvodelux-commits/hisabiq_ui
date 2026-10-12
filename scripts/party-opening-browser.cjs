@@ -9,6 +9,7 @@ async function main(){
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
   await page.goto('http://127.0.0.1:4201/#/app/parties?id=c1&role=Customer');
+  await page.getByLabel('Money in').first().waitFor();
   // Semantic labels are visible as text, not color alone.
   assert.ok(await page.getByLabel('Money in').count()>0);
   assert.ok(await page.getByLabel('Customer due increased').count()>0);

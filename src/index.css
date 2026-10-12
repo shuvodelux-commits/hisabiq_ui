@@ -73,3 +73,416 @@
   #party-statement-print tr { break-inside: avoid; page-break-inside: avoid; }
   #party-statement-print table { width: 100%; }
 }
+
+/* Forms stay reachable on phones, tablets and with the on-screen keyboard. */
+[data-dialog-root] { max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; }
+@media (pointer: coarse) {
+  .erp-workspace button:not([role="option"]),
+  .erp-workspace input:not([type="checkbox"]):not([type="radio"]),
+  [data-dialog-root] button,
+  [data-dialog-root] input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
+}
+
+/* The same transaction controls become compact rows on phones and tablets. */
+[data-cart-field] { display: contents; }
+@media (max-width: 1279px) {
+  [data-cart-kind] [data-cart-header] { display: none; }
+  [data-cart-kind] [data-cart-row] {
+    min-width: 0; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px 8px;
+    padding-top: 12px; padding-bottom: 12px;
+  }
+  [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-row] > :nth-child(2) { grid-column: 2 / 6; grid-row: 1; }
+  [data-cart-row] > :nth-child(3) { grid-column: 1 / 4; grid-row: 2; }
+  [data-cart-row] > :nth-child(4) { grid-column: 4 / 7; grid-row: 2; }
+  [data-cart-row] > :nth-child(5) { grid-column: 1 / 4; grid-row: 3; }
+  [data-cart-row] > :nth-child(6) { grid-column: 4 / 7; grid-row: 3; }
+  [data-cart-row="sale"] > :nth-child(7) { grid-column: 6; grid-row: 1; }
+  [data-cart-row="shared"] > :nth-child(2) { grid-column: 2 / 5; }
+  [data-cart-row="shared"] > :nth-child(7) { grid-column: 5 / 7; grid-row: 1; }
+  [data-cart-row="purchase"] > :nth-child(7) { grid-column: 1 / 7; grid-row: 4; }
+  [data-cart-row="purchase"] > :nth-child(8) { grid-column: 6; grid-row: 1; }
+  [data-cart-kind] [data-cart-row] > [data-cart-field] { display: block; min-width: 0; }
+  [data-cart-row] > [data-cart-field]::before {
+    content: attr(data-cart-field); display: block; margin-bottom: 4px;
+    font-size: 11px; font-weight: 500; color: var(--muted-foreground);
+  }
+  [data-cart-row] input, [data-cart-row] button { min-height: 44px; }
+  [data-cart-row] [data-testid="compound-quantity"], [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-row] [role="radiogroup"] { height: 44px; }
+  [data-cart-kind] [data-cart-add] { min-width: 0; grid-template-columns: 36px minmax(0, 1fr); }
+  [data-cart-add] > :nth-child(n+3) { display: none; }
+}
+
+/* Stable numeric geometry: show arrows without moving the value/caret on focus. */
+[data-numeric-input] {
+  vertical-align: middle;
+  box-sizing: border-box;
+  padding: 0 !important;
+  --numeric-step-space: 24px;
+}
+[data-numeric-input] > .numeric-input-control {
+  box-sizing: border-box;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  flex: 1 1 0% !important;
+  padding-right: calc(var(--numeric-inset, 0px) + var(--numeric-step-space)) !important;
+}
+[data-numeric-input][data-editable="false"] > .numeric-input-control {
+  padding-right: max(var(--numeric-inset, 0px), 10px) !important;
+}
+[data-numeric-input][data-stepper-size="compact"] { --numeric-step-space: 18px; }
+[data-number-stepper] {
+  right: calc(var(--numeric-inset, 0px) + 2px);
+  top: 50%;
+  width: 18px;
+  height: calc(100% - 4px);
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease;
+}
+[data-numeric-input][data-stepper-size="compact"] [data-number-stepper] { width: 14px; }
+[data-numeric-input]:hover > [data-number-stepper],
+[data-numeric-input]:focus-within > [data-number-stepper] { opacity: 1; pointer-events: auto; }
+[data-number-stepper] > button {
+  height: 50%;
+  min-height: 0 !important;
+  flex: 1 1 50%;
+  padding: 0;
+  line-height: 1;
+}
+[data-numeric-input]:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+[data-numeric-joined] [data-numeric-input] { border-width: 0; border-radius: 0; }
+[data-numeric-joined] [data-numeric-input].border-l { border-left-width: 1px; }
+[data-numeric-joined] [data-numeric-input]:focus-within { box-shadow: none; }
+.numeric-input-control[type=number] { appearance: textfield; }
+.numeric-input-control::-webkit-inner-spin-button,
+.numeric-input-control::-webkit-outer-spin-button { appearance: none; margin: 0; }
+@media (pointer: coarse) {
+  /* Preserve each field's own 32/36/44px height instead of globally forcing 48px. */
+  [data-number-stepper] { width: 20px; }
+}
+@media (max-width: 639px) {
+  /* Compact compound inputs have a full-width row on phones. */
+  [data-numeric-input][data-stepper-size="compact"] { --numeric-step-space: 26px; }
+  [data-numeric-input][data-stepper-size="compact"] [data-number-stepper] { width: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { [data-number-stepper] { transition: none; } }
+
+/* Keep both unit quantities readable when focus reveals the phone steppers. */
+@media (max-width: 639px) {
+  [data-cart-row][data-compound="true"] > :nth-child(3) { grid-column: 1 / 7; grid-row: 2; }
+  [data-cart-row][data-compound="true"] > :nth-child(4) { grid-column: 1 / 3; grid-row: 3; }
+  [data-cart-row][data-compound="true"] > :nth-child(5) { grid-column: 3 / 7; grid-row: 3; }
+  [data-cart-row="sale"][data-compound="true"] > :nth-child(6),
+  [data-cart-row="shared"][data-compound="true"] > :nth-child(6) { grid-column: 1 / 7; grid-row: 4; }
+  [data-cart-row="purchase"][data-compound="true"] > :nth-child(6) { grid-column: 1 / 4; grid-row: 4; }
+  [data-cart-row="purchase"][data-compound="true"] > :nth-child(7) { grid-column: 4 / 7; grid-row: 4; }
+}
+
+
+/* POS cart: container-aware desktop table, not the generic mobile transaction cards.
+   Breakpoints use actual available workspace/cart width, accounting for the ERP sidebar. */
+.pos-screen {
+  min-width: 0;
+  container: pos-screen / inline-size;
+}
+[data-pos-layout] { min-width: 0; }
+[data-cart-kind="sale"] {
+  min-width: 0;
+  container: pos-cart / inline-size;
+}
+[data-cart-kind="sale"] [data-cart-row],
+[data-cart-kind="sale"] [data-cart-header],
+[data-cart-kind="sale"] [data-cart-add] { min-width: 0 !important; }
+
+/* Two columns only when there is enough room for a real table beside checkout. */
+@container pos-screen (min-width: 1056px) {
+  [data-pos-layout] {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+  [data-pos-checkout] { position: sticky; top: 72px; align-self: start; }
+  [data-pos-checkout] [data-pos-customer-fields] { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The actual desktop table is kept on tablets/laptops whenever the cart itself fits. */
+@container pos-cart (min-width: 700px) {
+  [data-cart-kind="sale"] [data-cart-header],
+  [data-cart-kind="sale"] [data-cart-row],
+  [data-cart-kind="sale"] [data-cart-add] {
+    grid-template-columns: 36px minmax(130px, 1fr) minmax(158px, 168px) minmax(78px, 92px) minmax(104px, 108px) minmax(82px, 100px) 28px;
+    gap: 6px;
+  }
+  [data-cart-kind="sale"] [data-cart-header] { display: grid; }
+  [data-cart-kind="sale"] [data-cart-row] { padding-top: 6px; padding-bottom: 6px; }
+  [data-cart-kind="sale"] [data-cart-row] > * { grid-column: auto; grid-row: auto; }
+  [data-cart-kind="sale"] [data-cart-row] > [data-cart-field] { display: contents; }
+  [data-cart-kind="sale"] [data-cart-row] > [data-cart-field]::before { content: none; }
+  [data-cart-kind="sale"] [data-cart-row] input,
+  [data-cart-kind="sale"] [data-cart-row] button { min-height: 0; }
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="compound-quantity"],
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-kind="sale"] [data-cart-row] [role="radiogroup"] { height: 36px; }
+  [data-cart-kind="sale"] [data-cart-add] > :nth-child(n) { display: revert; }
+}
+
+/* Narrow POS stays a dense table-like editor:
+   product/total on the first line, editable quantity/unit/price directly below. */
+@container pos-cart (max-width: 699px) {
+  [data-cart-kind="sale"] [data-cart-header] { display: none; }
+  [data-cart-kind="sale"] [data-cart-row] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 5px 6px;
+    padding: 8px 10px;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > [data-cart-field] {
+    display: block;
+    min-width: 0;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > [data-cart-field]::before {
+    content: none;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(2) { grid-column: 2 / 9; grid-row: 1; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(3) { grid-column: 1 / 7; grid-row: 2; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) { grid-column: 7 / 10; grid-row: 2; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(5) { grid-column: 10 / 13; grid-row: 2; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(6) {
+    grid-column: 9 / 12;
+    grid-row: 1;
+    align-self: center;
+    text-align: right;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(7) {
+    grid-column: 12;
+    grid-row: 1;
+    justify-self: end;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(3)::before,
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4)::before,
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(5)::before {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--muted-foreground);
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: 500;
+  }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(3)::before { content: "Qty"; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4)::before { content: "Unit"; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(5)::before { content: "Price"; }
+  [data-cart-kind="sale"] [data-cart-row] input,
+  [data-cart-kind="sale"] [data-cart-row] button { min-height: 0; }
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="compound-quantity"],
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-kind="sale"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(7) { width: 30px; height: 34px; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) [role="radiogroup"] { min-width: 0; }
+  [data-cart-kind="sale"] [data-cart-add] {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  [data-cart-kind="sale"] [data-cart-add] > :nth-child(n + 3) { display: none; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(2) p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* On phones, don't crush compound quantities or the price-eye icon into tiny cells. */
+@container pos-cart (max-width: 519px) {
+  [data-cart-kind="sale"] [data-cart-row] {
+    grid-template-rows: auto auto auto;
+    gap: 4px 6px;
+  }
+  /* A two-column position/handle cell prevents overlap on 320px phones. */
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(1) { grid-column: 1 / 3; grid-row: 1; justify-content: flex-start; gap: 0; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(1) span { font-size: 11px; }
+  [data-cart-kind="sale"] [data-cart-row] [data-testid="pos-drag-handle"] { width: 23px; height: 30px; min-height: 0; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(2) { grid-column: 3 / 8; grid-row: 1; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(6) { grid-column: 8 / 12; grid-row: 1; font-size: 11.5px; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(3) { grid-column: 1 / -1; grid-row: 2; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) { grid-column: 1 / 6; grid-row: 3; }
+  [data-cart-kind="sale"] [data-cart-row] > :nth-child(5) { grid-column: 6 / -1; grid-row: 3; }
+}
+
+
+/* The POS-approved responsive contract also covers Purchase and its shared
+   Quotations/Online Sales editor. Never size these grids from viewport alone:
+   dialogs, sidebars, embedded purchase flows, and tablet rotation change the
+   actual cart width independently of the window width. */
+.purchase-workspace { container: purchase-workspace / inline-size; min-width: 0; }
+[data-purchase-layout] { min-width: 0; }
+[data-cart-kind="purchase"] { container: purchase-cart / inline-size; min-width: 0; }
+[data-cart-kind="shared"] { container: shared-cart / inline-size; min-width: 0; }
+[data-cart-kind="purchase"] [data-cart-header],
+[data-cart-kind="purchase"] [data-cart-row],
+[data-cart-kind="purchase"] [data-cart-add],
+[data-cart-kind="shared"] [data-cart-header],
+[data-cart-kind="shared"] [data-cart-row],
+[data-cart-kind="shared"] [data-cart-add] { min-width: 0 !important; }
+
+/* Full Purchase cart and checkout sit side by side only when the 840px
+   table and 330px checkout panel both fit inside the purchase workspace. */
+@container purchase-workspace (min-width: 1220px) {
+  [data-purchase-layout] { grid-template-columns: minmax(0, 1fr) 330px; }
+  [data-purchase-checkout] { position: sticky; top: 72px; align-self: start; }
+}
+
+/* All desktop row restoration rules are scoped to their own cart container.
+   Other pages using table/card layouts are intentionally untouched. */
+@container purchase-cart (min-width: 840px) {
+  [data-cart-kind="purchase"] [data-cart-header],
+  [data-cart-kind="purchase"] [data-cart-row],
+  [data-cart-kind="purchase"] [data-cart-add] {
+    grid-template-columns: 24px minmax(144px, 1fr) 162px 78px 105px 112px 95px 28px;
+    gap: 6px;
+  }
+  [data-cart-kind="purchase"] [data-cart-header] { display: grid; }
+  [data-cart-kind="purchase"] [data-cart-row] { padding-top: 6px; padding-bottom: 6px; }
+  [data-cart-kind="purchase"] [data-cart-row] > * { grid-column: auto; grid-row: auto; }
+  [data-cart-kind="purchase"] [data-cart-row] > [data-cart-field] { display: contents; }
+  [data-cart-kind="purchase"] [data-cart-row] > [data-cart-field]::before { content: none; }
+  [data-cart-kind="purchase"] [data-cart-row] input,
+  [data-cart-kind="purchase"] [data-cart-row] button { min-height: 0; }
+  [data-cart-kind="purchase"] [data-cart-row] [data-testid="compound-quantity"],
+  [data-cart-kind="purchase"] [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-kind="purchase"] [data-cart-row] [role="radiogroup"] { height: 36px; }
+  [data-cart-kind="purchase"] [data-cart-add] > :nth-child(n) { display: revert; }
+}
+@container shared-cart (min-width: 780px) {
+  [data-cart-kind="shared"] [data-cart-header],
+  [data-cart-kind="shared"] [data-cart-row],
+  [data-cart-kind="shared"] [data-cart-add] {
+    grid-template-columns: 34px minmax(135px, 1fr) 196px 88px 100px 90px 50px;
+    gap: 6px;
+  }
+  [data-cart-kind="shared"] [data-cart-header] { display: grid; }
+  [data-cart-kind="shared"] [data-cart-row] { padding-top: 6px; padding-bottom: 6px; }
+  [data-cart-kind="shared"] [data-cart-row] > * { grid-column: auto; grid-row: auto; }
+  [data-cart-kind="shared"] [data-cart-row] > [data-cart-field] { display: contents; }
+  [data-cart-kind="shared"] [data-cart-row] > [data-cart-field]::before { content: none; }
+  [data-cart-kind="shared"] [data-cart-row] input,
+  [data-cart-kind="shared"] [data-cart-row] button { min-height: 0; }
+  [data-cart-kind="shared"] [data-cart-row] [data-testid="compound-quantity"],
+  [data-cart-kind="shared"] [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-kind="shared"] [data-cart-row] [role="radiogroup"] { height: 36px; }
+  [data-cart-kind="shared"] [data-cart-add] > :nth-child(n) { display: revert; }
+}
+
+/* When the purchase table cannot fit, keep a terse invoice-like row. Product,
+   total and remove stay together; quantity/unit/prices are inline underneath. */
+@container purchase-cart (max-width: 839px) {
+  [data-cart-kind="purchase"] [data-cart-header] { display: none; }
+  [data-cart-kind="purchase"] [data-cart-row] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    gap: 6px;
+    align-items: center;
+    padding: 8px 10px;
+  }
+  [data-cart-kind="purchase"] [data-cart-row] > [data-cart-field] { display: block; min-width: 0; }
+  [data-cart-kind="purchase"] [data-cart-row] > [data-cart-field]::before { content: none; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(2) { grid-column: 2 / 9; grid-row: 1; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(3) { grid-column: 1 / 5; grid-row: 2; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(4) { grid-column: 5 / 7; grid-row: 2; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(5) { grid-column: 7 / 10; grid-row: 2; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(6) { grid-column: 10 / 13; grid-row: 2; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(7) {
+    grid-column: 9 / 12; grid-row: 1; text-align: right; white-space: nowrap;
+  }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(8) {
+    grid-column: 12; grid-row: 1; justify-self: end; width: 30px; height: 34px;
+  }
+  [data-cart-kind="purchase"] [data-cart-row] input,
+  [data-cart-kind="purchase"] [data-cart-row] button { min-height: 0; }
+  [data-cart-kind="purchase"] [data-cart-row] [data-testid="compound-quantity"],
+  [data-cart-kind="purchase"] [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-kind="purchase"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(n + 3):nth-child(-n + 6)::before {
+    display: block; margin-bottom: 3px; font-size: 10px; line-height: 12px;
+    color: var(--muted-foreground); font-weight: 500;
+  }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(3)::before { content: "Qty"; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(4)::before { content: "Unit"; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(5)::before { content: "Cost"; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(6)::before { content: "Lot sale"; }
+  [data-cart-kind="purchase"] [data-cart-add] {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px; padding: 8px 10px;
+  }
+  [data-cart-kind="purchase"] [data-cart-add] > :nth-child(n + 3) { display: none; }
+}
+@container purchase-cart (max-width: 619px) {
+  [data-cart-kind="purchase"] [data-cart-row] { grid-template-rows: auto auto auto; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(1) { grid-column: 1 / 3; grid-row: 1; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(2) { grid-column: 3 / 8; grid-row: 1; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(3) { grid-column: 1 / 9; grid-row: 2; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(4) { grid-column: 9 / 13; grid-row: 2; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(5) { grid-column: 1 / 7; grid-row: 3; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(6) { grid-column: 7 / 13; grid-row: 3; }
+  [data-cart-kind="purchase"] [data-cart-row] > :nth-child(7) {
+    grid-column: 8 / 12; grid-row: 1; font-size: 11.5px;
+  }
+}
+
+/* Quotes and online orders use the same responsive row hierarchy. */
+@container shared-cart (max-width: 779px) {
+  [data-cart-kind="shared"] [data-cart-header] { display: none; }
+  [data-cart-kind="shared"] [data-cart-row] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    gap: 6px;
+    align-items: center;
+    padding: 8px 10px;
+  }
+  [data-cart-kind="shared"] [data-cart-row] > [data-cart-field] { display: block; min-width: 0; }
+  [data-cart-kind="shared"] [data-cart-row] > [data-cart-field]::before { content: none; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(2) { grid-column: 2 / 8; grid-row: 1; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(3) { grid-column: 1 / 7; grid-row: 2; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(4) { grid-column: 7 / 10; grid-row: 2; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(5) { grid-column: 10 / 13; grid-row: 2; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(6) {
+    grid-column: 8 / 11; grid-row: 1; white-space: nowrap; text-align: right;
+  }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(7) {
+    grid-column: 11 / 13; grid-row: 1; justify-self: end;
+  }
+  [data-cart-kind="shared"] [data-cart-row] input,
+  [data-cart-kind="shared"] [data-cart-row] button { min-height: 0; }
+  [data-cart-kind="shared"] [data-cart-row] [data-testid="compound-quantity"],
+  [data-cart-kind="shared"] [data-cart-row] [data-testid="single-quantity"],
+  [data-cart-kind="shared"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(n + 3):nth-child(-n + 5)::before {
+    display: block; margin-bottom: 3px; font-size: 10px; line-height: 12px;
+    color: var(--muted-foreground); font-weight: 500;
+  }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(3)::before { content: "Qty"; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(4)::before { content: "Unit"; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(5)::before { content: "Price"; }
+  [data-cart-kind="shared"] [data-cart-add] {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px; padding: 8px 10px;
+  }
+  [data-cart-kind="shared"] [data-cart-add] > :nth-child(n + 3) { display: none; }
+}
+@container shared-cart (max-width: 519px) {
+  [data-cart-kind="shared"] [data-cart-row] { grid-template-rows: auto auto auto; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(1) { grid-column: 1 / 3; grid-row: 1; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(2) { grid-column: 3 / 8; grid-row: 1; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(3) { grid-column: 1 / 13; grid-row: 2; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(4) { grid-column: 1 / 6; grid-row: 3; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(5) { grid-column: 6 / 13; grid-row: 3; }
+  [data-cart-kind="shared"] [data-cart-row] > :nth-child(6) {
+    grid-column: 8 / 11; grid-row: 1; font-size: 11.5px;
+  }
+}

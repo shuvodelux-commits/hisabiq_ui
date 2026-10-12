@@ -89,7 +89,7 @@ export function TransactionDetailsDialog({
           {extras.includes('print') && <Button variant="outline" onClick={() => onPrint(transaction)}><Printer className="size-4" /> Print</Button>}
           {extras.includes('duplicate') && transaction.status !== 'Deleted' && <Button variant="outline" onClick={() => onDuplicate(transaction)}><Copy className="size-4" /> Duplicate</Button>}
           {availability.open && <Button variant="outline" onClick={() => onGoToSource(transaction)}><ExternalLink className="size-4" /> Go to source</Button>}
-          {availability.delete && transaction.status !== 'Deleted' && <Button variant="outline" onClick={() => onDelete(transaction)}>Delete</Button>}
+          {availability.delete && transaction.status !== 'Deleted' && <Button variant="outline" onClick={() => onDelete(transaction)}>Review reversal</Button>}
           {availability.edit && transaction.status !== 'Deleted' && <Button variant="outline" onClick={() => onEdit(transaction)}>Edit</Button>}
           <Button onClick={onClose}>Close</Button>
         </DialogFooter>

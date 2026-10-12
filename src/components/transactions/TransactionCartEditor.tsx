@@ -1,3 +1,4 @@
+import {NumericInput} from '../NumericInput';
 import React, {useEffect,useRef} from 'react';
 import {ArrowDown,ArrowUp,X} from 'lucide-react';
 import {ProductCombobox} from '../pos/ProductCombobox';
@@ -25,7 +26,7 @@ type Props<L extends EditableTransactionLine>={
  onCreate?:()=>void;
  locked?:boolean;
 };
-const grid='grid min-w-[930px] grid-cols-[40px_minmax(210px,1fr)_204px_124px_112px_110px_64px] items-center gap-2';
+const grid='grid min-w-0 grid-cols-[34px_minmax(160px,1fr)_165px_90px_100px_98px_54px] items-center gap-1.5';
 const input='h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
 /** Same inline add row, compact product thumbnails, themed controls and keyboard flow as POS. */
 export function TransactionCartEditor<L extends EditableTransactionLine>({mode,products,lines,onAdd,onUpdate,onRemove,onMove,onCreate,locked=false}:Props<L>){
@@ -44,8 +45,8 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
  const backToProduct=(event:React.KeyboardEvent)=>{
   if(event.key==='Enter'){event.preventDefault();searchRef.current?.focus();}
  };
- return <div data-testid={'transaction-cart-'+mode} className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
-  <div className={grid+' border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-ink-500'}>
+ return <div data-cart-kind="shared" data-testid={'transaction-cart-'+mode} className="min-w-0 overflow-x-auto rounded-xl border border-border bg-card shadow-card">
+  <div data-cart-header className={grid+' border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-ink-500'}>
    <span className="text-right">#</span><span>Product · পণ্য</span><span className="text-right">Qty · পরিমাণ</span><span>Unit</span>
    <span className="text-right">Price</span><span className="text-right">Amount</span><span className="sr-only">Actions</span>
   </div>
@@ -55,7 +56,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
     const large=product?.altUnit&&line.unit===product.altUnit.unit;
     const factor=large?product!.altUnit!.factor:1;
     const canChange=!locked;
-    return <div data-testid="transaction-cart-row" key={line.id} className={grid+' px-3 py-1.5 hover:bg-ink-50/40'}>
+    return <div data-testid="transaction-cart-row" data-cart-row="shared" data-compound={Boolean(large)} key={line.id} className={grid+' px-3 py-1.5 hover:bg-ink-50/40'}>
      <span className="text-right text-sm text-ink-400">{i+1}.</span>
      <div className="flex min-w-0 items-center gap-2.5">
       <ProductThumb size={32} src={product?.image}/>
@@ -65,7 +66,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
        </p>
       </div>
      </div>
-     <CompoundQuantityInput key={line.unit} product={product??{unit:line.unit}} unit={line.unit}
+     <div data-cart-field="Quantity · পরিমাণ"><CompoundQuantityInput key={line.unit} product={product??{unit:line.unit}} unit={line.unit}
       primary={line.quantity} secondary={line.secondaryQuantity??0} disabled={!canChange}
       primaryRef={node=>{quantityRefs.current[line.id]=node;}}
       secondaryRef={node=>{secondaryRefs.current[line.id]=node;}}
@@ -87,8 +88,8 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
        onUpdate(line.id,{quantity:Number(normalized.primaryQty||0),
         secondaryQuantity:Number(normalized.secondaryQty||0),unitFactor:factor} as Partial<L>);
        searchRef.current?.focus();
-      }}/>
-     {product?.altUnit ? <div className="flex h-9 min-w-0 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={inputPrefix+'Unit row '+(i+1)}>
+      }}/></div>
+     <div data-cart-field="Price in · একক">{product?.altUnit ? <div className="flex h-9 min-w-0 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={inputPrefix+'Unit row '+(i+1)}>
        {[product.altUnit.unit,product.unit].map(unit=><button key={unit} type="button" role="radio"
         aria-checked={line.unit===unit} disabled={!canChange} onClick={()=>{
          if(unit===line.unit)return;
@@ -102,12 +103,12 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
         }} className={'min-w-0 flex-1 rounded px-1 text-[12px] font-medium transition-colors '+(line.unit===unit?'bg-card text-ink shadow-card ring-1 ring-primary':'text-ink-500 hover:text-ink')}>
          {unit}
        </button>)}
-      </div> : <span className="px-2 text-sm text-ink-600">{line.unit}</span>}
-     <div className="relative"><span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
-      <input aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
+      </div> : <span className="px-2 text-sm text-ink-600">{line.unit}</span>}</div>
+     <div data-cart-field="Price · দাম"><div className="relative"><span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
+      <NumericInput aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
        disabled={!canChange} value={line.price} onChange={event=>onUpdate(line.id,{price:Number(event.target.value)} as Partial<L>)}
-       onKeyDown={backToProduct} className={input+' pl-5'}/></div>
-     <strong className="text-right text-[13px] text-ink">{taka(transactionLineTotal({...line,unitFactor:factor}))}</strong>
+       onKeyDown={backToProduct} className={input+' pl-5'}/></div></div>
+     <strong data-cart-field="Total · মোট" className="text-right text-[13px] text-ink">{taka(transactionLineTotal({...line,unitFactor:factor}))}</strong>
      <div className="flex items-center justify-end">
       {onMove&&!locked&&<div className="flex flex-col">
        <button type="button" aria-label={'Move row '+(i+1)+' up'} disabled={i===0} onClick={()=>onMove(line.id,-1)} className="rounded text-ink-500 hover:text-teal-700 disabled:opacity-30"><ArrowUp className="size-3.5"/></button>
@@ -118,7 +119,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
      </div>
     </div>;
    })}
-   {!locked&&<div data-testid="transaction-add-row" className={grid+' bg-teal-50/35 px-3 py-2'}>
+   {!locked&&<div data-testid="transaction-add-row" data-cart-add className={grid+' bg-teal-50/35 px-3 py-2'}>
     <span className="text-right text-sm text-teal-600">{lines.length+1}.</span>
     <ProductCombobox ref={searchRef} mode={mode} products={products} onSelect={onAdd} onCreate={onCreate?()=>onCreate():undefined} ariaLabel={productLabel}/>
     <span className="text-right text-xs text-ink-400">Qty</span><span className="text-xs text-ink-400">Unit</span>

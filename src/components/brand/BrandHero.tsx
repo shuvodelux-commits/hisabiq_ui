@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, LayoutDashboard, ShoppingCart, Package, Users, ReceiptText, PieChart } from 'lucide-react';
 import { Button } from '../Button';

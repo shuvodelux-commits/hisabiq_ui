@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import {useState} from 'react';
 import {CheckCircle2,Search,AlertTriangle,Pencil} from 'lucide-react';
 import type {ImportTarget,StagedImportRow} from '../../import/importTypes.ts';
 import {validateMappedRow} from '../../import/columnMapping.ts';

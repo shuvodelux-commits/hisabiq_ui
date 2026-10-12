@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   Calculator as CalculatorIcon,
@@ -35,11 +35,28 @@ const toneDot = {
 };
 
 export function TopBar() {
-  const { setOpen, sessionOpen } = useCashSession();
-  const { state, personal } = useTenantSettings();
-  const { pathname } = useLocation();
+  const { setOpen, sessionOpen, expectedCash } = useCashSession();
+  const { state } = useTenantSettings();
+  const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [navOpen,setNavOpen] = useState(false);
+  const [searchQuery,setSearchQuery] = useState('');
+  useEffect(() => {
+    if(pathname==='/app/search') setSearchQuery(new URLSearchParams(search).get('q') ?? '');
+  },[pathname,search]);
+  const searchInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onSearchShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        if (Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"], [data-slot="dialog-content"]')).some(dialog=>dialog.getClientRects().length)) return;
+        searchInput.current?.focus();
+        searchInput.current?.select();
+      }
+    };
+    window.addEventListener('keydown',onSearchShortcut);
+    return () => window.removeEventListener('keydown',onSearchShortcut);
+  },[]);
   const navTrigger = useRef<HTMLButtonElement>(null);
   const navDialog = useRef<HTMLDivElement>(null);
   const closeMobileNav = () => {
@@ -91,30 +108,34 @@ export function TopBar() {
   return (
     <>
     <header data-print-hide className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
-      <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
+      <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 sm:h-14 sm:flex-nowrap sm:gap-3 sm:px-4 sm:py-0 lg:px-6">
         <button ref={navTrigger} type="button" aria-label="Open ERP navigation" aria-expanded={navOpen}
           aria-controls="erp-mobile-drawer" onClick={()=>setNavOpen(true)}
           className="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-600 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500 lg:hidden">
           <Menu className="size-5"/>
         </button>
-        <Link to="/app/dashboard" className="lg:hidden" aria-label="HisabIQ">
+        <Link to="/app/dashboard" className="shrink-0 lg:hidden" aria-label="HisabIQ">
           <LogoMark size={28} />
         </Link>
 
-        <div className="relative max-w-md flex-1">
+        <form role="search" onSubmit={event => { event.preventDefault(); navigate('/app/search?q='+encodeURIComponent(searchQuery.trim())); }} className="relative order-last w-full min-w-0 basis-full sm:order-none sm:max-w-md sm:basis-auto sm:flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
           <input
+            ref={searchInput}
+            value={searchQuery}
+            onChange={event=>setSearchQuery(event.target.value)}
             type="search"
             placeholder="Search products, parties, invoices…"
             aria-label="Global search"
-            className="h-9 w-full rounded-lg border border-border bg-ink-50 pl-9 pr-14 text-sm text-ink placeholder:text-ink-400 focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+            className="h-9 w-full min-w-0 rounded-lg border border-border bg-ink-50 pl-9 pr-16 text-sm text-ink placeholder:text-ink-400 focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:pr-28" />
+          <button type="submit" aria-label="Run global search" className="absolute right-1 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-medium text-teal-700 hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-teal-500">Search</button>
           
-          <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500">
+          <kbd className="pointer-events-none absolute right-16 top-1/2 hidden -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500 sm:block">
             Ctrl K
           </kbd>
-        </div>
+        </form>
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <ThemePicker />
           {pathname !== '/app/pos' &&
           <Button size="sm" className="hidden md:inline-flex" onClick={() => navigate('/app/pos')}>
@@ -131,7 +152,7 @@ export function TopBar() {
             {sessionOpen ?
             <>
                 <span>Cash</span>
-                <span className="font-medium tabular-nums text-ink">{taka(48250)}</span>
+                <span className="font-medium tabular-nums text-ink">{taka(expectedCash)}</span>
               </> :
 
             <span>Open cash session</span>

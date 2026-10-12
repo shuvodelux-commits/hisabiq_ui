@@ -1,4 +1,3 @@
-import React from 'react';
 import {AppSelect} from '../AppSelect';
 import type {ColumnMapping,ImportTable,ImportTarget} from '../../import/importTypes.ts';
 import {fieldsFor} from '../../import/fieldSchemas.ts';

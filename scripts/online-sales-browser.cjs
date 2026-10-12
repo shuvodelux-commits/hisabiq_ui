@@ -30,7 +30,7 @@ async function main(){
   await small.press('Enter');
   await dlg.getByLabel('Order payment mode').click();
   await page.getByRole('listbox',{name:'Order payment mode options'}).getByRole('option',{name:'Delivery charge advance'}).click();
-  assert.equal(await dlg.getByLabel('Prepaid amount').inputValue(),'100');
+  assert.equal(await dlg.getByLabel('Prepaid amount', {exact:true}).inputValue(),'100');
   await dlg.getByRole('button',{name:'Save order draft'}).click();
   await dlg.waitFor({state:'hidden'});
   const row=page.locator('div.rounded-lg.border').filter({hasText:'Browser Online Buyer'}).first();
@@ -49,13 +49,13 @@ async function main(){
   await detail.getByRole('button',{name:'Delivered'}).click();
   await detail.getByRole('button',{name:'Courier COD report'}).click();
   const collected=page.getByRole('dialog',{name:'Courier action'});
-  await collected.getByLabel('Courier fee').fill('70');
+  await collected.getByLabel('Courier fee', {exact:true}).fill('70');
   await collected.getByRole('button',{name:'Save manual preview'}).click();
   await collected.waitFor({state:'hidden'});
   await detail.getByText('Pending clearing:',{exact:false}).waitFor();
   await detail.getByRole('button',{name:'Record payout'}).click();
   const payout=page.getByRole('dialog',{name:'Courier action'});
-  await payout.getByLabel('Courier payout amount').fill('400');
+  await payout.getByLabel('Courier payout amount', {exact:true}).fill('400');
   await payout.getByLabel('Courier payout reference').fill('SETTLEMENT-124');
   await payout.getByRole('button',{name:'Save manual preview'}).click();
   await payout.waitFor({state:'hidden'});

@@ -48,9 +48,9 @@ async function main() {
     const sellingUnit = product.getByRole('combobox', { name: 'Selling price unit' });
     const buying = product.getByRole('textbox', { name: 'Purchase price', exact: true });
     const buyingUnit = product.getByRole('combobox', { name: 'Purchase price unit' });
-    assert.equal(await selling.locator('xpath=..').getByRole('combobox').count(), 1,
+    assert.equal(await selling.locator('xpath=ancestor::*[@data-numeric-joined][1]').getByRole('combobox').count(), 1,
       'amount and unit must be a single connected control');
-    assert.equal(await buying.locator('xpath=..').getByRole('combobox').count(), 1,
+    assert.equal(await buying.locator('xpath=ancestor::*[@data-numeric-joined][1]').getByRole('combobox').count(), 1,
       'purchase amount and unit must share one border');
 
     await chooseUnit(sellingUnit, 'bdl');
@@ -68,11 +68,11 @@ async function main() {
     const openingUnit = product.getByRole('combobox', { name: 'Opening stock unit' });
     const minimum = product.getByRole('textbox', { name: 'Minimum stock', exact: true });
     const minimumUnit = product.getByRole('combobox', { name: 'Minimum stock unit' });
-    assert.equal(await opening.locator('xpath=..').getByRole('combobox').count(), 1,
+    assert.equal(await opening.locator('xpath=ancestor::*[@data-numeric-joined][1]').getByRole('combobox').count(), 1,
       'opening stock amount and unit share one connected border');
-    assert.equal(await minimum.locator('xpath=..').getByRole('combobox').count(), 1,
+    assert.equal(await minimum.locator('xpath=ancestor::*[@data-numeric-joined][1]').getByRole('combobox').count(), 1,
       'minimum stock amount and unit share one connected border');
-    assert.equal(await opening.locator('xpath=..').getByText('৳').count(), 0,
+    assert.equal(await opening.locator('xpath=ancestor::*[@data-numeric-joined][1]').getByText('৳').count(), 0,
       'stock quantity must not show a currency symbol');
     await chooseUnit(openingUnit, 'bdl');
     await opening.fill('2');
