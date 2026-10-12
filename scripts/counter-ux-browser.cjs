@@ -68,6 +68,18 @@ async function main(){
    assert.deepEqual(pure.paymentSplits,[]);
    assert.equal(pure.method,'Settlement');
    assert.equal((await read()).invoiceDue,after.invoiceDue-25);
+   // An ERP-wide native-input search also clears without losing focus.
+   await page.goto('http://127.0.0.1:4378/#/app/parties');
+   const partyQuery=page.locator('input[aria-label="Search parties"]');
+   await partyQuery.fill('Rahman');
+   await page.getByRole('button',{name:'Clear Search parties'}).click();
+   assert.equal(await partyQuery.inputValue(),'','shared clear button updates React search state');
+   assert.equal(await page.locator('input[aria-label="Search parties"]').count(),1,'search input stays mounted');
+   await page.goto('http://127.0.0.1:4378/#/app/pos');
+   const productQuery=page.locator('input[aria-label="Add product"]');
+   await productQuery.fill('valve');
+   await page.getByRole('button',{name:'Clear product search'}).click();
+   assert.equal(await productQuery.inputValue(),'','POS product quick clear preserves keyboard input');
    assert.deepEqual(errors,[],'no browser errors');
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no page overflow');
    await context.close();
