@@ -1,4 +1,4 @@
-import type {Product,StockLot,StockMovement,ProductKind,SerialTrackingMode,WarrantyDurationUnit,WarrantyType} from '../types/erp.ts';
+import type {Product,StockLot,StockMovement,ProductKind,WarrantyDurationUnit,WarrantyType} from '../types/erp.ts';
 import type {ImportIssue,StagedImportRow} from './importTypes.ts';
 import {toBasePrice,toBaseQuantity} from '../utils/productEntry.ts';
 import {normalizeSerials,duplicateSerials} from '../utils/productFeatures.ts';

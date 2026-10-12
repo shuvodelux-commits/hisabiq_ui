@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import type { AuditImpact } from '../../types/audit';
 import { taka } from '../../utils/currency';

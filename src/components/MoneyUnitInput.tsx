@@ -1,4 +1,3 @@
-import React from 'react';
 import { AppSelect } from './AppSelect';
 
 type MoneyUnitInputProps = {

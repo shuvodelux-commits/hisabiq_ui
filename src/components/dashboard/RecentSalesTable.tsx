@@ -1,4 +1,3 @@
-import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { StatusBadge } from '../StatusBadge';
 import { recentSales } from '../../data/sales';

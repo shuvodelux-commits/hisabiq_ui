@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MoreHorizontal, Pencil, Plus, Power, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';

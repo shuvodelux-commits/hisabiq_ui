@@ -1,4 +1,3 @@
-import React from 'react';
 import { LogoMark } from './Logo';
 import { formatNumber } from '../../utils/currency';
 import type { WarrantySnapshot } from '../../types/erp';

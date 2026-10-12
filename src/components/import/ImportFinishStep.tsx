@@ -1,4 +1,3 @@
-import React from 'react';
 import {CheckCircle2,Download} from 'lucide-react';
 import {Button} from '../Button';
 import {makeImportErrorCsv,downloadImportBlob} from '../../import/importTemplates.ts';

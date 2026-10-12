@@ -1,4 +1,3 @@
-import React from 'react';
 import { FileClock, Save, Trash2 } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import { Button } from '../Button';

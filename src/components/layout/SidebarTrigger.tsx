@@ -1,4 +1,3 @@
-import React from 'react';
 import { PanelLeft } from 'lucide-react';
 
 /** Compact trigger matching the default shadcn/sidebar SidebarTrigger pattern. */

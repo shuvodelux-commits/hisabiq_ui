@@ -1,7 +1,6 @@
-import React from 'react';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '../Dialog';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
-import {dispatchVendorPreview,getVendorPreviewSnapshot} from '../../vendor/vendorPreviewStore';
+import {dispatchVendorPreview} from '../../vendor/vendorPreviewStore';
 import type {Purchase} from '../../types/erp';
 
 type Props={open:boolean;vendorPartyId:string;vendorName:string;onClose:()=>void;onSaved:(purchase:Purchase)=>void};
@@ -16,7 +15,6 @@ export function VendorPurchaseDialog({open,vendorPartyId,vendorName,onClose,onSa
    // Ordinary owned-stock Purchase and POS borrowing are separate accounts.
    // PurchaseEditor already records this preview Purchase; only project its
    // stock once for later in-kind Vendor replacement demos.
-   const state=getVendorPreviewSnapshot();
    dispatchVendorPreview({
     type:'record-purchase-inventory',operationId:'vendor-normal-purchase:'+purchase.id,
     vendorPartyId,purchaseId:purchase.id,

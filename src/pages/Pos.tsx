@@ -1,5 +1,5 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -274,9 +274,6 @@ export function Pos() {
       choice:l.stockSource})),stockLots);
     const unresolvedShortageLine=cart.lines.find((_,i)=>allocated[i]?.needsSourceBaseQty>0);
     if (unresolvedShortageLine) {
-      const factor = unresolvedShortageLine.product.altUnit && unresolvedShortageLine.unit === unresolvedShortageLine.product.altUnit.unit
-        ? unresolvedShortageLine.product.altUnit.factor
-        : 1;
       const shortage=allocated.find(a=>a.key===unresolvedShortageLine.key)?.needsSourceBaseQty??0;
       toast.error('Choose stock shortage handling', {
         description: `${unresolvedShortageLine.product.name}: resolve ${shortage} ${unresolvedShortageLine.product.unit} shortage before completing the sale.`

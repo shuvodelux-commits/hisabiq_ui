@@ -44,7 +44,6 @@ import {
   SettingCard,
   SettingsDialog,
   SettingsField,
-  controlClass,
 } from "./ui";
 import { TeamSettings } from "./TeamSettings";
 import { DataSettings } from "./DataSettings";

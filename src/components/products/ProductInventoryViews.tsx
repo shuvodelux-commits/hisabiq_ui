@@ -1,6 +1,6 @@
 import { AppSelect } from '../AppSelect';
-import React, { useMemo } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { useMemo } from 'react';
+import { Search } from 'lucide-react';
 import { Button } from '../Button';
 import { StatusBadge, type StatusTone } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';

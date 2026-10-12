@@ -77,7 +77,6 @@ export function VendorIssueGoodsDialog({open,vendorPartyId,vendorName,onClose}:P
     <div className="space-y-2">
      {lines.map((line,i)=>{
       const product=products.get(line.productId);
-      const factor=product?.altUnit&&line.unit===product.altUnit.unit?product.altUnit.factor:1;
       const own=product?getVendorPreviewSnapshot().inventory?.[product.id]??product.stock:0;
       return <div key={line.key} className="rounded-lg border border-border bg-card p-2.5">
        <div className="mb-2 flex items-center gap-2">

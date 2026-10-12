@@ -1,4 +1,3 @@
-import React from 'react';
 import { Printer, Search, X } from 'lucide-react';
 import { AppDateRangePicker } from '../AppDateRangePicker';
 import { AppSelect } from '../AppSelect';

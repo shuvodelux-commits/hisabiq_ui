@@ -1,6 +1,6 @@
-import React,{useMemo,useState,useSyncExternalStore} from 'react';
+import {useMemo,useState,useSyncExternalStore} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Copy,FileText,Plus,Printer,Search,Trash2,ArrowUp,ArrowDown,Pencil,Check,Send, X} from 'lucide-react';
+import {Copy,FileText,Plus,Printer,Search,Trash2,Pencil,Check,Send, X} from 'lucide-react';
 import {toast} from 'sonner';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
@@ -43,10 +43,6 @@ function QuotationEditor({open,original,onClose}:{
   const unit=p.stockViewUnit===p.altUnit?.unit?p.altUnit!.unit:p.unit;
   const price=unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice;
   patch({lines:[...draft.lines,{id:'quote-line-'+(++lineCounter),productId:p.id,name:p.name,quantity:1,unit,price,unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0}]});
- };
- const changeUnit=(line:QuoteLine,unit:string)=>{
-  const p=products.find(product=>product.id===line.productId);if(!p)return;
-  patchLine(line.id,{unit,price:unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice});
  };
  const reorder=(id:string,delta:number)=>{
   const index=draft.lines.findIndex(line=>line.id===id),next=index+delta;

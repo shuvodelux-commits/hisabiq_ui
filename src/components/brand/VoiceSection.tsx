@@ -1,4 +1,3 @@
-import React from 'react';
 import { Check, X, Sparkles, TrendingUp } from 'lucide-react';
 import { LogoLockup, LogoMark } from './Logo';
 import { SectionHeader } from './SectionHeader';
