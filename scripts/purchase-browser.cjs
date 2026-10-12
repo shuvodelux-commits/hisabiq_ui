@@ -57,16 +57,16 @@ async function main() {
     await purchaseSearch.fill('bulb');
 
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).press('Enter');
-    const boxQty = page.getByLabel('Box quantity for LED Bulb 12W');
+    const boxQty = page.getByLabel('Box quantity for LED Bulb 12W', {exact:true});
     assert.equal(await boxQty.evaluate((node) => document.activeElement === node), true, 'selecting product focuses quantity');
     await boxQty.press('Enter');
-    const pcsQty = page.getByLabel('Pcs quantity for LED Bulb 12W');
+    const pcsQty = page.getByLabel('Pcs quantity for LED Bulb 12W', {exact:true});
     assert.equal(await pcsQty.evaluate((node) => document.activeElement === node), true, 'Enter moves large to small unit');
     await pcsQty.press('Enter');
-    const purchaseCostInput = page.getByLabel('Purchase cost for LED Bulb 12W');
+    const purchaseCostInput = page.getByLabel('Purchase cost for LED Bulb 12W', {exact:true});
     assert.equal(await purchaseCostInput.evaluate((node) => document.activeElement === node), true, 'Enter moves to cost');
     await purchaseCostInput.press('Enter');
-    const salePriceInput = page.getByLabel('Lot selling price for LED Bulb 12W');
+    const salePriceInput = page.getByLabel('Lot selling price for LED Bulb 12W', {exact:true});
     assert.equal(await salePriceInput.evaluate((node) => document.activeElement === node), true, 'Enter moves to lot sale price');
     await salePriceInput.press('Enter');
     assert.equal(await purchaseSearch.evaluate((node) => document.activeElement === node), true, 'Enter returns to new product');
@@ -74,7 +74,7 @@ async function main() {
     await boxQty.fill('2');
     await pcsQty.fill('5');
     await purchaseCostInput.fill('1500');
-    const lotSellInput = page.getByLabel('Lot selling price for LED Bulb 12W');
+    const lotSellInput = page.getByLabel('Lot selling price for LED Bulb 12W', {exact:true});
     if (!(await lotSellInput.isVisible())) await page.getByRole('button', { name: /Lot details for LED Bulb 12W/ }).click();
     await lotSellInput.fill('185');
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 1);
@@ -82,15 +82,15 @@ async function main() {
     assert.match(await page.locator('aside').last().innerText(), /3,750/);
     const bulbRow = page.getByTestId('purchase-cart-row').first();
     await bulbRow.getByRole('radio', { name: 'Pcs', exact: true }).click();
-    const baseOnlyQty = bulbRow.getByLabel('Quantity for LED Bulb 12W');
+    const baseOnlyQty = bulbRow.getByLabel('Quantity for LED Bulb 12W', {exact:true});
     assert.equal(await baseOnlyQty.inputValue(), '25', 'switch to Pcs shows one base quantity');
-    assert.equal(await bulbRow.getByLabel('Purchase cost for LED Bulb 12W').inputValue(), '150');
-    assert.equal(await bulbRow.getByLabel('Box quantity for LED Bulb 12W').count(), 0, 'base-unit mode only has a single quantity input');
+    assert.equal(await bulbRow.getByLabel('Purchase cost for LED Bulb 12W', {exact:true}).inputValue(), '150');
+    assert.equal(await bulbRow.getByLabel('Box quantity for LED Bulb 12W', {exact:true}).count(), 0, 'base-unit mode only has a single quantity input');
     assert.match(await page.locator('aside').last().innerText(), /3,750/, 'switch does not change purchase total');
     await bulbRow.getByRole('radio', { name: 'Box', exact: true }).click();
-    assert.equal(await bulbRow.getByLabel('Box quantity for LED Bulb 12W').inputValue(), '2');
-    assert.equal(await bulbRow.getByLabel('Pcs quantity for LED Bulb 12W').inputValue(), '5');
-    assert.equal(await bulbRow.getByLabel('Purchase cost for LED Bulb 12W').inputValue(), '1500');
+    assert.equal(await bulbRow.getByLabel('Box quantity for LED Bulb 12W', {exact:true}).inputValue(), '2');
+    assert.equal(await bulbRow.getByLabel('Pcs quantity for LED Bulb 12W', {exact:true}).inputValue(), '5');
+    assert.equal(await bulbRow.getByLabel('Purchase cost for LED Bulb 12W', {exact:true}).inputValue(), '1500');
     assert.match(await page.locator('aside').last().innerText(), /3,750/);
 
 
@@ -110,7 +110,7 @@ async function main() {
     await page.getByTestId('purchase-cart-row').last().getByRole('button', { name: /Remove PVC Pipe/ }).click();
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 4, 'remove restores cart');
     await page.keyboard.press('F8');
-    const firstPaymentInput = page.getByLabel('Paid amount 1');
+    const firstPaymentInput = page.getByLabel('Paid amount 1', {exact:true});
     assert.equal(await firstPaymentInput.evaluate((node) => document.activeElement === node), true, 'F8 focuses payment amount');
     await page.getByRole('radio', { name: '%', exact: true }).click();
     await page.getByRole('textbox', { name: 'Discount' }).fill('10');

@@ -1,3 +1,4 @@
+import {NumericInput} from '../NumericInput';
 import React from 'react';
 import { AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
@@ -168,7 +169,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                 </button>
               ))}
             </div>
-            <input
+            <NumericInput
               aria-label="Discount"
               value={props.discount}
               onChange={(event) => props.onDiscount(event.target.value.replace(/[^\d.]/g, ''))}
