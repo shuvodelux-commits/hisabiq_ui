@@ -25,9 +25,11 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
  const value=props.value;
  const searchLike=props.type==='search'||/\b(search|find|filter|lookup)\b/i.test(
   [props['aria-label'],props.placeholder,props.name,props.id].filter(Boolean).join(' '));
- const canClear=(clearable??searchLike)&&typeof value==='string'&&value.length>0&&
+ const supportsClear=(clearable??searchLike)&&
   !props.disabled&&!props.readOnly&&(!!onClear||!!props.onChange);
- if(!canClear)return <DesignInput {...props} ref={setRef}/>;
+ // Preserve a stable input node while typing or clearing, so focus never jumps.
+ if(!supportsClear)return <DesignInput {...props} ref={setRef}/>;
+ const canClear=typeof value==='string'&&value.length>0;
  const clear=()=>{
   const input=internalRef.current;
   if(onClear)onClear();
@@ -43,10 +45,10 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
  return <span className="relative block w-full min-w-0">
   <DesignInput {...props} ref={setRef}
    className={(props.className??'')+' pr-10 [&::-webkit-search-cancel-button]:hidden'}/>
-  <button type="button" aria-label={'Clear '+(props['aria-label']||props.placeholder||'input')}
+  {canClear&&<button type="button" aria-label={'Clear '+(props['aria-label']||props.placeholder||'input')}
    title="Clear" onMouseDown={event=>event.preventDefault()} onClick={clear}
    className="absolute right-1.5 top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">
    <X className="size-4" aria-hidden="true"/>
-  </button>
+  </button>}
  </span>;
 });
