@@ -571,7 +571,7 @@ export function Pos() {
         </div>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div data-pos-layout className="grid min-w-0 grid-cols-1 gap-4 min-[1600px]:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 space-y-4">
           <CartTable
             lines={cart.lines}
