@@ -26,7 +26,7 @@ type Props<L extends EditableTransactionLine>={
  onCreate?:()=>void;
  locked?:boolean;
 };
-const grid='grid min-w-[930px] grid-cols-[40px_minmax(210px,1fr)_204px_124px_112px_110px_64px] items-center gap-2';
+const grid='grid min-w-0 grid-cols-[34px_minmax(160px,1fr)_165px_90px_100px_98px_54px] items-center gap-1.5';
 const input='h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
 /** Same inline add row, compact product thumbnails, themed controls and keyboard flow as POS. */
 export function TransactionCartEditor<L extends EditableTransactionLine>({mode,products,lines,onAdd,onUpdate,onRemove,onMove,onCreate,locked=false}:Props<L>){
@@ -45,7 +45,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
  const backToProduct=(event:React.KeyboardEvent)=>{
   if(event.key==='Enter'){event.preventDefault();searchRef.current?.focus();}
  };
- return <div data-cart-kind="shared" data-testid={'transaction-cart-'+mode} className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
+ return <div data-cart-kind="shared" data-testid={'transaction-cart-'+mode} className="min-w-0 overflow-x-auto rounded-xl border border-border bg-card shadow-card">
   <div data-cart-header className={grid+' border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-ink-500'}>
    <span className="text-right">#</span><span>Product · পণ্য</span><span className="text-right">Qty · পরিমাণ</span><span>Unit</span>
    <span className="text-right">Price</span><span className="text-right">Amount</span><span className="sr-only">Actions</span>
