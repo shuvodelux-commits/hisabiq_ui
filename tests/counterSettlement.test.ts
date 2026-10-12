@@ -5,10 +5,12 @@ import {counterOpenInvoices,counterAllocateOldest} from '../src/utils/counterAll
 import type {PartySourceRecord} from '../src/types/partyLedger.ts';
 
 test('Bangladesh amount wording handles lakh, crore, decimal paisa and negative',()=>{
- assert.equal(amountInWords(0),'Zero Taka Only');
- assert.equal(amountInWords(125400.5),'One Lakh Twenty Five Thousand Four Hundred Taka and Fifty Paisa Only');
- assert.equal(amountInWords(10000000),'One Crore Taka Only');
- assert.equal(amountInWords(-12.05),'Minus Twelve Taka and Five Paisa Only');
+ assert.equal(amountInWords(0),'শূন্য টাকা মাত্র');
+ assert.equal(amountInWords(125400.5),'এক লক্ষ পঁচিশ হাজার চারশত টাকা পঞ্চাশ পয়সা মাত্র');
+ assert.equal(amountInWords(10000000),'এক কোটি টাকা মাত্র');
+ assert.equal(amountInWords(-12.05),'ঋণাত্মক বারো টাকা পাঁচ পয়সা মাত্র');
+ assert.equal(amountInWords(5521),'পাঁচ হাজার পাঁচশত একুশ টাকা মাত্র');
+ assert.equal(amountInWords(100.01),'একশত টাকা এক পয়সা মাত্র');
  assert.equal(amountInWords(Number.NaN),'');
 });
 const row=(id:string,sequence:number,kind:PartySourceRecord['kind'],debit:number,credit:number,rest:Partial<PartySourceRecord>={}):PartySourceRecord=>({
