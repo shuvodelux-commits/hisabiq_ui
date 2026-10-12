@@ -18,10 +18,11 @@ function Workspace() {
           data-density={personal.density}
           className="erp-workspace flex min-h-screen w-full bg-background"
         >
+          <a href="#erp-main" onClick={event=>{event.preventDefault();document.getElementById('erp-main')?.focus();}} className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:rounded-md focus:bg-card focus:p-3 focus:text-ink">Skip to workspace</a>
           <Sidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <TopBar />
-            <main className="flex-1 px-4 py-5 lg:px-6">
+            <main id="erp-main" tabIndex={-1} className="min-w-0 flex-1 px-3 py-4 sm:px-4 sm:py-5 lg:px-6">
               {warning && (
                 <p
                   role="alert"
