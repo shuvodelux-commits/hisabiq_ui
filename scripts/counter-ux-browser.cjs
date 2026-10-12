@@ -75,6 +75,16 @@ async function main(){
    await page.getByRole('button',{name:'Clear Search parties'}).click();
    assert.equal(await partyQuery.inputValue(),'','shared clear button updates React search state');
    assert.equal(await page.locator('input[aria-label="Search parties"]').count(),1,'search input stays mounted');
+   await page.goto('http://127.0.0.1:4378/#/app/products');
+   const inventoryQuery=page.getByRole('textbox',{name:'Search products'});
+   await inventoryQuery.fill('LED');
+   const inventoryClear=page.getByRole('button',{name:'Clear Search products'});
+   await inventoryClear.click();
+   assert.equal(await inventoryQuery.inputValue(),'','Products module search clears from custom input');
+   assert.ok(await inventoryQuery.evaluate(input=>document.activeElement===input),'focus remains in Products search after clear');
+   await page.getByRole('searchbox',{name:'Global search'}).fill('Rahman');
+   await page.getByRole('button',{name:'Clear global search'}).click();
+   assert.equal(await page.getByRole('searchbox',{name:'Global search'}).inputValue(),'','global search supports explicit quick clear');
    await page.goto('http://127.0.0.1:4378/#/app/pos');
    const productQuery=page.locator('input[aria-label="Add product"]');
    await productQuery.fill('valve');
