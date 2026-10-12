@@ -394,7 +394,7 @@ export function Reconciliation() {
             <section className={(showRows?'block':'hidden')+' min-w-0 border-b border-border lg:block lg:border-b-0 lg:border-r'}>
               <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
-                  <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                  <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                   <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" aria-label="Search statement transactions" placeholder="Search statement transaction" />
                 </div>
                 <FormSelect
