@@ -63,7 +63,7 @@ async function main() {
       assert.match(await edit.getByRole('alert').innerText(),/reason/);
       await edit.getByRole('textbox',{name:'Expense correction reason',exact:true}).fill('Correct delivery charge');
       await edit.getByRole('button',{name:'Review changes',exact:true}).click();
-      assert.match(await edit.getByRole('region',{name:'Expense correction impact'}).innerText(),/৳500.*৳600/);
+      const correctionReview=await edit.getByRole('region',{name:'Expense correction impact'}).innerText();assert.match(correctionReview,/Previous amount ৳500/);assert.match(correctionReview,/৳600/);
       await edit.getByRole('button',{name:'Confirm preview correction',exact:true}).click();
       const detail=page.getByRole('dialog',{name:'Bill details',exact:true});
       await detail.waitFor();
