@@ -33,7 +33,7 @@ type Props = {
   onCostUnitChange: (line: PurchaseCartLine, unit: string) => void;
 };
 
-const grid = 'grid min-w-[960px] grid-cols-[24px_minmax(190px,1fr)_172px_90px_112px_126px_110px_28px] items-center gap-2';
+const grid = 'grid min-w-0 grid-cols-[24px_minmax(165px,1fr)_166px_84px_105px_120px_100px_28px] items-center gap-1.5';
 const entryInput = 'h-9 w-full min-w-0 rounded-md border border-input bg-card px-2 text-right text-[13px] text-ink outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20';
 const unitOptions = unitsFor;
 
@@ -57,7 +57,7 @@ export function PurchaseCart({
 
   return (
     <>
-      <section data-cart-kind="purchase" className="rounded-xl border border-border bg-card shadow-card">
+      <section data-cart-kind="purchase" className="min-w-0 rounded-xl border border-border bg-card shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5">
           <div>
             <p className="text-[13px] font-semibold text-ink">Purchase cart <span className="font-bn text-[11px] font-normal text-ink-400">· ক্রয়ের পণ্য</span></p>
@@ -68,7 +68,7 @@ export function PurchaseCart({
           </Button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="min-w-0 overflow-x-auto">
           <div data-cart-header className={grid + ' border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400'}>
             <span className="text-right">#</span><span>Product</span><span className="text-right">Quantity</span>
             <span>Cost in</span><span className="text-right">Unit cost</span><span className="text-right">Lot sale</span><span className="text-right">Total</span><span aria-hidden="true" />
