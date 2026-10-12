@@ -51,7 +51,7 @@ async function main() {
       await form.getByRole('textbox',{name:'Expense amount',exact:true}).fill('500');
       await form.getByRole('textbox',{name:'Payment amount 1',exact:true}).fill('100');
       await form.getByRole('button',{name:'Review expense',exact:true}).click();
-      assert.match(await form.getByRole('region',{name:'Expense correction impact'}).innerText(),/Five Hundred Taka Only/);
+      assert.match(await form.getByRole('region',{name:'Expense correction impact'}).innerText(),/পাঁচশত টাকা মাত্র/);
       await form.getByRole('button',{name:'Confirm expense preview',exact:true}).click();
       await form.waitFor({state:'hidden'});
       await page.getByRole('button',{name:'Actions for EXP-000062',exact:true}).click();
