@@ -11,6 +11,7 @@ async function main(){
  try{
   await page.goto(base+'/app/quotations');
   const nav=page.getByRole('navigation',{name:'Main'});
+  await nav.getByRole('link',{name:/Dashboard/}).waitFor();
   const firstThree=await nav.locator(':scope > div > div > a, :scope > div > div > button').evaluateAll(nodes=>nodes.slice(0,3).map(node=>node.getAttribute('href')?.split('#')[1]));
   assert.deepEqual(firstThree,['/app/dashboard','/app/pos','/app/counter'],'most-used modules come first');
   await nav.getByRole('link',{name:/Counter/}).click();
