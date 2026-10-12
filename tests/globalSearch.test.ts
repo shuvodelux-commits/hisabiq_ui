@@ -19,3 +19,11 @@ test('empty search offers modules and preserves exact source destinations',()=>{
  assert.equal(searchResults(records,'INV-000241')[0].path,'/app/sales?q=INV-000241');
  assert.equal(records[2].label,'INV-000241');
 });
+
+test('Default word-prefix matches are precise; Advanced includes partial words and one-edit typos',()=>{
+ assert.deepEqual(searchResults(records,'ulb','Default'),[]);
+ assert.deepEqual(searchResults(records,'ulb','Advanced').map(item=>item.id),['p1']);
+ assert.deepEqual(searchResults(records,'balb','Advanced').map(item=>item.id),['p1']);
+ assert.equal(searchResults(records,'INV-000241','Default')[0].kind,'Invoice');
+ assert.deepEqual(searchResults(records,'zzzzzz-no-record','Advanced'),[]);
+});
