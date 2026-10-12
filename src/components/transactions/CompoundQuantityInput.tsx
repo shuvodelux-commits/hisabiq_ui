@@ -65,11 +65,11 @@ export function CompoundQuantityInput({product,unit,primary,secondary='',onPrima
    className="h-full w-0 min-w-0 flex-1 border-l border-border bg-transparent px-1.5 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
   <span className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{product.unit}</span>
  </div>;
- return <div data-testid="single-quantity" className="relative h-9 w-full min-w-0">
-  <NumericInput stepperInset={34} ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
+ return <div data-numeric-joined data-testid="single-quantity" className="flex h-9 w-full min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
+  <NumericInput ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter)}
-   className="h-full w-full min-w-0 rounded-md border border-input bg-ink-50/50 px-2 pr-12 text-right text-sm font-medium text-ink outline-none focus:border-teal-500 focus:bg-card focus:ring-2 focus:ring-teal-500/20 disabled:opacity-60"/>
-  <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10.5px] text-ink-500">{unit}</span>
+   className="h-full w-0 min-w-0 flex-1 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
+  <span className="flex shrink-0 items-center px-2 text-[10.5px] text-ink-500">{unit}</span>
  </div>;
 }
