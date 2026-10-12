@@ -53,6 +53,7 @@ const Reports = lazy(() => import('./pages/Reports').then(module => ({ default: 
 const Daybook = lazy(() => import('./pages/Daybook').then(module => ({ default: module.Daybook })));
 const Accounts = lazy(() => import('./pages/Accounts').then(module => ({ default: module.Accounts })));
 const AuditLedger = lazy(() => import('./pages/AuditLedger').then(module => ({ default: module.AuditLedger })));
+const GlobalSearch = lazy(() => import('./pages/GlobalSearch').then(module => ({ default: module.GlobalSearch })));
 
 export function App() {
   const { resolvedTheme } = useTheme();
@@ -91,6 +92,7 @@ export function App() {
           <Route path="settings" element={<Navigate to="business" replace />} />
           <Route path="settings/:section" element={<TenantSettingsPage />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="search" element={<GlobalSearch />} />
           <Route path="pos" element={<Pos />} />
           <Route path="sales" element={<Sales />} />
           <Route path="quotations" element={<Quotations />} />

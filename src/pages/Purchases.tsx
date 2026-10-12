@@ -76,7 +76,9 @@ export function Purchases() {
   const position=(p:Purchase)=>purchasePosition(p,events);
   const updated=(p:Purchase)=>{setPurchases(availablePurchases());setEvents(availablePurchaseEvents());setReturnPurchase(p);setSourceAction(null);toast.success('Purchase preview saved',{description:'Source history retained; backend posting is not connected.'});};
   const [detail, setDetail] = useState<BillDetail | null>(null);
-  const [query, setQuery] = useState('');
+  const routeQuery=searchParams.get('q') ?? '';
+  const [query, setQuery] = useState(routeQuery);
+  useEffect(()=>setQuery(routeQuery),[routeQuery]);
   const [returnQuery, setReturnQuery] = useState('');
   const [returnPurchase, setReturnPurchase] = useState<Purchase | null>(null);
   const [supplierFilter, setSupplierFilter] = useState('All suppliers');

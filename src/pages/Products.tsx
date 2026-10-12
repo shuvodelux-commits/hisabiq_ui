@@ -184,7 +184,9 @@ export function Products() {
    if(next!=='settings')params.delete('tab');return params;
   },{replace:true});};
   const [list, setList] = useState<Product[]>(availableProducts);
-  const [query, setQuery] = useState('');
+  const routeQuery=searchParams.get('q') ?? '';
+  const [query, setQuery] = useState(routeQuery);
+  useEffect(()=>setQuery(routeQuery),[routeQuery]);
   const [category, setCategory] = useState('All');
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
   const [dialogOpen, setDialogOpen] = useState(false);

@@ -643,7 +643,9 @@ export function Sales() {
   const [credits, setCredits] = useState<CustomerCredit[]>(seedCredits);
   const [drafts, setDrafts] = useState(salesDrafts);
   const [templates, setTemplates] = useState(saleTemplates);
-  const [query, setQuery] = useState('');
+  const routeQuery=searchParams.get('q') ?? '';
+  const [query, setQuery] = useState(routeQuery);
+  useEffect(()=>setQuery(routeQuery),[routeQuery]);
   const [customerFilter, setCustomerFilter] = useState('All customers');
   const [status, setStatus] = useState('All status');
   const [method, setMethod] = useState('All payments');
