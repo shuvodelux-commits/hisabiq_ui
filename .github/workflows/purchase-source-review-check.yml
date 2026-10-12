@@ -1,0 +1,18 @@
+name: Purchase Source Review Check
+on:
+  pull_request:
+    paths:
+      - 'src/pages/Purchases.tsx'
+      - 'scripts/purchase-source-review-browser.cjs'
+      - '.github/workflows/purchase-source-review-check.yml'
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/purchase-source-review-browser.cjs
