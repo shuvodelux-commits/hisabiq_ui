@@ -635,6 +635,7 @@ function CreditActionDialog({
 }
 
 export function Sales() {
+  const {text}=useUiCopy();
   const navigate = useNavigate();
   const [searchParams,setSearchParams] = useSearchParams();
   const routeTab=searchParams.get('tab');
@@ -720,10 +721,10 @@ export function Sales() {
   const creditTotal = credits.reduce((sum, item) => sum + item.balance, 0);
 
   const summary = [
-    { label: 'Sales · Oct', value: taka(salesTotal), sub: `${invoices.length} invoices` },
-    { label: 'Received · Oct', value: taka(receivedTotal), sub: 'Cash, bank & mobile' },
-    { label: 'Outstanding due', value: taka(dueTotal), sub: 'Customer receivable · বাকি', tone: 'text-danger' },
-    { label: 'Sales returns', value: taka(returnTotal), sub: `${returns.length} return memos · credit ${taka(creditTotal)}`, tone: 'text-warning' }
+    { label: text('Sales · Oct','অক্টোবরে বিক্রি'), value: taka(salesTotal), sub: text(`${invoices.length} invoices`,`${invoices.length}টি বিল`) },
+    { label: text('Received · Oct','অক্টোবরে জমা'), value: taka(receivedTotal), sub: text('Cash, bank & mobile','ক্যাশ, ব্যাংক ও মোবাইল') },
+    { label: text('Outstanding due','ক্রেতার কাছে পাওনা'), value: taka(dueTotal), sub: text('Customer receivable · বাকি','ক্রেতাদের বাকি'), tone: 'text-danger' },
+    { label: text('Sales returns','বিক্রি ফেরত'), value: taka(returnTotal), sub: text(`${returns.length} return memos · credit ${taka(creditTotal)}`,`${returns.length}টি ফেরত · জমা ${taka(creditTotal)}`), tone: 'text-warning' }
   ];
 
   const customerInvoices = invoices.filter((invoice) => invoice.party === returnCustomer);
@@ -947,11 +948,11 @@ export function Sales() {
   };
 
   const tabs: Array<[Tab, string, string]> = [
-    ['sales', 'Sales', 'Invoice list & management'],
-    ['return', 'Sales return', 'Batch return across customer invoices'],
-    ['returns', 'Return history', 'Completed sales returns'],
-    ['credits', 'Customer credit', 'Payments, settlements and refunds'],
-    ['drafts', 'Drafts & templates', 'Continue or reuse sales']
+    ['sales', text('Sales','বিক্রির তালিকা'), text('Invoice list & management','বিলের তালিকা ও হিসাব')],
+    ['return', text('Sales return','বিক্রি ফেরত'), text('Batch return across customer invoices','একসঙ্গে একাধিক বিলের পণ্য ফেরত')],
+    ['returns', text('Return history','ফেরতের ইতিহাস'), text('Completed sales returns','আগের ফেরতগুলো')],
+    ['credits', text('Customer credit','ক্রেতার অগ্রিম'), text('Payments, settlements and refunds','জমা, হিসাব মেলানো ও ফেরত')],
+    ['drafts', text('Drafts & templates','খসড়া ও নমুনা'), text('Continue or reuse sales','আগের খসড়া থেকে বিক্রি করুন')]
   ];
 
   return (
@@ -964,10 +965,10 @@ export function Sales() {
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
-              <BookOpen className="size-4" /> Customer ledger
+              <BookOpen className="size-4" /> {text('Customer ledger','ক্রেতার খাতা')}
             </Button>
             <Button size="sm" onClick={() => navigate('/app/pos')}>
-              <Plus className="size-4" /> New sale
+              <Plus className="size-4" /> {text('New sale','নতুন বিক্রি')}
             </Button>
           </>
         }
@@ -1011,7 +1012,7 @@ export function Sales() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   className="pl-8"
-                  placeholder="Search invoice, customer, phone or product"
+                  placeholder={text("Search invoice, customer, phone or product","বিল, ক্রেতা, ফোন বা পণ্য খুঁজুন")}
                   aria-label="Search sales"
                 />
               </div>
@@ -1019,37 +1020,37 @@ export function Sales() {
                 className="w-full lg:w-44"
                 value={customerFilter}
                 onChange={(event) => setCustomerFilter(event.target.value)}
-                options={['All customers', ...customerNames]}
+                options={[{value:'All customers',label:text('All customers','সব ক্রেতা')},...customerNames]}
               />
               <FormSelect
                 className="w-full lg:w-36"
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
-                options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned']}
+                options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':v==='Due'?'বাকি':v==='Part returned'?'আংশিক ফেরত':'ফেরত')}))}
               />
               <FormSelect
                 className="w-full lg:w-40"
                 value={method}
                 onChange={(event) => setMethod(event.target.value)}
-                options={['All payments', ...paymentMethods]}
+                options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
               />
               <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
               <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-sales.csv', ['Invoice','Date','Customer','Phone','Items','Total','Paid','Due','Payment','Status'], filtered.map(invoice => [invoice.invoice,invoice.date,invoice.party,invoice.phone ?? '',invoice.lines.map(line => line.name+' · '+invoiceQty(line)).join('; '),invoice.total,invoice.paid,invoice.due,invoice.payments.map(p => p.method).join(' + ') || invoice.method,invoice.status]))}>
-                <ArrowDownToLine className="size-4" /> Export
+                <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
               </Button>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">Invoice</TableHead>}
+                  {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">{text('Invoice','বিল')}</TableHead>}
                   {visibleSalesColumns.customer && <TableHead className="h-9 text-xs">Customer</TableHead>}
                   {visibleSalesColumns.items && <TableHead className="h-9 text-xs">Items</TableHead>}
-                  {visibleSalesColumns.total && <TableHead className="h-9 text-right text-xs">Total</TableHead>}
-                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title="Invoice total minus cost of goods sold">Profit</TableHead>}
-                  {visibleSalesColumns.paid && <TableHead className="h-9 text-right text-xs">Paid</TableHead>}
-                  {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">Due</TableHead>}
-                  {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">Payment</TableHead>}
+                  {visibleSalesColumns.total && <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>}
+                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title="Invoice total minus cost of goods sold">{text('Profit','লাভ')}</TableHead>}
+                  {visibleSalesColumns.paid && <TableHead className="h-9 text-right text-xs">{text('Paid','জমা')}</TableHead>}
+                  {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">{text('Due','বাকি')}</TableHead>}
+                  {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">{text('Payment','মাধ্যম')}</TableHead>}
                   {visibleSalesColumns.status && <TableHead className="h-9 text-xs">Status</TableHead>}
                   <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
                 </TableRow>
@@ -1069,11 +1070,11 @@ export function Sales() {
                           {invoice.party}
                         </button>
                       ) : <p className="font-medium text-ink">{invoice.party}</p>}
-                      <p className="text-[11px] text-ink-400">{invoice.phone ?? 'No phone'}</p>
+                      <p className="text-[11px] text-ink-400">{invoice.phone ?? text('No phone','ফোন নেই')}</p>
                     </TableCell>}
                     {visibleSalesColumns.items && <TableCell className="max-w-[270px] py-2 text-ink-600">
                       <span className="block truncate">{invoice.lines.map((line) => line.name).join(', ')}</span>
-                      <span className="text-[11px] text-ink-400">{invoice.items} line{invoice.items === 1 ? '' : 's'}</span>
+                      <span className="text-[11px] text-ink-400">{text(`${invoice.items} line${invoice.items === 1 ? '' : 's'}`,`${invoice.items}টি পণ্য`)}</span>
                     </TableCell>}
                     {visibleSalesColumns.total && <TableCell className="py-2 text-right font-medium">{taka(invoice.total)}</TableCell>}
                     {visibleSalesColumns.profit && <TableCell className={`py-2 text-right font-medium ${invoiceProfit(invoice) < 0 ? 'text-danger' : 'text-success'}`}>
@@ -1081,7 +1082,7 @@ export function Sales() {
                     </TableCell>}
                     {visibleSalesColumns.paid && <TableCell className="py-2 text-right text-ink-600">{taka(invoice.paid)}</TableCell>}
                     {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-helper'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
-                    {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? 'Multiple' : invoice.method}</TableCell>}
+                    {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? text('Multiple','একাধিক মাধ্যম') : text(invoice.method,invoice.method==='Cash'?'ক্যাশ':invoice.method==='Bank'?'ব্যাংক':invoice.method)}</TableCell>}
                     {visibleSalesColumns.status && <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>}
                     <TableCell className="py-2 pr-4 text-right">
                       <InvoiceActions
@@ -1098,15 +1099,15 @@ export function Sales() {
 
             {filtered.length === 0 && (
               <div className="px-4 py-10 text-center">
-                <p className="font-medium text-ink">No sales match</p>
-                <p className="mt-1 text-sm text-ink-500">Try another invoice, customer, phone or filter.</p>
-                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}>Clear filters</Button>
+                <p className="font-medium text-ink">{text('No sales match','কোনো বিক্রি মেলেনি')}</p>
+                <p className="mt-1 text-sm text-ink-500">{text('Try another invoice, customer, phone or filter.','অন্য বিল, নাম, ফোন বা ফিল্টার দিয়ে খুঁজুন।')}</p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
               </div>
             )}
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
-              <span>Showing {filtered.length} of {invoices.length} invoices</span>
-              <span>Click a row to view invoice details</span>
+              <span>{text(`Showing ${filtered.length} of ${invoices.length} invoices`,`মোট ${invoices.length}টি বিলের মধ্যে ${filtered.length}টি দেখাচ্ছে`)}</span>
+              <span>{text('Click a row to view invoice details','বিস্তারিত দেখতে বিলের লাইনে চাপুন')}</span>
             </div>
           </>
         )}
@@ -1120,8 +1121,8 @@ export function Sales() {
                     <UserRound className="size-4" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-ink">Choose customer</p>
-                    <p className="text-xs text-ink-500">Select a customer to load invoices that can be returned together.</p>
+                    <p className="text-sm font-semibold text-ink">{text('Choose customer','ক্রেতা বাছুন')}</p>
+                    <p className="text-xs text-ink-500">{text('Select a customer to load invoices that can be returned together.','ক্রেতা বাছলে ফেরতযোগ্য বিলগুলো দেখা যাবে।')}</p>
                   </div>
                 </div>
                 <FormSelect
