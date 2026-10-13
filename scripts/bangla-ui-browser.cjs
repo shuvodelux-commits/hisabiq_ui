@@ -47,7 +47,8 @@ async function main() {
             'bilingual heading keeps Bangla helper');
         }
         await page.goto('http://127.0.0.1:4386/#/app/counter');
-        await page.getByRole('button', { name: isBangla ? /ক্রেতার টাকা নিন/ : /Customer Receive/ }).waitFor();
+        await page.getByRole('group', { name: 'Counter transaction type' })
+          .getByRole('button', { name: isBangla ? /ক্রেতার টাকা নিন/ : /Customer Receive/ }).waitFor();
         assert.deepEqual(errors, [], language + ' ' + width + 'px page errors');
         await context.close();
         console.log('Bangla UX ' + language + ' @ ' + width + 'px passed');
