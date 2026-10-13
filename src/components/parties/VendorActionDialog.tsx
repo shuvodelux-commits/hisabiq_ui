@@ -85,7 +85,7 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
  const isReadOnly=mode==='details';
  const title=mode==='details'?'Vendor source details':mode==='quote'?'Set Price · দাম ঠিক করুন':
   mode==='pay'?'Pay Money · টাকা দিন':mode==='return'?'Return Products · পণ্য ফেরত':
-  mode==='receive-money'?'Receive Money · টাকা নিন':'Receive Products · মাল ফেরত নিন';
+  mode==='receive-money'?'Receive Money · টাকা নিন':'Receive Products · পণ্য ফেরত নিন';
  const body=<>
    {!inline&&<DialogHeader>
     <DialogTitle>{title}</DialogTitle>
