@@ -89,7 +89,7 @@ export function LedgerView({
         <div className="flex flex-wrap items-end justify-between gap-2 xl:justify-end">
           <div className="mr-2 text-right"><p className="text-[10.5px] text-ink-400">{text(dateView === 'transaction' ? 'Transaction Date' : 'Created Date',dateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</p><p className="text-sm font-semibold text-ink">{text('Balance','জের')} {closing < 0 ? '−' : ''}{taka(Math.abs(closing))}</p></div>
           <Button variant="outline" size="sm" onClick={() => { downloadCsv(account.name, rows); toast.success(text('Ledger exported','খাতার হিসাব ডাউনলোড হয়েছে')); }}><ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}</Button>
-          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
+          <Button variant="outline" size="sm" onClick={printLedger}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
         </div>
       </div>
 
@@ -136,7 +136,7 @@ export function LedgerView({
             <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Credit','ক্রেডিট')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.credit ? taka(selected.credit) : '—'}</p></div>
             <div className="rounded-lg bg-ink-50 p-3 sm:col-span-2"><p className="text-[10.5px] text-ink-400">{text('Details','বিবরণ')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.description}</p><p className="mt-1 text-[10.5px] text-ink-400">{selected.postingId}</p></div>
           </div>}
-          <DialogFooter><Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button><Button onClick={() => setSelected(null)}>{text('Close','বন্ধ করুন')}</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={printLedger}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button><Button onClick={() => setSelected(null)}>{text('Close','বন্ধ করুন')}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
