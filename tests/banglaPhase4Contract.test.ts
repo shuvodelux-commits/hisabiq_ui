@@ -34,7 +34,7 @@ test('Party statement CSV still serializes unchanged financial values and ledger
 test('Bangla strings never replace persisted filter or correction identifiers',()=>{
  const audit=file('src/components/audit/AuditFilters.tsx'),edit=file('src/components/audit/AuditEditDialog.tsx');
  assert.match(audit,/value:'All sources',label:text/);
- assert.match(audit,/value:'All status',label:text/);
+ assert.match(audit,/options=\{\['All status', 'Posted', 'Deleted'\]\.map\(v=>\(\{value:v,label:text/);
  assert.match(edit,/applyCorrection\(command, state\)/);
  assert.match(edit,/validateCorrection\(command, state\)/);
 });
