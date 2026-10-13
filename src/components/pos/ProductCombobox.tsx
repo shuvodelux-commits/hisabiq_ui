@@ -9,6 +9,7 @@ import { formatStock, stockStatus, unitsFor } from '../../utils/units';
 import { taka } from '../../utils/currency';
 import type { Product } from '../../types/erp';
 import { activeOfferFor, effectivePriceForUnit, productStockBreakdown } from '../../utils/productFeatures';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 export type ProductPickerMode = 'sale' | 'purchase' | 'quotation' | 'online';
 type ProductComboboxProps = {
@@ -36,6 +37,7 @@ export const ProductCombobox = forwardRef<HTMLInputElement, ProductComboboxProps
 { onSelect, products: suppliedProducts, mode = 'sale', onCreate, ariaLabel, disabled = false },
 ref)
 {
+  const {text} = useUiCopy();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -240,8 +242,8 @@ ref)
               </li>
             );
           })}
-          {results.length === 0 && <li className="px-3 py-3 text-xs text-ink-500">No matching products. {onCreate ? 'Use Create new product below.' : 'Try another search.'}</li>}
-          {onCreate && <li><button type="button" onMouseDown={event => event.preventDefault()} onClick={() => {setOpen(false);onCreate(query.trim());}} className="mt-1 flex w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm font-medium text-teal-700 hover:bg-teal-50"><Plus className="size-4"/>Create new product {query.trim() ? '· '+query.trim() : ''}</button></li>}
+          {results.length === 0 && <li className="px-3 py-3 text-xs text-ink-500">{text('No matching products.','কোনো পণ্য পাওয়া যায়নি।')} {onCreate ? text('Use Create new product below.','নিচ থেকে নতুন পণ্য যোগ করুন।') : text('Try another search.','অন্য নামে খুঁজুন।')}</li>}
+          {onCreate && <li><button type="button" onMouseDown={event => event.preventDefault()} onClick={() => {setOpen(false);onCreate(query.trim());}} className="mt-1 flex w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm font-medium text-teal-700 hover:bg-teal-50"><Plus className="size-4"/>{text('Create new product','নতুন পণ্য যোগ করুন')} {query.trim() ? '· '+query.trim() : ''}</button></li>}
         </ul>,
         document.body
       )
@@ -258,7 +260,7 @@ ref)
         aria-activedescendant={open && results[active] ? 'pos-product-option-' + results[active].id : undefined}
         aria-controls="pos-product-list"
         aria-autocomplete="list"
-        aria-label={ariaLabel ?? 'Add product'}
+        aria-label={ariaLabel ?? text('Add product','পণ্য যোগ করুন')}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -267,9 +269,9 @@ ref)
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        placeholder="Add product… name, SKU or বাংলা"
+        placeholder={text("Add product… name, SKU or বাংলা","পণ্য খুঁজুন বা যোগ করুন… নাম, SKU বা বাংলা")}
         className={`h-10 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${query ? 'pr-20' : 'pr-12'}`} />
-      {query&&<button type="button" aria-label="Clear product search" title="Clear product search"
+      {query&&<button type="button" aria-label={text("Clear product search","পণ্যের খোঁজ খালি করুন")} title={text("Clear product search","পণ্যের খোঁজ খালি করুন")}
         onMouseDown={event=>event.preventDefault()}
         onClick={()=>{setQuery('');setActive(0);setOpen(true);inputRef.current?.focus();}}
         className="absolute right-11 top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-400 hover:bg-ink-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-teal-500/30">
