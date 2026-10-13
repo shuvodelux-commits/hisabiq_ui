@@ -26,6 +26,7 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { useUiCopy } from '../i18n/useUiCopy';
+import type {UiLanguage} from '../i18n/uiCopy';
 import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
@@ -36,14 +37,14 @@ import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInv
 import { taka } from '../utils/currency';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
 import { downloadReport, printReport } from '../utils/reportOutput';
-const printInvoice = (invoice: SalesInvoice) => {
+const printInvoice = (invoice: SalesInvoice,language:UiLanguage='English + Bangla') => {
   const view = window.open('', '_blank');
   if (!view) { toast.error('Allow the print popup and try again.'); return; }
   view.opener = null;
-  void import('../components/brand/printReceipt').then(({printReceipt}) => printReceipt(invoiceReceipt(invoice), view))
+  void import('../components/brand/printReceipt').then(({printReceipt}) => printReceipt(invoiceReceipt(invoice,language), view))
     .catch(() => { view.close(); toast.error('Could not open the print document. Try again.'); });
 };
-const printReturn = (item: SalesReturn) => { if (!printReport(returnDocument(item))) toast.error('Allow the print popup and try again.'); };
+const printReturn = (item: SalesReturn,language:UiLanguage='English + Bangla') => { if (!printReport(returnDocument(item,language))) toast.error('Allow the print popup and try again.'); };
 
 type Tab = 'sales' | 'return' | 'returns' | 'credits' | 'drafts';
 
@@ -166,6 +167,7 @@ function InvoiceActions({
   onReturn: () => void;
 }) {
   const navigate = useNavigate();
+  const {language}=useUiCopy();
   const itemClass = 'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
 
   return (
@@ -211,7 +213,7 @@ function InvoiceActions({
               <UserRound className="size-4 text-ink-400" /> Customer ledger
             </button>
           )}
-          <button className={itemClass} onClick={() => { close(); printInvoice(invoice); }}>
+          <button className={itemClass} onClick={() => { close(); printInvoice(invoice,language); }}>
             <Printer className="size-4 text-ink-400" /> Print
           </button>
         </div>
@@ -231,7 +233,7 @@ function InvoiceDialog({
   onPayment: (invoice: SalesInvoice) => void;
   onReturn: (invoice: SalesInvoice) => void;
 }) {
-  const {text,word}=useUiCopy();
+  const {text,word,language}=useUiCopy();
   const navigate = useNavigate();
   return (
     <Dialog open={!!invoice} onOpenChange={(open) => !open && onClose()}>
@@ -313,7 +315,7 @@ function InvoiceDialog({
               </div>
 
               <div className="rounded-xl bg-ink-50 py-4">
-                <ReceiptPreview {...invoiceReceipt(invoice)} />
+                <ReceiptPreview {...invoiceReceipt(invoice,language)} />
               </div>
             </div>
 
@@ -325,7 +327,7 @@ function InvoiceDialog({
                   <BookOpen className="size-4" /> {text('Ledger','খাতা')}
                 </Button>
               )}
-              <Button variant="outline" onClick={() => printInvoice(invoice)}>
+              <Button variant="outline" onClick={() => printInvoice(invoice,language)}>
                 <Printer className="size-4" /> {text('Print','প্রিন্ট')}
               </Button>
               <Button variant="outline" onClick={() => navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`)}>
@@ -635,7 +637,7 @@ function CreditActionDialog({
 }
 
 export function Sales() {
-  const {text}=useUiCopy();
+  const {text,language}=useUiCopy();
   const navigate = useNavigate();
   const [searchParams,setSearchParams] = useSearchParams();
   const routeTab=searchParams.get('tab');
@@ -1355,7 +1357,7 @@ export function Sales() {
                           <button onClick={() => { close(); setReturnDetail(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <FileText className="size-4 text-ink-400" /> View return
                           </button>
-                          <button onClick={() => { close(); printReturn(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                          <button onClick={() => { close(); printReturn(item,language); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <Printer className="size-4 text-ink-400" /> Print
                           </button>
                           <button onClick={() => { close(); navigate('/app/parties'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
@@ -1621,8 +1623,8 @@ export function Sales() {
       <Dialog open={!!returnDetail} onOpenChange={open => !open && setReturnDetail(null)}>
         <DialogContent role="dialog" aria-label="Sales return details" className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
           <DialogHeader><DialogTitle>{returnDetail?.id}</DialogTitle><DialogDescription>Return source preview · no new refund or stock movement.</DialogDescription></DialogHeader>
-          {returnDetail && <dl className="space-y-2 text-sm">{returnDocument(returnDetail).rows.map(([label,value]) => <div key={String(label)} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="max-w-full break-words text-ink">{value}</dd></div>)}</dl>}
-          <DialogFooter><Button variant="outline" onClick={() => setReturnDetail(null)}>Close</Button><Button onClick={() => returnDetail && printReturn(returnDetail)}>Print return</Button></DialogFooter>
+          {returnDetail && <dl className="space-y-2 text-sm">{returnDocument(returnDetail,language).rows.map(([label,value]) => <div key={String(label)} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="max-w-full break-words text-ink">{value}</dd></div>)}</dl>}
+          <DialogFooter><Button variant="outline" onClick={() => setReturnDetail(null)}>Close</Button><Button onClick={() => returnDetail && printReturn(returnDetail,language)}>Print return</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
