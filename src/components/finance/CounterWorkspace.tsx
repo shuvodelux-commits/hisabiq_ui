@@ -93,33 +93,33 @@ export function CounterWorkspace({accounts,setAccounts}:{
  };
  const validate=()=>{
   if(!Number.isFinite(total)||total<0||!Number.isSafeInteger(Math.round(total*100))||Math.abs(total-money(total))>0.000001)
-   return 'Enter a valid amount with up to two decimal places.';
+   return text('Enter a valid amount with up to two decimal places.','সঠিক টাকার পরিমাণ দিন। দশমিকের পরে সর্বোচ্চ দুই ঘর লিখুন।');
   const isParty=type==='Customer Receive'||type==='Supplier Pay';
   if(discountInput.trim()&&!/^\d+(?:\.\d{1,2})?$/.test(discountInput.trim()))
-   return 'Discount / settlement must be a nonnegative amount with up to two decimals.';
-  if(isParty&&discount>0&&!discountReason.trim())return 'Enter a reason for the discount / settlement.';
-  if(!isParty&&total<=0)return 'Enter a positive transaction amount.';
-  if(isParty&&dueReduction<=0)return 'Enter money received/paid or a discount / settlement amount.';
+   return text('Discount / settlement must be a nonnegative amount with up to two decimals.','ছাড় বা সমন্বয় ঋণাত্মক হতে পারবে না। দশমিকের পরে সর্বোচ্চ দুই ঘর দিন।');
+  if(isParty&&discount>0&&!discountReason.trim())return text('Enter a reason for the discount / settlement.','ছাড় বা সমন্বয়ের কারণ লিখুন।');
+  if(!isParty&&total<=0)return text('Enter a positive transaction amount.','শূন্যের বেশি টাকার পরিমাণ দিন।');
+  if(isParty&&dueReduction<=0)return text('Enter money received/paid or a discount / settlement amount.','টাকা বা ছাড়ের পরিমাণ দিন।');
   if(type==='Bank Transfer'){
-   if(!from||!to||from===to)return 'Choose two different active money accounts.';
-   if(!accounts.find(a=>a.id===from&&a.status==='Active')||!accounts.find(a=>a.id===to&&a.status==='Active'))return 'Account is no longer active.';
+   if(!from||!to||from===to)return text('Choose two different active money accounts.','টাকা পাঠানো ও নেওয়ার জন্য আলাদা দুটি চালু হিসাব বাছুন।');
+   if(!accounts.find(a=>a.id===from&&a.status==='Active')||!accounts.find(a=>a.id===to&&a.status==='Active'))return text('Account is no longer active.','এই হিসাবটি এখন চালু নেই।');
    return '';
   }
-  if(type==='Expense'&&!expenseCategory.trim())return 'Select an expense category.';
-  if(type!=='Expense'&&!selected)return 'Select a customer or supplier.';
+  if(type==='Expense'&&!expenseCategory.trim())return text('Select an expense category.','খরচের ধরন বাছুন।');
+  if(type!=='Expense'&&!selected)return text('Select a customer or supplier.','ক্রেতা বা সরবরাহকারী বাছুন।');
   if(effectiveRows.some(row=>row.amount.trim()!==''&&!validMoney(row.amount)))
-   return 'Each entered payment amount must be positive with up to two decimals.';
-  if(total>0&&!splits.length)return 'Add a payment account for the cash amount.';
-  if(new Set(splits.map(s=>s.id)).size!==splits.length)return 'Duplicate payment source row.';
-  if(splits.some(s=>!accountOptions(s.method).some(a=>a.id===s.accountId)))return 'Choose a valid active account for every payment.';
+   return text('Each entered payment amount must be positive with up to two decimals.','প্রতিটি পেমেন্টের টাকা শূন্যের বেশি হতে হবে, সর্বোচ্চ দুই দশমিক ঘরসহ।');
+  if(total>0&&!splits.length)return text('Add a payment account for the cash amount.','টাকা নেওয়া বা দেওয়ার হিসাব বাছুন।');
+  if(new Set(splits.map(s=>s.id)).size!==splits.length)return text('Duplicate payment source row.','একই পেমেন্টের সারি দুবার যোগ হয়েছে।');
+  if(splits.some(s=>!accountOptions(s.method).some(a=>a.id===s.accountId)))return text('Choose a valid active account for every payment.','প্রতিটি পেমেন্টের জন্য চালু হিসাব বাছুন।');
   if(isParty&&dueReduction>money(maxDue)+0.001)
-   return chosen?'Cash plus settlement exceeds the selected invoice due.':'Cash plus settlement exceeds outstanding due. Record an advance separately.';
+   return chosen?text('Cash plus settlement exceeds the selected invoice due.','টাকা ও ছাড় মিলে বাছা বিলের বাকির চেয়ে বেশি।'):text('Cash plus settlement exceeds outstanding due. Record an advance separately.','টাকা ও ছাড় মিলে মোট বাকির চেয়ে বেশি। অগ্রিম টাকা আলাদা করে লিখুন।');
   return '';
  };
  const beginReview=()=>{const message=validate();if(message){setError(message);return;}setError('');setReviewRevision(state.revision);setReview(true);};
  const confirm=()=>{
   if(busy.current)return;
-  if(reviewRevision!==getPartyPreviewSnapshot().revision){setReview(false);setError('Party ledger changed. Please review the latest balance.');return;}
+  if(reviewRevision!==getPartyPreviewSnapshot().revision){setReview(false);setError(text('Party ledger changed. Please review the latest balance.','ক্রেতা বা সরবরাহকারীর হিসাব বদলেছে। নতুন জের দেখে আবার যাচাই করুন।'));return;}
   const message=validate();if(message){setReview(false);setError(message);return;}
   busy.current=true;
   try{
@@ -137,10 +137,10 @@ export function CounterWorkspace({accounts,setAccounts}:{
     return adjustment?{...account,balance:money(account.balance+adjustment),lastActivity:'Just now'}:account;
    }));
    setReview(false);setSubmitted(true);setError('');
-   toast.success(names[type]+' recorded in preview',{description:taka(total)+(selected?' · '+selected.name:'')});
+   toast.success(text(names[type]+' recorded in preview',banglaActions[type]+' · প্রিভিউতে লেখা হয়েছে'),{description:taka(total)+(selected?' · '+selected.name:'')});
    setRows([]);setAmount('');setDiscountInput('');setDiscountReason('');
    setNote('');setAllocation('');
-  }catch(e){setError(e instanceof Error?e.message:'Could not record this transaction.');setReview(false);}
+  }catch(e){setError(e instanceof Error?e.message:text('Could not record this transaction.','এই লেনদেন লেখা যায়নি।'));setReview(false);}
   finally{busy.current=false;}
  };
  const highlight=(value:number)=>value===0?'text-ink':payerRole==='Supplier'?(value<0?'text-danger':'text-success'):(value>0?'text-danger':'text-success');
@@ -159,28 +159,28 @@ export function CounterWorkspace({accounts,setAccounts}:{
      <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?word('findCustomer'):word('findSupplier')}</label>
      <div className="relative">
       <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-2.5 z-10 size-4 text-ink-400"/>
-      <Input className="pl-9" aria-label={type==='Customer Receive'?'Search customer':'Search supplier'} value={search}
+      <Input className="pl-9" aria-label={type==='Customer Receive'?text('Search customer','ক্রেতা খুঁজুন'):text('Search supplier','সরবরাহকারী খুঁজুন')} value={search}
        placeholder={text("Search name, phone or area","নাম, ফোন বা এলাকা খুঁজুন")} onFocus={()=>setSearching(true)}
        onClear={clearParty}
        onChange={e=>{if(partyId){setRows([]);setDiscountInput('');setDiscountReason('');}
         setSearch(e.target.value);setPartyId('');setAllocation('');setSearching(true);setReview(false);}}
        onKeyDown={e=>{if(e.key==='Escape')setSearching(false);if(e.key==='Enter'&&filtered[0]){e.preventDefault();selectParty(filtered[0]);}}}/>
      </div>
-     {searching&&<div role="listbox" aria-label="Matching parties" className="mt-1 max-h-52 overflow-auto rounded-lg border border-border bg-popover p-1 shadow-card">
+     {searching&&<div role="listbox" aria-label={text("Matching parties","মিলে যাওয়া নাম")} className="mt-1 max-h-52 overflow-auto rounded-lg border border-border bg-popover p-1 shadow-card">
       {filtered.length?filtered.map(p=><button type="button" key={p.id} role="option" aria-selected={p.id===partyId}
        onMouseDown={e=>e.preventDefault()} onClick={()=>selectParty(p)}
        className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left hover:bg-sidebar-accent focus-visible:bg-sidebar-accent">
        <span className="min-w-0"><span className="block truncate text-sm font-medium">{p.name}</span><span className="block text-xs text-ink-500">{p.phone} · {p.area}</span></span>
        <ArrowRight className="size-4 shrink-0 text-ink-400"/>
-      </button>):<p className="p-3 text-xs text-ink-500">No matching parties</p>}
+      </button>):<p className="p-3 text-xs text-ink-500">{text("No matching parties","কোনো নাম মেলেনি")}</p>}
      </div>}
      {selected&&settlement&&<div className="mt-3 rounded-lg border border-border bg-ink-50/60 p-3" aria-live="polite">
       <div className="flex flex-wrap items-start justify-between gap-3">
-       <div><p className="text-[11px] text-ink-500">Selected {payerRole.toLowerCase()}</p><p className="font-semibold">{selected.name}</p>
+       <div><p className="text-[11px] text-ink-500">{text('Selected '+payerRole.toLowerCase(),payerRole==='Customer'?'বাছা ক্রেতা':'বাছা সরবরাহকারী')}</p><p className="font-semibold">{selected.name}</p>
         <p className="text-xs text-ink-500">{selected.phone}</p></div>
        <div className="text-right"><p className="text-xs text-ink-500">{word("currentBalance")}</p>
         <p className={'text-xl font-semibold '+highlight(settlement.netBalance)}>{taka(Math.abs(settlement.netBalance))}</p>
-        <p className="text-xs text-ink-500">{settlement.netBalance>0?(payerRole==='Customer'?'Customer owes us':'Advance with supplier'):settlement.netBalance<0?(payerRole==='Customer'?'Customer has credit':'We owe supplier'):'Settled'}</p>
+        <p className="text-xs text-ink-500">{settlement.netBalance>0?(payerRole==='Customer'?text('Customer owes us','ক্রেতার কাছে পাওনা'):text('Advance with supplier','সরবরাহকারীর কাছে অগ্রিম')):settlement.netBalance<0?(payerRole==='Customer'?text('Customer has credit','ক্রেতার অগ্রিম জমা'):text('We owe supplier','সরবরাহকারীকে দেনা')):text('Settled','হিসাব মেটানো হয়েছে')}</p>
        </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-3 border-t border-border pt-2 text-xs">
@@ -194,8 +194,8 @@ export function CounterWorkspace({accounts,setAccounts}:{
      <AppSelect label={text("Invoice allocation","বিল বাছুন")} value={allocation} onChange={v=>{setAllocation(v);setReview(false);setError('');}}
       options={[{value:'',label:text('Oldest outstanding due first','আগের বাকি আগে মেটান')},...openInvoices.filter(r=>!r.opening).map(r=>({value:r.id,label:r.reference+' · '+taka(r.due)}))]}/>
      <p className="mt-2 text-xs text-ink-500">{chosen
-      ?'Only '+chosen.reference+' will be paid. Available invoice due '+taka(chosen.due)+'.'
-      :'Oldest unpaid invoices and opening balance are settled first.'}</p>
+      ?text('Only '+chosen.reference+' will be paid. Available invoice due '+taka(chosen.due)+'.','শুধু '+chosen.reference+' বিলের টাকা জমা হবে। বাকি '+taka(chosen.due)+'।')
+      :text('Oldest unpaid invoices and opening balance are settled first.','আগের বকেয়া বিল ও শুরুর বাকি আগে মেটানো হবে।')}</p>
      {!!previewAllocation.length&&<div className="mt-3 space-y-1 border-t border-border pt-2 text-xs">
       <p className="font-semibold text-ink">{text("Payment allocation preview","কোন বিলে কত টাকা যাবে")}</p>
       {previewAllocation.map((row,i)=><div key={row.invoice+i} className="flex justify-between gap-3"><span>{row.invoice}</span><strong>{taka(row.amount)}</strong></div>)}
@@ -269,7 +269,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
    </div>
    <aside className="h-fit rounded-xl border border-border bg-card p-4 xl:sticky xl:top-4">
     <h3 className="mb-3 text-sm font-semibold">{text("Transaction summary","লেনদেনের সারাংশ")}</h3>
-    <p className="text-xs text-ink-500">{type==='Customer Receive'?'Money received':type==='Supplier Pay'?'Money paid':'Total amount'}</p>
+    <p className="text-xs text-ink-500">{type==='Customer Receive'?text('Money received','টাকা পাওয়া'):type==='Supplier Pay'?text('Money paid','টাকা দেওয়া'):text('Total amount','মোট টাকা')}</p>
     <p className="text-2xl font-semibold text-ink" aria-live="polite">{taka(total)}</p>
     <p className="mt-1 text-xs leading-5 text-ink-500" aria-live="polite">{amountInWords(total)}</p>
     {settlement&&<div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
