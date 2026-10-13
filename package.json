@@ -42,7 +42,8 @@
     "test:compound-units": "node scripts/compound-quantity-browser.cjs",
     "test:online-sales": "node scripts/online-sales-browser.cjs",
     "test:fulfillment-sms": "node scripts/fulfillment-sms-browser.cjs",
-    "test:counter-ux": "node scripts/counter-ux-browser.cjs"
+    "test:counter-ux": "node scripts/counter-ux-browser.cjs",
+    "test:bangla-ui": "node scripts/bangla-ui-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
