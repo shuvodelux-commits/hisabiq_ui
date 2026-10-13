@@ -535,7 +535,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                 className="mt-1.5"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder={text("e.g. Pickup — Bangshal to shop (3 trips)","যেমন: বঙ্গশাল থেকে দোকানে মালামাল আনা, ৩ বার")}
+                placeholder={text("e.g. Pickup — Bangshal to shop (3 trips)","যেমন: বঙ্গশাল থেকে দোকানে পণ্য আনা, ৩ বার")}
               />
             </label>
 
