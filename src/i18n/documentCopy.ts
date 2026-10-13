@@ -62,8 +62,6 @@ const terms: Record<string, string> = {
   'All dates': 'সব তারিখ',
   'Day Book': 'দৈনিক লেনদেন',
   'Audit Ledger': 'হিসাব যাচাই',
-  'Transaction date': 'লেনদেনের তারিখ',
-  'Created date': 'লেখার তারিখ',
   'Last changed by': 'শেষ সংশোধনকারী',
   'Source': 'উৎস',
   'Amount': 'টাকার পরিমাণ',
