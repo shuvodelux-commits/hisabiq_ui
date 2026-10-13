@@ -18,6 +18,7 @@ import { expenseDateIso, formatRange, type IsoRange } from '../utils/dateRange';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import {useUiCopy} from '../i18n/useUiCopy';
+import {documentLabel,documentMethod} from '../i18n/documentCopy';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { BillDialog } from '../components/purchases/BillDialog';
@@ -77,7 +78,7 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 }
 
 export function Expenses() {
-  const {text}=useUiCopy();
+  const {text,language,showHelper}=useUiCopy();
   const [tab, setTab] = useState<Tab>('expenses');
   const { expenses, audit } = useSyncExternalStore(subscribeExpensePreview, getExpensePreviewSnapshot);
   useSyncExternalStore(subscribePartyPreview, getPartyPreviewSnapshot);
@@ -101,7 +102,7 @@ export function Expenses() {
   const activeExpenses = expenses.filter(item => item.recordStatus !== 'Deleted');
   const resetFilters = () => { setQuery(''); setCategoryFilter('All categories'); setPayeeFilter('All payees'); setMethodFilter('All payment methods'); setStatusFilter('Active'); };
   const reportFor = (items: Expense[], title = 'Expense list') => ({ title, subtitle: 'Expense source preview', headers: ['Reference', 'Date', 'Category', 'Payee', 'Details', 'Amount', 'Paid', 'Due', 'Status'], rows: items.map(e => [e.ref, e.date, e.category, e.payee, e.note, e.amount, e.paid, e.amount - e.paid, e.recordStatus === 'Deleted' ? 'Cancelled' : 'Active']) });
-  const printExpenses = (items: Expense[], title?: string) => { if (!printReport(reportFor(items, title))) toast.error('Allow the print popup and try again.'); };
+  const printExpenses = (items: Expense[], title?: string) => { const report=reportFor(items,title); if (!printReport({...report,language,subtitle:documentLabel(language,report.subtitle),headers:report.headers.map(h=>documentLabel(language,h))})) toast.error(text('Allow the print popup and try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।')); };
   const exportExpenses = (items: Expense[], filename: string) => { const report = reportFor(items); downloadReport(filename, report.headers, report.rows); };
   const openCorrection = (expense: Expense) => { setSelectedId(null); setEditing(expense); setDialogOpen(true); };
   const [query, setQuery] = useState('');
@@ -113,7 +114,7 @@ export function Expenses() {
     return !!day && (!reportRange.from || day >= reportRange.from) && (!reportRange.to || day <= reportRange.to);
   }), [expenses, reportRange.from, reportRange.to]);
   const reportPeriod = reportRange.from === '2026-09-01' && reportRange.to === '2026-09-30'
-    ? 'Sep 2026' : formatRange(reportRange);
+    ? text('Sep 2026','সেপ্টেম্বর ২০২৬') : formatRange(reportRange);
 
 
   const filteredExpenses = useMemo(() => expenses.filter(expense => {
@@ -377,21 +378,21 @@ export function Expenses() {
           <div className="p-4">
             <div className="mb-4 flex flex-col gap-2 rounded-xl border border-border bg-ink-50/50 p-3 sm:flex-row sm:items-end">
               <div className="w-full sm:w-auto">
-                <p className="mb-1 text-[12px] font-medium text-ink">Date range <span className="font-bn text-ink-400">· সময়কাল</span></p>
-                <AppDateRangePicker label="Expense report date range" className="w-full sm:w-[280px]"
+                <p className="mb-1 text-[12px] font-medium text-ink">{text("Date range","সময়কাল")} {showHelper&&<span className="font-bn text-ink-400">· সময়কাল</span>}</p>
+                <AppDateRangePicker label={text("Expense report date range","খরচের রিপোর্টের তারিখ")} className="w-full sm:w-[280px]"
                   value={reportRange} onChange={setReportRange} />
               </div>
 
               <div className="flex-1" />
-              <Button variant="outline" size="sm" onClick={() => printExpenses(reportExpenses, 'Expense report · ' + reportPeriod)}>
-                <Printer className="size-4" /> Print
+              <Button variant="outline" size="sm" onClick={() => printExpenses(reportExpenses, text('Expense report · ','খরচের রিপোর্ট · ') + reportPeriod)}>
+                <Printer className="size-4" /> {text("Print","প্রিন্ট")}
               </Button>
             </div>
 
             <div className="grid gap-4 xl:grid-cols-3">
               {[
                 {
-                  title: 'By category',
+                  title: text('By category','খরচের ধরন অনুযায়ী'),
                   icon: Settings2,
                   rows: Array.from(new Set(reportExpenses.map(e => e.category))).map((category) => ({
                     label: category,
@@ -399,7 +400,7 @@ export function Expenses() {
                   })).filter((row) => row.value > 0)
                 },
                 {
-                  title: 'By payee',
+                  title: text('By payee','প্রাপক অনুযায়ী'),
                   icon: Search,
                   rows: Array.from(new Set(reportExpenses.map((expense) => expense.payee))).map((payee) => ({
                     label: payee,
@@ -407,7 +408,7 @@ export function Expenses() {
                   })).sort((a, b) => b.value - a.value).slice(0, 6)
                 },
                 {
-                  title: 'By payment method',
+                  title: text('By payment method','পেমেন্টের মাধ্যম অনুযায়ী'),
                   icon: BarChart3,
                   rows: reportPaymentMethods.map((method) => ({
                     label: method,
@@ -432,11 +433,11 @@ export function Expenses() {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      {!group.rows.length && <p className="text-xs text-ink-500">No expenses in this date range.</p>}
+                      {!group.rows.length && <p className="text-xs text-ink-500">{text("No expenses in this date range.","এই সময়ে কোনো খরচ নেই।")}</p>}
                       {group.rows.map((row) => (
                         <div key={row.label}>
                           <div className="mb-1 flex items-center justify-between gap-3 text-xs">
-                            <span className="truncate text-ink-600">{row.label}</span>
+                            <span className="truncate text-ink-600">{documentMethod(language,row.label)}</span>
                             <span className="font-medium text-ink">{taka(row.value)}</span>
                           </div>
                           <div className="h-1.5 overflow-hidden rounded-full bg-ink-50">
