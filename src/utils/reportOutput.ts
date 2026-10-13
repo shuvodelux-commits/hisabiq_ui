@@ -1,5 +1,5 @@
 import type {UiLanguage} from '../i18n/uiCopy';
-import {documentLabel,printDocumentLanguage} from '../i18n/documentCopy';
+import {documentLabel,printDocumentLanguage} from '../i18n/documentCopy.ts';
 
 export type Report={title:string;subtitle?:string;headers:string[];rows:(string|number)[][];language?:UiLanguage};
 const escape=(value:string|number)=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]??char));
