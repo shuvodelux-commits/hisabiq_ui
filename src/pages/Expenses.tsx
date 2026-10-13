@@ -148,6 +148,7 @@ export function Expenses() {
         title="Expenses"
         titleBn="খরচ"
         description="Record operating expenses, manage categories and payees, and review expense reports."
+        descriptionBn="খরচ লিখুন, প্রাপক ও খরচের ধরন দেখুন।"
         actions={
           <Button size="sm" onClick={() => { setEditing(null); setDialogOpen(true); }}>
             <Plus className="size-4" /> Add expense
