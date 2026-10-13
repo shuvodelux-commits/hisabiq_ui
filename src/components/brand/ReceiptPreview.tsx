@@ -2,7 +2,7 @@ import { LogoMark } from './Logo';
 import { formatNumber } from '../../utils/currency';
 import { amountInWords } from '../../utils/amountInWords';
 import type { WarrantySnapshot } from '../../types/erp';
-import type {UiLanguage} from '../../i18n/uiCopy';
+import {uiText, type UiLanguage} from '../../i18n/uiCopy';
 import {documentLabel,documentMethod} from '../../i18n/documentCopy';
 
 export type ReceiptLine = {name: string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;};
@@ -68,7 +68,7 @@ export function ReceiptPreview(p: ReceiptPreviewProps) {
         <div className="flex justify-between"><span>{label("Rounding")}</span><span className="">{p.rounding >= 0 ? '+' : '−'}{n(Math.abs(p.rounding))}</span></div>
         <div className="flex justify-between pt-1 text-[14px] font-semibold"><span>{label("Total")}</span><span className="">৳{n(p.total)}</span></div>
         <div className="text-[11px] leading-5">{amountInWords(p.total)}</div>
-        <div className="flex justify-between"><span>{label("Paid")} ({documentMethod(language,p.method)})</span><span className="">{n(p.paid)}</span></div>
+        <div className="flex justify-between"><span>{uiText(language,'Paid','জমা')} ({documentMethod(language,p.method)})</span><span className="">{n(p.paid)}</span></div>
         {p.due > 0 && <div className="flex justify-between font-medium"><span>{label("Due")}</span><span className="">{n(p.due)}</span></div>}
       </div>
       <div className="my-3 border-t border-dashed border-ink-300" />
