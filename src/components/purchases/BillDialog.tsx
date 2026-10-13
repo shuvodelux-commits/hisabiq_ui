@@ -351,7 +351,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="block text-[13px] font-medium text-ink">
-            {mode === 'purchase' ? 'Supplier' : 'Payee'}
+            {mode === 'purchase' ? text('Supplier','সরবরাহকারী') : text('Payee','টাকা প্রাপক')}
             <div className="mt-1.5">
               <QuickAddSelect label={mode === 'purchase' ? text('Supplier','সরবরাহকারী') : text('Payee','টাকা প্রাপক')} value={party} options={list.map((item) => item.name)} onChange={setParty} showContact
                 onCreate={(name, phone, area) => {
@@ -364,7 +364,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           </div>
 
           <label className="block text-[13px] font-medium text-ink">
-            {mode === 'purchase' ? 'Purchase date' : 'Expense date'}
+            {mode === 'purchase' ? text('Purchase date','কেনার তারিখ') : text('Expense date','খরচের তারিখ')}
             <AppDatePicker className="mt-1.5" label={mode === 'purchase' ? text('Purchase date','কেনার তারিখ') : text('Expense date','খরচের তারিখ')} value={date} onChange={setDate} />
           </label>
 
@@ -515,7 +515,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
             </div>
 
             <label className="block text-[13px] font-medium text-ink">
-              Amount
+              {text('Amount','টাকার পরিমাণ')}
               <div className="relative mt-1.5">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
                 <Input
