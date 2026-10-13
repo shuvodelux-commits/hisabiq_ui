@@ -143,7 +143,9 @@ function SalesColumnPicker({
 }
 
 function PaymentStatus({ invoice }: { invoice: SalesInvoice }) {
-  return <StatusBadge tone={statusTone[invoice.status]} dot>{invoice.status}</StatusBadge>;
+  const {text}=useUiCopy();
+  const bn:Record<SalesInvoiceStatus,string>={Paid:'পরিশোধ',Partial:'আংশিক',Due:'বাকি',Returned:'ফেরত','Part returned':'আংশিক ফেরত'};
+  return <StatusBadge tone={statusTone[invoice.status]} dot>{text(invoice.status,bn[invoice.status]??invoice.status)}</StatusBadge>;
 }
 
 const invoiceQty = invoiceQuantity;
@@ -229,6 +231,7 @@ function InvoiceDialog({
   onPayment: (invoice: SalesInvoice) => void;
   onReturn: (invoice: SalesInvoice) => void;
 }) {
+  const {text,word}=useUiCopy();
   const navigate = useNavigate();
   return (
     <Dialog open={!!invoice} onOpenChange={(open) => !open && onClose()}>
@@ -249,19 +252,19 @@ function InvoiceDialog({
               <div className="space-y-3">
                 <div className="rounded-xl border border-border">
                   <div className="grid grid-cols-2 gap-3 border-b border-border p-3 text-[12.5px] sm:grid-cols-4">
-                    <div><p className="text-ink-400">Customer</p><p className="font-medium text-ink">{invoice.party}</p></div>
-                    <div><p className="text-ink-400">Phone</p><p className="font-medium text-ink">{invoice.phone ?? '—'}</p></div>
-                    <div><p className="text-ink-400">Guardian</p><p className="font-medium text-ink">{invoice.guardianName ?? '—'}</p></div>
-                    <div><p className="text-ink-400">Address</p><p className="font-medium text-ink">{invoice.address ?? '—'}</p></div>
+                    <div><p className="text-ink-400">{text('Customer','ক্রেতা')}</p><p className="font-medium text-ink">{invoice.party}</p></div>
+                    <div><p className="text-ink-400">{word('phone')}</p><p className="font-medium text-ink">{invoice.phone ?? '—'}</p></div>
+                    <div><p className="text-ink-400">{text('Guardian','অভিভাবক')}</p><p className="font-medium text-ink">{invoice.guardianName ?? '—'}</p></div>
+                    <div><p className="text-ink-400">{word('address')}</p><p className="font-medium text-ink">{invoice.address ?? '—'}</p></div>
                   </div>
 
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-9 pl-3 text-xs">Item</TableHead>
-                        <TableHead className="h-9 text-xs">Qty</TableHead>
-                        <TableHead className="h-9 text-right text-xs">Price</TableHead>
-                        <TableHead className="h-9 pr-3 text-right text-xs">Amount</TableHead>
+                        <TableHead className="h-9 pl-3 text-xs">{text('Item','পণ্য')}</TableHead>
+                        <TableHead className="h-9 text-xs">{word('qty')}</TableHead>
+                        <TableHead className="h-9 text-right text-xs">{word('price')}</TableHead>
+                        <TableHead className="h-9 pr-3 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -269,8 +272,8 @@ function InvoiceDialog({
                         <TableRow key={line.id} className="text-[12.5px]">
                           <TableCell className="py-2 pl-3">
                             <p className="font-medium text-ink">{line.name}</p>
-                            {line.serials?.length ? <p className="mt-0.5 text-[11px] text-ink-400">Serial: {line.serials.join(', ')}</p> : null}
-                            {line.warranty ? <p className="mt-0.5 text-[11px] text-ink-400">Warranty: {line.warranty.duration} {line.warranty.durationUnit} · {line.warranty.type}{line.warranty.terms ? ` · ${line.warranty.terms}` : ''}</p> : null}
+                            {line.serials?.length ? <p className="mt-0.5 text-[11px] text-ink-400">{text('Serial','সিরিয়াল')}: {line.serials.join(', ')}</p> : null}
+                            {line.warranty ? <p className="mt-0.5 text-[11px] text-ink-400">{text('Warranty','ওয়ারেন্টি')}: {line.warranty.duration} {line.warranty.durationUnit} · {line.warranty.type}{line.warranty.terms ? ` · ${line.warranty.terms}` : ''}</p> : null}
                           </TableCell>
                           <TableCell className="py-2">{invoiceQty(line)}</TableCell>
                           <TableCell className="py-2 text-right">{taka(line.price, line.price % 1 ? 2 : 0)}/{line.unit}</TableCell>
@@ -281,31 +284,31 @@ function InvoiceDialog({
                   </Table>
 
                   <div className="grid gap-1 border-t border-border p-3 text-[12.5px] sm:ml-auto sm:w-72">
-                    <div className="flex justify-between"><span className="text-ink-500">Subtotal</span><span>{taka(invoice.subtotal)}</span></div>
-                    {invoice.discount > 0 && <div className="flex justify-between"><span className="text-ink-500">Discount</span><span>−{taka(invoice.discount)}</span></div>}
-                    <div className="flex justify-between"><span className="text-ink-500">Rounding</span><span>{invoice.rounding >= 0 ? '+' : '−'}{taka(Math.abs(invoice.rounding))}</span></div>
-                    <div className="flex justify-between border-t border-border pt-1.5 text-sm font-semibold"><span>Total</span><span>{taka(invoice.total)}</span></div>
-                    <div className="flex justify-between"><span className="text-ink-500">Gross profit</span><span className={invoiceProfit(invoice) < 0 ? 'font-medium text-danger' : 'font-medium text-success'}>{invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}</span></div>
-                    <div className="flex justify-between"><span className="text-ink-500">Paid</span><span>{taka(invoice.paid)}</span></div>
-                    <div className="flex justify-between font-medium"><span className="text-ink-500">Due</span><span className={invoice.due > 0 ? 'text-danger' : 'text-success'}>{invoice.due > 0 ? taka(invoice.due) : '৳0'}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Subtotal','পণ্যের মোট')}</span><span>{taka(invoice.subtotal)}</span></div>
+                    {invoice.discount > 0 && <div className="flex justify-between"><span className="text-ink-500">{word('discount')}</span><span>−{taka(invoice.discount)}</span></div>}
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Rounding','রাউন্ডিং')}</span><span>{invoice.rounding >= 0 ? '+' : '−'}{taka(Math.abs(invoice.rounding))}</span></div>
+                    <div className="flex justify-between border-t border-border pt-1.5 text-sm font-semibold"><span>{word('total')}</span><span>{taka(invoice.total)}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Gross profit','বিক্রির মোট লাভ')}</span><span className={invoiceProfit(invoice) < 0 ? 'font-medium text-danger' : 'font-medium text-success'}>{invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{word('paid')}</span><span>{taka(invoice.paid)}</span></div>
+                    <div className="flex justify-between font-medium"><span className="text-ink-500">{word('due')}</span><span className={invoice.due > 0 ? 'text-danger' : 'text-success'}>{invoice.due > 0 ? taka(invoice.due) : '৳0'}</span></div>
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-border p-3">
-                  <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-400">Payments</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-400">{word('payments')}</p>
                   {invoice.payments.length ? (
                     <div className="mt-2 divide-y divide-border">
                       {invoice.payments.map((payment) => (
                         <div key={payment.id} className="flex items-center justify-between gap-3 py-2 text-[12.5px]">
                           <div>
                             <p className="font-medium text-ink">{payment.method}</p>
-                            <p className="text-[11px] text-ink-400">{payment.account ?? 'Default account'}</p>
+                            <p className="text-[11px] text-ink-400">{payment.account ?? text('Default account','ডিফল্ট হিসাব')}</p>
                           </div>
                           <span className="font-medium">{taka(payment.amount)}</span>
                         </div>
                       ))}
                     </div>
-                  ) : <p className="mt-2 text-sm text-ink-500">No payment received yet.</p>}
+                  ) : <p className="mt-2 text-sm text-ink-500">{text('No payment received yet.','এখনো টাকা জমা হয়নি।')}</p>}
                 </div>
               </div>
 
@@ -319,25 +322,25 @@ function InvoiceDialog({
             <DialogFooter className="flex-wrap">
               {invoice.partyId && (
                 <Button variant="outline" onClick={() => navigate(`/app/parties?id=${invoice.partyId}`)}>
-                  <BookOpen className="size-4" /> Ledger
+                  <BookOpen className="size-4" /> {text('Ledger','খাতা')}
                 </Button>
               )}
               <Button variant="outline" onClick={() => printInvoice(invoice)}>
-                <Printer className="size-4" /> Print
+                <Printer className="size-4" /> {text('Print','প্রিন্ট')}
               </Button>
               <Button variant="outline" onClick={() => navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`)}>
-                <Copy className="size-4" /> Duplicate
+                <Copy className="size-4" /> {text('Duplicate','নকল বিল')}
               </Button>
               <Button variant="outline" onClick={() => navigate(`/app/pos?mode=edit&invoice=${invoice.invoice}`)}>
-                <Pencil className="size-4" /> Edit
+                <Pencil className="size-4" /> {text('Edit','সংশোধন')}
               </Button>
               <Button variant="outline" onClick={() => onReturn(invoice)}>
-                <CornerUpLeft className="size-4" /> Return
+                <CornerUpLeft className="size-4" /> {text('Return','ফেরত')}
               </Button>
               <Button variant="outline" onClick={() => navigate(`/app/warranty?invoice=${invoice.invoice}`)}>
-                <ShieldCheck className="size-4" /> Warranty
+                <ShieldCheck className="size-4" /> {text('Warranty','ওয়ারেন্টি')}
               </Button>
-              {invoice.due > 0 && <Button onClick={() => onPayment(invoice)}><Banknote className="size-4" /> Take payment</Button>}
+              {invoice.due > 0 && <Button onClick={() => onPayment(invoice)}><Banknote className="size-4" /> {text('Take payment','টাকা নিন')}</Button>}
             </DialogFooter>
           </>
         )}
