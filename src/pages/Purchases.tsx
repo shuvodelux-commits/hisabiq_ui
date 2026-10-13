@@ -132,6 +132,7 @@ export function Purchases() {
         title="Purchases"
         titleBn="ক্রয়"
         description="Purchase stock, manage supplier bills, update purchases and handle purchase returns."
+        descriptionBn="পণ্য কেনা, সরবরাহকারীর বিল ও ফেরত দেখুন।"
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
