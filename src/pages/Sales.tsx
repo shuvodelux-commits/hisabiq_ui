@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
+import { useUiCopy } from '../i18n/useUiCopy';
 import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
@@ -142,7 +143,9 @@ function SalesColumnPicker({
 }
 
 function PaymentStatus({ invoice }: { invoice: SalesInvoice }) {
-  return <StatusBadge tone={statusTone[invoice.status]} dot>{invoice.status}</StatusBadge>;
+  const {text}=useUiCopy();
+  const bn:Record<SalesInvoiceStatus,string>={Paid:'পরিশোধ',Partial:'আংশিক',Due:'বাকি',Returned:'ফেরত','Part returned':'আংশিক ফেরত'};
+  return <StatusBadge tone={statusTone[invoice.status]} dot>{text(invoice.status,bn[invoice.status]??invoice.status)}</StatusBadge>;
 }
 
 const invoiceQty = invoiceQuantity;
@@ -228,6 +231,7 @@ function InvoiceDialog({
   onPayment: (invoice: SalesInvoice) => void;
   onReturn: (invoice: SalesInvoice) => void;
 }) {
+  const {text,word}=useUiCopy();
   const navigate = useNavigate();
   return (
     <Dialog open={!!invoice} onOpenChange={(open) => !open && onClose()}>
@@ -248,19 +252,19 @@ function InvoiceDialog({
               <div className="space-y-3">
                 <div className="rounded-xl border border-border">
                   <div className="grid grid-cols-2 gap-3 border-b border-border p-3 text-[12.5px] sm:grid-cols-4">
-                    <div><p className="text-ink-400">Customer</p><p className="font-medium text-ink">{invoice.party}</p></div>
-                    <div><p className="text-ink-400">Phone</p><p className="font-medium text-ink">{invoice.phone ?? '—'}</p></div>
-                    <div><p className="text-ink-400">Guardian</p><p className="font-medium text-ink">{invoice.guardianName ?? '—'}</p></div>
-                    <div><p className="text-ink-400">Address</p><p className="font-medium text-ink">{invoice.address ?? '—'}</p></div>
+                    <div><p className="text-ink-400">{text('Customer','ক্রেতা')}</p><p className="font-medium text-ink">{invoice.party}</p></div>
+                    <div><p className="text-ink-400">{word('phone')}</p><p className="font-medium text-ink">{invoice.phone ?? '—'}</p></div>
+                    <div><p className="text-ink-400">{text('Guardian','অভিভাবক')}</p><p className="font-medium text-ink">{invoice.guardianName ?? '—'}</p></div>
+                    <div><p className="text-ink-400">{word('address')}</p><p className="font-medium text-ink">{invoice.address ?? '—'}</p></div>
                   </div>
 
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-9 pl-3 text-xs">Item</TableHead>
-                        <TableHead className="h-9 text-xs">Qty</TableHead>
-                        <TableHead className="h-9 text-right text-xs">Price</TableHead>
-                        <TableHead className="h-9 pr-3 text-right text-xs">Amount</TableHead>
+                        <TableHead className="h-9 pl-3 text-xs">{text('Item','পণ্য')}</TableHead>
+                        <TableHead className="h-9 text-xs">{word('qty')}</TableHead>
+                        <TableHead className="h-9 text-right text-xs">{word('price')}</TableHead>
+                        <TableHead className="h-9 pr-3 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -268,8 +272,8 @@ function InvoiceDialog({
                         <TableRow key={line.id} className="text-[12.5px]">
                           <TableCell className="py-2 pl-3">
                             <p className="font-medium text-ink">{line.name}</p>
-                            {line.serials?.length ? <p className="mt-0.5 text-[11px] text-ink-400">Serial: {line.serials.join(', ')}</p> : null}
-                            {line.warranty ? <p className="mt-0.5 text-[11px] text-ink-400">Warranty: {line.warranty.duration} {line.warranty.durationUnit} · {line.warranty.type}{line.warranty.terms ? ` · ${line.warranty.terms}` : ''}</p> : null}
+                            {line.serials?.length ? <p className="mt-0.5 text-[11px] text-ink-400">{text('Serial','সিরিয়াল')}: {line.serials.join(', ')}</p> : null}
+                            {line.warranty ? <p className="mt-0.5 text-[11px] text-ink-400">{text('Warranty','ওয়ারেন্টি')}: {line.warranty.duration} {line.warranty.durationUnit} · {line.warranty.type}{line.warranty.terms ? ` · ${line.warranty.terms}` : ''}</p> : null}
                           </TableCell>
                           <TableCell className="py-2">{invoiceQty(line)}</TableCell>
                           <TableCell className="py-2 text-right">{taka(line.price, line.price % 1 ? 2 : 0)}/{line.unit}</TableCell>
@@ -280,31 +284,31 @@ function InvoiceDialog({
                   </Table>
 
                   <div className="grid gap-1 border-t border-border p-3 text-[12.5px] sm:ml-auto sm:w-72">
-                    <div className="flex justify-between"><span className="text-ink-500">Subtotal</span><span>{taka(invoice.subtotal)}</span></div>
-                    {invoice.discount > 0 && <div className="flex justify-between"><span className="text-ink-500">Discount</span><span>−{taka(invoice.discount)}</span></div>}
-                    <div className="flex justify-between"><span className="text-ink-500">Rounding</span><span>{invoice.rounding >= 0 ? '+' : '−'}{taka(Math.abs(invoice.rounding))}</span></div>
-                    <div className="flex justify-between border-t border-border pt-1.5 text-sm font-semibold"><span>Total</span><span>{taka(invoice.total)}</span></div>
-                    <div className="flex justify-between"><span className="text-ink-500">Gross profit</span><span className={invoiceProfit(invoice) < 0 ? 'font-medium text-danger' : 'font-medium text-success'}>{invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}</span></div>
-                    <div className="flex justify-between"><span className="text-ink-500">Paid</span><span>{taka(invoice.paid)}</span></div>
-                    <div className="flex justify-between font-medium"><span className="text-ink-500">Due</span><span className={invoice.due > 0 ? 'text-danger' : 'text-success'}>{invoice.due > 0 ? taka(invoice.due) : '৳0'}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Subtotal','পণ্যের মোট')}</span><span>{taka(invoice.subtotal)}</span></div>
+                    {invoice.discount > 0 && <div className="flex justify-between"><span className="text-ink-500">{word('discount')}</span><span>−{taka(invoice.discount)}</span></div>}
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Rounding','রাউন্ডিং')}</span><span>{invoice.rounding >= 0 ? '+' : '−'}{taka(Math.abs(invoice.rounding))}</span></div>
+                    <div className="flex justify-between border-t border-border pt-1.5 text-sm font-semibold"><span>{word('total')}</span><span>{taka(invoice.total)}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Gross profit','বিক্রির মোট লাভ')}</span><span className={invoiceProfit(invoice) < 0 ? 'font-medium text-danger' : 'font-medium text-success'}>{invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{word('paid')}</span><span>{taka(invoice.paid)}</span></div>
+                    <div className="flex justify-between font-medium"><span className="text-ink-500">{word('due')}</span><span className={invoice.due > 0 ? 'text-danger' : 'text-success'}>{invoice.due > 0 ? taka(invoice.due) : '৳0'}</span></div>
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-border p-3">
-                  <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-400">Payments</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-400">{word('payments')}</p>
                   {invoice.payments.length ? (
                     <div className="mt-2 divide-y divide-border">
                       {invoice.payments.map((payment) => (
                         <div key={payment.id} className="flex items-center justify-between gap-3 py-2 text-[12.5px]">
                           <div>
                             <p className="font-medium text-ink">{payment.method}</p>
-                            <p className="text-[11px] text-ink-400">{payment.account ?? 'Default account'}</p>
+                            <p className="text-[11px] text-ink-400">{payment.account ?? text('Default account','ডিফল্ট হিসাব')}</p>
                           </div>
                           <span className="font-medium">{taka(payment.amount)}</span>
                         </div>
                       ))}
                     </div>
-                  ) : <p className="mt-2 text-sm text-ink-500">No payment received yet.</p>}
+                  ) : <p className="mt-2 text-sm text-ink-500">{text('No payment received yet.','এখনো টাকা জমা হয়নি।')}</p>}
                 </div>
               </div>
 
@@ -318,25 +322,25 @@ function InvoiceDialog({
             <DialogFooter className="flex-wrap">
               {invoice.partyId && (
                 <Button variant="outline" onClick={() => navigate(`/app/parties?id=${invoice.partyId}`)}>
-                  <BookOpen className="size-4" /> Ledger
+                  <BookOpen className="size-4" /> {text('Ledger','খাতা')}
                 </Button>
               )}
               <Button variant="outline" onClick={() => printInvoice(invoice)}>
-                <Printer className="size-4" /> Print
+                <Printer className="size-4" /> {text('Print','প্রিন্ট')}
               </Button>
               <Button variant="outline" onClick={() => navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`)}>
-                <Copy className="size-4" /> Duplicate
+                <Copy className="size-4" /> {text('Duplicate','নকল বিল')}
               </Button>
               <Button variant="outline" onClick={() => navigate(`/app/pos?mode=edit&invoice=${invoice.invoice}`)}>
-                <Pencil className="size-4" /> Edit
+                <Pencil className="size-4" /> {text('Edit','সংশোধন')}
               </Button>
               <Button variant="outline" onClick={() => onReturn(invoice)}>
-                <CornerUpLeft className="size-4" /> Return
+                <CornerUpLeft className="size-4" /> {text('Return','ফেরত')}
               </Button>
               <Button variant="outline" onClick={() => navigate(`/app/warranty?invoice=${invoice.invoice}`)}>
-                <ShieldCheck className="size-4" /> Warranty
+                <ShieldCheck className="size-4" /> {text('Warranty','ওয়ারেন্টি')}
               </Button>
-              {invoice.due > 0 && <Button onClick={() => onPayment(invoice)}><Banknote className="size-4" /> Take payment</Button>}
+              {invoice.due > 0 && <Button onClick={() => onPayment(invoice)}><Banknote className="size-4" /> {text('Take payment','টাকা নিন')}</Button>}
             </DialogFooter>
           </>
         )}
@@ -356,6 +360,7 @@ function PaymentDialog({
   onClose: () => void;
   onSave: (invoice: SalesInvoice, rows: PaymentDraft[]) => void;
 }) {
+  const {text,showHelper}=useUiCopy();
   const [rows, setRows] = useState<PaymentDraft[]>([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
 
   const total = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
@@ -371,33 +376,33 @@ function PaymentDialog({
         {invoice && (
           <>
             <DialogHeader>
-              <DialogTitle>Take payment <span className="font-bn text-sm font-normal text-ink-500">পেমেন্ট নিন</span></DialogTitle>
-              <DialogDescription>{invoice.invoice} · {invoice.party} · due {taka(invoice.due)}</DialogDescription>
+              <DialogTitle>{text('Take payment','টাকা নিন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">পেমেন্ট নিন</span>}</DialogTitle>
+              <DialogDescription>{invoice.invoice} · {invoice.party} · {text('due','বাকি')} {taka(invoice.due)}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-2">
               {rows.map((row, index) => (
                 <div key={row.id} className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[140px_1fr_120px_auto]">
                   <label className="text-[12px] font-medium text-ink">
-                    Method
+                    {text('Method','মাধ্যম')}
                     <FormSelect
                       className="mt-1"
                       value={row.method}
                       onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, method: event.target.value as PaymentMethod } : item))}
-                      options={paymentMethods}
+                      options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
                     />
                   </label>
                   <label className="text-[12px] font-medium text-ink">
-                    Account
+                    {text('Account','হিসাব')}
                     <Input
                       className="mt-1"
                       value={row.account}
                       onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, account: event.target.value } : item))}
-                      placeholder={row.method === 'Cash' ? 'Cash counter' : 'Account / wallet'}
+                      placeholder={row.method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')}
                     />
                   </label>
                   <label className="text-[12px] font-medium text-ink">
-                    Amount
+                    {text('Amount','টাকা')}
                     <Input
                       className="mt-1 text-right"
                       value={row.amount}
@@ -411,7 +416,7 @@ function PaymentDialog({
                     disabled={rows.length === 1}
                     onClick={() => setRows((items) => items.filter((item) => item.id !== row.id))}
                     className="self-end rounded-md p-2 text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
-                    aria-label={`Remove payment ${index + 1}`}>
+                    aria-label={text(`Remove payment ${index + 1}`,`পেমেন্ট ${index + 1} সরান`)}>
                     <Trash2 className="size-4" />
                   </button>
                 </div>
@@ -421,25 +426,25 @@ function PaymentDialog({
                 type="button"
                 onClick={() => setRows((items) => [...items, { id: `p${Date.now()}`, method: 'Cash', amount: '', account: '' }])}
                 className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-700 hover:underline">
-                <Plus className="size-3.5" /> Add another payment source
+                <Plus className="size-3.5" /> {text('Add another payment source','আরও পেমেন্ট মাধ্যম')}
               </button>
             </div>
 
             <div className="grid grid-cols-3 gap-2 rounded-xl bg-ink-50 p-3 text-center text-[12px]">
-              <div><p className="text-ink-400">Invoice due</p><p className="mt-0.5 font-semibold text-ink">{taka(invoice.due)}</p></div>
-              <div><p className="text-ink-400">This payment</p><p className="mt-0.5 font-semibold text-ink">{taka(total)}</p></div>
-              <div><p className="text-ink-400">Remaining</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{taka(Math.max(invoice.due - total, 0))}</p></div>
+              <div><p className="text-ink-400">{text('Invoice due','বিলের বাকি')}</p><p className="mt-0.5 font-semibold text-ink">{taka(invoice.due)}</p></div>
+              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(total)}</p></div>
+              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{taka(Math.max(invoice.due - total, 0))}</p></div>
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={close}>Cancel</Button>
+              <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
                 disabled={total <= 0 || total > invoice.due}
                 onClick={() => {
                   onSave(invoice, rows);
                   close();
                 }}>
-                Save payment
+                {text('Save payment','পেমেন্ট লিখুন')}
               </Button>
             </DialogFooter>
           </>
@@ -469,6 +474,7 @@ function CustomerPaymentDialog({
   onClose: () => void;
   onSave: (draft: CustomerPaymentDraft) => void;
 }) {
+  const {text,showHelper}=useUiCopy();
   const [customer, setCustomer] = useState(customers[0] ?? '');
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
@@ -487,42 +493,42 @@ function CustomerPaymentDialog({
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && close()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Customer payment <span className="font-bn text-sm font-normal text-ink-500">কাস্টমার পেমেন্ট</span></DialogTitle>
-          <DialogDescription>Receive money against customer dues or keep it as reusable customer credit.</DialogDescription>
+          <DialogTitle>{text('Customer payment','ক্রেতার টাকা জমা')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">কাস্টমার পেমেন্ট</span>}</DialogTitle>
+          <DialogDescription>{text('Receive money against customer dues or keep it as reusable customer credit.','ক্রেতার বাকি মেটাতে টাকা নিন অথবা অগ্রিম জমা রাখুন।')}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[12px] font-medium text-ink sm:col-span-2">
-            Customer
+            {text('Customer','ক্রেতা')}
             <FormSelect className="mt-1" value={customer} onChange={(event) => setCustomer(event.target.value)} options={customers} />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Method
-            <FormSelect className="mt-1" value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)} options={paymentMethods} />
+            {text('Method','মাধ্যম')}
+            <FormSelect className="mt-1" value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)} options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))} />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Account
-            <Input className="mt-1" value={account} onChange={(event) => setAccount(event.target.value)} placeholder={method === 'Cash' ? 'Cash counter' : 'Account / wallet'} />
+            {text('Account','হিসাব')}
+            <Input className="mt-1" value={account} onChange={(event) => setAccount(event.target.value)} placeholder={method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')} />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Amount
+            {text('Amount','টাকা')}
             <Input className="mt-1 text-right" value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} placeholder="0" />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Allocation
-            <FormSelect className="mt-1" value={allocation} onChange={(event) => setAllocation(event.target.value as CustomerPaymentDraft['allocation'])} options={['Settle oldest due', 'Keep as customer credit']} />
+            {text('Allocation','কোন বাকি মেটাবেন')}
+            <FormSelect className="mt-1" value={allocation} onChange={(event) => setAllocation(event.target.value as CustomerPaymentDraft['allocation'])} options={[{value:'Settle oldest due',label:text('Settle oldest due','আগের বাকি আগে মেটান')},{value:'Keep as customer credit',label:text('Keep as customer credit','ক্রেতার অগ্রিম জমা রাখুন')}]} />
           </label>
         </div>
         <div className="rounded-lg bg-ink-50 p-3 text-[12px] text-ink-600">
           {allocation === 'Settle oldest due'
-            ? 'HisabIQ applies this payment to the customer’s oldest due invoices first. Any remainder becomes customer credit.'
-            : 'The full amount stays as customer credit and can be applied to an invoice or refunded later.'}
+            ? text('HisabIQ applies this payment to the customer’s oldest due invoices first. Any remainder becomes customer credit.','আগের বাকি বিল আগে মেটানো হবে। বেশি টাকা থাকলে অগ্রিম জমা থাকবে।')
+            : text('The full amount stays as customer credit and can be applied to an invoice or refunded later.','পুরো টাকা অগ্রিম জমা থাকবে। পরে বিল মেটাতে বা ফেরত দিতে পারবেন।')}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={close}>Cancel</Button>
+          <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
           <Button disabled={!customer || amountNumber <= 0} onClick={() => {
             onSave({ customer, amount, method, account, allocation });
             close();
-          }}>Save payment</Button>
+          }}>{text('Save payment','পেমেন্ট লিখুন')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -547,6 +553,7 @@ function CreditActionDialog({
   const [invoiceId, setInvoiceId] = useState('');
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
+  const {text}=useUiCopy();
   const [account, setAccount] = useState('');
   const selectedInvoice = dueInvoices.find((invoice) => invoice.invoice === invoiceId) ?? dueInvoices[0] ?? null;
   const maxAmount = credit ? Math.min(credit.balance, action?.mode === 'apply' ? selectedInvoice?.due ?? 0 : credit.balance) : 0;
@@ -566,13 +573,13 @@ function CreditActionDialog({
         {credit && action && (
           <>
             <DialogHeader>
-              <DialogTitle>{action.mode === 'apply' ? 'Apply customer credit' : 'Refund customer credit'}</DialogTitle>
-              <DialogDescription>{credit.customer} · available {taka(credit.balance)}</DialogDescription>
+              <DialogTitle>{action.mode === 'apply' ? text('Apply customer credit','ক্রেতার অগ্রিম দিয়ে বাকি মেটান') : text('Refund customer credit','ক্রেতার অগ্রিম ফেরত দিন')}</DialogTitle>
+              <DialogDescription>{credit.customer} · {text('available','জমা আছে')} {taka(credit.balance)}</DialogDescription>
             </DialogHeader>
             {action.mode === 'apply' ? (
               <div className="space-y-3">
                 <label className="text-[12px] font-medium text-ink">
-                  Due invoice
+                  {text('Due invoice','বাকি বিল')}
                   <FormSelect
                     className="mt-1"
                     value={selectedInvoice?.invoice ?? ''}
@@ -582,34 +589,34 @@ function CreditActionDialog({
                 </label>
                 {selectedInvoice && (
                   <div className="rounded-lg bg-ink-50 p-3 text-[12px]">
-                    <div className="flex justify-between"><span className="text-ink-500">Invoice</span><span className="font-medium">{selectedInvoice.invoice}</span></div>
-                    <div className="mt-1 flex justify-between"><span className="text-ink-500">Due</span><span className="font-medium text-danger">{taka(selectedInvoice.due)}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Invoice','বিল')}</span><span className="font-medium">{selectedInvoice.invoice}</span></div>
+                    <div className="mt-1 flex justify-between"><span className="text-ink-500">{text('Due','বাকি')}</span><span className="font-medium text-danger">{taka(selectedInvoice.due)}</span></div>
                   </div>
                 )}
                 <label className="text-[12px] font-medium text-ink">
-                  Amount
+                  {text('Amount','টাকা')}
                   <Input className="mt-1 text-right" value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} placeholder={maxAmount ? String(maxAmount) : '0'} />
                 </label>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-[12px] font-medium text-ink sm:col-span-2">
-                  Refund amount
+                  {text('Refund amount','ফেরত দেওয়ার টাকা')}
                   <Input className="mt-1 text-right" value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} placeholder={String(credit.balance)} />
                 </label>
                 <label className="text-[12px] font-medium text-ink">
-                  Method
-                  <FormSelect className="mt-1" value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)} options={paymentMethods} />
+                  {text('Method','মাধ্যম')}
+                  <FormSelect className="mt-1" value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)} options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))} />
                 </label>
                 <label className="text-[12px] font-medium text-ink">
-                  Account
-                  <Input className="mt-1" value={account} onChange={(event) => setAccount(event.target.value)} placeholder={method === 'Cash' ? 'Cash counter' : 'Account / wallet'} />
+                  {text('Account','হিসাব')}
+                  <Input className="mt-1" value={account} onChange={(event) => setAccount(event.target.value)} placeholder={method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')} />
                 </label>
               </div>
             )}
-            {!selectedInvoice && action.mode === 'apply' && <p className="rounded-lg bg-warning-bg p-3 text-xs text-warning">This customer has no due invoice to settle.</p>}
+            {!selectedInvoice && action.mode === 'apply' && <p className="rounded-lg bg-warning-bg p-3 text-xs text-warning">{text('This customer has no due invoice to settle.','এই ক্রেতার কোনো বাকি বিল নেই।')}</p>}
             <DialogFooter>
-              <Button variant="outline" onClick={close}>Cancel</Button>
+              <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
                 disabled={amountNumber <= 0 || amountNumber > maxAmount || (action.mode === 'apply' && !selectedInvoice)}
                 onClick={() => {
@@ -617,7 +624,7 @@ function CreditActionDialog({
                   if (action.mode === 'refund') onRefund(credit, amountNumber, method, account);
                   close();
                 }}>
-                {action.mode === 'apply' ? 'Apply credit' : 'Refund credit'}
+                {action.mode === 'apply' ? text('Apply credit','জমা দিয়ে বাকি মেটান') : text('Refund credit','জমা ফেরত দিন')}
               </Button>
             </DialogFooter>
           </>
@@ -628,6 +635,7 @@ function CreditActionDialog({
 }
 
 export function Sales() {
+  const {text}=useUiCopy();
   const navigate = useNavigate();
   const [searchParams,setSearchParams] = useSearchParams();
   const routeTab=searchParams.get('tab');
@@ -713,10 +721,10 @@ export function Sales() {
   const creditTotal = credits.reduce((sum, item) => sum + item.balance, 0);
 
   const summary = [
-    { label: 'Sales · Oct', value: taka(salesTotal), sub: `${invoices.length} invoices` },
-    { label: 'Received · Oct', value: taka(receivedTotal), sub: 'Cash, bank & mobile' },
-    { label: 'Outstanding due', value: taka(dueTotal), sub: 'Customer receivable · বাকি', tone: 'text-danger' },
-    { label: 'Sales returns', value: taka(returnTotal), sub: `${returns.length} return memos · credit ${taka(creditTotal)}`, tone: 'text-warning' }
+    { label: text('Sales · Oct','অক্টোবরে বিক্রি'), value: taka(salesTotal), sub: text(`${invoices.length} invoices`,`${invoices.length}টি বিল`) },
+    { label: text('Received · Oct','অক্টোবরে জমা'), value: taka(receivedTotal), sub: text('Cash, bank & mobile','ক্যাশ, ব্যাংক ও মোবাইল') },
+    { label: text('Outstanding due','ক্রেতার কাছে পাওনা'), value: taka(dueTotal), sub: text('Customer receivable · বাকি','ক্রেতাদের বাকি'), tone: 'text-danger' },
+    { label: text('Sales returns','বিক্রি ফেরত'), value: taka(returnTotal), sub: text(`${returns.length} return memos · credit ${taka(creditTotal)}`,`${returns.length}টি ফেরত · জমা ${taka(creditTotal)}`), tone: 'text-warning' }
   ];
 
   const customerInvoices = invoices.filter((invoice) => invoice.party === returnCustomer);
@@ -940,11 +948,11 @@ export function Sales() {
   };
 
   const tabs: Array<[Tab, string, string]> = [
-    ['sales', 'Sales', 'Invoice list & management'],
-    ['return', 'Sales return', 'Batch return across customer invoices'],
-    ['returns', 'Return history', 'Completed sales returns'],
-    ['credits', 'Customer credit', 'Payments, settlements and refunds'],
-    ['drafts', 'Drafts & templates', 'Continue or reuse sales']
+    ['sales', text('Sales','বিক্রির তালিকা'), text('Invoice list & management','বিলের তালিকা ও হিসাব')],
+    ['return', text('Sales return','বিক্রি ফেরত'), text('Batch return across customer invoices','একসঙ্গে একাধিক বিলের পণ্য ফেরত')],
+    ['returns', text('Return history','ফেরতের ইতিহাস'), text('Completed sales returns','আগের ফেরতগুলো')],
+    ['credits', text('Customer credit','ক্রেতার অগ্রিম'), text('Payments, settlements and refunds','জমা, হিসাব মেলানো ও ফেরত')],
+    ['drafts', text('Drafts & templates','খসড়া ও নমুনা'), text('Continue or reuse sales','আগের খসড়া থেকে বিক্রি করুন')]
   ];
 
   return (
@@ -957,10 +965,10 @@ export function Sales() {
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
-              <BookOpen className="size-4" /> Customer ledger
+              <BookOpen className="size-4" /> {text('Customer ledger','ক্রেতার খাতা')}
             </Button>
             <Button size="sm" onClick={() => navigate('/app/pos')}>
-              <Plus className="size-4" /> New sale
+              <Plus className="size-4" /> {text('New sale','নতুন বিক্রি')}
             </Button>
           </>
         }
@@ -1004,7 +1012,7 @@ export function Sales() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   className="pl-8"
-                  placeholder="Search invoice, customer, phone or product"
+                  placeholder={text("Search invoice, customer, phone or product","বিল, ক্রেতা, ফোন বা পণ্য খুঁজুন")}
                   aria-label="Search sales"
                 />
               </div>
@@ -1012,37 +1020,37 @@ export function Sales() {
                 className="w-full lg:w-44"
                 value={customerFilter}
                 onChange={(event) => setCustomerFilter(event.target.value)}
-                options={['All customers', ...customerNames]}
+                options={[{value:'All customers',label:text('All customers','সব ক্রেতা')},...customerNames]}
               />
               <FormSelect
                 className="w-full lg:w-36"
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
-                options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned']}
+                options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':v==='Due'?'বাকি':v==='Part returned'?'আংশিক ফেরত':'ফেরত')}))}
               />
               <FormSelect
                 className="w-full lg:w-40"
                 value={method}
                 onChange={(event) => setMethod(event.target.value)}
-                options={['All payments', ...paymentMethods]}
+                options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
               />
               <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
               <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-sales.csv', ['Invoice','Date','Customer','Phone','Items','Total','Paid','Due','Payment','Status'], filtered.map(invoice => [invoice.invoice,invoice.date,invoice.party,invoice.phone ?? '',invoice.lines.map(line => line.name+' · '+invoiceQty(line)).join('; '),invoice.total,invoice.paid,invoice.due,invoice.payments.map(p => p.method).join(' + ') || invoice.method,invoice.status]))}>
-                <ArrowDownToLine className="size-4" /> Export
+                <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
               </Button>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">Invoice</TableHead>}
+                  {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">{text('Invoice','বিল')}</TableHead>}
                   {visibleSalesColumns.customer && <TableHead className="h-9 text-xs">Customer</TableHead>}
                   {visibleSalesColumns.items && <TableHead className="h-9 text-xs">Items</TableHead>}
-                  {visibleSalesColumns.total && <TableHead className="h-9 text-right text-xs">Total</TableHead>}
-                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title="Invoice total minus cost of goods sold">Profit</TableHead>}
-                  {visibleSalesColumns.paid && <TableHead className="h-9 text-right text-xs">Paid</TableHead>}
-                  {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">Due</TableHead>}
-                  {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">Payment</TableHead>}
+                  {visibleSalesColumns.total && <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>}
+                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title="Invoice total minus cost of goods sold">{text('Profit','লাভ')}</TableHead>}
+                  {visibleSalesColumns.paid && <TableHead className="h-9 text-right text-xs">{text('Paid','জমা')}</TableHead>}
+                  {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">{text('Due','বাকি')}</TableHead>}
+                  {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">{text('Payment','মাধ্যম')}</TableHead>}
                   {visibleSalesColumns.status && <TableHead className="h-9 text-xs">Status</TableHead>}
                   <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
                 </TableRow>
@@ -1062,11 +1070,11 @@ export function Sales() {
                           {invoice.party}
                         </button>
                       ) : <p className="font-medium text-ink">{invoice.party}</p>}
-                      <p className="text-[11px] text-ink-400">{invoice.phone ?? 'No phone'}</p>
+                      <p className="text-[11px] text-ink-400">{invoice.phone ?? text('No phone','ফোন নেই')}</p>
                     </TableCell>}
                     {visibleSalesColumns.items && <TableCell className="max-w-[270px] py-2 text-ink-600">
                       <span className="block truncate">{invoice.lines.map((line) => line.name).join(', ')}</span>
-                      <span className="text-[11px] text-ink-400">{invoice.items} line{invoice.items === 1 ? '' : 's'}</span>
+                      <span className="text-[11px] text-ink-400">{text(`${invoice.items} line${invoice.items === 1 ? '' : 's'}`,`${invoice.items}টি পণ্য`)}</span>
                     </TableCell>}
                     {visibleSalesColumns.total && <TableCell className="py-2 text-right font-medium">{taka(invoice.total)}</TableCell>}
                     {visibleSalesColumns.profit && <TableCell className={`py-2 text-right font-medium ${invoiceProfit(invoice) < 0 ? 'text-danger' : 'text-success'}`}>
@@ -1074,7 +1082,7 @@ export function Sales() {
                     </TableCell>}
                     {visibleSalesColumns.paid && <TableCell className="py-2 text-right text-ink-600">{taka(invoice.paid)}</TableCell>}
                     {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-helper'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
-                    {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? 'Multiple' : invoice.method}</TableCell>}
+                    {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? text('Multiple','একাধিক মাধ্যম') : text(invoice.method,invoice.method==='Cash'?'ক্যাশ':invoice.method==='Bank'?'ব্যাংক':invoice.method)}</TableCell>}
                     {visibleSalesColumns.status && <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>}
                     <TableCell className="py-2 pr-4 text-right">
                       <InvoiceActions
@@ -1091,15 +1099,15 @@ export function Sales() {
 
             {filtered.length === 0 && (
               <div className="px-4 py-10 text-center">
-                <p className="font-medium text-ink">No sales match</p>
-                <p className="mt-1 text-sm text-ink-500">Try another invoice, customer, phone or filter.</p>
-                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}>Clear filters</Button>
+                <p className="font-medium text-ink">{text('No sales match','কোনো বিক্রি মেলেনি')}</p>
+                <p className="mt-1 text-sm text-ink-500">{text('Try another invoice, customer, phone or filter.','অন্য বিল, নাম, ফোন বা ফিল্টার দিয়ে খুঁজুন।')}</p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
               </div>
             )}
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
-              <span>Showing {filtered.length} of {invoices.length} invoices</span>
-              <span>Click a row to view invoice details</span>
+              <span>{text(`Showing ${filtered.length} of ${invoices.length} invoices`,`মোট ${invoices.length}টি বিলের মধ্যে ${filtered.length}টি দেখাচ্ছে`)}</span>
+              <span>{text('Click a row to view invoice details','বিস্তারিত দেখতে বিলের লাইনে চাপুন')}</span>
             </div>
           </>
         )}
@@ -1113,8 +1121,8 @@ export function Sales() {
                     <UserRound className="size-4" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-ink">Choose customer</p>
-                    <p className="text-xs text-ink-500">Select a customer to load invoices that can be returned together.</p>
+                    <p className="text-sm font-semibold text-ink">{text('Choose customer','ক্রেতা বাছুন')}</p>
+                    <p className="text-xs text-ink-500">{text('Select a customer to load invoices that can be returned together.','ক্রেতা বাছলে ফেরতযোগ্য বিলগুলো দেখা যাবে।')}</p>
                   </div>
                 </div>
                 <FormSelect

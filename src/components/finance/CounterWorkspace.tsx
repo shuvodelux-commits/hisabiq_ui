@@ -93,33 +93,33 @@ export function CounterWorkspace({accounts,setAccounts}:{
  };
  const validate=()=>{
   if(!Number.isFinite(total)||total<0||!Number.isSafeInteger(Math.round(total*100))||Math.abs(total-money(total))>0.000001)
-   return 'Enter a valid amount with up to two decimal places.';
+   return text('Enter a valid amount with up to two decimal places.','সঠিক টাকার পরিমাণ দিন। দশমিকের পরে সর্বোচ্চ দুই ঘর লিখুন।');
   const isParty=type==='Customer Receive'||type==='Supplier Pay';
   if(discountInput.trim()&&!/^\d+(?:\.\d{1,2})?$/.test(discountInput.trim()))
-   return 'Discount / settlement must be a nonnegative amount with up to two decimals.';
-  if(isParty&&discount>0&&!discountReason.trim())return 'Enter a reason for the discount / settlement.';
-  if(!isParty&&total<=0)return 'Enter a positive transaction amount.';
-  if(isParty&&dueReduction<=0)return 'Enter money received/paid or a discount / settlement amount.';
+   return text('Discount / settlement must be a nonnegative amount with up to two decimals.','ছাড় বা সমন্বয় ঋণাত্মক হতে পারবে না। দশমিকের পরে সর্বোচ্চ দুই ঘর দিন।');
+  if(isParty&&discount>0&&!discountReason.trim())return text('Enter a reason for the discount / settlement.','ছাড় বা সমন্বয়ের কারণ লিখুন।');
+  if(!isParty&&total<=0)return text('Enter a positive transaction amount.','শূন্যের বেশি টাকার পরিমাণ দিন।');
+  if(isParty&&dueReduction<=0)return text('Enter money received/paid or a discount / settlement amount.','টাকা বা ছাড়ের পরিমাণ দিন।');
   if(type==='Bank Transfer'){
-   if(!from||!to||from===to)return 'Choose two different active money accounts.';
-   if(!accounts.find(a=>a.id===from&&a.status==='Active')||!accounts.find(a=>a.id===to&&a.status==='Active'))return 'Account is no longer active.';
+   if(!from||!to||from===to)return text('Choose two different active money accounts.','টাকা পাঠানো ও নেওয়ার জন্য আলাদা দুটি চালু হিসাব বাছুন।');
+   if(!accounts.find(a=>a.id===from&&a.status==='Active')||!accounts.find(a=>a.id===to&&a.status==='Active'))return text('Account is no longer active.','এই হিসাবটি এখন চালু নেই।');
    return '';
   }
-  if(type==='Expense'&&!expenseCategory.trim())return 'Select an expense category.';
-  if(type!=='Expense'&&!selected)return 'Select a customer or supplier.';
+  if(type==='Expense'&&!expenseCategory.trim())return text('Select an expense category.','খরচের ধরন বাছুন।');
+  if(type!=='Expense'&&!selected)return text('Select a customer or supplier.','ক্রেতা বা সরবরাহকারী বাছুন।');
   if(effectiveRows.some(row=>row.amount.trim()!==''&&!validMoney(row.amount)))
-   return 'Each entered payment amount must be positive with up to two decimals.';
-  if(total>0&&!splits.length)return 'Add a payment account for the cash amount.';
-  if(new Set(splits.map(s=>s.id)).size!==splits.length)return 'Duplicate payment source row.';
-  if(splits.some(s=>!accountOptions(s.method).some(a=>a.id===s.accountId)))return 'Choose a valid active account for every payment.';
+   return text('Each entered payment amount must be positive with up to two decimals.','প্রতিটি পেমেন্টের টাকা শূন্যের বেশি হতে হবে, সর্বোচ্চ দুই দশমিক ঘরসহ।');
+  if(total>0&&!splits.length)return text('Add a payment account for the cash amount.','টাকা নেওয়া বা দেওয়ার হিসাব বাছুন।');
+  if(new Set(splits.map(s=>s.id)).size!==splits.length)return text('Duplicate payment source row.','একই পেমেন্টের সারি দুবার যোগ হয়েছে।');
+  if(splits.some(s=>!accountOptions(s.method).some(a=>a.id===s.accountId)))return text('Choose a valid active account for every payment.','প্রতিটি পেমেন্টের জন্য চালু হিসাব বাছুন।');
   if(isParty&&dueReduction>money(maxDue)+0.001)
-   return chosen?'Cash plus settlement exceeds the selected invoice due.':'Cash plus settlement exceeds outstanding due. Record an advance separately.';
+   return chosen?text('Cash plus settlement exceeds the selected invoice due.','টাকা ও ছাড় মিলে বাছা বিলের বাকির চেয়ে বেশি।'):text('Cash plus settlement exceeds outstanding due. Record an advance separately.','টাকা ও ছাড় মিলে মোট বাকির চেয়ে বেশি। অগ্রিম টাকা আলাদা করে লিখুন।');
   return '';
  };
  const beginReview=()=>{const message=validate();if(message){setError(message);return;}setError('');setReviewRevision(state.revision);setReview(true);};
  const confirm=()=>{
   if(busy.current)return;
-  if(reviewRevision!==getPartyPreviewSnapshot().revision){setReview(false);setError('Party ledger changed. Please review the latest balance.');return;}
+  if(reviewRevision!==getPartyPreviewSnapshot().revision){setReview(false);setError(text('Party ledger changed. Please review the latest balance.','ক্রেতা বা সরবরাহকারীর হিসাব বদলেছে। নতুন জের দেখে আবার যাচাই করুন।'));return;}
   const message=validate();if(message){setReview(false);setError(message);return;}
   busy.current=true;
   try{
@@ -137,10 +137,10 @@ export function CounterWorkspace({accounts,setAccounts}:{
     return adjustment?{...account,balance:money(account.balance+adjustment),lastActivity:'Just now'}:account;
    }));
    setReview(false);setSubmitted(true);setError('');
-   toast.success(names[type]+' recorded in preview',{description:taka(total)+(selected?' · '+selected.name:'')});
+   toast.success(text(names[type]+' recorded in preview',banglaActions[type]+' · প্রিভিউতে লেখা হয়েছে'),{description:taka(total)+(selected?' · '+selected.name:'')});
    setRows([]);setAmount('');setDiscountInput('');setDiscountReason('');
    setNote('');setAllocation('');
-  }catch(e){setError(e instanceof Error?e.message:'Could not record this transaction.');setReview(false);}
+  }catch(e){setError(e instanceof Error?e.message:text('Could not record this transaction.','এই লেনদেন লেখা যায়নি।'));setReview(false);}
   finally{busy.current=false;}
  };
  const highlight=(value:number)=>value===0?'text-ink':payerRole==='Supplier'?(value<0?'text-danger':'text-success'):(value>0?'text-danger':'text-success');
@@ -159,28 +159,28 @@ export function CounterWorkspace({accounts,setAccounts}:{
      <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?word('findCustomer'):word('findSupplier')}</label>
      <div className="relative">
       <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-2.5 z-10 size-4 text-ink-400"/>
-      <Input className="pl-9" aria-label={type==='Customer Receive'?'Search customer':'Search supplier'} value={search}
+      <Input className="pl-9" aria-label={type==='Customer Receive'?text('Search customer','ক্রেতা খুঁজুন'):text('Search supplier','সরবরাহকারী খুঁজুন')} value={search}
        placeholder={text("Search name, phone or area","নাম, ফোন বা এলাকা খুঁজুন")} onFocus={()=>setSearching(true)}
        onClear={clearParty}
        onChange={e=>{if(partyId){setRows([]);setDiscountInput('');setDiscountReason('');}
         setSearch(e.target.value);setPartyId('');setAllocation('');setSearching(true);setReview(false);}}
        onKeyDown={e=>{if(e.key==='Escape')setSearching(false);if(e.key==='Enter'&&filtered[0]){e.preventDefault();selectParty(filtered[0]);}}}/>
      </div>
-     {searching&&<div role="listbox" aria-label="Matching parties" className="mt-1 max-h-52 overflow-auto rounded-lg border border-border bg-popover p-1 shadow-card">
+     {searching&&<div role="listbox" aria-label={text("Matching parties","মিলে যাওয়া নাম")} className="mt-1 max-h-52 overflow-auto rounded-lg border border-border bg-popover p-1 shadow-card">
       {filtered.length?filtered.map(p=><button type="button" key={p.id} role="option" aria-selected={p.id===partyId}
        onMouseDown={e=>e.preventDefault()} onClick={()=>selectParty(p)}
        className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left hover:bg-sidebar-accent focus-visible:bg-sidebar-accent">
        <span className="min-w-0"><span className="block truncate text-sm font-medium">{p.name}</span><span className="block text-xs text-ink-500">{p.phone} · {p.area}</span></span>
        <ArrowRight className="size-4 shrink-0 text-ink-400"/>
-      </button>):<p className="p-3 text-xs text-ink-500">No matching parties</p>}
+      </button>):<p className="p-3 text-xs text-ink-500">{text("No matching parties","কোনো নাম মেলেনি")}</p>}
      </div>}
      {selected&&settlement&&<div className="mt-3 rounded-lg border border-border bg-ink-50/60 p-3" aria-live="polite">
       <div className="flex flex-wrap items-start justify-between gap-3">
-       <div><p className="text-[11px] text-ink-500">Selected {payerRole.toLowerCase()}</p><p className="font-semibold">{selected.name}</p>
+       <div><p className="text-[11px] text-ink-500">{text('Selected '+payerRole.toLowerCase(),payerRole==='Customer'?'বাছা ক্রেতা':'বাছা সরবরাহকারী')}</p><p className="font-semibold">{selected.name}</p>
         <p className="text-xs text-ink-500">{selected.phone}</p></div>
        <div className="text-right"><p className="text-xs text-ink-500">{word("currentBalance")}</p>
         <p className={'text-xl font-semibold '+highlight(settlement.netBalance)}>{taka(Math.abs(settlement.netBalance))}</p>
-        <p className="text-xs text-ink-500">{settlement.netBalance>0?(payerRole==='Customer'?'Customer owes us':'Advance with supplier'):settlement.netBalance<0?(payerRole==='Customer'?'Customer has credit':'We owe supplier'):'Settled'}</p>
+        <p className="text-xs text-ink-500">{settlement.netBalance>0?(payerRole==='Customer'?text('Customer owes us','ক্রেতার কাছে পাওনা'):text('Advance with supplier','সরবরাহকারীর কাছে অগ্রিম')):settlement.netBalance<0?(payerRole==='Customer'?text('Customer has credit','ক্রেতার অগ্রিম জমা'):text('We owe supplier','সরবরাহকারীকে দেনা')):text('Settled','হিসাব মেটানো হয়েছে')}</p>
        </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-3 border-t border-border pt-2 text-xs">
@@ -194,27 +194,27 @@ export function CounterWorkspace({accounts,setAccounts}:{
      <AppSelect label={text("Invoice allocation","বিল বাছুন")} value={allocation} onChange={v=>{setAllocation(v);setReview(false);setError('');}}
       options={[{value:'',label:text('Oldest outstanding due first','আগের বাকি আগে মেটান')},...openInvoices.filter(r=>!r.opening).map(r=>({value:r.id,label:r.reference+' · '+taka(r.due)}))]}/>
      <p className="mt-2 text-xs text-ink-500">{chosen
-      ?'Only '+chosen.reference+' will be paid. Available invoice due '+taka(chosen.due)+'.'
-      :'Oldest unpaid invoices and opening balance are settled first.'}</p>
+      ?text('Only '+chosen.reference+' will be paid. Available invoice due '+taka(chosen.due)+'.','শুধু '+chosen.reference+' বিলের টাকা জমা হবে। বাকি '+taka(chosen.due)+'।')
+      :text('Oldest unpaid invoices and opening balance are settled first.','আগের বকেয়া বিল ও শুরুর বাকি আগে মেটানো হবে।')}</p>
      {!!previewAllocation.length&&<div className="mt-3 space-y-1 border-t border-border pt-2 text-xs">
       <p className="font-semibold text-ink">{text("Payment allocation preview","কোন বিলে কত টাকা যাবে")}</p>
       {previewAllocation.map((row,i)=><div key={row.invoice+i} className="flex justify-between gap-3"><span>{row.invoice}</span><strong>{taka(row.amount)}</strong></div>)}
      </div>}
     </div>}
-    {type==='Expense'&&<label className="block rounded-xl border border-border bg-card p-4 text-sm font-semibold">Expense category
-      <Input className="mt-2" value={expenseCategory} onChange={e=>setExpenseCategory(e.target.value)} placeholder="e.g. Transport"/>
+    {type==='Expense'&&<label className="block rounded-xl border border-border bg-card p-4 text-sm font-semibold">{text('Expense category','খরচের ধরন')}
+      <Input className="mt-2" value={expenseCategory} onChange={e=>setExpenseCategory(e.target.value)} placeholder={text("e.g. Transport","যেমন: পরিবহন")}/>
     </label>}
     {type==='Bank Transfer'&&<div className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2">
-     <label className="text-sm font-semibold">From account
-      <AppSelect className="mt-2" label="From account" value={from} onChange={v=>{setFrom(v);setReview(false);}}
+     <label className="text-sm font-semibold">{text('From account','যে হিসাব থেকে যাবে')}
+      <AppSelect className="mt-2" label={text("From account","যে হিসাব থেকে যাবে")} value={from} onChange={v=>{setFrom(v);setReview(false);}}
        options={accounts.filter(a=>a.status==='Active').map(a=>({value:a.id,label:a.name+' · '+taka(a.balance)}))}/>
      </label>
-     <label className="text-sm font-semibold">To account
-      <AppSelect className="mt-2" label="To account" value={to} onChange={v=>{setTo(v);setReview(false);}}
+     <label className="text-sm font-semibold">{text('To account','যে হিসাবে যাবে')}
+      <AppSelect className="mt-2" label={text("To account","যে হিসাবে যাবে")} value={to} onChange={v=>{setTo(v);setReview(false);}}
        options={accounts.filter(a=>a.status==='Active').map(a=>({value:a.id,label:a.name}))}/>
      </label>
-     <label className="text-sm font-semibold sm:col-span-2">Transfer amount
-      <Input className="mt-2 text-right" aria-label="Transfer amount" inputMode="decimal" value={amount} onChange={e=>{setAmount(e.target.value);setReview(false);}} placeholder="0.00"/>
+     <label className="text-sm font-semibold sm:col-span-2">{text('Transfer amount','কত টাকা পাঠাবেন')}
+      <Input className="mt-2 text-right" aria-label={text("Transfer amount","পাঠানোর টাকা")} inputMode="decimal" value={amount} onChange={e=>{setAmount(e.target.value);setReview(false);}} placeholder="0.00"/>
      </label>
     </div>}
     {type!=='Bank Transfer'&&<div className="rounded-xl border border-border bg-card">
@@ -229,89 +229,89 @@ export function CounterWorkspace({accounts,setAccounts}:{
       {effectiveRows.map(row=>{
        const available=accountOptions(row.method);
        return <div key={row.id} className="grid grid-cols-[1fr_1fr_34px] gap-2 sm:grid-cols-[130px_1fr_140px_34px]">
-        <AppSelect label="Payment method" value={row.method} onChange={method=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,method:method as Row['method'],accountId:accountOptions(method as Row['method'])[0]?.id??''}:x))} options={methods}/>
-        <AppSelect label="Payment account" value={row.accountId} onChange={accountId=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,accountId}:x))}
+        <AppSelect label={text("Payment method","টাকার মাধ্যম")} value={row.method} onChange={method=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,method:method as Row['method'],accountId:accountOptions(method as Row['method'])[0]?.id??''}:x))} options={methods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':'মোবাইল ব্যাংকিং')}))}/>
+        <AppSelect label={text("Payment account","টাকার হিসাব")} value={row.accountId} onChange={accountId=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,accountId}:x))}
          options={available.map(x=>({value:x.id,label:x.name}))}/>
-        <Input className="col-span-2 text-right sm:col-span-1" aria-label="Payment source amount" inputMode="decimal"
+        <Input className="col-span-2 text-right sm:col-span-1" aria-label={text("Payment source amount","পেমেন্টের টাকা")} inputMode="decimal"
          value={row.amount} onChange={e=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,amount:e.target.value}:x))} placeholder="0.00"/>
-        <button type="button" aria-label="Remove payment" disabled={effectiveRows.length===1} onClick={()=>editRows(effectiveRows.filter(x=>x.id!==row.id))}
+        <button type="button" aria-label={text("Remove payment","পেমেন্টের মাধ্যম সরান")} disabled={effectiveRows.length===1} onClick={()=>editRows(effectiveRows.filter(x=>x.id!==row.id))}
          className="row-start-1 col-start-3 flex size-9 items-center justify-center text-ink-500 hover:text-danger disabled:opacity-30 sm:row-auto sm:col-auto"><Trash2 className="size-4"/></button>
        </div>;
       })}
       {(type==='Customer Receive'||type==='Supplier Pay')&&selected&&
-      <section className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label="Discount and settlement">
+      <section className="rounded-lg border border-border bg-ink-50/50 p-3" aria-label={text("Discount and settlement","ছাড় ও সমন্বয়")}>
        <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-xs font-semibold text-ink">Discount / settlement <span className="font-bn font-normal text-ink-500">· ছাড় / সমন্বয়</span></h3>
-        <span className="text-[11px] text-ink-500">Reduces due · no cash movement</span>
+        <h3 className="text-xs font-semibold text-ink">{text("Discount / settlement","ছাড় / সমন্বয়")}</h3>
+        <span className="text-[11px] text-ink-500">{text("Reduces due · no cash movement","বাকি কমবে, ক্যাশ বদলাবে না")}</span>
        </div>
        <div className="mt-2 grid gap-2 sm:grid-cols-[180px_minmax(0,1fr)]">
-        <label className="text-xs font-medium text-ink-600">Settlement amount
-         <Input className="mt-1 text-right" inputMode="decimal" aria-label="Settlement discount amount" placeholder="0.00"
+        <label className="text-xs font-medium text-ink-600">{text("Settlement amount","সমন্বয়ের টাকা")}
+         <Input className="mt-1 text-right" inputMode="decimal" aria-label={text("Settlement discount amount","ছাড় বা সমন্বয়ের টাকা")} placeholder="0.00"
           value={discountInput} onChange={ev=>{setDiscountInput(ev.target.value);setReview(false);setError('');}}/>
         </label>
-        {discount>0&&<label className="text-xs font-medium text-ink-600">Reason <span className="text-danger">*</span>
-         <Input className="mt-1" aria-label="Settlement reason" placeholder="Why is the balance reduced?" value={discountReason}
+        {discount>0&&<label className="text-xs font-medium text-ink-600">{text("Reason","কারণ")} <span className="text-danger">*</span>
+         <Input className="mt-1" aria-label={text("Settlement reason","সমন্বয়ের কারণ")} placeholder={text("Why is the balance reduced?","কেন বাকি কমানো হচ্ছে?")} value={discountReason}
           onChange={ev=>{setDiscountReason(ev.target.value);setReview(false);}}/>
         </label>}
        </div>
-       {discount>0&&<p className="mt-2 text-xs text-ink-500">Cash {taka(total)} + settlement {taka(discount)} = total due reduction {taka(dueReduction)}</p>}
+       {discount>0&&<p className="mt-2 text-xs text-ink-500">{text('Cash','ক্যাশ')} {taka(total)} + {text('settlement','সমন্বয়')} {taka(discount)} = {text('total due reduction','মোট বাকি কমবে')} {taka(dueReduction)}</p>}
       </section>}
       <div className="space-y-1 border-t border-border pt-3">
-       <div className="flex items-center justify-between gap-3"><span className="text-sm text-ink-500">Automatically calculated cash total</span>
+       <div className="flex items-center justify-between gap-3"><span className="text-sm text-ink-500">{text('Automatically calculated cash total','হিসাব করা মোট টাকা')}</span>
         <strong className="text-xl text-ink" aria-live="polite">{taka(total)}</strong></div>
-       {discount>0&&<div className="flex justify-between gap-3 text-xs text-ink-500"><span>Including settlement, due reduces by</span><strong>{taka(dueReduction)}</strong></div>}
+       {discount>0&&<div className="flex justify-between gap-3 text-xs text-ink-500"><span>{text('Including settlement, due reduces by','সমন্বয়সহ বাকি কমবে')}</span><strong>{taka(dueReduction)}</strong></div>}
       </div>
      </div>
     </div>}
-    <label className="block rounded-xl border border-border bg-card p-4 text-sm font-semibold">Reference / note (optional)
-     <Input className="mt-2" value={note} onChange={e=>{setNote(e.target.value);setReview(false);}} placeholder="Transaction details"/>
+    <label className="block rounded-xl border border-border bg-card p-4 text-sm font-semibold">{text('Reference / note (optional)','রেফারেন্স / মন্তব্য (ঐচ্ছিক)')}
+     <Input className="mt-2" value={note} onChange={e=>{setNote(e.target.value);setReview(false);}} placeholder={text("Transaction details","লেনদেনের বিবরণ")}/>
     </label>
    </div>
    <aside className="h-fit rounded-xl border border-border bg-card p-4 xl:sticky xl:top-4">
     <h3 className="mb-3 text-sm font-semibold">{text("Transaction summary","লেনদেনের সারাংশ")}</h3>
-    <p className="text-xs text-ink-500">{type==='Customer Receive'?'Money received':type==='Supplier Pay'?'Money paid':'Total amount'}</p>
+    <p className="text-xs text-ink-500">{type==='Customer Receive'?text('Money received','টাকা পাওয়া'):type==='Supplier Pay'?text('Money paid','টাকা দেওয়া'):text('Total amount','মোট টাকা')}</p>
     <p className="text-2xl font-semibold text-ink" aria-live="polite">{taka(total)}</p>
     <p className="mt-1 text-xs leading-5 text-ink-500" aria-live="polite">{amountInWords(total)}</p>
     {settlement&&<div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
-     <div className="flex justify-between gap-2"><span>Before payment</span><strong>{taka(settlement.netBalance)}</strong></div>
-     <div className="flex justify-between gap-2"><span>{type==='Customer Receive'?'Receive cash':'Pay cash'}</span><strong>{taka(total)}</strong></div>
+     <div className="flex justify-between gap-2"><span>{text('Before payment','টাকা দেওয়া/নেওয়ার আগে')}</span><strong>{taka(settlement.netBalance)}</strong></div>
+     <div className="flex justify-between gap-2"><span>{type==='Customer Receive'?text('Receive cash','ক্যাশ নিন'):text('Pay cash','ক্যাশ দিন')}</span><strong>{taka(total)}</strong></div>
      {discount>0&&<div className="flex justify-between gap-2"><span>Discount / settlement</span><strong>{taka(discount)}</strong></div>}
-     <div className="flex justify-between gap-2 border-t border-border pt-2"><span>Balance after</span><strong className={highlight(predicted)}>{taka(predicted)}</strong></div>
+     <div className="flex justify-between gap-2 border-t border-border pt-2"><span>{text('Balance after','পরে জের')}</span><strong className={highlight(predicted)}>{taka(predicted)}</strong></div>
     </div>}
-    {submitted&&<div role="status" className="mt-3 rounded-lg border border-success/20 bg-success/5 p-3 text-xs text-success"><CheckCircle2 className="mb-1 size-4"/> Recorded in preview. Ledger balance is updated.</div>}
+    {submitted&&<div role="status" className="mt-3 rounded-lg border border-success/20 bg-success/5 p-3 text-xs text-success"><CheckCircle2 className="mb-1 size-4"/> {text('Recorded in preview. Ledger balance is updated.','প্রিভিউতে লেখা হয়েছে। হিসাবের জের বদলেছে।')}</div>}
     {error&&<p role="alert" className="mt-3 rounded-lg border border-danger/30 bg-danger-bg p-3 text-xs text-danger">{error}</p>}
     <Button className="mt-4 w-full" onClick={beginReview} disabled={type==='Bank Transfer'||type==='Expense'?total<=0:dueReduction<=0}>{text('Review '+names[type].toLowerCase(), 'যাচাই করুন: '+banglaActions[type])}</Button>
    </aside>
   </div>
   <Dialog open={review} onOpenChange={setReview}>
    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-    <DialogHeader><DialogTitle>Confirm {names[type].toLowerCase()}</DialogTitle>
-     <DialogDescription>Check the party, amount, payment accounts and updated balance before recording.</DialogDescription></DialogHeader>
+    <DialogHeader><DialogTitle>{text('Confirm '+names[type].toLowerCase(),'নিশ্চিত করুন: '+banglaActions[type])}</DialogTitle>
+     <DialogDescription>{text('Check the party, amount, payment accounts and updated balance before recording.','লেখার আগে নাম, টাকা, হিসাব ও নতুন জের মিলিয়ে নিন।')}</DialogDescription></DialogHeader>
     <div className="space-y-3 text-sm">
      <div className="rounded-xl border border-border bg-ink-50 p-4">
-      <p className="text-xs text-ink-500">Cash amount</p>
+      <p className="text-xs text-ink-500">{text('Cash amount','ক্যাশের টাকা')}</p>
       <p className="text-2xl font-semibold">{taka(total)}</p>
       <p className="mt-1 text-xs text-ink-500">{amountInWords(total)}</p>
      </div>
-     {selected&&<p><strong>{payerRole}: </strong>{selected.name} · {selected.phone}</p>}
+     {selected&&<p><strong>{text(payerRole,payerRole==='Customer'?'ক্রেতা':'সরবরাহকারী')}: </strong>{selected.name} · {selected.phone}</p>}
      {discount>0&&<div className="rounded-lg border border-border p-3">
       <div className="flex justify-between gap-2"><span>Discount / settlement</span><strong>{taka(discount)}</strong></div>
       <p className="mt-1 text-xs text-ink-500">{amountInWords(discount)}</p>
-      <p className="mt-2"><strong>Reason:</strong> {discountReason.trim()}</p>
-      <p className="mt-1 border-t border-border pt-2 font-semibold">Total due reduction: {taka(dueReduction)}</p>
+      <p className="mt-2"><strong>{text('Reason','কারণ')}:</strong> {discountReason.trim()}</p>
+      <p className="mt-1 border-t border-border pt-2 font-semibold">{text('Total due reduction','মোট বাকি কমবে')}: {taka(dueReduction)}</p>
      </div>}
-     {chosen&&<p><strong>Invoice:</strong> {chosen.reference} · outstanding {taka(chosen.due)}</p>}
-     {!chosen&&type==='Customer Receive'&&<p><strong>Allocation:</strong> Oldest outstanding first</p>}
+     {chosen&&<p><strong>{text('Invoice','বিল')}:</strong> {chosen.reference} · {text('outstanding','বাকি')} {taka(chosen.due)}</p>}
+     {!chosen&&type==='Customer Receive'&&<p><strong>{text('Allocation','টাকা জমার নিয়ম')}:</strong> {text('Oldest outstanding first','আগের বাকি আগে')}</p>}
      {type==='Bank Transfer'?<p>{accounts.find(a=>a.id===from)?.name} → {accounts.find(a=>a.id===to)?.name}</p>
       :<div className="space-y-1">{splits.map((s,i)=><p key={s.id}>{i+1}. {s.method} · {accounts.find(a=>a.id===s.accountId)?.name} <strong>{taka(s.amount)}</strong></p>)}</div>}
      {settlement&&<div className="rounded-lg border border-border p-3">
-      <div className="flex justify-between"><span>Current balance</span><strong>{taka(settlement.netBalance)}</strong></div>
-      <div className="mt-2 flex justify-between border-t border-border pt-2"><span>After payment</span><strong className={highlight(predicted)}>{taka(predicted)}</strong></div>
+      <div className="flex justify-between"><span>{word('currentBalance')}</span><strong>{taka(settlement.netBalance)}</strong></div>
+      <div className="mt-2 flex justify-between border-t border-border pt-2"><span>{text('After payment','টাকা দেওয়া/নেওয়ার পরে')}</span><strong className={highlight(predicted)}>{taka(predicted)}</strong></div>
      </div>}
-     {note&&<p className="text-xs text-ink-500">Note: {note}</p>}
-     <p className="flex items-start gap-2 text-xs text-ink-500"><AlertTriangle className="size-4 shrink-0 text-warning"/> This records an in-browser ERP preview, not a bank transfer or backend posting.</p>
-     <div className="flex justify-end gap-2 pt-2"><Button variant="outline" onClick={()=>setReview(false)}>Edit details</Button>
-      <Button onClick={confirm} disabled={busy.current}><CheckCircle2 className="size-4"/> Confirm & record</Button></div>
+     {note&&<p className="text-xs text-ink-500">{text('Note','মন্তব্য')}: {note}</p>}
+     <p className="flex items-start gap-2 text-xs text-ink-500"><AlertTriangle className="size-4 shrink-0 text-warning"/> {text('This records an in-browser ERP preview, not a bank transfer or backend posting.','এটি শুধু ব্রাউজারের প্রিভিউ। আসল ব্যাংক বা সার্ভারের হিসাবে লেনদেন হবে না।')}</p>
+     <div className="flex justify-end gap-2 pt-2"><Button variant="outline" onClick={()=>setReview(false)}>{text('Edit details','সংশোধন করুন')}</Button>
+      <Button onClick={confirm} disabled={busy.current}><CheckCircle2 className="size-4"/> {text('Confirm & record','নিশ্চিত করে লিখুন')}</Button></div>
     </div>
    </DialogContent>
   </Dialog>
