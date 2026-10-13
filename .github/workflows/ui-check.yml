@@ -51,6 +51,9 @@ jobs:
       - name: Check Bangla, English and bilingual POS and headers
         run: npm run test:bangla-ui
 
+      - name: Check transaction workflow Bangla copy and safety notes
+        run: npm run test:bangla-workflows
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
