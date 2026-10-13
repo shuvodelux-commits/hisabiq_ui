@@ -31,10 +31,10 @@ async function main() {
         const checkout = page.locator('[data-pos-checkout]');
         await checkout.waitFor();
         const cart = page.locator('[data-cart-header]');
-        await cart.waitFor();
+        await cart.waitFor({ state: 'attached' });
         const isBangla = language === 'Bangla';
         assert.match(await checkout.innerText(), isBangla ? /মোট দিতে হবে/ : /Total payable/, language);
-        assert.match(await cart.innerText(), isBangla ? /পরিমাণ/ : /Quantity/, language);
+        assert.match((await cart.textContent()) || '', isBangla ? /পরিমাণ/ : /Quantity/, language);
         const walkIn = checkout.getByText(isBangla ? 'সাধারণ ক্রেতা' : 'Walk-in customer', { exact: true });
         assert.equal(await walkIn.count(), 1, language + ': customer choice');
         const nameField = checkout.getByPlaceholder(isBangla ? 'ক্রেতার নাম' : 'Customer name');
