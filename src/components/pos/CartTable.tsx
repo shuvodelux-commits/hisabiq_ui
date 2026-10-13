@@ -17,6 +17,7 @@ import { salesInvoices } from '../../data/sales';
 import { availableSerials, productStockBreakdown, requiredSerialCount } from '../../utils/productFeatures';
 import { quantityFromBaseStock } from '../../utils/posStock';
 import {allocatePosStock} from '../../vendor/vendorStock';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 type CartTableProps = {
   lines: CartLine[];
@@ -88,6 +89,7 @@ function SortableCartRow({
 }
 
 export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReorder, onMove, searchRef }: CartTableProps) {
+  const { word, text } = useUiCopy();
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
@@ -124,12 +126,12 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
     <div data-cart-kind="sale" className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
       <div data-cart-header className={`${grid} border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400`}>
         <span className="text-right">#</span>
-        <span>Product</span>
-        <span className="text-right">Quantity</span>
-        <span>Price in</span>
-        <span className="text-right">Price</span>
-        <span className="text-right">Total</span>
-        <span className="sr-only">Remove</span>
+        <span>{word('product')}</span>
+        <span className="text-right">{word("quantity")}</span>
+        <span>{word('priceIn')}</span>
+        <span className="text-right">{word("price")}</span>
+        <span className="text-right">{word("total")}</span>
+        <span className="sr-only">{word("remove")}</span>
       </div>
 
       <div data-testid="pos-cart">
@@ -151,7 +153,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
                     <p className="truncate text-[11px] text-ink-500">
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
-                      {l.product.category}{l.product.kind === 'Service' ? ' · Service' : l.product.expiry?.enabled ? ` · Sellable ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · Stock ${formatStock(l.product)}`}
+                      {l.product.category}{l.product.kind === 'Service' ? ` · ${word('service')}` : l.product.expiry?.enabled ? ` · ${word('sellable')} ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · ${word('stock')} ${formatStock(l.product)}`}
                     </p>
                     <div className="mt-0.5 flex flex-wrap items-center gap-1">
                       {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
@@ -165,7 +167,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                               : 'bg-teal-50 text-teal-700'
                           }`}>
                           <ScanLine className="size-3" />
-                          Serials {l.serials.length}/{Math.max(requiredSerialCount(l.product, baseQty), Math.ceil(baseQty))}
+                          {word('serials')} {l.serials.length}/{Math.max(requiredSerialCount(l.product, baseQty), Math.ceil(baseQty))}
                         </button>
                       )}
                       {shortage > 0 && (
@@ -181,10 +183,10 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                           }`}>
                           <AlertTriangle className="size-3" />
                           {!l.stockSource
-                            ? `Short ${formatStock({ ...l.product, stock: shortage })} · choose source`
+                            ? `${word('short')} ${formatStock({ ...l.product, stock: shortage })} · ${word('chooseSource')}`
                             : l.stockSource.mode === 'Negative'
-                              ? `Negative sale · ${formatStock({ ...l.product, stock: shortage })}`
-                              : `${l.stockSource.vendorName}${l.stockSource.unitCost===null?' · Price pending':''} · ${formatStock({ ...l.product, stock: shortage })}`}
+                              ? `${word('negativeSale')} · ${formatStock({ ...l.product, stock: shortage })}`
+                              : `${l.stockSource.vendorName}${l.stockSource.unitCost===null?` · ${word('pricePending')}`:''} · ${formatStock({ ...l.product, stock: shortage })}`}
                         </button>
                       )}
                     </div>
@@ -192,15 +194,15 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                 </div>
                 <div data-cart-field="Quantity · পরিমাণ"><CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
                   primaryRef={el=>{qtyRefs.current[l.key]=el;}} secondaryRef={el=>{secondaryQtyRefs.current[l.key]=el;}}
-                  primaryLabel={factor>1?`${l.product.altUnit!.unit} quantity for ${l.product.name}`:`Quantity for ${l.product.name}`}
-                  secondaryLabel={`${l.product.unit} quantity for ${l.product.name}`}
+                  primaryLabel={factor>1?text(`${l.product.altUnit!.unit} quantity for ${l.product.name}`, `${l.product.altUnit!.unit} পরিমাণ: ${l.product.name}`):text(`Quantity for ${l.product.name}`, `পরিমাণ: ${l.product.name}`)}
+                  secondaryLabel={text(`${l.product.unit} quantity for ${l.product.name}`, `${l.product.unit} পরিমাণ: ${l.product.name}`)}
                   onPrimaryChange={value=>onUpdate(l.key,{qty:value})}
                   onSecondaryChange={value=>onUpdate(l.key,{secondaryQty:value})}
                   onPrimaryEnter={()=>{if(factor>1){secondaryQtyRefs.current[l.key]?.focus();secondaryQtyRefs.current[l.key]?.select();}else searchRef.current?.focus();}}
                   onSecondaryBlur={()=>commitSecondary(l,false)}
                   onSecondaryEnter={()=>commitSecondary(l,true)}/></div>
                 <div data-cart-field="Price in · একক">{units.length > 1 ?
-                <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label="Unit">
+                <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("unit")}>
                     {units.map((u) =>
                   <button
                     key={u}
@@ -222,7 +224,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                 <div data-cart-field="Price · দাম"><div className="relative">
                   <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
                   <NumericInput stepperInset={28}
-                    aria-label={`Price for ${l.product.name}`}
+                    aria-label={text(`Price for ${l.product.name}`, `দাম: ${l.product.name}`)}
                     value={l.price}
                     inputMode="decimal"
                     onChange={(e) => onUpdate(l.key, { price: e.target.value.replace(/[^\d.]/g, '') })}
@@ -230,7 +232,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     className={`${cellInput} pl-6 pr-7`} />
                   <button
                     type="button"
-                    aria-label={`Show purchase price for ${l.product.name}`}
+                    aria-label={text(`Show purchase price for ${l.product.name}`, `কেনা দাম দেখুন: ${l.product.name}`)}
                     aria-pressed={revealedPurchase === l.key}
                     onClick={() => setRevealedPurchase((current) => current === l.key ? null : l.key)}
                     className="absolute right-1.5 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded text-helper hover:bg-ink-50 hover:text-teal-700">
@@ -238,7 +240,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   </button>
                   {revealedPurchase === l.key &&
                   <div className="absolute right-0 top-full z-30 mt-1 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-[11px] text-ink-600 shadow-pop">
-                      Cost {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}
+                      {word('cost')} {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}
                     </div>
                   }
                 </div></div>
@@ -248,7 +250,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                 <button
                   type="button"
                   onClick={() => onRemove(l.key)}
-                  aria-label={`Remove ${l.product.name}`}
+                  aria-label={text(`Remove ${l.product.name}`, `পণ্য সরান: ${l.product.name}`)}
                   className="flex size-8 items-center justify-center rounded-md text-helper hover:bg-danger-bg hover:text-danger">
                   
                   <X className="size-4" />
@@ -261,10 +263,10 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
         <div data-testid="pos-add-row" data-cart-add className={`${grid} border-t border-border bg-teal-50/35 px-3 py-2`}>
           <span className="pr-3 text-right text-sm text-teal-600">{lines.length + 1}.</span>
           <ProductCombobox ref={searchRef} onSelect={onAdd} />
-          <span className="pr-2 text-right text-sm text-helper">Qty</span>
-          <span className="px-2 text-sm text-helper">Unit</span>
-          <span className="pr-2 text-right text-sm text-helper">Price</span>
-          <span className="text-right text-sm text-helper">Total</span>
+          <span className="pr-2 text-right text-sm text-helper">{word("qty")}</span>
+          <span className="px-2 text-sm text-helper">{word("unit")}</span>
+          <span className="pr-2 text-right text-sm text-helper">{word("price")}</span>
+          <span className="text-right text-sm text-helper">{word("total")}</span>
           <span />
         </div>
 
@@ -272,7 +274,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
 
       {lines.length === 0 &&
       <p className="border-t border-border px-4 py-6 text-center text-sm text-ink-500">
-          Cart is empty. Search above or tap a quick item below. <span className="font-bn">পণ্য যোগ করুন।</span>
+          {word("cartEmpty")}
         </p>
       }
 

@@ -48,6 +48,9 @@ jobs:
       - name: Check Counter quick-clear, Bangla words and settlement
         run: npm run test:counter-ux
 
+      - name: Check Bangla, English and bilingual POS and headers
+        run: npm run test:bangla-ui
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
