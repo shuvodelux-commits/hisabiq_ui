@@ -204,8 +204,8 @@ export function Purchases() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Purchase</TableHead>
-                  <TableHead className="h-9 text-xs">Supplier</TableHead>
+                  <TableHead className="h-9 pl-4 text-xs" >{text('Purchase','ক্রয়')}</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Supplier','সরবরাহকারী')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Items','পণ্য')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Memo','রসিদ')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>
@@ -358,8 +358,8 @@ export function Purchases() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">Return</TableHead>
-                  <TableHead className="h-9 text-xs">Purchase</TableHead>
-                  <TableHead className="h-9 text-xs">Supplier</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Purchase','ক্রয়')}</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Supplier','সরবরাহকারী')}</TableHead>
                   <TableHead className="h-9 text-xs">Returned items</TableHead>
                   <TableHead className="h-9 text-xs">Refund method</TableHead>
                   <TableHead className="h-9 pr-4 text-right text-xs">Amount</TableHead>
