@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import {useUiCopy} from '../../i18n/useUiCopy';
 import { Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
@@ -115,6 +116,7 @@ function newLine(seedIndex = 1): PurchaseLine {
 }
 
 export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, onSaveExpense, expense, onSaveCorrection }: BillDialogProps) {
+  const {text,word,showHelper}=useUiCopy();
   const today = businessToday();
   const [party, setParty] = useState(mode === 'purchase' ? suppliers[0].name : payees[0].name);
   const [partyOptions, setPartyOptions] = useState<Party[]>(() => availableParties().filter((item) => item.roles.some((role) => mode === 'purchase' ? role === 'Supplier' || role === 'Vendor' : role === 'Payee' || role === 'Vendor')));
@@ -224,27 +226,27 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       for (const row of paymentRows) {
         if (!row.amount.trim()) continue;
         toPaisa(Number(row.amount), 'Payment');
-        if (Number(row.amount) > 0 && !accountsByMethod[row.method]?.includes(row.account)) throw new Error('Choose a valid payment account.');
+        if (Number(row.amount) > 0 && !accountsByMethod[row.method]?.includes(row.account)) throw new Error(text('Choose a valid payment account.','সঠিক পেমেন্টের হিসাব বাছুন।'));
       }
-      if (!party.trim() || !category.trim()) throw new Error('Choose a payee and category.');
-      if (expense && !correctionReason.trim()) throw new Error('Enter a reason for the correction.');
-    } catch (e) { setError(e instanceof Error ? e.message : 'Review the entered amounts.'); return; }
+      if (!party.trim() || !category.trim()) throw new Error(text('Choose a payee and category.','প্রাপক ও খরচের ধরন বাছুন।'));
+      if (expense && !correctionReason.trim()) throw new Error(text('Enter a reason for the correction.','সংশোধনের কারণ লিখুন।'));
+    } catch (e) { setError(e instanceof Error ? e.message : text('Review the entered amounts.','টাকার পরিমাণগুলো আবার দেখুন।')); return; }
     if (!totalNum) {
-      setError(mode === 'purchase' ? 'Add at least one purchase item with quantity and cost.' : 'Enter the expense amount.');
+      setError(mode === 'purchase' ? text('Add at least one purchase item with quantity and cost.','অন্তত একটি পণ্যের পরিমাণ ও কেনা দাম দিন।') : text('Enter the expense amount.','খরচের টাকা লিখুন।'));
       return;
     }
     if (isBackdated && !backdateReason.trim()) {
-      setError('Enter a reason for the backdated transaction.');
+      setError(text('Enter a reason for the backdated transaction.','আগের তারিখে লেখার কারণ দিন।'));
       return;
     }
     if (paymentTotal > totalNum) {
-      setError(`Payments exceed the transaction total by ${taka(paymentTotal - totalNum)}.`);
+      setError(text(`Payments exceed the transaction total by ${taka(paymentTotal - totalNum)}.`,`মোট টাকার চেয়ে ${taka(paymentTotal - totalNum)} বেশি পরিশোধ হয়েছে।`));
       return;
     }
 
     if (mode === 'expense' && !review) {setError('');setReview(true);return;}
     const selectedParty = list.find((item) => item.name === party);
-    if (!selectedParty && !expense) { setError('Choose an active payee or supplier.'); return; }
+    if (!selectedParty && !expense) { setError(text('Choose an active payee or supplier.','চালু প্রাপক বা সরবরাহকারী বাছুন।')); return; }
     if (mode === 'purchase') {
       const existingSerials = [
         ...stockLots.flatMap((lot) => lot.serials ?? []),
@@ -328,7 +330,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           if (!review) { setReview(true); setError(''); return; }
           onSaveCorrection(saved, correctionReason);
         } else onSaveExpense(saved);
-      } catch (e) { setError(e instanceof Error ? e.message : 'Could not save the expense.'); return; }
+      } catch (e) { setError(e instanceof Error ? e.message : text('Could not save the expense.','খরচ সংরক্ষণ করা যায়নি।')); return; }
     }
 
     reset();
@@ -336,14 +338,14 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent role="dialog" aria-label={mode === 'purchase' ? 'New purchase' : expense ? 'Correct expense' : 'Add expense'} className={mode === 'purchase' ? 'max-h-[92vh] overflow-y-auto sm:max-w-4xl scrollbar-thin' : 'max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin'}>
+      <DialogContent role="dialog" aria-label={mode === 'purchase' ? text('New purchase','নতুন ক্রয়') : expense ? text('Correct expense','খরচ সংশোধন') : text('Add expense','খরচ যোগ করুন')} className={mode === 'purchase' ? 'max-h-[92vh] overflow-y-auto sm:max-w-4xl scrollbar-thin' : 'max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin'}>
         <DialogHeader>
           <DialogTitle>
-            {mode === 'purchase' ? 'New purchase' : expense ? 'Correct expense' : 'Add expense'}{' '}
-            <span className="font-bn text-sm font-normal text-ink-500">{mode === 'purchase' ? 'ক্রয়' : 'খরচ'}</span>
+            {mode === 'purchase' ? text('New purchase','নতুন ক্রয়') : expense ? text('Correct expense','খরচ সংশোধন') : text('Add expense','খরচ যোগ করুন')}{' '}
+            {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">{mode === 'purchase' ? 'ক্রয়' : 'খরচ'}</span>}
           </DialogTitle>
           <DialogDescription>
-            {expense?.ref ?? nextRef} · UI preview. Cash and ledger posting require backend integration.
+            {expense?.ref ?? nextRef} · {text('UI preview. Cash and ledger posting require backend integration.','শুধু প্রিভিউ। ক্যাশ ও খাতায় আসল লেনদেনের জন্য সার্ভার সংযোগ দরকার।')}
           </DialogDescription>
         </DialogHeader>
 
@@ -351,7 +353,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           <div className="block text-[13px] font-medium text-ink">
             {mode === 'purchase' ? 'Supplier' : 'Payee'}
             <div className="mt-1.5">
-              <QuickAddSelect label={mode === 'purchase' ? 'Supplier' : 'Payee'} value={party} options={list.map((item) => item.name)} onChange={setParty} showContact
+              <QuickAddSelect label={mode === 'purchase' ? text('Supplier','সরবরাহকারী') : text('Payee','টাকা প্রাপক')} value={party} options={list.map((item) => item.name)} onChange={setParty} showContact
                 onCreate={(name, phone, area) => {
                   const newParty: Party = { id: 'quick-' + Date.now(), name, phone, area, roles: [mode === 'purchase' ? 'Supplier' : 'Payee'], balance: 0, lastActivity: 'Just now', avatarColor: '#0D7C74' };
                   createPreviewParty(newParty);
@@ -363,17 +365,17 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
           <label className="block text-[13px] font-medium text-ink">
             {mode === 'purchase' ? 'Purchase date' : 'Expense date'}
-            <AppDatePicker className="mt-1.5" label={mode === 'purchase' ? 'Purchase date' : 'Expense date'} value={date} onChange={setDate} />
+            <AppDatePicker className="mt-1.5" label={mode === 'purchase' ? text('Purchase date','কেনার তারিখ') : text('Expense date','খরচের তারিখ')} value={date} onChange={setDate} />
           </label>
 
           {isBackdated && (
             <label className="block text-[13px] font-medium text-ink sm:col-span-2">
-              Reason for backdating <span className="text-danger">*</span>
+              {text('Reason for backdating','আগের তারিখে লেখার কারণ')} <span className="text-danger">*</span>
               <Input
                 className="mt-1.5"
                 value={backdateReason}
                 onChange={(event) => setBackdateReason(event.target.value)}
-                placeholder="Why is this transaction being entered with an earlier date?"
+                placeholder={text("Why is this transaction being entered with an earlier date?","আগের তারিখ দেওয়ার কারণ লিখুন")}
               />
             </label>
           )}
@@ -383,11 +385,11 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           <div className="overflow-hidden rounded-xl border border-border">
             <div className="flex items-center justify-between border-b border-border bg-ink-50/60 px-3 py-2">
               <div>
-                <p className="text-[13px] font-medium text-ink">Products</p>
-                <p className="text-[11px] text-ink-500">Purchase in large + small units where a conversion exists.</p>
+                <p className="text-[13px] font-medium text-ink">{word('products')}</p>
+                <p className="text-[11px] text-ink-500">{text('Purchase in large + small units where a conversion exists.','বড় ও ছোট একক থাকলে দুটোতেই পণ্য কিনতে পারবেন।')}</p>
               </div>
               <Button size="sm" variant="outline" onClick={() => setLines((current) => [...current, newLine(current.length + 1)])}>
-                <Plus className="size-4" /> Add product
+                <Plus className="size-4" /> {text('Add product','পণ্য যোগ করুন')}
               </Button>
             </div>
 
@@ -494,16 +496,16 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
             </div>
 
             <div className="flex items-center justify-between border-t border-border bg-ink-50/60 px-3 py-2">
-              <span className="text-xs text-ink-500">{lines.length} product line{lines.length === 1 ? '' : 's'}</span>
-              <span className="text-sm font-semibold text-ink">Purchase total · {taka(purchaseTotal)}</span>
+              <span className="text-xs text-ink-500">{text(String(lines.length)+' product line'+(lines.length===1?'':'s'),String(lines.length)+'টি পণ্য')}</span>
+              <span className="text-sm font-semibold text-ink">{text('Purchase total','ক্রয়ের মোট')} · {taka(purchaseTotal)}</span>
             </div>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="block text-[13px] font-medium text-ink">
-              Expense category
+              {text('Expense category','খরচের ধরন')}
               <div className="mt-1.5">
-                <QuickAddSelect label="Expense category" value={category} options={categoryOptions} onChange={setCategory}
+                <QuickAddSelect label={text("Expense category","খরচের ধরন")} value={category} options={categoryOptions} onChange={setCategory}
                   onCreate={(name) => {
                     createPreviewExpenseCategory(name);
                     setCategoryOptions((items) => [...items, name]);
@@ -517,7 +519,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               <div className="relative mt-1.5">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
                 <Input
-                  aria-label="Expense amount"
+                  aria-label={text("Expense amount","খরচের টাকা")}
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
                   className="pl-7 text-right"
@@ -528,23 +530,23 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
             </label>
 
             <label className="block text-[13px] font-medium text-ink sm:col-span-2">
-              Description / remarks
+              {text('Description / remarks','খরচের বিবরণ / মন্তব্য')}
               <Input
                 className="mt-1.5"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="e.g. Pickup — Bangshal to shop (3 trips)"
+                placeholder={text("e.g. Pickup — Bangshal to shop (3 trips)","যেমন: বঙ্গশাল থেকে দোকানে মালামাল আনা, ৩ বার")}
               />
             </label>
 
             <label className="block text-[13px] font-medium text-ink">
-              Reference no.
-              <Input className="mt-1.5" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder="Optional bill, voucher or memo no." />
+              {text('Reference no.','রেফারেন্স নম্বর')}
+              <Input className="mt-1.5" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder={text("Optional bill, voucher or memo no.","বিল বা ভাউচার নম্বর (ঐচ্ছিক)")} />
             </label>
 
             <label className="block text-[13px] font-medium text-ink">
-              Notes
-              <Input className="mt-1.5" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional internal note" />
+              {text('Notes','মন্তব্য')}
+              <Input className="mt-1.5" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder={text("Optional internal note","মন্তব্য (ঐচ্ছিক)")} />
             </label>
           </div>
         )}
@@ -553,9 +555,9 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/60 px-3 py-2">
             <div>
               <p className="text-[13px] font-medium text-ink">
-                Payments <span className="font-bn text-[11px] font-normal text-ink-400">· পেমেন্ট</span>
+                {word('payments')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· পেমেন্ট</span>}
               </p>
-              <p className="text-[11px] text-ink-500">Use one or multiple payment sources for this transaction.</p>
+              <p className="text-[11px] text-ink-500">{text('Use one or multiple payment sources for this transaction.','এক বা একাধিক মাধ্যম থেকে টাকা দিতে পারবেন।')}</p>
             </div>
             <div className="flex gap-2">
               {totalNum > 0 && (
@@ -568,7 +570,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                     account: paymentRows[0]?.account ?? accountsByMethod[paymentRows[0]?.method ?? 'Cash'][0],
                     amount: String(totalNum)
                   }])}>
-                  Pay full
+                  {text('Pay full','পুরো টাকা দিন')}
                 </Button>
               )}
               <Button
@@ -576,7 +578,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                 size="sm"
                 variant="outline"
                 onClick={() => setPaymentRows((rows) => [...rows, newPaymentRow(rows.length)])}>
-                <Plus className="size-4" /> Add source
+                <Plus className="size-4" /> {text('Add source','আরও মাধ্যম')}
               </Button>
             </div>
           </div>
@@ -585,17 +587,17 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
             {paymentRows.map((row, index) => (
               <div key={row.id} className="grid gap-2 p-3 sm:grid-cols-[140px_minmax(0,1fr)_140px_32px] sm:items-end">
                 <label className="text-[12px] font-medium text-ink">
-                  {index + 1}. Method
+                  {index + 1}. {text('Method','মাধ্যম')}
                   <FormSelect
                     className="mt-1"
                     value={row.method}
                     onChange={(event) => changePaymentMethod(row.id, event.target.value as StandardPaymentMethod)}
-                    options={methods}
+                    options={methods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
                   />
                 </label>
 
                 <label className="text-[12px] font-medium text-ink">
-                  Account
+                  {text('Account','হিসাব')}
                   <FormSelect
                     className="mt-1"
                     value={row.account}
@@ -605,11 +607,11 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                 </label>
 
                 <label className="text-[12px] font-medium text-ink">
-                  Amount
+                  {text('Amount','টাকা')}
                   <div className="relative mt-1">
                     <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
                     <Input
-                      aria-label={`Payment amount ${index + 1}`}
+                      aria-label={text(`Payment amount ${index + 1}`,`পেমেন্টের টাকা ${index + 1}`)}
                       value={row.amount}
                       onChange={(event) => updatePayment(row.id, { amount: event.target.value })}
                       inputMode="decimal"
@@ -624,7 +626,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                   disabled={paymentRows.length === 1}
                   onClick={() => setPaymentRows((rows) => rows.filter((item) => item.id !== row.id))}
                   className="mb-0.5 flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger-bg hover:text-danger disabled:cursor-not-allowed disabled:opacity-30"
-                  aria-label={`Remove payment source ${index + 1}`}>
+                  aria-label={text(`Remove payment source ${index + 1}`,`পেমেন্টের মাধ্যম ${index + 1} সরান`)}>
                   <Trash2 className="size-4" />
                 </button>
               </div>
@@ -633,67 +635,67 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
 
           <div className="grid grid-cols-3 gap-px border-t border-border bg-ink-100 text-center text-[12px]">
             <div className="bg-ink-50 px-3 py-2">
-              <p className="text-ink-400">Total</p>
+              <p className="text-ink-400">{word('total')}</p>
               <p className="mt-0.5 font-semibold text-ink">{taka(totalNum)}</p>
             </div>
             <div className="bg-ink-50 px-3 py-2">
-              <p className="text-ink-400">Paid</p>
+              <p className="text-ink-400">{text('Paid','পরিশোধ')}</p>
               <p className="mt-0.5 font-semibold text-ink">{taka(paymentTotal)}</p>
             </div>
             <div className="bg-ink-50 px-3 py-2">
-              <p className="text-ink-400">{overpaid > 0 ? 'Over' : 'Due'}</p>
+              <p className="text-ink-400">{overpaid > 0 ? text('Over','বেশি') : text('Due','বাকি')}</p>
               <p className={`mt-0.5 font-semibold ${overpaid > 0 || due > 0 ? 'text-danger' : 'text-success'}`}>
                 {taka(overpaid > 0 ? overpaid : due)}
               </p>
             </div>
           </div>
-          <p className="px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">Amount in words: {amountInWords(totalNum)}</p>
+          <p className="px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">{text('Amount in words:','কথায় টাকা:')} {amountInWords(totalNum)}</p>
         </section>
 
         {mode === 'purchase' && (
           <label className="block text-[13px] font-medium text-ink">
             Notes
-            <Input className="mt-1.5" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Supplier memo note, delivery note or internal remark" />
+            <Input className="mt-1.5" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder={text("Supplier memo note, delivery note or internal remark","সরবরাহকারীর বিল বা ডেলিভারির মন্তব্য")} />
           </label>
         )}
 
         {totalNum > 0 && due > 0 && (
           <div className="flex items-center justify-between rounded-lg bg-warning-bg px-3 py-2 text-sm">
-            <span className="text-warning">{mode === 'purchase' ? `Due to ${party}` : 'Unpaid expense amount'}</span>
+            <span className="text-warning">{mode === 'purchase' ? text(`Due to ${party}`,`${party}-কে দেনা`) : text('Unpaid expense amount','খরচের বাকি টাকা')}</span>
             <span className="font-semibold text-warning">{taka(due)}</span>
           </div>
         )}
 
         <div>
           <p className="mb-1.5 text-[13px] font-medium text-ink">
-            {mode === 'purchase' ? 'Supplier memo / receipt' : 'Expense receipt'}{' '}
-            <span className="font-normal text-ink-400">· রসিদের ছবি</span>
+            {mode === 'purchase' ? text('Supplier memo / receipt','সরবরাহকারীর বিল / রসিদ') : text('Expense receipt','খরচের রসিদ')}{' '}
+            {showHelper&&<span className="font-normal text-ink-400">· রসিদের ছবি</span>}
           </p>
           <PhotoUploader
             photos={photos}
             onChange={setPhotos}
             max={2}
-            label="Attach"
-            hint={mode === 'purchase' ? 'Supplier memo, cash receipt or delivery challan.' : 'Bill, voucher or payment receipt.'}
+            label={text("Attach","ছবি যোগ করুন")}
+            hint={mode === 'purchase' ? text('Supplier memo, cash receipt or delivery challan.','সরবরাহকারীর বিল, ক্যাশ রসিদ বা চালান।') : text('Bill, voucher or payment receipt.','বিল, ভাউচার বা টাকার রসিদ।')}
           />
         </div>
 
-        {expense && <label className="block space-y-1 text-xs font-medium text-ink">Reason for correction · কেন পরিবর্তন
-          <Input aria-label="Expense correction reason" value={correctionReason} onChange={event => setCorrectionReason(event.target.value)} />
+        {expense && <label className="block space-y-1 text-xs font-medium text-ink">{text('Reason for correction · কেন পরিবর্তন','কেন সংশোধন করছেন')}
+          <Input aria-label={text("Expense correction reason","খরচ সংশোধনের কারণ")} value={correctionReason} onChange={event => setCorrectionReason(event.target.value)} />
         </label>}
         {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
-        {mode === 'expense' && review && <section aria-label="Expense correction impact" className="space-y-2 rounded-lg border border-border bg-ink-50 p-3 text-xs">
-          <p className="font-semibold text-ink">Review expense before recording · নিশ্চিত করুন</p>
+        {mode === 'expense' && review && <section aria-label={text("Expense correction impact","খরচ সংশোধনের হিসাব")} className="space-y-2 rounded-lg border border-border bg-ink-50 p-3 text-xs">
+          <p className="font-semibold text-ink">{text('Review expense before recording · নিশ্চিত করুন','খরচ লেখার আগে যাচাই করুন')}</p>
           <p className="text-lg font-semibold">{taka(totalNum)}</p><p>{amountInWords(totalNum)}</p>
-          <p>Paid {taka(paymentTotal)} · Due {taka(due)}</p>
+          <p>{text('Paid','পরিশোধ')} {taka(paymentTotal)} · {text('Due','বাকি')} {taka(due)}</p>
           <p>{expense ? expense.payee + ' → ' : ''}{party} · {category}</p>
-          {expense && <p>Previous amount {taka(expense.amount)} · Reason: {correctionReason}</p>}
-          <p className="text-ink-500">Preview only. No bank or backend ledger is posted.</p>
+          {expense && <p>{text('Previous amount','আগের টাকা')} {taka(expense.amount)} · {text('Reason','কারণ')}: {correctionReason}</p>}
+          <p className="text-ink-500">{text('Preview only. No bank or backend ledger is posted.','শুধু প্রিভিউ। আসল ব্যাংক বা সার্ভারের খাতায় কোনো লেখা হবে না।')}</p>
         </section>}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{mode === 'purchase' ? 'Complete purchase' : expense ? review ? 'Confirm preview correction' : 'Review changes' : review ? 'Confirm expense preview' : 'Review expense'}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
+          <Button onClick={save}>{mode==='purchase'?text('Complete purchase','ক্রয় সম্পন্ন করুন'):expense?review?text('Confirm preview correction','প্রিভিউ সংশোধন নিশ্চিত করুন'):text('Review changes','সংশোধন যাচাই করুন'):review?text('Confirm expense preview','খরচের প্রিভিউ নিশ্চিত করুন'):text('Review expense','খরচ যাচাই করুন')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
