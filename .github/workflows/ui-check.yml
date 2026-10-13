@@ -57,6 +57,9 @@ jobs:
       - name: Check Bangla Reports, Daybook and isolated print HTML
         run: npm run test:bangla-reports-print
 
+      - name: Check Bangla Audit, Accounts and Party statement UI
+        run: npm run test:bangla-accounting
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
