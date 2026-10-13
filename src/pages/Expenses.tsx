@@ -215,14 +215,14 @@ export function Expenses() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">{text('Expense','খরচ')}</TableHead>
-                  <TableHead className="h-9 text-xs">Category</TableHead>
-                  <TableHead className="h-9 text-xs">Payee</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Category','ধরন')}</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Payee','প্রাপক')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Receipt','রসিদ')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Method','মাধ্যম')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Reference','রেফারেন্স')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -295,11 +295,11 @@ export function Expenses() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Category</TableHead>
+                  <TableHead className="h-9 pl-4 text-xs" >{text('Category','ধরন')}</TableHead>
                   <TableHead className="h-9 text-xs">Description</TableHead>
                   <TableHead className="h-9 text-right text-xs">Active total</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -339,12 +339,12 @@ export function Expenses() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Payee</TableHead>
+                  <TableHead className="h-9 pl-4 text-xs" >{text('Payee','প্রাপক')}</TableHead>
                   <TableHead className="h-9 text-xs">Phone</TableHead>
                   <TableHead className="h-9 text-xs">Last used</TableHead>
                   <TableHead className="h-9 text-right text-xs">Total paid</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
