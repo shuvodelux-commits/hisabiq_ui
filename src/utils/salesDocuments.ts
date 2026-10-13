@@ -2,7 +2,7 @@ import type { SalesInvoice, SalesReturn } from '../types/erp';
 import type { ReceiptPreviewProps } from '../components/brand/ReceiptPreview';
 import type { Report } from './reportOutput';
 import type {UiLanguage} from '../i18n/uiCopy';
-import {documentLabel,documentMethod} from '../i18n/documentCopy';
+import {documentLabel,documentMethod} from '../i18n/documentCopy.ts';
 
 export const invoiceQuantity = (line: SalesInvoice['lines'][number]) =>
   line.quantity.toLowerCase().includes(line.unit.toLowerCase()) ? line.quantity : `${line.quantity} ${line.unit}`;
