@@ -46,7 +46,7 @@ export function BillDetailDialog({ bill, onClose, onPay, onEdit, onReceiptChange
 
               <div className="p-6 text-center text-sm text-ink-500">
                     <FileImage className="mx-auto mb-2 size-8 text-helper" />
-                    No receipt attached
+                    {text('No receipt attached','কোনো রসিদ নেই')}
                     {!onReceiptChange && <p className="mt-2 text-xs">{text('Receipt upload requires backend integration.','রসিদ আপলোডের জন্য সার্ভার সংযোগ দরকার।')}</p>}
                   </div>
               }
