@@ -1,4 +1,4 @@
-import {uiText, type UiLanguage} from './uiCopy';
+import {uiText, type UiLanguage} from './uiCopy.ts';
 
 /** Presentation-only document terminology. Never translate record or CSV field values. */
 const terms: Record<string, string> = {
