@@ -15,7 +15,7 @@ type CustomerPickerProps = {
 
 export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
   const [q, setQ] = useState('');
-  const { text, word } = useUiCopy();
+  const { word } = useUiCopy();
   const customers = parties.filter((p) => {
     if (!p.roles.includes('Customer') && !p.roles.includes('Borrower')) return false;
     const needle = q.trim().toLowerCase();
