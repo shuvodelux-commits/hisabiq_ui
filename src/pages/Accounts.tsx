@@ -145,12 +145,12 @@ export function Accounts() {
               <button
                 onClick={() => setTerminologyMode('simple')}
                 className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${terminologyMode === 'simple' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
-                Simple
+                {text('Simple','সহজ')}
               </button>
               <button
                 onClick={() => setTerminologyMode('accounting')}
                 className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${terminologyMode === 'accounting' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
-                Accounting
+                {text('Accounting','হিসাববিজ্ঞান')}
               </button>
             </div>
             <Button variant="outline" size="sm" onClick={() => setOpeningOpen(true)}>
@@ -160,7 +160,7 @@ export function Accounts() {
               <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
             </Button>
             <Button size="sm" onClick={() => openVoucher('receipt')}>
-              <Plus className="size-4" /> New voucher
+              <Plus className="size-4" /> {text('New voucher','নতুন ভাউচার')}
             </Button>
           </>
         }
@@ -230,8 +230,8 @@ export function Accounts() {
               <div className="rounded-xl border border-border p-4">
                 <p className="text-sm font-semibold text-ink">{text('Books status','হিসাবের অবস্থা')}</p>
                 <div className="mt-3 space-y-2">
-                  <div className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2"><span className="text-[12px] text-ink-600">{text('Trial Balance','ট্রায়াল ব্যালেন্স')}</span><StatusBadge tone={Math.abs(trial.totalDebit - trial.totalCredit) < 0.01 ? 'success' : 'danger'} dot>{Math.abs(trial.totalDebit - trial.totalCredit) < 0.01 ? 'Balanced' : 'Needs review'}</StatusBadge></div>
-                  <div className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2"><span className="text-[12px] text-ink-600">{text('Balance Sheet','ব্যালেন্স শিট')}</span><StatusBadge tone={sheet.balanced ? 'success' : 'danger'} dot>{sheet.balanced ? 'Balanced' : 'Needs review'}</StatusBadge></div>
+                  <div className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2"><span className="text-[12px] text-ink-600">{text('Trial Balance','ট্রায়াল ব্যালেন্স')}</span><StatusBadge tone={Math.abs(trial.totalDebit - trial.totalCredit) < 0.01 ? 'success' : 'danger'} dot>{Math.abs(trial.totalDebit - trial.totalCredit) < 0.01 ? text('Balanced','হিসাব মিলেছে') : text('Needs review','মিলিয়ে দেখুন')}</StatusBadge></div>
+                  <div className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2"><span className="text-[12px] text-ink-600">{text('Balance Sheet','ব্যালেন্স শিট')}</span><StatusBadge tone={sheet.balanced ? 'success' : 'danger'} dot>{sheet.balanced ? text('Balanced','হিসাব মিলেছে') : text('Needs review','মিলিয়ে দেখুন')}</StatusBadge></div>
                   <div className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2"><span className="text-[12px] text-ink-600">{text('Ledger date view','খাতার তারিখ')}</span><span className="text-[11px] font-medium text-ink">{text(entryDateView === 'transaction' ? 'Transaction Date' : 'Created Date',entryDateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</span></div>
                 </div>
               </div>
@@ -261,7 +261,7 @@ export function Accounts() {
                 <p className="text-[13px] font-medium text-ink">{text('Vouchers & postings','ভাউচার ও হিসাব এন্ট্রি')}</p>
                 <p className="font-bn text-[11px] text-ink-400">কোথা থেকে হিসাব এসেছে এবং কে এন্ট্রি করেছেন</p>
               </div>
-              <div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => setOpeningOpen(true)}>{text('Opening balance','শুরুর জের')}</Button><Button size="sm" onClick={() => openVoucher('receipt')}><Plus className="size-4" /> New voucher</Button></div>
+              <div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => setOpeningOpen(true)}>{text('Opening balance','শুরুর জের')}</Button><Button size="sm" onClick={() => openVoucher('receipt')}><Plus className="size-4" /> {text('New voucher','নতুন ভাউচার')}</Button></div>
             </div>
             <div className="overflow-x-auto">
               <Table>
