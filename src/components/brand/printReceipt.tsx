@@ -1,16 +1,17 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ReceiptPreview, type ReceiptPreviewProps } from './ReceiptPreview';
+import {documentLabel,printDocumentLanguage} from '../../i18n/documentCopy';
 
-const printCss = `body{margin:0;background:white;color:#0b1a2c}#document-receipt{width:288px;margin:auto}#document-receipt .truncate{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}#document-receipt li{break-inside:avoid}@page{size:80mm 297mm;margin:2mm}@media print{body *{visibility:visible!important}#document-receipt{position:static!important}#document-receipt>div{box-shadow:none!important;--tw-ring-shadow:none!important}}`;
+const printCss = `body{margin:0;background:white;color:#0b1a2c;font-family:system-ui,'Hind Siliguri','Noto Sans Bengali',sans-serif}#document-receipt{width:288px;margin:auto}#document-receipt .truncate{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}#document-receipt li{break-inside:avoid}@page{size:80mm 297mm;margin:2mm}@media print{body *{visibility:visible!important}#document-receipt{position:static!important}#document-receipt>div{box-shadow:none!important;--tw-ring-shadow:none!important}}`;
 
 /** Render the same receipt as POS/Sales, with React escaping every source field. */
 export function receiptPrintHtml(props: ReceiptPreviewProps, styles: Array<{css?: string;href?: string}> = [], baseUrl = ''): string {
   return '<!doctype html>' + renderToStaticMarkup(
-    <html lang="en" data-theme="light"><head><meta charSet="utf-8" />
+    <html lang={printDocumentLanguage(props.language??"English + Bangla")} data-theme="light"><head><meta charSet="utf-8" />
       <title>{props.invoice}</title>{baseUrl && <base href={baseUrl} />}
       {styles.map((style,i) => style.href ? <link key={i} rel="stylesheet" href={style.href} /> : <style key={i} dangerouslySetInnerHTML={{__html:(style.css ?? '').replace(/<\/style/gi,'<\\/style')}} />)}
       <style dangerouslySetInnerHTML={{__html:printCss}} />
-    </head><body><main id="document-receipt"><ReceiptPreview {...props} /><p style={{fontSize:10,textAlign:'center'}}>HisabIQ UI preview</p></main></body></html>
+    </head><body><main id="document-receipt"><ReceiptPreview {...props} /><p style={{fontSize:10,textAlign:'center'}}>{documentLabel(props.language??'English + Bangla','HisabIQ UI preview')}</p></main></body></html>
   );
 }
 
