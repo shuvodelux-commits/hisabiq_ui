@@ -54,6 +54,9 @@ jobs:
       - name: Check transaction workflow Bangla copy and safety notes
         run: npm run test:bangla-workflows
 
+      - name: Check Bangla Reports, Daybook and isolated print HTML
+        run: npm run test:bangla-reports-print
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
