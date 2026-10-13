@@ -953,6 +953,7 @@ export function Sales() {
         title="Sales"
         titleBn="বিক্রয়"
         description="Manage invoices, collect due payments, handle returns, drafts and reusable sale templates."
+        descriptionBn="বিক্রির বিল, বাকি টাকা ও ফেরত পণ্য দেখুন।"
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
