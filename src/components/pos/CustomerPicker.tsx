@@ -6,6 +6,7 @@ import { PartyAvatar } from '../PartyAvatar';
 import { parties } from '../../data/parties';
 import { taka } from '../../utils/currency';
 import type { Party } from '../../types/erp';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 type CustomerPickerProps = {
   value: Party | null;
@@ -14,6 +15,7 @@ type CustomerPickerProps = {
 
 export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
   const [q, setQ] = useState('');
+  const { text, word } = useUiCopy();
   const customers = parties.filter((p) => {
     if (!p.roles.includes('Customer') && !p.roles.includes('Borrower')) return false;
     const needle = q.trim().toLowerCase();
@@ -23,7 +25,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
 
   return (
     <FloatingPanel
-      label="Choose customer"
+      label={word("chooseCustomer")}
       align="left"
       width={320}
       trigger={({ toggle, open }) =>
@@ -41,17 +43,17 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
               </span>
           }
             <span className="min-w-0 flex-1 leading-tight">
-              <span className="block truncate text-[13px] font-medium text-ink">{value ? value.name : 'Walk-in customer'}</span>
+              <span className="block truncate text-[13px] font-medium text-ink">{value ? value.name : word('walkIn')}</span>
               <span className="block truncate text-[11px] text-ink-500">
                 {value ?
-              `${value.phone} · Prev. due ${taka(Math.max(0, value.balance))}` :
-              'Cash sale · customer optional'}
+              `${value.phone} · ${word('prevDue')} ${taka(Math.max(0, value.balance))}` :
+              word('cashCustomerOptional')}
               </span>
             </span>
             <ChevronDown className="size-4 text-ink-400" />
           </button>
           {value &&
-        <button onClick={() => onChange(null)} aria-label="Clear customer" className="flex size-10 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-50 hover:text-ink">
+        <button onClick={() => onChange(null)} aria-label={word("clearCustomer")} className="flex size-10 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-50 hover:text-ink">
               <X className="size-4" />
             </button>
         }
@@ -65,7 +67,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search customer or phone…"
+            placeholder={word("searchCustomer")}
             className="h-9 w-full rounded-md border border-border px-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
           
           </div>
@@ -81,7 +83,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
                 <span className="flex size-7 items-center justify-center rounded-full bg-ink-50 text-ink-400">
                   <UserRound className="size-3.5" />
                 </span>
-                <span className="text-[13px] text-ink">Walk-in customer</span>
+                <span className="text-[13px] text-ink">{word("walkIn")}</span>
               </button>
             </li>
             {customers.map((c) =>
