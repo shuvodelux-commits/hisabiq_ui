@@ -90,7 +90,7 @@ export function Purchases() {
   const [returnError, setReturnError] = useState('');
   const openBill = (p: Purchase) => setDetail({ref: p.ref, date: p.date, party: p.supplier, partyId: p.supplierId, description: p.items, total: position(p).total, paid: position(p).paid, payments: p.payments, receipt: p.receipt});
   const resetFilters = () => { setQuery(''); setSupplierFilter('All suppliers'); setStatusFilter('All status'); };
-  const printPurchase = (p: Purchase) => { const label=(s:string)=>documentLabel(language,s); if (!printReport({title:p.ref,language,subtitle:label('Purchase bill preview'),headers:[label('Field'),label('Value')],rows:[[label('Date'),p.date],[label('Supplier'),p.supplier],[label('Items'),p.items],[label('Total'),p.total],[label('Paid'),p.paid],[label('Due'),p.total-p.paid]]})) toast.error(text('Allow the print popup and try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।')); };
+  const printPurchase = (p: Purchase) => { const label=(s:string)=>documentLabel(language,s); if (!printReport({title:p.ref,language,subtitle:label('Purchase bill preview'),headers:[label('Field'),label('Value')],rows:[[label('Date'),p.date],[label('Supplier'),p.supplier],[label('Items'),p.items],[label('Total'),p.total],[label('Paid'),p.paid],[text('Due','দেনা'),p.total-p.paid]]})) toast.error(text('Allow the print popup and try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।')); };
   const reviewReturn = (p: Purchase) => { setReturnPurchase(p); setReturnQuery(p.ref); setReturnError(''); chooseTab('return'); };
 
   const filteredPurchases = useMemo(() => purchases.filter(p => {
