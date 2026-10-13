@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
+import { useUiCopy } from '../i18n/useUiCopy';
 import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
@@ -356,6 +357,7 @@ function PaymentDialog({
   onClose: () => void;
   onSave: (invoice: SalesInvoice, rows: PaymentDraft[]) => void;
 }) {
+  const {text,showHelper}=useUiCopy();
   const [rows, setRows] = useState<PaymentDraft[]>([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
 
   const total = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
@@ -371,33 +373,33 @@ function PaymentDialog({
         {invoice && (
           <>
             <DialogHeader>
-              <DialogTitle>Take payment <span className="font-bn text-sm font-normal text-ink-500">পেমেন্ট নিন</span></DialogTitle>
-              <DialogDescription>{invoice.invoice} · {invoice.party} · due {taka(invoice.due)}</DialogDescription>
+              <DialogTitle>{text('Take payment','টাকা নিন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">পেমেন্ট নিন</span>}</DialogTitle>
+              <DialogDescription>{invoice.invoice} · {invoice.party} · {text('due','বাকি')} {taka(invoice.due)}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-2">
               {rows.map((row, index) => (
                 <div key={row.id} className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[140px_1fr_120px_auto]">
                   <label className="text-[12px] font-medium text-ink">
-                    Method
+                    {text('Method','মাধ্যম')}
                     <FormSelect
                       className="mt-1"
                       value={row.method}
                       onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, method: event.target.value as PaymentMethod } : item))}
-                      options={paymentMethods}
+                      options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
                     />
                   </label>
                   <label className="text-[12px] font-medium text-ink">
-                    Account
+                    {text('Account','হিসাব')}
                     <Input
                       className="mt-1"
                       value={row.account}
                       onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, account: event.target.value } : item))}
-                      placeholder={row.method === 'Cash' ? 'Cash counter' : 'Account / wallet'}
+                      placeholder={row.method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')}
                     />
                   </label>
                   <label className="text-[12px] font-medium text-ink">
-                    Amount
+                    {text('Amount','টাকা')}
                     <Input
                       className="mt-1 text-right"
                       value={row.amount}
@@ -411,7 +413,7 @@ function PaymentDialog({
                     disabled={rows.length === 1}
                     onClick={() => setRows((items) => items.filter((item) => item.id !== row.id))}
                     className="self-end rounded-md p-2 text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
-                    aria-label={`Remove payment ${index + 1}`}>
+                    aria-label={text(`Remove payment ${index + 1}`,`পেমেন্ট ${index + 1} সরান`)}>
                     <Trash2 className="size-4" />
                   </button>
                 </div>
@@ -421,25 +423,25 @@ function PaymentDialog({
                 type="button"
                 onClick={() => setRows((items) => [...items, { id: `p${Date.now()}`, method: 'Cash', amount: '', account: '' }])}
                 className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-700 hover:underline">
-                <Plus className="size-3.5" /> Add another payment source
+                <Plus className="size-3.5" /> {text('Add another payment source','আরও পেমেন্ট মাধ্যম')}
               </button>
             </div>
 
             <div className="grid grid-cols-3 gap-2 rounded-xl bg-ink-50 p-3 text-center text-[12px]">
-              <div><p className="text-ink-400">Invoice due</p><p className="mt-0.5 font-semibold text-ink">{taka(invoice.due)}</p></div>
-              <div><p className="text-ink-400">This payment</p><p className="mt-0.5 font-semibold text-ink">{taka(total)}</p></div>
-              <div><p className="text-ink-400">Remaining</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{taka(Math.max(invoice.due - total, 0))}</p></div>
+              <div><p className="text-ink-400">{text('Invoice due','বিলের বাকি')}</p><p className="mt-0.5 font-semibold text-ink">{taka(invoice.due)}</p></div>
+              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(total)}</p></div>
+              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{taka(Math.max(invoice.due - total, 0))}</p></div>
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={close}>Cancel</Button>
+              <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
                 disabled={total <= 0 || total > invoice.due}
                 onClick={() => {
                   onSave(invoice, rows);
                   close();
                 }}>
-                Save payment
+                {text('Save payment','পেমেন্ট লিখুন')}
               </Button>
             </DialogFooter>
           </>
@@ -469,6 +471,7 @@ function CustomerPaymentDialog({
   onClose: () => void;
   onSave: (draft: CustomerPaymentDraft) => void;
 }) {
+  const {text,showHelper}=useUiCopy();
   const [customer, setCustomer] = useState(customers[0] ?? '');
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
@@ -487,42 +490,42 @@ function CustomerPaymentDialog({
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && close()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Customer payment <span className="font-bn text-sm font-normal text-ink-500">কাস্টমার পেমেন্ট</span></DialogTitle>
-          <DialogDescription>Receive money against customer dues or keep it as reusable customer credit.</DialogDescription>
+          <DialogTitle>{text('Customer payment','ক্রেতার টাকা জমা')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">কাস্টমার পেমেন্ট</span>}</DialogTitle>
+          <DialogDescription>{text('Receive money against customer dues or keep it as reusable customer credit.','ক্রেতার বাকি মেটাতে টাকা নিন অথবা অগ্রিম জমা রাখুন।')}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[12px] font-medium text-ink sm:col-span-2">
-            Customer
+            {text('Customer','ক্রেতা')}
             <FormSelect className="mt-1" value={customer} onChange={(event) => setCustomer(event.target.value)} options={customers} />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Method
-            <FormSelect className="mt-1" value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)} options={paymentMethods} />
+            {text('Method','মাধ্যম')}
+            <FormSelect className="mt-1" value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)} options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))} />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Account
-            <Input className="mt-1" value={account} onChange={(event) => setAccount(event.target.value)} placeholder={method === 'Cash' ? 'Cash counter' : 'Account / wallet'} />
+            {text('Account','হিসাব')}
+            <Input className="mt-1" value={account} onChange={(event) => setAccount(event.target.value)} placeholder={method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')} />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Amount
+            {text('Amount','টাকা')}
             <Input className="mt-1 text-right" value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} placeholder="0" />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Allocation
-            <FormSelect className="mt-1" value={allocation} onChange={(event) => setAllocation(event.target.value as CustomerPaymentDraft['allocation'])} options={['Settle oldest due', 'Keep as customer credit']} />
+            {text('Allocation','কোন বাকি মেটাবেন')}
+            <FormSelect className="mt-1" value={allocation} onChange={(event) => setAllocation(event.target.value as CustomerPaymentDraft['allocation'])} options={[{value:'Settle oldest due',label:text('Settle oldest due','আগের বাকি আগে মেটান')},{value:'Keep as customer credit',label:text('Keep as customer credit','ক্রেতার অগ্রিম জমা রাখুন')}]} />
           </label>
         </div>
         <div className="rounded-lg bg-ink-50 p-3 text-[12px] text-ink-600">
           {allocation === 'Settle oldest due'
-            ? 'HisabIQ applies this payment to the customer’s oldest due invoices first. Any remainder becomes customer credit.'
-            : 'The full amount stays as customer credit and can be applied to an invoice or refunded later.'}
+            ? text('HisabIQ applies this payment to the customer’s oldest due invoices first. Any remainder becomes customer credit.','আগের বাকি বিল আগে মেটানো হবে। বেশি টাকা থাকলে অগ্রিম জমা থাকবে।')
+            : text('The full amount stays as customer credit and can be applied to an invoice or refunded later.','পুরো টাকা অগ্রিম জমা থাকবে। পরে বিল মেটাতে বা ফেরত দিতে পারবেন।')}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={close}>Cancel</Button>
+          <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
           <Button disabled={!customer || amountNumber <= 0} onClick={() => {
             onSave({ customer, amount, method, account, allocation });
             close();
-          }}>Save payment</Button>
+          }}>{text('Save payment','পেমেন্ট লিখুন')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -547,6 +550,7 @@ function CreditActionDialog({
   const [invoiceId, setInvoiceId] = useState('');
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
+  const {text}=useUiCopy();
   const [account, setAccount] = useState('');
   const selectedInvoice = dueInvoices.find((invoice) => invoice.invoice === invoiceId) ?? dueInvoices[0] ?? null;
   const maxAmount = credit ? Math.min(credit.balance, action?.mode === 'apply' ? selectedInvoice?.due ?? 0 : credit.balance) : 0;
@@ -566,13 +570,13 @@ function CreditActionDialog({
         {credit && action && (
           <>
             <DialogHeader>
-              <DialogTitle>{action.mode === 'apply' ? 'Apply customer credit' : 'Refund customer credit'}</DialogTitle>
-              <DialogDescription>{credit.customer} · available {taka(credit.balance)}</DialogDescription>
+              <DialogTitle>{action.mode === 'apply' ? text('Apply customer credit','ক্রেতার অগ্রিম দিয়ে বাকি মেটান') : text('Refund customer credit','ক্রেতার অগ্রিম ফেরত দিন')}</DialogTitle>
+              <DialogDescription>{credit.customer} · {text('available','জমা আছে')} {taka(credit.balance)}</DialogDescription>
             </DialogHeader>
             {action.mode === 'apply' ? (
               <div className="space-y-3">
                 <label className="text-[12px] font-medium text-ink">
-                  Due invoice
+                  {text('Due invoice','বাকি বিল')}
                   <FormSelect
                     className="mt-1"
                     value={selectedInvoice?.invoice ?? ''}
@@ -582,34 +586,34 @@ function CreditActionDialog({
                 </label>
                 {selectedInvoice && (
                   <div className="rounded-lg bg-ink-50 p-3 text-[12px]">
-                    <div className="flex justify-between"><span className="text-ink-500">Invoice</span><span className="font-medium">{selectedInvoice.invoice}</span></div>
-                    <div className="mt-1 flex justify-between"><span className="text-ink-500">Due</span><span className="font-medium text-danger">{taka(selectedInvoice.due)}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Invoice','বিল')}</span><span className="font-medium">{selectedInvoice.invoice}</span></div>
+                    <div className="mt-1 flex justify-between"><span className="text-ink-500">{text('Due','বাকি')}</span><span className="font-medium text-danger">{taka(selectedInvoice.due)}</span></div>
                   </div>
                 )}
                 <label className="text-[12px] font-medium text-ink">
-                  Amount
+                  {text('Amount','টাকা')}
                   <Input className="mt-1 text-right" value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} placeholder={maxAmount ? String(maxAmount) : '0'} />
                 </label>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-[12px] font-medium text-ink sm:col-span-2">
-                  Refund amount
+                  {text('Refund amount','ফেরত দেওয়ার টাকা')}
                   <Input className="mt-1 text-right" value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} placeholder={String(credit.balance)} />
                 </label>
                 <label className="text-[12px] font-medium text-ink">
-                  Method
-                  <FormSelect className="mt-1" value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)} options={paymentMethods} />
+                  {text('Method','মাধ্যম')}
+                  <FormSelect className="mt-1" value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)} options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))} />
                 </label>
                 <label className="text-[12px] font-medium text-ink">
-                  Account
-                  <Input className="mt-1" value={account} onChange={(event) => setAccount(event.target.value)} placeholder={method === 'Cash' ? 'Cash counter' : 'Account / wallet'} />
+                  {text('Account','হিসাব')}
+                  <Input className="mt-1" value={account} onChange={(event) => setAccount(event.target.value)} placeholder={method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')} />
                 </label>
               </div>
             )}
-            {!selectedInvoice && action.mode === 'apply' && <p className="rounded-lg bg-warning-bg p-3 text-xs text-warning">This customer has no due invoice to settle.</p>}
+            {!selectedInvoice && action.mode === 'apply' && <p className="rounded-lg bg-warning-bg p-3 text-xs text-warning">{text('This customer has no due invoice to settle.','এই ক্রেতার কোনো বাকি বিল নেই।')}</p>}
             <DialogFooter>
-              <Button variant="outline" onClick={close}>Cancel</Button>
+              <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
                 disabled={amountNumber <= 0 || amountNumber > maxAmount || (action.mode === 'apply' && !selectedInvoice)}
                 onClick={() => {
@@ -617,7 +621,7 @@ function CreditActionDialog({
                   if (action.mode === 'refund') onRefund(credit, amountNumber, method, account);
                   close();
                 }}>
-                {action.mode === 'apply' ? 'Apply credit' : 'Refund credit'}
+                {action.mode === 'apply' ? text('Apply credit','জমা দিয়ে বাকি মেটান') : text('Refund credit','জমা ফেরত দিন')}
               </Button>
             </DialogFooter>
           </>
