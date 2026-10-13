@@ -1,0 +1,63 @@
+import {uiText, type UiLanguage} from './uiCopy';
+
+/** Presentation-only document terminology. Never translate record or CSV field values. */
+const terms: Record<string, string> = {
+  Customer: 'ক্রেতা',
+  'Walk-in': 'সাধারণ ক্রেতা',
+  Phone: 'ফোন',
+  Guardian: 'অভিভাবক',
+  Address: 'ঠিকানা',
+  Serial: 'সিরিয়াল',
+  Warranty: 'ওয়ারেন্টি',
+  Subtotal: 'পণ্যের মোট',
+  Discount: 'ছাড়',
+  Rounding: 'রাউন্ডিং',
+  Total: 'মোট',
+  Paid: 'জমা',
+  Due: 'বাকি',
+  Multiple: 'একাধিক',
+  Cash: 'ক্যাশ',
+  Bank: 'ব্যাংক',
+  Card: 'কার্ড',
+  'Money in': 'টাকা এসেছে',
+  'Money out': 'টাকা গেছে',
+  Date: 'তারিখ',
+  Type: 'ধরন',
+  Reference: 'রেফারেন্স',
+  Party: 'পক্ষ',
+  Details: 'বিবরণ',
+  Account: 'হিসাব',
+  'Posted by': 'যিনি লিখেছেন',
+  Status: 'অবস্থা',
+  Field: 'বিবরণ',
+  Value: 'মান',
+  Supplier: 'সরবরাহকারী',
+  Items: 'পণ্য',
+  'Original invoices': 'মূল বিলগুলো',
+  'Return amount': 'ফেরত পণ্যের দাম',
+  Settlement: 'সমন্বয়',
+  'Refund method': 'ফেরত টাকার মাধ্যম',
+  'Refund account': 'ফেরত টাকার হিসাব',
+  'Sales return source preview': 'বিক্রি ফেরতের প্রিভিউ',
+  'Purchase bill preview': 'ক্রয় বিলের প্রিভিউ',
+  'Expense source preview': 'খরচের প্রিভিউ',
+  'Cancelled expense preview': 'বাতিল খরচের প্রিভিউ',
+  'Bill preview': 'বিলের প্রিভিউ',
+  'Created date': 'লেখার তারিখ',
+  'Transaction date': 'লেনদেনের তারিখ',
+  'All dates': 'সব তারিখ',
+  'Day Book': 'দৈনিক লেনদেন',
+  'No transactions in this selection.': 'বাছা সময়ে কোনো লেনদেন নেই।',
+  'HisabIQ UI preview · verify source records before sharing.': 'HisabIQ শুধু প্রিভিউ · শেয়ার করার আগে আসল হিসাব মিলিয়ে নিন।',
+  'HisabIQ UI preview': 'HisabIQ · শুধু প্রিভিউ',
+};
+
+export function documentLabel(language: UiLanguage, english: string): string {
+  return uiText(language, english, terms[english] ?? english);
+}
+export function printDocumentLanguage(language: UiLanguage): 'bn' | 'en' {
+  return language === 'Bangla' ? 'bn' : 'en';
+}
+export function documentMethod(language: UiLanguage, method: string): string {
+  return documentLabel(language, method);
+}
