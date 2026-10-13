@@ -18,6 +18,7 @@ import {
 import type { Party } from '../../types/erp';
 import { formatNumber, taka } from '../../utils/currency';
 import { amountInWords } from '../../utils/amountInWords';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 type Totals = {
   subtotal: number;
@@ -63,6 +64,7 @@ function Row({ label, value, muted = false }: { label: React.ReactNode; value: R
 
 export function CheckoutPanel(props: CheckoutPanelProps) {
   const { totals, customer, customerDetails, discountMode, payments } = props;
+  const { language, text, word, showHelper } = useUiCopy();
   const hasCreditCustomer = Boolean(customer || (customerDetails.name.trim() && customerDetails.phone.trim()));
   const dueWithoutCustomer = totals.due > 0 && !hasCreditCustomer && totals.total > 0;
   const quick = [500, 1000, 2000, 5000].filter((n) => n >= totals.total * 0.2);
@@ -107,7 +109,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             <p className="text-[11px] text-ink-500">06 Oct 2026 · Counter 1</p>
           </div>
           <button onClick={props.onClear} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-ink-500 hover:bg-danger-bg hover:text-danger">
-            <Trash2 className="size-3.5" /> Clear
+            <Trash2 className="size-3.5" /> {word("clear")}
           </button>
         </div>
 
@@ -115,50 +117,50 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
         <div className="rounded-lg bg-ink-50/70 p-2.5">
           <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">
-            Invoice customer details <span className="font-bn normal-case tracking-normal">· কাস্টমার তথ্য</span>
+            {word("invoiceCustomer")} {showHelper && <span className="font-bn normal-case tracking-normal">· কাস্টমার তথ্য</span>}
           </p>
           <div data-pos-customer-fields className="grid gap-2 sm:grid-cols-2">
             <Input
               value={customerDetails.name}
               onChange={(event) => updateDetails({ name: event.target.value })}
-              placeholder="Customer name"
-              aria-label="Customer name"
+              placeholder={word("customerName")}
+              aria-label={word("customerName")}
               className="h-8"
             />
             <Input
               value={customerDetails.phone}
               onChange={(event) => updateDetails({ phone: event.target.value })}
-              placeholder="Phone"
-              aria-label="Customer phone"
+              placeholder={word("phone")}
+              aria-label={word("customerPhone")}
               className="h-8"
             />
             <Input
               value={customerDetails.guardianName}
               onChange={(event) => updateDetails({ guardianName: event.target.value })}
-              placeholder="Guardian name"
-              aria-label="Guardian name"
+              placeholder={word("guardianName")}
+              aria-label={word("guardianName")}
               className="h-8"
             />
             <Input
               value={customerDetails.address}
               onChange={(event) => updateDetails({ address: event.target.value })}
-              placeholder="Address"
-              aria-label="Customer address"
+              placeholder={word("address")}
+              aria-label={word("customerAddress")}
               className="h-8"
             />
           </div>
           <p className="mt-1.5 text-[10.5px] text-ink-400">
-            Fully paid walk-in sales can keep these as invoice-only details; no customer account is required.
+            {word("customerOptional")}
           </p>
         </div>
       </div>
 
       <div className="space-y-2 p-4">
-        <Row label={`Subtotal · ${totals.itemCount} items`} value={taka(totals.subtotal, totals.subtotal % 1 ? 2 : 0)} />
+        <Row label={text(`Subtotal · ${totals.itemCount} items`, `পণ্যের মোট · ${totals.itemCount}টি`)} value={taka(totals.subtotal, totals.subtotal % 1 ? 2 : 0)} />
         <div className="flex items-center justify-between gap-3 text-sm text-ink-700">
-          <span>Discount</span>
+          <span>{word("discount")}</span>
           <div className="flex items-center gap-1">
-            <div className="flex h-8 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label="Discount type">
+            <div className="flex h-8 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("discount")}>
               {(['amount', 'percent'] as DiscountMode[]).map((mode) => (
                 <button
                   key={mode}
@@ -171,7 +173,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
               ))}
             </div>
             <NumericInput
-              aria-label="Discount"
+              aria-label={word("discount")}
               value={props.discount}
               onChange={(event) => props.onDiscount(event.target.value.replace(/[^\d.]/g, ''))}
               placeholder="0"
@@ -180,14 +182,14 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             />
           </div>
         </div>
-        {totals.discountAmt > 0 && <Row muted label="Discount applied" value={`−${taka(totals.discountAmt, totals.discountAmt % 1 ? 2 : 0)}`} />}
-        <Row muted label={totals.roundingLabel || "Rounding (to ৳5)"} value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
+        {totals.discountAmt > 0 && <Row muted label={word("discountApplied")} value={`−${taka(totals.discountAmt, totals.discountAmt % 1 ? 2 : 0)}`} />}
+        <Row muted label={language === "Bangla" ? (totals.roundingLabel ? "রাউন্ডিং" : word("rounding")) : (totals.roundingLabel || word("rounding"))} value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
       </div>
 
       <div className="mx-4 rounded-xl bg-inverse px-4 py-3.5 text-white">
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-[#B7C2CF]">
-            Total payable <span className="font-bn">· মোট</span>
+            {word("totalPayable")} {showHelper && <span className="font-bn">· মোট</span>}
           </span>
         </div>
         <p className="mt-0.5 text-right text-[34px] font-semibold leading-tight tracking-tight">{taka(totals.total)}</p>
@@ -197,15 +199,15 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
       <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-sm font-medium text-ink">Payments <span className="font-bn text-xs font-normal text-ink-500">· পেমেন্ট</span></p>
-            <p className="text-[10.5px] text-ink-400">Use one or multiple sources.</p>
+            <p className="text-sm font-medium text-ink">{word("payments")} {showHelper && <span className="font-bn text-xs font-normal text-ink-500">· পেমেন্ট</span>}</p>
+            <p className="text-[10.5px] text-ink-400">{word("paymentHint")}</p>
           </div>
           <Button
             type="button"
             size="sm"
             variant="outline"
             onClick={() => props.onPayments((rows) => [...rows, makePosPaymentRow(rows.length)])}>
-            <Plus className="size-3.5" /> Add
+            <Plus className="size-3.5" /> {word("add")}
           </Button>
         </div>
 
@@ -216,7 +218,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                 <FormSelect
                   value={payment.method}
                   onChange={(event) => changeMethod(payment.id, event.target.value as PosPaymentMethod)}
-                  options={methods}
+                  options={methods.map(method => ({ value: method, label: text(method, method === "Cash" ? "ক্যাশ" : method === "Bank" ? "ব্যাংক" : method === "Card" ? "কার্ড" : method === "Customer Credit" ? "ক্রেতার বাকি" : method) }))}
                 />
                 <FormSelect
                   value={payment.account}
@@ -228,7 +230,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                   disabled={payments.length === 1}
                   onClick={() => props.onPayments((rows) => rows.filter((row) => row.id !== payment.id))}
                   className="flex size-9 items-center justify-center rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
-                  aria-label={`Remove payment ${index + 1}`}>
+                  aria-label={text(`Remove payment ${index + 1}`, `পেমেন্ট ${index + 1} সরান`)}>
                   <Trash2 className="size-3.5" />
                 </button>
               </div>
@@ -243,14 +245,14 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                     inputMode="decimal"
                     placeholder="0"
                     className="h-9 pl-7 text-right font-medium"
-                    aria-label={`Payment amount ${index + 1}`}
+                    aria-label={text(`Payment amount ${index + 1}`, `পেমেন্টের পরিমাণ ${index + 1}`)}
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => fillRemaining(payment.id)}
                   className="h-9 rounded-md border border-border bg-card px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50">
-                  Remaining
+                  {word("remaining")}
                 </button>
               </div>
             </div>
@@ -259,7 +261,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
         <div className="flex flex-wrap gap-1.5">
           <button onClick={() => setSinglePayment(totals.total)} className="h-8 rounded-md border border-teal-200 bg-teal-50 px-2.5 text-xs font-medium text-teal-800 hover:bg-teal-100">
-            Exact
+            {word("exact")}
           </button>
           {quick.map((amount) => (
             <button key={amount} onClick={() => setSinglePayment(amount, 'Cash')} className="h-8 rounded-md border border-border px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
@@ -269,15 +271,15 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         </div>
 
         <div className="space-y-1.5 rounded-lg bg-ink-50 p-3">
-          <Row label="Paid" value={<span className="font-medium">{taka(totals.paidNum)}</span>} />
-          <Row label="Change to return" value={<span className={totals.change > 0 ? 'font-semibold text-success' : ''}>{taka(totals.change)}</span>} />
-          <Row label={<span>Due <span className="font-bn text-xs text-ink-500">বাকি</span></span>} value={<span className={totals.due > 0 ? 'font-semibold text-danger' : ''}>{taka(totals.due)}</span>} />
+          <Row label={word("paid")} value={<span className="font-medium">{taka(totals.paidNum)}</span>} />
+          <Row label={word("changeToReturn")} value={<span className={totals.change > 0 ? 'font-semibold text-success' : ''}>{taka(totals.change)}</span>} />
+          <Row label={<span>{word("due")} {showHelper && <span className="font-bn text-xs text-ink-500">বাকি</span>}</span>} value={<span className={totals.due > 0 ? 'font-semibold text-danger' : ''}>{taka(totals.due)}</span>} />
         </div>
 
         {dueWithoutCustomer && (
           <p className="flex items-start gap-2 rounded-lg bg-warning-bg p-2.5 text-xs text-warning">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-            Enter customer name + phone, or select an existing customer, to record {taka(totals.due)} as due.
+            {text("Enter customer name + phone, or select an existing customer, to record", "বাকি রাখতে ক্রেতার নাম ও ফোন দিন অথবা আগের ক্রেতা বাছুন। বাকি টাকা:")} {taka(totals.due)} {language !== "Bangla" && "as due."}
           </p>
         )}
 
@@ -285,7 +287,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           onClick={props.onComplete}
           disabled={totals.total === 0 || dueWithoutCustomer}
           className="h-12 w-full text-[15px] font-semibold">
-          {props.completeLabel ?? 'Complete sale'} · {taka(totals.total)}
+          {props.completeLabel ?? word('completeSale')} · {taka(totals.total)}
           <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
       </div>
