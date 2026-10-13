@@ -11,6 +11,7 @@ import {businessToday} from '../../utils/dateRange';
 import {counterOpenInvoices,counterAllocateOldest} from '../../utils/counterAllocation';
 import {amountInWords} from '../../utils/amountInWords';
 import {taka} from '../../utils/currency';
+import {useUiCopy} from '../../i18n/useUiCopy';
 import type {FinanceAccount} from '../../data/financeAccounts';
 import type {Party,PartyRole} from '../../types/erp';
 import type {PartyMoneySplit,PartyPaymentPayload} from '../../types/partyLedger';
@@ -21,9 +22,11 @@ const kinds:Action[]=['Customer Receive','Supplier Pay','Expense','Bank Transfer
 const money=(n:number)=>Math.round(n*100)/100;
 const validMoney=(s:string)=>/^\d+(?:\.\d{1,2})?$/.test(s.trim())&&Number(s)>0;
 const names:Record<Action,string>={'Customer Receive':'Receive payment','Supplier Pay':'Pay supplier',Expense:'Record expense','Bank Transfer':'Transfer money'};
+const banglaActions:Record<Action,string>={'Customer Receive':'ক্রেতার টাকা নিন','Supplier Pay':'সরবরাহকারীকে টাকা দিন',Expense:'খরচ লিখুন','Bank Transfer':'টাকা স্থানান্তর করুন'};
 export function CounterWorkspace({accounts,setAccounts}:{
  accounts:FinanceAccount[];setAccounts:Dispatch<SetStateAction<FinanceAccount[]>>;
 }){
+ const {text,word}=useUiCopy();
  const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
  const [type,setType]=useState<Action>('Customer Receive');
  const [partyId,setPartyId]=useState('');
@@ -146,18 +149,18 @@ export function CounterWorkspace({accounts,setAccounts}:{
    {kinds.map(item=><button type="button" key={item} aria-pressed={type===item} onClick={()=>changeType(item)}
     className={'min-h-14 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
      (type===item?'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground':'border-border bg-card text-ink hover:bg-ink-50')}>
-    <span className="block text-[13px] font-semibold">{item}</span>
-    <span className="text-[11px] text-ink-500">{item==='Customer Receive'?'Customer money':item==='Supplier Pay'?'Supplier payment':item==='Expense'?'Quick expense':'Between accounts'}</span>
+    <span className="block text-[13px] font-semibold">{text(item,banglaActions[item])}</span>
+    <span className="text-[11px] text-ink-500">{item==='Customer Receive'?word('customerMoney'):item==='Supplier Pay'?word('supplierPayment'):item==='Expense'?word('quickExpense'):word('betweenAccounts')}</span>
    </button>)}
   </div>
   <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
    <div className="min-w-0 space-y-4">
     {(type==='Customer Receive'||type==='Supplier Pay')&&<div className="rounded-xl border border-border bg-card p-4">
-     <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?'Find customer':'Find supplier'}</label>
+     <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?word('findCustomer'):word('findSupplier')}</label>
      <div className="relative">
       <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-2.5 z-10 size-4 text-ink-400"/>
       <Input className="pl-9" aria-label={type==='Customer Receive'?'Search customer':'Search supplier'} value={search}
-       placeholder="Search name, phone or area" onFocus={()=>setSearching(true)}
+       placeholder={text("Search name, phone or area","নাম, ফোন বা এলাকা খুঁজুন")} onFocus={()=>setSearching(true)}
        onClear={clearParty}
        onChange={e=>{if(partyId){setRows([]);setDiscountInput('');setDiscountReason('');}
         setSearch(e.target.value);setPartyId('');setAllocation('');setSearching(true);setReview(false);}}
@@ -175,26 +178,26 @@ export function CounterWorkspace({accounts,setAccounts}:{
       <div className="flex flex-wrap items-start justify-between gap-3">
        <div><p className="text-[11px] text-ink-500">Selected {payerRole.toLowerCase()}</p><p className="font-semibold">{selected.name}</p>
         <p className="text-xs text-ink-500">{selected.phone}</p></div>
-       <div className="text-right"><p className="text-xs text-ink-500">Current balance</p>
+       <div className="text-right"><p className="text-xs text-ink-500">{word("currentBalance")}</p>
         <p className={'text-xl font-semibold '+highlight(settlement.netBalance)}>{taka(Math.abs(settlement.netBalance))}</p>
         <p className="text-xs text-ink-500">{settlement.netBalance>0?(payerRole==='Customer'?'Customer owes us':'Advance with supplier'):settlement.netBalance<0?(payerRole==='Customer'?'Customer has credit':'We owe supplier'):'Settled'}</p>
        </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-3 border-t border-border pt-2 text-xs">
-       <span>Outstanding due <strong>{taka(settlement.invoiceDue)}</strong></span>
-       {settlement.availableCredit>0&&<span>Available credit <strong className="text-success">{taka(settlement.availableCredit)}</strong></span>}
+       <span>{word("outstandingDue")} <strong>{taka(settlement.invoiceDue)}</strong></span>
+       {settlement.availableCredit>0&&<span>{word("availableCredit")} <strong className="text-success">{taka(settlement.availableCredit)}</strong></span>}
       </div>
      </div>}
     </div>}
     {type==='Customer Receive'&&selected&&settlement&&<div className="rounded-xl border border-border bg-card p-4">
-     <label className="mb-2 block text-sm font-semibold">Apply payment to</label>
-     <AppSelect label="Invoice allocation" value={allocation} onChange={v=>{setAllocation(v);setReview(false);setError('');}}
-      options={[{value:'',label:'Oldest outstanding due first'},...openInvoices.filter(r=>!r.opening).map(r=>({value:r.id,label:r.reference+' · '+taka(r.due)}))]}/>
+     <label className="mb-2 block text-sm font-semibold">{text("Apply payment to","কোন বিলে টাকা জমা হবে")}</label>
+     <AppSelect label={text("Invoice allocation","বিল বাছুন")} value={allocation} onChange={v=>{setAllocation(v);setReview(false);setError('');}}
+      options={[{value:'',label:text('Oldest outstanding due first','আগের বাকি আগে মেটান')},...openInvoices.filter(r=>!r.opening).map(r=>({value:r.id,label:r.reference+' · '+taka(r.due)}))]}/>
      <p className="mt-2 text-xs text-ink-500">{chosen
       ?'Only '+chosen.reference+' will be paid. Available invoice due '+taka(chosen.due)+'.'
       :'Oldest unpaid invoices and opening balance are settled first.'}</p>
      {!!previewAllocation.length&&<div className="mt-3 space-y-1 border-t border-border pt-2 text-xs">
-      <p className="font-semibold text-ink">Payment allocation preview</p>
+      <p className="font-semibold text-ink">{text("Payment allocation preview","কোন বিলে কত টাকা যাবে")}</p>
       {previewAllocation.map((row,i)=><div key={row.invoice+i} className="flex justify-between gap-3"><span>{row.invoice}</span><strong>{taka(row.amount)}</strong></div>)}
      </div>}
     </div>}
@@ -216,10 +219,10 @@ export function CounterWorkspace({accounts,setAccounts}:{
     </div>}
     {type!=='Bank Transfer'&&<div className="rounded-xl border border-border bg-card">
      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-      <div><h3 className="text-sm font-semibold">Payment sources</h3><p className="text-xs text-ink-500">Add cash, bank and mobile banking payments. Total updates automatically.</p></div>
+      <div><h3 className="text-sm font-semibold">{text("Payment sources","টাকার মাধ্যম")}</h3><p className="text-xs text-ink-500">{text("Add cash, bank and mobile banking payments. Total updates automatically.","ক্যাশ, ব্যাংক বা মোবাইল ব্যাংকিংয়ে টাকা নিন বা দিন। মোট টাকা নিজে হিসাব হবে।")}</p></div>
       <div className="flex gap-2">
-       {(type==='Customer Receive'||type==='Supplier Pay')&&maxDue>0&&<Button variant="outline" size="sm" onClick={fillDue}>Full due</Button>}
-       <Button variant="outline" size="sm" onClick={addRow}><Plus className="size-4"/> Add payment</Button>
+       {(type==='Customer Receive'||type==='Supplier Pay')&&maxDue>0&&<Button variant="outline" size="sm" onClick={fillDue}>{text("Full due","পুরো বাকি")}</Button>}
+       <Button variant="outline" size="sm" onClick={addRow}><Plus className="size-4"/> {text("Add payment","আরও মাধ্যম")}</Button>
       </div>
      </div>
      <div className="space-y-2 p-3 sm:p-4">
@@ -265,7 +268,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
     </label>
    </div>
    <aside className="h-fit rounded-xl border border-border bg-card p-4 xl:sticky xl:top-4">
-    <h3 className="mb-3 text-sm font-semibold">Transaction summary</h3>
+    <h3 className="mb-3 text-sm font-semibold">{text("Transaction summary","লেনদেনের সারাংশ")}</h3>
     <p className="text-xs text-ink-500">{type==='Customer Receive'?'Money received':type==='Supplier Pay'?'Money paid':'Total amount'}</p>
     <p className="text-2xl font-semibold text-ink" aria-live="polite">{taka(total)}</p>
     <p className="mt-1 text-xs leading-5 text-ink-500" aria-live="polite">{amountInWords(total)}</p>
@@ -277,7 +280,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
     </div>}
     {submitted&&<div role="status" className="mt-3 rounded-lg border border-success/20 bg-success/5 p-3 text-xs text-success"><CheckCircle2 className="mb-1 size-4"/> Recorded in preview. Ledger balance is updated.</div>}
     {error&&<p role="alert" className="mt-3 rounded-lg border border-danger/30 bg-danger-bg p-3 text-xs text-danger">{error}</p>}
-    <Button className="mt-4 w-full" onClick={beginReview} disabled={type==='Bank Transfer'||type==='Expense'?total<=0:dueReduction<=0}>{'Review '+names[type].toLowerCase()}</Button>
+    <Button className="mt-4 w-full" onClick={beginReview} disabled={type==='Bank Transfer'||type==='Expense'?total<=0:dueReduction<=0}>{text('Review '+names[type].toLowerCase(), 'যাচাই করুন: '+banglaActions[type])}</Button>
    </aside>
   </div>
   <Dialog open={review} onOpenChange={setReview}>
