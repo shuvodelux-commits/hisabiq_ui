@@ -47,7 +47,7 @@ async function main() {
 
         await top.getByRole('button', { name: bn ? 'নোটিফিকেশন' : 'Notifications' }).click();
         const notices = page.getByRole('dialog', { name: bn ? 'নোটিফিকেশন' : 'Notifications' });
-        await notices.waitFor();
+        await notices.getByText(bn ? 'নমুনা নোটিফিকেশন · শুধু UI প্রিভিউ' : 'Sample notifications · UI preview only', { exact: true }).waitFor();
         assert.match(await notices.innerText(), bn ? /নমুনা নোটিফিকেশন/ : /Sample notifications/);
         assert.match(await notices.innerText(), bn ? /bKash পেমেন্ট পাওয়া গেছে/ : /bKash payment received/);
         assert.equal(await notices.getByRole('button', { name: 'Mark all read' }).count(), 0,
