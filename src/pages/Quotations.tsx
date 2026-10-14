@@ -19,6 +19,8 @@ import {taka} from '../utils/currency';
 import {getQuoteSnapshot,subscribeQuotes,saveQuote,duplicateQuote,changeQuoteStatus,deleteDraftQuote,
  quoteSubtotal,quoteTotal,quoteLineTotal,quoteDisplayStatus,type Quotation,type QuoteDraft,type QuoteLine,type QuoteStatus
 } from '../quotations/quotePreviewStore';
+import {useUiCopy} from '../i18n/useUiCopy';
+import {quotationLabel} from '../i18n/quotationCopy';
 
 const statusTone={Draft:'neutral',Sent:'info',Accepted:'success',Declined:'danger',Expired:'warning'} as const;
 const freshDraft=():QuoteDraft=>({date:businessToday(),validUntil:addDays(businessToday(),7),
@@ -31,6 +33,8 @@ let lineCounter=0;
 function QuotationEditor({open,original,onClose}:{
  open:boolean;original:Quotation|null;onClose:()=>void;
 }){
+ const {language,showHelper}=useUiCopy();
+ const ql=(label:string)=>quotationLabel(language,label);
  const [draft,setDraft]=useState<QuoteDraft>(()=>original?copyDraft(original):freshDraft());
  const [error,setError]=useState('');
  const [creatingProduct,setCreatingProduct]=useState(false);
@@ -55,44 +59,44 @@ function QuotationEditor({open,original,onClose}:{
   setError('');
   try{
    const saved=saveQuote(draft,original?.id);
-   toast.success(original?'Quotation revised':'Quotation created',{description:saved.number+' · UI preview only'});
+   toast.success(ql(original?'Quotation revised':'Quotation created'),{description:saved.number+' · UI preview only'});
    onClose();
-  }catch(e){setError(e instanceof Error?e.message:'Cannot save quotation.');}
+  }catch(e){setError(ql(e instanceof Error?e.message:'Cannot save quotation.'));}
  };
  return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
-  <DialogContent role="dialog" aria-label={original?'Edit quotation':'New quotation'} className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-4xl">
+  <DialogContent role="dialog" aria-label={ql(original?'Edit quotation':'New quotation')} className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-4xl">
    <DialogHeader>
-    <DialogTitle>{original?'Revise quotation':'New quotation'} <span className="font-bn text-sm font-normal text-ink-500">· মূল্য প্রস্তাব</span></DialogTitle>
-    <DialogDescription>Prices only: quotations do not reserve stock, collect money or post to the Party ledger.</DialogDescription>
+    <DialogTitle>{ql(original?'Revise quotation':'New quotation')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">· মূল্য প্রস্তাব</span>}</DialogTitle>
+    <DialogDescription>{ql('Prices only: quotations do not reserve stock, collect money or post to the Party ledger.')}</DialogDescription>
    </DialogHeader>
    <div className="grid gap-3 sm:grid-cols-2">
-    <label className="space-y-1 text-xs font-medium text-ink">Customer · <span className="font-bn text-ink-400">ক্রেতা</span>
-     <AppSelect label="Choose quotation customer" value={draft.partyId??''}
-       options={[{value:'',label:'Walk-in / enter name'},...customers.map(p=>({value:p.id,label:p.name+(p.phone?' · '+p.phone:'')}))]}
+    <label className="space-y-1 text-xs font-medium text-ink">{ql('Customer')}{showHelper&&<> · <span className="font-bn text-ink-400">ক্রেতা</span></>}
+     <AppSelect label={ql("Choose quotation customer")} value={draft.partyId??''}
+       options={[{value:'',label:ql('Walk-in / enter name')},...customers.map(p=>({value:p.id,label:p.name+(p.phone?' · '+p.phone:'')}))]}
        onChange={id=>{const p=customers.find(x=>x.id===id);patch({partyId:p?.id,customerName:p?.name??'',customerPhone:p?.phone??''});}}/>
     </label>
-    <label className="space-y-1 text-xs font-medium text-ink">Customer name
-     <Input aria-label="Quotation customer name" value={draft.customerName}
-       onChange={e=>patch({customerName:e.target.value,partyId:undefined})} placeholder="Customer or business name"/>
+    <label className="space-y-1 text-xs font-medium text-ink">{ql('Customer name')}
+     <Input aria-label={ql('Quotation customer name')} value={draft.customerName}
+       onChange={e=>patch({customerName:e.target.value,partyId:undefined})} placeholder={ql("Customer or business name")}/>
     </label>
-    <label className="space-y-1 text-xs font-medium text-ink">Phone · <span className="font-bn text-ink-400">ফোন</span>
-     <Input aria-label="Quotation customer phone" value={draft.customerPhone??''} onChange={e=>patch({customerPhone:e.target.value})} placeholder="Optional"/>
+    <label className="space-y-1 text-xs font-medium text-ink">{ql('Phone')}{showHelper&&<> · <span className="font-bn text-ink-400">ফোন</span></>}
+     <Input aria-label={ql("Quotation customer phone")} value={draft.customerPhone??''} onChange={e=>patch({customerPhone:e.target.value})} placeholder={ql("Optional")}/>
     </label>
     <div className="grid grid-cols-2 gap-2">
-     <label className="space-y-1 text-xs font-medium text-ink">Issue date
-      <AppDateRangePicker single label="Quotation issue date" value={{from:draft.date,to:draft.date}}
+     <label className="space-y-1 text-xs font-medium text-ink">{ql('Issue date')}
+      <AppDateRangePicker single label={ql('Quotation issue date')} value={{from:draft.date,to:draft.date}}
        onChange={next=>patch({date:next.from})}/>
      </label>
-     <label className="space-y-1 text-xs font-medium text-ink">Valid until
-      <AppDateRangePicker single label="Quotation expiry date" value={{from:draft.validUntil,to:draft.validUntil}}
+     <label className="space-y-1 text-xs font-medium text-ink">{ql('Valid until')}
+      <AppDateRangePicker single label={ql('Quotation expiry date')} value={{from:draft.validUntil,to:draft.validUntil}}
        onChange={next=>patch({validUntil:next.from})}/>
      </label>
     </div>
    </div>
    <section className="space-y-2">
     <div className="flex items-center justify-between gap-2">
-     <h3 className="text-sm font-semibold text-ink">Items <span className="font-bn text-xs font-normal text-ink-400">· পণ্যের তালিকা</span></h3>
-     <span className="text-xs text-ink-500">{draft.lines.length} rows · POS-style entry</span>
+     <h3 className="text-sm font-semibold text-ink">{ql('Items')} {showHelper&&<span className="font-bn text-xs font-normal text-ink-400">· পণ্যের তালিকা</span>}</h3>
+     <span className="text-xs text-ink-500">{draft.lines.length} {ql('rows · POS-style entry')}</span>
     </div>
     <TransactionCartEditor mode="quotation" products={products} lines={draft.lines}
      onAdd={addProduct} onUpdate={patchLine}
@@ -100,22 +104,22 @@ function QuotationEditor({open,original,onClose}:{
      onMove={reorder} onCreate={()=>setCreatingProduct(true)}/>
    </section>
    <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
-    <label className="space-y-1 text-xs font-medium text-ink">Terms / note · <span className="font-bn text-ink-400">শর্ত</span>
-     <textarea aria-label="Quotation terms" rows={3} value={draft.note} maxLength={600}
+    <label className="space-y-1 text-xs font-medium text-ink">{ql('Terms / note')}{showHelper&&<> · <span className="font-bn text-ink-400">শর্ত</span></>}
+     <textarea aria-label={ql("Quotation terms")} rows={3} value={draft.note} maxLength={600}
       onChange={e=>patch({note:e.target.value})}
       className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal-500/20"/>
     </label>
     <div className="space-y-2 rounded-lg bg-ink-50 p-3 text-sm">
-     <div className="flex justify-between"><span className="text-ink-500">Subtotal</span><strong>{taka(quoteSubtotal(draft))}</strong></div>
-     <label className="flex items-center justify-between gap-2 text-ink-500">Discount · ছাড়
-      <Input aria-label="Quotation discount" type="number" min="0" step="any" className="w-36 text-right" value={draft.discount}
+     <div className="flex justify-between"><span className="text-ink-500">{ql("Subtotal")}</span><strong>{taka(quoteSubtotal(draft))}</strong></div>
+     <label className="flex items-center justify-between gap-2 text-ink-500">{ql('Discount')}{showHelper&&' · ছাড়'}
+      <Input aria-label={ql('Quotation discount')} type="number" min="0" step="any" className="w-36 text-right" value={draft.discount}
        onChange={e=>patch({discount:Number(e.target.value)})}/>
      </label>
-     <div className="flex justify-between border-t border-border pt-2 text-base font-semibold text-ink"><span>Total</span><span>{taka(quoteTotal(draft))}</span></div>
+     <div className="flex justify-between border-t border-border pt-2 text-base font-semibold text-ink"><span>{ql('Total')}</span><span>{taka(quoteTotal(draft))}</span></div>
     </div>
    </div>
    {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-sm text-danger">{error}</p>}
-   <DialogFooter><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={save}><Check className="size-4"/> Save draft</Button></DialogFooter>
+   <DialogFooter><Button variant="outline" onClick={onClose}>{ql("Cancel")}</Button><Button onClick={save}><Check className="size-4"/> {ql("Save draft")}</Button></DialogFooter>
   <AddProductDialog open={creatingProduct} onOpenChange={setCreatingProduct} onSave={product=>{
    createPreviewProduct(product);addProduct(product);setCreatingProduct(false);
   }}/>
