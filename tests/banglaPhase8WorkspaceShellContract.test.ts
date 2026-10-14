@@ -23,6 +23,9 @@ test('Language changes display only, never theme values or sample notification i
   const theme = file('src/components/layout/ThemePicker.tsx');
   const top = file('src/components/layout/TopBar.tsx');
   const sample = file('src/data/dashboard.ts');
+  assert.ok(theme.includes("language = 'English'"), 'ThemePicker defaults to English in SaaS without ERP tenant context');
+  assert.ok(!theme.includes('useUiCopy'), 'Shared theme cannot depend on ERP settings provider');
+  assert.ok(top.includes('<ThemePicker language={language} />'));
   assert.ok(theme.includes('value={value} checked={theme === value}'));
   assert.ok(theme.includes('setTheme(value); close()'));
   assert.ok(top.includes('notificationBangla[n.id]?.title ?? n.title'));
