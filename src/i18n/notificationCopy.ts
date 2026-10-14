@@ -1,4 +1,4 @@
-import { uiText, type UiLanguage } from './uiCopy';
+import { uiText, type UiLanguage } from './uiCopy.ts';
 
 /** Display-only terminology: never use these translations as notification rule IDs or persisted values. */
 const labels: Record<string, string> = {
