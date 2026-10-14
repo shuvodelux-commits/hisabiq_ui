@@ -31,7 +31,8 @@ test('all native search-like ERP fields use the shared clear input or an intenti
    nativeCount++;
    if(!allowed.has(name))unresolved.push(name+': '+tag.slice(0,100));
    else if(!/aria-label=["']Clear (?:global search|product search)["']/.test(code)&&
-           !/aria-label=\{text\(["']Clear product search["']/.test(code))
+           !/aria-label=\{text\(["']Clear product search["']/.test(code)&&
+           !/aria-label=\{text\(["']Clear global search["']/.test(code))
     unresolved.push(name+': missing explicit accessible clear button');
   }
  }
