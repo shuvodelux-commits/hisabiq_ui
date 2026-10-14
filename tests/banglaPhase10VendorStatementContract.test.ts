@@ -13,7 +13,7 @@ test('Phase 10 display labels do not change Vendor statement data or CSV export'
   "text('Vendor owes you','ভেন্ডরের কাছে পাবেন')",
   "text('Taken products payable','নেওয়া পণ্যের দেনা')",
   "text('Given products receivable','দেওয়া পণ্যের পাওনা')",
-  "text('Unpriced (not ৳0)','দাম অজানা (৳০ নয়)')",
+  'text("Unpriced (not ৳0)","দাম অজানা (৳০ নয়)")',
   "serializeVendorStatementCsv(statement,party.name)",
   "projectVendorStatement(state,party.id,side,range)",
   "onClick={()=>window.print()}"
