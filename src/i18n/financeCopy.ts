@@ -15,6 +15,12 @@ const financeWords:Record<string,string>={
   'All status':'সব অবস্থা','Statement':'ব্যাংক স্টেটমেন্ট','ERP':'ERP',
   'Available money':'ব্যবহারের টাকা','Cheques pending':'অপেক্ষমাণ চেক',
   'Lender payable':'ঋণদাতাকে দেনা','Borrower receivable':'ঋণগ্রহীতার কাছে পাওনা',
+  'Received':'পাওয়া হয়েছে','Issued':'দেওয়া হয়েছে','Deposited':'ব্যাংকে জমা','Presented':'ব্যাংকে উপস্থাপিত',
+  'Cleared':'ক্লিয়ার হয়েছে','Bounced':'চেক ফেরত এসেছে','Returned':'ফেরত','Cancelled':'বাতিল','Stopped':'পেমেন্ট বন্ধ',
+  'Mark deposited':'জমা হয়েছে', 'Return cheque':'চেক ফেরত', 'Cancel cheque':'চেক বাতিল',
+  'Mark cleared':'ক্লিয়ার হয়েছে', 'Mark bounced':'চেক বাউন্স হয়েছে', 'Mark presented':'উপস্থাপিত হয়েছে',
+  'Stop payment':'পেমেন্ট বন্ধ করুন', 'Mark returned':'চেক ফেরত দেখান',
+  'Open':'চালু','Closed':'বন্ধ',
 };
 export function financeLabel(language:UiLanguage, value:string):string{
   return uiText(language,value,financeWords[value]??value);
