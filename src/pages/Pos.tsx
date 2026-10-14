@@ -671,7 +671,7 @@ export function Pos() {
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
-            {completed && <ReceiptPreview {...completed} />}
+            {completed && <ReceiptPreview {...completed} language={personal.language} />}
           </div>
           <DialogFooter>
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&

@@ -7,6 +7,7 @@ import { StatusBadge } from '../StatusBadge';
 import type { PaymentSplit } from '../../types/erp';
 import { taka } from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
+import {documentLabel} from '../../i18n/documentCopy';
 import { PhotoUploader } from '../products/PhotoUploader';
 import { printReport } from '../../utils/reportOutput';
 
@@ -25,7 +26,7 @@ export type BillDetail = {
 };
 
 export function BillDetailDialog({ bill, onClose, onPay, onEdit, onReceiptChange, history = [] }: {bill: BillDetail | null;onClose: () => void;onPay?: () => void;onEdit?: () => void;onReceiptChange?: (receipt?: string) => void;history?: string[];}) {
-  const {text,word}=useUiCopy();
+  const {text,word,language}=useUiCopy();
   const due = bill ? bill.total - bill.paid : 0;
   return (
     <Dialog open={!!bill} onOpenChange={(o) => !o && onClose()}>
@@ -93,7 +94,7 @@ export function BillDetailDialog({ bill, onClose, onPay, onEdit, onReceiptChange
             {!!history.length && <section aria-label="Expense preview history" className="rounded-lg border border-border p-3 text-xs"><p className="mb-2 font-semibold text-ink">{text('Preview history','পরিবর্তনের ইতিহাস')}</p>{history.map((entry, i) => <p key={i} className="text-ink-600">{entry}</p>)}</section>}
             <DialogFooter>
               <Button variant="outline" onClick={() => {
-                if (!printReport({ title: bill.ref, subtitle: bill.cancelled ? 'Cancelled expense preview' : 'Bill preview', headers: ['Field', 'Value'], rows: [['Date', bill.date], ['Party', bill.party], ['Details', bill.description], ['Total', taka(bill.total)], ['Paid', taka(bill.paid)], ['Due', taka(due)]] })) toast.error('Allow the print popup and try again.');
+                if (!printReport({ title: bill.ref, language, subtitle: documentLabel(language,bill.cancelled ? 'Cancelled expense preview' : 'Bill preview'), headers: ['Field', 'Value'].map(h=>documentLabel(language,h)), rows: [['Date', bill.date], ['Party', bill.party], ['Details', bill.description], ['Total', taka(bill.total)], ['Paid', taka(bill.paid)], ['Due', taka(due)]].map(([name,value])=>[documentLabel(language,String(name)),value]) })) toast.error('Allow the print popup and try again.');
               }}>{text('Print','প্রিন্ট')}</Button>
               {onEdit && !bill.cancelled && <Button variant="outline" onClick={onEdit}>{text('Correct expense','খরচ সংশোধন')}</Button>}
               <Button variant="outline" onClick={onClose}>{text('Close','বন্ধ করুন')}</Button>
