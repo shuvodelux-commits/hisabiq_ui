@@ -455,7 +455,7 @@ function TransferDialog({
 }
 
 export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {}) {
-  const {text}=useUiCopy();
+  const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
   const [financeTab, setTab] = useState<Tab>('overview');
@@ -871,7 +871,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     }`}>
                       {item.direction === 'in' ? '+' : item.direction === 'out' ? '−' : ''}{taka(item.amount)}
                     </TableCell>
-                    <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{item.status}</StatusBadge></TableCell>
+                    <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
                     <TableCell className="py-2 pr-4 text-right">
                       <button
                         onClick={() => setTransactionAction(item)}
@@ -892,15 +892,15 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
           <div className="p-4">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-[13px] font-medium text-ink">Money accounts</p>
-                <p className="text-[11px] text-ink-500">Cash, bank and mobile banking with opening balance and ledger access.</p>
+                <p className="text-[13px] font-medium text-ink">{text('Money accounts','টাকার হিসাব')}</p>
+                <p className="text-[11px] text-ink-500">{text('Cash, bank and mobile banking with opening balance and ledger access.','ক্যাশ, ব্যাংক ও মোবাইল হিসাবের জের ও লেনদেন দেখুন।')}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => openTransfer()}>
-                  <ArrowLeftRight className="size-4" /> Transfer
+                  <ArrowLeftRight className="size-4" /> {text('Transfer','ট্রান্সফার')}
                 </Button>
                 <Button size="sm" onClick={() => setAccountOpen(true)}>
-                  <Plus className="size-4" /> Add account
+                  <Plus className="size-4" /> {text('Add account','হিসাব যোগ করুন')}
                 </Button>
               </div>
             </div>
@@ -914,24 +914,24 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-semibold text-ink">{account.name}</p>
-                      <p className="text-[10.5px] text-ink-400">{account.type}{account.number ? ` · ${account.number}` : ''}</p>
+                      <p className="text-[10.5px] text-ink-400">{financeLabel(language,account.type)}{account.number ? ` · ${account.number}` : ''}</p>
                     </div>
-                    <StatusBadge tone={account.status === 'Active' ? 'success' : 'neutral'} dot>{account.status}</StatusBadge>
+                    <StatusBadge tone={account.status === 'Active' ? 'success' : 'neutral'} dot>{financeLabel(language,account.status)}</StatusBadge>
                   </div>
 
                   <p className="mt-4 text-2xl font-semibold text-ink">{taka(account.balance)}</p>
                   <div className="mt-1 flex items-center justify-between text-[10.5px] text-ink-400">
-                    <span>Opening {taka(account.openingBalance)}</span>
+                    <span>{text('Opening','শুরুর জের')} {taka(account.openingBalance)}</span>
                     <span>{account.lastActivity}</span>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
                     <Button variant="outline" size="sm" onClick={() => setAccountAction(account)}>
-                      <BookOpen className="size-4" /> Ledger
+                      <BookOpen className="size-4" /> {text('Ledger','খাতা')}
                     </Button>
                     {account.type !== 'Cash' && (
                       <Button variant="outline" size="sm" onClick={() => navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`)}>
-                        <CheckCircle2 className="size-4" /> Reconcile
+                        <CheckCircle2 className="size-4" /> {text('Reconcile','মিলিয়ে দেখুন')}
                       </Button>
                     )}
                     <button
@@ -947,11 +947,11 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
             <div className="mt-5 rounded-xl border border-border">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Transfer history</p>
-                  <p className="text-[11px] text-ink-500">Transfers between business money accounts.</p>
+                  <p className="text-sm font-semibold text-ink">{text('Transfer history','ট্রান্সফারের ইতিহাস')}</p>
+                  <p className="text-[11px] text-ink-500">{text('Transfers between business money accounts.','ব্যবসার এক হিসাব থেকে অন্য হিসাবে টাকা সরানোর ইতিহাস।')}</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => openTransfer()}>
-                  <Plus className="size-4" /> New transfer
+                  <Plus className="size-4" /> {text('New transfer','নতুন ট্রান্সফার')}
                 </Button>
               </div>
               <Table>
@@ -975,7 +975,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                       <TableCell className="py-2">{item.from}</TableCell>
                       <TableCell className="py-2">{item.to}</TableCell>
                       <TableCell className="py-2 text-right font-semibold">{taka(item.amount)}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{item.status}</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
                         <button onClick={() => setTransferAction(item)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                           <MoreHorizontal className="size-4" />
@@ -994,8 +994,8 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
           <div className="p-4">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-[13px] font-medium text-ink">Cheque register <span className="font-bn text-[11px] font-normal text-ink-400">· পাওয়া ও দেওয়া চেক</span></p>
-                <p className="text-[11px] text-ink-500">Post-dated cheques stay visible. Bank balance changes only when a cheque clears.</p>
+                <p className="text-[13px] font-medium text-ink">{text('Cheque register','চেকের তালিকা')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· পাওয়া ও দেওয়া চেক</span>}</p>
+                <p className="text-[11px] text-ink-500">{text('Post-dated cheques stay visible. Bank balance changes only when a cheque clears.','ভবিষ্যৎ তারিখের চেক দেখা যাবে। ক্লিয়ার হলেই ব্যাংকের টাকা বদলাবে।')}</p>
               </div>
               <Button size="sm" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> {text('New cheque','নতুন চেক')}</Button>
             </div>
@@ -1004,11 +1004,11 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 pl-4 text-xs">Cheque</TableHead>
+                    <TableHead className="h-9 pl-4 text-xs">{text('Cheque','চেক')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
-                    <TableHead className="h-9 text-xs">Bank</TableHead>
-                    <TableHead className="h-9 text-xs">Cheque date</TableHead>
-                    <TableHead className="h-9 text-xs">Money account</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Bank','ব্যাংক')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Cheque date','চেকের তারিখ')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Money account','টাকার হিসাব')}</TableHead>
                     <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
                     <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
@@ -1020,18 +1020,18 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     return (
                       <TableRow key={cheque.id} className="text-[13px]">
                         <TableCell className="py-2 pl-4">
-                          <p className="font-medium text-ink">{cheque.direction} · #{cheque.chequeNumber}</p>
+                          <p className="font-medium text-ink">{financeLabel(language,cheque.direction)} · #{cheque.chequeNumber}</p>
                           <p className="text-[10.5px] text-ink-400">{cheque.id}{pdc ? ' · PDC' : ''}{cheque.reference ? ' · ' + cheque.reference : ''}</p>
                         </TableCell>
                         <TableCell className="py-2 font-medium text-ink">{cheque.party}</TableCell>
                         <TableCell className="py-2 text-ink-500">{cheque.bank}{cheque.branch ? ' · ' + cheque.branch : ''}</TableCell>
                         <TableCell className="py-2">
                           <p className="text-ink-600">{cheque.chequeDate}</p>
-                          {pdc && <p className="font-bn text-[10.5px] text-warning">পরে জমা দেওয়ার চেক</p>}
+                          {pdc && <p className="font-bn text-[10.5px] text-warning">{text('Post-dated cheque','ভবিষ্যৎ তারিখের চেক')}</p>}
                         </TableCell>
                         <TableCell className="py-2 text-ink-500">{cheque.depositAccount || '—'}</TableCell>
                         <TableCell className="py-2 text-right font-semibold">{taka(cheque.amount)}</TableCell>
-                        <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{cheque.status}</StatusBadge></TableCell>
+                        <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{financeLabel(language,cheque.status)}</StatusBadge></TableCell>
                         <TableCell className="py-2 pr-4 text-right">
                           <button onClick={() => setChequeAction(cheque)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + cheque.id}>
                             <MoreHorizontal className="size-4" />
@@ -1051,53 +1051,53 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
             <section className="rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Current cash session</p>
-                  <p className="text-[11px] text-ink-500">Drawer accountability without manufacturing balancing entries.</p>
+                  <p className="text-sm font-semibold text-ink">{text('Current cash session','বর্তমান ক্যাশ সেশন')}</p>
+                  <p className="text-[11px] text-ink-500">{text('Drawer accountability without manufacturing balancing entries.','ক্যাশ গুনে মিলান। পার্থক্যের জন্য নিজে থেকে নতুন লেনদেন হবে না।')}</p>
                 </div>
-                <StatusBadge tone={sessionOpen ? 'success' : 'neutral'} dot>{sessionOpen ? 'Open' : 'Closed'}</StatusBadge>
+                <StatusBadge tone={sessionOpen ? 'success' : 'neutral'} dot>{sessionOpen ? financeLabel(language,'Open') : financeLabel(language,'Closed')}</StatusBadge>
               </div>
 
               {sessionOpen ? (
                 <>
                   <div className="mt-4 rounded-lg bg-ink-50 p-3">
-                    <p className="text-[11px] text-ink-400">Current preview session · resets on reload</p>
+                    <p className="text-[11px] text-ink-400">{text('Current preview session · resets on reload','নমুনা ক্যাশ সেশন · পাতা রিলোড করলে রিসেট হবে')}</p>
                     <div className="mt-2 grid grid-cols-2 gap-3">
                       <div>
-                        <p className="text-[10.5px] text-ink-400">Opening cash</p>
+                        <p className="text-[10.5px] text-ink-400">{text('Opening cash','শুরুর ক্যাশ')}</p>
                         <p className="text-sm font-semibold text-ink">{taka(openingCash)}</p>
                       </div>
                       <div>
-                        <p className="text-[10.5px] text-ink-400">Expected now</p>
+                        <p className="text-[10.5px] text-ink-400">{text('Expected now','এখন থাকার কথা')}</p>
                         <p className="text-sm font-semibold text-ink">{taka(expectedCash)}</p>
                       </div>
                     </div>
                   </div>
-                  <Button className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>Count / close cash session</Button>
+                  <Button className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>{text('Count / close cash session','ক্যাশ গুনুন / সেশন বন্ধ করুন')}</Button>
                 </>
               ) : (
-                <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>Open cash session</Button>
+                <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>{text('Open cash session','ক্যাশ সেশন খুলুন')}</Button>
               )}
 
-              {lastCount&&<p className="mt-3 text-xs text-ink-600" role="status">Last count: {taka(lastCount.counted)} · {lastCount.closed?'Closed':'Saved'}{lastCount.note?' · '+lastCount.note:''}</p>}
+              {lastCount&&<p className="mt-3 text-xs text-ink-600" role="status">{text('Last count:','শেষ গুনেছেন:')} {taka(lastCount.counted)} · {lastCount.closed?financeLabel(language,'Closed'):text('Saved','সংরক্ষিত')}{lastCount.note?' · '+lastCount.note:''}</p>}
               <button onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
-                <RefreshCw className="size-3.5" /> Cash reconciliation
+                <RefreshCw className="size-3.5" /> {text('Cash reconciliation','ক্যাশ মিলানো')}
               </button>
             </section>
 
             <section className="rounded-xl border border-border">
               <div className="border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold text-ink">Cash session history</p>
-                <p className="text-[11px] text-ink-500">Expected vs counted cash, with short/over variance kept visible.</p>
+                <p className="text-sm font-semibold text-ink">{text('Cash session history','ক্যাশ সেশনের ইতিহাস')}</p>
+                <p className="text-[11px] text-ink-500">{text('Expected vs counted cash, with short/over variance kept visible.','হিসাবে থাকার কথা ও গুনে পাওয়া ক্যাশের পার্থক্য দেখা যাবে।')}</p>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 pl-4 text-xs">Session</TableHead>
-                    <TableHead className="h-9 text-xs">Opened / closed</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Opening</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Expected</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Counted</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Variance</TableHead>
+                    <TableHead className="h-9 pl-4 text-xs">{text('Session','সেশন')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Opened / closed','খোলা / বন্ধ')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Opening','শুরুর জের')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Expected','থাকার কথা')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Counted','গুনে পাওয়া')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Variance','পার্থক্য')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
                     <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
@@ -1119,7 +1119,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                         {session.variance === undefined ? '—' : session.variance === 0 ? taka(0) : `${session.variance > 0 ? '+' : '−'}${taka(Math.abs(session.variance))}`}
                       </TableCell>
                       <TableCell className="py-2">
-                        <StatusBadge tone={session.status === 'Open' ? 'success' : session.variance ? 'warning' : 'neutral'} dot>{session.status}</StatusBadge>
+                        <StatusBadge tone={session.status === 'Open' ? 'success' : session.variance ? 'warning' : 'neutral'} dot>{financeLabel(language,session.status)}</StatusBadge>
                       </TableCell>
                       <TableCell className="py-2 pr-4 text-right"><button onClick={() => setCashSessionAction(session)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + session.id}><MoreHorizontal className="size-4" /></button></TableCell>
                     </TableRow>
