@@ -9,9 +9,11 @@ import {
   useTenantSettings,
 } from "../../settings/TenantSettingsProvider";
 import { UserPreferencesProvider } from "../../contexts/UserPreferencesContext";
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 function Workspace() {
   const { personal, warning } = useTenantSettings();
+  const { text } = useUiCopy();
   return (
     <UserPreferencesProvider>
       <CashSessionProvider>
@@ -19,7 +21,7 @@ function Workspace() {
           data-density={personal.density}
           className="erp-workspace flex min-h-screen w-full bg-background"
         >
-          <a href="#erp-main" onClick={event=>{event.preventDefault();document.getElementById('erp-main')?.focus();}} className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:rounded-md focus:bg-card focus:p-3 focus:text-ink">Skip to workspace</a>
+          <a href="#erp-main" onClick={event=>{event.preventDefault();document.getElementById('erp-main')?.focus();}} className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:rounded-md focus:bg-card focus:p-3 focus:text-ink">{text('Skip to workspace','কাজের জায়গায় যান')}</a>
           <Sidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <TopBar />
