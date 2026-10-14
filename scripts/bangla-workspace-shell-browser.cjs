@@ -49,7 +49,7 @@ async function main() {
         const notices = page.getByRole('dialog', { name: bn ? 'নোটিফিকেশন' : 'Notifications' });
         await notices.getByText(bn ? 'নমুনা নোটিফিকেশন · শুধু UI প্রিভিউ' : 'Sample notifications · UI preview only', { exact: true }).waitFor();
         assert.match(await notices.innerText(), bn ? /নমুনা নোটিফিকেশন/ : /Sample notifications/);
-        assert.match(await notices.innerText(), bn ? /bKash পেমেন্ট পাওয়া গেছে/ : /bKash payment received/);
+        await notices.getByText(bn ? 'bKash পেমেন্ট পাওয়া গেছে' : 'bKash payment received', { exact: true }).waitFor();
         assert.equal(await notices.getByRole('button', { name: 'Mark all read' }).count(), 0,
           'do not advertise nonexistent read-status mutation');
         await notices.getByRole('button', { name: bn ? 'বন্ধ করুন' : 'Close' }).click();
