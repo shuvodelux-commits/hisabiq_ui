@@ -1,7 +1,7 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme, type Theme } from '../../contexts/ThemeContext';
 import { FloatingPanel } from './FloatingPanel';
-import { useUiCopy } from '../../i18n/useUiCopy';
+import { uiText, type UiLanguage } from '../../i18n/uiCopy';
 
 const options = [
   { value: 'light' as Theme, label: 'Light', Icon: Sun },
@@ -9,9 +9,10 @@ const options = [
   { value: 'system' as Theme, label: 'System', Icon: Monitor }
 ];
 
-export function ThemePicker() {
+/** The SaaS shell has no ERP personal-language provider; default safely to English. */
+export function ThemePicker({ language = 'English' }: { language?: UiLanguage } = {}) {
   const { theme, setTheme } = useTheme();
-  const { text } = useUiCopy();
+  const text = (english: string, bangla: string) => uiText(language, english, bangla);
   const Icon = options.find(option => option.value === theme)!.Icon;
   return (
     <FloatingPanel label={text("Appearance","চেহারা")} width={192} trigger={({ open, toggle }) => (
