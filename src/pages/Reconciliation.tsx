@@ -38,6 +38,8 @@ import type {
   StatementTransaction
 } from '../types/erp';
 import { taka } from '../utils/currency';
+import {useUiCopy} from '../i18n/useUiCopy';
+import {financeLabel} from '../i18n/financeCopy';
 
 type Tab = 'reconcile' | 'history';
 
@@ -49,15 +51,17 @@ const statusTone: Record<ReconciliationStatus, StatusTone> = {
 };
 
 function ReconciliationBadge({ status }: { status: ReconciliationStatus }) {
-  return <StatusBadge tone={statusTone[status]} dot>{status}</StatusBadge>;
+  const {language}=useUiCopy();
+  return <StatusBadge tone={statusTone[status]} dot>{financeLabel(language,status)}</StatusBadge>;
 }
 
 function UploadStatementDialog({open,onOpenChange}:{open:boolean;onOpenChange:(open:boolean)=>void}) {
+ const {text}=useUiCopy();
  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent role="dialog" aria-modal="true" className="sm:max-w-lg">
-  <DialogHeader><DialogTitle>Bank statement import</DialogTitle>
-   <DialogDescription>PDF reading is not connected yet. The transactions on this screen are sample data; choosing a file would not import its contents.</DialogDescription></DialogHeader>
+  <DialogHeader><DialogTitle>{text('Bank statement import','ব্যাংকের স্টেটমেন্ট আমদানি')}</DialogTitle>
+   <DialogDescription>{text('PDF reading is not connected yet. The transactions on this screen are sample data; choosing a file would not import its contents.','পিডিএফ পড়ার সুবিধা এখনো চালু হয়নি। এখানে নমুনা লেনদেন আছে; ফাইল বাছলেও তার তথ্য আমদানি হবে না।')}</DialogDescription></DialogHeader>
   <p className="text-sm text-ink-600 font-bn">এখন নমুনা তথ্য দিয়ে হিসাব মিলানো দেখুন। আসল ব্যাংক স্টেটমেন্ট আমদানি এখনো চালু হয়নি।</p>
-  <DialogFooter><Button onClick={()=>onOpenChange(false)}>Back to sample transactions</Button></DialogFooter>
+  <DialogFooter><Button onClick={()=>onOpenChange(false)}>{text('Back to sample transactions','নমুনা লেনদেনে ফিরুন')}</Button></DialogFooter>
  </DialogContent></Dialog>;
 }
 
@@ -74,6 +78,7 @@ function ErpEditor({
   onMatch: () => void;
   matchError: string|null;
 }) {
+  const {text}=useUiCopy();
   const [date, setDate] = useState(expenseDateIso(transaction.date));
   const [party, setParty] = useState(transaction.party);
   const [amount, setAmount] = useState(String(transaction.amount));
@@ -90,21 +95,21 @@ function ErpEditor({
       <div className="rounded-xl border border-border bg-card p-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Selected ERP transaction</p>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">{text('Selected ERP transaction','বাছা ERP লেনদেন')}</p>
             <p className="mt-1 text-sm font-semibold text-ink">{transaction.type}</p>
           </div>
           <StatusBadge tone={amountDiff === 0 ? 'success' : 'warning'}>
-            {amountDiff === 0 ? 'Amount matches' : `Difference ${taka(Math.abs(amountDiff))}`}
+            {amountDiff === 0 ? text('Amount matches','টাকা মিলেছে') : `${text('Difference','পার্থক্য')} ${taka(Math.abs(amountDiff))}`}
           </StatusBadge>
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="text-[12px] font-medium text-ink">
-            Date
-            <AppDatePicker className="mt-1" label="Transaction date" value={date} onChange={setDate} />
+            {text('Date','তারিখ')}
+            <AppDatePicker className="mt-1" label={text("Transaction date","লেনদেনের তারিখ")} value={date} onChange={setDate} />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Party
+            {text('Party','পক্ষ')}
             <FormSelect
               className="mt-1"
               value={party}
@@ -113,7 +118,7 @@ function ErpEditor({
             />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Amount
+            {text('Amount','টাকা')}
             <Input
               className="mt-1 text-right"
               value={amount}
@@ -122,13 +127,13 @@ function ErpEditor({
             />
           </label>
           <label className="text-[12px] font-medium text-ink">
-            Reference
+            {text('Reference','রেফারেন্স')}
             <Input className="mt-1" value={reference} onChange={(event) => setReference(event.target.value)} />
           </label>
         </div>
 
-        <label className="mt-3 block text-xs text-ink-600">Why change this? · কারণ<Input className="mt-1" value={reason} onChange={event=>setReason(event.target.value)} placeholder="Required for a preview correction" /></label>
-        {(matchError||dirty)&&<p role="status" className="mt-2 text-xs text-warning">{dirty?'Save the correction before matching.':matchError}</p>}
+        <label className="mt-3 block text-xs text-ink-600" >{text('Why change this? · কারণ','কেন সংশোধন করছেন?')}<Input className="mt-1" value={reason} onChange={event=>setReason(event.target.value)} placeholder={text("Required for a preview correction","সংশোধনের কারণ লিখুন")} /></label>
+        {(matchError||dirty)&&<p role="status" className="mt-2 text-xs text-warning">{dirty?text('Save the correction before matching.','মেলানোর আগে সংশোধন সংরক্ষণ করুন।'):matchError}</p>}
         <div className="mt-3 flex flex-wrap justify-end gap-2">
           <Button
             variant="outline"
@@ -138,26 +143,27 @@ function ErpEditor({
               if(!valid)return;
               onSave({ ...transaction, date:formatDay(date), party, partyId:parties.find(item=>item.name===party)?.id, amount: amountNumber, reference });
               setReason('');
-              toast.success('Sample transaction updated', {description:reason});
+              toast.success(text('Sample transaction updated','নমুনা লেনদেন সংশোধিত হয়েছে'), {description:reason});
             }}>
             Save preview correction
           </Button>
           <Button size="sm" disabled={Boolean(matchError)||dirty} onClick={onMatch}>
-            <Link2 className="size-4" /> Match transaction
+            <Link2 className="size-4" /> {text('Match transaction','লেনদেন মিলান')}
           </Button>
         </div>
       </div>
 
       <div className="rounded-xl bg-ink-50 p-3 text-[12px]">
-        <div className="flex justify-between gap-3"><span className="text-ink-500">Bank description</span><span className="max-w-[65%] text-right font-medium text-ink">{statement.description}</span></div>
-        <div className="mt-1 flex justify-between gap-3"><span className="text-ink-500">Bank reference</span><span className="font-medium text-ink">{statement.reference ?? '—'}</span></div>
-        <div className="mt-1 flex justify-between gap-3"><span className="text-ink-500">Bank amount</span><span className="font-semibold text-ink">{taka(statement.amount)}</span></div>
+        <div className="flex justify-between gap-3"><span className="text-ink-500">{text('Bank description','ব্যাংকের বিবরণ')}</span><span className="max-w-[65%] text-right font-medium text-ink">{statement.description}</span></div>
+        <div className="mt-1 flex justify-between gap-3"><span className="text-ink-500">{text('Bank reference','ব্যাংক রেফারেন্স')}</span><span className="font-medium text-ink">{statement.reference ?? '—'}</span></div>
+        <div className="mt-1 flex justify-between gap-3"><span className="text-ink-500">{text('Bank amount','ব্যাংকের টাকা')}</span><span className="font-semibold text-ink">{taka(statement.amount)}</span></div>
       </div>
     </div>
   );
 }
 
 export function Reconciliation() {
+  const {text,language}=useUiCopy();
   const [tab, setTab] = useState<Tab>('reconcile');
   const [params]=useSearchParams();
   const [accountId, setAccountId] = useState(()=>reconciliationAccounts.find(item=>item.id===params.get('accountId')||item.name===params.get('account'))?.id??reconciliationAccounts[0].id);
@@ -245,10 +251,10 @@ export function Reconciliation() {
   const canFinish = !completed[accountId]&&canCompleteReconciliation(accountStatement,accountErp,difference);
 
   const summary = [
-    { label: 'Statement closing', value: taka(statementClosing), sub: statementFile[accountId] ?? 'No statement uploaded' },
-    { label: 'ERP balance', value: taka(erpClosing), sub: account.detail ?? account.type },
-    { label: 'Matched', value: `${matchedCount}/${accountStatement.length}`, sub: `${reviewCount} review · ${unmatchedCount} unmatched`, tone: 'text-success' },
-    { label: 'Difference', value: taka(Math.abs(difference)), sub: completed[accountId]?'Preview saved':difference===0?'Balances agree; review all rows':'Needs review', tone: difference === 0 ? 'text-success' : 'text-danger' }
+    { label: text('Statement closing','স্টেটমেন্টের শেষ জের'), value: taka(statementClosing), sub: statementFile[accountId] ?? text('No statement uploaded','কোনো স্টেটমেন্ট নেই') },
+    { label: text('ERP balance','ERP-র জের'), value: taka(erpClosing), sub: account.detail ?? account.type },
+    { label: text('Matched','মিলেছে'), value: `${matchedCount}/${accountStatement.length}`, sub: `${reviewCount} ${text('review','যাচাই বাকি')} · ${unmatchedCount} ${text('unmatched','মেলেনি')}`, tone: 'text-success' },
+    { label: text('Difference','পার্থক্য'), value: taka(Math.abs(difference)), sub: completed[accountId]?text('Preview saved','নমুনা সংরক্ষিত'):difference===0?text('Balances agree; review all rows','টাকা মিলেছে; সব লাইন যাচাই করুন'):text('Needs review','যাচাই দরকার'), tone: difference === 0 ? 'text-success' : 'text-danger' }
   ];
 
   const selectStatement = (item: StatementTransaction) => {
@@ -273,7 +279,7 @@ export function Reconciliation() {
     const error=reconciliationMatchError(selectedStatement,entry,statement);
     if(error){toast.error(error);return;}
     updateSelectedStatus('Matched', erpId);
-    toast.success('Matched in preview');
+    toast.success(text('Matched in preview','নমুনার হিসাব মিলেছে'));
   };
 
   const createFromStatement = () => {
@@ -291,7 +297,7 @@ export function Reconciliation() {
     setErp((items) => [next, ...items]);
     setSelectedErpId(next.id);
     updateSelectedStatus('Matched', next.id);
-    toast.success('Sample transaction created and matched');
+    toast.success(text('Sample transaction created and matched','নমুনা লেনদেন তৈরি ও মিলানো হয়েছে'));
   };
 
   const switchAccount = (nextId: string) => {
@@ -310,16 +316,17 @@ export function Reconciliation() {
         title="Account reconciliation"
         titleBn="হিসাব মিলানো"
         description="Match money in and money out · টাকা আসা–যাওয়া মিলান. Sample data only; changes last until this page reloads."
+        descriptionBn="ব্যাংকের টাকা আসা-যাওয়া ERP-র সঙ্গে মিলান। শুধু নমুনা; পাতা রিলোড করলে সংশোধন থাকবে না।"
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => {
               const url=URL.createObjectURL(new Blob([reconciliationCsv(filtered)],{type:'text/csv;charset=utf-8'}));
               const link=document.createElement('a');link.href=url;link.download='reconciliation-'+accountId+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
             }}>
-              <ArrowDownToLine className="size-4" /> Export
+              <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
             </Button>
             <Button size="sm" onClick={() => setUploadOpen(true)}>
-              <FileUp className="size-4" /> Statement import
+              <FileUp className="size-4" /> {text('Statement import','স্টেটমেন্ট আমদানি')}
             </Button>
           </>
         }
@@ -331,15 +338,15 @@ export function Reconciliation() {
             <Landmark className="size-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Account</p>
-            <AppSelect label="Reconciliation account" className="mt-1 max-w-sm"
+            <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">{text('Account','হিসাব')}</p>
+            <AppSelect label={text("Reconciliation account","মেলানোর হিসাব")} className="mt-1 max-w-sm"
               value={accountId} onChange={switchAccount}
               options={reconciliationAccounts.map((item) => ({ value: item.id, label: item.name }))} />
             <p className="mt-1 text-[11px] text-ink-500">{account.detail ?? account.type}</p>
           </div>
           <div className="text-left sm:text-right">
-            <p className="text-[11px] text-ink-400">Statement</p>
-            <p className="text-[12.5px] font-medium text-ink">{statementFile[accountId] ?? 'No file uploaded'}</p>
+            <p className="text-[11px] text-ink-400">{text('Statement','স্টেটমেন্ট')}</p>
+            <p className="text-[12.5px] font-medium text-ink">{statementFile[accountId] ?? text('No file uploaded','কোনো ফাইল নেই')}</p>
           </div>
         </div>
       </div>
@@ -357,8 +364,8 @@ export function Reconciliation() {
       <div className="rounded-xl border border-border bg-card shadow-card">
         <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {([
-            ['reconcile', 'Reconcile', 'Statement vs ERP'],
-            ['history', 'History', 'Previous reconciliations']
+            ['reconcile', text('Reconcile','মিলিয়ে দেখুন'), text('Statement vs ERP','স্টেটমেন্ট ও ERP')],
+            ['history', text('History','ইতিহাস'), text('Previous reconciliations','আগের মিলানো হিসাব')]
           ] as Array<[Tab, string, string]>).map(([id, label, helper]) => (
             <button
               key={id}
@@ -376,7 +383,7 @@ export function Reconciliation() {
           <>
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/40 px-3 py-2">
               <p className="text-[11.5px] text-ink-500">
-                {matchedCount} matched · {reviewCount} review · {unmatchedCount} unmatched
+                {matchedCount} {text('matched','মিলেছে')} · {reviewCount} {text('review','যাচাই বাকি')} · {unmatchedCount} {text('unmatched','মেলেনি')}
               </p>
               <Button
                 size="sm"
@@ -384,24 +391,24 @@ export function Reconciliation() {
                 onClick={() => {
                   if(!canFinish)return;
                   setHistory(items=>[{id:'PREVIEW-'+Date.now(),accountId,accountName:account.name,period:'Sample statement review',statementFile:statementFile[accountId]??'Sample',statementClosing,erpClosing,matched:matchedCount,review:0,status:'Completed'},...items]);
-                  setCompleted(current=>({...current,[accountId]:true}));setTab('history');toast.success('Review saved in this preview');
+                  setCompleted(current=>({...current,[accountId]:true}));setTab('history');toast.success(text('Review saved in this preview','নমুনা যাচাই সংরক্ষিত হয়েছে'));
                 }}>
-                <CheckCircle2 className="size-4" /> {completed[accountId]?'Preview saved':'Save reviewed preview'}
+                <CheckCircle2 className="size-4" /> {completed[accountId]?text('Preview saved','নমুনা সংরক্ষিত'):text('Save reviewed preview','নমুনা যাচাই সংরক্ষণ')}
               </Button>
             </div>
-            <div className="p-3 lg:hidden"><Button variant="outline" className="min-h-11 w-full" aria-expanded={showRows} onClick={()=>setShowRows(!showRows)}>{showRows?'Back to selected transaction':'Choose statement transaction · লেনদেন বাছুন'}</Button></div>
+            <div className="p-3 lg:hidden"><Button variant="outline" className="min-h-11 w-full" aria-expanded={showRows} onClick={()=>setShowRows(!showRows)}>{showRows?text('Back to selected transaction','বাছা লেনদেনে ফিরুন'):text('Choose statement transaction · লেনদেন বাছুন','স্টেটমেন্টের লেনদেন বাছুন')}</Button></div>
             <div className="grid lg:min-h-[620px] lg:grid-cols-2">
             <section className={(showRows?'block':'hidden')+' min-w-0 border-b border-border lg:block lg:border-b-0 lg:border-r'}>
               <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
                   <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                  <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" aria-label="Search statement transactions" placeholder="Search statement transaction" />
+                  <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" aria-label={text("Search statement transactions","স্টেটমেন্টের লেনদেন খুঁজুন")} placeholder={text("Search statement transaction","স্টেটমেন্টে খুঁজুন")} />
                 </div>
                 <FormSelect
                   className="w-full sm:w-36"
                   value={statusFilter}
                   onChange={(event) => setStatusFilter(event.target.value)}
-                  options={['All status', 'Matched', 'Review', 'Unmatched', 'Ignored']}
+                  options={['All status', 'Matched', 'Review', 'Unmatched', 'Ignored'].map(value=>({value,label:financeLabel(language,value)}))}
                 />
               </div>
 
@@ -416,10 +423,10 @@ export function Reconciliation() {
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="text-[12.5px] font-medium text-ink">{item.date}</span>
                         <ReconciliationBadge status={item.status} />
-                        {item.confidence && item.status !== 'Matched' ? <span className="text-[10.5px] text-ink-400">{item.confidence}% suggestion</span> : null}
+                        {item.confidence && item.status !== 'Matched' ? <span className="text-[10.5px] text-ink-400">{item.confidence}% {text('suggestion','সম্ভাব্য মিল')}</span> : null}
                       </span>
                       <span className="mt-0.5 block truncate text-[12.5px] text-ink-700">{item.description}</span>
-                      <span className="mt-0.5 block text-[10.5px] text-ink-400">{item.reference ?? 'No reference'}</span>
+                      <span className="mt-0.5 block text-[10.5px] text-ink-400">{item.reference ?? text('No reference','নম্বর নেই')}</span>
                     </span>
                     <span className={`shrink-0 text-[13px] font-semibold ${item.direction === 'in' ? 'text-success' : 'text-ink'}`}>
                       {item.direction === 'in' ? '+' : '−'}{taka(item.amount)}
@@ -430,8 +437,8 @@ export function Reconciliation() {
                 {filtered.length === 0 && (
                   <div className="px-4 py-12 text-center">
                     <FileText className="mx-auto size-7 text-helper" />
-                    <p className="mt-2 text-sm font-medium text-ink">No statement rows match</p>
-                    <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setStatusFilter('All status'); }}>Clear filters</Button>
+                    <p className="mt-2 text-sm font-medium text-ink">{text('No statement rows match','স্টেটমেন্টে কিছু মেলেনি')}</p>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setStatusFilter('All status'); }}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
                   </div>
                 )}
               </div>
@@ -441,15 +448,15 @@ export function Reconciliation() {
               {!selectedStatement ? (
                 <div className="flex h-full min-h-96 flex-col items-center justify-center p-6 text-center">
                   <Link2 className="size-8 text-helper" />
-                  <p className="mt-2 font-medium text-ink">Select a statement transaction</p>
-                  <p className="mt-1 text-sm text-ink-500">HisabIQ will show likely ERP matches on this side.</p>
+                  <p className="mt-2 font-medium text-ink">{text('Select a statement transaction','স্টেটমেন্ট থেকে লেনদেন বাছুন')}</p>
+                  <p className="mt-1 text-sm text-ink-500">{text('HisabIQ will show likely ERP matches on this side.','এখানে সম্ভাব্য ERP লেনদেন দেখাবে।')}</p>
                 </div>
               ) : (
                 <div className="space-y-3 p-3">
                   <div className="rounded-xl border border-border bg-card p-3">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Statement transaction</p>
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">{text('Statement transaction','স্টেটমেন্টের লেনদেন')}</p>
                         <p className="mt-1 text-sm font-semibold text-ink">{selectedStatement.description}</p>
                         <p className="mt-0.5 text-[11px] text-ink-500">{selectedStatement.date} · {selectedStatement.reference ?? 'No reference'}</p>
                       </div>
@@ -463,16 +470,16 @@ export function Reconciliation() {
 
                     <div className="mt-3 flex flex-wrap gap-2">
                       {selectedStatement.status === 'Matched' ? (
-                        <Button variant="outline" size="sm" onClick={() => { updateSelectedStatus('Review'); toast('Match removed'); }}>
-                          <Undo2 className="size-4" /> Unmatch
+                        <Button variant="outline" size="sm" onClick={() => { updateSelectedStatus('Review'); toast(text('Match removed','মিল সরানো হয়েছে')); }}>
+                          <Undo2 className="size-4" /> {text('Unmatch','মিল সরান')}
                         </Button>
                       ) : (
                         <>
                           <Button variant="outline" size="sm" onClick={createFromStatement}>
-                            <Plus className="size-4" /> Create sample transaction
+                            <Plus className="size-4" /> {text('Create sample transaction','নমুনা লেনদেন তৈরি')}
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => { updateSelectedStatus('Ignored'); toast('Statement row ignored'); }}>
-                            <X className="size-4" /> Ignore
+                          <Button variant="outline" size="sm" onClick={() => { updateSelectedStatus('Ignored'); toast(text('Statement row ignored','স্টেটমেন্টের লাইন বাদ দেওয়া হয়েছে')); }}>
+                            <X className="size-4" /> {text('Ignore','বাদ দিন')}
                           </Button>
                         </>
                       )}
@@ -482,8 +489,8 @@ export function Reconciliation() {
                   {candidates.length > 0 && (
                     <div className="rounded-xl border border-border bg-card">
                       <div className="border-b border-border p-3">
-                        <p className="text-[13px] font-medium text-ink">ERP matches</p>
-                        <p className="mt-0.5 text-[11px] text-ink-500">Compare account, money direction and amount. Correct sample data only after checking the source.</p>
+                        <p className="text-[13px] font-medium text-ink">{text('ERP matches','ERP-র সম্ভাব্য মিল')}</p>
+                        <p className="mt-0.5 text-[11px] text-ink-500">{text('Compare account, money direction and amount. Correct sample data only after checking the source.','হিসাব, টাকা আসা-যাওয়া ও পরিমাণ মিলিয়ে নিন। মূল লেনদেন যাচাই করেই নমুনা সংশোধন করুন।')}</p>
                       </div>
                       <div className="divide-y divide-border">
                         {candidates.map((item) => (
@@ -514,8 +521,8 @@ export function Reconciliation() {
                     />
                   ) : (
                     <div className="rounded-xl border border-dashed border-ink-200 bg-card p-6 text-center">
-                      <p className="text-sm font-medium text-ink">No ERP match found</p>
-                      <p className="mt-1 text-xs text-ink-500">Create a new ERP transaction from the statement row or ignore it.</p>
+                      <p className="text-sm font-medium text-ink">{text('No ERP match found','ERP-তে মিল পাওয়া যায়নি')}</p>
+                      <p className="mt-1 text-xs text-ink-500">{text('Create a new ERP transaction from the statement row or ignore it.','স্টেটমেন্ট থেকে নমুনা ERP লেনদেন তৈরি করুন বা বাদ দিন।')}</p>
                     </div>
                   )}
                 </div>
