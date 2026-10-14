@@ -506,6 +506,7 @@ export function FinancePeopleManagerDialog({
   onAdd: (person: FinancePerson) => void;
   onUpdate: (person: FinancePerson) => void;
 }) {
+  const {text,language}=useUiCopy();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -534,7 +535,7 @@ export function FinancePeopleManagerDialog({
     setRoles((current) => current.includes(role) ? current.filter((item) => item !== role) : [...current, role]);
   };
   const save = () => {
-    if (!name.trim() || !roles.length) return toast.error('Enter a name and choose at least one role');
+    if (!name.trim() || !roles.length) return toast.error(text('Enter a name and choose at least one role','নাম লিখুন এবং অন্তত একটি সম্পর্কের ধরন বাছুন'));
     if (editing) {
       onUpdate({ ...editing, name: name.trim(), phone: phone.trim() || undefined, description: description.trim() || undefined, roles });
     } else {
@@ -547,26 +548,26 @@ export function FinancePeopleManagerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle><UserRoundCog className="mr-2 inline size-4" />Finance people</DialogTitle>
-          <DialogDescription>Manage Owner, Lender and Borrower roles without cross-netting balances.</DialogDescription>
+          <DialogTitle><UserRoundCog className="mr-2 inline size-4" />{text('Finance people','হিসাবের ব্যক্তি')}</DialogTitle>
+          <DialogDescription>{text('Manage Owner, Lender and Borrower roles without cross-netting balances.','মালিক, ঋণদাতা ও ঋণগ্রহীতার দেনা-পাওনা আলাদা রাখুন।')}</DialogDescription>
         </DialogHeader>
 
         <div className="rounded-xl border border-border">
           <div className="grid gap-2 border-b border-border bg-ink-50/60 p-3 md:grid-cols-2">
-            <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Name" />
-            <Input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Phone" />
-            <Input className="md:col-span-2" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description / relationship note" />
+            <Input value={name} onChange={(event) => setName(event.target.value)} placeholder={text("Name","নাম")} />
+            <Input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder={text("Phone","ফোন নম্বর")} />
+            <Input className="md:col-span-2" value={description} onChange={(event) => setDescription(event.target.value)} placeholder={text("Description / relationship note","বিবরণ / সম্পর্কের মন্তব্য")} />
             <div className="flex flex-wrap gap-1.5 md:col-span-2">
               {(['Owner', 'Lender', 'Borrower'] as FinancePersonRole[]).map((role) => (
                 <button key={role} type="button" onClick={() => toggleRole(role)}
                   className={'rounded-md border px-2 py-1 text-xs font-medium ' + (roles.includes(role) ? 'border-teal-200 bg-teal-50 text-teal-700' : 'border-border bg-card text-ink-500')}>
-                  {role}
+                  {financeLabel(language,role)}
                 </button>
               ))}
             </div>
             <div className="flex gap-2 md:col-span-2">
-              <Button onClick={save}>{editing ? <Save className="size-4" /> : <Plus className="size-4" />} {editing ? 'Save person' : 'Add person'}</Button>
-              {editing && <Button variant="outline" onClick={reset}>Cancel edit</Button>}
+              <Button onClick={save}>{editing ? <Save className="size-4" /> : <Plus className="size-4" />} {editing ? text('Save person','তথ্য সংরক্ষণ') : text('Add person','ব্যক্তি যোগ করুন')}</Button>
+              {editing && <Button variant="outline" onClick={reset}>{text('Cancel edit','সংশোধন বাতিল')}</Button>}
             </div>
           </div>
 
@@ -578,22 +579,22 @@ export function FinancePeopleManagerDialog({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] font-medium text-ink">{person.name}</p>
-                  <p className="text-[10.5px] text-ink-400">{person.phone || 'No phone'}{person.description ? ' · ' + person.description : ''}</p>
+                  <p className="text-[10.5px] text-ink-400">{person.phone || text('No phone','ফোন নম্বর নেই')}{person.description ? ' · ' + person.description : ''}</p>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {person.roles.map((role) => <StatusBadge key={role} tone="neutral">{role}</StatusBadge>)}
-                  <StatusBadge tone={person.status === 'Active' ? 'success' : 'neutral'} dot>{person.status}</StatusBadge>
+                  {person.roles.map((role) => <StatusBadge key={role} tone="neutral">{financeLabel(language,role)}</StatusBadge>)}
+                  <StatusBadge tone={person.status === 'Active' ? 'success' : 'neutral'} dot>{financeLabel(language,person.status)}</StatusBadge>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => startEdit(person)}><Pencil className="size-3.5" /> Edit</Button>
+                <Button variant="outline" size="sm" onClick={() => startEdit(person)}><Pencil className="size-3.5" /> {text('Edit','সংশোধন')}</Button>
                 <Button variant="outline" size="sm" onClick={() => onUpdate({ ...person, status: person.status === 'Active' ? 'Inactive' : 'Active' })}>
-                  <Power className="size-3.5" /> {person.status === 'Active' ? 'Deactivate' : 'Activate'}
+                  <Power className="size-3.5" /> {person.status === 'Active' ? text('Deactivate','বন্ধ করুন') : text('Activate','চালু করুন')}
                 </Button>
               </div>
             ))}
           </div>
         </div>
 
-        <DialogFooter><Button onClick={() => onOpenChange(false)}>Done</Button></DialogFooter>
+        <DialogFooter><Button onClick={() => onOpenChange(false)}>{text('Done','সম্পন্ন')}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
