@@ -449,38 +449,47 @@ export function FinanceTransferActionDialog({
   onClose: () => void;
   onReverse: (transfer: AccountTransfer) => void;
 }) {
+  const {text,language}=useUiCopy();
   const [confirmReverse, setConfirmReverse] = useState(false);
   useEffect(() => setConfirmReverse(false), [transfer]);
   if (!transfer) return null;
 
+  const printTransfer=()=>{
+    if(!printReport({title:transfer.id,language,subtitle:text('Account transfer preview','টাকা স্থানান্তরের নমুনা হিসাব'),headers:[text('Field','বিবরণ'),text('Value','তথ্য')],rows:[
+      [text('Date','তারিখ'),transfer.date],[text('From','যে হিসাব থেকে'),transfer.from],
+      [text('To','যে হিসাবে'),transfer.to],[text('Amount','টাকা'),taka(transfer.amount)],
+      [text('Status','অবস্থা'),financeLabel(language,transfer.status)],
+      [text('Reference','রেফারেন্স'),transfer.reference??'—']
+    ]}))toast.error(text('Allow the print popup and try again.','প্রিন্ট উইন্ডো খুলে আবার চেষ্টা করুন।'));
+  };
   return (
     <Dialog open={!!transfer} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Account transfer</DialogTitle>
+          <DialogTitle>{text('Account transfer','হিসাবে টাকা সরানো')}</DialogTitle>
           <DialogDescription>{transfer.id} · {transfer.date}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-2 sm:grid-cols-2">
           <Detail label="From">{transfer.from}</Detail>
           <Detail label="To">{transfer.to}</Detail>
           <Detail label="Amount">{taka(transfer.amount)}</Detail>
-          <Detail label="Status"><StatusBadge tone={transfer.status === 'Completed' ? 'success' : 'neutral'} dot>{transfer.status}</StatusBadge></Detail>
+          <Detail label="Status"><StatusBadge tone={transfer.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,transfer.status)}</StatusBadge></Detail>
           <div className="sm:col-span-2"><Detail label="Reference">{transfer.reference}</Detail></div>
         </div>
         {confirmReverse && (
           <div className="rounded-lg border border-danger/20 bg-danger/5 px-3 py-2.5">
-            <p className="text-[13px] font-medium text-danger">Reverse this transfer?</p>
-            <p className="mt-0.5 text-[11px] text-ink-500">Both account balances are restored while the audit record stays visible.</p>
+            <p className="text-[13px] font-medium text-danger">{text('Reverse this transfer?','ট্রান্সফার উল্টো করবেন?')}</p>
+            <p className="mt-0.5 text-[11px] text-ink-500">{text('Both account balances are restored while the audit record stays visible.','দুই হিসাবের জের আগের মতো হবে; পরিবর্তনের ইতিহাস থাকবে।')}</p>
           </div>
         )}
         <DialogFooter>
           {confirmReverse ? <>
-            <Button variant="outline" onClick={() => setConfirmReverse(false)}>Keep transfer</Button>
-            <Button onClick={() => { onReverse(transfer); setConfirmReverse(false); }}><RotateCcw className="size-4" /> Confirm reverse</Button>
+            <Button variant="outline" onClick={() => setConfirmReverse(false)}>{text('Keep transfer','ট্রান্সফার রাখুন')}</Button>
+            <Button onClick={() => { onReverse(transfer); setConfirmReverse(false); }}><RotateCcw className="size-4" /> {text('Confirm reverse','উল্টো করা নিশ্চিত করুন')}</Button>
           </> : <>
-            <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
-            {transfer.status === 'Completed' && <Button variant="outline" onClick={() => setConfirmReverse(true)}><RotateCcw className="size-4" /> Reverse</Button>}
-            <Button onClick={onClose}>Close</Button>
+            <Button variant="outline" onClick={printTransfer}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
+            {transfer.status === 'Completed' && <Button variant="outline" onClick={() => setConfirmReverse(true)}><RotateCcw className="size-4" /> {text('Reverse','উল্টো করুন')}</Button>}
+            <Button onClick={onClose}>{text('Close','বন্ধ করুন')}</Button>
           </>}
         </DialogFooter>
       </DialogContent>
