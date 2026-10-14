@@ -60,6 +60,9 @@ jobs:
       - name: Check Bangla Audit, Accounts and Party statement UI
         run: npm run test:bangla-accounting
 
+      - name: Check Bangla Finance and reconciliation across devices
+        run: npm run test:bangla-finance
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 

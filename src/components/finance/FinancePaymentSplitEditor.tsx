@@ -4,6 +4,8 @@ import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
 import type { FinanceAccount, FinancePaymentSplit } from '../../data/financeAccounts';
 import { taka } from '../../utils/currency';
+import {useUiCopy} from '../../i18n/useUiCopy';
+import {financeLabel} from '../../i18n/financeCopy';
 
 export type FinancePaymentDraft = {
   id: string;
@@ -48,6 +50,7 @@ export function FinancePaymentSplitEditor({
   onChange: (rows: FinancePaymentDraft[]) => void;
   totalAmount: number;
 }) {
+  const {text,language,showHelper}=useUiCopy();
   const normalized = normalizeFinancePaymentSplits(rows, accounts, totalAmount);
   const splitTotal = normalized.reduce((sum, row) => sum + row.amount, 0);
 
@@ -65,10 +68,10 @@ export function FinancePaymentSplitEditor({
     <div className="rounded-xl border border-border sm:col-span-2">
       <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
         <div>
-          <p className="text-[12.5px] font-semibold text-ink">Payment sources</p>
-          <p className="font-bn text-[10.5px] text-ink-400">Cash + Bank + Mobile Banking একসাথে ব্যবহার করা যাবে</p>
+          <p className="text-[12.5px] font-semibold text-ink">{text('Payment sources','টাকার মাধ্যম')}</p>
+          {showHelper&&<p className="font-bn text-[10.5px] text-ink-400">ক্যাশ + ব্যাংক + মোবাইল ব্যাংকিং একসঙ্গে ব্যবহার করা যাবে</p>}
         </div>
-        <Button variant="outline" size="sm" onClick={add}><Plus className="size-3.5" /> Add</Button>
+        <Button variant="outline" size="sm" onClick={add}><Plus className="size-3.5" /> {text('Add','যোগ করুন')}</Button>
       </div>
       <div className="space-y-2 p-3">
         {rows.map((row) => {
@@ -83,7 +86,7 @@ export function FinancePaymentSplitEditor({
                   const first = accountsForFinanceMethod(accounts, method)[0];
                   onChange(rows.map((item) => item.id === row.id ? { ...item, method, accountId: first?.id ?? '' } : item));
                 }}
-                options={['Cash', 'Bank', 'Mobile Banking']}
+                options={(['Cash', 'Bank', 'Mobile Banking'] as const).map(value=>({value,label:financeLabel(language,value)}))}
               />
               <FormSelect
                 value={selected?.name ?? ''}
@@ -105,14 +108,14 @@ export function FinancePaymentSplitEditor({
                 disabled={rows.length === 1}
                 onClick={() => onChange(rows.filter((item) => item.id !== row.id))}
                 className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger disabled:opacity-30"
-                aria-label="Remove payment source">
+                aria-label={text("Remove payment source","পেমেন্টের মাধ্যম সরান")}>
                 <Trash2 className="size-3.5" />
               </button>
             </div>
           );
         })}
         <div className="flex items-center justify-between border-t border-border pt-2 text-[11px]">
-          <span className="text-ink-400">Split total</span>
+          <span className="text-ink-400">{text('Split total','মাধ্যমগুলোর মোট')}</span>
           <span className={Math.abs(splitTotal - totalAmount) < 0.001 ? 'font-medium text-success' : 'font-medium text-warning'}>{taka(splitTotal)}</span>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { FinancePaymentSplitEditor, type FinancePaymentDraft } from '../finance/
 import { financeAccounts } from '../../data/financeAccounts';
 import type { PartyLedgerRow, PartyMoneySplit, PartyPaymentPayload, PartySourceRecord } from '../../types/partyLedger';
 import { taka } from '../../utils/currency';
+import {useUiCopy} from '../../i18n/useUiCopy';
 
 type Props={
  row:PartyLedgerRow|null; source:PartySourceRecord|null; mode:'edit'|'reverse';
@@ -19,6 +20,7 @@ const defaultSplits=(source:PartySourceRecord|null):FinancePaymentDraft[]=>{
  return [{id:'edit-split',method:'Cash',accountId:'acc-cash',amount:String(source?.amountPaid??0)}];
 };
 export function PartyTransactionDialog({row,source,mode,onClose,onEdit,onReverse}:Props){
+ const {text}=useUiCopy();
  const [date,setDate]=useState('');
  const [amount,setAmount]=useState('');
  const [discount,setDiscount]=useState('');
@@ -36,10 +38,10 @@ export function PartyTransactionDialog({row,source,mode,onClose,onEdit,onReverse
  const changed=()=>{
   if(!row||!source)return;
   setError('');
-  if(!reason.trim()){setError('An audit reason is required.');return;}
+  if(!reason.trim()){setError(text('An audit reason is required.','কেন সংশোধন করছেন তা লিখুন।'));return;}
   if(mode==='reverse'){
    if(!review){setReview(true);return;}
-   try{onReverse(source.id,reason.trim());onClose();}catch(e){setError(e instanceof Error?e.message:'Cannot reverse source.');setReview(false);}
+   try{onReverse(source.id,reason.trim());onClose();}catch(e){setError(e instanceof Error?e.message:text('Cannot reverse source.','লেনদেন উল্টো করা যায়নি।'));setReview(false);}
    return;
   }
   const money=Number(amount);
@@ -57,57 +59,56 @@ export function PartyTransactionDialog({row,source,mode,onClose,onEdit,onReverse
    relationship:source.relationship as 'Customer'|'Supplier',date,amount:money,discount:rebate,
    reason:reason.trim(),invoiceId:source.invoiceId,splits:normalized};
   try{onEdit(source.id,payload,reason.trim());onClose();}
-  catch(e){setError(e instanceof Error?e.message:'Correction rejected.');setReview(false);}
+  catch(e){setError(e instanceof Error?e.message:text('Correction rejected.','সংশোধন গ্রহণ করা হয়নি।'));setReview(false);}
  };
  const isPayment=source?.kind==='customer-payment'||source?.kind==='supplier-payment';
  return <Dialog open={!!row} onOpenChange={open=>!open&&onClose()}>
-  <DialogContent role="dialog" aria-modal="true" aria-label="Party transaction editor"
+  <DialogContent role="dialog" aria-modal="true" aria-label={text("Party transaction editor","লেনদেন সংশোধন")}
     className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
    <DialogHeader>
-    <DialogTitle>{mode==='reverse'?'Reverse source transaction':'Edit payment source'}</DialogTitle>
+    <DialogTitle>{mode==='reverse'?text('Reverse source transaction','মূল লেনদেন উল্টো করুন'):text('Edit payment source','পেমেন্ট সংশোধন')}</DialogTitle>
     <DialogDescription>{row?.reference??row?.id} · {row?.date} · {taka((row?.debit||row?.credit)||0)}.
-     This changes only the audited preview source, never the original Sales or Purchase transaction.</DialogDescription>
+     {text('This changes only the audited preview source, never the original Sales or Purchase transaction.','এটি শুধু যাচাইকৃত নমুনা রেকর্ড বদলাবে। আসল বিক্রি বা ক্রয় বদলাবে না।')}</DialogDescription>
    </DialogHeader>
    {row&&source&&<div className="space-y-3 text-sm">
     <p className="rounded-md bg-ink-50 p-3 text-xs text-ink-600">
-      {mode==='reverse'?'Reversal excludes this source from clean ledgers and rechecks later credit refunds.':
-       'Update payment details; all later settlements and refundable credit will be recalculated.'}
+      {mode==='reverse'?text('Reversal excludes this source from clean ledgers and rechecks later credit refunds.','উল্টো করলে খাতায় এই লেনদেন বাদ যাবে; পরের অগ্রিম ফেরতের হিসাব আবার মিলবে।'):text('Update payment details; all later settlements and refundable credit will be recalculated.','পেমেন্ট সংশোধনে পরের দেনা-পাওনা ও ফেরতযোগ্য অগ্রিম আবার গণনা হবে।')}
     </p>
     {mode==='edit'&&isPayment&&<>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-xs font-medium">Corrected date
-          <AppDatePicker label="Corrected payment date" value={date}
+        <label className="space-y-1 text-xs font-medium" >{text('Corrected date','সংশোধিত তারিখ')}
+          <AppDatePicker label={text("Corrected payment date","সংশোধিত পেমেন্টের তারিখ")} value={date}
             onChange={value=>{setDate(value);setReview(false);}}/>
         </label>
-        <label className="space-y-1 text-xs font-medium">Corrected amount
-          <Input aria-label="Corrected payment amount" inputMode="decimal" value={amount}
+        <label className="space-y-1 text-xs font-medium" >{text('Corrected amount','সংশোধিত টাকা')}
+          <Input aria-label={text("Corrected payment amount","সংশোধিত পেমেন্টের টাকা")} inputMode="decimal" value={amount}
             onChange={e=>{setAmount(e.target.value);if(splits.length===1)
               setSplits(current=>current.map(x=>({...x,amount:e.target.value})));setReview(false);}}/>
         </label>
-        <label className="space-y-1 text-xs font-medium">Discount
-          <Input aria-label="Corrected discount" inputMode="decimal" value={discount}
+        <label className="space-y-1 text-xs font-medium" >{text('Discount','ছাড়')}
+          <Input aria-label={text("Corrected discount","সংশোধিত ছাড়")} inputMode="decimal" value={discount}
             onChange={e=>{setDiscount(e.target.value);setReview(false);}}/>
         </label>
       </div>
       <FinancePaymentSplitEditor accounts={financeAccounts} rows={splits} totalAmount={Number(amount)||0}
         onChange={value=>{setSplits(value);setReview(false);}}/>
     </>}
-    <label className="block space-y-1 text-xs font-medium">Correction reason (required)
-      <Input aria-label="Correction reason" value={reason}
+    <label className="block space-y-1 text-xs font-medium" >{text('Correction reason (required)','সংশোধনের কারণ (আবশ্যক)')}
+      <Input aria-label={text("Correction reason","সংশোধনের কারণ")} value={reason}
         onChange={e=>{setReason(e.target.value);setReview(false);}}/>
     </label>
     {review&&<div role="status" className="rounded-lg border border-warning bg-warning-bg p-3 text-xs text-ink">
-      <p className="font-semibold">Confirm audit-impacting {mode==='edit'?'correction':'reversal'}</p>
-      <p>Source {source.reference??source.id} · {taka(source.amountPaid??Math.abs(source.debit-source.credit))}</p>
-      {mode==='edit'&&<p>New amount {taka(Number(amount)||0)} · Discount {taka(Number(discount)||0)}</p>}
-      <p>Reason: {reason}</p>
+      <p className="font-semibold">{text('Confirm audit-impacting','এই পরিবর্তন নিশ্চিত করুন')} {mode==='edit'?text('correction','সংশোধন'):text('reversal','উল্টো লেনদেন')}</p>
+      <p>{text('Source','উৎস')} {source.reference??source.id} · {taka(source.amountPaid??Math.abs(source.debit-source.credit))}</p>
+      {mode==='edit'&&<p>{text('New amount','নতুন টাকা')} {taka(Number(amount)||0)} · {text('Discount','ছাড়')} {taka(Number(discount)||0)}</p>}
+      <p>{text('Reason:','কারণ:')} {reason}</p>
     </div>}
     {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
     <div className="flex justify-end gap-2">
-      <Button variant="outline" onClick={onClose}>Cancel</Button>
+      <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
       <Button onClick={changed}>{review
-       ?mode==='edit'?'Confirm correction':'Confirm reversal'
-       :mode==='edit'?'Review correction':'Review reversal'}</Button>
+       ?mode==='edit'?text('Confirm correction','সংশোধন নিশ্চিত করুন'):text('Confirm reversal','উল্টো লেনদেন নিশ্চিত করুন')
+       :mode==='edit'?text('Review correction','সংশোধন যাচাই'):text('Review reversal','উল্টো লেনদেন যাচাই')}</Button>
     </div>
    </div>}
   </DialogContent>
