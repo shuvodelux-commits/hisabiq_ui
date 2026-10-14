@@ -17,6 +17,9 @@ import {
 } from '../../data/financeAccounts';
 import { taka } from '../../utils/currency';
 import { FinancePaymentSplitEditor, normalizeFinancePaymentSplits, type FinancePaymentDraft } from './FinancePaymentSplitEditor';
+import {useUiCopy} from '../../i18n/useUiCopy';
+import {financeLabel} from '../../i18n/financeCopy';
+import {printReport} from '../../utils/reportOutput';
 
 const typeMeta: Record<FinanceTransactionType, {
   role?: FinancePersonRole;
@@ -43,9 +46,11 @@ const financeTypeOptions: FinanceTransactionType[] = [
 ];
 
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
+  const {text}=useUiCopy();
+  const bn:Record<string,string>={'Relationship':'হিসাবের সম্পর্ক','Party':'পক্ষ','Amount':'টাকা','Payment method':'টাকার মাধ্যম','Account':'হিসাব','Status':'অবস্থা','Reference':'রেফারেন্স','Notes':'মন্তব্য','Created by':'যিনি লিখেছেন','Current balance':'বর্তমান জের','Opening balance':'শুরুর জের',From:'যে হিসাব থেকে',To:'যে হিসাবে'};
   return (
     <div className="rounded-lg border border-border bg-ink-50/40 px-3 py-2.5">
-      <p className="text-[10.5px] uppercase tracking-wide text-ink-400">{label}</p>
+      <p className="text-[10.5px] uppercase tracking-wide text-ink-400">{text(label,bn[label]??label)}</p>
       <div className="mt-0.5 text-[13px] font-medium text-ink">{children || '—'}</div>
     </div>
   );
@@ -61,6 +66,7 @@ export function FinanceTransactionActionDialog({
   onUpdate: (transaction: FinanceTransaction) => void;
   onReverse: (transaction: FinanceTransaction) => void;
 }) {
+  const {text,language}=useUiCopy();
   const [editing, setEditing] = useState(false);
   const [confirmReverse, setConfirmReverse] = useState(false);
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
@@ -98,9 +104,9 @@ export function FinanceTransactionActionDialog({
 
   const save = () => {
     const value = parseFloat(amount) || 0;
-    if (!value) return toast.error('Enter a valid amount');
-    if (meta.role && !selectedPerson) return toast.error('Select a finance person');
-    if (!opening && (!paymentSplits.length || Math.abs(paymentTotal - value) > 0.001)) return toast.error('Payment split must equal the transaction amount');
+    if (!value) return toast.error(text('Enter a valid amount','সঠিক টাকার পরিমাণ লিখুন'));
+    if (meta.role && !selectedPerson) return toast.error(text('Select a finance person','হিসাবের ব্যক্তি বাছুন'));
+    if (!opening && (!paymentSplits.length || Math.abs(paymentTotal - value) > 0.001)) return toast.error(text('Payment split must equal the transaction amount','সব মাধ্যমের মোট টাকা লেনদেনের টাকার সমান হতে হবে'));
     const firstPayment = paymentSplits[0];
     onUpdate({
       ...transaction,
@@ -120,19 +126,31 @@ export function FinanceTransactionActionDialog({
     setEditing(false);
   };
 
+  const printTransaction=()=>{
+    const rows:[string,string|number][]=[
+      [text('Type','ধরন'),financeLabel(language,transaction.type)],
+      [text('Date','তারিখ'),transaction.date],
+      [text('Party','পক্ষ'),transaction.party??'—'],
+      [text('Amount','টাকা'),taka(transaction.amount)],
+      [text('Status','অবস্থা'),financeLabel(language,transaction.status)],
+      [text('Reference','রেফারেন্স'),transaction.reference??'—'],
+      [text('Notes','মন্তব্য'),transaction.note??'—']
+    ];
+    if(!printReport({title:transaction.id,language,subtitle:text('Finance transaction preview — verify source records.','টাকার লেনদেনের নমুনা — মূল তথ্য যাচাই করুন।'),headers:[text('Field','বিবরণ'),text('Value','তথ্য')],rows}))toast.error(text('Allow the print popup and try again.','প্রিন্ট উইন্ডো খুলে আবার চেষ্টা করুন।'));
+  };
   return (
     <Dialog open={!!transaction} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{editing ? 'Edit finance transaction' : transaction.type}</DialogTitle>
-          <DialogDescription>{transaction.id} · {transaction.date} · created by {transaction.createdBy}</DialogDescription>
+          <DialogTitle>{editing ? text('Edit finance transaction','টাকার লেনদেন সংশোধন') : financeLabel(language,transaction.type)}</DialogTitle>
+          <DialogDescription>{transaction.id} · {transaction.date} · {text('created by','লিখেছেন')} {transaction.createdBy}</DialogDescription>
         </DialogHeader>
 
         {editing ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-[13px] font-medium text-ink sm:col-span-2">
-              Transaction type
-              <FormSelect className="mt-1.5" value={type} options={financeTypeOptions} onChange={(event) => {
+              {text('Transaction type','লেনদেনের ধরন')}
+              <FormSelect className="mt-1.5" value={type} options={financeTypeOptions.map(value=>({value,label:financeLabel(language,value)}))} onChange={(event) => {
                 const next = event.target.value as FinanceTransactionType;
                 setType(next);
                 const nextMeta = typeMeta[next];
@@ -141,13 +159,13 @@ export function FinanceTransactionActionDialog({
             </label>
 
             <label className="text-[13px] font-medium text-ink">
-              Finance person
-              <FormSelect className="mt-1.5" value={selectedPerson?.id || ''} options={peopleOptions.map((person) => person.id)} onChange={(event) => setPartyId(event.target.value)} />
-              <span className="mt-1 block text-[11px] font-normal text-ink-400">{selectedPerson?.name || 'No eligible person'}</span>
+              {text('Finance person','হিসাবের ব্যক্তি')}
+              <FormSelect className="mt-1.5" value={selectedPerson?.id || ''} options={peopleOptions.map(person=>({value:person.id,label:person.name}))} onChange={(event) => setPartyId(event.target.value)} />
+              <span className="mt-1 block text-[11px] font-normal text-ink-400">{selectedPerson?.name || text('No eligible person','উপযুক্ত ব্যক্তি নেই')}</span>
             </label>
 
             <label className="text-[13px] font-medium text-ink">
-              Amount
+              {text('Amount','টাকা')}
               <div className="relative mt-1.5">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
                 <Input className="pl-7 text-right" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} />
@@ -157,11 +175,11 @@ export function FinanceTransactionActionDialog({
             {!opening && <FinancePaymentSplitEditor accounts={accounts} rows={paymentRows} onChange={setPaymentRows} totalAmount={parseFloat(amount) || 0} />}
 
             <label className="text-[13px] font-medium text-ink">
-              Reference
+              {text('Reference','রেফারেন্স')}
               <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Optional" />
             </label>
             <label className="text-[13px] font-medium text-ink">
-              Note
+              {text('Note','মন্তব্য')}
               <Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional" />
             </label>
           </div>
@@ -171,23 +189,23 @@ export function FinanceTransactionActionDialog({
               <Detail label="Relationship">{transaction.relationship}</Detail>
               <Detail label="Party">{transaction.party}</Detail>
               <Detail label="Amount">{(transaction.direction === 'in' ? '+' : transaction.direction === 'out' ? '−' : '') + taka(transaction.amount)}</Detail>
-              <Detail label="Payment method">{transaction.paymentAccounts && transaction.paymentAccounts.length > 1 ? 'Multiple' : transaction.method || 'No money movement'}</Detail>
+              <Detail label="Payment method">{transaction.paymentAccounts && transaction.paymentAccounts.length > 1 ? text('Multiple','একাধিক') : transaction.method ? financeLabel(language,transaction.method) : text('No money movement','টাকা সরবে না')}</Detail>
               <Detail label="Account">{transaction.paymentAccounts && transaction.paymentAccounts.length > 1 ? transaction.paymentAccounts.map((split) => split.account).join(' + ') : transaction.account}</Detail>
-              <Detail label="Status"><StatusBadge tone={transaction.status === 'Active' ? 'success' : 'neutral'} dot>{transaction.status}</StatusBadge></Detail>
+              <Detail label="Status"><StatusBadge tone={transaction.status === 'Active' ? 'success' : 'neutral'} dot>{financeLabel(language,transaction.status)}</StatusBadge></Detail>
               <Detail label="Reference">{transaction.reference}</Detail>
               <Detail label="Notes">{transaction.note}</Detail>
               <Detail label="Created by">{transaction.createdBy}</Detail>
             </div>
             {!!transaction.paymentAccounts?.length && transaction.paymentAccounts.length > 1 && (
               <div className="rounded-xl border border-border">
-                <div className="border-b border-border px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">Payment split</p></div>
-                <div className="divide-y divide-border">{transaction.paymentAccounts.map((split, index) => <div key={index} className="flex items-center justify-between px-3 py-2 text-[12px]"><span className="text-ink-600">{split.method} · {split.account}</span><span className="font-medium text-ink">{taka(split.amount)}</span></div>)}</div>
+                <div className="border-b border-border px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">{text('Payment split','একাধিক মাধ্যমে টাকা')}</p></div>
+                <div className="divide-y divide-border">{transaction.paymentAccounts.map((split, index) => <div key={index} className="flex items-center justify-between px-3 py-2 text-[12px]"><span className="text-ink-600">{financeLabel(language,split.method)} · {split.account}</span><span className="font-medium text-ink">{taka(split.amount)}</span></div>)}</div>
               </div>
             )}
             {confirmReverse && (
               <div className="rounded-lg border border-danger/20 bg-danger/5 px-3 py-2.5">
-                <p className="text-[13px] font-medium text-danger">Reverse this transaction?</p>
-                <p className="mt-0.5 text-[11px] text-ink-500">The audit record remains visible and the related money movement is restored.</p>
+                <p className="text-[13px] font-medium text-danger">{text('Reverse this transaction?','এই লেনদেন উল্টো করবেন?')}</p>
+                <p className="mt-0.5 text-[11px] text-ink-500">{text('The audit record remains visible and the related money movement is restored.','পরিবর্তনের ইতিহাস থাকবে; সংশ্লিষ্ট টাকার আসা-যাওয়া আগের অবস্থায় ফিরবে।')}</p>
               </div>
             )}
           </>
@@ -195,18 +213,18 @@ export function FinanceTransactionActionDialog({
 
         <DialogFooter>
           {editing ? <>
-            <Button variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
-            <Button onClick={save}><Save className="size-4" /> Save changes</Button>
+            <Button variant="outline" onClick={() => setEditing(false)}>{text('Cancel','বাতিল')}</Button>
+            <Button onClick={save}><Save className="size-4" /> {text('Save changes','সংশোধন সংরক্ষণ')}</Button>
           </> : confirmReverse ? <>
-            <Button variant="outline" onClick={() => setConfirmReverse(false)}>Keep transaction</Button>
-            <Button onClick={() => { onReverse(transaction); setConfirmReverse(false); }}><RotateCcw className="size-4" /> Confirm reverse</Button>
+            <Button variant="outline" onClick={() => setConfirmReverse(false)}>{text('Keep transaction','লেনদেন রাখুন')}</Button>
+            <Button onClick={() => { onReverse(transaction); setConfirmReverse(false); }}><RotateCcw className="size-4" /> {text('Confirm reverse','উল্টো করা নিশ্চিত করুন')}</Button>
           </> : <>
-            <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
+            <Button variant="outline" onClick={printTransaction}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
             {transaction.status === 'Active' && <>
-              <Button variant="outline" onClick={() => setEditing(true)}><Pencil className="size-4" /> Edit</Button>
-              <Button variant="outline" onClick={() => setConfirmReverse(true)}><RotateCcw className="size-4" /> Reverse</Button>
+              <Button variant="outline" onClick={() => setEditing(true)}><Pencil className="size-4" /> {text('Edit','সংশোধন')}</Button>
+              <Button variant="outline" onClick={() => setConfirmReverse(true)}><RotateCcw className="size-4" /> {text('Reverse','উল্টো করুন')}</Button>
             </>}
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>{text('Close','বন্ধ করুন')}</Button>
           </>}
         </DialogFooter>
       </DialogContent>
