@@ -24,7 +24,7 @@ async function main(){
     assert.match(await dialog.innerText(),bn?/ক্লিয়ার হলেই ব্যাংকের জের/:/Bank balance changes only after the cheque clears/);
     await dialog.getByRole('button',{name:bn?'বাতিল':'Cancel',exact:true}).click();
     await page.getByRole('tab',{name:bn?'চেক':'Cheques',exact:true}).click();
-    await page.getByText(bn?'চেকের তালিকা':'Cheque register',{exact:true}).first().waitFor();
+    await page.locator('p').filter({hasText:bn?'চেকের তালিকা':'Cheque register'}).first().waitFor();
     await page.getByRole('button',{name:'Actions for CHQ-000031'}).click();
     await page.getByText(bn?'চেকের পরের কাজ':'Next cheque action',{exact:true}).waitFor();
     await page.getByRole('dialog').getByRole('button',{name:bn?'বন্ধ করুন':'Close',exact:true}).first().click();
