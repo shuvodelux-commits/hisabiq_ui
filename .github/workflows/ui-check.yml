@@ -72,6 +72,9 @@ jobs:
       - name: Check Phase 8 bilingual workspace shell across devices
         run: npm run test:bangla-workspace-shell
 
+      - name: Check Phase 9 bilingual ERP SMS notifications preview
+        run: npm run test:bangla-notifications
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
