@@ -88,10 +88,10 @@ export function GlobalSearchBox(){
       id={listId+'-option-'+index} type="button" role="option" aria-selected={selected===index}
       onMouseDown={event=>event.preventDefault()}
       onMouseEnter={()=>setActive(index)} onClick={()=>openResult(item)}
-      style={selected===index?{backgroundColor:'var(--accent)',color:'var(--ink)'}:undefined}
+      style={{backgroundColor:selected===index?'var(--accent)':'var(--popover)',color:'var(--ink)'}}
       className={'flex min-h-12 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 '+(selected===index?'bg-accent text-ink ring-1 ring-inset ring-primary/25':'text-ink hover:bg-ink-50')}>
       <span className="min-w-0 flex-1"><span className="block truncate font-medium">{item.label}</span>
-       <span className={'block truncate text-xs '+(selected===index?'text-ink':'text-ink-500')}>{item.helper}</span></span>
+       <span className={'block truncate text-xs '+(selected===index?'text-ink':'text-ink-500')} style={{color:selected===index?'var(--ink)':'var(--ink-500)'}}>{item.helper}</span></span>
       <span className="shrink-0 text-[10px] text-ink-500">{item.kind}</span>
       <ArrowUpRight className="size-3.5 shrink-0 text-ink-400" aria-hidden="true"/>
      </button>):<p role="status" className="px-3 py-5 text-sm text-ink-500">{text("No matching records. Try fewer words.","কোনো ফল পাওয়া যায়নি। অন্যভাবে খুঁজুন।")}</p>}
