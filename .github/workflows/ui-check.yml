@@ -69,6 +69,9 @@ jobs:
       - name: Check Phase 7 cash drawer in three language modes
         run: npm run test:bangla-cash-drawer
 
+      - name: Check Phase 8 bilingual workspace shell across devices
+        run: npm run test:bangla-workspace-shell
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
