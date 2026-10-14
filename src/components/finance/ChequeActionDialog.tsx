@@ -145,7 +145,7 @@ export function ChequeActionDialog({
 
             {pendingAction && <div className="rounded-xl border border-warning/20 bg-warning/5 p-3">
               <p className="text-[12.5px] font-semibold text-ink">{financeLabel(language,pendingAction.label)}?</p>
-              <p className="mt-0.5 text-[11px] text-ink-500">{text('Status will become','নতুন অবস্থা হবে')} <strong>{financeLabel(language,pendingAction.nextStatus)}</strong>{pendingAction.nextStatus === 'Cleared' ? text('. Money account balance will update now.','। এখন ব্যাংকের জের বদলাবে।') : '।'}</p>
+              <p className="mt-0.5 text-[11px] text-ink-500">{text('Status will become','নতুন অবস্থা হবে')} <strong>{financeLabel(language,pendingAction.nextStatus)}</strong>{pendingAction.nextStatus === 'Cleared' ? text('. Money account balance will update now.','। এখন ব্যাংকের জের বদলাবে।') : text('.','।')}</p>
               {pendingAction.reasonRequired && <label className="mt-3 block text-[12px] font-medium text-ink">{text('Reason','কারণ')} {showHelper&&<span className="font-bn font-normal text-ink-400">· কারণ</span>}<Input className="mt-1.5" value={reason} onChange={(event) => setReason(event.target.value)} placeholder={text("Why is this status changing?","কেন অবস্থা বদলাচ্ছেন?")} /></label>}
             </div>}
           </div>
@@ -154,7 +154,7 @@ export function ChequeActionDialog({
         <DialogFooter>
           {editing ? <><Button variant="outline" onClick={() => setEditing(false)}>{text('Cancel','বাতিল')}</Button><Button onClick={save}>{text('Save cheque','চেক সংরক্ষণ')}</Button></> :
             pendingAction ? <><Button variant="outline" onClick={() => { setPendingAction(null); setReason(''); }}>{text('Back','ফিরুন')}</Button><Button onClick={confirmStatus}>{text('Confirm ','নিশ্চিত করুন: ')+financeLabel(language,pendingAction.nextStatus)}</Button></> :
-            <><Button variant="outline" onClick={printCheque}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>{!terminal && <Button variant="outline" onClick={() => setEditing(true)}><Pencil className="size-4" /> Edit</Button>}<Button onClick={onClose}>{text('Close','বন্ধ করুন')}</Button></>}
+            <><Button variant="outline" onClick={printCheque}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>{!terminal && <Button variant="outline" onClick={() => setEditing(true)}><Pencil className="size-4" /> {text('Edit','সংশোধন')}</Button>}<Button onClick={onClose}>{text('Close','বন্ধ করুন')}</Button></>}
         </DialogFooter>
       </DialogContent>
     </Dialog>
