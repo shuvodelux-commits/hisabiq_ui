@@ -35,13 +35,14 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
     if (active?.groupId) setExpanded(active.groupId);
   }, [active?.groupId, location.pathname, location.search]);
 
+  const labelFor = (name: string, bangla?: string) => personal.language === 'Bangla' ? (bangla ?? name) : name;
   const bilingualLabel = (name: string, bangla?: string) => {
     const isBangla = personal.language === 'Bangla';
     return <span className="min-w-0 flex-1 text-left leading-[1.25]">
       <span className="block truncate text-[13px] font-medium">{isBangla ? (bangla ?? name) : name}</span>
-      {personal.language !== 'English' && bangla &&
+      {personal.language === 'English + Bangla' && bangla &&
         <span className="font-bn mt-0.5 block truncate text-[10.5px] font-normal text-ink-400">
-          {isBangla ? name : bangla}
+          {bangla}
         </span>}
     </span>;
   };
@@ -54,13 +55,13 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
   const idleParent = 'text-ink-600 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground';
 
   return <nav
-    aria-label={mode === 'mobile' ? 'Mobile ERP navigation' : 'Main'}
+    aria-label={personal.language === 'Bangla' ? (mode === 'mobile' ? 'মোবাইল ERP মেনু' : 'মূল মেনু') : (mode === 'mobile' ? 'Mobile ERP navigation' : 'Main')}
     className={'min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-2 scrollbar-thin ' + (collapsed ? 'px-1.5' : 'px-2.5')}
   >
     <p className={collapsed
       ? 'sr-only'
       : 'px-3 pb-2 pt-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-400'}>
-      Workspace
+      {personal.language === 'Bangla' ? 'কাজের মেনু' : 'Workspace'}
     </p>
     <div className="space-y-0.5">
       {nav.map(group => {
@@ -72,14 +73,14 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
         const childSelected = selected && Boolean(active?.childId);
         const panelId = mode + '-erp-' + group.id;
         const separate = group.id === 'settings';
-        const parentTitle = (open ? 'Collapse ' : 'Expand ') + group.label;
+        const parentTitle = personal.language === 'Bangla' ? (open ? 'বন্ধ করুন: ' : 'খুলুন: ') + labelFor(group.label, group.bn) : (open ? 'Collapse ' : 'Expand ') + group.label;
         const highlighted = selected ? activeParent : idleParent;
         return <div key={group.id} className={separate ? 'mt-3 border-t border-sidebar-border pt-3' : ''}>
           {collapsed ? (
             hasChildren ? <button
               type="button"
-              aria-label={'Expand sidebar to open ' + group.label}
-              title={group.label}
+              aria-label={personal.language === 'Bangla' ? 'সাইডবার খুলে ' + labelFor(group.label, group.bn) + ' দেখুন' : 'Expand sidebar to open ' + group.label}
+              title={labelFor(group.label, group.bn)}
               aria-current={selected ? 'page' : undefined}
               onClick={() => { setExpanded(group.id); onExpandSidebar?.(); }}
               className={collapsedRow + ' ' + highlighted}
@@ -87,8 +88,8 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
               <Icon className="size-[18px] shrink-0" aria-hidden="true"/>
             </button> : <Link
               to={group.landingPath}
-              aria-label={group.label}
-              title={group.label}
+              aria-label={labelFor(group.label, group.bn)}
+              title={labelFor(group.label, group.bn)}
               aria-current={selected ? 'page' : undefined}
               onClick={onNavigate}
               className={collapsedRow + ' ' + highlighted}
@@ -125,7 +126,7 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
             <div
               id={panelId}
               role="group"
-              aria-label={group.label + ' sections'}
+              aria-label={personal.language === 'Bangla' ? labelFor(group.label, group.bn) + ' এর অংশ' : group.label + ' sections'}
               hidden={!open}
               className="mb-1 ml-[18px] mt-1 space-y-0.5 border-l border-sidebar-border pl-3"
             >
