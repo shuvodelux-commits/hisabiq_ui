@@ -88,7 +88,7 @@ export function GlobalSearchBox(){
       id={listId+'-option-'+index} type="button" role="option" aria-selected={selected===index}
       onMouseDown={event=>event.preventDefault()}
       onMouseEnter={()=>setActive(index)} onClick={()=>openResult(item)}
-      style={{backgroundColor:selected===index?'var(--accent)':'var(--popover)',color:'var(--ink)'}}
+      style={{backgroundColor:selected===index?'var(--card)':'var(--popover)',color:'var(--ink)',boxShadow:selected===index?'inset 0 0 0 2px var(--primary)':undefined}}
       className={'flex min-h-12 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 '+(selected===index?'bg-accent text-ink ring-1 ring-inset ring-primary/25':'text-ink hover:bg-ink-50')}>
       <span className="min-w-0 flex-1"><span className="block truncate font-medium">{item.label}</span>
        <span className={'block truncate text-xs '+(selected===index?'text-ink':'text-ink-500')} style={{color:selected===index?'var(--ink)':'var(--ink-500)'}}>{item.helper}</span></span>
