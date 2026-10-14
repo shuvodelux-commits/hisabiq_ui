@@ -736,6 +736,20 @@ function SettingsPageContent() {
                       </SettingsField>
                     </div>
                   </SettingCard>
+                  <SettingCard title="Global search · সার্চ">
+                    <SettingsField
+                      label="Search matching"
+                      bn="খোঁজার ধরন"
+                      language={personal.language}
+                      hint="Default matches word beginnings. Advanced also finds partial words and close spellings. Results appear while typing; Enter opens the first result."
+                    >
+                      {(id) => (
+                        <AppSelect id={id} label="Search matching" value={personalDraft.searchMode}
+                          onChange={(searchMode) => setPersonalDraft({ ...personalDraft, searchMode: searchMode as PersonalSettings['searchMode'] })}
+                          options={[{ value: 'Default', label: 'Default — normal search' }, { value: 'Advanced', label: 'Advanced — fuzzy search' }]} />
+                      )}
+                    </SettingsField>
+                  </SettingCard>
                   {personal.mode === "Advanced" && (
                     <SettingCard title="Advanced display preferences">
                       <div className="grid gap-5 sm:grid-cols-2">

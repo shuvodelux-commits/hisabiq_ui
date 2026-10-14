@@ -27,7 +27,7 @@ async function main() {
         const bn = language === 'Bangla';
         await page.goto('http://127.0.0.1:4393/#/app/dashboard');
         const top = page.locator('header[data-print-hide]');
-        const search = top.getByRole('searchbox', { name: bn ? 'সবখানে খুঁজুন' : 'Global search' });
+        const search = top.getByRole('combobox', { name: bn ? 'সবখানে খুঁজুন' : 'Global search' });
         await search.waitFor();
         assert.equal(await search.getAttribute('placeholder'),
           bn ? 'পণ্য, ক্রেতা, বিল খুঁজুন…' : 'Search products, parties, invoices…');

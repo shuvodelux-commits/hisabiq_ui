@@ -133,6 +133,7 @@ export interface PersonalSettings {
   density: "Compact" | "Comfortable";
   terminology: "simple" | "accounting";
   dateView: "transaction" | "created";
+  searchMode: "Default" | "Advanced";
 }
 export const currentBusinessId = "t1"; // UI fixture; replace with the authenticated business session later.
 export const settingsKey = (tenantId: string) =>
@@ -157,6 +158,7 @@ export const personalDefaults: PersonalSettings = {
   density: "Compact",
   terminology: "simple",
   dateView: "transaction",
+  searchMode: "Default",
 };
 export function defaults(tenantId = currentBusinessId): TenantSettings {
   return {
@@ -475,7 +477,8 @@ export function validPersonal(v: unknown): v is PersonalSettings {
     ["English + Bangla", "English", "Bangla"].includes(v.language as string) &&
     ["Compact", "Comfortable"].includes(v.density as string) &&
     ["simple", "accounting"].includes(v.terminology as string) &&
-    ["transaction", "created"].includes(v.dateView as string)
+    ["transaction", "created"].includes(v.dateView as string) &&
+    (v.searchMode === undefined || ["Default", "Advanced"].includes(v.searchMode as string))
   );
 }
 export function parseSettings(

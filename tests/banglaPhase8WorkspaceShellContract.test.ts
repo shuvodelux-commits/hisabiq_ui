@@ -7,10 +7,14 @@ const file = (path: string) => readFileSync(path, 'utf8');
 test('Shared shell uses existing language preference and preserves global search and navigation actions', () => {
   const top = file('src/components/layout/TopBar.tsx');
   const nav = file('src/components/layout/ErpNavMenu.tsx');
+  const search = file('src/components/layout/GlobalSearchBox.tsx');
   const sidebar = file('src/components/layout/Sidebar.tsx');
   assert.ok(top.includes('const { text, language } = useUiCopy()'));
-  assert.ok(top.includes("navigate('/app/search?q='+encodeURIComponent(searchQuery.trim()))"));
-  assert.ok(top.includes("event.ctrlKey || event.metaKey"));
+  assert.ok(top.includes('<GlobalSearchBox />'));
+  assert.ok(search.includes('navigate(item.path)'));
+  assert.ok(search.includes('searchResults(records,query'));
+  assert.ok(search.includes('aria-autocomplete="list"'));
+  assert.ok(search.includes("event.ctrlKey||event.metaKey"));
   assert.ok(top.includes("navigate(route)"));
   assert.ok(nav.includes('getVisibleNavigation(erpNavigation'));
   assert.ok(nav.includes('resolveNavLocation(current, nav)'));
@@ -42,7 +46,7 @@ test('Shared shell has Bangla-accessible labels without altering calculator math
   const calc = file('src/components/layout/Calculator.tsx');
   const trigger = file('src/components/layout/SidebarTrigger.tsx');
   assert.ok(top.includes('ERP মেনু খুলুন'));
-  assert.ok(top.includes('খোঁজা মুছুন'));
+  assert.ok(file('src/components/layout/GlobalSearchBox.tsx').includes('খোঁজা মুছুন'));
   assert.ok(calc.includes("toast.success(text('Copied to clipboard','কপি হয়েছে'))"));
   assert.ok(calc.includes('Math.round(apply(acc, value, op) * 100) / 100'));
   assert.ok(trigger.includes("text('Expand sidebar','সাইডবার খুলুন')"));
