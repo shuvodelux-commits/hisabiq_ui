@@ -27,7 +27,7 @@ async function main(){
     await page.getByText(bn?'চেকের তালিকা':'Cheque register',{exact:true}).first().waitFor();
     await page.getByRole('button',{name:'Actions for CHQ-000031'}).click();
     await page.getByText(bn?'চেকের পরের কাজ':'Next cheque action',{exact:true}).waitFor();
-    await page.getByRole('dialog').getByRole('button',{name:bn?'বন্ধ করুন':'Close',exact:true}).click();
+    await page.getByRole('dialog').getByRole('button',{name:bn?'বন্ধ করুন':'Close',exact:true}).first().click();
     await page.getByRole('tab',{name:bn?'ক্যাশ সেশন':'Cash Sessions',exact:true}).click();
     await page.getByText(bn?'ক্যাশ সেশনের ইতিহাস':'Cash session history',{exact:true}).waitFor();
     assert.deepEqual(errors,[],language+' '+width+'px errors');
