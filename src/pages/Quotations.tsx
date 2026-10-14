@@ -132,48 +132,50 @@ function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete
  onDuplicate:(q:Quotation)=>void;onTransition:(q:Quotation,status:QuoteStatus)=>void;
  onDelete:(q:Quotation)=>void;
 }){
+ const {language,showHelper}=useUiCopy();
+ const ql=(label:string)=>quotationLabel(language,label);
  if(!quote)return null;
  const status=quoteDisplayStatus(quote);
  return <Dialog open={true} onOpenChange={value=>!value&&onClose()}>
   <DialogContent role="dialog" aria-label={'Quotation '+quote.number} className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
    <style>{'@media print { body * { visibility:hidden !important } #quotation-print, #quotation-print * {visibility:visible !important} #quotation-print {position:absolute !important;inset:0; width:100%;background:white;color:black;padding:24px} }'}</style>
    <DialogHeader>
-    <DialogTitle>{quote.number} <StatusBadge tone={statusTone[status]}>{status}</StatusBadge></DialogTitle>
-    <DialogDescription>Quotation preview only — not an invoice or payment request.</DialogDescription>
+    <DialogTitle>{quote.number} <StatusBadge tone={statusTone[status]}>{ql(status)}</StatusBadge></DialogTitle>
+    <DialogDescription>{ql('Quotation preview only — not an invoice or payment request.')}</DialogDescription>
    </DialogHeader>
    <div id="quotation-print" className="space-y-4 rounded-xl border border-border bg-card p-4 text-sm text-ink">
     <div className="flex items-start justify-between gap-4">
-     <div><strong className="text-lg">HisabIQ</strong><p className="text-xs text-ink-500">Quotation · মূল্য প্রস্তাব</p></div>
-     <div className="text-right"><strong>{quote.number}</strong><p className="text-xs">Issue: {quote.date}</p><p className="text-xs">Valid until: {quote.validUntil}</p></div>
+     <div><strong className="text-lg">HisabIQ</strong><p className="text-xs text-ink-500">{ql("Quotation")}{showHelper&&" · মূল্য প্রস্তাব"}</p></div>
+     <div className="text-right"><strong>{quote.number}</strong><p className="text-xs">{ql('Issue:')} {quote.date}</p><p className="text-xs">{ql('Valid until:')} {quote.validUntil}</p></div>
     </div>
-    <div className="border-t border-border pt-3"><span className="text-xs text-ink-500">Prepared for</span>
+    <div className="border-t border-border pt-3"><span className="text-xs text-ink-500">{ql("Prepared for")}</span>
      <p className="font-semibold">{quote.customerName}</p><p className="text-xs">{quote.customerPhone??''}</p>
     </div>
     <div className="overflow-x-auto">
      <table className="w-full border-collapse text-left text-xs">
-      <thead><tr className="border-b border-border text-ink-500"><th className="py-2">#</th><th>Product</th><th className="text-right">Qty</th><th className="text-right">Price</th><th className="text-right">Amount</th></tr></thead>
+      <thead><tr className="border-b border-border text-ink-500"><th className="py-2">#</th><th>{ql("Product")}</th><th className="text-right">{ql("Qty")}</th><th className="text-right">{ql("Price")}</th><th className="text-right">{ql("Amount")}</th></tr></thead>
       <tbody>{quote.lines.map((line,i)=><tr key={line.id} className="border-b border-border/60"><td className="py-2">{i+1}</td><td>{line.name}</td><td className="text-right">{line.quantity} {line.unit}</td><td className="text-right">{taka(line.price)}</td><td className="text-right">{taka(quoteLineTotal(line))}</td></tr>)}</tbody>
      </table>
     </div>
     <div className="ml-auto max-w-xs space-y-1 text-right">
-     <p>Subtotal: {taka(quoteSubtotal(quote))}</p><p>Discount: {taka(quote.discount)}</p>
-     <p className="border-t border-border pt-2 text-lg font-semibold">Total: {taka(quoteTotal(quote))}</p>
+     <p>{ql("Subtotal")}: {taka(quoteSubtotal(quote))}</p><p>{ql("Discount")}: {taka(quote.discount)}</p>
+     <p className="border-t border-border pt-2 text-lg font-semibold">{ql("Total")}: {taka(quoteTotal(quote))}</p>
     </div>
-    {quote.note&&<p className="border-t border-border pt-3 text-xs">Terms: {quote.note}</p>}
-    <p className="text-[11px] text-ink-500">Quotation only. No stock reservation or financial posting.</p>
+    {quote.note&&<p className="border-t border-border pt-3 text-xs">{ql("Terms:")} {quote.note}</p>}
+    <p className="text-[11px] text-ink-500">{ql("Quotation only. No stock reservation or financial posting.")}</p>
    </div>
    <div className="flex flex-wrap gap-2">
-    <Button variant="outline" size="sm" onClick={()=>window.print()}><Printer className="size-4"/> Print</Button>
-    <Button variant="outline" size="sm" onClick={()=>onDuplicate(quote)}><Copy className="size-4"/> Duplicate</Button>
-    {quote.status!=='Declined'&&<Button variant="outline" size="sm" onClick={()=>onEdit(quote)}><Pencil className="size-4"/> Revise</Button>}
-    {quote.status==='Draft'&&<Button size="sm" onClick={()=>onTransition(quote,'Sent')}><Send className="size-4"/> Mark sent</Button>}
+    <Button variant="outline" size="sm" onClick={()=>window.print()}><Printer className="size-4"/> {ql("Print")}</Button>
+    <Button variant="outline" size="sm" onClick={()=>onDuplicate(quote)}><Copy className="size-4"/> {ql("Duplicate")}</Button>
+    {quote.status!=='Declined'&&<Button variant="outline" size="sm" onClick={()=>onEdit(quote)}><Pencil className="size-4"/> {ql("Revise")}</Button>}
+    {quote.status==='Draft'&&<Button size="sm" onClick={()=>onTransition(quote,'Sent')}><Send className="size-4"/> {ql("Mark sent")}</Button>}
     {quote.status==='Sent'&&<>
-      <Button variant="outline" size="sm" onClick={()=>onTransition(quote,'Draft')}>Return to draft</Button>
-      <Button variant="outline" size="sm" onClick={()=>onTransition(quote,'Declined')}><X className="size-4"/> Declined</Button>
-      <Button size="sm" disabled={status==='Expired'} onClick={()=>onTransition(quote,'Accepted')}><Check className="size-4"/> Accepted</Button>
+      <Button variant="outline" size="sm" onClick={()=>onTransition(quote,'Draft')}>{ql("Return to draft")}</Button>
+      <Button variant="outline" size="sm" onClick={()=>onTransition(quote,'Declined')}><X className="size-4"/> {ql("Declined")}</Button>
+      <Button size="sm" disabled={status==='Expired'} onClick={()=>onTransition(quote,'Accepted')}><Check className="size-4"/> {ql("Accepted")}</Button>
      </>}
-    {quote.status==='Accepted'&&<Button size="sm" onClick={()=>onCreateOrder(quote)}>Create online order</Button>}
-    {quote.status==='Draft'&&<Button size="sm" variant="outline" onClick={()=>onDelete(quote)}><Trash2 className="size-4"/> Delete draft</Button>}
+    {quote.status==='Accepted'&&<Button size="sm" onClick={()=>onCreateOrder(quote)}>{ql("Create online order")}</Button>}
+    {quote.status==='Draft'&&<Button size="sm" variant="outline" onClick={()=>onDelete(quote)}><Trash2 className="size-4"/> {ql("Delete draft")}</Button>}
    </div>
   </DialogContent>
  </Dialog>;
@@ -251,7 +253,7 @@ export function Quotations(){
    <DialogContent role="dialog" aria-label="Confirm delete quotation" className="sm:max-w-md">
     <DialogHeader><DialogTitle>Delete draft quotation?</DialogTitle><DialogDescription>{deleteTarget?.number} will be deleted from the in-memory preview. This action cannot be undone.</DialogDescription></DialogHeader>
     <DialogFooter><Button variant="outline" onClick={()=>setDeleteTarget(null)}>Cancel</Button>
-     <Button onClick={remove}>Delete draft</Button></DialogFooter>
+     <Button onClick={remove}>{ql("Delete draft")}</Button></DialogFooter>
    </DialogContent>
   </Dialog>
  </div>;
