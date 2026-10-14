@@ -11,6 +11,7 @@ import { parties } from '../../data/parties';
 import type { AuditSourceRecord, AuditState, CorrectionCommand } from '../../types/audit';
 import { applyCorrection, buildImpactPreview, validateCorrection } from '../../utils/auditEngine';
 import { ImpactPreview } from './ImpactPreview';
+import {useUiCopy} from '../../i18n/useUiCopy';
 
 const moneyAccountNames = financeAccounts.filter((item) => item.status === 'Active').map((item) => item.name);
 const expenseAccounts = accountingAccounts.filter((item) => item.group === 'Expense' && item.active);
@@ -26,6 +27,7 @@ export function AuditEditDialog({
   onClose: () => void;
   onApply: (state: AuditState) => void;
 }) {
+  const {text,showHelper}=useUiCopy();
   const [review, setReview] = useState(false);
   const [date, setDate] = useState('');
   const [reference, setReference] = useState('');
@@ -100,9 +102,9 @@ export function AuditEditDialog({
   const partyOptions = parties.map((item) => ({ value: item.id, label: item.name }));
 
   const startReview = () => {
-    if (!command || !preview.changes.length) return toast.error('No changes to review');
+    if (!command || !preview.changes.length) return toast.error(text('No changes to review','যাচাই করার মতো কোনো পরিবর্তন নেই।'));
     if (!validation.allowed) {
-      toast.error(Object.values(validation.fieldErrors)[0] || 'Review the highlighted fields');
+      toast.error(Object.values(validation.fieldErrors)[0] || text('Review the highlighted fields','চিহ্নিত তথ্যগুলো আবার দেখুন।'));
       return;
     }
     setReview(true);
@@ -112,18 +114,18 @@ export function AuditEditDialog({
     if (!command) return;
     try {
       onApply(applyCorrection(command, state));
-      toast.success('Transaction corrected', { description: source?.reference });
+      toast.success(text('Transaction corrected','লেনদেন সংশোধন হয়েছে'), { description: source?.reference });
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not apply correction');
+      toast.error(error instanceof Error ? error.message : text('Could not apply correction','সংশোধন করা যায়নি'));
     }
   };
 
   return (
     <Dialog open={!!source} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent role="dialog" aria-label="Correct transaction" className="max-h-[92dvh] overflow-y-auto sm:max-w-4xl">
+      <DialogContent role="dialog" aria-label={text("Correct transaction","লেনদেন সংশোধন")} className="max-h-[92dvh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>{review ? 'Review changes' : 'Correct transaction'} <span className="font-bn text-sm font-normal text-ink-400">· হিসাব ঠিক করুন</span></DialogTitle>
+          <DialogTitle>{review ? text('Review changes','সংশোধন যাচাই') : text('Correct transaction','লেনদেন সংশোধন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-400">· হিসাব ঠিক করুন</span>}</DialogTitle>
         </DialogHeader>
 
         {!review && source && (
@@ -135,22 +137,22 @@ export function AuditEditDialog({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-[13px] font-medium text-ink">
-                Transaction Date <span className="font-bn text-[11px] font-normal text-ink-400">· যে তারিখের লেনদেন</span>
+                {text('Transaction Date','লেনদেনের তারিখ')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· যে তারিখের লেনদেন</span>}
                 <Input className="mt-1.5" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
               </label>
               <label className="text-[13px] font-medium text-ink">
-                Created Date
+                {text('Created Date','লেখার তারিখ')}
                 <Input className="mt-1.5 bg-ink-50 text-ink-500" value={source.createdAt.slice(0, 10)} readOnly />
                 <span className="mt-1 block font-bn text-[10.5px] font-normal text-ink-400">এটি বদলানো যাবে না</span>
               </label>
 
               <label className="text-[13px] font-medium text-ink">
-                Reference
+                {text('Reference','রেফারেন্স')}
                 <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} />
               </label>
 
               <label className="text-[13px] font-medium text-ink">
-                Amount
+                {text('Amount','টাকা')}
                 <div className="relative mt-1.5">
                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
                   <Input className="pl-7 text-right" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} />
@@ -160,9 +162,9 @@ export function AuditEditDialog({
 
               {source.partyId ? (
                 <label className="text-[13px] font-medium text-ink sm:col-span-2">
-                  Party / Person <span className="font-bn text-[11px] font-normal text-ink-400">· যার সাথে লেনদেন</span>
+                  {text('Party / Person','পক্ষ / ব্যক্তি')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· যার সাথে লেনদেন</span>}
                   <FormSelect
-                    aria-label="Party / Person"
+                    aria-label={text("Party / Person","পক্ষ / ব্যক্তি")}
                     className="mt-1.5"
                     value={partyId}
                     onChange={(event) => {
@@ -175,14 +177,14 @@ export function AuditEditDialog({
                 </label>
               ) : source.source !== 'transfer' && (
                 <label className="text-[13px] font-medium text-ink sm:col-span-2">
-                  Party / Person
+                  {text('Party / Person','পক্ষ / ব্যক্তি')}
                   <Input className="mt-1.5" value={party} onChange={(event) => setParty(event.target.value)} />
                 </label>
               )}
 
               {source.quantity !== undefined && (
                 <label className="text-[13px] font-medium text-ink">
-                  Quantity
+                  {text('Quantity','পরিমাণ')}
                   <Input className="mt-1.5 text-right" inputMode="decimal" value={quantity} onChange={(event) => setQuantity(event.target.value.replace(/[^\d.]/g, ''))} />
                   {validation.fieldErrors.quantity && <span className="mt-1 block font-bn text-[10.5px] text-danger">ইতিমধ্যে {source.returnedQuantity}টি ফেরত হয়েছে; এর নিচে Quantity করা যাবে না</span>}
                 </label>
@@ -190,7 +192,7 @@ export function AuditEditDialog({
 
               {source.source === 'expense' && (
                 <label className="text-[13px] font-medium text-ink">
-                  Expense category
+                  {text('Expense category','খরচের ধরন')}
                   <FormSelect
                     className="mt-1.5"
                     value={accountingAccounts.find((item) => item.id === expenseAccountId)?.name ?? expenseAccounts[0]?.name ?? ''}
@@ -205,23 +207,23 @@ export function AuditEditDialog({
 
               {source.source === 'transfer' && <>
                 <label className="text-[13px] font-medium text-ink">
-                  From account
+                  {text('From account','যে হিসাব থেকে')}
                   <FormSelect className="mt-1.5" value={fromAccount} onChange={(event) => setFromAccount(event.target.value)} options={moneyAccountNames} />
                 </label>
                 <label className="text-[13px] font-medium text-ink">
-                  To account
+                  {text('To account','যে হিসাবে')}
                   <FormSelect className="mt-1.5" value={toAccount} onChange={(event) => setToAccount(event.target.value)} options={moneyAccountNames} />
                   {fromAccount === toAccount && <span className="mt-1 block font-bn text-[10.5px] text-danger">From এবং To account আলাদা হতে হবে</span>}
                 </label>
               </>}
 
               <label className="text-[13px] font-medium text-ink sm:col-span-2">
-                Description
+                {text('Description','বিবরণ')}
                 <Input className="mt-1.5" value={description} onChange={(event) => setDescription(event.target.value)} />
               </label>
               <label className="text-[13px] font-medium text-ink sm:col-span-2">
-                Internal note
-                <Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional audit note" />
+                {text('Internal note','ভেতরের মন্তব্য')}
+                <Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} placeholder={text("Optional audit note","মন্তব্য (ঐচ্ছিক)")} />
               </label>
             </div>
 
@@ -229,21 +231,21 @@ export function AuditEditDialog({
               <div className="rounded-xl border border-border">
                 <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
                   <div>
-                    <p className="text-[12.5px] font-semibold text-ink">Payment split</p>
+                    <p className="text-[12.5px] font-semibold text-ink">{text('Payment split','একাধিক মাধ্যমে পেমেন্ট')}</p>
                     <p className="font-bn text-[10.5px] text-ink-400">কোন অ্যাকাউন্ট থেকে কত টাকা গেছে বা এসেছে</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setPayments((current) => [...current, { account: moneyAccountNames[0] ?? '', amount: '' }])}><Plus className="size-3.5" /> Add</Button>
+                  <Button variant="outline" size="sm" onClick={() => setPayments((current) => [...current, { account: moneyAccountNames[0] ?? '', amount: '' }])}><Plus className="size-3.5" /> {text('Add','যোগ করুন')}</Button>
                 </div>
                 <div className="space-y-2 p-3">
                   {payments.map((payment, index) => (
                     <div key={index} className="grid grid-cols-[1fr_130px_32px] gap-2">
                       <FormSelect value={payment.account} onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, account: event.target.value } : item))} options={moneyAccountNames} />
                       <Input className="text-right" inputMode="decimal" value={payment.amount} onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))} placeholder="0" />
-                      <button type="button" onClick={() => setPayments((current) => current.filter((_, i) => i !== index))} className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger" aria-label="Remove payment"><Trash2 className="size-3.5" /></button>
+                      <button type="button" onClick={() => setPayments((current) => current.filter((_, i) => i !== index))} className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger" aria-label={text("Remove payment","পেমেন্ট সরান")}><Trash2 className="size-3.5" /></button>
                     </div>
                   ))}
                   <div className="flex justify-between border-t border-border pt-2 text-[11px] text-ink-500">
-                    <span>Split total</span>
+                    <span>{text('Split total','পেমেন্টের মোট')}</span>
                     <span className="font-medium text-ink">৳{payments.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0).toLocaleString()}</span>
                   </div>
                   {validation.fieldErrors.paymentAccounts && <p className="font-bn text-[10.5px] text-danger">পেমেন্টের মোট টাকা Paid amount-এর সাথে মিলতে হবে</p>}
@@ -252,8 +254,8 @@ export function AuditEditDialog({
             )}
 
             <label className="block text-[13px] font-medium text-ink">
-              Reason for change <span className="font-bn text-[11px] font-normal text-ink-400">· কেন পরিবর্তন করছেন</span>
-              <Input className="mt-1.5" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="e.g. Wrong date and payment account entered" />
+              {text('Reason for change','সংশোধনের কারণ')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· কেন পরিবর্তন করছেন</span>}
+              <Input className="mt-1.5" value={reason} onChange={(event) => setReason(event.target.value)} placeholder={text("e.g. Wrong date and payment account entered","যেমন: ভুল তারিখ বা পেমেন্টের হিসাব লেখা হয়েছে")} />
               {validation.fieldErrors._reason && <span className="mt-1 block font-bn text-[10.5px] text-danger">আর্থিক পরিবর্তনের কারণ লিখুন</span>}
             </label>
           </div>
@@ -264,13 +266,13 @@ export function AuditEditDialog({
         <DialogFooter>
           {review ? (
             <>
-              <Button variant="outline" onClick={() => setReview(false)}>Back</Button>
-              <Button onClick={save}>Save changes</Button>
+              <Button variant="outline" onClick={() => setReview(false)}>{text('Back','ফিরুন')}</Button>
+              <Button onClick={save}>{text('Save changes','সংশোধন সংরক্ষণ')}</Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={onClose}>Cancel</Button>
-              <Button onClick={startReview}>Review changes</Button>
+              <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
+              <Button onClick={startReview}>{text('Review changes','সংশোধন যাচাই')}</Button>
             </>
           )}
         </DialogFooter>

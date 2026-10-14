@@ -10,6 +10,7 @@ import { RoleBadge } from './RoleBadge';
 import { LedgerTable } from './LedgerTable';
 import { PartyLedgerToolbar } from './PartyLedgerToolbar';
 import { PartyStatementDialog } from './PartyStatementDialog';
+import {useUiCopy} from '../../i18n/useUiCopy';
 import { PartyPaymentDialog } from './PartyPaymentDialog';
 import { PartyCreditRefundDialog } from './PartyCreditRefundDialog';
 import { PartyTransactionDialog } from './PartyTransactionDialog';
@@ -67,6 +68,7 @@ export function PartyDetail({
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
+  const {text}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
@@ -107,20 +109,20 @@ export function PartyDetail({
    [{action:'view' as const,enabled:true},{action:'source' as const,enabled:true}]:actionsForRow(r);
 
   const tabs: {id: Tab;label: string;count?: number;}[] = [
-  { id: 'ledger', label: 'Ledger' },
-  { id: 'invoices', label:vendorProfile?'Bills & Memos':'Invoices', count:vendorProfile?vendorProfile.documents.length:invoices.length },
-  { id: 'payments', label: 'Payments', count:vendorProfile?vendorProfile.payments.length:payments.length },
-  { id: 'notes', label: 'Notes', count: notes.length },
-  { id: 'attachments', label: 'Attachments', count: attachments.length }];
+  { id: 'ledger', label: text('Ledger','খাতা') },
+  { id: 'invoices', label:vendorProfile?text('Bills & Memos','বিল ও মেমো'):text('Invoices','বিল'), count:vendorProfile?vendorProfile.documents.length:invoices.length },
+  { id: 'payments', label: text('Payments','পেমেন্ট'), count:vendorProfile?vendorProfile.payments.length:payments.length },
+  { id: 'notes', label: text('Notes','মন্তব্য'), count: notes.length },
+  { id: 'attachments', label: text('Attachments','ফাইল'), count: attachments.length }];
 
 
   const currentBalance=balanceSummary.netBalance;
   const isReceivable = currentBalance > 0;
   const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
-  const balanceLabel = relationship==='Owner'?'Owner capital · মূলধন':
-    relationship==='Lender'?'Lender loan · ঋণ':relationship==='Borrower'?'Borrower balance · পাওনা':
-    relationship==='Supplier'?'Supplier payable · দেনা':
-    relationship==='Customer'?'Customer balance · কাস্টমার খাতা':relationship+' balance';
+  const balanceLabel = relationship==='Owner'?text('Owner capital · মূলধন','মালিকের মূলধন'):
+    relationship==='Lender'?text('Lender loan · ঋণ','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance · পাওনা','ঋণগ্রহীতার কাছে পাওনা'):
+    relationship==='Supplier'?text('Supplier payable · দেনা','সরবরাহকারীকে দেনা'):
+    relationship==='Customer'?text('Customer balance · কাস্টমার খাতা','ক্রেতার হিসাব'):relationship+' balance';
 
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
@@ -132,25 +134,25 @@ export function PartyDetail({
             {party.nameBn && <span className="font-bn text-sm text-ink-500">{party.nameBn}</span>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="outline" onClick={onEditParty}><Pencil className="size-3"/> Edit party</Button>
-            {party.roles.length>1 && <div className="min-w-32"><FormSelect title="Relationship" value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)}/></div>}
+            <Button size="sm" variant="outline" onClick={onEditParty}><Pencil className="size-3"/> {text('Edit party','তথ্য বদলান')}</Button>
+            {party.roles.length>1 && <div className="min-w-32"><FormSelect title={text("Relationship","সম্পর্কের ধরন")} value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)}/></div>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500">
             <span className="flex gap-1">{party.roles.map((r) => <RoleBadge key={r} role={r} />)}</span>
             <span className="flex items-center gap-1"><Phone className="size-3" /> {party.phone}</span>
             <span className="flex items-center gap-1"><MapPin className="size-3" /> {party.area}</span>
-            <span>Last activity {party.lastActivity}</span>
+            <span>{text('Last activity','শেষ লেনদেন')} {party.lastActivity}</span>
           </div>
         </div>
         {vendorProfile?<div className="flex flex-wrap gap-2">
          <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
-          <p className="text-[11px] text-danger">You owe · দেনা</p>
+          <p className="text-[11px] text-danger">{text('You owe · দেনা','আপনাকে দিতে হবে')}</p>
           <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
          <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
-          <p className="text-[11px] text-ink-600">Vendor owes · পাওনা</p>
+          <p className="text-[11px] text-ink-600">{text('Vendor owes · পাওনা','ভেন্ডরের কাছে পাওনা')}</p>
           <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
           {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
-           {vendorProfile.summary.priceNotSetBaseQty} units · Price not set</p>}
+           {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}</p>}
          </div></div>:<>
         <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
           <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
@@ -168,7 +170,7 @@ export function PartyDetail({
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>Receive Money · টাকা নিন</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
          <BookOpen className="size-4"/> Opening Balance</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>Open Vendor Work</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
         <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> Add Note</Button>
        </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
@@ -227,19 +229,19 @@ export function PartyDetail({
       {(vendorProfile?(!vendorProfile.documents.length&&!vendorProfile.payments.length&&!notes.length):entries.length===0) && tab !== 'notes' && tab !== 'ledger' ?
       <div className="px-4 py-14 text-center">
           <Receipt className="mx-auto size-8 text-helper" />
-          <p className="mt-2 font-medium text-ink">No transactions in this period</p>
-          <p className="mt-1 text-sm text-ink-500">Invoices, payments and notes for {party.name} will appear here.</p>
+          <p className="mt-2 font-medium text-ink">{text('No transactions in this period','এই সময়ে কোনো লেনদেন নেই')}</p>
+          <p className="mt-1 text-sm text-ink-500">{text('Invoices, payments and notes for','বিল, পেমেন্ট ও মন্তব্য দেখাবে:')} {party.name}</p>
         </div> :
 
       <div>
           {tab === 'ledger' && <>
             {vendorProfile&&<div className="flex flex-wrap items-center gap-2 border-b border-border bg-ink-50 px-3 py-2 text-xs">
-              <span>Account · কোন হিসাব?</span>
+              <span>{text('Account · কোন হিসাব?','কোন হিসাব?')}</span>
               <Button size="sm" variant={vendorSide==='payable'?'default':'outline'}
-               onClick={()=>{setVendorSide('payable');onPage(1);}}>Taken · You owe</Button>
+               onClick={()=>{setVendorSide('payable');onPage(1);}}>{text('Taken · You owe','নিয়েছেন · দেনা')}</Button>
               <Button size="sm" variant={vendorSide==='receivable'?'default':'outline'}
-               onClick={()=>{setVendorSide('receivable');onPage(1);}}>Given · Vendor owes</Button>
-              <span className="ml-auto text-ink-500">Separate running balances</span>
+               onClick={()=>{setVendorSide('receivable');onPage(1);}}>{text('Given · Vendor owes','দিয়েছেন · পাওনা')}</Button>
+              <span className="ml-auto text-ink-500">{text('Separate running balances','আলাদা চলতি জের')}</span>
              </div>}
             <PartyLedgerToolbar range={range} onRange={onRange} kind={kind} onKind={onKind}
               query={ledgerQuery} onQuery={onLedgerQuery} pageSize={pageSize} onPageSize={onPageSize}
@@ -247,14 +249,14 @@ export function PartyDetail({
             <LedgerTable statement={shownStatement} visibleRows={shownRows} actionsForRow={shownActions}
               onAction={doRowAction} onOpenAttachment={()=>toast('No document available in preview')}/>
             <div className="flex items-center justify-between gap-2 px-4 py-2 text-xs text-ink-500">
-              <span>Page {page} of {shownPages} · {shownFiltered.length||shownStatement.rows.length} dated transactions</span>
+              <span>{text('Page','পাতা')} {page} {text('of','মোট')} {shownPages} · {shownFiltered.length||shownStatement.rows.length} {text('dated transactions','টি তারিখসহ লেনদেন')}</span>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" disabled={page<=1} onClick={()=>onPage(page-1)}>Previous</Button>
-                <Button size="sm" variant="outline" disabled={page>=shownPages} onClick={()=>onPage(page+1)}>Next</Button>
+                <Button size="sm" variant="outline" disabled={page<=1} onClick={()=>onPage(page-1)}>{text('Previous','আগের')}</Button>
+                <Button size="sm" variant="outline" disabled={page>=shownPages} onClick={()=>onPage(page+1)}>{text('Next','পরের')}</Button>
               </div>
             </div>
             {vendorProfile&&vendorSide==='payable'&&vendorProfile.takenStatement.unpricedSources.length>0&&
-             <p className="px-4 py-2 text-xs text-ink-500">Price not set · দাম ঠিক হয়নি — {vendorProfile.takenStatement.unpricedSources.length} taken record(s). No money amount assigned.</p>}
+             <p className="px-4 py-2 text-xs text-ink-500">{text('Price not set · দাম ঠিক হয়নি','দাম ঠিক হয়নি')} — {vendorProfile.takenStatement.unpricedSources.length} {text('taken record(s). No money amount assigned.','টি নেওয়া পণ্য। এখনো কোনো টাকা ধরা হয়নি।')}</p>}
           </>}
           {(tab === 'invoices' || tab === 'payments') && vendorProfile&&
            <ul className="divide-y divide-border">
@@ -263,13 +265,13 @@ export function PartyDetail({
               <span className="min-w-0 flex-1"><strong className="text-ink">{item.reference}</strong>
                <span className="ml-2 text-ink-400">{item.date}</span>
                <p className="mt-1 text-ink-500">{item.description}</p></span>
-              <strong className="text-ink">{item.moneyPaisa===null?'Price not set':taka(Math.abs(item.moneyPaisa)/100)}</strong>
+              <strong className="text-ink">{item.moneyPaisa===null?text('Price not set','দাম ঠিক হয়নি'):taka(Math.abs(item.moneyPaisa)/100)}</strong>
               <Button size="sm" variant="ghost" onClick={()=>onOpenVendorWork?.(
                 item.bucket==='vendor-receivable'?'given':item.bucket==='supplier-purchase'?'purchases':'taken',
-                item.sourceEventId)}>View</Button>
+                item.sourceEventId)}>{text('View','দেখুন')}</Button>
              </li>)}
             {!(tab==='invoices'?vendorProfile.documents:vendorProfile.payments).length&&
-             <li className="p-8 text-center text-xs text-ink-500">No records yet.</li>}
+             <li className="p-8 text-center text-xs text-ink-500">{text('No records yet.','এখনো কোনো রেকর্ড নেই।')}</li>}
            </ul>}
           {(tab === 'invoices' || tab === 'payments') && !vendorProfile &&
         <ul className="divide-y divide-border">
