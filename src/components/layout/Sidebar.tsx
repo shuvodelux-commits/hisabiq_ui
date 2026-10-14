@@ -5,6 +5,7 @@ import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import { LogoLockup, LogoMark } from '../brand/Logo';
 import { ErpNavMenu } from './ErpNavMenu';
 import { SidebarTrigger } from './SidebarTrigger';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 const COLLAPSED_KEY = 'hisabiq:sidebar-collapsed';
 
@@ -14,6 +15,7 @@ function getInitialCollapsed() {
 }
 
 export function Sidebar() {
+  const { text } = useUiCopy();
   const { state } = useTenantSettings();
   const [collapsed, setCollapsed] = useState(getInitialCollapsed);
   const businessName = state.sections.business.name || 'Business';
@@ -47,8 +49,8 @@ export function Sidebar() {
     <div className={'flex h-14 shrink-0 items-center ' + (collapsed ? 'justify-center px-1' : 'justify-between px-3')}>
       <Link
         to="/app/dashboard"
-        aria-label="HisabIQ dashboard"
-        title={collapsed ? 'HisabIQ dashboard' : undefined}
+        aria-label={text("HisabIQ dashboard","HisabIQ ড্যাশবোর্ড")}
+        title={collapsed ? text('HisabIQ dashboard','HisabIQ ড্যাশবোর্ড') : undefined}
         className="flex min-w-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
       >
         {collapsed ? <LogoMark size={28} /> : <LogoLockup size={26} />}
@@ -61,8 +63,8 @@ export function Sidebar() {
       <div className="flex shrink-0 flex-col items-center gap-1 border-b border-sidebar-border pb-3">
         <SidebarTrigger collapsed={collapsed} onToggle={() => setCollapsed(false)} />
         <span
-          title={businessName + ' · Main branch · Dhaka'}
-          aria-label={'Current business: ' + businessName}
+          title={businessName + ' · ' + text('Main branch · Dhaka','মূল শাখা · ঢাকা')}
+          aria-label={text('Current business: ','বর্তমান ব্যবসা: ') + businessName}
           className="mt-1 flex size-9 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar-accent text-xs font-semibold text-sidebar-primary"
         >
           {businessInitials}
@@ -77,7 +79,7 @@ export function Sidebar() {
           <span className="block truncate text-[13px] font-semibold text-sidebar-foreground" title={businessName}>
             {businessName}
           </span>
-          <span className="mt-1 block truncate text-[11px] text-ink-500">Main branch · Dhaka</span>
+          <span className="mt-1 block truncate text-[11px] text-ink-500">{text('Main branch · Dhaka','মূল শাখা · ঢাকা')}</span>
         </span>
       </div>
     )}
@@ -85,21 +87,21 @@ export function Sidebar() {
     <ErpNavMenu mode="desktop" collapsed={collapsed} onExpandSidebar={() => setCollapsed(false)} />
 
     <div className={'shrink-0 space-y-0.5 border-t border-sidebar-border py-2 ' + (collapsed ? 'px-2' : 'px-3')}>
-      <Link to="/app/support" aria-label="Help & Support" title={collapsed ? 'Help & Support' : undefined}
+      <Link to="/app/support" aria-label={text('Help & Support','সাহায্য ও সাপোর্ট')} title={collapsed ? text('Help & Support','সাহায্য ও সাপোর্ট') : undefined}
         className={linkStyle + ' ' + (collapsed ? 'justify-center' : 'gap-2.5 px-2.5')}>
         <LifeBuoy className="size-[18px] shrink-0 text-ink-400" aria-hidden="true" />
-        {!collapsed && <span>Help & Support</span>}
+        {!collapsed && <span>{text('Help & Support','সাহায্য ও সাপোর্ট')}</span>}
       </Link>
-      <Link to="/design-system" aria-label="Brand guide" title={collapsed ? 'Brand guide' : undefined}
+      <Link to="/design-system" aria-label={text('Brand guide','ব্র্যান্ড গাইড')} title={collapsed ? text('Brand guide','ব্র্যান্ড গাইড') : undefined}
         className={linkStyle + ' ' + (collapsed ? 'justify-center' : 'gap-2.5 px-2.5')}>
         <Palette className="size-[18px] shrink-0 text-ink-400" aria-hidden="true" />
-        {!collapsed && <span>Brand guide</span>}
+        {!collapsed && <span>{text('Brand guide','ব্র্যান্ড গাইড')}</span>}
       </Link>
     </div>
     <button
       type="button"
-      aria-label="Toggle sidebar width"
-      title="Toggle sidebar width"
+      aria-label={text("Toggle sidebar width","সাইডবারের আকার বদলান")}
+      title={text("Toggle sidebar width","সাইডবারের আকার বদলান")}
       onClick={() => setCollapsed(value => !value)}
       className="absolute inset-y-0 -right-1 z-10 hidden w-2 cursor-pointer rounded-full hover:bg-sidebar-primary/15 focus-visible:bg-sidebar-primary/20 focus-visible:outline-none lg:block"
     />

@@ -17,6 +17,8 @@ import { Button } from '../components/Button';
 import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
+import {useUiCopy} from '../i18n/useUiCopy';
+import {documentLabel} from '../i18n/documentCopy';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
@@ -36,9 +38,10 @@ const sampleReturnHistory = [
 ];
 
 function PayStatus({ total, paid }: { total: number; paid: number }) {
-  if (paid >= total) return <StatusBadge tone="success" dot>Paid</StatusBadge>;
-  if (paid > 0) return <StatusBadge tone="warning" dot>Partial</StatusBadge>;
-  return <StatusBadge tone="danger" dot>Due</StatusBadge>;
+  const {text}=useUiCopy();
+  if (paid >= total) return <StatusBadge tone="success" dot>{text('Paid','পরিশোধ')}</StatusBadge>;
+  if (paid > 0) return <StatusBadge tone="warning" dot>{text('Partial','আংশিক')}</StatusBadge>;
+  return <StatusBadge tone="danger" dot>{text('Due','বাকি')}</StatusBadge>;
 }
 
 function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
@@ -60,6 +63,7 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 }
 
 export function Purchases() {
+  const {text,language}=useUiCopy();
   const navigate = useNavigate();
   const [searchParams,setSearchParams]=useSearchParams();
   const routeTab=searchParams.get('tab');
@@ -74,7 +78,7 @@ export function Purchases() {
   const returnHistory=[...events.filter(e=>e.kind==='return').map(e=>({id:e.id,date:e.date,purchase:e.before.ref,supplier:e.before.supplier,items:(e.lines??[]).map(l=>(e.before.cartSnapshot?.[l.index].product.name??'Product')+' · '+l.quantity+' base units').join(', '),amount:e.amount,method:e.settlement==='cash'?'Refund '+taka(e.refund):'Supplier credit'})),...sampleReturnHistory];
   const [historySource,setHistorySource]=useState<Purchase|null>(null);
   const position=(p:Purchase)=>purchasePosition(p,events);
-  const updated=(p:Purchase)=>{setPurchases(availablePurchases());setEvents(availablePurchaseEvents());setReturnPurchase(p);setSourceAction(null);toast.success('Purchase preview saved',{description:'Source history retained; backend posting is not connected.'});};
+  const updated=(p:Purchase)=>{setPurchases(availablePurchases());setEvents(availablePurchaseEvents());setReturnPurchase(p);setSourceAction(null);toast.success(text('Purchase preview saved','ক্রয়ের প্রিভিউ সংরক্ষিত'),{description:text('Source history retained; backend posting is not connected.','আগের হিসাবের ইতিহাস আছে। আসল সার্ভারের খাতায় লেখা হয়নি।')});};
   const [detail, setDetail] = useState<BillDetail | null>(null);
   const routeQuery=searchParams.get('q') ?? '';
   const [query, setQuery] = useState(routeQuery);
@@ -86,7 +90,7 @@ export function Purchases() {
   const [returnError, setReturnError] = useState('');
   const openBill = (p: Purchase) => setDetail({ref: p.ref, date: p.date, party: p.supplier, partyId: p.supplierId, description: p.items, total: position(p).total, paid: position(p).paid, payments: p.payments, receipt: p.receipt});
   const resetFilters = () => { setQuery(''); setSupplierFilter('All suppliers'); setStatusFilter('All status'); };
-  const printPurchase = (p: Purchase) => { if (!printReport({title: p.ref, subtitle: 'Purchase bill preview', headers: ['Field', 'Value'], rows: [['Date',p.date],['Supplier',p.supplier],['Items',p.items],['Total',p.total],['Paid',p.paid],['Due',p.total-p.paid]]})) toast.error('Allow the print popup and try again.'); };
+  const printPurchase = (p: Purchase) => { const label=(s:string)=>documentLabel(language,s); if (!printReport({title:p.ref,language,subtitle:label('Purchase bill preview'),headers:[label('Field'),label('Value')],rows:[[label('Date'),p.date],[label('Supplier'),p.supplier],[label('Items'),p.items],[label('Total'),p.total],[label('Paid'),p.paid],[text('Due','দেনা'),p.total-p.paid]]})) toast.error(text('Allow the print popup and try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।')); };
   const reviewReturn = (p: Purchase) => { setReturnPurchase(p); setReturnQuery(p.ref); setReturnError(''); chooseTab('return'); };
 
   const filteredPurchases = useMemo(() => purchases.filter(p => {
@@ -103,10 +107,10 @@ export function Purchases() {
   const returnsTotal = returnHistory.reduce((sum, item) => sum + item.amount, 0);
 
   const summary = [
-    { label: 'Purchase total', value: taka(purchaseTotal), sub: `${purchases.length} purchase invoices` },
-    { label: 'Due to suppliers', value: taka(supplierDue), sub: 'Supplier payable · দেনা', tone: 'text-danger' },
-    { label: 'Paid total', value: taka(paidTotal), sub: 'Cash, bank & mobile' },
-    { label: 'Preview returns', value: taka(returnsTotal), sub: `${returnHistory.length} preview / sample memos`, tone: 'text-warning' }
+    { label: text('Purchase total','ক্রয়ের মোট'), value: taka(purchaseTotal), sub: text(`${purchases.length} purchase invoices`,`${purchases.length}টি ক্রয় বিল`) },
+    { label: text('Due to suppliers','সরবরাহকারীকে দেনা'), value: taka(supplierDue), sub: text('Supplier payable · দেনা','সরবরাহকারীর পাওনা'), tone: 'text-danger' },
+    { label: text('Paid total','মোট পরিশোধ'), value: taka(paidTotal), sub: text('Cash, bank & mobile','ক্যাশ, ব্যাংক ও মোবাইল') },
+    { label: text('Preview returns','প্রিভিউ ফেরত'), value: taka(returnsTotal), sub: text(`${returnHistory.length} preview / sample memos`,`${returnHistory.length}টি নমুনা/প্রিভিউ ফেরত`), tone: 'text-warning' }
   ];
 
   const selectReturnPurchase = () => {
@@ -122,8 +126,8 @@ export function Purchases() {
 
   const tabs: Array<[Tab, string, string]> = [
     ['purchases', 'Purchases', 'Purchase list & management'],
-    ['return', 'Purchase return', 'Review original purchase and return data'],
-    ['return-history', 'Return history', 'Sample return history']
+    ['return', text('Purchase return','ক্রয় ফেরত'), text('Review original purchase and return data','কেনা পণ্য ফেরতের হিসাব')],
+    ['return-history', text('Return history','ফেরতের ইতিহাস'), text('Sample return history','ফেরতের নমুনা ও ইতিহাস')]
   ];
 
   return (
@@ -132,13 +136,14 @@ export function Purchases() {
         title="Purchases"
         titleBn="ক্রয়"
         description="Purchase stock, manage supplier bills, update purchases and handle purchase returns."
+        descriptionBn="পণ্য কেনা, সরবরাহকারীর বিল ও ফেরত দেখুন।"
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
-              <FileText className="size-4" /> Supplier ledger
+              <FileText className="size-4" /> {text('Supplier ledger','সরবরাহকারীর খাতা')}
             </Button>
             <Button size="sm" onClick={() => navigate('/app/purchases/new')}>
-              <Plus className="size-4" /> New purchase
+              <Plus className="size-4" /> {text('New purchase','নতুন ক্রয়')}
             </Button>
           </>
         }
@@ -187,11 +192,11 @@ export function Purchases() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   className="pl-8"
-                  placeholder="Search purchase ID, supplier or product"
+                  placeholder={text("Search purchase ID, supplier or product","ক্রয় নম্বর, সরবরাহকারী বা পণ্য খুঁজুন")}
                 />
               </div>
-              <FormSelect aria-label="Purchase supplier filter" className="w-full sm:w-40" value={supplierFilter} onChange={e => setSupplierFilter(e.target.value)} options={['All suppliers', ...Array.from(new Set(purchases.map(p => p.supplier)))]} />
-              <FormSelect aria-label="Purchase status filter" className="w-full sm:w-36" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Paid', 'Partial', 'Due']} />
+              <FormSelect aria-label="Purchase supplier filter" className="w-full sm:w-40" value={supplierFilter} onChange={e => setSupplierFilter(e.target.value)} options={[{value:'All suppliers',label:text('All suppliers','সব সরবরাহকারী')},...Array.from(new Set(purchases.map(p => p.supplier)))]} />
+              <FormSelect aria-label="Purchase status filter" className="w-full sm:w-36" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Paid', 'Partial', 'Due'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':'বাকি')}))} />
               <Button variant="outline" size="sm" onClick={resetFilters}>
                 Reset filters
               </Button>
@@ -200,15 +205,15 @@ export function Purchases() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Purchase</TableHead>
-                  <TableHead className="h-9 text-xs">Supplier</TableHead>
-                  <TableHead className="h-9 text-xs">Items</TableHead>
-                  <TableHead className="h-9 text-xs">Memo</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Total</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Paid</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Due</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  <TableHead className="h-9 pl-4 text-xs" >{text('Purchase','ক্রয়')}</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Supplier','সরবরাহকারী')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Items','পণ্য')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Memo','রসিদ')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{text('Paid','পরিশোধ')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{text('Due','দেনা')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -240,12 +245,12 @@ export function Purchases() {
                         <div onClick={e => e.stopPropagation()}>
                           <FloatingPanel label={`Actions for ${p.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`Actions for ${p.ref}`}><MoreHorizontal className="size-4" /></button>}>
                             {close => <div className="p-1 text-left text-xs">
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();openBill(p);}}>View bill</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();printPurchase(p);}}>Print bill</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||events.some(e=>e.purchaseId===p.id&&e.kind!=='correction')} title="Complete original snapshots and no later allocations required" onClick={()=>{close();setSourceAction({purchase:p,mode:'correction'});}}>Correct purchase</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||position(p).due<=0} title="Payment needs a complete source bill with supplier due" onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>Pay due</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();reviewReturn(p);}}>Review return</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={()=>{close();setHistorySource(p);}}>Source history</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();openBill(p);}}>{text('View bill','বিল দেখুন')}</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();printPurchase(p);}}>{text('Print bill','বিল প্রিন্ট')}</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||events.some(e=>e.purchaseId===p.id&&e.kind!=='correction')} title="Complete original snapshots and no later allocations required" onClick={()=>{close();setSourceAction({purchase:p,mode:'correction'});}}>{text('Correct purchase','ক্রয় সংশোধন')}</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||position(p).due<=0} title="Payment needs a complete source bill with supplier due" onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>{text('Pay due','বাকি দিন')}</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();reviewReturn(p);}}>{text('Review return','ফেরত যাচাই')}</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={()=>{close();setHistorySource(p);}}>{text('Source history','পরিবর্তনের ইতিহাস')}</Button>
                             </div>}
                           </FloatingPanel>
                         </div>
@@ -253,7 +258,7 @@ export function Purchases() {
                     </TableRow>
                   );
                 })}
-                {!filteredPurchases.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">No purchases match these filters. <button onClick={resetFilters} className="text-teal-700 underline">Reset filters</button></TableCell></TableRow>}
+                {!filteredPurchases.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">{text('No purchases match these filters.','কোনো ক্রয় মেলেনি।')} <button onClick={resetFilters} className="text-teal-700 underline">{text('Reset filters','ফিল্টার মুছুন')}</button></TableCell></TableRow>}
               </TableBody>
             </Table>
           </>
@@ -268,8 +273,8 @@ export function Purchases() {
                     <Search className="size-4" />
                   </span>
                   <div>
-                    <h3 className="text-sm font-semibold text-ink">Find original purchase</h3>
-                    <p className="text-xs text-ink-500">Search by Purchase ID or supplier name.</p>
+                    <h3 className="text-sm font-semibold text-ink">{text('Find original purchase','আগের ক্রয় খুঁজুন')}</h3>
+                    <p className="text-xs text-ink-500">{text('Search by Purchase ID or supplier name.','ক্রয় নম্বর বা সরবরাহকারীর নাম দিয়ে খুঁজুন।')}</p>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -277,7 +282,7 @@ export function Purchases() {
                     value={returnQuery}
                     onChange={(e) => setReturnQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && selectReturnPurchase()}
-                    aria-label="Find purchase reference"
+                    aria-label={text("Find purchase reference","ক্রয় নম্বর খুঁজুন")}
                     placeholder="PUR-000117 or supplier name"
                   />
                   <Button className="w-full" onClick={selectReturnPurchase}>
@@ -286,7 +291,7 @@ export function Purchases() {
                   {returnError && <p role="alert" className="text-xs text-danger">{returnError}</p>}
                 </div>
                 <div className="mt-4 border-t border-border pt-3 text-xs text-ink-500">
-                  Returns need original item prices, historical units and remaining returnable quantities. No refund or stock movement is posted in this source review.
+                  {text('Returns need original item prices, historical units and remaining returnable quantities. No refund or stock movement is posted in this source review.','পণ্য ফেরতের জন্য আগের কেনা দাম, একক ও কতটা ফেরত দেওয়া যাবে তা দেখুন। এই প্রিভিউতে আসল টাকা বা স্টক বদলাবে না।')}
                 </div>
               </div>
 
@@ -294,7 +299,7 @@ export function Purchases() {
                 {!returnPurchase ? (
                   <div className="flex min-h-64 flex-col items-center justify-center px-6 text-center">
                     <Undo2 className="mb-3 size-8 text-helper" />
-                    <p className="text-sm font-medium text-ink">No purchase selected</p>
+                    <p className="text-sm font-medium text-ink">{text('No purchase selected','কোনো ক্রয় বাছা হয়নি')}</p>
                     <p className="mt-1 max-w-md text-xs text-ink-500">
                       Enter a purchase reference to review its source. Never calculate a refund from a bill summary.
                     </p>
@@ -354,8 +359,8 @@ export function Purchases() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">Return</TableHead>
-                  <TableHead className="h-9 text-xs">Purchase</TableHead>
-                  <TableHead className="h-9 text-xs">Supplier</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Purchase','ক্রয়')}</TableHead>
+                  <TableHead className="h-9 text-xs" >{text('Supplier','সরবরাহকারী')}</TableHead>
                   <TableHead className="h-9 text-xs">Returned items</TableHead>
                   <TableHead className="h-9 text-xs">Refund method</TableHead>
                   <TableHead className="h-9 pr-4 text-right text-xs">Amount</TableHead>

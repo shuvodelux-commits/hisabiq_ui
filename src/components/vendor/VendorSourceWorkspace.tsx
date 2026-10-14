@@ -191,7 +191,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
               <Button type="button" size="sm" variant={givenAction==='receive-money'?undefined:'outline'}
                 onClick={()=>setGivenAction('receive-money')}>Receive Money · টাকা নিন</Button>
               <Button type="button" size="sm" variant={givenAction==='receive-goods'?undefined:'outline'}
-                onClick={()=>setGivenAction('receive-goods')}>Receive Products · মাল ফেরত নিন</Button>
+                onClick={()=>setGivenAction('receive-goods')}>Receive Products · পণ্য ফেরত নিন</Button>
             </div>
             <VendorActionDialog key={selected.id+givenAction+snapshot.revision} inline source={selected}
               mode={givenAction} onClose={()=>undefined}/>

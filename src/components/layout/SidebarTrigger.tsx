@@ -1,4 +1,5 @@
 import { PanelLeft } from 'lucide-react';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 /** Compact trigger matching the default shadcn/sidebar SidebarTrigger pattern. */
 export function SidebarTrigger({
@@ -10,7 +11,8 @@ export function SidebarTrigger({
   onToggle: () => void;
   className?: string;
 }) {
-  const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  const { text } = useUiCopy();
+  const label = collapsed ? text('Expand sidebar','সাইডবার খুলুন') : text('Collapse sidebar','সাইডবার ছোট করুন');
   return <button
     type="button"
     aria-label={label}

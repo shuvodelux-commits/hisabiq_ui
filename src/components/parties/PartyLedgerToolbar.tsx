@@ -4,6 +4,7 @@ import { AppSelect } from '../AppSelect';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import type { IsoRange } from '../../utils/dateRange';
+import {useUiCopy} from '../../i18n/useUiCopy';
 
 type Props={
   range:IsoRange; onRange:(range:IsoRange)=>void;
@@ -23,17 +24,19 @@ const kinds=[
   {value:'note',label:'Notes'}
 ];
 export function PartyLedgerToolbar({range,onRange,kind,onKind,query,onQuery,pageSize,onPageSize,onStatement,onReset}:Props){
+  const {text}=useUiCopy();
+  const bn:Record<string,string>={'All transactions':'সব লেনদেন',Sales:'বিক্রি',Purchases:'ক্রয়','Customer payments':'ক্রেতার টাকা','Supplier payments':'সরবরাহকারীকে টাকা',Finance:'টাকার লেনদেন','Opening balance':'শুরুর জের',Notes:'মন্তব্য'};
   return <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
-    <AppDateRangePicker label="Party ledger date range" value={range} onChange={onRange}/>
-    <AppSelect compact label="Transaction type" value={kind} onChange={onKind} options={kinds}/>
+    <AppDateRangePicker label={text("Party ledger date range","পক্ষের খাতার তারিখ")} value={range} onChange={onRange}/>
+    <AppSelect compact label={text("Transaction type","লেনদেনের ধরন")} value={kind} onChange={onKind} options={kinds.map(item=>({...item,label:text(item.label,bn[item.label]??item.label)}))}/>
     <div className="relative min-w-[150px] flex-1">
       <Search className="pointer-events-none absolute z-10 left-2 top-1/2 size-4 -translate-y-1/2 text-ink-400"/>
-      <Input aria-label="Search ledger transactions" value={query} onChange={event=>onQuery(event.target.value)}
-        placeholder="Search reference or note" className="pl-8"/>
+      <Input aria-label={text("Search ledger transactions","খাতার লেনদেন খুঁজুন")} value={query} onChange={event=>onQuery(event.target.value)}
+        placeholder={text("Search reference or note","নম্বর বা মন্তব্য খুঁজুন")} className="pl-8"/>
     </div>
-    <AppSelect compact label="Rows per page" value={String(pageSize)} options={['10','25','50','100']}
+    <AppSelect compact label={text("Rows per page","প্রতি পাতায়")} value={String(pageSize)} options={['10','25','50','100']}
       onChange={value=>onPageSize(Number(value))}/>
-    <Button size="sm" variant="outline" onClick={onReset} title="Clear filters"><X className="size-3.5"/> Clear filters</Button>
-    <Button size="sm" variant="outline" onClick={onStatement}><Printer className="size-3.5"/> Print statement</Button>
+    <Button size="sm" variant="outline" onClick={onReset} title={text("Clear filters","ফিল্টার মুছুন")}><X className="size-3.5"/> {text('Clear filters','ফিল্টার মুছুন')}</Button>
+    <Button size="sm" variant="outline" onClick={onStatement}><Printer className="size-3.5"/> {text('Print statement','হিসাব প্রিন্ট')}</Button>
   </div>;
 }

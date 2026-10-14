@@ -20,7 +20,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
   {id:'purchase-bills',label:'Purchase Bills',bn:'ক্রয় বিল',path:'/app/purchases'},
   {id:'purchase-returns',label:'Purchase Returns',bn:'ক্রয় ফেরত',path:'/app/purchases?tab=return'}
  ]},
- {id:'vendor',label:'Vendor',bn:'ভেন্ডর',icon:Store,landingPath:'/app/vendors'},
+ {id:'vendor',label:'Vendor',bn:'ভেন্ডর লেনদেন',icon:Store,landingPath:'/app/vendors'},
  {id:'products',label:'Products & Stock',bn:'পণ্য ও মজুত',icon:Package,landingPath:'/app/products',children:[
   {id:'product-list',label:'Product List',bn:'পণ্যের তালিকা',path:'/app/products'},
   {id:'stock',label:'Stock, Lots & Adjustments',bn:'মজুত ও লট',path:'/app/products?view=lots'},

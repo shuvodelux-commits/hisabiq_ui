@@ -13,6 +13,8 @@ import type { EntryDateView, TerminologyMode } from '../../types/transactions';
 import { accountingAccountLabel } from '../../utils/accountingLabels';
 import { ledgerForAccount } from '../../utils/accountingProjection';
 import { taka } from '../../utils/currency';
+import {useUiCopy} from '../../i18n/useUiCopy';
+import {printReport} from '../../utils/reportOutput';
 
 function downloadCsv(accountName: string, rows: Array<LedgerRow & { balance: number }>) {
   const data = [
@@ -36,6 +38,7 @@ export function LedgerView({
   dateView: EntryDateView;
   terminologyMode: TerminologyMode;
 }) {
+  const {text,language,showHelper}=useUiCopy();
   const [accountId, setAccountId] = useState('asset-cash');
   const [from, setFrom] = useState('2026-09-01');
   const [to, setTo] = useState('2026-10-31');
@@ -57,32 +60,36 @@ export function LedgerView({
   }, [account.group, allRows, from, search, to]);
 
   const closing = rows.at(-1)?.balance ?? 0;
+  const printLedger=()=>{
+    const headers=[text('Date','তারিখ'),text('Reference','রেফারেন্স'),text('Details','বিবরণ'),text('Debit','ডেবিট'),text('Credit','ক্রেডিট'),text('Balance','জের')];
+    if(!printReport({title:text('Account ledger','হিসাবের খাতা')+' · '+accountingAccountLabel(account,terminologyMode),language,subtitle:`${from} — ${to} · ${text(dateView==='transaction'?'Transaction Date':'Created Date',dateView==='transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}`,headers,rows:rows.map(row=>[row.displayDate,row.reference,row.description,row.debit,row.credit,row.balance])}))toast.error(text('Allow the print popup and try again.','প্রিন্ট উইন্ডো খুলে আবার চেষ্টা করুন।'));
+  };
 
   return (
     <div className="p-4">
       <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-[320px_300px_1fr]">
           <div className="text-[13px] font-medium text-ink">
-            Ledger account <span className="font-bn text-[11px] font-normal text-ink-400">· যে হিসাবটি দেখতে চান</span>
-            <AppSelect label="Ledger account" className="mt-1.5" value={account.name} onChange={(name) => {
+            {text('Ledger account','যে হিসাবটি দেখবেন')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· যে হিসাবটি দেখতে চান</span>}
+            <AppSelect label={text("Ledger account","যে হিসাবটি দেখবেন")} className="mt-1.5" value={account.name} onChange={(name) => {
               const next = accountingAccounts.find((item) => item.name === name);
               if (next) setAccountId(next.id);
             }} options={accountingAccounts.filter((item) => item.active).map((item) => item.name)} />
           </div>
           <div className="lg:col-span-2">
-            <p className="mb-1.5 text-[12px] font-medium text-ink">Date range</p>
-            <AppDateRangePicker label="Account ledger date range" value={{ from, to }}
+            <p className="mb-1.5 text-[12px] font-medium text-ink">{text('Date range','সময়কাল')}</p>
+            <AppDateRangePicker label={text("Account ledger date range","হিসাবের খাতার তারিখ")} value={{ from, to }}
               onChange={(range) => { setFrom(range.from); setTo(range.to); }} />
           </div>
           <label className="text-[12px] font-medium text-ink">
-            Search
-            <div className="relative mt-1.5"><Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" /><Input aria-label="Search account ledger" clearable className="pl-8" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Reference or details" /></div>
+            {text('Search','খুঁজুন')}
+            <div className="relative mt-1.5"><Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" /><Input aria-label={text("Search account ledger","হিসাবের খাতায় খুঁজুন")} clearable className="pl-8" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={text("Reference or details","রেফারেন্স বা বিবরণ")} /></div>
           </label>
         </div>
         <div className="flex flex-wrap items-end justify-between gap-2 xl:justify-end">
-          <div className="mr-2 text-right"><p className="text-[10.5px] text-ink-400">{dateView === 'transaction' ? 'Transaction Date' : 'Created Date'}</p><p className="text-sm font-semibold text-ink">Balance {closing < 0 ? '−' : ''}{taka(Math.abs(closing))}</p></div>
-          <Button variant="outline" size="sm" onClick={() => { downloadCsv(account.name, rows); toast.success('Ledger exported'); }}><ArrowDownToLine className="size-4" /> Export</Button>
-          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
+          <div className="mr-2 text-right"><p className="text-[10.5px] text-ink-400">{text(dateView === 'transaction' ? 'Transaction Date' : 'Created Date',dateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</p><p className="text-sm font-semibold text-ink">{text('Balance','জের')} {closing < 0 ? '−' : ''}{taka(Math.abs(closing))}</p></div>
+          <Button variant="outline" size="sm" onClick={() => { downloadCsv(account.name, rows); toast.success(text('Ledger exported','খাতার হিসাব ডাউনলোড হয়েছে')); }}><ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}</Button>
+          <Button variant="outline" size="sm" onClick={printLedger}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
         </div>
       </div>
 
@@ -95,12 +102,12 @@ export function LedgerView({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 pl-4 text-xs">Date</TableHead>
-                <TableHead className="h-9 text-xs">Voucher / Ref</TableHead>
-                <TableHead className="h-9 text-xs">Details</TableHead>
-                <TableHead className="h-9 text-right text-xs">Debit</TableHead>
-                <TableHead className="h-9 text-right text-xs">Credit</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">Balance</TableHead>
+                <TableHead className="h-9 pl-4 text-xs">{text('Date','তারিখ')}</TableHead>
+                <TableHead className="h-9 text-xs">{text('Voucher / Ref','ভাউচার / নম্বর')}</TableHead>
+                <TableHead className="h-9 text-xs">{text('Details','বিবরণ')}</TableHead>
+                <TableHead className="h-9 text-right text-xs">{text('Debit','ডেবিট')}</TableHead>
+                <TableHead className="h-9 text-right text-xs">{text('Credit','ক্রেডিট')}</TableHead>
+                <TableHead className="h-9 pr-4 text-right text-xs">{text('Balance','জের')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -113,7 +120,7 @@ export function LedgerView({
                   <TableCell className="py-2 text-right">{row.credit ? taka(row.credit) : '—'}</TableCell>
                   <TableCell className="py-2 pr-4 text-right font-medium">{row.balance < 0 ? '−' : ''}{taka(Math.abs(row.balance))}</TableCell>
                 </TableRow>
-              )) : <TableRow><TableCell colSpan={6} className="py-12 text-center text-sm text-ink-400">No ledger entries match this period.</TableCell></TableRow>}
+              )) : <TableRow><TableCell colSpan={6} className="py-12 text-center text-sm text-ink-400">{text('No ledger entries match this period.','এই সময়ে কোনো খাতার এন্ট্রি নেই।')}</TableCell></TableRow>}
             </TableBody>
           </Table>
         </div>
@@ -123,13 +130,13 @@ export function LedgerView({
         <DialogContent className="sm:max-w-xl">
           <DialogHeader><DialogTitle>{selected?.reference}</DialogTitle></DialogHeader>
           {selected && <div className="grid gap-2 sm:grid-cols-2">
-            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">Transaction Date</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.transactionDate}</p></div>
-            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">Created Date</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.createdAt.replace('T', ' ').slice(0, 16)}</p></div>
-            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">Debit</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.debit ? taka(selected.debit) : '—'}</p></div>
-            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">Credit</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.credit ? taka(selected.credit) : '—'}</p></div>
-            <div className="rounded-lg bg-ink-50 p-3 sm:col-span-2"><p className="text-[10.5px] text-ink-400">Details</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.description}</p><p className="mt-1 text-[10.5px] text-ink-400">{selected.postingId}</p></div>
+            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Transaction Date','লেনদেনের তারিখ')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.transactionDate}</p></div>
+            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Created Date','লেখার তারিখ')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.createdAt.replace('T', ' ').slice(0, 16)}</p></div>
+            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Debit','ডেবিট')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.debit ? taka(selected.debit) : '—'}</p></div>
+            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Credit','ক্রেডিট')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.credit ? taka(selected.credit) : '—'}</p></div>
+            <div className="rounded-lg bg-ink-50 p-3 sm:col-span-2"><p className="text-[10.5px] text-ink-400">{text('Details','বিবরণ')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.description}</p><p className="mt-1 text-[10.5px] text-ink-400">{selected.postingId}</p></div>
           </div>}
-          <DialogFooter><Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button><Button onClick={() => setSelected(null)}>Close</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={printLedger}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button><Button onClick={() => setSelected(null)}>{text('Close','বন্ধ করুন')}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

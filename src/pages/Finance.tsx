@@ -51,6 +51,8 @@ import {
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
 import { taka } from '../utils/currency';
 import { amountInWords } from '../utils/amountInWords';
+import {useUiCopy} from '../i18n/useUiCopy';
+import {financeLabel} from '../i18n/financeCopy';
 
 type Tab = 'overview' | 'transactions' | 'counter' | 'accounts' | 'cheques' | 'cash';
 
@@ -107,6 +109,7 @@ function TransactionDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (transaction: FinanceTransaction) => void;
 }) {
+  const {text,language,showHelper}=useUiCopy();
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
   const [person, setPerson] = useState('');
   const [paymentRows, setPaymentRows] = useState<FinancePaymentDraft[]>([{
@@ -134,19 +137,19 @@ function TransactionDialog({
   const save = () => {
     const value = parseFloat(amount) || 0;
     if (!value) {
-      toast.error('Enter an amount');
+      toast.error(text('Enter an amount','টাকার পরিমাণ লিখুন'));
       return;
     }
     if (isBackdated && !backdateReason.trim()) {
-      toast.error('Backdated transactions require a reason');
+      toast.error(text('Backdated transactions require a reason','আগের তারিখের লেনদেনের কারণ লিখুন'));
       return;
     }
     if (!selectedPerson) {
-      toast.error('Select a finance person');
+      toast.error(text('Select a finance person','মালিক, ঋণদাতা বা ঋণগ্রহীতা বাছুন'));
       return;
     }
     if (!isOpening && (!paymentSplits.length || Math.abs(paymentTotal - value) > 0.001)) {
-      toast.error('Payment split must equal the transaction amount');
+      toast.error(text('Payment split must equal the transaction amount','সব মাধ্যমের টাকার যোগফল মোট টাকার সমান হতে হবে'));
       return;
     }
     if (!reviewFinance) {setReviewFinance(true);return;}
@@ -177,33 +180,33 @@ function TransactionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>New finance transaction <span className="font-bn text-sm font-normal text-ink-500">ব্যবসার হিসাব</span></DialogTitle>
+          <DialogTitle>{text("New finance transaction","নতুন টাকার লেনদেন")} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">ব্যবসার হিসাব</span>}</DialogTitle>
           <DialogDescription>
-            Owner, lender and borrower balances stay independent. Opening balances never move cash or bank money.
+            {text('Owner, lender and borrower balances stay independent. Opening balances never move cash or bank money.','মালিক, ঋণদাতা ও ঋণগ্রহীতার হিসাব আলাদা থাকবে। শুরুর জের দিলে ক্যাশ বা ব্যাংকের টাকা বদলাবে না।')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[13px] font-medium text-ink sm:col-span-2">
-            Transaction type
+            {text('Transaction type','লেনদেনের ধরন')}
             <FormSelect className="mt-1.5" value={type} onChange={(event) => {
               const next = event.target.value as FinanceTransactionType;
               setType(next);
               const nextMeta = financeTypeMeta[next];
               const firstPerson = people.find((item) => !nextMeta.role || item.roles.includes(nextMeta.role));
               setPerson(firstPerson?.name ?? '');
-            }} options={financeTypeOptions} />
+            }} options={financeTypeOptions.map(value=>({value,label:financeLabel(language,value)}))} />
             <span className="mt-1 block text-[11px] font-normal text-ink-400">
               {isOpening
-                ? 'Opening balance only — no cash, bank or mobile banking movement.'
+                ? text('Opening balance only — no cash, bank or mobile banking movement.','শুধু শুরুর জের — ক্যাশ, ব্যাংক বা মোবাইলে টাকা সরবে না।')
                 : meta.direction === 'in'
-                  ? 'Money comes into the business.'
-                  : 'Money goes out of the business.'}
+                  ? text('Money comes into the business.','ব্যবসায় টাকা আসবে।')
+                  : text('Money goes out of the business.','ব্যবসা থেকে টাকা যাবে।')}
             </span>
           </label>
 
           <label className="text-[13px] font-medium text-ink">
-            Finance person
+            {text('Finance person','হিসাবের ব্যক্তি')}
             <FormSelect
               className="mt-1.5"
               value={selectedPerson?.name ?? ''}
@@ -213,14 +216,14 @@ function TransactionDialog({
           </label>
 
           <label className="text-[13px] font-medium text-ink">
-            Date
+            {text('Date','তারিখ')}
             <Input className="mt-1.5" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
           </label>
 
           {isBackdated && (
             <label className="text-[13px] font-medium text-ink sm:col-span-2">
-              Reason for backdating <span className="text-danger">*</span>
-              <Input className="mt-1.5" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder="Why is this transaction being entered for an earlier date?" />
+              {text('Reason for backdating','আগের তারিখ দেওয়ার কারণ')} <span className="text-danger">*</span>
+              <Input className="mt-1.5" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder={text("Why is this transaction being entered for an earlier date?","আগের তারিখ কেন ব্যবহার করছেন?")} />
             </label>
           )}
 
@@ -234,7 +237,7 @@ function TransactionDialog({
           )}
 
           <label className="text-[13px] font-medium text-ink">
-            Amount
+            {text('Amount','টাকা')}
             <div className="relative mt-1.5">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
               <Input value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} className="pl-7 text-right" inputMode="decimal" placeholder="0" />
@@ -242,25 +245,25 @@ function TransactionDialog({
           </label>
 
           <label className="text-[13px] font-medium text-ink">
-            Reference no.
-            <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Optional" />
+            {text('Reference no.','নম্বর')}
+            <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder={text("Optional","ঐচ্ছিক")} />
           </label>
 
           <label className="text-[13px] font-medium text-ink sm:col-span-2">
-            Notes
-            <Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional internal note" />
+            {text('Notes','মন্তব্য')}
+            <Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} placeholder={text("Optional internal note","মন্তব্য (ঐচ্ছিক)")} />
           </label>
         </div>
 
-        <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">Amount in words: {amountInWords(Number(amount)||0)}</p>
+        <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">{text('Amount in words:','কথায়:')} {amountInWords(Number(amount)||0)}</p>
         {reviewFinance && <section role="status" className="space-y-1 rounded-lg border border-border bg-ink-50 p-3 text-sm">
-          <p className="font-semibold">Review finance transaction</p>
+          <p className="font-semibold">{text('Review finance transaction','লেনদেন যাচাই করুন')}</p>
           <p>{selectedPerson?.name} · {type} · {date}</p><p>{taka(Number(amount)||0)} · {amountInWords(Number(amount)||0)}</p>
-          <p>Payment source total: {taka(paymentTotal)} · {isOpening?'Opening balance only':'Cash/bank movement'}</p>
+          <p>{text('Payment source total:','মাধ্যমগুলোর মোট:')} {taka(paymentTotal)} · {isOpening?text('Opening balance only','শুধু শুরুর জের'):text('Cash/bank movement','ক্যাশ/ব্যাংকে টাকা আসা-যাওয়া')}</p>
         </section>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{reviewFinance?'Confirm finance transaction':'Review transaction'}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
+          <Button onClick={save}>{reviewFinance?text('Confirm finance transaction','লেনদেন নিশ্চিত করুন'):text('Review transaction','লেনদেন যাচাই করুন')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -276,6 +279,7 @@ function AccountDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (account: FinanceAccount) => void;
 }) {
+  const {text,language,showHelper}=useUiCopy();
   const [type, setType] = useState<FinanceAccountType>('Bank');
   const [name, setName] = useState('');
   const [institution, setInstitution] = useState('');
@@ -284,7 +288,7 @@ function AccountDialog({
 
   const save = () => {
     if (!name.trim()) {
-      toast.error('Enter an account name');
+      toast.error(text('Enter an account name','হিসাবের নাম লিখুন'));
       return;
     }
     const id = `acc-${Date.now()}`;
@@ -306,33 +310,33 @@ function AccountDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add account <span className="font-bn text-sm font-normal text-ink-500">অ্যাকাউন্ট যোগ করুন</span></DialogTitle>
-          <DialogDescription>Cash, bank and mobile banking accounts share one simple account list.</DialogDescription>
+          <DialogTitle>{text("Add account","নতুন হিসাব যোগ করুন")} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">অ্যাকাউন্ট যোগ করুন</span>}</DialogTitle>
+          <DialogDescription>{text('Cash, bank and mobile banking accounts share one simple account list.','ক্যাশ, ব্যাংক ও মোবাইল ব্যাংকিং সব একই তালিকায় থাকবে।')}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[13px] font-medium text-ink">
-            Account type
-            <FormSelect className="mt-1.5" value={type} onChange={(event) => setType(event.target.value as FinanceAccountType)} options={['Cash', 'Petty Cash', 'Bank', 'Mobile Banking']} />
+            {text('Account type','হিসাবের ধরন')}
+            <FormSelect className="mt-1.5" value={type} onChange={(event) => setType(event.target.value as FinanceAccountType)} options={(['Cash', 'Petty Cash', 'Bank', 'Mobile Banking'] as const).map(value=>({value,label:financeLabel(language,value)}))} />
           </label>
           <label className="text-[13px] font-medium text-ink">
-            Account name
+            {text('Account name','হিসাবের নাম')}
             <Input className="mt-1.5" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. City Bank · 3812" />
           </label>
           {(type === 'Bank' || type === 'Mobile Banking') && (
             <>
               <label className="text-[13px] font-medium text-ink">
-                {type === 'Bank' ? 'Bank name' : 'Provider'}
+                {type === 'Bank' ? text('Bank name','ব্যাংকের নাম') : text('Provider','সেবাদাতা')}
                 <Input className="mt-1.5" value={institution} onChange={(event) => setInstitution(event.target.value)} placeholder={type === 'Bank' ? 'Bank name' : 'bKash / Nagad / Rocket'} />
               </label>
               <label className="text-[13px] font-medium text-ink">
-                Account number
-                <Input className="mt-1.5" value={number} onChange={(event) => setNumber(event.target.value)} placeholder="Optional" />
+                {text('Account number','হিসাব নম্বর')}
+                <Input className="mt-1.5" value={number} onChange={(event) => setNumber(event.target.value)} placeholder={text("Optional","ঐচ্ছিক")} />
               </label>
             </>
           )}
           <label className="text-[13px] font-medium text-ink sm:col-span-2">
-            Opening balance
+            {text('Opening balance','শুরুর জের')}
             <div className="relative mt-1.5">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
               <Input value={opening} onChange={(event) => setOpening(event.target.value.replace(/[^\d.]/g, ''))} className="pl-7 text-right" inputMode="decimal" placeholder="0" />
@@ -341,8 +345,8 @@ function AccountDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>Save account</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
+          <Button onClick={save}>{text('Save account','হিসাব সংরক্ষণ')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -364,6 +368,7 @@ function TransferDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (transfer: AccountTransfer) => void;
 }) {
+  const {text}=useUiCopy();
   const active = accounts.filter((item) => item.status === 'Active');
   const [from, setFrom] = useState(active[0]?.name ?? '');
   const [to, setTo] = useState(active[1]?.name ?? '');
@@ -385,11 +390,11 @@ function TransferDialog({
   const save = () => {
     const value = parseFloat(amount) || 0;
     if (!value) {
-      toast.error('Enter a transfer amount');
+      toast.error(text('Enter a transfer amount','কত টাকা সরাবেন লিখুন'));
       return;
     }
     if (from === to) {
-      toast.error('Choose two different accounts');
+      toast.error(text('Choose two different accounts','দুটি আলাদা হিসাব বাছুন'));
       return;
     }
     if (!reviewTransfer) {setReviewTransfer(true);return;}
@@ -409,40 +414,40 @@ function TransferDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Transfer between accounts</DialogTitle>
-          <DialogDescription>One transfer creates the matching money-out and money-in movement.</DialogDescription>
+          <DialogTitle>{text('Transfer between accounts','এক হিসাব থেকে অন্য হিসাবে টাকা সরান')}</DialogTitle>
+          <DialogDescription>{text('One transfer creates the matching money-out and money-in movement.','একটি ট্রান্সফারে এক হিসাব থেকে টাকা কমবে, অন্য হিসাবে যোগ হবে।')}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3">
           <label className="text-[13px] font-medium text-ink">
-            From account
+            {text('From account','যে হিসাব থেকে')}
             <FormSelect className="mt-1.5" value={from} onChange={(event) => setFrom(event.target.value)} options={active.map((item) => item.name)} />
           </label>
           <label className="text-[13px] font-medium text-ink">
-            To account
+            {text('To account','যে হিসাবে')}
             <FormSelect className="mt-1.5" value={to} onChange={(event) => setTo(event.target.value)} options={active.map((item) => item.name)} />
           </label>
           <label className="text-[13px] font-medium text-ink">
-            Amount
+            {text('Amount','টাকা')}
             <div className="relative mt-1.5">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
               <Input value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} className="pl-7 text-right" inputMode="decimal" placeholder="0" />
             </div>
           </label>
           <label className="text-[13px] font-medium text-ink">
-            Reference / note
-            <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Optional" />
+            {text('Reference / note','নম্বর / মন্তব্য')}
+            <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder={text("Optional","ঐচ্ছিক")} />
           </label>
         </div>
 
         <p className="rounded-md bg-ink-50 px-3 py-2 text-xs text-ink-500" aria-live="polite">{amountInWords(Number(amount)||0)}</p>
         {reviewTransfer&&<div role="status" className="rounded-xl border border-border bg-ink-50 p-3 text-sm">
-          <p className="font-semibold">Check transfer before recording</p>
+          <p className="font-semibold">{text('Check transfer before recording','টাকা সরানোর আগে হিসাব মিলিয়ে নিন')}</p>
           <p className="mt-1">{from} → {to}</p><p>{taka(Number(amount)||0)}</p><p>{amountInWords(Number(amount)||0)}</p>
         </div>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{reviewTransfer?'Confirm transfer':'Review transfer'}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
+          <Button onClick={save}>{reviewTransfer?text('Confirm transfer','টাকা সরানো নিশ্চিত করুন'):text('Review transfer','ট্রান্সফার যাচাই করুন')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -450,6 +455,7 @@ function TransferDialog({
 }
 
 export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {}) {
+  const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
   const [financeTab, setTab] = useState<Tab>('overview');
@@ -618,12 +624,12 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   }, [transactions, query, typeFilter]);
 
   const tabs: Array<[Tab, string, string]> = [
-    ['overview', 'Overview', 'Money position and relationship balances'],
-    ['accounts', 'Money Accounts', 'Cash, bank, mobile banking and petty cash'],
-    ['counter', 'Counter', 'Fast receive, pay, expense and transfer'],
-    ['transactions', 'Loans & Owners', 'Owner, lender and borrower money'],
-    ['cheques', 'Cheques', 'Received, issued and post-dated cheques'],
-    ['cash', 'Cash Sessions', 'Open, close and reconcile cash drawer']
+    ['overview', text('Overview','সারাংশ'), text('Money position and relationship balances','টাকা ও দেনা-পাওনার হিসাব')],
+    ['accounts', text('Money Accounts','টাকার হিসাব'), text('Cash, bank, mobile banking and petty cash','ক্যাশ, ব্যাংক ও মোবাইল')],
+    ['counter', text('Counter','কাউন্টার'), text('Fast receive, pay, expense and transfer','টাকা নেওয়া-দেওয়া ও খরচ')],
+    ['transactions', text('Loans & Owners','ঋণ ও মালিক'), text('Owner, lender and borrower money','মালিক ও ঋণের হিসাব')],
+    ['cheques', text('Cheques','চেক'), text('Received, issued and post-dated cheques','পাওয়া, দেওয়া ও ভবিষ্যৎ তারিখের চেক')],
+    ['cash', text('Cash Sessions','ক্যাশ সেশন'), text('Open, close and reconcile cash drawer','ক্যাশ খোলা, বন্ধ ও মেলানো')]
   ];
 
   const pdcCount = chequeRecords.filter((item) => item.chequeDate > '2026-10-07' && !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status)).length;
@@ -635,13 +641,13 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
     .reduce((sum, item) => sum + item.amount, 0);
 
   const summaryCards = [
-    { label: 'Available money', value: taka(totalLiquid), sub: 'Cash + bank + mobile banking', icon: CircleDollarSign },
-    { label: 'Cash', value: taka(cashBalance), sub: sessionOpen ? 'Cash session open' : 'Cash session closed', icon: Banknote },
-    { label: 'Bank', value: taka(bankBalance), sub: 'Across active bank accounts', icon: Landmark },
-    { label: 'Mobile banking', value: taka(mobileBalance), sub: 'bKash, Nagad and wallets', icon: WalletCards },
-    { label: 'Cheques pending', value: taka(pendingChequeAmount), sub: 'Waiting for clearance', icon: BookOpen },
-    { label: 'Lender payable', value: taka(relationshipSummary.outstandingLoan), sub: 'Money we still need to repay', icon: ArrowDownLeft, tone: 'text-danger' },
-    { label: 'Borrower receivable', value: taka(relationshipSummary.borrowerReceivable), sub: 'Money others still owe us', icon: ArrowUpRight, tone: 'text-teal-700' }
+    { label: text('Available money','ব্যবহারের টাকা'), value: taka(totalLiquid), sub: text('Cash + bank + mobile banking','ক্যাশ, ব্যাংক ও মোবাইল'), icon: CircleDollarSign },
+    { label: text('Cash','ক্যাশ'), value: taka(cashBalance), sub: sessionOpen ? text('Cash session open','ক্যাশ সেশন চালু') : text('Cash session closed','ক্যাশ সেশন বন্ধ'), icon: Banknote },
+    { label: text('Bank','ব্যাংক'), value: taka(bankBalance), sub: text('Across active bank accounts','চালু ব্যাংক হিসাবগুলোর মোট'), icon: Landmark },
+    { label: text('Mobile banking','মোবাইল ব্যাংকিং'), value: taka(mobileBalance), sub: text('bKash, Nagad and wallets','বিকাশ, নগদ ও অন্যান্য ওয়ালেট'), icon: WalletCards },
+    { label: text('Cheques pending','অপেক্ষমাণ চেক'), value: taka(pendingChequeAmount), sub: text('Waiting for clearance','চেকের টাকা জমা হয়নি'), icon: BookOpen },
+    { label: text('Lender payable','ঋণদাতাকে দেনা'), value: taka(relationshipSummary.outstandingLoan), sub: text('Money we still need to repay','যত টাকা ফেরত দিতে হবে'), icon: ArrowDownLeft, tone: 'text-danger' },
+    { label: text('Borrower receivable','ঋণগ্রহীতার কাছে পাওনা'), value: taka(relationshipSummary.borrowerReceivable), sub: text('Money others still owe us','অন্যের কাছে আমাদের পাওনা'), icon: ArrowUpRight, tone: 'text-teal-700' }
   ];
 
   return (
@@ -650,16 +656,17 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         title={counterOnly ? 'Counter' : 'Finance'}
         titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
         description={counterOnly ? 'Receive customer payments, pay suppliers, record expenses and transfer money.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
+        descriptionBn={counterOnly?'ক্রেতার টাকা নিন, সরবরাহকারীকে দিন, খরচ বা ট্রান্সফার করুন।':'ক্যাশ, ব্যাংক, ঋণ, চেক ও দৈনিক টাকার হিসাব।'}
         actions={counterOnly ? undefined : (
           <>
             <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
-              <UserRoundCog className="size-4" /> Finance people
+              <UserRoundCog className="size-4" /> {text('Finance people','হিসাবের ব্যক্তি')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setChequeOpen(true)}>
-              <Plus className="size-4" /> New cheque
+              <Plus className="size-4" /> {text('New cheque','নতুন চেক')}
             </Button>
             <Button size="sm" onClick={() => setTransactionOpen(true)}>
-              <Plus className="size-4" /> New transaction
+              <Plus className="size-4" /> {text('New transaction','নতুন লেনদেন')}
             </Button>
           </>
         )}
@@ -748,10 +755,10 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="h-9 pl-4 text-xs">Transaction</TableHead>
-                      <TableHead className="h-9 text-xs">Party</TableHead>
-                      <TableHead className="h-9 text-xs">Account</TableHead>
-                      <TableHead className="h-9 pr-4 text-right text-xs">Amount</TableHead>
+                      <TableHead className="h-9 pl-4 text-xs">{text('Transaction','লেনদেন')}</TableHead>
+                      <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
+                      <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
+                      <TableHead className="h-9 pr-4 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -828,24 +835,24 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               </div>
               <FormSelect className="w-full lg:w-48" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} options={['All transaction types', ...financeTypeOptions]} />
               <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
-                <UserRoundCog className="size-4" /> Finance people
+                <UserRoundCog className="size-4" /> {text('Finance people','হিসাবের ব্যক্তি')}
               </Button>
               <Button size="sm" onClick={() => setTransactionOpen(true)}>
-                <Plus className="size-4" /> New transaction
+                <Plus className="size-4" /> {text('New transaction','নতুন লেনদেন')}
               </Button>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Finance transaction</TableHead>
-                  <TableHead className="h-9 text-xs">Relationship</TableHead>
-                  <TableHead className="h-9 text-xs">Party</TableHead>
-                  <TableHead className="h-9 text-xs">Payment</TableHead>
-                  <TableHead className="h-9 text-xs">Account</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  <TableHead className="h-9 pl-4 text-xs">{text('Finance transaction','টাকার লেনদেন')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Relationship','সম্পর্ক')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Payment','পেমেন্ট')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -864,7 +871,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     }`}>
                       {item.direction === 'in' ? '+' : item.direction === 'out' ? '−' : ''}{taka(item.amount)}
                     </TableCell>
-                    <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{item.status}</StatusBadge></TableCell>
+                    <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
                     <TableCell className="py-2 pr-4 text-right">
                       <button
                         onClick={() => setTransactionAction(item)}
@@ -885,15 +892,15 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
           <div className="p-4">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-[13px] font-medium text-ink">Money accounts</p>
-                <p className="text-[11px] text-ink-500">Cash, bank and mobile banking with opening balance and ledger access.</p>
+                <p className="text-[13px] font-medium text-ink">{text('Money accounts','টাকার হিসাব')}</p>
+                <p className="text-[11px] text-ink-500">{text('Cash, bank and mobile banking with opening balance and ledger access.','ক্যাশ, ব্যাংক ও মোবাইল হিসাবের জের ও লেনদেন দেখুন।')}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => openTransfer()}>
-                  <ArrowLeftRight className="size-4" /> Transfer
+                  <ArrowLeftRight className="size-4" /> {text('Transfer','ট্রান্সফার')}
                 </Button>
                 <Button size="sm" onClick={() => setAccountOpen(true)}>
-                  <Plus className="size-4" /> Add account
+                  <Plus className="size-4" /> {text('Add account','হিসাব যোগ করুন')}
                 </Button>
               </div>
             </div>
@@ -907,24 +914,24 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-semibold text-ink">{account.name}</p>
-                      <p className="text-[10.5px] text-ink-400">{account.type}{account.number ? ` · ${account.number}` : ''}</p>
+                      <p className="text-[10.5px] text-ink-400">{financeLabel(language,account.type)}{account.number ? ` · ${account.number}` : ''}</p>
                     </div>
-                    <StatusBadge tone={account.status === 'Active' ? 'success' : 'neutral'} dot>{account.status}</StatusBadge>
+                    <StatusBadge tone={account.status === 'Active' ? 'success' : 'neutral'} dot>{financeLabel(language,account.status)}</StatusBadge>
                   </div>
 
                   <p className="mt-4 text-2xl font-semibold text-ink">{taka(account.balance)}</p>
                   <div className="mt-1 flex items-center justify-between text-[10.5px] text-ink-400">
-                    <span>Opening {taka(account.openingBalance)}</span>
+                    <span>{text('Opening','শুরুর জের')} {taka(account.openingBalance)}</span>
                     <span>{account.lastActivity}</span>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
                     <Button variant="outline" size="sm" onClick={() => setAccountAction(account)}>
-                      <BookOpen className="size-4" /> Ledger
+                      <BookOpen className="size-4" /> {text('Ledger','খাতা')}
                     </Button>
                     {account.type !== 'Cash' && (
                       <Button variant="outline" size="sm" onClick={() => navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`)}>
-                        <CheckCircle2 className="size-4" /> Reconcile
+                        <CheckCircle2 className="size-4" /> {text('Reconcile','মিলিয়ে দেখুন')}
                       </Button>
                     )}
                     <button
@@ -940,22 +947,22 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
             <div className="mt-5 rounded-xl border border-border">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Transfer history</p>
-                  <p className="text-[11px] text-ink-500">Transfers between business money accounts.</p>
+                  <p className="text-sm font-semibold text-ink">{text('Transfer history','ট্রান্সফারের ইতিহাস')}</p>
+                  <p className="text-[11px] text-ink-500">{text('Transfers between business money accounts.','ব্যবসার এক হিসাব থেকে অন্য হিসাবে টাকা সরানোর ইতিহাস।')}</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => openTransfer()}>
-                  <Plus className="size-4" /> New transfer
+                  <Plus className="size-4" /> {text('New transfer','নতুন ট্রান্সফার')}
                 </Button>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 pl-4 text-xs">Transfer</TableHead>
-                    <TableHead className="h-9 text-xs">From</TableHead>
-                    <TableHead className="h-9 text-xs">To</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                    <TableHead className="h-9 text-xs">Status</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                    <TableHead className="h-9 pl-4 text-xs">{text('Transfer','ট্রান্সফার')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('From','থেকে')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('To','যে হিসাবে')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -968,7 +975,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                       <TableCell className="py-2">{item.from}</TableCell>
                       <TableCell className="py-2">{item.to}</TableCell>
                       <TableCell className="py-2 text-right font-semibold">{taka(item.amount)}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{item.status}</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
                         <button onClick={() => setTransferAction(item)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                           <MoreHorizontal className="size-4" />
@@ -987,24 +994,24 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
           <div className="p-4">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-[13px] font-medium text-ink">Cheque register <span className="font-bn text-[11px] font-normal text-ink-400">· পাওয়া ও দেওয়া চেক</span></p>
-                <p className="text-[11px] text-ink-500">Post-dated cheques stay visible. Bank balance changes only when a cheque clears.</p>
+                <p className="text-[13px] font-medium text-ink">{text('Cheque register','চেকের তালিকা')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· পাওয়া ও দেওয়া চেক</span>}</p>
+                <p className="text-[11px] text-ink-500">{text('Post-dated cheques stay visible. Bank balance changes only when a cheque clears.','ভবিষ্যৎ তারিখের চেক দেখা যাবে। ক্লিয়ার হলেই ব্যাংকের টাকা বদলাবে।')}</p>
               </div>
-              <Button size="sm" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> New cheque</Button>
+              <Button size="sm" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> {text('New cheque','নতুন চেক')}</Button>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 pl-4 text-xs">Cheque</TableHead>
-                    <TableHead className="h-9 text-xs">Party</TableHead>
-                    <TableHead className="h-9 text-xs">Bank</TableHead>
-                    <TableHead className="h-9 text-xs">Cheque date</TableHead>
-                    <TableHead className="h-9 text-xs">Money account</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                    <TableHead className="h-9 text-xs">Status</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                    <TableHead className="h-9 pl-4 text-xs">{text('Cheque','চেক')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Bank','ব্যাংক')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Cheque date','চেকের তারিখ')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Money account','টাকার হিসাব')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1013,18 +1020,18 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     return (
                       <TableRow key={cheque.id} className="text-[13px]">
                         <TableCell className="py-2 pl-4">
-                          <p className="font-medium text-ink">{cheque.direction} · #{cheque.chequeNumber}</p>
+                          <p className="font-medium text-ink">{financeLabel(language,cheque.direction)} · #{cheque.chequeNumber}</p>
                           <p className="text-[10.5px] text-ink-400">{cheque.id}{pdc ? ' · PDC' : ''}{cheque.reference ? ' · ' + cheque.reference : ''}</p>
                         </TableCell>
                         <TableCell className="py-2 font-medium text-ink">{cheque.party}</TableCell>
                         <TableCell className="py-2 text-ink-500">{cheque.bank}{cheque.branch ? ' · ' + cheque.branch : ''}</TableCell>
                         <TableCell className="py-2">
                           <p className="text-ink-600">{cheque.chequeDate}</p>
-                          {pdc && <p className="font-bn text-[10.5px] text-warning">পরে জমা দেওয়ার চেক</p>}
+                          {pdc && <p className="font-bn text-[10.5px] text-warning">{text('Post-dated cheque','ভবিষ্যৎ তারিখের চেক')}</p>}
                         </TableCell>
                         <TableCell className="py-2 text-ink-500">{cheque.depositAccount || '—'}</TableCell>
                         <TableCell className="py-2 text-right font-semibold">{taka(cheque.amount)}</TableCell>
-                        <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{cheque.status}</StatusBadge></TableCell>
+                        <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{financeLabel(language,cheque.status)}</StatusBadge></TableCell>
                         <TableCell className="py-2 pr-4 text-right">
                           <button onClick={() => setChequeAction(cheque)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + cheque.id}>
                             <MoreHorizontal className="size-4" />
@@ -1044,55 +1051,55 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
             <section className="rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Current cash session</p>
-                  <p className="text-[11px] text-ink-500">Drawer accountability without manufacturing balancing entries.</p>
+                  <p className="text-sm font-semibold text-ink">{text('Current cash session','বর্তমান ক্যাশ সেশন')}</p>
+                  <p className="text-[11px] text-ink-500">{text('Drawer accountability without manufacturing balancing entries.','ক্যাশ গুনে মিলান। পার্থক্যের জন্য নিজে থেকে নতুন লেনদেন হবে না।')}</p>
                 </div>
-                <StatusBadge tone={sessionOpen ? 'success' : 'neutral'} dot>{sessionOpen ? 'Open' : 'Closed'}</StatusBadge>
+                <StatusBadge tone={sessionOpen ? 'success' : 'neutral'} dot>{sessionOpen ? financeLabel(language,'Open') : financeLabel(language,'Closed')}</StatusBadge>
               </div>
 
               {sessionOpen ? (
                 <>
                   <div className="mt-4 rounded-lg bg-ink-50 p-3">
-                    <p className="text-[11px] text-ink-400">Current preview session · resets on reload</p>
+                    <p className="text-[11px] text-ink-400">{text('Current preview session · resets on reload','নমুনা ক্যাশ সেশন · পাতা রিলোড করলে রিসেট হবে')}</p>
                     <div className="mt-2 grid grid-cols-2 gap-3">
                       <div>
-                        <p className="text-[10.5px] text-ink-400">Opening cash</p>
+                        <p className="text-[10.5px] text-ink-400">{text('Opening cash','শুরুর ক্যাশ')}</p>
                         <p className="text-sm font-semibold text-ink">{taka(openingCash)}</p>
                       </div>
                       <div>
-                        <p className="text-[10.5px] text-ink-400">Expected now</p>
+                        <p className="text-[10.5px] text-ink-400">{text('Expected now','এখন থাকার কথা')}</p>
                         <p className="text-sm font-semibold text-ink">{taka(expectedCash)}</p>
                       </div>
                     </div>
                   </div>
-                  <Button className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>Count / close cash session</Button>
+                  <Button className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>{text('Count / close cash session','ক্যাশ গুনুন / সেশন বন্ধ করুন')}</Button>
                 </>
               ) : (
-                <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>Open cash session</Button>
+                <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>{text('Open cash session','ক্যাশ সেশন খুলুন')}</Button>
               )}
 
-              {lastCount&&<p className="mt-3 text-xs text-ink-600" role="status">Last count: {taka(lastCount.counted)} · {lastCount.closed?'Closed':'Saved'}{lastCount.note?' · '+lastCount.note:''}</p>}
+              {lastCount&&<p className="mt-3 text-xs text-ink-600" role="status">{text('Last count:','শেষ গুনেছেন:')} {taka(lastCount.counted)} · {lastCount.closed?financeLabel(language,'Closed'):text('Saved','সংরক্ষিত')}{lastCount.note?' · '+lastCount.note:''}</p>}
               <button onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
-                <RefreshCw className="size-3.5" /> Cash reconciliation
+                <RefreshCw className="size-3.5" /> {text('Cash reconciliation','ক্যাশ মিলানো')}
               </button>
             </section>
 
             <section className="rounded-xl border border-border">
               <div className="border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold text-ink">Cash session history</p>
-                <p className="text-[11px] text-ink-500">Expected vs counted cash, with short/over variance kept visible.</p>
+                <p className="text-sm font-semibold text-ink">{text('Cash session history','ক্যাশ সেশনের ইতিহাস')}</p>
+                <p className="text-[11px] text-ink-500">{text('Expected vs counted cash, with short/over variance kept visible.','হিসাবে থাকার কথা ও গুনে পাওয়া ক্যাশের পার্থক্য দেখা যাবে।')}</p>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 pl-4 text-xs">Session</TableHead>
-                    <TableHead className="h-9 text-xs">Opened / closed</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Opening</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Expected</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Counted</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Variance</TableHead>
-                    <TableHead className="h-9 text-xs">Status</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                    <TableHead className="h-9 pl-4 text-xs">{text('Session','সেশন')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Opened / closed','খোলা / বন্ধ')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Opening','শুরুর জের')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Expected','থাকার কথা')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Counted','গুনে পাওয়া')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Variance','পার্থক্য')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1112,7 +1119,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                         {session.variance === undefined ? '—' : session.variance === 0 ? taka(0) : `${session.variance > 0 ? '+' : '−'}${taka(Math.abs(session.variance))}`}
                       </TableCell>
                       <TableCell className="py-2">
-                        <StatusBadge tone={session.status === 'Open' ? 'success' : session.variance ? 'warning' : 'neutral'} dot>{session.status}</StatusBadge>
+                        <StatusBadge tone={session.status === 'Open' ? 'success' : session.variance ? 'warning' : 'neutral'} dot>{financeLabel(language,session.status)}</StatusBadge>
                       </TableCell>
                       <TableCell className="py-2 pr-4 text-right"><button onClick={() => setCashSessionAction(session)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + session.id}><MoreHorizontal className="size-4" /></button></TableCell>
                     </TableRow>

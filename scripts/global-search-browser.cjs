@@ -22,7 +22,7 @@ async function main(){
   const activeRow=list.getByRole('option',{selected:true});
   async function checkSelectedContrast(){
    return await activeRow.evaluate(row=>{
-    const channel=value=>Array.from(value.matchAll(/[\\d.]+/g)).slice(0,3).map(match=>Number(match[0]));
+    const channel=value=>{const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const ctx=canvas.getContext('2d');ctx.fillStyle=value;ctx.fillRect(0,0,1,1);return Array.from(ctx.getImageData(0,0,1,1).data).slice(0,3);};
     const brightness=rgb=>rgb.map(value=>value/255).map(value=>value<=0.04045?value/12.92:Math.pow((value+0.055)/1.055,2.4)).reduce((sum,value,index)=>sum+value*[0.2126,0.7152,0.0722][index],0);
     const background=brightness(channel(getComputedStyle(row).backgroundColor));
     const ratio=node=>{

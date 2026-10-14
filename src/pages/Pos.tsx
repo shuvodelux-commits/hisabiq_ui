@@ -1,4 +1,5 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
+import { uiText } from '../i18n/uiCopy';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
@@ -126,7 +127,7 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
 }
 
 export function Pos() {
-  const { state: settingsState } = useTenantSettings();
+  const { state: settingsState, personal } = useTenantSettings();
   const cart = usePosCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -636,7 +637,7 @@ export function Pos() {
           onComplete={() => setReviewSaleOpen(true)}
           onClear={cart.reset}
           paidRef={paidRef}
-          completeLabel={editing ? 'Preview sale update' : 'Preview sale'} />
+          completeLabel={editing ? uiText(personal.language,'Preview sale update','বিক্রি সংশোধন দেখুন') : uiText(personal.language,'Preview sale','বিক্রির হিসাব দেখুন')} />
         
       </div>
 
@@ -670,7 +671,7 @@ export function Pos() {
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
-            {completed && <ReceiptPreview {...completed} />}
+            {completed && <ReceiptPreview {...completed} language={personal.language} />}
           </div>
           <DialogFooter>
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&

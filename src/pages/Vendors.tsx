@@ -63,7 +63,7 @@ export function Vendors(){
   .sort((a,b)=>Number(b.balance.unpricedSourceCount>0)-Number(a.balance.unpricedSourceCount>0)
    ||b.balance.knownPayablePaisa-a.balance.knownPayablePaisa);
  return <div className="mx-auto max-w-[1440px] min-w-0 space-y-4" role="region" aria-label="Vendor module">
-  <PageHeader title="Vendor" titleBn="ভেন্ডর" description="Source goods, settle dues, and record purchases · UI preview only" actions={party&&
+  <PageHeader title="Vendor" titleBn="ভেন্ডর লেনদেন" description="Goods taken and given, and dues · পণ্য নেওয়া-দেওয়া ও হিসাব · UI preview only" descriptionBn="পণ্য নেওয়া-দেওয়া, দাম ঠিক করা ও হিসাব মেটানো · শুধু প্রিভিউ" actions={party&&
    <Button type="button" variant="outline" size="sm" onClick={()=>change(null)}><ArrowLeft className="size-4"/> All Vendors</Button>}/>
   {!party? <section className="rounded-xl border border-border bg-card p-4 shadow-card space-y-4">
    <div className="flex flex-wrap items-end justify-between gap-3">

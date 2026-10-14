@@ -48,6 +48,33 @@ jobs:
       - name: Check Counter quick-clear, Bangla words and settlement
         run: npm run test:counter-ux
 
+      - name: Check Bangla, English and bilingual POS and headers
+        run: npm run test:bangla-ui
+
+      - name: Check transaction workflow Bangla copy and safety notes
+        run: npm run test:bangla-workflows
+
+      - name: Check Bangla Reports, Daybook and isolated print HTML
+        run: npm run test:bangla-reports-print
+
+      - name: Check Bangla Audit, Accounts and Party statement UI
+        run: npm run test:bangla-accounting
+
+      - name: Check Bangla Finance and reconciliation across devices
+        run: npm run test:bangla-finance
+
+      - name: Check Bangla Cheques, Cash Sessions and Finance actions
+        run: npm run test:bangla-finance-advanced
+
+      - name: Check Phase 7 cash drawer in three language modes
+        run: npm run test:bangla-cash-drawer
+
+      - name: Check Phase 8 bilingual workspace shell across devices
+        run: npm run test:bangla-workspace-shell
+
+      - name: Check Phase 9 bilingual ERP SMS notifications preview
+        run: npm run test:bangla-notifications
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
