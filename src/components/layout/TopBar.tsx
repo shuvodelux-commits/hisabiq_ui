@@ -26,6 +26,7 @@ import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import { useCashSession } from '../../contexts/CashSessionContext';
 import { notifications } from '../../data/dashboard';
 import { taka } from '../../utils/currency';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 const toneDot = {
   warning: 'bg-warning',
@@ -35,6 +36,7 @@ const toneDot = {
 };
 
 export function TopBar() {
+  const { text } = useUiCopy();
   const { setOpen, sessionOpen, expectedCash } = useCashSession();
   const { state } = useTenantSettings();
   const { pathname, search } = useLocation();
@@ -157,11 +159,11 @@ export function TopBar() {
             <Wallet className="size-3.5 text-ink-400" aria-hidden="true" />
             {sessionOpen ?
             <>
-                <span>Cash</span>
+                <span>{text('Cash','ক্যাশ')}</span>
                 <span className="font-medium tabular-nums text-ink">{taka(expectedCash)}</span>
               </> :
 
-            <span>Open cash session</span>
+            <span>{text('Open cash session','ক্যাশ সেশন খুলুন')}</span>
             }
           </button>}
 

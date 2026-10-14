@@ -66,6 +66,9 @@ jobs:
       - name: Check Bangla Cheques, Cash Sessions and Finance actions
         run: npm run test:bangla-finance-advanced
 
+      - name: Check Phase 7 cash drawer in three language modes
+        run: npm run test:bangla-cash-drawer
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 

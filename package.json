@@ -48,7 +48,8 @@
     "test:bangla-reports-print": "node scripts/bangla-reports-print-browser.cjs",
     "test:bangla-accounting": "node scripts/bangla-accounting-browser.cjs",
     "test:bangla-finance": "node scripts/bangla-finance-browser.cjs",
-    "test:bangla-finance-advanced": "node scripts/bangla-finance-advanced-browser.cjs"
+    "test:bangla-finance-advanced": "node scripts/bangla-finance-advanced-browser.cjs",
+    "test:bangla-cash-drawer": "node scripts/bangla-cash-drawer-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
