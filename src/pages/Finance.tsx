@@ -237,7 +237,7 @@ function TransactionDialog({
           )}
 
           <label className="text-[13px] font-medium text-ink">
-            Amount
+            {text('Amount','টাকা')}
             <div className="relative mt-1.5">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
               <Input value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} className="pl-7 text-right" inputMode="decimal" placeholder="0" />
@@ -246,7 +246,7 @@ function TransactionDialog({
 
           <label className="text-[13px] font-medium text-ink">
             {text('Reference no.','নম্বর')}
-            <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Optional" />
+            <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder={text("Optional","ঐচ্ছিক")} />
           </label>
 
           <label className="text-[13px] font-medium text-ink sm:col-span-2">
@@ -262,7 +262,7 @@ function TransactionDialog({
           <p>{text('Payment source total:','মাধ্যমগুলোর মোট:')} {taka(paymentTotal)} · {isOpening?text('Opening balance only','শুধু শুরুর জের'):text('Cash/bank movement','ক্যাশ/ব্যাংকে টাকা আসা-যাওয়া')}</p>
         </section>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
           <Button onClick={save}>{reviewFinance?text('Confirm finance transaction','লেনদেন নিশ্চিত করুন'):text('Review transaction','লেনদেন যাচাই করুন')}</Button>
         </DialogFooter>
       </DialogContent>
@@ -331,7 +331,7 @@ function AccountDialog({
               </label>
               <label className="text-[13px] font-medium text-ink">
                 {text('Account number','হিসাব নম্বর')}
-                <Input className="mt-1.5" value={number} onChange={(event) => setNumber(event.target.value)} placeholder="Optional" />
+                <Input className="mt-1.5" value={number} onChange={(event) => setNumber(event.target.value)} placeholder={text("Optional","ঐচ্ছিক")} />
               </label>
             </>
           )}
@@ -345,7 +345,7 @@ function AccountDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
           <Button onClick={save}>{text('Save account','হিসাব সংরক্ষণ')}</Button>
         </DialogFooter>
       </DialogContent>
@@ -428,7 +428,7 @@ function TransferDialog({
             <FormSelect className="mt-1.5" value={to} onChange={(event) => setTo(event.target.value)} options={active.map((item) => item.name)} />
           </label>
           <label className="text-[13px] font-medium text-ink">
-            Amount
+            {text('Amount','টাকা')}
             <div className="relative mt-1.5">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
               <Input value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} className="pl-7 text-right" inputMode="decimal" placeholder="0" />
@@ -436,7 +436,7 @@ function TransferDialog({
           </label>
           <label className="text-[13px] font-medium text-ink">
             {text('Reference / note','নম্বর / মন্তব্য')}
-            <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Optional" />
+            <Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} placeholder={text("Optional","ঐচ্ছিক")} />
           </label>
         </div>
 
@@ -446,7 +446,7 @@ function TransferDialog({
           <p className="mt-1">{from} → {to}</p><p>{taka(Number(amount)||0)}</p><p>{amountInWords(Number(amount)||0)}</p>
         </div>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
           <Button onClick={save}>{reviewTransfer?text('Confirm transfer','টাকা সরানো নিশ্চিত করুন'):text('Review transfer','ট্রান্সফার যাচাই করুন')}</Button>
         </DialogFooter>
       </DialogContent>
