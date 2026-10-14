@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Copy, Delete } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatNumber } from '../../utils/currency';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 type Op = '+' | '−' | '×' | '÷';
 
@@ -19,6 +20,7 @@ function apply(a: number, b: number, op: Op): number {
 }
 
 export function Calculator() {
+  const { text } = useUiCopy();
   const [display, setDisplay] = useState('0');
   const [acc, setAcc] = useState<number | null>(null);
   const [op, setOp] = useState<Op | null>(null);
@@ -75,7 +77,7 @@ export function Calculator() {
   const keys: {label: React.ReactNode;onClick: () => void;kind?: 'op' | 'eq' | 'muted';}[] = [
   { label: 'AC', onClick: clear, kind: 'muted' },
   { label: '%', onClick: percent, kind: 'muted' },
-  { label: <Delete className="mx-auto size-4" aria-label="Backspace" />, onClick: back, kind: 'muted' },
+  { label: <Delete className="mx-auto size-4" aria-label={text("Backspace","আগের সংখ্যা মুছুন")} />, onClick: back, kind: 'muted' },
   { label: '÷', onClick: () => chooseOp('÷'), kind: 'op' },
   ...['7', '8', '9'].map((d) => ({ label: d, onClick: () => input(d) })),
   { label: '×', onClick: () => chooseOp('×'), kind: 'op' as const },
@@ -99,10 +101,10 @@ export function Calculator() {
           <button
             onClick={() => {
               navigator.clipboard?.writeText(display);
-              toast.success('Copied to clipboard');
+              toast.success(text('Copied to clipboard','কপি হয়েছে'));
             }}
             className="rounded p-1 text-ink-400 hover:bg-card hover:text-ink"
-            aria-label="Copy result">
+            aria-label={text("Copy result","ফলাফল কপি করুন")}>
             
             <Copy className="size-3.5" />
           </button>

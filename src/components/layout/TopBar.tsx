@@ -28,6 +28,14 @@ import { notifications } from '../../data/dashboard';
 import { taka } from '../../utils/currency';
 import { useUiCopy } from '../../i18n/useUiCopy';
 
+/** Presentation copy for static, preview-only notification fixtures. */
+const notificationBangla: Record<string, { title: string; body: string; time: string }> = {
+  n1: { title: 'Gate Valve ¾" এর স্টক কম', body: '4 পিস আছে · সর্বনিম্ন 10', time: '12 মিনিট আগে' },
+  n2: { title: 'bKash পেমেন্ট পাওয়া গেছে', body: 'Nur Enterprise INV-000239 এর জন্য ৳6,000 দিয়েছে', time: '1 ঘণ্টা আগে' },
+  n3: { title: 'সরবরাহকারীর বিল আগামীকাল দিতে হবে', body: 'Karim Traders · PUR-000118 · ৳58,600', time: '3 ঘণ্টা আগে' },
+  n4: { title: 'ক্যাশ সেশন খোলা হয়েছে', body: 'Anis শুরুর ক্যাশ ৳5,000 রেখেছেন', time: '9:02 AM' }
+};
+
 const toneDot = {
   warning: 'bg-warning',
   success: 'bg-success',
@@ -36,7 +44,7 @@ const toneDot = {
 };
 
 export function TopBar() {
-  const { text } = useUiCopy();
+  const { text, language } = useUiCopy();
   const { setOpen, sessionOpen, expectedCash } = useCashSession();
   const { state } = useTenantSettings();
   const { pathname, search } = useLocation();
@@ -111,7 +119,7 @@ export function TopBar() {
     <>
     <header data-print-hide className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
       <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 sm:h-14 sm:flex-nowrap sm:gap-3 sm:px-4 sm:py-0 lg:px-6">
-        <button ref={navTrigger} type="button" aria-label="Open ERP navigation" aria-expanded={navOpen}
+        <button ref={navTrigger} type="button" aria-label={text("Open ERP navigation","ERP মেনু খুলুন")} aria-expanded={navOpen}
           aria-controls="erp-mobile-drawer" onClick={()=>setNavOpen(true)}
           className="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-600 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500 lg:hidden">
           <Menu className="size-5"/>
@@ -127,16 +135,16 @@ export function TopBar() {
             value={searchQuery}
             onChange={event=>setSearchQuery(event.target.value)}
             type="search"
-            placeholder="Search products, parties, invoices…"
-            aria-label="Global search"
+            placeholder={text("Search products, parties, invoices…","পণ্য, ক্রেতা, বিল খুঁজুন…")}
+            aria-label={text("Global search","সবখানে খুঁজুন")}
             className="h-9 w-full min-w-0 appearance-none rounded-lg border border-border bg-ink-50 pl-9 pr-24 text-sm text-ink placeholder:text-ink-400 focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:pr-36 [&::-webkit-search-cancel-button]:hidden" />
-          {searchQuery&&<button type="button" aria-label="Clear global search" title="Clear global search"
+          {searchQuery&&<button type="button" aria-label={text("Clear global search","খোঁজা মুছুন")} title={text("Clear global search","খোঁজা মুছুন")}
             onMouseDown={event=>event.preventDefault()}
             onClick={()=>{setSearchQuery('');if(pathname==='/app/search')navigate('/app/search',{replace:true});searchInput.current?.focus();}}
             className="absolute right-[68px] top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-400 hover:bg-ink-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-teal-500/30 sm:right-[109px]">
             <X className="size-4" aria-hidden="true"/>
           </button>}
-          <button type="submit" aria-label="Run global search" className="absolute right-1 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-medium text-teal-700 hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-teal-500">Search</button>
+          <button type="submit" aria-label={text("Run global search","খুঁজুন")} className="absolute right-1 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-medium text-teal-700 hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-teal-500">{text("Search","খুঁজুন")}</button>
           
           <kbd className="pointer-events-none absolute right-16 top-1/2 hidden -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500 sm:block">
             Ctrl K
@@ -144,10 +152,10 @@ export function TopBar() {
         </form>
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
-          <ThemePicker />
+          <ThemePicker language={language} />
           {pathname !== '/app/pos' &&
           <Button size="sm" className="hidden md:inline-flex" onClick={() => navigate('/app/pos')}>
-              <Plus className="size-4" /> New sale
+              <Plus className="size-4" /> {text("New sale","নতুন বিক্রি")}
             </Button>
           }
 
@@ -168,12 +176,12 @@ export function TopBar() {
           </button>}
 
           <FloatingPanel
-            label="Calculator"
+            label={text("Calculator","ক্যালকুলেটর")}
             width={272}
             trigger={({ open, toggle }) =>
             <button
               onClick={toggle}
-              aria-label="Calculator"
+              aria-label={text("Calculator","ক্যালকুলেটর")}
               aria-expanded={open}
               className={`flex size-8 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink ${open ? 'bg-ink-50 text-ink' : ''}`}>
               
@@ -185,37 +193,38 @@ export function TopBar() {
           </FloatingPanel>
 
           <FloatingPanel
-            label="Notifications"
+            label={text("Notifications","নোটিফিকেশন")}
             width={340}
             trigger={({ open, toggle }) =>
             <button
               onClick={toggle}
-              aria-label="Notifications, 3 unread"
+              aria-label={text("Notifications","নোটিফিকেশন")}
               aria-expanded={open}
               className={`relative flex size-8 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink ${open ? 'bg-ink-50 text-ink' : ''}`}>
               
                 <Bell className="size-4" />
-                <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-danger ring-2 ring-card" />
+                {/* Preview notices have no read-state tracking: do not imply unread messages. */}
               </button>
             }>
             
             {(close) =>
             <div>
                 <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                  <p className="text-sm font-semibold">Notifications</p>
+                  <p className="text-sm font-semibold">{text("Notifications","নোটিফিকেশন")}</p>
                   <button onClick={close} className="text-xs font-medium text-teal-700 hover:underline">
-                    Mark all read
+                    {text("Close","বন্ধ করুন")}
                   </button>
                 </div>
+                <p className="px-4 py-1.5 text-[11px] text-ink-500">{text("Sample notifications · UI preview only","নমুনা নোটিফিকেশন · শুধু UI প্রিভিউ")}</p>
                 <ul className="max-h-80 divide-y divide-border overflow-auto">
                   {notifications.map((n) =>
                 <li key={n.id} className="flex gap-3 px-4 py-3 hover:bg-ink-50">
                       <span className={`mt-1.5 size-2 shrink-0 rounded-full ${toneDot[n.tone]}`} aria-hidden="true" />
                       <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-medium text-ink">{n.title}</p>
-                        <p className="text-xs text-ink-500">{n.body}</p>
+                        <p className="text-[13px] font-medium text-ink">{text(n.title, notificationBangla[n.id]?.title ?? n.title)}</p>
+                        <p className="text-xs text-ink-500">{text(n.body, notificationBangla[n.id]?.body ?? n.body)}</p>
                       </div>
-                      <span className="shrink-0 text-[11px] text-ink-400">{n.time}</span>
+                      <span className="shrink-0 text-[11px] text-ink-400">{text(n.time, notificationBangla[n.id]?.time ?? n.time)}</span>
                     </li>
                 )}
                 </ul>
@@ -224,19 +233,19 @@ export function TopBar() {
           </FloatingPanel>
 
           <FloatingPanel
-            label="User menu"
+            label={text("User menu","ব্যবহারকারীর মেনু")}
             width={240}
             trigger={({ open, toggle }) =>
             <button
               onClick={toggle}
               aria-expanded={open}
-              aria-label="User menu"
+              aria-label={text("User menu","ব্যবহারকারীর মেনু")}
               className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-1.5 hover:bg-ink-50">
               
                 <span className="flex size-7 items-center justify-center rounded-full bg-inverse text-[11px] font-semibold text-white">AR</span>
                 <span className="hidden text-left leading-tight xl:block">
                   <span className="block text-[13px] font-medium text-ink">Anisur Rahman</span>
-                  <span className="block text-[11px] text-ink-500">Owner</span>
+                  <span className="block text-[11px] text-ink-500">{text("Owner","মালিক")}</span>
                 </span>
                 <ChevronDown className="size-3.5 text-ink-400" aria-hidden="true" />
               </button>
@@ -250,20 +259,22 @@ export function TopBar() {
                 </div>
                 <div className="my-1 h-px bg-ink-100" />
                 {[
-              { icon: User, label: 'Profile' },
-              { icon: Languages, label: 'ভাষা: English / বাংলা' },
-              { icon: Settings, label: 'Business settings' }].
-              map(({ icon: Icon, label }) =>
-              <button key={label} onClick={() => { close(); navigate(label === 'Business settings' ? '/app/settings/business' : '/app/settings/personal'); }} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
+              { icon: User, label: text('Profile','প্রোফাইল'), route: '/app/settings/personal' },
+              { icon: Languages, label: text('Language','ভাষা') + ': ' + (language === 'Bangla' ? 'বাংলা' : language === 'English + Bangla' ? 'English + বাংলা' : 'English'), route: '/app/settings/personal' },
+              { icon: Settings, label: text('Business settings','ব্যবসার সেটিংস'), route: '/app/settings/business' }].
+              map(({ icon: Icon, label, route }) =>
+              <button key={route + label} onClick={() => { close(); navigate(route); }} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
                     <Icon className="size-4 text-ink-400" /> <span className="font-bn">{label}</span>
                   </button>
               )}
                 <Link to="/design-system" onClick={close} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
-                  <Palette className="size-4 text-ink-400" /> Brand guide
+                  <Palette className="size-4 text-ink-400" /> {text("Brand guide","ব্র্যান্ড গাইড")}
                 </Link>
                 <div className="my-1 h-px bg-ink-100" />
-                <button onClick={close} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-danger hover:bg-danger-bg">
-                  <LogOut className="size-4" /> Sign out
+                <button type="button" disabled aria-disabled="true"
+                  title={text("Sign out is not available in the UI preview","UI প্রিভিউতে সাইন আউট চালু নেই")}
+                  className="flex w-full cursor-not-allowed items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-400 opacity-70">
+                  <LogOut className="size-4" /> {text("Sign out (preview only)","সাইন আউট (শুধু প্রিভিউ)")}
                 </button>
               </div>
             }
@@ -273,22 +284,22 @@ export function TopBar() {
 
     </header>
     {navOpen && createPortal(
-      <div data-print-hide className="fixed inset-0 z-[80] lg:hidden" aria-label="Mobile navigation overlay">
-        <button type="button" className="fixed inset-0 bg-inverse/50" aria-label="Close ERP navigation"
+      <div data-print-hide className="fixed inset-0 z-[80] lg:hidden" aria-label={text("Mobile navigation overlay","মোবাইল মেনু")}>
+        <button type="button" className="fixed inset-0 bg-inverse/50" aria-label={text("Close ERP navigation","ERP মেনু বন্ধ করুন")}
           onClick={closeMobileNav}/>
-        <div ref={navDialog} id="erp-mobile-drawer" role="dialog" aria-modal="true" aria-label="ERP navigation"
+        <div ref={navDialog} id="erp-mobile-drawer" role="dialog" aria-modal="true" aria-label={text("ERP navigation","ERP মেনু")}
           className="fixed inset-y-0 left-0 flex h-[100dvh] w-[min(87vw,320px)] max-w-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-xl"
           style={{backgroundColor:'var(--sidebar)'}}>
           <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4">
-            <span className="text-sm font-semibold text-sidebar-foreground">HisabIQ · Modules</span>
-            <button type="button" autoFocus aria-label="Close navigation" onClick={closeMobileNav}
+            <span className="text-sm font-semibold text-sidebar-foreground">HisabIQ · {text("Modules","মডিউল")}</span>
+            <button type="button" autoFocus aria-label={text("Close navigation","মেনু বন্ধ করুন")} onClick={closeMobileNav}
               className="flex size-9 items-center justify-center rounded-lg text-sidebar-foreground hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring">
               <X className="size-5"/>
             </button>
           </div>
           <ErpNavMenu mode="mobile" onNavigate={()=>setNavOpen(false)}/>
           <Link to="/app/support" onClick={()=>setNavOpen(false)}
-            className="border-t border-sidebar-border px-5 py-3 text-sm text-sidebar-foreground">Help & Support</Link>
+            className="border-t border-sidebar-border px-5 py-3 text-sm text-sidebar-foreground">{text("Help & Support","সাহায্য ও সাপোর্ট")}</Link>
         </div>
       </div>,
       document.body
