@@ -130,7 +130,7 @@ export function CashSessionDialog() {
             </div>
             <div className="flex justify-between font-medium">
               <span>{text('Counted','গোনা টাকা')}{showHelper && ' · গোনা টাকা'}</span>
-              <span >{taka(counted)}</span>
+              <span>{hasCount ? taka(counted) : '—'}</span>
             </div>
             <div
               className={`flex justify-between rounded-md px-2 py-1.5 font-semibold ${
@@ -144,7 +144,7 @@ export function CashSessionDialog() {
         </div>
 
         <label className="block text-sm font-medium text-ink">
-          {text('Note','মন্তব্য')} <span className="font-normal text-ink-400">{diff!==0 ? text('(required to close with a difference)','(পার্থক্য থাকলে বন্ধ করতে কারণ লিখুন)') : text('(optional)','(ঐচ্ছিক)')}</span>
+          {text('Note','মন্তব্য')} <span className="font-normal text-ink-400">{hasCount && diff!==0 ? text('(required to close with a difference)','(পার্থক্য থাকলে বন্ধ করতে কারণ লিখুন)') : text('(optional)','(ঐচ্ছিক)')}</span>
           <Input value={note} onChange={(e) => setNote(e.target.value)} className="mt-1.5" placeholder={text("e.g. ৳50 given as change from personal cash","যেমন: নিজের টাকা থেকে ৳৫০ খুচরা দিয়েছি")} />
         </label>
 
