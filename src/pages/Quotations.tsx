@@ -181,6 +181,8 @@ function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete
  </Dialog>;
 }
 export function Quotations(){
+ const {language}=useUiCopy();
+ const ql=(label:string)=>quotationLabel(language,label);
  const {quotes}=useSyncExternalStore(subscribeQuotes,getQuoteSnapshot);
  const navigate=useNavigate();
  const [search,setSearch]=useState('');
@@ -194,21 +196,21 @@ export function Quotations(){
  [q.number,q.customerName,q.customerPhone??'',...q.lines.map(l=>l.name)].some(value=>value.toLowerCase().includes(search.toLowerCase().trim()))),[quotes,search,status]);
  const create=()=>{setEditing(null);setEditorOpen(true);};
  const edit=(q:Quotation)=>{setDetailId(null);setEditing(q);setEditorOpen(true);};
- const duplicate=(q:Quotation)=>{try{const copy=duplicateQuote(q.id);setDetailId(copy.id);toast.success('Quotation duplicated as draft');}catch(e){toast.error(String(e));}};
- const transition=(q:Quotation,to:QuoteStatus)=>{try{changeQuoteStatus(q.id,to);toast.success('Quotation marked '+to.toLowerCase()+' in preview');}catch(e){toast.error(e instanceof Error?e.message:String(e));}};
- const remove=()=>{if(!deleteTarget)return;try{deleteDraftQuote(deleteTarget.id);setDetailId(null);toast.success('Draft deleted');}catch(e){toast.error(String(e));}setDeleteTarget(null);};
+ const duplicate=(q:Quotation)=>{try{const copy=duplicateQuote(q.id);setDetailId(copy.id);toast.success(ql('Quotation duplicated as draft'));}catch(e){toast.error(String(e));}};
+ const transition=(q:Quotation,to:QuoteStatus)=>{try{changeQuoteStatus(q.id,to);toast.success(ql('Quotation marked')+' '+ql(to)+' · '+ql('UI preview only'));}catch(e){toast.error(e instanceof Error?e.message:String(e));}};
+ const remove=()=>{if(!deleteTarget)return;try{deleteDraftQuote(deleteTarget.id);setDetailId(null);toast.success(ql('Draft deleted'));}catch(e){toast.error(String(e));}setDeleteTarget(null);};
  const totalValue=quotes.reduce((sum,q)=>sum+quoteTotal(q),0);
  const openCount=quotes.filter(q=>['Draft','Sent'].includes(quoteDisplayStatus(q))).length;
  return <div className="mx-auto max-w-[1440px] space-y-4">
   <PageHeader title="Quotations" titleBn="মূল্য প্রস্তাব"
-    description="Create price estimates, track customer approval and print professional quotes · UI preview only."
-    actions={<Button size="sm" onClick={create}><Plus className="size-4"/> New quotation</Button>}/>
+    description={ql("Create price estimates, track customer approval and print professional quotes · UI preview only.")}
+    actions={<Button size="sm" onClick={create}><Plus className="size-4"/> {ql("New quotation")}</Button>}/>
   <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
    {[
-    ['Total quotations',String(quotes.length),'All preview quotes'],
-    ['Open quotations',String(openCount),'Draft or sent'],
-    ['Accepted',String(quotes.filter(q=>q.status==='Accepted').length),'Customer-approved'],
-    ['Quoted value',taka(totalValue),'No revenue posted']
+    [ql('Total quotations'),String(quotes.length),ql('All preview quotes')],
+    [ql('Open quotations'),String(openCount),ql('Draft or sent')],
+    [ql('Accepted'),String(quotes.filter(q=>q.status==='Accepted').length),ql('Customer-approved')],
+    [ql('Quoted value'),taka(totalValue),ql('No revenue posted')]
    ].map(([label,value,sub])=><div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
      <p className="text-[12.5px] text-ink-500">{label}</p><p className="mt-1 text-lg font-semibold text-ink">{value}</p><p className="text-[11px] text-ink-400">{sub}</p>
     </div>)}
@@ -217,42 +219,42 @@ export function Quotations(){
    <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
     <div className="relative min-w-[180px] flex-1 sm:max-w-sm">
      <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400"/>
-     <Input aria-label="Search quotations" className="pl-8" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search quote, customer or item…"/>
+     <Input aria-label={ql("Search quotations")} className="pl-8" value={search} onChange={e=>setSearch(e.target.value)} placeholder={ql("Search quote, customer or item…")}/>
     </div>
     <div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(s=>
-     <Button key={s} type="button" variant={status===s?'default':'outline'} size="sm" onClick={()=>setStatus(s)}>{s}</Button>)}</div>
+     <Button key={s} type="button" variant={status===s?'default':'outline'} size="sm" onClick={()=>setStatus(s)}>{ql(s)}</Button>)}</div>
    </div>
    <div className="overflow-x-auto">
     <Table><TableHeader><TableRow>
-     <TableHead>Quote</TableHead><TableHead>Customer</TableHead><TableHead>Date / expiry</TableHead>
-     <TableHead className="text-right">Items</TableHead><TableHead className="text-right">Total</TableHead>
-     <TableHead>Status</TableHead><TableHead>Actions</TableHead>
+     <TableHead>{ql('Quote')}</TableHead><TableHead>{ql('Customer')}</TableHead><TableHead>{ql('Date / expiry')}</TableHead>
+     <TableHead className="text-right">{ql("Items")}</TableHead><TableHead className="text-right">{ql("Total")}</TableHead>
+     <TableHead>{ql("Status")}</TableHead><TableHead>{ql("Actions")}</TableHead>
     </TableRow></TableHeader>
     <TableBody>{filtered.map(q=>{
      const currentStatus=quoteDisplayStatus(q);
      return <TableRow key={q.id}>
       <TableCell><button className="font-semibold text-teal-700 hover:underline dark:text-teal-400" onClick={()=>setDetailId(q.id)}>{q.number}</button></TableCell>
       <TableCell><span className="font-medium text-ink">{q.customerName}</span><p className="text-[11px] text-ink-400">{q.customerPhone||'—'}</p></TableCell>
-      <TableCell><p>{q.date}</p><p className="text-[11px] text-ink-500">Valid: {q.validUntil}</p></TableCell>
+      <TableCell><p>{q.date}</p><p className="text-[11px] text-ink-500">{ql("Valid:")} {q.validUntil}</p></TableCell>
       <TableCell className="text-right">{q.lines.length}</TableCell>
       <TableCell className="text-right font-semibold">{taka(quoteTotal(q))}</TableCell>
-      <TableCell><StatusBadge tone={statusTone[currentStatus]}>{currentStatus}</StatusBadge></TableCell>
+      <TableCell><StatusBadge tone={statusTone[currentStatus]}>{ql(currentStatus)}</StatusBadge></TableCell>
       <TableCell><div className="flex items-center gap-1">
-       <Button size="sm" variant="outline" onClick={()=>setDetailId(q.id)}><FileText className="size-3.5"/> View</Button>
-       <Button size="sm" variant="outline" onClick={()=>duplicate(q)} aria-label={'Duplicate '+q.number}><Copy className="size-3.5"/></Button>
+       <Button size="sm" variant="outline" onClick={()=>setDetailId(q.id)}><FileText className="size-3.5"/> {ql("View")}</Button>
+       <Button size="sm" variant="outline" onClick={()=>duplicate(q)} aria-label={ql('Duplicate')+' '+q.number}><Copy className="size-3.5"/></Button>
       </div></TableCell>
      </TableRow>;
     })}</TableBody></Table>
    </div>
-   {!filtered.length&&<div className="px-4 py-12 text-center text-sm text-ink-500">No matching quotations. <button className="text-teal-700 underline" onClick={()=>{setSearch('');setStatus('All');}}>Clear filters</button></div>}
-   <div className="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-ink-500"><span>Showing {filtered.length} of {quotes.length}</span><span>Prices only · no financial posting</span></div>
+   {!filtered.length&&<div className="px-4 py-12 text-center text-sm text-ink-500">{ql("No matching quotations.")} <button className="text-teal-700 underline" onClick={()=>{setSearch('');setStatus('All');}}>{ql("Clear filters")}</button></div>}
+   <div className="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-ink-500"><span>{ql("Showing")} {filtered.length} {ql("of")} {quotes.length}</span><span>{ql("Prices only · no financial posting")}</span></div>
   </div>
   {editorOpen&&<QuotationEditor key={editing?.id??'new'} open original={editing} onClose={()=>{setEditorOpen(false);setEditing(null);}}/>}
   <QuotationDetail quote={detail} onClose={()=>setDetailId(null)} onEdit={edit} onDuplicate={duplicate} onTransition={transition} onDelete={setDeleteTarget} onCreateOrder={q=>navigate('/app/online-sales?quote='+encodeURIComponent(q.id))}/>
   <Dialog open={Boolean(deleteTarget)} onOpenChange={value=>!value&&setDeleteTarget(null)}>
-   <DialogContent role="dialog" aria-label="Confirm delete quotation" className="sm:max-w-md">
-    <DialogHeader><DialogTitle>Delete draft quotation?</DialogTitle><DialogDescription>{deleteTarget?.number} will be deleted from the in-memory preview. This action cannot be undone.</DialogDescription></DialogHeader>
-    <DialogFooter><Button variant="outline" onClick={()=>setDeleteTarget(null)}>Cancel</Button>
+   <DialogContent role="dialog" aria-label={ql("Confirm delete quotation")} className="sm:max-w-md">
+    <DialogHeader><DialogTitle>{ql("Delete draft quotation?")}</DialogTitle><DialogDescription>{deleteTarget?.number} {ql("will be deleted from the in-memory preview. This action cannot be undone.")}</DialogDescription></DialogHeader>
+    <DialogFooter><Button variant="outline" onClick={()=>setDeleteTarget(null)}>{ql("Cancel")}</Button>
      <Button onClick={remove}>{ql("Delete draft")}</Button></DialogFooter>
    </DialogContent>
   </Dialog>
