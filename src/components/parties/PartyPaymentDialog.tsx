@@ -105,7 +105,7 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
         {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
-          <Button onClick={submit}>{review?<><Check className="size-4"/> {text('Confirm payment','পেমেন্ট নিশ্চিত করুন')}</>:<><HandCoins className="size-4"/> {text('Review payment','পেমেন্ট যাচাই করুন')}</>}</Button>
+          <Button onClick={submit}>{review?<><Check className="size-4"/> {text('Confirm '+action.toLowerCase(),relationship==='Customer'?'ক্রেতার টাকা নেওয়া নিশ্চিত করুন':'সরবরাহকারীকে টাকা দেওয়া নিশ্চিত করুন')}</>:<><HandCoins className="size-4"/> {text('Review payment','পেমেন্ট যাচাই করুন')}</>}</Button>
         </div>
       </div>
     </DialogContent>
