@@ -152,7 +152,7 @@ export function TopBar() {
         </form>
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
-          <ThemePicker />
+          <ThemePicker language={language} />
           {pathname !== '/app/pos' &&
           <Button size="sm" className="hidden md:inline-flex" onClick={() => navigate('/app/pos')}>
               <Plus className="size-4" /> {text("New sale","নতুন বিক্রি")}
