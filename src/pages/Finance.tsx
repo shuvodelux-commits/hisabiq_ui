@@ -455,7 +455,7 @@ function TransferDialog({
 }
 
 export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {}) {
-  const {text,language}=useUiCopy();
+  const {text}=useUiCopy();
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
   const [financeTab, setTab] = useState<Tab>('overview');
