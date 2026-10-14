@@ -25,7 +25,7 @@ test('Party settlement and refund safeguards remain intact',()=>{
  const pay=source('src/components/parties/PartyPaymentDialog.tsx');
  const refund=source('src/components/parties/PartyCreditRefundDialog.tsx');
  const edit=source('src/components/parties/PartyTransactionDialog.tsx');
- assert.match(pay,/invoiceId:source/); // ensure invoice allocator remains explicit in Party transaction correction
+ assert.match(pay,/invoiceId:invoiceId\|\|undefined/); // underlying invoice allocation identifier stays unchanged
  assert.match(refund,/amount>available/);
  assert.match(pay,/Math\.abs\(paymentSplits\.reduce/);
  assert.match(edit,/onReverse\(source\.id,reason\.trim\(\)\)/);
