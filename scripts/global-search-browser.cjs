@@ -39,6 +39,16 @@ async function main(){
     'Selected result title and helper must retain WCAG AA contrast in '+theme+': '+JSON.stringify(initialContrast));
   await field.press('ArrowDown');
   const keyboardContrast=await checkSelectedContrast();
+  if(keyboardContrast.title<4.5||keyboardContrast.helper<4.5)
+   console.error('Selected row diagnostics:',await activeRow.evaluate(row=>{
+    const title=row.querySelector('span > span:first-child'),helper=row.querySelector('span > span:nth-child(2)');
+    return {rowBg:getComputedStyle(row).backgroundColor,rowColor:getComputedStyle(row).color,
+      titleColor:title&&getComputedStyle(title).color,helperColor:helper&&getComputedStyle(helper).color,
+      style:row.getAttribute('style'),classes:row.className,
+      theme:document.documentElement.getAttribute('data-theme'),
+      accent:getComputedStyle(document.documentElement).getPropertyValue('--accent'),
+      ink:getComputedStyle(document.documentElement).getPropertyValue('--ink')};
+   }));
   assert(keyboardContrast.title>=4.5&&keyboardContrast.helper>=4.5,
     'Keyboard-highlighted result must retain WCAG AA contrast in '+theme+': '+JSON.stringify(keyboardContrast));
   await list.getByRole('option').last().hover();
