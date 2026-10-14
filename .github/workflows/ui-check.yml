@@ -75,6 +75,9 @@ jobs:
       - name: Check Phase 9 bilingual ERP SMS notifications preview
         run: npm run test:bangla-notifications
 
+      - name: Check Phase 10 bilingual quotation print and editor
+        run: npm run test:bangla-quotations
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
