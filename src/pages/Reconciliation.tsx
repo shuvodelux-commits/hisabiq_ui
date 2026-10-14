@@ -536,14 +536,14 @@ export function Reconciliation() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 pl-4 text-xs">Reconciliation</TableHead>
-                <TableHead className="h-9 text-xs">Account</TableHead>
-                <TableHead className="h-9 text-xs">Statement</TableHead>
-                <TableHead className="h-9 text-right text-xs">Statement closing</TableHead>
-                <TableHead className="h-9 text-right text-xs">ERP closing</TableHead>
-                <TableHead className="h-9 text-right text-xs">Difference</TableHead>
-                <TableHead className="h-9 text-xs">Status</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                <TableHead className="h-9 pl-4 text-xs">{text('Reconciliation','হিসাব মিলানো')}</TableHead>
+                <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
+                <TableHead className="h-9 text-xs">{text('Statement','স্টেটমেন্ট')}</TableHead>
+                <TableHead className="h-9 text-right text-xs">{text('Statement closing','স্টেটমেন্টের শেষ জের')}</TableHead>
+                <TableHead className="h-9 text-right text-xs">{text('ERP closing','ERP-র শেষ জের')}</TableHead>
+                <TableHead className="h-9 text-right text-xs">{text('Difference','পার্থক্য')}</TableHead>
+                <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -561,7 +561,7 @@ export function Reconciliation() {
                     <TableCell className="py-2 text-right">{taka(item.erpClosing)}</TableCell>
                     <TableCell className={`py-2 text-right font-medium ${diff === 0 ? 'text-success' : 'text-danger'}`}>{taka(Math.abs(diff))}</TableCell>
                     <TableCell className="py-2">
-                      <StatusBadge tone={item.status === 'Completed' ? 'success' : 'warning'} dot>{item.status}</StatusBadge>
+                      <StatusBadge tone={item.status === 'Completed' ? 'success' : 'warning'} dot>{financeLabel(language,item.status)}</StatusBadge>
                     </TableCell>
                     <TableCell className="py-2 pr-4 text-right">
                       <button
@@ -581,8 +581,8 @@ export function Reconciliation() {
 
       <UploadStatementDialog open={uploadOpen} onOpenChange={setUploadOpen} />
       <Dialog open={Boolean(historyItem)} onOpenChange={open=>!open&&setHistoryItem(null)}><DialogContent role="dialog" aria-modal="true" className="sm:max-w-lg">
-       <DialogHeader><DialogTitle>Reconciliation review</DialogTitle><DialogDescription>Sample history only · no bank or ledger posting.</DialogDescription></DialogHeader>
-       {historyItem&&<dl className="space-y-3 text-sm">{[['Account',historyItem.accountName],['Period',historyItem.period],['Statement',historyItem.statementFile],['Bank closing',taka(historyItem.statementClosing)],['ERP closing',taka(historyItem.erpClosing)],['Matched',String(historyItem.matched)],['Status',historyItem.status]].map(([label,value])=><div key={label} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="font-medium text-ink">{value}</dd></div>)}</dl>}
+       <DialogHeader><DialogTitle>{text('Reconciliation review','হিসাব মিলানোর বিস্তারিত')}</DialogTitle><DialogDescription>{text('Sample history only · no bank or ledger posting.','শুধু নমুনার ইতিহাস। আসল ব্যাংক বা ERP খাতায় কিছু লেখা হয়নি।')}</DialogDescription></DialogHeader>
+       {historyItem&&<dl className="space-y-3 text-sm">{[[text('Account','হিসাব'),historyItem.accountName],[text('Period','সময়কাল'),historyItem.period],[text('Statement','স্টেটমেন্ট'),historyItem.statementFile],[text('Bank closing','ব্যাংকের শেষ জের'),taka(historyItem.statementClosing)],[text('ERP closing','ERP-র শেষ জের'),taka(historyItem.erpClosing)],[text('Matched','মিলেছে'),String(historyItem.matched)],[text('Status','অবস্থা'),financeLabel(language,historyItem.status)]].map(([label,value])=><div key={label} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="font-medium text-ink">{value}</dd></div>)}</dl>}
       </DialogContent></Dialog>
     </div>
   );
