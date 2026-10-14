@@ -63,6 +63,9 @@ jobs:
       - name: Check Bangla Finance and reconciliation across devices
         run: npm run test:bangla-finance
 
+      - name: Check Bangla Cheques, Cash Sessions and Finance actions
+        run: npm run test:bangla-finance-advanced
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
