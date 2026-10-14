@@ -14,6 +14,8 @@ import type { Party } from '../../types/erp';
 import type { PartyFinancePayload, PartyMoneySplit } from '../../types/partyLedger';
 import { taka } from '../../utils/currency';
 import { amountInWords } from '../../utils/amountInWords';
+import {useUiCopy} from '../../i18n/useUiCopy';
+import {financeLabel} from '../../i18n/financeCopy';
 
 type Props={open:boolean;party:Party;relationship:FinanceRole;onClose:()=>void;onSubmit:(payload:PartyFinancePayload)=>void};
 const available:Record<FinanceRole,FinanceTransactionType[]>={
@@ -23,6 +25,7 @@ const available:Record<FinanceRole,FinanceTransactionType[]>={
 };
 const initial=():FinancePaymentDraft[]=>[{id:'cash-1',method:'Cash',accountId:'acc-cash',amount:''}];
 export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Props){
+ const {text,language}=useUiCopy();
  const [type,setType]=useState<FinanceTransactionType>(available[relationship][0]);
  const [date,setDate]=useState(businessToday());
  const [amount,setAmount]=useState('');
@@ -57,53 +60,52 @@ export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Pr
   }catch(e){setError(e instanceof Error?e.message:'Cannot record finance transaction.');setReview(false);}
  };
  return <Dialog open={open} onOpenChange={next=>!next&&onClose()}>
-  <DialogContent role="dialog" aria-modal="true" aria-label="Party finance transaction"
+  <DialogContent role="dialog" aria-modal="true" aria-label={text("Party finance transaction","ঋণ বা মূলধনের লেনদেন")}
     className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
    <DialogHeader>
-    <DialogTitle>Record {relationship.toLowerCase()} finance <span className="font-bn text-sm font-normal text-ink-500">মূলধন / ঋণ</span></DialogTitle>
-    <DialogDescription>Choose capital, lending or borrowing entry. This is a business preview, not a real money transfer.</DialogDescription>
+    <DialogTitle>{text('Record finance transaction','মূলধন / ঋণের লেনদেন লিখুন')} <span className="font-bn text-sm font-normal text-ink-500">মূলধন / ঋণ</span></DialogTitle>
+    <DialogDescription>{text('Choose capital, lending or borrowing entry. This is a business preview, not a real money transfer.','মূলধন, ধার দেওয়া বা নেওয়ার ধরন বাছুন। এটি শুধু নমুনা; আসল টাকা সরবে না।')}</DialogDescription>
    </DialogHeader>
    <div className="space-y-3 text-sm">
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-ink-50 p-3">
-      <div><strong>{party.name}</strong><p className="text-xs text-ink-500">{relationship} · {party.phone}</p></div>
-      <span className="text-xs text-ink-600">Tenant finance preview</span>
+      <div><strong>{party.name}</strong><p className="text-xs text-ink-500">{financeLabel(language,relationship)} · {party.phone}</p></div>
+      <span className="text-xs text-ink-600">{text('Tenant finance preview','ব্যবসার নমুনা হিসাব')}</span>
     </div>
     <div className="grid gap-3 sm:grid-cols-2">
-      <label className="space-y-1 text-xs font-medium text-ink-700">Transaction type
-        <AppSelect label="Finance transaction type" value={type} onChange={changeType}
-          options={available[relationship].map(value=>({value,label:value}))}/>
+      <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Transaction type','লেনদেনের ধরন')}
+        <AppSelect label={text("Finance transaction type","টাকার লেনদেনের ধরন")} value={type} onChange={changeType}
+          options={available[relationship].map(value=>({value,label:financeLabel(language,value)}))}/>
       </label>
-      <label className="space-y-1 text-xs font-medium text-ink-700">Business date
-        <AppDatePicker label="Finance transaction date" value={date} onChange={value=>{setDate(value);setReview(false);}}/>
+      <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Business date','লেনদেনের তারিখ')}
+        <AppDatePicker label={text("Finance transaction date","লেনদেনের তারিখ")} value={date} onChange={value=>{setDate(value);setReview(false);}}/>
       </label>
-      <label className="space-y-1 text-xs font-medium text-ink-700">Amount
-        <Input aria-label="Finance amount" inputMode="decimal" value={amount} placeholder="0.00"
+      <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Amount','টাকা')}
+        <Input aria-label={text("Finance amount","টাকার পরিমাণ")} inputMode="decimal" value={amount} placeholder="0.00"
           onChange={event=>{const value=event.target.value;setAmount(value);setReview(false);
             if(splits.length===1)setSplits(rows=>rows.map(row=>({...row,amount:value})));}}/>
       </label>
-      <label className="space-y-1 text-xs font-medium text-ink-700">Reference (optional)
-        <Input aria-label="Finance reference" value={reference} onChange={e=>{setReference(e.target.value);setReview(false);}}/>
+      <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Reference (optional)','রেফারেন্স (ঐচ্ছিক)')}
+        <Input aria-label={text("Finance reference","রেফারেন্স")} value={reference} onChange={e=>{setReference(e.target.value);setReview(false);}}/>
       </label>
     </div>
     {opening?<p role="note" className="rounded-lg bg-warning-bg p-3 text-xs text-warning">
-      Opening relationship balance only — no cash, bank or mobile account is affected.
+      {text('Opening relationship balance only — no cash, bank or mobile account is affected.','শুধু শুরুর দেনা-পাওনা; ক্যাশ, ব্যাংক বা মোবাইল হিসাব বদলাবে না।')}
     </p>:<FinancePaymentSplitEditor accounts={financeAccounts} rows={splits}
       onChange={rows=>{setSplits(rows);setReview(false);}} totalAmount={Number(amount)||0}/>}
-    <label className="block space-y-1 text-xs font-medium text-ink-700">Note
-      <Input aria-label="Finance note" value={note} onChange={e=>{setNote(e.target.value);setReview(false);}}/>
+    <label className="block space-y-1 text-xs font-medium text-ink-700" >{text('Note','মন্তব্য')}
+      <Input aria-label={text("Finance note","লেনদেনের মন্তব্য")} value={note} onChange={e=>{setNote(e.target.value);setReview(false);}}/>
     </label>
     {review&&<div role="status" className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800">
-      <strong>Review finance transaction</strong><p>{party.name} · {type} · {date} · {taka(money)}</p>
+      <strong>{text('Review finance transaction','লেনদেন যাচাই করুন')}</strong><p>{party.name} · {type} · {date} · {taka(money)}</p>
       <p className="mt-1 font-medium">{amountInWords(money)}</p>
-      <p>{opening?'Relationship balance only, no money movement':
-        (meta?.direction==='in'?'Money into business: ':'Money out of business: ')+taka(money)}</p>
-      <p>Changes this one source and adds an audit record in preview only.</p>
+      <p>{opening?text('Relationship balance only, no money movement','শুধু সম্পর্কের জের; টাকা সরবে না'):(meta?.direction==='in'?text('Money into business: ','ব্যবসায় টাকা আসবে: '):text('Money out of business: ','ব্যবসা থেকে টাকা যাবে: '))+taka(money)}</p>
+      <p>{text('Changes this one source and adds an audit record in preview only.','শুধু এই নমুনা রেকর্ড বদলাবে এবং অডিট ইতিহাসে লেখা হবে।')}</p>
     </div>}
     {!!error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
     <div className="flex justify-end gap-2">
-      <Button variant="outline" onClick={onClose}>Cancel</Button>
-      <Button onClick={submit}>{review?<><Check className="size-4"/> Confirm finance transaction</>:
-       <><Landmark className="size-4"/> Review finance transaction</>}</Button>
+      <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
+      <Button onClick={submit}>{review?<><Check className="size-4"/> {text('Confirm finance transaction','লেনদেন নিশ্চিত করুন')}</>:
+       <><Landmark className="size-4"/> {text('Review finance transaction','লেনদেন যাচাই করুন')}</>}</Button>
     </div>
    </div>
   </DialogContent>
