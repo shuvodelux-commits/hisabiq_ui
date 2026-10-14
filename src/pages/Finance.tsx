@@ -455,6 +455,7 @@ function TransferDialog({
 }
 
 export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {}) {
+  const {text,language}=useUiCopy();
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
   const [financeTab, setTab] = useState<Tab>('overview');
@@ -623,12 +624,12 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   }, [transactions, query, typeFilter]);
 
   const tabs: Array<[Tab, string, string]> = [
-    ['overview', 'Overview', 'Money position and relationship balances'],
-    ['accounts', 'Money Accounts', 'Cash, bank, mobile banking and petty cash'],
-    ['counter', 'Counter', 'Fast receive, pay, expense and transfer'],
-    ['transactions', 'Loans & Owners', 'Owner, lender and borrower money'],
-    ['cheques', 'Cheques', 'Received, issued and post-dated cheques'],
-    ['cash', 'Cash Sessions', 'Open, close and reconcile cash drawer']
+    ['overview', text('Overview','সারাংশ'), text('Money position and relationship balances','টাকা ও দেনা-পাওনার হিসাব')],
+    ['accounts', text('Money Accounts','টাকার হিসাব'), text('Cash, bank, mobile banking and petty cash','ক্যাশ, ব্যাংক ও মোবাইল')],
+    ['counter', text('Counter','কাউন্টার'), text('Fast receive, pay, expense and transfer','টাকা নেওয়া-দেওয়া ও খরচ')],
+    ['transactions', text('Loans & Owners','ঋণ ও মালিক'), text('Owner, lender and borrower money','মালিক ও ঋণের হিসাব')],
+    ['cheques', text('Cheques','চেক'), text('Received, issued and post-dated cheques','পাওয়া, দেওয়া ও ভবিষ্যৎ তারিখের চেক')],
+    ['cash', text('Cash Sessions','ক্যাশ সেশন'), text('Open, close and reconcile cash drawer','ক্যাশ খোলা, বন্ধ ও মেলানো')]
   ];
 
   const pdcCount = chequeRecords.filter((item) => item.chequeDate > '2026-10-07' && !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status)).length;
@@ -640,13 +641,13 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
     .reduce((sum, item) => sum + item.amount, 0);
 
   const summaryCards = [
-    { label: 'Available money', value: taka(totalLiquid), sub: 'Cash + bank + mobile banking', icon: CircleDollarSign },
-    { label: 'Cash', value: taka(cashBalance), sub: sessionOpen ? 'Cash session open' : 'Cash session closed', icon: Banknote },
-    { label: 'Bank', value: taka(bankBalance), sub: 'Across active bank accounts', icon: Landmark },
-    { label: 'Mobile banking', value: taka(mobileBalance), sub: 'bKash, Nagad and wallets', icon: WalletCards },
-    { label: 'Cheques pending', value: taka(pendingChequeAmount), sub: 'Waiting for clearance', icon: BookOpen },
-    { label: 'Lender payable', value: taka(relationshipSummary.outstandingLoan), sub: 'Money we still need to repay', icon: ArrowDownLeft, tone: 'text-danger' },
-    { label: 'Borrower receivable', value: taka(relationshipSummary.borrowerReceivable), sub: 'Money others still owe us', icon: ArrowUpRight, tone: 'text-teal-700' }
+    { label: text('Available money','ব্যবহারের টাকা'), value: taka(totalLiquid), sub: text('Cash + bank + mobile banking','ক্যাশ, ব্যাংক ও মোবাইল'), icon: CircleDollarSign },
+    { label: text('Cash','ক্যাশ'), value: taka(cashBalance), sub: sessionOpen ? text('Cash session open','ক্যাশ সেশন চালু') : text('Cash session closed','ক্যাশ সেশন বন্ধ'), icon: Banknote },
+    { label: text('Bank','ব্যাংক'), value: taka(bankBalance), sub: text('Across active bank accounts','চালু ব্যাংক হিসাবগুলোর মোট'), icon: Landmark },
+    { label: text('Mobile banking','মোবাইল ব্যাংকিং'), value: taka(mobileBalance), sub: text('bKash, Nagad and wallets','বিকাশ, নগদ ও অন্যান্য ওয়ালেট'), icon: WalletCards },
+    { label: text('Cheques pending','অপেক্ষমাণ চেক'), value: taka(pendingChequeAmount), sub: text('Waiting for clearance','চেকের টাকা জমা হয়নি'), icon: BookOpen },
+    { label: text('Lender payable','ঋণদাতাকে দেনা'), value: taka(relationshipSummary.outstandingLoan), sub: text('Money we still need to repay','যত টাকা ফেরত দিতে হবে'), icon: ArrowDownLeft, tone: 'text-danger' },
+    { label: text('Borrower receivable','ঋণগ্রহীতার কাছে পাওনা'), value: taka(relationshipSummary.borrowerReceivable), sub: text('Money others still owe us','অন্যের কাছে আমাদের পাওনা'), icon: ArrowUpRight, tone: 'text-teal-700' }
   ];
 
   return (
@@ -655,16 +656,17 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         title={counterOnly ? 'Counter' : 'Finance'}
         titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
         description={counterOnly ? 'Receive customer payments, pay suppliers, record expenses and transfer money.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
+        descriptionBn={counterOnly?'ক্রেতার টাকা নিন, সরবরাহকারীকে দিন, খরচ বা ট্রান্সফার করুন।':'ক্যাশ, ব্যাংক, ঋণ, চেক ও দৈনিক টাকার হিসাব।'}
         actions={counterOnly ? undefined : (
           <>
             <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
-              <UserRoundCog className="size-4" /> Finance people
+              <UserRoundCog className="size-4" /> {text('Finance people','হিসাবের ব্যক্তি')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setChequeOpen(true)}>
-              <Plus className="size-4" /> New cheque
+              <Plus className="size-4" /> {text('New cheque','নতুন চেক')}
             </Button>
             <Button size="sm" onClick={() => setTransactionOpen(true)}>
-              <Plus className="size-4" /> New transaction
+              <Plus className="size-4" /> {text('New transaction','নতুন লেনদেন')}
             </Button>
           </>
         )}
@@ -753,10 +755,10 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="h-9 pl-4 text-xs">Transaction</TableHead>
-                      <TableHead className="h-9 text-xs">Party</TableHead>
-                      <TableHead className="h-9 text-xs">Account</TableHead>
-                      <TableHead className="h-9 pr-4 text-right text-xs">Amount</TableHead>
+                      <TableHead className="h-9 pl-4 text-xs">{text('Transaction','লেনদেন')}</TableHead>
+                      <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
+                      <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
+                      <TableHead className="h-9 pr-4 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -833,24 +835,24 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               </div>
               <FormSelect className="w-full lg:w-48" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} options={['All transaction types', ...financeTypeOptions]} />
               <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
-                <UserRoundCog className="size-4" /> Finance people
+                <UserRoundCog className="size-4" /> {text('Finance people','হিসাবের ব্যক্তি')}
               </Button>
               <Button size="sm" onClick={() => setTransactionOpen(true)}>
-                <Plus className="size-4" /> New transaction
+                <Plus className="size-4" /> {text('New transaction','নতুন লেনদেন')}
               </Button>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Finance transaction</TableHead>
-                  <TableHead className="h-9 text-xs">Relationship</TableHead>
-                  <TableHead className="h-9 text-xs">Party</TableHead>
-                  <TableHead className="h-9 text-xs">Payment</TableHead>
-                  <TableHead className="h-9 text-xs">Account</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  <TableHead className="h-9 pl-4 text-xs">{text('Finance transaction','টাকার লেনদেন')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Relationship','সম্পর্ক')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Payment','পেমেন্ট')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -955,12 +957,12 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 pl-4 text-xs">Transfer</TableHead>
-                    <TableHead className="h-9 text-xs">From</TableHead>
-                    <TableHead className="h-9 text-xs">To</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                    <TableHead className="h-9 text-xs">Status</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                    <TableHead className="h-9 pl-4 text-xs">{text('Transfer','ট্রান্সফার')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('From','থেকে')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('To','যে হিসাবে')}</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -995,7 +997,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                 <p className="text-[13px] font-medium text-ink">Cheque register <span className="font-bn text-[11px] font-normal text-ink-400">· পাওয়া ও দেওয়া চেক</span></p>
                 <p className="text-[11px] text-ink-500">Post-dated cheques stay visible. Bank balance changes only when a cheque clears.</p>
               </div>
-              <Button size="sm" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> New cheque</Button>
+              <Button size="sm" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> {text('New cheque','নতুন চেক')}</Button>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border">
@@ -1003,13 +1005,13 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="h-9 pl-4 text-xs">Cheque</TableHead>
-                    <TableHead className="h-9 text-xs">Party</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
                     <TableHead className="h-9 text-xs">Bank</TableHead>
                     <TableHead className="h-9 text-xs">Cheque date</TableHead>
                     <TableHead className="h-9 text-xs">Money account</TableHead>
-                    <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                    <TableHead className="h-9 text-xs">Status</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                    <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1096,8 +1098,8 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     <TableHead className="h-9 text-right text-xs">Expected</TableHead>
                     <TableHead className="h-9 text-right text-xs">Counted</TableHead>
                     <TableHead className="h-9 text-right text-xs">Variance</TableHead>
-                    <TableHead className="h-9 text-xs">Status</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                    <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
+                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
