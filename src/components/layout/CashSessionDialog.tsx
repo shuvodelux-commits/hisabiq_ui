@@ -134,7 +134,7 @@ export function CashSessionDialog() {
             </div>
             <div
               className={`flex justify-between rounded-md px-2 py-1.5 font-semibold ${
-              diff === 0 ? 'bg-success-bg text-success' : diff > 0 ? 'bg-info-bg text-info' : 'bg-danger-bg text-danger'}`
+              !hasCount ? 'bg-ink-50 text-ink-500' : diff === 0 ? 'bg-success-bg text-success' : diff > 0 ? 'bg-info-bg text-info' : 'bg-danger-bg text-danger'}`
               }>
               
               <span>{!hasCount ? text('Enter count','টাকা গুনে লিখুন') : diff === 0 ? text('Balanced','মিলেছে') : diff > 0 ? text('Extra','বেশি') : text('Short','কম')}</span>
