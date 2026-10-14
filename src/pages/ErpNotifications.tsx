@@ -31,8 +31,8 @@ export function ErpNotificationsWorkbench({embedded=false}:{embedded?:boolean}){
  const selectedDef=notificationEvents.find(e=>e.id===selected)!;
  const rule=rules[selected];
  const events=useMemo(()=>notificationEvents.filter(ev=>
-  (group==='All'||ev.group===group)&&[ev.label,ev.bn,ev.source].some(s=>s.toLowerCase().includes(query.toLowerCase().trim()))),
-  [group,query]);
+  (group==='All'||ev.group===group)&&[ev.label,ev.bn,ev.source,ev.group,ev.audience,notificationDisplayText(language,ev.source),notificationDisplayText(language,ev.group)].some(s=>s.toLowerCase().includes(query.toLowerCase().trim()))),
+  [group,query,language]);
  const choose=(id:ErpNotificationEvent)=>{setSelected(id);setDraft(null);setError('');};
  const patch=(patch:Parameters<typeof updateNotificationRule>[1])=>{
   try{updateNotificationRule(selected,patch);setError('');}catch(e){setError(display(e instanceof Error?e.message:'Invalid rule'));}
@@ -100,6 +100,7 @@ export function ErpNotificationsWorkbench({embedded=false}:{embedded?:boolean}){
       <Input aria-label={text("Reminder days","মনে করানোর দিন")} type="number" min="0" max="365" value={rule.reminderDays} onChange={e=>patch({reminderDays:Number(e.target.value)})}/>
      </label>
     </div>
+    <p className="text-[11px] text-ink-500">{text('SMS language controls the message template; it is separate from the interface language.','SMS-এর ভাষা শুধু বার্তার জন্য। অ্যাপের ভাষা বদলালে SMS-এর ভাষা বদলাবে না।')}</p>
     <div className="flex flex-wrap items-center gap-4">
      <label className="flex items-center gap-2 text-xs text-ink">
       <input type="checkbox" aria-label={text("Respect quiet hours","বিশ্রামের সময় বার্তা নয়")} checked={rule.quietHours} onChange={e=>patch({quietHours:e.target.checked})}/>{text("Respect quiet hours","বিশ্রামের সময় বার্তা নয়")}
