@@ -57,7 +57,8 @@
     "test:bangla-warranty": "node scripts/bangla-warranty-browser.cjs",
     "test:bangla-online-sales": "node scripts/bangla-online-sales-browser.cjs",
     "test:bangla-fulfillment": "node scripts/bangla-fulfillment-browser.cjs",
-    "test:bangla-products": "node scripts/bangla-products-browser.cjs"
+    "test:bangla-products": "node scripts/bangla-products-browser.cjs",
+    "test:bangla-product-inventory": "node scripts/bangla-product-inventory-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
