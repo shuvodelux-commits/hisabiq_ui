@@ -39,7 +39,7 @@ async function main(){
     await dialog.getByRole('button',{name:bn?'CSV নামান':'Export CSV'}).click();
     const downloaded=await download;
     assert.match(downloaded.suggestedFilename(),/^vendor-ledger-v1-payable\.csv$/);
-    await dialog.getByRole('button',{name:bn?'বন্ধ করুন':'Close'}).click();
+    await dialog.getByRole('button',{name:bn?'বন্ধ করুন':'Close',exact:true}).filter({hasText:bn?'বন্ধ করুন':'Close'}).click();
     await dialog.waitFor({state:'hidden'});
     assert.deepEqual(errors,[],language+' '+width+'px runtime errors');
     await context.close();
