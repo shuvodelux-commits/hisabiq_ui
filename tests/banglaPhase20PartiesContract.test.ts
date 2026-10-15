@@ -36,8 +36,8 @@ test('Party presentation changes do not change relationship isolation, ledger da
   "vendorWorkLink(party.id,tab,sourceId)",
   "setRole(value)","resetLedger()"
  ])assert.ok(s.includes(source),'financial/role invariant missing: '+source);
- assert.ok(s.includes("toast.success(text('Payment recorded in preview (no bank posting)'"));
- assert.ok(s.includes("toast.success(text('Preview transaction reversed with an audit record'"));
+ assert.ok(s.includes("toast.success(uiText('Payment recorded in preview (no bank posting)'"));
+ assert.ok(s.includes("toast.success(uiText('Preview transaction reversed with an audit record'"));
  assert.ok(!s.includes("dispatchPartyPreview({type:text("),'never translate store actions');
  assert.ok(!s.includes("relationship:text("),'never translate relationship identity');
 });
