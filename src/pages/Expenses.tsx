@@ -60,6 +60,7 @@ const payeesForPreview = () => availableParties()
   }));
 
 function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
+  const {text}=useUiCopy();
   if (!src) return <span className="text-xs text-helper">—</span>;
   return (
     <button
@@ -68,7 +69,7 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
         onClick();
       }}
       className="group relative block size-8 overflow-hidden rounded-md border border-border"
-      aria-label="View receipt">
+      aria-label={text("View receipt","রসিদ দেখুন")}>
       <img src={src} alt="" className="h-full w-full object-cover" />
       <span className="absolute inset-0 flex items-center justify-center bg-inverse/40 opacity-0 transition-opacity group-hover:opacity-100">
         <Paperclip className="size-3 text-white" />
@@ -139,10 +140,10 @@ export function Expenses() {
   ];
 
   const summary = [
-    { label: 'Active expenses', value: taka(total), sub: `${activeExpenses.length} active entries` },
-    { label: 'Cash expenses', value: taka(cash), sub: 'Paid from cash' },
-    { label: 'Bank & mobile', value: taka(bankAndMfs), sub: 'Bank, bKash, Nagad & card' },
-    { label: 'Categories used', value: String(categoryCount), sub: 'Used in active entries' }
+    { label: text('Active expenses','চালু খরচ'), value: taka(total), sub: `${activeExpenses.length} ${text('active entries','টি চালু খরচ')}` },
+    { label: text('Cash expenses','নগদ খরচ'), value: taka(cash), sub: text('Paid from cash','নগদে দেওয়া হয়েছে') },
+    { label: text('Bank & mobile','ব্যাংক ও মোবাইল'), value: taka(bankAndMfs), sub: text('Bank, bKash, Nagad & card','ব্যাংক, বিকাশ, নগদ ও কার্ড') },
+    { label: text('Categories used','খরচের ধরন'), value: String(categoryCount), sub: text('Used in active entries','চালু খরচে ব্যবহার হয়েছে') }
   ];
 
   return (
@@ -202,10 +203,10 @@ export function Expenses() {
                   placeholder={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
                 />
               </div>
-              <FormSelect aria-label="Expense category filter" className="w-full lg:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
-              <FormSelect aria-label="Expense payee filter" className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
-              <FormSelect aria-label="Expense payment filter" className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card'].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v)}))} />
-              <FormSelect aria-label="Expense status filter" className="w-full lg:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
+              <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="w-full lg:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
+              <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
+              <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card'].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v)}))} />
+              <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="w-full lg:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
               <Button variant="ghost" size="sm" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
               <Button variant="outline" size="sm" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
                 <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
@@ -251,7 +252,7 @@ export function Expenses() {
                       </TableCell>
                       <TableCell className="py-2"><ReceiptThumb src={expense.receipt} onClick={open} /></TableCell>
                       <TableCell className="py-2 text-ink-600">
-                        {paymentLabel(expense)}
+                        {paymentLabel(expense) === 'Multiple' ? text('Multiple','একাধিক') : documentMethod(language,paymentLabel(expense))}
                         {expense.payments && expense.payments.length > 1 && (
                           <span className="block text-[10.5px] text-ink-400">
                             {expense.payments.map((payment) => payment.method).join(' + ')}
@@ -263,7 +264,7 @@ export function Expenses() {
                       <TableCell className="py-2"><StatusBadge tone={expense.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{expense.recordStatus === 'Deleted' ? text('Cancelled','বাতিল') : text('Active','চালু')}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
                         <div onClick={event => event.stopPropagation()}>
-                          <FloatingPanel label={`Actions for ${expense.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`Actions for ${expense.ref}`}><MoreHorizontal className="size-4" /></button>}>
+                          <FloatingPanel label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`}><MoreHorizontal className="size-4" /></button>}>
                             {close => <div className="p-1 text-left text-xs">
                               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); open(); }}>{text('View','দেখুন')}</Button>
                               <Button variant="ghost" size="sm" className="w-full justify-start" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); openCorrection(expense); }}>{text('Correct','সংশোধন')}</Button>
@@ -286,19 +287,19 @@ export function Expenses() {
           <div>
             <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
-                <p className="text-[13px] font-medium text-ink">Expense categories</p>
-                <p className="text-[11px] text-ink-500">Manage categories for new entries. Renaming keeps historical expense labels.</p>
+                <p className="text-[13px] font-medium text-ink">{text("Expense categories","খরচের ধরনসমূহ")}</p>
+                <p className="text-[11px] text-ink-500">{text("Manage categories for new entries. Renaming keeps historical expense labels.","নতুন খরচের ধরন যোগ বা বদলান। আগের খরচের তথ্য বদলাবে না।")}</p>
               </div>
               <Button size="sm" onClick={() => { setCategoryEditor({name: ''}); setActionError(''); }}>
-                <Plus className="size-4" /> Add category
+                <Plus className="size-4" /> {text("Add category","ধরন যোগ করুন")}
               </Button>
             </div>
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs" >{text('Category','ধরন')}</TableHead>
-                  <TableHead className="h-9 text-xs">Description</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Active total</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Description','বিবরণ')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{text('Active total','চালু খরচের মোট')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
                   <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
                 </TableRow>
@@ -309,13 +310,13 @@ export function Expenses() {
                   return (
                     <TableRow key={category} className="text-[13px]">
                       <TableCell className="py-2 pl-4 font-medium text-ink">{category}</TableCell>
-                      <TableCell className="py-2 text-ink-500">Operating expense category</TableCell>
+                      <TableCell className="py-2 text-ink-500">{text("Operating expense category","দোকানের খরচের ধরন")}</TableCell>
                       <TableCell className="py-2 text-right">{amount ? taka(amount) : '—'}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone={active ? 'success' : 'neutral'} dot>{active ? 'Active' : 'Inactive'}</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={active ? 'success' : 'neutral'} dot>{text(active ? 'Active' : 'Inactive',active ? 'চালু' : 'বন্ধ')}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
                         <div className="flex flex-wrap justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => { setCategoryEditor({previous: category, name: category}); setActionError(''); }}>Edit</Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{active ? 'Deactivate' : 'Activate'}</Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setCategoryEditor({previous: category, name: category}); setActionError(''); }}>{text("Edit","সম্পাদনা")}</Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -330,20 +331,20 @@ export function Expenses() {
           <div>
             <div className="flex items-center justify-between gap-3 border-b border-border p-3">
               <div>
-                <p className="text-[13px] font-medium text-ink">Expense payees</p>
-                <p className="text-[11px] text-ink-500">Reusable payees. Payees with linked transactions cannot be deactivated.</p>
+                <p className="text-[13px] font-medium text-ink">{text("Expense payees","টাকা প্রাপকদের তালিকা")}</p>
+                <p className="text-[11px] text-ink-500">{text("Reusable payees. Payees with linked transactions cannot be deactivated.","প্রাপকের নাম আবার ব্যবহার করা যাবে। আগের লেনদেন থাকলে বন্ধ করা যাবে না।")}</p>
               </div>
               <Button size="sm" onClick={() => setPayeeEditor({})}>
-                <Plus className="size-4" /> Add payee
+                <Plus className="size-4" /> {text("Add payee","প্রাপক যোগ করুন")}
               </Button>
             </div>
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs" >{text('Payee','প্রাপক')}</TableHead>
-                  <TableHead className="h-9 text-xs">Phone</TableHead>
-                  <TableHead className="h-9 text-xs">Last used</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Total paid</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Phone','ফোন')}</TableHead>
+                  <TableHead className="h-9 text-xs">{text('Last used','শেষ ব্যবহার')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{text('Total paid','মোট দেওয়া')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
                   <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
                 </TableRow>
@@ -359,11 +360,11 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-600">{payee.phone || '—'}</TableCell>
                       <TableCell className="py-2 text-ink-500">{payee.lastUsed}</TableCell>
                       <TableCell className="py-2 text-right">{paid ? taka(paid) : '—'}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone={payee.active ? 'success' : 'neutral'} dot>{payee.active ? 'Active' : 'Inactive'}</StatusBadge></TableCell>
+                      <TableCell className="py-2"><StatusBadge tone={payee.active ? 'success' : 'neutral'} dot>{text(payee.active ? 'Active' : 'Inactive',payee.active ? 'চালু' : 'বন্ধ')}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
                         <div className="flex flex-wrap justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => setPayeeEditor({party: availableParties().find(p => p.id === payee.id)})}>Edit</Button>
-                          <Button variant="ghost" size="sm" disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')} title="Linked transaction history is retained; linked payees cannot be deactivated." onClick={() => { try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : 'Could not deactivate payee.'); } }}>Deactivate</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setPayeeEditor({party: availableParties().find(p => p.id === payee.id)})}>{text("Edit","সম্পাদনা")}</Button>
+                          <Button variant="ghost" size="sm" disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')} title={text("Linked transaction history is retained; linked payees cannot be deactivated.","আগের লেনদেন থাকবে। লেনদেন থাকা প্রাপককে বন্ধ করা যাবে না।")} onClick={() => { try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -458,17 +459,17 @@ export function Expenses() {
         onOpenChange={open => { setDialogOpen(open); if (!open) setEditing(null); }}
         nextRef={`EXP-${String(Math.max(61, ...expenses.map(e => Number(e.ref.replace('EXP-', '')) || 0)) + 1).padStart(6, '0')}`}
         onSavePurchase={() => undefined}
-        onSaveExpense={expense => { savePreviewExpense(expense); setDialogOpen(false); setEditing(null); setTab('expenses'); resetFilters(); toast.success(`${expense.ref} saved in preview`); }}
-        onSaveCorrection={(expense, reason) => { savePreviewExpense(expense, reason); setDialogOpen(false); setEditing(null); setSelectedId(expense.id); toast.success('Expense preview corrected'); }} />
+        onSaveExpense={expense => { savePreviewExpense(expense); setDialogOpen(false); setEditing(null); setTab('expenses'); resetFilters(); toast.success(`${expense.ref} ${text('saved in preview','প্রিভিউতে রাখা হয়েছে')}`); }}
+        onSaveCorrection={(expense, reason) => { savePreviewExpense(expense, reason); setDialogOpen(false); setEditing(null); setSelectedId(expense.id); toast.success(text('Expense preview corrected','প্রিভিউ খরচ সংশোধন হয়েছে')); }} />
       <BillDetailDialog bill={detail} onClose={() => setSelectedId(null)}
         onEdit={selected && selected.recordStatus !== 'Deleted' ? () => openCorrection(selected) : undefined}
         onPay={selected && selected.recordStatus !== 'Deleted' ? () => openCorrection(selected) : undefined}
         onReceiptChange={selected && selected.recordStatus !== 'Deleted' ? receipt => attachPreviewExpenseReceipt(selected.id, receipt) : undefined}
-        history={audit.filter(e => e.expenseId === selectedId).map(e => `${e.action} · ${e.reason || 'New expense'} · ${new Date(e.at).toLocaleString('en-GB', {timeZone: 'Asia/Dhaka'})}`)} />
+        history={audit.filter(e => e.expenseId === selectedId).map(e => `${e.action} · ${e.reason || text('New expense','নতুন খরচ')} · ${new Date(e.at).toLocaleString('en-GB', {timeZone: 'Asia/Dhaka'})}`)} />
       <Dialog open={!!categoryEditor} onOpenChange={open => !open && setCategoryEditor(null)}>
         <DialogContent role="dialog" aria-label={text("Expense category editor","খরচের ধরন বদলান")} className="max-h-[92dvh] overflow-y-auto sm:max-w-md">
           <DialogHeader><DialogTitle>{categoryEditor?.previous ? text('Edit category','ধরন বদলান') : text('Add category','ধরন যোগ করুন')}</DialogTitle><DialogDescription>{text('Choose a short name · খরচের ধরন','সহজ ছোট নাম দিন।')}</DialogDescription></DialogHeader>
-          <form onSubmit={event => { event.preventDefault(); if (!categoryEditor) return; try { if (categoryEditor.previous) renamePreviewExpenseCategory(categoryEditor.previous, categoryEditor.name); else createPreviewExpenseCategory(categoryEditor.name); refreshCategories(n => n + 1); setCategoryEditor(null); } catch(e) { setActionError(e instanceof Error ? e.message : 'Could not save category.'); } }} className="space-y-3">
+          <form onSubmit={event => { event.preventDefault(); if (!categoryEditor) return; try { if (categoryEditor.previous) renamePreviewExpenseCategory(categoryEditor.previous, categoryEditor.name); else createPreviewExpenseCategory(categoryEditor.name); refreshCategories(n => n + 1); setCategoryEditor(null); } catch(e) { setActionError(e instanceof Error ? e.message : text('Could not save category.','খরচের ধরন রাখা যায়নি।')); } }} className="space-y-3">
             <label className="block space-y-1 text-xs font-medium text-ink">{text('Category name','ধরনের নাম')}<Input autoFocus aria-label={text("Category name","খরচের ধরনের নাম")} value={categoryEditor?.name ?? ''} onChange={event => setCategoryEditor(current => current ? {...current, name: event.target.value} : null)} /></label>
             {actionError && <p role="alert" className="text-xs text-danger">{actionError}</p>}
             <DialogFooter><Button type="button" variant="outline" onClick={() => setCategoryEditor(null)}>{text('Cancel','বাতিল')}</Button><Button type="submit">{text('Save category','ধরন সংরক্ষণ')}</Button></DialogFooter>
@@ -476,7 +477,7 @@ export function Expenses() {
         </DialogContent>
       </Dialog>
       <PartyEditorDialog open={!!payeeEditor} party={payeeEditor?.party} defaultRole="Payee" onClose={() => setPayeeEditor(null)} onSave={(party, openings) => {
-        if (!party.roles.includes('Payee') && !party.roles.includes('Vendor')) throw new Error('Keep the Payee or Vendor relationship for expense entries.');
+        if (!party.roles.includes('Payee') && !party.roles.includes('Vendor')) throw new Error(text('Keep the Payee or Vendor relationship for expense entries.','খরচের জন্য প্রাপক বা ভেন্ডর পরিচয় রাখুন।'));
         if (payeeEditor?.party) dispatchPartyPreview({type: 'update-party', id: payeeEditor.party.id, patch: party, openings}); else dispatchPartyPreview({type: 'create-party', party, openings});
       }} />
       <Dialog open={!!cancelling} onOpenChange={open => !open && setCancelling(null)}>
@@ -485,7 +486,7 @@ export function Expenses() {
           <p className="text-sm">{cancelling?.payee} · {taka(cancelling?.amount ?? 0)}</p>
           <label className="space-y-1 text-xs font-medium text-ink">{text('Reason · কেন বাতিল','বাতিলের কারণ')}<Input aria-label={text("Expense cancellation reason","খরচ বাতিলের কারণ")} value={cancelReason} onChange={e => setCancelReason(e.target.value)} /></label>
           {actionError && <p role="alert" className="text-xs text-danger">{actionError}</p>}
-          <DialogFooter><Button variant="outline" onClick={() => setCancelling(null)}>{text('Keep expense','খরচ রাখুন')}</Button><Button onClick={() => { if (!cancelling) return; try { cancelPreviewExpense(cancelling.id, cancelReason); setCancelling(null); toast.success('Expense cancelled in preview'); } catch(e) { setActionError(e instanceof Error ? e.message : 'Cannot cancel expense.'); } }}>{text('Confirm cancellation','বাতিল নিশ্চিত করুন')}</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setCancelling(null)}>{text('Keep expense','খরচ রাখুন')}</Button><Button onClick={() => { if (!cancelling) return; try { cancelPreviewExpense(cancelling.id, cancelReason); setCancelling(null); toast.success(text('Expense cancelled in preview','প্রিভিউ খরচ বাতিল হয়েছে')); } catch(e) { setActionError(e instanceof Error ? e.message : text('Cannot cancel expense.','খরচ বাতিল করা যায়নি।')); } }}>{text('Confirm cancellation','বাতিল নিশ্চিত করুন')}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

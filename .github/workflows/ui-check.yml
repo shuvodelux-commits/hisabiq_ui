@@ -105,6 +105,9 @@ jobs:
       - name: Check Phase 18 purchase list and source return language
         run: npm run test:bangla-purchases
 
+      - name: Check Phase 19 Expenses in three languages
+        run: npm run test:bangla-expenses
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
