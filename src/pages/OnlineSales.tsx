@@ -72,15 +72,15 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
  return <Dialog open={true} onOpenChange={value=>!value&&onClose()}>
  <DialogContent className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-4xl" role="dialog" aria-label={ol(original?'Edit online order':'New online order')}>
   <DialogHeader><DialogTitle>{ol(original?'Edit order draft':'New online order')} {showHelper&&<span className="font-bn text-xs font-normal text-ink-500">· অনলাইন অর্ডার</span>}</DialogTitle>
-   <DialogDescription>Manual order entry for Facebook, WhatsApp, Instagram or other channels. Draft only — no accounting posting.</DialogDescription></DialogHeader>
+   <DialogDescription>{ol('Manual order entry for Facebook, WhatsApp, Instagram or other channels. Draft only — no accounting posting.')}</DialogDescription></DialogHeader>
   <div className="grid gap-3 sm:grid-cols-2">
-   <label className="space-y-1 text-xs font-medium text-ink">Selling channel · <span className="font-bn text-ink-400">বিক্রির উৎস</span>
+   <label className="space-y-1 text-xs font-medium text-ink">{ol('Selling channel')}{showHelper&&<> · <span className="font-bn text-ink-400">বিক্রির উৎস</span></>}
     <AppSelect label={ol("Sales channel")} value={draft.channel} options={onlineOptions(language,channels)} onChange={v=>patch({channel:v as SalesChannel})}/>
    </label>
    <label className="space-y-1 text-xs font-medium text-ink">{ol("Inbox / live / campaign reference")}
     <Input aria-label={ol("Source reference")} value={draft.sourceReference} onChange={e=>patch({sourceReference:e.target.value})} placeholder={ol("Page inbox, DM or live order ID")}/>
    </label>
-   <label className="space-y-1 text-xs font-medium text-ink">Existing customer (optional)
+   <label className="space-y-1 text-xs font-medium text-ink">{ol('Existing customer (optional)')}
     <AppSelect label={ol("Choose existing customer")} value={draft.partyId??''}
       options={[{value:'',label:ol('Walk-in / new contact')},...customers.map(p=>({value:p.id,label:p.name+' · '+p.phone}))]}
       onChange={id=>{const c=customers.find(p=>p.id===id);patch({partyId:c?.id,customerName:c?.name??'',phone:c?.phone?.replace(/[ -]/g,'')??''});}}/>
@@ -88,10 +88,10 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
    <label className="space-y-1 text-xs font-medium text-ink">{ol("Customer name")}
     <Input aria-label={ol("Online customer name")} value={draft.customerName} onChange={e=>patch({customerName:e.target.value,partyId:undefined})} placeholder={ol("Buyer name")}/>
    </label>
-   <label className="space-y-1 text-xs font-medium text-ink">Mobile · <span className="font-bn text-ink-400">মোবাইল</span>
+   <label className="space-y-1 text-xs font-medium text-ink">{ol('Mobile')}{showHelper&&<> · <span className="font-bn text-ink-400">মোবাইল</span></>}
     <Input aria-label={ol("Customer mobile")} value={draft.phone} onChange={e=>patch({phone:e.target.value})} placeholder="017XXXXXXXX"/>
    </label>
-   <label className="space-y-1 text-xs font-medium text-ink">Delivery address · <span className="font-bn text-ink-400">ঠিকানা</span>
+   <label className="space-y-1 text-xs font-medium text-ink">{ol('Delivery address')}{showHelper&&<> · <span className="font-bn text-ink-400">ঠিকানা</span></>}
     <Input aria-label={ol("Delivery address")} value={draft.address} onChange={e=>patch({address:e.target.value})} placeholder={ol("Area, city, house/road")}/>
    </label>
   </div>
@@ -100,8 +100,8 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
    </p>}
   <div className="space-y-2 border-t border-border pt-3">
    <div className="flex items-center justify-between">
-    <strong className="text-sm text-ink">Products · <span className="font-bn font-normal">পণ্য</span></strong>
-    <span className="text-xs text-ink-500">{draft.lines.length} lines · POS-style entry</span>
+    <strong className="text-sm text-ink">{ol('Products')}{showHelper&&<> · <span className="font-bn font-normal">পণ্য</span></>}</strong>
+    <span className="text-xs text-ink-500">{draft.lines.length} {ol('lines · POS-style entry')}</span>
    </div>
    <TransactionCartEditor mode="online" products={products} lines={draft.lines}
     locked={Boolean(draft.sourceQuoteId)} onAdd={addProduct} onUpdate={updateLine}
@@ -115,9 +115,9 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
   </div>
   <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
    <div className="space-y-2">
-    <label className="block space-y-1 text-xs font-medium text-ink">Payment type · <span className="font-bn text-ink-400">পেমেন্ট পদ্ধতি</span>
+    <label className="block space-y-1 text-xs font-medium text-ink">{ol('Payment type')}{showHelper&&<> · <span className="font-bn text-ink-400">পেমেন্ট পদ্ধতি</span></>}
      <AppSelect label={ol("Order payment mode")} value={draft.paymentMode} options={onlineOptions(language,paymentModes)} onChange={paymentSwitch}/></label>
-    <label className="block space-y-1 text-xs font-medium text-ink">Advance actually received (preview)
+    <label className="block space-y-1 text-xs font-medium text-ink">{ol('Advance actually received (preview)')}
      <Input aria-label={ol("Prepaid amount")} type="number" min="0" step="any" value={draft.prepaid}
       disabled={draft.paymentMode==='COD'||draft.paymentMode==='Delivery charge advance'||draft.paymentMode==='Fully paid'}
       onChange={e=>patch({prepaid:Number(e.target.value)})}/></label>
@@ -135,7 +135,7 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
     <div className="flex justify-between border-t border-border pt-2"><strong>{ol("Grand total")}</strong><strong>{totals?taka(totals.grand):'Invalid'}</strong></div>
     <div className="flex justify-between"><span>{ol("Received advance")}</span><strong>{totals?taka(totals.advance):'—'}</strong></div>
     <div className="flex justify-between text-sm font-semibold text-teal-700 dark:text-teal-400"><span>{ol("Courier COD to collect")}</span><span>{totals?taka(totals.cod):'—'}</span></div>
-    <p className="text-[11px] text-ink-500">Advance is a preview value; no Cash/Bank/MFS account is posted.</p>
+    <p className="text-[11px] text-ink-500">{ol('Advance is a preview value; no Cash/Bank/MFS account is posted.')}</p>
    </div>
   </div>
   {error&&<p role="alert" className="rounded-lg bg-danger-bg p-2 text-xs text-danger">{error}</p>}
@@ -172,7 +172,7 @@ function OrderActionDialog({order,action,onClose}:{order:OnlineOrder;action:Orde
     <label className="block space-y-1">{ol("Tracking / reference number")}
      <Input aria-label={ol("Tracking number")} value={tracking} onChange={e=>setTracking(e.target.value)}/></label>
    </>:action==='cod'?<>
-    <p>{ol("Expected COD:")} <strong>{taka(orderTotals(order).cod)}</strong>. Delivery is not a bank receipt.</p>
+    <p>{ol('Expected COD:')} <strong>{taka(orderTotals(order).cod)}</strong>. {ol('Delivery is not a bank receipt.')}</p>
     <label className="block space-y-1">{ol("Courier-reported collected amount")}
      <Input aria-label={ol("Courier reported COD")} type="number" min="0" value={collected} onChange={e=>setCollected(e.target.value)}/></label>
     <label className="block space-y-1">{ol("Courier fee / deductions")}
@@ -208,7 +208,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
   <DialogHeader><DialogTitle>{order.number} <StatusBadge tone={stageTone(order.stage)}>{ol(order.stage)}</StatusBadge></DialogTitle>
   <DialogDescription>{order.channel} · {order.customerName} · {ol('manual UI preview')}</DialogDescription></DialogHeader>
   <div className="grid gap-3 text-xs sm:grid-cols-2">
-   <div className="rounded-lg border border-border p-3"><strong>Customer & delivery</strong><p className="mt-1">{order.customerName} · {order.phone}</p><p>{order.address}</p><p className="text-ink-500">{order.sourceReference}</p></div>
+   <div className="rounded-lg border border-border p-3"><strong>{ol('Customer & delivery')}</strong><p className="mt-1">{order.customerName} · {order.phone}</p><p>{order.address}</p><p className="text-ink-500">{order.sourceReference}</p></div>
    <div className="rounded-lg border border-border p-3"><strong>{ol("Courier")}</strong><p className="mt-1">{order.courier??ol('Not assigned')}</p><p>{order.tracking??ol('No tracking number')}</p>
     <p className="text-ink-500">{ol("Tracking is manual, not live.")}</p></div>
   </div>
@@ -221,11 +221,11 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
    <p>{ol("Advance recorded:")} <strong>{taka(totals.advance)}</strong></p><p>{ol("COD expected:")} <strong>{taka(totals.cod)}</strong></p>
    <p>{ol("Courier reported COD:")} <strong>{taka(clearing.reported)}</strong></p><p>{ol("Courier fee:")} <strong>{taka(clearing.fee)}</strong></p>
    <p>{ol("Remitted:")} <strong>{taka(clearing.remitted)}</strong></p><p>{ol("Pending clearing:")} <strong>{taka(clearing.pending)}</strong></p>
-   {clearing.gap>0&&order.stage==='Delivered'&&<p className="sm:col-span-2 text-warning">Difference between expected and reported COD: {taka(clearing.gap)}</p>}
+   {clearing.gap>0&&order.stage==='Delivered'&&<p className="sm:col-span-2 text-warning">{ol('Difference between expected and reported COD:')} {taka(clearing.gap)}</p>}
   </div>
   <div className="flex flex-wrap gap-2">
    {order.stage==='Draft'&&<Button size="sm" variant="outline" onClick={onEdit}>{ol("Edit draft")}</Button>}
-   {['Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={onPos}>Open in POS V2 (preview)</Button>}
+   {['Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={onPos}>{ol('Open in POS V2 (preview)')}</Button>}
    {documentTitles.map(kind=><Button key={kind} size="sm" variant="outline" onClick={()=>setDocumentKind(kind)}>{ol(kind)}</Button>)}
    {['Draft','Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={()=>setAction('courier')}>{ol("Assign courier")}</Button>}
    {(allowed[order.stage]??[]).map(stage=><Button key={stage} size="sm" variant={stage==='Cancelled'?'outline':'default'} onClick={()=>nextStage(stage)}>{ol(stage)}</Button>)}
@@ -234,9 +234,9 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
     {clearing.pending>0&&<Button size="sm" variant="outline" onClick={()=>setAction('payout')}>{ol("Record payout")}</Button>}
    </>}
   </div>
-  <label className="space-y-1 text-xs text-ink-500">Stage note (optional)
+  <label className="space-y-1 text-xs text-ink-500">{ol('Stage note (optional)')}
    <Input aria-label={ol("Order stage note")} placeholder={ol("Handover person, delivery exception...")} value={note} onChange={e=>setNote(e.target.value)}/></label>
-  <div className="space-y-2 border-t border-border pt-3"><strong className="text-sm text-ink">Activity timeline · কার্যক্রম</strong>
+  <div className="space-y-2 border-t border-border pt-3"><strong className="text-sm text-ink">{ol('Activity timeline')}</strong>
    <div className="max-h-40 space-y-2 overflow-auto">
     {[...order.timeline].reverse().map((h,i)=><div key={i} className="border-l-2 border-teal-500 pl-3 text-xs">
      <strong>{ol(h.action)}</strong><p className="text-ink-500">{h.at.slice(0,19)} · {h.by}{h.note?' · '+h.note:''}</p></div>)}
@@ -245,7 +245,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
  </DialogContent></Dialog>
  {action&&<OrderActionDialog order={order} action={action} onClose={()=>setAction(null)}/>}
  {documentKind&&<Dialog open={true} onOpenChange={v=>!v&&setDocumentKind(null)}><DialogContent role="dialog" aria-label={'Print '+documentKind} className="max-h-[95vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
-   <style>{fulfillmentPrintCss}</style><DialogHeader><DialogTitle>{ol(documentKind)}</DialogTitle><DialogDescription>Print preview — no shipment, invoice, stock, or financial posting.</DialogDescription></DialogHeader>
+   <style>{fulfillmentPrintCss}</style><DialogHeader><DialogTitle>{ol(documentKind)}</DialogTitle><DialogDescription>{ol('Print preview — no shipment, invoice, stock, or financial posting.')}</DialogDescription></DialogHeader>
    <FulfillmentDocumentPreview order={order} kind={documentKind}/><DialogFooter><Button variant="outline" onClick={()=>setDocumentKind(null)}>{ol("Close")}</Button><Button onClick={()=>printFulfillment(documentKind)}>{ol("Print document")}</Button></DialogFooter>
   </DialogContent></Dialog>}
  </>;
@@ -267,13 +267,13 @@ function LeadsTab(){
    <Button size="sm" onClick={()=>setAdd(true)}><Plus className="size-4"/> {ol("Add lead")}</Button></div>
   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{leads.map(lead=><div key={lead.id} className="space-y-2 rounded-xl border border-border bg-card p-4">
    <div className="flex justify-between gap-2"><strong className="text-sm text-ink">{lead.name}</strong><span className="text-xs text-teal-700 dark:text-teal-400">{lead.channel}</span></div>
-   <p className="text-xs text-ink-500">{lead.phone} · Follow up: {lead.nextFollowUp||ol('Not scheduled')}</p>
+   <p className="text-xs text-ink-500">{lead.phone} · {ol('Follow up:')} {lead.nextFollowUp||ol('Not scheduled')}</p>
    <p className="min-h-7 text-xs">{lead.note||ol('No notes yet')}</p>
    <AppSelect label={ol('CRM stage')+' '+lead.name} value={lead.stage} options={onlineOptions(language,['New','Contacted','Interested','Won','Lost'])}
     onChange={value=>move(lead,value as LeadStage)}/>
   </div>)}</div>
   <Dialog open={add} onOpenChange={v=>setAdd(v)}><DialogContent role="dialog" aria-label={ol("New CRM lead")} className="sm:max-w-lg">
-   <DialogHeader><DialogTitle>New CRM lead · নতুন অনুসন্ধান</DialogTitle><DialogDescription>Record inquiry and next follow-up; no messages are sent.</DialogDescription></DialogHeader>
+   <DialogHeader><DialogTitle>{ol('New CRM lead')}{showHelper&&' · নতুন অনুসন্ধান'}</DialogTitle><DialogDescription>{ol('Record inquiry and next follow-up; no messages are sent.')}</DialogDescription></DialogHeader>
    <div className="space-y-3 text-xs"><label className="block space-y-1">{ol("Name")}<Input aria-label={ol("Lead name")} value={name} onChange={e=>setName(e.target.value)}/></label>
     <label className="block space-y-1">{ol("Phone")}<Input aria-label={ol("Lead phone")} value={phone} onChange={e=>setPhone(e.target.value)}/></label>
     <label className="block space-y-1">{ol("Source")}<AppSelect label={ol("Lead channel")} value={channel} options={onlineOptions(language,channels)} onChange={v=>setChannel(v as SalesChannel)}/></label>
@@ -360,7 +360,7 @@ export function OnlineSales(){
       </div>})}
       {!filtered.length&&<p className="p-7 text-center text-sm text-ink-500">{ol("No orders match your filters.")}</p>}
      </div>
-     {tab==='Courier & COD'&&<p className="text-xs text-ink-500">Courier reported COD and actual bank remittance are separate. Manual tracking ≠ live courier API.</p>}
+     {tab==='Courier & COD'&&<p className="text-xs text-ink-500">{ol('Courier reported COD and actual bank remittance are separate. Manual tracking ≠ live courier API.')}</p>}
     </>:tab==='CRM Leads'?<LeadsTab/>:<NotificationsTab/>}
    </div>
   </div>
