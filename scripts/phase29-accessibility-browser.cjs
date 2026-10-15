@@ -26,7 +26,7 @@ async function main(){
     await page.waitForTimeout(100);
     await page.addScriptTag({content:axe});
     const results=await page.evaluate(async()=>{
-     const a=await axe.run(document,{runOnly:{type:'rule',values:['label-content-name-mismatch','nested-interactive']}});
+     const a=await axe.run(document,{runOnly:{type:'rule',values:['label-content-name-mismatch','nested-interactive','scrollable-region-focusable']}});
      return a.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}));
     });
     assert.deepEqual(results,[],language+' '+route+' accessible names and interactive semantics');
