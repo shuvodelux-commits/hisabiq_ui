@@ -44,7 +44,9 @@ test('source-safe product editing retains unit, warranty, serial, lot and quick-
  assert.match(settings,/\['units', 'Units', Ruler\]/);
  assert.match(settings,/\['brands', 'Brands', Tags\]/);
  assert.match(settings,/\['defaults', 'Defaults', Settings2\]/);
- assert.match(dialog,/options=\{productFormOptions\(language,serialModes\)\}/u===null? /serialModes/ : /serialModes/);
+ assert.ok(dialog.includes("productFormOptions(language,warrantyUnits)"));
+ assert.ok(dialog.includes("productFormOptions(language,warrantyTypes)"));
+ assert.ok(dialog.includes("productFormOptions(language,allocationMethods)"));
  assert.doesNotMatch(dialog,/setSerialTracking\(pl\(/);
  assert.doesNotMatch(settings,/createPreviewProductCategory\(pl\(/);
 });
