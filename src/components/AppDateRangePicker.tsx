@@ -103,9 +103,14 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
       const width = Math.min(single ? 350 : 655, window.innerWidth - 16);
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
       const below = window.innerHeight - rect.bottom - 8, above = rect.top - 8;
-      const height = Math.min(480, Math.max(below, above));
-      const top = below < 340 && above > below ? Math.max(8, rect.top - height - 4) : rect.bottom + 4;
-      setPosition({ left, top, width, maxHeight: Math.min(height, window.innerHeight - 16) });
+      const openAbove = below < 340 && above > below;
+      // Measure the side actually chosen. Using max(below,above) while opening
+      // below could put the calendar's footer outside the viewport on phones.
+      const space = Math.max(0, openAbove ? above : below);
+      const height = Math.min(480, Math.max(120, space - 4), window.innerHeight - 16);
+      const top = openAbove ? Math.max(8, rect.top - height - 4)
+        : Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - height - 8));
+      setPosition({ left, top, width, maxHeight: height });
     };
     place();
     window.addEventListener('resize', place);
