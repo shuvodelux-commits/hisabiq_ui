@@ -2,6 +2,10 @@ import {uiText,type UiLanguage} from './uiCopy.ts';
 
 /** Display-only inventory glossary. IDs, stock transactions, enum values and stored notes remain unchanged. */
 const bangla:Record<string,string>={
+ "No expiry date": "মেয়াদের তারিখ নেই",
+ "off": "ছাড়",
+ "discount": "ছাড়",
+ "Fixed discount is per": "প্রতি",
  "Effective": "ছাড়ের দাম",
  "Amount": "টাকা",
  "Optional": "ঐচ্ছিক",
