@@ -26,6 +26,7 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { useUiCopy } from '../i18n/useUiCopy';
+import {salesLabel,salesOptions} from '../i18n/salesCopy';
 import type {UiLanguage} from '../i18n/uiCopy';
 import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
@@ -109,9 +110,11 @@ function SalesColumnPicker({
   visible: Record<SalesColumn, boolean>;
   onToggle: (column: SalesColumn) => void;
 }) {
+  const {language}=useUiCopy();
+  const sl=(english:string)=>salesLabel(language,english);
   return (
     <FloatingPanel
-      label="Choose sales invoice columns"
+      label={sl("Choose sales invoice columns")}
       width={210}
       trigger={({ toggle, open }) => (
         <button
@@ -119,7 +122,7 @@ function SalesColumnPicker({
           onClick={toggle}
           aria-expanded={open}
           className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
-          Columns
+          {sl('Columns')}
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
       )}>
@@ -133,7 +136,7 @@ function SalesColumnPicker({
               aria-checked={visible[column.id]}
               onClick={() => onToggle(column.id)}
               className="flex w-full items-center justify-between gap-4 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-              <span>{column.label}</span>
+              <span>{sl(column.label)}</span>
               {visible[column.id] && <Check className="size-4 text-ink" />}
             </button>
           ))}
@@ -168,11 +171,12 @@ function InvoiceActions({
 }) {
   const navigate = useNavigate();
   const {language}=useUiCopy();
+  const sl=(english:string)=>salesLabel(language,english);
   const itemClass = 'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
 
   return (
     <FloatingPanel
-      label={`Actions for ${invoice.invoice}`}
+      label={`${sl('Actions for')} ${invoice.invoice}`}
       width={210}
       trigger={({ toggle, open }) => (
         <button
@@ -181,7 +185,7 @@ function InvoiceActions({
             toggle();
           }}
           aria-expanded={open}
-          aria-label={`Actions for ${invoice.invoice}`}
+          aria-label={`${sl('Actions for')} ${invoice.invoice}`}
           className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
           <MoreHorizontal className="size-4" />
         </button>
@@ -189,32 +193,32 @@ function InvoiceActions({
       {(close) => (
         <div className="py-1" onClick={(event) => event.stopPropagation()}>
           <button className={itemClass} onClick={() => { close(); onView(); }}>
-            <FileText className="size-4 text-ink-400" /> View invoice
+            <FileText className="size-4 text-ink-400" /> {sl('View invoice')}
           </button>
           <button className={itemClass} onClick={() => { close(); navigate(`/app/pos?mode=edit&invoice=${invoice.invoice}`); }}>
-            <Pencil className="size-4 text-ink-400" /> Edit sale
+            <Pencil className="size-4 text-ink-400" /> {sl('Edit sale')}
           </button>
           <button className={itemClass} onClick={() => { close(); navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`); }}>
-            <Copy className="size-4 text-ink-400" /> Duplicate
+            <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
           </button>
           {invoice.due > 0 && (
             <button className={itemClass} onClick={() => { close(); onPayment(); }}>
-              <Banknote className="size-4 text-ink-400" /> Take payment
+              <Banknote className="size-4 text-ink-400" /> {sl('Take payment')}
             </button>
           )}
           <button className={itemClass} onClick={() => { close(); onReturn(); }}>
-            <CornerUpLeft className="size-4 text-ink-400" /> Return items
+            <CornerUpLeft className="size-4 text-ink-400" /> {sl('Return items')}
           </button>
           <button className={itemClass} onClick={() => { close(); navigate(`/app/warranty?invoice=${invoice.invoice}`); }}>
-            <ShieldCheck className="size-4 text-ink-400" /> Receive warranty
+            <ShieldCheck className="size-4 text-ink-400" /> {sl('Receive warranty')}
           </button>
           {invoice.partyId && (
             <button className={itemClass} onClick={() => { close(); navigate(`/app/parties?id=${invoice.partyId}`); }}>
-              <UserRound className="size-4 text-ink-400" /> Customer ledger
+              <UserRound className="size-4 text-ink-400" /> {sl('Customer ledger')}
             </button>
           )}
           <button className={itemClass} onClick={() => { close(); printInvoice(invoice,language); }}>
-            <Printer className="size-4 text-ink-400" /> Print
+            <Printer className="size-4 text-ink-400" /> {sl('Print')}
           </button>
         </div>
       )}
