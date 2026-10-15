@@ -203,7 +203,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
  const nextStage=(s:OrderStage)=>{try{updateOrderStage(order.id,s,note);toast.success(ol('Order stage updated in preview'));setNote('');}
   catch(e){toast.error(e instanceof Error?e.message:String(e));}};
  return <>
- <Dialog open onOpenChange={v=>!v&&onClose()}><DialogContent role="dialog" aria-label={'Online order '+order.number}
+ <Dialog open onOpenChange={v=>!v&&onClose()}><DialogContent role="dialog" aria-label={ol('Online order')+' '+order.number}
   className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
   <DialogHeader><DialogTitle>{order.number} <StatusBadge tone={stageTone(order.stage)}>{ol(order.stage)}</StatusBadge></DialogTitle>
   <DialogDescription>{order.channel} · {order.customerName} · {ol('manual UI preview')}</DialogDescription></DialogHeader>
