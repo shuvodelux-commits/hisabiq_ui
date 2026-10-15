@@ -1149,8 +1149,8 @@ export function Sales() {
 
               <div className="rounded-xl border border-border bg-card">
                 <div className="border-b border-border p-3">
-                  <p className="text-[13px] font-medium text-ink">Select invoices <span className="font-bn text-[11px] font-normal text-ink-400">· ইনভয়েস বাছুন</span></p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Choose one or more invoices for a batch return.</p>
+                  <p className="text-[13px] font-medium text-ink">{sl('Select invoices')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ইনভয়েস বাছুন</span>}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">{sl("Choose one or more invoices for a batch return.")}</p>
                 </div>
                 <div className="divide-y divide-border">
                   {customerInvoices.map((invoice) => (
@@ -1180,8 +1180,8 @@ export function Sales() {
 
             <div className="rounded-xl border border-border bg-card">
               <div className="border-b border-border p-3">
-                <p className="text-[13px] font-medium text-ink">Return items <span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span></p>
-                <p className="mt-0.5 text-[11px] text-ink-500">Enter quantity against any item from the selected invoices.</p>
+                <p className="text-[13px] font-medium text-ink">{sl('Return items')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span>}</p>
+                <p className="mt-0.5 text-[11px] text-ink-500">{sl("Enter quantity against any item from the selected invoices.")}</p>
               </div>
 
               {selectedReturnLines.length ? (
@@ -1189,10 +1189,10 @@ export function Sales() {
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-9 pl-3 text-xs">Invoice / item</TableHead>
-                        <TableHead className="h-9 text-xs">Sold</TableHead>
-                        <TableHead className="h-9 w-36 text-xs">Return qty</TableHead>
-                        <TableHead className="h-9 pr-3 text-right text-xs">Refund</TableHead>
+                        <TableHead className="h-9 pl-3 text-xs">{sl('Invoice / item')}</TableHead>
+                        <TableHead className="h-9 text-xs">{sl('Sold')}</TableHead>
+                        <TableHead className="h-9 w-36 text-xs">{sl('Return qty')}</TableHead>
+                        <TableHead className="h-9 pr-3 text-right text-xs">{sl('Refund')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1208,21 +1208,21 @@ export function Sales() {
                                   <FormSelect
                                     value={returnReason[line.id] ?? 'Customer return'}
                                     onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
-                                    options={['Customer return', 'Damaged', 'Wrong item', 'Warranty claim']}
+                                    options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
                                   />
                                   {line.serials?.length ? (
                                     <>
                                       <Input
                                         value={returnSerials[line.id] ?? ''}
                                         onChange={(event) => setReturnSerials((value) => ({ ...value, [line.id]: event.target.value }))}
-                                        placeholder="Returned serial, comma separated"
+                                        placeholder={sl("Returned serial, comma separated")}
                                         className="h-8"
                                       />
-                                      <p className="text-[10.5px] text-ink-400">Sold serials: {line.serials.join(', ')}</p>
+                                      <p className="text-[10.5px] text-ink-400">{sl('Sold serials:')} {line.serials.join(', ')}</p>
                                     </>
                                   ) : null}
                                   {(returnReason[line.id] ?? 'Customer return') === 'Warranty claim' && (
-                                    <p className="text-[10.5px] text-teal-700">This return will be available for warranty intake.</p>
+                                    <p className="text-[10.5px] text-teal-700">{sl("This return will be available for warranty intake.")}</p>
                                   )}
                                 </div>
                               )}
@@ -1240,7 +1240,7 @@ export function Sales() {
                                 <span className="w-10 text-[11px] text-ink-400">{line.unit}</span>
                               </div>
                               <p className={`mt-1 text-[10.5px] ${qty > returnLimit(line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
-                                max {returnLimit(line)} {line.unit}
+                                {sl('max')} {returnLimit(line)} {line.unit}
                               </p>
                             </TableCell>
                             <TableCell className="py-2 pr-3">
@@ -1250,7 +1250,7 @@ export function Sales() {
                                   onChange={(event) => setReturnPrice((value) => ({ ...value, [line.id]: event.target.value.replace(/[^\d.]/g, '') }))}
                                   inputMode="decimal"
                                   className="h-8 text-right"
-                                  aria-label={`Return price for ${line.name}`}
+                                  aria-label={`${sl('Return price for')} ${line.name}`}
                                 />
                                 <p className="mt-1 text-right text-[10.5px] text-ink-400">
                                   {qty > 0 ? taka(qty * returnPriceFor(line)) : `/${line.unit}`}
@@ -1265,30 +1265,30 @@ export function Sales() {
 
                   <div className="grid gap-3 border-t border-border bg-ink-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_180px_160px] sm:items-end">
                     <label className="text-[12px] font-medium text-ink">
-                      Settlement
+                      {sl('Settlement')}
                       <FormSelect
                         className="mt-1"
                         value={returnSettlement}
                         onChange={(event) => setReturnSettlement(event.target.value as SalesReturn['settlement'])}
-                        options={['Adjust due', 'Customer credit', 'Cash refund']}
+                        options={salesOptions(language,['Adjust due', 'Customer credit', 'Cash refund'])}
                       />
                       <span className="mt-1 block text-[10.5px] font-normal text-ink-400">
                         {returnSettlement === 'Adjust due'
-                          ? `Selected invoice due ${taka(selectedReturnDue)}. Any extra return value becomes customer credit.`
+                          ? `${sl('Selected invoice due')} ${taka(selectedReturnDue)}. ${sl('Any extra return value becomes customer credit.')}`
                           : returnSettlement === 'Customer credit'
-                            ? 'Keep the full return value on the customer account.'
-                            : 'Refund the return value from cash or another payment account.'}
+                            ? sl('Keep the full return value on the customer account.')
+                            : sl('Refund the return value from cash or another payment account.')}
                       </span>
                     </label>
                     <div className="rounded-lg bg-ink-50 px-3 py-2">
-                      <p className="text-[11px] text-ink-400">Return amount</p>
+                      <p className="text-[11px] text-ink-400">{sl('Return amount')}</p>
                       <p className="text-base font-semibold text-ink">{taka(returnAmount)}</p>
                     </div>
-                    <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> Complete return</Button>
+                    <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> {sl('Complete return')}</Button>
                     {returnSettlement === 'Cash refund' && (
                       <div className="grid gap-3 sm:col-span-3 sm:grid-cols-2">
                         <label className="text-[12px] font-medium text-ink">
-                          Refund method
+                          {sl('Refund method')}
                           <FormSelect
                             className="mt-1"
                             value={returnRefundMethod}
@@ -1297,12 +1297,12 @@ export function Sales() {
                           />
                         </label>
                         <label className="text-[12px] font-medium text-ink">
-                          Refund account
+                          {sl('Refund account')}
                           <Input
                             className="mt-1"
                             value={returnRefundAccount}
                             onChange={(event) => setReturnRefundAccount(event.target.value)}
-                            placeholder={returnRefundMethod === 'Cash' ? 'Cash counter' : 'Bank / wallet account'}
+                            placeholder={sl(returnRefundMethod === 'Cash' ? 'Cash counter' : 'Bank / wallet account')}
                           />
                         </label>
                       </div>
@@ -1312,8 +1312,8 @@ export function Sales() {
               ) : (
                 <div className="px-4 py-16 text-center">
                   <CornerUpLeft className="mx-auto size-7 text-helper" />
-                  <p className="mt-2 font-medium text-ink">Select one or more invoices</p>
-                  <p className="mt-1 text-sm text-ink-500">Their items will appear here for a batch return.</p>
+                  <p className="mt-2 font-medium text-ink">{sl("Select one or more invoices")}</p>
+                  <p className="mt-1 text-sm text-ink-500">{sl("Their items will appear here for a batch return.")}</p>
                 </div>
               )}
             </div>
@@ -1324,12 +1324,12 @@ export function Sales() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 pl-4 text-xs">Return</TableHead>
+                <TableHead className="h-9 pl-4 text-xs">{sl('Return')}</TableHead>
                 <TableHead className="h-9 text-xs">{sl('Customer')}</TableHead>
-                <TableHead className="h-9 text-xs">Invoices</TableHead>
+                <TableHead className="h-9 text-xs">{sl('Invoices')}</TableHead>
                 <TableHead className="h-9 text-xs">{sl('Items')}</TableHead>
-                <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                <TableHead className="h-9 text-xs">Settlement</TableHead>
+                <TableHead className="h-9 text-right text-xs">{sl('Amount')}</TableHead>
+                <TableHead className="h-9 text-xs">{sl('Settlement')}</TableHead>
                 <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -1396,7 +1396,7 @@ export function Sales() {
             <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[13px] font-medium text-ink">Customer payments & credit <span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span></p>
-                <p className="mt-0.5 text-[11px] text-ink-500">Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.</p>
+                <p className="mt-0.5 text-[11px] text-ink-500">{sl("Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.")}</p>
               </div>
               <Button size="sm" onClick={() => setCustomerPaymentOpen(true)}>
                 <Plus className="size-4" /> Receive customer payment
@@ -1407,9 +1407,9 @@ export function Sales() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">{sl('Customer')}</TableHead>
-                  <TableHead className="h-9 text-xs">Source</TableHead>
-                  <TableHead className="h-9 text-xs">Updated</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Credit balance</TableHead>
+                  <TableHead className="h-9 text-xs">{sl('Source')}</TableHead>
+                  <TableHead className="h-9 text-xs">{sl('Updated')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{sl('Credit balance')}</TableHead>
                   <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>
                   <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
