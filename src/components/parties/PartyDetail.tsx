@@ -68,7 +68,7 @@ export function PartyDetail({
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
-  const {text}=useUiCopy();
+  const {text,showHelper}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
@@ -119,10 +119,10 @@ export function PartyDetail({
   const currentBalance=balanceSummary.netBalance;
   const isReceivable = currentBalance > 0;
   const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
-  const balanceLabel = relationship==='Owner'?text('Owner capital · মূলধন','মালিকের মূলধন'):
-    relationship==='Lender'?text('Lender loan · ঋণ','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance · পাওনা','ঋণগ্রহীতার কাছে পাওনা'):
-    relationship==='Supplier'?text('Supplier payable · দেনা','সরবরাহকারীকে দেনা'):
-    relationship==='Customer'?text('Customer balance · কাস্টমার খাতা','ক্রেতার হিসাব'):relationship+' balance';
+  const balanceLabel = relationship==='Owner'?text('Owner capital','মালিকের মূলধন'):
+    relationship==='Lender'?text('Lender loan','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
+    relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
+    relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
 
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
@@ -146,10 +146,10 @@ export function PartyDetail({
         </div>
         {vendorProfile?<div className="flex flex-wrap gap-2">
          <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
-          <p className="text-[11px] text-danger">{text('You owe · দেনা','আপনাকে দিতে হবে')}</p>
+          <p className="text-[11px] text-danger">{text('You owe','আপনাকে দিতে হবে')}{showHelper&&' · দেনা'}</p>
           <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
          <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
-          <p className="text-[11px] text-ink-600">{text('Vendor owes · পাওনা','ভেন্ডরের কাছে পাওনা')}</p>
+          <p className="text-[11px] text-ink-600">{text('Vendor owes','ভেন্ডরের কাছে পাওনা')}{showHelper&&' · পাওনা'}</p>
           <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
           {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
            {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}</p>}
@@ -166,43 +166,43 @@ export function PartyDetail({
       </div>
 
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
-        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>Pay Vendor · টাকা দিন</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>Receive Money · টাকা নিন</Button>
+        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
-         <BookOpen className="size-4"/> Opening Balance</Button>
+         <BookOpen className="size-4"/> {text('Opening Balance','শুরুর জের')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
-        <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> Add Note</Button>
+        <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
        </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
-          title={relationship==='Customer'||relationship==='Supplier'?'Record payment in browser preview':'Finance-role payments require the separate finance workflow'}
+          title={relationship==='Customer'||relationship==='Supplier'?text('Record payment in browser preview','প্রিভিউতে টাকা নেওয়া-দেওয়ার হিসাব রাখুন'):text('Finance-role payments require the separate finance workflow','এই টাকা লেনদেন অর্থের আলাদা কাজ থেকে করুন')}
           onClick={()=>setPaymentOpen(true)}>
-          <HandCoins className="size-4" /> {payable ? 'Make payment' : 'Receive payment'}
+          <HandCoins className="size-4" /> {payable ? text('Make payment','টাকা দিন') : text('Receive payment','টাকা নিন')}
         </Button>
         {(relationship==='Customer'||relationship==='Supplier')&&
           <Button size="sm" variant="outline" disabled={balanceSummary.refundableCredit<=0}
-            title={balanceSummary.refundableCredit>0?'Refund verified credit as of the selected date':'No verified refundable credit yet'}
+            title={balanceSummary.refundableCredit>0?text('Refund verified credit as of the selected date','নির্বাচিত তারিখ পর্যন্ত নিশ্চিত জমা টাকা ফেরত দিন'):text('No verified refundable credit yet','ফেরত দেওয়ার মতো নিশ্চিত জমা টাকা নেই')}
             onClick={()=>setRefundOpen(true)}>
-            Refund credit
+            {text('Refund credit','জমা টাকা ফেরত')}
           </Button>}
         <Button size="sm" variant="outline" onClick={()=>setOpeningOpen(true)}
-          aria-label={existingOpening?'Edit opening balance':'Set opening balance'}>
-          <BookOpen className="size-4"/> {existingOpening?'Edit opening':'Opening balance'}
+          aria-label={existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')}>
+          <BookOpen className="size-4"/> {existingOpening?text('Edit opening','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
         </Button>
-        <Button size="sm" variant="outline" disabled title="Open a new invoice from the POS until the Party source action is connected">
-          <Plus className="size-4" /> New invoice
+        <Button size="sm" variant="outline" disabled title={text("Open a new invoice from the POS until the Party source action is connected","পার্টি থেকে নতুন বিল তৈরির কাজ এখনো চালু হয়নি। POS থেকে বিল করুন।")}>
+          <Plus className="size-4" /> {text('New invoice','নতুন বিল')}
         </Button>
-        <Button size="sm" variant="outline" disabled title="SMS service is not connected to the UI preview">
-          <Send className="size-4" /> Send statement
+        <Button size="sm" variant="outline" disabled title={text("SMS service is not connected to the UI preview","এই প্রিভিউতে SMS চালু নেই")}>
+          <Send className="size-4" /> {text('Send statement','হিসাব পাঠান')}
         </Button>
         {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
-          <Button size="sm" variant="outline" aria-label={`Record ${relationship.toLowerCase()} finance`}
+          <Button size="sm" variant="outline" aria-label={text(`Record ${relationship.toLowerCase()} finance`,'টাকা লেনদেন লিখুন')}
             onClick={()=>setFinanceOpen(true)}>
-            <HandCoins className="size-4"/> {relationship==='Owner'?'Capital / withdrawal':
-              relationship==='Lender'?'Borrow / repay':'Lend / receive'}
+            <HandCoins className="size-4"/> {relationship==='Owner'?text('Capital / withdrawal','মূলধন জমা / তোলা'):
+              relationship==='Lender'?text('Borrow / repay','ধার নেওয়া / শোধ'):text('Lend / receive','ধার দেওয়া / আদায়')}
           </Button>}
         <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
-          <StickyNote className="size-4" /> Add note
+          <StickyNote className="size-4" /> {text('Add note','নোট যোগ করুন')}
         </Button>
       </div>
        </>}
@@ -247,7 +247,7 @@ export function PartyDetail({
               query={ledgerQuery} onQuery={onLedgerQuery} pageSize={pageSize} onPageSize={onPageSize}
               onStatement={onStatement} onReset={onResetLedger}/>
             <LedgerTable statement={shownStatement} visibleRows={shownRows} actionsForRow={shownActions}
-              onAction={doRowAction} onOpenAttachment={()=>toast('No document available in preview')}/>
+              onAction={doRowAction} onOpenAttachment={()=>toast(text('No document available in preview','প্রিভিউতে কোনো ফাইল নেই'))}/>
             <div className="flex items-center justify-between gap-2 px-4 py-2 text-xs text-ink-500">
               <span>{text('Page','পাতা')} {page} {text('of','মোট')} {shownPages} · {shownFiltered.length||shownStatement.rows.length} {text('dated transactions','টি তারিখসহ লেনদেন')}</span>
               <div className="flex gap-2">
@@ -281,14 +281,14 @@ export function PartyDetail({
                     {tab === 'invoices' ? <FileText className="size-4" /> : <HandCoins className="size-4" />}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-ink">{e.ref ?? 'Entry'} <span className="font-normal text-ink-400">· {e.date}</span></p>
+                    <p className="font-medium text-ink">{e.ref ?? text('Entry','এন্ট্রি')} <span className="font-normal text-ink-400">· {e.date}</span></p>
                     <p className="truncate text-xs text-ink-500">{e.description}</p>
                   </div>
                   <span className="font-semibold tabular-nums text-ink">{taka(e.debit || e.credit)}</span>
                 </li>
           )}
               {(tab === 'invoices' ? invoices : payments).length === 0 &&
-          <li className="px-4 py-10 text-center text-sm text-ink-500">Nothing here yet.</li>
+          <li className="px-4 py-10 text-center text-sm text-ink-500">{text('Nothing here yet.','এখনো কিছু নেই।')}</li>
           }
             </ul>
         }
@@ -309,7 +309,7 @@ export function PartyDetail({
                   </div>
                 </button>
           )}
-              {attachments.length === 0 && <p className="col-span-full py-8 text-center text-sm text-ink-500">No attachments.</p>}
+              {attachments.length === 0 && <p className="col-span-full py-8 text-center text-sm text-ink-500">{text('No attachments.','কোনো ফাইল নেই।')}</p>}
             </div>
         }
         </div>
@@ -324,12 +324,12 @@ export function PartyDetail({
             if (!note.trim()) return;
             onAddNote(note.trim());
             setNote('');
-            toast.success('Note added');
+            toast.success(text('Note added','নোট যোগ হয়েছে'));
           }}>
           
-            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Write a note… e.g. Promised payment on Sunday" aria-label="New note" />
+            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={text("Write a note… e.g. Promised payment on Sunday","নোট লিখুন… যেমন রবিবার টাকা দেবেন")} aria-label={text("New note","নতুন নোট")} />
             <Button type="submit" size="sm" className="h-9">
-              <MessageSquare className="size-4" /> Add note
+              <MessageSquare className="size-4" /> {text('Add note','নোট যোগ করুন')}
             </Button>
           </form>
           <ul className="space-y-2">
@@ -338,14 +338,14 @@ export function PartyDetail({
                 <div className="flex items-start justify-between gap-2">
                   <span className="break-words">{n.description}</span>
                   <span className="flex shrink-0 gap-1">
-                    <button type="button" aria-label={`Edit note ${n.description}`} className="rounded p-1 text-ink-500 hover:bg-ink-100" onClick={()=>{setEditingNote(n);setEditText(n.description);}}><Pencil className="size-3.5"/></button>
-                    <button type="button" aria-label={`Delete note ${n.description}`} className="rounded p-1 text-danger hover:bg-danger-bg" onClick={()=>setDeleteNote(n)}><Trash2 className="size-3.5"/></button>
+                    <button type="button" aria-label={`${text('Edit note','নোট বদলান')} ${n.description}`} className="rounded p-1 text-ink-500 hover:bg-ink-100" onClick={()=>{setEditingNote(n);setEditText(n.description);}}><Pencil className="size-3.5"/></button>
+                    <button type="button" aria-label={`${text('Delete note','নোট মুছুন')} ${n.description}`} className="rounded p-1 text-danger hover:bg-danger-bg" onClick={()=>setDeleteNote(n)}><Trash2 className="size-3.5"/></button>
                   </span>
                 </div>
-                <span className="mt-0.5 block text-[11px] text-ink-400">{n.date} · Preview</span>
+                <span className="mt-0.5 block text-[11px] text-ink-400">{n.date} · {text('Preview','প্রিভিউ')}</span>
               </li>
           )}
-            {notes.length === 0 && <li className="py-6 text-center text-sm text-ink-500">No notes yet.</li>}
+            {notes.length === 0 && <li className="py-6 text-center text-sm text-ink-500">{text('No notes yet.','এখনো কোনো নোট নেই।')}</li>}
           </ul>
         </div>
       }
@@ -366,27 +366,27 @@ export function PartyDetail({
         source={sources.find(item=>item.id===editorRow?.sourceId)??null}
         onClose={()=>setEditorRow(null)} onEdit={onEditSourcePayment} onReverse={onReverseSource}/>
       <Dialog open={!!viewedRow} onOpenChange={open=>!open&&setViewedRow(null)}>
-        <DialogContent role="dialog" aria-modal="true" aria-label="Party transaction details" className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Transaction details</DialogTitle><DialogDescription>Read-only source reference in the UI preview.</DialogDescription></DialogHeader>
+        <DialogContent role="dialog" aria-modal="true" aria-label={text("Party transaction details","পার্টির লেনদেনের তথ্য")} className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{text('Transaction details','লেনদেনের তথ্য')}</DialogTitle><DialogDescription>{text('Read-only source reference in the UI preview.','এটি প্রিভিউতে লেনদেনের মূল সূত্র। এখানে বদলানো যাবে না।')}</DialogDescription></DialogHeader>
           {viewedRow&&<div className="space-y-2 text-sm">
-            <p><strong>Source:</strong> {viewedRow.source}</p><p><strong>Reference:</strong> {viewedRow.reference??viewedRow.id}</p>
-            <p><strong>Date:</strong> {viewedRow.date}</p><p><strong>Details:</strong> {viewedRow.description}</p>
-            <p><strong>Debit:</strong> {taka(viewedRow.debit)} · <strong>Credit:</strong> {taka(viewedRow.credit)}</p>
+            <p><strong>{text('Source:','উৎস:')}</strong> {viewedRow.source}</p><p><strong>{text('Reference:','নম্বর:')}</strong> {viewedRow.reference??viewedRow.id}</p>
+            <p><strong>{text('Date:','তারিখ:')}</strong> {viewedRow.date}</p><p><strong>{text('Details:','বিবরণ:')}</strong> {viewedRow.description}</p>
+            <p><strong>{text('Debit:','ডেবিট:')}</strong> {taka(viewedRow.debit)} · <strong>{text('Credit:','ক্রেডিট:')}</strong> {taka(viewedRow.credit)}</p>
           </div>}
-          <div className="flex justify-end"><Button onClick={()=>setViewedRow(null)}>Close</Button></div>
+          <div className="flex justify-end"><Button onClick={()=>setViewedRow(null)} >{text('Close','বন্ধ করুন')}</Button></div>
         </DialogContent>
       </Dialog>
       <Dialog open={!!editingNote} onOpenChange={(open)=>!open&&setEditingNote(null)}>
-        <DialogContent role="dialog" aria-modal="true" aria-label="Edit party note" className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Edit note</DialogTitle><DialogDescription>Updates this party's preview note only.</DialogDescription></DialogHeader>
-          <Input aria-label="Edit note" value={editText} onChange={event=>setEditText(event.target.value)}/>
-          <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setEditingNote(null)}>Cancel</Button><Button onClick={()=>{if(editingNote&&editText.trim()){onEditNote(editingNote.id,editText.trim());setEditingNote(null);toast.success('Note updated');}}}>Save note</Button></div>
+        <DialogContent role="dialog" aria-modal="true" aria-label={text("Edit party note","পার্টির নোট বদলান")} className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{text('Edit note','নোট বদলান')}</DialogTitle><DialogDescription>{text("Updates this party's preview note only.",'এখানে শুধু প্রিভিউর নোট বদলাবে।')}</DialogDescription></DialogHeader>
+          <Input aria-label={text("Edit note","নোট বদলান")} value={editText} onChange={event=>setEditText(event.target.value)}/>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setEditingNote(null)} >{text('Cancel','বাতিল')}</Button><Button onClick={()=>{if(editingNote&&editText.trim()){onEditNote(editingNote.id,editText.trim());setEditingNote(null);toast.success(text('Note updated','নোট বদলানো হয়েছে'));}}} >{text('Save note','নোট রাখুন')}</Button></div>
         </DialogContent>
       </Dialog>
       <Dialog open={!!deleteNote} onOpenChange={(open)=>!open&&setDeleteNote(null)}>
-        <DialogContent role="dialog" aria-modal="true" aria-label="Delete party note" className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Delete note?</DialogTitle><DialogDescription>This removes the note from the active preview and preserves an audit entry.</DialogDescription></DialogHeader>
-          <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setDeleteNote(null)}>Keep note</Button><Button onClick={()=>{if(deleteNote){onDeleteNote(deleteNote.id);setDeleteNote(null);toast.success('Note deleted');}}}>Confirm delete</Button></div>
+        <DialogContent role="dialog" aria-modal="true" aria-label={text("Delete party note","পার্টির নোট মুছুন")} className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{text('Delete note?','নোট মুছবেন?')}</DialogTitle><DialogDescription>{text('This removes the note from the active preview and preserves an audit entry.','প্রিভিউতে নোটটি মুছে যাবে, তবে পরিবর্তনের ইতিহাস রাখা হবে।')}</DialogDescription></DialogHeader>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setDeleteNote(null)} >{text('Keep note','নোট রাখুন')}</Button><Button onClick={()=>{if(deleteNote){onDeleteNote(deleteNote.id);setDeleteNote(null);toast.success(text('Note deleted','নোট মুছে গেছে'));}}} >{text('Confirm delete','নিশ্চিত মুছুন')}</Button></div>
         </DialogContent>
       </Dialog>
       <Dialog open={!!attachment} onOpenChange={(o) => !o && setAttachment(null)}>
@@ -397,11 +397,11 @@ export function PartyDetail({
           </DialogHeader>
           <div className="flex min-h-48 items-center justify-center overflow-hidden rounded-lg bg-ink-50">
             {attachment?.attachment?.url ?
-            <img src={attachment.attachment.url} alt={`Attachment ${attachment.attachment.name}`} className="max-h-[60vh] w-full object-contain" /> :
+            <img src={attachment.attachment.url} alt={`${text('Attachment','ফাইল')} ${attachment.attachment.name}`} className="max-h-[60vh] w-full object-contain" /> :
 
             <div className="py-12 text-center text-sm text-ink-500">
                 <FileText className="mx-auto mb-2 size-8 text-helper" />
-                Preview not available · {formatNumber(84)} KB
+                {text('Preview not available','প্রিভিউ দেখা যাচ্ছে না')} · {formatNumber(84)} KB
               </div>
             }
           </div>
