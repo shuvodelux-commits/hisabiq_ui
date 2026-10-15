@@ -126,6 +126,9 @@ jobs:
       - name: Check Phase 25 localized import validation feedback
         run: npm run test:bangla-import-validation
 
+      - name: Check Phase 26 Party ledger table and row actions across languages
+        run: npm run test:bangla-party-ledger-table
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
