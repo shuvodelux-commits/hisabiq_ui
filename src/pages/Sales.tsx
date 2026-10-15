@@ -1395,11 +1395,11 @@ export function Sales() {
           <div>
             <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-[13px] font-medium text-ink">Customer payments & credit <span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span></p>
+                <p className="text-[13px] font-medium text-ink">{sl('Customer payments & credit')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span>}</p>
                 <p className="mt-0.5 text-[11px] text-ink-500">{sl("Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.")}</p>
               </div>
               <Button size="sm" onClick={() => setCustomerPaymentOpen(true)}>
-                <Plus className="size-4" /> Receive customer payment
+                <Plus className="size-4" /> {sl("Receive customer payment")}
               </Button>
             </div>
 
@@ -1471,8 +1471,8 @@ export function Sales() {
             </Table>
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
-              <span>Total customer credit {taka(creditTotal)}</span>
-              <span>Credit can settle invoice due or be refunded from a selected account</span>
+              <span>{sl("Total customer credit")} {taka(creditTotal)}</span>
+              <span>{sl("Credit can settle invoice due or be refunded from a selected account")}</span>
             </div>
           </div>
         )}
@@ -1482,8 +1482,8 @@ export function Sales() {
             <section className="overflow-hidden rounded-xl border border-border">
               <div className="flex items-center justify-between border-b border-border p-3">
                 <div>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileClock className="size-4 text-teal-700" /> Draft sales <span className="font-bn text-[11px] font-normal text-ink-400">· খসড়া</span></p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Continue, edit, duplicate or archive a held sale.</p>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileClock className="size-4 text-teal-700" /> {sl('Draft sales')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· খসড়া</span>}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">{sl('Continue, edit, duplicate or archive a held sale.')}</p>
                 </div>
                 <StatusBadge tone="teal">{drafts.length}</StatusBadge>
               </div>
@@ -1492,33 +1492,33 @@ export function Sales() {
                   <div key={draft.id} className="p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-[13px] font-medium text-ink">{draft.label} · {draft.customer ?? 'Walk-in customer'}</p>
-                        <p className="mt-0.5 text-[11px] text-ink-400">{draft.items} items · {draft.savedAt}</p>
+                        <p className="text-[13px] font-medium text-ink">{draft.label} · {draft.customer ?? text('Walk-in customer','সাধারণ ক্রেতা')}</p>
+                        <p className="mt-0.5 text-[11px] text-ink-400">{draft.items} {sl('items')} · {draft.savedAt}</p>
                       </div>
                       <span className="text-[13px] font-semibold">{taka(draft.total)}</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                      <Button size="sm" onClick={() => { toast(`${draft.label} continued in POS`); navigate(`/app/pos?mode=continue-draft&draft=${draft.id}`); }}>Continue</Button>
+                      <Button size="sm" onClick={() => { toast(`${draft.label} ${sl('continued in POS')}`); navigate(`/app/pos?mode=continue-draft&draft=${draft.id}`); }}>{sl('Continue')}</Button>
                       <FloatingPanel
                         label={`Actions for ${draft.label}`}
                         width={190}
                         trigger={({ toggle, open }) => (
-                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> Actions</Button>
+                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
                         )}>
                         {(close) => (
                           <div className="py-1">
-                            <button onClick={() => { close(); toast(`${draft.label} opened for editing`); navigate(`/app/pos?mode=edit-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Pencil className="size-4 text-ink-400" /> Edit
+                            <button onClick={() => { close(); toast(`${draft.label} ${sl('opened for editing')}`); navigate(`/app/pos?mode=edit-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <Pencil className="size-4 text-ink-400" /> {sl('Edit')}
                             </button>
-                            <button onClick={() => { close(); toast(`${draft.label} duplicated`); navigate(`/app/pos?mode=duplicate-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Copy className="size-4 text-ink-400" /> Duplicate
+                            <button onClick={() => { close(); toast(`${draft.label} ${sl('duplicated')}`); navigate(`/app/pos?mode=duplicate-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
                             </button>
                             <button onClick={() => {
                               close();
                               setDrafts((items) => items.filter((item) => item.id !== draft.id));
-                              toast.error(`${draft.label} archived`);
+                              toast.error(`${draft.label} ${sl('archived')}`);
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
-                              <Trash2 className="size-4" /> Archive
+                              <Trash2 className="size-4" /> {sl('Archive')}
                             </button>
                           </div>
                         )}
@@ -1532,8 +1532,8 @@ export function Sales() {
             <section className="overflow-hidden rounded-xl border border-border">
               <div className="flex items-center justify-between border-b border-border p-3">
                 <div>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> Sale templates <span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span></p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Reuse common carts without recreating every line.</p>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> {sl('Sale templates')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span>}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">{sl('Reuse common carts without recreating every line.')}</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => {
                   const next = {
@@ -1545,8 +1545,8 @@ export function Sales() {
                     lines: []
                   };
                   setTemplates((items) => [next, ...items]);
-                  toast.success(`${next.name} created`);
-                }}><Plus className="size-3.5" /> Template</Button>
+                  toast.success(`${next.name} ${sl('created')}`);
+                }}><Plus className="size-3.5" /> {sl('Template')}</Button>
               </div>
               <div className="divide-y divide-border">
                 {templates.map((template) => (
@@ -1554,37 +1554,37 @@ export function Sales() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-[13px] font-medium text-ink">{template.name}</p>
-                        <p className="mt-0.5 text-[11px] text-ink-400">{template.customer ?? 'Any customer'} · {template.items} items · last used {template.lastUsed}</p>
+                        <p className="mt-0.5 text-[11px] text-ink-400">{template.customer ?? sl('Any customer')} · {template.items} {sl('items')} · {sl('last used')} {template.lastUsed==='Not used yet'?sl('Not used yet'):template.lastUsed}</p>
                       </div>
                       <span className="text-[13px] font-semibold">{taka(template.total)}</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                      <Button size="sm" onClick={() => { toast(`${template.name} loaded into POS`); navigate(`/app/pos?mode=template&template=${template.id}`); }}>Use template</Button>
+                      <Button size="sm" onClick={() => { toast(`${template.name} ${sl('loaded into POS')}`); navigate(`/app/pos?mode=template&template=${template.id}`); }}>{sl('Use template')}</Button>
                       <FloatingPanel
                         label={`Actions for ${template.name}`}
                         width={190}
                         trigger={({ toggle, open }) => (
-                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> Actions</Button>
+                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
                         )}>
                         {(close) => (
                           <div className="py-1">
                             <button onClick={() => { close(); toast(`Editing ${template.name}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Pencil className="size-4 text-ink-400" /> Edit template
+                              <Pencil className="size-4 text-ink-400" /> {sl('Edit template')}
                             </button>
                             <button onClick={() => {
                               close();
                               const copy = { ...template, id: `t${Date.now()}`, name: `${template.name} copy`, lastUsed: 'Not used yet' };
                               setTemplates((items) => [copy, ...items]);
-                              toast.success(`${template.name} duplicated`);
+                              toast.success(`${template.name} ${sl('duplicated')}`);
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Copy className="size-4 text-ink-400" /> Duplicate
+                              <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
                             </button>
                             <button onClick={() => {
                               close();
                               setTemplates((items) => items.filter((item) => item.id !== template.id));
-                              toast.error(`${template.name} deleted`);
+                              toast.error(`${template.name} ${sl('deleted')}`);
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
-                              <Trash2 className="size-4" /> Delete
+                              <Trash2 className="size-4" /> {sl('Delete')}
                             </button>
                           </div>
                         )}
