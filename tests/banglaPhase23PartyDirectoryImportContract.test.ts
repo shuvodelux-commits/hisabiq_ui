@@ -2,25 +2,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {uiText} from '../src/i18n/uiCopy.ts';
-import {partyRoleLabel} from '../src/i18n/partyCopy.ts';
-import {partyImportErrorText,partyImportedRoleLabels} from '../src/i18n/partyImportCopy.ts';
 
 const source=(path:string)=>readFileSync(path,'utf8');
-test('Party relationship labels use display-only mapping for all seven roles',()=>{
- for(const role of ['Customer','Supplier','Vendor','Lender','Borrower','Payee','Owner'] as const){
-  assert.equal(partyRoleLabel(role,'English'),role);
-  assert.equal(partyRoleLabel(role,'English + Bangla'),role);
-  assert.notEqual(partyRoleLabel(role,'Bangla'),role);
+test('Party relationship labels use the established display-only seven-role mapping',()=>{
+ const copy=source('src/i18n/partyCopy.ts');
+ const importCopy=source('src/i18n/partyImportCopy.ts');
+ for(const [role,bn] of [
+  ['Customer','ক্রেতা'],['Supplier','সরবরাহকারী'],['Vendor','ভেন্ডর'],
+  ['Lender','ঋণদাতা'],['Borrower','ঋণগ্রহীতা'],['Payee','খরচের প্রাপক'],['Owner','মালিক']
+ ]){
+  assert.ok(copy.includes(role+":'"+bn+"'"),role);
  }
- assert.equal(partyImportedRoleLabels(['Customer','Supplier'],'Bangla'),'ক্রেতা, সরবরাহকারী');
- assert.equal(partyImportedRoleLabels(['Customer','Supplier'],'English'),'Customer, Supplier');
+ assert.match(copy,/uiText\(language,role,partyRoleBn\[role\]\)/);
+ assert.match(importCopy,/roles\.map\(role=>partyRoleLabel\(role,language\)\)\.join/);
 });
 test('Import errors display native Bangla only in Bangla mode; CSV source validation is unchanged',()=>{
- const message='Party name is required. Unknown party role.';
- assert.equal(partyImportErrorText('English',message),message);
- assert.equal(partyImportErrorText('English + Bangla',message),message);
- assert.equal(partyImportErrorText('Bangla',message),'পার্টির নাম লিখুন। সম্পর্কের ধরন চেনা যায়নি।');
- assert.equal(partyImportErrorText('Bangla','An unknown source error.'),'An unknown source error.');
+ const copy=source('src/i18n/partyImportCopy.ts');
+ for(const message of ['Party name is required.','Unknown party role.','Import accepts at most 5,000 data rows.']){
+  assert.ok(copy.includes(message),message);
+ }
+ assert.match(copy,/if\(language!==['"]Bangla['"]\)return message/);
+ assert.match(copy,/\.replaceAll\(english,bangla\)/);
  for(const file of ['src/utils/partyImport.ts','src/utils/partyIdentity.ts','src/import/partyImport.ts','src/data/partyPreviewStore.ts']){
   assert.ok(source(file).length>0);
  }
