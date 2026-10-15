@@ -27,3 +27,17 @@ test('Header includes visible user initials in the same accessible menu name',()
  assert.ok(c.includes('data-print-hide'));
  assert.ok(c.includes('onClick={toggle}'));
 });
+
+test('Only the Dashboard Recent Sales table gains a tab stop when horizontal scrolling is required',()=>{
+ const s=srcDashboard();
+ function srcDashboard(){return sFile('src/components/dashboard/RecentSalesTable.tsx');}
+ function sFile(path:string){return readFileSync(path,'utf8');}
+ for(const check of [
+  "scroller.scrollWidth>scroller.clientWidth+1",
+  "scroller.tabIndex=0",
+  "scroller.removeAttribute('tabindex')",
+  "resize.observe(scroller)",
+  "resize.observe(node)",
+  "<Table ref={table}>"
+ ])assert.ok(s.includes(check),check);
+});
