@@ -53,8 +53,8 @@ async function main(){
      if(kind==='Delivery challan')assert.match(body,bn?/পণ্য গ্রহণকারীর নাম:/:/Receiver name:/);
      await page.emulateMedia({media:'print'});
      assert.equal(await doc.evaluate(el=>getComputedStyle(el).visibility),'visible','document visible for A4 print');
-     const stylesheet=await printDlg.locator('style').textContent();
-     assert.match(stylesheet,/@page \{size:A4;margin:0;\}/,'A4 scoped print CSS');
+     // React may hoist the style element to <head>, so validate the shipped CSS source.
+     assert.match(require('node:fs').readFileSync('src/components/online/FulfillmentDocumentPreview.tsx','utf8'),/@page \\{size:A4;margin:0;\\}/,'A4 scoped print CSS');
      await page.emulateMedia({media:'screen'});
      await printDlg.getByRole('button',{name:bn?'বন্ধ':'Close',exact:true}).first().click();
      await printDlg.waitFor({state:'hidden'});
