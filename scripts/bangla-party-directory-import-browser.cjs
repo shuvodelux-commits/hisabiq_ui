@@ -34,8 +34,8 @@ async function main(){
       name:'parties-phase23.csv',mimeType:'text/csv',
       buffer:Buffer.from('name,nameBn,phone,area,roles\nPhase 23 Customer,পরীক্ষার ক্রেতা,01711000220,Natore,Customer|Supplier\n,ভুল,01711000999,Natore,UnknownRole\n','utf8')
     });
-    await csv.getByText(bn?/1\\s*প্রস্তুত/:/1\\s*ready/).waitFor();
-    await csv.getByText(bn?/1\\s*বাদ পড়েছে/:/1\\s*rejected/).waitFor();
+    await csv.getByText(bn?/1\s*প্রস্তুত/:/1\s*ready/).waitFor();
+    await csv.getByText(bn?/1\s*বাদ পড়েছে/:/1\s*rejected/).waitFor();
     await csv.getByText(label('Customer, Supplier','ক্রেতা, সরবরাহকারী'),{exact:false}).waitFor();
     await csv.getByText(label('Party name is required.','পার্টির নাম লিখুন।'),{exact:false}).waitFor();
     await csv.getByRole('button',{name:label('Cancel','বাতিল')}).click();
