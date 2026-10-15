@@ -6,6 +6,7 @@ on:
       - 'scripts/responsive-audit-browser.cjs'
       - 'scripts/dialog-accessibility-browser.cjs'
       - 'scripts/phase28-multilingual-responsive-audit.cjs'
+      - 'scripts/phase29-bangla-label-census.cjs'
       - '.github/workflows/responsive-ux-check.yml'
 jobs:
   responsive:
