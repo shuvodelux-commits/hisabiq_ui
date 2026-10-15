@@ -24,7 +24,7 @@ async function main(){
     const menu=page.getByRole('button',{name:label('Actions for','কাজ')+' INV-000241'});
     await menu.click();
     await page.getByRole('button',{name:label('View','দেখুন'),exact:true}).click();
-    const details=page.getByRole('dialog',{name:label('Party transaction details','পার্টির লেনদেনের বিবরণ')});
+    const details=page.getByRole('dialog',{name:label('Party transaction details','পার্টির লেনদেনের তথ্য')});
     await details.waitFor();
     await details.getByRole('button',{name:label('Close','বন্ধ করুন'),exact:true}).first().click();
     await details.waitFor({state:'hidden'});
