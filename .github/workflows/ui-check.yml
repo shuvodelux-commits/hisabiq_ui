@@ -84,6 +84,9 @@ jobs:
       - name: Check Phase 11 bilingual Warranty case, filters and receipts
         run: npm run test:bangla-warranty
 
+      - name: Check Phase 12 Online Sales order, COD and CRM Bangla
+        run: npm run test:bangla-online-sales
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
