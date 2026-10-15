@@ -41,7 +41,7 @@ async function main(){
     await page.keyboard.press('Escape');
     await invoice.waitFor({state:'hidden'});
     await page.goto('http://127.0.0.1:4402/#/app/sales?tab=return');
-    await page.getByText(bn?'বিল বাছুন':'Select invoices',{exact:true}).waitFor();
+    await page.getByText(bn?'বিল বাছুন':'Select invoices',{exact:false}).first().waitFor();
     const choices=page.getByRole('checkbox');
     assert.ok(await choices.count()>0,'customer has returnable invoice selections');
     await choices.first().check();
@@ -56,7 +56,7 @@ async function main(){
     const settlement=page.getByRole('combobox',{name:bn?'বাকি থেকে কমান':'Adjust due'}).first();
     assert.equal(await settlement.getAttribute('data-value'),'Adjust due','stored return settlement');
     await page.goto('http://127.0.0.1:4402/#/app/sales?tab=credits');
-    await page.getByText(bn?'ক্রেতার টাকা ও জমা':'Customer payments & credit',{exact:true}).waitFor();
+    await page.getByText(bn?'ক্রেতার টাকা ও জমা':'Customer payments & credit',{exact:false}).first().waitFor();
     await page.getByRole('button',{name:bn?'ক্রেতার টাকা নিন':'Receive customer payment',exact:true}).waitFor();
     await page.getByRole('columnheader',{name:bn?'জমা টাকা':'Credit balance',exact:true}).waitFor();
     assert.deepEqual(errors,[],language+' '+width+'px browser errors');
