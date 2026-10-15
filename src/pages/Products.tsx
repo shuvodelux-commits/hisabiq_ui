@@ -23,6 +23,8 @@ import type { Product, ProductOffer, StockLot, StockMovement } from '../types/er
 import { formatStock, stockStatus, type StockStatus } from '../utils/units';
 import { taka } from '../utils/currency';
 import { downloadReport } from '../utils/reportOutput';
+import { useUiCopy } from '../i18n/useUiCopy';
+import { productLabel } from '../i18n/productsCopy';
 
 const statusMeta: Record<StockStatus, {label: string;tone: StatusTone;}> = {
   in: { label: 'In stock', tone: 'success' },
@@ -68,9 +70,11 @@ function ProductColumnPicker({
   visible: Record<ProductColumn, boolean>;
   onToggle: (column: ProductColumn) => void;
 }) {
+  const {language}=useUiCopy();
+  const pl=(english:string)=>productLabel(language,english);
   return (
     <FloatingPanel
-      label="Choose product table columns"
+      label={pl('Choose product table columns')}
       width={210}
       trigger={({ toggle, open }) => (
         <button
@@ -78,7 +82,7 @@ function ProductColumnPicker({
           onClick={toggle}
           aria-expanded={open}
           className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
-          Columns
+          {pl('Columns')}
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
       )}>
@@ -92,7 +96,7 @@ function ProductColumnPicker({
               aria-checked={visible[column.id]}
               onClick={() => onToggle(column.id)}
               className="flex w-full items-center justify-between gap-4 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-              <span>{column.label}</span>
+              <span>{pl(column.label)}</span>
               {visible[column.id] && <Check className="size-4 text-ink" />}
             </button>
           ))}
@@ -125,46 +129,48 @@ function ProductActions({
   onDuplicate: () => void;
   onToggle: () => void;
 }) {
+  const {language}=useUiCopy();
+  const pl=(english:string)=>productLabel(language,english);
   const itemClass = 'w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
 
   return (
     <FloatingPanel
-      label={`Actions for ${product.name}`}
+      label={`${pl('Actions for')} ${product.name}`}
       width={210}
       trigger={({ toggle, open }) => (
         <button
           type="button"
           onClick={toggle}
           aria-expanded={open}
-          aria-label={`Actions for ${product.name}`}
+          aria-label={`${pl('Actions for')} ${product.name}`}
           className="rounded-md p-1 text-ink-400 hover:bg-ink-50 hover:text-ink">
           <MoreHorizontal className="size-4" />
         </button>
       )}>
       {(close) => (
         <div className="py-1">
-          <button type="button" onClick={() => { close(); onView(); }} className={itemClass}>View details</button>
-          <button type="button" onClick={() => { close(); onEdit(); }} className={itemClass}>Edit product</button>
-          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>Adjust stock</button>}
-          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAddLot(); }} className={itemClass}>Add stock lot</button>}
-          <button type="button" onClick={() => { close(); onOffers(); }} className={itemClass}>Manage offers</button>
+          <button type="button" onClick={() => { close(); onView(); }} className={itemClass}>{pl('View details')}</button>
+          <button type="button" onClick={() => { close(); onEdit(); }} className={itemClass}>{pl('Edit product')}</button>
+          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>{pl('Adjust stock')}</button>}
+          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAddLot(); }} className={itemClass}>{pl('Add stock lot')}</button>}
+          <button type="button" onClick={() => { close(); onOffers(); }} className={itemClass}>{pl('Manage offers')}</button>
           <div className="my-1 border-t border-border" />
-          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>Stock lots & serials</button>}
-          <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>Product history</button>
+          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>{pl('Stock lots & serials')}</button>}
+          <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>{pl('Product history')}</button>
           <button
             type="button"
             onClick={() => {
               close();
               void navigator.clipboard?.writeText(product.sku);
-              toast.success('SKU copied', { description: product.sku });
+              toast.success(pl('SKU copied'), { description: product.sku });
             }}
             className={itemClass}>
-            Copy SKU / barcode
+            {pl('Copy SKU / barcode')}
           </button>
           <div className="my-1 border-t border-border" />
-          <button type="button" onClick={() => { close(); onDuplicate(); }} className={itemClass}>Duplicate</button>
+          <button type="button" onClick={() => { close(); onDuplicate(); }} className={itemClass}>{pl('Duplicate')}</button>
           <button type="button" onClick={() => { close(); onToggle(); }} className={itemClass}>
-            {product.active ? 'Deactivate' : 'Activate'}
+            {pl(product.active ? 'Deactivate' : 'Activate')}
           </button>
         </div>
       )}
@@ -175,6 +181,8 @@ function ProductActions({
 type ProductView = 'list' | 'lots' | 'history' | 'settings';
 
 export function Products() {
+  const {language,showHelper}=useUiCopy();
+  const pl=(english:string)=>productLabel(language,english);
   const [searchParams,setSearchParams] = useSearchParams();
   const requestedView=searchParams.get('view');
   const readView=():ProductView=>['list','lots','history','settings'].includes(requestedView??'')?requestedView as ProductView:'list';
@@ -282,7 +290,7 @@ export function Products() {
     };
     setMovements((current) => [movement, ...current]);
     setAdjustProduct(null);
-    toast.success('Stock adjusted', { description: `${product.name} · ${formatStock({ ...product, stock: result.newStock })}` });
+    toast.success(pl('Stock adjusted'), { description: `${product.name} · ${formatStock({ ...product, stock: result.newStock })}` });
   };
 
   const addLot = (product: Product, lot: StockLot) => {
@@ -299,7 +307,7 @@ export function Products() {
       note: lot.expiryDate ? `Lot ${lot.batchNumber ?? '—'} · expiry ${lot.expiryDate}` : 'Stock lot received'
     }, ...current]);
     setLotProduct(null);
-    toast.success('Stock lot added', { description: `${product.name} · +${formatStock({ ...product, stock: lot.quantity })}` });
+    toast.success(pl('Stock lot added'), { description: `${product.name} · +${formatStock({ ...product, stock: lot.quantity })}` });
   };
 
   const saveProductOffers = (product: Product, nextProductOffers: ProductOffer[]) => {
@@ -307,7 +315,7 @@ export function Products() {
       ...current.filter((offer) => offer.productId !== product.id),
       ...nextProductOffers
     ]);
-    toast.success('Offers updated', { description: product.name });
+    toast.success(pl('Offers updated'), { description: product.name });
   };
 
   const filtered = useMemo(() => {
@@ -327,7 +335,7 @@ export function Products() {
   const outCount = list.filter((p) => stockStatus(p) === 'out').length;
 
   const summary = [
-  { label: 'Products', value: String(list.length), sub: `${list.filter((p) => p.active).length} active` },
+  { label: 'Products', value: String(list.length), sub: `${list.filter((p) => p.active).length} ${pl('active')}` },
   { label: 'Stock value', value: taka(stockValue), sub: 'At purchase price' },
   { label: 'Low stock', value: String(lowCount), sub: 'Below minimum', tone: 'text-warning' },
   { label: 'Out of stock', value: String(outCount), sub: 'Needs reorder', tone: 'text-danger' }];
@@ -340,23 +348,23 @@ export function Products() {
         titleBn="পণ্য তালিকা"
         description={
           view === 'list'
-            ? 'Stock, units and prices for everything you sell.'
+            ? pl('Stock, units and prices for everything you sell.')
             : view === 'lots'
-              ? 'See where current stock came from and what remains in each lot.'
+              ? pl('See where current stock came from and what remains in each lot.')
               : view === 'history'
-                ? 'Audit purchases, sales, returns and manual stock adjustments.'
-                : 'Categories, units, brands and defaults used across the product module.'
+                ? pl('Audit purchases, sales, returns and manual stock adjustments.')
+                : pl('Categories, units, brands and defaults used across the product module.')
         }
         actions={view === 'list' ? (
           <>
             <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-products.csv',['Name','Bangla name','SKU','Category','Brand','Base unit','Stock (base unit)','Minimum stock (base unit)','Purchase price (base unit)','Selling price (base unit)','Active'],filtered.map(p => [p.name,p.nameBn ?? '',p.sku,p.category,p.brand ?? '',p.unit,p.stock,p.minStock,p.purchasePrice,p.sellPrice,p.active ? 'Yes' : 'No']))}>
-              <Download className="size-4" /> Export
+              <Download className="size-4" /> {pl('Export')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-              <Upload className="size-4" /> Import
+              <Upload className="size-4" /> {pl('Import')}
             </Button>
             <Button size="sm" onClick={() => { setEditingProduct(null); setDialogOpen(true); }}>
-              <Plus className="size-4" /> Add product
+              <Plus className="size-4" /> {pl('Add product')}
             </Button>
           </>
         ) : undefined} />
@@ -375,7 +383,7 @@ export function Products() {
             aria-selected={view === id}
             onClick={() => chooseView(id)}
             className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
-            {label} <span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>
+            {pl(label)} {showHelper&&<span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>}
           </button>
         ))}
       </div>
@@ -385,9 +393,9 @@ export function Products() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((s) =>
         <div key={s.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
-            <p className="text-[12.5px] text-ink-500">{s.label}</p>
+            <p className="text-[12.5px] text-ink-500">{pl(s.label)}</p>
             <p className={`mt-0.5 text-lg font-semibold ${s.tone ?? 'text-ink'}`}>{s.value}</p>
-            <p className="text-[11px] text-ink-400">{s.sub}</p>
+            <p className="text-[11px] text-ink-400">{pl(s.sub)}</p>
           </div>
         )}
       </div>
@@ -399,8 +407,8 @@ export function Products() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search name, বাংলা, SKU…"
-              aria-label="Search products"
+              placeholder={pl("Search name, বাংলা, SKU…")}
+              aria-label={pl("Search products")}
               className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
             
           </div>
@@ -413,12 +421,12 @@ export function Products() {
               category === c ? 'bg-inverse text-white' : 'text-ink-600 hover:bg-ink-50'}`
               }>
               
-                {c}
+                {c==='All'?pl(c):c}
               </button>
             )}
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <div className="flex rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label="Stock filter">
+            <div className="flex rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={pl("Stock filter")}>
               {(
               [
               ['all', 'All stock'],
@@ -434,7 +442,7 @@ export function Products() {
                 onClick={() => setStockFilter(id)}
                 className={`h-7 rounded px-2.5 text-xs font-medium ${stockFilter === id ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
                 
-                  {label}
+                  {id==='all'?pl(label):`${pl(id==='low'?'Low':'Out')} (${id==='low'?lowCount:outCount})`}
                 </button>
               )}
             </div>
@@ -446,15 +454,15 @@ export function Products() {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {visibleColumns.index && <TableHead className="h-9 w-10 pl-4 text-xs">#</TableHead>}
-              {visibleColumns.product && <TableHead className="h-9 text-xs">Product</TableHead>}
-              {visibleColumns.category && <TableHead className="h-9 text-xs">Category</TableHead>}
-              {visibleColumns.stock && <TableHead className="h-9 text-right text-xs">Stock</TableHead>}
-              {visibleColumns.stockValue && <TableHead className="h-9 text-right text-xs" title="Stock × purchase price">Stock value</TableHead>}
-              {visibleColumns.unit && <TableHead className="h-9 text-xs">Unit</TableHead>}
-              {visibleColumns.purchase && <TableHead className="h-9 text-right text-xs">Purchase</TableHead>}
-              {visibleColumns.selling && <TableHead className="h-9 text-right text-xs">Selling</TableHead>}
-              {visibleColumns.status && <TableHead className="h-9 text-xs">Status</TableHead>}
-              <TableHead className="h-9 w-10 pr-4"><span className="sr-only">Actions</span></TableHead>
+              {visibleColumns.product && <TableHead className="h-9 text-xs">{pl("Product")}</TableHead>}
+              {visibleColumns.category && <TableHead className="h-9 text-xs">{pl('Category')}</TableHead>}
+              {visibleColumns.stock && <TableHead className="h-9 text-right text-xs">{pl('Stock')}</TableHead>}
+              {visibleColumns.stockValue && <TableHead className="h-9 text-right text-xs" title={pl("Stock × purchase price")}>{pl("Stock value")}</TableHead>}
+              {visibleColumns.unit && <TableHead className="h-9 text-xs">{pl('Unit')}</TableHead>}
+              {visibleColumns.purchase && <TableHead className="h-9 text-right text-xs">{pl('Purchase')}</TableHead>}
+              {visibleColumns.selling && <TableHead className="h-9 text-right text-xs">{pl('Selling')}</TableHead>}
+              {visibleColumns.status && <TableHead className="h-9 text-xs">{pl('Status')}</TableHead>}
+              <TableHead className="h-9 w-10 pr-4"><span className="sr-only">{pl("Actions")}</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -483,12 +491,12 @@ export function Products() {
                   {visibleColumns.stock &&
                   <TableCell className={`py-2 text-right font-medium ${s === 'low' ? 'text-warning' : s === 'out' ? 'text-danger' : 'text-ink'}`}>
                     {p.kind === 'Service' ? '—' : formatStock(p)}
-                    {p.kind !== 'Service' && <span className="block text-[11px] font-normal text-ink-400">min {formatStock({ ...p, stock: p.minStock })}</span>}
+                    {p.kind !== 'Service' && <span className="block text-[11px] font-normal text-ink-400">{pl("min")} {formatStock({ ...p, stock: p.minStock })}</span>}
                   </TableCell>}
                   {visibleColumns.stockValue &&
                   <TableCell className="py-2 text-right font-medium text-ink">
                     {p.kind === 'Service' ? '—' : taka(rowStockValue, rowStockValue % 1 ? 2 : 0)}
-                    {p.kind !== 'Service' && <span className="block text-[11px] font-normal text-ink-400">at purchase price</span>}
+                    {p.kind !== 'Service' && <span className="block text-[11px] font-normal text-ink-400">{pl("at purchase price")}</span>}
                   </TableCell>}
                   {visibleColumns.unit &&
                   <TableCell className="py-2 text-ink-600">
@@ -496,7 +504,7 @@ export function Products() {
                     <span>
                         {p.altUnit.unit} / {p.unit}
                         <span className="block text-[11px] text-ink-400">1 {p.altUnit.unit} = {p.altUnit.factor} {p.unit}</span>
-                        <span className="block text-[11px] text-teal-700">POS default: {p.stockViewUnit ?? p.altUnit.unit}</span>
+                        <span className="block text-[11px] text-teal-700">{pl("POS default:")} {p.stockViewUnit ?? p.altUnit.unit}</span>
                       </span> :
 
                     p.unit
@@ -518,7 +526,7 @@ export function Products() {
                   </TableCell>}
                   {visibleColumns.status &&
                   <TableCell className="py-2">
-                    <StatusBadge tone={statusMeta[s].tone} dot>{statusMeta[s].label}</StatusBadge>
+                    <StatusBadge tone={statusMeta[s].tone} dot>{pl(statusMeta[s].label)}</StatusBadge>
                   </TableCell>}
                   <TableCell className="py-2 pr-4">
                     <ProductActions
@@ -539,7 +547,7 @@ export function Products() {
                           stock: 0
                         };
                         setList((items) => [copy, ...items]);
-                        toast.success(`${p.name} duplicated`, { description: 'Product settings copied with zero opening stock.' });
+                        toast.success(`${p.name} ${pl('duplicated')}`, { description: pl('Product settings copied with zero opening stock.') });
                       }}
                       onToggle={() => setList((items) => items.map((item) => item.id === p.id ? { ...item, active: !item.active } : item))}
                     />
@@ -552,8 +560,8 @@ export function Products() {
 
         {filtered.length === 0 &&
         <div className="px-4 py-10 text-center">
-            <p className="font-medium text-ink">No products match</p>
-            <p className="mt-1 text-sm text-ink-500">Try another search or clear filters.</p>
+            <p className="font-medium text-ink">{pl("No products match")}</p>
+            <p className="mt-1 text-sm text-ink-500">{pl("Try another search or clear filters.")}</p>
             <Button
             variant="outline"
             size="sm"
@@ -564,16 +572,16 @@ export function Products() {
               setStockFilter('all');
             }}>
             
-              Clear filters
+              {pl('Clear filters')}
             </Button>
           </div>
         }
 
         <div className="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs text-ink-500">
           <span>
-            Showing {filtered.length} of {list.length} products
+            {pl('Showing')} {filtered.length} / {list.length} {pl('products')}
           </span>
-          <span>Prices include VAT where applicable</span>
+          <span>{pl('Prices include VAT where applicable')}</span>
         </div>
       </div>
 
@@ -646,7 +654,7 @@ export function Products() {
             upsertProductPreview({...product,stock:stockAtSource});
             setList((items) => items.map((item) => item.id === product.id ? product : item));
             setDetailsProduct((current) => current?.id === product.id ? product : current);
-            toast.success(`${product.name} updated`);
+            toast.success(`${product.name} ${pl('updated')}`);
           } else {
             setList((items) => [product, ...items]);
             if (product.kind !== 'Service' && product.stock > 0) {
@@ -681,7 +689,7 @@ export function Products() {
             } else {
               upsertProductPreview(product);
             }
-            toast.success(`${product.name} added`, { description: product.kind === 'Service' ? 'Service product' : product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
+            toast.success(`${product.name} ${pl('added')}`, { description: product.kind === 'Service' ? pl('Service product') : product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
           }
           setDialogOpen(false);
           setEditingProduct(null);
