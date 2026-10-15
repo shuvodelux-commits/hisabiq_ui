@@ -123,6 +123,9 @@ jobs:
       - name: Check Phase 24 shared Excel CSV wizard in three languages
         run: npm run test:bangla-shared-import-wizard
 
+      - name: Check Phase 25 localized import validation feedback
+        run: npm run test:bangla-import-validation
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 

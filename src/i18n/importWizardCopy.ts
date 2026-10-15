@@ -1,6 +1,7 @@
 import type {UiLanguage} from './uiCopy';
 import {uiText} from './uiCopy';
 import type {ImportTarget} from '../import/importTypes';
+import {translateKnownImportValidation} from './importValidationCopy';
 
 /** Only translate human-readable UI copy. ImportTarget, CSV headers and decisions remain stable IDs. */
 export function importTargetTitle(language:UiLanguage,target:ImportTarget):string {
@@ -20,5 +21,5 @@ const knownErrors:readonly (readonly [string,string])[]=[
 ];
 export function importWizardError(language:UiLanguage,message:string):string {
  if(language!=='Bangla')return message;
- return knownErrors.reduce((m,[english,bangla])=>m.replaceAll(english,bangla),message);
+ return translateKnownImportValidation(knownErrors.reduce((m,[english,bangla])=>m.replaceAll(english,bangla),message));
 }
