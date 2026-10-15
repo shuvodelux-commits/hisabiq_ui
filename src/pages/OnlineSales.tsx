@@ -326,7 +326,7 @@ export function OnlineSales(){
  const pending=orders.reduce((sum,o)=>sum+courierClearing(o).pending,0);
  const tabs:Array<[View,string]>= [['Orders','অর্ডার'],['Courier & COD','কুরিয়ার ও COD'],['CRM Leads','ক্রেতা যোগাযোগ'],['SMS Rules','এসএমএস নিয়ম']];
  return <div className="mx-auto max-w-[1440px] space-y-4">
-  <PageHeader title="Online Sales" titleBn="অনলাইন বিক্রয়" description="Social commerce orders, courier COD and follow-ups · manual UI preview only."
+  <PageHeader title="Online Sales" titleBn="অনলাইন বিক্রি" description="Social commerce orders, courier COD and follow-ups · manual UI preview only."
    descriptionBn="ফেসবুকসহ অনলাইন অর্ডার, কুরিয়ারের টাকা ও ক্রেতার খোঁজখবর দেখুন · শুধু নমুনা।"
    actions={<><Link to="/app/quotations"><Button size="sm" variant="outline"><FileText className="size-4"/> {ol("Quotations")}</Button></Link>
     <Button size="sm" onClick={()=>{setEditing(null);setQuoteDraft(null);setEditorOpen(true);}}><Plus className="size-4"/> {ol("New online order")}</Button></>}/>
