@@ -69,7 +69,8 @@
     "test:bangla-party-directory-import": "node scripts/bangla-party-directory-import-browser.cjs",
     "test:bangla-shared-import-wizard": "node scripts/bangla-shared-import-wizard-browser.cjs",
     "test:bangla-import-validation": "node scripts/bangla-import-validation-browser.cjs",
-    "test:bangla-party-ledger-table": "node scripts/bangla-party-ledger-table-browser.cjs"
+    "test:bangla-party-ledger-table": "node scripts/bangla-party-ledger-table-browser.cjs",
+    "test:bangla-shared-date-picker": "node scripts/bangla-shared-date-picker-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
