@@ -4,6 +4,7 @@ import { Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
+import {useUiCopy} from '../i18n/useUiCopy';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
 import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
@@ -36,6 +37,7 @@ const displayDate=(iso:string)=>new Intl.DateTimeFormat('en-GB',{day:'2-digit',m
   .format(new Date(iso+'T12:00:00Z'));
 
 export function Parties() {
+  const {text:uiText}=useUiCopy();
   const [params,setParams]=useSearchParams();
   const navigate=useNavigate();
   const [range,setRange]=useState<IsoRange>({from:'',to:''});
@@ -110,7 +112,7 @@ export function Parties() {
     }else if(action==='view'){
       // A read-only dialog in PartyDetail handles the source record.
     }else{
-      toast.error('This transaction action is not connected to a source editor yet.');
+      toast.error(uiText('This transaction action is not connected to a source editor yet.','এই লেনদেন সংশোধনের কাজটি এখনো চালু হয়নি।'));
     }
   };
 
@@ -131,7 +133,7 @@ export function Parties() {
       const created=next.parties.find(p=>!previous.has(p.id));
       if(created)setParams({id:created.id,role:created.roles[0]});
     }
-    toast.success(editing?'Party updated in preview':'Party added to preview');
+    toast.success(editing?uiText('Party updated in preview','প্রিভিউতে পার্টির তথ্য বদলানো হয়েছে'):uiText('Party added to preview','প্রিভিউতে নতুন পার্টি যোগ হয়েছে'));
   };
   const changeRole=(next:PartyRole)=>{if(party){setParams({id:party.id,role:next});resetLedger();}};
   const noteAction=(type:'add'|'edit'|'delete',idOrText:string,text?:string)=>{
@@ -139,16 +141,16 @@ export function Parties() {
       if(type==='add'&&party)dispatchPartyPreview({type:'add-note',partyId:party.id,relationship,text:idOrText});
       if(type==='edit')dispatchPartyPreview({type:'edit-note',sourceId:idOrText,text:text??''});
       if(type==='delete')dispatchPartyPreview({type:'delete-note',sourceId:idOrText});
-    }catch(error){toast.error(error instanceof Error?error.message:'Note action failed');throw error;}
+    }catch(error){toast.error(error instanceof Error?error.message:uiText('Note action failed','নোটের কাজ করা যায়নি'));throw error;}
   };
   return <div className="mx-auto max-w-[1440px] space-y-4">
     <PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
-      description={`Everyone you deal with, in one place · Directory receivables ${taka(receivable)} · payables ${taka(payable)} · preview`}
+      description={`${uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · ${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)} · ${uiText('preview','নমুনা')}`}
       actions={<>
         <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
-          <Upload className="size-4"/> Import Excel / CSV
+          <Upload className="size-4"/> {uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}
         </Button>
-        <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add party</Button>
+        <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> {uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
       </>} />
     <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
       <PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
@@ -172,22 +174,22 @@ export function Parties() {
         actionsForRow={actionsForRow} onLedgerAction={handleLedgerAction}
         statementOpen={statementOpen} onCloseStatement={()=>setStatementOpen(false)}
         sources={state.sources}
-        onRecordPayment={payload=>{dispatchPartyPreview({type:'record-payment',payload});toast.success('Payment recorded in preview (no bank posting)');}}
-        onRefundCredit={payload=>{dispatchPartyPreview({type:'refund-credit',payload});toast.success('Credit refund recorded in preview (no bank posting)');}}
-        onRecordFinance={payload=>{dispatchPartyPreview({type:'record-finance',payload});toast.success('Capital / loan transaction saved in preview (no bank posting)');}}
-        onSetOpening={payload=>{dispatchPartyPreview({type:'set-opening',payload});toast.success('Opening balance updated in preview; previous amount retained in audit');}}
+        onRecordPayment={payload=>{dispatchPartyPreview({type:'record-payment',payload});toast.success(uiText('Payment recorded in preview (no bank posting)','প্রিভিউতে টাকা জমা রাখা হয়েছে। ব্যাংকে এন্ট্রি হয়নি।'));}}
+        onRefundCredit={payload=>{dispatchPartyPreview({type:'refund-credit',payload});toast.success(uiText('Credit refund recorded in preview (no bank posting)','প্রিভিউতে জমা টাকা ফেরত দেখানো হয়েছে। ব্যাংকে এন্ট্রি হয়নি।'));}}
+        onRecordFinance={payload=>{dispatchPartyPreview({type:'record-finance',payload});toast.success(uiText('Capital / loan transaction saved in preview (no bank posting)','প্রিভিউতে মূলধন / ধার লেনদেন রাখা হয়েছে। ব্যাংকে এন্ট্রি হয়নি।'));}}
+        onSetOpening={payload=>{dispatchPartyPreview({type:'set-opening',payload});toast.success(uiText('Opening balance updated in preview; previous amount retained in audit','প্রিভিউতে শুরুর জের বদলেছে। আগের টাকার হিসাব ইতিহাসে আছে।'));}}
         onEditSourcePayment={(sourceId,payload,reason)=>{
           dispatchPartyPreview({type:'edit-source-payment',sourceId,payload,reason});
-          toast.success('Preview payment corrected; dependent balances recalculated');
+          toast.success(uiText('Preview payment corrected; dependent balances recalculated','প্রিভিউতে জমার তথ্য ঠিক হয়েছে। সংশ্লিষ্ট জের আবার হিসাব করা হয়েছে।'));
         }}
         onReverseSource={(sourceId,reason)=>{
           dispatchPartyPreview({type:'reverse-source',sourceId,reason});
-          toast.success('Preview transaction reversed with an audit record');
+          toast.success(uiText('Preview transaction reversed with an audit record','প্রিভিউতে লেনদেন উল্টানো হয়েছে। ইতিহাসে তথ্য রাখা আছে।'));
         }}
         onAddNote={text=>noteAction('add',text)}
         onEditNote={(id,text)=>noteAction('edit',id,text)}
         onDeleteNote={id=>noteAction('delete',id)}/>:
-        <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">No parties yet. Add your first party.</div>}
+        <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">{uiText('No parties yet. Add your first party.','এখনো কোনো পার্টি নেই। নতুন পার্টি যোগ করুন।')}</div>}
     </div>
     <PartyEditorDialog open={editing!==undefined} party={editing}
       existingOpenings={editing?.id?state.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
@@ -196,6 +198,6 @@ export function Parties() {
       onLegacyImport={()=>{setImportOpen(false);setLegacyImportOpen(true);}}/>
     <PartyImportDialog open={legacyImportOpen} onClose={()=>setLegacyImportOpen(false)}
       onImport={parties=>{dispatchPartyPreview({type:"import-parties",parties});
-        toast.success(`${parties.length} legacy parties imported to preview`);}}/>
+        toast.success(`${parties.length} ${uiText('legacy parties imported to preview','টি পুরোনো পার্টি প্রিভিউতে আনা হয়েছে')}`);}}/>
   </div>;
 }

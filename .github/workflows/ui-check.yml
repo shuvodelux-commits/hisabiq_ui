@@ -108,6 +108,9 @@ jobs:
       - name: Check Phase 19 Expenses in three languages
         run: npm run test:bangla-expenses
 
+      - name: Check Phase 20 Party feedback in three languages
+        run: npm run test:bangla-parties-feedback
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
