@@ -32,7 +32,7 @@ test('Party ledger action menu translates labels without altering permissions or
 });
 test('Ledger dates, money, search/filter, source actions and printing remain delegated to existing components',()=>{
  const c=src('src/components/parties/PartyLedgerToolbar.tsx');
- for(const expression of ["onRange={onRange}","onKind={onKind}","onQuery(event.target.value)","onPageSize(Number(value))","onStatement","onReset"]){
+ for(const expression of ["value={range} onChange={onRange}","value={kind} onChange={onKind}","onQuery(event.target.value)","onPageSize(Number(value))","onClick={onStatement}","onClick={onReset}"]){
   assert.ok(c.includes(expression),expression);
  }
  const detail=src('src/components/parties/PartyDetail.tsx');
