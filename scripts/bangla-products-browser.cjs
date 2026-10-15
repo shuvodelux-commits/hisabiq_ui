@@ -31,9 +31,10 @@ async function main(){
     assert.equal(await stockColumn.getAttribute('aria-checked'),'true');
     await stockColumn.click();
     assert.equal(await page.getByRole('columnheader',{name:bn?'স্টকের দাম':'Stock value'}).count(),0);
-    await columns.click();
+    // The shared column picker stays open after toggling a checkbox.
     const stockRestore=page.getByRole('menuitemcheckbox',{name:bn?'স্টকের দাম':'Stock value'});
     await stockRestore.click();
+    await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('columnheader',{name:bn?'স্টকের দাম':'Stock value'}).count(),1);
     const low=page.getByRole('radio',{name:new RegExp('^'+(bn?'কম':'Low')+' \\(')});
     await low.click();
