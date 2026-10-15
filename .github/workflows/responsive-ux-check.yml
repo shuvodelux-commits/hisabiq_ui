@@ -19,3 +19,14 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: node scripts/responsive-audit-browser.cjs
       - run: node scripts/dialog-accessibility-browser.cjs
+      - name: Phase 28 three-language accessibility and device sweep
+        run: npm run test:phase28-responsive-a11y
+        env:
+          PHASE28_AUDIT_OUTPUT: .superpowers/phase28/accessibility-audit.json
+      - name: Save Phase 28 accessibility evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase28-language-responsive-a11y
+          path: .superpowers/phase28/accessibility-audit.json
+          if-no-files-found: warn
