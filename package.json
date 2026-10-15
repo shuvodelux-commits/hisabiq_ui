@@ -67,7 +67,8 @@
     "test:bangla-party-editor-detail": "node scripts/bangla-party-editor-detail-browser.cjs",
     "test:bangla-party-financial": "node scripts/bangla-party-financial-browser.cjs",
     "test:bangla-party-directory-import": "node scripts/bangla-party-directory-import-browser.cjs",
-    "test:bangla-shared-import-wizard": "node scripts/bangla-shared-import-wizard-browser.cjs"
+    "test:bangla-shared-import-wizard": "node scripts/bangla-shared-import-wizard-browser.cjs",
+    "test:bangla-import-validation": "node scripts/bangla-import-validation-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
