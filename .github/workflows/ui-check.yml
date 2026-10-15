@@ -78,6 +78,9 @@ jobs:
       - name: Check Phase 10 bilingual quotation print and editor
         run: npm run test:bangla-quotations
 
+      - name: Check Phase 10 bilingual Vendor ledger statement
+        run: npm run test:bangla-vendor-statement
+
       - name: Check Phase 11 bilingual Warranty case, filters and receipts
         run: npm run test:bangla-warranty
 
