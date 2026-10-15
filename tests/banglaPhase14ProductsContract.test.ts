@@ -30,7 +30,7 @@ test('Phase 14 only localizes Products catalogue presentation, never product sou
   "statusMeta[s].tone",
   "p.stock * p.purchasePrice",
   "availableProductCategories()",
-  "visibleColumns[column]",
+  "visible[column.id]",
   "window.localStorage.setItem(columnStorageKey",
   "formatStock(p)",
   "downloadReport('hisabiq-products.csv'",
