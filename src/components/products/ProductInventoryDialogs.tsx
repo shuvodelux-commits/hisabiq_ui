@@ -170,8 +170,8 @@ export function ProductDetailsDialog({
                 <p className="text-[13px] font-semibold text-ink">{pl('Warranty')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ওয়ারেন্টি</span>}</p>
                 {product.warranty?.enabled ? (
                   <div className="mt-2 space-y-1 text-[12.5px]">
-                    <p><span className="text-ink-400">{pl("Coverage:")}</span> <span className="font-medium text-ink">{product.warranty.duration} {pl(product.warranty.durationUnit)}</span></p>
-                    <p><span className="text-ink-400">{pl("Type:")}</span> <span className="font-medium text-ink">{pl(product.warranty.type)}</span></p>
+                    <p><span className="text-ink-400">{pl("Coverage:")}</span> <span className="font-medium text-ink">{product.warranty.duration} {product.warranty.durationUnit ? pl(product.warranty.durationUnit) : '—'}</span></p>
+                    <p><span className="text-ink-400">{pl("Type:")}</span> <span className="font-medium text-ink">{product.warranty.type ? pl(product.warranty.type) : '—'}</span></p>
                     <p className="rounded-lg bg-ink-50 p-2 text-ink-600">{product.warranty.terms || pl('No additional terms.')}</p>
                     <p className="text-[11px] text-ink-400">{pl("Warranty is snapshotted when sold. Claims are processed in the Warranty module.")}</p>
                   </div>
@@ -206,11 +206,11 @@ export function ProductDetailsDialog({
                 ['Expired', stock.expired, 'Visible but blocked from normal sale']
               ].map(([label, value, hint]) => (
                 <div key={String(label)} className="rounded-lg border border-border p-3">
-                  <p className="text-xs text-ink-500">{pl(label)}</p>
+                  <p className="text-xs text-ink-500">{pl(String(label))}</p>
                   <p className={`mt-1 text-base font-semibold ${label === 'Expired' && Number(value) > 0 ? 'text-danger' : label === 'Expiring Soon' && Number(value) > 0 ? 'text-warning' : 'text-ink'}`}>
                     {formatStock({ ...product, stock: Number(value) })}
                   </p>
-                  <p className="text-[11px] text-ink-400">{pl(hint)}</p>
+                  <p className="text-[11px] text-ink-400">{pl(String(hint))}</p>
                 </div>
               ))}
             </div>
