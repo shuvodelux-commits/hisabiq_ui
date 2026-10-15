@@ -78,6 +78,9 @@ jobs:
       - name: Check Phase 10 bilingual quotation print and editor
         run: npm run test:bangla-quotations
 
+      - name: Check Phase 14 Products catalog in three languages
+        run: npm run test:bangla-products
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
