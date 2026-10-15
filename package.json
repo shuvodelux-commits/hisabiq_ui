@@ -65,7 +65,8 @@
     "test:bangla-expenses": "node scripts/bangla-expenses-browser.cjs",
     "test:bangla-parties-feedback": "node scripts/bangla-parties-feedback-browser.cjs",
     "test:bangla-party-editor-detail": "node scripts/bangla-party-editor-detail-browser.cjs",
-    "test:bangla-party-financial": "node scripts/bangla-party-financial-browser.cjs"
+    "test:bangla-party-financial": "node scripts/bangla-party-financial-browser.cjs",
+    "test:bangla-party-directory-import": "node scripts/bangla-party-directory-import-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
