@@ -21,9 +21,9 @@ async function main(){
     await page.getByRole('heading',{name:bn?'পার্টি ও খাতা':'Parties & Ledger',exact:true}).waitFor();
     await page.getByRole('button',{name:bn?'এক্সেল / CSV থেকে আনুন':'Import Excel / CSV',exact:true}).waitFor();
     await page.getByRole('button',{name:bn?'নতুন পার্টি যোগ করুন':'Add party',exact:true}).click();
-    const editor=page.getByRole('dialog',{name:'Add party'});
+    const editor=page.getByRole('dialog',{name:bn?'নতুন পার্টি যোগ করুন':'Add party'});
     await editor.waitFor();
-    await editor.getByRole('button',{name:'Cancel',exact:true}).click();
+    await editor.getByRole('button',{name:bn?'বাতিল':'Cancel',exact:true}).click();
     await editor.waitFor({state:'hidden'});
     assert.deepEqual(errors,[],language+' '+width+'px page errors');
     await context.close();
