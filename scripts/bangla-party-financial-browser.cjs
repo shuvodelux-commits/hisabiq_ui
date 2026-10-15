@@ -30,7 +30,7 @@ async function main(){
     await page.getByRole('button',{name:label('Print statement','হিসাব প্রিন্ট')}).click();
     const statement=page.getByRole('dialog',{name:label('Party ledger statement','পক্ষের হিসাবের বিবরণ')});
     await statement.getByText(label('Opening balance','শুরুর জের'),{exact:true}).first().waitFor();
-    await statement.getByRole('button',{name:label('Close','বন্ধ করুন')}).click();
+    await statement.getByRole('button',{name:label('Close','বন্ধ করুন'),exact:true}).last().click();
 
     await page.goto('http://127.0.0.1:4407/#/app/parties?id=o1&role=Owner');
     await page.getByRole('button',{name:label('Record owner finance','টাকা লেনদেন লিখুন')}).click();
