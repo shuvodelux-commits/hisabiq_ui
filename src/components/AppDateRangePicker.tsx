@@ -159,7 +159,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
             setFirst(isoDay(date.getUTCFullYear(), date.getUTCMonth(), 1));
           }} className="rounded-md border border-border bg-card px-2 py-1.5 text-[11px] text-ink-600 hover:bg-teal-50 hover:text-teal-700" >{language==='Bangla'?datePresetBn[preset]:preset}</button>)}
         </div>}
-        <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+        <div className="sticky bottom-0 z-10 -mx-3 -mb-3 mt-3 flex items-center justify-between border-t border-border bg-popover px-3 pb-3 pt-3">
           <button type="button" onClick={() => commit(empty)}
             className="inline-flex items-center gap-1 text-[12px] text-ink-500 hover:text-ink"><X className="size-3" /> {t('Clear','মুছুন')}</button>
           <div className="flex gap-2">
