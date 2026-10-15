@@ -179,15 +179,15 @@ export function ProductDetailsDialog({
               </div>
 
               <div className="rounded-xl border border-border p-3">
-                <p className="text-[13px] font-semibold text-ink">{pl(isStock ? 'Tracking' : 'Service settings')} <span className="font-bn text-[11px] font-normal text-ink-400">· ট্র্যাকিং</span></p>
+                <p className="text-[13px] font-semibold text-ink">{pl(isStock ? 'Tracking' : 'Service settings')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ট্র্যাকিং</span>}</p>
                 {isStock ? (
                   <div className="mt-2 space-y-2 text-[12.5px]">
-                    <div className="flex justify-between gap-3"><span className="text-ink-500">Serial tracking</span><span className="font-medium">{pl(product.serialTracking ?? 'Off')}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-ink-500">Expiry tracking</span><span className="font-medium">{pl(product.expiry?.enabled ? 'On' : 'Off')}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-ink-500">{pl("Serial tracking")}</span><span className="font-medium">{pl(product.serialTracking ?? 'Off')}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-ink-500">{pl("Expiry tracking")}</span><span className="font-medium">{pl(product.expiry?.enabled ? 'On' : 'Off')}</span></div>
                     {product.expiry?.enabled && <>
-                      <div className="flex justify-between gap-3"><span className="text-ink-500">Expiry required</span><span className="font-medium">{pl(product.expiry.dateRequired ? 'Yes' : 'No')}</span></div>
-                      <div className="flex justify-between gap-3"><span className="text-ink-500">Warning</span><span className="font-medium">{product.expiry.warningDays} {pl('days')}</span></div>
-                      <div className="flex justify-between gap-3"><span className="text-ink-500">Allocation</span><span className="font-medium">{pl(product.expiry.allocationMethod)}</span></div>
+                      <div className="flex justify-between gap-3"><span className="text-ink-500">{pl("Expiry required")}</span><span className="font-medium">{pl(product.expiry.dateRequired ? 'Yes' : 'No')}</span></div>
+                      <div className="flex justify-between gap-3"><span className="text-ink-500">{pl("Warning")}</span><span className="font-medium">{product.expiry.warningDays} {pl('days')}</span></div>
+                      <div className="flex justify-between gap-3"><span className="text-ink-500">{pl("Allocation")}</span><span className="font-medium">{pl(product.expiry.allocationMethod)}</span></div>
                     </>}
                   </div>
                 ) : <p className="mt-2 text-sm text-ink-500">{pl("No inventory or serial tracking for service products.")}</p>}
@@ -202,7 +202,7 @@ export function ProductDetailsDialog({
               {[
                 ['On Hand', stock.onHand, 'All inventory including expired'],
                 ['Sellable', stock.sellable, 'Available for normal POS sales'],
-                ['Expiring Soon', stock.expiringSoon, `Within ${product.expiry?.warningDays ?? 0} days`],
+                ['Expiring Soon', stock.expiringSoon, `${pl("Within")} ${product.expiry?.warningDays ?? 0} ${pl("days")}`],
                 ['Expired', stock.expired, 'Visible but blocked from normal sale']
               ].map(([label, value, hint]) => (
                 <div key={String(label)} className="rounded-lg border border-border p-3">
@@ -216,7 +216,7 @@ export function ProductDetailsDialog({
             </div>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={() => onAdjust(product)}>{pl("Adjust stock")}</Button>
-              <Button size="sm" variant="outline" onClick={() => onAddLot(product)}><Plus className="size-4" /> Add stock lot</Button>
+              <Button size="sm" variant="outline" onClick={() => onAddLot(product)}><Plus className="size-4" /> {pl("Add stock lot")}</Button>
             </div>
           </div>
         )}
@@ -226,9 +226,9 @@ export function ProductDetailsDialog({
             <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
               <div>
                 <p className="text-[13px] font-semibold text-ink">{pl('Lots & Serials')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· লট ও সিরিয়াল</span>}</p>
-                <p className="text-[11px] text-ink-400">{productLots.length} lots · {productLots.reduce((sum, lot) => sum + (lot.serials?.length ?? 0), 0)} serials recorded</p>
+                <p className="text-[11px] text-ink-400">{productLots.length} {pl("lots")} · {productLots.reduce((sum, lot) => sum + (lot.serials?.length ?? 0), 0)} {pl("serials")} {pl("recorded")}</p>
               </div>
-              <Button size="sm" variant="outline" onClick={() => onAddLot(product)}><Plus className="size-3.5" /> Add lot</Button>
+              <Button size="sm" variant="outline" onClick={() => onAddLot(product)}><Plus className="size-3.5" /> {pl("Add lot")}</Button>
             </div>
             <div className="divide-y divide-border">
               {productLots.map((lot) => {
@@ -236,13 +236,13 @@ export function ProductDetailsDialog({
                 return <div key={lot.id} className="grid gap-2 px-3 py-3 text-[12.5px] sm:grid-cols-[1.2fr_.8fr_.8fr_1fr]">
                   <div>
                     <p className="font-medium text-ink">{lot.label}</p>
-                    <p className="text-[11px] text-ink-400">{lot.batchNumber ? `Batch ${lot.batchNumber} · ` : ''}{lot.receivedAt}</p>
+                    <p className="text-[11px] text-ink-400">{lot.batchNumber ? `${pl("Batch")} ${lot.batchNumber} · ` : ''}{lot.receivedAt}</p>
                   </div>
-                  <div className="sm:text-right"><p className="font-medium text-ink">{formatStock({ ...product, stock: lot.available })}</p><p className="text-[11px] text-ink-400">available</p></div>
-                  <div><StatusBadge tone={expiry === 'Expired' ? 'danger' : expiry === 'Expiring soon' ? 'warning' : expiry === 'Sellable' ? 'success' : 'neutral'}>{pl(expiry)}</StatusBadge><p className="mt-1 text-[11px] text-ink-400">{lot.expiryDate ?? 'No expiry date'}</p></div>
+                  <div className="sm:text-right"><p className="font-medium text-ink">{formatStock({ ...product, stock: lot.available })}</p><p className="text-[11px] text-ink-400">{pl("available")}</p></div>
+                  <div><StatusBadge tone={expiry === 'Expired' ? 'danger' : expiry === 'Expiring soon' ? 'warning' : expiry === 'Sellable' ? 'success' : 'neutral'}>{pl(expiry)}</StatusBadge><p className="mt-1 text-[11px] text-ink-400">{lot.expiryDate ?? pl('No expiry date')}</p></div>
                   <div className="min-w-0">
-                    <p className="font-medium text-ink">{lot.serials?.length ?? 0} serials</p>
-                    <p className="truncate text-[11px] text-ink-400">{lot.serials?.slice(0, 3).join(', ') || 'No serials'}</p>
+                    <p className="font-medium text-ink">{lot.serials?.length ?? 0} {pl("serials")}</p>
+                    <p className="truncate text-[11px] text-ink-400">{lot.serials?.slice(0, 3).join(', ') || pl('No serials')}</p>
                   </div>
                 </div>;
               })}
@@ -256,9 +256,9 @@ export function ProductDetailsDialog({
             <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
               <div>
                 <p className="text-[13px] font-semibold text-ink">{pl('Offers')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· অফার</span>}</p>
-                <p className="text-[11px] text-ink-400">Normal price remains {taka(product.sellPrice)}/{product.unit}</p>
+                <p className="text-[11px] text-ink-400">{pl("Normal price remains")} {taka(product.sellPrice)}/{product.unit}</p>
               </div>
-              <Button size="sm" variant="outline" onClick={() => onManageOffers(product)}><Tag className="size-3.5" /> Manage offers</Button>
+              <Button size="sm" variant="outline" onClick={() => onManageOffers(product)}><Tag className="size-3.5" /> {pl("Manage offers")}</Button>
             </div>
             <div className="divide-y divide-border">
               {productOffers.map((offer) => {
@@ -267,7 +267,7 @@ export function ProductDetailsDialog({
                 const effective = offerEffectiveInUnit(product, offer);
                 return <div key={offer.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 text-[12.5px]">
                   <div>
-                    <div className="flex items-center gap-2"><p className="font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% off` : `${taka(offer.value)} off / ${offer.priceUnit}`}</p><StatusBadge tone={offerTone[status]}>{pl(status)}</StatusBadge></div>
+                    <div className="flex items-center gap-2"><p className="font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% ${pl('off')}` : `${taka(offer.value)} ${pl('off')} / ${offer.priceUnit}`}</p><StatusBadge tone={offerTone[status]}>{pl(status)}</StatusBadge></div>
                     <p className="mt-0.5 text-[11px] text-ink-400">{offer.startAt.replace('T', ' ')} → {offer.endAt.replace('T', ' ')}</p>
                   </div>
                   <div className="text-right"><p className="text-ink-400 line-through">{taka(normal)}/{offer.priceUnit}</p><p className="font-semibold text-teal-700">{taka(effective)}/{offer.priceUnit}</p></div>
@@ -560,7 +560,7 @@ export function ManageOffersDialog({
           {drafts.map((offer) => {
             const status = offerStatus(offer);
             return <button key={offer.id} type="button" onClick={() => { setEditing(offer); setError(''); }} className="flex w-full items-center justify-between gap-3 rounded-xl border border-border p-3 text-left hover:bg-ink-50">
-              <div><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% discount` : `${taka(offer.value)} / ${offer.priceUnit} discount`}</span><StatusBadge tone={offerTone[status]}>{pl(status)}</StatusBadge></div><p className="mt-1 text-[11px] text-ink-400">{offer.startAt.replace('T', ' ')} → {offer.endAt.replace('T', ' ')}</p></div>
+              <div><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% ${pl('discount')}` : `${taka(offer.value)} / ${offer.priceUnit} ${pl('discount')}`}</span><StatusBadge tone={offerTone[status]}>{pl(status)}</StatusBadge></div><p className="mt-1 text-[11px] text-ink-400">{offer.startAt.replace('T', ' ')} → {offer.endAt.replace('T', ' ')}</p></div>
               <div className="text-right"><p className="text-[11px] text-ink-400 line-through">{taka(priceForOfferUnit(product, offer.priceUnit))}/{offer.priceUnit}</p><p className="text-sm font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, offer))}/{offer.priceUnit}</p></div>
             </button>;
           })}
@@ -569,7 +569,7 @@ export function ManageOffersDialog({
           {editing && <div className="space-y-3 rounded-xl border border-teal-200 bg-teal-50/30 p-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-[13px] font-medium text-ink">{pl("Discount type")}<FormSelect className="mt-1.5" value={editing.discountType} onChange={(e) => setEditing({ ...editing, discountType: e.target.value as OfferDiscountType })} options={productInventoryOptions(language,['Percentage', 'Fixed'])} /></label>
-              <label className="text-[13px] font-medium text-ink">{pl("Discount value")}<div className="mt-1.5 flex gap-2"><Input value={String(editing.value)} onChange={(e) => setEditing({ ...editing, value: parseFloat(e.target.value.replace(/[^\d.]/g, '')) || 0 })} inputMode="decimal" className="text-right" />{editing.discountType === 'Fixed' && <FormSelect value={editing.priceUnit} onChange={(e) => setEditing({ ...editing, priceUnit: e.target.value })} options={priceUnits} className="w-28 shrink-0" />}</div>{editing.discountType === 'Fixed' && <p className="mt-1 text-[11px] text-ink-400">Fixed discount is per {editing.priceUnit}.</p>}</label>
+              <label className="text-[13px] font-medium text-ink">{pl("Discount value")}<div className="mt-1.5 flex gap-2"><Input value={String(editing.value)} onChange={(e) => setEditing({ ...editing, value: parseFloat(e.target.value.replace(/[^\d.]/g, '')) || 0 })} inputMode="decimal" className="text-right" />{editing.discountType === 'Fixed' && <FormSelect value={editing.priceUnit} onChange={(e) => setEditing({ ...editing, priceUnit: e.target.value })} options={priceUnits} className="w-28 shrink-0" />}</div>{editing.discountType === 'Fixed' && <p className="mt-1 text-[11px] text-ink-400">{pl("Fixed discount is per")} {editing.priceUnit}.</p>}</label>
               <label className="text-[13px] font-medium text-ink">{pl("Start date & time")}<Input className="mt-1.5" type="datetime-local" value={editing.startAt} onChange={(e) => setEditing({ ...editing, startAt: e.target.value })} /></label>
               <label className="text-[13px] font-medium text-ink">{pl("End date & time")}<Input className="mt-1.5" type="datetime-local" value={editing.endAt} onChange={(e) => setEditing({ ...editing, endAt: e.target.value })} /></label>
             </div>
