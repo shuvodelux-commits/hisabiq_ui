@@ -59,8 +59,8 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
         {parties.map((p) => {
           const active = p.id === selectedId;
           return (
-            <li key={p.id} role="option" aria-selected={active}>
-              <button
+            <li key={p.id} role="presentation">
+              <button role="option" aria-selected={active}
                 onClick={() => onSelect(p.id)}
                 className={`flex w-full items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors ${
                 active ? 'border-teal-600 bg-teal-50/60' : 'border-transparent hover:bg-ink-50'}`
