@@ -40,12 +40,12 @@ import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesD
 import { downloadReport, printReport } from '../utils/reportOutput';
 const printInvoice = (invoice: SalesInvoice,language:UiLanguage='English + Bangla') => {
   const view = window.open('', '_blank');
-  if (!view) { toast.error('Allow the print popup and try again.'); return; }
+  if (!view) { toast.error(salesLabel(language,'Allow the print popup and try again.')); return; }
   view.opener = null;
   void import('../components/brand/printReceipt').then(({printReceipt}) => printReceipt(invoiceReceipt(invoice,language), view))
-    .catch(() => { view.close(); toast.error('Could not open the print document. Try again.'); });
+    .catch(() => { view.close(); toast.error(salesLabel(language,'Could not open the print document. Try again.')); });
 };
-const printReturn = (item: SalesReturn,language:UiLanguage='English + Bangla') => { if (!printReport(returnDocument(item,language))) toast.error('Allow the print popup and try again.'); };
+const printReturn = (item: SalesReturn,language:UiLanguage='English + Bangla') => { if (!printReport(returnDocument(item,language))) toast.error(salesLabel(language,'Allow the print popup and try again.')); };
 
 type Tab = 'sales' | 'return' | 'returns' | 'credits' | 'drafts';
 
@@ -790,7 +790,7 @@ export function Sales() {
         payments: [...item.payments, ...payments]
       };
     }));
-    toast.success('Payment saved', { description: `${invoice.invoice} · ${taka(amount)}` });
+    toast.success(sl('Payment saved'), { description: `${invoice.invoice} · ${taka(amount)}` });
   };
 
   const receiveCustomerPayment = (draft: CustomerPaymentDraft) => {
@@ -849,7 +849,7 @@ export function Sales() {
       });
     }
 
-    toast.success('Customer payment saved', {
+    toast.success(sl('Customer payment saved'), {
       description: remainder > 0 ? `${taka(amount - remainder)} settled · ${taka(remainder)} credit` : `${taka(amount)} settled against due invoices`
     });
   };
@@ -869,21 +869,21 @@ export function Sales() {
       };
     }));
     setCredits((items) => items.map((item) => item.id === credit.id ? { ...item, balance: Math.max(item.balance - amount, 0), source: `Applied to invoice`, updatedAt: '01 Oct 2026' } : item));
-    toast.success('Customer credit applied', { description: `${credit.customer} · ${taka(amount)}` });
+    toast.success(sl('Customer credit applied'), { description: `${credit.customer} · ${taka(amount)}` });
   };
 
   const refundCustomerCredit = (credit: CustomerCredit, amount: number, method: PaymentMethod, account: string) => {
     setCredits((items) => items.map((item) => item.id === credit.id ? { ...item, balance: Math.max(item.balance - amount, 0), source: `Refunded by ${method}`, updatedAt: '01 Oct 2026' } : item));
-    toast.success('Customer credit refunded', { description: `${credit.customer} · ${taka(amount)}${account.trim() ? ` · ${account.trim()}` : ''}` });
+    toast.success(sl('Customer credit refunded'), { description: `${credit.customer} · ${taka(amount)}${account.trim() ? ` · ${account.trim()}` : ''}` });
   };
 
   const completeReturn = () => {
     if (!returnInvoiceIds.length || returnAmount <= 0) {
-      toast.error('Select invoice items and enter return quantity');
+      toast.error(sl('Select invoice items and enter return quantity'));
       return;
     }
     if (returnIssues.length) {
-      toast.error('Check return quantities and serial numbers', { description: returnIssues[0] });
+      toast.error(sl('Check return quantities and serial numbers'), { description: returnIssues[0] });
       return;
     }
     const selected = selectedReturnInvoices;
@@ -951,7 +951,7 @@ export function Sales() {
     setReturnRefundMethod('Cash');
     setReturnRefundAccount('');
     setTab('returns');
-    toast.success(`${newReturn.id} saved`, { description: `${taka(returnAmount)} · ${returnSettlement}` });
+    toast.success(`${newReturn.id} ${sl('saved')}`, { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
 
   const tabs: Array<[Tab, string, string]> = [
@@ -1626,10 +1626,10 @@ export function Sales() {
         onRefund={refundCustomerCredit}
       />
       <Dialog open={!!returnDetail} onOpenChange={open => !open && setReturnDetail(null)}>
-        <DialogContent role="dialog" aria-label="Sales return details" className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
-          <DialogHeader><DialogTitle>{returnDetail?.id}</DialogTitle><DialogDescription>Return source preview · no new refund or stock movement.</DialogDescription></DialogHeader>
+        <DialogContent role="dialog" aria-label={sl('Sales return details')} className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader><DialogTitle>{returnDetail?.id}</DialogTitle><DialogDescription>{sl('Return source preview · no new refund or stock movement.')}</DialogDescription></DialogHeader>
           {returnDetail && <dl className="space-y-2 text-sm">{returnDocument(returnDetail,language).rows.map(([label,value]) => <div key={String(label)} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="max-w-full break-words text-ink">{value}</dd></div>)}</dl>}
-          <DialogFooter><Button variant="outline" onClick={() => setReturnDetail(null)}>Close</Button><Button onClick={() => returnDetail && printReturn(returnDetail,language)}>Print return</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setReturnDetail(null)}>{sl('Close')}</Button><Button onClick={() => returnDetail && printReturn(returnDetail,language)}>{sl('Print return')}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
