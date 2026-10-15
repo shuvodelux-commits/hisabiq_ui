@@ -6,6 +6,7 @@ import { AppSelect } from '../AppSelect';
 import { AppDatePicker } from '../AppDateRangePicker';
 import { businessToday } from '../../utils/dateRange';
 import {useUiCopy} from '../../i18n/useUiCopy';
+import {partyRoleLabel,partyOpeningDirectionLabel} from '../../i18n/partyCopy';
 import { openingDirectionLabels, defaultOpeningSide } from './PartyOpeningDialog';
 import { partyRoles } from '../../data/parties';
 import type { Party, PartyRole } from '../../types/erp';
@@ -27,19 +28,11 @@ const fresh = (party?: Party | null):PartyDraft => ({
   image:party?.image
 });
 
-const partyRoleBn:Record<PartyRole,string> = {
-  Customer:'ক্রেতা',Supplier:'সরবরাহকারী',Vendor:'ভেন্ডর',
-  Lender:'ঋণদাতা',Borrower:'ঋণগ্রহীতা',Payee:'খরচের প্রাপক',Owner:'মালিক'
-};
-
 type OpeningDraft={amount:string;side:'debit'|'credit';date:string};
 export function PartyEditorDialog({open,party,existingOpenings=[],onClose,onSave,defaultRole='Customer'}:Props) {
   const {text,language,showHelper}=useUiCopy();
-  const roleLabel=(role:PartyRole)=>text(role,partyRoleBn[role]);
-  const directionLabel=(label:string)=>{
-    const [english,bangla]=label.split(' · ');
-    return language==='English + Bangla'?label:text(english,bangla??english);
-  };
+  const roleLabel=(role:PartyRole)=>partyRoleLabel(role,language);
+  const directionLabel=(label:string)=>partyOpeningDirectionLabel(label,language);
   const [draft,setDraft]=useState<PartyDraft>(()=>fresh(party));
   const [error,setError]=useState('');
   const [openings,setOpenings]=useState<Partial<Record<PartyRole,OpeningDraft>>>({});
