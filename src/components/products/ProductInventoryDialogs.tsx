@@ -17,6 +17,8 @@ import type {
 import { taka } from '../../utils/currency';
 import { formatStock } from '../../utils/units';
 import { toBaseQuantity } from '../../utils/productEntry';
+import {useUiCopy} from '../../i18n/useUiCopy';
+import {productInventoryLabel,productInventoryOptions} from '../../i18n/productInventoryCopy';
 import {
   duplicateSerials,
   lotExpiryState,
@@ -80,6 +82,8 @@ export function ProductDetailsDialog({
   onAddLot: (product: Product) => void;
   onManageOffers: (product: Product) => void;
 }) {
+  const {language,showHelper}=useUiCopy();
+  const pl=(english:string)=>productInventoryLabel(language,english);
   const [tab, setTab] = useState<DetailsTab>('overview');
 
   useEffect(() => {
@@ -113,8 +117,8 @@ export function ProductDetailsDialog({
         <DialogHeader>
           <DialogTitle className="flex flex-wrap items-center gap-2">
             {product.name}
-            <StatusBadge tone={product.active ? 'success' : 'neutral'}>{product.active ? 'Active' : 'Inactive'}</StatusBadge>
-            {product.kind === 'Service' && <StatusBadge tone="info">Service</StatusBadge>}
+            <StatusBadge tone={product.active ? 'success' : 'neutral'}>{pl(product.active ? 'Active' : 'Inactive')}</StatusBadge>
+            {product.kind === 'Service' && <StatusBadge tone="info">{pl('Service')}</StatusBadge>}
           </DialogTitle>
           <DialogDescription>
             {product.nameBn && <span className="font-bn">{product.nameBn} · </span>}
@@ -131,7 +135,7 @@ export function ProductDetailsDialog({
               aria-selected={tab === id}
               onClick={() => setTab(id)}
               className={`shrink-0 px-2.5 py-2 text-[12.5px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
-              {label} <span className="font-bn text-[10px] font-normal text-ink-400">· {bn}</span>
+              {pl(label)} {showHelper&&<span className="font-bn text-[10px] font-normal text-ink-400">· {bn}</span>}
             </button>
           ))}
         </div>
@@ -140,53 +144,53 @@ export function ProductDetailsDialog({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {isStock && <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-ink-500">On hand</p>
+                <p className="text-xs text-ink-500">{pl("On hand")}</p>
                 <p className="mt-1 text-base font-semibold text-ink">{formatStock(product)}</p>
-                <p className="text-[11px] text-ink-400">Recorded stock</p>
+                <p className="text-[11px] text-ink-400">{pl("Recorded stock")}</p>
               </div>}
               {isStock && <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-ink-500">Stock value</p>
+                <p className="text-xs text-ink-500">{pl("Stock value")}</p>
                 <p className="mt-1 text-base font-semibold text-ink">{taka(stockValue, stockValue % 1 ? 2 : 0)}</p>
-                <p className="text-[11px] text-ink-400">At purchase price</p>
+                <p className="text-[11px] text-ink-400">{pl("At purchase price")}</p>
               </div>}
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-ink-500">Normal selling price</p>
+                <p className="text-xs text-ink-500">{pl("Normal selling price")}</p>
                 <p className="mt-1 text-base font-semibold text-ink">{taka(product.sellPrice)}/{product.unit}</p>
-                <p className="text-[11px] text-ink-400">Offers never overwrite this price</p>
+                <p className="text-[11px] text-ink-400">{pl("Offers never overwrite this price")}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-ink-500">Product type</p>
-                <p className="mt-1 text-base font-semibold text-ink">{product.kind ?? 'Stock'}</p>
+                <p className="text-xs text-ink-500">{pl("Product type")}</p>
+                <p className="mt-1 text-base font-semibold text-ink">{pl(product.kind ?? 'Stock')}</p>
                 <p className="text-[11px] text-ink-400">{product.category}</p>
               </div>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-border p-3">
-                <p className="text-[13px] font-semibold text-ink">Warranty <span className="font-bn text-[11px] font-normal text-ink-400">· ওয়ারেন্টি</span></p>
+                <p className="text-[13px] font-semibold text-ink">{pl('Warranty')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ওয়ারেন্টি</span>}</p>
                 {product.warranty?.enabled ? (
                   <div className="mt-2 space-y-1 text-[12.5px]">
-                    <p><span className="text-ink-400">Coverage:</span> <span className="font-medium text-ink">{product.warranty.duration} {product.warranty.durationUnit}</span></p>
-                    <p><span className="text-ink-400">Type:</span> <span className="font-medium text-ink">{product.warranty.type}</span></p>
-                    <p className="rounded-lg bg-ink-50 p-2 text-ink-600">{product.warranty.terms || 'No additional terms.'}</p>
-                    <p className="text-[11px] text-ink-400">Warranty is snapshotted when sold. Claims are processed in the Warranty module.</p>
+                    <p><span className="text-ink-400">{pl("Coverage:")}</span> <span className="font-medium text-ink">{product.warranty.duration} {pl(product.warranty.durationUnit)}</span></p>
+                    <p><span className="text-ink-400">{pl("Type:")}</span> <span className="font-medium text-ink">{pl(product.warranty.type)}</span></p>
+                    <p className="rounded-lg bg-ink-50 p-2 text-ink-600">{product.warranty.terms || pl('No additional terms.')}</p>
+                    <p className="text-[11px] text-ink-400">{pl("Warranty is snapshotted when sold. Claims are processed in the Warranty module.")}</p>
                   </div>
-                ) : <p className="mt-2 text-sm text-ink-500">Warranty is off.</p>}
+                ) : <p className="mt-2 text-sm text-ink-500">{pl("Warranty is off.")}</p>}
               </div>
 
               <div className="rounded-xl border border-border p-3">
-                <p className="text-[13px] font-semibold text-ink">{isStock ? 'Tracking' : 'Service settings'} <span className="font-bn text-[11px] font-normal text-ink-400">· ট্র্যাকিং</span></p>
+                <p className="text-[13px] font-semibold text-ink">{pl(isStock ? 'Tracking' : 'Service settings')} <span className="font-bn text-[11px] font-normal text-ink-400">· ট্র্যাকিং</span></p>
                 {isStock ? (
                   <div className="mt-2 space-y-2 text-[12.5px]">
-                    <div className="flex justify-between gap-3"><span className="text-ink-500">Serial tracking</span><span className="font-medium">{product.serialTracking ?? 'Off'}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-ink-500">Expiry tracking</span><span className="font-medium">{product.expiry?.enabled ? 'On' : 'Off'}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-ink-500">Serial tracking</span><span className="font-medium">{pl(product.serialTracking ?? 'Off')}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-ink-500">Expiry tracking</span><span className="font-medium">{pl(product.expiry?.enabled ? 'On' : 'Off')}</span></div>
                     {product.expiry?.enabled && <>
-                      <div className="flex justify-between gap-3"><span className="text-ink-500">Expiry required</span><span className="font-medium">{product.expiry.dateRequired ? 'Yes' : 'No'}</span></div>
-                      <div className="flex justify-between gap-3"><span className="text-ink-500">Warning</span><span className="font-medium">{product.expiry.warningDays} days</span></div>
-                      <div className="flex justify-between gap-3"><span className="text-ink-500">Allocation</span><span className="font-medium">{product.expiry.allocationMethod}</span></div>
+                      <div className="flex justify-between gap-3"><span className="text-ink-500">Expiry required</span><span className="font-medium">{pl(product.expiry.dateRequired ? 'Yes' : 'No')}</span></div>
+                      <div className="flex justify-between gap-3"><span className="text-ink-500">Warning</span><span className="font-medium">{product.expiry.warningDays} {pl('days')}</span></div>
+                      <div className="flex justify-between gap-3"><span className="text-ink-500">Allocation</span><span className="font-medium">{pl(product.expiry.allocationMethod)}</span></div>
                     </>}
                   </div>
-                ) : <p className="mt-2 text-sm text-ink-500">No inventory or serial tracking for service products.</p>}
+                ) : <p className="mt-2 text-sm text-ink-500">{pl("No inventory or serial tracking for service products.")}</p>}
               </div>
             </div>
           </div>
@@ -202,16 +206,16 @@ export function ProductDetailsDialog({
                 ['Expired', stock.expired, 'Visible but blocked from normal sale']
               ].map(([label, value, hint]) => (
                 <div key={String(label)} className="rounded-lg border border-border p-3">
-                  <p className="text-xs text-ink-500">{label}</p>
+                  <p className="text-xs text-ink-500">{pl(label)}</p>
                   <p className={`mt-1 text-base font-semibold ${label === 'Expired' && Number(value) > 0 ? 'text-danger' : label === 'Expiring Soon' && Number(value) > 0 ? 'text-warning' : 'text-ink'}`}>
                     {formatStock({ ...product, stock: Number(value) })}
                   </p>
-                  <p className="text-[11px] text-ink-400">{hint}</p>
+                  <p className="text-[11px] text-ink-400">{pl(hint)}</p>
                 </div>
               ))}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => onAdjust(product)}>Adjust stock</Button>
+              <Button size="sm" onClick={() => onAdjust(product)}>{pl("Adjust stock")}</Button>
               <Button size="sm" variant="outline" onClick={() => onAddLot(product)}><Plus className="size-4" /> Add stock lot</Button>
             </div>
           </div>
@@ -221,7 +225,7 @@ export function ProductDetailsDialog({
           <div className="overflow-hidden rounded-xl border border-border">
             <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
               <div>
-                <p className="text-[13px] font-semibold text-ink">Lots & Serials <span className="font-bn text-[11px] font-normal text-ink-400">· লট ও সিরিয়াল</span></p>
+                <p className="text-[13px] font-semibold text-ink">{pl('Lots & Serials')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· লট ও সিরিয়াল</span>}</p>
                 <p className="text-[11px] text-ink-400">{productLots.length} lots · {productLots.reduce((sum, lot) => sum + (lot.serials?.length ?? 0), 0)} serials recorded</p>
               </div>
               <Button size="sm" variant="outline" onClick={() => onAddLot(product)}><Plus className="size-3.5" /> Add lot</Button>
@@ -235,14 +239,14 @@ export function ProductDetailsDialog({
                     <p className="text-[11px] text-ink-400">{lot.batchNumber ? `Batch ${lot.batchNumber} · ` : ''}{lot.receivedAt}</p>
                   </div>
                   <div className="sm:text-right"><p className="font-medium text-ink">{formatStock({ ...product, stock: lot.available })}</p><p className="text-[11px] text-ink-400">available</p></div>
-                  <div><StatusBadge tone={expiry === 'Expired' ? 'danger' : expiry === 'Expiring soon' ? 'warning' : expiry === 'Sellable' ? 'success' : 'neutral'}>{expiry}</StatusBadge><p className="mt-1 text-[11px] text-ink-400">{lot.expiryDate ?? 'No expiry date'}</p></div>
+                  <div><StatusBadge tone={expiry === 'Expired' ? 'danger' : expiry === 'Expiring soon' ? 'warning' : expiry === 'Sellable' ? 'success' : 'neutral'}>{pl(expiry)}</StatusBadge><p className="mt-1 text-[11px] text-ink-400">{lot.expiryDate ?? 'No expiry date'}</p></div>
                   <div className="min-w-0">
                     <p className="font-medium text-ink">{lot.serials?.length ?? 0} serials</p>
                     <p className="truncate text-[11px] text-ink-400">{lot.serials?.slice(0, 3).join(', ') || 'No serials'}</p>
                   </div>
                 </div>;
               })}
-              {!productLots.length && <p className="px-3 py-8 text-center text-sm text-ink-500">No stock lots yet.</p>}
+              {!productLots.length && <p className="px-3 py-8 text-center text-sm text-ink-500">{pl("No stock lots yet.")}</p>}
             </div>
           </div>
         )}
@@ -251,7 +255,7 @@ export function ProductDetailsDialog({
           <div className="rounded-xl border border-border">
             <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
               <div>
-                <p className="text-[13px] font-semibold text-ink">Offers <span className="font-bn text-[11px] font-normal text-ink-400">· অফার</span></p>
+                <p className="text-[13px] font-semibold text-ink">{pl('Offers')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· অফার</span>}</p>
                 <p className="text-[11px] text-ink-400">Normal price remains {taka(product.sellPrice)}/{product.unit}</p>
               </div>
               <Button size="sm" variant="outline" onClick={() => onManageOffers(product)}><Tag className="size-3.5" /> Manage offers</Button>
@@ -263,33 +267,33 @@ export function ProductDetailsDialog({
                 const effective = offerEffectiveInUnit(product, offer);
                 return <div key={offer.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 text-[12.5px]">
                   <div>
-                    <div className="flex items-center gap-2"><p className="font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% off` : `${taka(offer.value)} off / ${offer.priceUnit}`}</p><StatusBadge tone={offerTone[status]}>{status}</StatusBadge></div>
+                    <div className="flex items-center gap-2"><p className="font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% off` : `${taka(offer.value)} off / ${offer.priceUnit}`}</p><StatusBadge tone={offerTone[status]}>{pl(status)}</StatusBadge></div>
                     <p className="mt-0.5 text-[11px] text-ink-400">{offer.startAt.replace('T', ' ')} → {offer.endAt.replace('T', ' ')}</p>
                   </div>
                   <div className="text-right"><p className="text-ink-400 line-through">{taka(normal)}/{offer.priceUnit}</p><p className="font-semibold text-teal-700">{taka(effective)}/{offer.priceUnit}</p></div>
                 </div>;
               })}
-              {!productOffers.length && <div className="px-3 py-8 text-center"><p className="text-sm text-ink-500">No offers for this product.</p><Button size="sm" variant="outline" className="mt-2" onClick={() => onManageOffers(product)}>Create offer</Button></div>}
+              {!productOffers.length && <div className="px-3 py-8 text-center"><p className="text-sm text-ink-500">{pl("No offers for this product.")}</p><Button size="sm" variant="outline" className="mt-2" onClick={() => onManageOffers(product)}>{pl("Create offer")}</Button></div>}
             </div>
           </div>
         )}
 
         {tab === 'history' && (
           <div className="overflow-hidden rounded-xl border border-border">
-            <div className="border-b border-border px-3 py-2.5"><p className="text-[13px] font-semibold text-ink">History <span className="font-bn text-[11px] font-normal text-ink-400">· হিস্ট্রি</span></p></div>
+            <div className="border-b border-border px-3 py-2.5"><p className="text-[13px] font-semibold text-ink">{pl('History')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· হিস্ট্রি</span>}</p></div>
             <div className="divide-y divide-border">
               {productMovements.map((movement) => <div key={movement.id} className="grid grid-cols-[90px_1fr_auto] gap-3 px-3 py-2.5 text-[12.5px]">
                 <span className="text-ink-400">{movement.date}</span>
-                <span><span className="font-medium text-ink">{movement.type}</span><span className="block text-[11px] text-ink-400">{movement.reference ?? movement.note ?? '—'}</span></span>
+                <span><span className="font-medium text-ink">{pl(movement.type)}</span><span className="block text-[11px] text-ink-400">{movement.reference ?? movement.note ?? '—'}</span></span>
                 <span className={`text-right font-medium ${movement.quantity < 0 ? 'text-danger' : 'text-success'}`}>{movement.quantity > 0 ? '+' : ''}{movement.quantity} {product.unit}</span>
               </div>)}
-              {!productMovements.length && <p className="px-3 py-8 text-center text-sm text-ink-500">{isStock ? 'No inventory history yet.' : 'No service activity history yet.'}</p>}
+              {!productMovements.length && <p className="px-3 py-8 text-center text-sm text-ink-500">{pl(isStock ? 'No inventory history yet.' : 'No service activity history yet.')}</p>}
             </div>
           </div>
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{pl("Close")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -307,6 +311,8 @@ export function StockAdjustmentDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (result: StockAdjustmentResult) => void;
 }) {
+  const {language,showHelper}=useUiCopy();
+  const pl=(english:string)=>productInventoryLabel(language,english);
   const [mode, setMode] = useState<StockAdjustmentMode>('Add stock');
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('');
@@ -336,13 +342,13 @@ export function StockAdjustmentDialog({
   const previewStock = mode === 'Add stock' ? product.stock + baseQty : mode === 'Remove stock' ? product.stock - baseQty : baseQty;
 
   const save = () => {
-    if (!quantity.trim()) return setError('Enter a quantity.');
+    if (!quantity.trim()) return setError(pl('Enter a quantity.'));
     const delta = previewStock - product.stock;
     if (delta > 0 && product.serialTracking === 'Required') {
-      return setError('Add positive stock through Add stock lot so required serial numbers can be recorded.');
+      return setError(pl('Add positive stock through Add stock lot so required serial numbers can be recorded.'));
     }
     if (delta > 0 && product.expiry?.enabled && product.expiry.dateRequired) {
-      return setError('Add positive stock through Add stock lot so batch and expiry dates can be recorded.');
+      return setError(pl('Add positive stock through Add stock lot so batch and expiry dates can be recorded.'));
     }
     onSave({ newStock: previewStock, delta, reason, note: note.trim() });
     onOpenChange(false);
@@ -371,7 +377,7 @@ export function StockAdjustmentDialog({
           <div className="flex items-center justify-between rounded-lg border border-teal-100 bg-teal-50/60 px-3 py-2.5 text-sm"><span className="text-ink-600">Stock after adjustment</span><span className="font-semibold text-ink">{formatStock({ ...product, stock: previewStock })}</span></div>
           {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">{error}</p>}
         </div>
-        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save}>Save adjustment</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>{pl("Cancel")}</Button><Button onClick={save}>{pl("Save adjustment")}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -392,6 +398,8 @@ export function StockLotDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (lot: StockLot) => void;
 }) {
+  const {language,showHelper}=useUiCopy();
+  const pl=(english:string)=>productInventoryLabel(language,english);
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('');
   const [unitCost, setUnitCost] = useState('');
@@ -425,12 +433,12 @@ export function StockLotDialog({
   const required = requiredSerialCount(product, baseQty);
 
   const save = () => {
-    if (!(baseQty > 0)) return setError('Enter a quantity.');
-    if (product.serialTracking === 'Required' && !Number.isInteger(baseQty)) return setError('Required serial tracking needs a whole base-unit quantity.');
-    if (duplicates.length) return setError(`Duplicate serial: ${duplicates[0]}`);
-    if (product.serialTracking === 'Required' && serials.length !== required) return setError(`${required} unique serials are required for this lot.`);
-    if (product.expiry?.enabled && product.expiry.dateRequired && !expiryDate) return setError('Expiry date is required for this product.');
-    if (manufactureDate && expiryDate && expiryDate <= manufactureDate) return setError('Expiry date must be after manufacture date.');
+    if (!(baseQty > 0)) return setError(pl('Enter a quantity.'));
+    if (product.serialTracking === 'Required' && !Number.isInteger(baseQty)) return setError(pl('Required serial tracking needs a whole base-unit quantity.'));
+    if (duplicates.length) return setError(`${pl('Duplicate serial:')} ${duplicates[0]}`);
+    if (product.serialTracking === 'Required' && serials.length !== required) return setError(`${required} ${pl('unique serials are required for this lot.')}`);
+    if (product.expiry?.enabled && product.expiry.dateRequired && !expiryDate) return setError(pl('Expiry date is required for this product.'));
+    if (manufactureDate && expiryDate && expiryDate <= manufactureDate) return setError(pl('Expiry date must be after manufacture date.'));
 
     onSave({
       id: `lot-${product.id}-${Date.now()}`,
@@ -475,7 +483,7 @@ export function StockLotDialog({
 
           {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">{error}</p>}
         </div>
-        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save}>Add lot</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>{pl("Cancel")}</Button><Button onClick={save}>{pl("Add lot")}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -494,6 +502,8 @@ export function ManageOffersDialog({
   onOpenChange: (open: boolean) => void;
   onSaveOffers: (offers: ProductOffer[]) => void;
 }) {
+  const {language,showHelper}=useUiCopy();
+  const pl=(english:string)=>productInventoryLabel(language,english);
   const [drafts, setDrafts] = useState<ProductOffer[]>([]);
   const [editing, setEditing] = useState<ProductOffer | null>(null);
   const [error, setError] = useState('');
@@ -527,7 +537,7 @@ export function ManageOffersDialog({
   const saveDraft = () => {
     if (!editing) return;
     const problem = validateOffer(product, editing, drafts);
-    if (problem) return setError(problem);
+    if (problem) return setError(pl(problem));
     setDrafts((items) => {
       const exists = items.some((offer) => offer.id === editing.id);
       return exists ? items.map((offer) => offer.id === editing.id ? editing : offer) : [editing, ...items];
@@ -550,7 +560,7 @@ export function ManageOffersDialog({
           {drafts.map((offer) => {
             const status = offerStatus(offer);
             return <button key={offer.id} type="button" onClick={() => { setEditing(offer); setError(''); }} className="flex w-full items-center justify-between gap-3 rounded-xl border border-border p-3 text-left hover:bg-ink-50">
-              <div><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% discount` : `${taka(offer.value)} / ${offer.priceUnit} discount`}</span><StatusBadge tone={offerTone[status]}>{status}</StatusBadge></div><p className="mt-1 text-[11px] text-ink-400">{offer.startAt.replace('T', ' ')} → {offer.endAt.replace('T', ' ')}</p></div>
+              <div><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-medium text-ink">{offer.discountType === 'Percentage' ? `${offer.value}% discount` : `${taka(offer.value)} / ${offer.priceUnit} discount`}</span><StatusBadge tone={offerTone[status]}>{pl(status)}</StatusBadge></div><p className="mt-1 text-[11px] text-ink-400">{offer.startAt.replace('T', ' ')} → {offer.endAt.replace('T', ' ')}</p></div>
               <div className="text-right"><p className="text-[11px] text-ink-400 line-through">{taka(priceForOfferUnit(product, offer.priceUnit))}/{offer.priceUnit}</p><p className="text-sm font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, offer))}/{offer.priceUnit}</p></div>
             </button>;
           })}
@@ -566,13 +576,13 @@ export function ManageOffersDialog({
             <div className="flex items-center justify-between rounded-lg bg-card px-3 py-2"><span className="text-[13px] text-ink">Enabled</span><Switch checked={editing.enabled} onCheckedChange={(enabled) => setEditing({ ...editing, enabled })} /></div>
             <div className="grid grid-cols-2 gap-2 rounded-lg bg-card p-3 text-center text-xs"><div><p className="text-ink-400">Normal</p><p className="mt-1 font-semibold">{taka(priceForOfferUnit(product, editing.priceUnit))}/{editing.priceUnit}</p></div><div><p className="text-ink-400">Effective</p><p className="mt-1 font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, editing))}/{editing.priceUnit}</p></div></div>
             {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">{error}</p>}
-            <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button><Button size="sm" onClick={saveDraft}>Save offer</Button></div>
+            <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => setEditing(null)}>{pl("Cancel")}</Button><Button size="sm" onClick={saveDraft}>{pl("Save offer")}</Button></div>
           </div>}
         </div>
 
         <DialogFooter className="flex-wrap">
           <Button variant="outline" onClick={startNew}><Plus className="size-4" /> New offer</Button>
-          <Button onClick={persist}>Done</Button>
+          <Button onClick={persist}>{pl("Done")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
