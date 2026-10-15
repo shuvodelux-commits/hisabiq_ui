@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { PageBoundary } from './PageBoundary';
 import { Sidebar } from "./Sidebar";
@@ -13,7 +14,13 @@ import { useUiCopy } from '../../i18n/useUiCopy';
 
 function Workspace() {
   const { personal, warning } = useTenantSettings();
-  const { text } = useUiCopy();
+  const { text, language } = useUiCopy();
+  // Screen readers need the actual document language, not just translated labels.
+  // The ERP owns this while mounted; the SaaS shell retains English on exit.
+  useEffect(() => {
+    document.documentElement.lang = language === "Bangla" ? "bn" : "en";
+    return () => { document.documentElement.lang = "en"; };
+  }, [language]);
   return (
     <UserPreferencesProvider>
       <CashSessionProvider>
