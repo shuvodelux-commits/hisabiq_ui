@@ -114,6 +114,9 @@ jobs:
       - name: Check Phase 21 Party Editor, opening and Detail in three languages
         run: npm run test:bangla-party-editor-detail
 
+      - name: Check Phase 22 Party finance and statement language across devices
+        run: npm run test:bangla-party-financial
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
