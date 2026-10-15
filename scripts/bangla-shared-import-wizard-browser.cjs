@@ -27,7 +27,7 @@ async function main(){
     await product.getByText(t('Opening: 2 Box → 20 Pcs','শুরুর স্টক: 2 Box → 20 Pcs'),{exact:false}).waitFor();
     assert.equal(await product.getByRole('button',{name:t('Confirm import','আনা নিশ্চিত করুন')}).isEnabled(),true);
     await product.getByRole('button',{name:t('Confirm import','আনা নিশ্চিত করুন')}).click();
-    await product.getByText(t('Added to UI preview','নমুনা তালিকায় যোগ হয়েছে')).waitFor();
+    await product.getByRole('heading',{name:t('Added to UI preview','নমুনা তালিকায় যোগ হয়েছে'),exact:true}).waitFor();
     await product.getByRole('button',{name:t('View records','তালিকা দেখুন')}).click();
 
     await page.goto('http://127.0.0.1:4410/#/app/parties');
