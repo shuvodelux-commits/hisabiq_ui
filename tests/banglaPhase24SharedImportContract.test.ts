@@ -27,7 +27,7 @@ test('Upload and mapping preserve file reader, formats, field keys and column in
  for(const key of ['fieldsFor(target)','mapping[f.key]','onMapping({...mapping,[f.key]','v===\'none\'?null:Number(v)','table.headers.map']){
   assert.ok(mapping.includes(key),key);
  }
- assert.match(mapping,/fieldLabel\(f.label,f.labelBn\)/);
+ assert.match(mapping,/fieldLabel\(f.label,f.labelBn\?\?f.label\)/);
  assert.ok(mapping.includes("text('— Do not import —'"));
 });
 test('Shared row review retains conversion, source references, skip/edit decisions and verified opening warnings',()=>{
