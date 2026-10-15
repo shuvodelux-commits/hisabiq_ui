@@ -5,6 +5,7 @@ on:
       - 'src/**'
       - 'scripts/responsive-audit-browser.cjs'
       - 'scripts/dialog-accessibility-browser.cjs'
+      - 'scripts/phase28-multilingual-responsive-audit.cjs'
       - '.github/workflows/responsive-ux-check.yml'
 jobs:
   responsive:
