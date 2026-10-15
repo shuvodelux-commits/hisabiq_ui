@@ -45,7 +45,7 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
  const [filter,setFilter]=useState<Filter>('all');
  const [editing,setEditing]=useState<number|null>(null);
  const [draft,setDraft]=useState<Record<string,string>>({});
- const fieldName=(key:string)=>{const field=fieldsFor(target).find(f=>f.key===key);return field?uiText(language,field.label,field.labelBn):key;};
+ const fieldName=(key:string)=>{const field=fieldsFor(target).find(f=>f.key===key);return field?uiText(language,field.label,field.labelBn??field.label):key;};
  const counts={ready:rows.filter(row=>status(row)==='ready').length,
   errors:rows.filter(row=>status(row)==='errors').length,
   skipped:rows.filter(row=>status(row)==='skipped').length};
