@@ -22,7 +22,7 @@ async function main(){
     await file.setInputFiles({name:'unsupported.txt',mimeType:'text/plain',buffer:Buffer.from('hello')});
     await dlg.getByRole('alert').filter({hasText:t(
       'Only .xlsx and .csv are supported; .xls and .xlsm are not supported.',
-      'শুধু .xlsx ও .csv ফাইল নেওয়া যাবে; .xls বা .xlsm নয়.'
+      'শুধু .xlsx ও .csv ফাইল নেওয়া যাবে; .xls বা .xlsm নয়।'
     )}).waitFor();
     await file.setInputFiles({
       name:'bad-products.csv',mimeType:'text/csv',
