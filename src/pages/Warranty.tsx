@@ -141,13 +141,13 @@ function WarrantyActions({
 
   return (
     <FloatingPanel
-      label={`Actions for ${item.id}`}
+      label={`${wl('Actions for')} ${item.id}`}
       width={230}
       trigger={({ toggle, open }) => (
         <button
           onClick={(event) => { event.stopPropagation(); toggle(); }}
           aria-expanded={open}
-          aria-label={`Actions for ${item.id}`}
+          aria-label={`${wl('Actions for')} ${item.id}`}
           className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
           <MoreHorizontal className="size-4" />
         </button>
@@ -511,12 +511,12 @@ function SendExternalDialog({
         {item && (
           <>
             <DialogHeader>
-              <DialogTitle>{item.route === 'Manufacturer' ? 'Send to manufacturer' : 'Send to supplier'}</DialogTitle>
+              <DialogTitle>{wl(item.route === 'Manufacturer' ? 'Send to manufacturer' : 'Send to supplier')}</DialogTitle>
               <DialogDescription>{item.id} · {item.customer} · {item.product}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-[12px] font-medium text-ink sm:col-span-2">
-                {item.route === 'Manufacturer' ? 'Manufacturer / forwarding supplier' : 'Supplier'}
+                {wl(item.route === 'Manufacturer' ? 'Manufacturer / forwarding supplier' : 'Supplier')}
                 <FormSelect
                   className="mt-1"
                   value={supplier}
@@ -579,8 +579,8 @@ function ReceiveExternalDialog({
         {item && (
           <>
             <DialogHeader>
-              <DialogTitle>{item.route === 'Manufacturer' ? 'Receive from manufacturer' : 'Receive from supplier'}</DialogTitle>
-              <DialogDescription>{item.id} · {item.supplier ?? item.route} · {item.product}</DialogDescription>
+              <DialogTitle>{wl(item.route === 'Manufacturer' ? 'Receive from manufacturer' : 'Receive from supplier')}</DialogTitle>
+              <DialogDescription>{item.id} · {item.supplier ?? wl(item.route)} · {item.product}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-[12px] font-medium text-ink">
@@ -643,7 +643,7 @@ function TemporaryReplacementDialog({
           <>
             <DialogHeader>
               <DialogTitle>{wl("Temporary replacement")}</DialogTitle>
-              <DialogDescription>{item.id} · {item.customer} · give a temporary product while the warranty case is open.</DialogDescription>
+              <DialogDescription>{item.id} · {item.customer} · {wl('Give a temporary product while the case is open.')}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-[12px] font-medium text-ink">
@@ -778,7 +778,7 @@ export function Warranty() {
       ...(supplierRef.trim() ? { supplierRef: supplierRef.trim() } : {}),
       ...(expectedDate.trim() ? { expectedDate: expectedDate.trim() } : {})
     }, item.route === 'Manufacturer' ? 'Sent to manufacturer' : 'Sent to supplier', `${supplier}${supplierRef.trim() ? ` · ${supplierRef.trim()}` : ''}`);
-    toast.success(`${item.id} sent`, { description: supplier });
+    toast.success(`${item.id} · ${wl('Sent to supplier')}`, { description: supplier });
   };
 
   const receiveExternal = (
@@ -796,7 +796,7 @@ export function Warranty() {
         status: 'Rejected',
         resolution: 'Rejected'
       }, item.route === 'Manufacturer' ? 'Received rejected from manufacturer' : 'Received rejected from supplier', note || undefined);
-      toast.error(`${item.id} rejected by ${item.route.toLowerCase()}`);
+      toast.error(`${item.id} · ${wl('Rejected')} · ${wl(item.route)}`);
       return;
     }
 
@@ -810,7 +810,7 @@ export function Warranty() {
         }
       } : {})
     }, item.route === 'Manufacturer' ? 'Received from manufacturer' : 'Received from supplier', note || (resolution === 'Replace' ? 'Replacement product received.' : 'Repaired product received.'));
-    toast.success(`${item.id} received back`, { description: resolution });
+    toast.success(`${item.id} · ${wl('Received from supplier')}`, { description: wl(resolution) });
   };
 
   const reject = (item: WarrantyCase) => {
@@ -819,7 +819,7 @@ export function Warranty() {
       return;
     }
     updateCase(item.id, { status: 'Rejected', resolution: 'Rejected' }, 'Warranty rejected');
-    toast.error(`${item.id} rejected`);
+    toast.error(`${item.id} · ${wl('Rejected')}`);
   };
 
   const issueReplacement = (item: WarrantyCase, product: string, serial: string) => {
@@ -999,7 +999,7 @@ export function Warranty() {
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
-          <span>Showing {filtered.length} warranty cases</span>
+          <span>{wl('Showing')} {filtered.length} {wl('warranty cases')}</span>
           <span>{wl("Invoice and serial verification stay linked to every case")}</span>
         </div>
       </div>
@@ -1022,7 +1022,7 @@ export function Warranty() {
         onSave={(item) => {
           setCases((items) => [item, ...items]);
           setTab('cases');
-          toast.success(`${item.id} · ${wl('Received')}`, { description: `${item.customer} · ${item.product}` });
+          toast.success(`${item.id} · ${wl('Warranty received')}`, { description: `${item.customer} · ${item.product}` });
         }}
       />
 
