@@ -12,6 +12,8 @@ import { Input } from '../Input';
 import { StatusBadge } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { FloatingPanel } from '../layout/FloatingPanel';
+import {useUiCopy} from '../../i18n/useUiCopy';
+import {productFormLabel} from '../../i18n/productFormsCopy';
 
 type SettingsTab = 'categories' | 'units' | 'brands' | 'defaults';
 
@@ -65,15 +67,17 @@ function SettingActions({
   onToggle: () => void;
   onDelete: () => void;
 }) {
+  const {language}=useUiCopy();
+  const pl=(english:string)=>productFormLabel(language,english);
   return (
     <FloatingPanel
-      label={`Actions for ${label}`}
+      label={`${pl('Actions for')} ${label}`}
       width={180}
       trigger={({ toggle, open }) => (
         <button
           onClick={toggle}
           aria-expanded={open}
-          aria-label={`Actions for ${label}`}
+          aria-label={`${pl('Actions for')} ${label}`}
           className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
           <MoreHorizontal className="size-4" />
         </button>
@@ -83,17 +87,17 @@ function SettingActions({
           <button
             onClick={() => { close(); toast(`Editing ${label}`); }}
             className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            Edit
+            {pl('Edit')}
           </button>
           <button
             onClick={() => { close(); onToggle(); }}
             className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            {active ? 'Deactivate' : 'Activate'}
+            {pl(active ? 'Deactivate' : 'Activate')}
           </button>
           <button
             onClick={() => { close(); onDelete(); }}
             className="w-full px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
-            Delete
+            {pl('Delete')}
           </button>
         </div>
       )}
@@ -102,6 +106,8 @@ function SettingActions({
 }
 
 export function ProductSettings() {
+  const {language}=useUiCopy();
+  const pl=(english:string)=>productFormLabel(language,english);
   const [searchParams] = useSearchParams();
   const { state } = useTenantSettings();
   const [tab, setTab] = useState<SettingsTab>(() => ['categories','units','brands'].includes(searchParams.get('tab') || '') ? searchParams.get('tab') as SettingsTab : 'categories');
@@ -164,7 +170,7 @@ export function ProductSettings() {
         active: true
       }]);
     }
-    toast.success(`${newName.trim()} added`);
+    toast.success(`${newName.trim()} ${pl('Add')}`);
     clearNew();
   };
 
@@ -185,7 +191,7 @@ export function ProductSettings() {
             aria-selected={tab === id}
             onClick={() => { setTab(id); clearNew(); }}
             className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
-            <Icon className="size-3.5" /> {label}
+            <Icon className="size-3.5" /> {pl(label)}
           </button>
         ))}
       </div>
@@ -193,23 +199,23 @@ export function ProductSettings() {
       {tab !== 'defaults' && (
         <div className="flex flex-col gap-2 border-b border-border bg-ink-50/40 p-3 lg:flex-row lg:items-end">
           <label className="min-w-0 flex-1 text-[12px] font-medium text-ink lg:max-w-xs">
-            {tab === 'categories' ? 'Category name' : tab === 'brands' ? 'Brand name' : 'Unit name'}
-            <Input className="mt-1" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder={tab === 'units' ? 'e.g. Meter' : 'Enter name'} />
+            {pl(tab === 'categories' ? 'Category name' : tab === 'brands' ? 'Brand name' : 'Unit name')}
+            <Input className="mt-1" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder={pl(tab === 'units' ? 'e.g. Meter' : 'Enter name')} />
           </label>
           {tab !== 'units' && (
             <label className="min-w-0 flex-1 text-[12px] font-medium text-ink lg:max-w-xs">
-              Bangla name
+              {pl('Bangla name')}
               <Input className="font-bn mt-1" value={newBn} onChange={(event) => setNewBn(event.target.value)} placeholder="বাংলা নাম (ঐচ্ছিক)" />
             </label>
           )}
           {tab === 'units' && (
             <label className="w-full text-[12px] font-medium text-ink lg:w-36">
-              Symbol
-              <Input className="mt-1" value={newSymbol} onChange={(event) => setNewSymbol(event.target.value)} placeholder="e.g. m" />
+              {pl('Symbol')}
+              <Input className="mt-1" value={newSymbol} onChange={(event) => setNewSymbol(event.target.value)} placeholder={pl("e.g. m")} />
             </label>
           )}
           <Button size="sm" onClick={addNamed} disabled={!newName.trim()}>
-            <Plus className="size-4" /> Add
+            <Plus className="size-4" /> {pl("Add")}
           </Button>
         </div>
       )}
@@ -218,11 +224,11 @@ export function ProductSettings() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="h-9 pl-4 text-xs">Category</TableHead>
-              <TableHead className="h-9 text-xs">Bangla</TableHead>
-              <TableHead className="h-9 text-right text-xs">Products</TableHead>
-              <TableHead className="h-9 text-xs">Status</TableHead>
-              <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+              <TableHead className="h-9 pl-4 text-xs">{pl('Category')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Bangla')}</TableHead>
+              <TableHead className="h-9 text-right text-xs">{pl('Products')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Status')}</TableHead>
+              <TableHead className="h-9 pr-4 text-right text-xs">{pl('Action')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -231,13 +237,13 @@ export function ProductSettings() {
                 <TableCell className="py-2 pl-4 font-medium text-ink">{item.name}</TableCell>
                 <TableCell className="font-bn py-2 text-ink-600">{item.nameBn ?? '—'}</TableCell>
                 <TableCell className="py-2 text-right">{item.usage}</TableCell>
-                <TableCell className="py-2"><StatusBadge tone={item.active ? 'success' : 'neutral'} dot={item.active}>{item.active ? 'Active' : 'Inactive'}</StatusBadge></TableCell>
+                <TableCell className="py-2"><StatusBadge tone={item.active ? 'success' : 'neutral'} dot={item.active}>{pl(item.active ? 'Active' : 'Inactive')}</StatusBadge></TableCell>
                 <TableCell className="py-2 pr-4 text-right">
                   <SettingActions
                     label={item.name}
                     active={item.active}
                     onToggle={() => setCategories((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
-                    onDelete={() => item.usage > 0 ? toast.error('Category is used by products') : setCategories((items) => items.filter((value) => value.id !== item.id))}
+                    onDelete={() => item.usage > 0 ? toast.error(pl('Category is used by products')) : setCategories((items) => items.filter((value) => value.id !== item.id))}
                   />
                 </TableCell>
               </TableRow>
@@ -250,12 +256,12 @@ export function ProductSettings() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="h-9 pl-4 text-xs">Unit</TableHead>
-              <TableHead className="h-9 text-xs">Symbol</TableHead>
-              <TableHead className="h-9 text-xs">Use</TableHead>
-              <TableHead className="h-9 text-right text-xs">Products</TableHead>
-              <TableHead className="h-9 text-xs">Status</TableHead>
-              <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+              <TableHead className="h-9 pl-4 text-xs">{pl('Unit')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Symbol')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Use')}</TableHead>
+              <TableHead className="h-9 text-right text-xs">{pl('Products')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Status')}</TableHead>
+              <TableHead className="h-9 pr-4 text-right text-xs">{pl('Action')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -263,15 +269,15 @@ export function ProductSettings() {
               <TableRow key={item.id} className="text-[13px]">
                 <TableCell className="py-2 pl-4 font-medium text-ink">{item.name}</TableCell>
                 <TableCell className="py-2 text-ink-600">{item.symbol}</TableCell>
-                <TableCell className="py-2"><StatusBadge tone={item.kind === 'Compound-ready' ? 'teal' : 'neutral'}>{item.kind}</StatusBadge></TableCell>
+                <TableCell className="py-2"><StatusBadge tone={item.kind === 'Compound-ready' ? 'teal' : 'neutral'}>{pl(item.kind)}</StatusBadge></TableCell>
                 <TableCell className="py-2 text-right">{item.usage}</TableCell>
-                <TableCell className="py-2"><StatusBadge tone={item.active ? 'success' : 'neutral'} dot={item.active}>{item.active ? 'Active' : 'Inactive'}</StatusBadge></TableCell>
+                <TableCell className="py-2"><StatusBadge tone={item.active ? 'success' : 'neutral'} dot={item.active}>{pl(item.active ? 'Active' : 'Inactive')}</StatusBadge></TableCell>
                 <TableCell className="py-2 pr-4 text-right">
                   <SettingActions
                     label={item.name}
                     active={item.active}
                     onToggle={() => setUnits((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
-                    onDelete={() => item.usage > 0 ? toast.error('Unit is used by products') : setUnits((items) => items.filter((value) => value.id !== item.id))}
+                    onDelete={() => item.usage > 0 ? toast.error(pl('Unit is used by products')) : setUnits((items) => items.filter((value) => value.id !== item.id))}
                   />
                 </TableCell>
               </TableRow>
@@ -284,11 +290,11 @@ export function ProductSettings() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="h-9 pl-4 text-xs">Brand</TableHead>
-              <TableHead className="h-9 text-xs">Bangla</TableHead>
-              <TableHead className="h-9 text-right text-xs">Products</TableHead>
-              <TableHead className="h-9 text-xs">Status</TableHead>
-              <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+              <TableHead className="h-9 pl-4 text-xs">{pl('Brand')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Bangla')}</TableHead>
+              <TableHead className="h-9 text-right text-xs">{pl('Products')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Status')}</TableHead>
+              <TableHead className="h-9 pr-4 text-right text-xs">{pl('Action')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -297,13 +303,13 @@ export function ProductSettings() {
                 <TableCell className="py-2 pl-4 font-medium text-ink">{item.name}</TableCell>
                 <TableCell className="font-bn py-2 text-ink-600">{item.nameBn ?? '—'}</TableCell>
                 <TableCell className="py-2 text-right">{item.usage}</TableCell>
-                <TableCell className="py-2"><StatusBadge tone={item.active ? 'success' : 'neutral'} dot={item.active}>{item.active ? 'Active' : 'Inactive'}</StatusBadge></TableCell>
+                <TableCell className="py-2"><StatusBadge tone={item.active ? 'success' : 'neutral'} dot={item.active}>{pl(item.active ? 'Active' : 'Inactive')}</StatusBadge></TableCell>
                 <TableCell className="py-2 pr-4 text-right">
                   <SettingActions
                     label={item.name}
                     active={item.active}
                     onToggle={() => setBrands((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
-                    onDelete={() => item.usage > 0 ? toast.error('Brand is used by products') : setBrands((items) => items.filter((value) => value.id !== item.id))}
+                    onDelete={() => item.usage > 0 ? toast.error(pl('Brand is used by products')) : setBrands((items) => items.filter((value) => value.id !== item.id))}
                   />
                 </TableCell>
               </TableRow>
@@ -312,7 +318,7 @@ export function ProductSettings() {
         </Table>
       )}
 
-      {tab === 'defaults' && <div className="space-y-3 p-4"><h3 className="text-sm font-semibold text-ink">Business product defaults</h3><p className="text-sm text-ink-600">Base unit: {state.sections.products.defaultUnit} · Serial tracking: {state.sections.products.serial} · Lot allocation: {state.sections.products.allocation}</p><p className="text-xs text-ink-500">Product defaults are shared with Business settings. Existing products keep their own units and conversions.</p><Link className="inline-flex rounded-md border border-input bg-card px-3 py-2 text-sm text-ink" to="/app/settings/products">Configure product defaults →</Link></div>}
+      {tab === 'defaults' && <div className="space-y-3 p-4"><h3 className="text-sm font-semibold text-ink">{pl("Business product defaults")}</h3><p className="text-sm text-ink-600"> {pl("Base unit:")} {state.sections.products.defaultUnit} · {pl("Serial tracking:")} {state.sections.products.serial} · {pl("Lot allocation:")} {state.sections.products.allocation}</p><p className="text-xs text-ink-500">{pl("Product defaults are shared with Business settings. Existing products keep their own units and conversions.")}</p><Link className="inline-flex rounded-md border border-input bg-card px-3 py-2 text-sm text-ink" to="/app/settings/products">{pl("Configure product defaults →")}</Link></div>}
     </div>
   );
 }
