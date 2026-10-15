@@ -358,23 +358,23 @@ export function StockAdjustmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Adjust stock <span className="font-bn text-sm font-normal text-ink-500">· স্টক সমন্বয়</span></DialogTitle>
-          <DialogDescription>{product.name} · Current {formatStock(product)}</DialogDescription>
+          <DialogTitle>{pl("Adjust stock")} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">· স্টক সমন্বয়</span>}</DialogTitle>
+          <DialogDescription>{product.name} · {pl("Current")} {formatStock(product)}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-1 rounded-lg bg-ink-50 p-1">
-            {(['Add stock', 'Remove stock', 'Set exact stock'] as StockAdjustmentMode[]).map((item) => <button key={item} type="button" onClick={() => { setMode(item); setError(''); }} className={`rounded-md px-2 py-2 text-xs font-medium ${mode === item ? 'bg-card text-ink shadow-card' : 'text-ink-500 hover:text-ink'}`}>{item}</button>)}
+            {(['Add stock', 'Remove stock', 'Set exact stock'] as StockAdjustmentMode[]).map((item) => <button key={item} type="button" onClick={() => { setMode(item); setError(''); }} className={`rounded-md px-2 py-2 text-xs font-medium ${mode === item ? 'bg-card text-ink shadow-card' : 'text-ink-500 hover:text-ink'}`}>{pl(item)}</button>)}
           </div>
           <div>
-            <label className="mb-1.5 block text-[13px] font-medium text-ink">Quantity <span className="font-bn text-[11px] font-normal text-ink-400">· পরিমাণ</span></label>
+            <label className="mb-1.5 block text-[13px] font-medium text-ink">{pl("Quantity")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· পরিমাণ</span>}</label>
             <div className="flex gap-2">
               <Input min={mode==='Set exact stock'?Number.MIN_SAFE_INTEGER:0} value={quantity} onChange={(e) => { const cleaned = mode === 'Set exact stock' ? e.target.value.replace(/[^\d.-]/g, '') : e.target.value.replace(/[^\d.]/g, ''); setQuantity(cleaned); setError(''); }} inputMode="decimal" placeholder="0" className="text-right" autoFocus />
               <FormSelect value={selectedUnit} onChange={(e) => setUnit(e.target.value)} options={units} className="w-32 shrink-0" />
             </div>
           </div>
-          <div><label className="mb-1.5 block text-[13px] font-medium text-ink">Reason</label><FormSelect value={reason} onChange={(e) => setReason(e.target.value)} options={['Count correction', 'Damage / loss', 'Found stock', 'Personal use', 'Data correction', 'Other']} /></div>
-          <div><label className="mb-1.5 block text-[13px] font-medium text-ink">Note <span className="text-xs font-normal text-ink-400">optional</span></label><Input value={note} onChange={(e) => setNote(e.target.value)} /></div>
-          <div className="flex items-center justify-between rounded-lg border border-teal-100 bg-teal-50/60 px-3 py-2.5 text-sm"><span className="text-ink-600">Stock after adjustment</span><span className="font-semibold text-ink">{formatStock({ ...product, stock: previewStock })}</span></div>
+          <div><label className="mb-1.5 block text-[13px] font-medium text-ink">{pl("Reason")}</label><FormSelect value={reason} onChange={(e) => setReason(e.target.value)} options={productInventoryOptions(language,['Count correction', 'Damage / loss', 'Found stock', 'Personal use', 'Data correction', 'Other'])} /></div>
+          <div><label className="mb-1.5 block text-[13px] font-medium text-ink">{pl("Note")} <span className="text-xs font-normal text-ink-400">{pl("optional")}</span></label><Input value={note} onChange={(e) => setNote(e.target.value)} /></div>
+          <div className="flex items-center justify-between rounded-lg border border-teal-100 bg-teal-50/60 px-3 py-2.5 text-sm"><span className="text-ink-600">{pl("Stock after adjustment")}</span><span className="font-semibold text-ink">{formatStock({ ...product, stock: previewStock })}</span></div>
           {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">{error}</p>}
         </div>
         <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>{pl("Cancel")}</Button><Button onClick={save}>{pl("Save adjustment")}</Button></DialogFooter>
@@ -461,20 +461,20 @@ export function StockLotDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl scrollbar-thin">
-        <DialogHeader><DialogTitle>Add stock lot <span className="font-bn text-sm font-normal text-ink-500">· নতুন স্টক লট</span></DialogTitle><DialogDescription>{product.name} · purchase/opening intake details</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>{pl("Add stock lot")} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">· নতুন স্টক লট</span>}</DialogTitle><DialogDescription>{product.name} · {pl("purchase/opening intake details")}</DialogDescription></DialogHeader>
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-[13px] font-medium text-ink">Quantity <span className="font-bn text-[11px] text-ink-400">· পরিমাণ</span><div className="mt-1.5 flex gap-2"><Input value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="text-right" /><FormSelect value={selectedUnit} onChange={(e) => setUnit(e.target.value)} options={units} className="w-28 shrink-0" /></div></label>
-            <label className="text-[13px] font-medium text-ink">Unit cost <span className="font-bn text-[11px] text-ink-400">· ক্রয় মূল্য</span><Input inputMode="decimal" className="mt-1.5 text-right" value={unitCost} onChange={(e) => setUnitCost(e.target.value.replace(/[^\d.]/g, ''))} /></label>
-            <label className="text-[13px] font-medium text-ink">Purchase ref. <span className="font-bn text-[11px] text-ink-400">· রেফারেন্স</span><Input className="mt-1.5" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="PUR-1049" /></label>
-            {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">Batch number <span className="font-bn text-[11px] text-ink-400">· ব্যাচ</span><Input className="mt-1.5" value={batch} onChange={(e) => setBatch(e.target.value)} /></label>}
-            {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">Manufacture date <span className="font-bn text-[11px] text-ink-400">· উৎপাদন</span><Input className="mt-1.5" type="date" value={manufactureDate} onChange={(e) => setManufactureDate(e.target.value)} /></label>}
-            {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">Expiry date <span className="font-bn text-[11px] text-ink-400">· মেয়াদ</span><Input className="mt-1.5" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} /></label>}
+            <label className="text-[13px] font-medium text-ink">{pl('Quantity')} {showHelper&&<span className="font-bn text-[11px] text-ink-400">· পরিমাণ</span>}<div className="mt-1.5 flex gap-2"><Input value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="text-right" /><FormSelect value={selectedUnit} onChange={(e) => setUnit(e.target.value)} options={units} className="w-28 shrink-0" /></div></label>
+            <label className="text-[13px] font-medium text-ink">{pl('Unit cost')} {showHelper&&<span className="font-bn text-[11px] text-ink-400">· ক্রয় মূল্য</span>}<Input inputMode="decimal" className="mt-1.5 text-right" value={unitCost} onChange={(e) => setUnitCost(e.target.value.replace(/[^\d.]/g, ''))} /></label>
+            <label className="text-[13px] font-medium text-ink">{pl('Purchase ref.')} {showHelper&&<span className="font-bn text-[11px] text-ink-400">· রেফারেন্স</span>}<Input className="mt-1.5" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="PUR-1049" /></label>
+            {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">{pl('Batch number')} {showHelper&&<span className="font-bn text-[11px] text-ink-400">· ব্যাচ</span>}<Input className="mt-1.5" value={batch} onChange={(e) => setBatch(e.target.value)} /></label>}
+            {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">{pl('Manufacture date')} {showHelper&&<span className="font-bn text-[11px] text-ink-400">· উৎপাদন</span>}<Input className="mt-1.5" type="date" value={manufactureDate} onChange={(e) => setManufactureDate(e.target.value)} /></label>}
+            {product.expiry?.enabled && <label className="text-[13px] font-medium text-ink">{pl('Expiry date')} {showHelper&&<span className="font-bn text-[11px] text-ink-400">· মেয়াদ</span>}<Input className="mt-1.5" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} /></label>}
           </div>
 
           {(product.serialTracking ?? 'Off') !== 'Off' && <div className="rounded-xl border border-border p-3">
-            <div className="flex items-center gap-2"><ScanLine className="size-4 text-teal-700" /><p className="text-[13px] font-medium text-ink">Serials <span className="font-bn text-[11px] text-ink-400">· সিরিয়াল নম্বর</span></p></div>
-            <p className="mt-1 text-xs text-ink-500">Type, scan or paste serials separated by line, comma or semicolon.</p>
+            <div className="flex items-center gap-2"><ScanLine className="size-4 text-teal-700" /><p className="text-[13px] font-medium text-ink">{pl('Serials')} {showHelper&&<span className="font-bn text-[11px] text-ink-400">· সিরিয়াল নম্বর</span>}</p></div>
+            <p className="mt-1 text-xs text-ink-500">{pl("Type, scan or paste serials separated by line, comma or semicolon.")}</p>
             <textarea value={serialText} onChange={(e) => setSerialText(e.target.value)} className="mt-2 min-h-28 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" placeholder={"SN-001\nSN-002"} />
             <p className={`mt-1.5 text-xs ${duplicates.length || (product.serialTracking === 'Required' && serials.length !== required) ? 'text-warning' : 'text-ink-500'}`}>
               {serials.length} entered{product.serialTracking === 'Required' ? ` · ${required} required` : ' · optional'}{duplicates.length ? ` · duplicate: ${duplicates[0]}` : ''}
@@ -554,7 +554,7 @@ export function ManageOffersDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin">
-        <DialogHeader><DialogTitle>Manage Offers <span className="font-bn text-sm font-normal text-ink-500">· অফার ব্যবস্থাপনা</span></DialogTitle><DialogDescription>{product.name} · normal price {taka(product.sellPrice)}/{product.unit}</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>{pl("Manage Offers")} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">· অফার ব্যবস্থাপনা</span>}</DialogTitle><DialogDescription>{product.name} · {pl("normal price")} {taka(product.sellPrice)}/{product.unit}</DialogDescription></DialogHeader>
 
         <div className="space-y-3">
           {drafts.map((offer) => {
@@ -564,24 +564,24 @@ export function ManageOffersDialog({
               <div className="text-right"><p className="text-[11px] text-ink-400 line-through">{taka(priceForOfferUnit(product, offer.priceUnit))}/{offer.priceUnit}</p><p className="text-sm font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, offer))}/{offer.priceUnit}</p></div>
             </button>;
           })}
-          {!drafts.length && <div className="rounded-xl border border-dashed border-ink-200 px-4 py-8 text-center"><p className="text-sm font-medium text-ink">No offers yet</p><p className="mt-1 text-xs text-ink-500">Create a scheduled or active discount without changing the normal selling price.</p></div>}
+          {!drafts.length && <div className="rounded-xl border border-dashed border-ink-200 px-4 py-8 text-center"><p className="text-sm font-medium text-ink">{pl("No offers yet")}</p><p className="mt-1 text-xs text-ink-500">{pl("Create a scheduled or active discount without changing the normal selling price.")}</p></div>}
 
           {editing && <div className="space-y-3 rounded-xl border border-teal-200 bg-teal-50/30 p-3">
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-[13px] font-medium text-ink">Discount type<FormSelect className="mt-1.5" value={editing.discountType} onChange={(e) => setEditing({ ...editing, discountType: e.target.value as OfferDiscountType })} options={['Percentage', 'Fixed']} /></label>
-              <label className="text-[13px] font-medium text-ink">Discount value<div className="mt-1.5 flex gap-2"><Input value={String(editing.value)} onChange={(e) => setEditing({ ...editing, value: parseFloat(e.target.value.replace(/[^\d.]/g, '')) || 0 })} inputMode="decimal" className="text-right" />{editing.discountType === 'Fixed' && <FormSelect value={editing.priceUnit} onChange={(e) => setEditing({ ...editing, priceUnit: e.target.value })} options={priceUnits} className="w-28 shrink-0" />}</div>{editing.discountType === 'Fixed' && <p className="mt-1 text-[11px] text-ink-400">Fixed discount is per {editing.priceUnit}.</p>}</label>
-              <label className="text-[13px] font-medium text-ink">Start date & time<Input className="mt-1.5" type="datetime-local" value={editing.startAt} onChange={(e) => setEditing({ ...editing, startAt: e.target.value })} /></label>
-              <label className="text-[13px] font-medium text-ink">End date & time<Input className="mt-1.5" type="datetime-local" value={editing.endAt} onChange={(e) => setEditing({ ...editing, endAt: e.target.value })} /></label>
+              <label className="text-[13px] font-medium text-ink">{pl("Discount type")}<FormSelect className="mt-1.5" value={editing.discountType} onChange={(e) => setEditing({ ...editing, discountType: e.target.value as OfferDiscountType })} options={productInventoryOptions(language,['Percentage', 'Fixed'])} /></label>
+              <label className="text-[13px] font-medium text-ink">{pl("Discount value")}<div className="mt-1.5 flex gap-2"><Input value={String(editing.value)} onChange={(e) => setEditing({ ...editing, value: parseFloat(e.target.value.replace(/[^\d.]/g, '')) || 0 })} inputMode="decimal" className="text-right" />{editing.discountType === 'Fixed' && <FormSelect value={editing.priceUnit} onChange={(e) => setEditing({ ...editing, priceUnit: e.target.value })} options={priceUnits} className="w-28 shrink-0" />}</div>{editing.discountType === 'Fixed' && <p className="mt-1 text-[11px] text-ink-400">Fixed discount is per {editing.priceUnit}.</p>}</label>
+              <label className="text-[13px] font-medium text-ink">{pl("Start date & time")}<Input className="mt-1.5" type="datetime-local" value={editing.startAt} onChange={(e) => setEditing({ ...editing, startAt: e.target.value })} /></label>
+              <label className="text-[13px] font-medium text-ink">{pl("End date & time")}<Input className="mt-1.5" type="datetime-local" value={editing.endAt} onChange={(e) => setEditing({ ...editing, endAt: e.target.value })} /></label>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-card px-3 py-2"><span className="text-[13px] text-ink">Enabled</span><Switch checked={editing.enabled} onCheckedChange={(enabled) => setEditing({ ...editing, enabled })} /></div>
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-card p-3 text-center text-xs"><div><p className="text-ink-400">Normal</p><p className="mt-1 font-semibold">{taka(priceForOfferUnit(product, editing.priceUnit))}/{editing.priceUnit}</p></div><div><p className="text-ink-400">Effective</p><p className="mt-1 font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, editing))}/{editing.priceUnit}</p></div></div>
+            <div className="flex items-center justify-between rounded-lg bg-card px-3 py-2"><span className="text-[13px] text-ink">{pl("Enabled")}</span><Switch checked={editing.enabled} onCheckedChange={(enabled) => setEditing({ ...editing, enabled })} /></div>
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-card p-3 text-center text-xs"><div><p className="text-ink-400">{pl("Normal")}</p><p className="mt-1 font-semibold">{taka(priceForOfferUnit(product, editing.priceUnit))}/{editing.priceUnit}</p></div><div><p className="text-ink-400">{pl("Effective")}</p><p className="mt-1 font-semibold text-teal-700">{taka(offerEffectiveInUnit(product, editing))}/{editing.priceUnit}</p></div></div>
             {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">{error}</p>}
             <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => setEditing(null)}>{pl("Cancel")}</Button><Button size="sm" onClick={saveDraft}>{pl("Save offer")}</Button></div>
           </div>}
         </div>
 
         <DialogFooter className="flex-wrap">
-          <Button variant="outline" onClick={startNew}><Plus className="size-4" /> New offer</Button>
+          <Button variant="outline" onClick={startNew}><Plus className="size-4" /> {pl("New offer")}</Button>
           <Button onClick={persist}>{pl("Done")}</Button>
         </DialogFooter>
       </DialogContent>
