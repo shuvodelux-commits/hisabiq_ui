@@ -60,7 +60,7 @@ function Field({ label, bn, children, hint }: {label: string;bn?: string;childre
         {showHelper && bn && <span className="font-bn text-[11px] font-normal text-ink-400">· {bn}</span>}
       </span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-ink-500"{pl(hint)}</span>}
+      {hint && <span className="mt-1 block text-xs text-ink-500">{pl(hint)}</span>}
     </label>
   );
 }
