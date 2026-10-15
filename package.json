@@ -53,6 +53,8 @@
     "test:bangla-workspace-shell": "node scripts/bangla-workspace-shell-browser.cjs",
     "test:bangla-notifications": "node scripts/bangla-notifications-browser.cjs",
     "test:bangla-quotations": "node scripts/bangla-quotations-browser.cjs",
+    "test:bangla-vendor-statement": "node scripts/bangla-vendor-statement-browser.cjs",
+    "test:bangla-warranty": "node scripts/bangla-warranty-browser.cjs",
     "test:bangla-online-sales": "node scripts/bangla-online-sales-browser.cjs"
   },
   "dependencies": {
