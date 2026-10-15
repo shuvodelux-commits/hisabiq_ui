@@ -8,6 +8,7 @@ const validationCopy:Record<string,string>={
   'Enter a valid payment amount and discount.':'পেমেন্টের টাকা ও ছাড়ের সঠিক পরিমাণ লিখুন।',
   'Payment sources must add up to the amount.':'সব মাধ্যমের টাকার যোগফল মূল টাকার সমান হতে হবে।',
   'Finance amount must be greater than zero.':'টাকার পরিমাণ শূন্যের বেশি হতে হবে।',
+  'Finance amount must be a nonnegative amount with two decimal places at most.':'শূন্য বা তার বেশি টাকা লিখুন। দশমিকের পরে সর্বোচ্চ দুই ঘর হবে।',
   'Invalid finance relationship and type.':'সম্পর্কের ধরন ও লেনদেনের ধরন মিলছে না।',
   'Cannot record finance transaction.':'এই লেনদেন রাখা যায়নি।',
   'Choose a valid business date not in the future.':'সঠিক লেনদেনের তারিখ বাছুন। ভবিষ্যতের তারিখ দেওয়া যাবে না।',
