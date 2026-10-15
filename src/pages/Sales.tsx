@@ -641,7 +641,8 @@ function CreditActionDialog({
 }
 
 export function Sales() {
-  const {text,language}=useUiCopy();
+  const {text,language,showHelper}=useUiCopy();
+  const sl=(english:string)=>salesLabel(language,english);
   const navigate = useNavigate();
   const [searchParams,setSearchParams] = useSearchParams();
   const routeTab=searchParams.get('tab');
@@ -1019,7 +1020,7 @@ export function Sales() {
                   onChange={(event) => setQuery(event.target.value)}
                   className="pl-8"
                   placeholder={text("Search invoice, customer, phone or product","বিল, ক্রেতা, ফোন বা পণ্য খুঁজুন")}
-                  aria-label="Search sales"
+                  aria-label={sl("Search sales")}
                 />
               </div>
               <FormSelect
@@ -1050,15 +1051,15 @@ export function Sales() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">{text('Invoice','বিল')}</TableHead>}
-                  {visibleSalesColumns.customer && <TableHead className="h-9 text-xs">Customer</TableHead>}
-                  {visibleSalesColumns.items && <TableHead className="h-9 text-xs">Items</TableHead>}
+                  {visibleSalesColumns.customer && <TableHead className="h-9 text-xs">{sl('Customer')}</TableHead>}
+                  {visibleSalesColumns.items && <TableHead className="h-9 text-xs">{sl('Items')}</TableHead>}
                   {visibleSalesColumns.total && <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>}
-                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title="Invoice total minus cost of goods sold">{text('Profit','লাভ')}</TableHead>}
+                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title={sl("Invoice total minus cost of goods sold")}>{text('Profit','লাভ')}</TableHead>}
                   {visibleSalesColumns.paid && <TableHead className="h-9 text-right text-xs">{text('Paid','জমা')}</TableHead>}
                   {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">{text('Due','বাকি')}</TableHead>}
                   {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">{text('Payment','মাধ্যম')}</TableHead>}
-                  {visibleSalesColumns.status && <TableHead className="h-9 text-xs">Status</TableHead>}
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  {visibleSalesColumns.status && <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>}
+                  <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1324,12 +1325,12 @@ export function Sales() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-9 pl-4 text-xs">Return</TableHead>
-                <TableHead className="h-9 text-xs">Customer</TableHead>
+                <TableHead className="h-9 text-xs">{sl('Customer')}</TableHead>
                 <TableHead className="h-9 text-xs">Invoices</TableHead>
-                <TableHead className="h-9 text-xs">Items</TableHead>
+                <TableHead className="h-9 text-xs">{sl('Items')}</TableHead>
                 <TableHead className="h-9 text-right text-xs">Amount</TableHead>
                 <TableHead className="h-9 text-xs">Settlement</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1344,28 +1345,28 @@ export function Sales() {
                   <TableCell className="max-w-[300px] truncate py-2 text-ink-600">{item.items}</TableCell>
                   <TableCell className="py-2 text-right font-medium">{taka(item.amount)}</TableCell>
                   <TableCell className="py-2">
-                    <StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{item.settlement}</StatusBadge>
+                    <StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{sl(item.settlement)}</StatusBadge>
                     {item.refundMethod && <p className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
                   </TableCell>
                   <TableCell className="py-2 pr-4 text-right">
                     <FloatingPanel
-                      label={`Actions for ${item.id}`}
+                      label={`${sl('Actions for')} ${item.id}`}
                       width={210}
                       trigger={({ toggle, open }) => (
-                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`Actions for ${item.id}`}>
+                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`${sl('Actions for')} ${item.id}`}>
                           <MoreHorizontal className="size-4" />
                         </button>
                       )}>
                       {(close) => (
                         <div className="py-1">
                           <button onClick={() => { close(); setReturnDetail(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <FileText className="size-4 text-ink-400" /> View return
+                            <FileText className="size-4 text-ink-400" /> {sl('View return')}
                           </button>
                           <button onClick={() => { close(); printReturn(item,language); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <Printer className="size-4 text-ink-400" /> Print
+                            <Printer className="size-4 text-ink-400" /> {sl('Print')}
                           </button>
                           <button onClick={() => { close(); navigate('/app/parties'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <BookOpen className="size-4 text-ink-400" /> Customer ledger
+                            <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
                           </button>
                           <button onClick={() => {
                             close();
@@ -1377,7 +1378,7 @@ export function Sales() {
                             setReturnSerials({});
                             setTab('return');
                           }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <CornerUpLeft className="size-4 text-ink-400" /> Start another return
+                            <CornerUpLeft className="size-4 text-ink-400" /> {sl('Start another return')}
                           </button>
                         </div>
                       )}
@@ -1405,12 +1406,12 @@ export function Sales() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Customer</TableHead>
+                  <TableHead className="h-9 pl-4 text-xs">{sl('Customer')}</TableHead>
                   <TableHead className="h-9 text-xs">Source</TableHead>
                   <TableHead className="h-9 text-xs">Updated</TableHead>
                   <TableHead className="h-9 text-right text-xs">Credit balance</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1425,18 +1426,18 @@ export function Sales() {
                     <TableCell className="py-2 text-right font-medium">{taka(credit.balance)}</TableCell>
                     <TableCell className="py-2">
                       <StatusBadge tone={credit.balance > 0 ? 'teal' : 'neutral'} dot={credit.balance > 0}>
-                        {credit.balance > 0 ? 'Available' : 'Settled'}
+                        {sl(credit.balance > 0 ? 'Available' : 'Settled')}
                       </StatusBadge>
                     </TableCell>
                     <TableCell className="py-2 pr-4 text-right">
                       <FloatingPanel
-                        label={`Credit actions for ${credit.customer}`}
+                        label={`${sl('Credit actions for')} ${credit.customer}`}
                         width={220}
                         trigger={({ toggle, open }) => (
                           <button
                             onClick={toggle}
                             aria-expanded={open}
-                            aria-label={`Actions for ${credit.customer} credit`}
+                            aria-label={`${sl('Actions for')} ${credit.customer} ${sl('Customer credit')}`}
                             className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                             <MoreHorizontal className="size-4" />
                           </button>
@@ -1447,18 +1448,18 @@ export function Sales() {
                               disabled={credit.balance <= 0}
                               onClick={() => { close(); setCreditAction({ credit, mode: 'apply' }); }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
-                              <FileText className="size-4 text-ink-400" /> Apply to invoice
+                              <FileText className="size-4 text-ink-400" /> {sl('Apply to invoice')}
                             </button>
                             <button
                               disabled={credit.balance <= 0}
                               onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
-                              <Banknote className="size-4 text-ink-400" /> Refund credit
+                              <Banknote className="size-4 text-ink-400" /> {sl('Refund credit')}
                             </button>
                             <button
                               onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <BookOpen className="size-4 text-ink-400" /> Customer ledger
+                              <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
                             </button>
                           </div>
                         )}
