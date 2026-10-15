@@ -122,6 +122,8 @@ const bangla: Record<string,string> = {
   "Collect the temporary replacement before closing this warranty": "ওয়ারেন্টি শেষ করার আগে সাময়িক দেওয়া পণ্য ফেরত নিন।",
   "Collect the temporary replacement before rejecting this warranty": "ওয়ারেন্টি বাতিলের আগে সাময়িক দেওয়া পণ্য ফেরত নিন।",
   "Allow the print popup and try again.": "প্রিন্টের নতুন উইন্ডো চালু করুন, তারপর আবার চেষ্টা করুন।",
+  "Actions for": "কেসের কাজ",
+  "Give a temporary product while the case is open.": "ওয়ারেন্টি চলাকালে সাময়িক বিকল্প পণ্য দিন।",
   "UI preview only": "শুধু নমুনা",
 };
 
