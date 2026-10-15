@@ -119,7 +119,7 @@ const bangla:Record<string,string>={
  "Could not open the print document. Try again.": "প্রিন্টের কাগজ খোলা যায়নি। আবার চেষ্টা করুন।",
  "Payment saved": "টাকা জমা হয়েছে",
  "Customer payment saved": "ক্রেতার টাকা জমা হয়েছে",
- "Customer credit applied": "জমা টাকা বকেয়ায় যোগ হয়েছে",
+ "Customer credit applied": "জমা টাকা দিয়ে বিলের বাকি মেটানো হয়েছে",
  "Customer credit refunded": "জমা টাকা ফেরত দেওয়া হয়েছে",
  "Select invoice items and enter return quantity": "ফেরতের পণ্য বাছুন ও পরিমাণ লিখুন",
  "Check return quantities and serial numbers": "ফেরতের পরিমাণ ও সিরিয়াল নম্বর মিলিয়ে দেখুন",
