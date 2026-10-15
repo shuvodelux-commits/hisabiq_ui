@@ -26,7 +26,7 @@ async function main(){
     assert.equal(await status.getAttribute('data-value'),'Ready for customer','status source ID is unchanged by locale');
     await status.click();
     await page.getByRole('option',{name:bn?'সব অবস্থা':'All status'}).click();
-    await page.locator('tbody tr').first().click();
+    await page.locator('tbody tr').first().locator('td').first().click();
     const detail=page.getByRole('dialog');
     await detail.waitFor();
     await detail.getByText(bn?'কাজের ধাপ':'Case timeline',{exact:true}).waitFor();
