@@ -129,6 +129,9 @@ jobs:
       - name: Check Phase 26 Party ledger table and row actions across languages
         run: npm run test:bangla-party-ledger-table
 
+      - name: Check Phase 27 shared calendar in three languages and screen sizes
+        run: npm run test:bangla-shared-date-picker
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
