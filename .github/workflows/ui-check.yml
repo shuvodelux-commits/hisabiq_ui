@@ -96,6 +96,9 @@ jobs:
       - name: Check Phase 15 Product Settings and Add/Edit localization
         run: npm run test:bangla-product-forms
 
+      - name: Check Phase 16 Product inventory and offers localization
+        run: npm run test:bangla-product-inventory
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
