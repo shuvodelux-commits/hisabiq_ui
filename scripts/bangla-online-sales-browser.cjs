@@ -17,7 +17,7 @@ async function main(){
     })),language);
     const bn=language==='Bangla',base='http://127.0.0.1:4397/#/app/online-sales';
     await page.goto(base);
-    await page.getByRole('heading',{name:bn?'অনলাইন বিক্রয়':'Online Sales',exact:true}).waitFor();
+    await page.getByRole('heading',{name:bn?'অনলাইন বিক্রি':'Online Sales',exact:true}).waitFor();
     await page.getByRole('button',{name:bn?'নতুন অনলাইন অর্ডার':'New online order'}).waitFor();
     const status=page.getByRole('combobox',{name:bn?'অর্ডারের অবস্থা বাছুন':'Filter order status'});
     await status.click();
