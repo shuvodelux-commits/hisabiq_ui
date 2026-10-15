@@ -87,6 +87,9 @@ jobs:
       - name: Check Phase 12 Online Sales order, COD and CRM Bangla
         run: npm run test:bangla-online-sales
 
+      - name: Check Phase 13 multilingual fulfillment document print
+        run: npm run test:bangla-fulfillment
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 

@@ -55,7 +55,8 @@
     "test:bangla-quotations": "node scripts/bangla-quotations-browser.cjs",
     "test:bangla-vendor-statement": "node scripts/bangla-vendor-statement-browser.cjs",
     "test:bangla-warranty": "node scripts/bangla-warranty-browser.cjs",
-    "test:bangla-online-sales": "node scripts/bangla-online-sales-browser.cjs"
+    "test:bangla-online-sales": "node scripts/bangla-online-sales-browser.cjs",
+    "test:bangla-fulfillment": "node scripts/bangla-fulfillment-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
