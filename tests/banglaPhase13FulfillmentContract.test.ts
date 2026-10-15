@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fulfillmentLabel} from '../src/i18n/fulfillmentCopy.ts';
-import {documentTitles} from '../src/components/online/FulfillmentDocumentPreview.tsx';
 import {getOnlineSnapshot,orderTotals,lineTotal} from '../src/onlineSales/onlineStore.ts';
 
 test('three fulfillment document identities and stored values remain stable in every language',()=>{
- assert.deepEqual(documentTitles,['Order confirmation','Packing list','Delivery challan']);
+ const documentTitles=['Order confirmation','Packing list','Delivery challan'];
+ const component=readFileSync('src/components/online/FulfillmentDocumentPreview.tsx','utf8');
+ assert.match(component,/export const documentTitles:FulfillmentDocument\[\]=\['Order confirmation','Packing list','Delivery challan'\]/);
  for(const english of documentTitles){
   assert.equal(fulfillmentLabel('English',english),english);
   assert.equal(fulfillmentLabel('English + Bangla',english),english);
