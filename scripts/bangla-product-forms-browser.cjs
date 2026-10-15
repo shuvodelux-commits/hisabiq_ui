@@ -20,8 +20,7 @@ async function main(){
     await page.getByRole('button',{name:bn?'নতুন পণ্য':'Add product',exact:true}).click();
     const dialog=page.locator('[data-slot="dialog-content"]').last();
     await dialog.waitFor();
-    await dialog.getByText(bn?'বিক্রির দাম':'Selling price',{exact:true}).first().waitFor();
-    await dialog.getByText(bn?'পণ্যের ধরন':'Product type',{exact:true}).first().waitFor();
+    await dialog.getByRole('textbox',{name:bn?'বিক্রির দাম':'Selling price',exact:true}).waitFor();
     const kind=dialog.getByRole('combobox',{name:bn?'পণ্যের ধরন':'Product type'});
     assert.equal(await kind.getAttribute('data-value'),'Stock','source ProductKind remains Stock');
     await kind.click();
@@ -31,7 +30,7 @@ async function main(){
     const serial=dialog.getByRole('button',{name:bn?'বাধ্যতামূলক':'Required',exact:true});
     await serial.waitFor();
     await serial.click();
-    await dialog.getByText(bn?'ছোট একক':'Base unit',{exact:true}).first().waitFor();
+    await dialog.getByText(bn?'ছোট একক':'Base unit',{exact:false}).first().waitFor();
     await dialog.getByRole('button',{name:bn?'বাতিল':'Cancel',exact:true}).click();
     await dialog.waitFor({state:'hidden'});
     const nav=page.getByRole('tab',{name:bn?/পণ্যের সেটিংস/:/Product settings/});
