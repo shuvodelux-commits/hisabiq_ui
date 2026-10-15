@@ -2,6 +2,9 @@ import {uiText,type UiLanguage} from './uiCopy.ts';
 
 /** Display-only inventory glossary. IDs, stock transactions, enum values and stored notes remain unchanged. */
 const bangla:Record<string,string>={
+ "Effective": "ছাড়ের দাম",
+ "Amount": "টাকা",
+ "Optional": "ঐচ্ছিক",
  "Default": "সাধারণ দাম",
  "Depleted": "স্টক শেষ",
  "Open": "মজুত আছে",
