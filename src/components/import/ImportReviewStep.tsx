@@ -110,7 +110,7 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
       <div className="grid gap-2 sm:grid-cols-2">
        {Object.entries(draft).map(([key,value])=><label key={key} className="space-y-1 text-[11px] font-medium text-ink-600">
         <span>{fieldName(key)}</span>
-        <Input aria-label={text('Edit','সম্পাদনা')+' '+fieldName(key)+' '+text('row','সারি')+' '+row.sourceRow} value={value}
+        <Input aria-label={language==='Bangla'?'সম্পাদনা '+fieldName(key)+' সারি '+row.sourceRow:'Edit '+key+' row '+row.sourceRow} value={value}
          onChange={event=>setDraft(prev=>({...prev,[key]:event.target.value}))}/>
        </label>)}
       </div>
