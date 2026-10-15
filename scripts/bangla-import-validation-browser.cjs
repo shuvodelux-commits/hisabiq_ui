@@ -20,17 +20,17 @@ async function main(){
     const dlg=page.getByRole('dialog',{name:t('Import products','পণ্য আনুন')});
     const file=dlg.getByLabel(t('Select Excel or CSV file','Excel বা CSV ফাইল বাছুন'));
     await file.setInputFiles({name:'unsupported.txt',mimeType:'text/plain',buffer:Buffer.from('hello')});
-    await dlg.getByRole('alert').getByText(t(
+    await dlg.getByRole('alert').filter({hasText:t(
       'Only .xlsx and .csv are supported; .xls and .xlsm are not supported.',
       'শুধু .xlsx ও .csv ফাইল নেওয়া যাবে; .xls বা .xlsm নয়.'
-    ),{exact:false}).waitFor();
+    )}).waitFor();
     await file.setInputFiles({
       name:'bad-products.csv',mimeType:'text/csv',
       buffer:Buffer.from('Product Name,SKU,Base Unit,Selling Price\n,TEST-P25-'+width+',Pcs,12\n')
     });
     await dlg.getByRole('button',{name:t('Next: Map columns','পরের ধাপ: কলাম মেলান')}).click();
     await dlg.getByRole('button',{name:t('Next: Review','পরের ধাপ: যাচাই')}).click();
-    await dlg.getByRole('alert').getByText(t('Product Name is required.','পণ্যের নাম লিখুন।'),{exact:false}).waitFor();
+    await dlg.getByRole('alert').filter({hasText:t('Product Name is required.','পণ্যের নাম লিখুন।')}).waitFor();
     assert.equal(await dlg.getByRole('button',{name:t('Confirm import','আনা নিশ্চিত করুন')}).isDisabled(),true);
     assert.deepEqual(errors,[],language+' '+width+'px browser errors');
     console.log('Phase 25 safe validation display '+language+' @ '+width+'px passed');
