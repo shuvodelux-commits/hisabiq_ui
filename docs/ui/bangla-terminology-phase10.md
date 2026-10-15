@@ -1,28 +1,21 @@
-# Phase 10 — Vendor ledger statement localization
+# HisabIQ Bangla Phase 10 — Quotation workspace and printable quotation
 
-## Scope and intent
-HisabIQ ERP UI preview. Continue the existing English / English + Bangla / Bangla preference in the specialist Vendor ledger statement, including its on-screen preview and printable balance labels. Use ordinary shopkeeper language for **দেনা** (payable to Vendor) and **পাওনা** (receivable from Vendor). Preserve the current statement layout and actions.
+## Goal
+Use straightforward Bangla labels in Quotation list, draft editor, customer-facing preview and its existing print mode. English + Bangla retains English primary copy. Follow the approved HisabIQ KISS terminology and existing layout/components.
 
-### Changed presentation only
-- Dialog title and accessibility name; demo-only disclaimer.
-- Payable / receivable tabs and account description, including clear direction of money owed.
-- Statement columns: date, source, increase, decrease and running balance.
-- Opening balance, period movement, closing balance and the unknown-price warning.
-- Close, Export CSV and Print action labels.
-- Mixed language keeps English primary label and Bangla helper; full Bangla does not repeat an English helper.
+## Scope
+- Localize action buttons, filters, status badges, date labels, customer fields, quote totals, item table, print disclaimers and delete confirmation.
+- Keep quotations **quotes**, not invoices, financial entries, revenue or stock reservations.
+- Use `useUiCopy` and the `quotationLabel(language, english)` helper for presentation. Never persist translated status or recipient strings.
+- Only one existing quotation store: `quotePreviewStore`. All calculations (`quoteLineTotal`, `quoteSubtotal`, `quoteTotal`) and lifecycle transitions remain as before.
+- Continue using the same dialog, table, POS-style `TransactionCartEditor`, date picker and `window.print()`. Keep user-provided note, customer, product, quantity, currency and quote identifiers untouched.
+- Printed quote is a **UI preview** and cannot be confused with an invoice or payment request.
 
-### Locked behaviors
-- The exact `'payable'` / `'receivable'` IDs and existing `projectVendorStatement` projection must not change.
-- Unknown Vendor cost is **not** zero. Preserve `unpricedSources` and the unknown-price warning.
-- No changes to Vendor money movement, ledger sign convention, purchase source links, settlements, posted entries, payment reconciliation or invoice state.
-- CSV uses `serializeVendorStatementCsv` unchanged, with the same machine-readable data and filename.
-- Existing print button still invokes the current browser print flow without a new document backend.
-- Continue to use existing shared Dialog, Button, tenant language preference and font system. No monospaced digits.
+## Regression acceptance
+- Node contract test asserts status IDs, quote totals and unchanged store snapshot, presence of original store functions, and print-only safe copy.
+- Browser test in English, English + Bangla and Bangla at phone 390px and desktop 1440px: quote list, status filters, printable detail labels, existing subtotal/total, editor, cancellation and overflow.
+- Existing Quote → Online order → POS flow, finance, customer, sales, purchases and theme regression suites must remain passing.
 
-### Verification
-- `tests/banglaPhase10VendorStatementContract.test.ts` checks unchanged projection, CSV and side identifiers.
-- `npm run test:bangla-vendor-statement`: English / Mixed / Bangla at 390 and 1440px; open Vendor ledger, check tab labels, balances, preview disclaimer, export and close.
-- Keep the existing `vendor-workflow-browser.cjs`, price-later and supplier/party regression suites in CI.
-
-### Follow-ups
-Other specialist warranty and quotation printable documents and standalone secondary pages will be handled in subsequent narrow phases. This work deliberately does not change their status or data schemas.
+## Deferred
+- Backend quotation posting/sending, SMS integration, numbering rules, customer consent, actual print language user preference beyond current workspace language.
+- Remaining secondary modules and specialist print surfaces will follow only after regression review.
