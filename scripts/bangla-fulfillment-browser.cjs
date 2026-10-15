@@ -54,7 +54,7 @@ async function main(){
      await page.emulateMedia({media:'print'});
      assert.equal(await doc.evaluate(el=>getComputedStyle(el).visibility),'visible','document visible for A4 print');
      // React may hoist the style element to <head>, so validate the shipped CSS source.
-     assert.match(require('node:fs').readFileSync('src/components/online/FulfillmentDocumentPreview.tsx','utf8'),/@page \\{size:A4;margin:0;\\}/,'A4 scoped print CSS');
+     assert.ok(require('node:fs').readFileSync('src/components/online/FulfillmentDocumentPreview.tsx','utf8').includes('@page {size:A4;margin:0;}'),'A4 scoped print CSS');
      await page.emulateMedia({media:'screen'});
      await printDlg.getByRole('button',{name:bn?'বন্ধ':'Close',exact:true}).first().click();
      await printDlg.waitFor({state:'hidden'});
