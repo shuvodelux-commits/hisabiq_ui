@@ -20,6 +20,7 @@ import {useUiCopy} from '../i18n/useUiCopy';
 import {onlineLabel,onlineOptions} from '../i18n/onlineSalesCopy';
 import {products as posProducts} from '../data/products';
 import {FulfillmentDocumentPreview,fulfillmentPrintCss,printFulfillment,documentTitles,type FulfillmentDocument} from '../components/online/FulfillmentDocumentPreview';
+import {fulfillmentLabel} from '../i18n/fulfillmentCopy';
 import {orderTotals,createOnlineOrder,reviseOnlineDraft,updateOrderStage,setOrderCourier,recordCourierCod,recordCourierPayout,courierClearing,draftFromAcceptedQuote,existingOrderForQuote,preparePosHandoff,
  getOnlineSnapshot,subscribeOnline,upsertSalesLead,type SalesChannel,type PaymentMode,type OnlineOrderDraft,type OnlineOrder,type OrderStage,type CourierName,type SalesLead,type LeadStage
 } from '../onlineSales/onlineStore';
@@ -226,7 +227,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
   <div className="flex flex-wrap gap-2">
    {order.stage==='Draft'&&<Button size="sm" variant="outline" onClick={onEdit}>{ol("Edit draft")}</Button>}
    {['Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={onPos}>{ol('Open in POS V2 (preview)')}</Button>}
-   {documentTitles.map(kind=><Button key={kind} size="sm" variant="outline" onClick={()=>setDocumentKind(kind)}>{ol(kind)}</Button>)}
+   {documentTitles.map(kind=><Button key={kind} size="sm" variant="outline" onClick={()=>setDocumentKind(kind)}>{fulfillmentLabel(language,kind)}</Button>)}
    {['Draft','Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={()=>setAction('courier')}>{ol("Assign courier")}</Button>}
    {(allowed[order.stage]??[]).map(stage=><Button key={stage} size="sm" variant={stage==='Cancelled'?'outline':'default'} onClick={()=>nextStage(stage)}>{ol(stage)}</Button>)}
    {order.stage==='Delivered'&&orderTotals(order).cod>0&&<>
