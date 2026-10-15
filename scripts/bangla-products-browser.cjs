@@ -53,7 +53,7 @@ async function main(){
     const action=page.getByRole('button',{name:new RegExp(bn?'পণ্যের কাজ:':'Actions for')}).first();
     await action.click();
     await page.getByText(bn?'বিস্তারিত দেখুন':'View details',{exact:true}).click();
-    const details=page.getByRole('dialog').first();
+    const details=page.locator('[data-slot="dialog-content"]').last();
     await details.waitFor();
     await page.keyboard.press('Escape');
     await details.waitFor({state:'hidden'});
