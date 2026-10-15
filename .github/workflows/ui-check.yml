@@ -93,6 +93,9 @@ jobs:
       - name: Check Phase 14 Products catalog in three languages
         run: npm run test:bangla-products
 
+      - name: Check Phase 15 Product Settings and Add/Edit localization
+        run: npm run test:bangla-product-forms
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
