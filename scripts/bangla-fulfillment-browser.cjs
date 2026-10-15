@@ -27,7 +27,7 @@ async function main(){
     const detail=page.getByRole('dialog',{name:/Online order ON-000101|অনলাইন অর্ডার ON-000101/});
     await detail.waitFor();
     for(const [kind,banglaTitle,englishFooter,banglaFooter,columns] of docs){
-     await detail.getByRole('button',{name:kind,exact:true}).click();
+     await detail.getByRole('button',{name:bn?banglaTitle:kind,exact:true}).click();
      const printDlg=page.getByRole('dialog',{name:'Print '+kind});
      const doc=printDlg.locator('#fulfillment-print-document');
      await doc.waitFor();
@@ -56,7 +56,7 @@ async function main(){
      const stylesheet=await printDlg.locator('style').textContent();
      assert.match(stylesheet,/@page \{size:A4;margin:0;\}/,'A4 scoped print CSS');
      await page.emulateMedia({media:'screen'});
-     await printDlg.getByRole('button',{name:'Close',exact:true}).first().click();
+     await printDlg.getByRole('button',{name:bn?'বন্ধ':'Close',exact:true}).first().click();
      await printDlg.waitFor({state:'hidden'});
     }
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal page overflow');
