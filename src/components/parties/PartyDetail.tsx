@@ -68,7 +68,7 @@ export function PartyDetail({
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
-  const {text}=useUiCopy();
+  const {text,showHelper}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
@@ -146,10 +146,10 @@ export function PartyDetail({
         </div>
         {vendorProfile?<div className="flex flex-wrap gap-2">
          <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
-          <p className="text-[11px] text-danger">{text('You owe','আপনাকে দিতে হবে')}</p>
+          <p className="text-[11px] text-danger">{text('You owe','আপনাকে দিতে হবে')}{showHelper&&' · দেনা'}</p>
           <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
          <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
-          <p className="text-[11px] text-ink-600">{text('Vendor owes','ভেন্ডরের কাছে পাওনা')}</p>
+          <p className="text-[11px] text-ink-600">{text('Vendor owes','ভেন্ডরের কাছে পাওনা')}{showHelper&&' · পাওনা'}</p>
           <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
           {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
            {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}</p>}
