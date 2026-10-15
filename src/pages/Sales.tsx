@@ -26,6 +26,7 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { useUiCopy } from '../i18n/useUiCopy';
+import {salesLabel,salesOptions} from '../i18n/salesCopy';
 import type {UiLanguage} from '../i18n/uiCopy';
 import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
@@ -39,12 +40,12 @@ import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesD
 import { downloadReport, printReport } from '../utils/reportOutput';
 const printInvoice = (invoice: SalesInvoice,language:UiLanguage='English + Bangla') => {
   const view = window.open('', '_blank');
-  if (!view) { toast.error('Allow the print popup and try again.'); return; }
+  if (!view) { toast.error(salesLabel(language,'Allow the print popup and try again.')); return; }
   view.opener = null;
   void import('../components/brand/printReceipt').then(({printReceipt}) => printReceipt(invoiceReceipt(invoice,language), view))
-    .catch(() => { view.close(); toast.error('Could not open the print document. Try again.'); });
+    .catch(() => { view.close(); toast.error(salesLabel(language,'Could not open the print document. Try again.')); });
 };
-const printReturn = (item: SalesReturn,language:UiLanguage='English + Bangla') => { if (!printReport(returnDocument(item,language))) toast.error('Allow the print popup and try again.'); };
+const printReturn = (item: SalesReturn,language:UiLanguage='English + Bangla') => { if (!printReport(returnDocument(item,language))) toast.error(salesLabel(language,'Allow the print popup and try again.')); };
 
 type Tab = 'sales' | 'return' | 'returns' | 'credits' | 'drafts';
 
@@ -109,9 +110,11 @@ function SalesColumnPicker({
   visible: Record<SalesColumn, boolean>;
   onToggle: (column: SalesColumn) => void;
 }) {
+  const {language}=useUiCopy();
+  const sl=(english:string)=>salesLabel(language,english);
   return (
     <FloatingPanel
-      label="Choose sales invoice columns"
+      label={sl("Choose sales invoice columns")}
       width={210}
       trigger={({ toggle, open }) => (
         <button
@@ -119,7 +122,7 @@ function SalesColumnPicker({
           onClick={toggle}
           aria-expanded={open}
           className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
-          Columns
+          {sl('Columns')}
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
       )}>
@@ -133,7 +136,7 @@ function SalesColumnPicker({
               aria-checked={visible[column.id]}
               onClick={() => onToggle(column.id)}
               className="flex w-full items-center justify-between gap-4 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-              <span>{column.label}</span>
+              <span>{sl(column.label)}</span>
               {visible[column.id] && <Check className="size-4 text-ink" />}
             </button>
           ))}
@@ -168,11 +171,12 @@ function InvoiceActions({
 }) {
   const navigate = useNavigate();
   const {language}=useUiCopy();
+  const sl=(english:string)=>salesLabel(language,english);
   const itemClass = 'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
 
   return (
     <FloatingPanel
-      label={`Actions for ${invoice.invoice}`}
+      label={`${sl('Actions for')} ${invoice.invoice}`}
       width={210}
       trigger={({ toggle, open }) => (
         <button
@@ -181,7 +185,7 @@ function InvoiceActions({
             toggle();
           }}
           aria-expanded={open}
-          aria-label={`Actions for ${invoice.invoice}`}
+          aria-label={`${sl('Actions for')} ${invoice.invoice}`}
           className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
           <MoreHorizontal className="size-4" />
         </button>
@@ -189,32 +193,32 @@ function InvoiceActions({
       {(close) => (
         <div className="py-1" onClick={(event) => event.stopPropagation()}>
           <button className={itemClass} onClick={() => { close(); onView(); }}>
-            <FileText className="size-4 text-ink-400" /> View invoice
+            <FileText className="size-4 text-ink-400" /> {sl('View invoice')}
           </button>
           <button className={itemClass} onClick={() => { close(); navigate(`/app/pos?mode=edit&invoice=${invoice.invoice}`); }}>
-            <Pencil className="size-4 text-ink-400" /> Edit sale
+            <Pencil className="size-4 text-ink-400" /> {sl('Edit sale')}
           </button>
           <button className={itemClass} onClick={() => { close(); navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`); }}>
-            <Copy className="size-4 text-ink-400" /> Duplicate
+            <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
           </button>
           {invoice.due > 0 && (
             <button className={itemClass} onClick={() => { close(); onPayment(); }}>
-              <Banknote className="size-4 text-ink-400" /> Take payment
+              <Banknote className="size-4 text-ink-400" /> {sl('Take payment')}
             </button>
           )}
           <button className={itemClass} onClick={() => { close(); onReturn(); }}>
-            <CornerUpLeft className="size-4 text-ink-400" /> Return items
+            <CornerUpLeft className="size-4 text-ink-400" /> {sl('Return items')}
           </button>
           <button className={itemClass} onClick={() => { close(); navigate(`/app/warranty?invoice=${invoice.invoice}`); }}>
-            <ShieldCheck className="size-4 text-ink-400" /> Receive warranty
+            <ShieldCheck className="size-4 text-ink-400" /> {sl('Receive warranty')}
           </button>
           {invoice.partyId && (
             <button className={itemClass} onClick={() => { close(); navigate(`/app/parties?id=${invoice.partyId}`); }}>
-              <UserRound className="size-4 text-ink-400" /> Customer ledger
+              <UserRound className="size-4 text-ink-400" /> {sl('Customer ledger')}
             </button>
           )}
           <button className={itemClass} onClick={() => { close(); printInvoice(invoice,language); }}>
-            <Printer className="size-4 text-ink-400" /> Print
+            <Printer className="size-4 text-ink-400" /> {sl('Print')}
           </button>
         </div>
       )}
@@ -637,7 +641,8 @@ function CreditActionDialog({
 }
 
 export function Sales() {
-  const {text,language}=useUiCopy();
+  const {text,language,showHelper}=useUiCopy();
+  const sl=(english:string)=>salesLabel(language,english);
   const navigate = useNavigate();
   const [searchParams,setSearchParams] = useSearchParams();
   const routeTab=searchParams.get('tab');
@@ -785,7 +790,7 @@ export function Sales() {
         payments: [...item.payments, ...payments]
       };
     }));
-    toast.success('Payment saved', { description: `${invoice.invoice} · ${taka(amount)}` });
+    toast.success(sl('Payment saved'), { description: `${invoice.invoice} · ${taka(amount)}` });
   };
 
   const receiveCustomerPayment = (draft: CustomerPaymentDraft) => {
@@ -844,7 +849,7 @@ export function Sales() {
       });
     }
 
-    toast.success('Customer payment saved', {
+    toast.success(sl('Customer payment saved'), {
       description: remainder > 0 ? `${taka(amount - remainder)} settled · ${taka(remainder)} credit` : `${taka(amount)} settled against due invoices`
     });
   };
@@ -864,21 +869,21 @@ export function Sales() {
       };
     }));
     setCredits((items) => items.map((item) => item.id === credit.id ? { ...item, balance: Math.max(item.balance - amount, 0), source: `Applied to invoice`, updatedAt: '01 Oct 2026' } : item));
-    toast.success('Customer credit applied', { description: `${credit.customer} · ${taka(amount)}` });
+    toast.success(sl('Customer credit applied'), { description: `${credit.customer} · ${taka(amount)}` });
   };
 
   const refundCustomerCredit = (credit: CustomerCredit, amount: number, method: PaymentMethod, account: string) => {
     setCredits((items) => items.map((item) => item.id === credit.id ? { ...item, balance: Math.max(item.balance - amount, 0), source: `Refunded by ${method}`, updatedAt: '01 Oct 2026' } : item));
-    toast.success('Customer credit refunded', { description: `${credit.customer} · ${taka(amount)}${account.trim() ? ` · ${account.trim()}` : ''}` });
+    toast.success(sl('Customer credit refunded'), { description: `${credit.customer} · ${taka(amount)}${account.trim() ? ` · ${account.trim()}` : ''}` });
   };
 
   const completeReturn = () => {
     if (!returnInvoiceIds.length || returnAmount <= 0) {
-      toast.error('Select invoice items and enter return quantity');
+      toast.error(sl('Select invoice items and enter return quantity'));
       return;
     }
     if (returnIssues.length) {
-      toast.error('Check return quantities and serial numbers', { description: returnIssues[0] });
+      toast.error(sl('Check return quantities and serial numbers'), { description: returnIssues[0] });
       return;
     }
     const selected = selectedReturnInvoices;
@@ -946,7 +951,7 @@ export function Sales() {
     setReturnRefundMethod('Cash');
     setReturnRefundAccount('');
     setTab('returns');
-    toast.success(`${newReturn.id} saved`, { description: `${taka(returnAmount)} · ${returnSettlement}` });
+    toast.success(`${newReturn.id} ${sl('saved')}`, { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
 
   const tabs: Array<[Tab, string, string]> = [
@@ -1015,7 +1020,7 @@ export function Sales() {
                   onChange={(event) => setQuery(event.target.value)}
                   className="pl-8"
                   placeholder={text("Search invoice, customer, phone or product","বিল, ক্রেতা, ফোন বা পণ্য খুঁজুন")}
-                  aria-label="Search sales"
+                  aria-label={sl("Search sales")}
                 />
               </div>
               <FormSelect
@@ -1046,15 +1051,15 @@ export function Sales() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">{text('Invoice','বিল')}</TableHead>}
-                  {visibleSalesColumns.customer && <TableHead className="h-9 text-xs">Customer</TableHead>}
-                  {visibleSalesColumns.items && <TableHead className="h-9 text-xs">Items</TableHead>}
+                  {visibleSalesColumns.customer && <TableHead className="h-9 text-xs">{sl('Customer')}</TableHead>}
+                  {visibleSalesColumns.items && <TableHead className="h-9 text-xs">{sl('Items')}</TableHead>}
                   {visibleSalesColumns.total && <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>}
-                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title="Invoice total minus cost of goods sold">{text('Profit','লাভ')}</TableHead>}
+                  {visibleSalesColumns.profit && <TableHead className="h-9 text-right text-xs" title={sl("Invoice total minus cost of goods sold")}>{text('Profit','লাভ')}</TableHead>}
                   {visibleSalesColumns.paid && <TableHead className="h-9 text-right text-xs">{text('Paid','জমা')}</TableHead>}
                   {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">{text('Due','বাকি')}</TableHead>}
                   {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">{text('Payment','মাধ্যম')}</TableHead>}
-                  {visibleSalesColumns.status && <TableHead className="h-9 text-xs">Status</TableHead>}
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  {visibleSalesColumns.status && <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>}
+                  <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1144,8 +1149,8 @@ export function Sales() {
 
               <div className="rounded-xl border border-border bg-card">
                 <div className="border-b border-border p-3">
-                  <p className="text-[13px] font-medium text-ink">Select invoices <span className="font-bn text-[11px] font-normal text-ink-400">· ইনভয়েস বাছুন</span></p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Choose one or more invoices for a batch return.</p>
+                  <p className="text-[13px] font-medium text-ink">{sl('Select invoices')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ইনভয়েস বাছুন</span>}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">{sl("Choose one or more invoices for a batch return.")}</p>
                 </div>
                 <div className="divide-y divide-border">
                   {customerInvoices.map((invoice) => (
@@ -1175,8 +1180,8 @@ export function Sales() {
 
             <div className="rounded-xl border border-border bg-card">
               <div className="border-b border-border p-3">
-                <p className="text-[13px] font-medium text-ink">Return items <span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span></p>
-                <p className="mt-0.5 text-[11px] text-ink-500">Enter quantity against any item from the selected invoices.</p>
+                <p className="text-[13px] font-medium text-ink">{sl('Return items')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span>}</p>
+                <p className="mt-0.5 text-[11px] text-ink-500">{sl("Enter quantity against any item from the selected invoices.")}</p>
               </div>
 
               {selectedReturnLines.length ? (
@@ -1184,10 +1189,10 @@ export function Sales() {
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-9 pl-3 text-xs">Invoice / item</TableHead>
-                        <TableHead className="h-9 text-xs">Sold</TableHead>
-                        <TableHead className="h-9 w-36 text-xs">Return qty</TableHead>
-                        <TableHead className="h-9 pr-3 text-right text-xs">Refund</TableHead>
+                        <TableHead className="h-9 pl-3 text-xs">{sl('Invoice / item')}</TableHead>
+                        <TableHead className="h-9 text-xs">{sl('Sold')}</TableHead>
+                        <TableHead className="h-9 w-36 text-xs">{sl('Return qty')}</TableHead>
+                        <TableHead className="h-9 pr-3 text-right text-xs">{sl('Refund')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1203,21 +1208,21 @@ export function Sales() {
                                   <FormSelect
                                     value={returnReason[line.id] ?? 'Customer return'}
                                     onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
-                                    options={['Customer return', 'Damaged', 'Wrong item', 'Warranty claim']}
+                                    options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
                                   />
                                   {line.serials?.length ? (
                                     <>
                                       <Input
                                         value={returnSerials[line.id] ?? ''}
                                         onChange={(event) => setReturnSerials((value) => ({ ...value, [line.id]: event.target.value }))}
-                                        placeholder="Returned serial, comma separated"
+                                        placeholder={sl("Returned serial, comma separated")}
                                         className="h-8"
                                       />
-                                      <p className="text-[10.5px] text-ink-400">Sold serials: {line.serials.join(', ')}</p>
+                                      <p className="text-[10.5px] text-ink-400">{sl('Sold serials:')} {line.serials.join(', ')}</p>
                                     </>
                                   ) : null}
                                   {(returnReason[line.id] ?? 'Customer return') === 'Warranty claim' && (
-                                    <p className="text-[10.5px] text-teal-700">This return will be available for warranty intake.</p>
+                                    <p className="text-[10.5px] text-teal-700">{sl("This return will be available for warranty intake.")}</p>
                                   )}
                                 </div>
                               )}
@@ -1235,7 +1240,7 @@ export function Sales() {
                                 <span className="w-10 text-[11px] text-ink-400">{line.unit}</span>
                               </div>
                               <p className={`mt-1 text-[10.5px] ${qty > returnLimit(line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
-                                max {returnLimit(line)} {line.unit}
+                                {sl('max')} {returnLimit(line)} {line.unit}
                               </p>
                             </TableCell>
                             <TableCell className="py-2 pr-3">
@@ -1245,7 +1250,7 @@ export function Sales() {
                                   onChange={(event) => setReturnPrice((value) => ({ ...value, [line.id]: event.target.value.replace(/[^\d.]/g, '') }))}
                                   inputMode="decimal"
                                   className="h-8 text-right"
-                                  aria-label={`Return price for ${line.name}`}
+                                  aria-label={`${sl('Return price for')} ${line.name}`}
                                 />
                                 <p className="mt-1 text-right text-[10.5px] text-ink-400">
                                   {qty > 0 ? taka(qty * returnPriceFor(line)) : `/${line.unit}`}
@@ -1260,30 +1265,30 @@ export function Sales() {
 
                   <div className="grid gap-3 border-t border-border bg-ink-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_180px_160px] sm:items-end">
                     <label className="text-[12px] font-medium text-ink">
-                      Settlement
+                      {sl('Settlement')}
                       <FormSelect
                         className="mt-1"
                         value={returnSettlement}
                         onChange={(event) => setReturnSettlement(event.target.value as SalesReturn['settlement'])}
-                        options={['Adjust due', 'Customer credit', 'Cash refund']}
+                        options={salesOptions(language,['Adjust due', 'Customer credit', 'Cash refund'])}
                       />
                       <span className="mt-1 block text-[10.5px] font-normal text-ink-400">
                         {returnSettlement === 'Adjust due'
-                          ? `Selected invoice due ${taka(selectedReturnDue)}. Any extra return value becomes customer credit.`
+                          ? `${sl('Selected invoice due')} ${taka(selectedReturnDue)}. ${sl('Any extra return value becomes customer credit.')}`
                           : returnSettlement === 'Customer credit'
-                            ? 'Keep the full return value on the customer account.'
-                            : 'Refund the return value from cash or another payment account.'}
+                            ? sl('Keep the full return value on the customer account.')
+                            : sl('Refund the return value from cash or another payment account.')}
                       </span>
                     </label>
                     <div className="rounded-lg bg-ink-50 px-3 py-2">
-                      <p className="text-[11px] text-ink-400">Return amount</p>
+                      <p className="text-[11px] text-ink-400">{sl('Return amount')}</p>
                       <p className="text-base font-semibold text-ink">{taka(returnAmount)}</p>
                     </div>
-                    <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> Complete return</Button>
+                    <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> {sl('Complete return')}</Button>
                     {returnSettlement === 'Cash refund' && (
                       <div className="grid gap-3 sm:col-span-3 sm:grid-cols-2">
                         <label className="text-[12px] font-medium text-ink">
-                          Refund method
+                          {sl('Refund method')}
                           <FormSelect
                             className="mt-1"
                             value={returnRefundMethod}
@@ -1292,12 +1297,12 @@ export function Sales() {
                           />
                         </label>
                         <label className="text-[12px] font-medium text-ink">
-                          Refund account
+                          {sl('Refund account')}
                           <Input
                             className="mt-1"
                             value={returnRefundAccount}
                             onChange={(event) => setReturnRefundAccount(event.target.value)}
-                            placeholder={returnRefundMethod === 'Cash' ? 'Cash counter' : 'Bank / wallet account'}
+                            placeholder={sl(returnRefundMethod === 'Cash' ? 'Cash counter' : 'Bank / wallet account')}
                           />
                         </label>
                       </div>
@@ -1307,8 +1312,8 @@ export function Sales() {
               ) : (
                 <div className="px-4 py-16 text-center">
                   <CornerUpLeft className="mx-auto size-7 text-helper" />
-                  <p className="mt-2 font-medium text-ink">Select one or more invoices</p>
-                  <p className="mt-1 text-sm text-ink-500">Their items will appear here for a batch return.</p>
+                  <p className="mt-2 font-medium text-ink">{sl("Select one or more invoices")}</p>
+                  <p className="mt-1 text-sm text-ink-500">{sl("Their items will appear here for a batch return.")}</p>
                 </div>
               )}
             </div>
@@ -1319,13 +1324,13 @@ export function Sales() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 pl-4 text-xs">Return</TableHead>
-                <TableHead className="h-9 text-xs">Customer</TableHead>
-                <TableHead className="h-9 text-xs">Invoices</TableHead>
-                <TableHead className="h-9 text-xs">Items</TableHead>
-                <TableHead className="h-9 text-right text-xs">Amount</TableHead>
-                <TableHead className="h-9 text-xs">Settlement</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                <TableHead className="h-9 pl-4 text-xs">{sl('Return')}</TableHead>
+                <TableHead className="h-9 text-xs">{sl('Customer')}</TableHead>
+                <TableHead className="h-9 text-xs">{sl('Invoices')}</TableHead>
+                <TableHead className="h-9 text-xs">{sl('Items')}</TableHead>
+                <TableHead className="h-9 text-right text-xs">{sl('Amount')}</TableHead>
+                <TableHead className="h-9 text-xs">{sl('Settlement')}</TableHead>
+                <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1340,28 +1345,28 @@ export function Sales() {
                   <TableCell className="max-w-[300px] truncate py-2 text-ink-600">{item.items}</TableCell>
                   <TableCell className="py-2 text-right font-medium">{taka(item.amount)}</TableCell>
                   <TableCell className="py-2">
-                    <StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{item.settlement}</StatusBadge>
+                    <StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{sl(item.settlement)}</StatusBadge>
                     {item.refundMethod && <p className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
                   </TableCell>
                   <TableCell className="py-2 pr-4 text-right">
                     <FloatingPanel
-                      label={`Actions for ${item.id}`}
+                      label={`${sl('Actions for')} ${item.id}`}
                       width={210}
                       trigger={({ toggle, open }) => (
-                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`Actions for ${item.id}`}>
+                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`${sl('Actions for')} ${item.id}`}>
                           <MoreHorizontal className="size-4" />
                         </button>
                       )}>
                       {(close) => (
                         <div className="py-1">
                           <button onClick={() => { close(); setReturnDetail(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <FileText className="size-4 text-ink-400" /> View return
+                            <FileText className="size-4 text-ink-400" /> {sl('View return')}
                           </button>
                           <button onClick={() => { close(); printReturn(item,language); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <Printer className="size-4 text-ink-400" /> Print
+                            <Printer className="size-4 text-ink-400" /> {sl('Print')}
                           </button>
                           <button onClick={() => { close(); navigate('/app/parties'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <BookOpen className="size-4 text-ink-400" /> Customer ledger
+                            <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
                           </button>
                           <button onClick={() => {
                             close();
@@ -1373,7 +1378,7 @@ export function Sales() {
                             setReturnSerials({});
                             setTab('return');
                           }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <CornerUpLeft className="size-4 text-ink-400" /> Start another return
+                            <CornerUpLeft className="size-4 text-ink-400" /> {sl('Start another return')}
                           </button>
                         </div>
                       )}
@@ -1390,23 +1395,23 @@ export function Sales() {
           <div>
             <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-[13px] font-medium text-ink">Customer payments & credit <span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span></p>
-                <p className="mt-0.5 text-[11px] text-ink-500">Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.</p>
+                <p className="text-[13px] font-medium text-ink">{sl('Customer payments & credit')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span>}</p>
+                <p className="mt-0.5 text-[11px] text-ink-500">{sl("Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.")}</p>
               </div>
               <Button size="sm" onClick={() => setCustomerPaymentOpen(true)}>
-                <Plus className="size-4" /> Receive customer payment
+                <Plus className="size-4" /> {sl("Receive customer payment")}
               </Button>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">Customer</TableHead>
-                  <TableHead className="h-9 text-xs">Source</TableHead>
-                  <TableHead className="h-9 text-xs">Updated</TableHead>
-                  <TableHead className="h-9 text-right text-xs">Credit balance</TableHead>
-                  <TableHead className="h-9 text-xs">Status</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">Action</TableHead>
+                  <TableHead className="h-9 pl-4 text-xs">{sl('Customer')}</TableHead>
+                  <TableHead className="h-9 text-xs">{sl('Source')}</TableHead>
+                  <TableHead className="h-9 text-xs">{sl('Updated')}</TableHead>
+                  <TableHead className="h-9 text-right text-xs">{sl('Credit balance')}</TableHead>
+                  <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1421,18 +1426,18 @@ export function Sales() {
                     <TableCell className="py-2 text-right font-medium">{taka(credit.balance)}</TableCell>
                     <TableCell className="py-2">
                       <StatusBadge tone={credit.balance > 0 ? 'teal' : 'neutral'} dot={credit.balance > 0}>
-                        {credit.balance > 0 ? 'Available' : 'Settled'}
+                        {sl(credit.balance > 0 ? 'Available' : 'Settled')}
                       </StatusBadge>
                     </TableCell>
                     <TableCell className="py-2 pr-4 text-right">
                       <FloatingPanel
-                        label={`Credit actions for ${credit.customer}`}
+                        label={`${sl('Credit actions for')} ${credit.customer}`}
                         width={220}
                         trigger={({ toggle, open }) => (
                           <button
                             onClick={toggle}
                             aria-expanded={open}
-                            aria-label={`Actions for ${credit.customer} credit`}
+                            aria-label={`${sl('Actions for')} ${credit.customer} ${sl('Customer credit')}`}
                             className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                             <MoreHorizontal className="size-4" />
                           </button>
@@ -1443,18 +1448,18 @@ export function Sales() {
                               disabled={credit.balance <= 0}
                               onClick={() => { close(); setCreditAction({ credit, mode: 'apply' }); }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
-                              <FileText className="size-4 text-ink-400" /> Apply to invoice
+                              <FileText className="size-4 text-ink-400" /> {sl('Apply to invoice')}
                             </button>
                             <button
                               disabled={credit.balance <= 0}
                               onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
-                              <Banknote className="size-4 text-ink-400" /> Refund credit
+                              <Banknote className="size-4 text-ink-400" /> {sl('Refund credit')}
                             </button>
                             <button
                               onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <BookOpen className="size-4 text-ink-400" /> Customer ledger
+                              <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
                             </button>
                           </div>
                         )}
@@ -1466,8 +1471,8 @@ export function Sales() {
             </Table>
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
-              <span>Total customer credit {taka(creditTotal)}</span>
-              <span>Credit can settle invoice due or be refunded from a selected account</span>
+              <span>{sl("Total customer credit")} {taka(creditTotal)}</span>
+              <span>{sl("Credit can settle invoice due or be refunded from a selected account")}</span>
             </div>
           </div>
         )}
@@ -1477,8 +1482,8 @@ export function Sales() {
             <section className="overflow-hidden rounded-xl border border-border">
               <div className="flex items-center justify-between border-b border-border p-3">
                 <div>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileClock className="size-4 text-teal-700" /> Draft sales <span className="font-bn text-[11px] font-normal text-ink-400">· খসড়া</span></p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Continue, edit, duplicate or archive a held sale.</p>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileClock className="size-4 text-teal-700" /> {sl('Draft sales')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· খসড়া</span>}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">{sl('Continue, edit, duplicate or archive a held sale.')}</p>
                 </div>
                 <StatusBadge tone="teal">{drafts.length}</StatusBadge>
               </div>
@@ -1487,33 +1492,33 @@ export function Sales() {
                   <div key={draft.id} className="p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-[13px] font-medium text-ink">{draft.label} · {draft.customer ?? 'Walk-in customer'}</p>
-                        <p className="mt-0.5 text-[11px] text-ink-400">{draft.items} items · {draft.savedAt}</p>
+                        <p className="text-[13px] font-medium text-ink">{draft.label} · {draft.customer ?? text('Walk-in customer','সাধারণ ক্রেতা')}</p>
+                        <p className="mt-0.5 text-[11px] text-ink-400">{draft.items} {sl('items')} · {draft.savedAt}</p>
                       </div>
                       <span className="text-[13px] font-semibold">{taka(draft.total)}</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                      <Button size="sm" onClick={() => { toast(`${draft.label} continued in POS`); navigate(`/app/pos?mode=continue-draft&draft=${draft.id}`); }}>Continue</Button>
+                      <Button size="sm" onClick={() => { toast(`${draft.label} ${sl('continued in POS')}`); navigate(`/app/pos?mode=continue-draft&draft=${draft.id}`); }}>{sl('Continue')}</Button>
                       <FloatingPanel
                         label={`Actions for ${draft.label}`}
                         width={190}
                         trigger={({ toggle, open }) => (
-                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> Actions</Button>
+                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
                         )}>
                         {(close) => (
                           <div className="py-1">
-                            <button onClick={() => { close(); toast(`${draft.label} opened for editing`); navigate(`/app/pos?mode=edit-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Pencil className="size-4 text-ink-400" /> Edit
+                            <button onClick={() => { close(); toast(`${draft.label} ${sl('opened for editing')}`); navigate(`/app/pos?mode=edit-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <Pencil className="size-4 text-ink-400" /> {sl('Edit')}
                             </button>
-                            <button onClick={() => { close(); toast(`${draft.label} duplicated`); navigate(`/app/pos?mode=duplicate-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Copy className="size-4 text-ink-400" /> Duplicate
+                            <button onClick={() => { close(); toast(`${draft.label} ${sl('duplicated')}`); navigate(`/app/pos?mode=duplicate-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
                             </button>
                             <button onClick={() => {
                               close();
                               setDrafts((items) => items.filter((item) => item.id !== draft.id));
-                              toast.error(`${draft.label} archived`);
+                              toast.error(`${draft.label} ${sl('archived')}`);
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
-                              <Trash2 className="size-4" /> Archive
+                              <Trash2 className="size-4" /> {sl('Archive')}
                             </button>
                           </div>
                         )}
@@ -1527,8 +1532,8 @@ export function Sales() {
             <section className="overflow-hidden rounded-xl border border-border">
               <div className="flex items-center justify-between border-b border-border p-3">
                 <div>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> Sale templates <span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span></p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">Reuse common carts without recreating every line.</p>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> {sl('Sale templates')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span>}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">{sl('Reuse common carts without recreating every line.')}</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => {
                   const next = {
@@ -1540,8 +1545,8 @@ export function Sales() {
                     lines: []
                   };
                   setTemplates((items) => [next, ...items]);
-                  toast.success(`${next.name} created`);
-                }}><Plus className="size-3.5" /> Template</Button>
+                  toast.success(`${next.name} ${sl('created')}`);
+                }}><Plus className="size-3.5" /> {sl('Template')}</Button>
               </div>
               <div className="divide-y divide-border">
                 {templates.map((template) => (
@@ -1549,37 +1554,37 @@ export function Sales() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-[13px] font-medium text-ink">{template.name}</p>
-                        <p className="mt-0.5 text-[11px] text-ink-400">{template.customer ?? 'Any customer'} · {template.items} items · last used {template.lastUsed}</p>
+                        <p className="mt-0.5 text-[11px] text-ink-400">{template.customer ?? sl('Any customer')} · {template.items} {sl('items')} · {sl('last used')} {template.lastUsed==='Not used yet'?sl('Not used yet'):template.lastUsed}</p>
                       </div>
                       <span className="text-[13px] font-semibold">{taka(template.total)}</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                      <Button size="sm" onClick={() => { toast(`${template.name} loaded into POS`); navigate(`/app/pos?mode=template&template=${template.id}`); }}>Use template</Button>
+                      <Button size="sm" onClick={() => { toast(`${template.name} ${sl('loaded into POS')}`); navigate(`/app/pos?mode=template&template=${template.id}`); }}>{sl('Use template')}</Button>
                       <FloatingPanel
                         label={`Actions for ${template.name}`}
                         width={190}
                         trigger={({ toggle, open }) => (
-                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> Actions</Button>
+                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
                         )}>
                         {(close) => (
                           <div className="py-1">
                             <button onClick={() => { close(); toast(`Editing ${template.name}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Pencil className="size-4 text-ink-400" /> Edit template
+                              <Pencil className="size-4 text-ink-400" /> {sl('Edit template')}
                             </button>
                             <button onClick={() => {
                               close();
                               const copy = { ...template, id: `t${Date.now()}`, name: `${template.name} copy`, lastUsed: 'Not used yet' };
                               setTemplates((items) => [copy, ...items]);
-                              toast.success(`${template.name} duplicated`);
+                              toast.success(`${template.name} ${sl('duplicated')}`);
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Copy className="size-4 text-ink-400" /> Duplicate
+                              <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
                             </button>
                             <button onClick={() => {
                               close();
                               setTemplates((items) => items.filter((item) => item.id !== template.id));
-                              toast.error(`${template.name} deleted`);
+                              toast.error(`${template.name} ${sl('deleted')}`);
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
-                              <Trash2 className="size-4" /> Delete
+                              <Trash2 className="size-4" /> {sl('Delete')}
                             </button>
                           </div>
                         )}
@@ -1621,10 +1626,10 @@ export function Sales() {
         onRefund={refundCustomerCredit}
       />
       <Dialog open={!!returnDetail} onOpenChange={open => !open && setReturnDetail(null)}>
-        <DialogContent role="dialog" aria-label="Sales return details" className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
-          <DialogHeader><DialogTitle>{returnDetail?.id}</DialogTitle><DialogDescription>Return source preview · no new refund or stock movement.</DialogDescription></DialogHeader>
+        <DialogContent role="dialog" aria-label={sl('Sales return details')} className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader><DialogTitle>{returnDetail?.id}</DialogTitle><DialogDescription>{sl('Return source preview · no new refund or stock movement.')}</DialogDescription></DialogHeader>
           {returnDetail && <dl className="space-y-2 text-sm">{returnDocument(returnDetail,language).rows.map(([label,value]) => <div key={String(label)} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="max-w-full break-words text-ink">{value}</dd></div>)}</dl>}
-          <DialogFooter><Button variant="outline" onClick={() => setReturnDetail(null)}>Close</Button><Button onClick={() => returnDetail && printReturn(returnDetail,language)}>Print return</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setReturnDetail(null)}>{sl('Close')}</Button><Button onClick={() => returnDetail && printReturn(returnDetail,language)}>{sl('Print return')}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

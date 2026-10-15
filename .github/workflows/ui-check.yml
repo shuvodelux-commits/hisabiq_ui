@@ -99,6 +99,9 @@ jobs:
       - name: Check Phase 16 Product inventory and offers localization
         run: npm run test:bangla-product-inventory
 
+      - name: Check Phase 17 Sales, returns and customer credit language
+        run: npm run test:bangla-sales
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
