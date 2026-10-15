@@ -61,7 +61,8 @@
     "test:bangla-product-forms": "node scripts/bangla-product-forms-browser.cjs",
     "test:bangla-product-inventory": "node scripts/bangla-product-inventory-browser.cjs",
     "test:bangla-sales": "node scripts/bangla-sales-browser.cjs",
-    "test:bangla-purchases": "node scripts/bangla-purchases-browser.cjs"
+    "test:bangla-purchases": "node scripts/bangla-purchases-browser.cjs",
+    "test:bangla-parties-feedback": "node scripts/bangla-parties-feedback-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
