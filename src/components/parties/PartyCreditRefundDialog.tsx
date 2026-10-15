@@ -13,11 +13,12 @@ import type { Party } from '../../types/erp';
 import { taka } from '../../utils/currency';
 import { amountInWords } from '../../utils/amountInWords';
 import {useUiCopy} from '../../i18n/useUiCopy';
+import {partyFinancialErrorText} from '../../i18n/partyFinancialCopy';
 
 type Props={open:boolean;party:Party;relationship:'Customer'|'Supplier';sources:readonly PartySourceRecord[];
   onClose:()=>void;onSubmit:(payload:PartyRefundPayload)=>void};
 export function PartyCreditRefundDialog({open,party,relationship,sources,onClose,onSubmit}:Props){
-  const {text}=useUiCopy();
+  const {text,language,showHelper}=useUiCopy();
   const [date,setDate]=useState(businessToday());
   const [value,setValue]=useState('');
   const [reason,setReason]=useState('');
@@ -42,19 +43,19 @@ export function PartyCreditRefundDialog({open,party,relationship,sources,onClose
     const payload:PartyRefundPayload={partyId:party.id,relationship,date,amount,reason:reason.trim(),splits:rows};
     if(!review){
       if(!Number.isFinite(amount)||amount<=0||amount>available){setError(text('Refund amount must be positive and cannot exceed verified available credit on this date.','ফেরতের টাকা শূন্যের বেশি এবং এই তারিখের যাচাইকৃত অগ্রিমের মধ্যে থাকতে হবে।'));return;}
-      if(!reason.trim()){setError('Enter a refund reason.');return;}
+      if(!reason.trim()){setError(text('Enter a refund reason.','ফেরতের কারণ লিখুন।'));return;}
       if(rows.some(r=>!Number.isFinite(r.amount)||r.amount<=0)
         ||Math.abs(rows.reduce((sum,row)=>sum+row.amount,0)-amount)>0.001){
-        setError('Select active money accounts and match the refund total.');return;
+        setError(text('Select active money accounts and match the refund total.','চালু টাকার হিসাব বাছুন এবং সব টাকার যোগফল মিলিয়ে নিন।'));return;
       }
       setReview(true);return;
     }
-    try{onSubmit(payload);onClose();}catch(e){setError(e instanceof Error?e.message:text('Refund rejected.','ফেরত গ্রহণ করা যায়নি।'));setReview(false);}
+    try{onSubmit(payload);onClose();}catch(e){setError(e instanceof Error?partyFinancialErrorText(language,e.message):text('Refund rejected.','ফেরত গ্রহণ করা যায়নি।'));setReview(false);}
   };
   return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
     <DialogContent role="dialog" aria-modal="true" aria-label={text("Party credit refund","অগ্রিম টাকা ফেরত")} className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
       <DialogHeader>
-        <DialogTitle>{text(title,refundToCustomer?'ক্রেতাকে অগ্রিম ফেরত':'সরবরাহকারীর কাছ থেকে অগ্রিম ফেরত নিন')} <span className="font-bn text-sm font-normal text-ink-500">ক্রেডিট ফেরত</span></DialogTitle>
+        <DialogTitle>{text(title,refundToCustomer?'ক্রেতাকে অগ্রিম ফেরত':'সরবরাহকারীর কাছ থেকে অগ্রিম ফেরত নিন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">ক্রেডিট ফেরত</span>}</DialogTitle>
         <DialogDescription>{text('Credit availability is recalculated for the selected business date. Refunds only use verified money or return credit.','বাছা তারিখের অগ্রিম আবার হিসাব হবে। শুধু যাচাই করা টাকা বা ফেরতের অগ্রিম ফেরত দেওয়া যাবে।')}</DialogDescription>
       </DialogHeader>
       <div className="space-y-4 text-sm">

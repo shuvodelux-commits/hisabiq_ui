@@ -8,10 +8,11 @@ import { businessToday } from '../../utils/dateRange';
 import { formatNumber } from '../../utils/currency';
 import { ledgerImpact } from '../../utils/partyLedgerImpact';
 import {useUiCopy} from '../../i18n/useUiCopy';
+import {partyLedgerImpactText} from '../../i18n/partyFinancialCopy';
 
 type Props={open:boolean;onClose:()=>void;party:Party;statement:LedgerStatement};
 export function PartyStatementDialog({open,onClose,party,statement}:Props){
-  const {text}=useUiCopy();
+  const {text,language}=useUiCopy();
   const period=statement.from&&statement.to
     ? statement.from+' — '+statement.to
     : text('All time (through ','শুরু থেকে (')+businessToday()+')';
@@ -53,7 +54,7 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
             <tbody>{rows.map(row=><tr key={row.id} className="border-b border-border/70">
               <td className="whitespace-nowrap p-2">{row.date}</td>
               <td className="p-2"><span className="font-medium">{row.reference||row.source}</span>
-               <span className="ml-1 text-[10px] text-ink-500">· {ledgerImpact(row).label}</span>
+               <span className="ml-1 text-[10px] text-ink-500">· {partyLedgerImpactText(language,ledgerImpact(row).label)}</span>
                <p className="max-w-sm break-words text-ink-500">{row.description}</p></td>
               <td className="p-2 text-right">{row.debit?formatNumber(row.debit):'—'}</td>
               <td className="p-2 text-right">{row.credit?formatNumber(row.credit):'—'}</td>

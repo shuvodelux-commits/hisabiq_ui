@@ -16,6 +16,7 @@ import { taka } from '../../utils/currency';
 import { amountInWords } from '../../utils/amountInWords';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeLabel} from '../../i18n/financeCopy';
+import {partyFinancialErrorText} from '../../i18n/partyFinancialCopy';
 
 type Props={open:boolean;party:Party;relationship:FinanceRole;onClose:()=>void;onSubmit:(payload:PartyFinancePayload)=>void};
 const available:Record<FinanceRole,FinanceTransactionType[]>={
@@ -25,7 +26,7 @@ const available:Record<FinanceRole,FinanceTransactionType[]>={
 };
 const initial=():FinancePaymentDraft[]=>[{id:'cash-1',method:'Cash',accountId:'acc-cash',amount:''}];
 export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Props){
- const {text,language}=useUiCopy();
+ const {text,language,showHelper}=useUiCopy();
  const [type,setType]=useState<FinanceTransactionType>(available[relationship][0]);
  const [date,setDate]=useState(businessToday());
  const [amount,setAmount]=useState('');
@@ -57,13 +58,13 @@ export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Pr
    onSubmit({partyId:party.id,relationship,financeType:type,amount:money,date,
     reference:reference.trim()||undefined,note:note.trim()||undefined,splits:paymentSplits});
    onClose();
-  }catch(e){setError(e instanceof Error?e.message:'Cannot record finance transaction.');setReview(false);}
+  }catch(e){setError(partyFinancialErrorText(language,e instanceof Error?e.message:'Cannot record finance transaction.'));setReview(false);}
  };
  return <Dialog open={open} onOpenChange={next=>!next&&onClose()}>
   <DialogContent role="dialog" aria-modal="true" aria-label={text("Party finance transaction","ঋণ বা মূলধনের লেনদেন")}
     className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
    <DialogHeader>
-    <DialogTitle>{text('Record finance transaction','মূলধন / ঋণের লেনদেন লিখুন')} <span className="font-bn text-sm font-normal text-ink-500">মূলধন / ঋণ</span></DialogTitle>
+    <DialogTitle>{text('Record finance transaction','মূলধন / ঋণের লেনদেন লিখুন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">মূলধন / ঋণ</span>}</DialogTitle>
     <DialogDescription>{text('Choose capital, lending or borrowing entry. This is a business preview, not a real money transfer.','মূলধন, ধার দেওয়া বা নেওয়ার ধরন বাছুন। এটি শুধু নমুনা; আসল টাকা সরবে না।')}</DialogDescription>
    </DialogHeader>
    <div className="space-y-3 text-sm">
@@ -96,10 +97,10 @@ export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Pr
       <Input aria-label={text("Finance note","লেনদেনের মন্তব্য")} value={note} onChange={e=>{setNote(e.target.value);setReview(false);}}/>
     </label>
     {review&&<div role="status" className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800">
-      <strong>{text('Review finance transaction','লেনদেন যাচাই করুন')}</strong><p>{party.name} · {type} · {date} · {taka(money)}</p>
+      <strong>{text('Review finance transaction','লেনদেন যাচাই করুন')}</strong><p>{party.name} · {financeLabel(language,type)} · {date} · {taka(money)}</p>
       <p className="mt-1 font-medium">{amountInWords(money)}</p>
       <p>{opening?text('Relationship balance only, no money movement','শুধু সম্পর্কের জের; টাকা সরবে না'):(meta?.direction==='in'?text('Money into business: ','ব্যবসায় টাকা আসবে: '):text('Money out of business: ','ব্যবসা থেকে টাকা যাবে: '))+taka(money)}</p>
-      <p>{text('Changes this one source and adds an audit record in preview only.','শুধু এই নমুনা রেকর্ড বদলাবে এবং অডিট ইতিহাসে লেখা হবে।')}</p>
+      <p>{text('Records one auditable preview source only; no real money is moved.','শুধু প্রিভিউতে লেনদেনের ইতিহাসসহ একটি রেকর্ড যোগ হবে। আসল টাকা সরবে না।')}</p>
     </div>}
     {!!error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
     <div className="flex justify-end gap-2">

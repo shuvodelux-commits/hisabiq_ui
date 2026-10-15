@@ -8,6 +8,7 @@ import { financeAccounts } from '../../data/financeAccounts';
 import type { PartyLedgerRow, PartyMoneySplit, PartyPaymentPayload, PartySourceRecord } from '../../types/partyLedger';
 import { taka } from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
+import {partyFinancialErrorText} from '../../i18n/partyFinancialCopy';
 
 type Props={
  row:PartyLedgerRow|null; source:PartySourceRecord|null; mode:'edit'|'reverse';
@@ -20,7 +21,7 @@ const defaultSplits=(source:PartySourceRecord|null):FinancePaymentDraft[]=>{
  return [{id:'edit-split',method:'Cash',accountId:'acc-cash',amount:String(source?.amountPaid??0)}];
 };
 export function PartyTransactionDialog({row,source,mode,onClose,onEdit,onReverse}:Props){
- const {text}=useUiCopy();
+ const {text,language}=useUiCopy();
  const [date,setDate]=useState('');
  const [amount,setAmount]=useState('');
  const [discount,setDiscount]=useState('');
@@ -41,25 +42,25 @@ export function PartyTransactionDialog({row,source,mode,onClose,onEdit,onReverse
   if(!reason.trim()){setError(text('An audit reason is required.','কেন সংশোধন করছেন তা লিখুন।'));return;}
   if(mode==='reverse'){
    if(!review){setReview(true);return;}
-   try{onReverse(source.id,reason.trim());onClose();}catch(e){setError(e instanceof Error?e.message:text('Cannot reverse source.','লেনদেন উল্টো করা যায়নি।'));setReview(false);}
+   try{onReverse(source.id,reason.trim());onClose();}catch(e){setError(e instanceof Error?partyFinancialErrorText(language,e.message):text('Cannot reverse source.','লেনদেন উল্টো করা যায়নি।'));setReview(false);}
    return;
   }
   const money=Number(amount);
   const rebate=Number(discount)||0;
   const normalized:PartyMoneySplit[]=splits.map(item=>({...item,amount:Number(item.amount)}));
   if(!Number.isFinite(money)||money<=0||!Number.isFinite(rebate)||rebate<0){
-   setError('Enter a valid payment amount and discount.');return;
+   setError(text('Enter a valid payment amount and discount.','পেমেন্টের টাকা ও ছাড়ের সঠিক পরিমাণ লিখুন।'));return;
   }
   if(normalized.some(x=>!Number.isFinite(x.amount)||x.amount<=0)||
    Math.abs(normalized.reduce((sum,x)=>sum+x.amount,0)-money)>0.001){
-   setError('Payment sources must add up to the amount.');return;
+   setError(text('Payment sources must add up to the amount.','সব মাধ্যমের টাকার যোগফল মূল টাকার সমান হতে হবে।'));return;
   }
   if(!review){setReview(true);return;}
   const payload:PartyPaymentPayload={partyId:source.partyId,
    relationship:source.relationship as 'Customer'|'Supplier',date,amount:money,discount:rebate,
    reason:reason.trim(),invoiceId:source.invoiceId,splits:normalized};
   try{onEdit(source.id,payload,reason.trim());onClose();}
-  catch(e){setError(e instanceof Error?e.message:text('Correction rejected.','সংশোধন গ্রহণ করা হয়নি।'));setReview(false);}
+  catch(e){setError(e instanceof Error?partyFinancialErrorText(language,e.message):text('Correction rejected.','সংশোধন গ্রহণ করা হয়নি।'));setReview(false);}
  };
  const isPayment=source?.kind==='customer-payment'||source?.kind==='supplier-payment';
  return <Dialog open={!!row} onOpenChange={open=>!open&&onClose()}>

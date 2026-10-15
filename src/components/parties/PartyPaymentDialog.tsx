@@ -14,12 +14,13 @@ import type { Party } from '../../types/erp';
 import { taka } from '../../utils/currency';
 import { amountInWords } from '../../utils/amountInWords';
 import {useUiCopy} from '../../i18n/useUiCopy';
+import {partyFinancialErrorText} from '../../i18n/partyFinancialCopy';
 
 type Props = { open:boolean; party:Party; relationship:'Customer'|'Supplier'; sources:readonly PartySourceRecord[];
   onClose:()=>void; onSubmit:(payload:PartyPaymentPayload)=>void };
 const initial=():FinancePaymentDraft[]=>[{id:'initial',method:'Cash',accountId:'acc-cash',amount:''}];
 export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSubmit}:Props) {
-  const {text}=useUiCopy();
+  const {text,language,showHelper}=useUiCopy();
   const [date,setDate]=useState(businessToday());
   const [amount,setAmount]=useState('');
   const [discount,setDiscount]=useState('');
@@ -57,12 +58,12 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
       }
       setReview(true);return;
     }
-    try{onSubmit(payload);onClose();}catch(e){setError(e instanceof Error?e.message:text('Cannot record payment.','পেমেন্ট লেখা যায়নি।'));setReview(false);}
+    try{onSubmit(payload);onClose();}catch(e){setError(e instanceof Error?partyFinancialErrorText(language,e.message):text('Cannot record payment.','পেমেন্ট লেখা যায়নি।'));setReview(false);}
   };
   const action=relationship==='Customer'?'Receive payment':'Pay supplier';
   return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
     <DialogContent role="dialog" aria-modal="true" aria-label={text("Party payment","পক্ষের পেমেন্ট")} className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
-      <DialogHeader><DialogTitle>{text(action,relationship==='Customer'?'ক্রেতার টাকা নিন':'সরবরাহকারীকে টাকা দিন')} <span className="font-bn text-sm font-normal text-ink-500">পেমেন্ট</span></DialogTitle>
+      <DialogHeader><DialogTitle>{text(action,relationship==='Customer'?'ক্রেতার টাকা নিন':'সরবরাহকারীকে টাকা দিন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">পেমেন্ট</span>}</DialogTitle>
         <DialogDescription>{text('Record a verified split payment in this browser preview. No bank transfer or real accounting posting occurs.','টাকার মাধ্যম মিলিয়ে নমুনা পেমেন্ট লিখুন। আসল ব্যাংক বা ERP খাতায় টাকা সরবে না।')}</DialogDescription>
       </DialogHeader>
       <div className="space-y-4 text-sm">
@@ -97,7 +98,7 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
         <p className="rounded-md bg-ink-50 px-3 py-2 text-xs text-ink-500" aria-live="polite">{text('Amount in words:','কথায়:')} {amountInWords(net)}</p>
         {review&&<div className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800" role="status">
           <p className="font-semibold">{text('Review before recording','লেখার আগে হিসাব যাচাই করুন')}</p>
-          <p>{action} · {party.name} · {date}</p>
+          <p>{text(action,relationship==='Customer'?'ক্রেতার টাকা নিন':'সরবরাহকারীকে টাকা দিন')} · {party.name} · {date}</p>
           <p>{text('Cash movement','টাকা আসা/যাওয়া')} {taka(net)} · {text('Discount','ছাড়')} {taka(rebate)} · {text('Due after','পরের বাকি')} {taka(Math.max(0,due-net-rebate))}</p>
           <p className="mt-1 font-medium">{amountInWords(net)}</p>
           <p className="mt-1">{text('Confirm records one auditable preview source. No banking transaction will occur.','নিশ্চিত করলে নমুনা খাতায় একটি লেনদেন যোগ হবে। আসল ব্যাংকে টাকা সরবে না।')}</p>
