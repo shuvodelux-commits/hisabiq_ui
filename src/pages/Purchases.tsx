@@ -55,7 +55,7 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
         onClick();
       }}
       className="group relative block size-8 overflow-hidden rounded-md border border-border"
-      aria-label={purchaseLabel(language,'View receipt')}">
+      aria-label={purchaseLabel(language,'View receipt')}>
       <img src={src} alt="" className="h-full w-full object-cover" />
       <span className="absolute inset-0 flex items-center justify-center bg-inverse/40 opacity-0 transition-opacity group-hover:opacity-100">
         <Paperclip className="size-3 text-white" />
@@ -250,8 +250,8 @@ export function Purchases() {
                             {close => <div className="p-1 text-left text-xs">
                               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();openBill(p);}}>{text('View bill','বিল দেখুন')}</Button>
                               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();printPurchase(p);}}>{text('Print bill','বিল প্রিন্ট')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||events.some(e=>e.purchaseId===p.id&&e.kind!=='correction')} title={pl('Complete original snapshots and no later allocations required')}" onClick={()=>{close();setSourceAction({purchase:p,mode:'correction'});}}>{text('Correct purchase','ক্রয় সংশোধন')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||position(p).due<=0} title={pl('Payment needs a complete source bill with supplier due')}" onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>{text('Pay due','বাকি দিন')}</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||events.some(e=>e.purchaseId===p.id&&e.kind!=='correction')} title={pl('Complete original snapshots and no later allocations required')} onClick={()=>{close();setSourceAction({purchase:p,mode:'correction'});}}>{text('Correct purchase','ক্রয় সংশোধন')}</Button>
+                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||position(p).due<=0} title={pl('Payment needs a complete source bill with supplier due')} onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>{text('Pay due','বাকি দিন')}</Button>
                               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();reviewReturn(p);}}>{text('Review return','ফেরত যাচাই')}</Button>
                               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={()=>{close();setHistorySource(p);}}>{text('Source history','পরিবর্তনের ইতিহাস')}</Button>
                             </div>}
@@ -286,7 +286,7 @@ export function Purchases() {
                     onChange={(e) => setReturnQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && selectReturnPurchase()}
                     aria-label={text("Find purchase reference","ক্রয় নম্বর খুঁজুন")}
-                    placeholder={pl('PUR-000117 or supplier name')}"
+                    placeholder={pl('PUR-000117 or supplier name')}
                   />
                   <Button className="w-full" onClick={selectReturnPurchase}>
                     <Search className="size-4" /> {pl('Find purchase')}
@@ -298,7 +298,7 @@ export function Purchases() {
                 </div>
               </div>
 
-              <div role="region" aria-label={pl('Purchase return source')}" className="min-w-0 rounded-xl border border-border bg-card">
+              <div role="region" aria-label={pl('Purchase return source')} className="min-w-0 rounded-xl border border-border bg-card">
                 {!returnPurchase ? (
                   <div className="flex min-h-64 flex-col items-center justify-center px-6 text-center">
                     <Undo2 className="mb-3 size-8 text-helper" />
@@ -323,7 +323,7 @@ export function Purchases() {
                         <div><dt className="text-ink-500">{pl('Paid')}</dt><dd>{taka(returnPurchase.paid)}</dd></div>
                         <div><dt className="text-ink-500">{pl('Due')}</dt><dd>{taka(returnPurchase.total-returnPurchase.paid)}</dd></div>
                       </dl>
-                      {!!returnPurchase.inventoryLines?.length && <section aria-label={pl('Purchase source item snapshots')}" className="space-y-2 rounded-lg border border-border p-3 text-xs">
+                      {!!returnPurchase.inventoryLines?.length && <section aria-label={pl('Purchase source item snapshots')} className="space-y-2 rounded-lg border border-border p-3 text-xs">
                         <h4 className="font-semibold text-ink">{pl('Original item snapshots')}</h4>
                         {returnPurchase.inventoryLines.map((line,i) => <div key={i} className="flex flex-wrap justify-between gap-2 border-t border-border pt-2">
                           <span>{availableProducts().find(p => p.id === line.productId)?.name ?? line.productId}</span>
@@ -392,7 +392,7 @@ export function Purchases() {
       </div>
 
       {sourceAction&&<PurchaseSourceDialog key={sourceAction.purchase.id+'-'+sourceAction.purchase.sourceRevision+'-'+sourceAction.mode} purchase={sourceAction.purchase} mode={sourceAction.mode} onClose={()=>setSourceAction(null)} onSaved={updated}/>}
-      {historySource&&<Dialog open onOpenChange={value=>!value&&setHistorySource(null)}><DialogContent role="dialog" aria-modal="true" aria-label={pl('Purchase source history')}" className="space-y-2 rounded-xl border border-border bg-card p-4 text-sm text-ink">
+      {historySource&&<Dialog open onOpenChange={value=>!value&&setHistorySource(null)}><DialogContent role="dialog" aria-modal="true" aria-label={pl('Purchase source history')} className="space-y-2 rounded-xl border border-border bg-card p-4 text-sm text-ink">
         <DialogHeader><DialogTitle>{pl('Source history')} · {historySource.ref}</DialogTitle><DialogDescription>{pl('UI preview source changes; backend posting is not connected.')}</DialogDescription></DialogHeader>
         <p>{pl('Supplier credit')} {taka(position(historySource).credit)} · {pl('Returns')} {taka(position(historySource).returned)}</p>
         {events.filter(e=>e.purchaseId===historySource.id).map(e=><p key={e.id}>{e.date} · {pl(e.kind)} · {e.reason} · {taka(e.amount)} {e.kind==='return'?' · '+pl(e.settlement??''):''}</p>)}
