@@ -102,6 +102,9 @@ jobs:
       - name: Check Phase 17 Sales, returns and customer credit language
         run: npm run test:bangla-sales
 
+      - name: Check Phase 18 purchase list and source return language
+        run: npm run test:bangla-purchases
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 
