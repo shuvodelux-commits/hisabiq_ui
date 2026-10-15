@@ -1,5 +1,9 @@
 /** Display-only validation translations. The stored issues and exported error CSV remain English. */
 const sourcePhrases:readonly (readonly [string,string])[]=[
+ ['Product Name is required.','পণ্যের নাম লিখুন।'],
+ ['Name is required.','নাম লিখুন।'],
+ ['name is required.','নাম লিখুন।'],
+ ['Required column is missing: Product Name','আবশ্যক পণ্যের নামের কলাম পাওয়া যায়নি'],
  ['CSV exceeds the 1 MB preview limit.','CSV ফাইল ১ MB-এর বেশি হতে পারবে না।'],
  ['XLSX exceeds the 5 MB preview limit.','Excel ফাইল ৫ MB-এর বেশি হতে পারবে না।'],
  ['Unexpected text after a quoted CSV field.','CSV-তে উদ্ধৃত ঘরের পরে অতিরিক্ত লেখা আছে।'],
