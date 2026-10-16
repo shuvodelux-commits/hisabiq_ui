@@ -2,6 +2,9 @@ name: Deep Finance Validation Check
 on:
   pull_request:
     paths:
+      - 'src/index.css'
+      - 'src/App.tsx'
+      - 'src/components/Dialog.tsx'
       - 'src/pages/Finance.tsx'
       - 'src/components/finance/**'
       - 'src/utils/financePaymentDrafts.ts'

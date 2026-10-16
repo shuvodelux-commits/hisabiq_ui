@@ -34,3 +34,12 @@ The Phase 5/6 source contract tests now follow the extracted validation helper. 
 ## Remaining work
 
 Finance icon-only row/account action labels require a separate measured accessibility slice. Cheque lifecycle actions and remaining nested people/account selectors, Counter, Reconciliation and Daybook are not declared fully audited here. A previous CI Party correction timeout was not reproduced in ten fresh instrumented runs (eight with 6× CPU throttling); its cause remains unclassified. No backend operation is certified.
+
+
+### DPI-19 — error toast intercepted mobile dialog actions (P1)
+
+The full 336-journey CI run exposed six 360px Transfer failures. Passive pointer/touch/click capture at `46d44c4` proves the Cancel tap at (180,733.5) reached the error notification **Enter a transfer amount**, not the Cancel button. Its high stacking position covered the form action while the notification expired; the dialog itself and its values were correct. Extra pre-tap inspection could mask the timing, so the regression keeps passive capture and real taps.
+
+The shared `src/index.css` rule makes notifications without controls ignore pointer hits while a blocking shared dialog is open. Error messages remain visible and announced; notifications containing buttons, links or form controls remain interactive. Outside blocking dialogs, normal notification swipe dismissal is preserved. No notification system, dialog or finance handler is replaced.
+
+The transfer regression checks that the error notification is still visible, Cancel actually receives the click/tap, the dialog closes, no transfer row is created, and reopening/confirming still works. Actions now have a bounded 15-second timeout. Full CI at the final fix head must pass before review readiness.
