@@ -132,6 +132,9 @@ jobs:
       - name: Check Phase 27 shared calendar in three languages and screen sizes
         run: npm run test:bangla-shared-date-picker
 
+      - name: Check Phase 29 measured Party and header accessibility fixes
+        run: npm run test:phase29-accessible-names
+
       - name: Check rendered light and dark themes
         run: npm run test:theme
 

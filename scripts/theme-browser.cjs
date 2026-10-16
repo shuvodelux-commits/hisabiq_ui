@@ -67,7 +67,10 @@ async function main() {
       await page.locator('[data-slot="dialog-content"]').getByRole('button', { name: 'Close', exact: true }).first().click();
       await go('pos');
       for (const action of ['Calculator', 'Notifications', 'User menu']) {
-        await page.getByRole('button', { name: action, exact: true }).click();
+        await page.getByRole('button', {
+          name: action === 'User menu' ? /^User menu(?:\s|$)/ : action,
+          exact: action !== 'User menu'
+        }).click();
         await check(`header: ${action}`, theme);
         await page.keyboard.press('Escape');
       }

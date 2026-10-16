@@ -1,11 +1,33 @@
+import {useEffect,useRef} from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { StatusBadge } from '../StatusBadge';
 import { recentSales } from '../../data/sales';
 import { taka } from '../../utils/currency';
+import {useUiCopy} from '../../i18n/useUiCopy';
 
 export function RecentSalesTable() {
+  const {text}=useUiCopy();
+  const table=useRef<HTMLTableElement>(null);
+  useEffect(()=>{
+    const node=table.current;
+    const scroller=node?.parentElement;
+    if(!node||!scroller)return;
+    const update=()=>{
+      if(scroller.scrollWidth>scroller.clientWidth+1){
+        scroller.tabIndex=0;
+        scroller.setAttribute('aria-label',text('Recent sales table; scroll sideways to see more','সাম্প্রতিক বিক্রির তালিকা; পাশে সরিয়ে আরও দেখুন'));
+      }else{
+        scroller.removeAttribute('tabindex');
+        scroller.removeAttribute('aria-label');
+      }
+    };
+    const resize=new ResizeObserver(update);
+    resize.observe(scroller);resize.observe(node);
+    update();
+    return ()=>{resize.disconnect();scroller.removeAttribute('tabindex');scroller.removeAttribute('aria-label');};
+  },[text]);
   return (
-    <Table>
+    <Table ref={table}>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           <TableHead className="h-8 pl-4 text-xs">Invoice</TableHead>

@@ -6,6 +6,7 @@ on:
       - 'scripts/responsive-audit-browser.cjs'
       - 'scripts/dialog-accessibility-browser.cjs'
       - 'scripts/phase28-multilingual-responsive-audit.cjs'
+      - 'scripts/phase29-bangla-label-census.cjs'
       - '.github/workflows/responsive-ux-check.yml'
 jobs:
   responsive:
@@ -29,4 +30,15 @@ jobs:
         with:
           name: phase28-language-responsive-a11y
           path: .superpowers/phase28/accessibility-audit.json
+          if-no-files-found: warn
+      - name: Phase 29 full Bangla visible-label census
+        run: npm run test:phase29-bangla-census
+        env:
+          PHASE29_CENSUS_OUTPUT: .superpowers/phase29/bangla-label-candidates.json
+      - name: Upload Phase 29 untranslated-label candidate report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase29-bangla-label-census
+          path: .superpowers/phase29/bangla-label-candidates.json
           if-no-files-found: warn

@@ -103,9 +103,14 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
       const width = Math.min(single ? 350 : 655, window.innerWidth - 16);
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
       const below = window.innerHeight - rect.bottom - 8, above = rect.top - 8;
-      const height = Math.min(480, Math.max(below, above));
-      const top = below < 340 && above > below ? Math.max(8, rect.top - height - 4) : rect.bottom + 4;
-      setPosition({ left, top, width, maxHeight: Math.min(height, window.innerHeight - 16) });
+      const openAbove = below < 340 && above > below;
+      // Measure the side actually chosen. Using max(below,above) while opening
+      // below could put the calendar's footer outside the viewport on phones.
+      const space = Math.max(0, openAbove ? above : below);
+      const height = Math.min(480, Math.max(120, space - 4), window.innerHeight - 16);
+      const top = openAbove ? Math.max(8, rect.top - height - 4)
+        : Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - height - 8));
+      setPosition({ left, top, width, maxHeight: height });
     };
     place();
     window.addEventListener('resize', place);
@@ -122,12 +127,13 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
     document.addEventListener('keydown', escape);
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
   }, [open]);
+  const shownDate = single ? (value.from ? datePickerDayLabel(language,value.from) : t('Select date','তারিখ বাছুন')) : datePickerRangeLabel(language,value);
   return <div className={'min-w-0 ' + className}>
-    <button ref={anchor} type="button" aria-label={label} aria-haspopup="dialog" aria-expanded={open}
+    <button ref={anchor} type="button" aria-label={label + ': ' + shownDate} aria-haspopup="dialog" aria-expanded={open}
       aria-controls={open ? id : undefined} onClick={() => open ? close() : show()}
       className="flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input bg-card px-3 text-left text-[12px] text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:ring-2 focus-visible:ring-teal-500/20">
       <CalendarDays className="size-4 shrink-0 text-teal-600" aria-hidden="true" />
-      <span className="min-w-0 flex-1 truncate">{single ? (value.from ? datePickerDayLabel(language,value.from) : t('Select date','তারিখ বাছুন')) : datePickerRangeLabel(language,value)}</span>
+      <span className="min-w-0 flex-1 truncate">{shownDate}</span>
     </button>
     {open && typeof document !== 'undefined' && createPortal(
       <div ref={popup} id={id} role="dialog" aria-label={label + t(' calendar',' ক্যালেন্ডার')}
@@ -158,7 +164,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
             setFirst(isoDay(date.getUTCFullYear(), date.getUTCMonth(), 1));
           }} className="rounded-md border border-border bg-card px-2 py-1.5 text-[11px] text-ink-600 hover:bg-teal-50 hover:text-teal-700" >{language==='Bangla'?datePresetBn[preset]:preset}</button>)}
         </div>}
-        <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+        <div className="sticky bottom-0 z-10 -mx-3 -mb-3 mt-3 flex items-center justify-between border-t border-border bg-popover px-3 pb-3 pt-3">
           <button type="button" onClick={() => commit(empty)}
             className="inline-flex items-center gap-1 text-[12px] text-ink-500 hover:text-ink"><X className="size-3" /> {t('Clear','মুছুন')}</button>
           <div className="flex gap-2">

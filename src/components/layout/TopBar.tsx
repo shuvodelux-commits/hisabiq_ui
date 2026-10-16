@@ -201,7 +201,7 @@ export function TopBar() {
             <button
               onClick={toggle}
               aria-expanded={open}
-              aria-label={text("User menu","ব্যবহারকারীর মেনু")}
+              aria-label={text("User menu AR Anisur Rahman Owner","ব্যবহারকারীর মেনু AR Anisur Rahman মালিক")}
               className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-1.5 hover:bg-ink-50">
               
                 <span className="flex size-7 items-center justify-center rounded-full bg-inverse text-[11px] font-semibold text-white">AR</span>
