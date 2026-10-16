@@ -4,12 +4,12 @@ import {readFileSync} from 'node:fs';
 const source=(path:string)=>readFileSync(path,'utf8');
 
 test('Finance keeps money direction, account IDs and split arithmetic unchanged',()=>{
- const finance=source('src/pages/Finance.tsx'),split=source('src/components/finance/FinancePaymentSplitEditor.tsx');
+ const finance=source('src/pages/Finance.tsx'),split=source('src/components/finance/FinancePaymentSplitEditor.tsx'),drafts=source('src/utils/financePaymentDrafts.ts');
  assert.match(finance,/direction: meta\.direction/);
  assert.match(finance,/paymentAccounts: isOpening \? undefined : paymentSplits/);
- assert.match(finance,/Math\.abs\(paymentTotal - value\) > 0\.001/);
- assert.match(split,/method: row\.method/);
- assert.match(split,/accountId: account\?\.id/);
+ assert.match(finance,/!financePaymentSplitsAreValid\(paymentRows, accounts, value\)/);
+ assert.match(drafts,/method: row\.method/);
+ assert.match(drafts,/accountId: account\?\.id/);
  assert.match(split,/options=\{\(\['Cash', 'Bank', 'Mobile Banking'\] as const\)\.map\(value=>\(\{value,label:financeLabel/);
 });
 test('Bank reconciliation keeps persisted match states and CSV schema',()=>{

@@ -2,42 +2,13 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
-import type { FinanceAccount, FinancePaymentSplit } from '../../data/financeAccounts';
+import type { FinanceAccount } from '../../data/financeAccounts';
 import { taka } from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeLabel} from '../../i18n/financeCopy';
 
-export type FinancePaymentDraft = {
-  id: string;
-  method: 'Cash' | 'Bank' | 'Mobile Banking';
-  accountId: string;
-  amount: string;
-};
-
-export function accountsForFinanceMethod(accounts: FinanceAccount[], method: FinancePaymentDraft['method']) {
-  return accounts.filter((account) => {
-    if (account.status !== 'Active') return false;
-    if (method === 'Cash') return account.type === 'Cash' || account.type === 'Petty Cash';
-    if (method === 'Bank') return account.type === 'Bank';
-    return account.type === 'Mobile Banking';
-  });
-}
-
-export function normalizeFinancePaymentSplits(
-  rows: FinancePaymentDraft[],
-  accounts: FinanceAccount[],
-  totalFallback: number
-): FinancePaymentSplit[] {
-  return rows.map((row, index) => {
-    const account = accounts.find((item) => item.id === row.accountId);
-    return {
-      method: row.method,
-      account: account?.name ?? '',
-      accountId: account?.id ?? '',
-      amount: parseFloat(row.amount) || (rows.length === 1 && index === 0 ? totalFallback : 0)
-    };
-  }).filter((row) => row.accountId && row.amount > 0);
-}
+import { accountsForFinanceMethod, normalizeFinancePaymentSplits, type FinancePaymentDraft } from '../../utils/financePaymentDrafts';
+export type { FinancePaymentDraft } from '../../utils/financePaymentDrafts';
 
 export function FinancePaymentSplitEditor({
   accounts,

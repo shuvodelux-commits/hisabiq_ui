@@ -16,7 +16,8 @@ import {
   type FinanceTransactionType
 } from '../../data/financeAccounts';
 import { taka } from '../../utils/currency';
-import { FinancePaymentSplitEditor, normalizeFinancePaymentSplits, type FinancePaymentDraft } from './FinancePaymentSplitEditor';
+import { FinancePaymentSplitEditor, type FinancePaymentDraft } from './FinancePaymentSplitEditor';
+import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid } from '../../utils/financePaymentDrafts';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeLabel} from '../../i18n/financeCopy';
 import {printReport} from '../../utils/reportOutput';
@@ -99,14 +100,13 @@ export function FinanceTransactionActionDialog({
   const opening = !!meta.opening;
   const peopleOptions = people.filter((person) => person.status === 'Active' && (!meta.role || person.roles.includes(meta.role)));
   const selectedPerson = peopleOptions.find((person) => person.id === partyId) || peopleOptions[0];
-  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, parseFloat(amount) || 0);
-  const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
+  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
 
   const save = () => {
-    const value = parseFloat(amount) || 0;
-    if (!value) return toast.error(text('Enter a valid amount','সঠিক টাকার পরিমাণ লিখুন'));
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) return toast.error(text('Enter a valid amount','সঠিক টাকার পরিমাণ লিখুন'));
     if (meta.role && !selectedPerson) return toast.error(text('Select a finance person','হিসাবের ব্যক্তি বাছুন'));
-    if (!opening && (!paymentSplits.length || Math.abs(paymentTotal - value) > 0.001)) return toast.error(text('Payment split must equal the transaction amount','সব মাধ্যমের মোট টাকা লেনদেনের টাকার সমান হতে হবে'));
+    if (!opening && !financePaymentSplitsAreValid(paymentRows, accounts, value)) return toast.error(text('Enter valid payment sources that add up to the transaction amount','সব মাধ্যমের সঠিক টাকা লিখুন। যোগফল লেনদেনের টাকার সমান হতে হবে।'));
     const firstPayment = paymentSplits[0];
     onUpdate({
       ...transaction,
@@ -172,7 +172,7 @@ export function FinanceTransactionActionDialog({
               </div>
             </label>
 
-            {!opening && <FinancePaymentSplitEditor accounts={accounts} rows={paymentRows} onChange={setPaymentRows} totalAmount={parseFloat(amount) || 0} />}
+            {!opening && <FinancePaymentSplitEditor accounts={accounts} rows={paymentRows} onChange={setPaymentRows} totalAmount={Number(amount) || 0} />}
 
             <label className="text-[13px] font-medium text-ink">
               {text('Reference','রেফারেন্স')}
@@ -299,8 +299,8 @@ export function FinanceAccountActionDialog({
   };
 
   const saveManual = () => {
-    const value = parseFloat(manualAmount) || 0;
-    if (!value) return toast.error(text('Enter a valid amount','সঠিক টাকার পরিমাণ লিখুন'));
+    const value = Number(manualAmount);
+    if (!Number.isFinite(value) || value <= 0) return toast.error(text('Enter a valid amount','সঠিক টাকার পরিমাণ লিখুন'));
     onManualEntry(account, manualDirection, value, manualReference.trim() || undefined, manualNote.trim() || undefined);
     setManualAmount('');
     setManualReference('');
