@@ -43,7 +43,9 @@ async function main(){
     }
     await search.press('ArrowDown');await expect(page.getByRole('listbox')).toBeVisible();
     await search.press('Escape');
-    if(width<=1024)await search.tap();else await search.click();
+    // At compact desktop widths Clear overlaps the input's geometric centre.
+    // Target the editable text area without bypassing Playwright actionability.
+    if(width<=1024)await search.tap({position:{x:36,y:20}});else await search.click({position:{x:36,y:20}});
     await expect(search,'clicking the still-focused input reopens suggestions').toHaveAttribute('aria-expanded','true');
     await search.press('Tab');
     await expect(page.getByRole('button',{name:'Clear product search',exact:true})).toBeFocused();
