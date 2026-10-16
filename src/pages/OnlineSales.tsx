@@ -56,7 +56,7 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
     mode==='Fully paid'?Math.max(0,total):Math.min(Math.max(1,draft.deliveryCharge),Math.max(1,total/2))});
  };
  const addProduct=(p:Product)=>{
-  const unit=p.stockViewUnit===p.altUnit?.unit?p.altUnit!.unit:p.unit;
+  const unit=p.altUnit&&p.stockViewUnit===p.altUnit.unit?p.altUnit.unit:p.unit;
   patch({lines:[...draft.lines,{id:'on-line-'+(globalThis.crypto?.randomUUID?.()??Date.now().toString()),
    productId:p.id,name:p.name,unit,quantity:1,price:unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice,
    unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0}]});
