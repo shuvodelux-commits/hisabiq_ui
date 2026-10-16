@@ -27,7 +27,7 @@ test('Finance transaction and account mutations preserve IDs, direction, and rev
  const finance=file('src/components/finance/FinanceRecordDialogs.tsx');
  assert.ok(finance.includes('direction: meta.direction'));
  assert.ok(finance.includes('paymentAccounts: opening ? undefined : paymentSplits'));
- assert.ok(finance.includes('Math.abs(paymentTotal - value) > 0.001'));
+ assert.ok(finance.includes('!financePaymentSplitsAreValid(paymentRows, accounts, value)'));
  assert.ok(finance.includes('onReverse(transaction)'));
  assert.ok(finance.includes('onReverse(transfer)'));
  assert.ok(finance.includes('onManualEntry(account, manualDirection, value'));

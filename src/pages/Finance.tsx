@@ -28,7 +28,8 @@ import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransact
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
 import { CashSessionDetailsDialog } from '../components/finance/CashSessionDetailsDialog';
-import { FinancePaymentSplitEditor, normalizeFinancePaymentSplits, type FinancePaymentDraft } from '../components/finance/FinancePaymentSplitEditor';
+import { FinancePaymentSplitEditor, type FinancePaymentDraft } from '../components/finance/FinancePaymentSplitEditor';
+import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid } from '../utils/financePaymentDrafts';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -131,12 +132,12 @@ function TransactionDialog({
   const isOpening = !!meta.opening;
   const selectedPerson = rolePeople.find((item) => item.name === person) ?? rolePeople[0];
   const isBackdated = date !== '2026-10-06';
-  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, parseFloat(amount) || 0);
+  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
   const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
 
   const save = () => {
-    const value = parseFloat(amount) || 0;
-    if (!value) {
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
       toast.error(text('Enter an amount','টাকার পরিমাণ লিখুন'));
       return;
     }
@@ -148,8 +149,8 @@ function TransactionDialog({
       toast.error(text('Select a finance person','মালিক, ঋণদাতা বা ঋণগ্রহীতা বাছুন'));
       return;
     }
-    if (!isOpening && (!paymentSplits.length || Math.abs(paymentTotal - value) > 0.001)) {
-      toast.error(text('Payment split must equal the transaction amount','সব মাধ্যমের টাকার যোগফল মোট টাকার সমান হতে হবে'));
+    if (!isOpening && !financePaymentSplitsAreValid(paymentRows, accounts, value)) {
+      toast.error(text('Enter valid payment sources that add up to the transaction amount','সব মাধ্যমের সঠিক টাকা লিখুন। যোগফল লেনদেনের টাকার সমান হতে হবে।'));
       return;
     }
     if (!reviewFinance) {setReviewFinance(true);return;}
@@ -232,7 +233,7 @@ function TransactionDialog({
               accounts={accounts}
               rows={paymentRows}
               onChange={setPaymentRows}
-              totalAmount={parseFloat(amount) || 0}
+              totalAmount={Number(amount) || 0}
             />
           )}
 
@@ -291,6 +292,11 @@ function AccountDialog({
       toast.error(text('Enter an account name','হিসাবের নাম লিখুন'));
       return;
     }
+    const value = Number(opening);
+    if (!Number.isFinite(value) || value < 0) {
+      toast.error(text('Enter a valid opening balance','শুরুর জেরের সঠিক পরিমাণ লিখুন'));
+      return;
+    }
     const id = `acc-${Date.now()}`;
     onSave({
       id,
@@ -298,8 +304,8 @@ function AccountDialog({
       type,
       institution: institution || undefined,
       number: number || undefined,
-      openingBalance: parseFloat(opening) || 0,
-      balance: parseFloat(opening) || 0,
+      openingBalance: value,
+      balance: value,
       status: 'Active',
       lastActivity: 'Just now'
     });
@@ -388,8 +394,8 @@ function TransferDialog({
   }, [open, initialFrom]);
 
   const save = () => {
-    const value = parseFloat(amount) || 0;
-    if (!value) {
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
       toast.error(text('Enter a transfer amount','কত টাকা সরাবেন লিখুন'));
       return;
     }

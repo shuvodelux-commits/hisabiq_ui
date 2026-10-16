@@ -76,6 +76,12 @@
 
 /* Forms stay reachable on phones, tablets and with the on-screen keyboard. */
 [data-dialog-root] { max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; }
+/* Informational notifications must not intercept a blocking form's actions.
+   Keep notification buttons/links interactive, and normal swipe dismissal
+   available when no dialog is open. */
+body:has([data-dialog-root]) [data-sonner-toast]:not(:has(button, a, input, select, textarea, [role="button"])) {
+  pointer-events: none;
+}
 @media (pointer: coarse) {
   .erp-workspace button:not([role="option"]),
   .erp-workspace input:not([type="checkbox"]):not([type="radio"]),

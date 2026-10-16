@@ -34,8 +34,8 @@ export function ChequeDialog({
   const [attachment, setAttachment] = useState('');
 
   const save = () => {
-    const value = parseFloat(amount) || 0;
-    if (!chequeNumber.trim() || !bank.trim() || !party.trim() || !value) {
+    const value = Number(amount);
+    if (!chequeNumber.trim() || !bank.trim() || !party.trim() || !Number.isFinite(value) || value <= 0) {
       toast.error(text('Cheque number, bank, party and amount are required','চেক নম্বর, ব্যাংক, পক্ষের নাম ও টাকা লিখুন'));
       return;
     }
@@ -51,7 +51,7 @@ export function ChequeDialog({
       party: party.trim(),
       receivedOrIssuedDate: entryDate,
       chequeDate,
-      depositAccount: depositAccount.trim() || undefined,
+      depositAccount: (depositAccount || accountOptions[0])?.trim() || undefined,
       reference: reference.trim() || undefined,
       note: note.trim() || undefined,
       attachment: attachment || undefined,
