@@ -49,6 +49,21 @@ export function TopBar() {
   const { state } = useTenantSettings();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Native focus/scrollIntoView must leave controls below the sticky header.
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const root = document.documentElement;
+    const previous = root.style.scrollPaddingTop;
+    const measure = () => { root.style.scrollPaddingTop = (header.getBoundingClientRect().height + 8) + 'px'; };
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    measure();
+    return () => { observer.disconnect(); root.style.scrollPaddingTop = previous; };
+  }, []);
+
   const [navOpen,setNavOpen] = useState(false);
   const navTrigger = useRef<HTMLButtonElement>(null);
   const navDialog = useRef<HTMLDivElement>(null);
@@ -100,7 +115,7 @@ export function TopBar() {
 
   return (
     <>
-    <header data-print-hide className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
+    <header ref={headerRef} data-print-hide className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
       <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 sm:h-14 sm:flex-nowrap sm:gap-3 sm:px-4 sm:py-0 lg:px-6">
         <button ref={navTrigger} type="button" aria-label={text("Open ERP navigation","ERP মেনু খুলুন")} aria-expanded={navOpen}
           aria-controls="erp-mobile-drawer" onClick={()=>setNavOpen(true)}
