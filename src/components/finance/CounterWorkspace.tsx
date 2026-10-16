@@ -155,16 +155,18 @@ export function CounterWorkspace({accounts,setAccounts}:{
   </div>
   <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
    <div className="min-w-0 space-y-4">
-    {(type==='Customer Receive'||type==='Supplier Pay')&&<div className="rounded-xl border border-border bg-card p-4">
+    {(type==='Customer Receive'||type==='Supplier Pay')&&<div className="rounded-xl border border-border bg-card p-4"
+     onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setSearching(false);}}
+     onKeyDown={event=>{if(event.key==='Escape'&&searching){event.preventDefault();event.stopPropagation();event.currentTarget.querySelector('input')?.focus();setSearching(false);}}}>
      <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?word('findCustomer'):word('findSupplier')}</label>
      <div className="relative">
       <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-2.5 z-10 size-4 text-ink-400"/>
       <Input className="pl-9" aria-label={type==='Customer Receive'?text('Search customer','ক্রেতা খুঁজুন'):text('Search supplier','সরবরাহকারী খুঁজুন')} value={search}
-       placeholder={text("Search name, phone or area","নাম, ফোন বা এলাকা খুঁজুন")} onFocus={()=>setSearching(true)}
+       placeholder={text("Search name, phone or area","নাম, ফোন বা এলাকা খুঁজুন")} onFocus={()=>setSearching(true)} onClick={()=>setSearching(true)}
        onClear={clearParty}
        onChange={e=>{if(partyId){setRows([]);setDiscountInput('');setDiscountReason('');}
         setSearch(e.target.value);setPartyId('');setAllocation('');setSearching(true);setReview(false);}}
-       onKeyDown={e=>{if(e.key==='Escape')setSearching(false);if(e.key==='Enter'&&filtered[0]){e.preventDefault();selectParty(filtered[0]);}}}/>
+       onKeyDown={e=>{if(e.key==='Escape')setSearching(false);if(e.key==='Enter'&&searching&&filtered[0]){e.preventDefault();selectParty(filtered[0]);}}}/>
      </div>
      {searching&&<div role="listbox" aria-label={text("Matching parties","মিলে যাওয়া নাম")} className="mt-1 max-h-52 overflow-auto rounded-lg border border-border bg-popover p-1 shadow-card">
       {filtered.length?filtered.map(p=><button type="button" key={p.id} role="option" aria-selected={p.id===partyId}
