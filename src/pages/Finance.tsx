@@ -1047,7 +1047,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         )}
 
         {tab === 'cash' && (
-          <div className="grid gap-4 p-4 xl:grid-cols-[360px_1fr]">
+          <div className="grid grid-cols-1 gap-4 p-4 xl:grid-cols-[360px_minmax(0,1fr)]">
             <section className="rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -1084,7 +1084,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               </button>
             </section>
 
-            <section className="rounded-xl border border-border">
+            <section className="min-w-0 rounded-xl border border-border">
               <div className="border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-ink">{text('Cash session history','ক্যাশ সেশনের ইতিহাস')}</p>
                 <p className="text-[11px] text-ink-500">{text('Expected vs counted cash, with short/over variance kept visible.','হিসাবে থাকার কথা ও গুনে পাওয়া ক্যাশের পার্থক্য দেখা যাবে।')}</p>
