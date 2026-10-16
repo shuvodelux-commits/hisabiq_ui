@@ -44,7 +44,7 @@ function QuotationEditor({open,original,onClose}:{
  const patchLine=(id:string,partial:Partial<QuoteLine>)=>
   patch({lines:draft.lines.map(line=>line.id===id?{...line,...partial}:line)});
  const addProduct=(p:Product)=>{
-  const unit=p.stockViewUnit===p.altUnit?.unit?p.altUnit!.unit:p.unit;
+  const unit=p.altUnit&&p.stockViewUnit===p.altUnit.unit?p.altUnit.unit:p.unit;
   const price=unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice;
   patch({lines:[...draft.lines,{id:'quote-line-'+(++lineCounter),productId:p.id,name:p.name,quantity:1,unit,price,unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0}]});
  };

@@ -109,7 +109,7 @@ ref)
   }, [open]);
 
   useLayoutEffect(() => {
-    if (!open || results.length === 0) {
+    if (!open) {
       setPosition(null);
       return;
     }
@@ -128,7 +128,13 @@ ref)
     };
 
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape' && !event.defaultPrevented) {
+        const dialogs = document.querySelectorAll('[data-dialog-root]');
+        if (dialogs.length && dialogs[dialogs.length - 1] !== rootRef.current?.closest('[data-dialog-root]')) return;
+        event.preventDefault();
+        event.stopPropagation();
+        setOpen(false);
+      }
     };
 
     const onViewportChange = () => updatePosition();
@@ -167,7 +173,10 @@ ref)
       e.preventDefault();
       if (results[active]) choose(results[active]);
       else if (onCreate && query.trim()) {setOpen(false); onCreate(query.trim());}
-    } else if (e.key === 'Escape') {
+    } else if (e.key === 'Escape' && open) {
+      // Consume the popup dismissal before the parent dialog sees Escape.
+      e.preventDefault();
+      e.stopPropagation();
       setOpen(false);
     }
   };
