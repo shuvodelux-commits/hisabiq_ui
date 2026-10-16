@@ -39,7 +39,7 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
   const bilingualLabel = (name: string, bangla?: string) => {
     const isBangla = personal.language === 'Bangla';
     return <span className="min-w-0 flex-1 text-left leading-[1.25]">
-      <span className="block truncate text-[13px] font-medium">{isBangla ? (bangla ?? name) : name}</span>
+      <span className="block truncate text-[13px] font-medium">{isBangla ? (bangla ?? name) : name}{' '}</span>
       {personal.language === 'English + Bangla' && bangla &&
         <span className="font-bn mt-0.5 block truncate text-[10.5px] font-normal text-ink-400">
           {bangla}
@@ -73,7 +73,7 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
         const childSelected = selected && Boolean(active?.childId);
         const panelId = mode + '-erp-' + group.id;
         const separate = group.id === 'settings';
-        const parentTitle = personal.language === 'Bangla' ? (open ? 'বন্ধ করুন: ' : 'খুলুন: ') + labelFor(group.label, group.bn) : (open ? 'Collapse ' : 'Expand ') + group.label;
+        const parentTitle = personal.language === 'Bangla' ? (open ? 'বন্ধ করুন: ' : 'খুলুন: ') + labelFor(group.label, group.bn) : (open ? 'Collapse ' : 'Expand ') + group.label + (personal.language === 'English + Bangla' && group.bn ? ' ' + group.bn : '');
         const highlighted = selected ? activeParent : idleParent;
         return <div key={group.id} className={separate ? 'mt-3 border-t border-sidebar-border pt-3' : ''}>
           {collapsed ? (

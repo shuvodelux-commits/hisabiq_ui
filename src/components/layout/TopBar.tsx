@@ -204,9 +204,9 @@ export function TopBar() {
               aria-label={text("User menu AR Anisur Rahman Owner","ব্যবহারকারীর মেনু AR Anisur Rahman মালিক")}
               className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-1.5 hover:bg-ink-50">
               
-                <span className="flex size-7 items-center justify-center rounded-full bg-inverse text-[11px] font-semibold text-white">AR</span>
+                <span className="flex size-7 items-center justify-center rounded-full bg-inverse text-[11px] font-semibold text-white">AR</span>{' '}
                 <span className="hidden text-left leading-tight xl:block">
-                  <span className="block text-[13px] font-medium text-ink">Anisur Rahman</span>
+                  <span className="block text-[13px] font-medium text-ink">Anisur Rahman</span>{' '}
                   <span className="block text-[11px] text-ink-500">{text("Owner","মালিক")}</span>
                 </span>
                 <ChevronDown className="size-3.5 text-ink-400" aria-hidden="true" />
