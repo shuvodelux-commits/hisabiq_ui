@@ -4,6 +4,9 @@ import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Input } from '../Input';
+import { FormSelect } from '../FormSelect';
+import type { FinanceAccount } from '../../data/financeAccounts';
+import { chequeMoneyAccount } from '../../utils/chequeAccount';
 import { StatusBadge } from '../StatusBadge';
 import type { ChequeRecord, ChequeStatus } from '../../data/cheques';
 import { chequeLifecycleActions, type ChequeLifecycleAction } from '../../utils/moduleUiActions';
@@ -19,15 +22,16 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
 }
 
 export function ChequeActionDialog({
-  cheque,
+  cheque, accounts,
   onClose,
   onUpdate,
   onStatus
 }: {
   cheque: ChequeRecord | null;
+  accounts: FinanceAccount[];
   onClose: () => void;
   onUpdate: (cheque: ChequeRecord) => void;
-  onStatus: (cheque: ChequeRecord, nextStatus: ChequeStatus, reason?: string) => void;
+  onStatus: (cheque: ChequeRecord, nextStatus: ChequeStatus, reason?: string) => boolean;
 }) {
   const {text,language,showHelper}=useUiCopy();
   const [editing, setEditing] = useState(false);
@@ -41,11 +45,8 @@ export function ChequeActionDialog({
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
 
-  useEffect(() => {
+  const resetDraft = () => {
     if (!cheque) return;
-    setEditing(false);
-    setPendingAction(null);
-    setReason('');
     setBank(cheque.bank);
     setBranch(cheque.branch ?? '');
     setParty(cheque.party);
@@ -53,6 +54,9 @@ export function ChequeActionDialog({
     setDepositAccount(cheque.depositAccount ?? '');
     setReference(cheque.reference ?? '');
     setNote(cheque.note ?? '');
+  };
+  useEffect(() => {
+    setEditing(false); setPendingAction(null); setReason(''); resetDraft();
   }, [cheque]);
 
   if (!cheque) return null;
@@ -61,6 +65,7 @@ export function ChequeActionDialog({
 
   const save = () => {
     if (!bank.trim() || !party.trim() || !chequeDate) return toast.error(text('Bank, party and cheque date are required','ব্যাংক, পক্ষ ও চেকের তারিখ লিখুন'));
+    if (depositAccount && !chequeMoneyAccount(accounts, depositAccount)) return toast.error(text('Choose a valid active bank account','চালু ব্যাংক হিসাব বাছুন'));
     onUpdate({
       ...cheque,
       bank: bank.trim(),
@@ -93,7 +98,7 @@ export function ChequeActionDialog({
   const confirmStatus = () => {
     if (!pendingAction) return;
     if (pendingAction.reasonRequired && !reason.trim()) return toast.error(text('Enter a reason for this cheque status','চেকের অবস্থা বদলানোর কারণ লিখুন'));
-    onStatus(cheque, pendingAction.nextStatus, reason.trim() || undefined);
+    if (!onStatus(cheque, pendingAction.nextStatus, reason.trim() || undefined)) return;
     setPendingAction(null);
     setReason('');
   };
@@ -111,7 +116,7 @@ export function ChequeActionDialog({
             <label className="text-[13px] font-medium text-ink">{text('Branch','শাখা')}<Input className="mt-1.5" value={branch} onChange={(event) => setBranch(event.target.value)} /></label>
             <label className="text-[13px] font-medium text-ink">{text('Party','পক্ষ')}<Input className="mt-1.5" value={party} onChange={(event) => setParty(event.target.value)} /></label>
             <label className="text-[13px] font-medium text-ink">{text('Cheque date','চেকের তারিখ')}<Input className="mt-1.5" type="date" value={chequeDate} onChange={(event) => setChequeDate(event.target.value)} /></label>
-            <label className="text-[13px] font-medium text-ink">{text('Money account','টাকার হিসাব')}<Input className="mt-1.5" value={depositAccount} onChange={(event) => setDepositAccount(event.target.value)} placeholder={text("Bank account used on clearance","ক্লিয়ার হলে যে ব্যাংক হিসাব ব্যবহার হবে")} /></label>
+            <label className="text-[13px] font-medium text-ink">{text('Money account','টাকার হিসাব')}<FormSelect className="mt-1.5" value={depositAccount} onChange={(event) => setDepositAccount(event.target.value)} options={[{value:'',label:text('Select bank account','ব্যাংক হিসাব বাছুন')}, ...accounts.filter(account => chequeMoneyAccount(accounts, account.name)?.id === account.id).map(account => account.name)]} /></label>
             <label className="text-[13px] font-medium text-ink">{text('Reference','রেফারেন্স')}<Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} /></label>
             <label className="text-[13px] font-medium text-ink sm:col-span-2">{text('Note','মন্তব্য')}<Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} /></label>
           </div>
@@ -152,7 +157,7 @@ export function ChequeActionDialog({
         )}
 
         <DialogFooter>
-          {editing ? <><Button variant="outline" onClick={() => setEditing(false)}>{text('Cancel','বাতিল')}</Button><Button onClick={save}>{text('Save cheque','চেক সংরক্ষণ')}</Button></> :
+          {editing ? <><Button variant="outline" onClick={() => {resetDraft(); setEditing(false);}}>{text('Cancel','বাতিল')}</Button><Button onClick={save}>{text('Save cheque','চেক সংরক্ষণ')}</Button></> :
             pendingAction ? <><Button variant="outline" onClick={() => { setPendingAction(null); setReason(''); }}>{text('Back','ফিরুন')}</Button><Button onClick={confirmStatus}>{text('Confirm ','নিশ্চিত করুন: ')+financeLabel(language,pendingAction.nextStatus)}</Button></> :
             <><Button variant="outline" onClick={printCheque}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>{!terminal && <Button variant="outline" onClick={() => setEditing(true)}><Pencil className="size-4" /> {text('Edit','সংশোধন')}</Button>}<Button onClick={onClose}>{text('Close','বন্ধ করুন')}</Button></>}
         </DialogFooter>

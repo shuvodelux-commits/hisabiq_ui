@@ -51,6 +51,8 @@ import {
 } from '../data/financeAccounts';
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
 import { taka } from '../utils/currency';
+import { chequeMoneyAccount } from '../utils/chequeAccount';
+import { chequeLifecycleActions } from '../utils/moduleUiActions';
 import { amountInWords } from '../utils/amountInWords';
 import {useUiCopy} from '../i18n/useUiCopy';
 import {financeLabel} from '../i18n/financeCopy';
@@ -579,9 +581,12 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   };
 
   const changeChequeStatus = (cheque: ChequeRecord, nextStatus: ChequeStatus, reason?: string) => {
-    if (nextStatus === 'Cleared' && !cheque.depositAccount) {
-      toast.error('Select the Bank / Money Account before clearing this cheque');
-      return;
+    const source = chequeRecords.find(item => item.id === cheque.id);
+    if (!source || source.status !== cheque.status || !chequeLifecycleActions(source).some(action => action.nextStatus === nextStatus)) return false;
+    const bankAccount = chequeMoneyAccount(accounts, cheque.depositAccount);
+    if (nextStatus === 'Cleared' && !bankAccount) {
+      toast.error(text('Choose a valid active bank account before clearing this cheque','চেক ক্লিয়ার করার আগে চালু ব্যাংক হিসাব বাছুন'));
+      return false;
     }
     const updated: ChequeRecord = {
       ...cheque,
@@ -592,12 +597,13 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
     };
     setChequeRecords((current) => current.map((item) => item.id === cheque.id ? updated : item));
     if (nextStatus === 'Cleared' && cheque.status !== 'Cleared' && cheque.depositAccount) {
-      setAccounts((current) => current.map((account) => account.name === cheque.depositAccount
+      setAccounts((current) => current.map((account) => account.id === bankAccount?.id
         ? { ...account, balance: account.balance + (cheque.direction === 'Received' ? cheque.amount : -cheque.amount), lastActivity: 'Just now' }
         : account));
     }
     setChequeAction(updated);
     toast.success('Cheque status updated', { description: cheque.id + ' · ' + nextStatus });
+    return true;
   };
 
   const reverseAccountTransfer = (transfer: AccountTransfer) => {
@@ -1205,6 +1211,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
 
       <ChequeActionDialog
         cheque={chequeAction}
+        accounts={accounts}
         onClose={() => setChequeAction(null)}
         onUpdate={updateCheque}
         onStatus={changeChequeStatus}
