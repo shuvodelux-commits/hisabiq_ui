@@ -1,0 +1,26 @@
+name: Deep Visible Label Check
+on:
+  pull_request:
+    paths:
+      - 'src/components/layout/ErpNavMenu.tsx'
+      - 'src/components/layout/TopBar.tsx'
+      - 'src/components/purchases/PurchaseCart.tsx'
+      - 'scripts/deep-visible-labels-browser.cjs'
+      - '.github/workflows/deep-visible-labels-check.yml'
+jobs:
+  accessible-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/deep-visible-labels-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deep-visible-label-evidence
+          path: .superpowers/deep-audit/visible-labels
+          if-no-files-found: error

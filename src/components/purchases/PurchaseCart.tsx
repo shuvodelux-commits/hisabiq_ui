@@ -237,12 +237,12 @@ export function PurchaseCart({
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
           {quickItems.map((product) => (
-            <button key={product.id} type="button" aria-label={'Quick add ' + product.name}
+            <button key={product.id} type="button" aria-label={'Quick add ' + product.name + ' ' + taka(product.purchasePrice) + '/' + product.unit}
               onClick={() => onAdd(product)}
               className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-left shadow-xs transition-colors hover:border-teal-400 hover:bg-teal-50 active:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">
               <ProductThumb src={product.image} size={36} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[12px] font-medium text-ink">{product.name}</span>
+                <span className="block truncate text-[12px] font-medium text-ink">{product.name}</span>{' '}
                 <span className="block truncate text-[11px] text-ink-500">{taka(product.purchasePrice)}/{product.unit}</span>
               </span>
               <Plus className="size-4 shrink-0 text-ink-400" />

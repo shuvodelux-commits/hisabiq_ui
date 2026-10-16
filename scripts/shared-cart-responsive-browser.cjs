@@ -69,7 +69,7 @@ async function main() {
         const root = 'http://127.0.0.1:4331/#/app/';
 
         await page.goto(root + 'purchases/new');
-        await page.getByRole('button', { name: 'Quick add LED Bulb 12W', exact: true }).click();
+        await page.getByRole('button', { name: /^Quick add LED Bulb 12W(?:\s|$)/ }).click();
         const purchase = await inspectCart(page, 'purchase', label + ' Purchase ' + theme);
         const layout = await page.evaluate(() => {
           const cart = document.querySelector('[data-cart-kind="purchase"]').getBoundingClientRect();
