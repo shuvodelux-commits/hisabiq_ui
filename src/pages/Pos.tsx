@@ -152,6 +152,7 @@ export function Pos() {
   const loadedSource = useRef<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const paidRef = useRef<HTMLInputElement>(null);
+  const completeRef = useRef<HTMLButtonElement>(null);
   const [invoiceNo, setInvoiceNo] = useState(242);
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
@@ -382,6 +383,9 @@ export function Pos() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"],[data-slot="dialog-content"]'))
+        .some(dialog => dialog.getClientRects().length)) return;
       if (e.key === 'F2') {
         e.preventDefault();
         searchRef.current?.focus();
@@ -390,7 +394,7 @@ export function Pos() {
         paidRef.current?.focus();
       } else if (e.key === 'F9') {
         e.preventDefault();
-        if (!reviewSaleOpen) setReviewSaleOpen(true);
+        completeRef.current?.click();
       }
     };
     window.addEventListener('keydown', onKey);
@@ -637,6 +641,7 @@ export function Pos() {
           onComplete={() => setReviewSaleOpen(true)}
           onClear={cart.reset}
           paidRef={paidRef}
+          completeRef={completeRef}
           completeLabel={editing ? uiText(personal.language,'Preview sale update','বিক্রি সংশোধন দেখুন') : uiText(personal.language,'Preview sale','বিক্রির হিসাব দেখুন')} />
         
       </div>

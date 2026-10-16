@@ -1,0 +1,29 @@
+name: Deep POS Shortcut Check
+on:
+  pull_request:
+    paths:
+      - 'src/pages/Pos.tsx'
+      - 'src/components/pos/**'
+      - 'src/components/TransactionReviewDialog.tsx'
+      - 'src/components/Dialog.tsx'
+      - 'src/components/layout/TopBar.tsx'
+      - 'scripts/deep-pos-shortcuts-browser.cjs'
+      - '.github/workflows/deep-pos-shortcuts-check.yml'
+jobs:
+  interactions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/deep-pos-shortcuts-browser.cjs
+      - name: Save measured journeys and failure screenshots/traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-pos-shortcuts-evidence
+          path: .superpowers/deep-audit/pos-shortcuts
+          if-no-files-found: error
