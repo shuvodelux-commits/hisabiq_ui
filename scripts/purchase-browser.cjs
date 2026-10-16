@@ -4,10 +4,11 @@ const assert = require('node:assert/strict');
 
 async function main() {
   const { createServer } = await import('vite');
-  const server = await createServer({ server: { host: '127.0.0.1', port: 4177, strictPort: true } });
+  const server = await createServer({ cacheDir: '.superpowers/purchase-browser-cache', server: { host: '127.0.0.1', port: 4177, strictPort: true } });
   await server.listen();
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined, args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 1400, height: 950 }, reducedMotion: 'reduce' });
+  page.setDefaultNavigationTimeout(60000);
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   try {
@@ -54,7 +55,8 @@ async function main() {
     }), true, 'suggestions must render outside the cart scrolling container');
     await purchaseSearch.press('Escape');
     await floatingList.waitFor({ state: 'hidden' });
-    await purchaseSearch.fill('bulb');
+    await purchaseSearch.click();
+    await floatingList.waitFor({ state: 'visible' });
 
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).press('Enter');
     const boxQty = page.getByLabel('Box quantity for LED Bulb 12W', {exact:true});

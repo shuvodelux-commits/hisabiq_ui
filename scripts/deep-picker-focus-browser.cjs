@@ -16,7 +16,7 @@ async function main(){
   const context=await browser.newContext({viewport:{width,height},hasTouch:width<=1024,colorScheme:theme,reducedMotion:'reduce'});
   await context.addInitScript(t=>localStorage.setItem('hisabiq-theme',t),theme);
   await context.tracing.start({screenshots:true,snapshots:true,sources:true});
-  const page=await context.newPage();await page.route('https://fonts.googleapis.com/**',r=>r.abort());
+  const page=await context.newPage();page.setDefaultNavigationTimeout(60000);await page.route('https://fonts.googleapis.com/**',r=>r.abort());
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   for(const [route,label,rows,open] of [
    ['pos','Add product','[data-cart-row]'],
@@ -24,6 +24,7 @@ async function main(){
    ['quotations','Add product to quotation','[data-testid="transaction-cart-row"]','New quotation'],
    ['online-sales','Add online order product','[data-testid="transaction-cart-row"]','New online order']
   ]){
+   if(process.env.DEEP_AUDIT_ROUTE&&process.env.DEEP_AUDIT_ROUTE!==route)continue;
    const id=width+'-'+theme+'-'+route.replace('/','-');
    try{
     await page.goto(`http://127.0.0.1:${port}/#/app/${route}`,{waitUntil:'domcontentloaded'});
@@ -41,6 +42,9 @@ async function main(){
      assert.deepEqual(await cartState(),stateBefore,'closed Enter preserves existing cart quantities and prices');
     }
     await search.press('ArrowDown');await expect(page.getByRole('listbox')).toBeVisible();
+    await search.press('Escape');
+    if(width<=1024)await search.tap();else await search.click();
+    await expect(search,'clicking the still-focused input reopens suggestions').toHaveAttribute('aria-expanded','true');
     await search.press('Tab');
     await expect(page.getByRole('button',{name:'Clear product search',exact:true})).toBeFocused();
     await expect(search).toHaveAttribute('aria-expanded','true');
