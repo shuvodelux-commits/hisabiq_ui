@@ -1,6 +1,8 @@
 /* Finance draft validation: real browser actions, frontend preview records only. */
 const {chromium}=require('playwright');const {expect}=require('playwright/test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');
-const sizes=process.env.DEEP_AUDIT_SMOKE?[[390,844]]:[[320,700],[360,800],[390,844],[430,932],[768,1024],[1024,768],[1280,800],[1440,900]];
+const requestedSizes=process.env.DEEP_AUDIT_SMOKE?[[390,844]]:[[320,700],[360,800],[390,844],[430,932],[768,1024],[1024,768],[1280,800],[1440,900]];
+const sizes=process.env.DEEP_AUDIT_WIDTH?requestedSizes.filter(([width])=>width===Number(process.env.DEEP_AUDIT_WIDTH)):requestedSizes;
+assert.ok(sizes.length,'DEEP_AUDIT_WIDTH must match an audited viewport');
 const languages=process.env.DEEP_AUDIT_SMOKE?['English + Bangla']:['English','English + Bangla','Bangla'];
 const port=Number(process.env.DEEP_AUDIT_PORT||4486),output=process.env.DEEP_AUDIT_OUTPUT||'.superpowers/deep-audit/finance-validation',results=[];
 async function main(){
@@ -14,7 +16,7 @@ async function main(){
   let visit=0;
   const go=()=>page.goto(`http://127.0.0.1:${port}/?financeAudit=${++visit}#/app/finance`,{waitUntil:'domcontentloaded'});
   const accounts=async()=>act(page.getByRole('tab',{name:word('Money Accounts','টাকার হিসাব'),exact:true}));
-  const check=async(name,run)=>{if(process.env.DEEP_AUDIT_CASE&&process.env.DEEP_AUDIT_CASE!==name)return;try{await run();assert.deepEqual(errors,[]);results.push({id,name,status:'passed'});}catch(e){results.push({id,name,status:'failed',error:e.message});console.error(id,name,e.message);await page.screenshot({path:path.join(output,id+'-'+name+'.png'),fullPage:true});}};
+  const check=async(name,run)=>{if(process.env.DEEP_AUDIT_CASE&&process.env.DEEP_AUDIT_CASE!==name)return;try{await run();assert.deepEqual(errors,[]);results.push({id,name,status:'passed'});}catch(e){results.push({id,name,status:'failed',error:e.message});console.error(id,name,e.message);console.error('FAILURE_STATE',JSON.stringify(await page.locator('[data-dialog-root]').evaluateAll(dialogs=>dialogs.map(d=>({text:d.innerText,rect:d.getBoundingClientRect().toJSON(),scrollTop:d.scrollTop,scrollHeight:d.scrollHeight,clientHeight:d.clientHeight,fields:Array.from(d.querySelectorAll('input')).map(i=>({value:i.value,type:i.type})),buttons:Array.from(d.querySelectorAll('button')).map(b=>({text:b.innerText,disabled:b.disabled,rect:b.getBoundingClientRect().toJSON()}))})))));await page.screenshot({path:path.join(output,id+'-'+name+'.png'),fullPage:true});}};
   const rejectedReview=async(d,review)=>{await act(review);await expect(d.getByRole('status'),'invalid draft cannot enter confirmation').toHaveCount(0);await expect(d).toBeVisible();};
   await check('new-finance',async()=>{
    await go();await act(button(page,'New transaction','নতুন লেনদেন'));const d=page.getByRole('dialog',{name:new RegExp(word('New finance transaction','নতুন টাকার লেনদেন'))});const input=amount(d);const review=button(d,'Review transaction','লেনদেন যাচাই করুন');
@@ -40,7 +42,7 @@ async function main(){
   await check('transfer',async()=>{
    await go();await accounts();await act(button(page,'Transfer','ট্রান্সফার'));const d=page.getByRole('dialog',{name:word('Transfer between accounts','এক হিসাব থেকে অন্য হিসাবে টাকা সরান'),exact:true});const review=button(d,'Review transfer','ট্রান্সফার যাচাই করুন');
    for(const invalid of ['1.2.3','9'.repeat(400)]){await amount(d).fill(invalid);await rejectedReview(d,review);}
-   await amount(d).fill('123');await act(review);await expect(d.getByRole('status')).toContainText('123');await act(button(d,'Cancel','বাতিল'));await expect(d).toBeHidden();await act(button(page,'Transfer','ট্রান্সফার'));await expect(amount(d)).toHaveValue('');await amount(d).fill('123');await act(review);await act(button(d,'Confirm transfer','টাকা সরানো নিশ্চিত করুন'));await expect(d).toBeHidden();await expect(page.locator('tbody tr').first()).toContainText('123');
+   await amount(d).fill('123');await act(review);await expect(d.getByRole('status')).toContainText('123');await act(button(d,'Cancel','বাতিল'));await expect(d,'Transfer Cancel closes the reviewed dialog').toBeHidden();await act(button(page,'Transfer','ট্রান্সফার'));await expect(amount(d)).toHaveValue('');await amount(d).fill('123');await act(review);await act(button(d,'Confirm transfer','টাকা সরানো নিশ্চিত করুন'));await expect(d,'Transfer Confirm records and closes the dialog').toBeHidden();await expect(page.locator('tbody tr').first()).toContainText('123');
   });
   await check('account-opening',async()=>{
    await go();await accounts();await act(button(page,'Add account','হিসাব যোগ করুন'));const d=page.getByRole('dialog',{name:new RegExp(word('Add account','নতুন হিসাব যোগ করুন'))});await field(d,'Account name','হিসাবের নাম').fill('Audit preview account');const input=field(d,'Opening balance','শুরুর জের');const save=button(d,'Save account','হিসাব সংরক্ষণ');
