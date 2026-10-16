@@ -6,10 +6,15 @@ export function formatNumber(value: number, decimals = 0): string {
   });
 }
 
-/** Format as Taka: ৳1,25,400 */
-export function taka(value: number, decimals = 0): string {
+/** Money without a currency symbol; keep paisa while leaving generic counts unchanged. */
+export function formatMoneyNumber(value: number, decimals = Number.isInteger(value) ? 0 : 2): string {
+  return formatNumber(value, decimals);
+}
+
+/** Format Taka with paisa when present; callers may request explicit precision. */
+export function taka(value: number, decimals = Number.isInteger(value) ? 0 : 2): string {
   const sign = value < 0 ? '−' : '';
-  return `${sign}৳${formatNumber(Math.abs(value), decimals)}`;
+  return `${sign}৳${formatMoneyNumber(Math.abs(value), decimals)}`;
 }
 
 /** Compact taka for chart axes: ৳1.2L, ৳45K */

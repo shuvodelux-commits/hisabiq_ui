@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { StatusBadge, type StatusTone } from '../StatusBadge';
 import { PartyLedgerRowActions } from './PartyLedgerRowActions';
 import type { LedgerStatement, PartyAction, PartyLedgerRow } from '../../types/partyLedger';
-import { formatNumber } from '../../utils/currency';
+import { formatMoneyNumber } from '../../utils/currency';
 import { ledgerImpact, type LedgerImpact } from '../../utils/partyLedgerImpact';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {partyLedgerSourceLabel,partyLedgerCaption} from '../../i18n/partyLedgerCopy';
@@ -42,7 +42,7 @@ const impactTone:Record<LedgerImpact['kind'],string>={
 function LedgerAmount({row,value,language}:{row:PartyLedgerRow;value:number;language:UiLanguage}){
  if(!value)return <span className="text-ink-400">—</span>;
  const info=ledgerImpact(row);
- if(info.kind==='neutral')return <span className="font-medium text-ink">{formatNumber(value)}</span>;
+ if(info.kind==='neutral')return <span className="font-medium text-ink">{formatMoneyNumber(value)}</span>;
  const Icon=info.kind==='in'?ArrowDownLeft:info.kind==='out'?ArrowUpRight:
   info.kind==='due'?FileText:info.kind==='opening'?BookOpen:RefreshCcw;
  const visibleCaption=partyLedgerCaption(language,row,info.label,info.kind);
@@ -51,7 +51,7 @@ function LedgerAmount({row,value,language}:{row:PartyLedgerRow;value:number;lang
    <span data-testid="ledger-money-value" aria-label={impactLabel} title={impactLabel}
       className="inline-flex items-center justify-end gap-1 whitespace-nowrap font-semibold leading-tight">
      <Icon className="size-3.5 shrink-0" aria-hidden="true"/>
-     <span>{formatNumber(value)}</span>
+     <span>{formatMoneyNumber(value)}</span>
    </span>
    <span data-testid="ledger-impact-caption" className="whitespace-nowrap text-[10px] font-normal leading-tight">
      {visibleCaption}
@@ -63,9 +63,9 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
   const {text,language}=useUiCopy();
   return <div>
     <div className="flex flex-wrap justify-between gap-3 border-b border-border bg-ink-50/50 px-4 py-2 text-xs">
-      <div><span className="text-ink-500">{text('Opening balance','শুরুর জের')} </span><strong>{formatNumber(Math.abs(statement.openingBalance))} {statement.openingBalance>=0?'Dr':'Cr'}</strong></div>
-      <div><span className="text-ink-500">{text('Period debit','এই সময়ের ডেবিট')} </span><strong>{formatNumber(statement.periodDebit)}</strong></div>
-      <div><span className="text-ink-500">{text('Period credit','এই সময়ের ক্রেডিট')} </span><strong>{formatNumber(statement.periodCredit)}</strong></div>
+      <div><span className="text-ink-500">{text('Opening balance','শুরুর জের')} </span><strong>{formatMoneyNumber(Math.abs(statement.openingBalance))} {statement.openingBalance>=0?'Dr':'Cr'}</strong></div>
+      <div><span className="text-ink-500">{text('Period debit','এই সময়ের ডেবিট')} </span><strong>{formatMoneyNumber(statement.periodDebit)}</strong></div>
+      <div><span className="text-ink-500">{text('Period credit','এই সময়ের ক্রেডিট')} </span><strong>{formatMoneyNumber(statement.periodCredit)}</strong></div>
     </div>
     <div className="hidden w-full overflow-x-auto sm:block">
       <Table>
@@ -88,7 +88,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
             </TableCell>
             <TableCell className="text-right align-middle"><LedgerAmount row={row} value={row.debit} language={language}/></TableCell>
             <TableCell className="text-right align-middle"><LedgerAmount row={row} value={row.credit} language={language}/></TableCell>
-            <TableCell className="text-right font-medium">{formatNumber(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
+            <TableCell className="text-right font-medium">{formatMoneyNumber(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
             <TableCell className="pr-4 text-right"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></TableCell>
           </TableRow>)}
           {!visibleRows.length&&<TableRow><TableCell colSpan={6} className="p-8 text-center text-xs text-ink-500">{text('No transactions match these filters.','এই ফিল্টারে কোনো লেনদেন নেই।')}</TableCell></TableRow>}
@@ -103,13 +103,13 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
         <div className="grid grid-cols-3 gap-2 text-right text-xs">
           <div><p className="mb-1 text-ink-500">{text('Debit','ডেবিট')}</p><LedgerAmount row={row} value={row.debit} language={language}/></div>
           <div><p className="mb-1 text-ink-500">{text('Credit','ক্রেডিট')}</p><LedgerAmount row={row} value={row.credit} language={language}/></div>
-          <div><p className="text-ink-500">{text('Balance','জের')}</p><strong>{formatNumber(Math.abs(row.runningBalance))}</strong></div>
+          <div><p className="text-ink-500">{text('Balance','জের')}</p><strong>{formatMoneyNumber(Math.abs(row.runningBalance))}</strong></div>
         </div>
       </div>)}
       {!visibleRows.length&&<p className="py-8 text-center text-xs text-ink-500">{text('No transactions match these filters.','এই ফিল্টারে কোনো লেনদেন নেই।')}</p>}
     </div>
     <div className="flex items-center justify-between gap-2 border-t border-border bg-ink-50 px-4 py-3 text-[13px] font-semibold">
-      <span>{text('Closing balance','শেষ জের')}</span><span>{formatNumber(Math.abs(statement.closingBalance))} <span className="font-normal text-ink-500">{statement.closingBalance>=0?'Dr':'Cr'}</span></span>
+      <span>{text('Closing balance','শেষ জের')}</span><span>{formatMoneyNumber(Math.abs(statement.closingBalance))} <span className="font-normal text-ink-500">{statement.closingBalance>=0?'Dr':'Cr'}</span></span>
     </div>
   </div>;
 }
