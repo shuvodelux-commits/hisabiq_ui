@@ -1,4 +1,4 @@
-export type ProductKind = 'Stock' | 'Service';
+export type ProductKind = 'Stock' | 'Service' | 'Bundle';
 export type WarrantyDurationUnit = 'Days' | 'Months' | 'Years';
 export type WarrantyType = 'Seller' | 'Manufacturer' | 'Service' | 'Replacement';
 export type SerialTrackingMode = 'Off' | 'Optional' | 'Required';
@@ -72,6 +72,30 @@ export type Product = {
   serialTracking?: SerialTrackingMode;
   expiry?: ProductExpirySettings;
   active: boolean;
+};
+
+/** A single stock product required to sell one fixed virtual bundle Set. */
+export type BundleComponent = {
+  productId: string;
+  primaryQty: string;
+  secondaryQty: string;
+  selectedUnit: string;
+  baseQty: number;
+  unitFactorAtSave: number;
+  sortOrder: number;
+};
+
+/** Recipe revisions are immutable once saved or referenced by a sale. */
+export type BundleVersion = {
+  bundleProductId: string;
+  revision: number;
+  createdAt: string;
+  components: readonly BundleComponent[];
+};
+
+export type BundleDraft = {
+  product: Product & { kind: 'Bundle'; unit: 'Set' };
+  components: readonly BundleComponent[];
 };
 
 export type StockLot = {
