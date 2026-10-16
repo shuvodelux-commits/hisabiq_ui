@@ -115,7 +115,7 @@ function TransactionDialog({
 }) {
   const {text,language,showHelper}=useUiCopy();
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
-  const [personId, setPersonId] = useState('');
+  const [personId, setPersonId] = useState(() => people.find(item => item.status === 'Active' && item.roles.includes('Lender'))?.id ?? '');
   const [peopleOpen, setPeopleOpen] = useState(false);
   const [accountTarget, setAccountTarget] = useState<{id:string;method:FinancePaymentDraft['method']} | null>(null);
   const [paymentRows, setPaymentRows] = useState<FinancePaymentDraft[]>([{
@@ -135,7 +135,7 @@ function TransactionDialog({
   const meta = financeTypeMeta[type];
   const rolePeople = people.filter((item) => item.status === 'Active' && (!meta.role || item.roles.includes(meta.role)));
   const isOpening = !!meta.opening;
-  const selectedPerson = personId ? rolePeople.find((item) => item.id === personId) : rolePeople[0];
+  const selectedPerson = rolePeople.find((item) => item.id === personId);
   const isBackdated = date !== '2026-10-06';
   const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
   const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
