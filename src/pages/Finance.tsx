@@ -875,6 +875,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     <TableCell className="py-2 pr-4 text-right">
                       <button
                         onClick={() => setTransactionAction(item)}
+                        aria-label={text('Actions for','কাজ') + ' ' + item.id}
                         className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                         <MoreHorizontal className="size-4" />
                       </button>
@@ -936,6 +937,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     )}
                     <button
                       onClick={() => setAccountAction(account)}
+                      aria-label={text('Actions for','কাজ') + ' ' + account.name}
                       className="ml-auto rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                       <MoreHorizontal className="size-4" />
                     </button>
@@ -977,7 +979,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                       <TableCell className="py-2 text-right font-semibold">{taka(item.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
-                        <button onClick={() => setTransferAction(item)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
+                        <button onClick={() => setTransferAction(item)} aria-label={text('Actions for','কাজ') + ' ' + item.id} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                           <MoreHorizontal className="size-4" />
                         </button>
                       </TableCell>
