@@ -121,7 +121,7 @@ ref)
   useEffect(() => {
     if (!open) return;
 
-    const onPointerDown = (event: MouseEvent) => {
+    const onOutsideInteraction = (event: MouseEvent | FocusEvent) => {
       const target = event.target as Node;
       if (rootRef.current?.contains(target) || listRef.current?.contains(target)) return;
       setOpen(false);
@@ -139,13 +139,15 @@ ref)
 
     const onViewportChange = () => updatePosition();
 
-    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('mousedown', onOutsideInteraction);
+    document.addEventListener('focusin', onOutsideInteraction);
     document.addEventListener('keydown', onKey);
     window.addEventListener('resize', onViewportChange);
     window.addEventListener('scroll', onViewportChange, true);
 
     return () => {
-      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('mousedown', onOutsideInteraction);
+      document.removeEventListener('focusin', onOutsideInteraction);
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('resize', onViewportChange);
       window.removeEventListener('scroll', onViewportChange, true);
@@ -171,6 +173,7 @@ ref)
       setActive((a) => Math.max(a - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
+      if (!open) return; // Never select a suggestion the user has dismissed.
       if (results[active]) choose(results[active]);
       else if (onCreate && query.trim()) {setOpen(false); onCreate(query.trim());}
     } else if (e.key === 'Escape' && open) {
