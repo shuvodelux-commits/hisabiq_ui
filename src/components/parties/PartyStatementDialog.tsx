@@ -5,7 +5,7 @@ import type { Party } from '../../types/erp';
 import type { LedgerStatement } from '../../types/partyLedger';
 import { statementPrintRows, serializePartyStatementCsv } from '../../utils/partyStatement';
 import { businessToday } from '../../utils/dateRange';
-import { formatNumber } from '../../utils/currency';
+import { formatMoneyNumber } from '../../utils/currency';
 import { ledgerImpact } from '../../utils/partyLedgerImpact';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {partyLedgerImpactText} from '../../i18n/partyFinancialCopy';
@@ -44,7 +44,7 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
             </div>
           </div>
         </div>
-        <div className="flex justify-between text-sm"><span title={text("Balance before the selected date range; dated opening entries appear in the table","বাছা সময়ের আগের জের; শুরুর লেনদেন তারিখসহ তালিকায় আছে")}>{text('Opening balance (brought forward)','আগের জের')}</span><strong>৳{formatNumber(statement.openingBalance)}</strong></div>
+        <div className="flex justify-between text-sm"><span title={text("Balance before the selected date range; dated opening entries appear in the table","বাছা সময়ের আগের জের; শুরুর লেনদেন তারিখসহ তালিকায় আছে")}>{text('Opening balance (brought forward)','আগের জের')}</span><strong>৳{formatMoneyNumber(statement.openingBalance)}</strong></div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead><tr className="border-y border-border bg-ink-50 text-ink-700">
@@ -56,18 +56,18 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
               <td className="p-2"><span className="font-medium">{row.reference||row.source}</span>
                <span className="ml-1 text-[10px] text-ink-500">· {partyLedgerImpactText(language,ledgerImpact(row).label)}</span>
                <p className="max-w-sm break-words text-ink-500">{row.description}</p></td>
-              <td className="p-2 text-right">{row.debit?formatNumber(row.debit):'—'}</td>
-              <td className="p-2 text-right">{row.credit?formatNumber(row.credit):'—'}</td>
-              <td className="p-2 text-right">{formatNumber(row.runningBalance)}</td>
+              <td className="p-2 text-right">{row.debit?formatMoneyNumber(row.debit):'—'}</td>
+              <td className="p-2 text-right">{row.credit?formatMoneyNumber(row.credit):'—'}</td>
+              <td className="p-2 text-right">{formatMoneyNumber(row.runningBalance)}</td>
             </tr>)}
             {!rows.length&&<tr><td colSpan={5} className="p-5 text-center">{text('No transactions in this date range.','এই সময়ে কোনো লেনদেন নেই।')}</td></tr>}
             </tbody>
           </table>
         </div>
         <div className="ml-auto max-w-sm space-y-1 border-t border-border pt-2 text-xs">
-          <div className="flex justify-between"><span>{text('Period debit','এই সময়ের ডেবিট')}</span><strong>{formatNumber(statement.periodDebit)}</strong></div>
-          <div className="flex justify-between"><span>{text('Period credit','এই সময়ের ক্রেডিট')}</span><strong>{formatNumber(statement.periodCredit)}</strong></div>
-          <div className="flex justify-between border-t border-border pt-2 text-sm font-semibold"><span>{text('Closing balance','শেষ জের')}</span><span>৳{formatNumber(statement.closingBalance)}</span></div>
+          <div className="flex justify-between"><span>{text('Period debit','এই সময়ের ডেবিট')}</span><strong>{formatMoneyNumber(statement.periodDebit)}</strong></div>
+          <div className="flex justify-between"><span>{text('Period credit','এই সময়ের ক্রেডিট')}</span><strong>{formatMoneyNumber(statement.periodCredit)}</strong></div>
+          <div className="flex justify-between border-t border-border pt-2 text-sm font-semibold"><span>{text('Closing balance','শেষ জের')}</span><span>৳{formatMoneyNumber(statement.closingBalance)}</span></div>
         </div>
       </div>
       <div className="flex flex-wrap justify-end gap-2 party-statement-controls">

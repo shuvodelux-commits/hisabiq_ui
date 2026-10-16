@@ -1,0 +1,31 @@
+name: Deep Currency Precision Check
+on:
+  pull_request:
+    paths:
+      - 'src/utils/currency.ts'
+      - 'src/components/parties/LedgerTable.tsx'
+      - 'src/components/parties/PartyStatementDialog.tsx'
+      - 'tests/currencyPrecision.test.ts'
+      - 'scripts/deep-currency-browser.cjs'
+      - '.github/workflows/deep-currency-precision-check.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/deep-currency-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deep-currency-precision-evidence
+          path: .superpowers/deep-audit/currency-precision
+          include-hidden-files: true
+          if-no-files-found: error
