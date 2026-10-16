@@ -68,7 +68,7 @@ async function main() {
       await go('pos');
       for (const action of ['Calculator', 'Notifications', 'User menu']) {
         await page.getByRole('button', {
-          name: action === 'User menu' ? /^User menu(?:\\s|$)/ : action,
+          name: action === 'User menu' ? /^User menu(?:\s|$)/ : action,
           exact: action !== 'User menu'
         }).click();
         await check(`header: ${action}`, theme);
