@@ -98,8 +98,10 @@ export function FinanceTransactionActionDialog({
 
   const meta = typeMeta[type];
   const opening = !!meta.opening;
-  const peopleOptions = people.filter((person) => person.status === 'Active' && (!meta.role || person.roles.includes(meta.role)));
-  const selectedPerson = peopleOptions.find((person) => person.id === partyId) || peopleOptions[0];
+  const peopleOptions = people.filter((person) =>
+    (person.id === transaction.partyId && type === transaction.type) ||
+    (person.status === 'Active' && (!meta.role || person.roles.includes(meta.role))));
+  const selectedPerson = partyId ? peopleOptions.find((person) => person.id === partyId) : peopleOptions[0];
   const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
 
   const save = () => {
@@ -160,7 +162,7 @@ export function FinanceTransactionActionDialog({
 
             <label className="text-[13px] font-medium text-ink">
               {text('Finance person','হিসাবের ব্যক্তি')}
-              <FormSelect className="mt-1.5" value={selectedPerson?.id || ''} options={peopleOptions.map(person=>({value:person.id,label:person.name}))} onChange={(event) => setPartyId(event.target.value)} />
+              <FormSelect className="mt-1.5" value={selectedPerson?.id || ''} options={peopleOptions.map(person=>({value:person.id,label:person.name + (person.phone ? ' · ' + person.phone : '') + (person.status === 'Inactive' ? ' · ' + financeLabel(language,person.status) : '')}))} onChange={(event) => setPartyId(event.target.value)} />
               <span className="mt-1 block text-[11px] font-normal text-ink-400">{selectedPerson?.name || text('No eligible person','উপযুক্ত ব্যক্তি নেই')}</span>
             </label>
 
