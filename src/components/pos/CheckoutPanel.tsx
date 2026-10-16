@@ -49,6 +49,7 @@ type CheckoutPanelProps = {
   onClear: () => void;
   paidRef: React.RefObject<HTMLInputElement>;
   completeLabel?: string;
+  completeRef?: React.RefObject<HTMLButtonElement>;
 };
 
 const methods: PosPaymentMethod[] = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card', 'Customer Credit'];
@@ -284,6 +285,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         )}
 
         <Button
+          ref={props.completeRef}
           onClick={props.onComplete}
           disabled={totals.total === 0 || dueWithoutCustomer}
           className="h-12 w-full text-[15px] font-semibold">
