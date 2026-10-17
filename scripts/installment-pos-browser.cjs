@@ -82,10 +82,16 @@ async function main(){
     await dialog.getByRole('button',{name:/Cancel/i}).click();
     await page.evaluate(()=>document.documentElement.classList.remove('dark'));
 
-    // Save a customer before recording an installment agreement preview.
-    const picker=checkout.getByRole('button',{name:/Walk-in/i}).first();
-    await picker.click();
-    await page.getByRole('button',{name:/Rahman Hardware/i}).first().click();
+    // Quick-add must reuse the existing Party preview store, not a shadow customer list.
+    await checkout.getByRole('button',{name:/Add customer/i}).click();
+    const quickAdd=page.getByRole('dialog',{name:/Quick add customer/i});
+    await quickAdd.waitFor();
+    await quickAdd.getByRole('textbox',{name:/Customer name/i}).fill('Installment Demo New Customer');
+    await quickAdd.getByRole('textbox',{name:/Phone/i}).fill('01712345678');
+    await quickAdd.getByRole('textbox',{name:/Address/i}).fill('Rajshahi');
+    await quickAdd.getByRole('button',{name:/Save customer/i}).click();
+    await checkout.getByText('Installment Demo New Customer').first().waitFor();
+    assert.equal(await quickAdd.count(),0,'quick add closes after saving and selecting customer');
     await checkout.getByRole('button',{name:/Preview sale/i}).click();
     const review=page.getByRole('dialog',{name:/Review sale/i});
     await review.waitFor();
