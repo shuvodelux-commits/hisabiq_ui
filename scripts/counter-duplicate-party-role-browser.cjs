@@ -24,7 +24,10 @@ async function main() {
     await amount.fill('125');
     await query.fill('Rahman Hardware');
     await page.getByText('No matching parties').waitFor();
-    await page.getByText(/Add.*as supplier/).click();
+    const quickAdd=page.getByRole('button',{name:/Add.*as supplier/});
+    for(let tabs=0;tabs<4&&!(await quickAdd.evaluate(element=>element===document.activeElement));tabs++)await page.keyboard.press('Tab');
+    assert.equal(await quickAdd.evaluate(element=>element===document.activeElement),true,'keyboard navigation reaches contextual Quick Add');
+    await page.keyboard.press('Enter');
     const dialog=page.getByRole('dialog',{name:'Add party'});
     await dialog.waitFor();
     await dialog.getByRole('textbox',{name:'Phone'}).fill('01711-482093');
@@ -43,6 +46,7 @@ async function main() {
     }),before.sources,'role addition does not replace historical opening or transaction sources');
     assert.equal(await query.inputValue(),'Rahman Hardware','the existing person is selected as supplier');
     assert.equal(await amount.inputValue(),'125','the parent payment amount survives role addition');
+    await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='Search supplier');
     console.log('Counter same-person role addition preserves the Party ID');
   } finally {
     await browser.close();

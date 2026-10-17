@@ -36,6 +36,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  const [search,setSearch]=useState('');
  const [searching,setSearching]=useState(false);
  const [quickAddOpen,setQuickAddOpen]=useState(false);
+ const partySearchRef=useRef<HTMLInputElement>(null);
  const [allocation,setAllocation]=useState('');
  const [discountInput,setDiscountInput]=useState('');
  const [discountReason,setDiscountReason]=useState('');
@@ -99,6 +100,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
   try{
    const {party,reused}=quickAddPartyPreview(draft,openings);
    setQuickAddOpen(false);selectParty(party,true);
+   requestAnimationFrame(()=>{partySearchRef.current?.focus();setSearching(false);});
    toast.success(reused
     ?text('Existing party selected; relationships added','আগের পার্টি বাছা হয়েছে; সম্পর্ক যোগ হয়েছে')
     :text(payerRole+' added in Counter preview',payerRole==='Customer'?'ক্রেতা কাউন্টারের প্রিভিউতে যোগ হয়েছে':'সরবরাহকারী কাউন্টারের প্রিভিউতে যোগ হয়েছে'));
@@ -200,7 +202,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
      <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?word('findCustomer'):word('findSupplier')}</label>
      <div className="relative">
       <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-2.5 z-10 size-4 text-ink-400"/>
-      <Input className="pl-9" aria-label={type==='Customer Receive'?text('Search customer','ক্রেতা খুঁজুন'):text('Search supplier','সরবরাহকারী খুঁজুন')} value={search}
+      <Input ref={partySearchRef} className="pl-9" aria-label={type==='Customer Receive'?text('Search customer','ক্রেতা খুঁজুন'):text('Search supplier','সরবরাহকারী খুঁজুন')} value={search}
        placeholder={text("Search name, phone or area","নাম, ফোন বা এলাকা খুঁজুন")} onFocus={()=>setSearching(true)} onClick={()=>setSearching(true)}
        onClear={clearParty}
        onChange={e=>{if(partyId){setRows([]);setDiscountInput('');setDiscountReason('');}

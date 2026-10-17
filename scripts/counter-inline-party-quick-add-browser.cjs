@@ -7,7 +7,8 @@ const axePath = require.resolve('axe-core');
 
 async function main() {
   const { createServer } = await import('vite');
-  const server = await createServer({ server:{host:'127.0.0.1',port:49266,strictPort:true} });
+  const port=Number(process.env.COUNTER_QUICK_ADD_PORT||49266);
+  const server = await createServer({ cacheDir:'.superpowers/counter-quick-add-cache',server:{host:'127.0.0.1',port,strictPort:true} });
   await server.listen();
   const browser = await chromium.launch({ executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox'] });
   const allProfiles=[[320,700],[360,800],[390,844],[430,932],[768,1024],[1024,768],[1280,800],[1440,900]];
@@ -27,7 +28,7 @@ async function main() {
       const label=(en,bn)=>bilingual?new RegExp(`${en}|${bn}`):new RegExp(bn);
       const suffix=`${width}px ${theme} ${language}`;
       try {
-        await page.goto('http://127.0.0.1:49266/#/app/counter');
+        await page.goto(`http://127.0.0.1:${port}/#/app/counter`);
         await page.getByRole('heading',{name:label('Transaction summary','লেনদেনের সারাংশ')}).waitFor();
         await page.addScriptTag({path:axePath});
         for (const {action,role,name,phone} of [
