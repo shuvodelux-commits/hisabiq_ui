@@ -18,6 +18,11 @@ import { availableSerials, productStockBreakdown, requiredSerialCount } from '..
 import { quantityFromBaseStock } from '../../utils/posStock';
 import {allocatePosStock} from '../../vendor/vendorStock';
 import { useUiCopy } from '../../i18n/useUiCopy';
+import { usePreviewCatalog } from '../../bundles/usePreviewCatalog';
+import { getBundleVersion } from '../../data/productImportPreviewStore';
+import { availableStockLots } from '../../data/erpDemoStore';
+import { getBundleProjection } from '../../bundles/bundleProjection';
+import { priceBundleComponents } from '../../bundles/bundlePricing';
 
 type CartTableProps = {
   lines: CartLine[];
@@ -90,6 +95,7 @@ function SortableCartRow({
 
 export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReorder, onMove, searchRef }: CartTableProps) {
   const { word, text } = useUiCopy();
+  const catalog=usePreviewCatalog();
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
@@ -142,9 +148,13 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
             const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
-            const purchasePrice = factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
+            const recipe=l.product.kind==='Bundle'?getBundleVersion(l.product.id):undefined;
+            const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
+            const bundleAvailable=recipe?getBundleProjection(recipe,catalog,availableStockLots()).availableSets:0;
+            const purchasePrice = l.product.kind==='Bundle' ? bundleCost?.componentPurchaseCost ?? 0 : factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
-            const shortage = Math.max(0,baseQty-(allocations[i]?.ownBaseQty??0));
+            const shortage = l.product.kind==='Bundle'?0:Math.max(0,baseQty-(allocations[i]?.ownBaseQty??0));
+            const bundleShortage=l.product.kind==='Bundle'?Math.max(0,baseQty-bundleAvailable):0;
             return (
               <SortableCartRow key={l.key} line={l} index={i} count={lines.length} onMove={onMove}>
                 <div className="flex min-w-0 items-center gap-2.5">
@@ -153,7 +163,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
                     <p className="truncate text-[11px] text-ink-500">
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
-                      {l.product.category}{l.product.kind === 'Service' ? ` · ${word('service')}` : l.product.expiry?.enabled ? ` · ${word('sellable')} ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · ${word('stock')} ${formatStock(l.product)}`}
+                      {l.product.category}{l.product.kind==='Bundle'?` · Package · ${bundleAvailable} Set available`:l.product.kind === 'Service' ? ` · ${word('service')}` : l.product.expiry?.enabled ? ` · ${word('sellable')} ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · ${word('stock')} ${formatStock(l.product)}`}
                     </p>
                     <div className="mt-0.5 flex flex-wrap items-center gap-1">
                       {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
@@ -170,6 +180,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                           {word('serials')} {l.serials.length}/{Math.max(requiredSerialCount(l.product, baseQty), Math.ceil(baseQty))}
                         </button>
                       )}
+                      {l.product.kind==='Bundle'&&<span role="status" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle sale checkout pending','প্যাকেজ বিক্রির হিসাব এখনো প্রস্তুত নয়')} · {text('Component allocation required','পণ্যের স্টক ভাগ করা দরকার')}</span>}
+                      {bundleShortage>0&&<span className="rounded bg-danger-bg px-1.5 py-0.5 text-[10.5px] font-medium text-danger">{text('Component shortage','প্যাকেজের পণ্য কম')} · {bundleShortage} Set</span>}
                       {shortage > 0 && (
                         <button
                           type="button"
@@ -239,8 +251,12 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     <Eye className="size-3.5" />
                   </button>
                   {revealedPurchase === l.key &&
-                  <div className="absolute right-0 top-full z-30 mt-1 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-[11px] text-ink-600 shadow-pop">
-                      {word('cost')} {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}
+                  <div className="absolute right-0 top-full z-30 mt-1 w-max max-w-[min(300px,calc(100vw-16px))] whitespace-normal break-words rounded-md border border-border bg-card px-2 py-1.5 text-[11px] text-ink-600 shadow-pop">
+                      {l.product.kind==='Bundle'
+                       ?<><span className="font-medium">{text('Package cost','প্যাকেজের কেনা খরচ')} · {text('estimated','আনুমানিক')}</span><span className="block">{taka(purchasePrice,purchasePrice%1?2:0)}/Set</span>
+                         <span className="block text-ink-400">{text('Current component lots; not realized sale cost','বর্তমান পণ্যের লট; বিক্রির চূড়ান্ত খরচ নয়')}</span>
+                         {bundleCost&&!bundleCost.costFromAvailableLots&&<span className="block text-warning">{text('Some component cost uses catalog estimate','কিছু পণ্যের আনুমানিক দাম ধরা হয়েছে')}</span>}</>
+                       :<>{word('cost')} {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}</>}
                     </div>
                   }
                 </div></div>
@@ -262,7 +278,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
         </Reorder.Group>
         <div data-testid="pos-add-row" data-cart-add className={`${grid} border-t border-border bg-teal-50/35 px-3 py-2`}>
           <span className="pr-3 text-right text-sm text-teal-600">{lines.length + 1}.</span>
-          <ProductCombobox ref={searchRef} onSelect={onAdd} />
+          <ProductCombobox ref={searchRef} products={catalog} onSelect={onAdd} />
           <span className="pr-2 text-right text-sm text-helper">{word("qty")}</span>
           <span className="px-2 text-sm text-helper">{word("unit")}</span>
           <span className="pr-2 text-right text-sm text-helper">{word("price")}</span>

@@ -10,6 +10,17 @@
 
 **Spec:** \`docs/superpowers/specs/2026-10-16-virtual-bundle-products-design.md\` — read alongside \`AGENTS.md\`, \`docs/ui/transaction-cart-design-contract.md\`, \`docs/superpowers/specs/2026-10-09-erp-kiss-contextual-workflows-design.md\`.
 
+## User-approved amendment — 2026-10-17
+
+This section **supersedes older per-edit revision assertions in Tasks 2, 4, 5, 8 and 9**:
+
+- **Before a posted sale:** save and edit the same current Bundle revision in place; do not create history on every edit. An unchanged Save is a no-op.
+- **After a posted sale referencing the current revision:** the next changed Save creates a new immutable revision, preserving the sold recipe. Further edits of that **unsold** latest revision happen in place. Once that revision sells, the next changed Save creates the next revision.
+- **Deletion:** an unsold Bundle may be deleted with confirmation; deletion removes only its catalog/recipe preview records, never component stock. A Bundle ever referenced by a posted sale cannot be deleted even if fully returned; deactivate it instead.
+- **Sale evidence:** only a confirmed **posted invoice** with a valid bundle-revision reference freezes a recipe; drafts, quotations, online orders and **POS sale-preview dialogs do not count**. The UI preview store has a testable, idempotent posted-sale-reference contract, but it is **not** the production posting system.
+- **Concurrency:** provide an optimistic recipe-token guard for simultaneous unsold edits that share a revision number.
+- **Tests:** run `tests/bundleLifecycle.test.ts` and `scripts/bundle-editor-browser.cjs` to prove edit-in-place, sale-triggered history, rejection of sold Delete, allowed unsold Delete, unchanged Save and stale editor behavior. The prior Task 2 test expectation “every edit creates revision 2” is **obsolete**.
+
 ## Global Constraints
 
 - V1 **fixed virtual bundles only**: >=2 distinct active Stock components; no nested Bundle, Service, prepacking, assembly, per-sale substitutions or fractional Sets.
@@ -75,6 +86,8 @@ When individual files have moved on the target execution branch, locate the same
 
 ### Task 2: One atomic revisioned UI-preview catalog snapshot
 
+**AMENDED per 2026-10-17 approval:** maintain posted sale references and preserve the *current* revision number on unsold edits. Only changes after a sale of the current recipe create the next revision. No-op Save must not publish a new revision. Add pre-sale deletion and permanent post-sale deletion protection. The older Task 2 wording below is retained for historical context but overridden.
+
 **Files:**
 - Modify: \`src/data/productImportPreviewStore.ts:7-23,96-112\`
 - Create: \`src/bundles/usePreviewCatalog.ts\`
@@ -110,6 +123,8 @@ When individual files have moved on the target execution branch, locate the same
 - [ ] **Step 5: Commit.** \`git add src/bundles/bundleProjection.ts tests/bundleProjection.test.ts && git commit -m "feat(bundle): project component availability and cost"\`.
 
 ### Task 4: Full-page Bundle Editor with existing HisabIQ controls
+
+**AMENDED:** editor captures an optimistic `expectedRecipe` token to prevent overwriting another unsold same-revision edit. Action menu supports confirmed Delete only for never-sold packages. Historical number changes are not shown as an extra manual step.
 
 **Files:**
 - Create: \`src/components/products/BundleEditor.tsx\`

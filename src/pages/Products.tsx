@@ -1,14 +1,16 @@
 import { useSearchParams } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/Dialog';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { ProductThumb } from '../components/ProductThumb';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { AddProductDialog, type ProductOpeningMeta } from '../components/products/AddProductDialog';
+import { BundleEditor } from '../components/products/BundleEditor';
 import { ImportWizard } from '../components/import/ImportWizard';
 import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockLotDialog, type StockAdjustmentResult } from '../components/products/ProductInventoryDialogs';
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
@@ -16,7 +18,8 @@ import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { availableProducts, availableProductCategories, availableStockLots, availableStockMovements } from '../data/erpDemoStore';
 import {planProductImport,resolveProductDecisions} from '../import/productImport.ts';
-import {commitProductImportPreview,getProductImportPreviewSnapshot,upsertProductPreview} from '../data/productImportPreviewStore.ts';
+import {commitProductImportPreview,getProductImportPreviewSnapshot,upsertProductPreview,upsertBundlePreview,getBundleVersion,canDeleteBundlePreview,deleteBundlePreview,subscribeProductImportPreview} from '../data/productImportPreviewStore.ts';
+import {getBundleProjection,bundleInventoryValue} from '../bundles/bundleProjection';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
 import type { Product, ProductOffer, StockLot, StockMovement } from '../types/erp';
@@ -116,7 +119,8 @@ function ProductActions({
   onHistory,
   onOffers,
   onDuplicate,
-  onToggle
+  onToggle,
+  onDelete
 }: {
   product: Product;
   onView: () => void;
@@ -128,6 +132,7 @@ function ProductActions({
   onOffers: () => void;
   onDuplicate: () => void;
   onToggle: () => void;
+  onDelete?: () => void;
 }) {
   const {language}=useUiCopy();
   const pl=(english:string)=>productLabel(language,english);
@@ -151,11 +156,11 @@ function ProductActions({
         <div className="py-1">
           <button type="button" onClick={() => { close(); onView(); }} className={itemClass}>{pl('View details')}</button>
           <button type="button" onClick={() => { close(); onEdit(); }} className={itemClass}>{pl('Edit product')}</button>
-          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>{pl('Adjust stock')}</button>}
-          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onAddLot(); }} className={itemClass}>{pl('Add stock lot')}</button>}
+          {product.kind !== 'Service' && product.kind !== 'Bundle' && <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>{pl('Adjust stock')}</button>}
+          {product.kind !== 'Service' && product.kind !== 'Bundle' && <button type="button" onClick={() => { close(); onAddLot(); }} className={itemClass}>{pl('Add stock lot')}</button>}
           <button type="button" onClick={() => { close(); onOffers(); }} className={itemClass}>{pl('Manage offers')}</button>
           <div className="my-1 border-t border-border" />
-          {product.kind !== 'Service' && <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>{pl('Stock lots & serials')}</button>}
+          {product.kind !== 'Service' && product.kind !== 'Bundle' && <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>{pl('Stock lots & serials')}</button>}
           <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>{pl('Product history')}</button>
           <button
             type="button"
@@ -169,6 +174,8 @@ function ProductActions({
           </button>
           <div className="my-1 border-t border-border" />
           <button type="button" onClick={() => { close(); onDuplicate(); }} className={itemClass}>{pl('Duplicate')}</button>
+          {product.kind==='Bundle' && onDelete && <button type="button" onClick={() => {close();onDelete();}}
+            className={itemClass+' text-danger'}>{pl('Delete package')}</button>}
           <button type="button" onClick={() => { close(); onToggle(); }} className={itemClass}>
             {pl(product.active ? 'Deactivate' : 'Activate')}
           </button>
@@ -201,6 +208,10 @@ export function Products() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [creatingBundle,setCreatingBundle] = useState(false);
+  const [bundleEditorProduct,setBundleEditorProduct] = useState<Product|null>(null);
+  const [deleteBundleTarget,setDeleteBundleTarget] = useState<Product|null>(null);
+  const previewSnapshot=useSyncExternalStore(subscribeProductImportPreview,getProductImportPreviewSnapshot);
   const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
   const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
   const [lotProduct, setLotProduct] = useState<Product | null>(null);
@@ -330,7 +341,7 @@ export function Products() {
     });
   }, [list, query, category, stockFilter]);
 
-  const stockValue = list.reduce((s, p) => s + p.stock * p.purchasePrice, 0);
+  const stockValue = list.reduce((s, p) => s + bundleInventoryValue(p), 0);
   const lowCount = list.filter((p) => stockStatus(p) === 'low').length;
   const outCount = list.filter((p) => stockStatus(p) === 'out').length;
 
@@ -341,6 +352,16 @@ export function Products() {
   { label: 'Out of stock', value: String(outCount), sub: 'Needs reorder', tone: 'text-danger' }];
 
 
+  if(creatingBundle||bundleEditorProduct){
+    return <BundleEditor key={bundleEditorProduct?.id ?? 'new-bundle'} initialProduct={bundleEditorProduct} catalog={list}
+      onCancel={()=>{setCreatingBundle(false);setBundleEditorProduct(null);}}
+      onSave={(draft,revision,originalRecipe)=>{
+        upsertBundlePreview(draft,revision,originalRecipe);
+        setList(availableProducts());
+        setCreatingBundle(false);setBundleEditorProduct(null);
+        toast.success(pl('Package saved'),{description:pl('Included products are saved. No stock or ledger posted.')});
+      }}/>;
+  }
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
@@ -362,6 +383,9 @@ export function Products() {
             </Button>
             <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
               <Upload className="size-4" /> {pl('Import')}
+            </Button>
+            <Button variant="outline" size="sm" onClick={()=>{setBundleEditorProduct(null);setCreatingBundle(true);}}>
+              <Plus className="size-4" /> {pl('Add package')}
             </Button>
             <Button size="sm" onClick={() => { setEditingProduct(null); setDialogOpen(true); }}>
               <Plus className="size-4" /> {pl('Add product')}
@@ -467,8 +491,9 @@ export function Products() {
           </TableHeader>
           <TableBody>
             {filtered.map((p, i) => {
-              const s = stockStatus(p);
-              const rowStockValue = p.stock * p.purchasePrice;
+              const projection = p.kind==='Bundle' ? (getBundleVersion(p.id) ? getBundleProjection(getBundleVersion(p.id)!,list,lots) : null) : null;
+              const s = p.kind==='Bundle' ? (!p.active?'inactive':(projection?.availableSets ?? 0)>0?'in':'out') : stockStatus(p);
+              const rowStockValue = bundleInventoryValue(p);
               return (
                 <TableRow key={p.id} className="text-[13px]">
                   {visibleColumns.index && <TableCell className="py-2 pl-4 text-ink-400">{i + 1}.</TableCell>}
@@ -490,13 +515,13 @@ export function Products() {
                   </TableCell>}
                   {visibleColumns.stock &&
                   <TableCell className={`py-2 text-right font-medium ${s === 'low' ? 'text-warning' : s === 'out' ? 'text-danger' : 'text-ink'}`}>
-                    {p.kind === 'Service' ? '—' : formatStock(p)}
-                    {p.kind !== 'Service' && <span className="block text-[11px] font-normal text-ink-400">{pl("min")} {formatStock({ ...p, stock: p.minStock })}</span>}
+                    {p.kind === 'Service' ? '—' : p.kind==='Bundle' ? (projection?.availableSets??0)+' Set' : formatStock(p)}
+                    {p.kind !== 'Service' && p.kind !== 'Bundle' && <span className="block text-[11px] font-normal text-ink-400">{pl("min")} {formatStock({ ...p, stock: p.minStock })}</span>}
                   </TableCell>}
                   {visibleColumns.stockValue &&
                   <TableCell className="py-2 text-right font-medium text-ink">
-                    {p.kind === 'Service' ? '—' : taka(rowStockValue, rowStockValue % 1 ? 2 : 0)}
-                    {p.kind !== 'Service' && <span className="block text-[11px] font-normal text-ink-400">{pl("at purchase price")}</span>}
+                    {p.kind === 'Service' || p.kind === 'Bundle' ? '—' : taka(rowStockValue, rowStockValue % 1 ? 2 : 0)}
+                    {p.kind !== 'Service' && p.kind !== 'Bundle' && <span className="block text-[11px] font-normal text-ink-400">{pl("at purchase price")}</span>}
                   </TableCell>}
                   {visibleColumns.unit &&
                   <TableCell className="py-2 text-ink-600">
@@ -512,7 +537,7 @@ export function Products() {
                   </TableCell>}
                   {visibleColumns.purchase &&
                   <TableCell className="py-2 text-right text-ink-600">
-                    {taka(p.purchasePrice, p.purchasePrice % 1 ? 2 : 0)}
+                    {p.kind==='Bundle' ? '—' : taka(p.purchasePrice, p.purchasePrice % 1 ? 2 : 0)}
                   </TableCell>}
                   {visibleColumns.selling &&
                   <TableCell className="py-2 text-right font-medium text-ink">
@@ -532,7 +557,7 @@ export function Products() {
                     <ProductActions
                       product={p}
                       onView={() => setDetailsProduct(p)}
-                      onEdit={() => { setEditingProduct(p); setDialogOpen(true); }}
+                      onEdit={() => { if(p.kind==='Bundle'){setBundleEditorProduct(p);setCreatingBundle(false);}else{setEditingProduct(p);setDialogOpen(true);} }}
                       onAdjust={() => setAdjustProduct(p)}
                       onAddLot={() => setLotProduct(p)}
                       onLots={() => openLots(p)}
@@ -546,10 +571,17 @@ export function Products() {
                           sku: `${p.sku}-COPY`,
                           stock: 0
                         };
-                        setList((items) => [copy, ...items]);
+                        if(p.kind==='Bundle'){
+                          const recipe=getBundleVersion(p.id);
+                          if(!recipe)return toast.error('Package recipe missing');
+                          const draft={product:{...copy,kind:'Bundle' as const,unit:'Set' as const,stock:0,minStock:0,purchasePrice:0},components:recipe.components};
+                          try{upsertBundlePreview(draft,null);setList(availableProducts());}catch(error){return toast.error(error instanceof Error?error.message:'Could not copy package');}
+                        }else setList((items) => [copy, ...items]);
                         toast.success(`${p.name} ${pl('duplicated')}`, { description: pl('Product settings copied with zero opening stock.') });
                       }}
                       onToggle={() => setList((items) => items.map((item) => item.id === p.id ? { ...item, active: !item.active } : item))}
+                      onDelete={p.kind==='Bundle' && canDeleteBundlePreview(p.id) && !previewSnapshot.bundleSaleReferences.some(ref=>ref.bundleProductId===p.id)
+                        ?()=>setDeleteBundleTarget(p):undefined}
                     />
                   </TableCell>
                 </TableRow>);
@@ -694,6 +726,29 @@ export function Products() {
           setDialogOpen(false);
           setEditingProduct(null);
         }} />
+
+      <Dialog open={Boolean(deleteBundleTarget)} onOpenChange={open=>{if(!open)setDeleteBundleTarget(null);}}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{pl('Delete package')}</DialogTitle>
+            <DialogDescription>{pl('Delete unsold package? This cannot be undone.')}</DialogDescription>
+          </DialogHeader>
+          {deleteBundleTarget && <p className="text-sm font-medium text-ink">{deleteBundleTarget.name} · {deleteBundleTarget.sku}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={()=>setDeleteBundleTarget(null)}>{pl('Cancel')}</Button>
+            <Button onClick={()=>{
+              if(!deleteBundleTarget)return;
+              try{
+                deleteBundlePreview(deleteBundleTarget.id);
+                setList(availableProducts());
+                setDetailsProduct(current=>current?.id===deleteBundleTarget.id?null:current);
+                toast.success(pl('Package deleted'));
+                setDeleteBundleTarget(null);
+              }catch(error){toast.error(error instanceof Error?error.message:pl('Could not delete package'));}
+            }}>{pl('Delete package')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ProductDetailsDialog
         product={detailsProduct}

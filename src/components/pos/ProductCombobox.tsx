@@ -10,6 +10,9 @@ import { taka } from '../../utils/currency';
 import type { Product } from '../../types/erp';
 import { activeOfferFor, effectivePriceForUnit, productStockBreakdown } from '../../utils/productFeatures';
 import { useUiCopy } from '../../i18n/useUiCopy';
+import { getBundleVersion } from '../../data/productImportPreviewStore';
+import { availableStockLots } from '../../data/erpDemoStore';
+import { getBundleProjection } from '../../bundles/bundleProjection';
 
 export type ProductPickerMode = 'sale' | 'purchase' | 'quotation' | 'online';
 type ProductComboboxProps = {
@@ -54,7 +57,7 @@ ref)
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = (suppliedProducts ?? seedProducts).filter((p) => p.active && (mode !== 'purchase' || p.kind !== 'Service'));
+    const list = (suppliedProducts ?? seedProducts).filter((p) => p.active && (mode !== 'purchase' || (p.kind !== 'Service' && p.kind !== 'Bundle')));
     if (!q) return list.slice(0, 8);
     return list.
     filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.brand ?? '').toLowerCase().includes(q)).
@@ -67,13 +70,18 @@ ref)
     const triggerRect = inputRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    // Keep the floating list below the sticky ERP toolbar on phones/tablets.
+    // Without this safe top inset, an upward-opening list intercepts menu taps.
+    const topBoundary = viewportWidth < 1024 ? 64 : VIEWPORT_PADDING;
     const naturalHeight = listRef.current?.scrollHeight ?? 0;
-    const maxViewportHeight = Math.max(120, viewportHeight - VIEWPORT_PADDING * 2);
-    const panelHeight = Math.min(naturalHeight || maxViewportHeight, maxViewportHeight);
-    const spaceBelow = viewportHeight - triggerRect.bottom - GAP - VIEWPORT_PADDING;
-    const spaceAbove = triggerRect.top - GAP - VIEWPORT_PADDING;
+    const maxViewportHeight = Math.max(80, viewportHeight - topBoundary - VIEWPORT_PADDING);
+    const spaceBelow = Math.max(0, viewportHeight - triggerRect.bottom - GAP - VIEWPORT_PADDING);
+    const spaceAbove = Math.max(0, triggerRect.top - GAP - topBoundary);
 
     const opensUp = naturalHeight > 0 && naturalHeight > spaceBelow && spaceAbove > spaceBelow;
+    const availableSpace = opensUp ? spaceAbove : spaceBelow;
+    const maxHeight = Math.max(72, Math.min(maxViewportHeight, availableSpace));
+    const panelHeight = Math.min(naturalHeight || maxHeight, maxHeight);
     const width = Math.min(
       Math.max(triggerRect.width, DESIRED_WIDTH),
       Math.max(0, viewportWidth - VIEWPORT_PADDING * 2)
@@ -88,12 +96,12 @@ ref)
       : triggerRect.bottom + GAP;
 
     const top = Math.min(
-      Math.max(VIEWPORT_PADDING, preferredTop),
-      Math.max(VIEWPORT_PADDING, viewportHeight - panelHeight - VIEWPORT_PADDING)
+      Math.max(topBoundary, preferredTop),
+      Math.max(topBoundary, viewportHeight - panelHeight - VIEWPORT_PADDING)
     );
 
     setPosition((current) => {
-      const next = { top, left, width, maxHeight: maxViewportHeight, opensUp };
+      const next = { top, left, width, maxHeight, opensUp };
       if (
         current &&
         current.top === next.top &&
@@ -121,7 +129,7 @@ ref)
   useEffect(() => {
     if (!open) return;
 
-    const onOutsideInteraction = (event: MouseEvent | FocusEvent) => {
+    const onOutsideInteraction = (event: MouseEvent | FocusEvent | PointerEvent) => {
       const target = event.target as Node;
       if (rootRef.current?.contains(target) || listRef.current?.contains(target)) return;
       setOpen(false);
@@ -139,6 +147,7 @@ ref)
 
     const onViewportChange = () => updatePosition();
 
+    document.addEventListener('pointerdown', onOutsideInteraction);
     document.addEventListener('mousedown', onOutsideInteraction);
     document.addEventListener('focusin', onOutsideInteraction);
     document.addEventListener('keydown', onKey);
@@ -146,6 +155,7 @@ ref)
     window.addEventListener('scroll', onViewportChange, true);
 
     return () => {
+      document.removeEventListener('pointerdown', onOutsideInteraction);
       document.removeEventListener('mousedown', onOutsideInteraction);
       document.removeEventListener('focusin', onOutsideInteraction);
       document.removeEventListener('keydown', onKey);
@@ -206,8 +216,10 @@ ref)
             const displayUnit = unitsFor(p).includes(preferredUnit) ? preferredUnit : p.unit;
             const normalPrice = mode === 'purchase' ? p.purchasePrice : effectivePriceForUnit(p, undefined, displayUnit);
             const effectivePrice = mode === 'purchase' ? p.purchasePrice : effectivePriceForUnit(p, activeOffer, displayUnit);
-            const breakdown = p.kind === 'Service' ? null : productStockBreakdown(p, stockLots);
-            const sellableStatus = p.kind === 'Service'
+            const recipe=p.kind==='Bundle'?getBundleVersion(p.id):undefined;
+            const bundleAvailable=recipe?getBundleProjection(recipe,suppliedProducts??seedProducts,availableStockLots()).availableSets:0;
+            const breakdown = p.kind === 'Service'||p.kind==='Bundle' ? null : productStockBreakdown(p, stockLots);
+            const sellableStatus = p.kind === 'Bundle' ? bundleAvailable>0?'in':'out' : p.kind === 'Service'
               ? 'service'
               : p.expiry?.enabled
                 ? (breakdown?.sellable ?? 0) <= 0
@@ -242,7 +254,9 @@ ref)
                     <span className="font-normal text-ink-400">/{displayUnit}</span>
                   </p>
                   <p className={`text-[11px] ${sellableStatus === 'low' || sellableStatus === 'out' ? 'text-danger' : 'text-ink-500'}`}>
-                    {p.kind === 'Service'
+                    {p.kind === 'Bundle'
+                      ? 'Package · '+bundleAvailable+' Set available'
+                      : p.kind === 'Service'
                       ? 'Service'
                       : p.expiry?.enabled
                         ? `${sellableStatus === 'out' ? 'Out of sellable stock' : 'Sellable'} · ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}`

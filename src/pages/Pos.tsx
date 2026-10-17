@@ -268,6 +268,12 @@ export function Pos() {
   },[incomingOrderId,cart.setCustomer,cart.setCustomerDetails,cart.setDiscount,cart.setDiscountMode,cart.setLines,cart.setPayments,navigate]);
 
   const complete = () => {
+    if(cart.lines.some(line=>line.product.kind==='Bundle')){
+      toast.error('Bundle sale checkout pending',{
+        description:'Bundle component lots and serials must be allocated and snapshotted before a sale preview. Package cost is currently an estimate.'
+      });
+      return;
+    }
     const t = cart.totals;
     const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
