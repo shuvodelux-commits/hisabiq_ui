@@ -164,6 +164,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
             const recipe=l.product.kind==='Bundle'&&l.bundleRevision?getBundleVersion(l.product.id,l.bundleRevision):undefined;
             const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
+            const bundleCostPending=l.product.kind==='Bundle'&&Object.values(l.bundleSources??{}).some(source=>
+              source.mode==='Negative'||(source.mode==='Vendor'&&source.unitCost===null));
             const bundleAvailable=recipe?getBundleProjection(recipe,catalog,availableStockLots()).availableSets:0;
             const purchasePrice = l.product.kind==='Bundle' ? bundleCost?.componentPurchaseCost ?? 0 : factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
@@ -306,7 +308,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                       {l.product.kind==='Bundle'
                        ?<><span className="font-medium">{text('Package cost','প্যাকেজের কেনা খরচ')} · {text('estimated','আনুমানিক')}</span><span className="block">{taka(purchasePrice,purchasePrice%1?2:0)}/Set</span>
                          <span className="block text-ink-400">{text('Current component lots; not realized sale cost','বর্তমান পণ্যের লট; বিক্রির চূড়ান্ত খরচ নয়')}</span>
-                         {bundleCost&&!bundleCost.costFromAvailableLots&&<span className="block text-warning">{text('Some component cost uses catalog estimate','কিছু পণ্যের আনুমানিক দাম ধরা হয়েছে')}</span>}</>
+                         {bundleCost&&!bundleCost.costFromAvailableLots&&<span className="block text-warning">{text('Some component cost uses catalog estimate','কিছু পণ্যের আনুমানিক দাম ধরা হয়েছে')}</span>}
+                         {bundleCostPending&&<span role="note" className="block font-medium text-warning">{text('Sourced component cost is pending — profit is not final','পণ্যের কেনা দাম বাকি — লাভ এখনও নিশ্চিত নয়')}</span>}</>
                        :<>{word('cost')} {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}</>}
                     </div>
                   }
