@@ -183,6 +183,19 @@ export function upsertBundlePreview(
   ...product,kind:'Bundle',unit:'Set',stock:0,minStock:0,purchasePrice:0,
   altUnit:undefined,stockViewUnit:undefined,serialTracking:'Off',expiry:undefined
  };
+ // A Save click with no actual master-data or component change is a no-op.
+ // In particular, a previously sold package does not get a phantom revision.
+ const fields:readonly (keyof Product)[]=['kind','name','nameBn','sku','category','brand','image',
+  'unit','sellPrice','active','stock','minStock','purchasePrice','altUnit','stockViewUnit','serialTracking','expiry','warranty'];
+ const sameProduct=Boolean(existing&&fields.every(key=>JSON.stringify(existing[key])===JSON.stringify(savedProduct[key])));
+ const sameComponents=Boolean(latest&&latest.components.length===version.components.length&&
+  latest.components.every((old,index)=>{
+   const next=version.components[index];
+   return old.productId===next.productId&&old.primaryQty===next.primaryQty&&
+    old.secondaryQty===next.secondaryQty&&old.selectedUnit===next.selectedUnit&&
+    old.baseQty===next.baseQty&&old.unitFactorAtSave===next.unitFactorAtSave&&old.sortOrder===next.sortOrder;
+  }));
+ if(latest&&sameProduct&&sameComponents)return latest;
  const products=existing?snapshot.products.map(item=>item.id===existing.id?savedProduct:item):[savedProduct,...snapshot.products];
  const versions=latest&&!soldCurrent
   ?snapshot.bundleVersions.map(v=>v.bundleProductId===product.id&&v.revision===latest.revision?version:v)
