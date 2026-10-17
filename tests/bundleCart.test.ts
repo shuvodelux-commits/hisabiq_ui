@@ -83,3 +83,12 @@ test('shortage allocation is all-or-nothing: no partial fake stock when a compon
  assert.ok(r.errors.some(x=>/shortage/i.test(x)));
  assert.deepEqual(r.allocations,[]);
 });
+
+test('legacy products with omitted kind behave as Stock, matching existing POS inventory',()=>{
+ const legacy={...pipe,kind:undefined};
+ const demands=expandCartStockDemand([line('a',a,'1',1)],[a,legacy,sock],getRecipe);
+ assert.deepEqual(demands.errors,[]);
+ const shortage=projectCartShortages(demands.demands,[a,legacy,sock],lots,new Date('2026-10-17'));
+ assert.equal(shortage.find(x=>x.componentProductId==='pipe')?.shortageBaseQty,0);
+ assert.equal(allocateBundlePreview(demands.demands,[a,legacy,sock],lots,new Date('2026-10-17')).errors.length,0);
+});
