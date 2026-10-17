@@ -1,4 +1,5 @@
-import type {Product,StockLot,StockMovement} from '../types/erp.ts';
+import type {Product,StockLot,StockMovement,BundleVersion,BundleDraft} from '../types/erp.ts';
+import {validateBundleDraft} from '../bundles/bundleValidation.ts';
 import type {ImportResult} from '../import/importTypes.ts';
 import type {ProductImportPlan} from '../import/productImport.ts';
 import {products as seedProducts} from './products.ts';
@@ -7,11 +8,12 @@ import {stockLots as seedLots,stockMovements as seedMovements} from './productIn
 export type ProductImportPreviewSnapshot={
  revision:number;appliedSessionIds:readonly string[];
  products:readonly Product[];lots:readonly StockLot[];movements:readonly StockMovement[];
+ bundleVersions:readonly BundleVersion[];
 };
 /** Design-preview module singleton, never a tenant or server data source. */
 let snapshot:ProductImportPreviewSnapshot={
  revision:0,appliedSessionIds:[],products:seedProducts.map(p=>({...p})),
- lots:seedLots.map(l=>({...l})),movements:seedMovements.map(m=>({...m}))
+ lots:seedLots.map(l=>({...l})),movements:seedMovements.map(m=>({...m})),bundleVersions:Object.freeze([])
 };
 const listeners=new Set<()=>void>();
 const results=new Map<string,ImportResult>();
@@ -43,6 +45,7 @@ export function commitProductImportPreview(plan:ProductImportPlan):ImportResult 
   if(rows.has(entry.sourceRow))throw new Error('Duplicate source row in import.');
   rows.add(entry.sourceRow);
   const product=entry.product;
+  if(product.kind==='Bundle')throw new Error('Bundles must be created through the Bundle editor, not stock import.');
   const sku=skuKey(product.sku);
   if(!sku||skus.has(sku)||ids.has(product.id))throw new Error('Duplicate product ID or SKU: '+product.sku);
   if(!product.name.trim()||!Number.isFinite(product.sellPrice)||product.sellPrice<=0||!Number.isFinite(product.purchasePrice)||product.purchasePrice<0)throw new Error('Invalid product master data.');
@@ -78,6 +81,7 @@ export function commitProductImportPreview(plan:ProductImportPlan):ImportResult 
   rows.add(entry.sourceRow);
   const index=products.findIndex(product=>product.id===entry.productId);
   if(index<0)throw new Error('Update product no longer exists.');
+  if(products[index].kind==='Bundle')throw new Error('Bundle recipes cannot be changed through product import.');
   if(Object.keys(entry.patch).some(key=>!allowed.has(key)))throw new Error('Unsafe product master update.');
   const patch=entry.patch;
   if(patch.sellPrice!==undefined&&(!Number.isFinite(patch.sellPrice)||patch.sellPrice<=0))throw new Error('Invalid updated selling price.');
@@ -88,24 +92,64 @@ export function commitProductImportPreview(plan:ProductImportPlan):ImportResult 
  const result:ImportResult={sessionId:plan.sessionId,created:plan.creates.length,masterUpdated:plan.updates.length,
   roleAdded:0,openingSources:0,openingLots:plan.creates.filter(c=>Boolean(c.openingLot)).length,
   skipped:plan.skipped,rejected:0,errors:[]};
- publish({revision:snapshot.revision+1,appliedSessionIds:[...snapshot.appliedSessionIds,plan.sessionId],products,lots,movements});
+ publish({revision:snapshot.revision+1,appliedSessionIds:[...snapshot.appliedSessionIds,plan.sessionId],products,lots,movements,bundleVersions:snapshot.bundleVersions});
  results.set(plan.sessionId,result);
  return result;
 }
+/**
+ * Revisions are immutable recipe history, like catalog versions (not physical lots).
+ * UI preview only; real tenant-safe posting is a separate backend concern.
+ */
+export function getBundleVersion(bundleProductId:string,revision?:number):BundleVersion|undefined {
+ const versions=snapshot.bundleVersions.filter(item=>item.bundleProductId===bundleProductId);
+ return revision===undefined?versions[versions.length-1]:versions.find(item=>item.revision===revision);
+}
+export function upsertBundlePreview(draft:BundleDraft,expectedRevision:number|null):BundleVersion {
+ const product=draft.product;
+ const existing=snapshot.products.find(item=>item.id===product.id);
+ const latest=getBundleVersion(product.id);
+ if(expectedRevision===null){
+  if(existing||latest)throw new Error('Product ID already exists. Create a new Bundle SKU.');
+ }else{
+  if(!Number.isInteger(expectedRevision)||expectedRevision<1||!existing||existing.kind!=='Bundle'||!latest)
+   throw new Error('Bundle revision changed or product no longer exists.');
+  if(latest.revision!==expectedRevision)throw new Error('Bundle revision changed. Reopen and review before saving.');
+ }
+ if(snapshot.products.some(item=>item.id!==product.id&&skuKey(item.sku)===skuKey(product.sku)))
+  throw new Error('Product SKU already exists.');
+ const errors=validateBundleDraft(draft,snapshot.products);
+ if(errors.length)throw new Error(errors.join(' '));
+ const version:BundleVersion=Object.freeze({
+  bundleProductId:product.id,revision:(latest?.revision??0)+1,createdAt:new Date().toISOString(),
+  components:Object.freeze(draft.components.map(component=>Object.freeze({...component})))
+ });
+ const savedProduct:Product={
+  ...product,kind:'Bundle',unit:'Set',stock:0,minStock:0,purchasePrice:0,
+  altUnit:undefined,stockViewUnit:undefined,serialTracking:'Off',expiry:undefined
+ };
+ const products=existing?snapshot.products.map(item=>item.id===existing.id?savedProduct:item):[savedProduct,...snapshot.products];
+ publish({...snapshot,revision:snapshot.revision+1,products,
+  bundleVersions:Object.freeze([...snapshot.bundleVersions,version])});
+ return version;
+}
 /** The manual Add/Edit screen shares the same Product projection as bulk imports. */
 export function upsertProductPreview(product:Product,lot?:StockLot,movement?:StockMovement):void {
+ if(product.kind==='Bundle'||snapshot.products.some(item=>item.id===product.id&&item.kind==='Bundle'))
+  throw new Error('Bundle products must be edited through the versioned Bundle editor.');
  const products=snapshot.products.filter(p=>p.id!==product.id);
  if(products.some(p=>skuKey(p.sku)===skuKey(product.sku)))throw new Error('Product SKU already exists.');
  if(Boolean(lot)!==Boolean(movement))throw new Error('Opening lot and movement must be paired.');
  if(lot&&(lot.productId!==product.id||movement?.productId!==product.id))throw new Error('Opening reference mismatch.');
  publish({revision:snapshot.revision+1,appliedSessionIds:snapshot.appliedSessionIds,
   products:[{...product},...products],lots:lot?[{...lot},...snapshot.lots]:snapshot.lots,
-  movements:movement?[{...movement},...snapshot.movements]:snapshot.movements});
+  movements:movement?[{...movement},...snapshot.movements]:snapshot.movements,bundleVersions:snapshot.bundleVersions});
 }
 /** Keep stock corrections and manually received lots visible after Product-page navigation. */
 export function updateProductInventoryPreview(product:Product,lots:readonly StockLot[],movements:readonly StockMovement[]):void {
+ if(product.kind==='Bundle'||snapshot.products.some(item=>item.id===product.id&&item.kind==='Bundle'))
+  throw new Error('Virtual bundles have no direct stock to adjust.');
  const products=snapshot.products.map(p=>p.id===product.id?{...product}:p);
  if(!products.some(p=>p.id===product.id))throw new Error('Product does not exist.');
  publish({revision:snapshot.revision+1,appliedSessionIds:snapshot.appliedSessionIds,
-  products,lots:[...lots],movements:[...movements]});
+  products,lots:[...lots],movements:[...movements],bundleVersions:snapshot.bundleVersions});
 }
