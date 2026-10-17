@@ -14,13 +14,15 @@ export function FinancePaymentSplitEditor({
   accounts,
   rows,
   onChange,
-  totalAmount, onCreateAccount
+  totalAmount, onCreateAccount, preserveInactiveSelected = false
 }: {
   accounts: FinanceAccount[];
   rows: FinancePaymentDraft[];
   onChange: (rows: FinancePaymentDraft[]) => void;
   totalAmount: number;
   onCreateAccount?: (rowId:string, method:FinancePaymentDraft['method']) => void;
+  /** Used in historical correction forms to show the source already saved on the record. */
+  preserveInactiveSelected?: boolean;
 }) {
   const {text,language,showHelper}=useUiCopy();
   const normalized = normalizeFinancePaymentSplits(rows, accounts, totalAmount);
@@ -48,7 +50,11 @@ export function FinancePaymentSplitEditor({
       <div className="space-y-2 p-3">
         {rows.map((row) => {
           const available = accountsForFinanceMethod(accounts, row.method);
-          const selected = available.find((item) => item.id === row.accountId) ?? available[0];
+          const inactiveSelected = preserveInactiveSelected
+            ? accounts.find((item) => item.id === row.accountId && item.status === 'Inactive')
+            : undefined;
+          const choices = inactiveSelected ? [...available, inactiveSelected] : available;
+          const selected = choices.find((item) => item.id === row.accountId) ?? available[0];
           return (
             <div key={row.id} className="grid gap-2 sm:grid-cols-[130px_1fr_120px_32px]">
               <FormSelect
@@ -63,11 +69,19 @@ export function FinancePaymentSplitEditor({
               <div className="min-w-0 space-y-1">
               <FormSelect
                 value={selected?.id ?? ''}
+                aria-label={selected
+                  ? text('Payment account','টাকার হিসাব') + ': ' + selected.name + (selected.status === 'Inactive' ? ' · ' + financeLabel(language,'Inactive') : '')
+                  : text('Payment account','টাকার হিসাব')}
                 onChange={(event) => {
-                  const account = available.find((item) => item.id === event.target.value);
+                  const account = choices.find((item) => item.id === event.target.value);
                   onChange(rows.map((item) => item.id === row.id ? { ...item, accountId: account?.id ?? '' } : item));
                 }}
-                options={available.map((item) => ({value: item.id, label: item.name + (available.filter(account => account.name === item.name).length > 1 ? ' · ' + taka(item.balance) : '')}))}
+                options={choices.map((item) => ({
+                  value: item.id,
+                  label: item.name
+                    + (available.filter(account => account.name === item.name).length + (inactiveSelected?.name === item.name ? 1 : 0) > 1 ? ' · ' + taka(item.balance) : '')
+                    + (item.status === 'Inactive' ? ' · ' + financeLabel(language, 'Inactive') : '')
+                }))}
               />
               {onCreateAccount && <Button variant="outline" size="sm" onClick={() => onCreateAccount(row.id, row.method)}>{text('Add account','হিসাব যোগ করুন')}</Button>}
               </div>

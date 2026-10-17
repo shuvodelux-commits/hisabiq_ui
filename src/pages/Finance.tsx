@@ -29,6 +29,7 @@ import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
 import { CashSessionDetailsDialog } from '../components/finance/CashSessionDetailsDialog';
 import { FinancePaymentSplitEditor, type FinancePaymentDraft } from '../components/finance/FinancePaymentSplitEditor';
+import { financeAccountIdentityLabel, transferAccountId, transferAccountLabel } from '../utils/accountTransferIdentity';
 import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid } from '../utils/financePaymentDrafts';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
@@ -394,8 +395,8 @@ function TransferDialog({
 }) {
   const {text}=useUiCopy();
   const active = accounts.filter((item) => item.status === 'Active');
-  const [from, setFrom] = useState(active[0]?.name ?? '');
-  const [to, setTo] = useState(active[1]?.name ?? '');
+  const [from, setFrom] = useState(active[0]?.id ?? '');
+  const [to, setTo] = useState(active[1]?.id ?? '');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
   const [reviewTransfer, setReviewTransfer] = useState(false);
@@ -403,9 +404,9 @@ function TransferDialog({
 
   React.useEffect(() => {
     if (!open) return;
-    const preferred = active.find((item) => item.name === initialFrom)?.name ?? active[0]?.name ?? '';
+    const preferred = active.find((item) => item.id === initialFrom)?.id ?? active[0]?.id ?? '';
     setFrom(preferred);
-    const other = active.find((item) => item.name !== preferred)?.name ?? '';
+    const other = active.find((item) => item.id !== preferred)?.id ?? '';
     setTo(other);
     setAmount('');
     setReference('');
@@ -417,7 +418,9 @@ function TransferDialog({
       toast.error(text('Enter a transfer amount','কত টাকা সরাবেন লিখুন'));
       return;
     }
-    if (from === to) {
+    const fromAccount = active.find((item) => item.id === from);
+    const toAccount = active.find((item) => item.id === to);
+    if (!fromAccount || !toAccount || fromAccount.id === toAccount.id) {
       toast.error(text('Choose two different accounts','দুটি আলাদা হিসাব বাছুন'));
       return;
     }
@@ -425,8 +428,10 @@ function TransferDialog({
     onSave({
       id: nextId,
       date: '06 Oct 2026',
-      from,
-      to,
+      from: fromAccount.name,
+      to: toAccount.name,
+      fromAccountId: fromAccount.id,
+      toAccountId: toAccount.id,
       amount: value,
       reference: reference || undefined,
       status: 'Completed'
@@ -445,11 +450,11 @@ function TransferDialog({
         <div className="grid gap-3">
           <label className="text-[13px] font-medium text-ink">
             {text('From account','যে হিসাব থেকে')}
-            <FormSelect className="mt-1.5" value={from} onChange={(event) => setFrom(event.target.value)} options={active.map((item) => item.name)} />
+            <FormSelect className="mt-1.5" value={from} onChange={(event) => setFrom(event.target.value)} options={active.map((item) => ({ value: item.id, label: financeAccountIdentityLabel(item, active) }))} />
           </label>
           <label className="text-[13px] font-medium text-ink">
             {text('To account','যে হিসাবে')}
-            <FormSelect className="mt-1.5" value={to} onChange={(event) => setTo(event.target.value)} options={active.map((item) => item.name)} />
+            <FormSelect className="mt-1.5" value={to} onChange={(event) => setTo(event.target.value)} options={active.map((item) => ({ value: item.id, label: financeAccountIdentityLabel(item, active) }))} />
           </label>
           <label className="text-[13px] font-medium text-ink">
             {text('Amount','টাকা')}
@@ -467,7 +472,7 @@ function TransferDialog({
         <p className="rounded-md bg-ink-50 px-3 py-2 text-xs text-ink-500" aria-live="polite">{amountInWords(Number(amount)||0)}</p>
         {reviewTransfer&&<div role="status" className="rounded-xl border border-border bg-ink-50 p-3 text-sm">
           <p className="font-semibold">{text('Check transfer before recording','টাকা সরানোর আগে হিসাব মিলিয়ে নিন')}</p>
-          <p className="mt-1">{from} → {to}</p><p>{taka(Number(amount)||0)}</p><p>{amountInWords(Number(amount)||0)}</p>
+          <p className="mt-1">{financeAccountIdentityLabel(active.find((item) => item.id === from) ?? active[0], active)} → {financeAccountIdentityLabel(active.find((item) => item.id === to) ?? active[1], active)}</p><p>{taka(Number(amount)||0)}</p><p>{amountInWords(Number(amount)||0)}</p>
         </div>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
@@ -486,7 +491,11 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   const tab: Tab = counterOnly ? 'counter' : financeTab;
   const [accounts, setAccounts] = useState<FinanceAccount[]>(seedAccounts);
   const [transactions, setTransactions] = useState<FinanceTransaction[]>(seedTransactions);
-  const [transfers, setTransfers] = useState<AccountTransfer[]>(seedTransfers);
+  const [transfers, setTransfers] = useState<AccountTransfer[]>(() => seedTransfers.map((transfer) => ({
+    ...transfer,
+    fromAccountId: transferAccountId(transfer, 'from', seedAccounts),
+    toAccountId: transferAccountId(transfer, 'to', seedAccounts)
+  })));
   const [people, setPeople] = useState<FinancePerson[]>(seedPeople);
   const [chequeRecords, setChequeRecords] = useState<ChequeRecord[]>(seedCheques);
   const [transactionOpen, setTransactionOpen] = useState(false);
@@ -544,11 +553,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         account: item.accountId === updated.id ? updated.name : item.account,
         paymentAccounts: item.paymentAccounts?.map((split) => split.accountId === updated.id ? { ...split, account: updated.name } : split)
       })));
-      setTransfers((current) => current.map((item) => ({
-        ...item,
-        from: item.from === previous.name ? updated.name : item.from,
-        to: item.to === previous.name ? updated.name : item.to
-      })));
+<<<<<<< HEAD
       setChequeRecords((current) => renameChequeAccountReferences(current, accounts, updated, previous.name));
     }
     setAccountAction(updated);
@@ -586,7 +591,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   };
 
   const openTransfer = (account?: FinanceAccount) => {
-    setTransferFrom(account?.name);
+    setTransferFrom(account?.id);
     setTransferOpen(true);
   };
 
@@ -628,8 +633,8 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
     const reversed = { ...transfer, status: 'Reversed' as const };
     setTransfers((current) => current.map((item) => item.id === transfer.id ? reversed : item));
     setAccounts((current) => current.map((account) => {
-      if (account.name === transfer.from) return { ...account, balance: account.balance + transfer.amount, lastActivity: 'Just now' };
-      if (account.name === transfer.to) return { ...account, balance: account.balance - transfer.amount, lastActivity: 'Just now' };
+      if (account.id === transferAccountId(transfer, 'from', accounts)) return { ...account, balance: account.balance + transfer.amount, lastActivity: 'Just now' };
+      if (account.id === transferAccountId(transfer, 'to', accounts)) return { ...account, balance: account.balance - transfer.amount, lastActivity: 'Just now' };
       return account;
     }));
     setTransferAction(reversed);
@@ -1003,12 +1008,12 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                         <p className="font-medium text-ink">{item.id}</p>
                         <p className="text-[10.5px] text-ink-400">{item.date}{item.reference ? ` · ${item.reference}` : ''}</p>
                       </TableCell>
-                      <TableCell className="py-2">{item.from}</TableCell>
-                      <TableCell className="py-2">{item.to}</TableCell>
+                      <TableCell className="py-2">{transferAccountLabel(item, 'from', accounts)}</TableCell>
+                      <TableCell className="py-2">{transferAccountLabel(item, 'to', accounts)}</TableCell>
                       <TableCell className="py-2 text-right font-semibold">{taka(item.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
-                        <button onClick={() => setTransferAction(item)} aria-label={text('Actions for','কাজ') + ' ' + item.id} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
+                        <button onClick={() => setTransferAction({ ...item, from: transferAccountLabel(item, 'from', accounts), to: transferAccountLabel(item, 'to', accounts) })} aria-label={text('Actions for','কাজ') + ' ' + item.id} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
                           <MoreHorizontal className="size-4" />
                         </button>
                       </TableCell>
@@ -1196,11 +1201,11 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         onSave={(transfer) => {
           setTransfers((current) => [transfer, ...current]);
           setAccounts((current) => current.map((account) => {
-            if (account.name === transfer.from) return { ...account, balance: account.balance - transfer.amount, lastActivity: 'Just now' };
-            if (account.name === transfer.to) return { ...account, balance: account.balance + transfer.amount, lastActivity: 'Just now' };
+            if (account.id === transfer.fromAccountId) return { ...account, balance: account.balance - transfer.amount, lastActivity: 'Just now' };
+            if (account.id === transfer.toAccountId) return { ...account, balance: account.balance + transfer.amount, lastActivity: 'Just now' };
             return account;
           }));
-          toast.success('Transfer completed', { description: transfer.from + ' → ' + transfer.to + ' · ' + taka(transfer.amount) });
+          toast.success('Transfer completed', { description: transferAccountLabel(transfer, 'from', accounts) + ' → ' + transferAccountLabel(transfer, 'to', accounts) + ' · ' + taka(transfer.amount) });
         }}
       />
 
@@ -1254,6 +1259,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
 
       <FinanceAccountActionDialog
         account={accountAction}
+        accounts={accounts}
         transactions={transactions}
         transfers={transfers}
         onClose={() => setAccountAction(null)}

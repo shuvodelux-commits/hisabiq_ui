@@ -77,6 +77,9 @@ export type AccountTransfer = {
   date: string;
   from: string;
   to: string;
+  /** Stable endpoints; optional only for legacy transfer records. */
+  fromAccountId?: string;
+  toAccountId?: string;
   amount: number;
   reference?: string;
   status: 'Completed' | 'Reversed';
