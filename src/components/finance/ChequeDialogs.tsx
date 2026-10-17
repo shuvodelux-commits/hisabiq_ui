@@ -127,8 +127,9 @@ export function ChequeDialog({
             <Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} placeholder={text("Optional","ঐচ্ছিক")} />
           </label>
           <label className="text-[13px] font-medium text-ink sm:col-span-2">
-            {text('Attachment','ফাইল')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· চেকের ছবি বা PDF</span>}
+            {text('Attachment filename','ফাইলের নাম')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· চেকের ছবি বা PDF</span>}
             <Input className="mt-1.5" type="file" accept="image/*,.pdf" onChange={(event) => setAttachment(event.target.files?.[0]?.name ?? '')} />
+            <span className="mt-1 block text-[10.5px] text-ink-500">{text('Filename only; this preview does not upload or store the file.','শুধু ফাইলের নাম দেখা যায়; এই নমুনায় ফাইল আপলোড বা সংরক্ষণ হয় না।')}</span>
             {attachment && <span className="mt-1 block text-[10.5px] text-ink-400">{attachment}</span>}
           </label>
         </div>
