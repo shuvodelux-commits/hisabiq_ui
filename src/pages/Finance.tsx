@@ -781,7 +781,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                   </div>
                   <button onClick={() => setTab('transactions')} className="text-xs font-medium text-teal-700 hover:underline">View all</button>
                 </div>
-                <Table>
+                <Table scrollRegionLabel={text('Recent loans and owner money','সাম্প্রতিক ঋণ ও মালিকের অর্থ')}>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="h-9 pl-4 text-xs">{text('Transaction','লেনদেন')}</TableHead>
