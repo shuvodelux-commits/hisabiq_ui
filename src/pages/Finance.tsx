@@ -639,7 +639,6 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
     setTransferAction(reversed);
     toast.success('Transfer reversed', { description: transfer.id });
   };
-
   const totalLiquid = accounts.filter((item) => item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
   const cashBalance = accounts.filter((item) => (item.type === 'Cash' || item.type === 'Petty Cash') && item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
   const bankBalance = accounts.filter((item) => item.type === 'Bank' && item.status === 'Active').reduce((sum, item) => sum + item.balance, 0);
@@ -920,7 +919,21 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
           </>
         )}
 
-        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} />}
+        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} onTransfer={({ fromAccountId, toAccountId, amount }) => {
+          const fromAccount = accounts.find((account) => account.id === fromAccountId);
+          const toAccount = accounts.find((account) => account.id === toAccountId);
+          if (!fromAccount || !toAccount) return;
+          setTransfers((current) => [{
+            id: `TRF-${String(42 + current.length - seedTransfers.length).padStart(6, '0')}`,
+            date: '06 Oct 2026',
+            from: fromAccount.name,
+            to: toAccount.name,
+            fromAccountId,
+            toAccountId,
+            amount,
+            status: 'Completed',
+          }, ...current]);
+        }} />}
 
         {tab === 'accounts' && (
           <div className="p-4">

@@ -44,6 +44,8 @@
     "test:online-sales": "node scripts/online-sales-browser.cjs",
     "test:fulfillment-sms": "node scripts/fulfillment-sms-browser.cjs",
     "test:counter-ux": "node scripts/counter-ux-browser.cjs",
+    "test:counter-transfer-source": "node scripts/counter-transfer-source-browser.cjs",
+    "test:counter-transfer-duplicate": "node scripts/counter-transfer-duplicate-browser.cjs",
     "test:bangla-ui": "node scripts/bangla-ui-browser.cjs",
     "test:bangla-workflows": "node scripts/bangla-workflows-browser.cjs",
     "test:bangla-reports-print": "node scripts/bangla-reports-print-browser.cjs",
