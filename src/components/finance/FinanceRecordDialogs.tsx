@@ -98,8 +98,10 @@ export function FinanceTransactionActionDialog({
 
   const meta = typeMeta[type];
   const opening = !!meta.opening;
-  const peopleOptions = people.filter((person) => person.status === 'Active' && (!meta.role || person.roles.includes(meta.role)));
-  const selectedPerson = peopleOptions.find((person) => person.id === partyId) || peopleOptions[0];
+  const peopleOptions = people.filter((person) =>
+    (person.id === transaction.partyId && type === transaction.type) ||
+    (person.status === 'Active' && (!meta.role || person.roles.includes(meta.role))));
+  const selectedPerson = partyId ? peopleOptions.find((person) => person.id === partyId) : peopleOptions[0];
   const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
 
   const save = () => {
@@ -160,7 +162,7 @@ export function FinanceTransactionActionDialog({
 
             <label className="text-[13px] font-medium text-ink">
               {text('Finance person','হিসাবের ব্যক্তি')}
-              <FormSelect className="mt-1.5" value={selectedPerson?.id || ''} options={peopleOptions.map(person=>({value:person.id,label:person.name}))} onChange={(event) => setPartyId(event.target.value)} />
+              <FormSelect className="mt-1.5" value={selectedPerson?.id || ''} options={peopleOptions.map(person=>({value:person.id,label:person.name + (person.phone ? ' · ' + person.phone : '') + (person.status === 'Inactive' ? ' · ' + financeLabel(language,person.status) : '')}))} onChange={(event) => setPartyId(event.target.value)} />
               <span className="mt-1 block text-[11px] font-normal text-ink-400">{selectedPerson?.name || text('No eligible person','উপযুক্ত ব্যক্তি নেই')}</span>
             </label>
 
@@ -498,10 +500,11 @@ export function FinanceTransferActionDialog({
 }
 
 export function FinancePeopleManagerDialog({
-  open, people, onOpenChange, onAdd, onUpdate
+  open, people, initialRole = 'Lender', onOpenChange, onAdd, onUpdate
 }: {
   open: boolean;
   people: FinancePerson[];
+  initialRole?: FinancePersonRole;
   onOpenChange: (open: boolean) => void;
   onAdd: (person: FinancePerson) => void;
   onUpdate: (person: FinancePerson) => void;
@@ -511,16 +514,17 @@ export function FinancePeopleManagerDialog({
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [description, setDescription] = useState('');
-  const [roles, setRoles] = useState<FinancePersonRole[]>(['Lender']);
+  const [roles, setRoles] = useState<FinancePersonRole[]>([initialRole]);
 
   const reset = () => {
     setEditingId(null);
     setName('');
     setPhone('');
     setDescription('');
-    setRoles(['Lender']);
+    setRoles([initialRole]);
   };
 
+  useEffect(() => { if (open) setRoles([initialRole]); }, [open, initialRole]);
   useEffect(() => { if (!open) reset(); }, [open]);
 
   const editing = people.find((person) => person.id === editingId);
@@ -559,7 +563,7 @@ export function FinancePeopleManagerDialog({
             <Input className="md:col-span-2" value={description} onChange={(event) => setDescription(event.target.value)} placeholder={text("Description / relationship note","বিবরণ / সম্পর্কের মন্তব্য")} />
             <div className="flex flex-wrap gap-1.5 md:col-span-2">
               {(['Owner', 'Lender', 'Borrower'] as FinancePersonRole[]).map((role) => (
-                <button key={role} type="button" onClick={() => toggleRole(role)}
+                <button key={role} type="button" aria-pressed={roles.includes(role)} onClick={() => toggleRole(role)}
                   className={'rounded-md border px-2 py-1 text-xs font-medium ' + (roles.includes(role) ? 'border-teal-200 bg-teal-50 text-teal-700' : 'border-border bg-card text-ink-500')}>
                   {financeLabel(language,role)}
                 </button>
