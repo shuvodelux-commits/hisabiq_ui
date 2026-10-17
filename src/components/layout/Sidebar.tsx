@@ -103,7 +103,9 @@ export function Sidebar() {
       aria-label={text("Toggle sidebar width","সাইডবারের আকার বদলান")}
       title={text("Toggle sidebar width","সাইডবারের আকার বদলান")}
       onClick={() => setCollapsed(value => !value)}
-      className="absolute inset-y-0 -right-1 z-10 hidden w-2 cursor-pointer rounded-full hover:bg-sidebar-primary/15 focus-visible:bg-sidebar-primary/20 focus-visible:outline-none lg:block"
-    />
+      className="group/sidebar-resize absolute inset-y-0 -right-2 z-10 hidden w-6 cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring lg:block"
+    >
+      <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-1/2 w-1 -translate-x-1/2 rounded-full group-hover/sidebar-resize:bg-sidebar-primary/15 group-focus-visible/sidebar-resize:bg-sidebar-primary/20" />
+    </button>
   </aside>;
 }

@@ -13,6 +13,7 @@
     "cf:deploy": "npm run build && wrangler deploy",
     "cf:preview": "npm run build && wrangler preview",
     "test:theme": "node scripts/theme-browser.cjs",
+    "test:sidebar-target-size": "node scripts/deep-sidebar-target-size-browser.cjs",
     "test:saas": "node scripts/saas-browser.cjs",
     "test:settings": "node scripts/settings-browser.cjs",
     "test:erp-navigation": "node scripts/erp-navigation-browser.cjs",
