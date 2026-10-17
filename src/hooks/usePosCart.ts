@@ -99,10 +99,10 @@ const emptyCustomerDetails = (): PosCustomerDetails => ({
   address: ''
 });
 
-export function usePosCart() {
+export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
   const { state } = useTenantSettings();
   const settings = state.sections.sales;
-  const [lines, setLines] = useState<CartLine[]>(demoCart);
+  const [lines, setLines] = useState<CartLine[]>(initialLines);
   const [lastAdded, setLastAdded] = useState<string | null>(null);
   const [discountMode, setDiscountMode] = useState<DiscountMode>('amount');
   const [discount, setDiscount] = useState('');

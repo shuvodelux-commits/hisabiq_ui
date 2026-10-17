@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
@@ -32,10 +32,14 @@ import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
-import { customerCredits as seedCredits, saleTemplates, salesDrafts, salesInvoices as seedInvoices, salesReturns as seedReturns } from '../data/sales';
+import { customerCredits as seedCredits, salesDrafts, salesReturns as seedReturns } from '../data/sales';
 import { products } from '../data/products';
+import {availableParties} from '../data/erpDemoStore';
+import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate} from '../data/salesPreviewStore';
+import {SaleTemplateDialog} from '../components/pos/SaleTemplateDialog';
+import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
-import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn } from '../types/erp';
+import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
 import {planBundleReturn,type BundleReturnSelection} from '../bundles/bundleReturn';
@@ -166,10 +170,6 @@ function PaymentStatus({ invoice }: { invoice: SalesInvoice }) {
 }
 
 const invoiceQty = invoiceQuantity;
-
-function returnLimit(line: SalesInvoice['lines'][number]) {
-  return line.returnableQuantity ?? (parseFloat(line.quantity) || 0);
-}
 
 function InvoiceActions({
   invoice,
@@ -667,12 +667,14 @@ export function Sales() {
   const chooseTab=(id:Tab)=>{setTab(id);setSearchParams(current=>{
    const next=new URLSearchParams(current);if(id==='sales')next.delete('tab');else next.set('tab',id);return next;
   },{replace:true});};
-  const [invoices, setInvoices] = useState<SalesInvoice[]>(seedInvoices);
-  const [returns, setReturns] = useState<SalesReturn[]>(seedReturns);
+  const {invoices,returns,credits,templates}=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot,getSalesPreviewSnapshot);
+  const setInvoices=(update:(items:SalesInvoice[])=>SalesInvoice[])=>updateSalesPreview('invoices',update);
+  const setReturns=(update:(items:SalesReturn[])=>SalesReturn[])=>updateSalesPreview('returns',update);
+  const setCredits=(update:(items:CustomerCredit[])=>CustomerCredit[])=>updateSalesPreview('credits',update);
+  const setTemplates=(update:(items:SaleTemplate[])=>SaleTemplate[])=>updateSalesPreview('templates',update);
+  const [templateEditor,setTemplateEditor]=useState<{template:SaleTemplate|null}|null>(null);
   const [returnDetail, setReturnDetail] = useState<SalesReturn | null>(null);
-  const [credits, setCredits] = useState<CustomerCredit[]>(seedCredits);
   const [drafts, setDrafts] = useState(salesDrafts);
-  const [templates, setTemplates] = useState(saleTemplates);
   const routeQuery=searchParams.get('q') ?? '';
   const [query, setQuery] = useState(routeQuery);
   useEffect(()=>setQuery(routeQuery),[routeQuery]);
@@ -695,7 +697,6 @@ export function Sales() {
   const [returnCustomer, setReturnCustomer] = useState('Rahman Hardware');
   const [returnInvoiceIds, setReturnInvoiceIds] = useState<string[]>([]);
   const [returnQty, setReturnQty] = useState<Record<string, string>>({});
-  const [returnPrice, setReturnPrice] = useState<Record<string, string>>({});
   const [returnReason, setReturnReason] = useState<Record<string, string>>({});
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [bundleReturnChoices,setBundleReturnChoices]=useState<Record<string,Record<string,BundleReturnSelection>>>({});
@@ -755,10 +756,10 @@ export function Sales() {
   const selectedReturnDue = customerInvoices.filter((invoice) => returnInvoiceIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoice.due, 0);
   const selectedReturnInvoices = invoices.filter((invoice) => returnInvoiceIds.includes(invoice.id));
   const selectedReturnLines = selectedReturnInvoices.flatMap((invoice) => invoice.lines.map((line) => ({ invoice, line })));
-  const returnPriceFor = (line: SalesInvoice['lines'][number]) => {
-    const raw = returnPrice[line.id];
-    return raw === undefined || raw === '' ? line.price : parseFloat(raw) || 0;
-  };
+  const ordinaryReturnPlans=selectedReturnLines.filter(({line})=>!isBundleReturnLine(line)).map(({invoice,line})=>
+    planOrdinaryReturn(invoice,line,returnQty[line.id]??'',(returnSerials[line.id]??'').split(',').map(value=>value.trim()).filter(Boolean),returns));
+  const returnLimit=(line:SalesInvoice['lines'][number])=>isBundleReturnLine(line)
+    ?line.returnableQuantity??0:ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.remaining??0;
   const selectedBundlePlans=selectedReturnLines.filter(({line})=>isBundleReturnLine(line)&&Number(returnQty[line.id]??'')>0)
     .map(({invoice,line})=>planBundleReturn({
       invoice,line,sets:Number(returnQty[line.id]),choices:bundleReturnChoices[line.id]??{},
@@ -766,28 +767,15 @@ export function Sales() {
     }));
   const includesBundleReturn=selectedBundlePlans.length>0;
   const returnAmount = selectedReturnLines.reduce((sum,{line})=>{
-    const qty=Number(returnQty[line.id]??0);
     if(isBundleReturnLine(line))return sum+(selectedBundlePlans.find(p=>p.lineId===line.id)?.refundEstimate??0);
-    return sum+qty*returnPriceFor(line);
+    return Math.round((sum+(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0))*100)/100;
   },0);
-  const returnIssues = selectedReturnLines.flatMap(({ line }) => {
-    const qty = parseFloat(returnQty[line.id] ?? '') || 0;
-    if (qty <= 0) return [];
-    const issues: string[] = [];
-    if (qty > returnLimit(line)) issues.push(`${line.name}: maximum return is ${returnLimit(line)} ${line.unit}.`);
-    if (line.serials?.length) {
-      const serials = (returnSerials[line.id] ?? '').split(',').map((value) => value.trim()).filter(Boolean);
-      if (!serials.length) issues.push(`${line.name}: select or enter the returned serial number.`);
-      if (serials.some((serial) => !line.serials?.includes(serial))) issues.push(`${line.name}: one or more serial numbers do not belong to this sale.`);
-    }
-    return issues;
-  });
+  const returnIssues=ordinaryReturnPlans.flatMap(plan=>plan.quantity!==0||returnQty[plan.lineId]?plan.issues:[]);
 
   const openReturn = (invoice: SalesInvoice) => {
     setReturnCustomer(invoice.party);
     setReturnInvoiceIds([invoice.id]);
     setReturnQty({});
-    setReturnPrice({});
     setReturnReason({});
     setReturnSerials({});
     setBundleReturnChoices({});
@@ -906,7 +894,7 @@ export function Sales() {
   };
 
   const completeReturn = () => {
-    if (!returnInvoiceIds.length || returnAmount <= 0) {
+    if (!returnInvoiceIds.length) {
       toast.error(sl('Select invoice items and enter return quantity'));
       return;
     }
@@ -916,15 +904,19 @@ export function Sales() {
       setBundleReturnPreviewOpen(true);
       return;
     }
-    if (returnIssues.length) {
-      toast.error(sl('Check return quantities and serial numbers'), { description: returnIssues[0] });
+    if (returnIssues.length || getSalesPreviewSnapshot().returns!==returns) {
+      toast.error(sl('Check return quantities and serial numbers'), { description: text('Review remaining quantities and original serials. Historical refund allocation must be available.','অবশিষ্ট পরিমাণ ও আগের সিরিয়াল যাচাই করুন। আগের ফেরত মূল্যের তথ্য থাকতে হবে।') });
       return;
     }
+    if(returnAmount<=0||!Number.isFinite(returnAmount)){toast.error(sl('Select invoice items and enter return quantity'));return;}
     const selected = selectedReturnInvoices;
+    const customerId=selected.find(invoice=>invoice.partyId)?.partyId;
     const newReturn: SalesReturn = {
       id: `RTN-${String(15 + returns.length - seedReturns.length).padStart(6, '0')}`,
       date: '01 Oct 2026',
       customer: returnCustomer,
+      ...(customerId?{customerId}:{}),
+      lineReturns:ordinaryReturnPlans.filter(plan=>plan.quantity>0).map(({invoiceId,lineId,quantity,amount,serials})=>({invoiceId,lineId,quantity,amount,serials})),
       invoices: selected.map((invoice) => invoice.invoice),
       items: selectedReturnLines
         .filter(({ line }) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0)
@@ -964,14 +956,14 @@ export function Sales() {
       setCredits((items) => {
         const existing = items.find((credit) => credit.customer === returnCustomer);
         if (existing) return items.map((credit) => credit.id === existing.id ? { ...credit, balance: credit.balance + creditFromReturn, source: newReturn.id, updatedAt: newReturn.date } : credit);
-        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, customer: returnCustomer, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
+        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, ...(customerId?{customerId}:{}), customer: returnCustomer, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
       });
     }
 
     setInvoices((items) => items.map((invoice) => {
       if (!returnInvoiceIds.includes(invoice.id)) return invoice;
-      const returnedLines = invoice.lines.filter((line) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0);
-      const fullReturn = returnedLines.length === invoice.lines.length && invoice.lines.every((line) => (parseFloat(returnQty[line.id] ?? '') || 0) >= returnLimit(line));
+      const fullReturn = invoice.lines.every(line=>!isBundleReturnLine(line)&&
+        (ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.remaining??0)-(Number(returnQty[line.id]??0))<=0);
       const applied = dueAdjustments.get(invoice.id) ?? 0;
       const due = Math.max(invoice.due - applied, 0);
       const total = applied > 0 ? Math.max(invoice.total - applied, invoice.paid) : invoice.total;
@@ -979,13 +971,12 @@ export function Sales() {
     }));
     setReturnInvoiceIds([]);
     setReturnQty({});
-    setReturnPrice({});
     setReturnReason({});
     setReturnSerials({});
     setReturnRefundMethod('Cash');
     setReturnRefundAccount('');
     setTab('returns');
-    toast.success(`${newReturn.id} ${sl('saved')}`, { description: `${taka(returnAmount)} · ${returnSettlement}` });
+    toast.success(text('Return saved in this preview session','এই প্রিভিউ সেশনে ফেরত রাখা হয়েছে'), { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
 
   const tabs: Array<[Tab, string, string]> = [
@@ -1155,8 +1146,8 @@ export function Sales() {
         )}
 
         {tab === 'return' && (
-          <div className="grid gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
-            <div className="space-y-3">
+          <div className="grid min-w-0 grid-cols-1 gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+            <div className="min-w-0 space-y-3">
               <div className="rounded-xl border border-border bg-ink-50/50 p-4">
                 <div className="mb-3 flex items-start gap-2">
                   <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
@@ -1174,7 +1165,6 @@ export function Sales() {
                     setReturnCustomer(event.target.value);
                     setReturnInvoiceIds([]);
                     setReturnQty({});
-                    setReturnPrice({});
                     setReturnReason({});
                     setReturnSerials({});
                   }}
@@ -1196,7 +1186,6 @@ export function Sales() {
                         onChange={(event) => {
                           setReturnInvoiceIds((ids) => event.target.checked ? [...ids, invoice.id] : ids.filter((id) => id !== invoice.id));
                           setReturnQty({});
-                          setReturnPrice({});
                           setReturnReason({});
                           setReturnSerials({});
                         }}
@@ -1213,7 +1202,7 @@ export function Sales() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-card">
+            <div className="min-w-0 rounded-xl border border-border bg-card">
               <div className="border-b border-border p-3">
                 <p className="text-[13px] font-medium text-ink">{sl('Return items')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span>}</p>
                 <p className="mt-0.5 text-[11px] text-ink-500">{sl("Enter quantity against any item from the selected invoices.")}</p>
@@ -1304,10 +1293,11 @@ export function Sales() {
                               <div className="flex items-center gap-2">
                                 <Input
                                   value={returnQty[line.id] ?? ''}
-                                  onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value.replace(/[^\d.]/g,'')}));
+                                  onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value}));
                                     if(isBundleReturnLine(line))setBundleReturnChoices(value=>({...value,[line.id]:{}}));}}
                                   inputMode={isBundleReturnLine(line)?'numeric':'decimal'}
-                                  aria-label={isBundleReturnLine(line)?`Whole Sets to return for ${line.name}`:undefined}
+                                  aria-label={isBundleReturnLine(line)?`Whole Sets to return for ${line.name}`:`${sl('Return qty')} · ${line.name}`}
+                                  aria-invalid={!isBundleReturnLine(line)&&Boolean(returnQty[line.id])&&Boolean(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.issues.length)}
                                   className="h-8 text-right"
                                   placeholder="0"
                                 />
@@ -1320,9 +1310,8 @@ export function Sales() {
                             <TableCell className="py-2 pr-3">
                               <div className="ml-auto w-28">
                                 <Input
-                                  value={returnPrice[line.id] ?? String(line.price)}
-                                  disabled={isBundleReturnLine(line)}
-                                  onChange={(event) => setReturnPrice((value) => ({ ...value, [line.id]: event.target.value.replace(/[^\d.]/g, '') }))}
+                                  value={isBundleReturnLine(line)?String(line.price):ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice===null?text('Source allocation needed','আগের মূল্য প্রয়োজন'):String(Number((ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice??0).toFixed(6)))}
+                                  disabled
                                   inputMode="decimal"
                                   className="h-8 text-right"
                                   aria-label={`${sl('Return price for')} ${line.name}`}
@@ -1330,7 +1319,7 @@ export function Sales() {
                                 <p className="mt-1 text-right text-[10.5px] text-ink-400">
                                   {isBundleReturnLine(line)?
                                     (qty>0?text('Historical net refund — see preview','আগের বিক্রির মূল্য — প্রিভিউ দেখুন'):'Set'):
-                                    (qty > 0 ? taka(qty * returnPriceFor(line)) : `/${line.unit}`)}
+                                    (qty > 0 ? taka(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0) : `/${line.unit}`)}
                                 </p>
                               </div>
                             </TableCell>
@@ -1362,8 +1351,10 @@ export function Sales() {
                       <p className="text-[11px] text-ink-400">{sl('Return amount')}</p>
                       <p className="text-base font-semibold text-ink">{includesBundleReturn&&selectedBundlePlans.some(p=>p.refundEstimate===null)?text('Pending historical price','আগের মূল্য যাচাই বাকি'):taka(returnAmount)}</p>
                     </div>
-                    <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
+                    <Button disabled={!includesBundleReturn&&returnIssues.length>0} onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
                       text('Preview return only','শুধু ফেরত প্রিভিউ'):sl('Complete return')}</Button>
+                    {!includesBundleReturn&&returnIssues.length>0&&<p role="alert" className="text-xs text-danger sm:col-span-3">{text('Check the remaining return quantity and original serials. A historical net refund allocation is required.','অবশিষ্ট ফেরত পরিমাণ ও আগের সিরিয়াল যাচাই করুন। আগের ফেরত মূল্যের তথ্য প্রয়োজন।')}</p>}
+                    {!includesBundleReturn&&<p role="note" className="text-xs text-ink-500 sm:col-span-3">{text('Historical net price only. This session preview does not post refunds, stock or ledger entries.','শুধু আগের বিক্রির মূল্য। এই সেশনের প্রিভিউতে টাকা ফেরত, স্টক বা খাতায় জমা হবে না।')}</p>}
                     {includesBundleReturn&&<p role="note" className="text-xs text-warning sm:col-span-3">
                       {text('Bundle returns are preview only: no refund, invoice status, credit or stock is changed. Mixed ordinary items are also not submitted.',
                         'প্যাকেজ ফেরত শুধু প্রিভিউ: টাকা, বিল, জমা বা স্টক বদলাবে না। সঙ্গে থাকা অন্য পণ্যও জমা হবে না।')}
@@ -1476,7 +1467,7 @@ export function Sales() {
                           <button onClick={() => { close(); printReturn(item,language); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <Printer className="size-4 text-ink-400" /> {sl('Print')}
                           </button>
-                          <button onClick={() => { close(); navigate('/app/parties'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                          <button disabled={!salesReturnCustomerId(item,invoices,availableParties())} title={!salesReturnCustomerId(item,invoices,availableParties())?text('No linked customer account','ক্রেতার কোনো যুক্ত হিসাব নেই'):undefined} onClick={() => { close(); const id=salesReturnCustomerId(item,invoices,availableParties()); if(id)navigate(`/app/parties?id=${encodeURIComponent(id)}&role=Customer`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
                           </button>
                           <button onClick={() => {
@@ -1484,7 +1475,6 @@ export function Sales() {
                             setReturnCustomer(item.customer);
                             setReturnInvoiceIds([]);
                             setReturnQty({});
-                            setReturnPrice({});
                             setReturnReason({});
                             setReturnSerials({});
                             setTab('return');
@@ -1646,18 +1636,7 @@ export function Sales() {
                   <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> {sl('Sale templates')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span>}</p>
                   <p className="mt-0.5 text-[11px] text-ink-500">{sl('Reuse common carts without recreating every line.')}</p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => {
-                  const next = {
-                    id: `t${Date.now()}`,
-                    name: `Sale template ${templates.length + 1}`,
-                    items: 0,
-                    total: 0,
-                    lastUsed: 'Not used yet',
-                    lines: []
-                  };
-                  setTemplates((items) => [next, ...items]);
-                  toast.success(`${next.name} ${sl('created')}`);
-                }}><Plus className="size-3.5" /> {sl('Template')}</Button>
+                <Button size="sm" variant="outline" onClick={() => setTemplateEditor({template:null})}><Plus className="size-3.5" /> {sl('Template')}</Button>
               </div>
               <div className="divide-y divide-border">
                 {templates.map((template) => (
@@ -1679,14 +1658,17 @@ export function Sales() {
                         )}>
                         {(close) => (
                           <div className="py-1">
-                            <button onClick={() => { close(); toast(`Editing ${template.name}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <button onClick={() => { close(); setTemplateEditor({template}); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Pencil className="size-4 text-ink-400" /> {sl('Edit template')}
                             </button>
                             <button onClick={() => {
                               close();
-                              const copy = { ...template, id: `t${Date.now()}`, name: `${template.name} copy`, lastUsed: 'Not used yet' };
-                              setTemplates((items) => [copy, ...items]);
-                              toast.success(`${template.name} ${sl('duplicated')}`);
+                              try {
+                                saveSaleTemplate({...template,name:`${template.name} copy`});
+                                toast.success(`${template.name} ${sl('duplicated')}`);
+                              } catch {
+                                toast.error(text('Could not duplicate this template. Open Edit template to check its products.','এই নমুনা নকল করা যায়নি। পণ্য যাচাই করতে নমুনা বদলান।'));
+                              }
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
                             </button>
@@ -1722,6 +1704,7 @@ export function Sales() {
         onSave={savePayment}
       />
 
+      {templateEditor&&<SaleTemplateDialog template={templateEditor.template} onClose={()=>setTemplateEditor(null)}/> }
       <CustomerPaymentDialog
         open={customerPaymentOpen}
         customers={customerNames.filter((customer) => customer !== 'Walk-in customer')}

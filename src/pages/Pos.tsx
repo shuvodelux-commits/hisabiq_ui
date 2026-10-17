@@ -1,6 +1,6 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { uiText } from '../i18n/uiCopy';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,8 +17,10 @@ import { products } from '../data/products';
 import {getOnlineSnapshot,orderTotals,preparePosHandoff} from '../onlineSales/onlineStore';
 import { stockLots } from '../data/productInventory';
 import { productOffers } from '../data/productOffers';
-import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
+import { salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
+import {getSalesPreviewSnapshot,subscribeSalesPreview} from '../data/salesPreviewStore';
+import {cartFromPreset} from '../utils/salePresets';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
@@ -33,7 +35,7 @@ import {planComponentFulfillment,componentSourceKey} from '../bundles/bundleFulf
 import {createBundleSaleSnapshot} from '../bundles/bundleDocuments';
 import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
-import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
+import type { SaleLine, SalesInvoice } from '../types/erp';
 import type { PartyWorkspaceContext } from '../utils/partyNavigation';
 
 type CompletedSale = {
@@ -42,7 +44,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource' | 'bundleSnapshot'>>;
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'soldBaseQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource' | 'bundleSnapshot'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -55,25 +57,6 @@ type CompletedSale = {
 
 const quickItems = products.filter((p) => p.active && (p.kind === 'Service' || !p.expiry?.enabled || productStockBreakdown(p, stockLots).sellable > 0)).slice(0, 8);
 
-function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
-  return lines.flatMap((sourceLine, index) => {
-    const product = getProductImportPreviewSnapshot().products.find((item) => item.id === sourceLine.productId);
-    if (!product) return [];
-    const unit = sourceLine.unit === product.altUnit?.unit ? sourceLine.unit : product.unit;
-    return [{
-      key: `preset-${sourceLine.productId}-${index}`,
-      product,
-      qty: sourceLine.qty,
-      secondaryQty: sourceLine.secondaryQty ?? '',
-      unit,
-      price: String(sourceLine.price),
-      serials: sourceLine.serials ?? [],
-      stockSource: sourceLine.stockSource,
-      ...(product.kind==='Bundle'?{bundleRevision:sourceLine.bundleRevision,bundleRecipeSignature:sourceLine.bundleRecipeSignature,
-        bundleSources:sourceLine.bundleSources,bundleSerials:sourceLine.bundleSerials}: {})
-    }];
-  });
-}
 
 function paymentsFromInvoice(invoice: SalesInvoice): PosPaymentRow[] {
   if (invoice.payments.length > 0) {
@@ -165,7 +148,8 @@ export function Pos() {
   });
   const sourceInvoice = salesInvoices.find((sale) => sale.invoice === sourceInvoiceNo) ?? null;
   const sourceDraft = salesDrafts.find((draft) => draft.id === sourceDraftId) ?? null;
-  const sourceTemplate = saleTemplates.find((template) => template.id === sourceTemplateId) ?? null;
+  const {templates}=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot,getSalesPreviewSnapshot);
+  const sourceTemplate = templates.find((template) => template.id === sourceTemplateId) ?? null;
   const editing = sourceMode === 'edit' && !!sourceInvoice;
   const duplicating = sourceMode === 'duplicate' && !!sourceInvoice;
   const continuingDraft = sourceMode === 'continue-draft' && !!sourceDraft;
@@ -237,7 +221,7 @@ export function Pos() {
     const sourceKey = `${sourceMode}:${sourceDraft.id}`;
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
-    cart.setLines(cartFromPreset(sourceDraft.lines));
+    cart.setLines(cartFromPreset(sourceDraft.lines,previewCatalog));
     const sourceParty = parties.find((party) => party.name === sourceDraft.customer) ?? null;
     cart.setCustomer(sourceParty);
     cart.setCustomerDetails(sourceDraft.customerDetails ?? {
@@ -249,15 +233,17 @@ export function Pos() {
     cart.setDiscount('');
     cart.setDiscountMode('amount');
     cart.setPayments(duplicatingDraft ? [makePosPaymentRow()] : paymentsFromDraft(sourceDraft));
-  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicatingDraft, sourceDraft, sourceMode]);
+  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicatingDraft, sourceDraft, sourceMode, previewCatalog]);
 
   useEffect(() => {
     if (!sourceTemplate || !templateContext) return;
     const sourceKey = `${sourceMode}:${sourceTemplate.id}`;
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
-    cart.setLines(cartFromPreset(sourceTemplate.lines));
-    const sourceParty = parties.find((party) => party.name === sourceTemplate.customer) ?? null;
+    cart.setLines(cartFromPreset(sourceTemplate.lines,previewCatalog));
+    const matches=availableParties().filter(party=>party.roles.includes('Customer')&&party.status!=='Inactive'&&
+      (sourceTemplate.customerId?party.id===sourceTemplate.customerId:party.name===sourceTemplate.customer));
+    const sourceParty=matches.length===1?matches[0]:null;
     cart.setCustomer(sourceParty);
     cart.setCustomerDetails({
       name: sourceTemplate.customer ?? sourceParty?.name ?? '',
@@ -268,7 +254,7 @@ export function Pos() {
     cart.setDiscount('');
     cart.setDiscountMode('amount');
     cart.setPayments([makePosPaymentRow()]);
-  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, sourceMode, sourceTemplate, templateContext]);
+  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, sourceMode, sourceTemplate, templateContext, previewCatalog]);
 
   useEffect(() => {
     if (!partyContext || !sourcePartyId) return;
@@ -436,6 +422,7 @@ export function Pos() {
           name: l.product.name,
           unit: l.product.unit,
           returnableQuantity: baseQty,
+          soldBaseQuantity: baseQty,
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
@@ -533,7 +520,7 @@ export function Pos() {
   };
 
   const resume = (d: SalesDraft) => {
-    cart.setLines(cartFromPreset(d.lines));
+    cart.setLines(cartFromPreset(d.lines,previewCatalog));
     const sourceParty = parties.find((party) => party.name === d.customer) ?? null;
     cart.setCustomer(sourceParty);
     cart.setCustomerDetails(d.customerDetails ?? {
