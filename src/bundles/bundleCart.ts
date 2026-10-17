@@ -8,6 +8,8 @@ export type BundleComponentDemand={
  requiredBaseQty:number;
  bundleProductId?:string;
  bundleRevision?:number;
+ /** Whole parent Set count for fair Own Stock clamping. */
+ bundleSets?:number;
 };
 
 /** Expands a mixed POS cart into component stock demand without billing children. */
@@ -68,7 +70,7 @@ export function expandCartStockDemand(
     errors.push('Serial-tracked component requires whole units: '+child.name+'.');continue;
    }
    demands.push({sourceLineKey:line.key,componentProductId:child.id,requiredBaseQty:qty,
-    bundleProductId:p.id,bundleRevision:recipe.revision});
+    bundleProductId:p.id,bundleRevision:recipe.revision,bundleSets:Number(line.qty)});
   }
  }
  return errors.length?{demands:[],errors}:{demands,errors:[]};
