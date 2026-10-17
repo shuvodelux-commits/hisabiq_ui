@@ -37,6 +37,14 @@ test('legacy cheque name resolution rejects duplicate accounts until an ID is se
   assert.equal(resolveChequeAccount(accounts, { ...legacy, depositAccountId: 'acc-two' })?.id, 'acc-two');
 });
 
+test('deactivating one duplicate bank does not resolve an ambiguous legacy cheque',()=>{
+  const accounts=[account('old','Shared bank','1111','Inactive'),account('new','Shared bank','2222')];
+  const legacy=cheque('legacy','Shared bank');
+  assert.equal(resolveChequeAccount(accounts,legacy),undefined);
+  assert.equal(chequeMoneyAccount(accounts,legacy),undefined);
+  assert.equal(chequeMoneyAccount(accounts,{...legacy,depositAccountId:'new'})?.id,'new');
+});
+
 test('unique legacy names are upgraded on rename and inactive banks cannot clear', () => {
   const old = account('acc-legacy', 'Legacy Bank', '•••• 1188');
   const updated = { ...old, name: 'Renamed Legacy Bank' };

@@ -23,7 +23,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { BillDialog } from '../components/purchases/BillDialog';
 import { BillDetailDialog, type BillDetail } from '../components/purchases/BillDetailDialog';
-import { getExpensePreviewSnapshot, subscribeExpensePreview, savePreviewExpense, cancelPreviewExpense, attachPreviewExpenseReceipt } from '../data/expensePreviewStore';
+import { expensePaymentMethods, getExpensePreviewSnapshot, subscribeExpensePreview, savePreviewExpense, cancelPreviewExpense, attachPreviewExpenseReceipt } from '../data/expensePreviewStore';
 import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
@@ -35,7 +35,7 @@ import { taka } from '../utils/currency';
 
 type Tab = 'expenses' | 'categories' | 'payees' | 'reports';
 
-const reportPaymentMethods = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card'] as const;
+const reportPaymentMethods = expensePaymentMethods;
 
 function paymentsFor(expense: Expense) {
   if (expense.payments?.length) return expense.payments;
@@ -205,7 +205,7 @@ export function Expenses() {
               </div>
               <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="w-full lg:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
               <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
-              <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', 'Cash', 'Bank', 'bKash', 'Nagad', 'Card'].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v)}))} />
+              <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
               <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="w-full lg:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
               <Button variant="ghost" size="sm" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
               <Button variant="outline" size="sm" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
@@ -412,7 +412,7 @@ export function Expenses() {
                   title: text('By payment method','পেমেন্টের মাধ্যম অনুযায়ী'),
                   icon: BarChart3,
                   rows: reportPaymentMethods.map((method) => ({
-                    label: method,
+                    label: documentMethod(language,method),
                     value: reportExpenses.reduce((sum, expense) =>
                       sum + paymentsFor(expense)
                         .filter((payment) => payment.method === method)

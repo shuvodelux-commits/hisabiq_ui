@@ -48,6 +48,7 @@
     "test:fulfillment-sms": "node scripts/fulfillment-sms-browser.cjs",
     "test:counter-ux": "node scripts/counter-ux-browser.cjs",
     "test:counter-transfer-source": "node scripts/counter-transfer-source-browser.cjs",
+    "test:finance-source-review": "node scripts/finance-source-review-browser.cjs",
     "test:counter-transfer-duplicate": "node scripts/counter-transfer-duplicate-browser.cjs",
     "test:finance-people-nested": "node scripts/finance-people-nested-browser.cjs",
     "test:counter-payment-split-identity": "node scripts/counter-payment-split-identity-browser.cjs",
