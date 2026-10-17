@@ -50,6 +50,7 @@ type PaymentRow = {
   id: string;
   method: StandardPaymentMethod;
   account: string;
+  accountId?:string;
   amount: string;
 };
 
@@ -61,7 +62,8 @@ const accountsByMethod: Record<StandardPaymentMethod, string[]> = {
   Bank: ['Dutch-Bangla Bank · 4582'],
   Card: ['Dutch-Bangla Bank · 4582'],
   bKash: ['bKash Business · 01711•••412'],
-  Nagad: ['Nagad Merchant · 01819•••771']
+  Nagad: ['Nagad Merchant · 01819•••771'],
+  'Mobile Banking': []
 };
 const stockProducts = products.filter((product) => product.kind !== 'Service');
 
@@ -95,7 +97,7 @@ function newPaymentRow(seedIndex = 0, method: StandardPaymentMethod = 'Cash'): P
   return {
     id: `payment-${Date.now()}-${seedIndex}`,
     method,
-    account: accountsByMethod[method][0],
+    account: accountsByMethod[method][0]??'',
     amount: ''
   };
 }
@@ -147,7 +149,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
     setDescription(expense?.note ?? ''); setReferenceNo(''); setNotes('');
     setAmount(expense ? String(expense.amount) : ''); setPhotos(expense?.receipt ? [expense.receipt] : []);
     const payments = expense?.payments?.length ? expense.payments : expense && expense.paid > 0 ? [{ id: 'legacy-' + expense.id, method: expense.method, amount: expense.paid, account: '' }] : [];
-    setPaymentRows(payments.length ? payments.map(row => ({ id: row.id, method: row.method as StandardPaymentMethod, amount: String(row.amount), account: row.account ?? '' })) : [newPaymentRow()]);
+    setPaymentRows(payments.length ? payments.map(row => ({ id: row.id, method: row.method as StandardPaymentMethod, amount: String(row.amount), account: row.account ?? '', accountId:'accountId' in row?row.accountId:undefined })) : [newPaymentRow()]);
   }, [open, expense, mode]);
 
   const isBackdated = date < today && !expense;
@@ -162,12 +164,17 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
   const updatePayment = (id: string, patch: Partial<PaymentRow>) => {
     setPaymentRows((rows) => rows.map((row) => row.id === id ? { ...row, ...patch } : row));
   };
+  const originalPayment=(row:PaymentRow)=>expense?.payments?.find(saved=>saved.id===row.id&&saved.method===row.method);
+  const paymentAccountOptions=(row:PaymentRow)=>{
+    const saved=originalPayment(row);
+    return [...new Set([...accountsByMethod[row.method],...(saved?.account?[saved.account]:[])])];
+  };
 
   const changePaymentMethod = (id: string, method: StandardPaymentMethod) => {
     setPaymentRows((rows) => rows.map((row) => row.id === id ? {
       ...row,
       method,
-      account: accountsByMethod[method][0]
+      account: accountsByMethod[method][0]??'',accountId:undefined
     } : row));
   };
 
@@ -177,6 +184,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       id: row.id,
       method: row.method,
       amount: parseFloat(row.amount),
+      ...(row.accountId?{accountId:row.accountId}:{}),
       ...(row.account ? { account: row.account } : {})
     }));
 
@@ -226,7 +234,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
       for (const row of paymentRows) {
         if (!row.amount.trim()) continue;
         toPaisa(Number(row.amount), 'Payment');
-        if (Number(row.amount) > 0 && !accountsByMethod[row.method]?.includes(row.account)) throw new Error(text('Choose a valid payment account.','সঠিক পেমেন্টের হিসাব বাছুন।'));
+        if (Number(row.amount) > 0 && !paymentAccountOptions(row).includes(row.account)) throw new Error(text('Choose a valid payment account.','সঠিক পেমেন্টের হিসাব বাছুন।'));
       }
       if (!party.trim() || !category.trim()) throw new Error(text('Choose a payee and category.','প্রাপক ও খরচের ধরন বাছুন।'));
       if (expense && !correctionReason.trim()) throw new Error(text('Enter a reason for the correction.','সংশোধনের কারণ লিখুন।'));
@@ -592,7 +600,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                     className="mt-1"
                     value={row.method}
                     onChange={(event) => changePaymentMethod(row.id, event.target.value as StandardPaymentMethod)}
-                    options={methods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
+                    options={[...methods,...(expense?.payments?.some(p=>p.method==='Mobile Banking')?['Mobile Banking' as const]:[])].map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method==='Mobile Banking'?'মোবাইল ব্যাংকিং':method)}))}
                   />
                 </label>
 
@@ -601,8 +609,8 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
                   <FormSelect
                     className="mt-1"
                     value={row.account}
-                    onChange={(event) => updatePayment(row.id, { account: event.target.value })}
-                    options={accountsByMethod[row.method]}
+                    onChange={(event) => updatePayment(row.id, { account: event.target.value,accountId:originalPayment(row)?.account===event.target.value?originalPayment(row)?.accountId:undefined })}
+                    options={paymentAccountOptions(row)}
                   />
                 </label>
 

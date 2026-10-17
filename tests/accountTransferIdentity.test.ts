@@ -12,8 +12,8 @@ test('stable transfer IDs keep duplicate-name endpoints distinct', () => {
   const duplicate: FinanceAccount = { ...financeAccounts[1], id: 'acc-dbl-duplicate', balance: 1000, openingBalance: 1000 };
   const accounts = [...financeAccounts, duplicate];
   assert.equal(transferAccountId(transfer, 'from', accounts), 'acc-dbl');
-  assert.equal(transferAccountLabel(transfer, 'from', accounts), 'Dutch-Bangla Bank · 4582 · acc-dbl');
-  assert.equal(financeAccountIdentityLabel(duplicate, accounts), 'Dutch-Bangla Bank · 4582 · acc-dbl-duplicate');
+  assert.equal(transferAccountLabel(transfer, 'from', accounts), 'Dutch-Bangla Bank · 4582 · -dbl');
+  assert.equal(financeAccountIdentityLabel(duplicate, accounts), 'Dutch-Bangla Bank · 4582 · cate');
 });
 
 test('legacy name-only transfers resolve only while the endpoint is unique', () => {

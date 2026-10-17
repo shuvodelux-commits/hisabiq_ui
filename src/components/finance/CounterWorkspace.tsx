@@ -10,11 +10,12 @@ import {getExpensePreviewSnapshot,savePreviewExpense} from '../../data/expensePr
 import {customerSettlementAsOf,supplierSettlementAsOf} from '../../utils/partySettlement';
 import {businessToday} from '../../utils/dateRange';
 import {counterOpenInvoices,counterAllocateOldest} from '../../utils/counterAllocation';
+import {counterExpensePayment} from '../../utils/counterExpensePayment';
 import {AmountInWordsDisplay} from '../AmountInWordsDisplay';
 import {taka} from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeAccountOptionLabel, type FinanceAccount} from '../../data/financeAccounts';
-import type {Expense,Party,PartyRole,PaymentMethod} from '../../types/erp';
+import type {Expense,Party,PartyRole} from '../../types/erp';
 import type {PartyMoneySplit,PartyPaymentPayload} from '../../types/partyLedger';
 
 type Action='Customer Receive'|'Supplier Pay'|'Expense'|'Bank Transfer';
@@ -26,7 +27,7 @@ const names:Record<Action,string>={'Customer Receive':'Receive payment','Supplie
 const banglaActions:Record<Action,string>={'Customer Receive':'ক্রেতার টাকা নিন','Supplier Pay':'সরবরাহকারীকে টাকা দিন',Expense:'খরচ লিখুন','Bank Transfer':'টাকা স্থানান্তর করুন'};
 export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  accounts:FinanceAccount[];setAccounts:Dispatch<SetStateAction<FinanceAccount[]>>;
- onTransfer:(transfer:{fromAccountId:string;toAccountId:string;amount:number})=>void;
+ onTransfer:(transfer:{fromAccountId:string;toAccountId:string;amount:number;date:string;reference?:string})=>void;
 }){
  const {text,word}=useUiCopy();
  const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
@@ -74,8 +75,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  const transferAccountLabel=(accountId:string)=>{
   const account=accounts.find(item=>item.id===accountId);
   if(!account)return '';
-  const duplicate=accounts.some(item=>item.id!==account.id&&item.name.trim().toLowerCase()===account.name.trim().toLowerCase());
-  return duplicate?`${account.name} · ${account.number||account.id.slice(-4)}`:account.name;
+  return financeAccountOptionLabel(account,accounts);
  };
  const splits:PartyMoneySplit[]=effectiveRows.filter(r=>r.amount.trim()!==''&&Number(r.amount)>0)
   .map(r=>({id:r.id,method:r.method,accountId:r.accountId,amount:Number(r.amount)}));
@@ -135,10 +135,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
    if(type==='Expense'){
     const existing=getExpensePreviewSnapshot().expenses;
     const nextRef=Math.max(61,...existing.map(expense=>Number(expense.ref.replace('EXP-',''))||0))+1;
-    const paymentMethod=(row:Row):PaymentMethod=>row.method==='Mobile Banking'
-     ?accounts.find(account=>account.id===row.accountId)?.name.toLowerCase().includes('nagad')?'Nagad':'bKash'
-     :row.method;
-    const payments=effectiveRows.filter(row=>row.amount.trim()!==''&&Number(row.amount)>0).map(row=>({id:row.id,method:paymentMethod(row),amount:Number(row.amount),account:accounts.find(account=>account.id===row.accountId)?.name??''}));
+    const payments=splits.map(split=>counterExpensePayment(split,accounts));
     const expense:Expense={id:'counter-expense-'+Date.now(),ref:'EXP-'+String(nextRef).padStart(6,'0'),date:new Date(date+'T12:00:00.000Z').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'}),category:expenseCategory.trim(),payee:text('Counter','কাউন্টার'),note:note.trim(),amount:total,paid:total,method:payments[0]?.method??'Cash',payments};
     savePreviewExpense(expense);
    }
@@ -149,7 +146,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
      splits,operationId:'counter-'+Date.now()};
     dispatchPartyPreview({type:'record-payment',payload},accounts);
    }
-   if(type==='Bank Transfer')onTransfer({fromAccountId:from,toAccountId:to,amount:total});
+   if(type==='Bank Transfer')onTransfer({fromAccountId:from,toAccountId:to,amount:total,date,reference:note.trim()||undefined});
    setAccounts(current=>current.map(account=>{
     const adjustment=type==='Bank Transfer'
      ?(account.id===from?-total:account.id===to?total:0)

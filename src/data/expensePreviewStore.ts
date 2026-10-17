@@ -1,7 +1,9 @@
 import { expenses as seedExpenses } from './purchases.ts';
 import { validateBusinessDate, toPaisa } from '../utils/partyPayment.ts';
 import { expenseDateIso } from '../utils/dateRange.ts';
-import type { Expense } from '../types/erp';
+import type { Expense, PaymentMethod } from '../types/erp';
+
+export const expensePaymentMethods:readonly PaymentMethod[]=['Cash','Bank','bKash','Nagad','Mobile Banking','Card'];
 
 type ExpenseAudit = { id: string; expenseId: string; action: string; reason: string; at: string; before?: Expense; after: Expense };
 const fresh = () => ({ expenses: seedExpenses.map(e => ({ ...e })), audit: [] as ExpenseAudit[], revision: 0 });
@@ -38,7 +40,7 @@ export function savePreviewExpense(expense: Expense, reason = '') {
       if (ids.has(payment.id)) throw new Error('Duplicate payment row.');
       ids.add(payment.id);
       const part = toPaisa(payment.amount, 'Payment');
-      if (!part || !payment.account?.trim() || !['Cash', 'Bank', 'bKash', 'Nagad', 'Card'].includes(payment.method)) throw new Error('Choose a payment account and a positive amount.');
+      if (!part || !payment.account?.trim() || !expensePaymentMethods.includes(payment.method)) throw new Error('Choose a payment account and a positive amount.');
       total += part;
     }
     if (total !== paid) throw new Error('Payment rows must match the paid amount.');

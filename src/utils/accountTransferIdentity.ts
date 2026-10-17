@@ -1,14 +1,8 @@
-import type { AccountTransfer, FinanceAccount } from '../data/financeAccounts';
+import {financeAccountOptionLabel, type AccountTransfer, type FinanceAccount} from '../data/financeAccounts.ts';
 
 export type TransferEndpoint = 'from' | 'to';
 
-export function financeAccountIdentityLabel(account: FinanceAccount, accounts: FinanceAccount[]): string {
-  const sameName = accounts.filter((item) => item.name === account.name);
-  if (sameName.length < 2) return account.name;
-  const numberIsUnique = !!account.number && sameName.filter((item) => item.number === account.number).length === 1;
-  const identity = numberIsUnique ? account.number : account.id;
-  return `${account.name} · ${identity}`;
-}
+export const financeAccountIdentityLabel=financeAccountOptionLabel;
 
 /** Prefer a stored account ID. Resolve legacy names only when they identify one account. */
 export function transferAccountId(
