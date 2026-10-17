@@ -11,6 +11,8 @@ on:
       - 'scripts/bundle-pos-browser.cjs'
       - 'tests/bundleCart.test.ts'
       - 'tests/bundleDocuments.test.ts'
+      - 'tests/bundleFulfillment.test.ts'
+      - 'scripts/bundle-component-browser.cjs'
       - '.github/workflows/bundle-pos-check.yml'
 jobs:
   bundle-sale-preview:
@@ -26,7 +28,9 @@ jobs:
       - name: Typecheck and validate bundle POS calculations
         run: |
           npx tsc --noEmit
-          node --experimental-strip-types --test tests/bundleCart.test.ts tests/bundleDocuments.test.ts
+          node --experimental-strip-types --test tests/bundleCart.test.ts tests/bundleDocuments.test.ts tests/bundleFulfillment.test.ts
       - run: npx playwright install --with-deps chromium
       - name: Verify POS bundle sale preview and phone/tablet flow
-        run: node scripts/bundle-pos-browser.cjs
+        run: |
+          node scripts/bundle-pos-browser.cjs
+          node scripts/bundle-component-browser.cjs
