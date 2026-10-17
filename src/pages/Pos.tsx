@@ -262,12 +262,13 @@ export function Pos() {
     const sourceKey='online-order:'+incomingOrderId;
     if(loadedSource.current===sourceKey)return;
     try{
-      const handoff=preparePosHandoff(incomingOrderId,products);
+      const handoff=preparePosHandoff(incomingOrderId,previewCatalog);
       loadedSource.current=sourceKey;
       cart.setLines(handoff.lines.map(l=>{
-        const product=products.find(p=>p.id===l.productId)!;
+        const product=previewCatalog.find(p=>p.id===l.productId)!;
         return {key:l.key,product,qty:l.qty,secondaryQty:l.secondaryQty,
-          unit:l.unit,price:l.price,serials:[]};
+          unit:l.unit,price:l.price,serials:[],
+          ...(product.kind==='Bundle'?{bundleRevision:l.bundleRevision,bundleRecipeSignature:l.bundleRecipeSignature}: {})};
       }));
       const matchingParty=handoff.partyId?parties.find(p=>p.id===handoff.partyId)??null:null;
       cart.setCustomer(matchingParty);
