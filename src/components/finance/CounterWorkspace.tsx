@@ -6,7 +6,7 @@ import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '../Dialog';
 import {PartyEditorDialog} from '../parties/PartyEditorDialog';
-import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview} from '../../data/partyPreviewStore';
+import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview,quickAddPartyPreview,PartyQuickAddConflict} from '../../data/partyPreviewStore';
 import {getExpensePreviewSnapshot,savePreviewExpense} from '../../data/expensePreviewStore';
 import {customerSettlementAsOf,supplierSettlementAsOf} from '../../utils/partySettlement';
 import {businessToday} from '../../utils/dateRange';
@@ -96,28 +96,20 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
   setPartyId(p.id);setSearch(p.name);setSearching(false);setAllocation('');setError('');setReview(false);setSubmitted(false);};
  const addParty=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
   if(!draft.roles.includes(payerRole))throw new Error(text(`Select the ${payerRole.toLowerCase()} relationship to continue.`,payerRole==='Customer'?'চালিয়ে যেতে ক্রেতা সম্পর্কটি নির্বাচন করুন।':'চালিয়ে যেতে সরবরাহকারী সম্পর্কটি নির্বাচন করুন।'));
-  const normalizedName=draft.name.trim().normalize('NFKC').toLocaleLowerCase();
-  const normalizedPhone=draft.phone.replace(/\D/g,'');
-  const existingIdentity=normalizedPhone?state.parties.find(p=>
-   p.name.trim().normalize('NFKC').toLocaleLowerCase()===normalizedName&&p.phone.replace(/\D/g,'')===normalizedPhone):undefined;
-  if(existingIdentity){
-   if(existingIdentity.status==='Inactive')throw new Error(text('This matching party is inactive. Reactivate them in Parties before recording a Counter payment.','মিলে যাওয়া পার্টিটি নিষ্ক্রিয়। কাউন্টারে টাকা নেওয়া বা দেওয়ার আগে পার্টিতে সক্রিয় করুন।'));
-   const roles=existingIdentity.roles.includes(payerRole)?existingIdentity.roles:[...existingIdentity.roles,payerRole];
-   const next=dispatchPartyPreview({type:'update-party',id:existingIdentity.id,patch:{...draft,roles},openings});
-   const updated=next.parties.find(p=>p.id===existingIdentity.id);
-   if(!updated)throw new Error(text('The matching party could not be updated.','মিলে যাওয়া পার্টির তথ্য বদলানো যায়নি।'));
-   setQuickAddOpen(false);
-   selectParty(updated,true);
-   toast.success(text(payerRole+' relationship added to existing party',payerRole==='Customer'?'আগের পার্টিতে ক্রেতা সম্পর্ক যোগ হয়েছে':'আগের পার্টিতে সরবরাহকারী সম্পর্ক যোগ হয়েছে'));
-   return;
+  try{
+   const {party,reused}=quickAddPartyPreview(draft,openings);
+   setQuickAddOpen(false);selectParty(party,true);
+   toast.success(reused
+    ?text('Existing party selected; relationships added','আগের পার্টি বাছা হয়েছে; সম্পর্ক যোগ হয়েছে')
+    :text(payerRole+' added in Counter preview',payerRole==='Customer'?'ক্রেতা কাউন্টারের প্রিভিউতে যোগ হয়েছে':'সরবরাহকারী কাউন্টারের প্রিভিউতে যোগ হয়েছে'));
+  }catch(error){
+   if(error instanceof PartyQuickAddConflict){
+    if(error.reason==='inactive')throw new Error(text('This matching party is inactive. Reactivate them in Parties before recording a Counter payment.','মিলে যাওয়া পার্টিটি নিষ্ক্রিয়। কাউন্টারে টাকা নেওয়া বা দেওয়ার আগে পার্টিতে সক্রিয় করুন।'));
+    if(error.reason==='ambiguous')throw new Error(text('Multiple parties have this name and phone. Select the correct identity in Parties first.','একই নাম ও ফোনে একাধিক পার্টি আছে। আগে পার্টিতে সঠিক ব্যক্তিকে বাছুন।'));
+    throw new Error(text('Edit an existing relationship opening balance in Parties. Quick Add only adds new relationships.','আগের সম্পর্কের শুরুর জের পার্টিতে গিয়ে বদলান। এখান থেকে শুধু নতুন সম্পর্ক যোগ করা যায়।'));
+   }
+   throw error;
   }
-  const existingIds=new Set(state.parties.map(p=>p.id));
-  const next=dispatchPartyPreview({type:'create-party',party:draft,openings});
-  const created=next.parties.find(p=>!existingIds.has(p.id));
-  if(!created)throw new Error(text('The party was not added. Check for a duplicate name or phone number.','পার্টি যোগ হয়নি। একই নাম বা ফোন আছে কি না দেখুন।'));
-  setQuickAddOpen(false);
-  selectParty(created,true);
-  toast.success(text(payerRole+' added in Counter preview',payerRole==='Customer'?'ক্রেতা কাউন্টারের প্রিভিউতে যোগ হয়েছে':'সরবরাহকারী কাউন্টারের প্রিভিউতে যোগ হয়েছে'));
  };
  const editRows=(next:Row[])=>{setRows(next);setReview(false);setError('');setSubmitted(false);};
  const addRow=()=>{

@@ -13,6 +13,11 @@ async function main() {
   try {
     await page.goto('http://127.0.0.1:49272/#/app/counter');
     await page.getByRole('heading',{name:'Transaction summary'}).waitFor();
+    const before=await page.evaluate(async()=>{
+      const {getPartyPreviewSnapshot}=await import('/src/data/partyPreviewStore.ts');
+      const state=getPartyPreviewSnapshot();
+      return {party:state.parties.find(p=>p.id==='c1'),sources:state.sources};
+    });
     await page.locator('[role="group"][aria-label="Counter transaction type"] button').filter({hasText:'Supplier Pay'}).tap();
     const query=page.getByRole('textbox',{name:'Search supplier'});
     const amount=page.locator('input[aria-label="Payment source amount"]');
@@ -23,13 +28,19 @@ async function main() {
     const dialog=page.getByRole('dialog',{name:'Add party'});
     await dialog.waitFor();
     await dialog.getByRole('textbox',{name:'Phone'}).fill('01711-482093');
+    await dialog.getByRole('checkbox',{name:'Vendor',exact:true}).check();
     await dialog.getByRole('button',{name:'Save party'}).tap();
     await dialog.waitFor({state:'hidden'});
     const identities=await page.evaluate(async()=>{
       const {getPartyPreviewSnapshot}=await import('/src/data/partyPreviewStore.ts');
-      return getPartyPreviewSnapshot().parties.filter(p=>p.name==='Rahman Hardware').map(p=>({id:p.id,roles:p.roles}));
+      return getPartyPreviewSnapshot().parties.filter(p=>p.name==='Rahman Hardware');
     });
-    assert.deepEqual(identities,[{id:'c1',roles:['Customer','Supplier']}],'same name and phone extends the existing identity without changing its source ID');
+    assert.equal(identities.length,1,'same name and phone reuse one existing identity');
+    assert.deepEqual(identities[0],{...before.party,roles:['Customer','Supplier','Vendor']},'adding relationships preserves every saved profile field and all selected roles');
+    assert.deepEqual(await page.evaluate(async()=>{
+      const {getPartyPreviewSnapshot}=await import('/src/data/partyPreviewStore.ts');
+      return getPartyPreviewSnapshot().sources;
+    }),before.sources,'role addition does not replace historical opening or transaction sources');
     assert.equal(await query.inputValue(),'Rahman Hardware','the existing person is selected as supplier');
     assert.equal(await amount.inputValue(),'125','the parent payment amount survives role addition');
     console.log('Counter same-person role addition preserves the Party ID');
