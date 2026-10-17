@@ -7,6 +7,7 @@ import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
 import { StatusBadge } from '../StatusBadge';
 import {
+  financePersonOptionLabel,
   type AccountTransfer,
   type FinanceAccount,
   type FinanceAccountType,
@@ -163,7 +164,7 @@ export function FinanceTransactionActionDialog({
 
             <label className="text-[13px] font-medium text-ink">
               {text('Finance person','হিসাবের ব্যক্তি')}
-              <FormSelect className="mt-1.5" value={selectedPerson?.id || ''} options={peopleOptions.map(person=>({value:person.id,label:person.name + (person.phone ? ' · ' + person.phone : '') + (person.status === 'Inactive' ? ' · ' + financeLabel(language,person.status) : '')}))} onChange={(event) => setPartyId(event.target.value)} />
+              <FormSelect className="mt-1.5" value={selectedPerson?.id || ''} options={peopleOptions.map(person=>({value:person.id,label:financePersonOptionLabel(person,peopleOptions) + (person.status === 'Inactive' ? ' · ' + financeLabel(language,person.status) : '')}))} onChange={(event) => setPartyId(event.target.value)} />
               <span className="mt-1 block text-[11px] font-normal text-ink-400">{selectedPerson?.name || text('No eligible person','উপযুক্ত ব্যক্তি নেই')}</span>
             </label>
 
@@ -569,9 +570,9 @@ export function FinancePeopleManagerDialog({
 
         <div className="rounded-xl border border-border">
           <div className="grid gap-2 border-b border-border bg-ink-50/60 p-3 md:grid-cols-2">
-            <Input value={name} onChange={(event) => setName(event.target.value)} placeholder={text("Name","নাম")} />
-            <Input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder={text("Phone","ফোন নম্বর")} />
-            <Input className="md:col-span-2" value={description} onChange={(event) => setDescription(event.target.value)} placeholder={text("Description / relationship note","বিবরণ / সম্পর্কের মন্তব্য")} />
+            <Input aria-label={text('Name','নাম')} value={name} onChange={(event) => setName(event.target.value)} placeholder={text("Name","নাম")} />
+            <Input aria-label={text('Phone','ফোন নম্বর')} value={phone} onChange={(event) => setPhone(event.target.value)} placeholder={text("Phone","ফোন নম্বর")} />
+            <Input aria-label={text('Description / relationship note','বিবরণ / সম্পর্কের মন্তব্য')} className="md:col-span-2" value={description} onChange={(event) => setDescription(event.target.value)} placeholder={text("Description / relationship note","বিবরণ / সম্পর্কের মন্তব্য")} />
             <div className="flex flex-wrap gap-1.5 md:col-span-2">
               {(['Owner', 'Lender', 'Borrower'] as FinancePersonRole[]).map((role) => (
                 <button key={role} type="button" aria-pressed={roles.includes(role)} onClick={() => toggleRole(role)}
@@ -593,15 +594,15 @@ export function FinancePeopleManagerDialog({
                   {person.name.split(' ').map((part) => part[0]).join('').slice(0, 2)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-ink">{person.name}</p>
+                  <p className="truncate text-[13px] font-medium text-ink">{financePersonOptionLabel(person,people)}</p>
                   <p className="text-[10.5px] text-ink-400">{person.phone || text('No phone','ফোন নম্বর নেই')}{person.description ? ' · ' + person.description : ''}</p>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {person.roles.map((role) => <StatusBadge key={role} tone="neutral">{financeLabel(language,role)}</StatusBadge>)}
                   <StatusBadge tone={person.status === 'Active' ? 'success' : 'neutral'} dot>{financeLabel(language,person.status)}</StatusBadge>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => startEdit(person)}><Pencil className="size-3.5" /> {text('Edit','সংশোধন')}</Button>
-                <Button variant="outline" size="sm" onClick={() => onUpdate({ ...person, status: person.status === 'Active' ? 'Inactive' : 'Active' })}>
+                <Button variant="outline" size="sm" aria-label={`${text('Edit','সংশোধন')} ${financePersonOptionLabel(person,people)}`} onClick={() => startEdit(person)}><Pencil className="size-3.5" /> {text('Edit','সংশোধন')}</Button>
+                <Button variant="outline" size="sm" aria-label={`${text(person.status === 'Active' ? 'Deactivate' : 'Activate',person.status === 'Active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন')} ${financePersonOptionLabel(person,people)}`} onClick={() => onUpdate({ ...person, status: person.status === 'Active' ? 'Inactive' : 'Active' })}>
                   <Power className="size-3.5" /> {person.status === 'Active' ? text('Deactivate','নিষ্ক্রিয় করুন') : text('Activate','সক্রিয় করুন')}
                 </Button>
               </div>
