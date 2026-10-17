@@ -18,7 +18,7 @@ import { AppDatePicker } from '../AppDateRangePicker';
 import { businessToday, expenseDateIso } from '../../utils/dateRange';
 import { validateBusinessDate, toPaisa } from '../../utils/partyPayment';
 import { taka } from '../../utils/currency';
-import { amountInWords } from '../../utils/amountInWords';
+import { AmountInWordsDisplay } from '../AmountInWordsDisplay';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 
 type BillDialogProps = {
@@ -649,7 +649,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
               </p>
             </div>
           </div>
-          <p className="px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">{text('Amount in words:','কথায় টাকা:')} {amountInWords(totalNum)}</p>
+          <AmountInWordsDisplay amount={totalNum} />
         </section>
 
         {mode === 'purchase' && (
@@ -686,7 +686,7 @@ export function BillDialog({ mode, open, onOpenChange, nextRef, onSavePurchase, 
         {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
         {mode === 'expense' && review && <section aria-label={text("Expense correction impact","খরচ সংশোধনের হিসাব")} className="space-y-2 rounded-lg border border-border bg-ink-50 p-3 text-xs">
           <p className="font-semibold text-ink">{text('Review expense before recording · নিশ্চিত করুন','খরচ লেখার আগে যাচাই করুন')}</p>
-          <p className="text-lg font-semibold">{taka(totalNum)}</p><p>{amountInWords(totalNum)}</p>
+          <p className="text-lg font-semibold">{taka(totalNum)}</p><AmountInWordsDisplay amount={totalNum} />
           <p>{text('Paid','পরিশোধ')} {taka(paymentTotal)} · {text('Due','বাকি')} {taka(due)}</p>
           <p>{expense ? expense.payee + ' → ' : ''}{party} · {category}</p>
           {expense && <p>{text('Previous amount','আগের টাকা')} {taka(expense.amount)} · {text('Reason','কারণ')}: {correctionReason}</p>}
