@@ -129,6 +129,12 @@ async function run(){
    await posLine.getByRole('button',{name:/Show purchase price for Tubewell Set/i}).click();
    await posLine.getByText(/package cost/i).waitFor();
    await posLine.getByText(/estimated/i).waitFor();
+   const costTooltip=posLine.getByText(/Current component lots/);
+   const costBounds=await costTooltip.boundingBox();
+   assert.ok(costBounds,'POS package cost tooltip is visible');
+   assert.ok(costBounds.x>=-2&&costBounds.x+costBounds.width<=viewport.width+2,
+     'POS package cost tooltip must stay inside viewport on phones');
+
    await posLine.getByText(/Bundle sale checkout pending/i).waitFor();
    await page.evaluate(()=>{window.location.hash='#/app/purchases/new';});
    const purchaseSearch=page.getByRole('combobox',{name:'Search product to add to purchase'});
