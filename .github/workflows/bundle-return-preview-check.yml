@@ -1,0 +1,30 @@
+name: Bundle Return Preview Check
+on:
+  pull_request:
+    paths:
+      - 'src/bundles/bundleReturn.ts'
+      - 'src/pages/Sales.tsx'
+      - 'src/utils/salesDocuments.ts'
+      - 'src/data/sales.ts'
+      - 'src/types/erp.ts'
+      - 'tests/bundleReturn.test.ts'
+      - 'scripts/bundle-return-browser.cjs'
+      - '.github/workflows/bundle-return-preview-check.yml'
+jobs:
+  returns:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Typecheck and test whole Set returns
+        run: |
+          npx tsc --noEmit
+          node --experimental-strip-types --test tests/bundleReturn.test.ts tests/salesDocuments.test.ts
+      - run: npx playwright install --with-deps chromium
+      - name: Verify return dialog and no preview posting
+        run: node scripts/bundle-return-browser.cjs

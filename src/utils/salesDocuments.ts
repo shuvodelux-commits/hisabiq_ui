@@ -12,7 +12,7 @@ export function invoiceReceipt(invoice: SalesInvoice, language?: UiLanguage): Re
     language,
     invoice: invoice.invoice, customer: invoice.party === 'Walk-in customer' ? undefined : invoice.party,
     customerPhone: invoice.phone, guardianName: invoice.guardianName, customerAddress: invoice.address,
-    lines: invoice.lines.map(line => ({name:line.name,qty:invoiceQuantity(line),price:line.price,total:line.total,serials:line.serials,warranty:line.warranty})),
+    lines: invoice.lines.map(line => ({name:line.name,qty:invoiceQuantity(line),price:line.price,total:line.total,serials:line.serials,warranty:line.warranty,bundleSnapshot:line.bundleSnapshot})),
     subtotal: invoice.subtotal, discount: invoice.discount, rounding: invoice.rounding,
     total: invoice.total, paid: invoice.paid, due: invoice.due,
     method: invoice.payments.length > 1 ? 'Multiple' : invoice.method, dateTime: `${invoice.date}, ${invoice.time}`

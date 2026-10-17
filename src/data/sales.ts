@@ -157,6 +157,26 @@ export const salesInvoices: SalesInvoice[] = [
       { id: 'sl236-3', productId: 'p7', name: 'Gate Valve ¾"', quantity: '3', unit: 'Pcs', returnableQuantity: 3, price: 650, total: 1950 },
       { id: 'sl236-4', productId: 'p9', name: 'Teflon Tape', quantity: '3 Box', unit: 'Pcs', returnableQuantity: 36, price: 20.72, total: 746 }
     ]
+  },
+  /** Illustrative historical invoice, not a real POS posting or stock movement. */
+  {
+    id:'sample-bundle-return',invoice:'INV-DEMO-BUNDLE',date:'17 Oct 2026',time:'10:00 AM',
+    party:'Package Demo Customer',items:1,subtotal:7800,discount:200,rounding:0,total:7600,
+    paid:7600,due:0,method:'Cash',status:'Paid',
+    payments:[{id:'demo-bundle-cash',method:'Cash',amount:7600}],salesperson:'Preview',
+    note:'SAMPLE DATA ONLY — a fictional posted bundle for return-preview testing. No inventory or financial posting occurred.',
+    lines:[{
+      id:'demo-bundle-line',productId:'demo-virtual-bundle',name:'Tubewell Package (DEMO)',quantity:'2 Set',
+      unit:'Set',returnableQuantity:2,price:3900,total:7800,netSaleTotal:7600,
+      bundleSnapshot:{bundleRevision:1,components:[
+        {productId:'p1',name:'PVC Pipe 1" (20 ft)',sku:'PVC-DEMO',baseQtyPerSet:3,
+         totalBaseQty:6,unit:'Pcs',unitFactorAtSale:1,
+         lotAllocations:[{lotId:'lot-p1-opening',quantity:6}],unitCost:320},
+        {productId:'p7',name:'Gate Valve ¾"',sku:'VALVE-DEMO',baseQtyPerSet:1,
+         totalBaseQty:2,unit:'Pcs',unitFactorAtSale:1,
+         serials:['GV34-1001','GV34-1002'],lotAllocations:[{lotId:'lot-p7-opening',quantity:2}],unitCost:510}
+      ]}
+    }]
   }
 ];
 
