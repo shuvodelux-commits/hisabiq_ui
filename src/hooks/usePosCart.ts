@@ -26,6 +26,8 @@ export type CartLine = {
   bundleRecipeSignature?:string;
   /** Later source decisions are per component, never on the parent. */
   bundleSources?: Record<string, SaleStockSource>;
+  /** Serial selections are scoped to the actual component inside this cart line. */
+  bundleSerials?: Record<string,string[]>;
 };
 
 export type DiscountMode = 'amount' | 'percent';
@@ -129,7 +131,8 @@ export function usePosCart() {
       (product.kind!=='Bundle'||(l.bundleRevision===currentRevision&&l.bundleRecipeSignature===signature)));
     if (existing) {
       setLines((ls) =>
-        ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1), stockSource: undefined } : l)
+        ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1), stockSource: undefined,
+          ...(l.product.kind==='Bundle'?{bundleSources:undefined,bundleSerials:undefined}:{}) } : l)
       );
       setLastAdded(existing.key);
       return;
@@ -139,14 +142,17 @@ export function usePosCart() {
     setLastAdded(l.key);
   };
 
-  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource'>>) => {
+  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource' | 'bundleSources' | 'bundleSerials'>>) => {
     setLines((ls) =>
       ls.map((l) => {
         if (l.key !== key) return l;
         const quantityChanged = patch.qty !== undefined || patch.secondaryQty !== undefined || patch.unit !== undefined;
         const next = { ...l, ...patch };
         if (quantityChanged && patch.stockSource === undefined) next.stockSource = undefined;
-        if (quantityChanged && l.product.kind==='Bundle') next.bundleSources=undefined;
+        if (quantityChanged && l.product.kind==='Bundle') {
+          next.bundleSources=undefined;
+          next.bundleSerials=undefined;
+        }
         if (patch.unit && patch.unit !== l.unit) {
           next.price = String(effectivePriceForUnit(l.product, activeOfferFor(l.product.id, productOffers), patch.unit));
           next.secondaryQty = '';
