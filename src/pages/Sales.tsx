@@ -37,6 +37,7 @@ import { products } from '../data/products';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn } from '../types/erp';
 import { taka } from '../utils/currency';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
+import {planBundleReturn,type BundleReturnSelection} from '../bundles/bundleReturn';
 import { downloadReport, printReport } from '../utils/reportOutput';
 const printInvoice = (invoice: SalesInvoice,language:UiLanguage='English + Bangla') => {
   const view = window.open('', '_blank');
@@ -683,6 +684,8 @@ export function Sales() {
   const [returnPrice, setReturnPrice] = useState<Record<string, string>>({});
   const [returnReason, setReturnReason] = useState<Record<string, string>>({});
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
+  const [bundleReturnChoices,setBundleReturnChoices]=useState<Record<string,Record<string,BundleReturnSelection>>>({});
+  const [bundleReturnPreviewOpen,setBundleReturnPreviewOpen]=useState(false);
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
   const [returnRefundMethod, setReturnRefundMethod] = useState<Exclude<PaymentMethod, 'Customer Credit'>>('Cash');
   const [returnRefundAccount, setReturnRefundAccount] = useState('');
@@ -742,7 +745,17 @@ export function Sales() {
     const raw = returnPrice[line.id];
     return raw === undefined || raw === '' ? line.price : parseFloat(raw) || 0;
   };
-  const returnAmount = selectedReturnLines.reduce((sum, item) => sum + (parseFloat(returnQty[item.line.id] ?? '') || 0) * returnPriceFor(item.line), 0);
+  const selectedBundlePlans=selectedReturnLines.filter(({line})=>Boolean(line.bundleSnapshot)&&Number(returnQty[line.id]??'')>0)
+    .map(({invoice,line})=>planBundleReturn({
+      invoice,line,sets:Number(returnQty[line.id]),choices:bundleReturnChoices[line.id]??{},
+      priorReturns:returns.flatMap(r=>r.bundleReturns??[])
+    }));
+  const includesBundleReturn=selectedBundlePlans.length>0;
+  const returnAmount = selectedReturnLines.reduce((sum,{line})=>{
+    const qty=Number(returnQty[line.id]??0);
+    if(line.bundleSnapshot)return sum+(selectedBundlePlans.find(p=>p.lineId===line.id)?.refundEstimate??0);
+    return sum+qty*returnPriceFor(line);
+  },0);
   const returnIssues = selectedReturnLines.flatMap(({ line }) => {
     const qty = parseFloat(returnQty[line.id] ?? '') || 0;
     if (qty <= 0) return [];
@@ -763,6 +776,7 @@ export function Sales() {
     setReturnPrice({});
     setReturnReason({});
     setReturnSerials({});
+    setBundleReturnChoices({});
     setDetail(null);
     setTab('return');
   };
@@ -880,6 +894,12 @@ export function Sales() {
   const completeReturn = () => {
     if (!returnInvoiceIds.length || returnAmount <= 0) {
       toast.error(sl('Select invoice items and enter return quantity'));
+      return;
+    }
+    if(includesBundleReturn){
+      // Historical component stock/serial, refund and ledger reversal require authenticated
+      // backend posting. A preview must never enter the ordinary local-state return mutator.
+      setBundleReturnPreviewOpen(true);
       return;
     }
     if (returnIssues.length) {
@@ -1203,6 +1223,7 @@ export function Sales() {
                             <TableCell className="py-2 pl-3">
                               <p className="font-medium text-ink">{line.name}</p>
                               <p className="text-[11px] text-ink-400">{invoice.invoice}</p>
+                              {line.bundleSnapshot&&<p className="mt-1 text-[10.5px] font-medium text-teal-700">{text('Whole package only · historical recipe v','শুধু সম্পূর্ণ প্যাকেজ · আগের সংস্করণ ')}{line.bundleSnapshot.bundleRevision}</p>}
                               {qty > 0 && (
                                 <div className="mt-2 max-w-[260px] space-y-1.5">
                                   <FormSelect
@@ -1210,6 +1231,41 @@ export function Sales() {
                                     onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
                                     options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
                                   />
+                                  {line.bundleSnapshot&&<div className="space-y-2 rounded-lg border border-border p-2" data-testid="bundle-return-components">
+                                    <p className="text-[11px] font-semibold">{text('Original included products · choose condition','আগের প্যাকেজের পণ্য · অবস্থা বাছুন')}</p>
+                                    {line.bundleSnapshot.components.map(part=>{
+                                      const saved=bundleReturnChoices[line.id]?.[part.productId];
+                                      return <div key={part.productId} className="space-y-1 rounded-md bg-ink-50 p-2">
+                                        <p className="text-[11px] font-medium">{part.name} · {Number((part.baseQtyPerSet*qty).toFixed(6))} {part.unit}</p>
+                                        <label className="block text-[10px] text-ink-500">{text('Condition / stock treatment','অবস্থা / স্টক')}
+                                          <FormSelect aria-label={`Disposition for ${part.name}`} className="mt-1" value={saved?.disposition??''}
+                                            onChange={event=>setBundleReturnChoices(current=>({
+                                              ...current,[line.id]:{...current[line.id],[part.productId]:{
+                                                disposition:event.target.value as BundleReturnSelection['disposition'],
+                                                serials:current[line.id]?.[part.productId]?.serials??[]
+                                              }}
+                                            }))}
+                                            options={[{value:'',label:text('Choose treatment','বাছুন')},
+                                              {value:'Restock',label:text('Restock — inspection required','স্টকে ফেরত — যাচাই করতে হবে')},
+                                              {value:'Do not restock',label:text('Do not restock — damaged/consumed','স্টকে নয় — নষ্ট/ব্যবহৃত')}]}/>
+                                        </label>
+                                        {Boolean(part.serials?.length)&&<>
+                                          <label className="block text-[10px] text-ink-500">{text('Returned component serials, comma-separated','ফেরত সিরিয়াল, কমা দিয়ে লিখুন')}
+                                            <Input aria-label={`Returned serials for ${part.name}`} className="mt-1 h-8" value={(saved?.serials??[]).join(', ')}
+                                              onChange={event=>setBundleReturnChoices(current=>({
+                                                ...current,[line.id]:{...current[line.id],[part.productId]:{
+                                                  disposition:current[line.id]?.[part.productId]?.disposition??'Do not restock',
+                                                  serials:event.target.value.split(',').map(v=>v.trim()).filter(Boolean)
+                                                }}
+                                              }))}/>
+                                          </label>
+                                          <p className="text-[10px] text-ink-400">{text('Original serials','আগের সিরিয়াল')}: {part.serials?.join(', ')}</p>
+                                        </>}
+                                        {part.lotAllocations?.length?<p className="text-[10px] text-ink-400">{text('Original lots','আগের লট')}: {part.lotAllocations.map(l=>l.lotId).join(', ')}</p>:
+                                          <p className="text-[10px] text-warning">{text('No original owned-lot evidence; do not restock','আগের লট নেই; স্টকে ফেরত নয়')}</p>}
+                                      </div>;
+                                    })}
+                                  </div>}
                                   {line.serials?.length ? (
                                     <>
                                       <Input
@@ -1232,8 +1288,10 @@ export function Sales() {
                               <div className="flex items-center gap-2">
                                 <Input
                                   value={returnQty[line.id] ?? ''}
-                                  onChange={(event) => setReturnQty((value) => ({ ...value, [line.id]: event.target.value.replace(/[^\d.]/g, '') }))}
-                                  inputMode="decimal"
+                                  onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value.replace(/[^\d.]/g,'')}));
+                                    if(line.bundleSnapshot)setBundleReturnChoices(value=>({...value,[line.id]:{}}));}}
+                                  inputMode={line.bundleSnapshot?'numeric':'decimal'}
+                                  aria-label={line.bundleSnapshot?`Whole Sets to return for ${line.name}`:undefined}
                                   className="h-8 text-right"
                                   placeholder="0"
                                 />
@@ -1247,13 +1305,16 @@ export function Sales() {
                               <div className="ml-auto w-28">
                                 <Input
                                   value={returnPrice[line.id] ?? String(line.price)}
+                                  disabled={Boolean(line.bundleSnapshot)}
                                   onChange={(event) => setReturnPrice((value) => ({ ...value, [line.id]: event.target.value.replace(/[^\d.]/g, '') }))}
                                   inputMode="decimal"
                                   className="h-8 text-right"
                                   aria-label={`${sl('Return price for')} ${line.name}`}
                                 />
                                 <p className="mt-1 text-right text-[10.5px] text-ink-400">
-                                  {qty > 0 ? taka(qty * returnPriceFor(line)) : `/${line.unit}`}
+                                  {line.bundleSnapshot?
+                                    (qty>0?text('Historical net refund — see preview','আগের বিক্রির মূল্য — প্রিভিউ দেখুন'):'Set'):
+                                    (qty > 0 ? taka(qty * returnPriceFor(line)) : `/${line.unit}`)}
                                 </p>
                               </div>
                             </TableCell>
@@ -1284,7 +1345,12 @@ export function Sales() {
                       <p className="text-[11px] text-ink-400">{sl('Return amount')}</p>
                       <p className="text-base font-semibold text-ink">{taka(returnAmount)}</p>
                     </div>
-                    <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> {sl('Complete return')}</Button>
+                    <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
+                      text('Preview return only','শুধু ফেরত প্রিভিউ'):sl('Complete return')}</Button>
+                    {includesBundleReturn&&<p role="note" className="text-xs text-warning sm:col-span-3">
+                      {text('Bundle returns are preview only: no refund, invoice status, credit or stock is changed. Mixed ordinary items are also not submitted.',
+                        'প্যাকেজ ফেরত শুধু প্রিভিউ: টাকা, বিল, জমা বা স্টক বদলাবে না। সঙ্গে থাকা অন্য পণ্যও জমা হবে না।')}
+                    </p>}
                     {returnSettlement === 'Cash refund' && (
                       <div className="grid gap-3 sm:col-span-3 sm:grid-cols-2">
                         <label className="text-[12px] font-medium text-ink">
@@ -1319,6 +1385,34 @@ export function Sales() {
             </div>
           </div>
         )}
+
+        <Dialog open={bundleReturnPreviewOpen} onOpenChange={open=>!open&&setBundleReturnPreviewOpen(false)}>
+          <DialogContent role="dialog" aria-label="Bundle return preview" className="max-h-[92vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-xl">
+            <DialogHeader>
+              <DialogTitle>{text('Whole-Set return preview','সম্পূর্ণ সেট ফেরত প্রিভিউ')}</DialogTitle>
+              <DialogDescription>{text('Historical quantities and original lot/serial evidence only. No stock, refund, credit, invoice or ledger posting.',
+                'শুধু আগের পরিমাণ ও লট/সিরিয়াল দেখা যাবে। স্টক বা টাকা বদলাবে না।')}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              {selectedBundlePlans.map(plan=><section key={plan.lineId} data-testid="bundle-return-preview-plan" className="rounded-lg border border-border p-3 text-sm">
+                <p className="font-semibold">{selectedReturnLines.find(x=>x.line.id===plan.lineId)?.line.name} · {plan.sets} Set · v{plan.bundleRevision}</p>
+                <p className="text-xs text-ink-500">{text('Remaining before preview','এখনও ফেরতযোগ্য')}: {plan.remainingSets} Set</p>
+                <p className="font-medium">{text('Historical refund estimate','আগের বিক্রির ফেরত মূল্য')}: {plan.refundEstimate===null?
+                  text('Pending source allocation','আগের মূল্য যাচাই বাকি'):taka(plan.refundEstimate)}</p>
+                {plan.components.map(child=><div key={child.productId} className="mt-2 rounded-md bg-ink-50 p-2 text-xs">
+                  <p>{child.name} · {child.returnedBaseQty} {child.unit} · {child.disposition}</p>
+                  {child.returnedSerials.length>0&&<p>Serials: {child.returnedSerials.join(', ')}</p>}
+                  {child.eligibleLotCandidates.map(lot=><p key={lot.lotId}>{text('Possible original lot','আগের সম্ভাব্য লট')}: {lot.lotId} · {lot.quantity} {child.unit}</p>)}
+                  {child.needsConditionInspection&&<p className="text-warning">{text('Inspection, expiry and ownership validation required before any restock','স্টকে ফেরতের আগে অবস্থা, মেয়াদ ও মালিকানা যাচাই করতে হবে')}</p>}
+                </div>)}
+                {plan.issues.map((issue,index)=><p key={index} role="alert" className="mt-1 text-xs text-danger">{issue}</p>)}
+              </section>)}
+              {selectedReturnLines.some(x=>!x.line.bundleSnapshot&&Number(returnQty[x.line.id]??0)>0)&&
+                <p role="note" className="text-xs text-warning">{text('Ordinary lines in this batch have not been returned.','এই ব্যাচের অন্য সাধারণ পণ্য ফেরত হয়নি।')}</p>}
+            </div>
+            <DialogFooter><Button onClick={()=>setBundleReturnPreviewOpen(false)}>{text('Close preview','প্রিভিউ বন্ধ করুন')}</Button></DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {tab === 'returns' && (
           <Table>
