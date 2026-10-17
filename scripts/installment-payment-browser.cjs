@@ -44,6 +44,13 @@ async function main(){
    assert.ok(rect&&rect.x>=-1&&rect.x+rect.width<=392,'collection dialog stays inside phone width');
    await modal.getByRole('button',{name:/Cancel/i}).scrollIntoViewIfNeeded();
    await modal.getByRole('button',{name:/Cancel/i}).click();
+   // A saved preview remains accessible even after closing the sale success dialog.
+   await page.getByRole('button',{name:/New sale/i}).click();
+   await page.getByRole('button',{name:/Installment previews/i}).click();
+   const history=page.getByRole('dialog',{name:/Installment previews/i});
+   await history.waitFor();
+   await history.getByRole('button',{name:/Collection Demo Customer/i}).click();
+   await history.getByText(/Receipt #1/i).first().waitFor();
    assert.deepEqual(errors,[]);
    console.log('Installment receipt preview, cancel and mobile dialog passed.');
  }finally{await browser.close();await server.close();}
