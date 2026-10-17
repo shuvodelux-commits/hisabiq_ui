@@ -984,14 +984,14 @@ export function Pos() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {(historySelected||completedInstallment) && <InstallmentReceivePaymentDialog open={receiveInstallmentOpen}
-        agreement={(historySelected||completedInstallment)!}
-        receipts={historySelected?historyReceipts:completedReceipts}
+      {(installmentHistoryOpen&&historySelected||completedInstallment) && <InstallmentReceivePaymentDialog open={receiveInstallmentOpen}
+        agreement={(installmentHistoryOpen&&historySelected||completedInstallment)!}
+        receipts={installmentHistoryOpen&&historySelected?historyReceipts:completedReceipts}
         onClose={()=>setReceiveInstallmentOpen(false)}
         onRecorded={()=>{
-          const agreement=(historySelected||completedInstallment)!;
+          const agreement=(installmentHistoryOpen&&historySelected||completedInstallment)!;
           const receipts=listInstallmentReceipts(agreement.id);
-          if(historySelected)setHistoryReceipts(receipts);
+          if(installmentHistoryOpen&&historySelected)setHistoryReceipts(receipts);
           else setCompletedReceipts(receipts);
         }}/>}
     </div>);
