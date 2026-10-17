@@ -31,6 +31,7 @@ const terms: Record<string, string> = {
   'Returned': 'ফেরত',
   'Part returned': 'আংশিক ফেরত',
   Cash: 'ক্যাশ',
+  'Customer Credit': 'ক্রেতার অগ্রিম জমা',
   Bank: 'ব্যাংক',
   'Mobile Banking': 'মোবাইল ব্যাংকিং',
   Card: 'কার্ড',

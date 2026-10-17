@@ -19,10 +19,12 @@ test('receipt preserves source line order, compound quantities and customer/tota
 });
 test('receipt retains serial/warranty data, exact discounts/rounding and multiple payment label', () => {
   const original = salesInvoices[0];
-  const invoice = {...original, party:'Walk-in customer', discount:2.5, rounding:-0.5, total:original.total-3, payments:[{id:'a',method:'Cash' as const,amount:10},{id:'b',method:'Bank' as const,amount:20}], lines:[{...original.lines[0],serials:['SERIAL-1'],warranty:{duration:1,durationUnit:'Years' as const,type:'Seller' as const,terms:'Original source terms'}}]};
+  const invoice = {...original, party:'Walk-in customer', discount:2.5, rounding:-0.5, total:original.total-3, payments:[{id:'a',method:'Cash' as const,account:'Cash counter',amount:10},{id:'b',method:'Bank' as const,account:'Dutch-Bangla Bank · 4582',amount:20}], lines:[{...original.lines[0],serials:['SERIAL-1'],warranty:{duration:1,durationUnit:'Years' as const,type:'Seller' as const,terms:'Original source terms'}}]};
   const receipt = invoiceReceipt(invoice);
   assert.equal(receipt.customer, undefined);
   assert.equal(receipt.method,'Multiple');
+  assert.deepEqual(receipt.payments,invoice.payments);
+  assert.notStrictEqual(receipt.payments?.[0],invoice.payments[0],'receipt owns a snapshot of each payment source');
   assert.equal(receipt.discount,2.5); assert.equal(receipt.rounding,-0.5);
   assert.deepEqual(receipt.lines[0].serials,['SERIAL-1']);
   assert.equal(receipt.lines[0].warranty?.terms,'Original source terms');

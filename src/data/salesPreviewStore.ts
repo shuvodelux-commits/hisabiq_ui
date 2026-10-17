@@ -1,11 +1,11 @@
 import type {CustomerCredit, SalesInvoice, SalesReturn, SaleTemplate} from '../types/erp.ts';
-import {customerCredits, salesInvoices, salesReturns, saleTemplates} from './sales.ts';
+import {customerCredits, salesInvoices, salesReturns, saleTemplates, salesDrafts, type SalesDraft} from './sales.ts';
 import {getProductImportPreviewSnapshot} from './productImportPreviewStore.ts';
 import {cartFromPreset,templateCart} from '../utils/salePresets.ts';
 
 /** Single-browser-session design preview. No backend, stock, ledger or cash posting. */
-type SalesPreview={invoices:SalesInvoice[];returns:SalesReturn[];credits:CustomerCredit[];templates:SaleTemplate[]};
-let snapshot:SalesPreview=structuredClone({invoices:salesInvoices,returns:salesReturns,credits:customerCredits,templates:saleTemplates});
+type SalesPreview={invoices:SalesInvoice[];returns:SalesReturn[];credits:CustomerCredit[];templates:SaleTemplate[];drafts:SalesDraft[]};
+let snapshot:SalesPreview=structuredClone({invoices:salesInvoices,returns:salesReturns,credits:customerCredits,templates:saleTemplates,drafts:salesDrafts});
 const listeners=new Set<()=>void>();
 export const getSalesPreviewSnapshot=()=>snapshot;
 export function subscribeSalesPreview(listener:()=>void) {

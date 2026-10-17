@@ -196,6 +196,9 @@ export type SalesDraft = {
   id: string;
   label: string;
   customer?: string;
+  customerId?: string;
+  discount?: string;
+  discountMode?: 'amount'|'percent';
   customerDetails?: {
     name: string;
     phone: string;

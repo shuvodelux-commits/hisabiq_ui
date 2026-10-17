@@ -32,7 +32,7 @@ import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
-import { customerCredits as seedCredits, salesDrafts, salesReturns as seedReturns } from '../data/sales';
+import { customerCredits as seedCredits, salesReturns as seedReturns, type SalesDraft } from '../data/sales';
 import { products } from '../data/products';
 import {availableParties} from '../data/erpDemoStore';
 import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate} from '../data/salesPreviewStore';
@@ -667,14 +667,14 @@ export function Sales() {
   const chooseTab=(id:Tab)=>{setTab(id);setSearchParams(current=>{
    const next=new URLSearchParams(current);if(id==='sales')next.delete('tab');else next.set('tab',id);return next;
   },{replace:true});};
-  const {invoices,returns,credits,templates}=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot,getSalesPreviewSnapshot);
+  const {invoices,returns,credits,templates,drafts}=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot,getSalesPreviewSnapshot);
   const setInvoices=(update:(items:SalesInvoice[])=>SalesInvoice[])=>updateSalesPreview('invoices',update);
   const setReturns=(update:(items:SalesReturn[])=>SalesReturn[])=>updateSalesPreview('returns',update);
   const setCredits=(update:(items:CustomerCredit[])=>CustomerCredit[])=>updateSalesPreview('credits',update);
   const setTemplates=(update:(items:SaleTemplate[])=>SaleTemplate[])=>updateSalesPreview('templates',update);
   const [templateEditor,setTemplateEditor]=useState<{template:SaleTemplate|null}|null>(null);
   const [returnDetail, setReturnDetail] = useState<SalesReturn | null>(null);
-  const [drafts, setDrafts] = useState(salesDrafts);
+  const setDrafts=(update:(items:SalesDraft[])=>SalesDraft[])=>updateSalesPreview('drafts',update);
   const routeQuery=searchParams.get('q') ?? '';
   const [query, setQuery] = useState(routeQuery);
   useEffect(()=>setQuery(routeQuery),[routeQuery]);
