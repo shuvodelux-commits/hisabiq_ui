@@ -42,10 +42,10 @@ test('all displayed money words across src go through the shared readable render
   for(const child of readdirSync(dir,{withFileTypes:true})){
    const path=join(dir,child.name);
    if(child.isDirectory()){walk(path);continue;}
-   if(!/\\.(tsx|ts)$/.test(path)||path.endsWith('utils/amountInWords.ts')||
+   if(!/\.(tsx|ts)$/.test(path)||path.endsWith('utils/amountInWords.ts')||
        path.endsWith('components/AmountInWordsDisplay.tsx'))continue;
    const source=readFileSync(path,'utf8');
-   if(/\\bamountInWords\\s*\\(/.test(source))violations.push(path);
+   if(/\bamountInWords\s*\(/.test(source))violations.push(path);
   }
  };
  walk('src');
