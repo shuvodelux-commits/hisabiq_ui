@@ -277,6 +277,7 @@ export type SalesReturn = TransactionAuditFields & {
   settlement: 'Adjust due' | 'Customer credit' | 'Cash refund';
   refundMethod?: Exclude<PaymentMethod, 'Customer Credit'>;
   refundAccount?: string;
+  bundleReturns?:Array<{returnId:string;invoiceId:string;lineId:string;sets:number;serials?:Record<string,string[]>}>;
 };
 
 export type SalePresetLine = {
