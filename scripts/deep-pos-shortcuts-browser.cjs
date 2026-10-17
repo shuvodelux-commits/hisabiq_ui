@@ -52,7 +52,16 @@ async function main(){
    await act(receipt.getByRole('button',{name:'Close',exact:true}));await expect(receipt).toHaveCount(0);
    await expect(preview).toBeDisabled();await page.keyboard.press('F9');await expect(receipt).toHaveCount(0);
    if(width<1024){
-    await act(page.getByRole('button',{name:bn?'ERP মেনু খুলুন':'Open ERP navigation',exact:true}));
+    // Open product suggestions must never cover sticky mobile navigation, even after modal focus restoration.
+    const navButton=page.getByRole('button',{name:bn?'ERP মেনু খুলুন':'Open ERP navigation',exact:true});
+    const navRect=await navButton.boundingBox();
+    for(const panel of await page.locator('#pos-product-list:visible').all()){
+     const box=await panel.boundingBox();
+     assert.ok(!box||!navRect||box.x>=navRect.x+navRect.width||
+       box.x+box.width<=navRect.x||box.y>=navRect.y+navRect.height||
+       box.y+box.height<=navRect.y,'POS suggestions must not cover the ERP mobile menu');
+    }
+    await act(navButton);
     const drawer=page.getByRole('dialog',{name:bn?'ERP মেনু':'ERP navigation',exact:true});await expect(drawer).toBeVisible();
     const close=drawer.getByRole('button',{name:bn?'মেনু বন্ধ করুন':'Close navigation',exact:true});await close.focus();
     for(const key of ['F2','F8','F9']){await page.keyboard.press(key);await expect(close).toBeFocused();await expect(page.locator('[data-dialog-root]')).toHaveCount(0);}
