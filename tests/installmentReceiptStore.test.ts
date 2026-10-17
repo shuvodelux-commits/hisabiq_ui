@@ -41,9 +41,9 @@ test('receipt cannot exceed agreement or use nonexisting installment, wrong spli
 });
 test('inactive/wrong cash or MFS account and future date are rejected before record mutation',()=>{
  const input=payload('payment-3');
- assert.match(validateInstallmentCollection({...input,splits:[{method:'Bank',accountId:'acc-cash',amountPaisa:250000}]},[]).join(' '),/method|account/i);
+ assert.match(validateInstallmentCollection({...input,agreement:getInstallmentPreview(input.agreementId)!,splits:[{method:'Bank',accountId:'acc-cash',amountPaisa:250000}]},[]).join(' '),/method|account/i);
  assert.match(validateInstallmentCollection({...input,splits:[{method:'Cash',accountId:'invalid',amountPaisa:250000}]},[]).join(' '),/account/i);
- assert.match(validateInstallmentCollection({...input,date:'2030-01-01'},[]).join(' '),/date/i);
+ assert.match(validateInstallmentCollection({...input,agreement:getInstallmentPreview(input.agreementId)!,date:'2030-01-01'},[]).join(' '),/date/i);
  assert.throws(()=>recordInstallmentReceiptPreview({...input,date:'2030-01-01'}),/date/i);
 });
 test('sequential receipts allocate only unpaid agreement rows without double posting',()=>{
