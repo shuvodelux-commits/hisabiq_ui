@@ -109,7 +109,7 @@ async function run(){
    await details.getByText('Version 1').waitFor();
    await details.getByText('Version 2').waitFor();
    assert.equal(await details.getByRole('button',{name:/Adjust stock/i}).count(),0);
-   await details.getByRole('button',{name:/Close/i}).click();
+   await details.getByRole('button',{name:'Close',exact:true}).first().click();
    await page.getByRole('button',{name:'Actions for Tubewell Set'}).last().click();
    await page.getByRole('button',{name:'Duplicate'}).last().click();
    await page.getByRole('button',{name:'Actions for Tubewell Set Copy'}).last().click();
