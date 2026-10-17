@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {getProductImportPreviewSnapshot,upsertBundlePreview,getBundleVersion} from '../src/data/productImportPreviewStore.ts';
 import {makeBundleComponent} from '../src/bundles/bundleValidation.ts';
 import {captureBundleHandoff,inspectBundleHandoffs,reviewBundleHandoffs,requireCurrentBundleHandoffs} from '../src/bundles/bundleHandoff.ts';
-import {saveQuote,changeQuoteStatus} from '../src/quotations/quotePreviewStore.ts';
+import {saveQuote,changeQuoteStatus,getQuoteSnapshot} from '../src/quotations/quotePreviewStore.ts';
 import {draftFromAcceptedQuote,createOnlineOrder,updateOrderStage,preparePosHandoff} from '../src/onlineSales/onlineStore.ts';
 
 const catalog=getProductImportPreviewSnapshot().products;
@@ -52,9 +52,9 @@ test('editing an unsold recipe in place triggers mismatch even if revision remai
  assert.doesNotThrow(()=>requireCurrentBundleHandoffs(agreed));
 });
 test('stale accepted quote cannot silently create online order with changed components',()=>{
- const staleQuote=saveQuote(quoteInput({bundleRevision:1,bundleRecipeSignature:JSON.stringify(first)}));
- assert.throws(()=>changeQuoteStatus(staleQuote.id,'Sent'),/changed/);
- assert.throws(()=>draftFromAcceptedQuote({ ...staleQuote,status:'Accepted'}),/changed/);
+ const staleQuote=getQuoteSnapshot().quotes.find(q=>q.lines.some(line=>line.productId===item.id))!;
+ assert.throws(()=>draftFromAcceptedQuote(staleQuote),/changed/);
+ assert.throws(()=>saveQuote(quoteInput({bundleRevision:1,bundleRecipeSignature:JSON.stringify(first)})),/changed/);
  const quote=saveQuote({...quoteInput(captureBundleHandoff(item)),lines:reviewBundleHandoffs(quoteInput({bundleRevision:1,bundleRecipeSignature:JSON.stringify(first)}).lines)});
  assert.equal(changeQuoteStatus(quote.id,'Sent').status,'Sent');
 });
