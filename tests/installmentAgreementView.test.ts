@@ -11,3 +11,7 @@ test('agreement details display source-derived paid, due, overdue and receipt hi
  assert.ok(pos.includes('onRecorded'));
  assert.doesNotMatch(component,/dispatchPartyPreview|financeAccountBalance|postLedger/);
 });
+
+test('closed history must not redirect a new sale receipt to a previously opened agreement',()=>{
+ assert.match(pos,/installmentHistoryOpen&&historySelected/);
+});
