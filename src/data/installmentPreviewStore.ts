@@ -1,3 +1,5 @@
+import {validateInstallmentCollection,type InstallmentCollectionInput} from '../installments/validateCollection.ts';
+import type {InstallmentPaymentPreviewEvent} from '../installments/collections.ts';
 import {scheduleDifferencePaisa,validateScheduleRows,type InstallmentScheduleRow} from '../installments/schedule.ts';
 import {validateInstallmentDraft} from '../installments/validateDraft.ts';
 
@@ -64,4 +66,32 @@ export function getInstallmentPreview(id:string):PreviewInstallmentAgreement|und
   const match=records.find(row=>row.id===id);
   return match?structuredClone(match):undefined;
 }
-export function resetInstallmentPreviewsForTest():void{sequence=0;records.splice(0);}
+export type InstallmentReceiptPreviewInput=Omit<InstallmentCollectionInput,'agreement'> & {agreementId:string};
+let receiptSequence=0;
+const receipts:InstallmentPaymentPreviewEvent[]=[];
+/** Immutable idempotent browser-preview only; no Party/Finance ledger mutation. */
+export function recordInstallmentReceiptPreview(input:InstallmentReceiptPreviewInput):InstallmentPaymentPreviewEvent{
+ if(!input.operationId?.trim())throw new Error('Receipt operation ID is required.');
+ const previously=receipts.find(record=>record.operationId===input.operationId);
+ if(previously){
+   const {id:_id,createdAt:_created,...payload}=previously;
+   if(JSON.stringify(payload)!==JSON.stringify(input))throw new Error('Operation already used for different installment receipt details.');
+   return structuredClone(previously);
+ }
+ const agreement=getInstallmentPreview(input.agreementId);
+ if(!agreement)throw new Error('Installment agreement not found.');
+ const existing=receipts.filter(row=>row.agreementId===agreement.id);
+ const errors=validateInstallmentCollection({...input,agreement},existing);
+ if(errors.length)throw new Error(errors[0]);
+ const event:InstallmentPaymentPreviewEvent={
+   ...structuredClone(input),id:'installment-receipt-preview-'+(++receiptSequence),createdAt:new Date().toISOString()
+ };
+ receipts.push(event);
+ return structuredClone(event);
+}
+export function listInstallmentReceipts(agreementId:string):InstallmentPaymentPreviewEvent[]{
+ return structuredClone(receipts.filter(row=>row.agreementId===agreementId));
+}
+export function resetInstallmentPreviewsForTest():void{
+ sequence=0;receiptSequence=0;records.splice(0);receipts.splice(0);
+}
