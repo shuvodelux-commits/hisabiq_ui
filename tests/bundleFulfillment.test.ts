@@ -98,3 +98,12 @@ test('expired serial lot, invalid source and serial shortage are never silently 
  const invalid=planComponentFulfillment(demands,[pipe,old,bundle],all,{sources:{'b:pump':{mode:'Vendor',vendorId:'',vendorName:'',unitCost:-1}}},new Date('2026-10-17'));
  assert.ok(invalid.errors.length>0);
 });
+
+test('Own Stock clamp honors cart reservation order when two bundles share components',()=>{
+ const first=[base(bundle,'first','2'),base(bundle,'second','3')];
+ const e1=expandCartStockDemand(first,[pipe,socket,bundle],getRecipe).demands;
+ assert.equal(maxAffordableBundleSets('first',e1,[pipe,socket,bundle],lots,new Date('2026-10-17')),2,
+  'earlier package owns its 6 Pipes before a later package sources its shortage');
+ assert.equal(maxAffordableBundleSets('second',e1,[pipe,socket,bundle],lots,new Date('2026-10-17')),1,
+  'later package can reduce to one whole Set with the remaining 3 Pipes');
+});
