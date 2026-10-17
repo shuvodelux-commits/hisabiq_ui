@@ -96,7 +96,7 @@ function paymentsFromDraft(draft: SalesDraft): PosPaymentRow[] {
 
 function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): CartLine[] {
   return invoice.lines.flatMap((sourceLine) => {
-    const product = products.find((item) => item.id === sourceLine.productId);
+    const product = getProductImportPreviewSnapshot().products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
 
     if (product.altUnit) {
@@ -120,6 +120,8 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
     return [{
       key: `source-${sourceLine.id}`,
       product,
+      ...(product.kind==='Bundle'?{bundleRevision:sourceLine.bundleSnapshot?.bundleRevision}:{}),
+      // A previous posted sale must be revalidated; never silently adopt an edited recipe.
       qty: String(sourceLine.returnableQuantity ?? (parseFloat(sourceLine.quantity) || 1)),
       secondaryQty: '',
       unit: product.unit,
