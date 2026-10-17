@@ -10,7 +10,10 @@ const displays = [
  'src/components/brand/ReceiptPreview.tsx',
  'src/pages/Finance.tsx',
  'src/components/parties/PartyPaymentDialog.tsx',
- 'src/components/parties/PartyFinanceDialog.tsx'
+ 'src/components/parties/PartyFinanceDialog.tsx',
+ 'src/components/TransactionReviewDialog.tsx',
+ 'src/components/parties/PartyCreditRefundDialog.tsx',
+ 'src/components/purchases/BillDialog.tsx'
 ];
 
 test('amounts in words reuse prominent display across POS, purchase, Counter, Finance, parties and receipt',()=>{
@@ -27,7 +30,7 @@ test('shared amount-in-words component has full-width readable wrapped Bangla in
  assert.match(source,/font-semibold/);
  assert.match(source,/lang="bn"/);
  assert.match(source,/variant = 'default'/);
- assert.match(source,/variant: 'default' \| 'inverse' \| 'receipt'/);
+ assert.ok(source.includes("variant?: 'default' | 'inverse' | 'receipt'"));
 });
 test('black payable cards use contrasting variant; paper receipt retains dedicated readable variant',()=>{
  for(const path of displays.filter(x=>/CheckoutPanel|PurchasePaymentPanel/.test(x))){
