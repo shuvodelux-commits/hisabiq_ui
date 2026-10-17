@@ -221,6 +221,8 @@ export type BundleSaleSnapshot={
     lotAllocations?:readonly {lotId:string;quantity:number}[];
     serials?:readonly string[];
     unitCost?:number|null;
+    /** Historical source provenance, only if written by genuine posting. */
+    stockSource?:SaleStockSource;
   }[];
 };
 export type SaleLine = {
@@ -241,6 +243,8 @@ export type SaleLine = {
   warranty?: WarrantySnapshot;
   lotAllocations?: Array<{ lotId: string; quantity: number }>;
   bundleSnapshot?:BundleSaleSnapshot;
+  /** Frozen net revenue allocated to this parent after invoice discounts/rounding. */
+  netSaleTotal?:number;
   /** How quantity beyond own sellable stock was fulfilled. Vendor unitCost is per base unit. */
   stockSource?: SaleStockSource;
 };
