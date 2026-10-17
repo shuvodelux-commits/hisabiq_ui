@@ -61,6 +61,12 @@ async function run(){
    await details.getByText('Version 2').waitFor();
    assert.equal(await details.getByRole('button',{name:/Adjust stock/i}).count(),0);
    await details.getByRole('button',{name:/Close/i}).click();
+   await page.evaluate(()=>{window.location.hash='#/app/purchases/new';});
+   const purchaseSearch=page.getByRole('combobox',{name:'Search product to add to purchase'});
+   await purchaseSearch.waitFor();
+   await purchaseSearch.fill(sku);
+   assert.equal(await page.getByRole('option',{name:/Tubewell Set/}).count(),0,'a virtual bundle cannot be directly purchased into stock');
+
    assert.equal(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth),true);
    await page.close();
   }
