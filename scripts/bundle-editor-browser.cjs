@@ -129,6 +129,7 @@ async function run(){
    await posLine.getByRole('button',{name:/Show purchase price for Tubewell Set/i}).click();
    await posLine.getByText(/package cost/i).waitFor();
    await posLine.getByText(/estimated/i).waitFor();
+   await posLine.getByText(/Bundle sale checkout pending/i).waitFor();
    await page.evaluate(()=>{window.location.hash='#/app/purchases/new';});
    const purchaseSearch=page.getByRole('combobox',{name:'Search product to add to purchase'});
    await purchaseSearch.waitFor();
