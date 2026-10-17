@@ -17,7 +17,8 @@ const selectedProfiles = process.env.DEEP_AUDIT_PROFILE ? process.env.DEEP_AUDIT
 async function main() {
   const { createServer } = await import('vite');
   process.chdir(__dirname + '/..');
-  const server = await createServer({ server: { host: '127.0.0.1', port: 4513, strictPort: true } });
+  const port = Number(process.env.DEEP_AUDIT_PORT || 4513);
+  const server = await createServer({ server: { host: '127.0.0.1', port, strictPort: true } });
   await server.listen();
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined, args: ['--no-sandbox'] });
   fs.mkdirSync(output, { recursive: true });
@@ -40,7 +41,7 @@ async function main() {
       const closeDialog = async dialog => { const footer=dialog.locator('[data-slot="dialog-footer"]'); await action(button(footer,'Close','বন্ধ করুন').last()); await expect(dialog).toBeHidden(); };
       const tab = (en,bn) => page.getByRole('tab',{name:text(en,bn),exact:true});
       const fresh = async () => {
-        await page.goto(`http://127.0.0.1:4513/?audit=${profile}-${results.length}#/app/finance`,{waitUntil:'domcontentloaded'});
+        await page.goto(`http://127.0.0.1:${port}/?audit=${profile}-${results.length}#/app/finance`,{waitUntil:'domcontentloaded'});
       };
       const record = async (name,run) => {
         try { await fresh(); await run(); assert.deepEqual(errors,[]); results.push({profile,name,status:'passed'}); }
