@@ -127,32 +127,21 @@ export function maxAffordableBundleSets(
  lineKey:string,demands:readonly BundleComponentDemand[],catalog:readonly Product[],
  lots:readonly StockLot[],now:Date=new Date()
 ):number{
- const bundleParts=demands.filter(d=>d.sourceLineKey===lineKey&&d.bundleProductId);
- if(!bundleParts.length)return 0;
- const candidate=demands.filter(d=>d.sourceLineKey===lineKey&&d.bundleProductId);
- const parentSets=candidate[0]?.requiredBaseQty; // Actual Set count is not inferable from one component alone.
- // Derive limiting ratio from the saved per-Set recipe outside this helper? Each demand carries requiredBaseQty;
- // the caller can pass the current whole-Set quantity to avoid relying on a unit factor.
- void parentSets;
- let ratio=1;
- for(const part of bundleParts){
+ const own=demands.filter(d=>d.sourceLineKey===lineKey&&d.bundleProductId);
+ const sets=own[0]?.bundleSets;
+ if(!sets||!Number.isSafeInteger(sets)||sets<1||own.some(d=>d.bundleSets!==sets))return 0;
+ let cap=sets;
+ for(const part of own){
   const p=catalog.find(x=>x.id===part.componentProductId);
-  if(!p) return 0;
-  const physical=allocatableLots(p,[...lots],now).reduce((s,lot)=>s+lot.available,0);
-  const available=Math.max(0,Math.min(p.stock,physical));
-  const other=demands.filter(d=>d.sourceLineKey!==lineKey&&d.componentProductId===p.id)
+  if(!p)return 0;
+  const available=Math.max(0,Math.min(p.stock,
+   allocatableLots(p,[...lots],now).reduce((s,lot)=>s+lot.available,0)));
+  const others=demands.filter(d=>d.sourceLineKey!==lineKey&&d.componentProductId===p.id)
    .reduce((s,d)=>s+d.requiredBaseQty,0);
-  if(other>available+1e-7)return 0;
-  ratio=Math.min(ratio,Math.max(0,(available-other)/part.requiredBaseQty));
+  if(others>available+1e-7)return 0;
+  const perSet=part.requiredBaseQty/sets;
+  if(!Number.isFinite(perSet)||perSet<=0)return 0;
+  cap=Math.min(cap,Math.floor((available-others)/perSet+1e-9));
  }
- // Fraction of current cart quantity; cannot round up.
- return ratio;
-}
-/** Actual maximum whole Sets for a specific bundle line; never rounds upward. */
-export function clampBundleSets(
- lineKey:string,currentSets:number,demands:readonly BundleComponentDemand[],catalog:readonly Product[],
- lots:readonly StockLot[],now:Date=new Date()
-):number {
- if(!Number.isSafeInteger(currentSets)||currentSets<1)return 0;
- return Math.max(0,Math.min(currentSets,Math.floor(currentSets*maxAffordableBundleSets(lineKey,demands,catalog,lots,now)+1e-9)));
+ return Math.max(0,cap);
 }
