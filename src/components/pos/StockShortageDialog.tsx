@@ -19,10 +19,13 @@ type StockShortageDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUseOwnStock: () => void;
+  /** Bundle parent quantity is clamped in whole Sets, never its internal component count. */
+  ownActionHint?:string;
+  componentContext?:string;
   onResolve: (source: SaleStockSource) => void;
 };
 
-export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, open, onOpenChange, onUseOwnStock, onResolve }: StockShortageDialogProps) {
+export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, open, onOpenChange, onUseOwnStock, ownActionHint, componentContext, onResolve }: StockShortageDialogProps) {
   const [choice, setChoice] = useState<Choice>('Own');
   const partiesState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
   const vendors=partiesState.parties.filter(p=>p.roles.includes('Vendor')&&p.status!=='Inactive');
@@ -90,6 +93,7 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
         <DialogHeader>
           <DialogTitle>Stock shortage <span className="font-bn text-sm font-normal text-ink-500">· স্টক কম</span></DialogTitle>
           <DialogDescription>
+            {componentContext&&<span className="block font-medium">{componentContext}</span>}
             {line.product.name}: requested {requestedLabel}, own sellable stock {ownStockLabel}. Choose how to handle {shortageLabel} shortage.
           </DialogDescription>
         </DialogHeader>
@@ -99,7 +103,7 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
             <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-card text-teal-700 ring-1 ring-border"><PackageCheck className="size-4" /></span>
             <span>
               <span className="block text-sm font-medium text-ink">Own Stock <span className="font-bn text-xs font-normal text-ink-400">· নিজের স্টক</span></span>
-              <span className="block text-xs text-ink-500">{availableBaseQty > 0 ? `Reduce this line to ${ownStockLabel}.` : 'No own stock is available; this removes the line.'}</span>
+              <span className="block text-xs text-ink-500">{ownActionHint ?? (availableBaseQty > 0 ? `Reduce this line to ${ownStockLabel}.` : 'No own stock is available; this removes the line.')}</span>
             </span>
           </button>
 
@@ -145,7 +149,7 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
 
         <div className="flex items-start gap-2 rounded-lg bg-ink-50 p-2.5 text-xs text-ink-500">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
-          This choice applies only to this cart line. Changing quantity or unit asks you to review the shortage again.
+          {componentContext ? 'This choice applies only to this package component. Changing the Set quantity will clear its selection.' : 'This choice applies only to this cart line. Changing quantity or unit asks you to review the shortage again.'}
         </div>
 
         <DialogFooter>
