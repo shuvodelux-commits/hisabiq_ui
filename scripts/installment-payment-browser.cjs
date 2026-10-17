@@ -27,6 +27,7 @@ async function main(){
    await modal.getByRole('textbox',{name:/Payment amount/i}).fill('500');
    await modal.getByRole('button',{name:/Review payment/i}).click();
    await modal.getByRole('button',{name:/Confirm receipt preview/i}).click();
+   await page.getByText(/Installment schedule/i).first().click();
    await page.getByText(/Receipt history/i).first().waitFor();
    assert.equal(await page.getByText(/Receipt #1/i).count(),1,'one receipt visible');
    await page.getByRole('button',{name:/Receive payment/i}).click();
