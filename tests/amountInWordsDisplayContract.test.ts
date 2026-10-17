@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync} from 'node:fs';
+import {join} from 'node:path';
 
 const displays = [
  'src/components/finance/CounterWorkspace.tsx',
@@ -33,4 +34,20 @@ test('black payable cards use contrasting variant; paper receipt retains dedicat
   assert.match(readFileSync(path,'utf8'),/variant="inverse"/,path);
  }
  assert.match(readFileSync('src/components/brand/ReceiptPreview.tsx','utf8'),/variant="receipt"/);
+});
+
+test('all displayed money words across src go through the shared readable renderer',()=>{
+ const violations:string[]=[];
+ const walk=(dir:string)=>{
+  for(const child of readdirSync(dir,{withFileTypes:true})){
+   const path=join(dir,child.name);
+   if(child.isDirectory()){walk(path);continue;}
+   if(!/\\.(tsx|ts)$/.test(path)||path.endsWith('utils/amountInWords.ts')||
+       path.endsWith('components/AmountInWordsDisplay.tsx'))continue;
+   const source=readFileSync(path,'utf8');
+   if(/\\bamountInWords\\s*\\(/.test(source))violations.push(path);
+  }
+ };
+ walk('src');
+ assert.deepEqual(violations,[],'Use AmountInWordsDisplay instead of inline small text in: '+violations.join(', '));
 });
