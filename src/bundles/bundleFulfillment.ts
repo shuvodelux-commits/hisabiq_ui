@@ -127,21 +127,31 @@ export function maxAffordableBundleSets(
  lineKey:string,demands:readonly BundleComponentDemand[],catalog:readonly Product[],
  lots:readonly StockLot[],now:Date=new Date()
 ):number{
- const own=demands.filter(d=>d.sourceLineKey===lineKey&&d.bundleProductId);
- const sets=own[0]?.bundleSets;
- if(!sets||!Number.isSafeInteger(sets)||sets<1||own.some(d=>d.bundleSets!==sets))return 0;
- let cap=sets;
- for(const part of own){
-  const p=catalog.find(x=>x.id===part.componentProductId);
-  if(!p)return 0;
-  const available=Math.max(0,Math.min(p.stock,
-   allocatableLots(p,[...lots],now).reduce((s,lot)=>s+lot.available,0)));
-  const others=demands.filter(d=>d.sourceLineKey!==lineKey&&d.componentProductId===p.id)
-   .reduce((s,d)=>s+d.requiredBaseQty,0);
-  if(others>available+1e-7)return 0;
-  const perSet=part.requiredBaseQty/sets;
-  if(!Number.isFinite(perSet)||perSet<=0)return 0;
-  cap=Math.min(cap,Math.floor((available-others)/perSet+1e-9));
+ const owned=demands.filter(d=>d.sourceLineKey===lineKey&&d.bundleProductId);
+ const sets=owned[0]?.bundleSets;
+ if(!sets||!Number.isSafeInteger(sets)||sets<1||owned.some(d=>d.bundleSets!==sets))return 0;
+ if(demands.some(d=>{
+   const p=catalog.find(item=>item.id===d.componentProductId);
+   return !p||p.kind==='Bundle'||p.kind==='Service'||!p.active;
+ }))return 0;
+ const canUseOwn=(candidate:number)=>{
+  // Reserve stock in exactly the same line order as POS, with the target
+  // package adjusted to whole Sets. A later Vendor-sourced package must
+  // not steal stock from an earlier package.
+  const planned=allocatePosStock(demands.map(d=>({
+   key:componentSourceKey(d.sourceLineKey,d.componentProductId),
+   product:catalog.find(p=>p.id===d.componentProductId)!,
+   requestedBaseQty:d.sourceLineKey===lineKey&&d.bundleProductId
+     ?d.requiredBaseQty*candidate/sets:d.requiredBaseQty
+  })),[...lots],now);
+  return planned.every((row,i)=>demands[i].sourceLineKey!==lineKey||
+   row.requestedBaseQty-row.ownBaseQty<=1e-7);
+ };
+ let lower=0,upper=sets;
+ while(lower<upper){
+  const mid=Math.floor((lower+upper+1)/2);
+  if(canUseOwn(mid))lower=mid;
+  else upper=mid-1;
  }
- return Math.max(0,cap);
+ return lower;
 }
