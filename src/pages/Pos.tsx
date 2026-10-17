@@ -24,6 +24,11 @@ import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseC
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import { blendedVendorUnitCost } from '../utils/posStock';
 import {allocatePosStock} from '../vendor/vendorStock';
+import {usePreviewCatalog} from '../bundles/usePreviewCatalog';
+import {getBundleVersion,getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
+import {availableStockLots} from '../data/erpDemoStore';
+import {expandCartStockDemand,projectCartShortages,allocateBundlePreview} from '../bundles/bundleCart';
+import {createBundleSaleSnapshot} from '../bundles/bundleDocuments';
 import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
@@ -34,7 +39,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource'>>;
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource' | 'bundleSnapshot'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -49,7 +54,7 @@ const quickItems = products.filter((p) => p.active && (p.kind === 'Service' || !
 
 function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
   return lines.flatMap((sourceLine, index) => {
-    const product = products.find((item) => item.id === sourceLine.productId);
+    const product = getProductImportPreviewSnapshot().products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
     const unit = sourceLine.unit === product.altUnit?.unit ? sourceLine.unit : product.unit;
     return [{
@@ -60,7 +65,8 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       unit,
       price: String(sourceLine.price),
       serials: sourceLine.serials ?? [],
-      stockSource: sourceLine.stockSource
+      stockSource: sourceLine.stockSource,
+      ...(product.kind==='Bundle'?{bundleRevision:sourceLine.bundleRevision}: {})
     }];
   });
 }
@@ -129,6 +135,7 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
 export function Pos() {
   const { state: settingsState, personal } = useTenantSettings();
   const cart = usePosCart();
+  const previewCatalog=usePreviewCatalog();
   const navigate = useNavigate();
   const location = useLocation();
   const incomingState = location.state as {hisabiqSource?:string;orderId?:string}|null;
@@ -449,7 +456,8 @@ export function Pos() {
         unit: line.unit,
         price: parseFloat(line.price) || 0,
         serials: line.serials,
-        stockSource: line.stockSource
+        stockSource: line.stockSource,
+        ...(line.product.kind==='Bundle'?{bundleRevision:line.bundleRevision}: {})
       }))
     }]
     );
