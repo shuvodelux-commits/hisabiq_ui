@@ -5,6 +5,8 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const output=process.env.DEEP_AUDIT_OUTPUT||'.superpowers/deep-audit/finance-table-scroll';
+const sizes=[[320,700],[360,800],[390,844],[430,932],[768,1024],[1024,768],[1280,800],[1440,900]];
+const languages=['English','English + Bangla','Bangla'];
 const results=[];
 
 async function main(){
@@ -15,14 +17,14 @@ async function main(){
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
  fs.mkdirSync(output,{recursive:true});
  try{
-  for(const [width,height] of [[320,700],[1440,900]])for(const theme of ['light','dark'])for(const language of ['English + Bangla','Bangla']){
+  for(const [width,height] of sizes)for(const theme of ['light','dark'])for(const language of languages){
    const id=[width,theme,language.replaceAll(' ','')].join('-');
-   const context=await browser.newContext({viewport:{width,height},hasTouch:width===320,reducedMotion:'reduce',colorScheme:theme});
+   const context=await browser.newContext({viewport:{width,height},hasTouch:width<=1024,reducedMotion:'reduce',colorScheme:theme});
    await context.addInitScript(({theme,language})=>{localStorage.setItem('hisabiq-theme',theme);localStorage.setItem('hisabiq-erp-personal-v1',JSON.stringify({mode:'Simple',language,density:'Compact',terminology:'simple',dateView:'transaction'}));},{theme,language});
    const page=await context.newPage();page.setDefaultTimeout(60000);page.setDefaultNavigationTimeout(60000);
    await page.route('https://fonts.googleapis.com/**',r=>r.abort());
    const w=(en,bn)=>language==='Bangla'?bn:en;
-   const act=e=>width===320?e.tap():e.click();
+   const act=e=>width<=1024?e.tap():e.click();
    const scans=[];
    try{
     await page.goto(baseUrl+'/?visit='+id+'#/app/finance',{waitUntil:'commit'});
@@ -37,8 +39,7 @@ async function main(){
       focusRing:el.className.includes('focus-visible:ring-2')
      }));
      const overflowing=data.scrollWidth>data.clientWidth+1;
-      if(width===320){
-      assert.equal(overflowing,true,`${state}: expected the overview table to overflow`);
+      if(overflowing){
       assert.equal(data.tabIndex,0,`${state}: overflowing wrapper should be keyboard reachable`);
       assert.equal(data.role,'region',`${state}: overflowing wrapper should expose a named region`);
       assert.equal(data.label,w('Recent loans and owner money','সাম্প্রতিক ঋণ ও মালিকের অর্থ'));
@@ -69,7 +70,6 @@ async function main(){
        await table.locator('[data-test-arrow-control]').evaluate(button=>button.remove());
       }
      }else{
-      assert.equal(overflowing,false,`${state}: desktop table should fit`);
       assert.equal(data.tabIndex,-1,`${state}: fitting wrapper should not add a tab stop`);
       assert.equal(data.role,null,`${state}: fitting wrapper should not expose a scroll region`);
      }
@@ -80,6 +80,8 @@ async function main(){
      assert.deepEqual(violations,[],`${state}: whole-page axe scan`);
      scans.push({state,violations,table:data});
     };
+    if(width===320)assert.ok(await table.evaluate(el=>el.scrollWidth>el.clientWidth+1),'320px phone should reproduce horizontal overflow');
+    if(width===1440)assert.ok(await table.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'1440px desktop table should fit');
     await inspect('closed');
     const tx=page.getByRole('button',{name:w('New transaction','নতুন লেনদেন'),exact:true});await act(tx);
     const parent=page.getByRole('dialog');
