@@ -37,6 +37,7 @@ import { useCashSession } from '../contexts/CashSessionContext';
 import {
   accountTransfers as seedTransfers,
   cashSessions,
+  financePersonOptionLabel,
   financeAccounts as seedAccounts,
   financePeople as seedPeople,
   financeTransactions as seedTransactions,
@@ -222,7 +223,7 @@ function TransactionDialog({
               className="mt-1.5"
               value={selectedPerson?.id ?? ''}
               onChange={(event) => setPersonId(event.target.value)}
-              options={rolePeople.map((item) => ({value: item.id, label: item.name + (item.phone ? ' · ' + item.phone : '')}))}
+              options={rolePeople.map((item) => ({value: item.id, label: financePersonOptionLabel(item, rolePeople)}))}
             />
           </label>
           <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>{text('Manage people','ব্যক্তি যোগ / সংশোধন')}</Button>

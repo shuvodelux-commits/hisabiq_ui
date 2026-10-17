@@ -33,6 +33,20 @@ export type FinancePerson = {
   status: FinanceAccountStatus;
 };
 
+export function financePersonOptionLabel(person: FinancePerson, candidates: FinancePerson[]): string {
+  const sameName = candidates.filter((candidate) => candidate.name.trim().toLocaleLowerCase() === person.name.trim().toLocaleLowerCase());
+  if (sameName.length < 2) return person.name + (person.phone ? ' · ' + person.phone : '');
+  const uniqueValue = (read: (candidate: FinancePerson) => string | undefined) => {
+    const values = sameName.map(read).map((value) => value?.trim() ?? '');
+    return values.every(Boolean) && new Set(values).size === sameName.length;
+  };
+  if (uniqueValue((candidate) => candidate.phone)) return `${person.name} · ${person.phone}`;
+  if (uniqueValue((candidate) => candidate.description)) return `${person.name} · ${person.description}`;
+  const shortIdsAreUnique = new Set(sameName.map((candidate) => candidate.id.slice(-4))).size === sameName.length;
+  const identity = shortIdsAreUnique ? person.id.slice(-4) : person.id;
+  return `${person.name} · ${identity}`;
+}
+
 export type FinanceTransactionType =
   | 'Owner Credit'
   | 'Owner Debit'
