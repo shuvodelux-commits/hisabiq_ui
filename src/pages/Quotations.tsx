@@ -21,6 +21,7 @@ import {getQuoteSnapshot,subscribeQuotes,saveQuote,duplicateQuote,changeQuoteSta
 } from '../quotations/quotePreviewStore';
 import {useUiCopy} from '../i18n/useUiCopy';
 import {quotationLabel} from '../i18n/quotationCopy';
+import {captureBundleHandoff,inspectBundleHandoffs,reviewBundleHandoffs} from '../bundles/bundleHandoff';
 
 const statusTone={Draft:'neutral',Sent:'info',Accepted:'success',Declined:'danger',Expired:'warning'} as const;
 const freshDraft=():QuoteDraft=>({date:businessToday(),validUntil:addDays(businessToday(),7),
@@ -40,13 +41,14 @@ function QuotationEditor({open,original,onClose}:{
  const [creatingProduct,setCreatingProduct]=useState(false);
  const products=availableProducts().filter(p=>p.active);
  const customers=availableParties().filter(p=>p.roles.includes('Customer')&&p.status!=='Inactive');
+ const bundleIssues=inspectBundleHandoffs(draft.lines,products);
  const patch=(partial:Partial<QuoteDraft>)=>setDraft(prev=>({...prev,...partial}));
  const patchLine=(id:string,partial:Partial<QuoteLine>)=>
   patch({lines:draft.lines.map(line=>line.id===id?{...line,...partial}:line)});
  const addProduct=(p:Product)=>{
   const unit=p.altUnit&&p.stockViewUnit===p.altUnit.unit?p.altUnit.unit:p.unit;
   const price=unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice;
-  patch({lines:[...draft.lines,{id:'quote-line-'+(++lineCounter),productId:p.id,name:p.name,quantity:1,unit,price,unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0}]});
+  patch({lines:[...draft.lines,{id:'quote-line-'+(++lineCounter),productId:p.id,name:p.name,quantity:1,unit,price,unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0,...captureBundleHandoff(p)}]});
  };
  const reorder=(id:string,delta:number)=>{
   const index=draft.lines.findIndex(line=>line.id===id),next=index+delta;
@@ -103,6 +105,14 @@ function QuotationEditor({open,original,onClose}:{
      onRemove={id=>patch({lines:draft.lines.filter(x=>x.id!==id)})}
      onMove={reorder} onCreate={()=>setCreatingProduct(true)}/>
    </section>
+   {bundleIssues.length>0&&<div role="alert" className="space-y-2 rounded-lg border border-warning bg-warning-bg/30 p-3 text-xs text-ink">
+    <strong>Package recipe review required · প্যাকেজের পণ্য যাচাই করুন</strong>
+    {bundleIssues.map(issue=><div key={issue.productId}><p className="font-medium">{issue.name}: {issue.reason}</p><p>Saved: {issue.before}</p><p>Current: {issue.after}</p></div>)}
+    <Button size="sm" variant="outline" onClick={()=>{try{patch({lines:reviewBundleHandoffs(draft.lines,products)});}catch(e){setError(e instanceof Error?e.message:'Cannot confirm package changes.');}}}>
+      Use current package recipe · নতুন প্যাকেজ ব্যবহার করুন
+    </Button>
+    <p>Review quantities and prices before saving. An accepted quotation must be sent and accepted again.</p>
+   </div>}
    <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
     <label className="space-y-1 text-xs font-medium text-ink">{ql('Terms / note')}{showHelper&&<> · <span className="font-bn text-ink-400">শর্ত</span></>}
      <textarea aria-label={ql("Quotation terms")} rows={3} value={draft.note} maxLength={600}
