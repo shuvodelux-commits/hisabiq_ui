@@ -17,7 +17,9 @@ import {addDays,addMonths,businessToday} from '../utils/dateRange';
 import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../installments/schedule';
 import {validateInstallmentDraft} from '../installments/validateDraft';
 import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../installments/pricing';
-import {recordInstallmentPreview,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
+import {recordInstallmentPreview,listInstallmentReceipts,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
+import type {InstallmentPaymentPreviewEvent} from '../installments/collections';
+import {InstallmentReceivePaymentDialog} from '../components/pos/InstallmentReceivePaymentDialog';
 import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
 import {InstallmentBreakdownDialog} from '../components/pos/InstallmentBreakdownDialog';
 import {InstallmentCustomerQuickAddDialog} from '../components/pos/InstallmentCustomerQuickAddDialog';
@@ -194,6 +196,8 @@ export function Pos() {
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
   const [completedInstallment,setCompletedInstallment]=useState<PreviewInstallmentAgreement|null>(null);
+  const [completedReceipts,setCompletedReceipts]=useState<InstallmentPaymentPreviewEvent[]>([]);
+  const [receiveInstallmentOpen,setReceiveInstallmentOpen]=useState(false);
   const [reviewSaleOpen, setReviewSaleOpen] = useState(false);
   const [demoVendorInvoice,setDemoVendorInvoice]=useState<string|null>(null);
   const [installmentMode,setInstallmentMode]=useState<'Regular'|'Installment'>('Regular');
@@ -490,11 +494,12 @@ export function Pos() {
           }))
         });
         setCompletedInstallment(created);
+        setCompletedReceipts(listInstallmentReceipts(created.id));
       }catch(error){
         toast.error(error instanceof Error?error.message:'Installment preview could not be saved.');
         return;
       }
-    }else setCompletedInstallment(null);
+    }else {setCompletedInstallment(null);setCompletedReceipts([]);}
     const remainingLots=stockLots.map(lot=>({...lot}));
     setCompleted({
       invoice,
@@ -644,7 +649,7 @@ export function Pos() {
   };
 
   const newSale = () => {
-    setCompleted(null);setCompletedInstallment(null);setDemoVendorInvoice(null);
+    setCompleted(null);setCompletedInstallment(null);setCompletedReceipts([]);setReceiveInstallmentOpen(false);setDemoVendorInvoice(null);
     cart.reset();
     setInstallmentMode('Regular');setInstallmentRows([]);
     setInvoiceNo(reservePreviewInvoiceNumber);
@@ -913,7 +918,7 @@ export function Pos() {
           ]:[])
         ]}/>
       <Dialog open={!!completed} onOpenChange={(open) => {if(!open)closeCompletedSale();}}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle2 className="size-5 text-teal-600" /> {editing ? 'Sale update preview' : 'Sale preview · Not posted'}
@@ -926,7 +931,8 @@ export function Pos() {
           <div className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
             {completed && <ReceiptPreview {...completed} language={personal.language} />}
           </div>
-          {completedInstallment && <InstallmentAgreementPreview agreement={completedInstallment}/>}
+          {completedInstallment && <InstallmentAgreementPreview agreement={completedInstallment}
+             receipts={completedReceipts} onReceive={()=>setReceiveInstallmentOpen(true)}/>}
           <DialogFooter>
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
               <Button variant="outline" onClick={simulateVendorSources}
@@ -945,6 +951,10 @@ export function Pos() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {completedInstallment && <InstallmentReceivePaymentDialog open={receiveInstallmentOpen}
+        agreement={completedInstallment} receipts={completedReceipts}
+        onClose={()=>setReceiveInstallmentOpen(false)}
+        onRecorded={()=>setCompletedReceipts(listInstallmentReceipts(completedInstallment.id))}/>}
     </div>);
 
 }
