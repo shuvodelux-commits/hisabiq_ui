@@ -4,7 +4,7 @@ import { Button } from '../Button';
 import { Input } from '../Input';
 import { ProductCombobox } from '../pos/ProductCombobox';
 import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
-import type { BundleComponent, BundleDraft, Product } from '../../types/erp';
+import type { BundleComponent, BundleDraft, BundleVersion, Product } from '../../types/erp';
 import { getBundleVersion } from '../../data/productImportPreviewStore';
 import { makeBundleComponent, validateBundleDraft } from '../../bundles/bundleValidation';
 import { useUiCopy } from '../../i18n/useUiCopy';
@@ -19,7 +19,7 @@ type Row = {
 export type BundleEditorProps = {
   initialProduct?: Product | null;
   catalog: readonly Product[];
-  onSave: (draft: BundleDraft, expectedRevision: number | null) => void;
+  onSave: (draft: BundleDraft, expectedRevision: number | null, expectedRecipe?:BundleVersion) => void;
   onCancel: () => void;
 };
 /** A full-page catalog editor. No stock or financial posting occurs here. */
@@ -27,7 +27,8 @@ export function BundleEditor({
   initialProduct = null, catalog, onSave, onCancel
 }: BundleEditorProps) {
   const {text} = useUiCopy();
-  const [expectedRevision] = useState(() => initialProduct ? getBundleVersion(initialProduct.id)?.revision ?? null : null);
+  const [expectedRecipe] = useState(() => initialProduct ? getBundleVersion(initialProduct.id) : undefined);
+  const [expectedRevision] = useState(() => expectedRecipe?.revision ?? null);
   const [productId] = useState(() => initialProduct?.id ?? 'bundle-' + Date.now() + '-' + Math.random().toString(36).slice(2,7));
   const [name,setName] = useState(initialProduct?.name ?? '');
   const [nameBn,setNameBn] = useState(initialProduct?.nameBn ?? '');
@@ -71,7 +72,7 @@ export function BundleEditor({
       const draft={product,components};
       const issues=validateBundleDraft(draft,catalog);
       if(issues.length)throw new Error(issues.join(' '));
-      onSave(draft,expectedRevision);
+      onSave(draft,expectedRevision,expectedRecipe);
     }catch(e){
       setError(e instanceof Error?e.message:'Package could not be saved.');
     }
