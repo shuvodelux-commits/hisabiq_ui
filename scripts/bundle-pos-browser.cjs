@@ -33,10 +33,35 @@ async function main(){
     const state=await import('/src/data/productImportPreviewStore.ts');
     return state.getProductImportPreviewSnapshot().bundleVersions.find(x=>x.bundleProductId.startsWith('bundle-check-'))?.revision;
    });assert.equal(proof,1);
-   await row.getByRole('textbox',{name:/Quantity/}).first().fill('1.5');
-   await page.getByRole('button',{name:/Preview sale|বিক্রির হিসাব দেখুন/}).click();
+   const quantity=row.getByRole('textbox',{name:/Quantity/}).first();
+   await quantity.fill('1.5');
+   await page.getByRole('button',{name:'Exact',exact:true}).click();
+   const preview=page.getByRole('button',{name:/Preview sale|বিক্রির হিসাব দেখুন/});
+   await preview.click();
    await page.getByText(/whole Sets|পূর্ণ সেট/).waitFor();
    assert.equal(await page.locator('[data-dialog-root]').count(),0);
+   await quantity.fill('2');
+   await page.getByRole('button',{name:'Exact',exact:true}).click();
+   const priorLots=await page.evaluate(async()=>{
+      const mod=await import('/src/data/productImportPreviewStore.ts');
+      return JSON.stringify(mod.getProductImportPreviewSnapshot().lots);
+   });
+   await preview.click();
+   const review=page.getByRole('dialog',{name:'Review sale',exact:true});
+   await review.waitFor();
+   await review.getByRole('button',{name:'Confirm sale preview'}).click();
+   const receipt=page.getByRole('dialog',{name:/Sale preview/});
+   await receipt.waitFor();
+   assert.equal(await receipt.getByText('Tubewell Package',{exact:false}).count(),1);
+   await receipt.getByText(/Included package products/).count().catch(()=>0);
+   assert.match(await receipt.innerText(),/LED Bulb 12W/);
+   assert.match(await receipt.innerText(),/Wire Mesh Net 3 ft/);
+   assert.match(await receipt.innerText(),/Not posted/);
+   const afterLots=await page.evaluate(async()=>{
+      const mod=await import('/src/data/productImportPreviewStore.ts');
+      return JSON.stringify(mod.getProductImportPreviewSnapshot().lots);
+   });
+   assert.equal(afterLots,priorLots,'a sale preview must never mutate actual lots');
    assert.deepEqual(errors,[]);
    await page.close();
   }
