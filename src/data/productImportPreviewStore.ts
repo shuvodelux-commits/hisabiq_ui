@@ -9,11 +9,13 @@ export type ProductImportPreviewSnapshot={
  revision:number;appliedSessionIds:readonly string[];
  products:readonly Product[];lots:readonly StockLot[];movements:readonly StockMovement[];
  bundleVersions:readonly BundleVersion[];
+ /** Only references from completed, posted sales protect recipe history. Preview-only state. */
+ bundleSaleReferences:readonly {invoice:string;bundleProductId:string;revision:number}[];
 };
 /** Design-preview module singleton, never a tenant or server data source. */
 let snapshot:ProductImportPreviewSnapshot={
  revision:0,appliedSessionIds:[],products:seedProducts.map(p=>({...p})),
- lots:seedLots.map(l=>({...l})),movements:seedMovements.map(m=>({...m})),bundleVersions:Object.freeze([])
+ lots:seedLots.map(l=>({...l})),movements:seedMovements.map(m=>({...m})),bundleVersions:Object.freeze([]),bundleSaleReferences:Object.freeze([])
 };
 const listeners=new Set<()=>void>();
 const results=new Map<string,ImportResult>();
@@ -92,7 +94,7 @@ export function commitProductImportPreview(plan:ProductImportPlan):ImportResult 
  const result:ImportResult={sessionId:plan.sessionId,created:plan.creates.length,masterUpdated:plan.updates.length,
   roleAdded:0,openingSources:0,openingLots:plan.creates.filter(c=>Boolean(c.openingLot)).length,
   skipped:plan.skipped,rejected:0,errors:[]};
- publish({revision:snapshot.revision+1,appliedSessionIds:[...snapshot.appliedSessionIds,plan.sessionId],products,lots,movements,bundleVersions:snapshot.bundleVersions});
+ publish({revision:snapshot.revision+1,appliedSessionIds:[...snapshot.appliedSessionIds,plan.sessionId],products,lots,movements,bundleVersions:snapshot.bundleVersions,bundleSaleReferences:snapshot.bundleSaleReferences});
  results.set(plan.sessionId,result);
  return result;
 }
@@ -104,7 +106,55 @@ export function getBundleVersion(bundleProductId:string,revision?:number):Bundle
  const versions=snapshot.bundleVersions.filter(item=>item.bundleProductId===bundleProductId);
  return revision===undefined?versions[versions.length-1]:versions.find(item=>item.revision===revision);
 }
-export function upsertBundlePreview(draft:BundleDraft,expectedRevision:number|null):BundleVersion {
+/** A preview hook for a genuinely posted invoice only; never call from F9 sale preview or drafts. */
+export function registerPostedBundleSalePreview(invoice:{
+ invoice:string;recordStatus:'Posted';lines:readonly {productId:string;bundleRevision?:number}[];
+}):void {
+ if(invoice.recordStatus!=='Posted')throw new Error('Only posted sale invoices may protect bundle revisions.');
+ if(!invoice.invoice.trim())throw new Error('Posted invoice reference is required.');
+ const referenced=new Map<string,number>();
+ for(const line of invoice.lines){
+  const product=snapshot.products.find(p=>p.id===line.productId);
+  if(product?.kind!=='Bundle')continue;
+  if(!Number.isInteger(line.bundleRevision)||!getBundleVersion(line.productId,line.bundleRevision))
+   throw new Error('Missing or unknown bundle revision in posted invoice: '+line.productId);
+  if(referenced.has(line.productId)&&referenced.get(line.productId)!==line.bundleRevision)
+   throw new Error('Conflicting bundle revisions on one invoice: '+line.productId);
+  referenced.set(line.productId,line.bundleRevision!);
+ }
+ if(!referenced.size)return;
+ const existing=snapshot.bundleSaleReferences.filter(row=>row.invoice===invoice.invoice);
+ if(existing.length){
+  if(existing.length===referenced.size&&existing.every(row=>referenced.get(row.bundleProductId)===row.revision))
+   return; // posting retry is idempotent
+  throw new Error('Invoice already recorded with conflicting bundle revisions.');
+ }
+ const additions=Array.from(referenced,([bundleProductId,revision])=>
+  Object.freeze({invoice:invoice.invoice,bundleProductId,revision}));
+ publish({...snapshot,revision:snapshot.revision+1,
+  bundleSaleReferences:Object.freeze([...snapshot.bundleSaleReferences,...additions])});
+}
+/** An unsold bundle can be deleted; any historical sale blocks deletion permanently. */
+export function canDeleteBundlePreview(bundleProductId:string):boolean {
+ return snapshot.products.some(p=>p.id===bundleProductId&&p.kind==='Bundle')&&
+  !snapshot.bundleSaleReferences.some(row=>row.bundleProductId===bundleProductId);
+}
+export function deleteBundlePreview(bundleProductId:string):void {
+ if(!snapshot.products.some(p=>p.id===bundleProductId&&p.kind==='Bundle'))
+  throw new Error('Bundle product not found.');
+ if(!canDeleteBundlePreview(bundleProductId))
+  throw new Error('This package was sold and cannot be deleted; deactivate it instead.');
+ if(snapshot.lots.some(lot=>lot.productId===bundleProductId)||
+    snapshot.movements.some(movement=>movement.productId===bundleProductId))
+  throw new Error('A package with recorded inventory cannot be deleted.');
+ publish({...snapshot,revision:snapshot.revision+1,
+  products:snapshot.products.filter(p=>p.id!==bundleProductId),
+  bundleVersions:Object.freeze(snapshot.bundleVersions.filter(v=>v.bundleProductId!==bundleProductId))});
+}
+/** Saving an unused recipe updates it in place. Once sold, the next edit starts a new revision. */
+export function upsertBundlePreview(
+ draft:BundleDraft,expectedRevision:number|null,expectedRecipe?:BundleVersion
+):BundleVersion {
  const product=draft.product;
  const existing=snapshot.products.find(item=>item.id===product.id);
  const latest=getBundleVersion(product.id);
@@ -114,13 +164,19 @@ export function upsertBundlePreview(draft:BundleDraft,expectedRevision:number|nu
   if(!Number.isInteger(expectedRevision)||expectedRevision<1||!existing||existing.kind!=='Bundle'||!latest)
    throw new Error('Bundle revision changed or product no longer exists.');
   if(latest.revision!==expectedRevision)throw new Error('Bundle revision changed. Reopen and review before saving.');
+  if(expectedRecipe&&latest!==expectedRecipe)
+   throw new Error('Bundle recipe changed in another editor. Reopen before saving.');
  }
  if(snapshot.products.some(item=>item.id!==product.id&&skuKey(item.sku)===skuKey(product.sku)))
   throw new Error('Product SKU already exists.');
  const errors=validateBundleDraft(draft,snapshot.products);
  if(errors.length)throw new Error(errors.join(' '));
+ const soldCurrent=latest&&snapshot.bundleSaleReferences.some(ref=>
+  ref.bundleProductId===product.id&&ref.revision===latest.revision);
+ const revision=!latest?1:soldCurrent?latest.revision+1:latest.revision;
  const version:BundleVersion=Object.freeze({
-  bundleProductId:product.id,revision:(latest?.revision??0)+1,createdAt:new Date().toISOString(),
+  bundleProductId:product.id,revision,
+  createdAt:!latest||soldCurrent?new Date().toISOString():latest.createdAt,
   components:Object.freeze(draft.components.map(component=>Object.freeze({...component})))
  });
  const savedProduct:Product={
@@ -128,8 +184,11 @@ export function upsertBundlePreview(draft:BundleDraft,expectedRevision:number|nu
   altUnit:undefined,stockViewUnit:undefined,serialTracking:'Off',expiry:undefined
  };
  const products=existing?snapshot.products.map(item=>item.id===existing.id?savedProduct:item):[savedProduct,...snapshot.products];
+ const versions=latest&&!soldCurrent
+  ?snapshot.bundleVersions.map(v=>v.bundleProductId===product.id&&v.revision===latest.revision?version:v)
+  :[...snapshot.bundleVersions,version];
  publish({...snapshot,revision:snapshot.revision+1,products,
-  bundleVersions:Object.freeze([...snapshot.bundleVersions,version])});
+  bundleVersions:Object.freeze(versions)});
  return version;
 }
 /** The manual Add/Edit screen shares the same Product projection as bulk imports. */
