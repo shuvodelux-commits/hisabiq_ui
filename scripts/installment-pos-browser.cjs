@@ -43,6 +43,27 @@ async function main(){
     await page.keyboard.press('Escape');
     assert.equal(await dialog.isVisible(),true,'closing date popup does not close parent dialog');
     await dialog.getByRole('button',{name:/Cancel/i}).click();
+    // Previously the parent treated every row as manually locked on Apply,
+    // making Rebalance Remaining unusable after the down payment changed.
+    await checkout.getByRole('button',{name:/View \\/ Edit/i}).click();
+    dialog=page.getByRole('dialog',{name:/Installment breakdown/i});
+    await dialog.waitFor();
+    const negotiated=String(Math.round(Number(original)*0.8*100)/100);
+    await dialog.getByRole('textbox',{name:/Installment 1 amount/i}).fill(negotiated);
+    await dialog.getByRole('button',{name:/Rebalance/i}).click();
+    assert.equal(await dialog.getByRole('button',{name:/Apply breakdown/i}).isEnabled(),true);
+    await dialog.getByRole('button',{name:/Apply breakdown/i}).click();
+    await splitInput.fill('3001');
+    await checkout.getByRole('button',{name:/View \\/ Edit/i}).click();
+    dialog=page.getByRole('dialog',{name:/Installment breakdown/i});
+    await dialog.waitFor();
+    assert.equal(await dialog.getByRole('button',{name:/Apply breakdown/i}).isDisabled(),true);
+    await dialog.getByRole('button',{name:/Rebalance/i}).click();
+    assert.equal(await dialog.getByRole('button',{name:/Apply breakdown/i}).isEnabled(),true,
+      'a manually edited row stays fixed but other rows can rebalance after down payment changes');
+    assert.equal(await dialog.getByRole('textbox',{name:/Installment 1 amount/i}).inputValue(),negotiated,
+      'custom installment remains unchanged during partial rebalance');
+    await dialog.getByRole('button',{name:/Apply breakdown/i}).click();
 
     await page.setViewportSize({width:390,height:740});
     await checkout.getByRole('button',{name:/View \/ Edit/i}).click();
