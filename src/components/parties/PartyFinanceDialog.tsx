@@ -13,7 +13,7 @@ import { validateBusinessDate, validatePartySplits, toPaisa } from '../../utils/
 import type { Party } from '../../types/erp';
 import type { PartyFinancePayload, PartyMoneySplit } from '../../types/partyLedger';
 import { taka } from '../../utils/currency';
-import { amountInWords } from '../../utils/amountInWords';
+import { AmountInWordsDisplay } from '../AmountInWordsDisplay';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeLabel} from '../../i18n/financeCopy';
 import {partyFinancialErrorText} from '../../i18n/partyFinancialCopy';
@@ -98,7 +98,7 @@ export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Pr
     </label>
     {review&&<div role="status" className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800">
       <strong>{text('Review finance transaction','লেনদেন যাচাই করুন')}</strong><p>{party.name} · {financeLabel(language,type)} · {date} · {taka(money)}</p>
-      <p className="mt-1 font-medium">{amountInWords(money)}</p>
+      <AmountInWordsDisplay amount={money} />
       <p>{opening?text('Relationship balance only, no money movement','শুধু সম্পর্কের জের; টাকা সরবে না'):(meta?.direction==='in'?text('Money into business: ','ব্যবসায় টাকা আসবে: '):text('Money out of business: ','ব্যবসা থেকে টাকা যাবে: '))+taka(money)}</p>
       <p>{text('Records one auditable preview source only; no real money is moved.','শুধু প্রিভিউতে লেনদেনের ইতিহাসসহ একটি রেকর্ড যোগ হবে। আসল টাকা সরবে না।')}</p>
     </div>}
