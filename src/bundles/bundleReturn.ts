@@ -65,10 +65,13 @@ export function planBundleReturn(req:BundleReturnRequest):BundleReturnPreview{
   issues.push('Historical net parent refund allocation is missing; do not use today’s price.');
  // Full original line net refund is allocated proportionally, in cents; never use child prices.
  const refundEstimate=net===null||!Number.isFinite(net)||net<0||!sold?null:
-  Number((Math.round(net*100*sets/sold)/100).toFixed(2));
+  Number(((Math.round(net*100*(returned+sets)/sold)-Math.round(net*100*returned/sold))/100).toFixed(2));
  const components:BundleReturnComponent[]=[];
  const usedSerials=new Set<string>();
+ const usedComponentIds=new Set<string>();
  for(const part of snap?.components??[]){
+  if(usedComponentIds.has(part.productId)){issues.push('Duplicate historical component: '+part.productId);continue;}
+  usedComponentIds.add(part.productId);
   const selected=choices[part.productId];
   if(!selected||!['Restock','Do not restock'].includes(selected.disposition)){
    issues.push('Choose Restock or Do not restock for '+part.name+'.');
