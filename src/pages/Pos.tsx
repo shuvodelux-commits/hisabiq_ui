@@ -322,7 +322,7 @@ export function Pos() {
       requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
        l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),
       choice:l.stockSource})),stockLots);
-    const unresolvedShortageLine=cart.lines.find(line=>allocated.find(a=>a.key===line.key)?.needsSourceBaseQty>0);
+    const unresolvedShortageLine=cart.lines.find(line=>(allocated.find(a=>a.key===line.key)?.needsSourceBaseQty??0)>0);
     if (unresolvedShortageLine) {
       const shortage=allocated.find(a=>a.key===unresolvedShortageLine.key)?.needsSourceBaseQty??0;
       toast.error('Choose stock shortage handling', {
@@ -387,7 +387,7 @@ export function Pos() {
       customerPhone: cart.customerDetails.phone.trim() || undefined,
       guardianName: cart.customerDetails.guardianName.trim() || undefined,
       customerAddress: cart.customerDetails.address.trim() || undefined,
-      lines: cart.lines.map((l,index) => {
+      lines: cart.lines.map((l) => {
         const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
         const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
         const ownBaseQty=l.product.kind==='Bundle'?0:allocated.find(a=>a.key===l.key)?.ownBaseQty??0;
