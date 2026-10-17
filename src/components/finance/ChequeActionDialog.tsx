@@ -17,7 +17,7 @@ import {printReport} from '../../utils/reportOutput';
 
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   const {text}=useUiCopy();
-  const names:Record<string,string>={'Direction':'চেকের ধরন','Amount':'টাকা','Bank':'ব্যাংক','Party':'পক্ষ','Received / issued':'পাওয়া / দেওয়ার তারিখ','Cheque date':'চেকের তারিখ','Money account':'টাকার হিসাব','Reference':'রেফারেন্স'};
+  const names:Record<string,string>={'Direction':'চেকের ধরন','Amount':'টাকা','Bank':'ব্যাংক','Party':'পক্ষ','Received / issued':'পাওয়া / দেওয়ার তারিখ','Cheque date':'চেকের তারিখ','Money account':'টাকার হিসাব','Reference':'রেফারেন্স','Attachment filename (not uploaded)':'ফাইলের নাম (আপলোড হয়নি)'};
   return <div className="rounded-lg bg-ink-50 px-3 py-2.5"><p className="text-[10.5px] text-ink-400">{text(label,names[label]??label)}</p><div className="mt-0.5 text-[12.5px] font-medium text-ink">{children}</div></div>;
 }
 
@@ -87,7 +87,7 @@ export function ChequeActionDialog({
   const printCheque = () => {
     if(!cheque)return;
     const headers=[text('Field','বিবরণ'),text('Value','তথ্য')];
-    const rows:[string,string|number][]=[
+    const rows: Array<[string,string|number]>=[
       [text('Cheque number','চেক নম্বর'),cheque.chequeNumber],
       [text('Direction','চেকের ধরন'),financeLabel(language,cheque.direction)],
       [text('Status','অবস্থা'),financeLabel(language,cheque.status)],
@@ -98,6 +98,7 @@ export function ChequeActionDialog({
       [text('Money account','টাকার হিসাব'),cheque.depositAccount??'—'],
       [text('Reference','রেফারেন্স'),cheque.reference??'—']
     ];
+    if (cheque.attachment) rows.push([text('Attachment filename (not uploaded)','ফাইলের নাম (আপলোড হয়নি)'),cheque.attachment]);
     if(!printReport({title:text('Cheque','চেক')+' #'+cheque.chequeNumber,language,subtitle:text('Cheque status preview — not a bank confirmation.','চেকের নমুনা অবস্থা — ব্যাংকের নিশ্চিতকরণ নয়।'),headers,rows}))toast.error(text('Allow the print popup and try again.','প্রিন্টের উইন্ডো খুলে আবার চেষ্টা করুন।'));
   };
   const confirmStatus = () => {
@@ -141,7 +142,7 @@ export function ChequeActionDialog({
             </div>
 
             {(cheque.attachment || cheque.note) && <div className="grid gap-2 sm:grid-cols-2">
-              {cheque.attachment && <div className="rounded-lg border border-border px-3 py-2.5"><p className="text-[10.5px] text-ink-400">{text('Attachment','ফাইল')}</p><p className="mt-1 flex items-center gap-1.5 text-[12px] font-medium text-ink"><Paperclip className="size-3.5" /> {cheque.attachment}</p></div>}
+              {cheque.attachment && <div className="rounded-lg border border-border px-3 py-2.5"><p className="text-[10.5px] text-ink-400">{text('Attachment filename (not uploaded)','ফাইলের নাম (আপলোড হয়নি)')}</p><p className="mt-1 flex items-center gap-1.5 text-[12px] font-medium text-ink"><Paperclip className="size-3.5" /> {cheque.attachment}</p></div>}
               {cheque.note && <div className="rounded-lg border border-border px-3 py-2.5"><p className="text-[10.5px] text-ink-400">{text('Note','মন্তব্য')}</p><p className="mt-1 text-[12px] text-ink-700">{cheque.note}</p></div>}
             </div>}
 

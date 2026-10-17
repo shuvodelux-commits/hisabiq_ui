@@ -1,0 +1,30 @@
+name: Deep Cheque Output Check
+on:
+  pull_request:
+    paths:
+      - 'src/components/finance/ChequeDialogs.tsx'
+      - 'src/components/finance/ChequeActionDialog.tsx'
+      - 'scripts/deep-cheque-output-browser.cjs'
+      - 'package.json'
+      - '.github/workflows/deep-cheque-output-check.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:deep-cheque-output
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deep-cheque-output-evidence
+          path: .superpowers/deep-audit/cheque-output
+          include-hidden-files: true
+          if-no-files-found: error

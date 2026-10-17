@@ -553,7 +553,6 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         account: item.accountId === updated.id ? updated.name : item.account,
         paymentAccounts: item.paymentAccounts?.map((split) => split.accountId === updated.id ? { ...split, account: updated.name } : split)
       })));
-<<<<<<< HEAD
       setChequeRecords((current) => renameChequeAccountReferences(current, accounts, updated, previous.name));
     }
     setAccountAction(updated);
