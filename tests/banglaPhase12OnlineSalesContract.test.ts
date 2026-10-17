@@ -36,7 +36,8 @@ test('Phase 12 preserves shared POS cart, quotes and manual COD posting APIs',()
  assert.match(page,/TransactionCartEditor mode="online"/);
  assert.match(page,/draftFromAcceptedQuote\(quote\)/);
  assert.match(page,/existingOrderForQuote\(quoteId\)/);
- assert.match(page,/preparePosHandoff\(order\.id,posProducts\)/);
+ assert.match(page,/preparePosHandoff\(order\.id,previewPosProducts\(\)\)/);
+ assert.match(page,/import \{availableProducts as previewPosProducts\} from '\.\.\/data\/erpDemoStore'/);
  assert.match(page,/updateOrderStage\(order\.id,s,note\)/);
  assert.match(page,/setOrderCourier\(order\.id,courier,tracking\)/);
  assert.match(page,/recordCourierCod\(order\.id,Number\(collected\),Number\(fee\)\)/);

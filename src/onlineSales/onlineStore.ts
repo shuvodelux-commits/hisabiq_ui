@@ -1,4 +1,5 @@
 import {transactionLineTotal} from '../utils/transactionLines.ts';
+import {requireCurrentBundleHandoffs,reviewBundleHandoffs} from '../bundles/bundleHandoff.ts';
 import type {Product} from '../types/erp.ts';
 import {getQuoteSnapshot,type Quotation} from '../quotations/quotePreviewStore.ts';
 
@@ -7,7 +8,7 @@ export type SalesChannel='Facebook'|'WhatsApp'|'Instagram'|'YouTube'|'TikTok'|'W
 export type PaymentMode='COD'|'Delivery charge advance'|'Partial advance'|'Fully paid';
 export type OrderStage='Draft'|'Confirmed'|'Packed'|'Handed over'|'In transit'|'Delivered'|'Failed delivery'|'Returning'|'Returned'|'Cancelled';
 export type CourierName='Steadfast'|'Pathao'|'RedX'|'Sundarban'|'Other'|'Own delivery';
-export type OnlineOrderLine={id:string;productId:string;name:string;quantity:number;unit:string;price:number;secondaryQuantity?:number;unitFactor?:number};
+export type OnlineOrderLine={id:string;productId:string;name:string;quantity:number;unit:string;price:number;secondaryQuantity?:number;unitFactor?:number;bundleRevision?:number;bundleRecipeSignature?:string};
 export type OnlineOrderDraft={
  channel:SalesChannel;sourceReference:string;partyId?:string;sourceQuoteId?:string;customerName:string;
  phone:string;address:string;lines:OnlineOrderLine[];discount:number;deliveryCharge:number;
@@ -70,6 +71,7 @@ export function validateOnlineOrder(input:OnlineOrderDraft):string[]{
   if(input.paymentMode==='Delivery charge advance'&&values.advance!==values.delivery)errors.push('Delivery-only advance must equal delivery charge.');
   if(input.paymentMode==='Partial advance'&&(values.advance<=0||values.cod<=0))errors.push('Partial advance needs payment and outstanding COD.');
  }catch(e){errors.push(e instanceof Error?e.message:'Invalid money amount.');}
+ try{requireCurrentBundleHandoffs(input.lines);}catch(e){errors.push(e instanceof Error?e.message:'Package requires review.');}
  return errors;
 }
 const stamp=(action:string,by:'Preview user'|'Courier (manual)'='Preview user',note='')=>({at:now(),action,by,note});
@@ -103,11 +105,13 @@ function orderById(id:string){const found=state.orders.find(o=>o.id===id);if(!fo
 /** A quote is commercial context; customer delivery details and received advance require review. */
 export function draftFromAcceptedQuote(quote:Quotation):OnlineOrderDraft{
  if(quote.status!=='Accepted')throw new Error('Only accepted quotations can be converted to online orders.');
+ requireCurrentBundleHandoffs(quote.lines);
  return {channel:'Other',sourceReference:'Quotation '+quote.number,sourceQuoteId:quote.id,
   partyId:quote.partyId,customerName:quote.customerName,phone:quote.customerPhone??'',
   address:'',note:quote.note,discount:quote.discount,deliveryCharge:0,prepaid:0,paymentMode:'COD',
   lines:quote.lines.map((line,i)=>({id:'quote-line-'+i,productId:line.productId,name:line.name,
-    quantity:line.quantity,unit:line.unit,price:line.price,secondaryQuantity:line.secondaryQuantity,unitFactor:line.unitFactor}))};
+    quantity:line.quantity,unit:line.unit,price:line.price,secondaryQuantity:line.secondaryQuantity,unitFactor:line.unitFactor,
+    bundleRevision:line.bundleRevision,bundleRecipeSignature:line.bundleRecipeSignature}))};
 }
 function requireQuoteSnapshot(draft:OnlineOrderDraft){
  if(!draft.sourceQuoteId)return;
@@ -131,8 +135,10 @@ export function preparePosHandoff(orderId:string,products:readonly Product[]){
    throw new Error('Product unit no longer matches POS: '+line.name);
   if(!Number.isFinite(line.quantity)||line.quantity<=0||!Number.isSafeInteger(line.quantity*1000))
    throw new Error('Unsupported order quantity for POS.');
+  requireCurrentBundleHandoffs([line],products);
   return {key:'online-'+order.id+'-'+index,productId:product.id,qty:String(line.quantity),
-   secondaryQty:line.secondaryQuantity?String(line.secondaryQuantity):'',unit:line.unit,price:String(line.price)};
+   secondaryQty:line.secondaryQuantity?String(line.secondaryQuantity):'',unit:line.unit,price:String(line.price),
+   bundleRevision:line.bundleRevision,bundleRecipeSignature:line.bundleRecipeSignature};
  });
  return {orderId:order.id,number:order.number,customerName:order.customerName,phone:order.phone,
   address:order.address,partyId:order.partyId,lines,discount:order.discount,
@@ -168,6 +174,7 @@ const moves:Record<OrderStage,OrderStage[]>={
 export function updateOrderStage(id:string,next:OrderStage,note=''){
  const original=orderById(id);
  if(!moves[original.stage].includes(next))throw new Error(original.stage+' → '+next+' is not a valid delivery transition.');
+ if(next==='Confirmed'||next==='Packed')requireCurrentBundleHandoffs(original.lines);
  if(next==='Handed over'&&(!original.courier||!original.tracking?.trim()))
   throw new Error('Choose courier and provide tracking number before handover.');
  return replaceOrder(original,{...original,stage:next,updatedAt:now(),timeline:[...original.timeline,stamp(next,'Preview user',note)]});
@@ -215,4 +222,21 @@ export function upsertSalesLead(input:Omit<SalesLead,'id'|'createdAt'>,id?:strin
  const record:SalesLead={...input,id:current?.id??'online-lead-'+seq++,createdAt:current?.createdAt??bdToday()};
  state={...state,revision:state.revision+1,leads:current?state.leads.map(l=>l.id===id?record:l):[record,...state.leads]};
  listeners.forEach(f=>f());return record;
+}
+
+/** Explicit user-confirmed correction for a non-posted standalone order.
+ * Linked quotations must instead be revised/reapproved to preserve commercial approval.
+ */
+export function acknowledgeOrderBundleChanges(id:string):OnlineOrder{
+ const original=orderById(id);
+ if(!['Draft','Confirmed','Packed'].includes(original.stage))
+  throw new Error('Delivered or handed-over orders need a separate correction workflow.');
+ if(original.sourceQuoteId)throw new Error('Revise and reaccept the linked quotation before changing package components.');
+ const updatedLines=reviewBundleHandoffs(original.lines);
+ const issues=updatedLines.some((row,i)=>row.productId!==original.lines[i].productId||
+  row.price!==original.lines[i].price||row.quantity!==original.lines[i].quantity);
+ if(issues)throw new Error('Bundle review cannot change quantity, price or product identity.');
+ return replaceOrder(original,{...original,lines:updatedLines,updatedAt:now(),
+  timeline:[...original.timeline,stamp('Package recipe reviewed','Preview user',
+   'Current package components explicitly accepted for POS preview; order price and quantity unchanged.')]});
 }

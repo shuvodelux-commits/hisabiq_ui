@@ -18,11 +18,12 @@ import {taka} from '../utils/currency';
 import {getQuoteSnapshot} from '../quotations/quotePreviewStore';
 import {useUiCopy} from '../i18n/useUiCopy';
 import {onlineLabel,onlineOptions} from '../i18n/onlineSalesCopy';
-import {products as posProducts} from '../data/products';
+import {availableProducts as previewPosProducts} from '../data/erpDemoStore';
+import {captureBundleHandoff,inspectBundleHandoffs,reviewBundleHandoffs} from '../bundles/bundleHandoff';
 import {FulfillmentDocumentPreview,fulfillmentPrintCss,printFulfillment,documentTitles,type FulfillmentDocument} from '../components/online/FulfillmentDocumentPreview';
 import {fulfillmentLabel} from '../i18n/fulfillmentCopy';
 import {orderTotals,createOnlineOrder,reviseOnlineDraft,updateOrderStage,setOrderCourier,recordCourierCod,recordCourierPayout,courierClearing,draftFromAcceptedQuote,existingOrderForQuote,preparePosHandoff,
- getOnlineSnapshot,subscribeOnline,upsertSalesLead,type SalesChannel,type PaymentMode,type OnlineOrderDraft,type OnlineOrder,type OrderStage,type CourierName,type SalesLead,type LeadStage
+ getOnlineSnapshot,subscribeOnline,upsertSalesLead,acknowledgeOrderBundleChanges,type SalesChannel,type PaymentMode,type OnlineOrderDraft,type OnlineOrder,type OrderStage,type CourierName,type SalesLead,type LeadStage
 } from '../onlineSales/onlineStore';
 
 const channels:SalesChannel[]=['Facebook','WhatsApp','Instagram','YouTube','TikTok','Website','Other'];
@@ -46,6 +47,7 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
  const [error,setError]=useState('');
  const [creatingProduct,setCreatingProduct]=useState(false);
  const products=availableProducts().filter(p=>p.active);
+ const bundleIssues=inspectBundleHandoffs(draft.lines,products);
  const customers=availableParties().filter(p=>p.roles.includes('Customer'));
  const patch=(next:Partial<OnlineOrderDraft>)=>setDraft(prev=>({...prev,...next}));
  const totals=useMemo(()=>{try{return orderTotals(draft);}catch{return null;}},[draft]);
@@ -59,7 +61,7 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
   const unit=p.altUnit&&p.stockViewUnit===p.altUnit.unit?p.altUnit.unit:p.unit;
   patch({lines:[...draft.lines,{id:'on-line-'+(globalThis.crypto?.randomUUID?.()??Date.now().toString()),
    productId:p.id,name:p.name,unit,quantity:1,price:unit===p.altUnit?.unit?(p.altUnit.price??p.sellPrice*p.altUnit.factor):p.sellPrice,
-   unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0}]});
+   unitFactor:p.altUnit&&unit===p.altUnit.unit?p.altUnit.factor:1,secondaryQuantity:0,...captureBundleHandoff(p)}]});
  };
  const updateLine=(id:string,next:Partial<OnlineOrderDraft['lines'][number]>)=>
   patch({lines:draft.lines.map(l=>l.id===id?{...l,...next}:l)});
@@ -139,6 +141,12 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
     <p className="text-[11px] text-ink-500">{ol('Advance is a preview value; no Cash/Bank/MFS account is posted.')}</p>
    </div>
   </div>
+  {bundleIssues.length>0&&<div role="alert" className="space-y-2 rounded-lg border border-warning bg-warning-bg/30 p-3 text-xs text-ink">
+    <strong>Package contents changed · প্যাকেজের পণ্য বদলেছে</strong>
+    {bundleIssues.map(issue=><div key={issue.productId}><p className="font-medium">{issue.name}: {issue.reason}</p><p>Saved: {issue.before}</p><p>Current: {issue.after}</p></div>)}
+    {!draft.sourceQuoteId&&<Button size="sm" variant="outline" onClick={()=>{try{patch({lines:reviewBundleHandoffs(draft.lines,products)});}catch(e){setError(e instanceof Error?e.message:'Cannot review package.');}}}>Use current package recipe · নতুন প্যাকেজ ব্যবহার করুন</Button>}
+    {draft.sourceQuoteId&&<p>Revise and reaccept the linked quotation first. Confirmed prices and lines cannot silently change.</p>}
+   </div>}
   {error&&<p role="alert" className="rounded-lg bg-danger-bg p-2 text-xs text-danger">{error}</p>}
   <DialogFooter><Button variant="outline" onClick={onClose}>{ol("Cancel")}</Button><Button onClick={submit}><Check className="size-4"/> {ol("Save order draft")}</Button></DialogFooter>
  <AddProductDialog open={creatingProduct} onOpenChange={setCreatingProduct} onSave={product=>{
@@ -297,6 +305,7 @@ export function OnlineSales(){
  const [tab,setTab]=useState<View>('Orders'),[query,setQuery]=useState(''),[filter,setFilter]=useState('All channels');
  const [stage,setStage]=useState('All statuses'),[editing,setEditing]=useState<OnlineOrder|null>(null);
  const [editorOpen,setEditorOpen]=useState(false),[selectedId,setSelectedId]=useState<string|null>(null);
+ const [handoffReviewId,setHandoffReviewId]=useState<string|null>(null);
  const selected=orders.find(o=>o.id===selectedId)??null;
  useEffect(()=>{
   if(!quoteId)return;
@@ -315,9 +324,10 @@ export function OnlineSales(){
   setSearchParams({}, {replace:true});
  },[quoteId,setSearchParams]);
  const openPos=(order:OnlineOrder)=>{
-  try{preparePosHandoff(order.id,posProducts);setSelectedId(null);
+  try{preparePosHandoff(order.id,previewPosProducts());setSelectedId(null);
    navigate('/app/pos',{state:{hisabiqSource:'online-order',orderId:order.id}});}
-  catch(e){toast.error(e instanceof Error?e.message:String(e));}
+  catch(e){if(!order.sourceQuoteId&&inspectBundleHandoffs(order.lines).length)setHandoffReviewId(order.id);
+    else toast.error(e instanceof Error?e.message:String(e));}
  };
  const filtered=useMemo(()=>orders.filter(o=>(filter==='All channels'||o.channel===filter)&&
   (stage==='All statuses'||o.stage===stage)&&
@@ -367,5 +377,19 @@ export function OnlineSales(){
   </div>
   {editorOpen&&<OrderEditor key={editing?.id??quoteDraft?.sourceQuoteId??'new'} original={editing} initialDraft={quoteDraft} onClose={()=>{setEditorOpen(false);setEditing(null);setQuoteDraft(null);}}/>}
   {selected&&<OrderDetail order={selected} onClose={()=>setSelectedId(null)} onPos={()=>openPos(selected)} onEdit={()=>{setQuoteDraft(null);setEditing(selected);setEditorOpen(true);setSelectedId(null);}}/>}
+  {handoffReviewId&&(()=>{const order=orders.find(x=>x.id===handoffReviewId);if(!order)return null;
+   const issues=inspectBundleHandoffs(order.lines);return <Dialog open onOpenChange={open=>!open&&setHandoffReviewId(null)}>
+    <DialogContent role="dialog" aria-label="Review changed package" className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
+     <DialogHeader><DialogTitle>Package recipe changed · প্যাকেজ বদলেছে</DialogTitle>
+      <DialogDescription>Check the package contents before opening POS. This review does not change the agreed parent price, Set quantity or discount.</DialogDescription></DialogHeader>
+     <div className="space-y-2 text-sm">{issues.map(issue=><div key={issue.productId} className="rounded-lg border border-border p-3">
+      <strong>{issue.name}</strong><p className="text-xs">Saved: {issue.before}</p><p className="text-xs">Current: {issue.after}</p></div>)}</div>
+     <DialogFooter><Button variant="outline" onClick={()=>setHandoffReviewId(null)}>Cancel</Button>
+      <Button onClick={()=>{try{acknowledgeOrderBundleChanges(order.id);setHandoffReviewId(null);setSelectedId(null);
+       navigate('/app/pos',{state:{hisabiqSource:'online-order',orderId:order.id}});}catch(e){toast.error(e instanceof Error?e.message:String(e));}}}>
+       Use current package recipe
+      </Button></DialogFooter>
+    </DialogContent>
+   </Dialog>})()}
  </div>;
 }
