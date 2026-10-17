@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ArrowDownRight, ArrowUpRight, BookOpen, ChevronRight, FileSpreadsheet, Landmark, Scale, Wallet, Boxes } from 'lucide-react';
+import { toast } from 'sonner';
 import { PageHeader } from '../components/PageHeader';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { Panel } from '../components/Panel';
@@ -10,12 +11,12 @@ import { DaybookDialog } from '../components/reports/DaybookDialog';
 import { useCashSession } from '../contexts/CashSessionContext';
 import { aging, expenseBreakdown, monthlyProfit, profitSummary } from '../data/finance';
 import { taka, takaCompact } from '../utils/currency';
-import { downloadReport } from '../utils/reportOutput';
+import { downloadReport, printReport } from '../utils/reportOutput';
 
 const periods = ['Today', 'This week', 'September', 'Quarter', 'FY 2026–27'];
 
 export function Reports() {
-  const {text,showHelper}=useUiCopy();
+  const {text,showHelper,language}=useUiCopy();
   const categoryBn:Record<string,string>={Salary:'বেতন',Rent:'ভাড়া',Transport:'পরিবহন',Utilities:'বিদ্যুৎ-পানি',Maintenance:'মেরামত','Tea & Snacks':'চা-নাস্তা'};
   const monthBn:Record<string,string>={Apr:'এপ্রিল',May:'মে',Jun:'জুন',Jul:'জুলাই',Aug:'আগস্ট',Sep:'সেপ্টেম্বর'};
   const periodBn:Record<string,string>={Today:'আজ','This week':'এই সপ্তাহ',September:'সেপ্টেম্বর',Quarter:'ত্রৈমাসিক','FY 2026–27':'অর্থবছর ২০২৬–২৭'};
@@ -26,6 +27,38 @@ export function Reports() {
   const expenseTotal = expenseBreakdown.reduce((s, e) => s + e.value, 0);
   const recTotal = aging.reduce((s, a) => s + a.receivable, 0);
   const payTotal = aging.reduce((s, a) => s + a.payable, 0);
+  const reportHeaders = ['Section', 'Label', 'Value 1', 'Value 2'];
+  const reportRows = [
+    ['Dataset', 'September sample figures; not live accounting', '', ''],
+    ['Columns', 'Value 1 / Value 2 meanings are stated per section', '', ''],
+    ...profitSummary.map(item => ['September profit summary', item.label, item.value, '']),
+    ...monthlyProfit.map(item => ['Monthly gross / net', item.month, item.gross, item.net]),
+    ...expenseBreakdown.map(item => ['September expense categories', item.name, item.value, '']),
+    ...aging.map(item => ['Receivable / payable aging', item.bucket, item.receivable, item.payable]),
+  ];
+  const printHeaders = [
+    text('Section', 'অংশ'),
+    text('Label', 'নাম'),
+    text('Value 1', 'মান ১'),
+    text('Value 2', 'মান ২'),
+  ];
+  const printRows = [
+    [text('Dataset', 'ডেটাসেট'), text('September sample figures; not live accounting', 'সেপ্টেম্বরের নমুনা হিসাব; লাইভ হিসাব নয়'), '', ''],
+    [text('Columns', 'কলাম'), text('Value 1 / Value 2 meanings are stated per section', 'Value 1 / Value 2-এর অর্থ প্রতিটি অংশে উল্লেখ আছে'), '', ''],
+    ...profitSummary.map(item => [text('September profit summary', 'সেপ্টেম্বরের লাভের সারাংশ'), text(item.label, item.labelBn), item.value, '']),
+    ...monthlyProfit.map(item => [text('Monthly gross / net', 'মাসিক মোট / নিট লাভ'), text(item.month, monthBn[item.month] ?? item.month), item.gross, item.net]),
+    ...expenseBreakdown.map(item => [text('September expense categories', 'সেপ্টেম্বরের খরচের খাত'), text(item.name, categoryBn[item.name] ?? item.name), item.value, '']),
+    ...aging.map(item => [text('Receivable / payable aging', 'পাওনা / দেনার বয়সভিত্তিক হিসাব'), text(item.bucket, item.bucket.replace('days', 'দিন')), item.receivable, item.payable]),
+  ];
+  const printCurrentReport = () => {
+    if (!printReport({
+      title: text('September business report', 'সেপ্টেম্বরের ব্যবসায়িক রিপোর্ট'),
+      subtitle: text('September sample figures · not live accounting', 'সেপ্টেম্বরের নমুনা হিসাব · সরাসরি হিসাব নয়'),
+      language,
+      headers: printHeaders,
+      rows: printRows,
+    })) toast.error(text('Allow the print popup and try again.', 'প্রিন্ট উইন্ডো খুলে আবার চেষ্টা করুন।'));
+  };
 
   const links = [
   { icon: BookOpen, title: 'Daybook', bn: 'দৈনিক খাতা', desc: 'Every entry today, in order', onClick: () => setDaybookOpen(true) },
@@ -99,10 +132,10 @@ export function Reports() {
 
         <Panel title={text("Expense breakdown","খরচের হিসাব")} subtitle={`${text(period,periodBn[period]??period)} · ${taka(expenseTotal)}`}>
           <div className="flex items-center gap-4">
-            <div className="relative size-36 shrink-0">
+            <div aria-hidden="true" className="relative size-36 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={expenseBreakdown} dataKey="value" innerRadius={44} outerRadius={68} paddingAngle={1.5} stroke="none">
+                  <Pie data={expenseBreakdown} dataKey="value" innerRadius={44} outerRadius={68} paddingAngle={1.5} rootTabIndex={-1} stroke="none">
                     {expenseBreakdown.map((e) =>
                     <Cell key={e.name} fill={e.color} />
                     )}
@@ -114,7 +147,7 @@ export function Reports() {
                 <span className="text-sm font-semibold ">{takaCompact(expenseTotal)}</span>
               </div>
             </div>
-            <ul className="min-w-0 flex-1 space-y-1.5 text-[12.5px]">
+            <ul aria-label={text('Expense categories','খরচের খাত')} className="min-w-0 flex-1 space-y-1.5 text-[12.5px]">
               {expenseBreakdown.map((e) =>
               <li key={e.name} className="flex items-center gap-2">
                   <span className="size-2 shrink-0 rounded-sm" style={{ background: e.color }} />
@@ -184,8 +217,13 @@ export function Reports() {
               </li>
             )}
             <li>
-              <button onClick={() => downloadReport('hisabiq-demo-reports.csv',['Section','Label','Value 1','Value 2'],[['Dataset','September sample figures; not live accounting', '', ''],['Columns','Value 1 / Value 2 meanings are stated per section', '', ''],...profitSummary.map(item => ['September profit summary',item.label,item.value,'']),...monthlyProfit.map(item => ['Monthly gross / net',item.month,item.gross,item.net]),...expenseBreakdown.map(item => ['September expense categories',item.name,item.value,'']),...aging.map(item => ['Receivable / payable aging',item.bucket,item.receivable,item.payable])])} className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-ink-200 py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
+              <button onClick={() => downloadReport('hisabiq-demo-reports.csv', reportHeaders, reportRows)} className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-ink-200 py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
                 <FileSpreadsheet className="size-3.5" /> {text('Export for accountant','হিসাবরক্ষকের জন্য ডেটা ডাউনলোড')}
+              </button>
+            </li>
+            <li>
+              <button onClick={printCurrentReport} className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-ink-200 py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
+                {text('Print report', 'রিপোর্ট প্রিন্ট')}
               </button>
             </li>
           </ul>
