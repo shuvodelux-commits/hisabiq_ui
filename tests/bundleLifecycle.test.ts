@@ -5,7 +5,7 @@ import {makeBundleComponent} from '../src/bundles/bundleValidation.ts';
 import {
   getProductImportPreviewSnapshot,getBundleVersion,upsertBundlePreview,
   canDeleteBundlePreview,deleteBundlePreview,registerPostedBundleSalePreview,
-  subscribeProductImportPreview
+  subscribeProductImportPreview,upsertProductPreview,updateProductInventoryPreview
 } from '../src/data/productImportPreviewStore.ts';
 
 const seed=getProductImportPreviewSnapshot().products;
@@ -138,4 +138,17 @@ test('stale open unsold editor is rejected instead of overwriting an in-place ed
  const before=getProductImportPreviewSnapshot();
  assert.throws(()=>upsertBundlePreview(draft(id,'3'),1,opened),/changed/i);
  assert.strictEqual(getProductImportPreviewSnapshot(),before);
+});
+
+test('unrelated stock catalog edits never erase the posted-sale lock',()=>{
+ const id=prefix+'-SURVIVE';
+ upsertBundlePreview(draft(id,'1'),null);
+ registerPostedBundleSalePreview(posted('INV-'+id,id,1));
+ const before=getProductImportPreviewSnapshot();
+ upsertProductPreview({...pipe,name:pipe.name+' (label updated)'});
+ const changed=getProductImportPreviewSnapshot();
+ assert.strictEqual(changed.bundleSaleReferences,before.bundleSaleReferences);
+ updateProductInventoryPreview({...socket},changed.lots,changed.movements);
+ assert.equal(canDeleteBundlePreview(id),false);
+ assert.throws(()=>deleteBundlePreview(id),/sold/i);
 });
