@@ -49,9 +49,44 @@ async function run(){
     const p=state.products.find(p=>p.sku===id);
     return state.bundleVersions.filter(x=>x.bundleProductId===p?.id);
    },sku);
-   assert.equal(revisions.length,2);
-   assert.equal(revisions[0].components[0].primaryQty,'2');
-   assert.equal(revisions[1].components[0].primaryQty,'3');
+   assert.equal(revisions.length,1,'editing before sale should NOT create a new version');
+   assert.equal(revisions[0].components[0].primaryQty,'3');
+   await page.getByRole('button',{name:'Actions for Tubewell Set'}).last().click();
+   assert.equal(await page.getByRole('button',{name:'Delete package'}).count(),1,'unsold packages can be deleted');
+   // A real sale preview does not post; emulate an authenticated posted-invoice event for lifecycle verification.
+   await page.evaluate(async id=>{
+     const mod=await import('/src/data/productImportPreviewStore.ts');
+     const item=mod.getProductImportPreviewSnapshot().products.find(p=>p.sku===id);
+     mod.registerPostedBundleSalePreview({invoice:'INV-'+id,recordStatus:'Posted',
+       lines:[{productId:item.id,bundleRevision:1}]});
+   },sku);
+   await page.getByRole('button',{name:'Delete package'}).waitFor({state:'hidden'});
+   await page.getByRole('button',{name:'Edit product'}).last().click();
+   await editor.waitFor();
+   await editor.getByTestId('bundle-component-row').first().getByRole('textbox',{name:/quantity/i}).first().fill('4');
+   await editor.getByRole('button',{name:'Save package'}).click();
+   await editor.waitFor({state:'hidden'});
+   const history=await page.evaluate(async id=>{
+     const mod=await import('/src/data/productImportPreviewStore.ts');
+     const state=mod.getProductImportPreviewSnapshot();
+     const item=state.products.find(p=>p.sku===id);
+     return state.bundleVersions.filter(x=>x.bundleProductId===item.id);
+   },sku);
+   assert.equal(history.length,2,'the first post-sale edit should create revision 2');
+   assert.equal(history[0].components[0].primaryQty,'3','revision 1 used in the sale stays frozen');
+   assert.equal(history[1].components[0].primaryQty,'4');
+   await page.getByRole('button',{name:'Actions for Tubewell Set'}).last().click();
+   await page.getByRole('button',{name:'Edit product'}).last().click();
+   await editor.waitFor();
+   await editor.getByTestId('bundle-component-row').first().getByRole('textbox',{name:/quantity/i}).first().fill('5');
+   await editor.getByRole('button',{name:'Save package'}).click();
+   await editor.waitFor({state:'hidden'});
+   assert.deepEqual(await page.evaluate(async id=>{
+     const mod=await import('/src/data/productImportPreviewStore.ts');
+     const state=mod.getProductImportPreviewSnapshot();
+     const item=state.products.find(p=>p.sku===id);
+     return state.bundleVersions.filter(x=>x.bundleProductId===item.id).map(x=>x.components[0].primaryQty);
+   },sku),['3','5'],'unsold revision 2 is editable in place');
    await page.getByRole('button',{name:'Actions for Tubewell Set'}).last().click();
    await page.getByRole('button',{name:'View details'}).last().click();
    const details=page.locator('[data-slot="dialog-content"]').last();
@@ -61,6 +96,16 @@ async function run(){
    await details.getByText('Version 2').waitFor();
    assert.equal(await details.getByRole('button',{name:/Adjust stock/i}).count(),0);
    await details.getByRole('button',{name:/Close/i}).click();
+   await page.getByRole('button',{name:'Actions for Tubewell Set'}).last().click();
+   await page.getByRole('button',{name:'Duplicate'}).last().click();
+   await page.getByRole('button',{name:'Actions for Tubewell Set Copy'}).last().click();
+   await page.getByRole('button',{name:'Delete package'}).click();
+   const confirm=page.locator('[data-slot="dialog-content"]').last();
+   await confirm.getByText(/Delete unsold package/).waitFor();
+   await confirm.getByRole('button',{name:'Delete package'}).click();
+   await confirm.waitFor({state:'hidden'});
+   assert.equal(await page.getByText('Tubewell Set Copy',{exact:true}).count(),0,'unsold duplicate gets removed');
+   assert.equal(await page.getByText('Tubewell Set',{exact:true}).count()>0,true,'sold original remains');
    await page.evaluate(()=>{window.location.hash='#/app/purchases/new';});
    const purchaseSearch=page.getByRole('combobox',{name:'Search product to add to purchase'});
    await purchaseSearch.waitFor();
@@ -71,7 +116,7 @@ async function run(){
    await page.close();
   }
   assert.deepEqual(errors,[]);
-  console.log('Bundle editor creation, two revisions and mobile/landscape: PASS');
+  console.log('Bundle edit-in-place, posted-sale revisions, unsold delete and mobile/landscape: PASS');
  }finally{await browser.close();await server.close();}
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
