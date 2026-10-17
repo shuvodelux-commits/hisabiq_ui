@@ -41,7 +41,7 @@ async function run(){
    await editor.getByText('Package selling price').waitFor();
    await editor.getByText('Estimated package profit').waitFor();
    await editor.getByTestId('bundle-component-row').first().getByRole('textbox',{name:/quantity/i}).first().fill('2');
-   await editor.getByRole('button',{name:'Save package'}).click();
+   await editor.getByTestId('bundle-pricing-summary').getByRole('button',{name:'Save package'}).click();
    await editor.waitFor({state:'hidden'});
    const initial=await page.evaluate(async id=>{
     const mod=await import('/src/data/productImportPreviewStore.ts');
@@ -56,7 +56,7 @@ async function run(){
    await page.getByRole('button',{name:'Edit product'}).last().click();
    await editor.waitFor();
    await editor.getByTestId('bundle-component-row').first().getByRole('textbox',{name:/quantity/i}).first().fill('3');
-   await editor.getByRole('button',{name:'Save package'}).click();
+   await editor.getByTestId('bundle-pricing-summary').getByRole('button',{name:'Save package'}).click();
    const revisions=await page.evaluate(async id=>{
     const mod=await import('/src/data/productImportPreviewStore.ts');
     const state=mod.getProductImportPreviewSnapshot();
@@ -78,7 +78,7 @@ async function run(){
    await page.getByRole('button',{name:'Edit product'}).last().click();
    await editor.waitFor();
    await editor.getByTestId('bundle-component-row').first().getByRole('textbox',{name:/quantity/i}).first().fill('4');
-   await editor.getByRole('button',{name:'Save package'}).click();
+   await editor.getByTestId('bundle-pricing-summary').getByRole('button',{name:'Save package'}).click();
    await editor.waitFor({state:'hidden'});
    const history=await page.evaluate(async id=>{
      const mod=await import('/src/data/productImportPreviewStore.ts');
@@ -93,7 +93,7 @@ async function run(){
    await page.getByRole('button',{name:'Edit product'}).last().click();
    await editor.waitFor();
    await editor.getByTestId('bundle-component-row').first().getByRole('textbox',{name:/quantity/i}).first().fill('5');
-   await editor.getByRole('button',{name:'Save package'}).click();
+   await editor.getByTestId('bundle-pricing-summary').getByRole('button',{name:'Save package'}).click();
    await editor.waitFor({state:'hidden'});
    assert.deepEqual(await page.evaluate(async id=>{
      const mod=await import('/src/data/productImportPreviewStore.ts');
