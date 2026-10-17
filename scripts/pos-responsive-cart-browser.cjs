@@ -59,7 +59,7 @@ async function main() {
           };
         });
 
-        const desktopCart = before.cart.width >= 700;
+        const desktopCart = before.cart.width >= 760;
         const sideBySide = before.root.width >= 1056;
         assert.equal(before.headerVisible, desktopCart, name + ' (' + theme + '): desktop header must follow available cart width');
         assert.ok(before.scrollWidth <= before.clientWidth + 2, name + ': cart must not scroll sideways');
