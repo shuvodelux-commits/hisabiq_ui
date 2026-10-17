@@ -10,7 +10,8 @@ import { taka } from '../../utils/currency';
 import type { Product } from '../../types/erp';
 import { activeOfferFor, effectivePriceForUnit, productStockBreakdown } from '../../utils/productFeatures';
 import { useUiCopy } from '../../i18n/useUiCopy';
-import { getBundleVersion,getProductImportPreviewSnapshot } from '../../data/productImportPreviewStore';
+import { getBundleVersion } from '../../data/productImportPreviewStore';
+import { availableStockLots } from '../../data/erpDemoStore';
 import { getBundleProjection } from '../../bundles/bundleProjection';
 
 export type ProductPickerMode = 'sale' | 'purchase' | 'quotation' | 'online';
@@ -209,7 +210,7 @@ ref)
             const normalPrice = mode === 'purchase' ? p.purchasePrice : effectivePriceForUnit(p, undefined, displayUnit);
             const effectivePrice = mode === 'purchase' ? p.purchasePrice : effectivePriceForUnit(p, activeOffer, displayUnit);
             const recipe=p.kind==='Bundle'?getBundleVersion(p.id):undefined;
-            const bundleAvailable=recipe?getBundleProjection(recipe,suppliedProducts??seedProducts,getProductImportPreviewSnapshot().lots).availableSets:0;
+            const bundleAvailable=recipe?getBundleProjection(recipe,suppliedProducts??seedProducts,availableStockLots()).availableSets:0;
             const breakdown = p.kind === 'Service'||p.kind==='Bundle' ? null : productStockBreakdown(p, stockLots);
             const sellableStatus = p.kind === 'Bundle' ? bundleAvailable>0?'in':'out' : p.kind === 'Service'
               ? 'service'
