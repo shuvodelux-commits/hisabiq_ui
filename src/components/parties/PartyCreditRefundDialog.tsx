@@ -11,7 +11,7 @@ import { customerSettlementAsOf, supplierSettlementAsOf } from '../../utils/part
 import type { PartySourceRecord, PartyRefundPayload } from '../../types/partyLedger';
 import type { Party } from '../../types/erp';
 import { taka } from '../../utils/currency';
-import { amountInWords } from '../../utils/amountInWords';
+import { AmountInWordsDisplay } from '../AmountInWordsDisplay';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {partyFinancialErrorText} from '../../i18n/partyFinancialCopy';
 
@@ -92,7 +92,7 @@ export function PartyCreditRefundDialog({open,party,relationship,sources,onClose
         {review&&<div role="status" className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800">
           <p className="font-semibold">{text('Confirm the refund','ফেরতের হিসাব নিশ্চিত করুন')}</p>
           <p>{text(title,refundToCustomer?'ক্রেতাকে অগ্রিম ফেরত':'সরবরাহকারী থেকে ফেরত')} · {date} · {taka(amount)} · {text('Credit remaining','বাকি অগ্রিম')} {taka(available-amount)}</p>
-          <p className="mt-1 font-medium">{amountInWords(amount)}</p>
+          <AmountInWordsDisplay amount={amount} />
         </div>}
         {!!error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
         <div className="flex justify-end gap-2">
