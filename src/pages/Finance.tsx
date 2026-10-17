@@ -103,7 +103,7 @@ function TransactionDialog({
   people,
   nextId,
   onOpenChange,
-  onSave
+  onSave, onAddPerson, onUpdatePerson, onAddAccount
 }: {
   open: boolean;
   accounts: FinanceAccount[];
@@ -111,10 +111,15 @@ function TransactionDialog({
   nextId: string;
   onOpenChange: (open: boolean) => void;
   onSave: (transaction: FinanceTransaction) => void;
+  onAddPerson: (person: FinancePerson) => void;
+  onUpdatePerson: (person: FinancePerson) => void;
+  onAddAccount: (account: FinanceAccount) => void;
 }) {
   const {text,language,showHelper}=useUiCopy();
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
-  const [person, setPerson] = useState('');
+  const [personId, setPersonId] = useState(() => people.find(item => item.status === 'Active' && item.roles.includes('Lender'))?.id ?? '');
+  const [peopleOpen, setPeopleOpen] = useState(false);
+  const [accountTarget, setAccountTarget] = useState<{id:string;method:FinancePaymentDraft['method']} | null>(null);
   const [paymentRows, setPaymentRows] = useState<FinancePaymentDraft[]>([{
     id: 'finance-payment-1',
     method: 'Cash',
@@ -127,12 +132,12 @@ function TransactionDialog({
   const [note, setNote] = useState('');
   const [backdateReason, setBackdateReason] = useState('');
   const [reviewFinance, setReviewFinance] = useState(false);
-  useEffect(() => setReviewFinance(false), [type, person, paymentRows, amount, date, reference, note, backdateReason, open]);
+  useEffect(() => setReviewFinance(false), [type, personId, paymentRows, amount, date, reference, note, backdateReason, open, people]);
 
   const meta = financeTypeMeta[type];
-  const rolePeople = people.filter((item) => !meta.role || item.roles.includes(meta.role));
+  const rolePeople = people.filter((item) => item.status === 'Active' && (!meta.role || item.roles.includes(meta.role)));
   const isOpening = !!meta.opening;
-  const selectedPerson = rolePeople.find((item) => item.name === person) ?? rolePeople[0];
+  const selectedPerson = rolePeople.find((item) => item.id === personId);
   const isBackdated = date !== '2026-10-06';
   const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
   const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
@@ -180,6 +185,7 @@ function TransactionDialog({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
@@ -196,8 +202,8 @@ function TransactionDialog({
               const next = event.target.value as FinanceTransactionType;
               setType(next);
               const nextMeta = financeTypeMeta[next];
-              const firstPerson = people.find((item) => !nextMeta.role || item.roles.includes(nextMeta.role));
-              setPerson(firstPerson?.name ?? '');
+              const firstPerson = people.find((item) => item.status === 'Active' && (!nextMeta.role || item.roles.includes(nextMeta.role)));
+              setPersonId(firstPerson?.id ?? '');
             }} options={financeTypeOptions.map(value=>({value,label:financeLabel(language,value)}))} />
             <span className="mt-1 block text-[11px] font-normal text-ink-400">
               {isOpening
@@ -208,15 +214,18 @@ function TransactionDialog({
             </span>
           </label>
 
+          <div className="space-y-1">
           <label className="text-[13px] font-medium text-ink">
             {text('Finance person','হিসাবের ব্যক্তি')}
             <FormSelect
               className="mt-1.5"
-              value={selectedPerson?.name ?? ''}
-              onChange={(event) => setPerson(event.target.value)}
-              options={rolePeople.map((item) => item.name)}
+              value={selectedPerson?.id ?? ''}
+              onChange={(event) => setPersonId(event.target.value)}
+              options={rolePeople.map((item) => ({value: item.id, label: item.name + (item.phone ? ' · ' + item.phone : '')}))}
             />
           </label>
+          <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>{text('Manage people','ব্যক্তি যোগ / সংশোধন')}</Button>
+          </div>
 
           <label className="text-[13px] font-medium text-ink">
             {text('Date','তারিখ')}
@@ -236,6 +245,7 @@ function TransactionDialog({
               rows={paymentRows}
               onChange={setPaymentRows}
               totalAmount={Number(amount) || 0}
+              onCreateAccount={(id, method) => setAccountTarget({id,method})}
             />
           )}
 
@@ -270,20 +280,26 @@ function TransactionDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <FinancePeopleManagerDialog open={open && peopleOpen} people={people} initialRole={meta.role} onOpenChange={setPeopleOpen}
+      onAdd={(person) => { onAddPerson(person); setPersonId(person.id); setPeopleOpen(false); }} onUpdate={onUpdatePerson} />
+    {accountTarget && <AccountDialog open={open} initialType={accountTarget.method} onOpenChange={(next) => {if (!next) setAccountTarget(null);}}
+      onSave={(account) => {onAddAccount(account); setPaymentRows(current => current.map(row => row.id === accountTarget.id ? {...row, method: account.type === 'Petty Cash' ? 'Cash' : account.type, accountId: account.id} : row)); setAccountTarget(null);}} />}
+    </>
   );
 }
 
 function AccountDialog({
-  open,
+  open, initialType = 'Bank',
   onOpenChange,
   onSave
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (account: FinanceAccount) => void;
+  initialType?: FinanceAccountType;
 }) {
   const {text,language,showHelper}=useUiCopy();
-  const [type, setType] = useState<FinanceAccountType>('Bank');
+  const [type, setType] = useState<FinanceAccountType>(initialType);
   const [name, setName] = useState('');
   const [institution, setInstitution] = useState('');
   const [number, setNumber] = useState('');
@@ -1149,6 +1165,9 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         open={transactionOpen}
         accounts={accounts}
         people={people}
+        onAddPerson={person => setPeople(current => [...current, person])}
+        onUpdatePerson={person => {setPeople(current => current.map(item => item.id === person.id ? person : item)); setTransactions(current => current.map(item => item.partyId === person.id ? {...item, party:person.name} : item));}}
+        onAddAccount={account => setAccounts(current => [...current, account])}
         nextId={`FIN-${String(189 + transactions.length - seedTransactions.length).padStart(6, '0')}`}
         onOpenChange={setTransactionOpen}
         onSave={(transaction) => {

@@ -14,12 +14,13 @@ export function FinancePaymentSplitEditor({
   accounts,
   rows,
   onChange,
-  totalAmount
+  totalAmount, onCreateAccount
 }: {
   accounts: FinanceAccount[];
   rows: FinancePaymentDraft[];
   onChange: (rows: FinancePaymentDraft[]) => void;
   totalAmount: number;
+  onCreateAccount?: (rowId:string, method:FinancePaymentDraft['method']) => void;
 }) {
   const {text,language,showHelper}=useUiCopy();
   const normalized = normalizeFinancePaymentSplits(rows, accounts, totalAmount);
@@ -59,14 +60,17 @@ export function FinancePaymentSplitEditor({
                 }}
                 options={(['Cash', 'Bank', 'Mobile Banking'] as const).map(value=>({value,label:financeLabel(language,value)}))}
               />
+              <div className="min-w-0 space-y-1">
               <FormSelect
-                value={selected?.name ?? ''}
+                value={selected?.id ?? ''}
                 onChange={(event) => {
-                  const account = available.find((item) => item.name === event.target.value);
+                  const account = available.find((item) => item.id === event.target.value);
                   onChange(rows.map((item) => item.id === row.id ? { ...item, accountId: account?.id ?? '' } : item));
                 }}
-                options={available.map((item) => item.name)}
+                options={available.map((item) => ({value: item.id, label: item.name + (available.filter(account => account.name === item.name).length > 1 ? ' · ' + taka(item.balance) : '')}))}
               />
+              {onCreateAccount && <Button variant="outline" size="sm" onClick={() => onCreateAccount(row.id, row.method)}>{text('Add account','হিসাব যোগ করুন')}</Button>}
+              </div>
               <Input
                 className="text-right"
                 inputMode="decimal"
