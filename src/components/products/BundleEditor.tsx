@@ -7,7 +7,7 @@ import {QuickAddSelect} from '../QuickAddSelect';
 import {ProductCombobox} from '../pos/ProductCombobox';
 import {CompoundQuantityInput} from '../transactions/CompoundQuantityInput';
 import type {BundleComponent,BundleDraft,BundleVersion,Product} from '../../types/erp';
-import {getBundleVersion,getProductImportPreviewSnapshot} from '../../data/productImportPreviewStore';
+import {getBundleVersion} from '../../data/productImportPreviewStore';
 import {availableProductCategories,availableStockLots,createPreviewProductCategory} from '../../data/erpDemoStore';
 import {makeBundleComponent,validateBundleDraft} from '../../bundles/bundleValidation';
 import {priceBundleComponents} from '../../bundles/bundlePricing';
@@ -82,8 +82,7 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
   return items;
  },[rows,catalog]);
  const pricing=useMemo(()=>priceBundleComponents(
-  components,catalog,getProductImportPreviewSnapshot().lots.length?
-   getProductImportPreviewSnapshot().lots:availableStockLots(),Number(price)
+  components,catalog,availableStockLots(),Number(price)
  ),[components,catalog,price]);
  const findPrice=(id:string)=>pricing.lines.find(l=>l.productId===id);
  const save=()=>{
@@ -206,7 +205,8 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
             className={'min-w-0 flex-1 rounded px-1 text-[11px] font-medium '+(row.unit===u?'bg-card text-ink shadow-card ring-1 ring-primary':'text-ink-500 hover:text-ink')}>{u}</button>)}
          </div>:<span className="px-2 text-sm text-ink-600">{row.unit}</span>}
         </div>
-        <div data-cart-field="Price · দাম" className="relative min-w-0">
+        <div data-cart-field="Price · দাম" className="min-w-0">
+         <div className="relative">
          <div className="relative flex h-9 items-center rounded-md border border-border bg-ink-50/50 pl-2 pr-7 text-sm text-ink">
           <span className="truncate">{amounts?costNumber(amounts.retailUnitPrice):'—'}</span>
           <button type="button" aria-label={'Show purchase cost for '+product.name} aria-pressed={revealed===product.id}
@@ -220,6 +220,7 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
           <p>{text('Purchase per base unit','প্রতি ছোট একক কেনা')}: {costNumber(amounts.purchaseTotal/amounts.baseQty)}/{product.unit}</p>
           {amounts.stockShort>0&&<p className="text-warning">{text('Cost includes missing-stock estimate','কম স্টকের আনুমানিক দাম ধরা হয়েছে')}</p>}
          </div>}
+         </div>
         </div>
         <span data-cart-field="Total · মোট" className="text-right text-[13px] font-semibold text-ink">
          {amounts?costNumber(amounts.retailTotal):'—'}
