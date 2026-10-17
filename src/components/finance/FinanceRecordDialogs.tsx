@@ -7,6 +7,7 @@ import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
 import { StatusBadge } from '../StatusBadge';
 import {
+  financeAccountOptionLabel,
   financePersonOptionLabel,
   type AccountTransfer,
   type FinanceAccount,
@@ -104,6 +105,10 @@ export function FinanceTransactionActionDialog({
     (person.id === transaction.partyId && type === transaction.type) ||
     (person.status === 'Active' && (!meta.role || person.roles.includes(meta.role))));
   const selectedPerson = partyId ? peopleOptions.find((person) => person.id === partyId) : peopleOptions[0];
+  const accountLabel = (accountId?: string, savedName?: string) => {
+    const account = accounts.find((item) => item.id === accountId);
+    return account ? financeAccountOptionLabel(account, accounts) : savedName;
+  };
   const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
 
   const save = () => {
@@ -194,7 +199,7 @@ export function FinanceTransactionActionDialog({
               <Detail label="Party">{transaction.party}</Detail>
               <Detail label="Amount">{(transaction.direction === 'in' ? '+' : transaction.direction === 'out' ? '−' : '') + taka(transaction.amount)}</Detail>
               <Detail label="Payment method">{transaction.paymentAccounts && transaction.paymentAccounts.length > 1 ? text('Multiple','একাধিক') : transaction.method ? financeLabel(language,transaction.method) : text('No money movement','টাকা সরবে না')}</Detail>
-              <Detail label="Account">{transaction.paymentAccounts && transaction.paymentAccounts.length > 1 ? transaction.paymentAccounts.map((split) => split.account).join(' + ') : transaction.account}</Detail>
+              <Detail label="Account">{transaction.paymentAccounts && transaction.paymentAccounts.length > 1 ? transaction.paymentAccounts.map((split) => accountLabel(split.accountId, split.account)).join(' + ') : accountLabel(transaction.accountId, transaction.account)}</Detail>
               <Detail label="Status"><StatusBadge tone={transaction.status === 'Active' ? 'success' : 'neutral'} dot>{financeLabel(language,transaction.status)}</StatusBadge></Detail>
               <Detail label="Reference">{transaction.reference}</Detail>
               <Detail label="Notes">{transaction.note}</Detail>
@@ -203,7 +208,7 @@ export function FinanceTransactionActionDialog({
             {!!transaction.paymentAccounts?.length && transaction.paymentAccounts.length > 1 && (
               <div className="rounded-xl border border-border">
                 <div className="border-b border-border px-3 py-2.5"><p className="text-[12.5px] font-semibold text-ink">{text('Payment split','একাধিক মাধ্যমে টাকা')}</p></div>
-                <div className="divide-y divide-border">{transaction.paymentAccounts.map((split, index) => <div key={index} className="flex items-center justify-between px-3 py-2 text-[12px]"><span className="text-ink-600">{financeLabel(language,split.method)} · {split.account}</span><span className="font-medium text-ink">{taka(split.amount)}</span></div>)}</div>
+                <div className="divide-y divide-border">{transaction.paymentAccounts.map((split, index) => <div key={index} className="flex items-center justify-between px-3 py-2 text-[12px]"><span className="text-ink-600">{financeLabel(language,split.method)} · {accountLabel(split.accountId,split.account)}</span><span className="font-medium text-ink">{taka(split.amount)}</span></div>)}</div>
               </div>
             )}
             {confirmReverse && (

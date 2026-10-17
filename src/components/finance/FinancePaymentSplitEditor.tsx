@@ -2,7 +2,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
-import type { FinanceAccount } from '../../data/financeAccounts';
+import { financeAccountOptionLabel, type FinanceAccount } from '../../data/financeAccounts';
 import { taka } from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeLabel} from '../../i18n/financeCopy';
@@ -78,8 +78,7 @@ export function FinancePaymentSplitEditor({
                 }}
                 options={choices.map((item) => ({
                   value: item.id,
-                  label: item.name
-                    + (available.filter(account => account.name === item.name).length + (inactiveSelected?.name === item.name ? 1 : 0) > 1 ? ' · ' + taka(item.balance) : '')
+                  label: financeAccountOptionLabel(item, choices)
                     + (item.status === 'Inactive' ? ' · ' + financeLabel(language, 'Inactive') : '')
                 }))}
               />

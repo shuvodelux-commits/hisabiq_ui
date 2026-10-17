@@ -7,6 +7,7 @@ import { financeTypeMeta } from '../utils/partyFinance.ts';
 import { validateOpening,activePartyOpening,isPartyOpening,makeOpeningSource } from '../utils/partyOpening.ts';
 import { customerSettlementAsOf, supplierSettlementAsOf, validateCustomerPayment, validateCustomerRefund } from '../utils/partySettlement.ts';
 import { counterOpenInvoices } from '../utils/counterAllocation.ts';
+import { financeAccounts as seedFinanceAccounts, type FinanceAccount } from './financeAccounts.ts';
 import type { Party, PartyRole } from '../types/erp';
 import type {PartyImportPlan} from '../import/partyImport.ts';
 import type {ImportResult} from '../import/importTypes.ts';
@@ -163,7 +164,7 @@ export function commitPartyImportBatch(plan:PartyImportPlan):ImportResult {
  return result;
 }
 
-export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewState {
+export function dispatchPartyPreview(command:PartyPreviewCommand,accounts:readonly FinanceAccount[]=seedFinanceAccounts):PartyPreviewState {
  if(command.type==='import-party-batch'){commitPartyImportBatch(command.plan);return state;}
   let parties=state.parties;
   let sources=state.sources;
@@ -276,7 +277,7 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     const isRefund=command.type==='refund-credit';
     const payload=command.payload;
     if(isRefund)validatePartyRefund(payload as PartyRefundPayload);
-    else validatePartyPayment(payload as PartyPaymentPayload);
+    else validatePartyPayment(payload as PartyPaymentPayload,accounts);
     const party=findParty(payload.partyId);
     if(!party.roles.includes(payload.relationship))throw new Error('Party does not have the selected relationship.');
     if(party.status==='Inactive')throw new Error('Inactive party cannot receive new transactions.');
@@ -352,7 +353,7 @@ export function dispatchPartyPreview(command:PartyPreviewCommand):PartyPreviewSt
     }else{
       if(original.kind!=='customer-payment'&&original.kind!=='supplier-payment')
         throw new Error('Refund edits require a dedicated source workflow. Reverse and re-record if permitted.');
-      validatePartyPayment(command.payload);
+      validatePartyPayment(command.payload,accounts);
       if(command.payload.partyId!==original.partyId||command.payload.relationship!==original.relationship)
         throw new Error('Changing source party or relationship is not allowed.');
       const amount=command.payload.amount;

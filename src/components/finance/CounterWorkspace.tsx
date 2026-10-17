@@ -13,7 +13,7 @@ import {counterOpenInvoices,counterAllocateOldest} from '../../utils/counterAllo
 import {amountInWords} from '../../utils/amountInWords';
 import {taka} from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
-import type {FinanceAccount} from '../../data/financeAccounts';
+import {financeAccountOptionLabel, type FinanceAccount} from '../../data/financeAccounts';
 import type {Expense,Party,PartyRole,PaymentMethod} from '../../types/erp';
 import type {PartyMoneySplit,PartyPaymentPayload} from '../../types/partyLedger';
 
@@ -147,7 +147,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
      date,amount:total,discount,invoiceId:chosen?.reference,
      reason:discount>0?[discountReason.trim(),note.trim()].filter(Boolean).join(' · '):note.trim(),
      splits,operationId:'counter-'+Date.now()};
-    dispatchPartyPreview({type:'record-payment',payload});
+    dispatchPartyPreview({type:'record-payment',payload},accounts);
    }
    if(type==='Bank Transfer')onTransfer({fromAccountId:from,toAccountId:to,amount:total});
    setAccounts(current=>current.map(account=>{
@@ -253,7 +253,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
        return <div key={row.id} className="grid grid-cols-[1fr_1fr_34px] gap-2 sm:grid-cols-[130px_1fr_140px_34px]">
         <AppSelect label={text("Payment method","টাকার মাধ্যম")} value={row.method} onChange={method=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,method:method as Row['method'],accountId:accountOptions(method as Row['method'])[0]?.id??''}:x))} options={methods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':'মোবাইল ব্যাংকিং')}))}/>
         <AppSelect label={text("Payment account","টাকার হিসাব")} value={row.accountId} onChange={accountId=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,accountId}:x))}
-         options={available.map(x=>({value:x.id,label:x.name}))}/>
+         options={available.map(x=>({value:x.id,label:financeAccountOptionLabel(x,available)}))}/>
         <Input className="col-span-2 text-right sm:col-span-1" aria-label={text("Payment source amount","পেমেন্টের টাকা")} inputMode="decimal"
          value={row.amount} onChange={e=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,amount:e.target.value}:x))} placeholder="0.00"/>
         <button type="button" aria-label={text("Remove payment","পেমেন্টের মাধ্যম সরান")} disabled={effectiveRows.length===1} onClick={()=>editRows(effectiveRows.filter(x=>x.id!==row.id))}
@@ -325,7 +325,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
      {chosen&&<p><strong>{text('Invoice','বিল')}:</strong> {chosen.reference} · {text('outstanding','বাকি')} {taka(chosen.due)}</p>}
      {!chosen&&type==='Customer Receive'&&<p><strong>{text('Allocation','টাকা জমার নিয়ম')}:</strong> {text('Oldest outstanding first','আগের বাকি আগে')}</p>}
      {type==='Bank Transfer'?<p>{transferAccountLabel(from)} → {transferAccountLabel(to)}</p>
-      :<div className="space-y-1">{splits.map((s,i)=><p key={s.id}>{i+1}. {s.method} · {accounts.find(a=>a.id===s.accountId)?.name} <strong>{taka(s.amount)}</strong></p>)}</div>}
+      :<div className="space-y-1">{splits.map((s,i)=>{const account=accounts.find(a=>a.id===s.accountId);return <p key={s.id}>{i+1}. {s.method} · {account?financeAccountOptionLabel(account,accounts):''} <strong>{taka(s.amount)}</strong></p>;})}</div>}
      {settlement&&<div className="rounded-lg border border-border p-3">
       <div className="flex justify-between"><span>{word('currentBalance')}</span><strong>{taka(settlement.netBalance)}</strong></div>
       <div className="mt-2 flex justify-between border-t border-border pt-2"><span>{text('After payment','টাকা দেওয়া/নেওয়ার পরে')}</span><strong className={highlight(predicted)}>{taka(predicted)}</strong></div>
