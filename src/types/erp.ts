@@ -277,6 +277,8 @@ export type SalesReturn = TransactionAuditFields & {
 
 export type SalePresetLine = {
   productId: string;
+  /** Pin package drafts to the recipe chosen when it was saved. */
+  bundleRevision?:number;
   qty: string;
   secondaryQty?: string;
   unit: string;
