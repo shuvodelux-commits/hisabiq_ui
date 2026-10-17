@@ -34,6 +34,7 @@ import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { customerCredits as seedCredits, saleTemplates, salesDrafts, salesInvoices as seedInvoices, salesReturns as seedReturns } from '../data/sales';
 import { products } from '../data/products';
+import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn } from '../types/erp';
 import { taka } from '../utils/currency';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
@@ -88,6 +89,10 @@ const defaultVisibleSalesColumns: Record<SalesColumn, boolean> = {
 
 const salesColumnStorageKey = 'hisabiq-sales-visible-columns';
 const purchasePriceByProductId = new Map(products.map((product) => [product.id, product.purchasePrice]));
+
+function isBundleReturnLine(line:SalesInvoice['lines'][number]) {
+  return Boolean(line.bundleSnapshot)||getProductImportPreviewSnapshot().products.some(p=>p.id===line.productId&&p.kind==='Bundle');
+}
 
 function lineBaseQuantity(line: SalesInvoice['lines'][number]) {
   return line.returnableQuantity ?? (parseFloat(line.quantity) || 0);
@@ -745,7 +750,7 @@ export function Sales() {
     const raw = returnPrice[line.id];
     return raw === undefined || raw === '' ? line.price : parseFloat(raw) || 0;
   };
-  const selectedBundlePlans=selectedReturnLines.filter(({line})=>Boolean(line.bundleSnapshot)&&Number(returnQty[line.id]??'')>0)
+  const selectedBundlePlans=selectedReturnLines.filter(({line})=>isBundleReturnLine(line)&&Number(returnQty[line.id]??'')>0)
     .map(({invoice,line})=>planBundleReturn({
       invoice,line,sets:Number(returnQty[line.id]),choices:bundleReturnChoices[line.id]??{},
       priorReturns:returns.flatMap(r=>r.bundleReturns??[])
@@ -753,7 +758,7 @@ export function Sales() {
   const includesBundleReturn=selectedBundlePlans.length>0;
   const returnAmount = selectedReturnLines.reduce((sum,{line})=>{
     const qty=Number(returnQty[line.id]??0);
-    if(line.bundleSnapshot)return sum+(selectedBundlePlans.find(p=>p.lineId===line.id)?.refundEstimate??0);
+    if(isBundleReturnLine(line))return sum+(selectedBundlePlans.find(p=>p.lineId===line.id)?.refundEstimate??0);
     return sum+qty*returnPriceFor(line);
   },0);
   const returnIssues = selectedReturnLines.flatMap(({ line }) => {
@@ -1223,6 +1228,7 @@ export function Sales() {
                             <TableCell className="py-2 pl-3">
                               <p className="font-medium text-ink">{line.name}</p>
                               <p className="text-[11px] text-ink-400">{invoice.invoice}</p>
+                              {isBundleReturnLine(line)&&!line.bundleSnapshot&&<p role="alert" className="mt-1 text-[10.5px] text-danger">{text('Original package snapshot missing — cannot post return','আগের প্যাকেজের তথ্য নেই — ফেরত জমা হবে না')}</p>}
                               {line.bundleSnapshot&&<p className="mt-1 text-[10.5px] font-medium text-teal-700">{text('Whole package only · historical recipe v','শুধু সম্পূর্ণ প্যাকেজ · আগের সংস্করণ ')}{line.bundleSnapshot.bundleRevision}</p>}
                               {qty > 0 && (
                                 <div className="mt-2 max-w-[260px] space-y-1.5">
@@ -1289,9 +1295,9 @@ export function Sales() {
                                 <Input
                                   value={returnQty[line.id] ?? ''}
                                   onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value.replace(/[^\d.]/g,'')}));
-                                    if(line.bundleSnapshot)setBundleReturnChoices(value=>({...value,[line.id]:{}}));}}
-                                  inputMode={line.bundleSnapshot?'numeric':'decimal'}
-                                  aria-label={line.bundleSnapshot?`Whole Sets to return for ${line.name}`:undefined}
+                                    if(isBundleReturnLine(line))setBundleReturnChoices(value=>({...value,[line.id]:{}}));}}
+                                  inputMode={isBundleReturnLine(line)?'numeric':'decimal'}
+                                  aria-label={isBundleReturnLine(line)?`Whole Sets to return for ${line.name}`:undefined}
                                   className="h-8 text-right"
                                   placeholder="0"
                                 />
@@ -1305,14 +1311,14 @@ export function Sales() {
                               <div className="ml-auto w-28">
                                 <Input
                                   value={returnPrice[line.id] ?? String(line.price)}
-                                  disabled={Boolean(line.bundleSnapshot)}
+                                  disabled={isBundleReturnLine(line)}
                                   onChange={(event) => setReturnPrice((value) => ({ ...value, [line.id]: event.target.value.replace(/[^\d.]/g, '') }))}
                                   inputMode="decimal"
                                   className="h-8 text-right"
                                   aria-label={`${sl('Return price for')} ${line.name}`}
                                 />
                                 <p className="mt-1 text-right text-[10.5px] text-ink-400">
-                                  {line.bundleSnapshot?
+                                  {isBundleReturnLine(line)?
                                     (qty>0?text('Historical net refund — see preview','আগের বিক্রির মূল্য — প্রিভিউ দেখুন'):'Set'):
                                     (qty > 0 ? taka(qty * returnPriceFor(line)) : `/${line.unit}`)}
                                 </p>
