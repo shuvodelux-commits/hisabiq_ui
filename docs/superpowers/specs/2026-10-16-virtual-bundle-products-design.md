@@ -22,7 +22,8 @@ Success means an inexperienced operator can create a bundle once, sell it by sel
 - One bundle row in POS, saved sale, invoice, receipt and Sales/Party history; no editable child cart lines.
 - Atomic, idempotent stock consumption of component lots/serials, linked to the posted parent sale line.
 - Whole-set returns (can return 1 of 3 purchased sets), source-linked component restoration or explicit non-restock disposition.
-- Future edits change the **bundle revision for future sales only**; posted sales retain exact component snapshots.
+- **Only after a bundle recipe has been used by a posted sale**, a subsequent changed Save creates a new revision for future sales. Unsold recipes may be edited repeatedly in place, even when earlier recipe revisions have been sold. Unchanged Save creates no revision. Posted sales retain their exact frozen recipe snapshots.
+- An unsold Bundle may be **deleted with its unsold recipe**; a Bundle ever used by a posted sale cannot be deleted, even after returning every Set. It can be deactivated instead.
 - No double counting of stock value, sales income, tax/discount or COGS.
 
 ### Out of scope in V1
@@ -71,7 +72,7 @@ No module may maintain its own independent mutable "bundle on-hand stock."
 
 **products**: existing product fields plus kind = Bundle and package unit = Set. For Bundle, product.stock and purchasePrice are **not authoritative stored inventory fields**; no opening stock, lot or direct stock adjustment is allowed. The bundle selling price remains authoritative and independent of component selling prices.
 
-**bundle_versions**: tenant_id, bundle_product_id, revision, created_at, created_by, active/current version marker. Update creates a new immutable version and advances the current pointer in one transaction; preserve all previous versions referred to by sales.
+**bundle_versions**: tenant_id, bundle_product_id, revision, created_at, created_by, active/current version marker. Only updating a **sold/currently referenced** revision creates the next immutable revision and advances the current pointer atomically. Editing an unreferenced current revision replaces it in place (optimistic-concurrency guarded); no unchanged-save version churn. Preserve every version referenced by a posted sale; deletion is forbidden after any posted sale.
 
 **bundle_components**: tenant_id, bundle_product_id, revision, component_product_id, display_quantity, display_unit, **quantity_in_component_base_unit** and original unit conversion factor snapshot. Unique (bundle/version/component_product_id); if same product is entered twice with different units, normalize and combine into one row or reject with a clear prompt. Stable display order for editor and receipt details. Never allow circular or nested composition.
 
@@ -116,7 +117,7 @@ A bundle offer affects its parent unit selling price only, and the normal invoic
 
 Products → Add Product presents Stock, Service and **Bundle / Package (প্যাকেজ পণ্য)**. Ordinary products retain the existing dialog. Selecting Bundle opens a compact, full-page **Bundle Editor** within Products, with back/cancel and unsaved-change guard. Keep the Products list filter, search and return context. No new top-level module.
 
-A bundle list row shows product name, Bundle badge, SKU, price per Set, **Available: N Set** (derived), and calculated status. In stock-value reports the bundle's *own* stock value is excluded (show dash / "Components counted separately"). An expandable detail view shows contents and availability. Hide/disable "Adjust stock", "Add stock lot", "Stock lots & serials" and "Opening stock" for a Bundle; these operate on components. Retain Edit, Duplicate, Activate/Deactivate, History and compatible offers with correct permission checks. Warn before deactivating a component referenced by active bundles.
+A bundle list row shows product name, Bundle badge, SKU, price per Set, **Available: N Set** (derived), and calculated status. In stock-value reports the bundle's *own* stock value is excluded (show dash / "Components counted separately"). An expandable detail view shows contents and availability. Hide/disable "Adjust stock", "Add stock lot", "Stock lots & serials" and "Opening stock" for a Bundle; these operate on components. Retain Edit, Duplicate, Activate/Deactivate, History and compatible offers with correct permission checks. Show **Delete package** with confirmation only when it has never appeared in a posted invoice. After any posted sale, hide Delete and retain Deactivate. Warn before deactivating a component referenced by active bundles.
 
 ### 6.2 Bundle Editor
 
@@ -151,6 +152,8 @@ Printed receipts show package name, Sets, parent price and total as one line. An
 **Availability in UI is informative, not a guarantee.** No "Stock deducted" toast is permitted without a confirmed real posting response.
 
 ## 8. Returns, warranty, stock history and reporting
+
+A preview/quote/draft is **not** a posted sale and must not freeze the recipe. The history trigger is a verifiable posted-invoice bundle/version reference, never a button press on the POS sale-preview dialog. Implementations must preserve reference integrity and idempotent invoice registration.
 
 - A return is linked to the original invoice and Bundle **parent line**. Allow returning any positive whole Sets up to the original Set count minus previously returned Sets. Do not provide arbitrary single-component bundle returns in V1.
 - Multiply each frozen child quantity by returned Sets. A component can be marked **Restock** or **Do not restock** (damaged, discarded, consumed); check original source and lot/serial evidence, verify serial identity and original ownership. For sourced vendor items do not pretend goods were returned into owned inventory without a real receipt/disposition.
