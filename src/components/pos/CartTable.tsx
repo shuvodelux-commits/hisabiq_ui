@@ -159,7 +159,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const shortage = l.product.kind==='Bundle'?0:Math.max(0,baseQty-(allocations.find(a=>a.key===l.key)?.ownBaseQty??0));
             const bundleShortage=l.product.kind==='Bundle'&&recipe?Math.max(0,baseQty-bundleAvailable):0;
             const relatedShortages=l.product.kind==='Bundle'&&recipe?componentShortages.filter(s=>s.shortageBaseQty>0&&recipe.components.some(part=>part.productId===s.componentProductId)):[];
-            const invalidSets=l.product.kind==='Bundle'&&(!/^[1-9]\\d*$/.test(l.qty.trim())||l.unit!=='Set'||Boolean(l.secondaryQty.trim()));
+            const invalidSets=l.product.kind==='Bundle'&&(!/^[1-9]\d*$/.test(l.qty.trim())||l.unit!=='Set'||Boolean(l.secondaryQty.trim()));
             const staleRecipe=l.product.kind==='Bundle'&&(!recipe||getBundleVersion(l.product.id)?.revision!==l.bundleRevision);
             return (
               <SortableCartRow key={l.key} line={l} index={i} count={lines.length} onMove={onMove}>
