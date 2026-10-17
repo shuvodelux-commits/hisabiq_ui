@@ -2,7 +2,7 @@ import {AlertTriangle,CheckCircle2} from 'lucide-react';
 import {Button} from './Button';
 import {Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle} from './Dialog';
 import {taka} from '../utils/currency';
-import {amountInWords} from '../utils/amountInWords';
+import {AmountInWordsDisplay} from './AmountInWordsDisplay';
 import {useUiCopy} from '../i18n/useUiCopy';
 
 /** UI-only translations; callers keep their source values unchanged. */
@@ -30,7 +30,7 @@ export function TransactionReviewDialog({open,onClose,onConfirm,title,amount,det
     <div className="rounded-xl border border-border bg-ink-50 p-4">
      <p className="text-xs text-ink-500">{text('Transaction amount','লেনদেনের টাকা')}</p>
      <p className="mt-1 text-2xl font-semibold text-ink">{taka(amount)}</p>
-     <p className="mt-1 text-xs leading-5 text-ink-600">{amountInWords(amount)}</p>
+     <AmountInWordsDisplay amount={amount} />
     </div>
     <dl className="divide-y divide-border rounded-xl border border-border px-3">
      {details.map(item=><div className="flex justify-between gap-4 py-2 text-sm" key={item.label}>
