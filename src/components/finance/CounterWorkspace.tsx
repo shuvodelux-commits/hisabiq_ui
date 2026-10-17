@@ -24,8 +24,9 @@ const money=(n:number)=>Math.round(n*100)/100;
 const validMoney=(s:string)=>/^\d+(?:\.\d{1,2})?$/.test(s.trim())&&Number(s)>0;
 const names:Record<Action,string>={'Customer Receive':'Receive payment','Supplier Pay':'Pay supplier',Expense:'Record expense','Bank Transfer':'Transfer money'};
 const banglaActions:Record<Action,string>={'Customer Receive':'ক্রেতার টাকা নিন','Supplier Pay':'সরবরাহকারীকে টাকা দিন',Expense:'খরচ লিখুন','Bank Transfer':'টাকা স্থানান্তর করুন'};
-export function CounterWorkspace({accounts,setAccounts}:{
+export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  accounts:FinanceAccount[];setAccounts:Dispatch<SetStateAction<FinanceAccount[]>>;
+ onTransfer:(transfer:{fromAccountId:string;toAccountId:string;amount:number})=>void;
 }){
  const {text,word}=useUiCopy();
  const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
@@ -70,6 +71,12 @@ export function CounterWorkspace({accounts,setAccounts}:{
  const methods:Row['method'][]=['Cash','Bank','Mobile Banking'];
  const accountOptions=(method:Row['method'])=>accounts.filter(a=>a.status==='Active'&&(
   method==='Cash'?(a.type==='Cash'||a.type==='Petty Cash'):a.type===method));
+ const transferAccountLabel=(accountId:string)=>{
+  const account=accounts.find(item=>item.id===accountId);
+  if(!account)return '';
+  const duplicate=accounts.some(item=>item.id!==account.id&&item.name.trim().toLowerCase()===account.name.trim().toLowerCase());
+  return duplicate?`${account.name} · ${account.number||account.id.slice(-4)}`:account.name;
+ };
  const splits:PartyMoneySplit[]=effectiveRows.filter(r=>r.amount.trim()!==''&&Number(r.amount)>0)
   .map(r=>({id:r.id,method:r.method,accountId:r.accountId,amount:Number(r.amount)}));
  const olderAllocation=counterAllocateOldest(openInvoices,dueReduction);
@@ -142,6 +149,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
      splits,operationId:'counter-'+Date.now()};
     dispatchPartyPreview({type:'record-payment',payload});
    }
+   if(type==='Bank Transfer')onTransfer({fromAccountId:from,toAccountId:to,amount:total});
    setAccounts(current=>current.map(account=>{
     const adjustment=type==='Bank Transfer'
      ?(account.id===from?-total:account.id===to?total:0)
@@ -221,11 +229,11 @@ export function CounterWorkspace({accounts,setAccounts}:{
     {type==='Bank Transfer'&&<div className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2">
      <label className="text-sm font-semibold">{text('From account','যে হিসাব থেকে যাবে')}
       <AppSelect className="mt-2" label={text("From account","যে হিসাব থেকে যাবে")} value={from} onChange={v=>{setFrom(v);setReview(false);}}
-       options={accounts.filter(a=>a.status==='Active').map(a=>({value:a.id,label:a.name+' · '+taka(a.balance)}))}/>
+       options={accounts.filter(a=>a.status==='Active').map(a=>({value:a.id,label:transferAccountLabel(a.id)+' · '+taka(a.balance)}))}/>
      </label>
      <label className="text-sm font-semibold">{text('To account','যে হিসাবে যাবে')}
       <AppSelect className="mt-2" label={text("To account","যে হিসাবে যাবে")} value={to} onChange={v=>{setTo(v);setReview(false);}}
-       options={accounts.filter(a=>a.status==='Active').map(a=>({value:a.id,label:a.name}))}/>
+       options={accounts.filter(a=>a.status==='Active').map(a=>({value:a.id,label:transferAccountLabel(a.id)}))}/>
      </label>
      <label className="text-sm font-semibold sm:col-span-2">{text('Transfer amount','কত টাকা পাঠাবেন')}
       <Input className="mt-2 text-right" aria-label={text("Transfer amount","পাঠানোর টাকা")} inputMode="decimal" value={amount} onChange={e=>{setAmount(e.target.value);setReview(false);}} placeholder="0.00"/>
@@ -316,7 +324,7 @@ export function CounterWorkspace({accounts,setAccounts}:{
      </div>}
      {chosen&&<p><strong>{text('Invoice','বিল')}:</strong> {chosen.reference} · {text('outstanding','বাকি')} {taka(chosen.due)}</p>}
      {!chosen&&type==='Customer Receive'&&<p><strong>{text('Allocation','টাকা জমার নিয়ম')}:</strong> {text('Oldest outstanding first','আগের বাকি আগে')}</p>}
-     {type==='Bank Transfer'?<p>{accounts.find(a=>a.id===from)?.name} → {accounts.find(a=>a.id===to)?.name}</p>
+     {type==='Bank Transfer'?<p>{transferAccountLabel(from)} → {transferAccountLabel(to)}</p>
       :<div className="space-y-1">{splits.map((s,i)=><p key={s.id}>{i+1}. {s.method} · {accounts.find(a=>a.id===s.accountId)?.name} <strong>{taka(s.amount)}</strong></p>)}</div>}
      {settlement&&<div className="rounded-lg border border-border p-3">
       <div className="flex justify-between"><span>{word('currentBalance')}</span><strong>{taka(settlement.netBalance)}</strong></div>
