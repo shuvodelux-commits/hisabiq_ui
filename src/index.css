@@ -216,12 +216,12 @@ body:has([data-dialog-root]) [data-sonner-toast]:not(:has(button, a, input, sele
   [data-pos-checkout] [data-pos-customer-fields] { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* The actual desktop table is kept on tablets/laptops whenever the cart itself fits. */
-@container pos-cart (min-width: 700px) {
+/* Only show the full POS table when Price can fit at least ৳1,00,000 with its stepper and cost eye. */
+@container pos-cart (min-width: 760px) {
   [data-cart-kind="sale"] [data-cart-header],
   [data-cart-kind="sale"] [data-cart-row],
   [data-cart-kind="sale"] [data-cart-add] {
-    grid-template-columns: 36px minmax(130px, 1fr) minmax(158px, 168px) minmax(78px, 92px) minmax(104px, 108px) minmax(82px, 100px) 28px;
+    grid-template-columns: 36px minmax(130px, 1fr) minmax(150px, 168px) minmax(78px, 92px) minmax(164px, 180px) minmax(108px, 130px) 28px;
     gap: 6px;
   }
   [data-cart-kind="sale"] [data-cart-header] { display: grid; }
@@ -239,7 +239,7 @@ body:has([data-dialog-root]) [data-sonner-toast]:not(:has(button, a, input, sele
 
 /* Narrow POS stays a dense table-like editor:
    product/total on the first line, editable quantity/unit/price directly below. */
-@container pos-cart (max-width: 699px) {
+@container pos-cart (max-width: 759px) {
   [data-cart-kind="sale"] [data-cart-header] { display: none; }
   [data-cart-kind="sale"] [data-cart-row] {
     grid-template-columns: repeat(12, minmax(0, 1fr));
