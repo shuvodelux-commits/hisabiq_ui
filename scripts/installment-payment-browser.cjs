@@ -50,6 +50,7 @@ async function main(){
    const history=page.getByRole('dialog',{name:/Installment previews/i});
    await history.waitFor();
    await history.getByRole('button',{name:/Collection Demo Customer/i}).click();
+   await history.getByText(/Installment schedule/i).first().click();
    await history.getByText(/Receipt #1/i).first().waitFor();
    assert.deepEqual(errors,[]);
    console.log('Installment receipt preview, cancel and mobile dialog passed.');
