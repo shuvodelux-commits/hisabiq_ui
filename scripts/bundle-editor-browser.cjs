@@ -20,10 +20,10 @@ async function run(){
    await editor.getByRole('textbox',{name:'Package SKU'}).fill(sku);
    await editor.getByRole('button',{name:'Quick add category'}).click();
    const quick=page.locator('[data-slot="dialog-content"]').last();
-   await quick.getByPlaceholder('Category name').fill('New Package Category');
+   await quick.getByPlaceholder('Category name').fill('New Package Category '+viewport.width);
    await quick.getByRole('button',{name:'Add category'}).click();
    await quick.waitFor({state:'hidden'});
-   assert.match(await editor.getByRole('combobox',{name:'Category'}).innerText(),/New Package Category/);
+   assert.match(await editor.getByRole('combobox',{name:'Category'}).innerText(),new RegExp('New Package Category '+viewport.width));
    await editor.getByRole('textbox',{name:'Price per Set'}).fill('5000');
    for(const [i,name] of ['LED Bulb 12W','Wire Mesh Net 3 ft'].entries()){
     const pick=editor.getByRole('combobox',{name:'Find stock component'});
