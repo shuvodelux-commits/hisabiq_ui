@@ -180,6 +180,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                           {word('serials')} {l.serials.length}/{Math.max(requiredSerialCount(l.product, baseQty), Math.ceil(baseQty))}
                         </button>
                       )}
+                      {l.product.kind==='Bundle'&&<span role="status" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle sale checkout pending','প্যাকেজ বিক্রির হিসাব এখনো প্রস্তুত নয়')} · {text('Component allocation required','পণ্যের স্টক ভাগ করা দরকার')}</span>}
                       {bundleShortage>0&&<span className="rounded bg-danger-bg px-1.5 py-0.5 text-[10.5px] font-medium text-danger">{text('Component shortage','প্যাকেজের পণ্য কম')} · {bundleShortage} Set</span>}
                       {shortage > 0 && (
                         <button
