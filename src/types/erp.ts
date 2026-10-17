@@ -168,7 +168,7 @@ export type LedgerEntry = {
   attachment?: {name: string;url?: string;};
 };
 
-export type PaymentMethod = 'Cash' | 'bKash' | 'Nagad' | 'Card' | 'Bank' | 'Customer Credit';
+export type PaymentMethod = 'Cash' | 'bKash' | 'Nagad' | 'Mobile Banking' | 'Card' | 'Bank' | 'Customer Credit';
 
 export type TransactionAuditFields = {
   transactionDate?: string;
@@ -186,6 +186,8 @@ export type PaymentSplit = {
   method: PaymentMethod;
   amount: number;
   account?: string;
+  /** Stable Finance source, when the payment originates from an identified money account. */
+  accountId?: string;
 };
 
 export type SaleStockSource =

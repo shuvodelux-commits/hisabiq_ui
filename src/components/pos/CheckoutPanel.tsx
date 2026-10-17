@@ -102,7 +102,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
   };
 
   return (
-    <aside data-pos-checkout className="flex min-w-0 flex-col rounded-xl border border-border bg-card shadow-card">
+    <aside data-pos-checkout aria-label={text('Sale checkout','বিক্রির টাকা নিন')} className="flex min-w-0 flex-col rounded-xl border border-border bg-card shadow-card">
       <div className="space-y-3 border-b border-border p-4">
         <div className="flex items-center justify-between">
           <div>
@@ -288,7 +288,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           ref={props.completeRef}
           onClick={props.onComplete}
           disabled={totals.total === 0 || dueWithoutCustomer}
-          className="h-12 w-full text-[15px] font-semibold">
+          className="h-12 w-full text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
           {props.completeLabel ?? word('completeSale')} · {taka(totals.total)}
           <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
