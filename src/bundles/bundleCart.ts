@@ -82,7 +82,7 @@ export function projectCartShortages(
  for(const d of demands)required.set(d.componentProductId,(required.get(d.componentProductId)??0)+d.requiredBaseQty);
  return [...required].map(([componentProductId,requiredBaseQty])=>{
   const product=catalog.find(p=>p.id===componentProductId);
-  const availableBaseQty=product&&product.kind==='Stock'&&product.active?
+  const availableBaseQty=product&&product.kind!=='Bundle'&&product.kind!=='Service'&&product.active?
    Math.max(0,Math.min(product.stock,
     allocatableLots(product,[...lots],now).reduce((total,lot)=>total+lot.available,0))):0;
   return {componentProductId,requiredBaseQty,availableBaseQty,
@@ -103,7 +103,7 @@ export function allocateBundlePreview(
  const allocations:{sourceLineKey:string;productId:string;lotId:string;quantity:number;unitCost:number}[]=[];
  for(const d of demands){
   const p=catalog.find(p=>p.id===d.componentProductId);
-  if(!p||p.kind!=='Stock'||!p.active){errors.push('Missing Stock component: '+d.componentProductId);continue;}
+  if(!p||p.kind==='Bundle'||p.kind==='Service'||!p.active){errors.push('Missing Stock component: '+d.componentProductId);continue;}
   if(p.serialTracking==='Required'){
    errors.push('Required component serials must be selected before preview: '+p.name);
    continue;
