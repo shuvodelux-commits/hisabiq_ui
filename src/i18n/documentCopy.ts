@@ -32,6 +32,7 @@ const terms: Record<string, string> = {
   'Part returned': 'আংশিক ফেরত',
   Cash: 'ক্যাশ',
   Bank: 'ব্যাংক',
+  'Mobile Banking': 'মোবাইল ব্যাংকিং',
   Card: 'কার্ড',
   'Money in': 'টাকা এসেছে',
   'Money out': 'টাকা গেছে',

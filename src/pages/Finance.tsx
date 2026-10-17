@@ -54,6 +54,7 @@ import {
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
 import { taka } from '../utils/currency';
 import { chequeMoneyAccount, renameChequeAccountReferences } from '../utils/chequeAccount';
+import {formatDay} from '../utils/dateRange';
 import { chequeLifecycleActions } from '../utils/moduleUiActions';
 import { AmountInWordsDisplay } from '../components/AmountInWordsDisplay';
 import {useUiCopy} from '../i18n/useUiCopy';
@@ -920,18 +921,19 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
           </>
         )}
 
-        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} onTransfer={({ fromAccountId, toAccountId, amount }) => {
+        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} onTransfer={({ fromAccountId, toAccountId, amount, date, reference }) => {
           const fromAccount = accounts.find((account) => account.id === fromAccountId);
           const toAccount = accounts.find((account) => account.id === toAccountId);
           if (!fromAccount || !toAccount) return;
           setTransfers((current) => [{
             id: `TRF-${String(42 + current.length - seedTransfers.length).padStart(6, '0')}`,
-            date: '06 Oct 2026',
+            date: formatDay(date),
             from: fromAccount.name,
             to: toAccount.name,
             fromAccountId,
             toAccountId,
             amount,
+            reference,
             status: 'Completed',
           }, ...current]);
         }} />}
