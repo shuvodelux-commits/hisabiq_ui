@@ -3,7 +3,7 @@ async function main(){const {createServer}=await import('vite');const server=awa
 try{for(const width of [390,768,1024,1440])for(const theme of ['light','dark']){const page=await browser.newPage({viewport:{width,height:900},colorScheme:theme});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:4298/#/app/reconciliation');
 const choose=async name=>{if(width<1024)await page.getByRole('button',{name:/Choose statement transaction/}).click();await page.getByRole('button',{name:new RegExp(name)}).click();};
 await choose('MIM CONSTRUCTION PAYMENT');assert.equal(await page.getByRole('button',{name:'Match transaction',exact:true}).isDisabled(),true);
-await page.getByRole('textbox',{name:'Amount',exact:true}).fill('18000');assert.equal(await page.getByRole('button',{name:'Save preview correction'}).isDisabled(),true);
+await page.getByRole('textbox',{name:/Amount/}).fill('18000');assert.equal(await page.getByRole('button',{name:'Save preview correction'}).isDisabled(),true);
 await page.getByRole('textbox',{name:/Why change this/}).fill('Checked source receipt');await page.getByRole('button',{name:'Save preview correction'}).click();await page.getByRole('button',{name:'Match transaction',exact:true}).click();
 await choose('SHOP RENT OCTOBER');await page.getByRole('button',{name:'Match transaction',exact:true}).click();
 for(const name of ['CASH DEPOSIT NAWABPUR','BANK CHARGE VAT','INTEREST CREDIT']){await choose(name);await page.getByRole('button',{name:'Create sample transaction'}).click();}
