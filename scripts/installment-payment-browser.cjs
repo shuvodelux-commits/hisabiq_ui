@@ -35,6 +35,8 @@ async function main(){
    await modal.getByRole('textbox',{name:/Payment amount/i}).fill('999999');
    await modal.getByRole('button',{name:/Review payment/i}).click();
    await modal.getByRole('alert').first().waitFor();
+   assert.match((await modal.getByRole('alert').first().textContent())||'',/exceed|advance|change/i,
+     'excess money needs a clear advance or change explanation');
    await modal.getByRole('button',{name:/Cancel/i}).click();
    assert.equal(await page.getByText(/Receipt #2/i).count(),0,'invalid/cancelled payment creates no receipt');
    await page.setViewportSize({width:390,height:740});
