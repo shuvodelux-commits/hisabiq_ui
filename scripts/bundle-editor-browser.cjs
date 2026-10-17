@@ -52,6 +52,15 @@ async function run(){
    assert.equal(revisions.length,2);
    assert.equal(revisions[0].components[0].primaryQty,'2');
    assert.equal(revisions[1].components[0].primaryQty,'3');
+   await page.getByRole('button',{name:'Actions for Tubewell Set'}).last().click();
+   await page.getByRole('button',{name:'View details'}).last().click();
+   const details=page.locator('[data-slot="dialog-content"]').last();
+   await details.getByRole('tab',{name:/History/i}).click();
+   await details.getByText('Recipe revisions').waitFor();
+   await details.getByText('Version 1').waitFor();
+   await details.getByText('Version 2').waitFor();
+   assert.equal(await details.getByRole('button',{name:/Adjust stock/i}).count(),0);
+   await details.getByRole('button',{name:/Close/i}).click();
    assert.equal(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth),true);
    await page.close();
   }
