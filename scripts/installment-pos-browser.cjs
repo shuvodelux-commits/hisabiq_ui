@@ -45,7 +45,7 @@ async function main(){
     await dialog.getByRole('button',{name:/Cancel/i}).click();
     // Previously the parent treated every row as manually locked on Apply,
     // making Rebalance Remaining unusable after the down payment changed.
-    await checkout.getByRole('button',{name:/View \\/ Edit/i}).click();
+    await checkout.getByRole('button',{name:/View \/ Edit/i}).click();
     dialog=page.getByRole('dialog',{name:/Installment breakdown/i});
     await dialog.waitFor();
     const negotiated=String(Math.round(Number(original)*0.8*100)/100);
@@ -54,7 +54,7 @@ async function main(){
     assert.equal(await dialog.getByRole('button',{name:/Apply breakdown/i}).isEnabled(),true);
     await dialog.getByRole('button',{name:/Apply breakdown/i}).click();
     await splitInput.fill('3001');
-    await checkout.getByRole('button',{name:/View \\/ Edit/i}).click();
+    await checkout.getByRole('button',{name:/View \/ Edit/i}).click();
     dialog=page.getByRole('dialog',{name:/Installment breakdown/i});
     await dialog.waitFor();
     assert.equal(await dialog.getByRole('button',{name:/Apply breakdown/i}).isDisabled(),true);
