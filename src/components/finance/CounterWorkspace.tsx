@@ -6,6 +6,7 @@ import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '../Dialog';
 import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview} from '../../data/partyPreviewStore';
+import {getExpensePreviewSnapshot,savePreviewExpense} from '../../data/expensePreviewStore';
 import {customerSettlementAsOf,supplierSettlementAsOf} from '../../utils/partySettlement';
 import {businessToday} from '../../utils/dateRange';
 import {counterOpenInvoices,counterAllocateOldest} from '../../utils/counterAllocation';
@@ -13,7 +14,7 @@ import {amountInWords} from '../../utils/amountInWords';
 import {taka} from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import type {FinanceAccount} from '../../data/financeAccounts';
-import type {Party,PartyRole} from '../../types/erp';
+import type {Expense,Party,PartyRole,PaymentMethod} from '../../types/erp';
 import type {PartyMoneySplit,PartyPaymentPayload} from '../../types/partyLedger';
 
 type Action='Customer Receive'|'Supplier Pay'|'Expense'|'Bank Transfer';
@@ -72,7 +73,8 @@ export function CounterWorkspace({accounts,setAccounts}:{
  const splits:PartyMoneySplit[]=effectiveRows.filter(r=>r.amount.trim()!==''&&Number(r.amount)>0)
   .map(r=>({id:r.id,method:r.method,accountId:r.accountId,amount:Number(r.amount)}));
  const olderAllocation=counterAllocateOldest(openInvoices,dueReduction);
- const previewAllocation=chosen?[{invoice:chosen.reference,amount:Math.min(chosen.due,dueReduction)}]:olderAllocation;
+ const selectedAllocation=chosen?Math.min(chosen.due,dueReduction):0;
+ const previewAllocation=chosen?(selectedAllocation>0?[{invoice:chosen.reference,amount:selectedAllocation}]:[]):olderAllocation;
  const reset=()=>{
   setPartyId('');setSearch('');setSearching(false);setAllocation('');
   setRows([]);setAmount('');setDiscountInput('');setDiscountReason('');
@@ -123,6 +125,16 @@ export function CounterWorkspace({accounts,setAccounts}:{
   const message=validate();if(message){setReview(false);setError(message);return;}
   busy.current=true;
   try{
+   if(type==='Expense'){
+    const existing=getExpensePreviewSnapshot().expenses;
+    const nextRef=Math.max(61,...existing.map(expense=>Number(expense.ref.replace('EXP-',''))||0))+1;
+    const paymentMethod=(row:Row):PaymentMethod=>row.method==='Mobile Banking'
+     ?accounts.find(account=>account.id===row.accountId)?.name.toLowerCase().includes('nagad')?'Nagad':'bKash'
+     :row.method;
+    const payments=effectiveRows.filter(row=>row.amount.trim()!==''&&Number(row.amount)>0).map(row=>({id:row.id,method:paymentMethod(row),amount:Number(row.amount),account:accounts.find(account=>account.id===row.accountId)?.name??''}));
+    const expense:Expense={id:'counter-expense-'+Date.now(),ref:'EXP-'+String(nextRef).padStart(6,'0'),date:new Date(date+'T12:00:00.000Z').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'}),category:expenseCategory.trim(),payee:text('Counter','কাউন্টার'),note:note.trim(),amount:total,paid:total,method:payments[0]?.method??'Cash',payments};
+    savePreviewExpense(expense);
+   }
    if((type==='Customer Receive'||type==='Supplier Pay')&&selected){
     const payload:PartyPaymentPayload={partyId:selected.id,relationship:type==='Customer Receive'?'Customer':'Supplier',
      date,amount:total,discount,invoiceId:chosen?.reference,
