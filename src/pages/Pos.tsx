@@ -283,7 +283,7 @@ export function Pos() {
     setInstallmentCount(sourceDraft.installment?.count??6);
     if(sourceDraft.installment){
       setFirstInstallmentDue(sourceDraft.installment.firstDueDate);
-      setInstallmentRows(sourceDraft.installment.schedule.map(row=>({...row,editedAmount:true,editedDate:true})));
+      setInstallmentRows(sourceDraft.installment.schedule.map(row=>({...row})));
     }else setInstallmentRows([]);
   }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicatingDraft, sourceDraft, sourceMode]);
 
@@ -630,7 +630,7 @@ export function Pos() {
     setInstallmentCount(d.installment?.count??6);
     if(d.installment){
       setFirstInstallmentDue(d.installment.firstDueDate);
-      setInstallmentRows(d.installment.schedule.map(row=>({...row,editedAmount:true,editedDate:true})));
+      setInstallmentRows(d.installment.schedule.map(row=>({...row})));
     }else setInstallmentRows([]);
     setDrafts((ds) => ds.filter((x) => x.id !== d.id));
     toast(`${d.label} resumed`);
@@ -879,7 +879,7 @@ export function Pos() {
         rows={installmentRows}
         requiredRemainingPaisa={installmentRemainingPaisa}
         onApply={rows=>{
-          setInstallmentRows(rows.map(row=>({...row,editedAmount:true,editedDate:true})));
+          setInstallmentRows(rows.map(row=>({...row})));
           setInstallmentCount(rows.length);
           if(rows[0])setFirstInstallmentDue(rows[0].dueDate);
         }}/>
