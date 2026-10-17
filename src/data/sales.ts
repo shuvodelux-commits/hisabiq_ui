@@ -1,4 +1,5 @@
 import type { CustomerCredit, PaymentSplit, Sale, SalePresetLine, SalesInvoice, SalesReturn, SaleTemplate } from '../types/erp';
+import type {InstallmentScheduleRow} from '../installments/schedule';
 
 export const salesInvoices: SalesInvoice[] = [
   {
@@ -207,6 +208,8 @@ export type SalesDraft = {
   total: number;
   savedAt: string;
   lines: SalePresetLine[];
+  /** Saved preview terms only; no financial posting. */
+  installment?: {count:number;firstDueDate:string;schedule:InstallmentScheduleRow[]};
 };
 
 export const salesDrafts: SalesDraft[] = [
