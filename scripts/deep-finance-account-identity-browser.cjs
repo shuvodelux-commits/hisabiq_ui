@@ -95,7 +95,7 @@ async function main() {
         await action(tab('Money Accounts','টাকার হিসাব'));
         const accountCard=page.locator('div.grid').filter({has:page.getByRole('button',{name:/Ledger|খাতা/})}).locator('> div').filter({hasText:'Dutch-Bangla Bank · 4582'}).first();
         await action(button(accountCard,'Actions for Dutch-Bangla Bank · 4582','কাজ Dutch-Bangla Bank · 4582'));
-        let dialog=topDialog(); await action(button(dialog,'Deactivate','বন্ধ করুন').first());
+        let dialog=topDialog(); await action(button(dialog,'Deactivate','নিষ্ক্রিয় করুন').first());
         await action(button(dialog,'Confirm deactivate','বন্ধ করা নিশ্চিত করুন'));
         await closeDialog(dialog);
         await action(tab('Loans & Owners','ঋণ ও মালিক'));
