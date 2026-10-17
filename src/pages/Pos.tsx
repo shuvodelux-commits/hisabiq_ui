@@ -20,6 +20,7 @@ import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../insta
 import {recordInstallmentPreview,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
 import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
 import {InstallmentBreakdownDialog} from '../components/pos/InstallmentBreakdownDialog';
+import {InstallmentCustomerQuickAddDialog} from '../components/pos/InstallmentCustomerQuickAddDialog';
 import { products } from '../data/products';
 import {getOnlineSnapshot,orderTotals,preparePosHandoff} from '../onlineSales/onlineStore';
 import { stockLots } from '../data/productInventory';
@@ -205,6 +206,7 @@ export function Pos() {
   });
   const [installmentRows,setInstallmentRows]=useState<InstallmentScheduleRow[]>([]);
   const [installmentBreakdownOpen,setInstallmentBreakdownOpen]=useState(false);
+  const [installmentCustomerQuickAddOpen,setInstallmentCustomerQuickAddOpen]=useState(false);
   const installmentTotalPaisa=Math.round(cart.totals.total*100);
   const installmentDownPaisa=Math.round(cart.totals.paidNum*100);
   const installmentRemainingPaisa=Math.max(0,installmentTotalPaisa-installmentDownPaisa);
@@ -832,6 +834,7 @@ export function Pos() {
           payments={cart.payments}
           onPayments={cart.setPayments}
           onComplete={openSaleReview}
+          onQuickAddCustomer={()=>setInstallmentCustomerQuickAddOpen(true)}
           onClear={()=>{cart.reset();setInstallmentMode('Regular');setInstallmentRows([]);}}
           paidRef={paidRef}
           completeRef={completeRef}
@@ -879,6 +882,12 @@ export function Pos() {
         
       </div>
 
+      <InstallmentCustomerQuickAddDialog open={installmentCustomerQuickAddOpen}
+        initialName={cart.customerDetails.name}
+        initialPhone={cart.customerDetails.phone}
+        initialAddress={cart.customerDetails.address}
+        onClose={()=>setInstallmentCustomerQuickAddOpen(false)}
+        onSaved={customer=>cart.setCustomer(customer)}/>
       <InstallmentBreakdownDialog open={installmentBreakdownOpen}
         onClose={()=>setInstallmentBreakdownOpen(false)}
         rows={installmentRows}
