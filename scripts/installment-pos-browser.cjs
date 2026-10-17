@@ -17,6 +17,8 @@ async function main(){
     assert.ok(beforeCart>=1,'original POS V2 cart remains mounted');
     await page.getByRole('button',{name:/Installment sale/i}).click();
     const checkout=page.locator('[data-pos-checkout]');
+    const initialInvoice=(await checkout.getByText(/^INV-\d{6}$/).first().textContent())?.trim();
+    assert.ok(initialInvoice,'capture initial invoice reference for navigation reuse test');
     await checkout.getByText('Installment terms').waitFor();
     assert.equal(await checkout.locator('input[aria-label="Installment selling price"]').count(),0,
       'installment price is edited in the original cart, not duplicated at checkout');
@@ -91,6 +93,15 @@ async function main(){
     await page.getByText(/Sale preview · Not posted/i).waitFor();
     assert.ok(await page.getByText(/Installment schedule/i).count()>0,
       'sale preview includes the agreement breakdown');
+    await page.getByRole('button',{name:/New sale/i}).click();
+    await page.evaluate(()=>{window.location.hash='#/app/dashboard';});
+    await page.waitForURL(/#\\/app\\/dashboard/);
+    await page.evaluate(()=>{window.location.hash='#/app/pos';});
+    await page.getByTestId('pos-cart-row').first().waitFor();
+    const reopenedInvoice=(await page.locator('[data-pos-checkout]')
+      .getByText(/^INV-\\d{6}$/).first().textContent())?.trim();
+    assert.notEqual(reopenedInvoice,initialInvoice,
+      'reopening POS must never reuse a preview invoice reference already linked to an agreement');
     assert.deepEqual(errors,[],'no uncaught browser runtime errors');
     console.log('Installment POS desktop/mobile, modal, date popup, review tests passed.');
   }finally{await browser.close();await server.close();}
