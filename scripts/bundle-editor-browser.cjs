@@ -31,7 +31,9 @@ async function run(){
    await editor.waitFor({state:'hidden'});
    const initial=await page.evaluate(async id=>{
     const mod=await import('/src/data/productImportPreviewStore.ts');
-    return mod.getProductImportPreviewSnapshot().bundleVersions.find(x=>x.bundleProductId===id);
+    const state=mod.getProductImportPreviewSnapshot();
+    const p=state.products.find(p=>p.sku===id);
+    return state.bundleVersions.find(x=>x.bundleProductId===p?.id);
    },sku);
    assert.equal(initial.revision,1);
    assert.equal(initial.components.length,2);
@@ -43,7 +45,9 @@ async function run(){
    await editor.getByRole('button',{name:'Save package'}).click();
    const revisions=await page.evaluate(async id=>{
     const mod=await import('/src/data/productImportPreviewStore.ts');
-    return mod.getProductImportPreviewSnapshot().bundleVersions.filter(x=>x.bundleProductId===id);
+    const state=mod.getProductImportPreviewSnapshot();
+    const p=state.products.find(p=>p.sku===id);
+    return state.bundleVersions.filter(x=>x.bundleProductId===p?.id);
    },sku);
    assert.equal(revisions.length,2);
    assert.equal(revisions[0].components[0].primaryQty,'2');
