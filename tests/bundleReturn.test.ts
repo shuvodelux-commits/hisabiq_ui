@@ -92,3 +92,32 @@ test('duplicate historical serials, foreign serials and changed source identity 
  const alien=planBundleReturn(req(1,{line:{...line,bundleSnapshot:{...source,bundleRevision:44}}}));
  assert.ok(alien.issues.some(x=>x.includes('immutable source')));
 });
+
+test('a series of partial returns allocates historical net pennies exactly once',()=>{
+ const three={...line,quantity:'3 Set',returnableQuantity:3,total:100,netSaleTotal:100,
+  bundleSnapshot:{...source,components:source.components.map(child=>({
+   ...child,totalBaseQty:child.baseQtyPerSet*3,
+   lotAllocations:child.lotAllocations?.length===1?
+    [{lotId:child.lotAllocations[0].lotId,quantity:child.baseQtyPerSet*3}]:
+    [{lotId:'verified-'+child.productId,quantity:child.baseQtyPerSet*3}],
+   serials:undefined
+  }))}};
+ const doc={...invoice,lines:[three],discount:0,total:100,subtotal:100};
+ const picks={pipe:{disposition:'Restock' as const},pump:{disposition:'Restock' as const}};
+ const original=planBundleReturn({invoice:doc,line:three,sets:1,choices:picks});
+ const afterOne=planBundleReturn({invoice:doc,line:three,sets:1,choices:picks,
+  priorReturns:[{returnId:'r1',invoiceId:doc.id,lineId:three.id,sets:1}]});
+ const afterTwo=planBundleReturn({invoice:doc,line:three,sets:1,choices:picks,
+  priorReturns:[{returnId:'r1',invoiceId:doc.id,lineId:three.id,sets:1},
+   {returnId:'r2',invoiceId:doc.id,lineId:three.id,sets:1}]});
+ assert.equal(original.refundEstimate,33.33);
+ assert.equal(afterOne.refundEstimate,33.34);
+ assert.equal(afterTwo.refundEstimate,33.33);
+ assert.equal(original.refundEstimate!+afterOne.refundEstimate!+afterTwo.refundEstimate!,100);
+});
+test('duplicate historical child IDs cannot accidentally produce duplicate restoration candidates',()=>{
+ const changed={...line,bundleSnapshot:{...source,components:[source.components[0],source.components[0]]}};
+ const doc={...invoice,lines:[changed]};
+ const plan=planBundleReturn(req(1,{invoice:doc,line:changed}));
+ assert.ok(plan.issues.some(x=>x.includes('Duplicate historical component')));
+});
