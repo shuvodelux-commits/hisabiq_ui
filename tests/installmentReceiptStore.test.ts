@@ -7,6 +7,8 @@ import {
 } from '../src/data/installmentPreviewStore.ts';
 import {validateInstallmentCollection} from '../src/installments/validateCollection.ts';
 import {allocateOldestInstallments} from '../src/installments/collections.ts';
+import {financeAccounts} from '../src/data/financeAccounts.ts';
+import {getPartyPreviewSnapshot} from '../src/data/partyPreviewStore.ts';
 beforeEach(()=>resetInstallmentPreviewsForTest());
 function agreement(){
  return recordInstallmentPreview({
@@ -54,4 +56,19 @@ test('sequential receipts allocate only unpaid agreement rows without double pos
  const b=recordInstallmentReceiptPreview(next);
  assert.deepEqual(b.allocations,[{scheduleItemId:'inst-1',amountPaisa:100000},{scheduleItemId:'inst-2',amountPaisa:100000}]);
  assert.equal(listInstallmentReceipts(first.agreementId).length,2);
+});
+
+test('Cash, Bank and MFS split receipt is source-validated without changing finance or Party ledgers',()=>{
+ const input=payload('payment-mixed',600000);
+ const before=financeAccounts.map(x=>({id:x.id,balance:x.balance}));
+ const partyRevision=getPartyPreviewSnapshot().revision;
+ const saved=recordInstallmentReceiptPreview({...input,splits:[
+   {method:'Cash',accountId:'acc-cash',amountPaisa:200000},
+   {method:'Bank',accountId:'acc-dbl',amountPaisa:150000},
+   {method:'Mobile Banking',accountId:'acc-bkash',amountPaisa:250000}
+ ]});
+ assert.equal(saved.splits.reduce((n,row)=>n+row.amountPaisa,0),600000);
+ assert.equal(saved.allocations.reduce((n,row)=>n+row.amountPaisa,0),600000);
+ assert.deepEqual(financeAccounts.map(x=>({id:x.id,balance:x.balance})),before);
+ assert.equal(getPartyPreviewSnapshot().revision,partyRevision);
 });
