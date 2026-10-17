@@ -19,7 +19,8 @@ import { quantityFromBaseStock } from '../../utils/posStock';
 import {allocatePosStock} from '../../vendor/vendorStock';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { usePreviewCatalog } from '../../bundles/usePreviewCatalog';
-import { getBundleVersion,getProductImportPreviewSnapshot } from '../../data/productImportPreviewStore';
+import { getBundleVersion } from '../../data/productImportPreviewStore';
+import { availableStockLots } from '../../data/erpDemoStore';
 import { getBundleProjection } from '../../bundles/bundleProjection';
 import { priceBundleComponents } from '../../bundles/bundlePricing';
 
@@ -148,8 +149,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
             const recipe=l.product.kind==='Bundle'?getBundleVersion(l.product.id):undefined;
-            const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,getProductImportPreviewSnapshot().lots,l.product.sellPrice):null;
-            const bundleAvailable=recipe?getBundleProjection(recipe,catalog,getProductImportPreviewSnapshot().lots).availableSets:0;
+            const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
+            const bundleAvailable=recipe?getBundleProjection(recipe,catalog,availableStockLots()).availableSets:0;
             const purchasePrice = l.product.kind==='Bundle' ? bundleCost?.componentPurchaseCost ?? 0 : factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
             const shortage = l.product.kind==='Bundle'?0:Math.max(0,baseQty-(allocations[i]?.ownBaseQty??0));
