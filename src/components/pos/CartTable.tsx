@@ -36,7 +36,7 @@ type CartTableProps = {
   searchRef: React.RefObject<HTMLInputElement>;
 };
 
-const grid = 'grid min-w-0 grid-cols-[42px_minmax(150px,1fr)_160px_92px_94px_100px_28px] items-center gap-1.5';
+const grid = 'grid min-w-0 grid-cols-[36px_minmax(130px,1fr)_160px_88px_168px_112px_28px] items-center gap-1.5';
 
 const cellInput =
 'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
@@ -243,21 +243,24 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
 
                 <span className="px-2 text-sm text-ink-600">{l.unit}</span>
                 }</div>
-                <div data-cart-field="Price · দাম"><div className="relative">
-                  <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
-                  <NumericInput stepperInset={28}
-                    aria-label={text(`Price for ${l.product.name}`, `দাম: ${l.product.name}`)}
-                    value={l.price}
-                    inputMode="decimal"
-                    onChange={(e) => onUpdate(l.key, { price: e.target.value.replace(/[^\d.]/g, '') })}
-                    onKeyDown={backToSearch}
-                    className={`${cellInput} pl-6 pr-7`} />
+                <div data-cart-field="Price · দাম"><div data-pos-price-field className="relative flex min-w-0 items-center gap-1">
+                  <div className="relative min-w-0 flex-1">
+                    <span className="pointer-events-none absolute left-2 top-1/2 z-10 -translate-y-1/2 text-xs text-ink-400">৳</span>
+                    <NumericInput stepperCompact
+                      aria-label={text(`Price for ${l.product.name}`, `দাম: ${l.product.name}`)}
+                      value={l.price}
+                      inputMode="decimal"
+                      onChange={(e) => onUpdate(l.key, { price: e.target.value.replace(/[^\d.]/g, '') })}
+                      onKeyDown={backToSearch}
+                      className={`${cellInput} pl-6 pr-2`} />
+                  </div>
                   <button
                     type="button"
+                    data-pos-cost-eye
                     aria-label={text(`Show purchase price for ${l.product.name}`, `কেনা দাম দেখুন: ${l.product.name}`)}
                     aria-pressed={revealedPurchase === l.key}
                     onClick={() => setRevealedPurchase((current) => current === l.key ? null : l.key)}
-                    className="absolute right-1.5 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded text-helper hover:bg-ink-50 hover:text-teal-700">
+                    className="flex size-6 shrink-0 items-center justify-center rounded text-helper hover:bg-ink-50 hover:text-teal-700">
                     <Eye className="size-3.5" />
                   </button>
                   {revealedPurchase === l.key &&
