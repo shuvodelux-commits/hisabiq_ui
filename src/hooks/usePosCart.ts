@@ -53,6 +53,7 @@ export const posPaymentAccountsByMethod: Record<PosPaymentMethod, string[]> = {
   Card: ['Dutch-Bangla Bank · 4582'],
   bKash: ['bKash Business · 01711•••412'],
   Nagad: ['Nagad Merchant · 01819•••771'],
+  'Mobile Banking': [],
   'Customer Credit': ['Customer credit']
 };
 
@@ -63,7 +64,7 @@ export function makePosPaymentRow(seedIndex = 0, method: PosPaymentMethod = 'Cas
   return {
     id: `pos-pay-${Date.now()}-${seedIndex}`,
     method,
-    account: posPaymentAccountsByMethod[method][0],
+    account: posPaymentAccountsByMethod[method][0]??'',
     amount: ''
   };
 }

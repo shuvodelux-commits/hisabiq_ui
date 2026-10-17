@@ -6,8 +6,9 @@ export function resolveChequeAccount(accounts: FinanceAccount[], cheque: Pick<Ch
   const matches = cheque.depositAccountId
     ? accounts.filter(account => account.id === cheque.depositAccountId)
     : accounts.filter(account => account.name === cheque.depositAccount);
-  const eligible = matches.filter(account => account.type === 'Bank' && (!activeOnly || account.status === 'Active'));
-  return eligible.length === 1 ? eligible[0] : undefined;
+  const banks = matches.filter(account => account.type === 'Bank');
+  if(banks.length!==1)return undefined;
+  return !activeOnly||banks[0].status==='Active'?banks[0]:undefined;
 }
 
 /** Clearing requires a uniquely identified active bank account. */

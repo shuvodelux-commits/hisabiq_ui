@@ -26,13 +26,15 @@ import { blendedVendorUnitCost } from '../utils/posStock';
 import {allocatePosStock} from '../vendor/vendorStock';
 import {usePreviewCatalog} from '../bundles/usePreviewCatalog';
 import {getBundleVersion,getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
-import {availableStockLots} from '../data/erpDemoStore';
+import {availableParties,availableStockLots} from '../data/erpDemoStore';
+import {getPartyPreviewSnapshot} from '../data/partyPreviewStore';
 import {expandCartStockDemand} from '../bundles/bundleCart';
 import {planComponentFulfillment,componentSourceKey} from '../bundles/bundleFulfillment';
 import {createBundleSaleSnapshot} from '../bundles/bundleDocuments';
 import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
+import type { PartyWorkspaceContext } from '../utils/partyNavigation';
 
 type CompletedSale = {
   invoice: string;
@@ -142,7 +144,7 @@ export function Pos() {
   const previewCatalog=usePreviewCatalog();
   const navigate = useNavigate();
   const location = useLocation();
-  const incomingState = location.state as {hisabiqSource?:string;orderId?:string}|null;
+  const incomingState = location.state as {hisabiqSource?:string;orderId?:string;returnTo?:string;partyWorkspace?:PartyWorkspaceContext}|null;
   const incomingOrderId = incomingState?.hisabiqSource==='online-order'?incomingState.orderId:undefined;
   const handoffOrder = incomingOrderId?getOnlineSnapshot().orders.find(o=>o.id===incomingOrderId):undefined;
   const [searchParams] = useSearchParams();
@@ -150,6 +152,17 @@ export function Pos() {
   const sourceInvoiceNo = searchParams.get('invoice');
   const sourceDraftId = searchParams.get('draft');
   const sourceTemplateId = searchParams.get('template');
+  const sourcePartyId = searchParams.get('partyId');
+  const partyContext = Boolean(sourcePartyId && !sourceMode && !sourceInvoiceNo && !sourceDraftId && !sourceTemplateId && !incomingOrderId);
+  const contextualParty = partyContext
+    ? getPartyPreviewSnapshot().parties.find((party) => party.id === sourcePartyId && party.roles.includes('Customer') && party.status !== 'Inactive')
+    : undefined;
+  const partyReturnTo = incomingState?.hisabiqSource === 'party-profile' && /^\/app\/parties(?:\?|$)/.test(incomingState.returnTo??'')
+    ? incomingState.returnTo
+    : sourcePartyId ? `/app/parties?id=${encodeURIComponent(sourcePartyId)}&role=Customer` : '/app/parties';
+  const returnToParty=()=>navigate(partyReturnTo??'/app/parties',{
+    state:{hisabiqSource:'party-pos-return',partyWorkspace:incomingState?.hisabiqSource==='party-profile'?incomingState.partyWorkspace:undefined}
+  });
   const sourceInvoice = salesInvoices.find((sale) => sale.invoice === sourceInvoiceNo) ?? null;
   const sourceDraft = salesDrafts.find((draft) => draft.id === sourceDraftId) ?? null;
   const sourceTemplate = saleTemplates.find((template) => template.id === sourceTemplateId) ?? null;
@@ -199,7 +212,7 @@ export function Pos() {
 
   useEffect(() => {
     if (!sourceInvoice || (!editing && !duplicating)) {
-      if ((!sourceDraft || !draftContext) && (!sourceTemplate || !templateContext) && !incomingOrderId) loadedSource.current = null;
+      if ((!sourceDraft || !draftContext) && (!sourceTemplate || !templateContext) && !incomingOrderId && !partyContext) loadedSource.current = null;
       return;
     }
     const sourceKey = `${sourceMode}:${sourceInvoice.invoice}`;
@@ -217,7 +230,7 @@ export function Pos() {
     cart.setDiscount(sourceInvoice.discount ? String(sourceInvoice.discount) : '');
     cart.setDiscountMode('amount');
     cart.setPayments(editing ? paymentsFromInvoice(sourceInvoice) : [makePosPaymentRow()]);
-  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicating, editing, sourceDraft, sourceInvoice, sourceMode, sourceTemplate, templateContext]);
+  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicating, editing, partyContext, sourceDraft, sourceInvoice, sourceMode, sourceTemplate, templateContext]);
 
   useEffect(() => {
     if (!sourceDraft || !draftContext) return;
@@ -256,6 +269,17 @@ export function Pos() {
     cart.setDiscountMode('amount');
     cart.setPayments([makePosPaymentRow()]);
   }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, sourceMode, sourceTemplate, templateContext]);
+
+  useEffect(() => {
+    if (!partyContext || !sourcePartyId) return;
+    const sourceParty = availableParties().find((party) => party.id === sourcePartyId && party.roles.includes('Customer') && party.status !== 'Inactive');
+    if (!sourceParty) return;
+    const sourceKey = `party-profile:${sourceParty.id}`;
+    if (loadedSource.current === sourceKey) return;
+    loadedSource.current = sourceKey;
+    cart.setCustomer(sourceParty);
+    cart.setCustomerDetails({name:sourceParty.name,phone:sourceParty.phone,guardianName:'',address:sourceParty.area});
+  }, [cart.setCustomer, cart.setCustomerDetails, partyContext, sourcePartyId]);
 
   useEffect(() => {
     if(!incomingOrderId)return;
@@ -526,8 +550,13 @@ export function Pos() {
     setCompleted(null);setDemoVendorInvoice(null);
     cart.reset();
     setInvoiceNo((n) => n + 1);
-    if (editing || duplicating || draftContext || templateContext || incomingOrderId) navigate('/app/pos', { replace: true, state: null });
+    if (editing || duplicating || draftContext || templateContext || incomingOrderId || partyContext) navigate('/app/pos', { replace: true, state: null });
     setTimeout(() => searchRef.current?.focus(), 50);
+  };
+  const closeCompletedSale=()=>{
+    if(partyContext){returnToParty();return;}
+    if(editing){setCompleted(null);navigate('/app/sales');return;}
+    newSale();
   };
 
   return (
@@ -560,6 +589,18 @@ export function Pos() {
           
         </div>
       </div>
+
+      {partyContext && contextualParty && (
+        <div className="flex flex-col gap-2 rounded-lg border border-teal-300 bg-teal-50 p-3 text-sm text-teal-900 dark:bg-teal-900/20 dark:text-teal-900 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-semibold">{uiText(personal.language,`Sale for ${contextualParty.name}`,`${contextualParty.name} এর নামে বিক্রি`)}</p>
+            <p className="mt-1 text-xs">{uiText(personal.language,'Customer is preselected. Review products, price and payment before confirming.','ক্রেতা বাছা আছে। পণ্য, দাম ও পেমেন্ট দেখে তারপর নিশ্চিত করুন।')}</p>
+          </div>
+          <Button size="sm" variant="outline" className="bg-card" onClick={returnToParty}>
+            <ArrowLeft className="size-4" /> {uiText(personal.language,'Back to party','পার্টিতে ফিরুন')}
+          </Button>
+        </div>
+      )}
 
       {handoffOrder && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-300 bg-teal-50 p-3 text-sm text-teal-900 dark:bg-teal-900/20 dark:text-teal-200">
@@ -712,15 +753,7 @@ export function Pos() {
           {label:'Paid',value:taka(cart.totals.paidNum)},
           {label:'Due',value:taka(cart.totals.due)}
         ]}/>
-      <Dialog open={!!completed} onOpenChange={(open) => {
-        if (open) return;
-        if (editing) {
-          setCompleted(null);
-          navigate('/app/sales');
-          return;
-        }
-        newSale();
-      }}>
+      <Dialog open={!!completed} onOpenChange={(open) => {if(!open)closeCompletedSale();}}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -745,16 +778,9 @@ export function Pos() {
             <Button variant="outline" onClick={() => window.print()}>
               <Printer className="size-4" /> Print receipt
             </Button>
-            <Button onClick={() => {
-              if (editing) {
-                setCompleted(null);
-                navigate('/app/sales');
-                return;
-              }
-              newSale();
-            }}>
-              {editing ? <ArrowLeft className="size-4" /> : <Plus className="size-4" />}
-              {editing ? 'Back to sales' : 'New sale'}
+            <Button onClick={closeCompletedSale}>
+              {editing||partyContext ? <ArrowLeft className="size-4" /> : <Plus className="size-4" />}
+              {partyContext?uiText(personal.language,'Back to party','পার্টিতে ফিরুন'):editing ? 'Back to sales' : 'New sale'}
             </Button>
           </DialogFooter>
         </DialogContent>
