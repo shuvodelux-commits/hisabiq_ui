@@ -12,7 +12,7 @@ import { customerSettlementAsOf, supplierSettlementAsOf } from '../../utils/part
 import type { PartySourceRecord, PartyPaymentPayload } from '../../types/partyLedger';
 import type { Party } from '../../types/erp';
 import { taka } from '../../utils/currency';
-import { amountInWords } from '../../utils/amountInWords';
+import { AmountInWordsDisplay } from '../AmountInWordsDisplay';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {partyFinancialErrorText} from '../../i18n/partyFinancialCopy';
 
@@ -95,12 +95,12 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
           <Input aria-label={text("Payment reason","পেমেন্টের কারণ")} value={reason} onChange={event=>{setReason(event.target.value);setReview(false);}} placeholder={text("Required when discount is applied","ছাড় দিলে কারণ আবশ্যক")}/>
         </label>}
         <FinancePaymentSplitEditor accounts={financeAccounts} rows={splits} onChange={value=>{setSplits(value);setReview(false);}} totalAmount={net}/>
-        <p className="rounded-md bg-ink-50 px-3 py-2 text-xs text-ink-500" aria-live="polite">{text('Amount in words:','কথায়:')} {amountInWords(net)}</p>
+        <AmountInWordsDisplay amount={net} />
         {review&&<div className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800" role="status">
           <p className="font-semibold">{text('Review before recording','লেখার আগে হিসাব যাচাই করুন')}</p>
           <p>{text(action,relationship==='Customer'?'ক্রেতার টাকা নিন':'সরবরাহকারীকে টাকা দিন')} · {party.name} · {date}</p>
           <p>{text('Cash movement','টাকা আসা/যাওয়া')} {taka(net)} · {text('Discount','ছাড়')} {taka(rebate)} · {text('Due after','পরের বাকি')} {taka(Math.max(0,due-net-rebate))}</p>
-          <p className="mt-1 font-medium">{amountInWords(net)}</p>
+          <AmountInWordsDisplay amount={net} />
           <p className="mt-1">{text('Confirm records one auditable preview source. No banking transaction will occur.','নিশ্চিত করলে নমুনা খাতায় একটি লেনদেন যোগ হবে। আসল ব্যাংকে টাকা সরবে না।')}</p>
         </div>}
         {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}

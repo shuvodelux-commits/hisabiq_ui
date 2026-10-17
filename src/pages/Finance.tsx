@@ -55,7 +55,7 @@ import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '..
 import { taka } from '../utils/currency';
 import { chequeMoneyAccount, renameChequeAccountReferences } from '../utils/chequeAccount';
 import { chequeLifecycleActions } from '../utils/moduleUiActions';
-import { amountInWords } from '../utils/amountInWords';
+import { AmountInWordsDisplay } from '../components/AmountInWordsDisplay';
 import {useUiCopy} from '../i18n/useUiCopy';
 import {financeLabel} from '../i18n/financeCopy';
 
@@ -270,10 +270,10 @@ function TransactionDialog({
           </label>
         </div>
 
-        <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs leading-5 text-ink-500" aria-live="polite">{text('Amount in words:','কথায়:')} {amountInWords(Number(amount)||0)}</p>
+        <AmountInWordsDisplay amount={Number(amount)||0} />
         {reviewFinance && <section role="status" className="space-y-1 rounded-lg border border-border bg-ink-50 p-3 text-sm">
           <p className="font-semibold">{text('Review finance transaction','লেনদেন যাচাই করুন')}</p>
-          <p>{selectedPerson?.name} · {type} · {date}</p><p>{taka(Number(amount)||0)} · {amountInWords(Number(amount)||0)}</p>
+          <p>{selectedPerson?.name} · {type} · {date}</p><p className="font-semibold">{taka(Number(amount)||0)}</p><AmountInWordsDisplay amount={Number(amount)||0} />
           <p>{text('Payment source total:','মাধ্যমগুলোর মোট:')} {taka(paymentTotal)} · {isOpening?text('Opening balance only','শুধু শুরুর জের'):text('Cash/bank movement','ক্যাশ/ব্যাংকে টাকা আসা-যাওয়া')}</p>
         </section>}
         <DialogFooter>
@@ -470,10 +470,10 @@ function TransferDialog({
           </label>
         </div>
 
-        <p className="rounded-md bg-ink-50 px-3 py-2 text-xs text-ink-500" aria-live="polite">{amountInWords(Number(amount)||0)}</p>
+        <AmountInWordsDisplay amount={Number(amount)||0} />
         {reviewTransfer&&<div role="status" className="rounded-xl border border-border bg-ink-50 p-3 text-sm">
           <p className="font-semibold">{text('Check transfer before recording','টাকা সরানোর আগে হিসাব মিলিয়ে নিন')}</p>
-          <p className="mt-1">{financeAccountIdentityLabel(active.find((item) => item.id === from) ?? active[0], active)} → {financeAccountIdentityLabel(active.find((item) => item.id === to) ?? active[1], active)}</p><p>{taka(Number(amount)||0)}</p><p>{amountInWords(Number(amount)||0)}</p>
+          <p className="mt-1">{financeAccountIdentityLabel(active.find((item) => item.id === from) ?? active[0], active)} → {financeAccountIdentityLabel(active.find((item) => item.id === to) ?? active[1], active)}</p><p className="font-semibold">{taka(Number(amount)||0)}</p><AmountInWordsDisplay amount={Number(amount)||0} />
         </div>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{text('Cancel','বাতিল')}</Button>
