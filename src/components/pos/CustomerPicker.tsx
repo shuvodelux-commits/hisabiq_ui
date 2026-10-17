@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { ChevronDown, UserRound, X } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import { Input } from '../Input';
 import { PartyAvatar } from '../PartyAvatar';
-import { parties } from '../../data/parties';
+import {getPartyPreviewSnapshot,subscribePartyPreview} from '../../data/partyPreviewStore';
 import { taka } from '../../utils/currency';
 import type { Party } from '../../types/erp';
 import { useUiCopy } from '../../i18n/useUiCopy';
@@ -16,7 +16,8 @@ type CustomerPickerProps = {
 export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
   const [q, setQ] = useState('');
   const { word } = useUiCopy();
-  const customers = parties.filter((p) => {
+  const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
+  const customers = partyState.parties.filter((p) => {
     if (!p.roles.includes('Customer') && !p.roles.includes('Borrower')) return false;
     const needle = q.trim().toLowerCase();
     if (!needle) return true;

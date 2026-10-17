@@ -13,6 +13,14 @@ import { DraftsMenu } from '../components/pos/DraftsMenu';
 import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine, type ReceiptBranding } from '../components/brand/ReceiptPreview';
 import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
+import {addDays,addMonths,businessToday} from '../utils/dateRange';
+import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../installments/schedule';
+import {validateInstallmentDraft} from '../installments/validateDraft';
+import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../installments/pricing';
+import {recordInstallmentPreview,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
+import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
+import {InstallmentBreakdownDialog} from '../components/pos/InstallmentBreakdownDialog';
+import {InstallmentCustomerQuickAddDialog} from '../components/pos/InstallmentCustomerQuickAddDialog';
 import { products } from '../data/products';
 import {getOnlineSnapshot,orderTotals,preparePosHandoff} from '../onlineSales/onlineStore';
 import { stockLots } from '../data/productInventory';
@@ -35,6 +43,11 @@ import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 import type { PartyWorkspaceContext } from '../utils/partyNavigation';
+
+/** UI-preview only: reserve unique invoice labels across POS remounts in one browser session.
+ * The production backend will assign authoritative, tenant-scoped invoice numbers. */
+let previewInvoiceCounter = 241;
+const reservePreviewInvoiceNumber = () => ++previewInvoiceCounter;
 
 type CompletedSale = {
   invoice: string;
@@ -177,11 +190,35 @@ export function Pos() {
   const searchRef = useRef<HTMLInputElement>(null);
   const paidRef = useRef<HTMLInputElement>(null);
   const completeRef = useRef<HTMLButtonElement>(null);
-  const [invoiceNo, setInvoiceNo] = useState(242);
+  const [invoiceNo, setInvoiceNo] = useState(reservePreviewInvoiceNumber);
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
+  const [completedInstallment,setCompletedInstallment]=useState<PreviewInstallmentAgreement|null>(null);
   const [reviewSaleOpen, setReviewSaleOpen] = useState(false);
   const [demoVendorInvoice,setDemoVendorInvoice]=useState<string|null>(null);
+  const [installmentMode,setInstallmentMode]=useState<'Regular'|'Installment'>('Regular');
+  const [installmentCount,setInstallmentCount]=useState(6);
+  const [firstInstallmentDue,setFirstInstallmentDue]=useState(()=>{
+    const today=businessToday();
+    const nextMonth=addMonths(today,1);
+    const day=Math.min(Number(today.slice(-2)),Number(addDays(addMonths(today,2),-1).slice(-2)));
+    return nextMonth.slice(0,8)+String(day).padStart(2,'0');
+  });
+  const [installmentRows,setInstallmentRows]=useState<InstallmentScheduleRow[]>([]);
+  const [installmentBreakdownOpen,setInstallmentBreakdownOpen]=useState(false);
+  const [installmentCustomerQuickAddOpen,setInstallmentCustomerQuickAddOpen]=useState(false);
+  const installmentTotalPaisa=Math.round(cart.totals.total*100);
+  const installmentDownPaisa=Math.round(cart.totals.paidNum*100);
+  const installmentRemainingPaisa=Math.max(0,installmentTotalPaisa-installmentDownPaisa);
+  const scheduleHasManualEdits=installmentRows.some(row=>row.editedAmount||row.editedDate);
+  useEffect(()=>{
+    if(installmentMode!=='Installment'||scheduleHasManualEdits||installmentCount<1||installmentCount>120||installmentRemainingPaisa<=0)return;
+    try{
+      const fresh=generateInstallmentSchedule({remainingPaisa:installmentRemainingPaisa,count:installmentCount,
+        firstDueDate:firstInstallmentDue,frequency:'Monthly'});
+      setInstallmentRows(existing=>JSON.stringify(existing)===JSON.stringify(fresh)?existing:fresh);
+    }catch{/* Checkout review shows invalid count, amount or date; never auto-post. */}
+  },[installmentMode,installmentCount,firstInstallmentDue,installmentRemainingPaisa,scheduleHasManualEdits]);
   const invoice = editing && sourceInvoice ? sourceInvoice.invoice : `INV-${String(invoiceNo).padStart(6, '0')}`;
   const pageTitle = handoffOrder?'Online order · POS preview':editing
     ? 'Edit sale'
@@ -249,6 +286,12 @@ export function Pos() {
     cart.setDiscount('');
     cart.setDiscountMode('amount');
     cart.setPayments(duplicatingDraft ? [makePosPaymentRow()] : paymentsFromDraft(sourceDraft));
+    setInstallmentMode(sourceDraft.installment?'Installment':'Regular');
+    setInstallmentCount(sourceDraft.installment?.count??6);
+    if(sourceDraft.installment){
+      setFirstInstallmentDue(sourceDraft.installment.firstDueDate);
+      setInstallmentRows(sourceDraft.installment.schedule.map(row=>({...row})));
+    }else setInstallmentRows([]);
   }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicatingDraft, sourceDraft, sourceMode]);
 
   useEffect(() => {
@@ -339,6 +382,19 @@ export function Pos() {
     }
     return planned;
   };
+  const openSaleReview=()=>{
+    if(cart.lines.some(line=>line.product.kind==='Bundle')&&!verifyBundleCart())return;
+    if(installmentMode==='Installment'){
+      const issues=validateInstallmentDraft({
+        customerId:cart.customer?.id,customerName:cart.customer?.name??cart.customerDetails.name,
+        phone:cart.customer?.phone??cart.customerDetails.phone,
+        totalPaisa:installmentTotalPaisa,downPaymentPaisa:installmentDownPaisa,schedule:installmentRows
+      });
+      if(issues.length){toast.error(issues[0]);return;}
+    }
+    setReviewSaleOpen(true);
+  };
+
   const complete = () => {
     const hasBundle=cart.lines.some(line=>line.product.kind==='Bundle');
     const bundleReservation=hasBundle?verifyBundleCart():null;
@@ -409,6 +465,36 @@ export function Pos() {
       return;
     }
     const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
+    if(installmentMode==='Installment'){
+      try{
+        const lines=cart.lines.map(row=>{
+          const factor=row.product.altUnit&&row.unit===row.product.altUnit.unit?row.product.altUnit.factor:1;
+          return {key:row.key,productId:row.product.id,
+            amountPaisa:Math.round(compoundLineTotal(row.qty,row.secondaryQty,factor,row.price)*100)};
+        });
+        const amounts=allocateNegotiatedInvoiceLines(lines.map(({key,amountPaisa})=>({key,amountPaisa})),installmentTotalPaisa);
+        const created=recordInstallmentPreview({
+          operationId:'installment-preview:'+invoice,
+          invoiceReference:invoice,
+          customerId:cart.customer!.id,
+          customerName:cart.customer!.name,
+          totalPaisa:installmentTotalPaisa,downPaymentPaisa:installmentDownPaisa,
+          schedule:installmentRows.map(row=>({...row})),
+          lineSnapshot:amounts.map(row=>({
+            key:row.key,productId:lines.find(line=>line.key===row.key)!.productId,
+            amountPaisa:row.amountPaisa
+          })),
+          paymentSnapshot:activePayments.map(row=>({
+            method:row.method,account:row.account,
+            amountPaisa:Math.round((parseFloat(row.amount)||0)*100)
+          }))
+        });
+        setCompletedInstallment(created);
+      }catch(error){
+        toast.error(error instanceof Error?error.message:'Installment preview could not be saved.');
+        return;
+      }
+    }else setCompletedInstallment(null);
     const remainingLots=stockLots.map(lot=>({...lot}));
     setCompleted({
       invoice,
@@ -515,6 +601,9 @@ export function Pos() {
       items: cart.lines.length,
       total: cart.totals.total,
       savedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      installment: installmentMode==='Installment'?{
+        count:installmentCount,firstDueDate:firstInstallmentDue,schedule:installmentRows.map(row=>({...row}))
+      }:undefined,
       lines: cart.lines.map((line) => ({
         productId: line.product.id,
         qty: line.qty,
@@ -529,6 +618,7 @@ export function Pos() {
     }]
     );
     cart.reset();
+    setInstallmentMode('Regular');setInstallmentRows([]);
     toast.success('Sale held as draft');
   };
 
@@ -543,14 +633,21 @@ export function Pos() {
       address: sourceParty?.area ?? ''
     });
     cart.setPayments(paymentsFromDraft(d));
+    setInstallmentMode(d.installment?'Installment':'Regular');
+    setInstallmentCount(d.installment?.count??6);
+    if(d.installment){
+      setFirstInstallmentDue(d.installment.firstDueDate);
+      setInstallmentRows(d.installment.schedule.map(row=>({...row})));
+    }else setInstallmentRows([]);
     setDrafts((ds) => ds.filter((x) => x.id !== d.id));
     toast(`${d.label} resumed`);
   };
 
   const newSale = () => {
-    setCompleted(null);setDemoVendorInvoice(null);
+    setCompleted(null);setCompletedInstallment(null);setDemoVendorInvoice(null);
     cart.reset();
-    setInvoiceNo((n) => n + 1);
+    setInstallmentMode('Regular');setInstallmentRows([]);
+    setInvoiceNo(reservePreviewInvoiceNumber);
     if (editing || duplicating || draftContext || templateContext || incomingOrderId || partyContext) navigate('/app/pos', { replace: true, state: null });
     setTimeout(() => searchRef.current?.focus(), 50);
   };
@@ -736,14 +833,70 @@ export function Pos() {
           onDiscountMode={cart.setDiscountMode}
           payments={cart.payments}
           onPayments={cart.setPayments}
-          onComplete={() => {if(!cart.lines.some(l=>l.product.kind==='Bundle')||verifyBundleCart())setReviewSaleOpen(true);}}
-          onClear={cart.reset}
+          onComplete={openSaleReview}
+          onQuickAddCustomer={()=>setInstallmentCustomerQuickAddOpen(true)}
+          onClear={()=>{cart.reset();setInstallmentMode('Regular');setInstallmentRows([]);}}
           paidRef={paidRef}
           completeRef={completeRef}
+          installment={!editing?{
+            mode:installmentMode,onModeChange:setInstallmentMode,
+            count:installmentCount,onCountChange:(count:number)=>{
+              if(scheduleHasManualEdits){
+                toast.info('Open the installment breakdown to change a custom schedule.');
+                setInstallmentBreakdownOpen(true);
+              }else setInstallmentCount(count);
+            },
+            firstDueDate:firstInstallmentDue,onFirstDueDateChange:(date:string)=>{
+              if(scheduleHasManualEdits){
+                toast.info('Change the dates in the custom installment breakdown.');
+                setInstallmentBreakdownOpen(true);
+              }else setFirstInstallmentDue(date);
+            },
+            schedule:installmentRows,onEditSchedule:()=>setInstallmentBreakdownOpen(true),
+            onPriceAdjustment:cart.lines.length===1?(mode:'amount'|'percent',value:string)=>{
+              const line=cart.lines[0];
+              const factor=line.product.altUnit&&line.unit===line.product.altUnit.unit?line.product.altUnit.factor:1;
+              const quantity=(Number(line.qty)||0)+(factor>1?(Number(line.secondaryQty)||0)/factor:0);
+              if(!Number.isFinite(quantity)||quantity<=0){
+                toast.error('Enter a valid product quantity before adjusting the selling price.');
+                return false;
+              }
+              try{
+                const currentPaisa=Math.round(compoundLineTotal(line.qty,line.secondaryQty,factor,line.price)*100);
+                const targetPaisa=negotiateInstallmentTotal(currentPaisa,{mode,value});
+                const unitPrice=Math.round((targetPaisa/100/quantity)*100)/100;
+                if(!Number.isFinite(unitPrice)||unitPrice<0||
+                  Math.round(compoundLineTotal(line.qty,line.secondaryQty,factor,unitPrice)*100)!==targetPaisa){
+                  toast.error('This amount cannot be allocated exactly at the selected quantity. Edit the cart unit price instead.');
+                  return false;
+                }
+                cart.updateLine(line.key,{price:String(unitPrice)});
+                return true;
+              }catch(error){
+                toast.error(error instanceof Error?error.message:'Enter a valid price adjustment.');
+                return false;
+              }
+            }:undefined
+          }:undefined}
           completeLabel={editing ? uiText(personal.language,'Preview sale update','বিক্রি সংশোধন দেখুন') : uiText(personal.language,'Preview sale','বিক্রির হিসাব দেখুন')} />
         
       </div>
 
+      <InstallmentCustomerQuickAddDialog open={installmentCustomerQuickAddOpen}
+        initialName={cart.customerDetails.name}
+        initialPhone={cart.customerDetails.phone}
+        initialAddress={cart.customerDetails.address}
+        onClose={()=>setInstallmentCustomerQuickAddOpen(false)}
+        onSaved={customer=>cart.setCustomer(customer)}/>
+      <InstallmentBreakdownDialog open={installmentBreakdownOpen}
+        onClose={()=>setInstallmentBreakdownOpen(false)}
+        rows={installmentRows}
+        requiredRemainingPaisa={installmentRemainingPaisa}
+        onApply={rows=>{
+          setInstallmentRows(rows.map(row=>({...row})));
+          setInstallmentCount(rows.length);
+          if(rows[0])setFirstInstallmentDue(rows[0].dueDate);
+        }}/>
       <TransactionReviewDialog open={reviewSaleOpen} onClose={() => setReviewSaleOpen(false)}
         onConfirm={() => {setReviewSaleOpen(false);complete();}}
         title={editing ? 'Review sale update' : 'Review sale'} amount={cart.totals.total}
@@ -752,7 +905,12 @@ export function Pos() {
           {label:'Customer',value:cart.customer?.name || cart.customerDetails.name || 'Walk-in customer'},
           {label:'Products',value:String(cart.lines.length)+' lines'},
           {label:'Paid',value:taka(cart.totals.paidNum)},
-          {label:'Due',value:taka(cart.totals.due)}
+          {label:'Due',value:taka(cart.totals.due)},
+          ...(installmentMode==='Installment'?[
+            {label:'Installments',value:String(installmentRows.length)},
+            {label:'First due',value:installmentRows[0]?.dueDate??'—'},
+            {label:'Future scheduled',value:taka(installmentRemainingPaisa/100)}
+          ]:[])
         ]}/>
       <Dialog open={!!completed} onOpenChange={(open) => {if(!open)closeCompletedSale();}}>
         <DialogContent className="sm:max-w-lg">
@@ -768,6 +926,7 @@ export function Pos() {
           <div className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
             {completed && <ReceiptPreview {...completed} language={personal.language} />}
           </div>
+          {completedInstallment && <InstallmentAgreementPreview agreement={completedInstallment}/>}
           <DialogFooter>
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
               <Button variant="outline" onClick={simulateVendorSources}
