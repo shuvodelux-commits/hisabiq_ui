@@ -79,7 +79,7 @@ async function main(){
    await act(savedManager.getByRole('button',{name:/Edit.*Nested Borrower Edited|সংশোধন.*Nested Borrower Edited/}));
    assert.equal(await savedManager.getByLabel(/Description \/ relationship note|বিবরণ \/ সম্পর্কের মন্তব্য/).inputValue(),'relationship updated','reopening edit reloads saved details');
    await act(savedManager.getByRole('button',{name:/Cancel edit|সংশোধন বাতিল/}));
-   await act(savedManager.getByRole('button',{name:/Deactivate.*Nested Borrower Edited|বন্ধ করুন.*Nested Borrower Edited/}));
+   await act(savedManager.getByRole('button',{name:/Deactivate.*Nested Borrower Edited|নিষ্ক্রিয় করুন.*Nested Borrower Edited/}));
    await act(savedManager.getByRole('button',{name:/Done|সম্পন্ন/}));await savedManager.waitFor({state:'hidden'});
    const transactionRow=page.getByText('NEST-KEEP',{exact:false}).locator('xpath=ancestor::tr[1]');
    await act(transactionRow.getByRole('button',{name:/Actions for|কাজ/}));
