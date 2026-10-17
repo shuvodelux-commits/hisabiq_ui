@@ -23,7 +23,7 @@ import { getBundleVersion } from '../../data/productImportPreviewStore';
 import { availableStockLots } from '../../data/erpDemoStore';
 import { getBundleProjection } from '../../bundles/bundleProjection';
 import { priceBundleComponents } from '../../bundles/bundlePricing';
-import { expandCartStockDemand, projectCartShortages } from '../../bundles/bundleCart';
+import { expandCartStockDemand } from '../../bundles/bundleCart';
 import {planComponentFulfillment,maxAffordableBundleSets,componentSourceKey} from '../../bundles/bundleFulfillment';
 
 type CartTableProps = {
@@ -107,7 +107,6 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
   const [serialComponent,setSerialComponent]=useState<{lineKey:string;productId:string}|null>(null);
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
   const bundleDemand=expandCartStockDemand(lines,catalog,(id,revision)=>getBundleVersion(id,revision));
-  const componentShortages=projectCartShortages(bundleDemand.demands,catalog,availableStockLots());
   const sources=Object.fromEntries(lines.flatMap(l=>l.product.kind==='Bundle'
     ?Object.entries(l.bundleSources??{}).map(([productId,source])=>[componentSourceKey(l.key,productId),source])
     :l.stockSource?[[componentSourceKey(l.key,l.product.id),l.stockSource]]:[]));
@@ -170,8 +169,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const purchasePrice = l.product.kind==='Bundle' ? bundleCost?.componentPurchaseCost ?? 0 : factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
             const shortage = l.product.kind==='Bundle'?0:Math.max(0,baseQty-(allocations.find(a=>a.key===l.key)?.ownBaseQty??0));
-            const bundleShortage=l.product.kind==='Bundle'&&recipe?Math.max(0,baseQty-bundleAvailable):0;
-            const relatedShortages=l.product.kind==='Bundle'&&recipe?componentShortages.filter(s=>s.shortageBaseQty>0&&recipe.components.some(part=>part.productId===s.componentProductId)):[];
+            const relatedShortages=l.product.kind==='Bundle'&&recipe?componentPlan.rows.filter(s=>s.sourceLineKey===l.key&&s.shortageBaseQty>0&&!s.source):[];
             const invalidSets=l.product.kind==='Bundle'&&(!/^[1-9]\d*$/.test(l.qty.trim())||l.unit!=='Set'||Boolean(l.secondaryQty.trim()));
             const staleRecipe=l.product.kind==='Bundle'&&(!recipe||getBundleVersion(l.product.id)?.revision!==l.bundleRevision);
             return (
@@ -231,7 +229,6 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                           })}
                         </div>
                       </details>}
-                      {bundleShortage>0&&<span className="rounded bg-danger-bg px-1.5 py-0.5 text-[10.5px] font-medium text-danger">{text('Component shortage','প্যাকেজের পণ্য কম')} · {bundleShortage} Set</span>}
                       {shortage > 0 && (
                         <button
                           type="button"
