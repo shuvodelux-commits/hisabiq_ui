@@ -42,6 +42,7 @@ export function Sidebar() {
   return <aside
     data-print-hide
     data-sidebar="sidebar"
+    aria-label={text('Primary navigation','প্রধান নেভিগেশন')}
     data-collapsible={collapsed ? 'icon' : 'none'}
     className={'group/sidebar relative sticky top-0 z-20 hidden h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-linear lg:flex ' +
       (collapsed ? 'w-[64px]' : 'w-[256px]')}

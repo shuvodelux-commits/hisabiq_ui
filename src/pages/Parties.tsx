@@ -1,5 +1,5 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -21,9 +21,10 @@ import type { PartyDraft, PartyLedgerSource, PartyLedgerRow, PartyAction, PartyO
 import { projectPartyStatement, pagedStatementRows, computePartyBalanceSummary } from '../utils/partyLedger';
 import { ledgerActionAvailability, partySourceRoute } from '../utils/partyActions';
 import { demoPermissions } from '../utils/permissions';
-import type { IsoRange } from '../utils/dateRange';
+import { businessToday, type IsoRange } from '../utils/dateRange';
 import { taka } from '../utils/currency';
 import { isPartyOpening } from '../utils/partyOpening';
+import type { PartyWorkspaceContext } from '../utils/partyNavigation';
 
 const ledgerType = (kind:PartyLedgerSource): LedgerEntryType => {
   if(kind==='sale')return 'invoice';
@@ -40,20 +41,32 @@ export function Parties() {
   const {text:uiText}=useUiCopy();
   const [params,setParams]=useSearchParams();
   const navigate=useNavigate();
-  const [range,setRange]=useState<IsoRange>({from:'',to:''});
-  const [kind,setKind]=useState('All types');
-  const [ledgerQuery,setLedgerQuery]=useState('');
-  const [page,setPage]=useState(1);
-  const [pageSize,setPageSize]=useState(25);
+  const location=useLocation();
+  const returnState=location.state as {hisabiqSource?:string;partyWorkspace?:PartyWorkspaceContext}|null;
+  const restored=returnState?.hisabiqSource==='party-pos-return'?returnState.partyWorkspace:undefined;
+  const [range,setRange]=useState<IsoRange>(restored?.range??{from:'',to:''});
+  const [kind,setKind]=useState(restored?.kind??'All types');
+  const [ledgerQuery,setLedgerQuery]=useState(restored?.ledgerQuery??'');
+  const [page,setPage]=useState(restored?.page??1);
+  const [pageSize,setPageSize]=useState(restored?.pageSize??25);
   const [statementOpen,setStatementOpen]=useState(false);
-  const [role,setRole]=useState<PartyRole|'All'>('All');
+  const [role,setRole]=useState<PartyRole|'All'>(restored?.role??'All');
   const routeRole=params.get('role'),routeGroup=params.get('group'),routeId=params.get('id');
   useEffect(()=>{
    if(routeId)return;
    const known:PartyRole[]=['Customer','Supplier','Vendor','Lender','Borrower','Owner','Payee'];
    setRole(routeGroup?'All':known.includes(routeRole as PartyRole)?routeRole as PartyRole:'All');
   },[routeRole,routeGroup,routeId]);
-  const [query,setQuery]=useState('');
+  const [query,setQuery]=useState(restored?.query??'');
+  useLayoutEffect(()=>{
+    if(!restored)return;
+    const frame=requestAnimationFrame(()=>{
+      window.scrollTo(0,restored.scrollY);
+      const list=document.querySelector('[data-party-directory-list]');
+      if(list)list.scrollTop=restored.directoryScrollTop;
+    });
+    return()=>cancelAnimationFrame(frame);
+  },[restored]);
   const [editing,setEditing]=useState<Party|null|undefined>(undefined);
   const [importOpen,setImportOpen]=useState(false);
   const [legacyImportOpen,setLegacyImportOpen]=useState(false);
@@ -164,8 +177,17 @@ export function Parties() {
           navigate(vendorWorkLink(party.id,tab,sourceId))}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}
+        onNewInvoice={()=>navigate(`/app/pos?partyId=${encodeURIComponent(party.id)}`,{
+          state:{hisabiqSource:'party-profile',returnTo:`${location.pathname}${location.search}`,
+            partyWorkspace:{range,kind,ledgerQuery,page,pageSize,role,query,scrollY:window.scrollY,
+              directoryScrollTop:document.querySelector('[data-party-directory-list]')?.scrollTop??0} satisfies PartyWorkspaceContext}
+        })}
         statement={statement!} balanceSummary={summary!} visibleRows={visibleRows}
-        range={range} onRange={next=>{setRange(next);setPage(1);}}
+        range={range} onRange={next=>{
+          const today=businessToday();
+          if(next.from>today){toast.error(uiText('Choose a statement start date up to today.','বিবরণের শুরুর তারিখ আজ বা তার আগে বাছুন।'));return;}
+          setRange({...next,to:next.to>today?today:next.to});setPage(1);
+        }}
         kind={kind} onKind={value=>{setKind(value);setPage(1);}}
         ledgerQuery={ledgerQuery} onLedgerQuery={value=>{setLedgerQuery(value);setPage(1);}}
         pageSize={pageSize} onPageSize={value=>{setPageSize(value);setPage(1);}}

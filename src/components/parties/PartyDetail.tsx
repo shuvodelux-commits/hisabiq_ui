@@ -39,6 +39,7 @@ type PartyDetailProps = {
   relationship: PartyRole;
   onRoleChange: (role: PartyRole) => void;
   onEditParty: () => void;
+  onNewInvoice: () => void;
   statement: LedgerStatement;
   balanceSummary: PartyBalanceSummary;
   visibleRows: LedgerStatement['rows'];
@@ -61,7 +62,7 @@ type PartyDetailProps = {
 };
 
 export function PartyDetail({
-  party, entries, relationship, onRoleChange, onEditParty, onAddNote, onEditNote, onDeleteNote,
+  party, entries, relationship, onRoleChange, onEditParty, onNewInvoice, onAddNote, onEditNote, onDeleteNote,
   statement, balanceSummary, visibleRows, range, onRange, kind, onKind, ledgerQuery, onLedgerQuery,
   pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
   onLedgerAction, statementOpen, onCloseStatement, sources, onRecordPayment, onRefundCredit,
@@ -189,7 +190,9 @@ export function PartyDetail({
           aria-label={existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')}>
           <BookOpen className="size-4"/> {existingOpening?text('Edit opening','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
         </Button>
-        <Button size="sm" variant="outline" disabled title={text("Open a new invoice from the POS until the Party source action is connected","পার্টি থেকে নতুন বিল তৈরির কাজ এখনো চালু হয়নি। POS থেকে বিল করুন।")}>
+        <Button size="sm" variant="outline" disabled={relationship!=='Customer'||party.status==='Inactive'}
+          title={relationship!=='Customer'?text('New sales are available for customer relationships','শুধু ক্রেতা সম্পর্কের জন্য নতুন বিক্রি করা যায়'):party.status==='Inactive'?text('Activate this customer before starting a new sale','নতুন বিক্রির আগে ক্রেতাকে সক্রিয় করুন'):undefined}
+          onClick={onNewInvoice}>
           <Plus className="size-4" /> {text('New invoice','নতুন বিল')}
         </Button>
         <Button size="sm" variant="outline" disabled title={text("SMS service is not connected to the UI preview","এই প্রিভিউতে SMS চালু নেই")}>
