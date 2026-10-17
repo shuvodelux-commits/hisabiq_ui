@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -40,6 +40,7 @@ export function Parties() {
   const {text:uiText}=useUiCopy();
   const [params,setParams]=useSearchParams();
   const navigate=useNavigate();
+  const location=useLocation();
   const [range,setRange]=useState<IsoRange>({from:'',to:''});
   const [kind,setKind]=useState('All types');
   const [ledgerQuery,setLedgerQuery]=useState('');
@@ -164,6 +165,9 @@ export function Parties() {
           navigate(vendorWorkLink(party.id,tab,sourceId))}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}
+        onNewInvoice={()=>navigate(`/app/pos?partyId=${encodeURIComponent(party.id)}`,{
+          state:{hisabiqSource:'party-profile',returnTo:`${location.pathname}${location.search}`}
+        })}
         statement={statement!} balanceSummary={summary!} visibleRows={visibleRows}
         range={range} onRange={next=>{setRange(next);setPage(1);}}
         kind={kind} onKind={value=>{setKind(value);setPage(1);}}

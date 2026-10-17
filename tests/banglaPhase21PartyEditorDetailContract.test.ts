@@ -53,5 +53,7 @@ test('Opening and Party Detail retain preview-only posting and source-linked cor
   'onLedgerAction(action,row)', 'onAddNote(note.trim())','onDeleteNote(deleteNote.id)'
  ]) assert.ok(detail.includes(marker),marker);
  assert.match(detail,/SMS service is not connected to the UI preview/);
- assert.match(detail,/Open a new invoice from the POS until the Party source action is connected/);
+ assert.ok(detail.includes("disabled={relationship!=='Customer'||party.status==='Inactive'}"));
+ assert.ok(detail.includes('onClick={onNewInvoice}'));
+ assert.ok(detail.includes("text('New invoice','নতুন বিল')"));
 });
