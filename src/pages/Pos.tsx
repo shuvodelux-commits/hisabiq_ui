@@ -16,7 +16,7 @@ import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from
 import {addDays,addMonths,businessToday} from '../utils/dateRange';
 import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../installments/schedule';
 import {validateInstallmentDraft} from '../installments/validateDraft';
-import {allocateNegotiatedInvoiceLines} from '../installments/pricing';
+import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../installments/pricing';
 import {recordInstallmentPreview,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
 import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
 import {InstallmentBreakdownDialog} from '../components/pos/InstallmentBreakdownDialog';
@@ -844,7 +844,31 @@ export function Pos() {
                 setInstallmentBreakdownOpen(true);
               }else setFirstInstallmentDue(date);
             },
-            schedule:installmentRows,onEditSchedule:()=>setInstallmentBreakdownOpen(true)
+            schedule:installmentRows,onEditSchedule:()=>setInstallmentBreakdownOpen(true),
+            onPriceAdjustment:cart.lines.length===1?(mode:'amount'|'percent',value:string)=>{
+              const line=cart.lines[0];
+              const factor=line.product.altUnit&&line.unit===line.product.altUnit.unit?line.product.altUnit.factor:1;
+              const quantity=(Number(line.qty)||0)+(factor>1?(Number(line.secondaryQty)||0)/factor:0);
+              if(!Number.isFinite(quantity)||quantity<=0){
+                toast.error('Enter a valid product quantity before adjusting the selling price.');
+                return false;
+              }
+              try{
+                const currentPaisa=Math.round(compoundLineTotal(line.qty,line.secondaryQty,factor,line.price)*100);
+                const targetPaisa=negotiateInstallmentTotal(currentPaisa,{mode,value});
+                const unitPrice=Math.round((targetPaisa/100/quantity)*100)/100;
+                if(!Number.isFinite(unitPrice)||unitPrice<0||
+                  Math.round(compoundLineTotal(line.qty,line.secondaryQty,factor,unitPrice)*100)!==targetPaisa){
+                  toast.error('This amount cannot be allocated exactly at the selected quantity. Edit the cart unit price instead.');
+                  return false;
+                }
+                cart.updateLine(line.key,{price:String(unitPrice)});
+                return true;
+              }catch(error){
+                toast.error(error instanceof Error?error.message:'Enter a valid price adjustment.');
+                return false;
+              }
+            }:undefined
           }:undefined}
           completeLabel={editing ? uiText(personal.language,'Preview sale update','বিক্রি সংশোধন দেখুন') : uiText(personal.language,'Preview sale','বিক্রির হিসাব দেখুন')} />
         
