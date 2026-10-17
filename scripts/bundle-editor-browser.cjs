@@ -120,6 +120,15 @@ async function run(){
    await confirm.waitFor({state:'hidden'});
    assert.equal(await page.getByText('Tubewell Set Copy',{exact:true}).count(),0,'unsold duplicate gets removed');
    assert.equal(await page.getByText('Tubewell Set',{exact:true}).count()>0,true,'sold original remains');
+   await page.evaluate(()=>{window.location.hash='#/app/pos';});
+   const posSearch=page.getByRole('combobox',{name:/Add product/i}).first();
+   await posSearch.waitFor();
+   await posSearch.fill(sku);
+   await page.getByRole('option',{name:/Tubewell Set/}).click();
+   const posLine=page.locator('[data-testid="pos-cart-row"]').filter({hasText:'Tubewell Set'}).first();
+   await posLine.getByRole('button',{name:/Show purchase price for Tubewell Set/i}).click();
+   await posLine.getByText(/package cost/i).waitFor();
+   await posLine.getByText(/estimated/i).waitFor();
    await page.evaluate(()=>{window.location.hash='#/app/purchases/new';});
    const purchaseSearch=page.getByRole('combobox',{name:'Search product to add to purchase'});
    await purchaseSearch.waitFor();
