@@ -58,6 +58,8 @@ async function main(){
           const before=await sidebar.boundingBox();
           await act(resize);
           await expect(sidebar).toHaveAttribute('data-collapsible','icon');
+          // The state attribute changes before the CSS width transition settles.
+          await expect.poll(async()=> (await sidebar.boundingBox())?.width ?? Infinity).toBeLessThan(before.width);
           const collapsed=await sidebar.boundingBox();
           assert.ok(collapsed.width<before.width,'resize button collapses the sidebar');
           await act(page.getByRole('button',{name:text('Expand sidebar','সাইডবার খুলুন'),exact:true}));
