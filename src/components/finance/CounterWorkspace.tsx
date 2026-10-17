@@ -5,7 +5,8 @@ import {Button} from '../Button';
 import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '../Dialog';
-import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview} from '../../data/partyPreviewStore';
+import {PartyEditorDialog} from '../parties/PartyEditorDialog';
+import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview,quickAddPartyPreview,PartyQuickAddConflict} from '../../data/partyPreviewStore';
 import {getExpensePreviewSnapshot,savePreviewExpense} from '../../data/expensePreviewStore';
 import {customerSettlementAsOf,supplierSettlementAsOf} from '../../utils/partySettlement';
 import {businessToday} from '../../utils/dateRange';
@@ -16,7 +17,7 @@ import {taka} from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeAccountOptionLabel, type FinanceAccount} from '../../data/financeAccounts';
 import type {Expense,Party,PartyRole} from '../../types/erp';
-import type {PartyMoneySplit,PartyPaymentPayload} from '../../types/partyLedger';
+import type {PartyDraft,PartyMoneySplit,PartyOpeningPayload,PartyPaymentPayload} from '../../types/partyLedger';
 
 type Action='Customer Receive'|'Supplier Pay'|'Expense'|'Bank Transfer';
 type Row={id:string;method:'Cash'|'Bank'|'Mobile Banking';accountId:string;amount:string};
@@ -35,6 +36,8 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  const [partyId,setPartyId]=useState('');
  const [search,setSearch]=useState('');
  const [searching,setSearching]=useState(false);
+ const [quickAddOpen,setQuickAddOpen]=useState(false);
+ const partySearchRef=useRef<HTMLInputElement>(null);
  const [allocation,setAllocation]=useState('');
  const [discountInput,setDiscountInput]=useState('');
  const [discountReason,setDiscountReason]=useState('');
@@ -90,8 +93,26 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  const changeType=(next:Action)=>{setType(next);reset();};
  const clearParty=()=>{setPartyId('');setSearch('');setAllocation('');setRows([]);
   setDiscountInput('');setDiscountReason('');setError('');setReview(false);setSubmitted(false);setSearching(true);};
- const selectParty=(p:Party)=>{if(p.id!==partyId){setRows([]);setDiscountInput('');setDiscountReason('');}
+ const selectParty=(p:Party,preserveDraft=false)=>{if(p.id!==partyId&&!preserveDraft){setRows([]);setDiscountInput('');setDiscountReason('');}
   setPartyId(p.id);setSearch(p.name);setSearching(false);setAllocation('');setError('');setReview(false);setSubmitted(false);};
+ const addParty=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
+  if(!draft.roles.includes(payerRole))throw new Error(text(`Select the ${payerRole.toLowerCase()} relationship to continue.`,payerRole==='Customer'?'চালিয়ে যেতে ক্রেতা সম্পর্কটি নির্বাচন করুন।':'চালিয়ে যেতে সরবরাহকারী সম্পর্কটি নির্বাচন করুন।'));
+  try{
+   const {party,reused}=quickAddPartyPreview(draft,openings);
+   setQuickAddOpen(false);selectParty(party,true);
+   requestAnimationFrame(()=>{partySearchRef.current?.focus();setSearching(false);});
+   toast.success(reused
+    ?text('Existing party selected; relationships added','আগের পার্টি বাছা হয়েছে; সম্পর্ক যোগ হয়েছে')
+    :text(payerRole+' added in Counter preview',payerRole==='Customer'?'ক্রেতা কাউন্টারের প্রিভিউতে যোগ হয়েছে':'সরবরাহকারী কাউন্টারের প্রিভিউতে যোগ হয়েছে'));
+  }catch(error){
+   if(error instanceof PartyQuickAddConflict){
+    if(error.reason==='inactive')throw new Error(text('This matching party is inactive. Reactivate them in Parties before recording a Counter payment.','মিলে যাওয়া পার্টিটি নিষ্ক্রিয়। কাউন্টারে টাকা নেওয়া বা দেওয়ার আগে পার্টিতে সক্রিয় করুন।'));
+    if(error.reason==='ambiguous')throw new Error(text('Multiple parties have this name and phone. Select the correct identity in Parties first.','একই নাম ও ফোনে একাধিক পার্টি আছে। আগে পার্টিতে সঠিক ব্যক্তিকে বাছুন।'));
+    throw new Error(text('Edit an existing relationship opening balance in Parties. Quick Add only adds new relationships.','আগের সম্পর্কের শুরুর জের পার্টিতে গিয়ে বদলান। এখান থেকে শুধু নতুন সম্পর্ক যোগ করা যায়।'));
+   }
+   throw error;
+  }
+ };
  const editRows=(next:Row[])=>{setRows(next);setReview(false);setError('');setSubmitted(false);};
  const addRow=()=>{
   const next:Row={id:'counter-'+Date.now()+'-'+effectiveRows.length,method:'Cash',accountId:cashAccount?.id??'',amount:''};
@@ -178,7 +199,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
      <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?word('findCustomer'):word('findSupplier')}</label>
      <div className="relative">
       <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-2.5 z-10 size-4 text-ink-400"/>
-      <Input className="pl-9" aria-label={type==='Customer Receive'?text('Search customer','ক্রেতা খুঁজুন'):text('Search supplier','সরবরাহকারী খুঁজুন')} value={search}
+      <Input ref={partySearchRef} className="pl-9" aria-label={type==='Customer Receive'?text('Search customer','ক্রেতা খুঁজুন'):text('Search supplier','সরবরাহকারী খুঁজুন')} value={search}
        placeholder={text("Search name, phone or area","নাম, ফোন বা এলাকা খুঁজুন")} onFocus={()=>setSearching(true)} onClick={()=>setSearching(true)}
        onClear={clearParty}
        onChange={e=>{if(partyId){setRows([]);setDiscountInput('');setDiscountReason('');}
@@ -193,6 +214,10 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
        <ArrowRight className="size-4 shrink-0 text-ink-400"/>
       </button>):<p className="p-3 text-xs text-ink-500">{text("No matching parties","কোনো নাম মেলেনি")}</p>}
      </div>}
+     {searching&&search.trim()&&filtered.length===0&&<Button type="button" variant="outline" size="sm" className="mt-2 w-full justify-start"
+      onMouseDown={event=>event.preventDefault()} onClick={()=>setQuickAddOpen(true)}>
+      <Plus className="size-4"/>{text(`Add “${search.trim()}” as ${payerRole.toLowerCase()}`,payerRole==='Customer'?`ক্রেতা হিসেবে “${search.trim()}” যোগ করুন`:`সরবরাহকারী হিসেবে “${search.trim()}” যোগ করুন`)}
+     </Button>}
      {selected&&settlement&&<div className="mt-3 rounded-lg border border-border bg-ink-50/60 p-3" aria-live="polite">
       <div className="flex flex-wrap items-start justify-between gap-3">
        <div><p className="text-[11px] text-ink-500">{text('Selected '+payerRole.toLowerCase(),payerRole==='Customer'?'বাছা ক্রেতা':'বাছা সরবরাহকারী')}</p><p className="font-semibold">{selected.name}</p>
@@ -334,5 +359,6 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
     </div>
    </DialogContent>
   </Dialog>
+  <PartyEditorDialog key={`${payerRole}:${search.trim()}`} open={quickAddOpen} defaultRole={payerRole} initialName={search.trim()} onClose={()=>setQuickAddOpen(false)} onSave={addParty}/>
  </section>;
 }

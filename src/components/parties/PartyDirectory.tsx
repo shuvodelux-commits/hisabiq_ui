@@ -55,7 +55,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
         <span>{text('Balance','জের')}</span>
       </div>
 
-      <ul className="max-h-[calc(100vh-290px)] min-h-[320px] flex-1 overflow-auto scrollbar-thin" role="listbox" aria-label={text('Parties','পার্টি তালিকা')}>
+      <ul data-party-directory-list className="max-h-[calc(100vh-290px)] min-h-[320px] flex-1 overflow-auto scrollbar-thin" role="listbox" aria-label={text('Parties','পার্টি তালিকা')}>
         {parties.map((p) => {
           const active = p.id === selectedId;
           return (
