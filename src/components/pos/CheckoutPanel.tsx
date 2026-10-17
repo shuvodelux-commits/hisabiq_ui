@@ -52,6 +52,7 @@ type CheckoutPanelProps = {
   completeLabel?: string;
   completeRef?: React.RefObject<HTMLButtonElement>;
   installment?: InstallmentTerms;
+  onQuickAddCustomer?:()=>void;
 };
 
 const methods: PosPaymentMethod[] = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card', 'Customer Credit'];
@@ -118,6 +119,12 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         </div>
 
         <CustomerPicker value={customer} onChange={props.onCustomer} />
+        {props.installment?.mode==='Installment' && !customer && props.onQuickAddCustomer &&
+          <button type="button" onClick={props.onQuickAddCustomer}
+            className="w-fit rounded-md px-1 py-1 text-xs font-medium text-teal-700 hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+            + {text('Add customer','নতুন ক্রেতা যোগ করুন')}
+          </button>}
+
         {props.installment && <div role="group" aria-label={text('Sale type','বিক্রির ধরন')}
           className="grid grid-cols-2 gap-1 rounded-lg bg-ink-50 p-1">
           {(['Regular','Installment'] as const).map(mode=><button
