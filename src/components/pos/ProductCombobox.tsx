@@ -70,13 +70,18 @@ ref)
     const triggerRect = inputRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    // Keep the floating list below the sticky ERP toolbar on phones/tablets.
+    // Without this safe top inset, an upward-opening list intercepts menu taps.
+    const topBoundary = viewportWidth < 1024 ? 64 : VIEWPORT_PADDING;
     const naturalHeight = listRef.current?.scrollHeight ?? 0;
-    const maxViewportHeight = Math.max(120, viewportHeight - VIEWPORT_PADDING * 2);
-    const panelHeight = Math.min(naturalHeight || maxViewportHeight, maxViewportHeight);
-    const spaceBelow = viewportHeight - triggerRect.bottom - GAP - VIEWPORT_PADDING;
-    const spaceAbove = triggerRect.top - GAP - VIEWPORT_PADDING;
+    const maxViewportHeight = Math.max(80, viewportHeight - topBoundary - VIEWPORT_PADDING);
+    const spaceBelow = Math.max(0, viewportHeight - triggerRect.bottom - GAP - VIEWPORT_PADDING);
+    const spaceAbove = Math.max(0, triggerRect.top - GAP - topBoundary);
 
     const opensUp = naturalHeight > 0 && naturalHeight > spaceBelow && spaceAbove > spaceBelow;
+    const availableSpace = opensUp ? spaceAbove : spaceBelow;
+    const maxHeight = Math.max(72, Math.min(maxViewportHeight, availableSpace));
+    const panelHeight = Math.min(naturalHeight || maxHeight, maxHeight);
     const width = Math.min(
       Math.max(triggerRect.width, DESIRED_WIDTH),
       Math.max(0, viewportWidth - VIEWPORT_PADDING * 2)
@@ -91,12 +96,12 @@ ref)
       : triggerRect.bottom + GAP;
 
     const top = Math.min(
-      Math.max(VIEWPORT_PADDING, preferredTop),
-      Math.max(VIEWPORT_PADDING, viewportHeight - panelHeight - VIEWPORT_PADDING)
+      Math.max(topBoundary, preferredTop),
+      Math.max(topBoundary, viewportHeight - panelHeight - VIEWPORT_PADDING)
     );
 
     setPosition((current) => {
-      const next = { top, left, width, maxHeight: maxViewportHeight, opensUp };
+      const next = { top, left, width, maxHeight, opensUp };
       if (
         current &&
         current.top === next.top &&
@@ -124,7 +129,7 @@ ref)
   useEffect(() => {
     if (!open) return;
 
-    const onOutsideInteraction = (event: MouseEvent | FocusEvent) => {
+    const onOutsideInteraction = (event: MouseEvent | FocusEvent | PointerEvent) => {
       const target = event.target as Node;
       if (rootRef.current?.contains(target) || listRef.current?.contains(target)) return;
       setOpen(false);
@@ -142,6 +147,7 @@ ref)
 
     const onViewportChange = () => updatePosition();
 
+    document.addEventListener('pointerdown', onOutsideInteraction);
     document.addEventListener('mousedown', onOutsideInteraction);
     document.addEventListener('focusin', onOutsideInteraction);
     document.addEventListener('keydown', onKey);
@@ -149,6 +155,7 @@ ref)
     window.addEventListener('scroll', onViewportChange, true);
 
     return () => {
+      document.removeEventListener('pointerdown', onOutsideInteraction);
       document.removeEventListener('mousedown', onOutsideInteraction);
       document.removeEventListener('focusin', onOutsideInteraction);
       document.removeEventListener('keydown', onKey);
