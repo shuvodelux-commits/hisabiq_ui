@@ -33,6 +33,7 @@ import {createBundleSaleSnapshot} from '../bundles/bundleDocuments';
 import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
+import type { PartyWorkspaceContext } from '../utils/partyNavigation';
 
 type CompletedSale = {
   invoice: string;
@@ -141,7 +142,7 @@ export function Pos() {
   const previewCatalog=usePreviewCatalog();
   const navigate = useNavigate();
   const location = useLocation();
-  const incomingState = location.state as {hisabiqSource?:string;orderId?:string;returnTo?:string}|null;
+  const incomingState = location.state as {hisabiqSource?:string;orderId?:string;returnTo?:string;partyWorkspace?:PartyWorkspaceContext}|null;
   const incomingOrderId = incomingState?.hisabiqSource==='online-order'?incomingState.orderId:undefined;
   const handoffOrder = incomingOrderId?getOnlineSnapshot().orders.find(o=>o.id===incomingOrderId):undefined;
   const [searchParams] = useSearchParams();
@@ -154,9 +155,12 @@ export function Pos() {
   const contextualParty = partyContext
     ? getPartyPreviewSnapshot().parties.find((party) => party.id === sourcePartyId && party.roles.includes('Customer') && party.status !== 'Inactive')
     : undefined;
-  const partyReturnTo = incomingState?.hisabiqSource === 'party-profile' && incomingState.returnTo?.startsWith('/app/parties')
+  const partyReturnTo = incomingState?.hisabiqSource === 'party-profile' && /^\/app\/parties(?:\?|$)/.test(incomingState.returnTo??'')
     ? incomingState.returnTo
     : sourcePartyId ? `/app/parties?id=${encodeURIComponent(sourcePartyId)}&role=Customer` : '/app/parties';
+  const returnToParty=()=>navigate(partyReturnTo??'/app/parties',{
+    state:{hisabiqSource:'party-pos-return',partyWorkspace:incomingState?.hisabiqSource==='party-profile'?incomingState.partyWorkspace:undefined}
+  });
   const sourceInvoice = salesInvoices.find((sale) => sale.invoice === sourceInvoiceNo) ?? null;
   const sourceDraft = salesDrafts.find((draft) => draft.id === sourceDraftId) ?? null;
   const sourceTemplate = saleTemplates.find((template) => template.id === sourceTemplateId) ?? null;
@@ -544,6 +548,11 @@ export function Pos() {
     if (editing || duplicating || draftContext || templateContext || incomingOrderId || partyContext) navigate('/app/pos', { replace: true, state: null });
     setTimeout(() => searchRef.current?.focus(), 50);
   };
+  const closeCompletedSale=()=>{
+    if(partyContext){returnToParty();return;}
+    if(editing){setCompleted(null);navigate('/app/sales');return;}
+    newSale();
+  };
 
   return (
     <div className="pos-screen mx-auto max-w-[1440px] min-w-0 space-y-4">
@@ -579,11 +588,11 @@ export function Pos() {
       {partyContext && contextualParty && (
         <div className="flex flex-col gap-2 rounded-lg border border-teal-300 bg-teal-50 p-3 text-sm text-teal-900 dark:bg-teal-900/20 dark:text-teal-900 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-semibold">Sale for {contextualParty.name} · ক্রেতার নামে বিক্রি</p>
-            <p className="mt-1 text-xs">Customer is preselected. Review products, price and payment before confirming. · পণ্য, দাম ও পেমেন্ট দেখে তারপর নিশ্চিত করুন।</p>
+            <p className="font-semibold">{uiText(personal.language,`Sale for ${contextualParty.name}`,`${contextualParty.name} এর নামে বিক্রি`)}</p>
+            <p className="mt-1 text-xs">{uiText(personal.language,'Customer is preselected. Review products, price and payment before confirming.','ক্রেতা বাছা আছে। পণ্য, দাম ও পেমেন্ট দেখে তারপর নিশ্চিত করুন।')}</p>
           </div>
-          <Button size="sm" variant="outline" className="bg-card" onClick={() => navigate(partyReturnTo)}>
-            <ArrowLeft className="size-4" /> Back to party · পার্টিতে ফিরুন
+          <Button size="sm" variant="outline" className="bg-card" onClick={returnToParty}>
+            <ArrowLeft className="size-4" /> {uiText(personal.language,'Back to party','পার্টিতে ফিরুন')}
           </Button>
         </div>
       )}
@@ -739,15 +748,7 @@ export function Pos() {
           {label:'Paid',value:taka(cart.totals.paidNum)},
           {label:'Due',value:taka(cart.totals.due)}
         ]}/>
-      <Dialog open={!!completed} onOpenChange={(open) => {
-        if (open) return;
-        if (editing) {
-          setCompleted(null);
-          navigate('/app/sales');
-          return;
-        }
-        newSale();
-      }}>
+      <Dialog open={!!completed} onOpenChange={(open) => {if(!open)closeCompletedSale();}}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -772,16 +773,9 @@ export function Pos() {
             <Button variant="outline" onClick={() => window.print()}>
               <Printer className="size-4" /> Print receipt
             </Button>
-            <Button onClick={() => {
-              if (editing) {
-                setCompleted(null);
-                navigate('/app/sales');
-                return;
-              }
-              newSale();
-            }}>
-              {editing ? <ArrowLeft className="size-4" /> : <Plus className="size-4" />}
-              {editing ? 'Back to sales' : 'New sale'}
+            <Button onClick={closeCompletedSale}>
+              {editing||partyContext ? <ArrowLeft className="size-4" /> : <Plus className="size-4" />}
+              {partyContext?uiText(personal.language,'Back to party','পার্টিতে ফিরুন'):editing ? 'Back to sales' : 'New sale'}
             </Button>
           </DialogFooter>
         </DialogContent>

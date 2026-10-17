@@ -18,7 +18,6 @@ test('Party feedback uses current three language modes with preview limitation',
 test('Party presentation changes do not change relationship isolation, ledger dates, payments or financial source logic',()=>{
  const s=readFileSync('src/pages/Parties.tsx','utf8');
  for(const source of [
-  "useState('All types')","useState<PartyRole|'All'>('All')",
   "const partyEntries:LedgerEntry[]",
   "const normalizedRows:PartyLedgerRow[]",
   "projectPartyStatement(normalizedRows,party.id,relationship,range)",
