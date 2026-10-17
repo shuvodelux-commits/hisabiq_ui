@@ -1,0 +1,34 @@
+name: Amount in Words Readability Check
+on:
+  pull_request:
+    paths:
+      - 'src/components/AmountInWordsDisplay.tsx'
+      - 'src/components/finance/CounterWorkspace.tsx'
+      - 'src/components/pos/CheckoutPanel.tsx'
+      - 'src/components/purchases/PurchasePaymentPanel.tsx'
+      - 'src/components/brand/ReceiptPreview.tsx'
+      - 'src/components/parties/PartyPaymentDialog.tsx'
+      - 'src/components/parties/PartyFinanceDialog.tsx'
+      - 'src/pages/Finance.tsx'
+      - 'tests/amountInWordsDisplayContract.test.ts'
+      - 'scripts/amount-in-words-browser.cjs'
+      - '.github/workflows/amount-in-words-readability-check.yml'
+jobs:
+  readable-money-words:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - name: Verify ERP-wide money word display contract
+        run: node --experimental-strip-types --test tests/amountInWordsDisplayContract.test.ts
+      - run: npx playwright install --with-deps chromium
+      - name: Check visibility on Counter POS Purchases and print preview
+        run: node scripts/amount-in-words-browser.cjs
+      - name: Verify legacy Counter workflows
+        run: node scripts/counter-ux-browser.cjs
