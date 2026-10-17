@@ -28,7 +28,8 @@ import {usePreviewCatalog} from '../bundles/usePreviewCatalog';
 import {getBundleVersion,getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import {availableParties,availableStockLots} from '../data/erpDemoStore';
 import {getPartyPreviewSnapshot} from '../data/partyPreviewStore';
-import {expandCartStockDemand,projectCartShortages,allocateBundlePreview} from '../bundles/bundleCart';
+import {expandCartStockDemand} from '../bundles/bundleCart';
+import {planComponentFulfillment,componentSourceKey} from '../bundles/bundleFulfillment';
 import {createBundleSaleSnapshot} from '../bundles/bundleDocuments';
 import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
@@ -68,7 +69,8 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       price: String(sourceLine.price),
       serials: sourceLine.serials ?? [],
       stockSource: sourceLine.stockSource,
-      ...(product.kind==='Bundle'?{bundleRevision:sourceLine.bundleRevision,bundleRecipeSignature:sourceLine.bundleRecipeSignature}: {})
+      ...(product.kind==='Bundle'?{bundleRevision:sourceLine.bundleRevision,bundleRecipeSignature:sourceLine.bundleRecipeSignature,
+        bundleSources:sourceLine.bundleSources,bundleSerials:sourceLine.bundleSerials}: {})
     }];
   });
 }
@@ -319,20 +321,22 @@ export function Pos() {
       return null;
     }
     const allLots=availableStockLots();
-    const shortages=projectCartShortages(expanded.demands,previewCatalog,allLots).filter(s=>s.shortageBaseQty>0);
-    if(shortages.length){
-      toast.error('Shared component shortage',{
-       description:shortages.map(s=>(previewCatalog.find(p=>p.id===s.componentProductId)?.name??s.componentProductId)+
-       ': '+s.shortageBaseQty+' '+(previewCatalog.find(p=>p.id===s.componentProductId)?.unit??'')).join(' · ')
+    const sources=Object.fromEntries(cart.lines.flatMap(line=>line.product.kind==='Bundle'
+      ?Object.entries(line.bundleSources??{}).map(([id,choice])=>[componentSourceKey(line.key,id),choice])
+      :line.stockSource?[[componentSourceKey(line.key,line.product.id),line.stockSource]]:[]));
+    const serials=Object.fromEntries(cart.lines.flatMap(line=>line.product.kind==='Bundle'
+      ?Object.entries(line.bundleSerials??{}).map(([id,values])=>[componentSourceKey(line.key,id),values])
+      :line.serials.length?[[componentSourceKey(line.key,line.product.id),line.serials]]:[]));
+    const soldSerials=salesInvoices.flatMap(item=>item.lines.flatMap(line=>line.serials??[]));
+    const planned=planComponentFulfillment(expanded.demands,previewCatalog,allLots,
+      {sources,serials,soldSerials});
+    if(planned.errors.length){
+      toast.error('Review package components',{
+       description:planned.errors[0]+' · Choose shortage source or required serials inside the package.'
       });
       return null;
     }
-    const allocated=allocateBundlePreview(expanded.demands,previewCatalog,allLots);
-    if(allocated.errors.length){
-      toast.error('Component allocation required',{description:allocated.errors[0]});
-      return null;
-    }
-    return allocated;
+    return planned;
   };
   const complete = () => {
     const hasBundle=cart.lines.some(line=>line.product.kind==='Bundle');
@@ -518,7 +522,8 @@ export function Pos() {
         price: parseFloat(line.price) || 0,
         serials: line.serials,
         stockSource: line.stockSource,
-        ...(line.product.kind==='Bundle'?{bundleRevision:line.bundleRevision,bundleRecipeSignature:line.bundleRecipeSignature}: {})
+        ...(line.product.kind==='Bundle'?{bundleRevision:line.bundleRevision,bundleRecipeSignature:line.bundleRecipeSignature,
+          bundleSources:line.bundleSources,bundleSerials:line.bundleSerials}: {})
       }))
     }]
     );

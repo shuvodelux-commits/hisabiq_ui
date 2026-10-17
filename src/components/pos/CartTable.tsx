@@ -23,13 +23,14 @@ import { getBundleVersion } from '../../data/productImportPreviewStore';
 import { availableStockLots } from '../../data/erpDemoStore';
 import { getBundleProjection } from '../../bundles/bundleProjection';
 import { priceBundleComponents } from '../../bundles/bundlePricing';
-import { expandCartStockDemand, projectCartShortages } from '../../bundles/bundleCart';
+import { expandCartStockDemand } from '../../bundles/bundleCart';
+import {planComponentFulfillment,maxAffordableBundleSets,componentSourceKey} from '../../bundles/bundleFulfillment';
 
 type CartTableProps = {
   lines: CartLine[];
   lastAdded: string | null;
   onAdd: (p: Product) => void;
-  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource'>>) => void;
+  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource' | 'bundleSources' | 'bundleSerials'>>) => void;
   onRemove: (key: string) => void;
   onReorder: (orderedKeys: string[]) => void;
   onMove: (key: string, delta: number) => void;
@@ -102,9 +103,18 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
   const [serialLine, setSerialLine] = useState<CartLine | null>(null);
   const [shortageLine, setShortageLine] = useState<CartLine | null>(null);
+  const [shortageComponent,setShortageComponent]=useState<{lineKey:string;productId:string}|null>(null);
+  const [serialComponent,setSerialComponent]=useState<{lineKey:string;productId:string}|null>(null);
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
   const bundleDemand=expandCartStockDemand(lines,catalog,(id,revision)=>getBundleVersion(id,revision));
-  const componentShortages=projectCartShortages(bundleDemand.demands,catalog,availableStockLots());
+  const sources=Object.fromEntries(lines.flatMap(l=>l.product.kind==='Bundle'
+    ?Object.entries(l.bundleSources??{}).map(([productId,source])=>[componentSourceKey(l.key,productId),source])
+    :l.stockSource?[[componentSourceKey(l.key,l.product.id),l.stockSource]]:[]));
+  const serials=Object.fromEntries(lines.flatMap(l=>l.product.kind==='Bundle'
+    ?Object.entries(l.bundleSerials??{}).map(([productId,values])=>[componentSourceKey(l.key,productId),values])
+    :l.serials.length?[[componentSourceKey(l.key,l.product.id),l.serials]]:[]));
+  const componentPlan=planComponentFulfillment(bundleDemand.demands,catalog,availableStockLots(),
+    {sources,serials,soldSerials});
   const allocations=allocatePosStock(lines.filter(l=>l.product.kind!=='Bundle').map(l=>({key:l.key,product:l.product,
    requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
     l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),choice:l.stockSource})),stockLots);
@@ -153,12 +163,13 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
             const recipe=l.product.kind==='Bundle'&&l.bundleRevision?getBundleVersion(l.product.id,l.bundleRevision):undefined;
             const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
+            const bundleCostPending=l.product.kind==='Bundle'&&Object.values(l.bundleSources??{}).some(source=>
+              source.mode==='Negative'||(source.mode==='Vendor'&&source.unitCost===null));
             const bundleAvailable=recipe?getBundleProjection(recipe,catalog,availableStockLots()).availableSets:0;
             const purchasePrice = l.product.kind==='Bundle' ? bundleCost?.componentPurchaseCost ?? 0 : factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
             const shortage = l.product.kind==='Bundle'?0:Math.max(0,baseQty-(allocations.find(a=>a.key===l.key)?.ownBaseQty??0));
-            const bundleShortage=l.product.kind==='Bundle'&&recipe?Math.max(0,baseQty-bundleAvailable):0;
-            const relatedShortages=l.product.kind==='Bundle'&&recipe?componentShortages.filter(s=>s.shortageBaseQty>0&&recipe.components.some(part=>part.productId===s.componentProductId)):[];
+            const relatedShortages=l.product.kind==='Bundle'&&recipe?componentPlan.rows.filter(s=>s.sourceLineKey===l.key&&s.shortageBaseQty>0&&!s.source):[];
             const invalidSets=l.product.kind==='Bundle'&&(!/^[1-9]\d*$/.test(l.qty.trim())||l.unit!=='Set'||Boolean(l.secondaryQty.trim()));
             const staleRecipe=l.product.kind==='Bundle'&&(!recipe||getBundleVersion(l.product.id)?.revision!==l.bundleRevision);
             return (
@@ -190,8 +201,34 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                       {invalidSets&&<span role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Whole Sets only','শুধু পূর্ণ সেট')}</span>}
                       {staleRecipe&&<span role="alert" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle recipe changed — add again','প্যাকেজের পণ্য বদলেছে — আবার যোগ করুন')}</span>}
                       {relatedShortages.length>0&&<span role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Shared component shortage','প্যাকেজের পণ্য কম')} · {relatedShortages.map(s=>`${catalog.find(p=>p.id===s.componentProductId)?.name??s.componentProductId}: ${s.shortageBaseQty}`).join(', ')}</span>}
-                      {l.product.kind==='Bundle'&&recipe&&<details className="text-[11px] text-ink-500"><summary className="cursor-pointer">{text('View included products','ভেতরের পণ্য দেখুন')}</summary><div className="mt-1 space-y-0.5">{recipe.components.map(child=><p key={child.productId}>{catalog.find(p=>p.id===child.productId)?.name??child.productId}: {child.baseQty} {catalog.find(p=>p.id===child.productId)?.unit}/{text('Set','সেট')}</p>)}</div></details>}
-                      {bundleShortage>0&&<span className="rounded bg-danger-bg px-1.5 py-0.5 text-[10.5px] font-medium text-danger">{text('Component shortage','প্যাকেজের পণ্য কম')} · {bundleShortage} Set</span>}
+                      {l.product.kind==='Bundle'&&recipe&&<details className="text-[11px] text-ink-500">
+                        <summary className="cursor-pointer">{text('View included products','ভেতরের পণ্য দেখুন')}</summary>
+                        <div className="mt-1 space-y-1.5">
+                          {recipe.components.map(child=>{
+                            const item=catalog.find(p=>p.id===child.productId);
+                            const row=componentPlan.rows.find(r=>r.sourceLineKey===l.key&&r.componentProductId===child.productId);
+                            const selected=l.bundleSerials?.[child.productId]??[];
+                            const needsSource=(row?.shortageBaseQty??0)>1e-7;
+                            const source=l.bundleSources?.[child.productId];
+                            const serialRequired=item?.serialTracking==='Required';
+                            const serialOptional=item?.serialTracking==='Optional';
+                            const totalQty=child.baseQty*Number(l.qty);
+                            return <div key={child.productId} className="flex flex-wrap items-center gap-1.5 rounded-md bg-ink-50/60 px-2 py-1.5" data-testid="bundle-component-item">
+                              <span className="min-w-0 flex-1">{item?.name??child.productId}: {totalQty} {item?.unit??''}</span>
+                              {needsSource&&<button type="button" aria-label={`Choose source for ${item?.name??child.productId} in ${l.product.name}`}
+                                className="rounded bg-warning-bg px-2 py-1 font-medium text-warning" onClick={()=>setShortageComponent({lineKey:l.key,productId:child.productId})}>
+                                {source?.mode==='Vendor'?source.vendorName+(source.unitCost===null?' · Price pending':''):source?.mode==='Negative'?'Negative Sale':'Choose source'} · {row?.shortageBaseQty} {item?.unit}
+                              </button>}
+                              {(serialRequired||serialOptional)&&<button type="button"
+                                aria-label={`Serial numbers for ${item?.name??child.productId} in ${l.product.name}`}
+                                className={'rounded px-2 py-1 font-medium '+(serialRequired&&selected.length!==Math.ceil(row?.ownBaseQty??totalQty)?'bg-warning-bg text-warning':'bg-teal-50 text-teal-700')}
+                                onClick={()=>setSerialComponent({lineKey:l.key,productId:child.productId})}>
+                                <ScanLine className="mr-1 inline size-3"/>Serials {selected.length}/{Math.ceil(row?.ownBaseQty??totalQty)}
+                              </button>}
+                            </div>;
+                          })}
+                        </div>
+                      </details>}
                       {shortage > 0 && (
                         <button
                           type="button"
@@ -268,7 +305,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                       {l.product.kind==='Bundle'
                        ?<><span className="font-medium">{text('Package cost','প্যাকেজের কেনা খরচ')} · {text('estimated','আনুমানিক')}</span><span className="block">{taka(purchasePrice,purchasePrice%1?2:0)}/Set</span>
                          <span className="block text-ink-400">{text('Current component lots; not realized sale cost','বর্তমান পণ্যের লট; বিক্রির চূড়ান্ত খরচ নয়')}</span>
-                         {bundleCost&&!bundleCost.costFromAvailableLots&&<span className="block text-warning">{text('Some component cost uses catalog estimate','কিছু পণ্যের আনুমানিক দাম ধরা হয়েছে')}</span>}</>
+                         {bundleCost&&!bundleCost.costFromAvailableLots&&<span className="block text-warning">{text('Some component cost uses catalog estimate','কিছু পণ্যের আনুমানিক দাম ধরা হয়েছে')}</span>}
+                         {bundleCostPending&&<span role="note" className="block font-medium text-warning">{text('Sourced component cost is pending — profit is not final','পণ্যের কেনা দাম বাকি — লাভ এখনও নিশ্চিত নয়')}</span>}</>
                        :<>{word('cost')} {taka(purchasePrice, purchasePrice % 1 ? 2 : 0)}/{l.unit}</>}
                     </div>
                   }
@@ -329,6 +367,52 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
         );
       })()}
 
+      {shortageComponent&&(()=>{
+        const parent=lines.find(line=>line.key===shortageComponent.lineKey&&line.product.kind==='Bundle');
+        const product=catalog.find(p=>p.id===shortageComponent.productId);
+        const row=componentPlan.rows.find(r=>r.sourceLineKey===shortageComponent.lineKey&&r.componentProductId===shortageComponent.productId);
+        if(!parent||!product||!row)return null;
+        const available=row.ownBaseQty;
+        const sets=maxAffordableBundleSets(parent.key,bundleDemand.demands,catalog,availableStockLots());
+        const componentLine:CartLine={...parent,product,unit:product.unit,qty:String(row.requiredBaseQty),
+          secondaryQty:'',stockSource:parent.bundleSources?.[product.id]};
+        return <StockShortageDialog line={componentLine} open availableBaseQty={available}
+          shortageBaseQty={row.shortageBaseQty}
+          componentContext={parent.product.name+' · '+product.name}
+          ownActionHint={sets>0?`Reduce package to ${sets} whole Set(s). Other cart lines keep their quantities.`:'No complete Set remains after other cart lines. Remove this package line.'}
+          onOpenChange={open=>{if(!open)setShortageComponent(null);}}
+          onUseOwnStock={()=>{
+            if(sets<=0)onRemove(parent.key);
+            else onUpdate(parent.key,{qty:String(sets),bundleSources:undefined,bundleSerials:undefined});
+            setShortageComponent(null);
+          }}
+          onResolve={source=>{
+            onUpdate(parent.key,{bundleSources:{...(parent.bundleSources??{}),[product.id]:source}});
+            setShortageComponent(null);
+          }}/>;
+      })()}
+      {serialComponent&&(()=>{
+        const parent=lines.find(line=>line.key===serialComponent.lineKey&&line.product.kind==='Bundle');
+        const product=catalog.find(p=>p.id===serialComponent.productId);
+        if(!parent||!product)return null;
+        const selection=parent.bundleSerials?.[product.id]??[];
+        const own=componentPlan.rows.find(r=>r.sourceLineKey===parent.key&&r.componentProductId===product.id)?.ownBaseQty??0;
+        const blocked=lines.flatMap(line=>[
+          ...line.serials,
+          ...Object.entries(line.bundleSerials??{})
+            .filter(([id])=>line.key!==parent.key||id!==product.id).flatMap(([,values])=>values)
+        ]);
+        const eligible=availableSerials(product,availableStockLots()).filter(s=>!soldSerials.some(used=>used.toLowerCase()===s.toLowerCase()));
+        return <SerialPickerDialog product={product} open
+          onOpenChange={open=>{if(!open)setSerialComponent(null);}}
+          eligible={[...new Set([...eligible,...selection])]}
+          selected={selection} blocked={blocked}
+          required={requiredSerialCount(product,own)} maxCount={Math.ceil(own)}
+          onSave={values=>{
+            onUpdate(parent.key,{bundleSerials:{...(parent.bundleSerials??{}),[product.id]:values}});
+            setSerialComponent(null);
+          }}/>;
+      })()}
       {shortageLine && (() => {
         const factor = shortageLine.product.altUnit && shortageLine.unit === shortageLine.product.altUnit.unit ? shortageLine.product.altUnit.factor : 1;
         const baseQty = compoundBaseQuantity(shortageLine.qty, shortageLine.secondaryQty, factor);

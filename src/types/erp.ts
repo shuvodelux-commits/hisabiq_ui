@@ -282,6 +282,8 @@ export type SalePresetLine = {
   /** Pin package drafts to the recipe chosen when it was saved. */
   bundleRevision?:number;
   bundleRecipeSignature?:string;
+  bundleSources?:Record<string,SaleStockSource>;
+  bundleSerials?:Record<string,string[]>;
   qty: string;
   secondaryQty?: string;
   unit: string;
