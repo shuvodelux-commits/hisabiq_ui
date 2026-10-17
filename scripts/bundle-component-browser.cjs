@@ -42,6 +42,25 @@ async function run(){
    await shortage.getByRole('button',{name:'Allow negative sale'}).click();
    await shortage.waitFor({state:'hidden'});
    await short.getByText(/Negative Sale/).waitFor();
+   // Verify the existing Vendor dropdown and nested Quick Add modal inside the component shortage dialog.
+   await source.click();
+   await shortage.waitFor();
+   await shortage.getByRole('radio',{name:/Vendor/}).click();
+   await shortage.getByRole('button',{name:'Quick add vendor'}).click();
+   const nested=page.getByRole('dialog',{name:'Quick add Vendor'});
+   await nested.waitFor();
+   await nested.getByRole('textbox',{name:'New Vendor name'}).fill('Bundle Supplier '+suffix);
+   await nested.getByRole('button',{name:'Add & select Vendor'}).click();
+   await nested.waitFor({state:'hidden'});
+   const vendorSelect=shortage.getByRole('combobox',{name:'Vendor'});
+   await vendorSelect.click();
+   const vendorOptions=page.locator('[role="listbox"][aria-label="Vendor options"]');
+   await vendorOptions.waitFor();
+   await vendorOptions.getByRole('option',{name:'Bundle Supplier '+suffix}).click();
+   await shortage.getByRole('button',{name:'Use vendor'}).click();
+   await shortage.waitFor({state:'hidden'});
+   await short.getByText(/Price pending/).waitFor();
+
    // Changing the requested Set quantity must invalidate the previous choice.
    const qty=short.getByRole('textbox',{name:/Quantity for Supply Package/i});
    await qty.fill('2');
