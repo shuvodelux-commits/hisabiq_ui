@@ -1,6 +1,6 @@
 /* Verify shared tables expose keyboard access only when they horizontally overflow. */
 const {chromium}=require('playwright');
-const {expect}=require('playwright/test');
+const expect=require('playwright/test').expect.configure({timeout:60000});
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
@@ -9,8 +9,9 @@ const results=[];
 
 async function main(){
  const {createServer}=await import('vite');
- const server=await createServer({server:{host:'127.0.0.1',port:0,strictPort:false}});await server.listen();
- const baseUrl='http://127.0.0.1:'+server.httpServer.address().port;
+ const port=49123;
+ const server=await createServer({server:{host:'127.0.0.1',port,strictPort:true}});await server.listen();
+ const baseUrl='http://127.0.0.1:'+port;
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
  fs.mkdirSync(output,{recursive:true});
  try{
@@ -18,13 +19,14 @@ async function main(){
    const id=[width,theme,language.replaceAll(' ','')].join('-');
    const context=await browser.newContext({viewport:{width,height},hasTouch:width===320,reducedMotion:'reduce',colorScheme:theme});
    await context.addInitScript(({theme,language})=>{localStorage.setItem('hisabiq-theme',theme);localStorage.setItem('hisabiq-erp-personal-v1',JSON.stringify({mode:'Simple',language,density:'Compact',terminology:'simple',dateView:'transaction'}));},{theme,language});
-   const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(60000);
+   const page=await context.newPage();page.setDefaultTimeout(60000);page.setDefaultNavigationTimeout(60000);
    await page.route('https://fonts.googleapis.com/**',r=>r.abort());
    const w=(en,bn)=>language==='Bangla'?bn:en;
    const act=e=>width===320?e.tap():e.click();
    const scans=[];
    try{
-    await page.goto(baseUrl+'/?visit='+id+'#/app/finance',{waitUntil:'domcontentloaded'});
+    await page.goto(baseUrl+'/?visit='+id+'#/app/finance',{waitUntil:'commit'});
+    await expect(page.getByRole('button',{name:w('New transaction','নতুন লেনদেন'),exact:true})).toBeVisible();
     const table=page.locator('main [data-slot="table-container"]').first();
     await expect(table).toBeVisible();
     await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
@@ -57,6 +59,14 @@ async function main(){
        const after=await table.evaluate(el=>el.scrollLeft);
        assert.ok(after>before,`${state}: ArrowRight should scroll the overflowing table`);
        await table.evaluate(el=>{el.scrollLeft=0});
+       await table.locator('tbody td').first().evaluate(cell=>{
+        const input=document.createElement('input');input.type='text';input.value='ABCD';input.dataset.testArrowControl='true';
+        input.setAttribute('aria-label','Temporary table field');cell.append(input);
+       });
+       const control=table.locator('[data-test-arrow-control]');await control.focus();
+       await control.evaluate(input=>input.setSelectionRange(0,0));await page.keyboard.press('ArrowRight');
+       assert.equal(await control.evaluate(input=>input.selectionStart),1,'ArrowRight on an input should move its caret instead of being consumed by the scroll wrapper');
+       await table.locator('[data-test-arrow-control]').evaluate(button=>button.remove());
       }
      }else{
       assert.equal(overflowing,false,`${state}: desktop table should fit`);

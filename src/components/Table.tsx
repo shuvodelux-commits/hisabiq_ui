@@ -45,7 +45,7 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(function Table({ s
       }
     };
     const scrollWithArrowKeys = (event: KeyboardEvent) => {
-      if (region.tabIndex !== 0 || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+      if (event.target !== region || region.tabIndex !== 0 || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
       event.preventDefault();
       region.scrollBy({ left: event.key === 'ArrowRight' ? 48 : -48 });
     };
