@@ -22,6 +22,8 @@ export type CartLine = {
   historicalUnitCost?: number;
   /** Captured at add time; never silently replaced if the package recipe is edited. */
   bundleRevision?: number;
+  /** Recipe identity changes even when an unsold revision is edited in place. */
+  bundleRecipeSignature?:string;
   /** Later source decisions are per component, never on the parent. */
   bundleSources?: Record<string, SaleStockSource>;
 };
@@ -74,7 +76,8 @@ function line(product: Product, qty: number, unit?: string, secondaryQty = ''): 
     unit: u,
     price: String(effectivePriceForUnit(product, activeOfferFor(product.id, productOffers), u)),
     serials: [],
-    ...(product.kind==='Bundle' ? {bundleRevision:getBundleVersion(product.id)?.revision} : {})
+    ...(product.kind==='Bundle' ? {bundleRevision:getBundleVersion(product.id)?.revision,
+      bundleRecipeSignature:JSON.stringify(getBundleVersion(product.id)?.components??[])} : {})
   };
 }
 
@@ -121,8 +124,9 @@ export function usePosCart() {
   const addProduct = (product: Product) => {
     const preferredUnit = product.stockViewUnit ?? product.altUnit?.unit ?? product.unit;
     const currentRevision=product.kind==='Bundle'?getBundleVersion(product.id)?.revision:undefined;
+    const signature=product.kind==='Bundle'?JSON.stringify(getBundleVersion(product.id)?.components??[]):undefined;
     const existing = lines.find((l) => l.product.id === product.id && l.unit === preferredUnit &&
-      (product.kind!=='Bundle'||l.bundleRevision===currentRevision));
+      (product.kind!=='Bundle'||(l.bundleRevision===currentRevision&&l.bundleRecipeSignature===signature)));
     if (existing) {
       setLines((ls) =>
         ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1), stockSource: undefined } : l)
