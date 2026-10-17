@@ -72,7 +72,9 @@ ref)
     const viewportHeight = window.innerHeight;
     // Keep the floating list below the sticky ERP toolbar on phones/tablets.
     // Without this safe top inset, an upward-opening list intercepts menu taps.
-    const topBoundary = viewportWidth < 1024 ? 64 : VIEWPORT_PADDING;
+    // The bilingual header can wrap to two rows on some phones; measure it rather than assume 64px.
+    const headerBottom = document.querySelector<HTMLElement>('.erp-workspace > div > header')?.getBoundingClientRect().bottom ?? 0;
+    const topBoundary = viewportWidth < 1024 ? Math.max(64,headerBottom + GAP) : VIEWPORT_PADDING;
     const naturalHeight = listRef.current?.scrollHeight ?? 0;
     const maxViewportHeight = Math.max(80, viewportHeight - topBoundary - VIEWPORT_PADDING);
     const spaceBelow = Math.max(0, viewportHeight - triggerRect.bottom - GAP - VIEWPORT_PADDING);

@@ -24,6 +24,11 @@ import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseC
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import { blendedVendorUnitCost } from '../utils/posStock';
 import {allocatePosStock} from '../vendor/vendorStock';
+import {usePreviewCatalog} from '../bundles/usePreviewCatalog';
+import {getBundleVersion,getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
+import {availableStockLots} from '../data/erpDemoStore';
+import {expandCartStockDemand,projectCartShortages,allocateBundlePreview} from '../bundles/bundleCart';
+import {createBundleSaleSnapshot} from '../bundles/bundleDocuments';
 import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
@@ -34,7 +39,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource'>>;
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource' | 'bundleSnapshot'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -49,7 +54,7 @@ const quickItems = products.filter((p) => p.active && (p.kind === 'Service' || !
 
 function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
   return lines.flatMap((sourceLine, index) => {
-    const product = products.find((item) => item.id === sourceLine.productId);
+    const product = getProductImportPreviewSnapshot().products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
     const unit = sourceLine.unit === product.altUnit?.unit ? sourceLine.unit : product.unit;
     return [{
@@ -60,7 +65,8 @@ function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
       unit,
       price: String(sourceLine.price),
       serials: sourceLine.serials ?? [],
-      stockSource: sourceLine.stockSource
+      stockSource: sourceLine.stockSource,
+      ...(product.kind==='Bundle'?{bundleRevision:sourceLine.bundleRevision,bundleRecipeSignature:sourceLine.bundleRecipeSignature}: {})
     }];
   });
 }
@@ -90,7 +96,7 @@ function paymentsFromDraft(draft: SalesDraft): PosPaymentRow[] {
 
 function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): CartLine[] {
   return invoice.lines.flatMap((sourceLine) => {
-    const product = products.find((item) => item.id === sourceLine.productId);
+    const product = getProductImportPreviewSnapshot().products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
 
     if (product.altUnit) {
@@ -114,6 +120,8 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
     return [{
       key: `source-${sourceLine.id}`,
       product,
+      ...(product.kind==='Bundle'?{bundleRevision:sourceLine.bundleSnapshot?.bundleRevision}:{}),
+      // A previous posted sale must be revalidated; never silently adopt an edited recipe.
       qty: String(sourceLine.returnableQuantity ?? (parseFloat(sourceLine.quantity) || 1)),
       secondaryQty: '',
       unit: product.unit,
@@ -129,6 +137,7 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
 export function Pos() {
   const { state: settingsState, personal } = useTenantSettings();
   const cart = usePosCart();
+  const previewCatalog=usePreviewCatalog();
   const navigate = useNavigate();
   const location = useLocation();
   const incomingState = location.state as {hisabiqSource?:string;orderId?:string}|null;
@@ -267,22 +276,53 @@ export function Pos() {
     }catch(e){toast.error(e instanceof Error?e.message:'Online order handoff unavailable.');navigate('/app/online-sales',{replace:true,state:null});}
   },[incomingOrderId,cart.setCustomer,cart.setCustomerDetails,cart.setDiscount,cart.setDiscountMode,cart.setLines,cart.setPayments,navigate]);
 
-  const complete = () => {
-    if(cart.lines.some(line=>line.product.kind==='Bundle')){
-      toast.error('Bundle sale checkout pending',{
-        description:'Bundle component lots and serials must be allocated and snapshotted before a sale preview. Package cost is currently an estimate.'
-      });
-      return;
+  /** UI-only component validation; never mutates stock, ledger or cash. */
+  const verifyBundleCart=()=>{
+    if(!cart.lines.some(line=>line.product.kind==='Bundle'))return null;
+    for(const line of cart.lines.filter(l=>l.product.kind==='Bundle')){
+      const latest=getBundleVersion(line.product.id);
+      if(!latest||latest.revision!==line.bundleRevision||
+       JSON.stringify(latest.components)!==line.bundleRecipeSignature){
+        toast.error('Package recipe changed',{
+         description:line.product.name+': remove and add the package again to confirm the latest contents.'
+        });
+        return null;
+      }
     }
+    const expanded=expandCartStockDemand(cart.lines,previewCatalog,(id,revision)=>getBundleVersion(id,revision));
+    if(expanded.errors.length){
+      toast.error('Use whole Sets and valid quantities',{description:expanded.errors[0]});
+      return null;
+    }
+    const allLots=availableStockLots();
+    const shortages=projectCartShortages(expanded.demands,previewCatalog,allLots).filter(s=>s.shortageBaseQty>0);
+    if(shortages.length){
+      toast.error('Shared component shortage',{
+       description:shortages.map(s=>(previewCatalog.find(p=>p.id===s.componentProductId)?.name??s.componentProductId)+
+       ': '+s.shortageBaseQty+' '+(previewCatalog.find(p=>p.id===s.componentProductId)?.unit??'')).join(' · ')
+      });
+      return null;
+    }
+    const allocated=allocateBundlePreview(expanded.demands,previewCatalog,allLots);
+    if(allocated.errors.length){
+      toast.error('Component allocation required',{description:allocated.errors[0]});
+      return null;
+    }
+    return allocated;
+  };
+  const complete = () => {
+    const hasBundle=cart.lines.some(line=>line.product.kind==='Bundle');
+    const bundleReservation=hasBundle?verifyBundleCart():null;
+    if(hasBundle&&!bundleReservation)return;
     const t = cart.totals;
     const hasCreditCustomer = Boolean(cart.customer || (cart.customerDetails.name.trim() && cart.customerDetails.phone.trim()));
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
 
-    const allocated=allocatePosStock(cart.lines.map(l=>({key:l.key,product:l.product,
+    const allocated=allocatePosStock(cart.lines.filter(l=>l.product.kind!=='Bundle').map(l=>({key:l.key,product:l.product,
       requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
        l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),
       choice:l.stockSource})),stockLots);
-    const unresolvedShortageLine=cart.lines.find((_,i)=>allocated[i]?.needsSourceBaseQty>0);
+    const unresolvedShortageLine=cart.lines.find(line=>(allocated.find(a=>a.key===line.key)?.needsSourceBaseQty??0)>0);
     if (unresolvedShortageLine) {
       const shortage=allocated.find(a=>a.key===unresolvedShortageLine.key)?.needsSourceBaseQty??0;
       toast.error('Choose stock shortage handling', {
@@ -347,15 +387,17 @@ export function Pos() {
       customerPhone: cart.customerDetails.phone.trim() || undefined,
       guardianName: cart.customerDetails.guardianName.trim() || undefined,
       customerAddress: cart.customerDetails.address.trim() || undefined,
-      lines: cart.lines.map((l,index) => {
+      lines: cart.lines.map((l) => {
         const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
         const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
-        const ownBaseQty=allocated[index]?.ownBaseQty??0;
+        const ownBaseQty=l.product.kind==='Bundle'?0:allocated.find(a=>a.key===l.key)?.ownBaseQty??0;
         const shortage=Math.max(0,baseQty-ownBaseQty);
         const vendorBlendedCost = l.stockSource?.mode === 'Vendor' && l.stockSource.unitCost!==null
           ? blendedVendorUnitCost(baseQty,ownBaseQty,l.product.purchasePrice,l.stockSource.unitCost)
           : undefined;
-        const allocatedLots=l.product.kind==='Service'?undefined:allocateLotQuantity(l.product,remainingLots,ownBaseQty).allocations;
+        const allocatedLots=l.product.kind==='Bundle'||l.product.kind==='Service'?undefined:
+          bundleReservation?bundleReservation.allocations.filter(a=>a.sourceLineKey===l.key&&a.productId===l.product.id)
+            .map(a=>({lotId:a.lotId,quantity:a.quantity})):allocateLotQuantity(l.product,remainingLots,ownBaseQty).allocations;
         for(const consumed of allocatedLots??[]){
           const lot=remainingLots.find(item=>item.id===consumed.lotId);
           if(lot)lot.available=Math.max(0,lot.available-consumed.quantity);
@@ -368,11 +410,13 @@ export function Pos() {
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
-          unitCost: l.stockSource?.mode==='Vendor' && l.stockSource.unitCost===null
+          unitCost: l.product.kind==='Bundle'?undefined:l.stockSource?.mode==='Vendor' && l.stockSource.unitCost===null
             ? undefined : vendorBlendedCost ?? (editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice),
           serials: l.serials,
           warranty: editing ? (l.historicalWarranty ?? warrantySnapshot(l.product)) : warrantySnapshot(l.product),
-          stockSource: shortage > 0 ? l.stockSource : undefined,
+          stockSource: l.product.kind==='Bundle'?undefined:shortage > 0 ? l.stockSource : undefined,
+          bundleSnapshot: l.product.kind==='Bundle'&&l.bundleRevision
+            ?createBundleSaleSnapshot(l,getBundleVersion(l.product.id,l.bundleRevision)!,previewCatalog):undefined,
           lotAllocations: allocatedLots
         };
       }),
@@ -449,7 +493,8 @@ export function Pos() {
         unit: line.unit,
         price: parseFloat(line.price) || 0,
         serials: line.serials,
-        stockSource: line.stockSource
+        stockSource: line.stockSource,
+        ...(line.product.kind==='Bundle'?{bundleRevision:line.bundleRevision,bundleRecipeSignature:line.bundleRecipeSignature}: {})
       }))
     }]
     );
@@ -644,7 +689,7 @@ export function Pos() {
           onDiscountMode={cart.setDiscountMode}
           payments={cart.payments}
           onPayments={cart.setPayments}
-          onComplete={() => setReviewSaleOpen(true)}
+          onComplete={() => {if(!cart.lines.some(l=>l.product.kind==='Bundle')||verifyBundleCart())setReviewSaleOpen(true);}}
           onClear={cart.reset}
           paidRef={paidRef}
           completeRef={completeRef}

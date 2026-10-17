@@ -23,6 +23,7 @@ import { getBundleVersion } from '../../data/productImportPreviewStore';
 import { availableStockLots } from '../../data/erpDemoStore';
 import { getBundleProjection } from '../../bundles/bundleProjection';
 import { priceBundleComponents } from '../../bundles/bundlePricing';
+import { expandCartStockDemand, projectCartShortages } from '../../bundles/bundleCart';
 
 type CartTableProps = {
   lines: CartLine[];
@@ -102,7 +103,9 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
   const [serialLine, setSerialLine] = useState<CartLine | null>(null);
   const [shortageLine, setShortageLine] = useState<CartLine | null>(null);
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
-  const allocations=allocatePosStock(lines.map(l=>({key:l.key,product:l.product,
+  const bundleDemand=expandCartStockDemand(lines,catalog,(id,revision)=>getBundleVersion(id,revision));
+  const componentShortages=projectCartShortages(bundleDemand.demands,catalog,availableStockLots());
+  const allocations=allocatePosStock(lines.filter(l=>l.product.kind!=='Bundle').map(l=>({key:l.key,product:l.product,
    requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
     l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),choice:l.stockSource})),stockLots);
 
@@ -148,13 +151,16 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
             const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
             const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
-            const recipe=l.product.kind==='Bundle'?getBundleVersion(l.product.id):undefined;
+            const recipe=l.product.kind==='Bundle'&&l.bundleRevision?getBundleVersion(l.product.id,l.bundleRevision):undefined;
             const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
             const bundleAvailable=recipe?getBundleProjection(recipe,catalog,availableStockLots()).availableSets:0;
             const purchasePrice = l.product.kind==='Bundle' ? bundleCost?.componentPurchaseCost ?? 0 : factor > 1 ? l.product.purchasePrice * factor : l.product.purchasePrice;
             const units = unitsFor(l.product);
-            const shortage = l.product.kind==='Bundle'?0:Math.max(0,baseQty-(allocations[i]?.ownBaseQty??0));
-            const bundleShortage=l.product.kind==='Bundle'?Math.max(0,baseQty-bundleAvailable):0;
+            const shortage = l.product.kind==='Bundle'?0:Math.max(0,baseQty-(allocations.find(a=>a.key===l.key)?.ownBaseQty??0));
+            const bundleShortage=l.product.kind==='Bundle'&&recipe?Math.max(0,baseQty-bundleAvailable):0;
+            const relatedShortages=l.product.kind==='Bundle'&&recipe?componentShortages.filter(s=>s.shortageBaseQty>0&&recipe.components.some(part=>part.productId===s.componentProductId)):[];
+            const invalidSets=l.product.kind==='Bundle'&&(!/^[1-9]\d*$/.test(l.qty.trim())||l.unit!=='Set'||Boolean(l.secondaryQty.trim()));
+            const staleRecipe=l.product.kind==='Bundle'&&(!recipe||getBundleVersion(l.product.id)?.revision!==l.bundleRevision);
             return (
               <SortableCartRow key={l.key} line={l} index={i} count={lines.length} onMove={onMove}>
                 <div className="flex min-w-0 items-center gap-2.5">
@@ -180,7 +186,11 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                           {word('serials')} {l.serials.length}/{Math.max(requiredSerialCount(l.product, baseQty), Math.ceil(baseQty))}
                         </button>
                       )}
-                      {l.product.kind==='Bundle'&&<span role="status" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle sale checkout pending','প্যাকেজ বিক্রির হিসাব এখনো প্রস্তুত নয়')} · {text('Component allocation required','পণ্যের স্টক ভাগ করা দরকার')}</span>}
+                      {l.product.kind==='Bundle'&&<span role="status" className="rounded bg-teal-50 px-1.5 py-0.5 text-[10px] text-teal-800">{text('Package','প্যাকেজ')} · {recipe?.components.length??0} {text('products','পণ্য')} · {text('Version','সংস্করণ')} {l.bundleRevision??'?'}</span>}
+                      {invalidSets&&<span role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Whole Sets only','শুধু পূর্ণ সেট')}</span>}
+                      {staleRecipe&&<span role="alert" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle recipe changed — add again','প্যাকেজের পণ্য বদলেছে — আবার যোগ করুন')}</span>}
+                      {relatedShortages.length>0&&<span role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Shared component shortage','প্যাকেজের পণ্য কম')} · {relatedShortages.map(s=>`${catalog.find(p=>p.id===s.componentProductId)?.name??s.componentProductId}: ${s.shortageBaseQty}`).join(', ')}</span>}
+                      {l.product.kind==='Bundle'&&recipe&&<details className="text-[11px] text-ink-500"><summary className="cursor-pointer">{text('View included products','ভেতরের পণ্য দেখুন')}</summary><div className="mt-1 space-y-0.5">{recipe.components.map(child=><p key={child.productId}>{catalog.find(p=>p.id===child.productId)?.name??child.productId}: {child.baseQty} {catalog.find(p=>p.id===child.productId)?.unit}/{text('Set','সেট')}</p>)}</div></details>}
                       {bundleShortage>0&&<span className="rounded bg-danger-bg px-1.5 py-0.5 text-[10.5px] font-medium text-danger">{text('Component shortage','প্যাকেজের পণ্য কম')} · {bundleShortage} Set</span>}
                       {shortage > 0 && (
                         <button

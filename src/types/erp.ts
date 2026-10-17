@@ -206,6 +206,23 @@ export type Sale = TransactionAuditFields & {
 
 export type SalePayment = PaymentSplit;
 
+/** Frozen sale-time recipe evidence; parent line alone carries revenue. */
+export type BundleSaleSnapshot={
+  bundleRevision:number;
+  components:readonly {
+    productId:string;
+    name:string;
+    sku:string;
+    baseQtyPerSet:number;
+    totalBaseQty:number;
+    unit:string;
+    unitFactorAtSale:number;
+    /** Only populated by a real posted allocation; never invented in UI preview. */
+    lotAllocations?:readonly {lotId:string;quantity:number}[];
+    serials?:readonly string[];
+    unitCost?:number|null;
+  }[];
+};
 export type SaleLine = {
   id: string;
   productId: string;
@@ -223,6 +240,7 @@ export type SaleLine = {
   serials?: string[];
   warranty?: WarrantySnapshot;
   lotAllocations?: Array<{ lotId: string; quantity: number }>;
+  bundleSnapshot?:BundleSaleSnapshot;
   /** How quantity beyond own sellable stock was fulfilled. Vendor unitCost is per base unit. */
   stockSource?: SaleStockSource;
 };
@@ -259,6 +277,9 @@ export type SalesReturn = TransactionAuditFields & {
 
 export type SalePresetLine = {
   productId: string;
+  /** Pin package drafts to the recipe chosen when it was saved. */
+  bundleRevision?:number;
+  bundleRecipeSignature?:string;
   qty: string;
   secondaryQty?: string;
   unit: string;
