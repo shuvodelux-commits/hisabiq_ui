@@ -51,27 +51,27 @@ test('saving a bundle publishes product and immutable revision in a single chang
   assert.ok(Object.isFrozen(version.components));
   assert.ok(Object.isFrozen(version.components[0]));
   (draft.components[0] as {baseQty:number}).baseQty = 9999;
-  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 12);
+  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 22);
   stop();
 });
 
-test('editing recipe creates revision 2 without changing previously saved quantity or factor', () => {
+test('editing an unsold recipe replaces revision 1 without creating historical versions', () => {
   const v1 = getBundleVersion(runId, 1)!;
   const updated = makeDraft('2', 2200);
   const v2 = upsertBundlePreview(updated, 1);
-  assert.equal(v2.revision, 2);
+  assert.equal(v2.revision, 1);
   assert.equal(v2.components[0].baseQty, 22);
   assert.equal(v1.components[0].baseQty, 12);
   assert.equal(v1.components[0].unitFactorAtSave, 10);
   assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 12);
-  assert.equal(getBundleVersion(runId, 2)?.components[0].baseQty, 22);
-  assert.equal(getBundleVersion(runId)?.revision, 2);
+  assert.equal(getBundleVersion(runId, 2), undefined);
+  assert.equal(getBundleVersion(runId)?.revision, 1);
   assert.equal(getProductImportPreviewSnapshot().products.find(p => p.id === runId)?.sellPrice, 2200);
 });
 
 test('stale edit, duplicate SKU, kind conversion, and invalid draft are all-or-nothing', () => {
   const before = getProductImportPreviewSnapshot();
-  assert.throws(() => upsertBundlePreview(makeDraft('3'), 1), /revision|changed/i);
+  assert.throws(() => upsertBundlePreview(makeDraft('3'), 2), /revision|changed/i);
   assert.throws(() => upsertBundlePreview({
     ...makeDraft(), product: { ...bundleProduct, id: runId + '-dup', sku: ' ' + first.sku.toLowerCase() + ' ' }
   }, null), /SKU|duplicate/i);
@@ -80,7 +80,7 @@ test('stale edit, duplicate SKU, kind conversion, and invalid draft are all-or-n
   }, null), /exists|stock|kind/i);
   assert.throws(() => upsertBundlePreview({
     ...makeDraft(), components: [makeBundleComponent(first, 'Pcs', '1', '', 0)]
-  }, 2), /at least two/i);
+  }, 1), /at least two/i);
   assert.equal(getProductImportPreviewSnapshot(), before);
 });
 
@@ -90,9 +90,9 @@ test('unrelated imports and stock corrections preserve historical bundle revisio
   upsertProductPreview(normal);
   const newState = getProductImportPreviewSnapshot();
   assert.equal(newState.bundleVersions, before.bundleVersions);
-  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 12);
+  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 22);
   updateProductInventoryPreview(normal, newState.lots, newState.movements);
-  assert.equal(getBundleVersion(runId, 2)?.components[0].baseQty, 22);
+  assert.equal(getBundleVersion(runId, 2), undefined);
   const snap = getProductImportPreviewSnapshot();
   const sku = runId + '-IMPORTED';
   const rows = [{
@@ -102,8 +102,8 @@ test('unrelated imports and stock corrections preserve historical bundle revisio
   }];
   const plan = planProductImport(rows, snap.products, snap.lots, {sessionId: runId+'-import', today:'2026-10-17', baseRevision:snap.revision});
   commitProductImportPreview(plan);
-  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 12);
-  assert.equal(getBundleVersion(runId, 2)?.components[0].baseQty, 22);
+  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 22);
+  assert.equal(getBundleVersion(runId, 2), undefined);
   assert.equal(getProductImportPreviewSnapshot().bundleVersions.length, snap.bundleVersions.length);
 });
 
