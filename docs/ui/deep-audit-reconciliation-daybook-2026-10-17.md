@@ -4,7 +4,7 @@
 
 Audited the existing client-side preview flows on current `main` at `c10ec66` (including the merge of #134). The target was account reconciliation, cash count/close, Daybook filtering/actions, and filtered print/export output.
 
-The audit reproduced and fixed one Daybook context defect: after using Duplicate to open a sale in POS, browser Back restored the Daybook route but discarded the selected date range/search and returned to the default two rows. Daybook now keeps its controlled filters in replace-only URL parameters, so the existing history entry restores the exact filter and scroll context after Duplicate-to-POS and Edit-to-Audit navigation. This is UI-preview evidence only; it does not certify bank statement parsing, durable reconciliation, source ledger posting, or production cash-session persistence.
+The audit reproduced and fixed P1 finding DAY-01: after using Duplicate to open a sale in POS, browser Back restored the Daybook route but discarded the selected date range/search and returned to the default two rows. Daybook now keeps its controlled filters in replace-only URL parameters, so the existing history entry restores the exact filter and scroll context after Duplicate-to-POS and Edit-to-Audit navigation. This is UI-preview evidence only; it does not certify bank statement parsing, durable reconciliation, source ledger posting, or production cash-session persistence.
 
 ## Browser evidence
 
