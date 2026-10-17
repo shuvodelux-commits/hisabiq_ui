@@ -1,8 +1,9 @@
 import { useSearchParams } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/Dialog';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { ProductThumb } from '../components/ProductThumb';
@@ -17,7 +18,7 @@ import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { availableProducts, availableProductCategories, availableStockLots, availableStockMovements } from '../data/erpDemoStore';
 import {planProductImport,resolveProductDecisions} from '../import/productImport.ts';
-import {commitProductImportPreview,getProductImportPreviewSnapshot,upsertProductPreview,upsertBundlePreview,getBundleVersion} from '../data/productImportPreviewStore.ts';
+import {commitProductImportPreview,getProductImportPreviewSnapshot,upsertProductPreview,upsertBundlePreview,getBundleVersion,canDeleteBundlePreview,deleteBundlePreview,subscribeProductImportPreview} from '../data/productImportPreviewStore.ts';
 import {getBundleProjection,bundleInventoryValue} from '../bundles/bundleProjection';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
@@ -118,7 +119,8 @@ function ProductActions({
   onHistory,
   onOffers,
   onDuplicate,
-  onToggle
+  onToggle,
+  onDelete
 }: {
   product: Product;
   onView: () => void;
@@ -130,6 +132,7 @@ function ProductActions({
   onOffers: () => void;
   onDuplicate: () => void;
   onToggle: () => void;
+  onDelete?: () => void;
 }) {
   const {language}=useUiCopy();
   const pl=(english:string)=>productLabel(language,english);
@@ -171,6 +174,8 @@ function ProductActions({
           </button>
           <div className="my-1 border-t border-border" />
           <button type="button" onClick={() => { close(); onDuplicate(); }} className={itemClass}>{pl('Duplicate')}</button>
+          {product.kind==='Bundle' && onDelete && <button type="button" onClick={() => {close();onDelete();}}
+            className={itemClass+' text-danger'}>{pl('Delete package')}</button>}
           <button type="button" onClick={() => { close(); onToggle(); }} className={itemClass}>
             {pl(product.active ? 'Deactivate' : 'Activate')}
           </button>
@@ -205,6 +210,8 @@ export function Products() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [creatingBundle,setCreatingBundle] = useState(false);
   const [bundleEditorProduct,setBundleEditorProduct] = useState<Product|null>(null);
+  const [deleteBundleTarget,setDeleteBundleTarget] = useState<Product|null>(null);
+  const previewSnapshot=useSyncExternalStore(subscribeProductImportPreview,getProductImportPreviewSnapshot);
   const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
   const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
   const [lotProduct, setLotProduct] = useState<Product | null>(null);
@@ -348,8 +355,8 @@ export function Products() {
   if(creatingBundle||bundleEditorProduct){
     return <BundleEditor key={bundleEditorProduct?.id ?? 'new-bundle'} initialProduct={bundleEditorProduct} catalog={list}
       onCancel={()=>{setCreatingBundle(false);setBundleEditorProduct(null);}}
-      onSave={(draft,revision)=>{
-        upsertBundlePreview(draft,revision);
+      onSave={(draft,revision,originalRecipe)=>{
+        upsertBundlePreview(draft,revision,originalRecipe);
         setList(availableProducts());
         setCreatingBundle(false);setBundleEditorProduct(null);
         toast.success(pl('Package saved'),{description:pl('Included products are saved. No stock or ledger posted.')});
@@ -573,6 +580,8 @@ export function Products() {
                         toast.success(`${p.name} ${pl('duplicated')}`, { description: pl('Product settings copied with zero opening stock.') });
                       }}
                       onToggle={() => setList((items) => items.map((item) => item.id === p.id ? { ...item, active: !item.active } : item))}
+                      onDelete={p.kind==='Bundle' && canDeleteBundlePreview(p.id) && !previewSnapshot.bundleSaleReferences.some(ref=>ref.bundleProductId===p.id)
+                        ?()=>setDeleteBundleTarget(p):undefined}
                     />
                   </TableCell>
                 </TableRow>);
@@ -717,6 +726,29 @@ export function Products() {
           setDialogOpen(false);
           setEditingProduct(null);
         }} />
+
+      <Dialog open={Boolean(deleteBundleTarget)} onOpenChange={open=>{if(!open)setDeleteBundleTarget(null);}}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{pl('Delete package')}</DialogTitle>
+            <DialogDescription>{pl('Delete unsold package? This cannot be undone.')}</DialogDescription>
+          </DialogHeader>
+          {deleteBundleTarget && <p className="text-sm font-medium text-ink">{deleteBundleTarget.name} · {deleteBundleTarget.sku}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={()=>setDeleteBundleTarget(null)}>{pl('Cancel')}</Button>
+            <Button onClick={()=>{
+              if(!deleteBundleTarget)return;
+              try{
+                deleteBundlePreview(deleteBundleTarget.id);
+                setList(availableProducts());
+                setDetailsProduct(current=>current?.id===deleteBundleTarget.id?null:current);
+                toast.success(pl('Package deleted'));
+                setDeleteBundleTarget(null);
+              }catch(error){toast.error(error instanceof Error?error.message:pl('Could not delete package'));}
+            }}>{pl('Delete package')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ProductDetailsDialog
         product={detailsProduct}
