@@ -1336,6 +1336,7 @@ export function Sales() {
                       <FormSelect
                         className="mt-1"
                         value={returnSettlement}
+                        disabled={includesBundleReturn}
                         onChange={(event) => setReturnSettlement(event.target.value as SalesReturn['settlement'])}
                         options={salesOptions(language,['Adjust due', 'Customer credit', 'Cash refund'])}
                       />
@@ -1349,7 +1350,7 @@ export function Sales() {
                     </label>
                     <div className="rounded-lg bg-ink-50 px-3 py-2">
                       <p className="text-[11px] text-ink-400">{sl('Return amount')}</p>
-                      <p className="text-base font-semibold text-ink">{taka(returnAmount)}</p>
+                      <p className="text-base font-semibold text-ink">{includesBundleReturn&&selectedBundlePlans.some(p=>p.refundEstimate===null)?text('Pending historical price','আগের মূল্য যাচাই বাকি'):taka(returnAmount)}</p>
                     </div>
                     <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
                       text('Preview return only','শুধু ফেরত প্রিভিউ'):sl('Complete return')}</Button>
@@ -1357,7 +1358,7 @@ export function Sales() {
                       {text('Bundle returns are preview only: no refund, invoice status, credit or stock is changed. Mixed ordinary items are also not submitted.',
                         'প্যাকেজ ফেরত শুধু প্রিভিউ: টাকা, বিল, জমা বা স্টক বদলাবে না। সঙ্গে থাকা অন্য পণ্যও জমা হবে না।')}
                     </p>}
-                    {returnSettlement === 'Cash refund' && (
+                    {returnSettlement === 'Cash refund' && !includesBundleReturn && (
                       <div className="grid gap-3 sm:col-span-3 sm:grid-cols-2">
                         <label className="text-[12px] font-medium text-ink">
                           {sl('Refund method')}
@@ -1413,7 +1414,7 @@ export function Sales() {
                 </div>)}
                 {plan.issues.map((issue,index)=><p key={index} role="alert" className="mt-1 text-xs text-danger">{issue}</p>)}
               </section>)}
-              {selectedReturnLines.some(x=>!x.line.bundleSnapshot&&Number(returnQty[x.line.id]??0)>0)&&
+              {selectedReturnLines.some(x=>!isBundleReturnLine(x.line)&&Number(returnQty[x.line.id]??0)>0)&&
                 <p role="note" className="text-xs text-warning">{text('Ordinary lines in this batch have not been returned.','এই ব্যাচের অন্য সাধারণ পণ্য ফেরত হয়নি।')}</p>}
             </div>
             <DialogFooter><Button onClick={()=>setBundleReturnPreviewOpen(false)}>{text('Close preview','প্রিভিউ বন্ধ করুন')}</Button></DialogFooter>
