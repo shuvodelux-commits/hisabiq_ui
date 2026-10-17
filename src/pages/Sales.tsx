@@ -98,15 +98,22 @@ function lineBaseQuantity(line: SalesInvoice['lines'][number]) {
   return line.returnableQuantity ?? (parseFloat(line.quantity) || 0);
 }
 
+function invoiceCostKnown(invoice: SalesInvoice) {
+  return invoice.lines.every(line=>!line.bundleSnapshot||
+    line.bundleSnapshot.components.every(child=>child.unitCost!==null&&
+      child.unitCost!==undefined&&Number.isFinite(child.unitCost)&&child.unitCost>=0));
+}
 function invoiceCogs(invoice: SalesInvoice) {
-  return invoice.lines.reduce((sum, line) => {
-    const unitCost = line.unitCost ?? purchasePriceByProductId.get(line.productId) ?? 0;
-    return sum + lineBaseQuantity(line) * unitCost;
-  }, 0);
+  return invoice.lines.reduce((sum,line)=>{
+    if(line.bundleSnapshot)return sum+line.bundleSnapshot.components.reduce(
+      (cost,child)=>cost+child.totalBaseQty*(child.unitCost??0),0);
+    const unitCost=line.unitCost??purchasePriceByProductId.get(line.productId)??0;
+    return sum+lineBaseQuantity(line)*unitCost;
+  },0);
 }
 
 function invoiceProfit(invoice: SalesInvoice) {
-  return invoice.total - invoiceCogs(invoice);
+  return invoice.total-invoiceCogs(invoice);
 }
 
 function SalesColumnPicker({
@@ -300,7 +307,9 @@ function InvoiceDialog({
                     {invoice.discount > 0 && <div className="flex justify-between"><span className="text-ink-500">{word('discount')}</span><span>−{taka(invoice.discount)}</span></div>}
                     <div className="flex justify-between"><span className="text-ink-500">{text('Rounding','রাউন্ডিং')}</span><span>{invoice.rounding >= 0 ? '+' : '−'}{taka(Math.abs(invoice.rounding))}</span></div>
                     <div className="flex justify-between border-t border-border pt-1.5 text-sm font-semibold"><span>{word('total')}</span><span>{taka(invoice.total)}</span></div>
-                    <div className="flex justify-between"><span className="text-ink-500">{text('Gross profit','বিক্রির মোট লাভ')}</span><span className={invoiceProfit(invoice) < 0 ? 'font-medium text-danger' : 'font-medium text-success'}>{invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-500">{text('Gross profit','বিক্রির মোট লাভ')}</span>{invoiceCostKnown(invoice)?<span className={invoiceProfit(invoice)<0?'font-medium text-danger':'font-medium text-success'}>
+                      {invoiceProfit(invoice)<0?'−':''}{taka(Math.abs(invoiceProfit(invoice)),Math.abs(invoiceProfit(invoice))%1?2:0)}
+                    </span>:<span className="font-medium text-warning">{text('Cost pending','কেনা দাম বাকি')}</span>}</div>
                     <div className="flex justify-between"><span className="text-ink-500">{word('paid')}</span><span>{taka(invoice.paid)}</span></div>
                     <div className="flex justify-between font-medium"><span className="text-ink-500">{word('due')}</span><span className={invoice.due > 0 ? 'text-danger' : 'text-success'}>{invoice.due > 0 ? taka(invoice.due) : '৳0'}</span></div>
                   </div>
@@ -1109,8 +1118,9 @@ export function Sales() {
                       <span className="text-[11px] text-ink-400">{text(`${invoice.items} line${invoice.items === 1 ? '' : 's'}`,`${invoice.items}টি পণ্য`)}</span>
                     </TableCell>}
                     {visibleSalesColumns.total && <TableCell className="py-2 text-right font-medium">{taka(invoice.total)}</TableCell>}
-                    {visibleSalesColumns.profit && <TableCell className={`py-2 text-right font-medium ${invoiceProfit(invoice) < 0 ? 'text-danger' : 'text-success'}`}>
-                      {invoiceProfit(invoice) < 0 ? '−' : ''}{taka(Math.abs(invoiceProfit(invoice)), Math.abs(invoiceProfit(invoice)) % 1 ? 2 : 0)}
+                    {visibleSalesColumns.profit && <TableCell className={`py-2 text-right font-medium ${!invoiceCostKnown(invoice)?'text-warning':invoiceProfit(invoice)<0?'text-danger':'text-success'}`}>
+                      {!invoiceCostKnown(invoice)?text('Cost pending','কেনা দাম বাকি'):
+                        <>{invoiceProfit(invoice)<0?'−':''}{taka(Math.abs(invoiceProfit(invoice)),Math.abs(invoiceProfit(invoice))%1?2:0)}</>}
                     </TableCell>}
                     {visibleSalesColumns.paid && <TableCell className="py-2 text-right text-ink-600">{taka(invoice.paid)}</TableCell>}
                     {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-helper'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
