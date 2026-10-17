@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {productLabel} from '../src/i18n/productsCopy.ts';
+import {bundleInventoryValue} from '../src/bundles/bundleProjection.ts';
+import {products} from '../src/data/products.ts';
 
 test('Phase 14 catalog uses existing three language modes without translating stored values',()=>{
  for(const english of ['Products','Product','Stock value','Add product','Edit product','Low stock']){
@@ -28,7 +30,7 @@ test('Phase 14 only localizes Products catalogue presentation, never product sou
   "stockFilter === 'low'",
   "stockFilter === 'out'",
   "statusMeta[s].tone",
-  "p.stock * p.purchasePrice",
+  "bundleInventoryValue(p)",
   "availableProductCategories()",
   "visible[column.id]",
   "window.localStorage.setItem(columnStorageKey",
@@ -47,4 +49,12 @@ test('Phase 14 only localizes Products catalogue presentation, never product sou
  assert.doesNotMatch(src,/stockStatus\(pl\(/);
  assert.doesNotMatch(src,/setCategory\(pl\(/);
  assert.doesNotMatch(src,/setStockFilter\(pl\(/);
+});
+
+
+test('Products stock-value contract excludes virtual packages without changing ordinary stock valuation',()=>{
+ const stock=products.find(p=>p.kind!=='Service'&&p.stock>0)!;
+ assert.equal(bundleInventoryValue(stock),stock.stock*stock.purchasePrice);
+ assert.equal(bundleInventoryValue({...stock,kind:'Bundle',stock:1000}),0);
+ assert.equal(bundleInventoryValue({...stock,kind:'Service',stock:1000}),0);
 });
