@@ -51,7 +51,7 @@ test('saving a bundle publishes product and immutable revision in a single chang
   assert.ok(Object.isFrozen(version.components));
   assert.ok(Object.isFrozen(version.components[0]));
   (draft.components[0] as {baseQty:number}).baseQty = 9999;
-  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 22);
+  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 12);
   stop();
 });
 
@@ -63,7 +63,7 @@ test('editing an unsold recipe replaces revision 1 without creating historical v
   assert.equal(v2.components[0].baseQty, 22);
   assert.equal(v1.components[0].baseQty, 12);
   assert.equal(v1.components[0].unitFactorAtSave, 10);
-  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 12);
+  assert.equal(getBundleVersion(runId, 1)?.components[0].baseQty, 22);
   assert.equal(getBundleVersion(runId, 2), undefined);
   assert.equal(getBundleVersion(runId)?.revision, 1);
   assert.equal(getProductImportPreviewSnapshot().products.find(p => p.id === runId)?.sellPrice, 2200);
