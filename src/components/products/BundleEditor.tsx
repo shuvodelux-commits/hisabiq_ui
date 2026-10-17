@@ -21,7 +21,7 @@ export type BundleEditorProps={
  onSave:(draft:BundleDraft,expectedRevision:number|null,expectedRecipe?:BundleVersion)=>void;
  onCancel:()=>void;
 };
-const grid='grid min-w-0 grid-cols-[42px_minmax(150px,1fr)_160px_92px_94px_100px_28px] items-center gap-1.5';
+const grid='grid min-w-0 grid-cols-[36px_minmax(130px,1fr)_160px_88px_168px_112px_28px] items-center gap-1.5';
 /** Same mobile/tablet cart layout and component controls as POS V2; no inventory posting. */
 export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:BundleEditorProps){
  const {text}=useUiCopy();
@@ -206,15 +206,15 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
          </div>:<span className="px-2 text-sm text-ink-600">{row.unit}</span>}
         </div>
         <div data-cart-field="Price · দাম" className="min-w-0">
-         <div className="relative">
-         <div className="relative flex h-9 items-center rounded-md border border-border bg-ink-50/50 pl-2 pr-7 text-sm text-ink">
-          <span className="truncate">{amounts?costNumber(amounts.retailUnitPrice):'—'}</span>
-          <button type="button" aria-label={'Show purchase cost for '+product.name} aria-pressed={revealed===product.id}
-           onClick={()=>setRevealed(v=>v===product.id?null:product.id)}
-           className="absolute right-1 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded text-ink-500 hover:bg-teal-50 hover:text-teal-700">
-           <Eye className="size-3.5"/>
-          </button>
+         <div className="relative flex min-w-0 items-center gap-1">
+         <div className="flex h-9 min-w-0 flex-1 items-center rounded-md border border-border bg-ink-50/50 px-2 text-sm text-ink">
+          <span className="min-w-0 whitespace-nowrap">{amounts?costNumber(amounts.retailUnitPrice):'—'}</span>
          </div>
+         <button type="button" aria-label={'Show purchase cost for '+product.name} aria-pressed={revealed===product.id}
+          onClick={()=>setRevealed(v=>v===product.id?null:product.id)}
+          className="flex size-6 shrink-0 items-center justify-center rounded text-ink-500 hover:bg-teal-50 hover:text-teal-700">
+          <Eye className="size-3.5"/>
+         </button>
          {revealed===product.id&&amounts&&<div className="absolute right-0 top-full z-30 mt-1 min-w-[180px] rounded-md border border-border bg-card px-2 py-1.5 text-[11px] text-ink-700 shadow-pop">
           <p>{text('Estimated purchase','আনুমানিক কেনা দাম')}: {costNumber(amounts.purchaseTotal)}</p>
           <p>{text('Purchase per base unit','প্রতি ছোট একক কেনা')}: {costNumber(amounts.purchaseTotal/amounts.baseQty)}/{product.unit}</p>
