@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import {CalendarRange,Pencil} from 'lucide-react';
 import {Button} from '../Button';
 import {NumericInput} from '../NumericInput';
@@ -15,6 +16,7 @@ export type InstallmentTerms={
   onFirstDueDateChange:(date:string)=>void;
   schedule:readonly InstallmentScheduleRow[];
   onEditSchedule:()=>void;
+  onPriceAdjustment?:(mode:'amount'|'percent',value:string)=>boolean;
 };
 
 /** Display-only sums; cart sets price and the existing POS payment splits set down payment. */
@@ -22,6 +24,8 @@ export function InstallmentTermsPanel({terms,invoiceTotalPaisa,paidPaisa}:{
   terms:InstallmentTerms;invoiceTotalPaisa:number;paidPaisa:number;
 }){
   const {text}=useUiCopy();
+  const [adjustMode,setAdjustMode]=useState<'amount'|'percent'>('amount');
+  const [adjustValue,setAdjustValue]=useState('');
   const remaining=Math.max(0,invoiceTotalPaisa-paidPaisa);
   const difference=terms.schedule.length?scheduleDifferencePaisa(terms.schedule,remaining):remaining;
   const equal=terms.schedule.length>0&&terms.schedule.every(x=>x.amountPaisa===terms.schedule[0].amountPaisa);
@@ -60,5 +64,28 @@ export function InstallmentTermsPanel({terms,invoiceTotalPaisa,paidPaisa}:{
         <Pencil className="size-3.5"/>{text('View / Edit','দেখুন / বদলান')}
       </Button>
     </div>
+    {terms.onPriceAdjustment && <details className="border-t border-teal-200 pt-2">
+      <summary className="cursor-pointer text-[11px] font-medium text-teal-700">
+        {text('Advanced price adjustment','দাম বাড়ানো / কমানো')}
+      </summary>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <select aria-label={text('Adjustment type','দাম বদলের ধরন')}
+          value={adjustMode} onChange={event=>setAdjustMode(event.target.value as 'amount'|'percent')}
+          className="h-9 rounded-md border border-input bg-card px-2 text-xs text-ink">
+          <option value="amount">৳</option><option value="percent">%</option>
+        </select>
+        <NumericInput aria-label={text('Price adjustment','দাম পরিবর্তন')} inputMode="decimal" min={-1000000}
+          value={adjustValue} onChange={event=>setAdjustValue(event.target.value)}
+          placeholder={adjustMode==='amount'?'Amount (+/−)':'Percent (+/−)'}
+          className="h-9 w-[112px] flex-1 text-right"/>
+        <Button size="sm" variant="outline" disabled={!adjustValue.trim()}
+          onClick={()=>{if(terms.onPriceAdjustment?.(adjustMode,adjustValue))setAdjustValue('');}}>
+          {text('Apply','প্রয়োগ করুন')}
+        </Button>
+      </div>
+      <p className="mt-1 text-[10.5px] text-ink-500">
+        {text('Updates the existing cart price, not the saved product price.','কার্টের দাম বদলাবে, পণ্যের মূল দাম নয়।')}
+      </p>
+    </details>}
   </div>;
 }
