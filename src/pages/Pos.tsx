@@ -16,6 +16,9 @@ import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from
 import {addDays,addMonths,businessToday} from '../utils/dateRange';
 import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../installments/schedule';
 import {validateInstallmentDraft} from '../installments/validateDraft';
+import {allocateNegotiatedInvoiceLines} from '../installments/pricing';
+import {recordInstallmentPreview,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
+import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
 import {InstallmentBreakdownDialog} from '../components/pos/InstallmentBreakdownDialog';
 import { products } from '../data/products';
 import {getOnlineSnapshot,orderTotals,preparePosHandoff} from '../onlineSales/onlineStore';
@@ -184,6 +187,7 @@ export function Pos() {
   const [invoiceNo, setInvoiceNo] = useState(242);
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
+  const [completedInstallment,setCompletedInstallment]=useState<PreviewInstallmentAgreement|null>(null);
   const [reviewSaleOpen, setReviewSaleOpen] = useState(false);
   const [demoVendorInvoice,setDemoVendorInvoice]=useState<string|null>(null);
   const [installmentMode,setInstallmentMode]=useState<'Regular'|'Installment'>('Regular');
@@ -454,6 +458,36 @@ export function Pos() {
       return;
     }
     const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
+    if(installmentMode==='Installment'){
+      try{
+        const lines=cart.lines.map(row=>{
+          const factor=row.product.altUnit&&row.unit===row.product.altUnit.unit?row.product.altUnit.factor:1;
+          return {key:row.key,productId:row.product.id,
+            amountPaisa:Math.round(compoundLineTotal(row.qty,row.secondaryQty,factor,row.price)*100)};
+        });
+        const amounts=allocateNegotiatedInvoiceLines(lines.map(({key,amountPaisa})=>({key,amountPaisa})),installmentTotalPaisa);
+        const created=recordInstallmentPreview({
+          operationId:'installment-preview:'+invoice,
+          invoiceReference:invoice,
+          customerId:cart.customer!.id,
+          customerName:cart.customer!.name,
+          totalPaisa:installmentTotalPaisa,downPaymentPaisa:installmentDownPaisa,
+          schedule:installmentRows.map(row=>({...row})),
+          lineSnapshot:amounts.map(row=>({
+            key:row.key,productId:lines.find(line=>line.key===row.key)!.productId,
+            amountPaisa:row.amountPaisa
+          })),
+          paymentSnapshot:activePayments.map(row=>({
+            method:row.method,account:row.account,
+            amountPaisa:Math.round((parseFloat(row.amount)||0)*100)
+          }))
+        });
+        setCompletedInstallment(created);
+      }catch(error){
+        toast.error(error instanceof Error?error.message:'Installment preview could not be saved.');
+        return;
+      }
+    }else setCompletedInstallment(null);
     const remainingLots=stockLots.map(lot=>({...lot}));
     setCompleted({
       invoice,
@@ -603,7 +637,7 @@ export function Pos() {
   };
 
   const newSale = () => {
-    setCompleted(null);setDemoVendorInvoice(null);
+    setCompleted(null);setCompletedInstallment(null);setDemoVendorInvoice(null);
     cart.reset();
     setInstallmentMode('Regular');setInstallmentRows([]);
     setInvoiceNo((n) => n + 1);
@@ -854,6 +888,7 @@ export function Pos() {
           <div className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
             {completed && <ReceiptPreview {...completed} language={personal.language} />}
           </div>
+          {completedInstallment && <InstallmentAgreementPreview agreement={completedInstallment}/>}
           <DialogFooter>
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
               <Button variant="outline" onClick={simulateVendorSources}
