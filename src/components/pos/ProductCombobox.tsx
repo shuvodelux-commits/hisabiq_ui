@@ -10,6 +10,8 @@ import { taka } from '../../utils/currency';
 import type { Product } from '../../types/erp';
 import { activeOfferFor, effectivePriceForUnit, productStockBreakdown } from '../../utils/productFeatures';
 import { useUiCopy } from '../../i18n/useUiCopy';
+import { getBundleVersion,getProductImportPreviewSnapshot } from '../../data/productImportPreviewStore';
+import { getBundleProjection } from '../../bundles/bundleProjection';
 
 export type ProductPickerMode = 'sale' | 'purchase' | 'quotation' | 'online';
 type ProductComboboxProps = {
@@ -206,8 +208,10 @@ ref)
             const displayUnit = unitsFor(p).includes(preferredUnit) ? preferredUnit : p.unit;
             const normalPrice = mode === 'purchase' ? p.purchasePrice : effectivePriceForUnit(p, undefined, displayUnit);
             const effectivePrice = mode === 'purchase' ? p.purchasePrice : effectivePriceForUnit(p, activeOffer, displayUnit);
-            const breakdown = p.kind === 'Service' ? null : productStockBreakdown(p, stockLots);
-            const sellableStatus = p.kind === 'Service'
+            const recipe=p.kind==='Bundle'?getBundleVersion(p.id):undefined;
+            const bundleAvailable=recipe?getBundleProjection(recipe,suppliedProducts??seedProducts,getProductImportPreviewSnapshot().lots).availableSets:0;
+            const breakdown = p.kind === 'Service'||p.kind==='Bundle' ? null : productStockBreakdown(p, stockLots);
+            const sellableStatus = p.kind === 'Bundle' ? bundleAvailable>0?'in':'out' : p.kind === 'Service'
               ? 'service'
               : p.expiry?.enabled
                 ? (breakdown?.sellable ?? 0) <= 0
@@ -242,7 +246,9 @@ ref)
                     <span className="font-normal text-ink-400">/{displayUnit}</span>
                   </p>
                   <p className={`text-[11px] ${sellableStatus === 'low' || sellableStatus === 'out' ? 'text-danger' : 'text-ink-500'}`}>
-                    {p.kind === 'Service'
+                    {p.kind === 'Bundle'
+                      ? 'Package · '+bundleAvailable+' Set available'
+                      : p.kind === 'Service'
                       ? 'Service'
                       : p.expiry?.enabled
                         ? `${sellableStatus === 'out' ? 'Out of sellable stock' : 'Sellable'} · ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}`
