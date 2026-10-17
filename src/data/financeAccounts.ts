@@ -13,6 +13,15 @@ export type FinanceAccount = {
   lastActivity: string;
 };
 
+export function financeAccountOptionLabel(account: FinanceAccount, candidates: FinanceAccount[]): string {
+  const sameName = candidates.filter((candidate) => candidate.name.trim().toLocaleLowerCase() === account.name.trim().toLocaleLowerCase());
+  if (sameName.length < 2) return account.name;
+  const numbers = sameName.map((candidate) => candidate.number?.trim() ?? '');
+  if (numbers.every(Boolean) && new Set(numbers).size === sameName.length) return `${account.name} · ${account.number}`;
+  const shortIdsAreUnique = new Set(sameName.map((candidate) => candidate.id.slice(-4))).size === sameName.length;
+  return `${account.name} · ${shortIdsAreUnique ? account.id.slice(-4) : account.id}`;
+}
+
 export type FinancePersonRole = 'Owner' | 'Lender' | 'Borrower';
 
 export type FinancePerson = {

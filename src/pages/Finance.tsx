@@ -51,7 +51,7 @@ import {
 } from '../data/financeAccounts';
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
 import { taka } from '../utils/currency';
-import { chequeMoneyAccount } from '../utils/chequeAccount';
+import { chequeMoneyAccount, renameChequeAccountReferences } from '../utils/chequeAccount';
 import { chequeLifecycleActions } from '../utils/moduleUiActions';
 import { amountInWords } from '../utils/amountInWords';
 import {useUiCopy} from '../i18n/useUiCopy';
@@ -549,7 +549,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         from: item.from === previous.name ? updated.name : item.from,
         to: item.to === previous.name ? updated.name : item.to
       })));
-      setChequeRecords((current) => current.map((item) => item.depositAccount === previous.name ? { ...item, depositAccount: updated.name } : item));
+      setChequeRecords((current) => renameChequeAccountReferences(current, accounts, updated, previous.name));
     }
     setAccountAction(updated);
     toast.success('Account updated', { description: updated.name });
@@ -599,7 +599,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   const changeChequeStatus = (cheque: ChequeRecord, nextStatus: ChequeStatus, reason?: string) => {
     const source = chequeRecords.find(item => item.id === cheque.id);
     if (!source || source.status !== cheque.status || !chequeLifecycleActions(source).some(action => action.nextStatus === nextStatus)) return false;
-    const bankAccount = chequeMoneyAccount(accounts, cheque.depositAccount);
+    const bankAccount = chequeMoneyAccount(accounts, cheque);
     if (nextStatus === 'Cleared' && !bankAccount) {
       toast.error(text('Choose a valid active bank account before clearing this cheque','চেক ক্লিয়ার করার আগে চালু ব্যাংক হিসাব বাছুন'));
       return false;
@@ -607,6 +607,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
     const updated: ChequeRecord = {
       ...cheque,
       status: nextStatus,
+      depositAccountId: bankAccount?.id ?? cheque.depositAccountId,
       statusReason: reason,
       statusUpdatedAt: '2026-10-07T16:40:00+06:00',
       statusUpdatedBy: 'Shuvo'
@@ -1205,7 +1206,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
 
       <ChequeDialog
         open={chequeOpen}
-        accountOptions={accounts.filter((item) => item.status === 'Active' && item.type === 'Bank').map((item) => item.name)}
+        accountOptions={accounts.filter((item) => item.status === 'Active' && item.type === 'Bank')}
         onOpenChange={setChequeOpen}
         onSave={(cheque) => {
           setChequeRecords((current) => [cheque, ...current]);
