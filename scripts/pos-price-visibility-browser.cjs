@@ -55,7 +55,7 @@ async function main(){
      assert.ok(decimals.available>=decimals.text+2,width+' '+theme+': Tk100000.00 visible');
     }
     await eye.click();
-    await field.getByText(/cost|কেনা/).first().waitFor();
+    await field.locator('.shadow-pop').waitFor({state:'visible',timeout:5000});
     assert.deepEqual(errors,[],width+' '+theme+': no runtime errors');
     await ctx.close();
    }
