@@ -142,7 +142,7 @@ export function usePosCart() {
         const quantityChanged = patch.qty !== undefined || patch.secondaryQty !== undefined || patch.unit !== undefined;
         const next = { ...l, ...patch };
         if (quantityChanged && patch.stockSource === undefined) next.stockSource = undefined;
-        if (quantityChanged && l.product.kind==='Bundle' && patch.bundleSources === undefined) next.bundleSources=undefined;
+        if (quantityChanged && l.product.kind==='Bundle') next.bundleSources=undefined;
         if (patch.unit && patch.unit !== l.unit) {
           next.price = String(effectivePriceForUnit(l.product, activeOfferFor(l.product.id, productOffers), patch.unit));
           next.secondaryQty = '';
