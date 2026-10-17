@@ -64,6 +64,7 @@ async function run(){
    await pick.getByRole('button',{name:'Use serials'}).click();
    await pick.waitFor({state:'hidden'});
    await serial.getByText(/Serials 1\/1/).waitFor();
+   await page.getByRole('button',{name:/Remaining|বাকি/}).last().click();
    const before=await page.evaluate(async()=>JSON.stringify((await import('/src/data/productImportPreviewStore.ts')).getProductImportPreviewSnapshot().lots));
    await page.getByRole('button',{name:/Preview sale/}).click();
    const review=page.getByRole('dialog',{name:'Review sale'});await review.waitFor();
