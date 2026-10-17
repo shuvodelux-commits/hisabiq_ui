@@ -21,6 +21,7 @@ import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid } from '../
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeLabel} from '../../i18n/financeCopy';
 import {printReport} from '../../utils/reportOutput';
+import { transferAccountId, transferAccountLabel } from '../../utils/accountTransferIdentity';
 
 const typeMeta: Record<FinanceTransactionType, {
   role?: FinancePersonRole;
@@ -174,7 +175,7 @@ export function FinanceTransactionActionDialog({
               </div>
             </label>
 
-            {!opening && <FinancePaymentSplitEditor accounts={accounts} rows={paymentRows} onChange={setPaymentRows} totalAmount={Number(amount) || 0} />}
+            {!opening && <FinancePaymentSplitEditor accounts={accounts} rows={paymentRows} onChange={setPaymentRows} totalAmount={Number(amount) || 0} preserveInactiveSelected />}
 
             <label className="text-[13px] font-medium text-ink">
               {text('Reference','রেফারেন্স')}
@@ -235,9 +236,10 @@ export function FinanceTransactionActionDialog({
 }
 
 export function FinanceAccountActionDialog({
-  account, transactions, transfers, onClose, onUpdate, onToggleStatus, onManualEntry, onTransfer, onReconcile
+  account, accounts, transactions, transfers, onClose, onUpdate, onToggleStatus, onManualEntry, onTransfer, onReconcile
 }: {
   account: FinanceAccount | null;
+  accounts: FinanceAccount[];
   transactions: FinanceTransaction[];
   transfers: AccountTransfer[];
   onClose: () => void;
@@ -276,21 +278,30 @@ export function FinanceAccountActionDialog({
   const ledgerRows = useMemo(() => {
     if (!account) return [];
     const rows = transactions
-      .filter((item) => item.accountId === account.id || item.account === account.name || item.paymentAccounts?.some((split) => split.accountId === account.id))
+      .filter((item) => {
+        const uniqueName = accounts.filter((itemAccount) => itemAccount.name === account.name).length === 1;
+        return item.accountId === account.id
+          || item.paymentAccounts?.some((split) => split.accountId === account.id)
+          || (uniqueName && !item.accountId && item.account === account.name)
+          || (uniqueName && item.paymentAccounts?.some((split) => !split.accountId && split.account === account.name));
+      })
       .map((item) => {
         const splitAmount = item.paymentAccounts?.filter((split) => split.accountId === account.id).reduce((sum, split) => sum + split.amount, 0);
         return { id: item.id, date: item.date, label: item.type, amount: splitAmount || item.amount, direction: item.direction, reference: item.reference || '' };
       });
-    const transferRows = transfers.filter((item) => item.from === account.name || item.to === account.name).map((item) => ({
-      id: item.id,
-      date: item.date,
-      label: item.from === account.name ? 'Transfer to ' + item.to : 'Transfer from ' + item.from,
-      amount: item.amount,
-      direction: item.from === account.name ? 'out' as const : 'in' as const,
-      reference: item.reference || ''
-    }));
+    const transferRows = transfers.filter((item) => transferAccountId(item, 'from', accounts) === account.id || transferAccountId(item, 'to', accounts) === account.id).map((item) => {
+      const isFrom = transferAccountId(item, 'from', accounts) === account.id;
+      return {
+        id: item.id,
+        date: item.date,
+        label: isFrom ? 'Transfer to ' + transferAccountLabel(item, 'to', accounts) : 'Transfer from ' + transferAccountLabel(item, 'from', accounts),
+        amount: item.amount,
+        direction: isFrom ? 'out' as const : 'in' as const,
+        reference: item.reference || ''
+      };
+    });
     return [...rows, ...transferRows].slice(0, 8);
-  }, [account, transactions, transfers]);
+  }, [account, accounts, transactions, transfers]);
 
   if (!account) return null;
 
