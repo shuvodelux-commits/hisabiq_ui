@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {test,beforeEach} from 'node:test';
 import {generateInstallmentSchedule} from '../src/installments/schedule.ts';
 import {
- recordInstallmentPreview,recordInstallmentReceiptPreview,listInstallmentReceipts,
+ recordInstallmentPreview,getInstallmentPreview,recordInstallmentReceiptPreview,listInstallmentReceipts,
  resetInstallmentPreviewsForTest
 } from '../src/data/installmentPreviewStore.ts';
 import {validateInstallmentCollection} from '../src/installments/validateCollection.ts';
@@ -49,7 +49,9 @@ test('inactive/wrong cash or MFS account and future date are rejected before rec
 test('sequential receipts allocate only unpaid agreement rows without double posting',()=>{
  const first=payload('payment-1',400000),a=recordInstallmentReceiptPreview(first);
  const next={...first,operationId:'payment-2',amountPaisa:200000,
-  allocations:allocateOldestInstallments(agreement(),[a],200000),
+  allocations:allocateOldestInstallments(getInstallmentPreview(first.agreementId)!,[a],200000),
   splits:[{method:'Cash' as const,accountId:'acc-cash',amountPaisa:200000}]};
- // Same agreement must not be created again.
+ const b=recordInstallmentReceiptPreview(next);
+ assert.deepEqual(b.allocations,[{scheduleItemId:'inst-1',amountPaisa:100000},{scheduleItemId:'inst-2',amountPaisa:100000}]);
+ assert.equal(listInstallmentReceipts(first.agreementId).length,2);
 });
