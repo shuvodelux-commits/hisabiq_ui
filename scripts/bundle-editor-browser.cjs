@@ -66,7 +66,7 @@ async function run(){
    assert.equal(revisions.length,1,'editing before sale should NOT create a new version');
    assert.equal(revisions[0].components[0].primaryQty,'3');
    await page.getByRole('button',{name:'Actions for Tubewell Set'}).last().click();
-   assert.equal(await page.getByRole('button',{name:'Delete package'}).count(),1,'unsold packages can be deleted');
+   await page.getByRole('button',{name:'Delete package'}).waitFor({state:'visible'}); // React popup mounts asynchronously
    // A real sale preview does not post; emulate an authenticated posted-invoice event for lifecycle verification.
    await page.evaluate(async id=>{
      const mod=await import('/src/data/productImportPreviewStore.ts');
