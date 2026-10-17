@@ -75,7 +75,8 @@
     "test:bangla-shared-date-picker": "node scripts/bangla-shared-date-picker-browser.cjs",
     "test:phase28-responsive-a11y": "node scripts/phase28-multilingual-responsive-audit.cjs",
     "test:phase29-accessible-names": "node scripts/phase29-accessibility-browser.cjs",
-    "test:phase29-bangla-census": "node scripts/phase29-bangla-label-census.cjs"
+    "test:phase29-bangla-census": "node scripts/phase29-bangla-label-census.cjs",
+    "test:deep-finance-table-scroll": "node scripts/deep-finance-table-scroll-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
