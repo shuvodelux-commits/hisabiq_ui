@@ -32,8 +32,8 @@ async function main(){
     const order=online.createOnlineOrder(draft);
     online.updateOrderStage(order.id,'Confirmed');
     m.upsertBundlePreview({product:p,components:recipe(3)},1);
-    assert.equal(m.getBundleVersion(p.id).revision,1);
-    assert.ok(h.inspectBundleHandoffs([line]).length>0);
+    if(m.getBundleVersion(p.id).revision!==1)throw new Error('Unsold recipe revision should remain 1');
+    if(!h.inspectBundleHandoffs([line]).length)throw new Error('Changed recipe must require review');
     return {number:order.number,prior:pinned.bundleRecipeSignature};
    });
    await page.getByRole('button',{name:created.number}).first().click();
