@@ -19,21 +19,22 @@ type Props = {
   existingOpenings?: PartySourceRecord[];
   onSave: (party: PartyDraft, openings:Omit<PartyOpeningPayload,'partyId'>[]) => void;
   defaultRole?: PartyRole;
+  initialName?: string;
 };
 
-const fresh = (party?: Party | null):PartyDraft => ({
-  id:party?.id, name:party?.name??'',nameBn:party?.nameBn??'',
-  phone:party?.phone??'',area:party?.area??'',roles:[...(party?.roles??['Customer'])],
+const fresh = (party?: Party | null, initialName='', defaultRole:PartyRole='Customer'):PartyDraft => ({
+  id:party?.id, name:party?.name??initialName,nameBn:party?.nameBn??'',
+  phone:party?.phone??'',area:party?.area??'',roles:[...(party?.roles??[defaultRole])],
   avatarColor:party?.avatarColor??'#0D7C74',
   image:party?.image
 });
 
 type OpeningDraft={amount:string;side:'debit'|'credit';date:string};
-export function PartyEditorDialog({open,party,existingOpenings=[],onClose,onSave,defaultRole='Customer'}:Props) {
+export function PartyEditorDialog({open,party,existingOpenings=[],onClose,onSave,defaultRole='Customer',initialName=''}:Props) {
   const {text,language,showHelper}=useUiCopy();
   const roleLabel=(role:PartyRole)=>partyRoleLabel(role,language);
   const directionLabel=(label:string)=>partyOpeningDirectionLabel(label,language);
-  const [draft,setDraft]=useState<PartyDraft>(()=>fresh(party));
+  const [draft,setDraft]=useState<PartyDraft>(()=>fresh(party,initialName,defaultRole));
   const [error,setError]=useState('');
   const [openings,setOpenings]=useState<Partial<Record<PartyRole,OpeningDraft>>>({});
   const existing=(role:PartyRole)=>existingOpenings.find(row=>row.relationship===role);
@@ -47,7 +48,7 @@ export function PartyEditorDialog({open,party,existingOpenings=[],onClose,onSave
   const changeOpening=(role:PartyRole,patch:Partial<OpeningDraft>)=>setOpenings(prev=>({
     ...prev,[role]:{...opening(role),...patch}
   }));
-  useEffect(()=>{if(open){setDraft({...fresh(party),roles:party?.roles??[defaultRole]});setOpenings({});setError('');}},[open,party,defaultRole]);
+  useEffect(()=>{if(open){setDraft({...fresh(party,initialName,defaultRole),roles:party?.roles??[defaultRole]});setOpenings({});setError('');}},[open,party,defaultRole,initialName]);
   const update=(patch:Partial<PartyDraft>)=>setDraft(current=>({...current,...patch}));
   const toggleRole=(role:PartyRole,checked:boolean)=>update({
     roles:checked
