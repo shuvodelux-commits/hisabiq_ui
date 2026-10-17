@@ -11,7 +11,7 @@ async function main(){
    const page=await browser.newPage({viewport,reducedMotion:'reduce'});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:4498/#/app/sales?tab=return');
-   const customer=page.getByRole('combobox').first();
+   const customer=page.locator('.rounded-xl').filter({has:page.getByText('Choose customer',{exact:true})}).first().getByRole('combobox').first();
    await customer.click();
    await page.getByRole('option',{name:'Package Demo Customer'}).click();
    await page.locator('label').filter({hasText:'INV-DEMO-BUNDLE'}).locator('input[type="checkbox"]').check();
