@@ -17,6 +17,8 @@ import type {
 import { taka } from '../../utils/currency';
 import { formatStock } from '../../utils/units';
 import { toBaseQuantity } from '../../utils/productEntry';
+import { getBundleVersion, getProductImportPreviewSnapshot } from '../../data/productImportPreviewStore';
+import { getBundleProjection } from '../../bundles/bundleProjection';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {productInventoryLabel,productInventoryOptions} from '../../i18n/productInventoryCopy';
 import {
@@ -91,7 +93,11 @@ export function ProductDetailsDialog({
   }, [open, product?.id]);
 
   if (!product) return null;
-  const isStock = product.kind !== 'Service';
+  const isBundle = product.kind === 'Bundle';
+  const isStock = product.kind !== 'Service' && !isBundle;
+  const revisions = isBundle ? getProductImportPreviewSnapshot().bundleVersions.filter(v=>v.bundleProductId===product.id) : [];
+  const currentRecipe = isBundle ? getBundleVersion(product.id) : undefined;
+  const availability = currentRecipe ? getBundleProjection(currentRecipe,getProductImportPreviewSnapshot().products,lots) : null;
   const productLots = lots.filter((lot) => lot.productId === product.id);
   const productOffers = offers.filter((offer) => offer.productId === product.id);
   const productMovements = movements.filter((movement) => movement.productId === product.id);
@@ -119,6 +125,7 @@ export function ProductDetailsDialog({
             {product.name}
             <StatusBadge tone={product.active ? 'success' : 'neutral'}>{pl(product.active ? 'Active' : 'Inactive')}</StatusBadge>
             {product.kind === 'Service' && <StatusBadge tone="info">{pl('Service')}</StatusBadge>}
+            {isBundle && <StatusBadge tone="info">{pl('Bundle')}</StatusBadge>}
           </DialogTitle>
           <DialogDescription>
             {product.nameBn && <span className="font-bn">{product.nameBn} · </span>}
@@ -143,6 +150,11 @@ export function ProductDetailsDialog({
         {tab === 'overview' && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {isBundle && <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-ink-500">{pl('Available Sets')}</p>
+                <p className="mt-1 text-base font-semibold text-ink">{availability?.availableSets??0} Set</p>
+                <p className="text-[11px] text-ink-400">{pl('Based on component stock')}</p>
+              </div>}
               {isStock && <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-ink-500">{pl("On hand")}</p>
                 <p className="mt-1 text-base font-semibold text-ink">{formatStock(product)}</p>
@@ -281,13 +293,36 @@ export function ProductDetailsDialog({
         {tab === 'history' && (
           <div className="overflow-hidden rounded-xl border border-border">
             <div className="border-b border-border px-3 py-2.5"><p className="text-[13px] font-semibold text-ink">{pl('History')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· হিস্ট্রি</span>}</p></div>
+            {isBundle && <div className="border-b border-border px-3 py-3">
+              <p className="text-[13px] font-semibold text-ink">{pl('Recipe revisions')}</p>
+              <p className="mt-1 text-xs text-ink-500">{pl('Old package recipes stay unchanged when you edit a package.')}</p>
+              <div className="mt-2 space-y-2">
+                {[...revisions].reverse().map(revision => (
+                  <div key={revision.revision} className="rounded-lg border border-border bg-ink-50/40 p-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-ink">{pl('Version')} {revision.revision}</span>
+                      <span className="text-xs text-ink-400">{revision.createdAt.slice(0,10)}</span>
+                    </div>
+                    <div className="mt-1 flex flex-col gap-1">
+                      {revision.components.map(comp => {
+                        const child=getProductImportPreviewSnapshot().products.find(item=>item.id===comp.productId);
+                        const label=comp.primaryQty+' '+comp.selectedUnit+(comp.secondaryQty&&Number(comp.secondaryQty)>0?' '+comp.secondaryQty+' '+(child?.unit??''):'');
+                        return <p key={comp.productId} className="text-xs text-ink-500">
+                          {child?.name??comp.productId} · {label}
+                        </p>;
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>}
             <div className="divide-y divide-border">
               {productMovements.map((movement) => <div key={movement.id} className="grid grid-cols-[90px_1fr_auto] gap-3 px-3 py-2.5 text-[12.5px]">
                 <span className="text-ink-400">{movement.date}</span>
                 <span><span className="font-medium text-ink">{pl(movement.type)}</span><span className="block text-[11px] text-ink-400">{movement.reference ?? movement.note ?? '—'}</span></span>
                 <span className={`text-right font-medium ${movement.quantity < 0 ? 'text-danger' : 'text-success'}`}>{movement.quantity > 0 ? '+' : ''}{movement.quantity} {product.unit}</span>
               </div>)}
-              {!productMovements.length && <p className="px-3 py-8 text-center text-sm text-ink-500">{pl(isStock ? 'No inventory history yet.' : 'No service activity history yet.')}</p>}
+              {!productMovements.length && !isBundle && <p className="px-3 py-8 text-center text-sm text-ink-500">{pl(isStock ? 'No inventory history yet.' : 'No service activity history yet.')}</p>}
             </div>
           </div>
         )}
