@@ -10,7 +10,7 @@ import {getExpensePreviewSnapshot,savePreviewExpense} from '../../data/expensePr
 import {customerSettlementAsOf,supplierSettlementAsOf} from '../../utils/partySettlement';
 import {businessToday} from '../../utils/dateRange';
 import {counterOpenInvoices,counterAllocateOldest} from '../../utils/counterAllocation';
-import {amountInWords} from '../../utils/amountInWords';
+import {AmountInWordsDisplay} from '../AmountInWordsDisplay';
 import {taka} from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeAccountOptionLabel, type FinanceAccount} from '../../data/financeAccounts';
@@ -293,7 +293,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
     <h3 className="mb-3 text-sm font-semibold">{text("Transaction summary","লেনদেনের সারাংশ")}</h3>
     <p className="text-xs text-ink-500">{type==='Customer Receive'?text('Money received','টাকা পাওয়া'):type==='Supplier Pay'?text('Money paid','টাকা দেওয়া'):text('Total amount','মোট টাকা')}</p>
     <p className="text-2xl font-semibold text-ink" aria-live="polite">{taka(total)}</p>
-    <p className="mt-1 text-xs leading-5 text-ink-500" aria-live="polite">{amountInWords(total)}</p>
+    <AmountInWordsDisplay amount={total} />
     {settlement&&<div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
      <div className="flex justify-between gap-2"><span>{text('Before payment','টাকা দেওয়া/নেওয়ার আগে')}</span><strong>{taka(settlement.netBalance)}</strong></div>
      <div className="flex justify-between gap-2"><span>{type==='Customer Receive'?text('Receive cash','ক্যাশ নিন'):text('Pay cash','ক্যাশ দিন')}</span><strong>{taka(total)}</strong></div>
@@ -313,12 +313,12 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
      <div className="rounded-xl border border-border bg-ink-50 p-4">
       <p className="text-xs text-ink-500">{text('Cash amount','ক্যাশের টাকা')}</p>
       <p className="text-2xl font-semibold">{taka(total)}</p>
-      <p className="mt-1 text-xs text-ink-500">{amountInWords(total)}</p>
+      <AmountInWordsDisplay amount={total} />
      </div>
      {selected&&<p><strong>{text(payerRole,payerRole==='Customer'?'ক্রেতা':'সরবরাহকারী')}: </strong>{selected.name} · {selected.phone}</p>}
      {discount>0&&<div className="rounded-lg border border-border p-3">
       <div className="flex justify-between gap-2"><span>Discount / settlement</span><strong>{taka(discount)}</strong></div>
-      <p className="mt-1 text-xs text-ink-500">{amountInWords(discount)}</p>
+      <AmountInWordsDisplay amount={discount} />
       <p className="mt-2"><strong>{text('Reason','কারণ')}:</strong> {discountReason.trim()}</p>
       <p className="mt-1 border-t border-border pt-2 font-semibold">{text('Total due reduction','মোট বাকি কমবে')}: {taka(dueReduction)}</p>
      </div>}
