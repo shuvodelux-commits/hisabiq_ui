@@ -50,6 +50,7 @@
     "test:bangla-accounting": "node scripts/bangla-accounting-browser.cjs",
     "test:bangla-finance": "node scripts/bangla-finance-browser.cjs",
     "test:reconciliation-daybook-matrix": "node scripts/reconciliation-daybook-matrix-browser.cjs",
+    "test:daybook-source-context": "node scripts/daybook-source-context-browser.cjs",
     "test:bangla-finance-advanced": "node scripts/bangla-finance-advanced-browser.cjs",
     "test:cheque-account-identity": "node scripts/deep-cheque-account-identity-browser.cjs",
     "test:bangla-cash-drawer": "node scripts/bangla-cash-drawer-browser.cjs",

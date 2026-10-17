@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ArrowDownLeft, ArrowDownToLine, ArrowUpRight, CalendarClock, Printer, WalletCards } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
@@ -28,22 +28,63 @@ function statusTone(status: UnifiedTransaction['status']) {
   return 'neutral' as const;
 }
 
+const defaultFilters: DaybookFilterState = {
+  search: '',
+  from: '2026-10-07',
+  to: '2026-10-07',
+  type: 'All types',
+  account: 'All accounts',
+  user: 'All users',
+  status: 'All status'
+};
+
+function filtersFromParams(params: URLSearchParams): DaybookFilterState {
+  return {
+    search: params.get('q') ?? defaultFilters.search,
+    from: params.has('from') ? params.get('from') ?? '' : defaultFilters.from,
+    to: params.has('to') ? params.get('to') ?? '' : defaultFilters.to,
+    type: params.get('type') ?? defaultFilters.type,
+    account: params.get('account') ?? defaultFilters.account,
+    user: params.get('user') ?? defaultFilters.user,
+    status: params.get('status') ?? defaultFilters.status
+  };
+}
+
+function paramsFromFilters(current: URLSearchParams, filters: DaybookFilterState) {
+  const next = new URLSearchParams(current);
+  const values: Array<[string, string, string]> = [
+    ['q', filters.search, defaultFilters.search],
+    ['from', filters.from, defaultFilters.from],
+    ['to', filters.to, defaultFilters.to],
+    ['type', filters.type, defaultFilters.type],
+    ['account', filters.account, defaultFilters.account],
+    ['user', filters.user, defaultFilters.user],
+    ['status', filters.status, defaultFilters.status]
+  ];
+  for (const [key, value, defaultValue] of values) {
+    if (key === 'from' || key === 'to') {
+      if (!value) next.set(key, '');
+      else if (value === defaultValue) next.delete(key);
+      else next.set(key, value);
+    } else if (!value || value === defaultValue) next.delete(key);
+    else next.set(key, value);
+  }
+  return next;
+}
+
 export function Daybook() {
   const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { entryDateView, setEntryDateView } = useUserPreferences();
   const [transactions] = useState<UnifiedTransaction[]>(daybookTransactions);
   const [detail, setDetail] = useState<UnifiedTransaction | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UnifiedTransaction | null>(null);
-  const [filters, setFilters] = useState<DaybookFilterState>({
-    search: '',
-    from: '2026-10-07',
-    to: '2026-10-07',
-    type: 'All types',
-    account: 'All accounts',
-    user: 'All users',
-    status: 'All status'
-  });
+  const [filters, setFilters] = useState<DaybookFilterState>(() => filtersFromParams(searchParams));
+  const updateFilters = (next: DaybookFilterState) => {
+    setFilters(next);
+    setSearchParams(paramsFromFilters(searchParams, next), { replace: true });
+  };
 
   const filtered = useMemo(() => filterDaybookTransactions(transactions, {
     ...filters,
@@ -130,7 +171,7 @@ export function Daybook() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-        <DaybookFilters value={filters} onChange={setFilters} transactions={transactions} dateView={entryDateView} />
+        <DaybookFilters value={filters} onChange={updateFilters} transactions={transactions} dateView={entryDateView} />
 
         <div className="overflow-x-auto">
           <Table>
