@@ -95,11 +95,11 @@ async function main(){
       'sale preview includes the agreement breakdown');
     await page.getByRole('button',{name:/New sale/i}).click();
     await page.evaluate(()=>{window.location.hash='#/app/dashboard';});
-    await page.waitForURL(/#\\/app\\/dashboard/);
+    await page.waitForURL(url=>url.hash==='#/app/dashboard');
     await page.evaluate(()=>{window.location.hash='#/app/pos';});
     await page.getByTestId('pos-cart-row').first().waitFor();
     const reopenedInvoice=(await page.locator('[data-pos-checkout]')
-      .getByText(/^INV-\\d{6}$/).first().textContent())?.trim();
+      .getByText(/^INV-\d{6}$/).first().textContent())?.trim();
     assert.notEqual(reopenedInvoice,initialInvoice,
       'reopening POS must never reuse a preview invoice reference already linked to an agreement');
     assert.deepEqual(errors,[],'no uncaught browser runtime errors');
