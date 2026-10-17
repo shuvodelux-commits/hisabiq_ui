@@ -135,7 +135,7 @@ async function run(){
    assert.ok(costBounds.x>=-2&&costBounds.x+costBounds.width<=viewport.width+2,
      'POS package cost tooltip must stay inside viewport on phones');
 
-   await posLine.getByText(/Bundle sale checkout pending/i).waitFor();
+   await posLine.getByText(/View included products/i).waitFor();
    await page.evaluate(()=>{window.location.hash='#/app/purchases/new';});
    const purchaseSearch=page.getByRole('combobox',{name:'Search product to add to purchase'});
    await purchaseSearch.waitFor();
