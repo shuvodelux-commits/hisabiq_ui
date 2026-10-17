@@ -7,6 +7,7 @@ import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { roundInvoice } from '../settings/model';
 import { compoundLineTotal } from '../utils/posQuantity';
 import { moveCartLine, reorderCartLines } from '../utils/reorderCartLines';
+import { getBundleVersion } from '../data/productImportPreviewStore';
 
 export type CartLine = {
   key: string;
@@ -19,6 +20,10 @@ export type CartLine = {
   stockSource?: SaleStockSource;
   historicalWarranty?: WarrantySnapshot;
   historicalUnitCost?: number;
+  /** Captured at add time; never silently replaced if the package recipe is edited. */
+  bundleRevision?: number;
+  /** Later source decisions are per component, never on the parent. */
+  bundleSources?: Record<string, SaleStockSource>;
 };
 
 export type DiscountMode = 'amount' | 'percent';
@@ -68,7 +73,8 @@ function line(product: Product, qty: number, unit?: string, secondaryQty = ''): 
     secondaryQty,
     unit: u,
     price: String(effectivePriceForUnit(product, activeOfferFor(product.id, productOffers), u)),
-    serials: []
+    serials: [],
+    ...(product.kind==='Bundle' ? {bundleRevision:getBundleVersion(product.id)?.revision} : {})
   };
 }
 
@@ -114,7 +120,9 @@ export function usePosCart() {
 
   const addProduct = (product: Product) => {
     const preferredUnit = product.stockViewUnit ?? product.altUnit?.unit ?? product.unit;
-    const existing = lines.find((l) => l.product.id === product.id && l.unit === preferredUnit);
+    const currentRevision=product.kind==='Bundle'?getBundleVersion(product.id)?.revision:undefined;
+    const existing = lines.find((l) => l.product.id === product.id && l.unit === preferredUnit &&
+      (product.kind!=='Bundle'||l.bundleRevision===currentRevision));
     if (existing) {
       setLines((ls) =>
         ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1), stockSource: undefined } : l)
@@ -134,6 +142,7 @@ export function usePosCart() {
         const quantityChanged = patch.qty !== undefined || patch.secondaryQty !== undefined || patch.unit !== undefined;
         const next = { ...l, ...patch };
         if (quantityChanged && patch.stockSource === undefined) next.stockSource = undefined;
+        if (quantityChanged && l.product.kind==='Bundle' && patch.bundleSources === undefined) next.bundleSources=undefined;
         if (patch.unit && patch.unit !== l.unit) {
           next.price = String(effectivePriceForUnit(l.product, activeOfferFor(l.product.id, productOffers), patch.unit));
           next.secondaryQty = '';
