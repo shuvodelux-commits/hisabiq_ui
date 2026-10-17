@@ -1,0 +1,77 @@
+/* HisabIQ installment POS V2 interaction / mobile overlay regression. */
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+
+async function main(){
+  const {createServer}=await import('vite');
+  const server=await createServer({server:{host:'127.0.0.1',port:4187,strictPort:true}});
+  await server.listen();
+  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
+  const page=await browser.newPage({viewport:{width:1460,height:950},reducedMotion:'reduce'});
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  try{
+    await page.goto('http://127.0.0.1:4187/#/app/pos');
+    await page.getByTestId('pos-cart-row').first().waitFor();
+    const beforeCart=await page.getByTestId('pos-cart-row').count();
+    assert.ok(beforeCart>=1,'original POS V2 cart remains mounted');
+    await page.getByRole('button',{name:/Installment sale/i}).click();
+    const checkout=page.locator('[data-pos-checkout]');
+    await checkout.getByText('Installment terms').waitFor();
+    assert.equal(await checkout.locator('input[aria-label="Installment selling price"]').count(),0,
+      'installment price is edited in the original cart, not duplicated at checkout');
+    const splitInput=checkout.getByRole('textbox',{name:/Payment amount 1/i});
+    await splitInput.fill('3000');
+    await checkout.getByText(/Future balance/).waitFor();
+    await checkout.getByRole('button',{name:/View \/ Edit/i}).click();
+    let dialog=page.getByRole('dialog',{name:/Installment breakdown/i});
+    await dialog.waitFor();
+    assert.equal(await dialog.getByRole('textbox',{name:/Installment \d+ amount/i}).count(),6);
+    const first=dialog.getByRole('textbox',{name:/Installment 1 amount/i});
+    const original=await first.inputValue();
+    await first.fill('1');
+    assert.equal(await dialog.getByRole('button',{name:/Apply breakdown/i}).isDisabled(),true,
+      'imbalanced schedule cannot be applied');
+    await dialog.getByRole('button',{name:/Cancel/i}).click();
+    await checkout.getByRole('button',{name:/View \/ Edit/i}).click();
+    dialog=page.getByRole('dialog',{name:/Installment breakdown/i});
+    await dialog.waitFor();
+    assert.equal(await dialog.getByRole('textbox',{name:/Installment 1 amount/i}).inputValue(),original,
+      'Cancel never changes the parent schedule');
+    await dialog.getByRole('button',{name:/Due date 1:/i}).click();
+    await page.getByRole('dialog',{name:/calendar/i}).waitFor();
+    await page.keyboard.press('Escape');
+    assert.equal(await dialog.isVisible(),true,'closing date popup does not close parent dialog');
+    await dialog.getByRole('button',{name:/Cancel/i}).click();
+
+    await page.setViewportSize({width:390,height:740});
+    await checkout.getByRole('button',{name:/View \/ Edit/i}).click();
+    dialog=page.getByRole('dialog',{name:/Installment breakdown/i});
+    await dialog.waitFor();
+    const rect=await dialog.boundingBox();
+    assert.ok(rect&&rect.x>=-1&&rect.x+rect.width<=392,
+      'mobile modal must remain inside 390px viewport');
+    await dialog.getByRole('button',{name:/Apply breakdown/i}).scrollIntoViewIfNeeded();
+    await dialog.getByRole('button',{name:/Cancel/i}).click();
+    await page.evaluate(()=>document.documentElement.classList.add('dark'));
+    await checkout.getByRole('button',{name:/View \/ Edit/i}).click();
+    dialog=page.getByRole('dialog',{name:/Installment breakdown/i});
+    await dialog.getByRole('button',{name:/Cancel/i}).click();
+    await page.evaluate(()=>document.documentElement.classList.remove('dark'));
+
+    // Save a customer before recording an installment agreement preview.
+    const picker=checkout.getByRole('button',{name:/Walk-in/i}).first();
+    await picker.click();
+    await page.getByRole('button',{name:/Rahman Hardware/i}).first().click();
+    await checkout.getByRole('button',{name:/Preview sale/i}).click();
+    const review=page.getByRole('dialog',{name:/Review sale/i});
+    await review.waitFor();
+    await review.getByRole('button',{name:/Confirm sale preview/i}).click();
+    await page.getByText(/Sale preview · Not posted/i).waitFor();
+    assert.ok(await page.getByText(/Installment schedule/i).count()>0,
+      'sale preview includes the agreement breakdown');
+    assert.deepEqual(errors,[],'no uncaught browser runtime errors');
+    console.log('Installment POS desktop/mobile, modal, date popup, review tests passed.');
+  }finally{await browser.close();await server.close();}
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});
