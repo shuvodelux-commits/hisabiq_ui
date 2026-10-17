@@ -58,6 +58,10 @@ export function InstallmentReceivePaymentDialog({open,agreement,receipts,onClose
    allocations:currentAllocation,splits:actualSplits};
  const check=()=>{
    if(!amount.trim())return text('Enter the amount received.','জমা টাকার পরিমাণ দিন।');
+   if(parsed>summary.totalOutstandingPaisa)return text(
+     'Payment exceeds this agreement. Return change or record a separate customer advance.',
+     'এই বিক্রির বাকি টাকার বেশি। অতিরিক্ত টাকা ফেরত দিন অথবা আলাদা ক্রেতার অগ্রিম হিসাবে রাখুন।'
+   );
    if(!hasAllSplits)return text('Complete every payment source row.','সব টাকার মাধ্যম পূরণ করুন।');
    const problems=validateInstallmentCollection(validationInput,receipts);
    return problems[0]??'';
@@ -95,8 +99,8 @@ export function InstallmentReceivePaymentDialog({open,agreement,receipts,onClose
        </DialogDescription>
      </DialogHeader>
      <div className="space-y-3">
-       <div className="grid grid-cols-3 gap-2 rounded-lg bg-ink-50 p-3 text-xs">
-         <div><p className="text-ink-500">{text('Total remaining','মোট বাকি')}</p>
+       <div className="grid grid-cols-2 gap-2 rounded-lg bg-ink-50 p-3 text-xs sm:grid-cols-3">
+         <div className="col-span-2 min-w-0 sm:col-span-1"><p className="text-ink-500">{text('Total remaining','মোট বাকি')}</p>
            <p className="font-semibold text-danger">{taka(summary.totalOutstandingPaisa/100)}</p></div>
          <div><p className="text-ink-500">{text('Due now','এখন দিতে হবে')}</p>
            <p className="font-semibold text-ink">{taka(summary.dueTodayPaisa/100)}</p></div>
