@@ -115,3 +115,27 @@ test('replayed invoice cannot duplicate sale usage or silently change its histor
  assert.throws(()=>registerPostedBundleSalePreview(posted('INV-'+id,id,2)),/conflict|already|invoice/i);
  assert.equal(getBundleVersion(id,1)?.components[0].baseQty,12);
 });
+
+test('saving with no changes makes no new version or catalog revision, even after a sale',()=>{
+ const id=prefix+'-UNCHANGED';
+ const saved=upsertBundlePreview(draft(id,'1'),null);
+ const before=getProductImportPreviewSnapshot();
+ assert.strictEqual(upsertBundlePreview(draft(id,'1'),1,saved),saved);
+ assert.strictEqual(getProductImportPreviewSnapshot(),before);
+ registerPostedBundleSalePreview(posted('INV-'+id,id,1));
+ const referenced=getBundleVersion(id)!;
+ const afterSale=getProductImportPreviewSnapshot();
+ assert.strictEqual(upsertBundlePreview(draft(id,'1'),1,referenced),referenced);
+ assert.strictEqual(getProductImportPreviewSnapshot(),afterSale);
+});
+
+test('stale open unsold editor is rejected instead of overwriting an in-place edit',()=>{
+ const id=prefix+'-STALE';
+ const opened=upsertBundlePreview(draft(id,'1'),null);
+ upsertBundlePreview(draft(id,'2'),1,opened);
+ const latest=getBundleVersion(id)!;
+ assert.equal(latest.revision,1);
+ const before=getProductImportPreviewSnapshot();
+ assert.throws(()=>upsertBundlePreview(draft(id,'3'),1,opened),/changed/i);
+ assert.strictEqual(getProductImportPreviewSnapshot(),before);
+});
