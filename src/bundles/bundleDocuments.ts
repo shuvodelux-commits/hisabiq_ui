@@ -15,7 +15,7 @@ export function createBundleSaleSnapshot(
  const sets=Number(line.qty);
  const components=recipe.components.map(c=>{
   const product=catalog.find(p=>p.id===c.productId);
-  if(!product||product.kind!=='Stock')throw new Error('Missing stock component: '+c.productId);
+  if(!product||product.kind==='Bundle'||product.kind==='Service')throw new Error('Missing stock component: '+c.productId);
   const total=c.baseQty*sets;
   if(!Number.isFinite(total)||total<=0||!Number.isFinite(c.unitFactorAtSave))
    throw new Error('Invalid saved bundle component quantity.');
