@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {getPartyPreviewSnapshot,dispatchPartyPreview,resetPartyPreviewForTest} from '../src/data/partyPreviewStore.ts';
+import {financeAccounts} from '../src/data/financeAccounts.ts';
 
 const command=(override:Record<string,unknown>={})=>({
   type:'record-payment' as const,payload:{partyId:'c1',relationship:'Customer' as const,
@@ -50,6 +51,15 @@ test('purchase payments have supplier-side debit sign and strict party relation'
  const after=dispatchPartyPreview(command({partyId:'s1',relationship:'Supplier',discount:0}));
  const source=after.sources.filter(x=>x.kind==='supplier-payment').at(-1);
  assert.equal(source?.debit,100);assert.equal(source?.credit,0);
+});
+test('counter preview accepts selected active finance accounts created in the current account list',()=>{
+ resetPartyPreviewForTest();
+ const createdAccount={...financeAccounts[1],id:'acc-preview-bank',name:'New bank account',number:'•••• 9999'};
+ const payment=command({partyId:'s1',relationship:'Supplier',splits:[{id:'bank-row',method:'Bank',accountId:createdAccount.id,amount:100}]});
+ const after=dispatchPartyPreview(payment,[...financeAccounts,createdAccount]);
+ const source=after.sources.filter(row=>row.kind==='supplier-payment').at(-1);
+ assert.equal(source?.partyId,'s1');
+ assert.deepEqual(source?.paymentSplits?.map(split=>[split.accountId,split.amount]),[[createdAccount.id,100]]);
 });
 test('payment targeting invoice must belong to party and not predate it',()=>{
  resetPartyPreviewForTest();
