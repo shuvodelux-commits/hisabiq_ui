@@ -43,6 +43,11 @@ import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
 import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 import type { PartyWorkspaceContext } from '../utils/partyNavigation';
 
+/** UI-preview only: reserve unique invoice labels across POS remounts in one browser session.
+ * The production backend will assign authoritative, tenant-scoped invoice numbers. */
+let previewInvoiceCounter = 241;
+const reservePreviewInvoiceNumber = () => ++previewInvoiceCounter;
+
 type CompletedSale = {
   invoice: string;
   customer?: string;
@@ -184,7 +189,7 @@ export function Pos() {
   const searchRef = useRef<HTMLInputElement>(null);
   const paidRef = useRef<HTMLInputElement>(null);
   const completeRef = useRef<HTMLButtonElement>(null);
-  const [invoiceNo, setInvoiceNo] = useState(242);
+  const [invoiceNo, setInvoiceNo] = useState(reservePreviewInvoiceNumber);
   const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
   const [completedInstallment,setCompletedInstallment]=useState<PreviewInstallmentAgreement|null>(null);
@@ -640,7 +645,7 @@ export function Pos() {
     setCompleted(null);setCompletedInstallment(null);setDemoVendorInvoice(null);
     cart.reset();
     setInstallmentMode('Regular');setInstallmentRows([]);
-    setInvoiceNo((n) => n + 1);
+    setInvoiceNo(reservePreviewInvoiceNumber);
     if (editing || duplicating || draftContext || templateContext || incomingOrderId || partyContext) navigate('/app/pos', { replace: true, state: null });
     setTimeout(() => searchRef.current?.focus(), 50);
   };
