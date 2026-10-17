@@ -34,7 +34,7 @@ test('partial receipt is idempotent and receipt details are immutable snapshots'
 });
 test('receipt cannot exceed agreement or use nonexisting installment, wrong split amount',()=>{
  const input=payload('payment-2');
- assert.throws(()=>recordInstallmentReceiptPreview({...input,amountPaisa:3000001}),/outstanding|exceed|allocation/i);
+ assert.throws(()=>recordInstallmentReceiptPreview({...input,amountPaisa:3000001,splits:[{method:'Cash',accountId:'acc-cash',amountPaisa:3000001}]}),/outstanding|exceed|allocation/i);
  assert.throws(()=>recordInstallmentReceiptPreview({...input,allocations:[{scheduleItemId:'other',amountPaisa:250000}]}),/unknown|schedule/i);
  assert.throws(()=>recordInstallmentReceiptPreview({...input,splits:[{method:'Cash',accountId:'acc-cash',amountPaisa:10}]}),/split/i);
  assert.equal(listInstallmentReceipts(input.agreementId).length,0);
@@ -42,7 +42,7 @@ test('receipt cannot exceed agreement or use nonexisting installment, wrong spli
 test('inactive/wrong cash or MFS account and future date are rejected before record mutation',()=>{
  const input=payload('payment-3');
  assert.match(validateInstallmentCollection({...input,agreement:getInstallmentPreview(input.agreementId)!,splits:[{method:'Bank',accountId:'acc-cash',amountPaisa:250000}]},[]).join(' '),/method|account/i);
- assert.match(validateInstallmentCollection({...input,splits:[{method:'Cash',accountId:'invalid',amountPaisa:250000}]},[]).join(' '),/account/i);
+ assert.match(validateInstallmentCollection({...input,agreement:getInstallmentPreview(input.agreementId)!,splits:[{method:'Cash',accountId:'invalid',amountPaisa:250000}]},[]).join(' '),/account/i);
  assert.match(validateInstallmentCollection({...input,agreement:getInstallmentPreview(input.agreementId)!,date:'2030-01-01'},[]).join(' '),/date/i);
  assert.throws(()=>recordInstallmentReceiptPreview({...input,date:'2030-01-01'}),/date/i);
 });
