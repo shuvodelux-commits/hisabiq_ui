@@ -17,7 +17,7 @@ import {addDays,addMonths,businessToday} from '../utils/dateRange';
 import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../installments/schedule';
 import {validateInstallmentDraft} from '../installments/validateDraft';
 import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../installments/pricing';
-import {recordInstallmentPreview,listInstallmentReceipts,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
+import {recordInstallmentPreview,listInstallmentPreviews,listInstallmentReceipts,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
 import type {InstallmentPaymentPreviewEvent} from '../installments/collections';
 import {InstallmentReceivePaymentDialog} from '../components/pos/InstallmentReceivePaymentDialog';
 import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
@@ -198,6 +198,9 @@ export function Pos() {
   const [completedInstallment,setCompletedInstallment]=useState<PreviewInstallmentAgreement|null>(null);
   const [completedReceipts,setCompletedReceipts]=useState<InstallmentPaymentPreviewEvent[]>([]);
   const [receiveInstallmentOpen,setReceiveInstallmentOpen]=useState(false);
+  const [installmentHistoryOpen,setInstallmentHistoryOpen]=useState(false);
+  const [historySelected,setHistorySelected]=useState<PreviewInstallmentAgreement|null>(null);
+  const [historyReceipts,setHistoryReceipts]=useState<InstallmentPaymentPreviewEvent[]>([]);
   const [reviewSaleOpen, setReviewSaleOpen] = useState(false);
   const [demoVendorInvoice,setDemoVendorInvoice]=useState<string|null>(null);
   const [installmentMode,setInstallmentMode]=useState<'Regular'|'Installment'>('Regular');
@@ -689,6 +692,10 @@ export function Pos() {
             onSave={holdCurrent}
             onResume={resume}
             onDelete={(id) => setDrafts((ds) => ds.filter((d) => d.id !== id))} />
+          {listInstallmentPreviews().length>0 && <Button size="sm" variant="outline"
+            onClick={()=>{setInstallmentHistoryOpen(true);setHistorySelected(null);}}>
+            {uiText(personal.language,'Installment previews','কিস্তির প্রিভিউ')}
+          </Button>}
           
         </div>
       </div>
@@ -951,10 +958,42 @@ export function Pos() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {completedInstallment && <InstallmentReceivePaymentDialog open={receiveInstallmentOpen}
-        agreement={completedInstallment} receipts={completedReceipts}
+      <Dialog open={installmentHistoryOpen} onOpenChange={next=>!next&&setInstallmentHistoryOpen(false)}>
+        <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-lg"
+          aria-label={uiText(personal.language,'Installment previews','কিস্তির প্রিভিউ')}>
+          <DialogHeader>
+            <DialogTitle>{uiText(personal.language,'Installment previews','কিস্তির প্রিভিউ')}</DialogTitle>
+            <DialogDescription>{uiText(personal.language,
+              'Saved only in this browser preview. No customer ledger or bank posting.',
+              'শুধু এই ব্রাউজারের প্রিভিউ; ক্রেতার খাতা বা ব্যাংকে জমা নয়।')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {listInstallmentPreviews().map(item=><Button key={item.id} variant="outline"
+              className="h-auto w-full justify-between gap-2 py-2 text-left"
+              onClick={()=>{setHistorySelected(item);setHistoryReceipts(listInstallmentReceipts(item.id));}}>
+              <span className="min-w-0 truncate">{item.customerName} · {item.invoiceReference}</span>
+              <span className="shrink-0">{taka(item.totalPaisa/100)}</span>
+            </Button>)}
+            {historySelected&&<InstallmentAgreementPreview agreement={historySelected}
+              receipts={historyReceipts} onReceive={()=>setReceiveInstallmentOpen(true)}/>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={()=>setInstallmentHistoryOpen(false)}>
+              {uiText(personal.language,'Close','বন্ধ করুন')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {(historySelected||completedInstallment) && <InstallmentReceivePaymentDialog open={receiveInstallmentOpen}
+        agreement={(historySelected||completedInstallment)!}
+        receipts={historySelected?historyReceipts:completedReceipts}
         onClose={()=>setReceiveInstallmentOpen(false)}
-        onRecorded={()=>setCompletedReceipts(listInstallmentReceipts(completedInstallment.id))}/>}
+        onRecorded={()=>{
+          const agreement=(historySelected||completedInstallment)!;
+          const receipts=listInstallmentReceipts(agreement.id);
+          if(historySelected)setHistoryReceipts(receipts);
+          else setCompletedReceipts(receipts);
+        }}/>}
     </div>);
 
 }
