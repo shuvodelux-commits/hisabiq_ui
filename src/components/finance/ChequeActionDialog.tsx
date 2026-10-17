@@ -5,8 +5,8 @@ import { Button } from '../Button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Input } from '../Input';
 import { FormSelect } from '../FormSelect';
-import type { FinanceAccount } from '../../data/financeAccounts';
-import { chequeMoneyAccount } from '../../utils/chequeAccount';
+import { financeAccountOptionLabel, type FinanceAccount } from '../../data/financeAccounts';
+import { resolveChequeAccount } from '../../utils/chequeAccount';
 import { StatusBadge } from '../StatusBadge';
 import type { ChequeRecord, ChequeStatus } from '../../data/cheques';
 import { chequeLifecycleActions, type ChequeLifecycleAction } from '../../utils/moduleUiActions';
@@ -41,7 +41,7 @@ export function ChequeActionDialog({
   const [branch, setBranch] = useState('');
   const [party, setParty] = useState('');
   const [chequeDate, setChequeDate] = useState('');
-  const [depositAccount, setDepositAccount] = useState('');
+  const [depositAccountId, setDepositAccountId] = useState('');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
 
@@ -51,7 +51,7 @@ export function ChequeActionDialog({
     setBranch(cheque.branch ?? '');
     setParty(cheque.party);
     setChequeDate(cheque.chequeDate);
-    setDepositAccount(cheque.depositAccount ?? '');
+    setDepositAccountId(cheque.depositAccountId ?? resolveChequeAccount(accounts, cheque)?.id ?? '');
     setReference(cheque.reference ?? '');
     setNote(cheque.note ?? '');
   };
@@ -60,19 +60,24 @@ export function ChequeActionDialog({
   }, [cheque]);
 
   if (!cheque) return null;
+  const existingAccountId = cheque.depositAccountId ?? resolveChequeAccount(accounts, cheque)?.id;
   const actions = chequeLifecycleActions({ direction: cheque.direction, status: cheque.status });
   const terminal = actions.length === 0;
 
   const save = () => {
     if (!bank.trim() || !party.trim() || !chequeDate) return toast.error(text('Bank, party and cheque date are required','ব্যাংক, পক্ষ ও চেকের তারিখ লিখুন'));
-    if (depositAccount && !chequeMoneyAccount(accounts, depositAccount)) return toast.error(text('Choose a valid active bank account','চালু ব্যাংক হিসাব বাছুন'));
+    const selectedAccount = accounts.find(account => account.id === depositAccountId);
+    const preservesInactive = selectedAccount && selectedAccount.id === existingAccountId && selectedAccount.status !== 'Active';
+    if (selectedAccount && (selectedAccount.type !== 'Bank' || (selectedAccount.status !== 'Active' && !preservesInactive))) return toast.error(text('Choose a valid active bank account','চালু ব্যাংক হিসাব বাছুন'));
+    if (cheque.depositAccount && !selectedAccount && !cheque.depositAccountId && !resolveChequeAccount(accounts, cheque)) return toast.error(text('Choose a bank account for this cheque','এই চেকের ব্যাংক হিসাব বাছুন'));
     onUpdate({
       ...cheque,
       bank: bank.trim(),
       branch: branch.trim() || undefined,
       party: party.trim(),
       chequeDate,
-      depositAccount: depositAccount.trim() || undefined,
+      depositAccount: selectedAccount?.name,
+      depositAccountId: selectedAccount?.id,
       reference: reference.trim() || undefined,
       note: note.trim() || undefined
     });
@@ -102,6 +107,8 @@ export function ChequeActionDialog({
     setPendingAction(null);
     setReason('');
   };
+  const currentAccount = resolveChequeAccount(accounts, cheque);
+  const selectableAccounts = accounts.filter(account => account.type === 'Bank' && (account.status === 'Active' || account.id === existingAccountId));
 
   return (
     <Dialog open={!!cheque} onOpenChange={(open) => !open && onClose()}>
@@ -116,7 +123,7 @@ export function ChequeActionDialog({
             <label className="text-[13px] font-medium text-ink">{text('Branch','শাখা')}<Input className="mt-1.5" value={branch} onChange={(event) => setBranch(event.target.value)} /></label>
             <label className="text-[13px] font-medium text-ink">{text('Party','পক্ষ')}<Input className="mt-1.5" value={party} onChange={(event) => setParty(event.target.value)} /></label>
             <label className="text-[13px] font-medium text-ink">{text('Cheque date','চেকের তারিখ')}<Input className="mt-1.5" type="date" value={chequeDate} onChange={(event) => setChequeDate(event.target.value)} /></label>
-            <label className="text-[13px] font-medium text-ink">{text('Money account','টাকার হিসাব')}<FormSelect className="mt-1.5" value={depositAccount} onChange={(event) => setDepositAccount(event.target.value)} options={[{value:'',label:text('Select bank account','ব্যাংক হিসাব বাছুন')}, ...accounts.filter(account => chequeMoneyAccount(accounts, account.name)?.id === account.id).map(account => account.name)]} /></label>
+            <label className="text-[13px] font-medium text-ink">{text('Money account','টাকার হিসাব')}<FormSelect className="mt-1.5" value={depositAccountId} onChange={(event) => setDepositAccountId(event.target.value)} options={[{value:'',label:text('Select bank account','ব্যাংক হিসাব বাছুন')}, ...selectableAccounts.map(account => ({value:account.id,label:financeAccountOptionLabel(account,accounts)+(account.status === 'Inactive' ? ' · '+text('Inactive','বন্ধ') : '')}))]} /></label>
             <label className="text-[13px] font-medium text-ink">{text('Reference','রেফারেন্স')}<Input className="mt-1.5" value={reference} onChange={(event) => setReference(event.target.value)} /></label>
             <label className="text-[13px] font-medium text-ink sm:col-span-2">{text('Note','মন্তব্য')}<Input className="mt-1.5" value={note} onChange={(event) => setNote(event.target.value)} /></label>
           </div>
@@ -129,7 +136,7 @@ export function ChequeActionDialog({
               <Detail label="Party">{cheque.party}</Detail>
               <Detail label="Received / issued">{cheque.receivedOrIssuedDate}</Detail>
               <Detail label="Cheque date">{cheque.chequeDate}</Detail>
-              <Detail label="Money account">{cheque.depositAccount || '—'}</Detail>
+              <Detail label="Money account">{currentAccount?.name || cheque.depositAccount || '—'}</Detail>
               <Detail label="Reference">{cheque.reference || '—'}</Detail>
             </div>
 

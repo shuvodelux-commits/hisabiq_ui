@@ -423,7 +423,7 @@ export function FinanceAccountActionDialog({
             <Button variant="outline" onClick={() => onTransfer(account)}><ArrowLeftRight className="size-4" /> {text('Transfer','ট্রান্সফার')}</Button>
             {account.type !== 'Cash' && <Button variant="outline" onClick={() => onReconcile(account)}><RefreshCw className="size-4" /> {text('Reconcile','মিলিয়ে দেখুন')}</Button>}
             <Button variant="outline" onClick={() => setMode('edit')}><Pencil className="size-4" /> {text('Edit','সংশোধন')}</Button>
-            <Button variant="outline" onClick={() => setConfirmStatus(true)}><Power className="size-4" /> {account.status === 'Active' ? text('Deactivate','বন্ধ করুন') : text('Activate','চালু করুন')}</Button>
+            <Button variant="outline" onClick={() => setConfirmStatus(true)}><Power className="size-4" /> {account.status === 'Active' ? text('Deactivate','নিষ্ক্রিয় করুন') : text('Activate','সক্রিয় করুন')}</Button>
             <Button onClick={onClose}>{text('Close','বন্ধ করুন')}</Button>
           </>}
           {mode === 'ledger' && confirmStatus && <>
@@ -591,7 +591,7 @@ export function FinancePeopleManagerDialog({
                 </div>
                 <Button variant="outline" size="sm" onClick={() => startEdit(person)}><Pencil className="size-3.5" /> {text('Edit','সংশোধন')}</Button>
                 <Button variant="outline" size="sm" onClick={() => onUpdate({ ...person, status: person.status === 'Active' ? 'Inactive' : 'Active' })}>
-                  <Power className="size-3.5" /> {person.status === 'Active' ? text('Deactivate','বন্ধ করুন') : text('Activate','চালু করুন')}
+                  <Power className="size-3.5" /> {person.status === 'Active' ? text('Deactivate','নিষ্ক্রিয় করুন') : text('Activate','সক্রিয় করুন')}
                 </Button>
               </div>
             ))}

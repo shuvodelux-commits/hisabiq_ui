@@ -14,6 +14,7 @@ export type ChequeRecord = {
   receivedOrIssuedDate: string;
   chequeDate: string;
   depositAccount?: string;
+  depositAccountId?: string;
   reference?: string;
   attachment?: string;
   note?: string;
@@ -39,6 +40,7 @@ export const cheques: ChequeRecord[] = [
     receivedOrIssuedDate: '2026-10-06',
     chequeDate: '2026-10-10',
     depositAccount: 'Dutch-Bangla Bank · 4582',
+    depositAccountId: 'acc-dbl',
     reference: 'INV-000241',
     status: 'Received',
     createdAt: '2026-10-06T16:20:00+06:00',
@@ -55,6 +57,7 @@ export const cheques: ChequeRecord[] = [
     receivedOrIssuedDate: '2026-10-05',
     chequeDate: '2026-10-08',
     depositAccount: 'Dutch-Bangla Bank · 4582',
+    depositAccountId: 'acc-dbl',
     reference: 'PUR-000118',
     status: 'Presented',
     createdAt: '2026-10-05T14:05:00+06:00',
@@ -71,6 +74,7 @@ export const cheques: ChequeRecord[] = [
     receivedOrIssuedDate: '2026-10-03',
     chequeDate: '2026-10-03',
     depositAccount: 'BRAC Bank · 7714',
+    depositAccountId: 'acc-brac',
     reference: 'INV-000236',
     status: 'Cleared',
     createdAt: '2026-10-03T11:45:00+06:00',

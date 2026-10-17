@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
 import type { ChequeDirection, ChequeRecord, ChequeStatus } from '../../data/cheques';
+import { financeAccountOptionLabel, type FinanceAccount } from '../../data/financeAccounts';
 import {useUiCopy} from '../../i18n/useUiCopy';
 
 export function ChequeDialog({
@@ -16,7 +17,7 @@ export function ChequeDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (cheque: ChequeRecord) => void;
-  accountOptions?: string[];
+  accountOptions?: FinanceAccount[];
 }) {
   const {text,showHelper}=useUiCopy();
   const [direction, setDirection] = useState<ChequeDirection>('Received');
@@ -28,10 +29,12 @@ export function ChequeDialog({
   const [amount, setAmount] = useState('');
   const [entryDate, setEntryDate] = useState('2026-10-07');
   const [chequeDate, setChequeDate] = useState('2026-10-07');
-  const [depositAccount, setDepositAccount] = useState('');
+  const [depositAccountId, setDepositAccountId] = useState('');
+  const [unmatchedDepositAccount, setUnmatchedDepositAccount] = useState('');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
   const [attachment, setAttachment] = useState('');
+  const selectedAccountId = accountOptions.some((account) => account.id === depositAccountId) ? depositAccountId : accountOptions[0]?.id ?? '';
 
   const save = () => {
     const value = Number(amount);
@@ -40,6 +43,7 @@ export function ChequeDialog({
       return;
     }
     const status: ChequeStatus = direction === 'Received' ? 'Received' : 'Issued';
+    const selectedAccount = accountOptions.find((account) => account.id === selectedAccountId);
     onSave({
       id: `CHQ-${String(Date.now()).slice(-6)}`,
       direction,
@@ -51,7 +55,8 @@ export function ChequeDialog({
       party: party.trim(),
       receivedOrIssuedDate: entryDate,
       chequeDate,
-      depositAccount: (depositAccount || accountOptions[0])?.trim() || undefined,
+      depositAccount: selectedAccount?.name || unmatchedDepositAccount.trim() || undefined,
+      depositAccountId: selectedAccount?.id,
       reference: reference.trim() || undefined,
       note: note.trim() || undefined,
       attachment: attachment || undefined,
@@ -111,7 +116,7 @@ export function ChequeDialog({
           </label>
           <label className="text-[13px] font-medium text-ink">
             {text('Bank / Money Account','ব্যাংক / টাকার হিসাব')}
-            {accountOptions.length ? <FormSelect className="mt-1.5" value={depositAccount || accountOptions[0]} onChange={(event) => setDepositAccount(event.target.value)} options={accountOptions} /> : <Input className="mt-1.5" value={depositAccount} onChange={(event) => setDepositAccount(event.target.value)} placeholder="e.g. Dutch-Bangla Bank · 4582" />}
+            {accountOptions.length ? <FormSelect className="mt-1.5" value={selectedAccountId} onChange={(event) => setDepositAccountId(event.target.value)} options={accountOptions.map((account) => ({value:account.id,label:financeAccountOptionLabel(account,accountOptions)}))} /> : <Input className="mt-1.5" value={unmatchedDepositAccount} onChange={(event) => setUnmatchedDepositAccount(event.target.value)} placeholder="e.g. Dutch-Bangla Bank · 4582" />}
           </label>
           <label className="text-[13px] font-medium text-ink">
             {text('Reference','রেফারেন্স')}

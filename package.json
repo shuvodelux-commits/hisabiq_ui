@@ -49,6 +49,7 @@
     "test:bangla-accounting": "node scripts/bangla-accounting-browser.cjs",
     "test:bangla-finance": "node scripts/bangla-finance-browser.cjs",
     "test:bangla-finance-advanced": "node scripts/bangla-finance-advanced-browser.cjs",
+    "test:cheque-account-identity": "node scripts/deep-cheque-account-identity-browser.cjs",
     "test:bangla-cash-drawer": "node scripts/bangla-cash-drawer-browser.cjs",
     "test:bangla-workspace-shell": "node scripts/bangla-workspace-shell-browser.cjs",
     "test:bangla-notifications": "node scripts/bangla-notifications-browser.cjs",
