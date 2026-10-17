@@ -42,6 +42,31 @@ export function subscribePartyPreview(listener:()=>void):()=>void {
 }
 export function resetPartyPreviewForTest():void { counter=0; importedSessions.clear(); state=fresh(); listeners.forEach(listener=>listener()); }
 
+export class PartyQuickAddConflict extends Error {
+  readonly reason:'inactive'|'ambiguous'|'existing-opening';
+  constructor(reason:PartyQuickAddConflict['reason']) { super(reason); this.reason=reason; }
+}
+
+/** Reuse an exact identity by adding relationships, never by replacing its saved profile. */
+export function quickAddPartyPreview(draft:PartyDraft, openings:Omit<PartyOpeningPayload,'partyId'>[] = []) {
+  const errors=validatePartyDraft(draft,state.parties);
+  if(errors.length)throw new Error(errors.join(' '));
+  const name=draft.name.trim().normalize('NFKC').toLocaleLowerCase();
+  const phone=draft.phone.replace(/\D/g,'');
+  const matches=phone?state.parties.filter(p=>p.name.trim().normalize('NFKC').toLocaleLowerCase()===name&&p.phone.replace(/\D/g,'')===phone):[];
+  if(matches.length>1)throw new PartyQuickAddConflict('ambiguous');
+  const existing=matches[0];
+  if(existing?.status==='Inactive')throw new PartyQuickAddConflict('inactive');
+  if(existing&&openings.some(entry=>existing.roles.includes(entry.relationship)))throw new PartyQuickAddConflict('existing-opening');
+  const next=existing
+    ?dispatchPartyPreview({type:'update-party',id:existing.id,patch:{roles:[...new Set([...existing.roles,...draft.roles])]},openings})
+    :dispatchPartyPreview({type:'create-party',party:draft,openings});
+  const id=existing?.id??next.audit[next.audit.length-1].partyId;
+  const party=next.parties.find(p=>p.id===id);
+  if(!party)throw new Error('The party could not be selected.');
+  return {party,reused:!!existing};
+}
+
 function checkedText(value:string,field:string):string {
   const text=value.trim();
   if (!text) throw new Error(field+' is required.');
