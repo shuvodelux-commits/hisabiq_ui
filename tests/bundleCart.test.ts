@@ -78,7 +78,10 @@ test('preview allocation uses physical lots in stable order, never mutates lots,
  assert.equal(serialResult.allocations.length,0);
 });
 test('shortage allocation is all-or-nothing: no partial fake stock when a component is missing',()=>{
- const expanded=expandCartStockDemand([line('a',a,'3',1)],[a,pipe,sock],getRecipe);
+ // Four Sets require 12 Pipes, while the combined lot supply is only 9.
+ const expanded=expandCartStockDemand([line('a',a,'4',1)],[a,pipe,sock],getRecipe);
+ const shortage=projectCartShortages(expanded.demands,[a,pipe,sock],lots,new Date('2026-10-17'));
+ assert.equal(shortage.find(s=>s.componentProductId==='pipe')?.shortageBaseQty,3);
  const r=allocateBundlePreview(expanded.demands,[a,pipe,sock],lots,new Date('2026-10-17'));
  assert.ok(r.errors.some(x=>/shortage/i.test(x)));
  assert.deepEqual(r.allocations,[]);
