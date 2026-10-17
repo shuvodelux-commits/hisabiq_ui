@@ -251,7 +251,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     <Eye className="size-3.5" />
                   </button>
                   {revealedPurchase === l.key &&
-                  <div className="absolute right-0 top-full z-30 mt-1 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-[11px] text-ink-600 shadow-pop">
+                  <div className="absolute right-0 top-full z-30 mt-1 w-max max-w-[min(300px,calc(100vw-16px))] whitespace-normal break-words rounded-md border border-border bg-card px-2 py-1.5 text-[11px] text-ink-600 shadow-pop">
                       {l.product.kind==='Bundle'
                        ?<><span className="font-medium">{text('Package cost','প্যাকেজের কেনা খরচ')} · {text('estimated','আনুমানিক')}</span><span className="block">{taka(purchasePrice,purchasePrice%1?2:0)}/Set</span>
                          <span className="block text-ink-400">{text('Current component lots; not realized sale cost','বর্তমান পণ্যের লট; বিক্রির চূড়ান্ত খরচ নয়')}</span>
