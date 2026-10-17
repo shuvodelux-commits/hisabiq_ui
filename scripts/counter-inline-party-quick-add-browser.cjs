@@ -42,7 +42,7 @@ async function main() {
           const list=page.getByRole('listbox',{name:label('Matching parties','মিলে যাওয়া নাম')});
           await list.waitFor();
           assert.equal(await page.getByText(label('No matching parties','কোনো নাম মেলেনি')).count(),1,`${suffix} ${role} has no existing match`);
-          const add=page.getByRole('button',{name:new RegExp(`Add.*as ${role.toLowerCase()}|${role==='Customer'?'ক্রেতা':'সরবরাহকারী'}.*যোগ করুন`)});
+          const add=page.locator('button').filter({hasText:new RegExp(`as ${role.toLowerCase()}|${role==='Customer'?'ক্রেতা হিসেবে':'সরবরাহকারী হিসেবে'}`)});
           await add.waitFor();
           await act(add);
           const dialog=page.getByRole('dialog',{name:label('Add party','নতুন পার্টি যোগ করুন')});

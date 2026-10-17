@@ -24,6 +24,7 @@
     "test:themed-filters": "node scripts/themed-filters-browser.cjs",
     "test:parties": "node scripts/party-browser.cjs",
     "test:counter-inline-party-quick-add": "node scripts/counter-inline-party-quick-add-browser.cjs",
+    "test:counter-duplicate-party-role": "node scripts/counter-duplicate-party-role-browser.cjs",
     "test:vendor-workflow": "node scripts/vendor-workflow-browser.cjs",
     "test:vendor-pos": "node scripts/vendor-pos-browser.cjs",
     "test:vendor-evening": "node scripts/vendor-evening-browser.cjs",
