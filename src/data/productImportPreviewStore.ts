@@ -214,7 +214,7 @@ export function upsertProductPreview(product:Product,lot?:StockLot,movement?:Sto
  if(lot&&(lot.productId!==product.id||movement?.productId!==product.id))throw new Error('Opening reference mismatch.');
  publish({revision:snapshot.revision+1,appliedSessionIds:snapshot.appliedSessionIds,
   products:[{...product},...products],lots:lot?[{...lot},...snapshot.lots]:snapshot.lots,
-  movements:movement?[{...movement},...snapshot.movements]:snapshot.movements,bundleVersions:snapshot.bundleVersions});
+  movements:movement?[{...movement},...snapshot.movements]:snapshot.movements,bundleVersions:snapshot.bundleVersions,bundleSaleReferences:snapshot.bundleSaleReferences});
 }
 /** Keep stock corrections and manually received lots visible after Product-page navigation. */
 export function updateProductInventoryPreview(product:Product,lots:readonly StockLot[],movements:readonly StockMovement[]):void {
@@ -223,5 +223,5 @@ export function updateProductInventoryPreview(product:Product,lots:readonly Stoc
  const products=snapshot.products.map(p=>p.id===product.id?{...product}:p);
  if(!products.some(p=>p.id===product.id))throw new Error('Product does not exist.');
  publish({revision:snapshot.revision+1,appliedSessionIds:snapshot.appliedSessionIds,
-  products,lots:[...lots],movements:[...movements],bundleVersions:snapshot.bundleVersions});
+  products,lots:[...lots],movements:[...movements],bundleVersions:snapshot.bundleVersions,bundleSaleReferences:snapshot.bundleSaleReferences});
 }
