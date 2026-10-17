@@ -1,7 +1,8 @@
 import {transactionLineTotal} from '../utils/transactionLines.ts';
+import {requireCurrentBundleHandoffs} from '../bundles/bundleHandoff.ts';
 /** In-memory quotation preview; no invoice, payment, or stock posting. */
 export type QuoteStatus='Draft'|'Sent'|'Accepted'|'Declined';
-export type QuoteLine={id:string;productId:string;name:string;unit:string;quantity:number;price:number;secondaryQuantity?:number;unitFactor?:number};
+export type QuoteLine={id:string;productId:string;name:string;unit:string;quantity:number;price:number;secondaryQuantity?:number;unitFactor?:number;bundleRevision?:number;bundleRecipeSignature?:string};
 export type Quotation={
  id:string;number:string;date:string;validUntil:string;
  partyId?:string;customerName:string;customerPhone?:string;
@@ -61,6 +62,7 @@ export function validateQuoteDraft(input:QuoteDraft):string[]{
  if(!Number.isFinite(input.discount)||input.discount<0||input.discount>subtotal)
   errors.push('Discount must be between zero and subtotal.');
  if(input.note.length>600)errors.push('Note cannot exceed 600 characters.');
+ try{requireCurrentBundleHandoffs(input.lines);}catch(e){errors.push(e instanceof Error?e.message:'Package requires review.');}
  return errors;
 }
 function safeDraft(input:QuoteDraft):QuoteDraft{
@@ -91,6 +93,7 @@ export function changeQuoteStatus(id:string,status:QuoteStatus):Quotation{
  const original=snapshot.quotes.find(q=>q.id===id);if(!original)throw new Error('Quotation not found.');
  const transitions:Record<QuoteStatus,QuoteStatus[]>={Draft:['Sent'],Sent:['Accepted','Declined','Draft'],Accepted:['Draft'],Declined:[]};
  if(!transitions[original.status].includes(status))throw new Error('This quotation status change is not allowed.');
+ if(status==='Sent'||status==='Accepted')requireCurrentBundleHandoffs(original.lines);
  if(status==='Accepted'&&quoteDisplayStatus(original)==='Expired')throw new Error('Expired quotation cannot be accepted; revise it first.');
  const next:Quotation={...original,status,updatedAt:today()};
  publish(snapshot.quotes.map(q=>q.id===id?next:q));return next;
