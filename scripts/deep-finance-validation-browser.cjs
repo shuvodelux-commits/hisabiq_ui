@@ -60,8 +60,8 @@ async function main(){
   await check('opening-finance-amount',async()=>{
    await go();await act(button(page,'New transaction','নতুন লেনদেন'));
    const d=page.getByRole('dialog',{name:new RegExp(word('New finance transaction','নতুন টাকার লেনদেন'))});
-   await act(d.getByRole('combobox',{name:word('Transaction type','লেনদেনের ধরন')}));
-   await act(page.getByRole('option',{name:word('Opening Loan','শুরুর ঋণ'),exact:true}));
+   await act(d.getByRole('combobox').first());
+   await act(page.locator('[role="option"][data-value="Opening Loan"]'));
    await expect(d.getByText(word('Payment sources','টাকার মাধ্যম'),{exact:true})).toHaveCount(0);
    const input=amount(d);await expect(input).not.toHaveAttribute('readonly','');
    await input.fill('321.45');await expect(d.getByTestId('amount-in-words').first()).not.toContainText('শূন্য টাকা');
