@@ -1,10 +1,9 @@
-import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
-import React,{useEffect,useMemo,useRef,useState} from 'react';
-import {CheckCircle2,ChevronDown,Search} from 'lucide-react';
+import React,{useEffect,useId,useMemo,useState} from 'react';
+import {CheckCircle2,ListFilter} from 'lucide-react';
 import {Button} from '../Button';
-import {StatusBadge} from '../StatusBadge';
 import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
+import {VendorMemoPickerDialog} from './VendorMemoPickerDialog';
 import {VendorActionDialog} from '../parties/VendorActionDialog';
 import {VendorClearDuePanel} from './VendorClearDuePanel';
 import {dispatchVendorPreview,getVendorPreviewSnapshot} from '../../vendor/vendorPreviewStore';
@@ -30,6 +29,7 @@ const requiresAction=(state:VendorPreviewState,s:VendorSource)=>{
 /** Price is optional when goods are taken. Convert the agreed price to the product base unit. */
 function VendorPriceForm({source}: {source:VendorSource}){
   const product=products.find(p=>p.id===source.productId);
+  const priceInputId=useId();
   const [unit,setUnit]=useState(product?.altUnit?.unit??product?.unit??'');
   const [price,setPrice]=useState('');
   const [error,setError]=useState('');
@@ -57,16 +57,19 @@ function VendorPriceForm({source}: {source:VendorSource}){
       <h4 className="text-sm font-semibold text-ink">Set Price · দাম ঠিক করুন</h4>
       <p className="mt-1 text-xs text-ink-500">Set the agreed cost to calculate the due. Until then, these goods have no recorded money due.</p>
     </div>
-    <div className="grid gap-2 sm:grid-cols-2 sm:items-end">
-      <div>
-        <span className="mb-1 block text-xs font-medium text-ink-600">Price in · কোন এককে</span>
-        <AppSelect label="Vendor price unit" value={unit}
+    <div className="grid gap-3 sm:grid-cols-2 sm:items-end" aria-label="Vendor price fields">
+      <div className="min-w-0 space-y-1">
+        <span className="block text-xs font-medium text-ink-600">Price in · কোন এককে</span>
+        <AppSelect label="Vendor price unit" className="[&>button]:h-9" value={unit}
           onChange={setUnit} options={[product?.unit??'',...(product?.altUnit?[product.altUnit.unit]:[])].filter(Boolean)}/>
       </div>
-      <label className="text-xs font-medium text-ink-600">Cost per {unit} · মূল্য
-        <Input className="mt-1" inputMode="decimal" aria-label={'Agreed cost per '+unit}
-          value={price} onChange={e=>setPrice(e.target.value)} placeholder="৳0.00"/>
-      </label>
+      <div className="min-w-0 space-y-1">
+        <label htmlFor={priceInputId} className="block text-xs font-medium text-ink-600">Cost per {unit} · মূল্য</label>
+        <div className="min-w-0">
+          <Input id={priceInputId} className="h-9 w-full" inputMode="decimal"
+            aria-label={'Agreed cost per '+unit} value={price} onChange={e=>setPrice(e.target.value)} placeholder="৳0.00"/>
+        </div>
+      </div>
     </div>
     <p className="text-xs text-ink-500">Unreturned: {remaining} {product?.unit??'units'}
       {price.trim()&&Number(price)>0?' · Estimated due: '+money(Math.round(remaining*Number(price)*100/factor)):''}</p>
@@ -76,13 +79,10 @@ function VendorPriceForm({source}: {source:VendorSource}){
 }
 
 export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}:Props){
-  const [search,setSearch]=useState('');
-  const [needsActionOnly,setNeedsActionOnly]=useState(false);
   const [selectedId,setSelectedId]=useState<string|null>(sourceId);
-  const [showMemos,setShowMemos]=useState(false);
-  const detailRef=useRef<HTMLDivElement>(null);
-  useEffect(()=>{if(sourceId){setSelectedId(sourceId);setShowMemos(false);}},[sourceId]);
-  const chooseSource=(id:string)=>{setSelectedId(id);setShowMemos(false);requestAnimationFrame(()=>detailRef.current?.focus());};
+  const [memoPickerOpen,setMemoPickerOpen]=useState(false);
+  useEffect(()=>{if(sourceId){setSelectedId(sourceId);setMemoPickerOpen(false);}},[sourceId]);
+  const chooseSource=(id:string)=>{setSelectedId(id);setMemoPickerOpen(false);};
   const [givenAction,setGivenAction]=useState<'receive-money'|'receive-goods'>('receive-money');
   const groups=useMemo(()=>{
     const map=new Map<string,VendorSource[]>();
@@ -97,8 +97,11 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
       date:lines[0].date
     })).sort((a,b)=>Number(b.needsAction)-Number(a.needsAction)||b.date.localeCompare(a.date));
   },[sources,snapshot]);
-  const shown=groups.filter(g=>(!needsActionOnly||g.needsAction)&&
-    fuzzyMatch(search,[g.key,...g.lines.map(s=>productName(s))]));
+  const memoOptions=groups.map(g=>({
+    id:g.key,reference:g.key,date:g.date,description:g.lines.map(line=>productName(line)).join(', '),
+    productCount:g.lines.length,pending:g.needsAction,pricePending:g.unpriced,
+    duePaisa:g.unpriced&&!g.duePaisa?null:g.duePaisa
+  }));
   const selected=sources.find(s=>s.id===selectedId)??groups.find(g=>g.needsAction)?.lines.find(s=>requiresAction(snapshot,s))
     ??groups[0]?.lines[0]??null;
   const currentGroup=selected?groups.find(g=>g.lines.some(s=>s.id===selected.id)):null;
@@ -113,54 +116,19 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
           {mode==='taken'?'Taken Memos · নেওয়া মেমো':'Given Memos · দেওয়া মেমো'}
           <span className="ml-1.5 text-xs font-normal text-ink-500">({groups.length})</span>
         </h4>
-        <Button type="button" variant="outline" size="sm" aria-expanded={showMemos}
-          onClick={()=>setShowMemos(open=>!open)}>
-          {showMemos?'Back to selected memo · মেমোতে ফিরুন':'Choose another memo · মেমো বাছুন'}
-          <ChevronDown className={'size-4 transition-transform '+(showMemos?'rotate-180':'')}/>
+        <Button type="button" variant="outline" size="sm" onClick={()=>setMemoPickerOpen(true)}>
+          <ListFilter className="size-4"/> Browse memos
         </Button>
       </div>
-      {showMemos&&<div aria-label="Choose Vendor memo" className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-          <div className="relative min-w-[150px] flex-1">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400"/>
-            <Input aria-label="Search Vendor source invoices" value={search} onChange={e=>setSearch(e.target.value)}
-              placeholder="Invoice, memo or product" className="pl-8"/>
-          </div>
-          <label className="flex items-center gap-1.5 text-xs text-ink-600">
-            <input type="checkbox" checked={needsActionOnly} onChange={e=>setNeedsActionOnly(e.target.checked)}
-              className="accent-teal-600"/> Pending only
-          </label>
-        </div>
-        <div className="max-h-56 divide-y divide-border overflow-y-auto">
-          {shown.map(g=>{
-            const active=g.lines.some(s=>s.id===selected?.id);
-            return <button type="button" key={g.key} aria-pressed={active}
-              onClick={()=>chooseSource(g.lines.find(s=>requiresAction(snapshot,s))?.id??g.lines[0].id)}
-              className={'flex w-full min-w-0 items-center gap-3 px-3 py-2.5 text-left focus-visible:outline-2 focus-visible:outline-teal-500 '+
-                (active?'bg-teal-50/60 dark:bg-teal-900/20':'hover:bg-ink-50')}>
-              <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
-                  {g.key}
-                  {g.unpriced?<StatusBadge tone="warning">Price Pending</StatusBadge>:
-                   g.needsAction?<StatusBadge tone="danger">Due</StatusBadge>:
-                   <StatusBadge tone="success">Settled</StatusBadge>}
-                </span>
-                <span className="mt-0.5 block truncate text-xs text-ink-500">
-                  {g.date} · {g.lines.map(s=>productName(s)).join(', ')}
-                </span>
-              </span>
-              <span className="shrink-0 text-right text-xs font-semibold text-ink">
-                {g.unpriced&&!g.duePaisa?'—':money(g.duePaisa)}
-              </span>
-            </button>;
-          })}
-          {!shown.length&&<p className="px-3 py-7 text-center text-xs text-ink-500">
-            {sources.length?'No matching memos. Clear the search or filter.':'No vendor goods recorded yet.'}
-          </p>}
-        </div>
-      </div>}
-      {!showMemos&&<div ref={detailRef} tabIndex={-1} aria-label="Selected Vendor memo"
-        className="min-w-0 space-y-3 p-3 outline-none sm:p-4">
+      <VendorMemoPickerDialog open={memoPickerOpen}
+        title={mode==='taken'?'Taken Memos':'Given Memos'}
+        memos={memoOptions} selectedId={currentGroup?.key??null}
+        onClose={()=>setMemoPickerOpen(false)}
+        onSelect={memoId=>{
+          const group=groups.find(g=>g.key===memoId);
+          if(group)chooseSource(group.lines.find(line=>requiresAction(snapshot,line))?.id??group.lines[0].id);
+        }}/>
+      <div aria-label="Selected Vendor memo" className="min-w-0 space-y-3 p-3 sm:p-4">
         {selected?<>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
@@ -206,7 +174,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
               <CheckCircle2 className="size-4 text-teal-600"/> This Vendor memo has no remaining due.</p>}
           </div>}
         </>:<div className="py-5 text-center text-sm text-ink-500">No memo yet. Take or give products to begin.</div>}
-      </div>}
+      </div>
     </div>
   </section>;
 }
