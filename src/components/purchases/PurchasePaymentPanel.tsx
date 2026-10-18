@@ -116,9 +116,9 @@ export function PurchasePaymentPanel(props: Props) {
           {payments.map((payment, index) => (
             <div key={payment.id} className="rounded-lg border border-border bg-ink-50/40 p-2">
               <div className="grid grid-cols-[92px_minmax(0,1fr)_28px] gap-1.5">
-                <FormSelect value={payment.method} options={methods.map(method=>({value:method,label:text(method,method==="Cash"?"ক্যাশ":method==="Bank"?"ব্যাংক":method==="Card"?"কার্ড":method)}))}
+                <FormSelect aria-label={text('Payment method ' + (index + 1),'পেমেন্টের মাধ্যম ' + (index + 1))} value={payment.method} options={methods.map(method=>({value:method,label:text(method,method==="Cash"?"ক্যাশ":method==="Bank"?"ব্যাংক":method==="Card"?"কার্ড":method)}))}
                   onChange={(event) => changeMethod(payment.id, event.target.value as PurchasePaymentMethod)} />
-                <FormSelect value={payment.account} options={purchasePaymentAccounts[payment.method]}
+                <FormSelect aria-label={text('Payment account ' + (index + 1),'পেমেন্টের হিসাব ' + (index + 1))} value={payment.account} options={purchasePaymentAccounts[payment.method]}
                   onChange={(event) => updatePayment(payment.id, { account: event.target.value })} />
                 <button type="button" disabled={payments.length === 1}
                   onClick={() => props.onPayments((rows) => rows.filter((row) => row.id !== payment.id))}
@@ -137,7 +137,7 @@ export function PurchasePaymentPanel(props: Props) {
                     onKeyDown={(event) => event.key === 'Enter' && props.onComplete()}
                     inputMode="decimal" placeholder="0" className="h-9 pl-7 text-right font-medium" />
                 </div>
-                <button type="button" onClick={() => updatePayment(payment.id,
+                <button type="button" aria-label={text('Fill remaining payment ' + (index + 1),'বাকি পেমেন্ট পূরণ ' + (index + 1))} onClick={() => updatePayment(payment.id,
                   { amount: String(paymentRemainder(totals.total, payments, payment.id)) })}
                   className="h-9 rounded-md border border-border bg-card px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50">
                   {word('remaining')}
