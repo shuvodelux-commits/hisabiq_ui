@@ -44,7 +44,7 @@ export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFi
       <div className="flex flex-wrap gap-1" role="group" aria-label="Vendor filter">
         {filters.map(item=><button key={item.id} type="button" aria-pressed={filter===item.id}
           onClick={()=>onFilter(item.id)}
-          className={'min-h-10 rounded-md px-2.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 '
+          className={'min-h-11 rounded-md px-2.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 '
           +(filter===item.id?'bg-inverse text-white':'bg-ink-50 text-ink-600 hover:bg-ink-100')}>
           {item.label} <span className="text-[11px] opacity-75">{item.count}</span>
         </button>)}
