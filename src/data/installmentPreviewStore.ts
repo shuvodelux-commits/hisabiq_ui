@@ -1,3 +1,5 @@
+import type {InstallmentHistoricalLine} from '../installments/historicalLines.ts';
+import type {InstallmentLifecycleEvent} from '../installments/lifecycle.ts';
 import {validateInstallmentCollection,type InstallmentCollectionInput} from '../installments/validateCollection.ts';
 import type {InstallmentPaymentPreviewEvent} from '../installments/collections.ts';
 import {scheduleDifferencePaisa,validateScheduleRows,type InstallmentScheduleRow} from '../installments/schedule.ts';
@@ -8,6 +10,8 @@ export type PreviewInstallmentAgreement={
   createdAt:string;operationId:string;totalPaisa:number;downPaymentPaisa:number;
   schedule:InstallmentScheduleRow[];
   lineSnapshot:{key:string;productId:string;amountPaisa:number}[];
+  /** Optional for legacy preview records; required to value return previews safely. */
+  historicalLines?:readonly InstallmentHistoricalLine[];
   paymentSnapshot:{method:string;account:string;amountPaisa:number}[];
 };
 export type InstallmentPreviewInput=Omit<PreviewInstallmentAgreement,'id'|'createdAt'>;
@@ -49,6 +53,16 @@ export function recordInstallmentPreview(input:InstallmentPreviewInput):PreviewI
   if(input.lineSnapshot.some(l=>!l.productId?.trim()))throw new Error('Invoice line product required.');
   if(total(input.lineSnapshot,'Invoice line')!==input.totalPaisa)
     throw new Error('Invoice line prices must reconcile to the agreed invoice total.');
+  if(input.historicalLines){
+    const source=new Map(input.lineSnapshot.map(row=>[row.key,row]));
+    if(input.historicalLines.length!==source.size||
+       input.historicalLines.some(row=>{
+         const original=source.get(row.lineKey);
+         return !original||original.productId!==row.productId||
+           original.amountPaisa!==row.originalNetPaisa||
+           !Number.isFinite(row.originalBaseQuantity)||row.originalBaseQuantity<=0;
+       }))throw new Error('Historical sale lines must match their original invoice values.');
+  }
   if(input.paymentSnapshot.some(row=>!row.method.trim()||!row.account.trim()||row.method==='Customer Credit'))
     throw new Error('Choose actual money accounts for the initial payment.');
   if(total(input.paymentSnapshot,'Payment split')!==input.downPaymentPaisa)
@@ -93,5 +107,28 @@ export function listInstallmentReceipts(agreementId:string):InstallmentPaymentPr
  return structuredClone(receipts.filter(row=>row.agreementId===agreementId));
 }
 export function resetInstallmentPreviewsForTest():void{
- sequence=0;receiptSequence=0;records.splice(0);receipts.splice(0);
+ sequence=0;receiptSequence=0;records.splice(0);receipts.splice(0);lifecycleEvents.splice(0);
+}
+
+/** Source-event append is isolated from Party/Finance/stock; still a volatile UI preview. */
+const lifecycleEvents:InstallmentLifecycleEvent[]=[];
+export function listInstallmentLifecycleEvents(agreementId:string):InstallmentLifecycleEvent[]{
+ return structuredClone(lifecycleEvents.filter(e=>e.agreementId===agreementId));
+}
+export function appendInstallmentLifecycleEvent(event:InstallmentLifecycleEvent):InstallmentLifecycleEvent{
+ if(!records.some(a=>a.id===event.agreementId))throw new Error('Installment agreement not found.');
+ const other=lifecycleEvents.find(e=>e.operationId===event.operationId);
+ if(other){
+  if(JSON.stringify(other)!==JSON.stringify(event))
+   throw new Error('Operation already used for a different lifecycle event.');
+  return structuredClone(other);
+ }
+ if(lifecycleEvents.some(e=>e.id===event.id))
+  throw new Error('Duplicate lifecycle event identity.');
+ const previous=lifecycleEvents.filter(e=>e.agreementId===event.agreementId);
+ if(event.revision!==previous.length+1)
+  throw new Error('Stale lifecycle source revision.');
+ const copy=structuredClone(event);
+ lifecycleEvents.push(copy);
+ return structuredClone(copy);
 }
