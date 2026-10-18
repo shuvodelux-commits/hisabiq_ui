@@ -9,3 +9,13 @@ test('empty inputs, boundaries and invalid numbers remain safe',()=>{
  for(const value of ['abc','1.2.3','Infinity','NaN'])assert.equal(wholeNumberStep(value,1),null);
  assert.equal(wholeNumberStep('2.',1),'3.');
 });
+test('only complete zero values clear on focus; wheel gestures use one whole step',async()=>{
+ const {isZeroNumberText,wheelStepDirection}=await import('../src/utils/numericStep.ts');
+ for(const raw of ['0','0.00','-0','+0.000',' 0 '])assert.equal(isZeroNumberText(raw),true,raw);
+ for(const raw of ['', '0.01','10','0..0','0x0','abc'])assert.equal(isZeroNumberText(raw),false,raw);
+ assert.equal(wheelStepDirection({deltaY:-120,deltaX:0}),1);
+ assert.equal(wheelStepDirection({deltaY:1,deltaX:0}),-1);
+ assert.equal(wheelStepDirection({deltaY:0,deltaX:0}),null);
+ assert.equal(wheelStepDirection({deltaY:1,deltaX:10}),null);
+ assert.equal(wheelStepDirection({deltaY:-10,deltaX:0,ctrlKey:true}),null);
+});
