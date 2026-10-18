@@ -41,13 +41,17 @@ export function StockShortageDialog({ line, availableBaseQty, shortageBaseQty, o
   const displayUnit = line?.unit ?? '';
   const vendor = vendors.find((item) => item.id === vendorId) ?? null;
 
+  // Bundle componentLine is recreated as an object on parent renders. Never reset
+  // the selected Vendor radio when quick-add updates Party preview subscribers.
+  const sourceMode=line?.stockSource?.mode;
+  const sourceVendorId=line?.stockSource?.mode==='Vendor'?line.stockSource.vendorId:'';
+  const sourceUnitCost=line?.stockSource?.mode==='Vendor'?line.stockSource.unitCost:null;
   useEffect(() => {
     if (!open || !line) return;
-    const source = line.stockSource;
-    setChoice(source?.mode === 'Vendor' ? 'Vendor' : source?.mode === 'Negative' ? 'Negative' : 'Own');
-    setVendorId(source?.mode === 'Vendor' ? source.vendorId : '');
-    setVendorCost(source?.mode === 'Vendor' && source.unitCost!==null ? String(source.unitCost * factor) : '');
-  }, [factor, line, open]);
+    setChoice(sourceMode === 'Vendor' ? 'Vendor' : sourceMode === 'Negative' ? 'Negative' : 'Own');
+    setVendorId(sourceVendorId);
+    setVendorCost(sourceUnitCost!==null && sourceUnitCost!==undefined ? String(sourceUnitCost*factor) : '');
+  }, [factor, line?.key, line?.product.id, open, sourceMode, sourceVendorId, sourceUnitCost]);
 
   const ownStockLabel = useMemo(() => line ? formatStock({ ...line.product, stock: availableBaseQty }) : '', [availableBaseQty, line]);
   if (!line) return null;
