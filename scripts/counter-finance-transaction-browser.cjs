@@ -51,7 +51,7 @@ async function main() {
         const loansTab = page.getByRole('tab', { name: 'Loans & Owners', exact: true });
         await loansTab.waitFor({ state: 'visible' });
         await loansTab.click();
-        await page.getByText('FIN-000189', { exact: true }).waitFor({ state: 'visible' });
+        await page.locator('tbody').getByText(/FIN-000189/).waitFor({ state: 'visible' });
         const afterNavigation = await preview();
         assert.equal(afterNavigation.item?.id, saved.item.id);
         assert.equal(afterNavigation.cash, saved.cash);
