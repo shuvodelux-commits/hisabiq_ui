@@ -41,7 +41,8 @@ async function main(){
    const twinLabels=await twinOptions.allTextContents();assert.equal(new Set(twinLabels).size,2,'duplicate-name option labels distinguish the selected person');
    await page.keyboard.press('Escape');
    await act(comboboxes.first());await act(page.locator('[role="option"][data-value="Borrower Debit"]'));
-   await parent.getByRole('textbox',{name:/Amount|টাকা/}).fill('321.45');
+   const paymentSource=parent.getByText(/Payment sources|টাকার মাধ্যম/,{exact:true}).locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]').getByRole('textbox').first();
+   await paymentSource.fill('321.45');
    await parent.getByRole('textbox',{name:/Reference no\.|নম্বর/}).fill('NEST-KEEP');
    await parent.getByRole('textbox',{name:/Notes|মন্তব্য/}).fill('parent draft survives quick add');
    await act(parent.getByRole('button',{name:/Manage people|ব্যক্তি যোগ \/ সংশোধন/}));
@@ -55,7 +56,7 @@ async function main(){
    assert.equal(await parent.getByRole('textbox',{name:/Reference no\.|নম্বর/}).inputValue(),'NEST-KEEP');
    assert.equal(await parent.getByRole('textbox',{name:/Notes|মন্তব্য/}).inputValue(),'parent draft survives quick add');
    assert.match(await parent.innerText(),/Nested Borrower/,'the new contextual-role person is selected in the parent');
-   await parent.getByPlaceholder('321.45').fill('321.45');
+   assert.equal(await paymentSource.inputValue(),'321.45','payment amount survives nested manager changes');
    // Finance account creation is deliberately outside this transaction form.
    assert.equal(await parent.getByRole('button',{name:/Add account|হিসাব যোগ করুন/}).count(),0);
    const manage=parent.getByRole('button',{name:/Manage people|ব্যক্তি যোগ \/ সংশোধন/});
