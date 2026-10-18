@@ -106,11 +106,11 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
   const canSettle=Boolean(pending&&(pending.unpricedBaseQty>0||(pending.monetaryDuePaisa??0)>0));
   const product=selected?products.find(p=>p.id===selected.productId):undefined;
   return <section role="region" aria-label={mode==='taken'?'Taken product workplace':'Given product workplace'}
-    className="grid min-w-0 gap-3 lg:grid-cols-[minmax(260px,0.85fr)_minmax(0,1.15fr)] lg:items-start">
-    <Button type="button" variant="outline" className="min-h-11 w-full lg:hidden" onClick={()=>setShowMemos(!showMemos)} aria-expanded={showMemos}>
+    className="grid min-w-0 gap-3 xl:grid-cols-[minmax(260px,0.85fr)_minmax(0,1.15fr)] xl:items-start">
+    <Button type="button" variant="outline" className="min-h-11 w-full xl:hidden" onClick={()=>setShowMemos(!showMemos)} aria-expanded={showMemos}>
       <ArrowLeft className="size-4"/>{showMemos?'Back to selected memo · মেমোতে ফিরুন':`Choose another memo · মেমো বাছুন (${groups.length})`}
     </Button>
-    <div className={(showMemos?'block':'hidden')+' min-w-0 overflow-hidden rounded-lg border border-border bg-card lg:block'}>
+    <div className={(showMemos?'block':'hidden')+' min-w-0 overflow-hidden rounded-lg border border-border bg-card xl:block'}>
       <div className="border-b border-border p-3">
         <h4 className="text-sm font-semibold text-ink">
           {mode==='taken'?'Taken Memos · নেওয়া মেমো':'Given Memos · দেওয়া মেমো'}
@@ -157,7 +157,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
         </p>}
       </div>
     </div>
-    <div ref={detailRef} tabIndex={-1} aria-label="Selected Vendor memo" className={(showMemos?'hidden':'block')+' min-w-0 outline-none lg:block lg:sticky lg:top-16'}>
+    <div ref={detailRef} tabIndex={-1} aria-label="Selected Vendor memo" className={(showMemos?'hidden':'block')+' min-w-0 outline-none xl:block xl:sticky xl:top-16'}>
       {selected?<div className="min-w-0 rounded-lg border border-border bg-card p-4 shadow-card sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border pb-3">
           <div className="min-w-0">
