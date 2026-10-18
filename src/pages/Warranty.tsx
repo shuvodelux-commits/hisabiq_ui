@@ -906,12 +906,14 @@ export function Warranty() {
             />
           </div>
           <FormSelect
+            aria-label={wl("All status")}
             className="w-full lg:w-44"
             value={status}
             onChange={(event) => setStatus(event.target.value)}
             options={warrantyOptions(language,['All status', ...Object.keys(statusLabels)])}
           />
           <FormSelect
+            aria-label={wl("All routes")}
             className="w-full lg:w-40"
             value={route}
             onChange={(event) => setRoute(event.target.value)}
