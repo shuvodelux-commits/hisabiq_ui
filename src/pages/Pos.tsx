@@ -18,8 +18,11 @@ import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../instal
 import {validateInstallmentDraft} from '../installments/validateDraft';
 import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../installments/pricing';
 import {createHistoricalInstallmentLines} from '../installments/historicalLines';
-import {recordInstallmentPreview,listInstallmentPreviews,listInstallmentReceipts,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
+import {recordInstallmentPreview,listInstallmentPreviews,listInstallmentReceipts,listInstallmentLifecycleEvents,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
 import type {InstallmentPaymentPreviewEvent} from '../installments/collections';
+import type {InstallmentLifecycleEvent} from '../installments/lifecycle';
+import {InstallmentRescheduleDialog} from '../components/pos/InstallmentRescheduleDialog';
+import {InstallmentAdjustmentDialog} from '../components/pos/InstallmentAdjustmentDialog';
 import {InstallmentReceivePaymentDialog} from '../components/pos/InstallmentReceivePaymentDialog';
 import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
 import {InstallmentBreakdownDialog} from '../components/pos/InstallmentBreakdownDialog';
@@ -198,6 +201,10 @@ export function Pos() {
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
   const [completedInstallment,setCompletedInstallment]=useState<PreviewInstallmentAgreement|null>(null);
   const [completedReceipts,setCompletedReceipts]=useState<InstallmentPaymentPreviewEvent[]>([]);
+  const [completedLifecycle,setCompletedLifecycle]=useState<InstallmentLifecycleEvent[]>([]);
+  const [historyLifecycle,setHistoryLifecycle]=useState<InstallmentLifecycleEvent[]>([]);
+  const [rescheduleOpen,setRescheduleOpen]=useState(false);
+  const [adjustmentMode,setAdjustmentMode]=useState<'Return'|'Settlement'|null>(null);
   const [receiveInstallmentOpen,setReceiveInstallmentOpen]=useState(false);
   const [installmentHistoryOpen,setInstallmentHistoryOpen]=useState(false);
   const [historySelected,setHistorySelected]=useState<PreviewInstallmentAgreement|null>(null);
@@ -507,11 +514,12 @@ export function Pos() {
         });
         setCompletedInstallment(created);
         setCompletedReceipts(listInstallmentReceipts(created.id));
+        setCompletedLifecycle(listInstallmentLifecycleEvents(created.id));
       }catch(error){
         toast.error(error instanceof Error?error.message:'Installment preview could not be saved.');
         return;
       }
-    }else {setCompletedInstallment(null);setCompletedReceipts([]);}
+    }else {setCompletedInstallment(null);setCompletedReceipts([]);setCompletedLifecycle([]);}
     const remainingLots=stockLots.map(lot=>({...lot}));
     setCompleted({
       invoice,
@@ -661,7 +669,7 @@ export function Pos() {
   };
 
   const newSale = () => {
-    setCompleted(null);setCompletedInstallment(null);setCompletedReceipts([]);setReceiveInstallmentOpen(false);setDemoVendorInvoice(null);
+    setCompleted(null);setCompletedInstallment(null);setCompletedReceipts([]);setCompletedLifecycle([]);setReceiveInstallmentOpen(false);setDemoVendorInvoice(null);
     cart.reset();
     setInstallmentMode('Regular');setInstallmentRows([]);
     setInvoiceNo(reservePreviewInvoiceNumber);
@@ -674,6 +682,15 @@ export function Pos() {
     newSale();
   };
 
+  const activeInstallmentAgreement=installmentHistoryOpen&&historySelected||completedInstallment;
+  const activeInstallmentReceipts=installmentHistoryOpen&&historySelected?historyReceipts:completedReceipts;
+  const activeInstallmentEvents=installmentHistoryOpen&&historySelected?historyLifecycle:completedLifecycle;
+  const reloadLifecycle=()=>{
+    if(!activeInstallmentAgreement)return;
+    const source=listInstallmentLifecycleEvents(activeInstallmentAgreement.id);
+    if(installmentHistoryOpen&&historySelected)setHistoryLifecycle(source);
+    else setCompletedLifecycle(source);
+  };
   return (
     <div className="pos-screen mx-auto max-w-[1440px] min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -948,7 +965,11 @@ export function Pos() {
             {completed && <ReceiptPreview {...completed} language={personal.language} />}
           </div>
           {completedInstallment && <InstallmentAgreementPreview agreement={completedInstallment}
-             receipts={completedReceipts} onReceive={()=>setReceiveInstallmentOpen(true)}/>}
+             receipts={completedReceipts} events={completedLifecycle}
+             onReceive={completedLifecycle.length?undefined:()=>setReceiveInstallmentOpen(true)}
+             onReschedule={()=>setRescheduleOpen(true)}
+             onReturn={()=>setAdjustmentMode('Return')}
+             onSettle={()=>setAdjustmentMode('Settlement')}/>}
           <DialogFooter>
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
               <Button variant="outline" onClick={simulateVendorSources}
@@ -979,12 +1000,16 @@ export function Pos() {
           <div className="space-y-2">
             {listInstallmentPreviews().map(item=><Button key={item.id} variant="outline"
               className="h-auto w-full justify-between gap-2 py-2 text-left"
-              onClick={()=>{setHistorySelected(item);setHistoryReceipts(listInstallmentReceipts(item.id));}}>
+              onClick={()=>{setHistorySelected(item);setHistoryReceipts(listInstallmentReceipts(item.id));setHistoryLifecycle(listInstallmentLifecycleEvents(item.id));}}>
               <span className="min-w-0 truncate">{item.customerName} · {item.invoiceReference}</span>
               <span className="shrink-0">{taka(item.totalPaisa/100)}</span>
             </Button>)}
             {historySelected&&<InstallmentAgreementPreview agreement={historySelected}
-              receipts={historyReceipts} onReceive={()=>setReceiveInstallmentOpen(true)}/>}
+              receipts={historyReceipts} events={historyLifecycle}
+              onReceive={historyLifecycle.length?undefined:()=>setReceiveInstallmentOpen(true)}
+              onReschedule={()=>setRescheduleOpen(true)}
+              onReturn={()=>setAdjustmentMode('Return')}
+              onSettle={()=>setAdjustmentMode('Settlement')}/>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={()=>setInstallmentHistoryOpen(false)}>
@@ -993,6 +1018,15 @@ export function Pos() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {activeInstallmentAgreement&&<InstallmentRescheduleDialog open={rescheduleOpen}
+        agreement={activeInstallmentAgreement} receipts={activeInstallmentReceipts}
+        events={activeInstallmentEvents} onClose={()=>setRescheduleOpen(false)}
+        onRecorded={reloadLifecycle}/>}
+      {activeInstallmentAgreement&&adjustmentMode&&<InstallmentAdjustmentDialog
+        open={Boolean(adjustmentMode)} mode={adjustmentMode}
+        agreement={activeInstallmentAgreement} receipts={activeInstallmentReceipts}
+        events={activeInstallmentEvents} onClose={()=>setAdjustmentMode(null)}
+        onRecorded={reloadLifecycle}/>}
       {(installmentHistoryOpen&&historySelected||completedInstallment) && <InstallmentReceivePaymentDialog open={receiveInstallmentOpen}
         agreement={(installmentHistoryOpen&&historySelected||completedInstallment)!}
         receipts={installmentHistoryOpen&&historySelected?historyReceipts:completedReceipts}
