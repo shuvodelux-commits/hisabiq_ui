@@ -41,7 +41,6 @@ import {
   cashSessions,
   financePersonOptionLabel,
   financeAccounts as seedAccounts,
-  financePeople as seedPeople,
   financeTransactions as seedTransactions,
   relationshipSummary,
   type AccountTransfer,
