@@ -17,6 +17,7 @@ import {addDays,addMonths,businessToday} from '../utils/dateRange';
 import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../installments/schedule';
 import {validateInstallmentDraft} from '../installments/validateDraft';
 import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../installments/pricing';
+import {createHistoricalInstallmentLines} from '../installments/historicalLines';
 import {recordInstallmentPreview,listInstallmentPreviews,listInstallmentReceipts,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
 import type {InstallmentPaymentPreviewEvent} from '../installments/collections';
 import {InstallmentReceivePaymentDialog} from '../components/pos/InstallmentReceivePaymentDialog';
@@ -491,6 +492,14 @@ export function Pos() {
             key:row.key,productId:lines.find(line=>line.key===row.key)!.productId,
             amountPaisa:row.amountPaisa
           })),
+          historicalLines:createHistoricalInstallmentLines(cart.lines,amounts,{
+            bundleSnapshot:line=>{
+              if(line.product.kind!=='Bundle'||!line.bundleRevision)return undefined;
+              const recipe=getBundleVersion(line.product.id,line.bundleRevision);
+              if(!recipe)throw new Error('Selected package revision has no historical source.');
+              return createBundleSaleSnapshot(line,recipe,previewCatalog);
+            }
+          }),
           paymentSnapshot:activePayments.map(row=>({
             method:row.method,account:row.account,
             amountPaisa:Math.round((parseFloat(row.amount)||0)*100)
