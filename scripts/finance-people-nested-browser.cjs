@@ -41,7 +41,8 @@ async function main(){
    const twinLabels=await twinOptions.allTextContents();assert.equal(new Set(twinLabels).size,2,'duplicate-name option labels distinguish the selected person');
    await page.keyboard.press('Escape');
    await act(comboboxes.first());await act(page.locator('[role="option"][data-value="Borrower Debit"]'));
-   await parent.getByRole('textbox',{name:/Amount|টাকা/}).fill('321.45');
+   const paymentSource=parent.getByText(/Payment sources|টাকার মাধ্যম/,{exact:true}).locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]').getByRole('textbox').first();
+   await paymentSource.fill('321.45');
    await parent.getByRole('textbox',{name:/Reference no\.|নম্বর/}).fill('NEST-KEEP');
    await parent.getByRole('textbox',{name:/Notes|মন্তব্য/}).fill('parent draft survives quick add');
    await act(parent.getByRole('button',{name:/Manage people|ব্যক্তি যোগ \/ সংশোধন/}));
@@ -55,17 +56,15 @@ async function main(){
    assert.equal(await parent.getByRole('textbox',{name:/Reference no\.|নম্বর/}).inputValue(),'NEST-KEEP');
    assert.equal(await parent.getByRole('textbox',{name:/Notes|মন্তব্য/}).inputValue(),'parent draft survives quick add');
    assert.match(await parent.innerText(),/Nested Borrower/,'the new contextual-role person is selected in the parent');
-   await parent.getByPlaceholder('321.45').fill('321.45');
-   await act(parent.getByRole('button',{name:/Add account|হিসাব যোগ করুন/}));
-   const accountDialog=page.getByRole('dialog',{name:/Add account|নতুন হিসাব যোগ করুন/});await accountDialog.waitFor();
-   await auditDialog(page,accountDialog,`${width}px ${theme} ${language} nested account manager`);
-   await accountDialog.getByRole('textbox',{name:/Account name|হিসাবের নাম/}).fill('Nested Draft Cash');
-   await accountDialog.getByRole('textbox',{name:/Opening balance|শুরুর জের/}).fill('700');
-   await act(accountDialog.getByRole('button',{name:/Save account|হিসাব সংরক্ষণ/}));await accountDialog.waitFor({state:'hidden'});
-   assert.equal(await parent.getByRole('textbox',{name:/Amount|টাকা/}).inputValue(),'321.45','account quick add preserves transaction amount');
-   assert.equal(await parent.getByRole('textbox',{name:/Reference no\.|নম্বর/}).inputValue(),'NEST-KEEP','account quick add preserves transaction reference');
-   assert.equal(await parent.getByRole('textbox',{name:/Notes|মন্তব্য/}).inputValue(),'parent draft survives quick add','account quick add preserves transaction note');
-   assert.match(await parent.getByRole('combobox').nth(3).textContent(),/Nested Draft Cash/,'new contextual account is selected in the parent payment split');
+   assert.equal(await paymentSource.inputValue(),'321.45','payment amount survives nested manager changes');
+   // Finance account creation is deliberately outside this transaction form.
+   assert.equal(await parent.getByRole('button',{name:/Add account|হিসাব যোগ করুন/}).count(),0);
+   const manage=parent.getByRole('button',{name:/Manage people|ব্যক্তি যোগ \/ সংশোধন/});
+   assert.equal(await manage.getAttribute('aria-haspopup'),'dialog','attached gear opens the existing manager');
+   assert.equal(await parent.getByRole('textbox',{name:/Amount|টাকা/}).inputValue(),'321.45','transaction amount is preserved');
+   assert.equal(await parent.getByRole('textbox',{name:/Reference no\.|নম্বর/}).inputValue(),'NEST-KEEP','transaction reference is preserved');
+   assert.equal(await parent.getByRole('textbox',{name:/Notes|মন্তব্য/}).inputValue(),'parent draft survives quick add');
+   assert.match(await parent.innerText(),/Main Cash Counter/,'existing payment account remains selectable');
    await act(parent.getByRole('button',{name:/Review transaction|লেনদেন যাচাই/}));
    await act(parent.getByRole('button',{name:/Confirm finance transaction|লেনদেন নিশ্চিত/}));await parent.waitFor({state:'hidden'});
    assert.match(await page.locator('main').innerText(),/NEST-KEEP/,'confirmed parent draft appears in Finance history');

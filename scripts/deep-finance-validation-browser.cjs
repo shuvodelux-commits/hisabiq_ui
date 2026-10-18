@@ -19,30 +19,55 @@ async function main(){
   const check=async(name,run)=>{if(process.env.DEEP_AUDIT_CASE&&process.env.DEEP_AUDIT_CASE!==name)return;try{await run();assert.deepEqual(errors,[]);results.push({id,name,status:'passed'});}catch(e){results.push({id,name,status:'failed',error:e.message});console.error(id,name,e.message);console.error('POINTER_EVENTS',JSON.stringify(await page.evaluate(()=>window.__auditEvents)));console.error('FAILURE_STATE',JSON.stringify(await page.locator('[data-dialog-root]').evaluateAll(dialogs=>dialogs.map(d=>({text:d.innerText,rect:d.getBoundingClientRect().toJSON(),scrollTop:d.scrollTop,scrollHeight:d.scrollHeight,clientHeight:d.clientHeight,fields:Array.from(d.querySelectorAll('input')).map(i=>({value:i.value,type:i.type})),buttons:Array.from(d.querySelectorAll('button')).map(b=>({text:b.innerText,disabled:b.disabled,rect:b.getBoundingClientRect().toJSON()}))})))));await page.screenshot({path:path.join(output,id+'-'+name+'.png'),fullPage:true});}};
   const rejectedReview=async(d,review)=>{await act(review);await expect(d.getByRole('status'),'invalid draft cannot enter confirmation').toHaveCount(0);await expect(d).toBeVisible();};
   await check('new-finance',async()=>{
-   await go();await act(button(page,'New transaction','নতুন লেনদেন'));const d=page.getByRole('dialog',{name:new RegExp(word('New finance transaction','নতুন টাকার লেনদেন'))});const input=amount(d);const review=button(d,'Review transaction','লেনদেন যাচাই করুন');
+   await go();await act(button(page,'New transaction','নতুন লেনদেন'));
+   const d=page.getByRole('dialog',{name:new RegExp(word('New finance transaction','নতুন টাকার লেনদেন'))});
+   const input=amount(d),review=button(d,'Review transaction','লেনদেন যাচাই করুন');
+   const sources=d.getByText(word('Payment sources','টাকার মাধ্যম'),{exact:true}).locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]');
+   const source=sources.getByRole('textbox').first();
+   await expect(input).toHaveAttribute('readonly','');
    const currentBangladeshDay=await page.evaluate(()=>new Date(Date.now()+6*60*60*1000).toISOString().slice(0,10));
    await expect(d.locator('input[type="date"]')).toHaveValue(currentBangladeshDay);
    await d.locator('input[type="date"]').fill('2026-10-05');
    await expect(d.getByText(word('Reason for backdating','আগের তারিখ দেওয়ার কারণ'))).toBeVisible();
    await d.locator('input[type="date"]').fill(currentBangladeshDay);
-   for(const invalid of ['1.2.3','9'.repeat(400)]){await input.fill(invalid);await rejectedReview(d,review);}
-   await input.fill('123');await act(review);
+   for(const invalid of ['1.2.3','9'.repeat(400)]){await source.fill(invalid);await rejectedReview(d,review);}
+   await source.fill('123');await expect(input).toHaveValue('123');await act(review);
    await expect(d.getByRole('status')).toContainText('123');
    await act(button(d,'Cancel','বাতিল'));await expect(d).toBeHidden();
-   await act(button(page,'New transaction','নতুন লেনদেন'));await expect(input).toHaveValue('123');await expect(d.getByRole('status')).toHaveCount(0);await act(review);await act(button(d,'Confirm finance transaction','লেনদেন নিশ্চিত করুন'));await expect(d).toBeHidden();
-   await act(page.getByRole('tab',{name:word('Loans & Owners','ঋণ ও মালিক'),exact:true}));await expect(page.locator('tbody tr').filter({hasText:'FIN-000189'})).toContainText('123');
+   await act(button(page,'New transaction','নতুন লেনদেন'));await expect(input).toHaveValue('123');await expect(d.getByRole('status')).toHaveCount(0);
+   await act(review);await act(button(d,'Confirm finance transaction','লেনদেন নিশ্চিত করুন'));await expect(d).toBeHidden();
+   await act(page.getByRole('tab',{name:word('Loans & Owners','ঋণ ও মালিক'),exact:true}));
+   await expect(page.locator('tbody tr').filter({hasText:'FIN-000189'})).toContainText('123');
   });
   await check('split-draft',async()=>{
-   await go();await act(button(page,'New transaction','নতুন লেনদেন'));const d=page.getByRole('dialog',{name:new RegExp(word('New finance transaction','নতুন টাকার লেনদেন'))});await amount(d).fill('100');
-   // Shared split amount precedes the main Amount field and has a dynamic total placeholder.
-   const source=d.getByPlaceholder('100',{exact:true});const review=button(d,'Review transaction','লেনদেন যাচাই করুন');
-   for(const invalid of ['0','100.0.0','9'.repeat(400)]){await source.fill(invalid);await rejectedReview(d,review);}
-   await source.fill('100');await act(button(d,'Add','যোগ করুন'));
-   await d.getByPlaceholder('0',{exact:true}).first().fill('0');await rejectedReview(d,review);
-   await d.getByPlaceholder('0',{exact:true}).first().fill('50');
-   // Two split rows use zero placeholders; amount input also does, so scope to the payment source block.
-   const sources=d.getByText(word('Payment sources','টাকার মাধ্যম'),{exact:true}).locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]');const sourceInputs=sources.getByRole('textbox');await sourceInputs.nth(0).fill('50');await sourceInputs.nth(1).fill('50');
-   await act(review);await expect(d.getByRole('status')).toContainText('100');await act(button(d,'Confirm finance transaction','লেনদেন নিশ্চিত করুন'));await expect(d).toBeHidden();await act(page.getByRole('tab',{name:word('Loans & Owners','ঋণ ও মালিক'),exact:true}));await expect(page.locator('tbody tr').filter({hasText:'FIN-000189'})).toContainText('100');
+   await go();await act(button(page,'New transaction','নতুন লেনদেন'));
+   const d=page.getByRole('dialog',{name:new RegExp(word('New finance transaction','নতুন টাকার লেনদেন'))});
+   const input=amount(d),review=button(d,'Review transaction','লেনদেন যাচাই করুন');
+   const sources=d.getByText(word('Payment sources','টাকার মাধ্যম'),{exact:true}).locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]');
+   const first=sources.getByRole('textbox').first();
+   for(const invalid of ['0','100.0.0','9'.repeat(400)]){await first.fill(invalid);await rejectedReview(d,review);}
+   await first.fill('100');await expect(input).toHaveValue('100');
+   await act(button(d,'Add','যোগ করুন'));
+   await sources.getByRole('textbox').nth(1).fill('0');await rejectedReview(d,review);
+   await sources.getByRole('textbox').nth(0).fill('50');
+   await sources.getByRole('textbox').nth(1).fill('50');
+   await expect(input).toHaveValue('100');
+   await act(review);await expect(d.getByRole('status')).toContainText('100');
+   await act(button(d,'Confirm finance transaction','লেনদেন নিশ্চিত করুন'));await expect(d).toBeHidden();
+   await act(page.getByRole('tab',{name:word('Loans & Owners','ঋণ ও মালিক'),exact:true}));
+   await expect(page.locator('tbody tr').filter({hasText:'FIN-000189'})).toContainText('100');
+  });
+  await check('opening-finance-amount',async()=>{
+   await go();await act(button(page,'New transaction','নতুন লেনদেন'));
+   const d=page.getByRole('dialog',{name:new RegExp(word('New finance transaction','নতুন টাকার লেনদেন'))});
+   await act(d.getByRole('combobox').first());
+   await act(page.locator('[role="option"][data-value="Opening Loan"]'));
+   await expect(d.getByText(word('Payment sources','টাকার মাধ্যম'),{exact:true})).toHaveCount(0);
+   const input=amount(d);await expect(input).not.toHaveAttribute('readonly','');
+   await input.fill('321.45');await expect(d.getByTestId('amount-in-words').first()).not.toContainText('শূন্য টাকা');
+   await act(button(d,'Review transaction','লেনদেন যাচাই করুন'));
+   await expect(d.getByRole('status')).toContainText('321.45');
+   await act(button(d,'Cancel','বাতিল'));
   });
   await check('transfer',async()=>{
    await go();await accounts();await act(button(page,'Transfer','ট্রান্সফার'));const d=page.getByRole('dialog',{name:word('Transfer between accounts','এক হিসাব থেকে অন্য হিসাবে টাকা সরান'),exact:true});const review=button(d,'Review transfer','ট্রান্সফার যাচাই করুন');

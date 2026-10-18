@@ -7,6 +7,24 @@ export type FinancePaymentDraft = {
   amount: string;
 };
 
+/** Auto-calculated Finance transaction total, in taka.
+ *  Blank rows contribute zero while editing; invalid or over-precise entries
+ *  return NaN so confirmation cannot silently skip or truncate them.
+ *  Calculate in integer paisa to avoid floating-point rounding drift.
+ */
+export function financePaymentDraftTotal(rows: readonly FinancePaymentDraft[]): number {
+  let paisa = 0;
+  for (const row of rows) {
+    const input = row.amount.trim();
+    if (!input) continue;
+    if (!/^\d+(?:\.\d{1,2})?$/.test(input)) return NaN;
+    const portion = Math.round(Number(input) * 100);
+    if (!Number.isSafeInteger(portion) || portion < 0 || !Number.isSafeInteger(paisa + portion)) return NaN;
+    paisa += portion;
+  }
+  return paisa / 100;
+}
+
 export function accountsForFinanceMethod(accounts: FinanceAccount[], method: FinancePaymentDraft['method']) {
   return accounts.filter((account) => {
     if (account.status !== 'Active') return false;

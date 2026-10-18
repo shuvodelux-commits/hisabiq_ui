@@ -1,5 +1,5 @@
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowDownLeft,
@@ -15,6 +15,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Settings,
   UserRoundCog,
   WalletCards
 } from 'lucide-react';
@@ -25,13 +26,14 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { CounterWorkspace } from '../components/finance/CounterWorkspace';
+import { financePreviewRelationshipSummary, getFinancePreviewSnapshot, subscribeFinancePreview, updateFinancePreview } from '../data/financePreviewStore';
 import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog } from '../components/finance/FinanceRecordDialogs';
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
 import { CashSessionDetailsDialog } from '../components/finance/CashSessionDetailsDialog';
 import { FinancePaymentSplitEditor, type FinancePaymentDraft } from '../components/finance/FinancePaymentSplitEditor';
 import { financeAccountIdentityLabel, transferAccountId, transferAccountLabel } from '../utils/accountTransferIdentity';
-import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid } from '../utils/financePaymentDrafts';
+import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid, financePaymentDraftTotal } from '../utils/financePaymentDrafts';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -40,9 +42,7 @@ import {
   cashSessions,
   financePersonOptionLabel,
   financeAccounts as seedAccounts,
-  financePeople as seedPeople,
   financeTransactions as seedTransactions,
-  relationshipSummary,
   type AccountTransfer,
   type FinanceAccount,
   type FinanceAccountType,
@@ -107,7 +107,7 @@ function TransactionDialog({
   people,
   nextId,
   onOpenChange,
-  onSave, onAddPerson, onUpdatePerson, onAddAccount
+  onSave, onAddPerson, onUpdatePerson
 }: {
   open: boolean;
   accounts: FinanceAccount[];
@@ -117,13 +117,11 @@ function TransactionDialog({
   onSave: (transaction: FinanceTransaction) => void;
   onAddPerson: (person: FinancePerson) => void;
   onUpdatePerson: (person: FinancePerson) => void;
-  onAddAccount: (account: FinanceAccount) => void;
 }) {
   const {text,language,showHelper}=useUiCopy();
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
   const [personId, setPersonId] = useState(() => people.find(item => item.status === 'Active' && item.roles.includes('Lender'))?.id ?? '');
   const [peopleOpen, setPeopleOpen] = useState(false);
-  const [accountTarget, setAccountTarget] = useState<{id:string;method:FinancePaymentDraft['method']} | null>(null);
   const [paymentRows, setPaymentRows] = useState<FinancePaymentDraft[]>([{
     id: 'finance-payment-1',
     method: 'Cash',
@@ -149,13 +147,19 @@ function TransactionDialog({
   const isOpening = !!meta.opening;
   const selectedPerson = rolePeople.find((item) => item.id === personId);
   const isBackdated = date < businessToday();
-  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
+  // For cash/bank transactions, payment sources are the single source of truth.
+  // Opening balances have no payment sources and retain an editable amount.
+  const transactionAmount = isOpening ? Number(amount) : financePaymentDraftTotal(paymentRows);
+  const displayAmount = Number.isFinite(transactionAmount) ? transactionAmount : 0;
+  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, displayAmount);
   const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
 
   const save = () => {
-    const value = Number(amount);
+    const value = transactionAmount;
     if (!Number.isFinite(value) || value <= 0) {
-      toast.error(text('Enter an amount','টাকার পরিমাণ লিখুন'));
+      toast.error(isOpening
+        ? text('Enter an amount','টাকার পরিমাণ লিখুন')
+        : text('Enter valid amounts in payment sources','টাকার মাধ্যমগুলোতে সঠিক টাকা লিখুন'));
       return;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > businessToday()) {
@@ -228,17 +232,25 @@ function TransactionDialog({
             </span>
           </label>
 
-          <div className="space-y-1">
-          <label className="text-[13px] font-medium text-ink">
-            {text('Finance person','হিসাবের ব্যক্তি')}
-            <FormSelect
-              className="mt-1.5"
-              value={selectedPerson?.id ?? ''}
-              onChange={(event) => setPersonId(event.target.value)}
-              options={rolePeople.map((item) => ({value: item.id, label: financePersonOptionLabel(item, rolePeople)}))}
-            />
-          </label>
-          <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>{text('Manage people','ব্যক্তি যোগ / সংশোধন')}</Button>
+          <div className="min-w-0">
+            <p id="finance-person-label" className="text-[13px] font-medium text-ink">{text('Finance person','হিসাবের ব্যক্তি')}</p>
+            <div className="mt-1.5 flex min-w-0" role="group" aria-labelledby="finance-person-label">
+              <FormSelect
+                aria-label={text('Finance person','হিসাবের ব্যক্তি')}
+                className="min-w-0 flex-1 [&>button]:rounded-r-none"
+                value={selectedPerson?.id ?? ''}
+                onChange={(event) => setPersonId(event.target.value)}
+                options={rolePeople.map((item) => ({value: item.id, label: financePersonOptionLabel(item, rolePeople)}))}
+              />
+              <button type="button"
+                aria-label={text('Manage people','ব্যক্তি যোগ / সংশোধন')}
+                title={text('Manage people','ব্যক্তি যোগ / সংশোধন')}
+                aria-haspopup="dialog"
+                onClick={() => setPeopleOpen(true)}
+                className="-ml-px flex h-9 w-11 shrink-0 items-center justify-center rounded-r-md border border-input bg-card text-teal-700 hover:bg-teal-50 focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
+                <Settings className="size-4" aria-hidden="true" />
+              </button>
+            </div>
           </div>
 
           <label className="text-[13px] font-medium text-ink">
@@ -258,16 +270,19 @@ function TransactionDialog({
               accounts={accounts}
               rows={paymentRows}
               onChange={setPaymentRows}
-              totalAmount={Number(amount) || 0}
-              onCreateAccount={(id, method) => setAccountTarget({id,method})}
+              totalAmount={displayAmount}
             />
           )}
 
           <label className="text-[13px] font-medium text-ink">
             {text('Amount','টাকা')}
+            {!isOpening && <span className="ml-1 text-[11px] font-normal text-ink-500">{text('· Auto total','· স্বয়ংক্রিয় মোট')}</span>}
             <div className="relative mt-1.5">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-              <Input value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} className="pl-7 text-right" inputMode="decimal" placeholder="0" />
+              <Input value={isOpening ? amount : (Number.isFinite(transactionAmount) && transactionAmount > 0 ? String(transactionAmount) : '')}
+                onChange={isOpening ? (event) => setAmount(event.target.value.replace(/[^\d.]/g, '')) : undefined}
+                readOnly={!isOpening} className={'pl-7 text-right' + (!isOpening ? ' bg-ink-50/40' : '')}
+                inputMode={isOpening ? 'decimal' : 'none'} placeholder="0" />
             </div>
           </label>
 
@@ -282,10 +297,10 @@ function TransactionDialog({
           </label>
         </div>
 
-        <AmountInWordsDisplay amount={Number(amount)||0} />
+        <AmountInWordsDisplay amount={displayAmount} />
         {reviewFinance && <section role="status" className="space-y-1 rounded-lg border border-border bg-ink-50 p-3 text-sm">
           <p className="font-semibold">{text('Review finance transaction','লেনদেন যাচাই করুন')}</p>
-          <p>{selectedPerson?.name} · {type} · {date}</p><p className="font-semibold">{taka(Number(amount)||0)}</p><AmountInWordsDisplay amount={Number(amount)||0} />
+          <p>{selectedPerson?.name} · {type} · {date}</p><p className="font-semibold">{taka(displayAmount)}</p><AmountInWordsDisplay amount={displayAmount} />
           <p>{text('Payment source total:','মাধ্যমগুলোর মোট:')} {taka(paymentTotal)} · {isOpening?text('Opening balance only','শুধু শুরুর জের'):text('Cash/bank movement','ক্যাশ/ব্যাংকে টাকা আসা-যাওয়া')}</p>
         </section>}
         <DialogFooter>
@@ -296,8 +311,6 @@ function TransactionDialog({
     </Dialog>
     <FinancePeopleManagerDialog open={open && peopleOpen} people={people} initialRole={meta.role} onOpenChange={setPeopleOpen}
       onAdd={(person) => { onAddPerson(person); setPersonId(person.id); setPeopleOpen(false); }} onUpdate={onUpdatePerson} />
-    {accountTarget && <AccountDialog open={open} initialType={accountTarget.method} onOpenChange={(next) => {if (!next) setAccountTarget(null);}}
-      onSave={(account) => {onAddAccount(account); setPaymentRows(current => current.map(row => row.id === accountTarget.id ? {...row, method: account.type === 'Petty Cash' ? 'Cash' : account.type, accountId: account.id} : row)); setAccountTarget(null);}} />}
     </>
   );
 }
@@ -502,14 +515,16 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
   const [financeTab, setTab] = useState<Tab>('overview');
   const tab: Tab = counterOnly ? 'counter' : financeTab;
-  const [accounts, setAccounts] = useState<FinanceAccount[]>(seedAccounts);
-  const [transactions, setTransactions] = useState<FinanceTransaction[]>(seedTransactions);
+  const { accounts, transactions, people } = useSyncExternalStore(subscribeFinancePreview, getFinancePreviewSnapshot);
+  const relationshipSummary = financePreviewRelationshipSummary(transactions);
+  const setAccounts: React.Dispatch<React.SetStateAction<FinanceAccount[]>> = (change) => updateFinancePreview('accounts', change);
+  const setTransactions: React.Dispatch<React.SetStateAction<FinanceTransaction[]>> = (change) => updateFinancePreview('transactions', change);
+  const setPeople: React.Dispatch<React.SetStateAction<FinancePerson[]>> = (change) => updateFinancePreview('people', change);
   const [transfers, setTransfers] = useState<AccountTransfer[]>(() => seedTransfers.map((transfer) => ({
     ...transfer,
     fromAccountId: transferAccountId(transfer, 'from', seedAccounts),
     toAccountId: transferAccountId(transfer, 'to', seedAccounts)
   })));
-  const [people, setPeople] = useState<FinancePerson[]>(seedPeople);
   const [chequeRecords, setChequeRecords] = useState<ChequeRecord[]>(seedCheques);
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -698,8 +713,8 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
       <PageHeader
         title={counterOnly ? 'Counter' : 'Finance'}
         titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
-        description={counterOnly ? 'Receive customer payments, pay suppliers, record expenses and transfer money.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
-        descriptionBn={counterOnly?'ক্রেতার টাকা নিন, সরবরাহকারীকে দিন, খরচ বা ট্রান্সফার করুন।':'ক্যাশ, ব্যাংক, ঋণ, চেক ও দৈনিক টাকার হিসাব।'}
+        description={counterOnly ? 'Receive, pay, record expenses, transfer money and manage owner or loan transactions.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
+        descriptionBn={counterOnly?'ক্রেতা-সরবরাহকারীর টাকা, খরচ, ট্রান্সফার এবং মালিক ও ঋণের হিসাব করুন।':'ক্যাশ, ব্যাংক, ঋণ, চেক ও দৈনিক টাকার হিসাব।'}
         actions={counterOnly ? undefined : (
           <>
             <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
@@ -930,7 +945,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
           </>
         )}
 
-        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} onTransfer={({ fromAccountId, toAccountId, amount, date, reference }) => {
+        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} onNewFinanceTransaction={() => setTransactionOpen(true)} onTransfer={({ fromAccountId, toAccountId, amount, date, reference }) => {
           const fromAccount = accounts.find((account) => account.id === fromAccountId);
           const toAccount = accounts.find((account) => account.id === toAccountId);
           if (!fromAccount || !toAccount) return;
@@ -1197,7 +1212,6 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         people={people}
         onAddPerson={person => setPeople(current => [...current, person])}
         onUpdatePerson={person => {setPeople(current => current.map(item => item.id === person.id ? person : item)); setTransactions(current => current.map(item => item.partyId === person.id ? {...item, party:person.name} : item));}}
-        onAddAccount={account => setAccounts(current => [...current, account])}
         nextId={`FIN-${String(189 + transactions.length - seedTransactions.length).padStart(6, '0')}`}
         onOpenChange={setTransactionOpen}
         onSave={(transaction) => {
