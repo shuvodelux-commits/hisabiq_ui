@@ -222,7 +222,7 @@ export function TopBar() {
             <button
               onClick={toggle}
               aria-expanded={open}
-              aria-label={text("User menu","ব্যবহারকারীর মেনু")+" "+userName}
+              aria-label={text("User menu","ব্যবহারকারীর মেনু")+" "+initials+" "+userName+" "+roleName}
               className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-1.5 hover:bg-ink-50">
               
                 <span className="flex size-7 items-center justify-center rounded-full bg-inverse text-[11px] font-semibold text-white">{initials}</span>{' '}
