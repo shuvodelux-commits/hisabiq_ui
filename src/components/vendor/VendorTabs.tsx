@@ -88,7 +88,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    dispatchVendorPreview({type:'record-purchase-inventory',operationId:'vendor-normal-purchase:'+p.id,
     vendorPartyId:party.id,purchaseId:p.id,lines:(p.inventoryLines??[]).map(l=>({productId:l.productId,baseQty:l.quantity}))});
   }catch(e){toast.error('Purchase created in preview. Stock projection needs review: '+String(e));}
-  setPurchaseRevision(n=>n+1);updateDirty(false);
+  setPurchaseRevision(n=>n+1);onDirtyChange(false);
  };
  const openGoods=(mode:'taken'|'given')=>{
   if(mode!==tab&&hasUnsavedGoods){setPendingTab({next:mode,openGoods:true});return;}
@@ -223,10 +223,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         snapshot={snapshot} sourceId={sourceId} onCorrect={setCorrectSource}/>
      </>}
      {(tab==='purchases'||purchaseOpened)&&<div className={tab==='purchases'?'space-y-4':'hidden'} aria-hidden={tab!=='purchases'}>
-      <div onChangeCapture={()=>updateDirty(true)}>
+      <div onChangeCapture={()=>onDirtyChange(true)}>
         <PurchaseEditor key={purchaseRevision} embedded active={tab==='purchases'}
           initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
-          onCancel={()=>{setPurchaseRevision(n=>n+1);updateDirty(false);}}/>
+          onCancel={()=>{setPurchaseRevision(n=>n+1);onDirtyChange(false);}}/>
       </div>
       <details className="overflow-hidden rounded-lg border border-border">
        <summary className="cursor-pointer bg-ink-50/40 px-3 py-2 text-sm font-semibold text-ink">
