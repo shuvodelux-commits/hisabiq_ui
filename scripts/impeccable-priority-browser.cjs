@@ -17,7 +17,7 @@ async function main(){
    const heading=page.getByRole('heading',{level:1});
    await heading.waitFor();
    assert.match(await heading.innerText(),/Mahmud Hasan/,'Dashboard must use the active settings employee, not a hard-coded name');
-   await page.getByRole('button',{name:/User menu Mahmud Hasan/}).waitFor();
+   await page.getByRole('button',{name:/User menu MH Mahmud Hasan/}).waitFor();
    const header=await page.locator('main').innerText();
    assert.match(header,/Nawabpur Hardware House/,'Dashboard derives the current business from settings');
    assert.doesNotMatch(header,/Thursday, 1 October 2026/,'Outdated static date must not appear');
