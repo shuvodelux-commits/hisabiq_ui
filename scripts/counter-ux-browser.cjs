@@ -52,6 +52,10 @@ async function main(){
    assert.equal(source.amountPaid,150,'only the real cash changes money accounts');
    assert.equal(source.discount,50);
    assert.equal(source.paymentSplits.reduce((sum,r)=>sum+r.amount,0),150);
+   // Passive success toasts must not block the next action at desktop or phone width.
+   const notice=page.locator('[data-sonner-toast]').filter({hasText:'Receive payment recorded in preview'}).first();
+   await notice.waitFor({state:'visible'});
+   assert.equal(await notice.evaluate(element=>getComputedStyle(element).pointerEvents),'none','passive toast must pass clicks through');
    // Discount without cash is also valid, but never invents a cash deposit.
    await page.locator('input[aria-label="Settlement discount amount"]').fill('25');
    await page.getByRole('button',{name:'Review receive payment'}).click();
