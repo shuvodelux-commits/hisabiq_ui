@@ -18,7 +18,7 @@ export function MoneyUnitInput({
   label, value, onChange, unit, units = [], onUnitChange, disabled, placeholder = '0', prefix = '৳'
 }: MoneyUnitInputProps) {
   return (
-    <div data-numeric-joined className="flex h-9 min-w-0 overflow-hidden rounded-md border border-input bg-card shadow-xs focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20">
+    <div data-numeric-joined data-field-shell="money-unit" className="flex h-9 min-w-0 overflow-hidden rounded-md border border-input bg-card shadow-xs focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20">
       {prefix && <span className="flex shrink-0 items-center pl-3 text-sm text-ink-400" aria-hidden="true">{prefix}</span>}
       <NumericInput
         aria-label={label}
