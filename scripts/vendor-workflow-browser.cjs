@@ -16,6 +16,7 @@ async function main(){
   const nav=page.getByRole('navigation',{name:'Main'});
   await nav.getByRole('link',{name:'Vendor'}).waitFor();
   await vendor.getByRole('tab',{name:/Ledger/}).click();
+  await vendor.getByText('More work · আরও কাজ').click();
   await vendor.getByRole('button',{name:'Print Ledger'}).click();
   const dialog=page.getByRole('dialog',{name:'Vendor ledger statement'});
   await dialog.waitFor();
