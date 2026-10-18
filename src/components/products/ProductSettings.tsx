@@ -85,11 +85,6 @@ function SettingActions({
       {(close) => (
         <div className="py-1">
           <button
-            onClick={() => { close(); toast(`Editing ${label}`); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            {pl('Edit')}
-          </button>
-          <button
             onClick={() => { close(); onToggle(); }}
             className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
             {pl(active ? 'Deactivate' : 'Activate')}

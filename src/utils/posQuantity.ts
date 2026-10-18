@@ -1,5 +1,5 @@
 function numberValue(value: string | number): number {
-  const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
+  const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 

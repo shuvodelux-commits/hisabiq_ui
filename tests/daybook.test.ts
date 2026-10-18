@@ -102,3 +102,10 @@ test('cashflow summary uses actual movement and excludes internal transfers', ()
     net: 8000
   });
 });
+
+test('fuzzy party discovery keeps Daybook date, type and account restrictions',()=>{
+ const query={dateView:'transaction' as const,search:'Rahamn hardwre',from:'2026-10-06',to:'2026-10-06',type:'Customer Payment',account:'bKash Merchant'};
+ assert.deepEqual(filterDaybookTransactions(rows,query).map(row=>row.id),['payment']);
+ assert.deepEqual(filterDaybookTransactions(rows,{...query,account:'Cash'}),[]);
+ assert.deepEqual(filterDaybookTransactions(rows,{...query,search:'PAY-2'}),[]);
+});

@@ -8,6 +8,7 @@ type FloatingPanelProps = {
   align?: 'left' | 'right';
   width?: number;
   label: string;
+  className?: string;
 };
 
 type PanelPosition = {
@@ -21,7 +22,7 @@ type PanelPosition = {
 const VIEWPORT_PADDING = 8;
 const GAP = 8;
 
-export function FloatingPanel({ trigger, children, align = 'right', width = 320, label }: FloatingPanelProps) {
+export function FloatingPanel({ trigger, children, align = 'right', width = 320, label, className = 'inline-block' }: FloatingPanelProps) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<PanelPosition | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -151,7 +152,7 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
     : null;
 
   return (
-    <div ref={triggerRef} className="relative inline-block">
+    <div ref={triggerRef} className={'relative '+className}>
       {trigger({ open, toggle: () => setOpen((value) => !value) })}
       {panel}
     </div>

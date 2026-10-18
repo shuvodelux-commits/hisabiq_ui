@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {useMemo,useState,useSyncExternalStore} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Copy,FileText,Plus,Printer,Search,Trash2,Pencil,Check,Send, X} from 'lucide-react';
@@ -203,7 +204,7 @@ export function Quotations(){
  const [deleteTarget,setDeleteTarget]=useState<Quotation|null>(null);
  const detail=quotes.find(q=>q.id===detailId)??null;
  const filtered=useMemo(()=>quotes.filter(q=>(status==='All'||quoteDisplayStatus(q)===status)&&
- [q.number,q.customerName,q.customerPhone??'',...q.lines.map(l=>l.name)].some(value=>value.toLowerCase().includes(search.toLowerCase().trim()))),[quotes,search,status]);
+ fuzzyMatch(search,[q.number,q.customerName,q.customerPhone,...q.lines.map(l=>l.name)])),[quotes,search,status]);
  const create=()=>{setEditing(null);setEditorOpen(true);};
  const edit=(q:Quotation)=>{setDetailId(null);setEditing(q);setEditorOpen(true);};
  const duplicate=(q:Quotation)=>{try{const copy=duplicateQuote(q.id);setDetailId(copy.id);toast.success(ql('Quotation duplicated as draft'));}catch(e){toast.error(String(e));}};

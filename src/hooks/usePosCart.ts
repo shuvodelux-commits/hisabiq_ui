@@ -8,6 +8,7 @@ import { roundInvoice } from '../settings/model';
 import { compoundLineTotal } from '../utils/posQuantity';
 import { moveCartLine, reorderCartLines } from '../utils/reorderCartLines';
 import { getBundleVersion } from '../data/productImportPreviewStore';
+import {posMoney} from '../utils/posCheckoutValidation';
 
 export type CartLine = {
   key: string;
@@ -99,10 +100,10 @@ const emptyCustomerDetails = (): PosCustomerDetails => ({
   address: ''
 });
 
-export function usePosCart() {
+export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
   const { state } = useTenantSettings();
   const settings = state.sections.sales;
-  const [lines, setLines] = useState<CartLine[]>(demoCart);
+  const [lines, setLines] = useState<CartLine[]>(initialLines);
   const [lastAdded, setLastAdded] = useState<string | null>(null);
   const [discountMode, setDiscountMode] = useState<DiscountMode>('amount');
   const [discount, setDiscount] = useState('');
@@ -183,12 +184,12 @@ export function usePosCart() {
         : 1;
       return sum + compoundLineTotal(line.qty, line.secondaryQty, factor, line.price);
     }, 0);
-    const d = parseFloat(discount) || 0;
+    const d = posMoney(discount) || 0;
     const discountAmt = Math.min(subtotal, discountMode === 'percent' ? subtotal * d / 100 : d);
     const net = subtotal - discountAmt;
     const total = net > 0 ? roundInvoice(net, settings.rounding) : 0;
     const rounding = total - net;
-    const paidNum = payments.reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
+    const paidNum = payments.reduce((sum, payment) => sum + (posMoney(payment.amount) || 0), 0);
     const due = Math.max(0, total - paidNum);
     const change = Math.max(0, paidNum - total);
     const itemCount = lines.length;

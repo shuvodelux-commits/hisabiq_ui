@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -54,7 +55,7 @@ import {
 import { cheques as seedCheques, type ChequeRecord, type ChequeStatus } from '../data/cheques';
 import { taka } from '../utils/currency';
 import { chequeMoneyAccount, renameChequeAccountReferences } from '../utils/chequeAccount';
-import {formatDay} from '../utils/dateRange';
+import {businessToday,formatDay} from '../utils/dateRange';
 import { chequeLifecycleActions } from '../utils/moduleUiActions';
 import { AmountInWordsDisplay } from '../components/AmountInWordsDisplay';
 import {useUiCopy} from '../i18n/useUiCopy';
@@ -130,18 +131,24 @@ function TransactionDialog({
     amount: ''
   }]);
   const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('2026-10-06');
+  const [date, setDate] = useState(() => businessToday());
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
   const [backdateReason, setBackdateReason] = useState('');
   const [reviewFinance, setReviewFinance] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setDate(businessToday());
+      setBackdateReason('');
+    }
+  }, [open]);
   useEffect(() => setReviewFinance(false), [type, personId, paymentRows, amount, date, reference, note, backdateReason, open, people]);
 
   const meta = financeTypeMeta[type];
   const rolePeople = people.filter((item) => item.status === 'Active' && (!meta.role || item.roles.includes(meta.role)));
   const isOpening = !!meta.opening;
   const selectedPerson = rolePeople.find((item) => item.id === personId);
-  const isBackdated = date !== '2026-10-06';
+  const isBackdated = date < businessToday();
   const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
   const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
 
@@ -149,6 +156,10 @@ function TransactionDialog({
     const value = Number(amount);
     if (!Number.isFinite(value) || value <= 0) {
       toast.error(text('Enter an amount','টাকার পরিমাণ লিখুন'));
+      return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > businessToday()) {
+      toast.error(text('Select today or an earlier valid date','আজ বা আগের সঠিক তারিখ দিন'));
       return;
     }
     if (isBackdated && !backdateReason.trim()) {
@@ -168,7 +179,7 @@ function TransactionDialog({
 
     onSave({
       id: nextId,
-      date: date === '2026-10-06' ? '06 Oct 2026' : date,
+      date: formatDay(date),
       type,
       relationship: meta.account,
       party: selectedPerson.name,
@@ -232,7 +243,7 @@ function TransactionDialog({
 
           <label className="text-[13px] font-medium text-ink">
             {text('Date','তারিখ')}
-            <Input className="mt-1.5" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            <Input className="mt-1.5" type="date" max={businessToday()} value={date} onChange={(event) => setDate(event.target.value)} />
           </label>
 
           {isBackdated && (
@@ -650,9 +661,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
     const q = query.trim().toLowerCase();
     return transactions.filter((item) => {
       const matchesType = typeFilter === 'All transaction types' || item.type === typeFilter;
-      const matchesQuery = !q || [item.id, item.party, item.type, item.account, item.reference, item.note]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(q));
+      const matchesQuery = fuzzyMatch(q,[item.id,item.party,item.type,item.account,item.reference,item.note]);
       return matchesType && matchesQuery;
     });
   }, [transactions, query, typeFilter]);
@@ -731,7 +740,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
       )}
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        {!counterOnly && <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
+        {!counterOnly && <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -739,7 +748,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               aria-selected={tab === id}
               title={helper}
               onClick={() => setTab(id)}
-              className={`px-2.5 py-2.5 text-[13px] font-medium ${
+              className={`min-h-11 shrink-0 px-2.5 py-2.5 text-[13px] font-medium ${
                 tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}

@@ -1,3 +1,4 @@
+import {rankSearch} from '../../utils/fuzzySearch';
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Search, X } from 'lucide-react';
@@ -58,10 +59,7 @@ ref)
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = (suppliedProducts ?? seedProducts).filter((p) => p.active && (mode !== 'purchase' || (p.kind !== 'Service' && p.kind !== 'Bundle')));
-    if (!q) return list.slice(0, 8);
-    return list.
-    filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.brand ?? '').toLowerCase().includes(q)).
-    slice(0, 8);
+    return rankSearch(list,q,p=>[p.name,p.nameBn,p.sku,p.category,p.brand]).slice(0,8);
   }, [query, suppliedProducts, mode]);
 
   const updatePosition = useCallback(() => {

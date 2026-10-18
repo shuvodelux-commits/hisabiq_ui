@@ -237,6 +237,8 @@ export type SaleLine = {
   unit: string;
   /** Exact quantity available to return in the base unit. */
   returnableQuantity?: number;
+  /** Immutable original base quantity; required for historical compound-unit refund allocation. */
+  soldBaseQuantity?: number;
   price: number;
   total: number;
   /** Historical cost per base unit at the time of sale. */
@@ -273,12 +275,15 @@ export type SalesReturn = TransactionAuditFields & {
   id: string;
   date: string;
   customer: string;
+  customerId?: string;
   invoices: string[];
   items: string;
   amount: number;
   settlement: 'Adjust due' | 'Customer credit' | 'Cash refund';
   refundMethod?: Exclude<PaymentMethod, 'Customer Credit'>;
   refundAccount?: string;
+  /** Source-linked ordinary return allocations in the UI preview; never stock postings. */
+  lineReturns?: Array<{invoiceId:string;lineId:string;quantity:number;amount:number;serials:string[]}>;
   bundleReturns?:Array<{returnId:string;invoiceId:string;lineId:string;sets:number;serials?:Record<string,string[]>}>;
 };
 
@@ -301,6 +306,7 @@ export type SaleTemplate = {
   id: string;
   name: string;
   customer?: string;
+  customerId?: string;
   items: number;
   total: number;
   lastUsed: string;

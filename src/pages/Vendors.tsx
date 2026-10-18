@@ -1,32 +1,36 @@
 import {useMemo,useState,useSyncExternalStore} from 'react';
 import {useSearchParams} from 'react-router-dom';
-import {ArrowLeft,ChevronRight,Search} from 'lucide-react';
+import {Plus} from 'lucide-react';
 import {toast} from 'sonner';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
-import {Input} from '../components/Input';
-import {QuickAddSelect} from '../components/QuickAddSelect';
-import {PartyAvatar} from '../components/PartyAvatar';
+import {PartyEditorDialog} from '../components/parties/PartyEditorDialog';
+import {isPartyOpening} from '../utils/partyOpening';
+import type {Party} from '../types/erp';
+import type {PartyDraft,PartyOpeningPayload} from '../types/partyLedger';
+import {VendorDirectory,type VendorDirectoryFilter} from '../components/vendor/VendorDirectory';
 import {VendorTabs} from '../components/vendor/VendorTabs';
 import {availableParties,availablePurchases} from '../data/erpDemoStore';
 import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview} from '../data/partyPreviewStore';
 import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
 import {sourceOutstanding,vendorBalances} from '../vendor/vendorModel';
 import {filterVendors,resolveVendorView,type VendorWorkTab} from '../vendor/vendorRoute';
-import {taka} from '../utils/currency';
 
 export function Vendors(){
  const [params,setParams]=useSearchParams();
- useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
+ const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
  const snapshot=useSyncExternalStore(subscribeVendorPreview,getVendorPreviewSnapshot);
  const all=availableParties();
  const vendors=all.filter(p=>p.roles.includes('Vendor'));
  const view=resolveVendorView(params.toString(),vendors);
- const party=view.partyId?vendors.find(p=>p.id===view.partyId)??null:null;
+ // Match Parties: the directory stays visible while the selected record opens beside it.
+ // On first visit, select the first Vendor without rewriting incoming deep links.
+ const party=vendors.find(p=>p.id===view.partyId)??vendors[0]??null;
  const [query,setQuery]=useState('');
- const [filter,setFilter]=useState<'all'|'needs-price'|'pay'|'receive'>('all');
+ const [filter,setFilter]=useState<VendorDirectoryFilter>('all');
  const results=useMemo(()=>filterVendors(vendors,query),[vendors,query]);
  const [dirty,setDirty]=useState(false);
+ const [editing,setEditing]=useState<Party|null|undefined>(undefined);
  const change=(nextId:string|null,tab?:VendorWorkTab,sourceId?:string)=>{
   if(party?.id!==nextId&&dirty&&typeof window!=='undefined'&&!window.confirm('You have unsaved products. Leave without saving?'))return;
   if(party?.id!==nextId)setDirty(false);
@@ -36,100 +40,66 @@ export function Vendors(){
   if(sourceId)q.set('sourceId',sourceId);
   setParams(q);
  };
- const addVendor=(name:string,phone:string,area:string)=>{
-  try{
-   const key=phone.replace(/\D/g,'');
-   const existing=all.find(p=>(key&&p.phone.replace(/\D/g,'')===key)
-    ||p.name.trim().toLocaleLowerCase()===name.trim().toLocaleLowerCase());
-   if(existing){
-    if(existing.roles.includes('Vendor')){change(existing.id);return;}
-    dispatchPartyPreview({type:'update-party',id:existing.id,patch:{roles:[...existing.roles,'Vendor']}});
-    change(existing.id);
+ const saveVendor=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
+  if(editing){
+   dispatchPartyPreview({type:'update-party',id:editing.id,
+    patch:{...draft,roles:Array.from(new Set([...draft.roles,'Vendor']))},openings});
+   toast.success('Vendor updated in preview');
+   return;
+  }
+  const key=draft.phone.replace(/\D/g,'');
+  const existing=all.find(p=>(key&&p.phone.replace(/\D/g,'')===key)
+   ||p.name.trim().toLocaleLowerCase()===draft.name.trim().toLocaleLowerCase());
+  if(existing){
+   if(!existing.roles.includes('Vendor')){
+    dispatchPartyPreview({type:'update-party',id:existing.id,patch:{roles:[...existing.roles,'Vendor']},openings});
     toast.success('Vendor role added to existing Party (preview)');
-    return;
-   }
-   const old=new Set(all.map(p=>p.id));
-   const updated=dispatchPartyPreview({type:'create-party',party:{
-    name,roles:['Vendor'],phone,area
-   }});
-   const created=updated.parties.find(p=>!old.has(p.id));
-   if(created)change(created.id);
-   toast.success('Vendor created (preview)');
-  }catch(e){toast.error(e instanceof Error?e.message:'Could not add Vendor');}
+   }else toast.info('Vendor already exists. Opened existing record.');
+   setFilter('all');setQuery('');change(existing.id);
+   return;
+  }
+  const old=new Set(all.map(p=>p.id));
+  const updated=dispatchPartyPreview({type:'create-party',party:{
+   ...draft,roles:Array.from(new Set([...draft.roles,'Vendor'])),name:draft.name.trim()
+  },openings});
+  const created=updated.parties.find(p=>!old.has(p.id));
+  if(created){setFilter('all');setQuery('');change(created.id);}
+  toast.success('Vendor created in preview');
  };
  const rows=results.map(p=>({p,balance:vendorBalances(snapshot,p.id)}));
- const needsPriceCount=rows.filter(row=>row.balance.unpricedSourceCount>0).length;
- const shown=rows.filter(row=>filter==='all'||(filter==='needs-price'?row.balance.unpricedSourceCount>0:filter==='pay'?row.balance.knownPayablePaisa>0:row.balance.knownReceivablePaisa>0))
+ const shown=rows.filter(({balance})=>filter==='all'
+  ||(filter==='needs-price'?balance.unpricedSourceCount>0:filter==='pay'?balance.knownPayablePaisa>0:balance.knownReceivablePaisa>0))
   .sort((a,b)=>Number(b.balance.unpricedSourceCount>0)-Number(a.balance.unpricedSourceCount>0)
    ||b.balance.knownPayablePaisa-a.balance.knownPayablePaisa);
+ const selectVendor=(id:string)=>{
+  const needPrice=snapshot.sources.find(s=>s.vendorPartyId===id&&s.status==='Active'
+   &&s.sourceKind==='sourcing'&&sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
+  const dueSource=snapshot.sources.find(s=>s.vendorPartyId===id&&s.status==='Active'
+   &&s.sourceKind===(filter==='receive'?'issue':'sourcing')
+   &&(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
+  change(id,filter==='receive'?'given':filter==='needs-price'?'taken':needPrice||dueSource?'taken':'ledger',
+   filter==='receive'?dueSource?.id:needPrice?.id??dueSource?.id);
+ };
  return <div className="mx-auto max-w-[1440px] min-w-0 space-y-4" role="region" aria-label="Vendor module">
-  <PageHeader title="Vendor" titleBn="ভেন্ডর লেনদেন" description="Goods taken and given, and dues · পণ্য নেওয়া-দেওয়া ও হিসাব · UI preview only" descriptionBn="পণ্য নেওয়া-দেওয়া, দাম ঠিক করা ও হিসাব মেটানো · শুধু প্রিভিউ" actions={party&&
-   <Button type="button" variant="outline" size="sm" onClick={()=>change(null)}><ArrowLeft className="size-4"/> All Vendors</Button>}/>
-  {!party? <section className="rounded-xl border border-border bg-card p-4 shadow-card space-y-4">
-   <div className="flex flex-wrap items-end justify-between gap-3">
-    <div className="min-w-0 w-full sm:w-auto flex-1">
-     <label htmlFor="vendor-module-search" className="mb-1 block text-sm font-medium text-ink">Choose Vendor · ভেন্ডর বাছুন</label>
-     <div className="relative"><Search className="pointer-events-none absolute z-10 left-3 top-2.5 size-4 text-ink-400"/>
-      <Input id="vendor-module-search" aria-label="Search Vendors" placeholder="Name, phone or area"
-       className="pl-9" value={query} onChange={e=>setQuery(e.target.value)}/>
-     </div>
-    </div>
-    <div className="w-full sm:w-[230px]">
-     <p className="mb-1 text-xs font-medium text-ink">Quick Add · নতুন ভেন্ডর</p>
-     <QuickAddSelect label="Vendor" value="" options={vendors.map(p=>p.name)}
-      onChange={name=>{const v=vendors.find(p=>p.name===name);if(v)change(v.id);}}
-      onCreate={addVendor} showContact placeholder="Select or add Vendor"/>
-    </div>
-   </div>
-   <div className="flex flex-wrap gap-2" role="group" aria-label="Vendor filter">
-    <button type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}
-     className={'min-h-11 rounded-lg border px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 '+(filter==='all'?'border-teal-600 bg-teal-50 text-teal-800 dark:bg-teal-900/20 dark:text-teal-200':'border-border text-ink-600 hover:bg-ink-50')}>
-     All ({rows.length})
-    </button>
-    <button type="button" aria-pressed={filter==='needs-price'} onClick={()=>setFilter('needs-price')}
-     className={'min-h-11 rounded-lg border px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 '+(filter==='needs-price'?'border-teal-600 bg-teal-50 text-teal-800 dark:bg-teal-900/20 dark:text-teal-200':'border-border text-ink-600 hover:bg-ink-50')}>
-     Needs price · দাম বাকি ({needsPriceCount})
-    </button>
-    {([{id:'pay',label:'To pay · টাকা দিন'},{id:'receive',label:'To receive · টাকা নিন'}] as const).map(item=><Button key={item.id} type="button" size="sm" className="min-h-11" variant={filter===item.id?'default':'outline'} aria-pressed={filter===item.id} onClick={()=>setFilter(item.id)}>{item.label}</Button>)}
-   </div>
-   <div className="overflow-hidden rounded-lg border border-border">
-    <div className="hidden grid-cols-[40px_minmax(0,1fr)_11rem_9rem_1rem] gap-3 border-b border-border bg-ink-50 px-4 py-2 text-xs text-ink-500 lg:grid">
-     <span/><span>Vendor</span><span>You owe · দেনা</span><span>Vendor owes · পাওনা</span><span/>
-    </div>
-    <div className="divide-y divide-border">
-     {shown.map(({p,balance:v})=><button type="button" key={p.id}
-       onClick={()=>{
-        const needPrice=snapshot.sources.find(s=>s.vendorPartyId===p.id&&s.status==='Active'
-         &&s.sourceKind==='sourcing'&&sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
-        const dueSource=snapshot.sources.find(s=>s.vendorPartyId===p.id&&s.status==='Active'&&s.sourceKind===(filter==='receive'?'issue':'sourcing')&&(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
-        change(p.id,filter==='receive'?'given':needPrice||dueSource?'taken':'ledger',filter==='receive'?dueSource?.id:needPrice?.id??dueSource?.id);
-       }}
-       className="grid w-full min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-x-3 gap-y-1 px-4 py-3 text-left hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 lg:grid-cols-[40px_minmax(0,1fr)_11rem_9rem_1rem]">
-       <PartyAvatar name={p.name} color={p.avatarColor} image={p.image} size={40}/>
-       <span className="min-w-0">
-        <span className="block truncate text-sm font-semibold text-ink">{p.name}
-         {p.nameBn&&<span className="ml-2 font-bn text-xs font-normal text-ink-500">{p.nameBn}</span>}
-        </span>
-        <span className="block truncate text-xs text-ink-500">{p.phone} · {p.area}</span>
-       </span>
-       <span className="col-start-2 min-w-0 text-xs lg:col-start-auto">
-        <span className="text-ink-500 lg:hidden">You owe · </span>
-        {v.unpricedSourceCount>0&&<span className="mr-1 inline-block rounded-full bg-warning-bg px-2 py-0.5 font-medium text-warning">Price not set ({v.unpricedSourceCount})</span>}
-        {(v.knownPayablePaisa>0||v.unpricedSourceCount===0)&&<strong className="whitespace-nowrap text-sm font-semibold text-ink">{taka(v.knownPayablePaisa/100)}</strong>}
-       </span>
-       <span className="col-start-2 min-w-0 text-xs lg:col-start-auto">
-        <span className="text-ink-500 lg:hidden">Vendor owes · </span>
-        <strong className="whitespace-nowrap text-sm font-semibold text-ink">{taka(v.knownReceivablePaisa/100)}</strong>
-       </span>
-       <ChevronRight className="hidden size-4 text-ink-400 lg:block" aria-hidden="true"/>
-      </button>)}
-    </div>
-   </div>
-   {shown.length===0&&<p className="py-10 text-center text-sm text-ink-500">{query?'No Vendors match your search.':filter==='needs-price'?'No Vendors need a price right now.':filter==='all'?'No Vendors yet. Add one above.':'No Vendors have this type of due.'}</p>}
-  </section>:
-  <VendorTabs key={party.id} party={party} snapshot={snapshot}
-   purchases={availablePurchases().filter(p=>p.supplierId===party.id)}
-   tab={view.tab} onTabChange={(tab,sourceId)=>change(party.id,tab,sourceId)}
-   sourceId={params.get('sourceId')} onDirtyChange={setDirty}/>}
+  <PageHeader title="Vendor" titleBn="ভেন্ডর লেনদেন"
+   description="Goods taken and given, purchases, settlement and ledger · UI preview only"
+   descriptionBn="পণ্য নেওয়া-দেওয়া, দাম, পাওনা-দেনা ও হিসাব · শুধু প্রিভিউ"
+   actions={<Button type="button" size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add Vendor</Button>}/>
+  <div className="grid min-w-0 gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
+   <VendorDirectory rows={rows} shown={shown}
+    selectedId={party?.id??''} query={query} onQuery={setQuery}
+    filter={filter} onFilter={setFilter} onSelect={selectVendor}/>
+   {party?<VendorTabs key={party.id} party={party} snapshot={snapshot}
+     purchases={availablePurchases().filter(p=>p.supplierId===party.id)}
+     tab={view.tab} onTabChange={(tab,sourceId)=>change(party.id,tab,sourceId)}
+     sourceId={params.get('sourceId')} onDirtyChange={setDirty}
+     onEditVendor={()=>setEditing(party)}/>:
+    <section className="flex min-h-[320px] items-center justify-center rounded-xl border border-border bg-card p-8 text-center text-sm text-ink-500">
+      No Vendors yet. Choose Add Vendor above to create the first one.
+    </section>}
+  </div>
+  <PartyEditorDialog open={editing!==undefined} party={editing} defaultRole="Vendor"
+   existingOpenings={editing?.id?partyState.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
+   onClose={()=>setEditing(undefined)} onSave={saveVendor}/>
  </div>;
 }
