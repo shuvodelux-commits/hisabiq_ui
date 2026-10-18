@@ -23,6 +23,7 @@ import type {InstallmentPaymentPreviewEvent} from '../installments/collections';
 import type {InstallmentLifecycleEvent} from '../installments/lifecycle';
 import {InstallmentRescheduleDialog} from '../components/pos/InstallmentRescheduleDialog';
 import {InstallmentAdjustmentDialog} from '../components/pos/InstallmentAdjustmentDialog';
+import {InstallmentReceiptReversalDialog} from '../components/pos/InstallmentReceiptReversalDialog';
 import {InstallmentReceivePaymentDialog} from '../components/pos/InstallmentReceivePaymentDialog';
 import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
 import {InstallmentBreakdownDialog} from '../components/pos/InstallmentBreakdownDialog';
@@ -205,6 +206,7 @@ export function Pos() {
   const [historyLifecycle,setHistoryLifecycle]=useState<InstallmentLifecycleEvent[]>([]);
   const [rescheduleOpen,setRescheduleOpen]=useState(false);
   const [adjustmentMode,setAdjustmentMode]=useState<'Return'|'Settlement'|null>(null);
+  const [reverseReceiptId,setReverseReceiptId]=useState<string|null>(null);
   const [receiveInstallmentOpen,setReceiveInstallmentOpen]=useState(false);
   const [installmentHistoryOpen,setInstallmentHistoryOpen]=useState(false);
   const [historySelected,setHistorySelected]=useState<PreviewInstallmentAgreement|null>(null);
@@ -669,7 +671,7 @@ export function Pos() {
   };
 
   const newSale = () => {
-    setCompleted(null);setCompletedInstallment(null);setCompletedReceipts([]);setCompletedLifecycle([]);setReceiveInstallmentOpen(false);setDemoVendorInvoice(null);
+    setCompleted(null);setCompletedInstallment(null);setCompletedReceipts([]);setCompletedLifecycle([]);setReceiveInstallmentOpen(false);setReverseReceiptId(null);setDemoVendorInvoice(null);
     cart.reset();
     setInstallmentMode('Regular');setInstallmentRows([]);
     setInvoiceNo(reservePreviewInvoiceNumber);
@@ -969,7 +971,8 @@ export function Pos() {
              onReceive={completedLifecycle.length?undefined:()=>setReceiveInstallmentOpen(true)}
              onReschedule={()=>setRescheduleOpen(true)}
              onReturn={()=>setAdjustmentMode('Return')}
-             onSettle={()=>setAdjustmentMode('Settlement')}/>}
+             onSettle={()=>setAdjustmentMode('Settlement')}
+              onReverseReceipt={id=>setReverseReceiptId(id)}/>}
           <DialogFooter>
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
               <Button variant="outline" onClick={simulateVendorSources}
@@ -1009,7 +1012,8 @@ export function Pos() {
               onReceive={historyLifecycle.length?undefined:()=>setReceiveInstallmentOpen(true)}
               onReschedule={()=>setRescheduleOpen(true)}
               onReturn={()=>setAdjustmentMode('Return')}
-              onSettle={()=>setAdjustmentMode('Settlement')}/>}
+              onSettle={()=>setAdjustmentMode('Settlement')}
+              onReverseReceipt={id=>setReverseReceiptId(id)}/>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={()=>setInstallmentHistoryOpen(false)}>
@@ -1027,6 +1031,14 @@ export function Pos() {
         agreement={activeInstallmentAgreement} receipts={activeInstallmentReceipts}
         events={activeInstallmentEvents} onClose={()=>setAdjustmentMode(null)}
         onRecorded={reloadLifecycle}/>}
+      {activeInstallmentAgreement&&reverseReceiptId&&
+        activeInstallmentReceipts.find(receipt=>receipt.id===reverseReceiptId)&&
+        <InstallmentReceiptReversalDialog open={Boolean(reverseReceiptId)}
+          agreement={activeInstallmentAgreement}
+          receipt={activeInstallmentReceipts.find(receipt=>receipt.id===reverseReceiptId)!}
+          receipts={activeInstallmentReceipts} events={activeInstallmentEvents}
+          onClose={()=>setReverseReceiptId(null)}
+          onRecorded={reloadLifecycle}/>}
       {(installmentHistoryOpen&&historySelected||completedInstallment) && <InstallmentReceivePaymentDialog open={receiveInstallmentOpen}
         agreement={(installmentHistoryOpen&&historySelected||completedInstallment)!}
         receipts={installmentHistoryOpen&&historySelected?historyReceipts:completedReceipts}
