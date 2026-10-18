@@ -1,7 +1,6 @@
 import {Search} from 'lucide-react';
 import {Input} from '../Input';
 import {PartyAvatar} from '../PartyAvatar';
-import {QuickAddSelect} from '../QuickAddSelect';
 import {vendorBalances} from '../../vendor/vendorModel';
 import {taka} from '../../utils/currency';
 import type {Party} from '../../types/erp';
@@ -10,7 +9,6 @@ export type VendorDirectoryFilter='all'|'needs-price'|'pay'|'receive';
 export type VendorDirectoryRow={p:Party;balance:ReturnType<typeof vendorBalances>};
 
 type Props={
-  vendors:Party[];
   rows:VendorDirectoryRow[];
   shown:VendorDirectoryRow[];
   selectedId:string;
@@ -19,10 +17,9 @@ type Props={
   filter:VendorDirectoryFilter;
   onFilter:(value:VendorDirectoryFilter)=>void;
   onSelect:(partyId:string)=>void;
-  onAddVendor:(name:string,phone:string,area:string)=>void;
 };
 
-export function VendorDirectory({vendors,rows,shown,selectedId,query,onQuery,filter,onFilter,onSelect,onAddVendor}:Props){
+export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFilter,onSelect}:Props){
   const priceCount=rows.filter(({balance})=>balance.unpricedSourceCount>0).length;
   const payCount=rows.filter(({balance})=>balance.knownPayablePaisa>0).length;
   const receiveCount=rows.filter(({balance})=>balance.knownReceivablePaisa>0).length;
@@ -48,9 +45,6 @@ export function VendorDirectory({vendors,rows,shown,selectedId,query,onQuery,fil
           {item.label} <span className="text-[11px] opacity-75">{item.count}</span>
         </button>)}
       </div>
-      <QuickAddSelect label="Vendor" value="" options={vendors.map(p=>p.name)}
-        onChange={name=>{const vendor=vendors.find(p=>p.name===name);if(vendor)onSelect(vendor.id);}}
-        onCreate={onAddVendor} showContact placeholder="Select or add Vendor"/>
     </div>
     <div className="flex items-center justify-between px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-ink-400">
       <span>{shown.length} Vendors · ভেন্ডর</span>
