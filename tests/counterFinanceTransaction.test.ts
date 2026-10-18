@@ -72,7 +72,17 @@ test('Finance person uses the joined select-and-settings action; transaction pay
   assert.match(finance, /aria-label=\{text\('Manage people','ব্যক্তি যোগ \/ সংশোধন'\)\}/);
   assert.match(finance, /aria-haspopup="dialog"[\s\S]*?onClick=\{\(\) => setPeopleOpen\(true\)\}/);
   assert.match(finance, /<FinancePeopleManagerDialog open=\{open && peopleOpen\}/);
-  assert.match(finance, /<FinancePaymentSplitEditor[\s\S]*?totalAmount=\{Number\(amount\) \|\| 0\}[\s\S]*?\/>/);
+  assert.match(finance, /<FinancePaymentSplitEditor[\s\S]*?totalAmount=\{displayAmount\}[\s\S]*?\/>/);
   assert.doesNotMatch(finance, /accountTarget|onCreateAccount=/);
   assert.match(split, /onCreateAccount && <Button/,'other workflows may still opt into account creation');
+});
+
+test('new Finance transaction derives Amount and words from payment rows; opening balance remains editable',()=>{
+ const finance = readFileSync('src/pages/Finance.tsx','utf8');
+ assert.match(finance,/const transactionAmount = isOpening \? Number\(amount\) : financePaymentDraftTotal\(paymentRows\)/);
+ assert.match(finance,/const value = transactionAmount/);
+ assert.match(finance,/readOnly=\{!isOpening\}/);
+ assert.match(finance,/value=\{isOpening \? amount : \(Number\.isFinite\(transactionAmount\)/);
+ assert.match(finance,/<AmountInWordsDisplay amount=\{displayAmount\} \/>/);
+ assert.match(finance,/financePaymentSplitsAreValid\(paymentRows, accounts, value\)/);
 });
