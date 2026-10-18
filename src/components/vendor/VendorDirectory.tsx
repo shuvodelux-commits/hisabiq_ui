@@ -17,9 +17,10 @@ type Props={
   filter:VendorDirectoryFilter;
   onFilter:(value:VendorDirectoryFilter)=>void;
   onSelect:(partyId:string)=>void;
+  picker?:boolean;
 };
 
-export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFilter,onSelect}:Props){
+export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFilter,onSelect,picker=false}:Props){
   const priceCount=rows.filter(({balance})=>balance.unpricedSourceCount>0).length;
   const payCount=rows.filter(({balance})=>balance.knownPayablePaisa>0).length;
   const receiveCount=rows.filter(({balance})=>balance.knownReceivablePaisa>0).length;
@@ -35,7 +36,9 @@ export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFi
       <div className="relative">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true"/>
         <Input aria-label="Search Vendors" value={query} onChange={e=>onQuery(e.target.value)}
-          placeholder="Search name or phone…" className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm"/>
+          onKeyDown={event=>{if(event.key==='Enter'&&shown.length){event.preventDefault();onSelect(shown[0].p.id);}
+           if(event.key==='ArrowDown'){event.preventDefault();event.currentTarget.closest('section')?.querySelector<HTMLButtonElement>('[role="option"]')?.focus();}}}
+          placeholder="Search name or phone…" className={'w-full rounded-md border border-border pl-8 pr-3 text-sm '+(picker?'h-11':'h-8')}/>
       </div>
       <div className="flex flex-wrap gap-1" role="group" aria-label="Vendor filter">
         {filters.map(item=><button key={item.id} type="button" aria-pressed={filter===item.id}
@@ -50,13 +53,13 @@ export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFi
       <span>{shown.length} Vendors · ভেন্ডর</span>
       <span>Balances · জের</span>
     </div>
-    <ul data-vendor-directory-list className="max-h-[calc(100vh-290px)] min-h-[320px] flex-1 overflow-y-auto scrollbar-thin"
+    <ul data-vendor-directory-list className={(picker?'max-h-[min(48vh,420px)] min-h-0':'max-h-[calc(100vh-290px)] min-h-[320px]')+' flex-1 overflow-y-auto scrollbar-thin'}
       role="listbox" aria-label="Vendors">
       {shown.map(({p,balance})=>{
         const active=p.id===selectedId;
         return <li role="presentation" key={p.id}>
           <button type="button" role="option" aria-selected={active} onClick={()=>onSelect(p.id)}
-            className={'flex w-full min-w-0 items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '
+            className={'flex w-full min-w-0 items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(picker?'min-h-14 ':'')
               +(active?'border-teal-600 bg-teal-50/60 dark:bg-teal-900/20':'border-transparent hover:bg-ink-50')}>
             <PartyAvatar name={p.name} color={p.avatarColor} image={p.image} size={34}/>
             <span className="min-w-0 flex-1">
