@@ -15,6 +15,10 @@ async function main(){
   await price.getByRole('textbox',{name:'Agreed cost per Pcs'}).fill('110');
   await price.getByRole('button',{name:'Confirm Vendor Price'}).click();
   await vendor.getByText('৳330').first().waitFor();
+  await vendor.getByRole('button',{name:/Pay Vendor/}).click();
+  await vendor.getByRole('region',{name:'Vendor payments workspace'}).waitFor();
+  assert.ok(page.url().includes('tab=payments'),'Pay Vendor opens Payments directly');
+  await vendor.getByRole('tab',{name:/Taken/}).click();
   const clear=page.getByRole('form',{name:'Clear Vendor due'});
   await clear.getByRole('textbox',{name:'Money from account 1'}).fill('200');
   await clear.getByRole('button',{name:'Save Settlement'}).click();
