@@ -15,6 +15,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Settings,
   UserRoundCog,
   WalletCards
 } from 'lucide-react';
@@ -106,7 +107,7 @@ function TransactionDialog({
   people,
   nextId,
   onOpenChange,
-  onSave, onAddPerson, onUpdatePerson, onAddAccount
+  onSave, onAddPerson, onUpdatePerson
 }: {
   open: boolean;
   accounts: FinanceAccount[];
@@ -116,13 +117,11 @@ function TransactionDialog({
   onSave: (transaction: FinanceTransaction) => void;
   onAddPerson: (person: FinancePerson) => void;
   onUpdatePerson: (person: FinancePerson) => void;
-  onAddAccount: (account: FinanceAccount) => void;
 }) {
   const {text,language,showHelper}=useUiCopy();
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
   const [personId, setPersonId] = useState(() => people.find(item => item.status === 'Active' && item.roles.includes('Lender'))?.id ?? '');
   const [peopleOpen, setPeopleOpen] = useState(false);
-  const [accountTarget, setAccountTarget] = useState<{id:string;method:FinancePaymentDraft['method']} | null>(null);
   const [paymentRows, setPaymentRows] = useState<FinancePaymentDraft[]>([{
     id: 'finance-payment-1',
     method: 'Cash',
@@ -227,17 +226,25 @@ function TransactionDialog({
             </span>
           </label>
 
-          <div className="space-y-1">
-          <label className="text-[13px] font-medium text-ink">
-            {text('Finance person','হিসাবের ব্যক্তি')}
-            <FormSelect
-              className="mt-1.5"
-              value={selectedPerson?.id ?? ''}
-              onChange={(event) => setPersonId(event.target.value)}
-              options={rolePeople.map((item) => ({value: item.id, label: financePersonOptionLabel(item, rolePeople)}))}
-            />
-          </label>
-          <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>{text('Manage people','ব্যক্তি যোগ / সংশোধন')}</Button>
+          <div className="min-w-0">
+            <p id="finance-person-label" className="text-[13px] font-medium text-ink">{text('Finance person','হিসাবের ব্যক্তি')}</p>
+            <div className="mt-1.5 flex min-w-0" role="group" aria-labelledby="finance-person-label">
+              <FormSelect
+                aria-label={text('Finance person','হিসাবের ব্যক্তি')}
+                className="min-w-0 flex-1 [&>button]:rounded-r-none"
+                value={selectedPerson?.id ?? ''}
+                onChange={(event) => setPersonId(event.target.value)}
+                options={rolePeople.map((item) => ({value: item.id, label: financePersonOptionLabel(item, rolePeople)}))}
+              />
+              <button type="button"
+                aria-label={text('Manage people','ব্যক্তি যোগ / সংশোধন')}
+                title={text('Manage people','ব্যক্তি যোগ / সংশোধন')}
+                aria-haspopup="dialog"
+                onClick={() => setPeopleOpen(true)}
+                className="-ml-px flex h-9 w-11 shrink-0 items-center justify-center rounded-r-md border border-input bg-card text-teal-700 hover:bg-teal-50 focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
+                <Settings className="size-4" aria-hidden="true" />
+              </button>
+            </div>
           </div>
 
           <label className="text-[13px] font-medium text-ink">
@@ -258,7 +265,6 @@ function TransactionDialog({
               rows={paymentRows}
               onChange={setPaymentRows}
               totalAmount={Number(amount) || 0}
-              onCreateAccount={(id, method) => setAccountTarget({id,method})}
             />
           )}
 
@@ -295,8 +301,6 @@ function TransactionDialog({
     </Dialog>
     <FinancePeopleManagerDialog open={open && peopleOpen} people={people} initialRole={meta.role} onOpenChange={setPeopleOpen}
       onAdd={(person) => { onAddPerson(person); setPersonId(person.id); setPeopleOpen(false); }} onUpdate={onUpdatePerson} />
-    {accountTarget && <AccountDialog open={open} initialType={accountTarget.method} onOpenChange={(next) => {if (!next) setAccountTarget(null);}}
-      onSave={(account) => {onAddAccount(account); setPaymentRows(current => current.map(row => row.id === accountTarget.id ? {...row, method: account.type === 'Petty Cash' ? 'Cash' : account.type, accountId: account.id} : row)); setAccountTarget(null);}} />}
     </>
   );
 }
@@ -1198,7 +1202,6 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         people={people}
         onAddPerson={person => setPeople(current => [...current, person])}
         onUpdatePerson={person => {setPeople(current => current.map(item => item.id === person.id ? person : item)); setTransactions(current => current.map(item => item.partyId === person.id ? {...item, party:person.name} : item));}}
-        onAddAccount={account => setAccounts(current => [...current, account])}
         nextId={`FIN-${String(189 + transactions.length - seedTransactions.length).padStart(6, '0')}`}
         onOpenChange={setTransactionOpen}
         onSave={(transaction) => {
