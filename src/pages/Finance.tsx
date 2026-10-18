@@ -157,7 +157,9 @@ function TransactionDialog({
   const save = () => {
     const value = transactionAmount;
     if (!Number.isFinite(value) || value <= 0) {
-      toast.error(text('Enter an amount','টাকার পরিমাণ লিখুন'));
+      toast.error(isOpening
+        ? text('Enter an amount','টাকার পরিমাণ লিখুন')
+        : text('Enter valid amounts in payment sources','টাকার মাধ্যমগুলোতে সঠিক টাকা লিখুন'));
       return;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > businessToday()) {
