@@ -12,15 +12,17 @@ import {businessToday} from '../../utils/dateRange';
 import {taka} from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {takaInputToPaisa} from '../../installments/pricing';
-import {allocateOldestInstallments,projectInstallmentBalance,type InstallmentPaymentPreviewEvent,type InstallmentReceiptAllocation} from '../../installments/collections';
+import type {InstallmentPaymentPreviewEvent,InstallmentReceiptAllocation} from '../../installments/collections';
+import {allocateOldestLifecycleInstallments,projectInstallmentLifecycle,type InstallmentLifecycleEvent} from '../../installments/lifecycle';
 import {validateInstallmentCollection} from '../../installments/validateCollection';
 import {recordInstallmentReceiptPreview,type PreviewInstallmentAgreement} from '../../data/installmentPreviewStore';
 
 type Props={open:boolean;agreement:PreviewInstallmentAgreement;receipts:readonly InstallmentPaymentPreviewEvent[];
+ events?:readonly InstallmentLifecycleEvent[];
  onClose:()=>void;onRecorded:(receipt:InstallmentPaymentPreviewEvent)=>void};
 const initial=():FinancePaymentDraft[]=>[{id:'cash-1',method:'Cash',accountId:'acc-cash',amount:''}];
 /** Browser-preview collection, not a second financial/Party ledger. */
-export function InstallmentReceivePaymentDialog({open,agreement,receipts,onClose,onRecorded}:Props){
+export function InstallmentReceivePaymentDialog({open,agreement,receipts,events=[],onClose,onRecorded}:Props){
  const {text}=useUiCopy();
  const [date,setDate]=useState(businessToday());
  const [amount,setAmount]=useState('');
@@ -38,7 +40,8 @@ export function InstallmentReceivePaymentDialog({open,agreement,receipts,onClose
    operation.current='installment-receipt-'+(typeof crypto!=='undefined'&&'randomUUID' in crypto?crypto.randomUUID():String(Date.now()));
  },[open,agreement.id]);
  const today=businessToday();
- const summary=useMemo(()=>projectInstallmentBalance(agreement,receipts,today),[agreement,receipts,today]);
+ const summary=useMemo(()=>projectInstallmentLifecycle(agreement,receipts,events,today),
+  [agreement,receipts,events,today]);
  const parsed=useMemo(()=>{try{return takaInputToPaisa(amount);}catch{return 0;}},[amount]);
  const currentAllocation=useMemo(():InstallmentReceiptAllocation[]=>{
    if(manual)return summary.rows.flatMap(row=>{
@@ -48,8 +51,8 @@ export function InstallmentReceivePaymentDialog({open,agreement,receipts,onClose
      catch{return [{scheduleItemId:row.id,amountPaisa:-1}];}
    });
    if(parsed<=0)return [];
-   try{return allocateOldestInstallments(agreement,receipts,parsed);}catch{return [];}
- },[agreement,allocations,manual,parsed,receipts,summary.rows]);
+   try{return allocateOldestLifecycleInstallments(agreement,receipts,events,parsed,date);}catch{return [];}
+ },[agreement,allocations,manual,parsed,receipts,events,date,summary.rows]);
  const actualSplits=useMemo(()=>normalizeFinancePaymentSplits(splits,financeAccounts,parsed/100).map(row=>({
    method:row.method,accountId:row.accountId,amountPaisa:Math.round(row.amount*100)
  })),[splits,parsed]);
@@ -63,7 +66,7 @@ export function InstallmentReceivePaymentDialog({open,agreement,receipts,onClose
      'এই বিক্রির বাকি টাকার বেশি। অতিরিক্ত টাকা ফেরত দিন অথবা আলাদা ক্রেতার অগ্রিম হিসাবে রাখুন।'
    );
    if(!hasAllSplits)return text('Complete every payment source row.','সব টাকার মাধ্যম পূরণ করুন।');
-   const problems=validateInstallmentCollection(validationInput,receipts);
+   const problems=validateInstallmentCollection(validationInput,receipts,events);
    return problems[0]??'';
  };
  const confirm=()=>{

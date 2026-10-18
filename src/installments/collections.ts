@@ -5,6 +5,8 @@ export type InstallmentPaymentPreviewEvent={
  id:string;agreementId:string;operationId:string;date:string;amountPaisa:number;
  allocations:InstallmentReceiptAllocation[];
  splits:{method:'Cash'|'Bank'|'Mobile Banking';accountId:string;amountPaisa:number}[];
+ /** Immutable order across lifecycle changes and receipts on the same business date. */
+ sourceSequence?:number;
  createdAt:string;
 };
 export type InstallmentBalanceRow={id:string;dueDate:string;scheduledPaisa:number;
