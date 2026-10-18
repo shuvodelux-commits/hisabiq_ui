@@ -1,9 +1,10 @@
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useEffect,useId,useMemo,useState} from 'react';
-import {Plus,Printer} from 'lucide-react';
+import {Ellipsis,Plus,Printer} from 'lucide-react';
 import {toast} from 'sonner';
 import {Button} from '../Button';
 import {Input} from '../Input';
+import {Dialog,DialogContent,DialogTitle,DialogDescription} from '../Dialog';
 import {AppSelect} from '../AppSelect';
 import {PartyAvatar} from '../PartyAvatar';
 import {Tooltip} from '../Tooltip';
@@ -56,6 +57,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [purchaseRevision,setPurchaseRevision]=useState(0);
  useEffect(()=>{if(tab==='purchases')setPurchaseOpened(true);},[tab]);
  const [statementOpen,setStatementOpen]=useState(false);
+ const [mobileMoreOpen,setMobileMoreOpen]=useState(false);
 
  const [correctSource,setCorrectSource]=useState<string|null>(null);
  const [correctEvent,setCorrectEvent]=useState<string|null>(null);
@@ -68,6 +70,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const unpricedMemos=profile.summary.priceNotSetCount;
  const payable=profile.summary.takenDuePaisa;
  const receivable=profile.summary.givenDuePaisa;
+ useEffect(()=>{if(payable===0&&receivable>0)setSide('receivable');},[party.id,payable,receivable]);
  const unpricedSource=taken.find(s=>sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
  const payableSource=taken.find(s=>(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
  const receivableSource=given.find(s=>(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
@@ -99,9 +102,21 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   setEditingGiven(mode==='given');
   onTabChange(mode);
  };
+ // One set of desktop action labels and handlers for both layouts.
+ const actions=[
+  {key:'taken',label:'Take Products',visible:true,run:()=>openGoods('taken'),hint:text('Record products received from this vendor','এই ভেন্ডর থেকে নেওয়া পণ্য লিখুন')},
+  {key:'given',label:'Give Products',visible:true,run:()=>openGoods('given'),hint:text('Record products you gave to this vendor','ভেন্ডরকে দেওয়া পণ্য লিখুন')},
+  {key:'price',label:'Set price · দাম ঠিক করুন',visible:unpricedMemos>0,run:()=>selectTab('taken',unpricedSource?.id),hint:text('Set the agreed price for previously unpriced goods','আগে নেওয়া পণ্যের দাম লিখুন')},
+  {key:'pay',label:'Pay / return',visible:payable>0,run:()=>selectTab(payableSource?'taken':'ledger',payableSource?.id),hint:text('Pay for taken goods or return products to settle','নেওয়া পণ্যের টাকা দিন বা পণ্য ফেরত দিন')},
+  {key:'receive',label:'Receive settlement',visible:receivable>0,run:()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id),hint:text('Receive money for goods handed to this vendor','ভেন্ডরকে দেওয়া পণ্যের টাকা নিন')},
+  {key:'purchase',label:'New purchase',visible:true,run:()=>selectTab('purchases'),hint:text('Open a regular purchase invoice, separate from goods memos','নেওয়া পণ্যের মেমো থেকে আলাদা সাধারণ ক্রয়ের বিল')},
+  {key:'print',label:'Print Ledger',visible:true,run:()=>setStatementOpen(true),hint:text('Print the selected Vendor statement','ভেন্ডরের হিসাব প্রিন্ট করুন')},
+  {key:'edit',label:'Edit Vendor · তথ্য বদলান',visible:true,run:onEditVendor,hint:text('Edit Vendor details','ভেন্ডরের তথ্য বদলান')}
+ ] as const;
+ const mobileSecondary=receivable>0?'receive':payable>0?'pay':'given';
  return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
-  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-4">
-   <div className="flex min-w-0 flex-1 items-start gap-3">
+  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-3 sm:p-4">
+   <div className="hidden min-w-0 flex-1 items-start gap-3 sm:flex">
     <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52}/>
     <div className="min-w-0">
      <h2 className="truncate text-lg font-semibold text-ink">{party.name}
@@ -110,7 +125,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      <span className="mt-1 inline-flex rounded-md bg-teal-50 px-1.5 py-0.5 text-[11px] font-medium text-teal-700 dark:bg-teal-900/20 dark:text-teal-200">Vendor · ভেন্ডর</span>
     </div>
    </div>
-   <div className="grid shrink-0 grid-cols-2 gap-2" aria-label="Vendor balances, kept separate">
+   <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:shrink-0" aria-label="Vendor balances, kept separate">
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
      <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('You owe','দিতে হবে')}{showHelper&&' · দেনা'}
       <Tooltip label="Explain Vendor payable" align="start" triggerClassName="size-7"
@@ -127,23 +142,35 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
     </div>
    </div>
   </div>
-  <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5" role="group" aria-label="Vendor quick actions">
-   <Button type="button" size="sm" title={text('Record products received from this vendor','এই ভেন্ডর থেকে নেওয়া পণ্য লিখুন')} onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products</Button>
-   <Button type="button" size="sm" variant="outline" title={text('Record products you gave to this vendor','ভেন্ডরকে দেওয়া পণ্য লিখুন')} onClick={()=>openGoods('given')}>Give Products</Button>
-   {unpricedMemos>0&&<Button type="button" size="sm" variant="outline"
-    title={text('Set the agreed price for previously unpriced goods','আগে নেওয়া পণ্যের দাম লিখুন')}
-    onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>}
-   {payable>0&&<Button type="button" size="sm" variant="outline"
-    title={text('Pay for taken goods or return products to settle','নেওয়া পণ্যের টাকা দিন বা পণ্য ফেরত দিন')}
-    onClick={()=>selectTab(payableSource?'taken':'ledger',payableSource?.id)}>Pay / return</Button>}
-   {receivable>0&&<Button type="button" size="sm" variant="outline"
-    title={text('Receive money for goods handed to this vendor','ভেন্ডরকে দেওয়া পণ্যের টাকা নিন')}
-    onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>Receive settlement</Button>}
-   <Button type="button" size="sm" variant="outline" title={text('Open a regular purchase invoice, separate from goods memos','নেওয়া পণ্যের মেমো থেকে আলাদা সাধারণ ক্রয়ের বিল')} onClick={()=>selectTab('purchases')}>New purchase</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print Ledger</Button>
-   <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>Edit Vendor · তথ্য বদলান</Button>
+  <div className="hidden flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 sm:flex" role="group" aria-label="Vendor quick actions">
+   {actions.filter(action=>action.visible).map(action=><Button type="button" key={action.key} size="sm"
+    variant={action.key==='taken'?'default':'outline'} title={action.hint} onClick={action.run}>
+    {action.key==='taken'&&<Plus className="size-4"/>}{action.key==='print'&&<Printer className="size-4"/>}{action.label}
+   </Button>)}
   </div>
-  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
+  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-stretch gap-2 border-b border-border p-3 sm:hidden" role="group" aria-label="Vendor quick actions">
+   {actions.filter(action=>action.visible&&(action.key==='taken'||action.key===mobileSecondary)).map(action=>
+    <Button type="button" key={action.key} size="sm" variant={action.key==='taken'?'default':'outline'}
+     className="min-h-11 min-w-0 px-2 text-xs" title={action.hint} onClick={action.run}>
+     {action.key==='taken'&&<Plus className="size-4"/>}{action.label}
+    </Button>)}
+   <Button type="button" size="sm" variant="outline" className="min-h-11 px-2" aria-label="More Vendor actions"
+    onClick={()=>setMobileMoreOpen(true)}><Ellipsis className="size-5"/> More</Button>
+  </div>
+  <Dialog open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
+   <DialogContent aria-label="More Vendor actions" className="w-[calc(100vw-1rem)] max-w-md max-h-[85vh] overflow-y-auto p-4">
+    <DialogTitle>More Vendor actions</DialogTitle>
+    <DialogDescription>Choose a Vendor task · ভেন্ডরের কাজ বাছুন</DialogDescription>
+    <div className="grid gap-2 pt-3">
+     {actions.filter(action=>action.visible&&action.key!=='taken'&&action.key!==mobileSecondary).map(action=>
+      <Button key={action.key} type="button" size="sm" variant="outline" className="min-h-11 justify-start"
+       title={action.hint} onClick={()=>{setMobileMoreOpen(false);action.run();}}>
+       {action.key==='print'&&<Printer className="size-4"/>}{action.label}
+      </Button>)}
+    </div>
+   </DialogContent>
+  </Dialog>
+  <div className="hidden flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs sm:flex">
    {unpricedMemos>0
     ?<p className="flex flex-wrap items-center gap-1 text-warning"><strong>Price not set ({unpricedMemos})</strong> · Unpriced goods are not counted as money due.
       <Tooltip label="Explain unpriced Vendor memos" triggerClassName="size-7"
