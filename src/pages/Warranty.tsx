@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { AppSelect } from '../components/AppSelect';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -705,8 +706,7 @@ export function Warranty() {
       if (status !== 'All status' && item.status !== status) return false;
       if (route !== 'All routes' && item.route !== route) return false;
       if (!q) return true;
-      return [item.id, item.customer, item.phone ?? '', item.invoice, item.product, item.serial ?? '', item.supplier ?? '', item.supplierRef ?? '', item.issue]
-        .some((value) => value.toLowerCase().includes(q));
+      return fuzzyMatch(q,[item.id,item.customer,item.phone,item.invoice,item.product,item.serial,item.supplier,item.supplierRef,item.issue]);
     });
   }, [cases, query, route, status, tab]);
 
@@ -906,12 +906,14 @@ export function Warranty() {
             />
           </div>
           <FormSelect
+            aria-label={wl("Status")}
             className="w-full lg:w-44"
             value={status}
             onChange={(event) => setStatus(event.target.value)}
             options={warrantyOptions(language,['All status', ...Object.keys(statusLabels)])}
           />
           <FormSelect
+            aria-label={wl("Route")}
             className="w-full lg:w-40"
             value={route}
             onChange={(event) => setRoute(event.target.value)}

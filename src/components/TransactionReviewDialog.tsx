@@ -34,7 +34,7 @@ export function TransactionReviewDialog({open,onClose,onConfirm,title,amount,det
     </div>
     <dl className="divide-y divide-border rounded-xl border border-border px-3">
      {details.map(item=><div className="flex justify-between gap-4 py-2 text-sm" key={item.label}>
-      <dt className="text-ink-500">{copy(item.label)}</dt><dd className="text-right font-medium text-ink">{item.value}</dd>
+      <dt className="min-w-0 flex-1 text-ink-500">{copy(item.label)}</dt><dd className="min-w-0 flex-[1.5] break-words text-right font-medium text-ink">{item.value}</dd>
      </div>)}
     </dl>
     <p className="flex items-start gap-2 text-xs text-ink-500"><AlertTriangle className="size-4 shrink-0 text-warning"/>

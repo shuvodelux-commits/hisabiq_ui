@@ -15,3 +15,14 @@ export function wholeNumberStep(value:string,direction:1|-1,min:string|number=0,
  if(maximum!==undefined&&Number.isFinite(maximum)&&amount>maximum)return String(max);
  return next;
 }
+
+/** Clear only a complete zero, never malformed input or a meaningful decimal. */
+export function isZeroNumberText(value:string):boolean {
+ return /^[+-]?(?:0+(?:\.0*)?|\.0+)$/.test(value.trim());
+}
+/** One wheel event is one whole unit; horizontal scrolling and zoom retain native behavior. */
+export function wheelStepDirection(event:{deltaY:number;deltaX:number;ctrlKey?:boolean;metaKey?:boolean;altKey?:boolean;shiftKey?:boolean}):1|-1|null {
+ if(event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||!Number.isFinite(event.deltaY)||
+   event.deltaY===0||Math.abs(event.deltaX)>=Math.abs(event.deltaY))return null;
+ return event.deltaY<0?1:-1;
+}

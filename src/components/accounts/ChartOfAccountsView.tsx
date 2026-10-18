@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useMemo, useState } from 'react';
 import { MoreHorizontal, Pencil, Plus, Power, Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,7 +38,7 @@ export function ChartOfAccountsView({
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return accounts.filter((account) => {
-      const matchesQuery = !needle || [account.code, account.name, account.helperBn, account.parent].some((value) => value.toLowerCase().includes(needle));
+      const matchesQuery = fuzzyMatch(needle,[account.code,account.name,account.helperBn,account.parent]);
       const matchesGroup = groupFilter === 'All groups' || account.group === groupFilter;
       return matchesQuery && matchesGroup;
     });

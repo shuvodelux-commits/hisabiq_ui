@@ -1,6 +1,6 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {findViolations,isProductChooser,allowedLegacy}=require('../scripts/check-ui-design-contract.cjs');
+const {findViolations,isProductChooser}=require('../scripts/check-ui-design-contract.cjs');
 
 test('standalone AppSelect product picker is forbidden on new screens',()=>{
  const source='<AppSelect label="Add product to service order" value="" options={products.map(p=>p.name)} />';
@@ -9,10 +9,9 @@ test('standalone AppSelect product picker is forbidden on new screens',()=>{
  assert.equal(v[0].line,1);
 });
 
-test('only named legacy quotation and online order pickers are grandfathered',()=>{
- assert.equal(allowedLegacy.size,2);
- assert.deepEqual(findViolations('<AppSelect label="Add product to quotation" />','src/pages/Quotations.tsx'),[]);
- assert.deepEqual(findViolations('<AppSelect label="Add online order product" />','src/pages/OnlineSales.tsx'),[]);
+test('quotation and online order product selects are no longer allowed',()=>{
+ assert.equal(findViolations('<AppSelect label="Add product to quotation" />','src/pages/Quotations.tsx').length,1);
+ assert.equal(findViolations('<AppSelect label="Add online order product" />','src/pages/OnlineSales.tsx').length,1);
  assert.equal(findViolations('<AppSelect label="Add product to quotation" />','src/pages/NewQuotes.tsx').length,1);
 });
 

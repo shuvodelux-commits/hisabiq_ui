@@ -287,7 +287,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                       aria-label={text(`Price for ${l.product.name}`, `দাম: ${l.product.name}`)}
                       value={l.price}
                       inputMode="decimal"
-                      onChange={(e) => onUpdate(l.key, { price: e.target.value.replace(/[^\d.]/g, '') })}
+                      onChange={(e) => onUpdate(l.key, { price: e.target.value })}
                       onKeyDown={backToSearch}
                       className={`${cellInput} pl-6 pr-2`} />
                   </div>

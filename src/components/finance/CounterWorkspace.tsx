@@ -1,3 +1,4 @@
+import {rankSearch} from '../../utils/fuzzySearch';
 import {useMemo,useRef,useState,useSyncExternalStore,type Dispatch,type SetStateAction} from 'react';
 import {CheckCircle2,Plus,Search,Trash2,AlertTriangle,ArrowRight} from 'lucide-react';
 import {toast} from 'sonner';
@@ -57,15 +58,15 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  const payerRole:PartyRole=type==='Customer Receive'?'Customer':'Supplier';
  const parties=state.parties.filter(p=>p.roles.includes(payerRole)&&p.status!=='Inactive');
  const selected=parties.find(p=>p.id===partyId);
- const filtered=parties.filter(p=>[p.name,p.nameBn,p.phone,p.area].some(x=>(x??'').toLowerCase().includes(search.toLowerCase()))).slice(0,7);
+ const filtered=rankSearch(parties,search,p=>[p.name,p.nameBn,p.phone,p.area,p.id]).slice(0,7);
  const date=businessToday();
  const settlement=selected&&(type==='Customer Receive'||type==='Supplier Pay')
   ?type==='Customer Receive'?customerSettlementAsOf(state.sources,selected.id,date)
    :supplierSettlementAsOf(state.sources,selected.id,date):null;
- const openInvoices=useMemo(()=>selected&&type==='Customer Receive'
-  ?counterOpenInvoices(state.sources,selected.id,date):[],[state,selected?.id,type,date]);
+ const openInvoices=useMemo(()=>selected&&(type==='Customer Receive'||type==='Supplier Pay')
+  ?counterOpenInvoices(state.sources,selected.id,date,payerRole==='Customer'?'Customer':'Supplier'):[],[state,selected?.id,type,date,payerRole]);
  const chosen=openInvoices.find(i=>i.id===allocation);
- const maxDue=chosen?Math.min(chosen.due,settlement?.invoiceDue??0):settlement?.invoiceDue??0;
+ const maxDue=allocation?(chosen?Math.min(chosen.due,settlement?.invoiceDue??0):0):settlement?.invoiceDue??0;
  const total=type==='Bank Transfer'?Number(amount)||0:money(effectiveRows.reduce((n,r)=>n+(Number(r.amount)||0),0));
  const discount=Number(discountInput)||0;
  const dueReduction=money(total+discount);
@@ -136,6 +137,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
    return '';
   }
   if(type==='Expense'&&!expenseCategory.trim())return text('Select an expense category.','খরচের ধরন বাছুন।');
+  if(isParty&&allocation&&!chosen)return text('The selected bill is no longer open. Choose a bill and review again.','বাছা বিলের আর বাকি নেই। বিল বেছে আবার যাচাই করুন।');
   if(type!=='Expense'&&!selected)return text('Select a customer or supplier.','ক্রেতা বা সরবরাহকারী বাছুন।');
   if(effectiveRows.some(row=>row.amount.trim()!==''&&!validMoney(row.amount)))
    return text('Each entered payment amount must be positive with up to two decimals.','প্রতিটি পেমেন্টের টাকা শূন্যের বেশি হতে হবে, সর্বোচ্চ দুই দশমিক ঘরসহ।');
@@ -162,7 +164,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
    }
    if((type==='Customer Receive'||type==='Supplier Pay')&&selected){
     const payload:PartyPaymentPayload={partyId:selected.id,relationship:type==='Customer Receive'?'Customer':'Supplier',
-     date,amount:total,discount,invoiceId:chosen?.reference,
+     date,amount:total,discount,invoiceId:chosen?.id,
      reason:discount>0?[discountReason.trim(),note.trim()].filter(Boolean).join(' · '):note.trim(),
      splits,operationId:'counter-'+Date.now()};
     dispatchPartyPreview({type:'record-payment',payload},accounts);
@@ -233,7 +235,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
       </div>
      </div>}
     </div>}
-    {type==='Customer Receive'&&selected&&settlement&&<div className="rounded-xl border border-border bg-card p-4">
+    {(type==='Customer Receive'||type==='Supplier Pay')&&selected&&settlement&&<div className="rounded-xl border border-border bg-card p-4">
      <label className="mb-2 block text-sm font-semibold">{text("Apply payment to","কোন বিলে টাকা জমা হবে")}</label>
      <AppSelect label={text("Invoice allocation","বিল বাছুন")} value={allocation} onChange={v=>{setAllocation(v);setReview(false);setError('');}}
       options={[{value:'',label:text('Oldest outstanding due first','আগের বাকি আগে মেটান')},...openInvoices.filter(r=>!r.opening).map(r=>({value:r.id,label:r.reference+' · '+taka(r.due)}))]}/>
@@ -345,7 +347,10 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
       <p className="mt-1 border-t border-border pt-2 font-semibold">{text('Total due reduction','মোট বাকি কমবে')}: {taka(dueReduction)}</p>
      </div>}
      {chosen&&<p><strong>{text('Invoice','বিল')}:</strong> {chosen.reference} · {text('outstanding','বাকি')} {taka(chosen.due)}</p>}
-     {!chosen&&type==='Customer Receive'&&<p><strong>{text('Allocation','টাকা জমার নিয়ম')}:</strong> {text('Oldest outstanding first','আগের বাকি আগে')}</p>}
+     {!chosen&&(type==='Customer Receive'||type==='Supplier Pay')&&<p><strong>{text('Allocation','টাকা জমার নিয়ম')}:</strong> {text('Oldest outstanding first','আগের বাকি আগে')}</p>}
+     {(type==='Customer Receive'||type==='Supplier Pay')&&previewAllocation.length>0&&<div aria-label={text('Payment allocation preview','কোন বিলে কত টাকা যাবে')} className="rounded-lg border border-border p-3">
+      {previewAllocation.map((row,index)=><p key={row.invoice+index} className="flex justify-between gap-3"><span>{row.invoice}</span><strong>{taka(row.amount)}</strong></p>)}
+     </div>}
      {type==='Bank Transfer'?<p>{transferAccountLabel(from)} → {transferAccountLabel(to)}</p>
       :<div className="space-y-1">{splits.map((s,i)=>{const account=accounts.find(a=>a.id===s.accountId);return <p key={s.id}>{i+1}. {s.method} · {account?financeAccountOptionLabel(account,accounts):''} <strong>{taka(s.amount)}</strong></p>;})}</div>}
      {settlement&&<div className="rounded-lg border border-border p-3">

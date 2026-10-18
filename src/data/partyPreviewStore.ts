@@ -6,7 +6,7 @@ import { validatePartyPayment, validatePartyRefund, validatePartySplits, validat
 import { financeTypeMeta } from '../utils/partyFinance.ts';
 import { validateOpening,activePartyOpening,isPartyOpening,makeOpeningSource } from '../utils/partyOpening.ts';
 import { customerSettlementAsOf, supplierSettlementAsOf, validateCustomerPayment, validateCustomerRefund } from '../utils/partySettlement.ts';
-import { counterOpenInvoices } from '../utils/counterAllocation.ts';
+import { assertCounterInvoiceAllocation } from '../utils/counterAllocation.ts';
 import { financeAccounts as seedFinanceAccounts, type FinanceAccount } from './financeAccounts.ts';
 import type { Party, PartyRole } from '../types/erp';
 import type {PartyImportPlan} from '../import/partyImport.ts';
@@ -314,20 +314,7 @@ export function dispatchPartyPreview(command:PartyPreviewCommand,accounts:readon
     else {
       validateCustomerPayment(current,{amount:total,discount:(payload as PartyPaymentPayload).discount,
         reason:(payload as PartyPaymentPayload).reason});
-      const invoiceId=(payload as PartyPaymentPayload).invoiceId;
-      if(invoiceId){
-        const kind=payload.relationship==='Customer'?'sale':'purchase';
-        const matching=sources.find(row=>row.partyId===party.id&&row.relationship===payload.relationship
-          &&row.kind===kind&&row.status==='Active'&&row.date<=payload.date
-          &&(row.reference===invoiceId||row.id===invoiceId));
-        if(!matching)throw new Error('Invoice or purchase reference must belong to this party and predate payment.');
-        if(payload.relationship==='Customer'){
-          const remaining=counterOpenInvoices(sources,party.id,payload.date).find(row=>row.id===matching.id);
-          const settlementAmount=total+((payload as PartyPaymentPayload).discount??0);
-          if(!remaining||Math.round(settlementAmount*100)>Math.round(remaining.due*100))
-            throw new Error('Payment exceeds this invoice outstanding due. Refresh the customer balance and try again.');
-        }
-      }
+      assertCounterInvoiceAllocation(sources,payload as PartyPaymentPayload);
     }
     const op=payload.operationId;
     if(op&&!/^[a-zA-Z0-9_-]{4,100}$/.test(op))throw new Error('Invalid operation ID.');
@@ -383,13 +370,7 @@ export function dispatchPartyPreview(command:PartyPreviewCommand,accounts:readon
         throw new Error('Changing source party or relationship is not allowed.');
       const amount=command.payload.amount;
       const discount=command.payload.discount??0;
-      if(command.payload.invoiceId){
-        const invoiceKind=original.relationship==='Customer'?'sale':'purchase';
-        if(!sources.some(row=>row.partyId===original.partyId&&row.relationship===original.relationship
-          &&row.kind===invoiceKind&&row.status==='Active'&&row.date<=command.payload.date
-          &&(row.reference===command.payload.invoiceId||row.id===command.payload.invoiceId)))
-          throw new Error('Payment cannot predate or use an unrelated invoice.');
-      }
+      assertCounterInvoiceAllocation(sources.filter(row=>row.id!==original.id),command.payload);
       updated={...original,date:command.payload.date,amountPaid:amount,discount,
         debit:original.relationship==='Customer'?0:amount+discount,
         credit:original.relationship==='Customer'?amount+discount:0,

@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch.ts';
 import type {Party} from '../types/erp.ts';
 
 export type VendorWorkTab='ledger'|'taken'|'given'|'purchases'|'payments';
@@ -19,6 +20,5 @@ export function vendorWorkLink(partyId:string,tab?:VendorWorkTab,sourceId?:strin
 }
 export function filterVendors(parties:readonly Party[],text:string):Party[]{
  const q=text.trim().toLocaleLowerCase();
- return parties.filter(p=>p.roles.includes('Vendor')&&(!q||
- [p.name,p.nameBn,p.phone,p.area].some(value=>(value??'').toLocaleLowerCase().includes(q))));
+ return parties.filter(p=>p.roles.includes('Vendor')&&fuzzyMatch(q,[p.name,p.nameBn,p.phone,p.area]));
 }

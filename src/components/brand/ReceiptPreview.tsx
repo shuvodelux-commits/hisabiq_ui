@@ -8,6 +8,7 @@ import {documentLabel,documentMethod} from '../../i18n/documentCopy';
 
 export type ReceiptLine = {name: string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;bundleSnapshot?:BundleSaleSnapshot;};
 export type ReceiptBranding = { name: string; nameBn: string; address: string; phone: string; logo: string; showLogo: boolean; footer: string };
+export type ReceiptPayment={id?:string;method:string;account?:string;amount:number};
 
 export type ReceiptPreviewProps = {
   /** Explicit prop works in both app and standalone server-side print markup. */
@@ -25,6 +26,8 @@ export type ReceiptPreviewProps = {
   paid: number;
   due: number;
   method: string;
+  payments?: ReceiptPayment[];
+  change?: number;
   dateTime?: string;
   branding?: ReceiptBranding;
 };
@@ -73,6 +76,13 @@ export function ReceiptPreview(p: ReceiptPreviewProps) {
         <div className="flex justify-between pt-1 text-[14px] font-semibold"><span>{label("Total")}</span><span className="">৳{n(p.total)}</span></div>
         <AmountInWordsDisplay amount={p.total} variant="receipt" label={uiText(language,"In words","কথায়")} />
         <div className="flex justify-between"><span>{uiText(language,'Paid','জমা')} ({documentMethod(language,p.method)})</span><span className="">{n(p.paid)}</span></div>
+        {Boolean(p.payments?.length)&&<div aria-label={uiText(language,'Payment sources','পেমেন্টের মাধ্যম')} className="space-y-1 border-t border-dashed border-ink-200 pt-1">
+          {p.payments?.map((payment,index)=><div key={payment.id??index} className="flex items-start justify-between gap-2 text-[10px]">
+            <span className="min-w-0 flex-1 break-words">{documentMethod(language,payment.method)}{payment.account?` · ${payment.account}`:''}</span>
+            <span className="shrink-0">{n(payment.amount)}</span>
+          </div>)}
+        </div>}
+        {Boolean(p.change&&p.change>0)&&<div className="flex justify-between"><span>{uiText(language,'Change returned','ফেরত টাকা')}</span><span>{n(p.change??0)}</span></div>}
         {p.due > 0 && <div className="flex justify-between font-medium"><span>{label("Due")}</span><span className="">{n(p.due)}</span></div>}
       </div>
       <div className="my-3 border-t border-dashed border-ink-300" />
