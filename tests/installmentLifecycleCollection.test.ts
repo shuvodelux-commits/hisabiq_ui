@@ -38,6 +38,8 @@ test('collect after authorized settlement using current reduced agreement only',
   {scheduleItemId:'inst-2',amountPaisa:600000}]);
  const recorded=payment(a.id,'payment-after-settlement',1100000,rows);
  assert.equal(recorded.amountPaisa,1100000);
+ assert.ok((recorded.sourceSequence??0)>(events[0].sourceSequence??0),
+  'later same-day payment follows the adjusted source in deterministic replay');
  const projection=projectInstallmentLifecycle(a,listInstallmentReceipts(a.id),events,'2026-10-18');
  assert.equal(projection.totalOutstandingPaisa,1400000);
  assert.equal(projection.rows[0].outstandingPaisa,0);
