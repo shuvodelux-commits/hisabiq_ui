@@ -157,8 +157,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         options={[{value:'payable',label:'Taken · You owe'},{value:'receivable',label:'Given · Vendor owes'}]}/></div>
       <AppDateRangePicker value={range} onChange={setRange} label="Vendor ledger date range"/>
       {Boolean(range.from)!==Boolean(range.to)&&<span className="text-xs text-warning">Choose both dates to filter</span>}
-      <Input className="w-full sm:ml-auto sm:w-56" value={query} onChange={e=>setQuery(e.target.value)}
-       aria-label="Search Vendor ledger" placeholder="Search reference or note"/>
+      <div className="min-w-[150px] flex-1">
+       <Input className="w-full" value={query} onChange={e=>setQuery(e.target.value)}
+        aria-label="Search Vendor ledger" placeholder="Search reference or note"/>
+      </div>
      </div>
      {(statement.rows.length>0||statement.openingPaisa!==0)&&<div className="mb-2 flex flex-wrap justify-between gap-2 bg-ink-50 px-3 py-2 text-xs text-ink-600">
       <span>Opening: {money(statement.openingPaisa)}</span>
