@@ -19,6 +19,7 @@ async function main(){
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
   await editor.getByRole('textbox',{name:/Quantity for/}).first().waitFor();
+  assert.ok(await editor.getByTestId('vendor-cart-lines').count(),'Vendor goods use compact shared-cart-style rows');
   await editor.getByRole('button',{name:/Save Given Products/}).click();
   await editor.getByRole('alert').getByText(/price/i).waitFor();
   assert.deepEqual(errors,[]);
