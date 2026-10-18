@@ -106,11 +106,11 @@ export function PurchasePaymentPanel(props: Props) {
           className="!mt-1.5 !rounded-md !border-teal-200/60 !bg-card/70 !px-2.5 !py-1.5 dark:!border-teal-800/60 dark:!bg-teal-950/10 [&>p:last-child]:!mt-0" />
       </div>
 
-      <div className="space-y-3 p-4">
+      <div className="space-y-2 px-3 pb-3 pt-3 sm:px-4">
         <div className="flex items-center justify-between gap-2">
-          <div>
-            <p className="text-sm font-medium text-ink">{word("payments")} {showHelper&&<span className="font-bn text-xs font-normal text-ink-500">· পেমেন্ট</span>}</p>
-            <p className="text-[10.5px] text-ink-400">{word("paymentHint")}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-ink">{word("payments")} {showHelper&&<span className="font-bn text-xs font-normal text-ink-500">· পেমেন্ট</span>}</p>
+            <p className="text-[11px] text-ink-500">{word("paymentHint")}</p>
           </div>
           <Button type="button" size="sm" variant="outline"
             onClick={() => props.onPayments((rows) => [...rows, makePurchasePaymentRow(rows.length)])}>
@@ -118,35 +118,38 @@ export function PurchasePaymentPanel(props: Props) {
           </Button>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {payments.map((payment, index) => (
-            <div key={payment.id} className="rounded-lg border border-border bg-ink-50/40 p-2">
-              <div className="grid grid-cols-[92px_minmax(0,1fr)_28px] gap-1.5">
-                <FormSelect value={payment.method} options={methods.map(method=>({value:method,label:text(method,method==="Cash"?"ক্যাশ":method==="Bank"?"ব্যাংক":method==="Card"?"কার্ড":method)}))}
-                  onChange={(event) => changeMethod(payment.id, event.target.value as PurchasePaymentMethod)} />
-                <FormSelect value={payment.account} options={purchasePaymentAccounts[payment.method]}
-                  onChange={(event) => updatePayment(payment.id, { account: event.target.value })} />
-                <button type="button" disabled={payments.length === 1}
-                  onClick={() => props.onPayments((rows) => rows.filter((row) => row.id !== payment.id))}
-                  className="flex size-9 items-center justify-center rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
-                  aria-label={text('Remove payment ' + (index + 1),'পেমেন্ট সরান ' + (index + 1))}>
-                  <Trash2 className="size-3.5" />
-                </button>
-              </div>
-              <div className="mt-1.5 flex items-center gap-1.5">
-                <div className="relative min-w-0 flex-1">
-                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
+            <div key={payment.id} data-testid="purchase-payment-row"
+              className="min-w-0 rounded-md border border-border bg-ink-50/30 p-2">
+              <div className="grid min-w-0 grid-cols-[minmax(78px,.7fr)_minmax(0,1.3fr)_minmax(72px,auto)] items-center gap-1.5 sm:grid-cols-[minmax(90px,110px)_minmax(0,1fr)_minmax(112px,160px)_auto_32px]">
+                <div className="min-w-0">
+                  <FormSelect value={payment.method} options={methods.map(method=>({value:method,label:text(method,method==="Cash"?"ক্যাশ":method==="Bank"?"ব্যাংক":method==="Card"?"কার্ড":method)}))}
+                    onChange={(event) => changeMethod(payment.id, event.target.value as PurchasePaymentMethod)} />
+                </div>
+                <div className="min-w-0">
+                  <FormSelect value={payment.account} options={purchasePaymentAccounts[payment.method]}
+                    onChange={(event) => updatePayment(payment.id, { account: event.target.value })} />
+                </div>
+                <div className="relative col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-auto sm:row-auto">
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-sm text-ink-400">৳</span>
                   <Input ref={index === 0 ? props.paidRef : undefined}
                     aria-label={text('Paid amount ' + (index + 1),'পরিশোধের টাকা ' + (index + 1))}
                     value={payment.amount}
-                    onChange={(event) => updatePayment(payment.id, { amount: event.target.value.replace(/[^\d.]/g, '') })}
+                    onChange={(event) => updatePayment(payment.id, { amount: event.target.value.replace(/[^\\d.]/g, '') })}
                     onKeyDown={(event) => event.key === 'Enter' && props.onComplete()}
-                    inputMode="decimal" placeholder="0" className="h-9 pl-7 text-right font-medium" />
+                    inputMode="decimal" placeholder="0" className="h-9 w-full pl-7 text-right font-medium" />
                 </div>
                 <button type="button" onClick={() => updatePayment(payment.id,
                   { amount: String(paymentRemainder(totals.total, payments, payment.id)) })}
-                  className="h-9 rounded-md border border-border bg-card px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50">
+                  className="col-start-3 row-start-2 h-9 rounded-md border border-border bg-card px-2 text-[11px] font-medium text-teal-700 hover:bg-teal-50 sm:col-auto sm:row-auto">
                   {word('remaining')}
+                </button>
+                <button type="button" disabled={payments.length === 1}
+                  onClick={() => props.onPayments((rows) => rows.filter((row) => row.id !== payment.id))}
+                  className="col-start-3 row-start-1 flex size-9 items-center justify-center justify-self-end rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30 sm:col-auto sm:row-auto"
+                  aria-label={text('Remove payment ' + (index + 1),'পেমেন্ট সরান ' + (index + 1))}>
+                  <Trash2 className="size-3.5" />
                 </button>
               </div>
             </div>
@@ -155,18 +158,18 @@ export function PurchasePaymentPanel(props: Props) {
 
         <div className="flex flex-wrap gap-1.5">
           <button type="button" onClick={() => setSinglePayment(totals.total)}
-            className="h-8 rounded-md border border-teal-200 bg-teal-50 px-2.5 text-xs font-medium text-teal-800 hover:bg-teal-100">
+            className="h-7 rounded-md border border-teal-200 bg-teal-50 px-2.5 text-xs font-medium text-teal-800 hover:bg-teal-100">
             {word('exact')}
           </button>
           {quick.map((amount) => (
             <button key={amount} type="button" onClick={() => setSinglePayment(amount, 'Cash')}
-              className="h-8 rounded-md border border-border px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+              className="h-7 rounded-md border border-border px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
               ৳{formatNumber(amount)}
             </button>
           ))}
         </div>
 
-        <div className="space-y-1.5 rounded-lg bg-ink-50 p-3">
+        <div className="grid gap-x-6 gap-y-1.5 rounded-md bg-ink-50/70 px-3 py-2 text-sm sm:grid-cols-2">
           <Row label={text("Paid","পরিশোধ")} value={<span className="font-medium">{taka(totals.paidNum)}</span>} />
           <Row label={<span>{text("Supplier due","সরবরাহকারীকে দেনা")} {showHelper&&<span className="font-bn text-xs text-ink-500">বাকি</span>}</span>}
             value={<span className={totals.due > 0 ? 'font-semibold text-danger' : ''}>{taka(totals.due)}</span>} />
@@ -180,7 +183,7 @@ export function PurchasePaymentPanel(props: Props) {
           </p>}
         <Button type="button" onClick={props.onComplete}
           disabled={totals.total <= 0 || totals.excess > 0}
-          className="h-12 w-full text-[15px] font-semibold">
+          className="h-10 w-full text-sm font-semibold">
           {props.actionLabel ? text(props.actionLabel,props.actionLabel==="Review payment"?"পেমেন্ট যাচাই করুন":props.actionLabel==="Complete purchase"?"ক্রয় সম্পন্ন করুন":props.actionLabel) : text("Complete purchase","ক্রয় সম্পন্ন করুন")} · {taka(totals.total)}
           <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
