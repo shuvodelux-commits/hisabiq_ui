@@ -10,7 +10,7 @@ async function main(){
  try{
   await page.goto('http://127.0.0.1:4247/#/app/vendors?partyId=v1&tab=given');
   const vendor=page.getByRole('region',{name:'Selected Vendor work'});
-  await vendor.getByRole('button',{name:'Give Products'}).click();
+  await vendor.getByRole('button',{name:/Give Products/}).click();
   await page.getByRole('form',{name:'Give products editor'}).waitFor();
   assert.equal(await page.getByRole('dialog',{name:'Give products to Vendor'}).count(),0);
   await vendor.getByRole('tab',{name:/Purchases/}).click();
