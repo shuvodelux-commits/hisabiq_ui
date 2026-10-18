@@ -102,42 +102,48 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
    <div className="grid shrink-0 grid-cols-2 gap-2" aria-label="Vendor balances, kept separate">
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
-     <p className="text-[11px] text-ink-500">You owe · দেনা</p>
+     <p className="text-[11px] text-ink-500">To pay · আমরা দেব</p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(payable>0?'text-danger':'text-ink')}>{money(payable)}</p>
     </div>
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
-     <p className="text-[11px] text-ink-500">Vendor owes · পাওনা</p>
+     <p className="text-[11px] text-ink-500">To receive · আমরা পাব</p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(receivable>0?'text-teal-700 dark:text-teal-300':'text-ink')}>{money(receivable)}</p>
     </div>
    </div>
   </div>
-  <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2" role="group" aria-label="Vendor quick actions">
-   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>Give Products</Button>
-   {unpricedMemos>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>}
+  <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-3" role="group" aria-label="Vendor quick actions">
+   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products <span className="font-bn font-normal">· পণ্য নিন</span></Button>
+   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>Give Products <span className="font-bn">· পণ্য দিন</span></Button>
    {payable>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab(payableSource?'taken':'ledger',payableSource?.id)}>Pay / return</Button>}
+    onClick={()=>selectTab('payments',payableSource?.id)}>Pay Vendor <span className="font-bn">· টাকা দিন</span></Button>}
    {receivable>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>Receive settlement</Button>}
-   <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>New purchase</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print Ledger</Button>
-   <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>Edit Vendor · তথ্য বদলান</Button>
+    onClick={()=>selectTab('payments',receivableSource?.id)}>Receive Money <span className="font-bn">· টাকা নিন</span></Button>}
+   <details className="w-full text-sm text-ink-600" data-testid="vendor-more-actions">
+    <summary className="inline-flex min-h-10 cursor-pointer items-center rounded-md px-2 font-medium hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-teal-500">More work · আরও কাজ</summary>
+    <div className="flex flex-wrap gap-2 pt-2">
+     <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>New purchase · নতুন ক্রয়</Button>
+     <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print Ledger</Button>
+     <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>Edit Vendor · তথ্য বদলান</Button>
+    </div>
+   </details>
   </div>
   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
    {unpricedMemos>0
-    ?<p className="text-warning"><strong>Price not set ({unpricedMemos})</strong> · Unpriced goods are not counted as a money due.</p>
-    :<p className="text-ink-500">{payable>0?'Pay or return taken products to settle.':'No unpriced goods.'}</p>}
+    ?<div className="flex flex-wrap items-center gap-2">
+      <p className="text-warning"><strong>Price not set ({unpricedMemos}) · দাম বাকি</strong> — আগে দাম ঠিক করুন, তারপর টাকা দিন।</p>
+      <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম লিখুন</Button>
+     </div>
+    :<p className="text-ink-500">{payable>0?'You can pay money or return goods. · টাকা দিন বা পণ্য ফেরত দিন।':'All goods have a price. · সব পণ্যের দাম লেখা আছে।'}</p>}
    <button type="button" onClick={()=>selectTab('purchases')}
     className="text-left text-ink-600 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
     Purchase due · ক্রয়ের বাকি <strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
    </button>
   </div>
   <div className="overflow-x-auto border-b border-border scrollbar-thin">
-   <div className="grid grid-cols-5 gap-0 px-1 sm:flex sm:min-w-max sm:gap-2 sm:px-3" role="tablist" aria-label="Vendor work tabs">
+   <div className="grid grid-cols-3 gap-1 px-2 py-1 sm:grid-cols-5 sm:gap-0 sm:px-1 lg:flex lg:min-w-max lg:gap-2 lg:px-3" role="tablist" aria-label="Vendor work tabs">
     {vendorWorkTabs.map((key,index)=><button type="button" key={key}
      id={base+'-'+key} role="tab" aria-selected={tab===key} aria-controls={base+'-panel'} tabIndex={tab===key?0:-1}
-     className={'erp-tab min-w-0 px-1 py-3 text-xs sm:px-3 sm:text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active border-b-2 border-teal-600 text-ink':'text-ink-500')}
+     className={'erp-tab min-h-11 min-w-0 px-1 py-2 text-xs sm:px-3 sm:py-3 sm:text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active border-b-2 border-teal-600 text-ink':'text-ink-500')}
      onClick={()=>selectTab(key)} onKeyDown={e=>{
       if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
       e.preventDefault();
@@ -154,7 +160,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      <div className="mb-3 flex flex-wrap items-center gap-2">
       <div className="min-w-[195px]"><AppSelect label="Vendor balance side" value={side}
         onChange={value=>setSide(value as VendorSide)}
-        options={[{value:'payable',label:'Taken · You owe'},{value:'receivable',label:'Given · Vendor owes'}]}/></div>
+        options={[{value:'payable',label:'We pay · আমরা দেব'},{value:'receivable',label:'We receive · আমরা পাব'}]}/></div>
       <AppDateRangePicker value={range} onChange={setRange} label="Vendor ledger date range"/>
       {Boolean(range.from)!==Boolean(range.to)&&<span className="text-xs text-warning">Choose both dates to filter</span>}
       <div className="min-w-[150px] flex-1">
