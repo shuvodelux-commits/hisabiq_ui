@@ -43,11 +43,11 @@ test('duplicate reversal cannot create another event, identical operation is ide
  assert.equal(listInstallmentLifecycleEvents(a.id).length,1);
 });
 test('foreign receipt, actor/reason and stale revision rejected with zero event mutation',()=>{
- const {a}=fixture();
+ const {a,rec}=fixture();
  assert.throws(()=>recordInstallmentReceiptReversalPreview(input(a.id,'receipt-elsewhere')),/receipt|source/i);
- assert.throws(()=>recordInstallmentReceiptReversalPreview({...input(a.id,'receipt-1'),actorId:''}),/actor/i);
- assert.throws(()=>recordInstallmentReceiptReversalPreview({...input(a.id,'receipt-1'),reason:' '}),/reason/i);
- assert.throws(()=>recordInstallmentReceiptReversalPreview({...input(a.id,'receipt-1'),baseRevision:3}),/stale|revision/i);
+ assert.throws(()=>recordInstallmentReceiptReversalPreview({...input(a.id,rec.id),actorId:''}),/actor/i);
+ assert.throws(()=>recordInstallmentReceiptReversalPreview({...input(a.id,rec.id),reason:' '}),/reason/i);
+ assert.throws(()=>recordInstallmentReceiptReversalPreview({...input(a.id,rec.id),baseRevision:3}),/stale|revision/i);
  assert.equal(listInstallmentLifecycleEvents(a.id).length,0);
 });
 test('reversing receipt after subsequent settlement requires review, not a silent edit',()=>{
