@@ -42,7 +42,7 @@ async function main(){
    for(const [trigger,copy] of [
     ['Explain Vendor payable',/Goods taken from this vendor/],
     ['Explain Vendor receivable',/Money the vendor still owes/],
-    ['Explain purchase due',/Unpaid regular purchase invoices/]
+    ...(width>=640?[['Explain purchase due',/Unpaid regular purchase invoices/]]:[])
    ]){
     await workspace.getByRole('button',{name:trigger}).focus();
     const tip=workspace.getByRole('tooltip').filter({hasText:copy});
@@ -51,12 +51,41 @@ async function main(){
     assert.ok(bounds.x>=-2&&bounds.x+bounds.width<=width+2,
      trigger+' tooltip must stay on-screen at '+width+': '+JSON.stringify(bounds));
    }
-   assert.ok(left&&right,'Both directory and selected detail must be rendered');
-   if(width>=1024){
-    assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
-    if(width>=1280)assert.ok(Math.abs(left.width-380)<3,'Desktop directory must match Parties width');
+   if(width<640){
+    assert.equal(left,null,'Phone hides the tall directory');
+    assert.ok(right,'Phone shows the full vendor workspace');
+    assert.equal(await page.getByRole('button',{name:'Choose Vendor'}).count(),1);
+    assert.ok(await workspace.getByTestId('vendor-mobile-ledger').isVisible(),'Phone ledger uses mobile rows');
+    assert.equal(await workspace.locator('table').first().isVisible(),false,'Phone hides the wide ledger table');
+    assert.ok((await workspace.getByRole('button',{name:'More Vendor actions'}).count())===1,'Secondary desktop-named actions are still accessible');
+    await workspace.getByRole('button',{name:'More Vendor actions'}).click();
+    const more=page.getByRole('dialog',{name:'More Vendor actions'});
+    await more.waitFor();
+    for(const label of ['Give Products','New purchase','Print Ledger','Edit Vendor · তথ্য বদলান']){
+     assert.equal(await more.getByRole('button',{name:label,exact:true}).count(),1,
+      'Mobile preserves desktop button label: '+label);
+    }
+    await page.keyboard.press('Escape');
+    await page.getByRole('button',{name:'Choose Vendor'}).click();
+    const picker=page.getByRole('dialog',{name:'Choose Vendor'});
+    await picker.waitFor();
+    await picker.getByRole('textbox',{name:'Search Vendors'}).fill('Padma');
+    await picker.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Padma Electric/}).click();
+    await picker.waitFor({state:'hidden'});
+    assert.ok(await workspace.getByText('৳240').count()>0,'Switching vendor updates balances in place');
+    await page.getByRole('button',{name:'Choose Vendor'}).click();
+    const secondPicker=page.getByRole('dialog',{name:'Choose Vendor'});
+    await secondPicker.getByRole('textbox',{name:'Search Vendors'}).fill('Shapla');
+    await secondPicker.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Shapla Transport/}).click();
+    await secondPicker.waitFor({state:'hidden'});
    }else{
-    assert.ok(right.y>=left.y+left.height-2,'Mobile and tablet Vendor detail must stack after directory');
+    assert.ok(left&&right,'Tablet and desktop retain the directory and selected detail');
+    if(width>=1024){
+     assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
+     if(width>=1280)assert.ok(Math.abs(left.width-380)<3,'Desktop directory must match Parties width');
+    }else{
+     assert.ok(right.y>=left.y+left.height-2,'Tablet Vendor detail must stack after directory');
+    }
    }
   }
 
