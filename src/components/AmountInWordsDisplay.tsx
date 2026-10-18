@@ -18,7 +18,7 @@ export function AmountInWordsDisplay({
   const styles = {
     default: {
       container: 'rounded-lg border border-teal-200/80 bg-teal-50/70 px-3 py-2.5 dark:border-teal-800/80 dark:bg-teal-950/30',
-      label: 'text-[12px] font-medium text-teal-800 dark:text-teal-800',
+      label: 'text-[12px] font-medium text-teal-800 dark:text-teal-200',
       value: 'text-[15px] font-semibold leading-[1.65] text-ink sm:text-base',
     },
     inverse: {
