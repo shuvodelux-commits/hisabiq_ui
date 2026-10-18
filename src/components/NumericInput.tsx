@@ -42,7 +42,7 @@ export const NumericInput=forwardRef<HTMLInputElement,NumericProps>(function Num
  return <span style={{...style,'--numeric-inset':stepperInset+'px'} as CSSProperties} data-numeric-input data-stepper-size={stepperCompact?'compact':'standard'} data-editable={editable?'true':'false'} className={'relative inline-flex min-w-0 items-stretch rounded-md border border-input bg-card text-sm text-ink '+(layout+(className?'':' px-3 py-1')).replace(/\bfocus:/g,'focus-within:')}>
   <DesignInput {...props} value={clearedZero&&props.value!==undefined&&isZeroNumberText(String(props.value))?'':props.value} type={type} min={min} max={max} disabled={disabled} readOnly={readOnly}
    ref={node=>{input.current=node;if(typeof forwardedRef==='function')forwardedRef(node);else if(forwardedRef)forwardedRef.current=node;}}
-   className={className+" numeric-input-control !h-full !min-h-0 !w-full !min-w-0 !flex-1 !rounded-none !border-0 !bg-transparent !py-0 !text-inherit !shadow-none !outline-none !ring-0 !ring-offset-0"}
+   className={className.replace(/(?:^|\s)(?:mt|mb|my)-\S+/g, "")+" numeric-input-control !h-full !min-h-0 !w-full !min-w-0 !flex-1 !rounded-none !border-0 !bg-transparent !py-0 !text-inherit !shadow-none !outline-none !ring-0 !ring-offset-0"}
    onFocus={event=>{props.onFocus?.(event);if(editable&&!event.defaultPrevented&&isZeroNumberText(event.currentTarget.value)){setClearedZero(true);writeValue('');}}}
    onChange={event=>{setClearedZero(event.currentTarget.value==='');props.onChange?.(event);}}
    onBlur={event=>{setClearedZero(false);props.onBlur?.(event);}}
