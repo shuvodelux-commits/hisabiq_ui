@@ -3,7 +3,7 @@ import type {InstallmentPaymentPreviewEvent} from './collections.ts';
 import {validateScheduleRows,type InstallmentScheduleRow} from './schedule.ts';
 
 type AuditBase={id:string;agreementId:string;operationId:string;actorId:string;reason:string;
- effectiveDate:string;revision:number;sequence:number};
+ effectiveDate:string;revision:number;sequence:number;requestSignature?:string};
 export type ScheduleRevisionPreview=AuditBase&{type:'schedule-revision';
  beforeRows:InstallmentScheduleRow[];afterRows:InstallmentScheduleRow[];
  requestSignature?:string};
