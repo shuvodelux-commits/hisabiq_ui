@@ -82,13 +82,15 @@ export function getInstallmentPreview(id:string):PreviewInstallmentAgreement|und
 }
 export type InstallmentReceiptPreviewInput=Omit<InstallmentCollectionInput,'agreement'> & {agreementId:string};
 let receiptSequence=0;
+/** Monotonic source order for same-date agreement changes and collections. */
+let previewSourceSequence=0;
 const receipts:InstallmentPaymentPreviewEvent[]=[];
 /** Immutable idempotent browser-preview only; no Party/Finance ledger mutation. */
 export function recordInstallmentReceiptPreview(input:InstallmentReceiptPreviewInput):InstallmentPaymentPreviewEvent{
  if(!input.operationId?.trim())throw new Error('Receipt operation ID is required.');
  const previously=receipts.find(record=>record.operationId===input.operationId);
  if(previously){
-   const {id:_id,createdAt:_created,...payload}=previously;
+   const {id:_id,createdAt:_created,sourceSequence:_seq,...payload}=previously;
    if(JSON.stringify(payload)!==JSON.stringify(input))throw new Error('Operation already used for different installment receipt details.');
    return structuredClone(previously);
  }
@@ -99,7 +101,8 @@ export function recordInstallmentReceiptPreview(input:InstallmentReceiptPreviewI
    listInstallmentLifecycleEvents(agreement.id));
  if(errors.length)throw new Error(errors[0]);
  const event:InstallmentPaymentPreviewEvent={
-   ...structuredClone(input),id:'installment-receipt-preview-'+(++receiptSequence),createdAt:new Date().toISOString()
+   ...structuredClone(input),id:'installment-receipt-preview-'+(++receiptSequence),
+   sourceSequence:++previewSourceSequence,createdAt:new Date().toISOString()
  };
  receipts.push(event);
  return structuredClone(event);
@@ -108,7 +111,7 @@ export function listInstallmentReceipts(agreementId:string):InstallmentPaymentPr
  return structuredClone(receipts.filter(row=>row.agreementId===agreementId));
 }
 export function resetInstallmentPreviewsForTest():void{
- sequence=0;receiptSequence=0;records.splice(0);receipts.splice(0);lifecycleEvents.splice(0);
+ sequence=0;receiptSequence=0;previewSourceSequence=0;records.splice(0);receipts.splice(0);lifecycleEvents.splice(0);
 }
 
 /** Source-event append is isolated from Party/Finance/stock; still a volatile UI preview. */
@@ -129,7 +132,7 @@ export function appendInstallmentLifecycleEvent(event:InstallmentLifecycleEvent)
  const previous=lifecycleEvents.filter(e=>e.agreementId===event.agreementId);
  if(event.revision!==previous.length+1)
   throw new Error('Stale lifecycle source revision.');
- const copy=structuredClone(event);
+ const copy={...structuredClone(event),sourceSequence:++previewSourceSequence};
  lifecycleEvents.push(copy);
  return structuredClone(copy);
 }
