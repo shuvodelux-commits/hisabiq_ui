@@ -42,6 +42,8 @@ import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
+import { posMoney } from '../utils/posCheckoutValidation';
+import { salesPaymentTotal } from '../utils/salesPaymentAmounts';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
 import {planBundleReturn,type BundleReturnSelection} from '../bundles/bundleReturn';
 import { downloadReport, printReport } from '../utils/reportOutput';
@@ -385,7 +387,7 @@ function PaymentDialog({
   const {text,showHelper}=useUiCopy();
   const [rows, setRows] = useState<PaymentDraft[]>([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
 
-  const total = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+  const total = salesPaymentTotal(rows);
 
   const close = () => {
     setRows([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
@@ -444,6 +446,7 @@ function PaymentDialog({
                 </div>
               ))}
 
+              {!Number.isFinite(total) && <p role="alert" className="text-xs text-danger">{text('Enter valid amounts (up to two decimal places).','সঠিক টাকা লিখুন (দশমিকের পরে সর্বোচ্চ দুই ঘর)।')}</p>}
               <button
                 type="button"
                 onClick={() => setRows((items) => [...items, { id: `p${Date.now()}`, method: 'Cash', amount: '', account: '' }])}
@@ -454,14 +457,14 @@ function PaymentDialog({
 
             <div className="grid grid-cols-3 gap-2 rounded-xl bg-ink-50 p-3 text-center text-[12px]">
               <div><p className="text-ink-400">{text('Invoice due','বিলের বাকি')}</p><p className="mt-0.5 font-semibold text-ink">{taka(invoice.due)}</p></div>
-              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(total)}</p></div>
-              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{taka(Math.max(invoice.due - total, 0))}</p></div>
+              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{Number.isFinite(total) ? taka(total) : '—'}</p></div>
+              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{Number.isFinite(total) ? taka(Math.max(invoice.due - total, 0)) : '—'}</p></div>
             </div>
 
             <DialogFooter>
               <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
-                disabled={total <= 0 || total > invoice.due}
+                disabled={!Number.isFinite(total) || total <= 0 || total > invoice.due}
                 onClick={() => {
                   onSave(invoice, rows);
                   close();
@@ -502,7 +505,7 @@ function CustomerPaymentDialog({
   const [method, setMethod] = useState<PaymentMethod>('Cash');
   const [account, setAccount] = useState('');
   const [allocation, setAllocation] = useState<CustomerPaymentDraft['allocation']>('Settle oldest due');
-  const amountNumber = parseFloat(amount) || 0;
+  const amountNumber = posMoney(amount);
 
   const close = () => {
     setAmount('');
@@ -547,7 +550,7 @@ function CustomerPaymentDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
-          <Button disabled={!customer || amountNumber <= 0} onClick={() => {
+          <Button disabled={!customer || !Number.isFinite(amountNumber) || amountNumber <= 0} onClick={() => {
             onSave({ customer, amount, method, account, allocation });
             close();
           }}>{text('Save payment','পেমেন্ট লিখুন')}</Button>
@@ -579,7 +582,7 @@ function CreditActionDialog({
   const [account, setAccount] = useState('');
   const selectedInvoice = dueInvoices.find((invoice) => invoice.invoice === invoiceId) ?? dueInvoices[0] ?? null;
   const maxAmount = credit ? Math.min(credit.balance, action?.mode === 'apply' ? selectedInvoice?.due ?? 0 : credit.balance) : 0;
-  const amountNumber = parseFloat(amount) || 0;
+  const amountNumber = posMoney(amount);
 
   const close = () => {
     setInvoiceId('');
@@ -640,7 +643,7 @@ function CreditActionDialog({
             <DialogFooter>
               <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
-                disabled={amountNumber <= 0 || amountNumber > maxAmount || (action.mode === 'apply' && !selectedInvoice)}
+                disabled={!Number.isFinite(amountNumber) || amountNumber <= 0 || amountNumber > maxAmount || (action.mode === 'apply' && !selectedInvoice)}
                 onClick={() => {
                   if (action.mode === 'apply' && selectedInvoice) onApply(credit, selectedInvoice.id, amountNumber);
                   if (action.mode === 'refund') onRefund(credit, amountNumber, method, account);
@@ -785,13 +788,17 @@ export function Sales() {
   };
 
   const savePayment = (invoice: SalesInvoice, rows: PaymentDraft[]) => {
-    const amount = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+    const amount = salesPaymentTotal(rows);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > invoice.due) {
+      toast.error(text('Enter valid payment amounts within the invoice due.','বিলের বাকি অনুযায়ী সঠিক টাকার পরিমাণ লিখুন।'));
+      return;
+    }
     const payments: SalePayment[] = rows
-      .filter((row) => (parseFloat(row.amount) || 0) > 0)
+      .filter((row) => posMoney(row.amount) > 0)
       .map((row, index) => ({
         id: `${invoice.id}-new-${Date.now()}-${index}`,
         method: row.method,
-        amount: parseFloat(row.amount),
+        amount: posMoney(row.amount),
         ...(row.account.trim() ? { account: row.account.trim() } : {})
       }));
     setInvoices((items) => items.map((item) => {
@@ -811,8 +818,11 @@ export function Sales() {
   };
 
   const receiveCustomerPayment = (draft: CustomerPaymentDraft) => {
-    const amount = parseFloat(draft.amount) || 0;
-    if (amount <= 0) return;
+    const amount = posMoney(draft.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error(text('Enter a valid payment amount.','সঠিক টাকার পরিমাণ লিখুন।'));
+      return;
+    }
 
     const allocations = new Map<string, number>();
     let remainder = amount;
