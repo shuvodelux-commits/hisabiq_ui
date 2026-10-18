@@ -29,10 +29,12 @@ export function recordInstallmentReceiptReversalPreview(input:ReceiptReversalInp
  const receipts=listInstallmentReceipts(agreement.id);
  const source=receipts.find(r=>r.id===input.sourceReceiptId);
  if(!source)throw new Error('Receipt source does not belong to this agreement.');
- const latest=projectInstallmentLifecycle(agreement,receipts,prior,businessToday());
- if(input.baseRevision!==latest.revision)throw new Error('Stale receipt reversal revision.');
+ // Check for an already reversed source before revision validation so a second
+ // operation cannot be mistaken for an ordinary stale write.
  if(prior.some(e=>e.type==='receipt-reversal'&&e.sourceReceiptId===source.id))
   throw new Error('Receipt already reversed.');
+ const latest=projectInstallmentLifecycle(agreement,receipts,prior,businessToday());
+ if(input.baseRevision!==latest.revision)throw new Error('Stale receipt reversal revision.');
  // A later schedule or reduction requires explicit revaluation and cannot be undone blindly.
  if(prior.some(e=>e.type!=='receipt-reversal'&&e.effectiveDate>=source.date))
   throw new Error('Later schedule or adjustment conflicts with this reversal; review source allocations first.');
