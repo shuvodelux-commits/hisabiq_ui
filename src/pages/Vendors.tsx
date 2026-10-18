@@ -12,6 +12,7 @@ import {isPartyOpening} from '../utils/partyOpening';
 import type {Party} from '../types/erp';
 import type {PartyDraft,PartyOpeningPayload} from '../types/partyLedger';
 import {VendorDirectory,type VendorDirectoryFilter} from '../components/vendor/VendorDirectory';
+import {VendorDiscardDialog} from '../components/vendor/VendorDiscardDialog';
 import {VendorTabs} from '../components/vendor/VendorTabs';
 import {availableParties,availablePurchases} from '../data/erpDemoStore';
 import {getPartyPreviewSnapshot,subscribePartyPreview,dispatchPartyPreview} from '../data/partyPreviewStore';
@@ -35,9 +36,9 @@ export function Vendors(){
  const [filter,setFilter]=useState<VendorDirectoryFilter>('all');
  const results=useMemo(()=>filterVendors(vendors,query),[vendors,query]);
  const [dirty,setDirty]=useState(false);
+ const [pendingChange,setPendingChange]=useState<{id:string|null;tab?:VendorWorkTab;sourceId?:string}|null>(null);
  const [editing,setEditing]=useState<Party|null|undefined>(undefined);
- const change=(nextId:string|null,tab?:VendorWorkTab,sourceId?:string)=>{
-  if(party?.id!==nextId&&dirty&&typeof window!=='undefined'&&!window.confirm(text('You have unsaved products. Leave without saving?','কিছু পণ্যের তথ্য সংরক্ষণ করা হয়নি। না রেখে বের হবেন?')))return false;
+ const applyChange=(nextId:string|null,tab?:VendorWorkTab,sourceId?:string)=>{
   if(party?.id!==nextId)setDirty(false);
   if(!nextId){setParams({});return true;}
   const q=new URLSearchParams({partyId:nextId});
@@ -45,6 +46,10 @@ export function Vendors(){
   if(sourceId)q.set('sourceId',sourceId);
   setParams(q);
   return true;
+ };
+ const change=(nextId:string|null,tab?:VendorWorkTab,sourceId?:string)=>{
+  if(party?.id!==nextId&&dirty){setPendingChange({id:nextId,tab,sourceId});return false;}
+  return applyChange(nextId,tab,sourceId);
  };
  const saveVendor=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
   if(editing){
@@ -128,6 +133,12 @@ export function Vendors(){
      filter={filter} onFilter={setFilter} onSelect={selectVendor}/>
    </DialogContent>
   </Dialog>
+  <VendorDiscardDialog open={pendingChange!==null} onCancel={()=>setPendingChange(null)}
+   onDiscard={()=>{
+    if(!pendingChange)return;
+    applyChange(pendingChange.id,pendingChange.tab,pendingChange.sourceId);
+    setPendingChange(null);setPickerOpen(false);
+   }}/>
   <PartyEditorDialog open={editing!==undefined} party={editing} defaultRole="Vendor"
    existingOpenings={editing?.id?partyState.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
    onClose={()=>setEditing(undefined)} onSave={saveVendor}/>
