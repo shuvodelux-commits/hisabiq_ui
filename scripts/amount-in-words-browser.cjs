@@ -46,7 +46,10 @@ async function main(){
     await page.goto('http://127.0.0.1:4498/#/app/pos');
     await check(page.locator('[data-amount-words-variant="inverse"]').first(),'inverse');
     await page.goto('http://127.0.0.1:4498/#/app/purchases/new');
-    await check(page.locator('[data-amount-words-variant="inverse"]').first(),'inverse');
+    const purchaseWords=page.getByTestId('purchase-payable-summary').locator('[data-amount-words-variant="default"]');
+    await check(purchaseWords,'default');
+    assert.equal(await page.getByTestId('purchase-payment-panel').locator('.bg-inverse').count(),0,
+      'Purchase payable panel must use the new mint styling instead of the dark inverse card');
     if(width===390 && theme==='light'){
      // A receipt is rendered with standalone SSR (no settings provider).
      const receipt=await page.evaluate(async()=>{
