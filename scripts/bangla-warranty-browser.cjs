@@ -20,7 +20,7 @@ async function main(){
     await page.getByRole('heading',{name:bn?'ওয়ারেন্টি':'Warranty',exact:true}).waitFor();
     await page.getByRole('button',{name:bn?'ওয়ারেন্টি গ্রহণ':'Receive warranty',exact:true}).waitFor();
     await page.getByText(bn?'চলমান ওয়ারেন্টি':'Open cases',{exact:true}).first().waitFor();
-    const status=page.getByRole('combobox',{name:bn?'সব অবস্থা':'All status'});
+    const status=page.getByRole('combobox',{name:bn?'অবস্থা':'Status',exact:true});
     await status.click();
     await page.getByRole('option',{name:bn?'ক্রেতাকে দেওয়ার জন্য প্রস্তুত':'Ready for customer'}).click();
     assert.equal(await status.getAttribute('data-value'),'Ready for customer','status source ID is unchanged by locale');

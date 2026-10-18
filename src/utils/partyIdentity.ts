@@ -1,3 +1,4 @@
+import {matchesSearch} from './fuzzySearch.ts';
 import type { Party, PartyRole } from '../types/erp';
 import type { PartyDraft, PartyRelationship } from '../types/partyLedger';
 
@@ -20,6 +21,5 @@ export function resolvePartySelection(parties: Party[], id?: string, role?: stri
 }
 
 export function matchesPartySearch(party: Party, raw: string): boolean {
-  const query = raw.trim().toLocaleLowerCase();
-  return !query || [party.name, party.nameBn, party.phone, party.area].some(v => (v ?? '').toLocaleLowerCase().includes(query));
+  return matchesSearch(raw,[party.name,party.nameBn,party.phone,party.area]);
 }

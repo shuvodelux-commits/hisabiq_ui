@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {useMemo,useState,useSyncExternalStore} from 'react';
 import {Link} from 'react-router-dom';
 import {toast} from 'sonner';
@@ -31,7 +32,7 @@ export function ErpNotificationsWorkbench({embedded=false}:{embedded?:boolean}){
  const selectedDef=notificationEvents.find(e=>e.id===selected)!;
  const rule=rules[selected];
  const events=useMemo(()=>notificationEvents.filter(ev=>
-  (group==='All'||ev.group===group)&&[ev.label,ev.bn,ev.source,ev.group,ev.audience,notificationDisplayText(language,ev.source),notificationDisplayText(language,ev.group)].some(s=>s.toLowerCase().includes(query.toLowerCase().trim()))),
+  (group==='All'||ev.group===group)&&fuzzyMatch(query,[ev.label,ev.bn,ev.source,ev.group,ev.audience,notificationDisplayText(language,ev.source),notificationDisplayText(language,ev.group)])),
   [group,query,language]);
  const choose=(id:ErpNotificationEvent)=>{setSelected(id);setDraft(null);setError('');};
  const patch=(patch:Parameters<typeof updateNotificationRule>[1])=>{
@@ -131,7 +132,7 @@ export function ErpNotificationsWorkbench({embedded=false}:{embedded?:boolean}){
     <Button size="sm" variant="outline" onClick={()=>toast(text('Preview only. No SMS was sent.','শুধু নমুনা। কোনো SMS পাঠানো হয়নি।'))}>{text('Preview only — never send','শুধু নমুনা — SMS পাঠাবেন না')}</Button>
     {!embedded&&<p className="border-t border-border pt-2 text-xs text-ink-500">
      {text('Configuration applies ERP-wide, not just online orders. Future server integration will connect event triggers, gateway, credits, delivery reports and opt-outs.','এই নিয়ম পুরো ERP-তে প্রযোজ্য। পরে সার্ভার যুক্ত হলে SMS পাঠানো, ক্রেডিট, ডেলিভারি রিপোর্ট ও বন্ধ করার ব্যবস্থা কাজ করবে।')}
-     <Link className="ml-1 text-teal-700 hover:underline dark:text-teal-400" to="/app/subscription">{text('See SMS credits','SMS ক্রেডিট দেখুন')}</Link>.
+     <Link className="ml-1 text-teal-700 underline underline-offset-2 dark:text-teal-400" to="/app/subscription">{text('See SMS credits','SMS ক্রেডিট দেখুন')}</Link>.
     </p>}
    </section>
   </div>

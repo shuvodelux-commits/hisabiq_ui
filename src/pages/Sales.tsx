@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
@@ -32,11 +33,16 @@ import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
-import { customerCredits as seedCredits, saleTemplates, salesDrafts, salesInvoices as seedInvoices, salesReturns as seedReturns } from '../data/sales';
+import { customerCredits as seedCredits, salesReturns as seedReturns, type SalesDraft } from '../data/sales';
 import { products } from '../data/products';
+import {availableParties} from '../data/erpDemoStore';
+import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate} from '../data/salesPreviewStore';
+import {SaleTemplateDialog} from '../components/pos/SaleTemplateDialog';
+import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
-import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn } from '../types/erp';
+import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
+import {positiveSalesAmount, salesPaymentRemainder, salesPaymentTotal} from '../utils/salesPaymentAmounts';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
 import {planBundleReturn,type BundleReturnSelection} from '../bundles/bundleReturn';
 import { downloadReport, printReport } from '../utils/reportOutput';
@@ -166,10 +172,6 @@ function PaymentStatus({ invoice }: { invoice: SalesInvoice }) {
 }
 
 const invoiceQty = invoiceQuantity;
-
-function returnLimit(line: SalesInvoice['lines'][number]) {
-  return line.returnableQuantity ?? (parseFloat(line.quantity) || 0);
-}
 
 function InvoiceActions({
   invoice,
@@ -379,12 +381,13 @@ function PaymentDialog({
 }: {
   invoice: SalesInvoice | null;
   onClose: () => void;
-  onSave: (invoice: SalesInvoice, rows: PaymentDraft[]) => void;
+  onSave: (invoice: SalesInvoice, rows: PaymentDraft[]) => boolean;
 }) {
   const {text,showHelper}=useUiCopy();
   const [rows, setRows] = useState<PaymentDraft[]>([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
+  const nextRowId = useRef(2);
 
-  const total = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+  const total = salesPaymentTotal(rows);
 
   const close = () => {
     setRows([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
@@ -403,49 +406,60 @@ function PaymentDialog({
 
             <div className="space-y-2">
               {rows.map((row, index) => (
-                <div key={row.id} className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[140px_1fr_120px_auto]">
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Method','মাধ্যম')}
+                <div key={row.id} className="min-w-0 rounded-lg border border-border bg-ink-50/40 p-2">
+                  <div className="grid min-w-0 grid-cols-[92px_minmax(0,1fr)_36px] gap-1.5">
                     <FormSelect
-                      className="mt-1"
+                      aria-label={text(`Payment method ${index + 1}`, `পেমেন্টের মাধ্যম ${index + 1}`)}
                       value={row.method}
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, method: event.target.value as PaymentMethod } : item))}
-                      options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
+                      onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, method: event.target.value as PaymentMethod } : item))}
+                      options={paymentMethods.map(method => ({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
                     />
-                  </label>
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Account','হিসাব')}
                     <Input
-                      className="mt-1"
+                      aria-label={text(`Payment account ${index + 1}`, `পেমেন্টের হিসাব ${index + 1}`)}
+                      className="h-9 min-w-0 text-[13px]"
                       value={row.account}
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, account: event.target.value } : item))}
+                      onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, account: event.target.value } : item))}
                       placeholder={row.method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')}
                     />
-                  </label>
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Amount','টাকা')}
-                    <Input
-                      className="mt-1 text-right"
-                      value={row.amount}
-                      inputMode="decimal"
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))}
-                      placeholder="0"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    disabled={rows.length === 1}
-                    onClick={() => setRows((items) => items.filter((item) => item.id !== row.id))}
-                    className="self-end rounded-md p-2 text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
-                    aria-label={text(`Remove payment ${index + 1}`,`পেমেন্ট ${index + 1} সরান`)}>
-                    <Trash2 className="size-4" />
-                  </button>
+                    <button
+                      type="button"
+                      disabled={rows.length === 1}
+                      onClick={() => setRows(items => items.filter(item => item.id !== row.id))}
+                      className="flex size-9 items-center justify-center rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
+                      aria-label={text(`Remove payment ${index + 1}`, `পেমেন্ট ${index + 1} সরান`)}>
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                  <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+                    <div className="relative min-w-0 flex-1">
+                      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
+                      <Input
+                        aria-label={text(`Payment amount ${index + 1}`, `পেমেন্টের পরিমাণ ${index + 1}`)}
+                        className="h-9 min-w-0 pl-7 text-right font-medium"
+                        value={row.amount}
+                        inputMode="decimal"
+                        onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))}
+                        placeholder="0"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!Number.isFinite(salesPaymentRemainder(invoice.due, rows, row.id))}
+                      onClick={() => {
+                        const remaining = salesPaymentRemainder(invoice.due, rows, row.id);
+                        if (Number.isFinite(remaining)) setRows(items => items.map(item => item.id === row.id ? { ...item, amount: String(remaining) } : item));
+                      }}
+                      className="h-9 shrink-0 rounded-md border border-border bg-card px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50 disabled:opacity-40">
+                      {text('Remaining','বাকি')}
+                    </button>
+                  </div>
                 </div>
               ))}
 
+
               <button
                 type="button"
-                onClick={() => setRows((items) => [...items, { id: `p${Date.now()}`, method: 'Cash', amount: '', account: '' }])}
+                onClick={() => setRows(items => [...items, { id: `p${nextRowId.current++}`, method: 'Cash', amount: '', account: '' }])}
                 className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-700 hover:underline">
                 <Plus className="size-3.5" /> {text('Add another payment source','আরও পেমেন্ট মাধ্যম')}
               </button>
@@ -453,18 +467,16 @@ function PaymentDialog({
 
             <div className="grid grid-cols-3 gap-2 rounded-xl bg-ink-50 p-3 text-center text-[12px]">
               <div><p className="text-ink-400">{text('Invoice due','বিলের বাকি')}</p><p className="mt-0.5 font-semibold text-ink">{taka(invoice.due)}</p></div>
-              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(total)}</p></div>
-              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{taka(Math.max(invoice.due - total, 0))}</p></div>
+              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(Number.isFinite(total) ? total : 0)}</p></div>
+              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{Number.isFinite(total) ? taka(Math.max(invoice.due - total, 0)) : '—'}</p></div>
             </div>
 
+            {!Number.isFinite(total) && <p role="alert" className="text-sm text-danger">{text('Enter a valid amount (up to two decimal places).','সঠিক টাকার পরিমাণ লিখুন (দশমিকের পর সর্বোচ্চ দুই ঘর)।')}</p>}
             <DialogFooter>
               <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
-                disabled={total <= 0 || total > invoice.due}
-                onClick={() => {
-                  onSave(invoice, rows);
-                  close();
-                }}>
+                disabled={!Number.isFinite(total) || total <= 0 || Math.round(total * 100) > Math.round(invoice.due * 100)}
+                onClick={() => { if (onSave(invoice, rows)) close(); }}>
                 {text('Save payment','পেমেন্ট লিখুন')}
               </Button>
             </DialogFooter>
@@ -493,7 +505,7 @@ function CustomerPaymentDialog({
   open: boolean;
   customers: string[];
   onClose: () => void;
-  onSave: (draft: CustomerPaymentDraft) => void;
+  onSave: (draft: CustomerPaymentDraft) => boolean;
 }) {
   const {text,showHelper}=useUiCopy();
   const [customer, setCustomer] = useState(customers[0] ?? '');
@@ -501,7 +513,7 @@ function CustomerPaymentDialog({
   const [method, setMethod] = useState<PaymentMethod>('Cash');
   const [account, setAccount] = useState('');
   const [allocation, setAllocation] = useState<CustomerPaymentDraft['allocation']>('Settle oldest due');
-  const amountNumber = parseFloat(amount) || 0;
+  const amountNumber = positiveSalesAmount(amount);
 
   const close = () => {
     setAmount('');
@@ -546,9 +558,8 @@ function CustomerPaymentDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
-          <Button disabled={!customer || amountNumber <= 0} onClick={() => {
-            onSave({ customer, amount, method, account, allocation });
-            close();
+          <Button disabled={!customer || !Number.isFinite(amountNumber) || amountNumber <= 0} onClick={() => {
+            if (onSave({ customer, amount, method, account, allocation })) close();
           }}>{text('Save payment','পেমেন্ট লিখুন')}</Button>
         </DialogFooter>
       </DialogContent>
@@ -578,7 +589,7 @@ function CreditActionDialog({
   const [account, setAccount] = useState('');
   const selectedInvoice = dueInvoices.find((invoice) => invoice.invoice === invoiceId) ?? dueInvoices[0] ?? null;
   const maxAmount = credit ? Math.min(credit.balance, action?.mode === 'apply' ? selectedInvoice?.due ?? 0 : credit.balance) : 0;
-  const amountNumber = parseFloat(amount) || 0;
+  const amountNumber = positiveSalesAmount(amount);
 
   const close = () => {
     setInvoiceId('');
@@ -639,8 +650,9 @@ function CreditActionDialog({
             <DialogFooter>
               <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
-                disabled={amountNumber <= 0 || amountNumber > maxAmount || (action.mode === 'apply' && !selectedInvoice)}
+                disabled={!Number.isFinite(amountNumber) || amountNumber <= 0 || Math.round(amountNumber * 100) > Math.round(maxAmount * 100) || (action.mode === 'apply' && !selectedInvoice)}
                 onClick={() => {
+                  if (!Number.isFinite(amountNumber) || amountNumber <= 0 || Math.round(amountNumber * 100) > Math.round(maxAmount * 100)) return;
                   if (action.mode === 'apply' && selectedInvoice) onApply(credit, selectedInvoice.id, amountNumber);
                   if (action.mode === 'refund') onRefund(credit, amountNumber, method, account);
                   close();
@@ -667,12 +679,14 @@ export function Sales() {
   const chooseTab=(id:Tab)=>{setTab(id);setSearchParams(current=>{
    const next=new URLSearchParams(current);if(id==='sales')next.delete('tab');else next.set('tab',id);return next;
   },{replace:true});};
-  const [invoices, setInvoices] = useState<SalesInvoice[]>(seedInvoices);
-  const [returns, setReturns] = useState<SalesReturn[]>(seedReturns);
+  const {invoices,returns,credits,templates,drafts}=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot,getSalesPreviewSnapshot);
+  const setInvoices=(update:(items:SalesInvoice[])=>SalesInvoice[])=>updateSalesPreview('invoices',update);
+  const setReturns=(update:(items:SalesReturn[])=>SalesReturn[])=>updateSalesPreview('returns',update);
+  const setCredits=(update:(items:CustomerCredit[])=>CustomerCredit[])=>updateSalesPreview('credits',update);
+  const setTemplates=(update:(items:SaleTemplate[])=>SaleTemplate[])=>updateSalesPreview('templates',update);
+  const [templateEditor,setTemplateEditor]=useState<{template:SaleTemplate|null}|null>(null);
   const [returnDetail, setReturnDetail] = useState<SalesReturn | null>(null);
-  const [credits, setCredits] = useState<CustomerCredit[]>(seedCredits);
-  const [drafts, setDrafts] = useState(salesDrafts);
-  const [templates, setTemplates] = useState(saleTemplates);
+  const setDrafts=(update:(items:SalesDraft[])=>SalesDraft[])=>updateSalesPreview('drafts',update);
   const routeQuery=searchParams.get('q') ?? '';
   const [query, setQuery] = useState(routeQuery);
   useEffect(()=>setQuery(routeQuery),[routeQuery]);
@@ -695,7 +709,6 @@ export function Sales() {
   const [returnCustomer, setReturnCustomer] = useState('Rahman Hardware');
   const [returnInvoiceIds, setReturnInvoiceIds] = useState<string[]>([]);
   const [returnQty, setReturnQty] = useState<Record<string, string>>({});
-  const [returnPrice, setReturnPrice] = useState<Record<string, string>>({});
   const [returnReason, setReturnReason] = useState<Record<string, string>>({});
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [bundleReturnChoices,setBundleReturnChoices]=useState<Record<string,Record<string,BundleReturnSelection>>>({});
@@ -728,13 +741,13 @@ export function Sales() {
       if (status !== 'All status' && invoice.status !== status) return false;
       if (method !== 'All payments' && !invoice.payments.some((payment) => payment.method === method) && invoice.method !== method) return false;
       if (!q) return true;
-      return [
+      return fuzzyMatch(q,[
         invoice.invoice,
         invoice.party,
         invoice.phone ?? '',
         invoice.address ?? '',
         ...invoice.lines.map((line) => line.name)
-      ].some((value) => value.toLowerCase().includes(q));
+      ]);
     });
   }, [customerFilter, invoices, method, query, status]);
 
@@ -755,10 +768,10 @@ export function Sales() {
   const selectedReturnDue = customerInvoices.filter((invoice) => returnInvoiceIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoice.due, 0);
   const selectedReturnInvoices = invoices.filter((invoice) => returnInvoiceIds.includes(invoice.id));
   const selectedReturnLines = selectedReturnInvoices.flatMap((invoice) => invoice.lines.map((line) => ({ invoice, line })));
-  const returnPriceFor = (line: SalesInvoice['lines'][number]) => {
-    const raw = returnPrice[line.id];
-    return raw === undefined || raw === '' ? line.price : parseFloat(raw) || 0;
-  };
+  const ordinaryReturnPlans=selectedReturnLines.filter(({line})=>!isBundleReturnLine(line)).map(({invoice,line})=>
+    planOrdinaryReturn(invoice,line,returnQty[line.id]??'',(returnSerials[line.id]??'').split(',').map(value=>value.trim()).filter(Boolean),returns));
+  const returnLimit=(line:SalesInvoice['lines'][number])=>isBundleReturnLine(line)
+    ?line.returnableQuantity??0:ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.remaining??0;
   const selectedBundlePlans=selectedReturnLines.filter(({line})=>isBundleReturnLine(line)&&Number(returnQty[line.id]??'')>0)
     .map(({invoice,line})=>planBundleReturn({
       invoice,line,sets:Number(returnQty[line.id]),choices:bundleReturnChoices[line.id]??{},
@@ -766,28 +779,15 @@ export function Sales() {
     }));
   const includesBundleReturn=selectedBundlePlans.length>0;
   const returnAmount = selectedReturnLines.reduce((sum,{line})=>{
-    const qty=Number(returnQty[line.id]??0);
     if(isBundleReturnLine(line))return sum+(selectedBundlePlans.find(p=>p.lineId===line.id)?.refundEstimate??0);
-    return sum+qty*returnPriceFor(line);
+    return Math.round((sum+(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0))*100)/100;
   },0);
-  const returnIssues = selectedReturnLines.flatMap(({ line }) => {
-    const qty = parseFloat(returnQty[line.id] ?? '') || 0;
-    if (qty <= 0) return [];
-    const issues: string[] = [];
-    if (qty > returnLimit(line)) issues.push(`${line.name}: maximum return is ${returnLimit(line)} ${line.unit}.`);
-    if (line.serials?.length) {
-      const serials = (returnSerials[line.id] ?? '').split(',').map((value) => value.trim()).filter(Boolean);
-      if (!serials.length) issues.push(`${line.name}: select or enter the returned serial number.`);
-      if (serials.some((serial) => !line.serials?.includes(serial))) issues.push(`${line.name}: one or more serial numbers do not belong to this sale.`);
-    }
-    return issues;
-  });
+  const returnIssues=ordinaryReturnPlans.flatMap(plan=>plan.quantity!==0||returnQty[plan.lineId]?plan.issues:[]);
 
   const openReturn = (invoice: SalesInvoice) => {
     setReturnCustomer(invoice.party);
     setReturnInvoiceIds([invoice.id]);
     setReturnQty({});
-    setReturnPrice({});
     setReturnReason({});
     setReturnSerials({});
     setBundleReturnChoices({});
@@ -796,13 +796,18 @@ export function Sales() {
   };
 
   const savePayment = (invoice: SalesInvoice, rows: PaymentDraft[]) => {
-    const amount = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+    const amount = salesPaymentTotal(rows);
+    const currentInvoice = getSalesPreviewSnapshot().invoices.find(item => item.id === invoice.id);
+    if (!currentInvoice || !Number.isFinite(amount) || amount <= 0 || Math.round(amount * 100) > Math.round(currentInvoice.due * 100)) {
+      toast.error(sl('Enter a valid payment within the remaining due'));
+      return false;
+    }
     const payments: SalePayment[] = rows
-      .filter((row) => (parseFloat(row.amount) || 0) > 0)
+      .filter((row) => positiveSalesAmount(row.amount) > 0)
       .map((row, index) => ({
         id: `${invoice.id}-new-${Date.now()}-${index}`,
         method: row.method,
-        amount: parseFloat(row.amount),
+        amount: positiveSalesAmount(row.amount),
         ...(row.account.trim() ? { account: row.account.trim() } : {})
       }));
     setInvoices((items) => items.map((item) => {
@@ -819,11 +824,15 @@ export function Sales() {
       };
     }));
     toast.success(sl('Payment saved'), { description: `${invoice.invoice} · ${taka(amount)}` });
+    return true;
   };
 
   const receiveCustomerPayment = (draft: CustomerPaymentDraft) => {
-    const amount = parseFloat(draft.amount) || 0;
-    if (amount <= 0) return;
+    const amount = positiveSalesAmount(draft.amount);
+    if (!draft.customer || !Number.isFinite(amount) || amount <= 0) {
+      toast.error(sl('Enter a valid payment amount'));
+      return false;
+    }
 
     const allocations = new Map<string, number>();
     let remainder = amount;
@@ -880,6 +889,7 @@ export function Sales() {
     toast.success(sl('Customer payment saved'), {
       description: remainder > 0 ? `${taka(amount - remainder)} settled · ${taka(remainder)} credit` : `${taka(amount)} settled against due invoices`
     });
+    return true;
   };
 
   const applyCustomerCredit = (credit: CustomerCredit, invoiceId: string, amount: number) => {
@@ -906,7 +916,7 @@ export function Sales() {
   };
 
   const completeReturn = () => {
-    if (!returnInvoiceIds.length || returnAmount <= 0) {
+    if (!returnInvoiceIds.length) {
       toast.error(sl('Select invoice items and enter return quantity'));
       return;
     }
@@ -916,15 +926,19 @@ export function Sales() {
       setBundleReturnPreviewOpen(true);
       return;
     }
-    if (returnIssues.length) {
-      toast.error(sl('Check return quantities and serial numbers'), { description: returnIssues[0] });
+    if (returnIssues.length || getSalesPreviewSnapshot().returns!==returns) {
+      toast.error(sl('Check return quantities and serial numbers'), { description: text('Review remaining quantities and original serials. Historical refund allocation must be available.','অবশিষ্ট পরিমাণ ও আগের সিরিয়াল যাচাই করুন। আগের ফেরত মূল্যের তথ্য থাকতে হবে।') });
       return;
     }
+    if(returnAmount<=0||!Number.isFinite(returnAmount)){toast.error(sl('Select invoice items and enter return quantity'));return;}
     const selected = selectedReturnInvoices;
+    const customerId=selected.find(invoice=>invoice.partyId)?.partyId;
     const newReturn: SalesReturn = {
       id: `RTN-${String(15 + returns.length - seedReturns.length).padStart(6, '0')}`,
       date: '01 Oct 2026',
       customer: returnCustomer,
+      ...(customerId?{customerId}:{}),
+      lineReturns:ordinaryReturnPlans.filter(plan=>plan.quantity>0).map(({invoiceId,lineId,quantity,amount,serials})=>({invoiceId,lineId,quantity,amount,serials})),
       invoices: selected.map((invoice) => invoice.invoice),
       items: selectedReturnLines
         .filter(({ line }) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0)
@@ -964,14 +978,14 @@ export function Sales() {
       setCredits((items) => {
         const existing = items.find((credit) => credit.customer === returnCustomer);
         if (existing) return items.map((credit) => credit.id === existing.id ? { ...credit, balance: credit.balance + creditFromReturn, source: newReturn.id, updatedAt: newReturn.date } : credit);
-        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, customer: returnCustomer, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
+        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, ...(customerId?{customerId}:{}), customer: returnCustomer, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
       });
     }
 
     setInvoices((items) => items.map((invoice) => {
       if (!returnInvoiceIds.includes(invoice.id)) return invoice;
-      const returnedLines = invoice.lines.filter((line) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0);
-      const fullReturn = returnedLines.length === invoice.lines.length && invoice.lines.every((line) => (parseFloat(returnQty[line.id] ?? '') || 0) >= returnLimit(line));
+      const fullReturn = invoice.lines.every(line=>!isBundleReturnLine(line)&&
+        (ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.remaining??0)-(Number(returnQty[line.id]??0))<=0);
       const applied = dueAdjustments.get(invoice.id) ?? 0;
       const due = Math.max(invoice.due - applied, 0);
       const total = applied > 0 ? Math.max(invoice.total - applied, invoice.paid) : invoice.total;
@@ -979,13 +993,12 @@ export function Sales() {
     }));
     setReturnInvoiceIds([]);
     setReturnQty({});
-    setReturnPrice({});
     setReturnReason({});
     setReturnSerials({});
     setReturnRefundMethod('Cash');
     setReturnRefundAccount('');
     setTab('returns');
-    toast.success(`${newReturn.id} ${sl('saved')}`, { description: `${taka(returnAmount)} · ${returnSettlement}` });
+    toast.success(text('Return saved in this preview session','এই প্রিভিউ সেশনে ফেরত রাখা হয়েছে'), { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
 
   const tabs: Array<[Tab, string, string]> = [
@@ -1155,8 +1168,8 @@ export function Sales() {
         )}
 
         {tab === 'return' && (
-          <div className="grid gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
-            <div className="space-y-3">
+          <div className="grid min-w-0 grid-cols-1 gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+            <div className="min-w-0 space-y-3">
               <div className="rounded-xl border border-border bg-ink-50/50 p-4">
                 <div className="mb-3 flex items-start gap-2">
                   <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
@@ -1174,7 +1187,6 @@ export function Sales() {
                     setReturnCustomer(event.target.value);
                     setReturnInvoiceIds([]);
                     setReturnQty({});
-                    setReturnPrice({});
                     setReturnReason({});
                     setReturnSerials({});
                   }}
@@ -1196,7 +1208,6 @@ export function Sales() {
                         onChange={(event) => {
                           setReturnInvoiceIds((ids) => event.target.checked ? [...ids, invoice.id] : ids.filter((id) => id !== invoice.id));
                           setReturnQty({});
-                          setReturnPrice({});
                           setReturnReason({});
                           setReturnSerials({});
                         }}
@@ -1213,7 +1224,7 @@ export function Sales() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-card">
+            <div className="min-w-0 rounded-xl border border-border bg-card">
               <div className="border-b border-border p-3">
                 <p className="text-[13px] font-medium text-ink">{sl('Return items')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span>}</p>
                 <p className="mt-0.5 text-[11px] text-ink-500">{sl("Enter quantity against any item from the selected invoices.")}</p>
@@ -1243,6 +1254,7 @@ export function Sales() {
                               {qty > 0 && (
                                 <div className="mt-2 max-w-[260px] space-y-1.5">
                                   <FormSelect
+                                    aria-label={`${text('Return reason','ফেরতের কারণ')} · ${line.name}`}
                                     value={returnReason[line.id] ?? 'Customer return'}
                                     onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
                                     options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
@@ -1304,10 +1316,11 @@ export function Sales() {
                               <div className="flex items-center gap-2">
                                 <Input
                                   value={returnQty[line.id] ?? ''}
-                                  onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value.replace(/[^\d.]/g,'')}));
+                                  onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value}));
                                     if(isBundleReturnLine(line))setBundleReturnChoices(value=>({...value,[line.id]:{}}));}}
                                   inputMode={isBundleReturnLine(line)?'numeric':'decimal'}
-                                  aria-label={isBundleReturnLine(line)?`Whole Sets to return for ${line.name}`:undefined}
+                                  aria-label={isBundleReturnLine(line)?`Whole Sets to return for ${line.name}`:`${sl('Return qty')} · ${line.name}`}
+                                  aria-invalid={!isBundleReturnLine(line)&&Boolean(returnQty[line.id])&&Boolean(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.issues.length)}
                                   className="h-8 text-right"
                                   placeholder="0"
                                 />
@@ -1320,9 +1333,8 @@ export function Sales() {
                             <TableCell className="py-2 pr-3">
                               <div className="ml-auto w-28">
                                 <Input
-                                  value={returnPrice[line.id] ?? String(line.price)}
-                                  disabled={isBundleReturnLine(line)}
-                                  onChange={(event) => setReturnPrice((value) => ({ ...value, [line.id]: event.target.value.replace(/[^\d.]/g, '') }))}
+                                  value={isBundleReturnLine(line)?String(line.price):ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice===null?text('Source allocation needed','আগের মূল্য প্রয়োজন'):String(Number((ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice??0).toFixed(6)))}
+                                  disabled
                                   inputMode="decimal"
                                   className="h-8 text-right"
                                   aria-label={`${sl('Return price for')} ${line.name}`}
@@ -1330,7 +1342,7 @@ export function Sales() {
                                 <p className="mt-1 text-right text-[10.5px] text-ink-400">
                                   {isBundleReturnLine(line)?
                                     (qty>0?text('Historical net refund — see preview','আগের বিক্রির মূল্য — প্রিভিউ দেখুন'):'Set'):
-                                    (qty > 0 ? taka(qty * returnPriceFor(line)) : `/${line.unit}`)}
+                                    (qty > 0 ? taka(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0) : `/${line.unit}`)}
                                 </p>
                               </div>
                             </TableCell>
@@ -1345,6 +1357,7 @@ export function Sales() {
                       {sl('Settlement')}
                       <FormSelect
                         className="mt-1"
+                        aria-label={sl('Settlement')}
                         value={returnSettlement}
                         disabled={includesBundleReturn}
                         onChange={(event) => setReturnSettlement(event.target.value as SalesReturn['settlement'])}
@@ -1362,8 +1375,10 @@ export function Sales() {
                       <p className="text-[11px] text-ink-400">{sl('Return amount')}</p>
                       <p className="text-base font-semibold text-ink">{includesBundleReturn&&selectedBundlePlans.some(p=>p.refundEstimate===null)?text('Pending historical price','আগের মূল্য যাচাই বাকি'):taka(returnAmount)}</p>
                     </div>
-                    <Button onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
+                    <Button disabled={!includesBundleReturn&&returnIssues.length>0} onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
                       text('Preview return only','শুধু ফেরত প্রিভিউ'):sl('Complete return')}</Button>
+                    {!includesBundleReturn&&returnIssues.length>0&&<p role="alert" className="text-xs text-danger sm:col-span-3">{text('Check the remaining return quantity and original serials. A historical net refund allocation is required.','অবশিষ্ট ফেরত পরিমাণ ও আগের সিরিয়াল যাচাই করুন। আগের ফেরত মূল্যের তথ্য প্রয়োজন।')}</p>}
+                    {!includesBundleReturn&&<p role="note" className="text-xs text-ink-500 sm:col-span-3">{text('Historical net price only. This session preview does not post refunds, stock or ledger entries.','শুধু আগের বিক্রির মূল্য। এই সেশনের প্রিভিউতে টাকা ফেরত, স্টক বা খাতায় জমা হবে না।')}</p>}
                     {includesBundleReturn&&<p role="note" className="text-xs text-warning sm:col-span-3">
                       {text('Bundle returns are preview only: no refund, invoice status, credit or stock is changed. Mixed ordinary items are also not submitted.',
                         'প্যাকেজ ফেরত শুধু প্রিভিউ: টাকা, বিল, জমা বা স্টক বদলাবে না। সঙ্গে থাকা অন্য পণ্যও জমা হবে না।')}
@@ -1476,7 +1491,7 @@ export function Sales() {
                           <button onClick={() => { close(); printReturn(item,language); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <Printer className="size-4 text-ink-400" /> {sl('Print')}
                           </button>
-                          <button onClick={() => { close(); navigate('/app/parties'); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                          <button disabled={!salesReturnCustomerId(item,invoices,availableParties())} title={!salesReturnCustomerId(item,invoices,availableParties())?text('No linked customer account','ক্রেতার কোনো যুক্ত হিসাব নেই'):undefined} onClick={() => { close(); const id=salesReturnCustomerId(item,invoices,availableParties()); if(id)navigate(`/app/parties?id=${encodeURIComponent(id)}&role=Customer`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
                           </button>
                           <button onClick={() => {
@@ -1484,7 +1499,6 @@ export function Sales() {
                             setReturnCustomer(item.customer);
                             setReturnInvoiceIds([]);
                             setReturnQty({});
-                            setReturnPrice({});
                             setReturnReason({});
                             setReturnSerials({});
                             setTab('return');
@@ -1646,18 +1660,7 @@ export function Sales() {
                   <p className="flex items-center gap-2 text-sm font-semibold text-ink"><FileText className="size-4 text-teal-700" /> {sl('Sale templates')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· টেমপ্লেট</span>}</p>
                   <p className="mt-0.5 text-[11px] text-ink-500">{sl('Reuse common carts without recreating every line.')}</p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => {
-                  const next = {
-                    id: `t${Date.now()}`,
-                    name: `Sale template ${templates.length + 1}`,
-                    items: 0,
-                    total: 0,
-                    lastUsed: 'Not used yet',
-                    lines: []
-                  };
-                  setTemplates((items) => [next, ...items]);
-                  toast.success(`${next.name} ${sl('created')}`);
-                }}><Plus className="size-3.5" /> {sl('Template')}</Button>
+                <Button size="sm" variant="outline" onClick={() => setTemplateEditor({template:null})}><Plus className="size-3.5" /> {sl('Template')}</Button>
               </div>
               <div className="divide-y divide-border">
                 {templates.map((template) => (
@@ -1679,14 +1682,17 @@ export function Sales() {
                         )}>
                         {(close) => (
                           <div className="py-1">
-                            <button onClick={() => { close(); toast(`Editing ${template.name}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <button onClick={() => { close(); setTemplateEditor({template}); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Pencil className="size-4 text-ink-400" /> {sl('Edit template')}
                             </button>
                             <button onClick={() => {
                               close();
-                              const copy = { ...template, id: `t${Date.now()}`, name: `${template.name} copy`, lastUsed: 'Not used yet' };
-                              setTemplates((items) => [copy, ...items]);
-                              toast.success(`${template.name} ${sl('duplicated')}`);
+                              try {
+                                saveSaleTemplate({...template,name:`${template.name} copy`});
+                                toast.success(`${template.name} ${sl('duplicated')}`);
+                              } catch {
+                                toast.error(text('Could not duplicate this template. Open Edit template to check its products.','এই নমুনা নকল করা যায়নি। পণ্য যাচাই করতে নমুনা বদলান।'));
+                              }
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                               <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
                             </button>
@@ -1722,6 +1728,7 @@ export function Sales() {
         onSave={savePayment}
       />
 
+      {templateEditor&&<SaleTemplateDialog template={templateEditor.template} onClose={()=>setTemplateEditor(null)}/> }
       <CustomerPaymentDialog
         open={customerPaymentOpen}
         customers={customerNames.filter((customer) => customer !== 'Walk-in customer')}

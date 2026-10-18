@@ -60,7 +60,8 @@ async function main() {
         await action(button(page,'New transfer','নতুন ট্রান্সফার'));
         dialog=topDialog(); const combos=dialog.getByRole('combobox');
         await action(combos.nth(0));
-        const duplicateOption=page.getByRole('option',{name:/Dutch-Bangla Bank · 4582.*acc-/});
+        // The shared dropdown shows a short unique ID suffix, not the internal acc- prefix.
+        const duplicateOption=page.getByRole('option',{name:/Dutch-Bangla Bank · 4582 · \d{4}$/});
         await expect(duplicateOption).toHaveCount(1); await action(duplicateOption);
         await action(combos.nth(1)); await action(page.getByRole('option',{name:/Main Cash Counter|মেইন ক্যাশ কাউন্টার/}));
         await dialog.getByRole('textbox',{name:/Amount|টাকা/}).fill('100');

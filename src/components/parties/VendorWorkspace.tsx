@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useId,useMemo,useState,useSyncExternalStore} from 'react';
 import {BookOpen,FileText,MapPin,PackageMinus,Phone,Plus,Printer,Truck} from 'lucide-react';
 import {Button} from '../Button';
@@ -53,15 +54,14 @@ export function VendorWorkspace({party,onEditParty,onRoleChange}:Props){
  const [openingError,setOpeningError]=useState('');
  const known=useMemo(()=>snapshot.sources.filter(s=>s.vendorPartyId===party.id&&s.status==='Active'
   &&(!range.from||s.date>=range.from)&&(!range.to||s.date<=range.to)
-  &&[s.reference??'',s.productId,products.find(p=>p.id===s.productId)?.name??'']
-   .some(value=>value.toLowerCase().includes(query.trim().toLowerCase()))),[snapshot,party.id,range,query]);
+  &&fuzzyMatch(query,[s.reference,s.productId,products.find(p=>p.id===s.productId)?.name])),[snapshot,party.id,range,query]);
  const pending=known.filter(s=>s.sourceKind==='sourcing'&&sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
  const sourced=known.filter(s=>s.sourceKind==='sourcing');
  const issued=known.filter(s=>s.sourceKind==='issue');
  const ordinaryPurchases=useMemo(()=>availablePurchases().filter(p=>p.supplierId===party.id),[party.id,purchaseRevision]);
  const purchasePayablePaisa=ordinaryVendorPurchaseDuePaisa(ordinaryPurchases,party.id);
  const allEvents=projectVendorActivity(snapshot,party.id,ordinaryPurchases,range).filter(e=>
-  [e.reference,e.description,e.kind].some(v=>v.toLowerCase().includes(query.toLowerCase())));
+  fuzzyMatch(query,[e.reference,e.description,e.kind]));
  const tabs:{key:Tab;label:string;count?:number}[]=[
   {key:'activity',label:'All Activity'},
   {key:'pending',label:'Pending price',count:pending.length},

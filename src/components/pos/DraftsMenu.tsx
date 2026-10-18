@@ -3,6 +3,7 @@ import { FloatingPanel } from '../layout/FloatingPanel';
 import { Button } from '../Button';
 import type { SalesDraft } from '../../data/sales';
 import { taka } from '../../utils/currency';
+import {useUiCopy} from '../../i18n/useUiCopy';
 
 type DraftsMenuProps = {
   drafts: SalesDraft[];
@@ -13,13 +14,14 @@ type DraftsMenuProps = {
 };
 
 export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: DraftsMenuProps) {
+  const {text}=useUiCopy();
   return (
     <FloatingPanel
-      label="Drafts"
+      label={text('Drafts','খসড়া')}
       width={320}
       trigger={({ toggle, open }) =>
       <Button variant="outline" size="sm" onClick={toggle} aria-expanded={open}>
-          <FileClock className="size-4" /> Drafts
+          <FileClock className="size-4" /> {text('Drafts','খসড়া')}
           <span className="ml-0.5 rounded bg-teal-50 px-1.5 text-[11px] font-semibold text-teal-700">{drafts.length}</span>
         </Button>
       }>
@@ -27,7 +29,7 @@ export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: Draf
       {(close) =>
       <div>
           <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-            <p className="text-sm font-semibold">Held sales</p>
+            <p className="text-sm font-semibold">{text('Held sales','রাখা বিক্রির খসড়া')}</p>
             <button
             disabled={!canSave}
             onClick={() => {
@@ -36,11 +38,11 @@ export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: Draf
             }}
             className="flex items-center gap-1 text-xs font-medium text-teal-700 hover:underline disabled:cursor-not-allowed disabled:text-helper disabled:no-underline">
             
-              <Save className="size-3.5" /> Hold current
+              <Save className="size-3.5" /> {text('Hold current','এই বিক্রি রাখুন')}
             </button>
           </div>
           {drafts.length === 0 ?
-        <p className="px-3 py-6 text-center text-sm text-ink-500">No held sales.</p> :
+        <p className="px-3 py-6 text-center text-sm text-ink-500">{text('No held sales.','কোনো বিক্রির খসড়া নেই।')}</p> :
 
         <ul className="max-h-72 divide-y divide-border overflow-auto">
               {drafts.map((d) =>
@@ -53,14 +55,14 @@ export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: Draf
               }}>
               
                     <p className="text-[13px] font-medium text-ink">
-                      {d.label} <span className="font-normal text-ink-500">· {d.customer ?? 'Walk-in'}</span>
+                      {d.label} <span className="font-normal text-ink-500">· {d.customer ?? text('Walk-in','সাধারণ ক্রেতা')}</span>
                     </p>
                     <p className="text-[11px] text-ink-500">
-                      {d.items} items · saved {d.savedAt}
+                      {d.items} {text('items · saved','টি পণ্য · রাখা হয়েছে')} {d.savedAt}
                     </p>
                   </button>
                   <span className="text-[13px] font-semibold tabular-nums">{taka(d.total)}</span>
-                  <button onClick={() => onDelete(d.id)} aria-label={`Delete ${d.label}`} className="rounded p-1 text-helper hover:bg-danger-bg hover:text-danger">
+                  <button onClick={() => onDelete(d.id)} aria-label={text(`Delete ${d.label}`,`মুছুন: ${d.label}`)} className="rounded p-1 text-helper hover:bg-danger-bg hover:text-danger">
                     <Trash2 className="size-3.5" />
                   </button>
                 </li>

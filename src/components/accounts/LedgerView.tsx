@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useMemo, useState } from 'react';
 import { ArrowDownToLine, Printer, Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -52,7 +53,7 @@ export function LedgerView({
     let balance = 0;
     return allRows
       .filter((row) => (!from || row.displayDate >= from) && (!to || row.displayDate <= to))
-      .filter((row) => !query || [row.reference, row.description, row.postingId].some((value) => value.toLowerCase().includes(query)))
+      .filter((row) => fuzzyMatch(query,[row.reference,row.description,row.postingId]))
       .map((row) => {
         balance += account.group === 'Asset' || account.group === 'Expense' ? row.debit - row.credit : row.credit - row.debit;
         return { ...row, balance };

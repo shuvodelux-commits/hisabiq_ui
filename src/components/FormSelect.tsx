@@ -23,10 +23,11 @@ export function FormSelect({
 }: FormSelectProps) {
   const first = options[0];
   const firstValue = typeof first === 'string' ? first : first?.value ?? '';
-  const firstLabel = typeof first === 'string' ? first : first?.label;
   const [local, setLocal] = useState<string>(() => String(defaultValue ?? firstValue));
   const selected = value === undefined ? local : String(value);
-  const label = String(other['aria-label'] ?? title ?? name ?? firstLabel ?? 'Select option');
+  const selectedOption=options.find(option=>(typeof option==='string'?option:option.value)===selected);
+  const selectedLabel=typeof selectedOption==='string'?selectedOption:selectedOption?.label;
+  const label = String(other['aria-label'] ?? title ?? name ?? selectedLabel ?? 'Select option');
   const update = (next: string) => {
     if (value === undefined) setLocal(next);
     // Existing callers only read event.target.value. The form-select adapter
