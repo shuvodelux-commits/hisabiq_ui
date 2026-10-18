@@ -12,6 +12,7 @@ import {VendorStatementDialog} from '../parties/VendorStatementDialog';
 import {VendorGoodsEditor} from './VendorGoodsEditor';
 import {VendorSourceWorkspace} from './VendorSourceWorkspace';
 import {VendorPaymentsWorkspace} from './VendorPaymentsWorkspace';
+import {VendorDiscardDialog} from './VendorDiscardDialog';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
@@ -39,6 +40,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [side,setSide]=useState<VendorSide>('payable');
  const [editingTaken,setEditingTaken]=useState(false);
  const [hasUnsavedGoods,setHasUnsavedGoods]=useState(false);
+ const [pendingTab,setPendingTab]=useState<{next:VendorWorkTab;sourceId?:string;openGoods?:boolean}|null>(null);
  const updateDirty=(value:boolean)=>{setHasUnsavedGoods(value);onDirtyChange(value);};
  const [editingGiven,setEditingGiven]=useState(false);
  const [purchaseOpened,setPurchaseOpened]=useState(tab==='purchases');
@@ -64,10 +66,14 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const statement=side==='payable'?profile.takenStatement:profile.givenStatement;
  const ledgerRows=statement.rows.filter(e=>fuzzyMatch(query,[e.reference,e.description]));
 
- const selectTab=(next:VendorWorkTab,selectedSourceId?:string)=>{
-  if(next!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
+ const applyTab=(next:VendorWorkTab,selectedSourceId?:string,openEditor=false)=>{
   if(next!==tab&&hasUnsavedGoods){updateDirty(false);setEditingTaken(false);setEditingGiven(false);}
+  if(openEditor){setEditingTaken(next==='taken');setEditingGiven(next==='given');}
   onTabChange(next,selectedSourceId);
+ };
+ const selectTab=(next:VendorWorkTab,selectedSourceId?:string)=>{
+  if(next!==tab&&hasUnsavedGoods){setPendingTab({next,sourceId:selectedSourceId});return;}
+  applyTab(next,selectedSourceId);
  };
  const review=(event:VendorLedgerEvent)=>{
   setCorrectEvent(event.id);
@@ -83,11 +89,8 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   setPurchaseRevision(n=>n+1);onDirtyChange(false);
  };
  const openGoods=(mode:'taken'|'given')=>{
-  if(mode!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
-  if(mode!==tab&&hasUnsavedGoods)updateDirty(false);
-  setEditingTaken(mode==='taken');
-  setEditingGiven(mode==='given');
-  onTabChange(mode);
+  if(mode!==tab&&hasUnsavedGoods){setPendingTab({next:mode,openGoods:true});return;}
+  applyTab(mode,undefined,true);
  };
  return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-4">
@@ -218,10 +221,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         snapshot={snapshot} sourceId={sourceId} onCorrect={setCorrectSource}/>
      </>}
      {(tab==='purchases'||purchaseOpened)&&<div className={tab==='purchases'?'space-y-4':'hidden'} aria-hidden={tab!=='purchases'}>
-      <div onChangeCapture={()=>onDirtyChange(true)}>
+      <div onChangeCapture={()=>updateDirty(true)}>
         <PurchaseEditor key={purchaseRevision} embedded active={tab==='purchases'}
           initialSupplierId={party.id} lockedSupplierId={party.id} onCompleted={savePurchase}
-          onCancel={()=>{setPurchaseRevision(n=>n+1);onDirtyChange(false);}}/>
+          onCancel={()=>{setPurchaseRevision(n=>n+1);updateDirty(false);}}/>
       </div>
       <details className="overflow-hidden rounded-lg border border-border">
        <summary className="cursor-pointer bg-ink-50/40 px-3 py-2 text-sm font-semibold text-ink">
@@ -247,6 +250,12 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
   </section>
 
+  <VendorDiscardDialog open={pendingTab!==null} onCancel={()=>setPendingTab(null)}
+   onDiscard={()=>{
+    if(!pendingTab)return;
+    applyTab(pendingTab.next,pendingTab.sourceId,pendingTab.openGoods);
+    setPendingTab(null);
+   }}/>
   <VendorCorrectionDialog source={snapshot.sources.find(s=>s.id===correctSource)??null}
    event={snapshot.events.find(e=>e.id===correctEvent)??null} state={snapshot}
    onClose={()=>{setCorrectEvent(null);setCorrectSource(null);}}
