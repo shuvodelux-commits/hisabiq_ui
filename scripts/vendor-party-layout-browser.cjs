@@ -29,12 +29,22 @@ async function main(){
    const right=await workspace.boundingBox();
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
    assert.ok(overflow<=2,`Vendor page must not overflow the ${width}px viewport; overflow=${overflow}px`);
-   assert.ok(left&&right,'Both directory and selected detail must be rendered');
-   if(width>=1024){
-    assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
-    if(width>=1280)assert.ok(Math.abs(left.width-380)<3,'Desktop directory must match Parties width');
+   if(width<640){
+    assert.equal(left,null,'Phone deep links open the selected Vendor, not the full directory');
+    assert.ok(right,'Selected Vendor stays available on the phone');
+    await page.getByRole('button',{name:/All Vendors/}).click();
+    assert.ok(await directory.boundingBox(),'Back to Vendors opens the phone directory');
+    assert.equal(await workspace.boundingBox(),null,'Detail hides when choosing another Vendor');
+    await directory.getByRole('option',{name:/Shapla Transport/}).click();
+    assert.ok(await workspace.boundingBox(),'Selecting a Vendor reopens the phone detail');
    }else{
-    assert.ok(right.y>=left.y+left.height-2,'Mobile and tablet Vendor detail must stack after directory');
+    assert.ok(left&&right,'Directory and selected detail must be rendered');
+    if(width>=1024){
+     assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
+     if(width>=1280)assert.ok(Math.abs(left.width-380)<3,'Desktop directory must match Parties width');
+    }else{
+     assert.ok(right.y>=left.y+left.height-2,'Tablet Vendor detail must stack after directory');
+    }
    }
   }
 
@@ -47,6 +57,7 @@ async function main(){
   await workspace.getByRole('tab',{name:/Taken/}).click();
   await workspace.getByRole('region',{name:'Taken product workplace'}).waitFor();
 
+  await workspace.getByText('More work · আরও কাজ').click();
   await workspace.getByRole('button',{name:/Edit Vendor/}).click();
   await page.getByRole('dialog',{name:/Edit party/}).waitFor();
   await page.keyboard.press('Escape');
