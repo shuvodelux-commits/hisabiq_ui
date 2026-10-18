@@ -55,7 +55,7 @@ export function Vendors(){
     dispatchPartyPreview({type:'update-party',id:existing.id,patch:{roles:[...existing.roles,'Vendor']},openings});
     toast.success('Vendor role added to existing Party (preview)');
    }else toast.info('Vendor already exists. Opened existing record.');
-   change(existing.id);
+   setFilter('all');setQuery('');change(existing.id);
    return;
   }
   const old=new Set(all.map(p=>p.id));
@@ -63,7 +63,7 @@ export function Vendors(){
    ...draft,roles:Array.from(new Set([...draft.roles,'Vendor'])),name:draft.name.trim()
   },openings});
   const created=updated.parties.find(p=>!old.has(p.id));
-  if(created)change(created.id);
+  if(created){setFilter('all');setQuery('');change(created.id);}
   toast.success('Vendor created in preview');
  };
  const rows=results.map(p=>({p,balance:vendorBalances(snapshot,p.id)}));
@@ -95,7 +95,7 @@ export function Vendors(){
      sourceId={params.get('sourceId')} onDirtyChange={setDirty}
      onEditVendor={()=>setEditing(party)}/>:
     <section className="flex min-h-[320px] items-center justify-center rounded-xl border border-border bg-card p-8 text-center text-sm text-ink-500">
-      No Vendors yet. Add your first Vendor using the directory.
+      No Vendors yet. Choose Add Vendor above to create the first one.
     </section>}
   </div>
   <PartyEditorDialog open={editing!==undefined} party={editing} defaultRole="Vendor"
