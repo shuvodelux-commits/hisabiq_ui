@@ -22,7 +22,7 @@ async function main(){
   const act=e=>width<=1024?e.tap():e.click();
   const button=(r,en,bn)=>r.getByRole('button',{name:w(en,bn),exact:true});
   const field=(r,en,bn)=>r.locator('label').filter({hasText:new RegExp('^'+w(en,bn))}).getByRole('textbox');
-  const select=(r,en,bn)=>r.locator('label').filter({hasText:new RegExp('^'+w(en,bn))}).getByRole('combobox');
+  const select=(r,en,bn)=>en==='Finance person'?r.getByRole('combobox',{name:w(en,bn),exact:true}):r.locator('label').filter({hasText:new RegExp('^'+w(en,bn))}).getByRole('combobox');
   const choose=async(trigger,name)=>{await act(trigger);await expect(page.getByRole('listbox')).toBeVisible();await act(page.getByRole('option',{name,exact:true}));};
   const manager=()=>page.getByRole('dialog',{name:w('Finance people','হিসাবের ব্যক্তি'),exact:true});
   const tx=()=>page.getByRole('dialog',{name:new RegExp(w('New finance transaction','নতুন টাকার লেনদেন'))});
