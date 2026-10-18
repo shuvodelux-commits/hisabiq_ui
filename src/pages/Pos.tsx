@@ -39,7 +39,6 @@ import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview} from '
 import {cartFromPreset} from '../utils/salePresets';
 import {validatePosCheckout,type PosCheckoutIssue} from '../utils/posCheckoutValidation';
 import {customerSettlementAsOf} from '../utils/partySettlement';
-import {businessToday} from '../utils/dateRange';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
