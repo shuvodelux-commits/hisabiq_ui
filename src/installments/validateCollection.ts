@@ -38,7 +38,11 @@ export function validateInstallmentCollection(
    const probe:InstallmentPaymentPreviewEvent={id:'validation-'+input.operationId,
      operationId:input.operationId,agreementId:input.agreement.id,
      date:input.date,amountPaisa:input.amountPaisa,allocations:structuredClone(input.allocations),
-     splits:structuredClone(input.splits),createdAt:new Date().toISOString()};
+     splits:structuredClone(input.splits),createdAt:new Date().toISOString(),
+     // Validation previews the next write after all persisted source events,
+     // including schedule edits made earlier on the same business date.
+     sourceSequence:Math.max(0,...previous.map(e=>e.sourceSequence??0),
+       ...lifecycleEvents.map(e=>e.sourceSequence??0))+1};
    if(lifecycleEvents.length)
      projectInstallmentLifecycle(input.agreement,[...previous,probe],lifecycleEvents,input.date);
    else projectInstallmentBalance(input.agreement,[...previous,probe],input.date);
