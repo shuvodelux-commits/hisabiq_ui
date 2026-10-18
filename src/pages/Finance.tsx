@@ -748,7 +748,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               aria-selected={tab === id}
               title={helper}
               onClick={() => setTab(id)}
-              className={`px-2.5 py-2.5 text-[13px] font-medium ${
+              className={`min-h-11 px-2.5 py-2.5 text-[13px] font-medium ${
                 tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
