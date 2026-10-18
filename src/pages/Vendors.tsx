@@ -1,6 +1,6 @@
 import {useMemo,useState,useSyncExternalStore} from 'react';
 import {useSearchParams} from 'react-router-dom';
-import {Plus} from 'lucide-react';
+import {ArrowLeft,Plus} from 'lucide-react';
 import {toast} from 'sonner';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
@@ -26,6 +26,7 @@ export function Vendors(){
  // Match Parties: the directory stays visible while the selected record opens beside it.
  // On first visit, select the first Vendor without rewriting incoming deep links.
  const party=vendors.find(p=>p.id===view.partyId)??vendors[0]??null;
+ const [showMobileDetail,setShowMobileDetail]=useState(Boolean(params.get('partyId')));
  const [query,setQuery]=useState('');
  const [filter,setFilter]=useState<VendorDirectoryFilter>('all');
  const results=useMemo(()=>filterVendors(vendors,query),[vendors,query]);
@@ -55,7 +56,7 @@ export function Vendors(){
     dispatchPartyPreview({type:'update-party',id:existing.id,patch:{roles:[...existing.roles,'Vendor']},openings});
     toast.success('Vendor role added to existing Party (preview)');
    }else toast.info('Vendor already exists. Opened existing record.');
-   setFilter('all');setQuery('');change(existing.id);
+   setFilter('all');setQuery('');change(existing.id);setShowMobileDetail(true);
    return;
   }
   const old=new Set(all.map(p=>p.id));
@@ -63,7 +64,7 @@ export function Vendors(){
    ...draft,roles:Array.from(new Set([...draft.roles,'Vendor'])),name:draft.name.trim()
   },openings});
   const created=updated.parties.find(p=>!old.has(p.id));
-  if(created){setFilter('all');setQuery('');change(created.id);}
+  if(created){setFilter('all');setQuery('');change(created.id);setShowMobileDetail(true);}
   toast.success('Vendor created in preview');
  };
  const rows=results.map(p=>({p,balance:vendorBalances(snapshot,p.id)}));
@@ -79,6 +80,7 @@ export function Vendors(){
    &&(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
   change(id,filter==='receive'?'given':filter==='needs-price'?'taken':needPrice||dueSource?'taken':'ledger',
    filter==='receive'?dueSource?.id:needPrice?.id??dueSource?.id);
+  setShowMobileDetail(true);
  };
  return <div className="mx-auto max-w-[1440px] min-w-0 space-y-4" role="region" aria-label="Vendor module">
   <PageHeader title="Vendor" titleBn="ভেন্ডর লেনদেন"
@@ -86,14 +88,23 @@ export function Vendors(){
    descriptionBn="পণ্য নেওয়া-দেওয়া, দাম, পাওনা-দেনা ও হিসাব · শুধু প্রিভিউ"
    actions={<Button type="button" size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add Vendor</Button>}/>
   <div className="grid min-w-0 gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
-   <VendorDirectory rows={rows} shown={shown}
-    selectedId={party?.id??''} query={query} onQuery={setQuery}
-    filter={filter} onFilter={setFilter} onSelect={selectVendor}/>
-   {party?<VendorTabs key={party.id} party={party} snapshot={snapshot}
-     purchases={availablePurchases().filter(p=>p.supplierId===party.id)}
-     tab={view.tab} onTabChange={(tab,sourceId)=>change(party.id,tab,sourceId)}
-     sourceId={params.get('sourceId')} onDirtyChange={setDirty}
-     onEditVendor={()=>setEditing(party)}/>:
+   <div className={showMobileDetail?'hidden min-w-0 sm:block':'min-w-0'}>
+    <VendorDirectory rows={rows} shown={shown}
+     selectedId={party?.id??''} query={query} onQuery={setQuery}
+     filter={filter} onFilter={setFilter} onSelect={selectVendor}/>
+   </div>
+   {party?<div className={showMobileDetail?'min-w-0':'hidden min-w-0 sm:block'}>
+     <div className="mb-2 sm:hidden">
+      <Button type="button" size="sm" variant="outline" onClick={()=>setShowMobileDetail(false)}>
+       <ArrowLeft className="size-4"/> All Vendors · সব ভেন্ডর
+      </Button>
+     </div>
+     <VendorTabs key={party.id} party={party} snapshot={snapshot}
+      purchases={availablePurchases().filter(p=>p.supplierId===party.id)}
+      tab={view.tab} onTabChange={(tab,sourceId)=>change(party.id,tab,sourceId)}
+      sourceId={params.get('sourceId')} onDirtyChange={setDirty}
+      onEditVendor={()=>setEditing(party)}/>
+    </div>:
     <section className="flex min-h-[320px] items-center justify-center rounded-xl border border-border bg-card p-8 text-center text-sm text-ink-500">
       No Vendors yet. Choose Add Vendor above to create the first one.
     </section>}
