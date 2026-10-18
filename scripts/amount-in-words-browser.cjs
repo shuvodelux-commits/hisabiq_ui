@@ -44,7 +44,7 @@ async function main(){
     assert.match(await page.locator('[data-amount-words-variant="default"]').first().innerText(),/পনেরো হাজার/);
 
     await page.goto('http://127.0.0.1:4498/#/app/pos');
-    await check(page.locator('[data-amount-words-variant="inverse"]').first(),'inverse');
+    await check(page.locator('[data-amount-words-variant="default"]').first(),'default');
     await page.goto('http://127.0.0.1:4498/#/app/purchases/new');
     await check(page.locator('[data-amount-words-variant="inverse"]').first(),'inverse');
     if(width===390 && theme==='light'){

@@ -214,14 +214,14 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <Row muted label={language === "Bangla" ? (totals.roundingLabel ? "রাউন্ডিং" : word("rounding")) : (totals.roundingLabel || word("rounding"))} value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
       </div>
 
-      <div className="mx-4 rounded-xl bg-inverse px-4 py-3.5 text-white">
+      <div data-pos-payable className="mx-4 rounded-xl border border-border bg-card px-4 py-3.5 text-ink">
         <div className="flex items-baseline justify-between">
-          <span className="text-sm text-[#B7C2CF]">
+          <span className="text-sm text-ink-500">
             {word("totalPayable")} {showHelper && <span className="font-bn">· মোট</span>}
           </span>
         </div>
         <p className="mt-0.5 text-right text-[34px] font-semibold leading-tight tracking-tight">{taka(totals.total)}</p>
-        <AmountInWordsDisplay amount={totals.total} variant="inverse" />
+        <AmountInWordsDisplay amount={totals.total} />
       </div>
 
       {props.installment?.mode==='Installment' && <div className="px-4 pt-4">
