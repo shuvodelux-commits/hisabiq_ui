@@ -1,3 +1,4 @@
+import {rankSearch} from '../../utils/fuzzySearch';
 import {useMemo,useRef,useState,useSyncExternalStore,type Dispatch,type SetStateAction} from 'react';
 import {CheckCircle2,Plus,Search,Trash2,AlertTriangle,ArrowRight} from 'lucide-react';
 import {toast} from 'sonner';
@@ -57,7 +58,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  const payerRole:PartyRole=type==='Customer Receive'?'Customer':'Supplier';
  const parties=state.parties.filter(p=>p.roles.includes(payerRole)&&p.status!=='Inactive');
  const selected=parties.find(p=>p.id===partyId);
- const filtered=parties.filter(p=>[p.name,p.nameBn,p.phone,p.area].some(x=>(x??'').toLowerCase().includes(search.toLowerCase()))).slice(0,7);
+ const filtered=rankSearch(parties,search,p=>[p.name,p.nameBn,p.phone,p.area,p.id]).slice(0,7);
  const date=businessToday();
  const settlement=selected&&(type==='Customer Receive'||type==='Supplier Pay')
   ?type==='Customer Receive'?customerSettlementAsOf(state.sources,selected.id,date)

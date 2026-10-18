@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useEffect,useState} from 'react';
 import {CheckCircle2,Search} from 'lucide-react';
 import {Button} from '../Button';
@@ -19,8 +20,7 @@ export function VendorPaymentsWorkspace({state,sources,sourceId}:Props){
  const [selectedId,setSelectedId]=useState<string|null>(sourceId??null);
  const due=sources.filter(s=>s.unitCostBasePaisa!==null&&
   (sourceOutstanding(state,s.id).monetaryDuePaisa??0)>0);
- const shown=due.filter(s=>(s.reference+' '+s.productId+' '+
-  (products.find(p=>p.id===s.productId)?.name??'')).toLowerCase().includes(search.trim().toLowerCase()));
+ const shown=due.filter(s=>fuzzyMatch(search,[s.reference,s.productId,products.find(p=>p.id===s.productId)?.name]));
  const selected=due.find(s=>s.id===selectedId)??due[0]??null;
  const outstanding=selected?sourceOutstanding(state,selected.id):null;
  const unsettled=sources.filter(s=>s.sourceKind==='sourcing'&&

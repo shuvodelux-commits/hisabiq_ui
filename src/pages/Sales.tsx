@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -729,13 +730,13 @@ export function Sales() {
       if (status !== 'All status' && invoice.status !== status) return false;
       if (method !== 'All payments' && !invoice.payments.some((payment) => payment.method === method) && invoice.method !== method) return false;
       if (!q) return true;
-      return [
+      return fuzzyMatch(q,[
         invoice.invoice,
         invoice.party,
         invoice.phone ?? '',
         invoice.address ?? '',
         ...invoice.lines.map((line) => line.name)
-      ].some((value) => value.toLowerCase().includes(q));
+      ]);
     });
   }, [customerFilter, invoices, method, query, status]);
 

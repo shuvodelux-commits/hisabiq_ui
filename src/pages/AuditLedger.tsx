@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import React, { useMemo, useState } from 'react';
 import { ArrowDownToLine, Eye, MoreHorizontal, Pencil, Printer, ShieldCheck, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -101,7 +102,7 @@ export function AuditLedger() {
       const changedBy = timeline.map((event) => event.user);
       const accounts = accountLabel(source);
       const viewDate = entryDateView === 'created' ? source.createdAt.slice(0, 10) : source.transactionDate;
-      const matchesSearch = !query || [
+      const matchesSearch = fuzzyMatch(query,[
         source.reference,
         source.party,
         source.description,
@@ -110,7 +111,7 @@ export function AuditLedger() {
         source.source,
         accounts,
         String(source.amount)
-      ].filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
+      ]);
       const matchesDate = (!filters.from || viewDate >= filters.from) && (!filters.to || viewDate <= filters.to);
       const matchesSource = filters.source === 'All sources' || source.source === filters.source;
       const matchesParty = filters.party === 'All parties' || source.party === filters.party;

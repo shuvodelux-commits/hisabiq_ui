@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -650,9 +651,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
     const q = query.trim().toLowerCase();
     return transactions.filter((item) => {
       const matchesType = typeFilter === 'All transaction types' || item.type === typeFilter;
-      const matchesQuery = !q || [item.id, item.party, item.type, item.account, item.reference, item.note]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(q));
+      const matchesQuery = fuzzyMatch(q,[item.id,item.party,item.type,item.account,item.reference,item.note]);
       return matchesType && matchesQuery;
     });
   }, [transactions, query, typeFilter]);

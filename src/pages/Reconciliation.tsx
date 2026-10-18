@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {useSearchParams} from 'react-router-dom';
 import {AppDatePicker} from '../components/AppDateRangePicker';
 import {expenseDateIso,formatDay} from '../utils/dateRange';
@@ -193,8 +194,7 @@ export function Reconciliation() {
     return accountStatement.filter((item) => {
       if (statusFilter !== 'All status' && item.status !== statusFilter) return false;
       if (!q) return true;
-      return [item.date, item.description, item.reference ?? '', String(item.amount)]
-        .some((value) => value.toLowerCase().includes(q));
+      return fuzzyMatch(q,[item.date,item.description,item.reference,item.amount]);
     });
   }, [accountStatement, query, statusFilter]);
 

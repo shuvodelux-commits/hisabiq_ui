@@ -33,13 +33,13 @@ export function globalSearchRecords(state:TenantSettings, actorId:string, langua
  const records:SearchResult[]=[...modules.values()];
  if(paths.has('/app/products'))records.push(...availableProducts().map(product=>({
   id:product.id,kind:'Product' as const,label:product.name,
-  helper:[product.nameBn,product.sku].filter(Boolean).join(' · '),
+  helper:[product.nameBn,product.sku].filter(Boolean).join(' · '),identifiers:[product.sku],
   path:'/app/products?q='+encodeURIComponent(product.sku),
   keywords:[product.brand,product.category].filter(Boolean).join(' ')
  })));
  if(paths.has('/app/parties'))records.push(...availableParties().filter(party=>party.roles.length).map(party=>({
   id:party.id,kind:'Party' as const,label:party.name,
-  helper:[party.nameBn,party.phone,...party.roles].filter(Boolean).join(' · '),
+  helper:[party.nameBn,party.phone,...party.roles].filter(Boolean).join(' · '),identifiers:[party.phone],
   path:'/app/parties?id='+encodeURIComponent(party.id)+'&role='+encodeURIComponent(party.roles[0]),
   keywords:party.area
  })));

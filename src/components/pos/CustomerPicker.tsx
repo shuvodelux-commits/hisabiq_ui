@@ -1,3 +1,4 @@
+import {rankSearch} from '../../utils/fuzzySearch';
 import { useState, useSyncExternalStore } from 'react';
 import { ChevronDown, UserRound, X } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
@@ -17,20 +18,17 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
   const [q, setQ] = useState('');
   const { word } = useUiCopy();
   const {parties}=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot,getPartyPreviewSnapshot);
-  const customers = parties.filter((p) => {
-    if (!p.roles.includes('Customer') || p.status==='Inactive') return false;
-    const needle = q.trim().toLowerCase();
-    if (!needle) return true;
-    return [p.name,p.nameBn,p.phone,p.area,p.id].some(value=>value?.toLowerCase().includes(needle));
-  });
+  const customers=rankSearch(parties.filter(p=>p.roles.includes('Customer')&&p.status!=='Inactive'),q,
+    p=>[p.name,p.nameBn,p.phone,p.area,p.id]);
 
   return (
     <FloatingPanel
       label={word("chooseCustomer")}
       align="left"
       width={320}
+      className="block w-full min-w-0"
       trigger={({ toggle, open }) =>
-      <div className="flex items-center gap-1">
+      <div className="flex min-w-0 items-center gap-1">
           <button
           onClick={toggle}
           aria-expanded={open}
@@ -54,7 +52,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
             <ChevronDown className="size-4 text-ink-400" />
           </button>
           {value &&
-        <button onClick={() => onChange(null)} aria-label={word("clearCustomer")} className="flex size-10 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-50 hover:text-ink">
+        <button onClick={() => onChange(null)} aria-label={word("clearCustomer")} className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-50 hover:text-ink">
               <X className="size-4" />
             </button>
         }

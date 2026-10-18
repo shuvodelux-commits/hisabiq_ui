@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useEffect,useId,useMemo,useState} from 'react';
 import {Link} from 'react-router-dom';
 import {Plus,Printer} from 'lucide-react';
@@ -62,7 +63,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const payableSource=taken.find(s=>(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
  const receivableSource=given.find(s=>(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
  const statement=side==='payable'?profile.takenStatement:profile.givenStatement;
- const ledgerRows=statement.rows.filter(e=>(e.reference+' '+e.description).toLowerCase().includes(query.toLowerCase()));
+ const ledgerRows=statement.rows.filter(e=>fuzzyMatch(query,[e.reference,e.description]));
 
  const selectTab=(next:VendorWorkTab,selectedSourceId?:string)=>{
   if(next!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
@@ -182,14 +183,14 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       </div>}
      {profile.activity.filter(item=>item.bucket===(side==='payable'?'vendor-payable':'vendor-receivable')
        &&item.moneyPaisa===null
-       &&(item.reference+' '+item.description).toLowerCase().includes(query.toLowerCase())).length>0&&
+       &&fuzzyMatch(query,[item.reference,item.description])).length>0&&
       <div className="mt-3 rounded-lg border border-border">
        <h4 className="border-b border-border bg-ink-50 px-3 py-2 text-xs font-semibold text-ink">
         Records without a money amount · দাম ঠিক হয়নি / সংশোধন
        </h4>
        {profile.activity.filter(item=>item.bucket===(side==='payable'?'vendor-payable':'vendor-receivable')
          &&item.moneyPaisa===null
-         &&(item.reference+' '+item.description).toLowerCase().includes(query.toLowerCase())).map(item=>
+         &&fuzzyMatch(query,[item.reference,item.description])).map(item=>
         <div key={item.id} className="flex flex-wrap items-center gap-3 border-b border-border/60 px-3 py-2 text-xs">
          <span className="text-ink-500">{item.date}</span>
          <div className="min-w-0 flex-1"><strong className="text-ink">{item.reference}</strong>
