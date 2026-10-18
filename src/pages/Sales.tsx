@@ -42,6 +42,7 @@ import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
+import {positiveSalesAmount, salesPaymentTotal} from '../utils/salesPaymentAmounts';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
 import {planBundleReturn,type BundleReturnSelection} from '../bundles/bundleReturn';
 import { downloadReport, printReport } from '../utils/reportOutput';
@@ -380,12 +381,12 @@ function PaymentDialog({
 }: {
   invoice: SalesInvoice | null;
   onClose: () => void;
-  onSave: (invoice: SalesInvoice, rows: PaymentDraft[]) => void;
+  onSave: (invoice: SalesInvoice, rows: PaymentDraft[]) => boolean;
 }) {
   const {text,showHelper}=useUiCopy();
   const [rows, setRows] = useState<PaymentDraft[]>([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
 
-  const total = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+  const total = salesPaymentTotal(rows);
 
   const close = () => {
     setRows([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
@@ -454,18 +455,16 @@ function PaymentDialog({
 
             <div className="grid grid-cols-3 gap-2 rounded-xl bg-ink-50 p-3 text-center text-[12px]">
               <div><p className="text-ink-400">{text('Invoice due','বিলের বাকি')}</p><p className="mt-0.5 font-semibold text-ink">{taka(invoice.due)}</p></div>
-              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(total)}</p></div>
-              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{taka(Math.max(invoice.due - total, 0))}</p></div>
+              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(Number.isFinite(total) ? total : 0)}</p></div>
+              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{Number.isFinite(total) ? taka(Math.max(invoice.due - total, 0)) : '—'}</p></div>
             </div>
 
+            {!Number.isFinite(total) && <p role="alert" className="text-sm text-danger">{text('Enter a valid amount (up to two decimal places).','সঠিক টাকার পরিমাণ লিখুন (দশমিকের পর সর্বোচ্চ দুই ঘর)।')}</p>}
             <DialogFooter>
               <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
-                disabled={total <= 0 || total > invoice.due}
-                onClick={() => {
-                  onSave(invoice, rows);
-                  close();
-                }}>
+                disabled={!Number.isFinite(total) || total <= 0 || Math.round(total * 100) > Math.round(invoice.due * 100)}
+                onClick={() => { if (onSave(invoice, rows)) close(); }}>
                 {text('Save payment','পেমেন্ট লিখুন')}
               </Button>
             </DialogFooter>
@@ -494,7 +493,7 @@ function CustomerPaymentDialog({
   open: boolean;
   customers: string[];
   onClose: () => void;
-  onSave: (draft: CustomerPaymentDraft) => void;
+  onSave: (draft: CustomerPaymentDraft) => boolean;
 }) {
   const {text,showHelper}=useUiCopy();
   const [customer, setCustomer] = useState(customers[0] ?? '');
@@ -502,7 +501,7 @@ function CustomerPaymentDialog({
   const [method, setMethod] = useState<PaymentMethod>('Cash');
   const [account, setAccount] = useState('');
   const [allocation, setAllocation] = useState<CustomerPaymentDraft['allocation']>('Settle oldest due');
-  const amountNumber = parseFloat(amount) || 0;
+  const amountNumber = positiveSalesAmount(amount);
 
   const close = () => {
     setAmount('');
@@ -547,9 +546,8 @@ function CustomerPaymentDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
-          <Button disabled={!customer || amountNumber <= 0} onClick={() => {
-            onSave({ customer, amount, method, account, allocation });
-            close();
+          <Button disabled={!customer || !Number.isFinite(amountNumber) || amountNumber <= 0} onClick={() => {
+            if (onSave({ customer, amount, method, account, allocation })) close();
           }}>{text('Save payment','পেমেন্ট লিখুন')}</Button>
         </DialogFooter>
       </DialogContent>
@@ -579,7 +577,7 @@ function CreditActionDialog({
   const [account, setAccount] = useState('');
   const selectedInvoice = dueInvoices.find((invoice) => invoice.invoice === invoiceId) ?? dueInvoices[0] ?? null;
   const maxAmount = credit ? Math.min(credit.balance, action?.mode === 'apply' ? selectedInvoice?.due ?? 0 : credit.balance) : 0;
-  const amountNumber = parseFloat(amount) || 0;
+  const amountNumber = positiveSalesAmount(amount);
 
   const close = () => {
     setInvoiceId('');
@@ -640,8 +638,9 @@ function CreditActionDialog({
             <DialogFooter>
               <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
-                disabled={amountNumber <= 0 || amountNumber > maxAmount || (action.mode === 'apply' && !selectedInvoice)}
+                disabled={!Number.isFinite(amountNumber) || amountNumber <= 0 || Math.round(amountNumber * 100) > Math.round(maxAmount * 100) || (action.mode === 'apply' && !selectedInvoice)}
                 onClick={() => {
+                  if (!Number.isFinite(amountNumber) || amountNumber <= 0 || Math.round(amountNumber * 100) > Math.round(maxAmount * 100)) return;
                   if (action.mode === 'apply' && selectedInvoice) onApply(credit, selectedInvoice.id, amountNumber);
                   if (action.mode === 'refund') onRefund(credit, amountNumber, method, account);
                   close();
@@ -785,13 +784,18 @@ export function Sales() {
   };
 
   const savePayment = (invoice: SalesInvoice, rows: PaymentDraft[]) => {
-    const amount = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+    const amount = salesPaymentTotal(rows);
+    const currentInvoice = getSalesPreviewSnapshot().invoices.find(item => item.id === invoice.id);
+    if (!currentInvoice || !Number.isFinite(amount) || amount <= 0 || Math.round(amount * 100) > Math.round(currentInvoice.due * 100)) {
+      toast.error(sl('Enter a valid payment within the remaining due'));
+      return false;
+    }
     const payments: SalePayment[] = rows
-      .filter((row) => (parseFloat(row.amount) || 0) > 0)
+      .filter((row) => positiveSalesAmount(row.amount) > 0)
       .map((row, index) => ({
         id: `${invoice.id}-new-${Date.now()}-${index}`,
         method: row.method,
-        amount: parseFloat(row.amount),
+        amount: positiveSalesAmount(row.amount),
         ...(row.account.trim() ? { account: row.account.trim() } : {})
       }));
     setInvoices((items) => items.map((item) => {
@@ -808,11 +812,15 @@ export function Sales() {
       };
     }));
     toast.success(sl('Payment saved'), { description: `${invoice.invoice} · ${taka(amount)}` });
+    return true;
   };
 
   const receiveCustomerPayment = (draft: CustomerPaymentDraft) => {
-    const amount = parseFloat(draft.amount) || 0;
-    if (amount <= 0) return;
+    const amount = positiveSalesAmount(draft.amount);
+    if (!draft.customer || !Number.isFinite(amount) || amount <= 0) {
+      toast.error(sl('Enter a valid payment amount'));
+      return false;
+    }
 
     const allocations = new Map<string, number>();
     let remainder = amount;
@@ -869,6 +877,7 @@ export function Sales() {
     toast.success(sl('Customer payment saved'), {
       description: remainder > 0 ? `${taka(amount - remainder)} settled · ${taka(remainder)} credit` : `${taka(amount)} settled against due invoices`
     });
+    return true;
   };
 
   const applyCustomerCredit = (credit: CustomerCredit, invoiceId: string, amount: number) => {
