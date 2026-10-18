@@ -59,6 +59,20 @@ async function main(){
   await page.keyboard.press('Escape');
   await pickerDialog.waitFor({state:'hidden'});
 
+  // A half-filled Vendor goods memo must survive canceling a tab switch.
+  await workspace.getByRole('button',{name:/Take Products/}).click();
+  const memo=workspace.getByRole('textbox',{name:'Vendor memo reference'});
+  await memo.fill('DRAFT-KEEP');
+  await workspace.getByRole('tab',{name:/Given/}).click();
+  const discard=page.getByRole('dialog',{name:/Leave without saving/});
+  await discard.waitFor();
+  await discard.getByRole('button',{name:/Keep editing/}).click();
+  assert.equal(await memo.inputValue(),'DRAFT-KEEP','Cancel must preserve in-progress goods');
+  await workspace.getByRole('tab',{name:/Given/}).click();
+  await discard.getByRole('button',{name:/Discard changes/}).click();
+  await discard.waitFor({state:'hidden'});
+  await workspace.getByRole('tab',{name:/Given/}).waitFor();
+
   await page.setViewportSize({width:1440,height:900});
   await directory.getByRole('button',{name:/Needs price/}).click();
   await directory.getByRole('option',{name:/Shapla Transport/}).click();
