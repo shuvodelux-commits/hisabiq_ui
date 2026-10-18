@@ -33,7 +33,7 @@ import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
 import { CashSessionDetailsDialog } from '../components/finance/CashSessionDetailsDialog';
 import { FinancePaymentSplitEditor, type FinancePaymentDraft } from '../components/finance/FinancePaymentSplitEditor';
 import { financeAccountIdentityLabel, transferAccountId, transferAccountLabel } from '../utils/accountTransferIdentity';
-import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid } from '../utils/financePaymentDrafts';
+import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid, financePaymentDraftTotal } from '../utils/financePaymentDrafts';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -147,11 +147,15 @@ function TransactionDialog({
   const isOpening = !!meta.opening;
   const selectedPerson = rolePeople.find((item) => item.id === personId);
   const isBackdated = date < businessToday();
-  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, Number(amount) || 0);
+  // For cash/bank transactions, payment sources are the single source of truth.
+  // Opening balances have no payment sources and retain an editable amount.
+  const transactionAmount = isOpening ? Number(amount) : financePaymentDraftTotal(paymentRows);
+  const displayAmount = Number.isFinite(transactionAmount) ? transactionAmount : 0;
+  const paymentSplits = normalizeFinancePaymentSplits(paymentRows, accounts, displayAmount);
   const paymentTotal = paymentSplits.reduce((sum, item) => sum + item.amount, 0);
 
   const save = () => {
-    const value = Number(amount);
+    const value = transactionAmount;
     if (!Number.isFinite(value) || value <= 0) {
       toast.error(text('Enter an amount','টাকার পরিমাণ লিখুন'));
       return;
@@ -264,15 +268,19 @@ function TransactionDialog({
               accounts={accounts}
               rows={paymentRows}
               onChange={setPaymentRows}
-              totalAmount={Number(amount) || 0}
+              totalAmount={displayAmount}
             />
           )}
 
           <label className="text-[13px] font-medium text-ink">
             {text('Amount','টাকা')}
+            {!isOpening && <span className="ml-1 text-[11px] font-normal text-ink-500">{text('· Auto total','· স্বয়ংক্রিয় মোট')}</span>}
             <div className="relative mt-1.5">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-              <Input value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} className="pl-7 text-right" inputMode="decimal" placeholder="0" />
+              <Input value={isOpening ? amount : (Number.isFinite(transactionAmount) && transactionAmount > 0 ? String(transactionAmount) : '')}
+                onChange={isOpening ? (event) => setAmount(event.target.value.replace(/[^\d.]/g, '')) : undefined}
+                readOnly={!isOpening} className={'pl-7 text-right' + (!isOpening ? ' bg-ink-50/40' : '')}
+                inputMode={isOpening ? 'decimal' : 'none'} placeholder="0" />
             </div>
           </label>
 
@@ -287,10 +295,10 @@ function TransactionDialog({
           </label>
         </div>
 
-        <AmountInWordsDisplay amount={Number(amount)||0} />
+        <AmountInWordsDisplay amount={displayAmount} />
         {reviewFinance && <section role="status" className="space-y-1 rounded-lg border border-border bg-ink-50 p-3 text-sm">
           <p className="font-semibold">{text('Review finance transaction','লেনদেন যাচাই করুন')}</p>
-          <p>{selectedPerson?.name} · {type} · {date}</p><p className="font-semibold">{taka(Number(amount)||0)}</p><AmountInWordsDisplay amount={Number(amount)||0} />
+          <p>{selectedPerson?.name} · {type} · {date}</p><p className="font-semibold">{taka(displayAmount)}</p><AmountInWordsDisplay amount={displayAmount} />
           <p>{text('Payment source total:','মাধ্যমগুলোর মোট:')} {taka(paymentTotal)} · {isOpening?text('Opening balance only','শুধু শুরুর জের'):text('Cash/bank movement','ক্যাশ/ব্যাংকে টাকা আসা-যাওয়া')}</p>
         </section>}
         <DialogFooter>
