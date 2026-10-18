@@ -1,3 +1,4 @@
+import type {InstallmentHistoricalLine} from '../installments/historicalLines.ts';
 import {validateInstallmentCollection,type InstallmentCollectionInput} from '../installments/validateCollection.ts';
 import type {InstallmentPaymentPreviewEvent} from '../installments/collections.ts';
 import {scheduleDifferencePaisa,validateScheduleRows,type InstallmentScheduleRow} from '../installments/schedule.ts';
@@ -8,6 +9,8 @@ export type PreviewInstallmentAgreement={
   createdAt:string;operationId:string;totalPaisa:number;downPaymentPaisa:number;
   schedule:InstallmentScheduleRow[];
   lineSnapshot:{key:string;productId:string;amountPaisa:number}[];
+  /** Optional for legacy preview records; required to value return previews safely. */
+  historicalLines?:readonly InstallmentHistoricalLine[];
   paymentSnapshot:{method:string;account:string;amountPaisa:number}[];
 };
 export type InstallmentPreviewInput=Omit<PreviewInstallmentAgreement,'id'|'createdAt'>;
@@ -49,6 +52,16 @@ export function recordInstallmentPreview(input:InstallmentPreviewInput):PreviewI
   if(input.lineSnapshot.some(l=>!l.productId?.trim()))throw new Error('Invoice line product required.');
   if(total(input.lineSnapshot,'Invoice line')!==input.totalPaisa)
     throw new Error('Invoice line prices must reconcile to the agreed invoice total.');
+  if(input.historicalLines){
+    const source=new Map(input.lineSnapshot.map(row=>[row.key,row]));
+    if(input.historicalLines.length!==source.size||
+       input.historicalLines.some(row=>{
+         const original=source.get(row.lineKey);
+         return !original||original.productId!==row.productId||
+           original.amountPaisa!==row.originalNetPaisa||
+           !Number.isFinite(row.originalBaseQuantity)||row.originalBaseQuantity<=0;
+       }))throw new Error('Historical sale lines must match their original invoice values.');
+  }
   if(input.paymentSnapshot.some(row=>!row.method.trim()||!row.account.trim()||row.method==='Customer Credit'))
     throw new Error('Choose actual money accounts for the initial payment.');
   if(total(input.paymentSnapshot,'Payment split')!==input.downPaymentPaisa)
