@@ -27,9 +27,10 @@ const money=(n:number)=>Math.round(n*100)/100;
 const validMoney=(s:string)=>/^\d+(?:\.\d{1,2})?$/.test(s.trim())&&Number(s)>0;
 const names:Record<Action,string>={'Customer Receive':'Receive payment','Supplier Pay':'Pay supplier',Expense:'Record expense','Bank Transfer':'Transfer money'};
 const banglaActions:Record<Action,string>={'Customer Receive':'ক্রেতার টাকা নিন','Supplier Pay':'সরবরাহকারীকে টাকা দিন',Expense:'খরচ লিখুন','Bank Transfer':'টাকা স্থানান্তর করুন'};
-export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
+export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTransaction}:{
  accounts:FinanceAccount[];setAccounts:Dispatch<SetStateAction<FinanceAccount[]>>;
  onTransfer:(transfer:{fromAccountId:string;toAccountId:string;amount:number;date:string;reference?:string})=>void;
+ onNewFinanceTransaction:()=>void;
 }){
  const {text,word}=useUiCopy();
  const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
@@ -185,13 +186,18 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer}:{
  };
  const highlight=(value:number)=>value===0?'text-ink':payerRole==='Supplier'?(value<0?'text-danger':'text-success'):(value>0?'text-danger':'text-success');
  return <section className="space-y-4 p-3 sm:p-4">
-  <div className="grid grid-cols-2 gap-2 lg:grid-cols-4" role="group" aria-label="Counter transaction type">
+  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" role="group" aria-label="Counter actions">
    {kinds.map(item=><button type="button" key={item} aria-pressed={type===item} onClick={()=>changeType(item)}
     className={'min-h-14 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
      (type===item?'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground':'border-border bg-card text-ink hover:bg-ink-50')}>
     <span className="block text-[13px] font-semibold">{text(item,banglaActions[item])}</span>
     <span className="text-[11px] text-ink-500">{item==='Customer Receive'?word('customerMoney'):item==='Supplier Pay'?word('supplierPayment'):item==='Expense'?word('quickExpense'):word('betweenAccounts')}</span>
    </button>)}
+   <button type="button" aria-haspopup="dialog" onClick={onNewFinanceTransaction}
+    className="col-span-2 min-h-14 rounded-xl border border-border bg-card px-3 py-2 text-left text-ink transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring sm:col-span-1">
+    <span className="block text-[13px] font-semibold">{text('Finance transaction','মালিক ও ঋণের টাকা')}</span>
+    <span className="text-[11px] text-ink-500">{text('Owner · Lender · Borrower','মালিক · ঋণদাতা · ঋণগ্রহীতা')}</span>
+   </button>
   </div>
   <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
    <div className="min-w-0 space-y-4">
