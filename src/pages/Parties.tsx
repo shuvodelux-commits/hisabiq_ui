@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Upload } from 'lucide-react';
@@ -106,7 +107,7 @@ export function Parties() {
     ? computePartyBalanceSummary(state,party.id,relationship) : null;
   const searched=statement
     ? statement.rows.filter(row=>(kind==='All types'||row.source===kind)
-      &&[row.reference,row.description,row.source].some(value=>String(value??'').toLowerCase().includes(ledgerQuery.toLowerCase().trim())))
+      &&fuzzyMatch(ledgerQuery,[row.reference,row.description,row.source]))
     : [];
   const filteredStatement=statement?{...statement,rows:searched}:null;
   const visibleRows=filteredStatement

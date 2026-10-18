@@ -20,6 +20,11 @@ async function main(){
   const rejectedReview=async(d,review)=>{await act(review);await expect(d.getByRole('status'),'invalid draft cannot enter confirmation').toHaveCount(0);await expect(d).toBeVisible();};
   await check('new-finance',async()=>{
    await go();await act(button(page,'New transaction','নতুন লেনদেন'));const d=page.getByRole('dialog',{name:new RegExp(word('New finance transaction','নতুন টাকার লেনদেন'))});const input=amount(d);const review=button(d,'Review transaction','লেনদেন যাচাই করুন');
+   const currentBangladeshDay=await page.evaluate(()=>new Date(Date.now()+6*60*60*1000).toISOString().slice(0,10));
+   await expect(d.locator('input[type="date"]')).toHaveValue(currentBangladeshDay);
+   await d.locator('input[type="date"]').fill('2026-10-05');
+   await expect(d.getByText(word('Reason for backdating','আগের তারিখ দেওয়ার কারণ'))).toBeVisible();
+   await d.locator('input[type="date"]').fill(currentBangladeshDay);
    for(const invalid of ['1.2.3','9'.repeat(400)]){await input.fill(invalid);await rejectedReview(d,review);}
    await input.fill('123');await act(review);
    await expect(d.getByRole('status')).toContainText('123');

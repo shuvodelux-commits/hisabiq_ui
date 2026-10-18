@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { AppSelect } from '../components/AppSelect';
 import {
   useEffect,
@@ -469,9 +470,7 @@ function SettingsPageContent() {
   );
   const categoryResults = (Object.keys(sectionNames) as SettingsSection[])
     .filter((key) =>
-      `${sectionNames[key].label} ${sectionNames[key].bn} ${sectionNames[key].description}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
+      fuzzyMatch(query,[sectionNames[key].label,sectionNames[key].bn,sectionNames[key].description]),
     )
     .map((key) => ({
       section: key,
@@ -489,9 +488,7 @@ function SettingsPageContent() {
         .flatMap(([key, fields]) =>
           fields!
             .filter((f) =>
-              `${f.label} ${f.bn} ${f.hint} ${sectionNames[key as SettingsSection].label}`
-                .toLowerCase()
-                .includes(query.toLowerCase()),
+              fuzzyMatch(query,[f.label,f.bn,f.hint,sectionNames[key as SettingsSection].label]),
             )
             .map((field) => ({ section: key as SettingsSection, field })),
         )
@@ -741,12 +738,12 @@ function SettingsPageContent() {
                       label="Search matching"
                       bn="খোঁজার ধরন"
                       language={personal.language}
-                      hint="Default matches word beginnings. Advanced also finds partial words and close spellings. Results appear while typing; Enter opens the first result."
+                      hint="Both modes tolerate spelling mistakes. Default requires all words; Advanced also finds partial words and broader text matches. Numeric references stay exact. Enter opens the first result."
                     >
                       {(id) => (
                         <AppSelect id={id} label="Search matching" value={personalDraft.searchMode}
                           onChange={(searchMode) => setPersonalDraft({ ...personalDraft, searchMode: searchMode as PersonalSettings['searchMode'] })}
-                          options={[{ value: 'Default', label: 'Default — normal search' }, { value: 'Advanced', label: 'Advanced — fuzzy search' }]} />
+                          options={[{ value: 'Default', label: 'Default — focused fuzzy search' }, { value: 'Advanced', label: 'Advanced — broader fuzzy search' }]} />
                       )}
                     </SettingsField>
                   </SettingCard>
