@@ -39,12 +39,18 @@ async function main(){
    assert.ok(overflow<=2,`Vendor page must not overflow the ${width}px viewport; overflow=${overflow}px`);
    assert.equal(await tabs.evaluate(el=>getComputedStyle(el).display),'flex',
     'Tablist stays a scrollable horizontal Party-style strip at '+width);
-   await workspace.getByRole('button',{name:'Explain Vendor receivable'}).focus();
-   const tip=workspace.getByRole('tooltip').filter({hasText:/Money the vendor still owes/});
-   const bounds=await tip.boundingBox();
-   assert.ok(bounds,'Balance explanation must be available from keyboard and touch focus');
-   assert.ok(bounds.x>=-2&&bounds.x+bounds.width<=width+2,
-    'Balance tooltip must stay on-screen at '+width+': '+JSON.stringify(bounds));
+   for(const [trigger,copy] of [
+    ['Explain Vendor payable',/Goods taken from this vendor/],
+    ['Explain Vendor receivable',/Money the vendor still owes/],
+    ['Explain purchase due',/Unpaid regular purchase invoices/]
+   ]){
+    await workspace.getByRole('button',{name:trigger}).focus();
+    const tip=workspace.getByRole('tooltip').filter({hasText:copy});
+    const bounds=await tip.boundingBox();
+    assert.ok(bounds,trigger+' explanation must be available from keyboard and touch focus');
+    assert.ok(bounds.x>=-2&&bounds.x+bounds.width<=width+2,
+     trigger+' tooltip must stay on-screen at '+width+': '+JSON.stringify(bounds));
+   }
    assert.ok(left&&right,'Both directory and selected detail must be rendered');
    if(width>=1024){
     assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
