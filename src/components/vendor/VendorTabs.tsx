@@ -6,6 +6,8 @@ import {Button} from '../Button';
 import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
 import {PartyAvatar} from '../PartyAvatar';
+import {Tooltip} from '../Tooltip';
+import {useUiCopy} from '../../i18n/useUiCopy';
 import {AppDateRangePicker} from '../AppDateRangePicker';
 import {VendorCorrectionDialog} from '../parties/VendorCorrectionDialog';
 import {VendorStatementDialog} from '../parties/VendorStatementDialog';
@@ -31,9 +33,17 @@ const labels:Record<VendorWorkTab,{english:string;bn:string}>={
  purchases:{english:'Purchases',bn:'ক্রয়'},
  payments:{english:'Payments',bn:'পেমেন্ট'}
 };
+const tabHints:Record<VendorWorkTab,{english:string;bn:string}>={
+ ledger:{english:'View goods-related money in and out separately.',bn:'পণ্যের দেওয়া ও নেওয়ার হিসাব আলাদা দেখুন।'},
+ taken:{english:'Goods received from this vendor, including price and return details.',bn:'ভেন্ডরের কাছ থেকে নেওয়া পণ্য, দাম ও ফেরতের হিসাব।'},
+ given:{english:'Goods handed to the vendor and money still to receive.',bn:'ভেন্ডরকে দেওয়া পণ্য ও পাওনার হিসাব।'},
+ purchases:{english:'Regular purchase invoices from this vendor.',bn:'এই ভেন্ডরের সাধারণ ক্রয়ের বিল।'},
+ payments:{english:'Money paid to or received from this vendor for goods memos.',bn:'পণ্যের মেমোর টাকা দেওয়া ও নেওয়ার হিসাব।'}
+};
 const money=(v:number)=>taka(v/100);
 export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,onDirtyChange,onEditVendor}:Props){
  const base=useId().replace(/:/g,'');
+ const {text,showHelper}=useUiCopy();
  const [range,setRange]=useState<IsoRange>({from:'',to:''});
  const [query,setQuery]=useState('');
  const [side,setSide]=useState<VendorSide>('payable');
@@ -102,51 +112,68 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
    <div className="grid shrink-0 grid-cols-2 gap-2" aria-label="Vendor balances, kept separate">
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
-     <p className="text-[11px] text-ink-500">You owe · দেনা</p>
+     <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('You owe','দিতে হবে')}{showHelper&&' · দেনা'}
+      <Tooltip label="Explain Vendor payable" align="start" triggerClassName="size-7"
+       content={<span className="block text-sm leading-5">Goods taken from this vendor that still need payment. Regular purchase bills are separate.<span className="mt-1 block font-bn">ভেন্ডর থেকে নেওয়া পণ্যের বাকি টাকা। সাধারণ ক্রয়ের বিল আলাদা।</span></span>}/>
+     </p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(payable>0?'text-danger':'text-ink')}>{money(payable)}</p>
     </div>
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
-     <p className="text-[11px] text-ink-500">Vendor owes · পাওনা</p>
+     <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('Vendor owes','পাওনা')}{showHelper&&' · পাওনা'}
+      <Tooltip label="Explain Vendor receivable" align="center" triggerClassName="size-7"
+       content={<span className="block text-sm leading-5">Money the vendor still owes for goods you gave them.<span className="mt-1 block font-bn">ভেন্ডরকে দেওয়া পণ্যের জন্য যে টাকা এখনো পাবেন।</span></span>}/>
+     </p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(receivable>0?'text-teal-700 dark:text-teal-300':'text-ink')}>{money(receivable)}</p>
     </div>
    </div>
   </div>
-  <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2" role="group" aria-label="Vendor quick actions">
-   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>Give Products</Button>
+  <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5" role="group" aria-label="Vendor quick actions">
+   <Button type="button" size="sm" title={text('Record products received from this vendor','এই ভেন্ডর থেকে নেওয়া পণ্য লিখুন')} onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products</Button>
+   <Button type="button" size="sm" variant="outline" title={text('Record products you gave to this vendor','ভেন্ডরকে দেওয়া পণ্য লিখুন')} onClick={()=>openGoods('given')}>Give Products</Button>
    {unpricedMemos>0&&<Button type="button" size="sm" variant="outline"
+    title={text('Set the agreed price for previously unpriced goods','আগে নেওয়া পণ্যের দাম লিখুন')}
     onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>}
    {payable>0&&<Button type="button" size="sm" variant="outline"
+    title={text('Pay for taken goods or return products to settle','নেওয়া পণ্যের টাকা দিন বা পণ্য ফেরত দিন')}
     onClick={()=>selectTab(payableSource?'taken':'ledger',payableSource?.id)}>Pay / return</Button>}
    {receivable>0&&<Button type="button" size="sm" variant="outline"
+    title={text('Receive money for goods handed to this vendor','ভেন্ডরকে দেওয়া পণ্যের টাকা নিন')}
     onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>Receive settlement</Button>}
-   <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>New purchase</Button>
+   <Button type="button" size="sm" variant="outline" title={text('Open a regular purchase invoice, separate from goods memos','নেওয়া পণ্যের মেমো থেকে আলাদা সাধারণ ক্রয়ের বিল')} onClick={()=>selectTab('purchases')}>New purchase</Button>
    <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print Ledger</Button>
    <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>Edit Vendor · তথ্য বদলান</Button>
   </div>
   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
    {unpricedMemos>0
-    ?<p className="text-warning"><strong>Price not set ({unpricedMemos})</strong> · Unpriced goods are not counted as a money due.</p>
+    ?<p className="flex flex-wrap items-center gap-1 text-warning"><strong>Price not set ({unpricedMemos})</strong> · Unpriced goods are not counted as money due.
+      <Tooltip label="Explain unpriced Vendor memos" triggerClassName="size-7"
+       content={<span className="block text-sm leading-5">Set the price in Taken to include these goods in the amount due.<span className="mt-1 block font-bn">দাম না লেখা পণ্য বাকি টাকার মধ্যে ধরা হয়নি। নেওয়া পণ্যে গিয়ে দাম লিখুন।</span></span>}/>
+     </p>
     :<p className="text-ink-500">{payable>0?'Pay or return taken products to settle.':'No unpriced goods.'}</p>}
-   <button type="button" onClick={()=>selectTab('purchases')}
-    className="text-left text-ink-600 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
-    Purchase due · ক্রয়ের বাকি <strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
-   </button>
-  </div>
-  <div className="overflow-x-auto border-b border-border scrollbar-thin">
-   <div className="grid grid-cols-5 gap-0 px-1 sm:flex sm:min-w-max sm:gap-2 sm:px-3" role="tablist" aria-label="Vendor work tabs">
-    {vendorWorkTabs.map((key,index)=><button type="button" key={key}
-     id={base+'-'+key} role="tab" aria-selected={tab===key} aria-controls={base+'-panel'} tabIndex={tab===key?0:-1}
-     className={'erp-tab min-w-0 px-1 py-3 text-xs sm:px-3 sm:text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active border-b-2 border-teal-600 text-ink':'text-ink-500')}
-     onClick={()=>selectTab(key)} onKeyDown={e=>{
-      if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
-      e.preventDefault();
-      const next=e.key==='Home'?0:e.key==='End'?vendorWorkTabs.length-1:
-       (index+(e.key==='ArrowRight'?1:-1)+vendorWorkTabs.length)%vendorWorkTabs.length;
-      selectTab(vendorWorkTabs[next]);
-      e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
-     }}>{labels[key].english} <span className="block sm:inline font-bn text-[10px] sm:text-[11px] text-ink-400">{labels[key].bn}</span></button>)}
+   <div className="flex items-center gap-1">
+    <button type="button" onClick={()=>selectTab('purchases')}
+     className="text-left text-ink-600 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
+     Purchase due · ক্রয়ের বাকি <strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
+    </button>
+    <Tooltip label="Explain purchase due" align="end" triggerClassName="size-7"
+     content={<span className="block text-sm leading-5">Unpaid regular purchase invoices. These are not included in the goods-taken balance above.<span className="mt-1 block font-bn">সাধারণ ক্রয়ের বাকি বিল। উপরের নেওয়া পণ্যের দেনার সঙ্গে এটি যোগ করা হয়নি।</span></span>}/>
    </div>
+  </div>
+  <div className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label="Vendor work tabs">
+   {vendorWorkTabs.map((key,index)=><button type="button" key={key}
+    id={base+'-'+key} role="tab" aria-selected={tab===key} aria-controls={base+'-panel'} tabIndex={tab===key?0:-1}
+    title={text(tabHints[key].english,tabHints[key].bn)}
+    className={'flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active text-ink':'text-ink-500 hover:text-ink')}
+    onClick={()=>selectTab(key)} onKeyDown={e=>{
+     if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+     e.preventDefault();
+     const next=e.key==='Home'?0:e.key==='End'?vendorWorkTabs.length-1:
+      (index+(e.key==='ArrowRight'?1:-1)+vendorWorkTabs.length)%vendorWorkTabs.length;
+     selectTab(vendorWorkTabs[next]);
+     e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+    }}>{text(labels[key].english,labels[key].bn)}
+     {showHelper&&<span className="font-bn text-[11px] text-ink-500">{labels[key].bn}</span>}
+    </button>)}
   </div>
   <section id={base+'-panel'} role="tabpanel" aria-labelledby={base+'-'+tab} className="min-w-0">
     <div className="p-3 sm:p-4">
