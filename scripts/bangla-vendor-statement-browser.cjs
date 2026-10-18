@@ -20,7 +20,7 @@ async function main(){
     await page.goto('http://127.0.0.1:4386/#/app/vendors?partyId=v1&tab=taken');
     const vendor=page.getByRole('region',{name:'Selected Vendor work'});
     await vendor.waitFor();
-    await vendor.getByRole('tab',{name:/Ledger/}).click();
+    await vendor.getByRole('tab',{name:bn?/হিসাব/:/Ledger/}).click();
     await vendor.getByRole('button',{name:'Print Ledger'}).click();
     const dialog=page.getByRole('dialog',{name:bn?'ভেন্ডরের হিসাবের বিবরণ':'Vendor ledger statement'});
     await dialog.waitFor();
