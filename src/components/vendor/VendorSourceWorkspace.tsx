@@ -65,7 +65,7 @@ function VendorPriceForm({source}: {source:VendorSource}){
       </div>
       <div className="min-w-0 space-y-1">
         <label htmlFor={priceInputId} className="block text-xs font-medium text-ink-600">Cost per {unit} · মূল্য</label>
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-start">
           <Input id={priceInputId} className="h-9 w-full" inputMode="decimal"
             aria-label={'Agreed cost per '+unit} value={price} onChange={e=>setPrice(e.target.value)} placeholder="৳0.00"/>
         </div>
