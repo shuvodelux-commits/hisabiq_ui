@@ -246,16 +246,16 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
 
         <aside data-purchase-checkout className="min-w-0 space-y-3">
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-      <section className="border-b border-border p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
+      <section className="border-b border-border p-3 sm:p-4">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <div><p className="text-[13px] font-semibold text-ink">Purchase details</p><p className="font-bn text-[11px] text-ink-400">সরবরাহকারী ও ক্রয়ের তথ্য</p></div>
           <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-x-3 gap-y-2 sm:grid-cols-2">
           <div className="block min-w-0 text-[12px] font-medium text-ink sm:col-span-2">
             Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
             <div className="mt-1">
-              {(lockedSupplierId||initialPurchase)?<div className="rounded-md border border-border bg-ink-50 px-3 py-2 text-sm text-ink">
+              {(lockedSupplierId||initialPurchase)?<div className="flex min-h-9 items-center rounded-md border border-border bg-ink-50 px-3 py-1.5 text-sm text-ink">
                 {supplier?.name??'Selected supplier'} <span className="text-xs text-ink-500">· Original supplier</span>
                </div>:<QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
                 onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
@@ -263,14 +263,14 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             </div>
           </div>
           <label className="block text-[12px] font-medium text-ink">Purchase date <span className="text-danger">*</span>
-            <Input className="mt-1" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            <Input className="mt-1 h-9" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
           </label>
           <label className="block text-[12px] font-medium text-ink">Supplier memo no. <span className="font-normal text-ink-400">· optional</span>
-            <Input className="mt-1" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder="Supplier bill / challan" />
+            <Input className="mt-1 h-9" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder="Supplier bill / challan" />
           </label>
           {date && date < todayISO() && (
             <label className="block text-[12px] font-medium text-ink sm:col-span-2">Backdate reason <span className="text-danger">*</span>
-              <Input className="mt-1" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder="Reason for entering an earlier purchase" />
+              <Input className="mt-1 h-9" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder="Reason for entering an earlier purchase" />
             </label>
           )}
         </div>
