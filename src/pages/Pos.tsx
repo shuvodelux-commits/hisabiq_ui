@@ -974,7 +974,7 @@ export function Pos() {
             {label:'Installments',value:String(installmentRows.length)},
             {label:'First due',value:installmentRows[0]?.dueDate??'—'},
             {label:'Future scheduled',value:taka(installmentRemainingPaisa/100)}
-          ]:[])
+          ]:[]),
           ...cart.payments.filter(row=>Number(row.amount)>0).map((row,index)=>({label:text(`Payment source ${index+1}`,`পেমেন্টের মাধ্যম ${index+1}`),value:`${text(row.method,row.method==='Cash'?'ক্যাশ':row.method==='Bank'?'ব্যাংক':row.method==='Customer Credit'?'ক্রেতার অগ্রিম জমা':row.method)} · ${row.account} · ${taka(Number(row.amount))}`})),
           ...(cart.totals.change>0?[{label:text('Change returned','ফেরত টাকা'),value:taka(cart.totals.change)}]:[])
         ]}/>
