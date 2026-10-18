@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 const component=readFileSync(new URL('../src/components/pos/InstallmentAgreementPreview.tsx',import.meta.url),'utf8');
 const pos=readFileSync(new URL('../src/pages/Pos.tsx',import.meta.url),'utf8');
 test('agreement details display source-derived paid, due, overdue and receipt history',()=>{
- for(const term of ['projectInstallmentBalance','Receipt history','row.paidPaisa','row.outstandingPaisa','receipts','onReceive','Receive payment'])
+ for(const term of ['projectInstallmentLifecycle','Receipt history','row.paidPaisa','row.outstandingPaisa','receipts','onReceive','Receive payment'])
    assert.ok(component.includes(term),term);
  assert.ok(pos.includes('InstallmentReceivePaymentDialog'));
  assert.ok(pos.includes('listInstallmentReceipts'));
