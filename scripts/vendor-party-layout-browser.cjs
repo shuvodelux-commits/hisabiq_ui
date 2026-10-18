@@ -27,6 +27,8 @@ async function main(){
    await page.setViewportSize({width,height:900});
    const left=await directory.boundingBox();
    const right=await workspace.boundingBox();
+   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
+   assert.ok(overflow<=2,`Vendor page must not overflow the ${width}px viewport; overflow=${overflow}px`);
    assert.ok(left&&right,'Both directory and selected detail must be rendered');
    if(width>=1024){
     assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
