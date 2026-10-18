@@ -1,4 +1,4 @@
-import {Search} from 'lucide-react';
+import {Search,X} from 'lucide-react';
 import {Input} from '../Input';
 import {PartyAvatar} from '../PartyAvatar';
 import {vendorBalances} from '../../vendor/vendorModel';
@@ -24,10 +24,10 @@ export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFi
   const payCount=rows.filter(({balance})=>balance.knownPayablePaisa>0).length;
   const receiveCount=rows.filter(({balance})=>balance.knownReceivablePaisa>0).length;
   const filters:{id:VendorDirectoryFilter;label:string;count:number}[]=[
-    {id:'all',label:'All',count:rows.length},
-    {id:'needs-price',label:'Needs price',count:priceCount},
-    {id:'pay',label:'To pay',count:payCount},
-    {id:'receive',label:'To receive',count:receiveCount}
+    {id:'all',label:'All · সব',count:rows.length},
+    {id:'needs-price',label:'Needs price · দাম বাকি',count:priceCount},
+    {id:'pay',label:'To pay · দেব',count:payCount},
+    {id:'receive',label:'To receive · পাব',count:receiveCount}
   ];
   return <section className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card"
     role="region" aria-label="Vendor directory">
@@ -35,12 +35,16 @@ export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFi
       <div className="relative">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true"/>
         <Input aria-label="Search Vendors" value={query} onChange={e=>onQuery(e.target.value)}
-          placeholder="Search name or phone…" className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm"/>
+          placeholder="Name or phone · নাম / ফোন" className="h-10 w-full rounded-md border border-border pl-8 pr-10 text-sm"/>
+        {query&&<button type="button" aria-label="Clear vendor search" title="Clear search · মুছুন"
+         onClick={()=>onQuery('')} className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-ink-500 hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-teal-500">
+          <X className="size-4"/>
+         </button>}
       </div>
       <div className="flex flex-wrap gap-1" role="group" aria-label="Vendor filter">
         {filters.map(item=><button key={item.id} type="button" aria-pressed={filter===item.id}
           onClick={()=>onFilter(item.id)}
-          className={'min-h-9 rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 '
+          className={'min-h-10 rounded-md px-2.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 '
           +(filter===item.id?'bg-inverse text-white':'bg-ink-50 text-ink-600 hover:bg-ink-100')}>
           {item.label} <span className="text-[11px] opacity-75">{item.count}</span>
         </button>)}
@@ -56,25 +60,25 @@ export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFi
         const active=p.id===selectedId;
         return <li role="presentation" key={p.id}>
           <button type="button" role="option" aria-selected={active} onClick={()=>onSelect(p.id)}
-            className={'flex w-full min-w-0 items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '
+            className={'flex min-h-14 w-full min-w-0 items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '
               +(active?'border-teal-600 bg-teal-50/60 dark:bg-teal-900/20':'border-transparent hover:bg-ink-50')}>
             <PartyAvatar name={p.name} color={p.avatarColor} image={p.image} size={34}/>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-medium text-ink">{p.name}</span>
-              <span className="block truncate text-[11px] text-ink-400">{p.phone} · {p.lastActivity}</span>
+              <span className="block truncate text-sm font-semibold text-ink">{p.name}</span>
+              <span className="block truncate text-xs text-ink-500">{p.phone} · {p.lastActivity}</span>
             </span>
             <span className="min-w-0 max-w-[46%] shrink-0 text-right">
-              {balance.unpricedSourceCount>0&&<span className="block text-[11px] font-medium text-warning">Price pending ({balance.unpricedSourceCount})</span>}
-              {balance.knownPayablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-danger">{taka(balance.knownPayablePaisa/100)} <span className="text-[10px] font-normal">Pay</span></span>}
-              {balance.knownReceivablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-teal-700 dark:text-teal-300">{taka(balance.knownReceivablePaisa/100)} <span className="text-[10px] font-normal">Receive</span></span>}
+              {balance.unpricedSourceCount>0&&<span className="block text-[11px] font-medium text-warning">Price pending · দাম বাকি ({balance.unpricedSourceCount})</span>}
+              {balance.knownPayablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-danger">{taka(balance.knownPayablePaisa/100)} <span className="text-[11px] font-normal">দেব</span></span>}
+              {balance.knownReceivablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-teal-700 dark:text-teal-300">{taka(balance.knownReceivablePaisa/100)} <span className="text-[11px] font-normal">পাব</span></span>}
               {!balance.unpricedSourceCount&&!balance.knownPayablePaisa&&!balance.knownReceivablePaisa&&
-                <><span className="block text-xs font-semibold text-ink-400">৳0</span><span className="block text-[10px] text-ink-400">Settled</span></>}
+                <><span className="block text-xs font-semibold text-ink-400">৳0</span><span className="block text-[11px] text-ink-500">Settled · মিটেছে</span></>}
             </span>
           </button>
         </li>;
       })}
       {shown.length===0&&<li className="px-3 py-10 text-center text-sm text-ink-500">
-        {query?'No Vendors match your search.':filter==='needs-price'?'No Vendors need a price right now.':filter==='all'?'No Vendors yet. Add one above.':'No Vendors have this type of due.'}
+        {query?'No matching vendor · এই নামে ভেন্ডর নেই':filter==='needs-price'?'No price pending · কারও দাম বাকি নেই':filter==='all'?'No vendors yet · নতুন ভেন্ডর যোগ করুন':'No due in this group · এই দলে বাকি নেই'}
       </li>}
     </ul>
   </section>;
