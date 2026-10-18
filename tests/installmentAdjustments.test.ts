@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test,beforeEach} from 'node:test';
-import {recordInstallmentPreview,recordInstallmentReceiptPreview,resetInstallmentPreviewsForTest,listInstallmentLifecycleEvents} from '../src/data/installmentPreviewStore.ts';
+import {recordInstallmentPreview,recordInstallmentReceiptPreview,resetInstallmentPreviewsForTest,listInstallmentLifecycleEvents,listInstallmentReceipts} from '../src/data/installmentPreviewStore.ts';
 import {generateInstallmentSchedule} from '../src/installments/schedule.ts';
 import {previewInstallmentReturn,recordInstallmentReturnPreview,recordInstallmentSettlementPreview} from '../src/installments/adjustments.ts';
 import {projectInstallmentLifecycle} from '../src/installments/lifecycle.ts';
@@ -60,9 +60,9 @@ test('paid receipts and larger return leave explicit surplus, not negative due o
   splits:[{method:'Cash',accountId:'acc-cash',amountPaisa:2500000}]});
  const event=recordInstallmentReturnPreview(request(a.id,1,'return-a',0));
  assert.equal(event.amountPaisa,1100000);
- const b=projectInstallmentLifecycle(a,[],listInstallmentLifecycleEvents(a.id),'2026-10-18');
- assert.equal(b.surplusPaisa,0);
- // Receipt source is deliberately separate; replay with the original receipt as well.
+ const b=projectInstallmentLifecycle(a,listInstallmentReceipts(a.id),listInstallmentLifecycleEvents(a.id),'2026-10-18');
+ assert.equal(b.totalOutstandingPaisa,0);
+ assert.equal(b.surplusPaisa,300000);
 });
 test('settlement cannot create an unsupported negative due or unreasoned credit',()=>{
  const a=agreement(3000000,3);
