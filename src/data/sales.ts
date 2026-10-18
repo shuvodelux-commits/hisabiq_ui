@@ -1,4 +1,5 @@
 import type { CustomerCredit, PaymentSplit, Sale, SalePresetLine, SalesInvoice, SalesReturn, SaleTemplate } from '../types/erp';
+import type {InstallmentScheduleRow} from '../installments/schedule';
 
 export const salesInvoices: SalesInvoice[] = [
   {
@@ -24,8 +25,8 @@ export const salesInvoices: SalesInvoice[] = [
     salesperson: 'Anis',
     note: 'Payment promised before 10 Oct.',
     lines: [
-      { id: 'sl241-1', productId: 'p3', name: 'MS Angle 1.5" × 1.5"', quantity: '220', unit: 'Kg', returnableQuantity: 220, soldBaseQuantity: 220, price: 112, total: 24640 },
-      { id: 'sl241-2', productId: 'p9', name: 'Teflon Tape', quantity: '3 Box 6 Pcs', unit: 'Pcs', returnableQuantity: 42, soldBaseQuantity: 42, price: 25, total: 910 }
+      { id: 'sl241-1', productId: 'p3', name: 'MS Angle 1.5" × 1.5"', quantity: '220', unit: 'Kg', returnableQuantity: 220, price: 112, total: 24640 },
+      { id: 'sl241-2', productId: 'p9', name: 'Teflon Tape', quantity: '3 Box 6 Pcs', unit: 'Pcs', returnableQuantity: 42, price: 25, total: 910 }
     ]
   },
   {
@@ -46,9 +47,9 @@ export const salesInvoices: SalesInvoice[] = [
     payments: [{ id: 'pay240-1', method: 'Cash', amount: 1840 }],
     salesperson: 'Anis',
     lines: [
-      { id: 'sl240-1', productId: 'p7', name: 'Gate Valve ¾"', quantity: '2', unit: 'Pcs', returnableQuantity: 2, soldBaseQuantity: 2, price: 650, total: 1300 },
-      { id: 'sl240-2', productId: 'p10', name: 'Paint Brush 2"', quantity: '4', unit: 'Pcs', returnableQuantity: 4, soldBaseQuantity: 4, price: 60, total: 240 },
-      { id: 'sl240-3', productId: 'p9', name: 'Teflon Tape', quantity: '12', unit: 'Pcs', returnableQuantity: 12, soldBaseQuantity: 12, price: 25, total: 300 }
+      { id: 'sl240-1', productId: 'p7', name: 'Gate Valve ¾"', quantity: '2', unit: 'Pcs', returnableQuantity: 2, price: 650, total: 1300 },
+      { id: 'sl240-2', productId: 'p10', name: 'Paint Brush 2"', quantity: '4', unit: 'Pcs', returnableQuantity: 4, price: 60, total: 240 },
+      { id: 'sl240-3', productId: 'p9', name: 'Teflon Tape', quantity: '12', unit: 'Pcs', returnableQuantity: 12, price: 25, total: 300 }
     ]
   },
   {
@@ -75,11 +76,11 @@ export const salesInvoices: SalesInvoice[] = [
     ],
     salesperson: 'Rafiq',
     lines: [
-      { id: 'sl239-1', productId: 'p2', name: 'LED Bulb 12W', quantity: '3 Box 2 Pcs', unit: 'Pcs', returnableQuantity: 32, soldBaseQuantity: 32, price: 165, total: 5280 },
-      { id: 'sl239-2', productId: 'p4', name: 'Electric Wire 1.5 rm', quantity: '1', unit: 'Coil', returnableQuantity: 1, soldBaseQuantity: 1, price: 2850, total: 2850 },
-      { id: 'sl239-3', productId: 'p10', name: 'Paint Brush 2"', quantity: '1 Dozen', unit: 'Pcs', returnableQuantity: 12, soldBaseQuantity: 12, price: 55, total: 660 },
-      { id: 'sl239-4', productId: 'p9', name: 'Teflon Tape', quantity: '1 Box', unit: 'Pcs', returnableQuantity: 12, soldBaseQuantity: 12, price: 23, total: 276 },
-      { id: 'sl239-5', productId: 'p11', name: 'Door Hinge 4" (Pair)', quantity: '6', unit: 'Pair', returnableQuantity: 6, soldBaseQuantity: 6, price: 92.33, total: 554 }
+      { id: 'sl239-1', productId: 'p2', name: 'LED Bulb 12W', quantity: '3 Box 2 Pcs', unit: 'Pcs', returnableQuantity: 32, price: 165, total: 5280 },
+      { id: 'sl239-2', productId: 'p4', name: 'Electric Wire 1.5 rm', quantity: '1', unit: 'Coil', returnableQuantity: 1, price: 2850, total: 2850 },
+      { id: 'sl239-3', productId: 'p10', name: 'Paint Brush 2"', quantity: '1 Dozen', unit: 'Pcs', returnableQuantity: 12, price: 55, total: 660 },
+      { id: 'sl239-4', productId: 'p9', name: 'Teflon Tape', quantity: '1 Box', unit: 'Pcs', returnableQuantity: 12, price: 23, total: 276 },
+      { id: 'sl239-5', productId: 'p11', name: 'Door Hinge 4" (Pair)', quantity: '6', unit: 'Pair', returnableQuantity: 6, price: 92.33, total: 554 }
     ]
   },
   {
@@ -103,7 +104,7 @@ export const salesInvoices: SalesInvoice[] = [
     payments: [],
     salesperson: 'Anis',
     lines: [
-      { id: 'sl238-1', productId: 'p2', name: 'LED Bulb 12W', quantity: '2 Box', unit: 'Pcs', returnableQuantity: 20, soldBaseQuantity: 20, price: 172.5, total: 3450, serials: ['LB12-3001', 'LB12-3002'], warranty: { duration: 2, durationUnit: 'Years', type: 'Manufacturer', terms: 'Original invoice required. Physical damage is not covered.' } }
+      { id: 'sl238-1', productId: 'p2', name: 'LED Bulb 12W', quantity: '2 Box', unit: 'Pcs', returnableQuantity: 20, price: 172.5, total: 3450, serials: ['LB12-3001', 'LB12-3002'], warranty: { duration: 2, durationUnit: 'Years', type: 'Manufacturer', terms: 'Original invoice required. Physical damage is not covered.' } }
     ]
   },
   {
@@ -124,8 +125,8 @@ export const salesInvoices: SalesInvoice[] = [
     payments: [{ id: 'pay237-1', method: 'Cash', amount: 685 }],
     salesperson: 'Rafiq',
     lines: [
-      { id: 'sl237-1', productId: 'p10', name: 'Paint Brush 2"', quantity: '6', unit: 'Pcs', returnableQuantity: 6, soldBaseQuantity: 6, price: 60, total: 360 },
-      { id: 'sl237-2', productId: 'p7', name: 'Gate Valve ¾"', quantity: '0.5', unit: 'Pcs', returnableQuantity: 0.5, soldBaseQuantity: 0.5, price: 650, total: 325 }
+      { id: 'sl237-1', productId: 'p10', name: 'Paint Brush 2"', quantity: '6', unit: 'Pcs', returnableQuantity: 6, price: 60, total: 360 },
+      { id: 'sl237-2', productId: 'p7', name: 'Gate Valve ¾"', quantity: '0.5', unit: 'Pcs', returnableQuantity: 0.5, price: 650, total: 325 }
     ]
   },
   {
@@ -152,10 +153,10 @@ export const salesInvoices: SalesInvoice[] = [
     ],
     salesperson: 'Anis',
     lines: [
-      { id: 'sl236-1', productId: 'p8', name: 'Cement — Shah Special', quantity: '20', unit: 'Bag', returnableQuantity: 20, soldBaseQuantity: 20, price: 540, total: 10800 },
-      { id: 'sl236-2', productId: 'p5', name: 'Wire Mesh Net 3 ft', quantity: '24 Gauge 8 Gira', unit: 'Gira', returnableQuantity: 392, soldBaseQuantity: 392, price: 12, total: 4704 },
-      { id: 'sl236-3', productId: 'p7', name: 'Gate Valve ¾"', quantity: '3', unit: 'Pcs', returnableQuantity: 3, soldBaseQuantity: 3, price: 650, total: 1950 },
-      { id: 'sl236-4', productId: 'p9', name: 'Teflon Tape', quantity: '3 Box', unit: 'Pcs', returnableQuantity: 36, soldBaseQuantity: 36, price: 20.72, total: 746 }
+      { id: 'sl236-1', productId: 'p8', name: 'Cement — Shah Special', quantity: '20', unit: 'Bag', returnableQuantity: 20, price: 540, total: 10800 },
+      { id: 'sl236-2', productId: 'p5', name: 'Wire Mesh Net 3 ft', quantity: '24 Gauge 8 Gira', unit: 'Gira', returnableQuantity: 392, price: 12, total: 4704 },
+      { id: 'sl236-3', productId: 'p7', name: 'Gate Valve ¾"', quantity: '3', unit: 'Pcs', returnableQuantity: 3, price: 650, total: 1950 },
+      { id: 'sl236-4', productId: 'p9', name: 'Teflon Tape', quantity: '3 Box', unit: 'Pcs', returnableQuantity: 36, price: 20.72, total: 746 }
     ]
   },
   /** Illustrative historical invoice, not a real POS posting or stock movement. */
@@ -196,9 +197,6 @@ export type SalesDraft = {
   id: string;
   label: string;
   customer?: string;
-  customerId?: string;
-  discount?: string;
-  discountMode?: 'amount'|'percent';
   customerDetails?: {
     name: string;
     phone: string;
@@ -210,6 +208,8 @@ export type SalesDraft = {
   total: number;
   savedAt: string;
   lines: SalePresetLine[];
+  /** Saved preview terms only; no financial posting. */
+  installment?: {count:number;firstDueDate:string;schedule:InstallmentScheduleRow[]};
 };
 
 export const salesDrafts: SalesDraft[] = [

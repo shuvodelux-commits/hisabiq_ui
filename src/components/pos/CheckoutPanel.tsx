@@ -1,5 +1,4 @@
 import {NumericInput} from '../NumericInput';
-import {posMoney} from '../../utils/posCheckoutValidation';
 import React from 'react';
 import { AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
@@ -20,6 +19,7 @@ import type { Party } from '../../types/erp';
 import { formatNumber, taka } from '../../utils/currency';
 import { AmountInWordsDisplay } from '../AmountInWordsDisplay';
 import { useUiCopy } from '../../i18n/useUiCopy';
+import { InstallmentTermsPanel, type InstallmentTerms } from './InstallmentTermsPanel';
 
 type Totals = {
   subtotal: number;
@@ -51,8 +51,8 @@ type CheckoutPanelProps = {
   paidRef: React.RefObject<HTMLInputElement>;
   completeLabel?: string;
   completeRef?: React.RefObject<HTMLButtonElement>;
-  validationError?: string;
-  availableCredit?: number;
+  installment?: InstallmentTerms;
+  onQuickAddCustomer?:()=>void;
 };
 
 const methods: PosPaymentMethod[] = ['Cash', 'Bank', 'bKash', 'Nagad', 'Card', 'Customer Credit'];
@@ -72,6 +72,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
   const hasCreditCustomer = Boolean(customer || (customerDetails.name.trim() && customerDetails.phone.trim()));
   const dueWithoutCustomer = totals.due > 0 && !hasCreditCustomer && totals.total > 0;
   const quick = [500, 1000, 2000, 5000].filter((n) => n >= totals.total * 0.2);
+  const [customerDetailsOpen,setCustomerDetailsOpen] = React.useState(false);
 
   const updatePayment = (id: string, patch: Partial<PosPaymentRow>) => {
     props.onPayments((rows) => rows.map((row) => row.id === id ? { ...row, ...patch } : row));
@@ -96,7 +97,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
   const fillRemaining = (rowId: string) => {
     const otherPaid = payments
       .filter((payment) => payment.id !== rowId)
-      .reduce((sum, payment) => sum + (posMoney(payment.amount) || 0), 0);
+      .reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
     updatePayment(rowId, { amount: String(Math.max(totals.total - otherPaid, 0)) });
   };
 
@@ -118,8 +119,28 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         </div>
 
         <CustomerPicker value={customer} onChange={props.onCustomer} />
+        {props.installment?.mode==='Installment' && !customer && props.onQuickAddCustomer &&
+          <button type="button" onClick={props.onQuickAddCustomer}
+            className="w-fit rounded-md px-1 py-1 text-xs font-medium text-teal-700 hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+            + {text('Add customer','নতুন ক্রেতা যোগ করুন')}
+          </button>}
 
-        <div className="rounded-lg bg-ink-50/70 p-2.5">
+        {props.installment && <div role="group" aria-label={text('Sale type','বিক্রির ধরন')}
+          className="grid grid-cols-2 gap-1 rounded-lg bg-ink-50 p-1">
+          {(['Regular','Installment'] as const).map(mode=><button
+            key={mode} type="button" aria-pressed={props.installment?.mode===mode}
+            onClick={()=>props.installment?.onModeChange(mode)}
+            className={'h-9 rounded-md text-[12px] font-medium transition-colors '+(props.installment?.mode===mode?'bg-card text-teal-700 shadow-card':'text-ink-500 hover:text-ink')}>
+            {mode==='Regular'?text('Regular sale','সাধারণ বিক্রি'):text('Installment sale','কিস্তিতে বিক্রি')}
+          </button>)}
+        </div>}
+        {customer&&<button type="button" onClick={()=>setCustomerDetailsOpen(open=>!open)}
+          className="self-start text-[11px] font-medium text-teal-700 hover:underline">
+          {customerDetailsOpen?text('Hide customer details','ক্রেতার তথ্য লুকান'):text('Edit customer details','ক্রেতার তথ্য বদলান')}
+        </button>}
+
+
+        {(!customer || customerDetailsOpen) && <div className="rounded-lg bg-ink-50/70 p-2.5">
           <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">
             {word("invoiceCustomer")} {showHelper && <span className="font-bn normal-case tracking-normal">· কাস্টমার তথ্য</span>}
           </p>
@@ -156,7 +177,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           <p className="mt-1.5 text-[10.5px] text-ink-400">
             {word("customerOptional")}
           </p>
-        </div>
+        </div>}
       </div>
 
       <div className="space-y-2 p-4">
@@ -179,7 +200,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             <NumericInput
               aria-label={word("discount")}
               value={props.discount}
-              onChange={(event) => props.onDiscount(event.target.value)}
+              onChange={(event) => props.onDiscount(event.target.value.replace(/[^\d.]/g, ''))}
               placeholder="0"
               inputMode="decimal"
               className="h-8 w-24 rounded-md border border-border px-2 text-right text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
@@ -200,6 +221,11 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <AmountInWordsDisplay amount={totals.total} variant="inverse" />
       </div>
 
+      {props.installment?.mode==='Installment' && <div className="px-4 pt-4">
+        <InstallmentTermsPanel terms={props.installment}
+          invoiceTotalPaisa={Math.round(totals.total*100)}
+          paidPaisa={Math.round(totals.paidNum*100)}/>
+      </div>}
       <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
@@ -220,13 +246,11 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             <div key={payment.id} className="rounded-lg border border-border bg-ink-50/40 p-2">
               <div className="grid grid-cols-[92px_minmax(0,1fr)_28px] gap-1.5">
                 <FormSelect
-                  aria-label={text(`Payment method ${index+1}`,`পেমেন্টের মাধ্যম ${index+1}`)}
                   value={payment.method}
                   onChange={(event) => changeMethod(payment.id, event.target.value as PosPaymentMethod)}
-                  options={methods.map(method => ({ value: method, label: text(method, method === "Cash" ? "ক্যাশ" : method === "Bank" ? "ব্যাংক" : method === "Card" ? "কার্ড" : method === "Customer Credit" ? "ক্রেতার অগ্রিম জমা" : method) }))}
+                  options={methods.map(method => ({ value: method, label: text(method, method === "Cash" ? "ক্যাশ" : method === "Bank" ? "ব্যাংক" : method === "Card" ? "কার্ড" : method === "Customer Credit" ? "ক্রেতার বাকি" : method) }))}
                 />
                 <FormSelect
-                  aria-label={text(`Payment account ${index+1}`,`পেমেন্টের হিসাব ${index+1}`)}
                   value={payment.account}
                   onChange={(event) => updatePayment(payment.id, { account: event.target.value })}
                   options={posPaymentAccountsByMethod[payment.method]}
@@ -246,8 +270,8 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                   <Input
                     ref={index === 0 ? props.paidRef : undefined}
                     value={payment.amount}
-                    onChange={(event) => updatePayment(payment.id, { amount: event.target.value })}
-                    onKeyDown={(event) => {if(event.key === 'Enter'&&!props.validationError&&!dueWithoutCustomer&&totals.total>0)props.onComplete();}}
+                    onChange={(event) => updatePayment(payment.id, { amount: event.target.value.replace(/[^\d.]/g, '') })}
+                    onKeyDown={(event) => event.key === 'Enter' && props.onComplete()}
                     inputMode="decimal"
                     placeholder="0"
                     className="h-9 pl-7 text-right font-medium"
@@ -266,9 +290,9 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         </div>
 
         <div className="flex flex-wrap gap-1.5">
-          <button onClick={() => setSinglePayment(totals.total)} className="h-8 rounded-md border border-teal-200 bg-teal-50 px-2.5 text-xs font-medium text-teal-800 hover:bg-teal-100">
+          {props.installment?.mode!=='Installment' && <button onClick={() => setSinglePayment(totals.total)} className="h-8 rounded-md border border-teal-200 bg-teal-50 px-2.5 text-xs font-medium text-teal-800 hover:bg-teal-100">
             {word("exact")}
-          </button>
+          </button>}
           {quick.map((amount) => (
             <button key={amount} onClick={() => setSinglePayment(amount, 'Cash')} className="h-8 rounded-md border border-border px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
               ৳{formatNumber(amount)}
@@ -281,11 +305,6 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           <Row label={word("changeToReturn")} value={<span className={totals.change > 0 ? 'font-semibold text-success' : ''}>{taka(totals.change)}</span>} />
           <Row label={<span>{word("due")} {showHelper && <span className="font-bn text-xs text-ink-500">বাকি</span>}</span>} value={<span className={totals.due > 0 ? 'font-semibold text-danger' : ''}>{taka(totals.due)}</span>} />
         </div>
-        {payments.some(row=>row.method==='Customer Credit')&&<p className="text-xs text-ink-500">
-          {text('Verified customer credit available','ক্রেতার যাচাই করা অগ্রিম জমা')}: {taka(props.availableCredit??0)}.
-          {' '}{text('Preview only; this does not spend the credit.','শুধু প্রিভিউ; এতে জমা টাকা খরচ হবে না।')}
-        </p>}
-        {props.validationError&&<p role="alert" className="rounded-lg bg-danger-bg p-2.5 text-xs text-danger">{props.validationError}</p>}
 
         {dueWithoutCustomer && (
           <p className="flex items-start gap-2 rounded-lg bg-warning-bg p-2.5 text-xs text-warning">
@@ -297,7 +316,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <Button
           ref={props.completeRef}
           onClick={props.onComplete}
-          disabled={totals.total === 0 || dueWithoutCustomer || Boolean(props.validationError)}
+          disabled={totals.total === 0 || dueWithoutCustomer || (props.installment?.mode==='Installment' && !customer)}
           className="h-12 w-full text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
           {props.completeLabel ?? word('completeSale')} · {taka(totals.total)}
           <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>

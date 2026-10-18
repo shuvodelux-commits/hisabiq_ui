@@ -1,7 +1,6 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { uiText } from '../i18n/uiCopy';
-import {useUiCopy} from '../i18n/useUiCopy';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,19 +11,22 @@ import { CheckoutPanel } from '../components/pos/CheckoutPanel';
 import { TransactionReviewDialog } from '../components/TransactionReviewDialog';
 import { DraftsMenu } from '../components/pos/DraftsMenu';
 import { ProductThumb } from '../components/ProductThumb';
-import { ReceiptPreview, type ReceiptLine, type ReceiptBranding, type ReceiptPayment } from '../components/brand/ReceiptPreview';
-import { makePosPaymentRow, posPaymentAccountsByMethod, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
+import { ReceiptPreview, type ReceiptLine, type ReceiptBranding } from '../components/brand/ReceiptPreview';
+import { makePosPaymentRow, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
+import {addDays,addMonths,businessToday} from '../utils/dateRange';
+import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../installments/schedule';
+import {validateInstallmentDraft} from '../installments/validateDraft';
+import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../installments/pricing';
+import {recordInstallmentPreview,type PreviewInstallmentAgreement} from '../data/installmentPreviewStore';
+import {InstallmentAgreementPreview} from '../components/pos/InstallmentAgreementPreview';
+import {InstallmentBreakdownDialog} from '../components/pos/InstallmentBreakdownDialog';
+import {InstallmentCustomerQuickAddDialog} from '../components/pos/InstallmentCustomerQuickAddDialog';
 import { products } from '../data/products';
 import {getOnlineSnapshot,orderTotals,preparePosHandoff} from '../onlineSales/onlineStore';
 import { stockLots } from '../data/productInventory';
 import { productOffers } from '../data/productOffers';
-import { salesInvoices, type SalesDraft } from '../data/sales';
+import { saleTemplates, salesDrafts, salesInvoices, type SalesDraft } from '../data/sales';
 import { parties } from '../data/parties';
-import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview} from '../data/salesPreviewStore';
-import {cartFromPreset} from '../utils/salePresets';
-import {validatePosCheckout,type PosCheckoutIssue} from '../utils/posCheckoutValidation';
-import {customerSettlementAsOf} from '../utils/partySettlement';
-import {businessToday} from '../utils/dateRange';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
@@ -33,14 +35,19 @@ import {allocatePosStock} from '../vendor/vendorStock';
 import {usePreviewCatalog} from '../bundles/usePreviewCatalog';
 import {getBundleVersion,getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import {availableParties,availableStockLots} from '../data/erpDemoStore';
-import {getPartyPreviewSnapshot,subscribePartyPreview} from '../data/partyPreviewStore';
+import {getPartyPreviewSnapshot} from '../data/partyPreviewStore';
 import {expandCartStockDemand} from '../bundles/bundleCart';
 import {planComponentFulfillment,componentSourceKey} from '../bundles/bundleFulfillment';
 import {createBundleSaleSnapshot} from '../bundles/bundleDocuments';
 import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
-import type { SaleLine, SalesInvoice } from '../types/erp';
+import type { SaleLine, SalePresetLine, SalesInvoice } from '../types/erp';
 import type { PartyWorkspaceContext } from '../utils/partyNavigation';
+
+/** UI-preview only: reserve unique invoice labels across POS remounts in one browser session.
+ * The production backend will assign authoritative, tenant-scoped invoice numbers. */
+let previewInvoiceCounter = 241;
+const reservePreviewInvoiceNumber = () => ++previewInvoiceCounter;
 
 type CompletedSale = {
   invoice: string;
@@ -48,7 +55,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'soldBaseQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource' | 'bundleSnapshot'>>;
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource' | 'bundleSnapshot'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -57,12 +64,29 @@ type CompletedSale = {
   paid: number;
   due: number;
   method: string;
-  payments:ReceiptPayment[];
-  change:number;
 };
 
 const quickItems = products.filter((p) => p.active && (p.kind === 'Service' || !p.expiry?.enabled || productStockBreakdown(p, stockLots).sellable > 0)).slice(0, 8);
 
+function cartFromPreset(lines: SalePresetLine[]): CartLine[] {
+  return lines.flatMap((sourceLine, index) => {
+    const product = getProductImportPreviewSnapshot().products.find((item) => item.id === sourceLine.productId);
+    if (!product) return [];
+    const unit = sourceLine.unit === product.altUnit?.unit ? sourceLine.unit : product.unit;
+    return [{
+      key: `preset-${sourceLine.productId}-${index}`,
+      product,
+      qty: sourceLine.qty,
+      secondaryQty: sourceLine.secondaryQty ?? '',
+      unit,
+      price: String(sourceLine.price),
+      serials: sourceLine.serials ?? [],
+      stockSource: sourceLine.stockSource,
+      ...(product.kind==='Bundle'?{bundleRevision:sourceLine.bundleRevision,bundleRecipeSignature:sourceLine.bundleRecipeSignature,
+        bundleSources:sourceLine.bundleSources,bundleSerials:sourceLine.bundleSerials}: {})
+    }];
+  });
+}
 
 function paymentsFromInvoice(invoice: SalesInvoice): PosPaymentRow[] {
   if (invoice.payments.length > 0) {
@@ -130,10 +154,6 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
 export function Pos() {
   const { state: settingsState, personal } = useTenantSettings();
   const cart = usePosCart();
-  const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot,getPartyPreviewSnapshot);
-  const activeCustomer=cart.customer?partyState.parties.find(p=>p.id===cart.customer?.id&&p.roles.includes('Customer')&&p.status!=='Inactive'):undefined;
-  const availableCredit=activeCustomer?customerSettlementAsOf(partyState.sources,activeCustomer.id,businessToday()).refundableCredit:0;
-  const {text}=useUiCopy();
   const previewCatalog=usePreviewCatalog();
   const navigate = useNavigate();
   const location = useLocation();
@@ -157,9 +177,8 @@ export function Pos() {
     state:{hisabiqSource:'party-pos-return',partyWorkspace:incomingState?.hisabiqSource==='party-profile'?incomingState.partyWorkspace:undefined}
   });
   const sourceInvoice = salesInvoices.find((sale) => sale.invoice === sourceInvoiceNo) ?? null;
-  const {templates,drafts}=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot,getSalesPreviewSnapshot);
-  const sourceDraft=drafts.find(draft=>draft.id===sourceDraftId)??null;
-  const sourceTemplate = templates.find((template) => template.id === sourceTemplateId) ?? null;
+  const sourceDraft = salesDrafts.find((draft) => draft.id === sourceDraftId) ?? null;
+  const sourceTemplate = saleTemplates.find((template) => template.id === sourceTemplateId) ?? null;
   const editing = sourceMode === 'edit' && !!sourceInvoice;
   const duplicating = sourceMode === 'duplicate' && !!sourceInvoice;
   const continuingDraft = sourceMode === 'continue-draft' && !!sourceDraft;
@@ -171,29 +190,35 @@ export function Pos() {
   const searchRef = useRef<HTMLInputElement>(null);
   const paidRef = useRef<HTMLInputElement>(null);
   const completeRef = useRef<HTMLButtonElement>(null);
-  const [invoiceNo, setInvoiceNo] = useState(242);
-  const setDrafts=(update:(items:SalesDraft[])=>SalesDraft[])=>updateSalesPreview('drafts',update);
+  const [invoiceNo, setInvoiceNo] = useState(reservePreviewInvoiceNumber);
+  const [drafts, setDrafts] = useState<SalesDraft[]>(salesDrafts);
   const [completed, setCompleted] = useState<CompletedSale | null>(null);
+  const [completedInstallment,setCompletedInstallment]=useState<PreviewInstallmentAgreement|null>(null);
   const [reviewSaleOpen, setReviewSaleOpen] = useState(false);
   const [demoVendorInvoice,setDemoVendorInvoice]=useState<string|null>(null);
-  const issueText=(issue:PosCheckoutIssue|null)=>{
-    const messages:Record<PosCheckoutIssue,[string,string]>={
-      quantity:['Enter a positive quantity for every product. Remove unused lines.','প্রতিটি পণ্যে শূন্যের বেশি পরিমাণ দিন। অপ্রয়োজনীয় লাইন সরান।'],
-      price:['Enter valid product prices with up to two decimal places.','সঠিক পণ্যের দাম দিন। দশমিকের পরে সর্বোচ্চ দুই ঘর লিখুন।'],
-      discount:['Enter a valid discount; percent must be between 0 and 100.','সঠিক ছাড় লিখুন; শতাংশ ০ থেকে ১০০ হতে হবে।'],
-      payment:['Enter valid payment amounts with up to two decimal places.','সঠিক পেমেন্টের টাকা দিন। দশমিকের পরে সর্বোচ্চ দুই ঘর লিখুন।'],
-      account:['Choose a valid account for each payment method.','প্রতিটি পেমেন্টের মাধ্যম অনুযায়ী সঠিক হিসাব বাছুন।'],
-      credit:['Select an active Customer and use credit within their verified balance and the remaining sale total.','সক্রিয় ক্রেতা বাছুন। তাঁর যাচাই করা জমা ও বিক্রির অবশিষ্ট টাকার মধ্যে অগ্রিম ব্যবহার করুন।']
-    };
-    return issue?text(...messages[issue]):'';
-  };
-  const checkoutIssue=validatePosCheckout({...cart,total:cart.totals.total,customerId:activeCustomer?.id,availableCredit},posPaymentAccountsByMethod);
-  const validationError=cart.customer&&!activeCustomer?text('The selected customer is unavailable. Select an active Customer.','বাছা ক্রেতা পাওয়া যাচ্ছে না। সক্রিয় ক্রেতা বাছুন।'):issueText(checkoutIssue);
-  const beginReview=()=>{
-    if(validationError){toast.error(validationError);return;}
-    if(cart.totals.total<=0||(cart.totals.due>0&&!cart.customer&&!(cart.customerDetails.name.trim()&&cart.customerDetails.phone.trim())))return;
-    if(!cart.lines.some(line=>line.product.kind==='Bundle')||verifyBundleCart())setReviewSaleOpen(true);
-  };
+  const [installmentMode,setInstallmentMode]=useState<'Regular'|'Installment'>('Regular');
+  const [installmentCount,setInstallmentCount]=useState(6);
+  const [firstInstallmentDue,setFirstInstallmentDue]=useState(()=>{
+    const today=businessToday();
+    const nextMonth=addMonths(today,1);
+    const day=Math.min(Number(today.slice(-2)),Number(addDays(addMonths(today,2),-1).slice(-2)));
+    return nextMonth.slice(0,8)+String(day).padStart(2,'0');
+  });
+  const [installmentRows,setInstallmentRows]=useState<InstallmentScheduleRow[]>([]);
+  const [installmentBreakdownOpen,setInstallmentBreakdownOpen]=useState(false);
+  const [installmentCustomerQuickAddOpen,setInstallmentCustomerQuickAddOpen]=useState(false);
+  const installmentTotalPaisa=Math.round(cart.totals.total*100);
+  const installmentDownPaisa=Math.round(cart.totals.paidNum*100);
+  const installmentRemainingPaisa=Math.max(0,installmentTotalPaisa-installmentDownPaisa);
+  const scheduleHasManualEdits=installmentRows.some(row=>row.editedAmount||row.editedDate);
+  useEffect(()=>{
+    if(installmentMode!=='Installment'||scheduleHasManualEdits||installmentCount<1||installmentCount>120||installmentRemainingPaisa<=0)return;
+    try{
+      const fresh=generateInstallmentSchedule({remainingPaisa:installmentRemainingPaisa,count:installmentCount,
+        firstDueDate:firstInstallmentDue,frequency:'Monthly'});
+      setInstallmentRows(existing=>JSON.stringify(existing)===JSON.stringify(fresh)?existing:fresh);
+    }catch{/* Checkout review shows invalid count, amount or date; never auto-post. */}
+  },[installmentMode,installmentCount,firstInstallmentDue,installmentRemainingPaisa,scheduleHasManualEdits]);
   const invoice = editing && sourceInvoice ? sourceInvoice.invoice : `INV-${String(invoiceNo).padStart(6, '0')}`;
   const pageTitle = handoffOrder?'Online order · POS preview':editing
     ? 'Edit sale'
@@ -249,10 +274,8 @@ export function Pos() {
     const sourceKey = `${sourceMode}:${sourceDraft.id}`;
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
-    cart.setLines(cartFromPreset(sourceDraft.lines,previewCatalog));
-    const matches=availableParties().filter(p=>p.roles.includes('Customer')&&p.status!=='Inactive'&&
-      (sourceDraft.customerId?p.id===sourceDraft.customerId:p.name===sourceDraft.customer));
-    const sourceParty=matches.length===1?matches[0]:null;
+    cart.setLines(cartFromPreset(sourceDraft.lines));
+    const sourceParty = parties.find((party) => party.name === sourceDraft.customer) ?? null;
     cart.setCustomer(sourceParty);
     cart.setCustomerDetails(sourceDraft.customerDetails ?? {
       name: sourceDraft.customer ?? sourceParty?.name ?? '',
@@ -260,20 +283,24 @@ export function Pos() {
       guardianName: '',
       address: sourceParty?.area ?? ''
     });
-    cart.setDiscount(sourceDraft.discount??'');
-    cart.setDiscountMode(sourceDraft.discountMode??'amount');
+    cart.setDiscount('');
+    cart.setDiscountMode('amount');
     cart.setPayments(duplicatingDraft ? [makePosPaymentRow()] : paymentsFromDraft(sourceDraft));
-  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicatingDraft, sourceDraft, sourceMode, previewCatalog]);
+    setInstallmentMode(sourceDraft.installment?'Installment':'Regular');
+    setInstallmentCount(sourceDraft.installment?.count??6);
+    if(sourceDraft.installment){
+      setFirstInstallmentDue(sourceDraft.installment.firstDueDate);
+      setInstallmentRows(sourceDraft.installment.schedule.map(row=>({...row})));
+    }else setInstallmentRows([]);
+  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicatingDraft, sourceDraft, sourceMode]);
 
   useEffect(() => {
     if (!sourceTemplate || !templateContext) return;
     const sourceKey = `${sourceMode}:${sourceTemplate.id}`;
     if (loadedSource.current === sourceKey) return;
     loadedSource.current = sourceKey;
-    cart.setLines(cartFromPreset(sourceTemplate.lines,previewCatalog));
-    const matches=availableParties().filter(party=>party.roles.includes('Customer')&&party.status!=='Inactive'&&
-      (sourceTemplate.customerId?party.id===sourceTemplate.customerId:party.name===sourceTemplate.customer));
-    const sourceParty=matches.length===1?matches[0]:null;
+    cart.setLines(cartFromPreset(sourceTemplate.lines));
+    const sourceParty = parties.find((party) => party.name === sourceTemplate.customer) ?? null;
     cart.setCustomer(sourceParty);
     cart.setCustomerDetails({
       name: sourceTemplate.customer ?? sourceParty?.name ?? '',
@@ -284,7 +311,7 @@ export function Pos() {
     cart.setDiscount('');
     cart.setDiscountMode('amount');
     cart.setPayments([makePosPaymentRow()]);
-  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, sourceMode, sourceTemplate, templateContext, previewCatalog]);
+  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, sourceMode, sourceTemplate, templateContext]);
 
   useEffect(() => {
     if (!partyContext || !sourcePartyId) return;
@@ -355,13 +382,20 @@ export function Pos() {
     }
     return planned;
   };
-  const complete = () => {
-    const latest=getPartyPreviewSnapshot();
-    const selected=latest.parties.find(p=>p.id===cart.customer?.id&&p.roles.includes('Customer')&&p.status!=='Inactive');
-    const credit=selected?customerSettlementAsOf(latest.sources,selected.id,businessToday()).refundableCredit:0;
-    const issue=validatePosCheckout({...cart,total:cart.totals.total,customerId:selected?.id,availableCredit:credit},posPaymentAccountsByMethod);
-    if(issue||(cart.customer&&!selected)){toast.error(issueText(issue)||text('Select an active Customer.','সক্রিয় ক্রেতা বাছুন।'));return;}
+  const openSaleReview=()=>{
+    if(cart.lines.some(line=>line.product.kind==='Bundle')&&!verifyBundleCart())return;
+    if(installmentMode==='Installment'){
+      const issues=validateInstallmentDraft({
+        customerId:cart.customer?.id,customerName:cart.customer?.name??cart.customerDetails.name,
+        phone:cart.customer?.phone??cart.customerDetails.phone,
+        totalPaisa:installmentTotalPaisa,downPaymentPaisa:installmentDownPaisa,schedule:installmentRows
+      });
+      if(issues.length){toast.error(issues[0]);return;}
+    }
+    setReviewSaleOpen(true);
+  };
 
+  const complete = () => {
     const hasBundle=cart.lines.some(line=>line.product.kind==='Bundle');
     const bundleReservation=hasBundle?verifyBundleCart():null;
     if(hasBundle&&!bundleReservation)return;
@@ -431,6 +465,36 @@ export function Pos() {
       return;
     }
     const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
+    if(installmentMode==='Installment'){
+      try{
+        const lines=cart.lines.map(row=>{
+          const factor=row.product.altUnit&&row.unit===row.product.altUnit.unit?row.product.altUnit.factor:1;
+          return {key:row.key,productId:row.product.id,
+            amountPaisa:Math.round(compoundLineTotal(row.qty,row.secondaryQty,factor,row.price)*100)};
+        });
+        const amounts=allocateNegotiatedInvoiceLines(lines.map(({key,amountPaisa})=>({key,amountPaisa})),installmentTotalPaisa);
+        const created=recordInstallmentPreview({
+          operationId:'installment-preview:'+invoice,
+          invoiceReference:invoice,
+          customerId:cart.customer!.id,
+          customerName:cart.customer!.name,
+          totalPaisa:installmentTotalPaisa,downPaymentPaisa:installmentDownPaisa,
+          schedule:installmentRows.map(row=>({...row})),
+          lineSnapshot:amounts.map(row=>({
+            key:row.key,productId:lines.find(line=>line.key===row.key)!.productId,
+            amountPaisa:row.amountPaisa
+          })),
+          paymentSnapshot:activePayments.map(row=>({
+            method:row.method,account:row.account,
+            amountPaisa:Math.round((parseFloat(row.amount)||0)*100)
+          }))
+        });
+        setCompletedInstallment(created);
+      }catch(error){
+        toast.error(error instanceof Error?error.message:'Installment preview could not be saved.');
+        return;
+      }
+    }else setCompletedInstallment(null);
     const remainingLots=stockLots.map(lot=>({...lot}));
     setCompleted({
       invoice,
@@ -458,7 +522,6 @@ export function Pos() {
           name: l.product.name,
           unit: l.product.unit,
           returnableQuantity: baseQty,
-          soldBaseQuantity: baseQty,
           qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
           price: parseFloat(l.price) || 0,
           total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
@@ -479,9 +542,7 @@ export function Pos() {
       total: t.total,
       paid: Math.min(t.paidNum, t.total),
       due: t.due,
-      method: activePayments.length > 1 ? 'Multiple' : activePayments[0]?.method ?? 'Cash',
-      payments:activePayments.map(row=>({id:row.id,method:row.method,account:row.account,amount:Number(row.amount)})),
-      change:t.change
+      method: activePayments.length > 1 ? 'Multiple' : activePayments[0]?.method ?? 'Cash'
     });
   };
 
@@ -522,16 +583,12 @@ export function Pos() {
   };
 
   const holdCurrent = () => {
-    if(validationError){toast.error(validationError);return;}
-    setDrafts((d) => {
-      const existing=draftContext&&!duplicatingDraft?sourceDraft:null;
-      const saved:SalesDraft={
-      id: existing?.id??`draft-${crypto.randomUUID()}`,
-      label: existing?.label??`Draft #${16 + d.length - 2}`,
+    setDrafts((d) => [
+    ...d,
+    {
+      id: `d${Date.now()}`,
+      label: `Draft #${16 + d.length - 2}`,
       customer: cart.customerDetails.name.trim() || cart.customer?.name,
-      customerId:cart.customer?.id,
-      discount:cart.discount,
-      discountMode:cart.discountMode,
       customerDetails: { ...cart.customerDetails },
       payments: cart.payments
         .filter((payment) => (parseFloat(payment.amount) || 0) > 0)
@@ -544,6 +601,9 @@ export function Pos() {
       items: cart.lines.length,
       total: cart.totals.total,
       savedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      installment: installmentMode==='Installment'?{
+        count:installmentCount,firstDueDate:firstInstallmentDue,schedule:installmentRows.map(row=>({...row}))
+      }:undefined,
       lines: cart.lines.map((line) => ({
         productId: line.product.id,
         qty: line.qty,
@@ -555,24 +615,39 @@ export function Pos() {
         ...(line.product.kind==='Bundle'?{bundleRevision:line.bundleRevision,bundleRecipeSignature:line.bundleRecipeSignature,
           bundleSources:line.bundleSources,bundleSerials:line.bundleSerials}: {})
       }))
-    };
-      return existing?d.map(item=>item.id===existing.id?saved:item):[...d,saved];
-    });
+    }]
+    );
     cart.reset();
-    if(draftContext)navigate('/app/sales?tab=drafts');
-    toast.success(text('Sale held as draft','বিক্রি খসড়ায় রাখা হয়েছে'));
+    setInstallmentMode('Regular');setInstallmentRows([]);
+    toast.success('Sale held as draft');
   };
 
   const resume = (d: SalesDraft) => {
-    loadedSource.current=null;
-    navigate(`/app/pos?mode=continue-draft&draft=${encodeURIComponent(d.id)}`);
-    toast(text(`${d.label} resumed`,`${d.label} আবার খোলা হয়েছে`));
+    cart.setLines(cartFromPreset(d.lines));
+    const sourceParty = parties.find((party) => party.name === d.customer) ?? null;
+    cart.setCustomer(sourceParty);
+    cart.setCustomerDetails(d.customerDetails ?? {
+      name: d.customer ?? sourceParty?.name ?? '',
+      phone: sourceParty?.phone ?? '',
+      guardianName: '',
+      address: sourceParty?.area ?? ''
+    });
+    cart.setPayments(paymentsFromDraft(d));
+    setInstallmentMode(d.installment?'Installment':'Regular');
+    setInstallmentCount(d.installment?.count??6);
+    if(d.installment){
+      setFirstInstallmentDue(d.installment.firstDueDate);
+      setInstallmentRows(d.installment.schedule.map(row=>({...row})));
+    }else setInstallmentRows([]);
+    setDrafts((ds) => ds.filter((x) => x.id !== d.id));
+    toast(`${d.label} resumed`);
   };
 
   const newSale = () => {
-    setCompleted(null);setDemoVendorInvoice(null);
+    setCompleted(null);setCompletedInstallment(null);setDemoVendorInvoice(null);
     cart.reset();
-    setInvoiceNo((n) => n + 1);
+    setInstallmentMode('Regular');setInstallmentRows([]);
+    setInvoiceNo(reservePreviewInvoiceNumber);
     if (editing || duplicating || draftContext || templateContext || incomingOrderId || partyContext) navigate('/app/pos', { replace: true, state: null });
     setTimeout(() => searchRef.current?.focus(), 50);
   };
@@ -605,7 +680,7 @@ export function Pos() {
           </div>
           <DraftsMenu
             drafts={drafts}
-            canSave={cart.lines.length > 0&&!validationError}
+            canSave={cart.lines.length > 0}
             onSave={holdCurrent}
             onResume={resume}
             onDelete={(id) => setDrafts((ds) => ds.filter((d) => d.id !== id))} />
@@ -647,7 +722,7 @@ export function Pos() {
             </span>
             <div>
               <p className="font-medium">{editing ? `Editing ${sourceInvoice.invoice}` : `Duplicating ${sourceInvoice.invoice}`}</p>
-              <p className="text-[11px] text-teal-700">
+              <p className="text-[11px] text-teal-700/80">
                 {sourceInvoice.party} · {sourceInvoice.items} lines · {editing ? 'saving updates the original invoice' : 'saving creates a new invoice'}
               </p>
             </div>
@@ -668,7 +743,7 @@ export function Pos() {
               <p className="font-medium">
                 {duplicatingDraft ? `Duplicating ${sourceDraft.label}` : editingDraft ? `Editing ${sourceDraft.label}` : `Continuing ${sourceDraft.label}`}
               </p>
-              <p className="text-[11px] text-teal-700">
+              <p className="text-[11px] text-teal-700/80">
                 {sourceDraft.customer ?? 'Walk-in customer'} · {sourceDraft.items} items · saved {sourceDraft.savedAt}
               </p>
             </div>
@@ -687,7 +762,7 @@ export function Pos() {
             </span>
             <div>
               <p className="font-medium">Using template · {sourceTemplate.name}</p>
-              <p className="text-[11px] text-teal-700">
+              <p className="text-[11px] text-teal-700/80">
                 {sourceTemplate.customer ?? 'Any customer'} · {sourceTemplate.items} items · last used {sourceTemplate.lastUsed}
               </p>
             </div>
@@ -758,16 +833,70 @@ export function Pos() {
           onDiscountMode={cart.setDiscountMode}
           payments={cart.payments}
           onPayments={cart.setPayments}
-          onComplete={beginReview}
-          validationError={validationError}
-          availableCredit={availableCredit}
-          onClear={cart.reset}
+          onComplete={openSaleReview}
+          onQuickAddCustomer={()=>setInstallmentCustomerQuickAddOpen(true)}
+          onClear={()=>{cart.reset();setInstallmentMode('Regular');setInstallmentRows([]);}}
           paidRef={paidRef}
           completeRef={completeRef}
+          installment={!editing?{
+            mode:installmentMode,onModeChange:setInstallmentMode,
+            count:installmentCount,onCountChange:(count:number)=>{
+              if(scheduleHasManualEdits){
+                toast.info('Open the installment breakdown to change a custom schedule.');
+                setInstallmentBreakdownOpen(true);
+              }else setInstallmentCount(count);
+            },
+            firstDueDate:firstInstallmentDue,onFirstDueDateChange:(date:string)=>{
+              if(scheduleHasManualEdits){
+                toast.info('Change the dates in the custom installment breakdown.');
+                setInstallmentBreakdownOpen(true);
+              }else setFirstInstallmentDue(date);
+            },
+            schedule:installmentRows,onEditSchedule:()=>setInstallmentBreakdownOpen(true),
+            onPriceAdjustment:cart.lines.length===1?(mode:'amount'|'percent',value:string)=>{
+              const line=cart.lines[0];
+              const factor=line.product.altUnit&&line.unit===line.product.altUnit.unit?line.product.altUnit.factor:1;
+              const quantity=(Number(line.qty)||0)+(factor>1?(Number(line.secondaryQty)||0)/factor:0);
+              if(!Number.isFinite(quantity)||quantity<=0){
+                toast.error('Enter a valid product quantity before adjusting the selling price.');
+                return false;
+              }
+              try{
+                const currentPaisa=Math.round(compoundLineTotal(line.qty,line.secondaryQty,factor,line.price)*100);
+                const targetPaisa=negotiateInstallmentTotal(currentPaisa,{mode,value});
+                const unitPrice=Math.round((targetPaisa/100/quantity)*100)/100;
+                if(!Number.isFinite(unitPrice)||unitPrice<0||
+                  Math.round(compoundLineTotal(line.qty,line.secondaryQty,factor,unitPrice)*100)!==targetPaisa){
+                  toast.error('This amount cannot be allocated exactly at the selected quantity. Edit the cart unit price instead.');
+                  return false;
+                }
+                cart.updateLine(line.key,{price:String(unitPrice)});
+                return true;
+              }catch(error){
+                toast.error(error instanceof Error?error.message:'Enter a valid price adjustment.');
+                return false;
+              }
+            }:undefined
+          }:undefined}
           completeLabel={editing ? uiText(personal.language,'Preview sale update','বিক্রি সংশোধন দেখুন') : uiText(personal.language,'Preview sale','বিক্রির হিসাব দেখুন')} />
         
       </div>
 
+      <InstallmentCustomerQuickAddDialog open={installmentCustomerQuickAddOpen}
+        initialName={cart.customerDetails.name}
+        initialPhone={cart.customerDetails.phone}
+        initialAddress={cart.customerDetails.address}
+        onClose={()=>setInstallmentCustomerQuickAddOpen(false)}
+        onSaved={customer=>cart.setCustomer(customer)}/>
+      <InstallmentBreakdownDialog open={installmentBreakdownOpen}
+        onClose={()=>setInstallmentBreakdownOpen(false)}
+        rows={installmentRows}
+        requiredRemainingPaisa={installmentRemainingPaisa}
+        onApply={rows=>{
+          setInstallmentRows(rows.map(row=>({...row})));
+          setInstallmentCount(rows.length);
+          if(rows[0])setFirstInstallmentDue(rows[0].dueDate);
+        }}/>
       <TransactionReviewDialog open={reviewSaleOpen} onClose={() => setReviewSaleOpen(false)}
         onConfirm={() => {setReviewSaleOpen(false);complete();}}
         title={editing ? 'Review sale update' : 'Review sale'} amount={cart.totals.total}
@@ -777,8 +906,11 @@ export function Pos() {
           {label:'Products',value:String(cart.lines.length)+' lines'},
           {label:'Paid',value:taka(cart.totals.paidNum)},
           {label:'Due',value:taka(cart.totals.due)},
-          ...cart.payments.filter(row=>Number(row.amount)>0).map((row,index)=>({label:text(`Payment source ${index+1}`,`পেমেন্টের মাধ্যম ${index+1}`),value:`${text(row.method,row.method==='Cash'?'ক্যাশ':row.method==='Bank'?'ব্যাংক':row.method==='Customer Credit'?'ক্রেতার অগ্রিম জমা':row.method)} · ${row.account} · ${taka(Number(row.amount))}`})),
-          ...(cart.totals.change>0?[{label:text('Change returned','ফেরত টাকা'),value:taka(cart.totals.change)}]:[])
+          ...(installmentMode==='Installment'?[
+            {label:'Installments',value:String(installmentRows.length)},
+            {label:'First due',value:installmentRows[0]?.dueDate??'—'},
+            {label:'Future scheduled',value:taka(installmentRemainingPaisa/100)}
+          ]:[])
         ]}/>
       <Dialog open={!!completed} onOpenChange={(open) => {if(!open)closeCompletedSale();}}>
         <DialogContent className="sm:max-w-lg">
@@ -791,9 +923,10 @@ export function Pos() {
               {completed && completed.due > 0 ? ` · Due ${taka(completed.due)} (not posted to ledger)` : ' · fully paid in preview'}
             </DialogDescription>
           </DialogHeader>
-          <div role="region" aria-label={text('Sale receipt preview','বিক্রির রসিদের প্রিভিউ')} tabIndex={0} className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
+          <div className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
             {completed && <ReceiptPreview {...completed} language={personal.language} />}
           </div>
+          {completedInstallment && <InstallmentAgreementPreview agreement={completedInstallment}/>}
           <DialogFooter>
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
               <Button variant="outline" onClick={simulateVendorSources}
