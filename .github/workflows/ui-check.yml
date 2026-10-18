@@ -213,6 +213,9 @@ jobs:
       - name: Check full-page purchase and quick-add workflow
         run: npm run test:purchases
 
+      - name: Check compact mint Purchase summary and responsive payment rows
+        run: npm run test:purchase-compact
+
       - name: Check product quick-add and price-unit interactions
         run: npm run test:product-quick-add
 
