@@ -49,7 +49,7 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
  const submit=(event:React.FormEvent)=>{
   event.preventDefault();
   try{
-   if(!rows.length)throw new Error('Add at least one product.');
+   if(!rows.length)throw new Error('Add at least one product · অন্তত একটি পণ্য যোগ করুন।');
    const snapshot=getVendorPreviewSnapshot();
    const operationId='vendor-'+mode+'-'+partyId+'-'+snapshot.revision;
    const reference=memo.trim()||((mode==='given'?'V-GV-':'V-TK-')+String(snapshot.revision+1).padStart(4,'0'));
@@ -58,10 +58,10 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
     if(!p)throw new Error('Select a valid product for every row.');
     const factor=p.altUnit&&line.unit===p.altUnit.unit?p.altUnit.factor:1;
     const baseQty=compoundBaseQuantity(line.qty,line.smallQty,factor);
-    if(!Number.isFinite(baseQty)||baseQty<=0)throw new Error('Enter a valid quantity for '+p.name+'.');
+    if(!Number.isFinite(baseQty)||baseQty<=0)throw new Error('Enter a valid quantity · '+p.name+'-এর পরিমাণ ঠিক করুন।');
     const price=Number(line.price);
     if(mode==='given'&&(!line.price.trim()||!Number.isFinite(price)||price<=0))
-     throw new Error('Enter the agreed price for '+p.name+'.');
+     throw new Error('Enter the agreed price · '+p.name+'-এর দাম লিখুন।');
     if(line.price.trim()&&(!Number.isFinite(price)||price<=0))
      throw new Error('Price must be a positive number.');
     const unitCostBasePaisa=line.price.trim()?Math.round(price*100/factor):null;
@@ -79,7 +79,7 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
   <div className="flex flex-wrap items-center justify-between gap-2">
    <div><h3 className="text-base font-semibold text-ink">{mode==='given'?'Give Products · পণ্য দিন':'Take Products · পণ্য নিন'}</h3>
     <p className="font-bn text-sm text-ink-600">{mode==='given'?'যে পণ্য ভেন্ডরকে দিচ্ছেন':'ভেন্ডর থেকে যে পণ্য নিচ্ছেন'}</p></div>
-   <Button type="button" size="sm" variant="outline" onClick={cancel}>Cancel</Button>
+   <Button type="button" size="sm" variant="outline" onClick={cancel}>Cancel · বাতিল</Button>
   </div>
   <div className="grid gap-3 sm:grid-cols-2">
    <label className="text-xs font-medium text-ink">Memo / Reference · মেমো
@@ -90,7 +90,7 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
    </div>
   </div>
   <div className="space-y-2">
-   <div className="overflow-hidden rounded-lg border border-border divide-y divide-border" data-testid="vendor-cart-lines">
+   {rows.length>0&&<div className="overflow-hidden rounded-lg border border-border divide-y divide-border" data-testid="vendor-cart-lines">
    {rows.map((line,i)=>{
     const p=byId.get(line.productId);
     if(!p)return null;
@@ -114,17 +114,17 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
         onPrimaryEnter={line.unit===p.unit?()=>searchRef.current?.focus():undefined}
         onSecondaryEnter={()=>searchRef.current?.focus()}/>
       </div>
-      <div><p className="mb-1 text-xs text-ink-500">Price in · দাম কোন এককে</p>
+      <div><p className="mb-1 text-xs text-ink-500">Price unit · দামের একক</p>
        <AppSelect label={'Price unit for '+p.name} value={line.unit} onChange={unit=>change(line.key,{unit,smallQty:'',price:''})}
         options={[p.unit,...(p.altUnit?[p.altUnit.unit]:[])]}/></div>
-      <label className="text-xs text-ink-500">Price / {line.unit} {mode==='taken'?'· optional':''}
+      <label className="text-xs text-ink-500">Price / {line.unit} {mode==='taken'?'· পরে দিতে পারেন':''}
        <Input className="mt-1" aria-label={'Price for '+p.name} inputMode="decimal" value={line.price}
         placeholder={mode==='taken'?'Price not set':'৳'} onChange={e=>change(line.key,{price:e.target.value.replace(/[^\d.]/g,'')})}/></label>
      </div>
      <p className="mt-2 text-right text-sm font-semibold text-ink">{line.price.trim()?taka(compoundLineTotal(line.qty,line.smallQty,factor,line.price)):'Price not set · দাম ঠিক হয়নি'}</p>
     </div>;
    })}
-   </div>
+   </div>}
    <div className="rounded-lg border border-dashed border-teal-500/50 bg-teal-50/20 p-3 dark:bg-teal-900/10">
     <label className="mb-2 block text-sm font-medium text-ink">Add product · পণ্য যোগ করুন</label>
     <ProductCombobox mode="purchase" products={catalog} ref={searchRef} onSelect={add}
@@ -135,9 +135,9 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
    <div><p className="text-xs text-ink-500">{mode==='given'?'Vendor owes · পাওনা':'Agreed amount · ঠিক করা দাম'}</p>
     <strong className="text-lg text-ink">{taka(total)}</strong>
-    {mode==='taken'&&rows.some(x=>!x.price.trim())&&<p className="text-xs text-warning">Some products have no price yet</p>}
+    {mode==='taken'&&rows.some(x=>!x.price.trim())&&<p className="text-xs text-warning">দাম লেখা হয়নি—পরে ঠিক করতে পারবেন</p>}
    </div>
-   <Button type="submit" size="sm">Save {mode==='given'?'Given':'Taken'} Products</Button>
+   <Button type="submit" size="sm">Save {mode==='given'?'Given':'Taken'} Products · সংরক্ষণ করুন</Button>
   </div>
   <AddProductDialog open={addingProduct} onOpenChange={setAddingProduct}
    existingSerials={[]} onSave={p=>{createPreviewProduct(p);setCatalog(items=>[...items,p]);add(p);setAddingProduct(false);}}/>
