@@ -40,6 +40,45 @@ async function main(){
     await invoice.waitFor();
     await page.keyboard.press('Escape');
     await invoice.waitFor({state:'hidden'});
+    // Invoice payment follows the same compact rows as POS on touch and desktop.
+    // Keep this journey read-only: cancel instead of posting preview money.
+    const dueInvoice=await page.evaluate(async()=>{
+      const {getSalesPreviewSnapshot}=await import('/src/data/salesPreviewStore.ts');
+      return getSalesPreviewSnapshot().invoices.find(item=>item.due>20)?.invoice;
+    });
+    assert.ok(dueInvoice,'need an invoice with outstanding due for payment UI checks');
+    await page.getByRole('button',{name:(bn?'কাজ: ':'Actions for ')+dueInvoice,exact:true}).click();
+    await page.getByRole('button',{name:bn?'টাকা নিন':'Take payment',exact:true}).click();
+    const payment=page.getByRole('dialog');
+    await payment.waitFor();
+    const label=(en,bangla)=>bn?bangla:en;
+    await payment.getByRole('combobox',{name:label('Payment method 1','পেমেন্টের মাধ্যম 1')}).click();
+    await page.getByRole('option',{name:label('Bank','ব্যাংক'),exact:true}).click();
+    assert.equal(await payment.getByRole('combobox',{name:label('Payment method 1','পেমেন্টের মাধ্যম 1')}).getAttribute('data-value'),'Bank');
+    await payment.getByRole('textbox',{name:label('Payment account 1','পেমেন্টের হিসাব 1')}).fill('QA bank');
+    const firstAmount=payment.getByRole('textbox',{name:label('Payment amount 1','পেমেন্টের পরিমাণ 1')});
+    await firstAmount.fill('10.25');
+    const addPayment=payment.getByRole('button',{name:label('Add another payment source','আরও পেমেন্ট মাধ্যম')});
+    await addPayment.click();
+    await addPayment.click();
+    assert.equal(await payment.getByRole('textbox',{name:/Payment amount|পেমেন্টের পরিমাণ/}).count(),3,'three separate split payment controls');
+    await payment.getByRole('textbox',{name:label('Payment amount 3','পেমেন্টের পরিমাণ 3')}).fill('0.50');
+    const balance=await payment.getByText(label('Invoice due','বিলের বাকি')).locator('xpath=..').innerText();
+    const remainingButton=payment.getByRole('button',{name:label('Remaining','বাকি'),exact:true}).nth(1);
+    await remainingButton.click();
+    const secondAmount=payment.getByRole('textbox',{name:label('Payment amount 2','পেমেন্টের পরিমাণ 2')});
+    const expected=await page.evaluate(async(invoice)=>{
+      const {getSalesPreviewSnapshot}=await import('/src/data/salesPreviewStore.ts');
+      return Math.round((getSalesPreviewSnapshot().invoices.find(item=>item.invoice===invoice).due-10.75)*100)/100;
+    },dueInvoice);
+    assert.equal(Number(await secondAmount.inputValue()),expected,'Remaining fills only selected row after other split rows');
+    assert.ok(balance.includes('৳'),'invoice due remains visible while splitting');
+    for(const field of [firstAmount,secondAmount,payment.getByRole('textbox',{name:label('Payment account 1','পেমেন্টের হিসাব 1')})]){
+      const box=await field.boundingBox();
+      assert.ok(box&&box.x>=-2&&box.x+box.width<=width+2,'split payment input fits '+width+'px viewport');
+    }
+    await payment.getByRole('button',{name:label('Cancel','বাতিল'),exact:true}).click();
+    await payment.waitFor({state:'hidden'});
     await page.goto('http://127.0.0.1:4402/#/app/sales?tab=return');
     await page.getByText(bn?'বিল বাছুন':'Select invoices',{exact:false}).first().waitFor();
     const choices=page.getByRole('checkbox');
