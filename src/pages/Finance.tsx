@@ -740,7 +740,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
       )}
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        {!counterOnly && <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
+        {!counterOnly && <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -748,7 +748,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               aria-selected={tab === id}
               title={helper}
               onClick={() => setTab(id)}
-              className={`min-h-11 px-2.5 py-2.5 text-[13px] font-medium ${
+              className={`min-h-11 shrink-0 px-2.5 py-2.5 text-[13px] font-medium ${
                 tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
