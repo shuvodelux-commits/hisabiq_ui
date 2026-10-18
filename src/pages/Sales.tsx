@@ -1,5 +1,5 @@
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
@@ -42,6 +42,7 @@ import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
+import {positiveSalesAmount, salesPaymentRemainder, salesPaymentTotal} from '../utils/salesPaymentAmounts';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
 import {planBundleReturn,type BundleReturnSelection} from '../bundles/bundleReturn';
 import { downloadReport, printReport } from '../utils/reportOutput';
@@ -380,12 +381,13 @@ function PaymentDialog({
 }: {
   invoice: SalesInvoice | null;
   onClose: () => void;
-  onSave: (invoice: SalesInvoice, rows: PaymentDraft[]) => void;
+  onSave: (invoice: SalesInvoice, rows: PaymentDraft[]) => boolean;
 }) {
   const {text,showHelper}=useUiCopy();
   const [rows, setRows] = useState<PaymentDraft[]>([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
+  const nextRowId = useRef(2);
 
-  const total = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+  const total = salesPaymentTotal(rows);
 
   const close = () => {
     setRows([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
@@ -404,49 +406,60 @@ function PaymentDialog({
 
             <div className="space-y-2">
               {rows.map((row, index) => (
-                <div key={row.id} className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[140px_1fr_120px_auto]">
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Method','মাধ্যম')}
+                <div key={row.id} className="min-w-0 rounded-lg border border-border bg-ink-50/40 p-2">
+                  <div className="grid min-w-0 grid-cols-[92px_minmax(0,1fr)_36px] gap-1.5">
                     <FormSelect
-                      className="mt-1"
+                      aria-label={text(`Payment method ${index + 1}`, `পেমেন্টের মাধ্যম ${index + 1}`)}
                       value={row.method}
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, method: event.target.value as PaymentMethod } : item))}
-                      options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
+                      onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, method: event.target.value as PaymentMethod } : item))}
+                      options={paymentMethods.map(method => ({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
                     />
-                  </label>
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Account','হিসাব')}
                     <Input
-                      className="mt-1"
+                      aria-label={text(`Payment account ${index + 1}`, `পেমেন্টের হিসাব ${index + 1}`)}
+                      className="h-9 min-w-0 text-[13px]"
                       value={row.account}
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, account: event.target.value } : item))}
+                      onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, account: event.target.value } : item))}
                       placeholder={row.method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')}
                     />
-                  </label>
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Amount','টাকা')}
-                    <Input
-                      className="mt-1 text-right"
-                      value={row.amount}
-                      inputMode="decimal"
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))}
-                      placeholder="0"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    disabled={rows.length === 1}
-                    onClick={() => setRows((items) => items.filter((item) => item.id !== row.id))}
-                    className="self-end rounded-md p-2 text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
-                    aria-label={text(`Remove payment ${index + 1}`,`পেমেন্ট ${index + 1} সরান`)}>
-                    <Trash2 className="size-4" />
-                  </button>
+                    <button
+                      type="button"
+                      disabled={rows.length === 1}
+                      onClick={() => setRows(items => items.filter(item => item.id !== row.id))}
+                      className="flex size-9 items-center justify-center rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
+                      aria-label={text(`Remove payment ${index + 1}`, `পেমেন্ট ${index + 1} সরান`)}>
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                  <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+                    <div className="relative min-w-0 flex-1">
+                      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
+                      <Input
+                        aria-label={text(`Payment amount ${index + 1}`, `পেমেন্টের পরিমাণ ${index + 1}`)}
+                        className="h-9 min-w-0 pl-7 text-right font-medium"
+                        value={row.amount}
+                        inputMode="decimal"
+                        onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))}
+                        placeholder="0"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!Number.isFinite(salesPaymentRemainder(invoice.due, rows, row.id))}
+                      onClick={() => {
+                        const remaining = salesPaymentRemainder(invoice.due, rows, row.id);
+                        if (Number.isFinite(remaining)) setRows(items => items.map(item => item.id === row.id ? { ...item, amount: String(remaining) } : item));
+                      }}
+                      className="h-9 shrink-0 rounded-md border border-border bg-card px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50 disabled:opacity-40">
+                      {text('Remaining','বাকি')}
+                    </button>
+                  </div>
                 </div>
               ))}
 
+
               <button
                 type="button"
-                onClick={() => setRows((items) => [...items, { id: `p${Date.now()}`, method: 'Cash', amount: '', account: '' }])}
+                onClick={() => setRows(items => [...items, { id: `p${nextRowId.current++}`, method: 'Cash', amount: '', account: '' }])}
                 className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-700 hover:underline">
                 <Plus className="size-3.5" /> {text('Add another payment source','আরও পেমেন্ট মাধ্যম')}
               </button>
@@ -454,18 +467,16 @@ function PaymentDialog({
 
             <div className="grid grid-cols-3 gap-2 rounded-xl bg-ink-50 p-3 text-center text-[12px]">
               <div><p className="text-ink-400">{text('Invoice due','বিলের বাকি')}</p><p className="mt-0.5 font-semibold text-ink">{taka(invoice.due)}</p></div>
-              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(total)}</p></div>
-              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{taka(Math.max(invoice.due - total, 0))}</p></div>
+              <div><p className="text-ink-400">{text('This payment','এবার জমা')}</p><p className="mt-0.5 font-semibold text-ink">{taka(Number.isFinite(total) ? total : 0)}</p></div>
+              <div><p className="text-ink-400">{text('Remaining','অবশিষ্ট')}</p><p className={`mt-0.5 font-semibold ${invoice.due - total > 0 ? 'text-danger' : 'text-success'}`}>{Number.isFinite(total) ? taka(Math.max(invoice.due - total, 0)) : '—'}</p></div>
             </div>
 
+            {!Number.isFinite(total) && <p role="alert" className="text-sm text-danger">{text('Enter a valid amount (up to two decimal places).','সঠিক টাকার পরিমাণ লিখুন (দশমিকের পর সর্বোচ্চ দুই ঘর)।')}</p>}
             <DialogFooter>
               <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
-                disabled={total <= 0 || total > invoice.due}
-                onClick={() => {
-                  onSave(invoice, rows);
-                  close();
-                }}>
+                disabled={!Number.isFinite(total) || total <= 0 || Math.round(total * 100) > Math.round(invoice.due * 100)}
+                onClick={() => { if (onSave(invoice, rows)) close(); }}>
                 {text('Save payment','পেমেন্ট লিখুন')}
               </Button>
             </DialogFooter>
@@ -494,7 +505,7 @@ function CustomerPaymentDialog({
   open: boolean;
   customers: string[];
   onClose: () => void;
-  onSave: (draft: CustomerPaymentDraft) => void;
+  onSave: (draft: CustomerPaymentDraft) => boolean;
 }) {
   const {text,showHelper}=useUiCopy();
   const [customer, setCustomer] = useState(customers[0] ?? '');
@@ -502,7 +513,7 @@ function CustomerPaymentDialog({
   const [method, setMethod] = useState<PaymentMethod>('Cash');
   const [account, setAccount] = useState('');
   const [allocation, setAllocation] = useState<CustomerPaymentDraft['allocation']>('Settle oldest due');
-  const amountNumber = parseFloat(amount) || 0;
+  const amountNumber = positiveSalesAmount(amount);
 
   const close = () => {
     setAmount('');
@@ -547,9 +558,8 @@ function CustomerPaymentDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
-          <Button disabled={!customer || amountNumber <= 0} onClick={() => {
-            onSave({ customer, amount, method, account, allocation });
-            close();
+          <Button disabled={!customer || !Number.isFinite(amountNumber) || amountNumber <= 0} onClick={() => {
+            if (onSave({ customer, amount, method, account, allocation })) close();
           }}>{text('Save payment','পেমেন্ট লিখুন')}</Button>
         </DialogFooter>
       </DialogContent>
@@ -579,7 +589,7 @@ function CreditActionDialog({
   const [account, setAccount] = useState('');
   const selectedInvoice = dueInvoices.find((invoice) => invoice.invoice === invoiceId) ?? dueInvoices[0] ?? null;
   const maxAmount = credit ? Math.min(credit.balance, action?.mode === 'apply' ? selectedInvoice?.due ?? 0 : credit.balance) : 0;
-  const amountNumber = parseFloat(amount) || 0;
+  const amountNumber = positiveSalesAmount(amount);
 
   const close = () => {
     setInvoiceId('');
@@ -640,8 +650,9 @@ function CreditActionDialog({
             <DialogFooter>
               <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
               <Button
-                disabled={amountNumber <= 0 || amountNumber > maxAmount || (action.mode === 'apply' && !selectedInvoice)}
+                disabled={!Number.isFinite(amountNumber) || amountNumber <= 0 || Math.round(amountNumber * 100) > Math.round(maxAmount * 100) || (action.mode === 'apply' && !selectedInvoice)}
                 onClick={() => {
+                  if (!Number.isFinite(amountNumber) || amountNumber <= 0 || Math.round(amountNumber * 100) > Math.round(maxAmount * 100)) return;
                   if (action.mode === 'apply' && selectedInvoice) onApply(credit, selectedInvoice.id, amountNumber);
                   if (action.mode === 'refund') onRefund(credit, amountNumber, method, account);
                   close();
@@ -785,13 +796,18 @@ export function Sales() {
   };
 
   const savePayment = (invoice: SalesInvoice, rows: PaymentDraft[]) => {
-    const amount = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+    const amount = salesPaymentTotal(rows);
+    const currentInvoice = getSalesPreviewSnapshot().invoices.find(item => item.id === invoice.id);
+    if (!currentInvoice || !Number.isFinite(amount) || amount <= 0 || Math.round(amount * 100) > Math.round(currentInvoice.due * 100)) {
+      toast.error(sl('Enter a valid payment within the remaining due'));
+      return false;
+    }
     const payments: SalePayment[] = rows
-      .filter((row) => (parseFloat(row.amount) || 0) > 0)
+      .filter((row) => positiveSalesAmount(row.amount) > 0)
       .map((row, index) => ({
         id: `${invoice.id}-new-${Date.now()}-${index}`,
         method: row.method,
-        amount: parseFloat(row.amount),
+        amount: positiveSalesAmount(row.amount),
         ...(row.account.trim() ? { account: row.account.trim() } : {})
       }));
     setInvoices((items) => items.map((item) => {
@@ -808,11 +824,15 @@ export function Sales() {
       };
     }));
     toast.success(sl('Payment saved'), { description: `${invoice.invoice} · ${taka(amount)}` });
+    return true;
   };
 
   const receiveCustomerPayment = (draft: CustomerPaymentDraft) => {
-    const amount = parseFloat(draft.amount) || 0;
-    if (amount <= 0) return;
+    const amount = positiveSalesAmount(draft.amount);
+    if (!draft.customer || !Number.isFinite(amount) || amount <= 0) {
+      toast.error(sl('Enter a valid payment amount'));
+      return false;
+    }
 
     const allocations = new Map<string, number>();
     let remainder = amount;
@@ -869,6 +889,7 @@ export function Sales() {
     toast.success(sl('Customer payment saved'), {
       description: remainder > 0 ? `${taka(amount - remainder)} settled · ${taka(remainder)} credit` : `${taka(amount)} settled against due invoices`
     });
+    return true;
   };
 
   const applyCustomerCredit = (credit: CustomerCredit, invoiceId: string, amount: number) => {
@@ -1233,6 +1254,7 @@ export function Sales() {
                               {qty > 0 && (
                                 <div className="mt-2 max-w-[260px] space-y-1.5">
                                   <FormSelect
+                                    aria-label={`${text('Return reason','ফেরতের কারণ')} · ${line.name}`}
                                     value={returnReason[line.id] ?? 'Customer return'}
                                     onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
                                     options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
@@ -1335,6 +1357,7 @@ export function Sales() {
                       {sl('Settlement')}
                       <FormSelect
                         className="mt-1"
+                        aria-label={sl('Settlement')}
                         value={returnSettlement}
                         disabled={includesBundleReturn}
                         onChange={(event) => setReturnSettlement(event.target.value as SalesReturn['settlement'])}

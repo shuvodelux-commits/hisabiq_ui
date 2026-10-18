@@ -1,4 +1,3 @@
-import {rankSearch} from '../../utils/fuzzySearch';
 import { useState, useSyncExternalStore } from 'react';
 import { ChevronDown, UserRound, X } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
@@ -17,18 +16,21 @@ type CustomerPickerProps = {
 export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
   const [q, setQ] = useState('');
   const { word } = useUiCopy();
-  const {parties}=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot,getPartyPreviewSnapshot);
-  const customers=rankSearch(parties.filter(p=>p.roles.includes('Customer')&&p.status!=='Inactive'),q,
-    p=>[p.name,p.nameBn,p.phone,p.area,p.id]);
+  const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
+  const customers = partyState.parties.filter((p) => {
+    if (!p.roles.includes('Customer') && !p.roles.includes('Borrower')) return false;
+    const needle = q.trim().toLowerCase();
+    if (!needle) return true;
+    return p.name.toLowerCase().includes(needle) || p.phone.toLowerCase().includes(needle);
+  });
 
   return (
     <FloatingPanel
       label={word("chooseCustomer")}
       align="left"
       width={320}
-      className="block w-full min-w-0"
       trigger={({ toggle, open }) =>
-      <div className="flex min-w-0 items-center gap-1">
+      <div className="flex items-center gap-1">
           <button
           onClick={toggle}
           aria-expanded={open}
@@ -52,7 +54,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
             <ChevronDown className="size-4 text-ink-400" />
           </button>
           {value &&
-        <button onClick={() => onChange(null)} aria-label={word("clearCustomer")} className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-50 hover:text-ink">
+        <button onClick={() => onChange(null)} aria-label={word("clearCustomer")} className="flex size-10 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-50 hover:text-ink">
               <X className="size-4" />
             </button>
         }
@@ -67,7 +69,6 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={word("searchCustomer")}
-            aria-label={word("searchCustomer")}
             className="h-9 w-full rounded-md border border-border px-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
           
           </div>

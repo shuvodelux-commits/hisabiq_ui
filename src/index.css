@@ -76,23 +76,44 @@
 
 /* Forms stay reachable on phones, tablets and with the on-screen keyboard. */
 [data-dialog-root] { max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; }
-/* Informational notifications must not intercept a blocking form's actions.
-   Keep notification buttons/links interactive, and normal swipe dismissal
-   available on pointer-driven screens when no dialog is open. */
-/* Passive toast messages must never block Counter/POS actions on any screen.
-   Retain pointer interaction for toasts containing a real action control. */
-[data-sonner-toaster] { pointer-events: none !important; }
+/* Passive confirmations must never block the next Counter/POS click.
+   Keep action-bearing toasts interactive; passive notices remain readable
+   and do not capture clicks over underlying controls at any viewport. */
 [data-sonner-toast]:not(:has(button, a, input, select, textarea, [role="button"])) {
-  pointer-events: none !important;
-}
-[data-sonner-toast]:has(button, a, input, select, textarea, [role="button"]) {
-  pointer-events: auto;
+  pointer-events: none;
 }
 @media (pointer: coarse) {
   .erp-workspace button:not([role="option"]),
   .erp-workspace input:not([type="checkbox"]):not([type="radio"]),
   [data-dialog-root] button,
   [data-dialog-root] input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
+}
+
+/* ERP field centering: preserve natural left/right text alignment while aligning
+   legacy inline controls with their labels and adjoining action buttons. */
+:where(.erp-workspace, [data-dialog-root]) :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  select,
+  button[role="combobox"]
+) { vertical-align: middle; }
+
+/* Coarse-pointer min-height is for standalone touch targets. Joined amount/unit
+   and compound quantity fields have ONE sized outer shell. Allowing each inner
+   control to grow to 44px independently spills it outside that shell and makes
+   the text, unit selector and borders look off-center on tablets and phones. */
+@media (pointer: coarse) {
+  :where(.erp-workspace, [data-dialog-root]) [data-numeric-joined]
+  :is(input:not([type="checkbox"]):not([type="radio"]), button[role="combobox"]) {
+    min-height: 0 !important;
+  }
+  /* Preserve the full 44px touch target on the combined field itself. Cart
+     compound editors keep their existing breakpoint-specific 36/40/44px size. */
+  :where(.erp-workspace, [data-dialog-root]) [data-field-shell="money-unit"] {
+    height: 44px;
+  }
+  :where(.erp-workspace, [data-dialog-root]) [data-field-shell="money-unit"] button[role="combobox"] {
+    height: 100%;
+  }
 }
 
 /* The same transaction controls become compact rows on phones and tablets. */

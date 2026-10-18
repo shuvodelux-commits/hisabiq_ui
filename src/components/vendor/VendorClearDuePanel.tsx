@@ -72,8 +72,8 @@ export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
    <div><p className="text-ink-500">Products still out</p><strong>{source.baseQty-outstanding.returnedBaseQty} {product?.unit??'units'}</strong></div>
    <div><p className="text-ink-500">After this</p><strong>{afterThis}</strong></div>
   </div>}
-  <div className="grid gap-3 xl:grid-cols-2">
-   <fieldset disabled={priceMissing} className="min-w-0 space-y-2 rounded-lg border border-border bg-card p-3 disabled:opacity-60">
+  <div className="space-y-3">
+   <fieldset disabled={priceMissing} className="min-w-0 min-w-0 space-y-2 rounded-md border border-border bg-ink-50/20 p-3 disabled:opacity-60">
     <legend className="sr-only">Pay Money</legend>
     <div className="flex items-center justify-between">
     <strong className="text-xs text-ink">Pay Money · টাকা দিন</strong>
@@ -89,7 +89,7 @@ export function VendorClearDuePanel({source,onClose,hideClose=false}:Props){
     </div>)}
     {priceMissing&&<p className="text-xs text-warning">Set the price before paying money.</p>}
    </fieldset>
-   <section className="min-w-0 space-y-2 rounded-lg border border-border bg-card p-3">
+   <section className="min-w-0 space-y-2 rounded-md border border-border bg-ink-50/20 p-3">
     <strong className="text-xs text-ink">Return Products · পণ্য ফেরত দিন</strong>
     <label className="block text-xs text-ink-500">Quantity in {product?.unit??'units'}
      <div className="mt-1 flex min-w-0 flex-wrap gap-2">
