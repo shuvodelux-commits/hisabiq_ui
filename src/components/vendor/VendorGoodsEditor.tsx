@@ -117,7 +117,7 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
       <div><p className="mb-1 text-xs text-ink-500">Price unit · দামের একক</p>
        <AppSelect label={'Price unit for '+p.name} value={line.unit} onChange={unit=>change(line.key,{unit,smallQty:'',price:''})}
         options={[p.unit,...(p.altUnit?[p.altUnit.unit]:[])]}/></div>
-      <label className="text-xs text-ink-500">Price / {line.unit} {mode==='taken'?'· পরে দিতে পারেন':''}
+      <label className="text-xs text-ink-500">Price / {line.unit} {mode==='taken'?'· দাম পরে লিখতে পারেন':''}
        <Input className="mt-1" aria-label={'Price for '+p.name} inputMode="decimal" value={line.price}
         placeholder={mode==='taken'?'Price not set':'৳'} onChange={e=>change(line.key,{price:e.target.value.replace(/[^\d.]/g,'')})}/></label>
      </div>
