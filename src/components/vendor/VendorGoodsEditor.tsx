@@ -77,8 +77,8 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
  return <form aria-label={mode==='given'?'Give products editor':'Take products editor'} onSubmit={submit}
   className="space-y-3 rounded-xl border border-border bg-card p-3 shadow-card sm:p-4">
   <div className="flex flex-wrap items-center justify-between gap-2">
-   <div><h3 className="text-sm font-semibold text-ink">{mode==='given'?'Give Products · পণ্য দিন':'Take Products · পণ্য নিন'}</h3>
-    <p className="font-bn text-xs text-ink-500">{mode==='given'?'ভেন্ডরকে পণ্য দেওয়া':'ভেন্ডর থেকে পণ্য নেওয়া'}</p></div>
+   <div><h3 className="text-base font-semibold text-ink">{mode==='given'?'Give Products · পণ্য দিন':'Take Products · পণ্য নিন'}</h3>
+    <p className="font-bn text-sm text-ink-600">{mode==='given'?'যে পণ্য ভেন্ডরকে দিচ্ছেন':'ভেন্ডর থেকে যে পণ্য নিচ্ছেন'}</p></div>
    <Button type="button" size="sm" variant="outline" onClick={cancel}>Cancel</Button>
   </div>
   <div className="grid gap-3 sm:grid-cols-2">
@@ -90,19 +90,17 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
    </div>
   </div>
   <div className="space-y-2">
-   <label className="block text-xs font-medium text-ink">Add product · পণ্য যোগ করুন</label>
-   <ProductCombobox mode="purchase" products={catalog} ref={searchRef} onSelect={add}
-    onCreate={()=>setAddingProduct(true)} ariaLabel="Search products to add to Vendor memo"/>
+   <div className="overflow-hidden rounded-lg border border-border divide-y divide-border" data-testid="vendor-cart-lines">
    {rows.map((line,i)=>{
     const p=byId.get(line.productId);
     if(!p)return null;
     const factor=p.altUnit&&line.unit===p.altUnit.unit?p.altUnit.factor:1;
     const own=getVendorPreviewSnapshot().inventory?.[p.id]??p.stock;
-    return <div key={line.key} className="rounded-lg border border-border bg-card p-3">
+    return <div key={line.key} className="bg-card px-3 py-2.5">
      <div className="mb-2 flex items-center gap-2">
       <strong className="text-xs text-ink-500">{i+1}.</strong>
       <span className="min-w-0 flex-1 text-sm font-medium text-ink">{p.name}</span>
-      <span className="text-xs text-ink-500">Own: {own} {p.unit}</span>
+      <span className="text-xs text-ink-500">Stock · মজুত {own} {p.unit}</span>
       <Button type="button" size="sm" variant="ghost" aria-label={'Remove '+p.name}
        onClick={()=>{setRows(items=>items.filter(x=>x.key!==line.key));dirty();}}><Trash2 className="size-4"/></Button>
      </div>
@@ -123,10 +121,15 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
        <Input className="mt-1" aria-label={'Price for '+p.name} inputMode="decimal" value={line.price}
         placeholder={mode==='taken'?'Price not set':'৳'} onChange={e=>change(line.key,{price:e.target.value.replace(/[^\d.]/g,'')})}/></label>
      </div>
-     <p className="mt-1 text-right text-xs text-ink-600">{line.price.trim()?taka(compoundLineTotal(line.qty,line.smallQty,factor,line.price)):'Price not set · দাম ঠিক হয়নি'}</p>
+     <p className="mt-2 text-right text-sm font-semibold text-ink">{line.price.trim()?taka(compoundLineTotal(line.qty,line.smallQty,factor,line.price)):'Price not set · দাম ঠিক হয়নি'}</p>
     </div>;
    })}
-   
+   </div>
+   <div className="rounded-lg border border-dashed border-teal-500/50 bg-teal-50/20 p-3 dark:bg-teal-900/10">
+    <label className="mb-2 block text-sm font-medium text-ink">Add product · পণ্য যোগ করুন</label>
+    <ProductCombobox mode="purchase" products={catalog} ref={searchRef} onSelect={add}
+     onCreate={()=>setAddingProduct(true)} ariaLabel="Search products to add to Vendor memo"/>
+   </div>
   </div>
   {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
