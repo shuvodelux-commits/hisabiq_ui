@@ -165,3 +165,32 @@ export function projectInstallmentLifecycle(
   overduePaisa:overdue,surplusPaisa:surplus,status:surplus?'Surplus pending':
   total?'Active':'Fully paid',revision,audit};
 }
+
+
+/**
+ * Allocate new collections against the currently effective, versioned agreement
+ * schedule rather than the original POS installments. Includes partial successor
+ * rows and prior reductions; does not mutate historical receipt allocations.
+ */
+export function allocateOldestLifecycleInstallments(
+ agreement:PreviewInstallmentAgreement,
+ receipts:readonly InstallmentPaymentPreviewEvent[],
+ events:readonly InstallmentLifecycleEvent[],
+ amountPaisa:number,asOf:string
+):{scheduleItemId:string;amountPaisa:number}[]{
+ if(!Number.isSafeInteger(amountPaisa)||amountPaisa<=0)
+  throw new Error('Payment must be positive whole paisa.');
+ const projection=projectInstallmentLifecycle(agreement,receipts,events,asOf);
+ if(amountPaisa>projection.totalOutstandingPaisa)
+  throw new Error('Payment exceeds current agreement outstanding balance.');
+ const allocations:{scheduleItemId:string;amountPaisa:number}[]=[];
+ let remaining=amountPaisa;
+ for(const row of projection.rows){
+  if(remaining===0)break;
+  const take=Math.min(remaining,row.outstandingPaisa);
+  if(take>0)allocations.push({scheduleItemId:row.id,amountPaisa:take});
+  remaining-=take;
+ }
+ if(remaining!==0)throw new Error('Payment cannot be allocated to current schedule.');
+ return allocations;
+}
