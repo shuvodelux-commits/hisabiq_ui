@@ -52,12 +52,12 @@ function VendorPriceForm({source}: {source:VendorSource}){
     }catch(e){setError(e instanceof Error?e.message:'Could not set Vendor cost.');}
   };
   return <form aria-label="Set Vendor price" onSubmit={submit}
-    className="space-y-3 rounded-lg border border-warning/30 bg-warning-bg/30 p-3">
+    className="space-y-2 rounded-md border border-warning/30 bg-warning-bg/20 p-3">
     <div>
       <h4 className="text-sm font-semibold text-ink">Set Price · দাম ঠিক করুন</h4>
-      <p className="mt-1 text-xs text-ink-500">You already took these products. Enter the cost when the Vendor confirms it. Unpriced goods do not create a money due.</p>
+      <p className="mt-1 text-xs text-ink-500">Set the agreed cost to calculate the due. Until then, these goods have no recorded money due.</p>
     </div>
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-2">
+    <div className="grid gap-2 sm:grid-cols-2 sm:items-end">
       <div>
         <span className="mb-1 block text-xs font-medium text-ink-600">Price in · কোন এককে</span>
         <AppSelect label="Vendor price unit" value={unit}
