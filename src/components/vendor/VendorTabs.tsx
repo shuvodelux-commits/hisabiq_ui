@@ -1,19 +1,20 @@
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useEffect,useId,useMemo,useState} from 'react';
-import {Plus,Printer} from 'lucide-react';
+import {Ellipsis,Plus,Printer} from 'lucide-react';
 import {toast} from 'sonner';
 import {Button} from '../Button';
 import {Input} from '../Input';
+import {Dialog,DialogContent,DialogTitle,DialogDescription} from '../Dialog';
 import {AppSelect} from '../AppSelect';
 import {PartyAvatar} from '../PartyAvatar';
+import {Tooltip} from '../Tooltip';
+import {useUiCopy} from '../../i18n/useUiCopy';
 import {AppDateRangePicker} from '../AppDateRangePicker';
 import {VendorCorrectionDialog} from '../parties/VendorCorrectionDialog';
 import {VendorStatementDialog} from '../parties/VendorStatementDialog';
 import {VendorGoodsEditor} from './VendorGoodsEditor';
 import {VendorSourceWorkspace} from './VendorSourceWorkspace';
 import {VendorPaymentsWorkspace} from './VendorPaymentsWorkspace';
-import {VendorDiscardDialog} from './VendorDiscardDialog';
-import {useUiCopy} from '../../i18n/useUiCopy';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
@@ -33,6 +34,13 @@ const labels:Record<VendorWorkTab,{english:string;bn:string}>={
  purchases:{english:'Purchases',bn:'ক্রয়'},
  payments:{english:'Payments',bn:'পেমেন্ট'}
 };
+const tabHints:Record<VendorWorkTab,{english:string;bn:string}>={
+ ledger:{english:'View goods-related money in and out separately.',bn:'পণ্যের দেওয়া ও নেওয়ার হিসাব আলাদা দেখুন।'},
+ taken:{english:'Goods received from this vendor, including price and return details.',bn:'ভেন্ডরের কাছ থেকে নেওয়া পণ্য, দাম ও ফেরতের হিসাব।'},
+ given:{english:'Goods handed to the vendor and money still to receive.',bn:'ভেন্ডরকে দেওয়া পণ্য ও পাওনার হিসাব।'},
+ purchases:{english:'Regular purchase invoices from this vendor.',bn:'এই ভেন্ডরের সাধারণ ক্রয়ের বিল।'},
+ payments:{english:'Money paid to or received from this vendor for goods memos.',bn:'পণ্যের মেমোর টাকা দেওয়া ও নেওয়ার হিসাব।'}
+};
 const money=(v:number)=>taka(v/100);
 export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,onDirtyChange,onEditVendor}:Props){
  const base=useId().replace(/:/g,'');
@@ -42,7 +50,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [side,setSide]=useState<VendorSide>('payable');
  const [editingTaken,setEditingTaken]=useState(false);
  const [hasUnsavedGoods,setHasUnsavedGoods]=useState(false);
- const [pendingTab,setPendingTab]=useState<{next:VendorWorkTab;sourceId?:string;openGoods?:boolean}|null>(null);
  const updateDirty=(value:boolean)=>{setHasUnsavedGoods(value);onDirtyChange(value);};
  const [editingGiven,setEditingGiven]=useState(false);
  const [purchaseOpened,setPurchaseOpened]=useState(tab==='purchases');
@@ -50,6 +57,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [purchaseRevision,setPurchaseRevision]=useState(0);
  useEffect(()=>{if(tab==='purchases')setPurchaseOpened(true);},[tab]);
  const [statementOpen,setStatementOpen]=useState(false);
+ const [mobileMoreOpen,setMobileMoreOpen]=useState(false);
 
  const [correctSource,setCorrectSource]=useState<string|null>(null);
  const [correctEvent,setCorrectEvent]=useState<string|null>(null);
@@ -62,20 +70,17 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const unpricedMemos=profile.summary.priceNotSetCount;
  const payable=profile.summary.takenDuePaisa;
  const receivable=profile.summary.givenDuePaisa;
+ useEffect(()=>{if(payable===0&&receivable>0)setSide('receivable');},[party.id,payable,receivable]);
  const unpricedSource=taken.find(s=>sourceOutstanding(snapshot,s.id).unpricedBaseQty>0);
  const payableSource=taken.find(s=>(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
  const receivableSource=given.find(s=>(sourceOutstanding(snapshot,s.id).monetaryDuePaisa??0)>0);
  const statement=side==='payable'?profile.takenStatement:profile.givenStatement;
  const ledgerRows=statement.rows.filter(e=>fuzzyMatch(query,[e.reference,e.description]));
 
- const applyTab=(next:VendorWorkTab,selectedSourceId?:string,openEditor=false)=>{
-  if(next!==tab&&hasUnsavedGoods){updateDirty(false);setEditingTaken(false);setEditingGiven(false);}
-  if(openEditor){setEditingTaken(next==='taken');setEditingGiven(next==='given');}
-  onTabChange(next,selectedSourceId);
- };
  const selectTab=(next:VendorWorkTab,selectedSourceId?:string)=>{
-  if(next!==tab&&hasUnsavedGoods){setPendingTab({next,sourceId:selectedSourceId});return;}
-  applyTab(next,selectedSourceId);
+  if(next!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
+  if(next!==tab&&hasUnsavedGoods){updateDirty(false);setEditingTaken(false);setEditingGiven(false);}
+  onTabChange(next,selectedSourceId);
  };
  const review=(event:VendorLedgerEvent)=>{
   setCorrectEvent(event.id);
@@ -91,12 +96,27 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   setPurchaseRevision(n=>n+1);onDirtyChange(false);
  };
  const openGoods=(mode:'taken'|'given')=>{
-  if(mode!==tab&&hasUnsavedGoods){setPendingTab({next:mode,openGoods:true});return;}
-  applyTab(mode,undefined,true);
+  if(mode!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
+  if(mode!==tab&&hasUnsavedGoods)updateDirty(false);
+  setEditingTaken(mode==='taken');
+  setEditingGiven(mode==='given');
+  onTabChange(mode);
  };
+ // One set of desktop action labels and handlers for both layouts.
+ const actions=[
+  {key:'taken',label:'Take Products',visible:true,run:()=>openGoods('taken'),hint:text('Record products received from this vendor','এই ভেন্ডর থেকে নেওয়া পণ্য লিখুন')},
+  {key:'given',label:'Give Products',visible:true,run:()=>openGoods('given'),hint:text('Record products you gave to this vendor','ভেন্ডরকে দেওয়া পণ্য লিখুন')},
+  {key:'price',label:'Set price · দাম ঠিক করুন',visible:unpricedMemos>0,run:()=>selectTab('taken',unpricedSource?.id),hint:text('Set the agreed price for previously unpriced goods','আগে নেওয়া পণ্যের দাম লিখুন')},
+  {key:'pay',label:'Pay / return',visible:payable>0,run:()=>selectTab(payableSource?'taken':'ledger',payableSource?.id),hint:text('Pay for taken goods or return products to settle','নেওয়া পণ্যের টাকা দিন বা পণ্য ফেরত দিন')},
+  {key:'receive',label:'Receive settlement',visible:receivable>0,run:()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id),hint:text('Receive money for goods handed to this vendor','ভেন্ডরকে দেওয়া পণ্যের টাকা নিন')},
+  {key:'purchase',label:'New purchase',visible:true,run:()=>selectTab('purchases'),hint:text('Open a regular purchase invoice, separate from goods memos','নেওয়া পণ্যের মেমো থেকে আলাদা সাধারণ ক্রয়ের বিল')},
+  {key:'print',label:'Print Ledger',visible:true,run:()=>setStatementOpen(true),hint:text('Print the selected Vendor statement','ভেন্ডরের হিসাব প্রিন্ট করুন')},
+  {key:'edit',label:'Edit Vendor · তথ্য বদলান',visible:true,run:onEditVendor,hint:text('Edit Vendor details','ভেন্ডরের তথ্য বদলান')}
+ ] as const;
+ const mobileSecondary=receivable>0?'receive':payable>0?'pay':'given';
  return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
-  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-4">
-   <div className="hidden min-w-0 flex-1 items-start gap-3 lg:flex">
+  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-3 sm:p-4">
+   <div className="hidden min-w-0 flex-1 items-start gap-3 sm:flex">
     <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52}/>
     <div className="min-w-0">
      <h2 className="truncate text-lg font-semibold text-ink">{party.name}
@@ -105,74 +125,132 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      <span className="mt-1 inline-flex rounded-md bg-teal-50 px-1.5 py-0.5 text-[11px] font-medium text-teal-700 dark:bg-teal-900/20 dark:text-teal-200">Vendor · ভেন্ডর</span>
     </div>
    </div>
-   <div className="grid w-full grid-cols-2 gap-2 lg:w-auto lg:shrink-0" aria-label="Vendor balances, kept separate">
+   <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:shrink-0" aria-label="Vendor balances, kept separate">
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
-     <p className="text-[11px] text-ink-500">You owe · দেনা</p>
+     <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('You owe','দিতে হবে')}{showHelper&&<span className="hidden sm:inline"> · দেনা</span>}
+      <Tooltip label="Explain Vendor payable" align="start" triggerClassName="size-7"
+       content={<span className="block text-sm leading-5">Goods taken from this vendor that still need payment. Regular purchase bills are separate.<span className="mt-1 block font-bn">ভেন্ডর থেকে নেওয়া পণ্যের বাকি টাকা। সাধারণ ক্রয়ের বিল আলাদা।</span></span>}/>
+     </p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(payable>0?'text-danger':'text-ink')}>{money(payable)}</p>
     </div>
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
-     <p className="text-[11px] text-ink-500">Vendor owes · পাওনা</p>
+     <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('Vendor owes','পাওনা')}{showHelper&&<span className="hidden sm:inline"> · পাওনা</span>}
+      <Tooltip label="Explain Vendor receivable" align="end" triggerClassName="size-7"
+       content={<span className="block text-sm leading-5">Money the vendor still owes for goods you gave them.<span className="mt-1 block font-bn">ভেন্ডরকে দেওয়া পণ্যের জন্য যে টাকা এখনো পাবেন।</span></span>}/>
+     </p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(receivable>0?'text-teal-700 dark:text-teal-300':'text-ink')}>{money(receivable)}</p>
     </div>
    </div>
   </div>
-  <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2" role="group" aria-label="Vendor quick actions">
-   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/>{text('Take Products','পণ্য নিন')}</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>{text('Give Products','পণ্য দিন')}</Button>
-   {unpricedMemos>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab('taken',unpricedSource?.id)}>{text('Set price','দাম ঠিক করুন')}</Button>}
-   {payable>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab(payableSource?'taken':'ledger',payableSource?.id)}>{text('Pay / return','টাকা দিন / পণ্য ফেরত দিন')}</Button>}
-   {receivable>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>{text('Receive settlement','পাওনা নিন')}</Button>}
-   <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>{text('New purchase','নতুন ক্রয়')}</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/>{text('Print Ledger','হিসাব প্রিন্ট')}</Button>
-   <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>{text('Edit Vendor','ভেন্ডরের তথ্য বদলান')}</Button>
+  <div className="hidden flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 sm:flex" role="group" aria-label="Vendor quick actions">
+   {actions.filter(action=>action.visible).map(action=><Button type="button" key={action.key} size="sm"
+    variant={action.key==='taken'?'default':'outline'} title={action.hint} onClick={action.run}>
+    {action.key==='taken'&&<Plus className="size-4"/>}{action.key==='print'&&<Printer className="size-4"/>}{action.label}
+   </Button>)}
   </div>
-  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
+  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-stretch gap-2 border-b border-border p-3 sm:hidden" role="group" aria-label="Vendor quick actions">
+   {actions.filter(action=>action.visible&&(action.key==='taken'||action.key===mobileSecondary)).map(action=>
+    <Button type="button" key={action.key} size="sm" variant={action.key==='taken'?'default':'outline'}
+     className="min-h-11 min-w-0 px-2 text-xs" title={action.hint} onClick={action.run}>
+     {action.key==='taken'&&<Plus className="size-4"/>}{action.label}
+    </Button>)}
+   <Button type="button" size="sm" variant="outline" className="min-h-11 px-2" aria-label="More Vendor actions"
+    onClick={()=>setMobileMoreOpen(true)}><Ellipsis className="size-5"/> More</Button>
+  </div>
+  <Dialog open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
+   <DialogContent aria-label="More Vendor actions" className="w-[calc(100vw-1rem)] max-w-md max-h-[85vh] overflow-y-auto p-4">
+    <DialogTitle>More Vendor actions</DialogTitle>
+    <DialogDescription>Choose a Vendor task · ভেন্ডরের কাজ বাছুন</DialogDescription>
+    <div className="grid gap-2 pt-3">
+     {actions.filter(action=>action.visible&&action.key!=='taken'&&action.key!==mobileSecondary).map(action=>
+      <Button key={action.key} type="button" size="sm" variant="outline" className="min-h-11 justify-start"
+       title={action.hint} onClick={()=>{setMobileMoreOpen(false);action.run();}}>
+       {action.key==='print'&&<Printer className="size-4"/>}{action.label}
+      </Button>)}
+    </div>
+   </DialogContent>
+  </Dialog>
+  <div className="hidden flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs sm:flex">
    {unpricedMemos>0
-    ?<p className="text-warning"><strong>Price not set ({unpricedMemos})</strong> · Unpriced goods are not counted as a money due.</p>
+    ?<p className="flex flex-wrap items-center gap-1 text-warning"><strong>Price not set ({unpricedMemos})</strong> · Unpriced goods are not counted as money due.
+      <Tooltip label="Explain unpriced Vendor memos" triggerClassName="size-7"
+       content={<span className="block text-sm leading-5">Set the price in Taken to include these goods in the amount due.<span className="mt-1 block font-bn">দাম না লেখা পণ্য বাকি টাকার মধ্যে ধরা হয়নি। নেওয়া পণ্যে গিয়ে দাম লিখুন।</span></span>}/>
+     </p>
     :<p className="text-ink-500">{payable>0?'Pay or return taken products to settle.':'No unpriced goods.'}</p>}
-   <button type="button" onClick={()=>selectTab('purchases')}
-    className="text-left text-ink-600 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
-    Purchase due · ক্রয়ের বাকি <strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
-   </button>
-  </div>
-  <div className="overflow-x-auto border-b border-border scrollbar-thin">
-   <div className="grid grid-cols-5 gap-0 px-1 sm:flex sm:min-w-max sm:gap-2 sm:px-3" role="tablist" aria-label="Vendor work tabs">
-    {vendorWorkTabs.map((key,index)=><button type="button" key={key}
-     id={base+'-'+key} role="tab" aria-selected={tab===key} aria-controls={base+'-panel'} tabIndex={tab===key?0:-1}
-     className={'erp-tab min-w-0 px-1 py-3 text-xs sm:px-3 sm:text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active border-b-2 border-teal-600 text-ink':'text-ink-500')}
-     onClick={()=>selectTab(key)} onKeyDown={e=>{
-      if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
-      e.preventDefault();
-      const next=e.key==='Home'?0:e.key==='End'?vendorWorkTabs.length-1:
-       (index+(e.key==='ArrowRight'?1:-1)+vendorWorkTabs.length)%vendorWorkTabs.length;
-      selectTab(vendorWorkTabs[next]);
-      e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
-     }}>{text(labels[key].english,labels[key].bn)} {showHelper&&<span className="block sm:inline font-bn text-[10px] sm:text-[11px] text-ink-400">{labels[key].bn}</span>}</button>)}
+   <div className="flex items-center gap-1">
+    <button type="button" onClick={()=>selectTab('purchases')}
+     className="text-left text-ink-600 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
+     Purchase due · ক্রয়ের বাকি <strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
+    </button>
+    <Tooltip label="Explain purchase due" align="end" triggerClassName="size-7"
+     content={<span className="block text-sm leading-5">Unpaid regular purchase invoices. These are not included in the goods-taken balance above.<span className="mt-1 block font-bn">সাধারণ ক্রয়ের বাকি বিল। উপরের নেওয়া পণ্যের দেনার সঙ্গে এটি যোগ করা হয়নি।</span></span>}/>
    </div>
+  </div>
+  <div className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label="Vendor work tabs">
+   {vendorWorkTabs.map((key,index)=><button type="button" key={key}
+    id={base+'-'+key} role="tab" aria-selected={tab===key} aria-controls={base+'-panel'} tabIndex={tab===key?0:-1}
+    title={text(tabHints[key].english,tabHints[key].bn)}
+    className={'flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active text-ink':'text-ink-500 hover:text-ink')}
+    onClick={()=>selectTab(key)} onKeyDown={e=>{
+     if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+     e.preventDefault();
+     const next=e.key==='Home'?0:e.key==='End'?vendorWorkTabs.length-1:
+      (index+(e.key==='ArrowRight'?1:-1)+vendorWorkTabs.length)%vendorWorkTabs.length;
+     selectTab(vendorWorkTabs[next]);
+     e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+    }}>{text(labels[key].english,labels[key].bn)}
+     {showHelper&&<span className="font-bn text-[11px] text-ink-500">{labels[key].bn}</span>}
+    </button>)}
   </div>
   <section id={base+'-panel'} role="tabpanel" aria-labelledby={base+'-'+tab} className="min-w-0">
     <div className="p-3 sm:p-4">
     {tab==='ledger'&&<>
      <div className="mb-3 flex flex-wrap items-center gap-2">
-      <div className="min-w-[195px]"><AppSelect label="Vendor balance side" value={side}
+      <div className="min-w-[170px] flex-1 sm:min-w-[195px] sm:flex-none"><AppSelect label="Vendor balance side" value={side}
         onChange={value=>setSide(value as VendorSide)}
         options={[{value:'payable',label:'Taken · You owe'},{value:'receivable',label:'Given · Vendor owes'}]}/></div>
       <AppDateRangePicker value={range} onChange={setRange} label="Vendor ledger date range"/>
       {Boolean(range.from)!==Boolean(range.to)&&<span className="text-xs text-warning">Choose both dates to filter</span>}
-      <div className="min-w-[150px] flex-1">
+      <div className="w-full min-w-0 sm:w-auto sm:min-w-[150px] sm:flex-1">
        <Input className="w-full" value={query} onChange={e=>setQuery(e.target.value)}
         aria-label="Search Vendor ledger" placeholder="Search reference or note"/>
       </div>
+     </div>
+     <div className="mb-3 space-y-2 sm:hidden">
+      {unpricedMemos>0&&<div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-warning-bg p-3">
+       <div className="min-w-0 flex-1"><strong className="block text-sm text-warning">Price not set ({unpricedMemos})</strong>
+        <p className="mt-0.5 text-xs text-warning">Unpriced goods are not counted as money due.</p></div>
+       <Button type="button" size="sm" variant="outline" className="min-h-11" onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>
+      </div>}
+      <button type="button" onClick={()=>selectTab('purchases')}
+       className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg bg-ink-50 px-3 text-left text-sm text-ink-600 focus-visible:outline-2 focus-visible:outline-teal-500">
+       <span>Purchase due · ক্রয়ের বাকি</span><strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong>
+      </button>
      </div>
      {(statement.rows.length>0||statement.openingPaisa!==0)&&<div className="mb-2 flex flex-wrap justify-between gap-2 bg-ink-50 px-3 py-2 text-xs text-ink-600">
       <span>Opening: {money(statement.openingPaisa)}</span>
       <span>Increased: {money(statement.periodIncreasePaisa)}</span>
       <span>Decreased: {money(statement.periodDecreasePaisa)}</span>
      </div>}
-     <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-xs">
+     <div className="space-y-2 sm:hidden" data-testid="vendor-mobile-ledger">
+      {ledgerRows.map(e=><button type="button" key={e.id} onClick={()=>review(e)}
+       className="flex min-h-16 w-full min-w-0 items-center gap-3 rounded-lg border border-border bg-card px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
+        <span className="w-20 shrink-0 text-xs text-ink-500">{e.date}</span>
+        <span className="min-w-0 flex-1">
+         <strong className="block truncate text-sm text-ink">{e.reference??e.kind}</strong>
+         <span className="block truncate text-xs text-ink-500">{e.description}</span>
+         <span className="mt-1 block text-xs text-ink-500">Running · জের {money(e.runningPaisa)}</span>
+        </span>
+        <span className={'shrink-0 text-right text-sm font-semibold '+(e.deltaPaisa<0?'text-danger':'text-teal-700 dark:text-teal-300')}>
+         {e.deltaPaisa<0?'−':'+'}{money(Math.abs(e.deltaPaisa))}
+         <span className="block text-xs font-normal text-ink-500">Review</span>
+        </span>
+       </button>)}
+      {ledgerRows.length===0&&<div className="rounded-lg border border-border px-4 py-8 text-center text-sm text-ink-500">
+       No transactions in this view · এই হিসাবে লেনদেন নেই
+      </div>}
+     </div>
+     <div className="hidden overflow-x-auto sm:block"><table className="w-full min-w-[560px] text-xs">
       <thead><tr className="border-b border-border bg-ink-50">
        {['Date','Details','Increase','Decrease','Running','Actions'].map(x=><th key={x} className="p-2 text-left">{x}</th>)}
       </tr></thead><tbody>
@@ -187,7 +265,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
        {ledgerRows.length===0&&<tr><td colSpan={6} className="p-6 text-center text-ink-500">No transactions in this view.</td></tr>}
       </tbody></table></div>
      {side==='payable'&&profile.takenStatement.unpricedSources.length>0&&
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-warning-bg p-3 text-xs text-warning">
+      <div className="mt-3 hidden flex-wrap items-center justify-between gap-2 rounded-lg bg-warning-bg p-3 text-xs text-warning sm:flex">
        <span>{profile.takenStatement.unpricedSources.length} source(s) with <strong>Price not set</strong>. No money due is added until pricing.</span>
        <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('taken')}>Open Taken · নেওয়া পণ্য</Button>
       </div>}
@@ -252,12 +330,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
   </section>
 
-  <VendorDiscardDialog open={pendingTab!==null} onCancel={()=>setPendingTab(null)}
-   onDiscard={()=>{
-    if(!pendingTab)return;
-    applyTab(pendingTab.next,pendingTab.sourceId,pendingTab.openGoods);
-    setPendingTab(null);
-   }}/>
   <VendorCorrectionDialog source={snapshot.sources.find(s=>s.id===correctSource)??null}
    event={snapshot.events.find(e=>e.id===correctEvent)??null} state={snapshot}
    onClose={()=>{setCorrectEvent(null);setCorrectSource(null);}}

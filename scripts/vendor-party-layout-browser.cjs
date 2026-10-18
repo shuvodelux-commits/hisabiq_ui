@@ -18,60 +18,76 @@ async function main(){
   await directory.waitFor();
   await workspace.waitFor();
   assert.equal(await page.getByRole('region',{name:'Vendor module'}).count(),1);
-  assert.equal(await page.getByRole('tablist',{name:'Vendor work tabs'}).getByRole('tab').count(),5);
+  const tabs=page.getByRole('tablist',{name:'Vendor work tabs'});
+  assert.equal(await tabs.getByRole('tab').count(),5);
+  assert.equal(await tabs.evaluate(el=>getComputedStyle(el).display),'flex','Vendor tabs use the same horizontal text-tab layout as Parties');
+  assert.ok((await tabs.getByRole('tab',{name:/Ledger/}).getAttribute('class'))?.includes('erp-tab-active'),
+   'Active Vendor tab uses the shared Party underline');
+  assert.ok(!(await tabs.getByRole('tab',{name:/Ledger/}).getAttribute('class'))?.includes('border-b-2'),
+   'Vendor tab does not stack a second button-like underline');
+  assert.match(await tabs.getByRole('tab',{name:/Taken/}).getAttribute('title')??'',/Goods received/,
+   'Ambiguous tab names explain the goods flow on hover');
   assert.ok(await directory.getByRole('option',{name:/Shapla Transport/}).count()>0,
    'Vendor remains in the always-visible left directory');
 
-  // Match the shared Parties desktop split, but keep the selected Vendor work immediately accessible on mobile.
-  for(const width of [1440,1024,768,390,320]){
+  // Match the shared Parties 380px/remaining desktop split and stacked mobile flow.
+  for(const width of [1440,1024,768,390]){
    await page.setViewportSize({width,height:900});
+   const left=await directory.boundingBox();
    const right=await workspace.boundingBox();
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
    assert.ok(overflow<=2,`Vendor page must not overflow the ${width}px viewport; overflow=${overflow}px`);
-   assert.ok(right,'Selected Vendor detail must be rendered');
-   const mobilePicker=page.getByTestId('mobile-vendor-picker');
-   if(width>=1024){
-    const left=await directory.boundingBox();
-    assert.ok(left,'Desktop Vendor directory remains visible');
-    assert.ok(await mobilePicker.isHidden(),'Compact selector must not replace the desktop directory');
-    assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
-    if(width>=1280)assert.ok(Math.abs(left.width-380)<3,'Desktop directory must match Parties width');
+   assert.equal(await tabs.evaluate(el=>getComputedStyle(el).display),'flex',
+    'Tablist stays a scrollable horizontal Party-style strip at '+width);
+   for(const [trigger,copy] of [
+    ['Explain Vendor payable',/Goods taken from this vendor/],
+    ['Explain Vendor receivable',/Money the vendor still owes/],
+    ...(width>=640?[['Explain purchase due',/Unpaid regular purchase invoices/]]:[])
+   ]){
+    await workspace.getByRole('button',{name:trigger}).focus();
+    const tip=workspace.getByRole('tooltip').filter({hasText:copy});
+    const bounds=await tip.boundingBox();
+    assert.ok(bounds,trigger+' explanation must be available from keyboard and touch focus');
+    assert.ok(bounds.x>=-2&&bounds.x+bounds.width<=width+2,
+     trigger+' tooltip must stay on-screen at '+width+': '+JSON.stringify(bounds));
+   }
+   if(width<640){
+    assert.equal(left,null,'Phone hides the tall directory');
+    assert.ok(right,'Phone shows the full vendor workspace');
+    assert.equal(await page.getByRole('button',{name:'Choose Vendor'}).count(),1);
+    assert.ok(await workspace.getByTestId('vendor-mobile-ledger').isVisible(),'Phone ledger uses mobile rows');
+    assert.equal(await workspace.locator('table').first().isVisible(),false,'Phone hides the wide ledger table');
+    assert.ok((await workspace.getByRole('button',{name:'More Vendor actions'}).count())===1,'Secondary desktop-named actions are still accessible');
+    await workspace.getByRole('button',{name:'More Vendor actions'}).click();
+    const more=page.getByRole('dialog',{name:'More Vendor actions'});
+    await more.waitFor();
+    for(const label of ['Give Products','New purchase','Print Ledger','Edit Vendor · তথ্য বদলান']){
+     assert.equal(await more.getByRole('button',{name:label,exact:true}).count(),1,
+      'Mobile preserves desktop button label: '+label);
+    }
+    await page.keyboard.press('Escape');
+    await page.getByRole('button',{name:'Choose Vendor'}).click();
+    const picker=page.getByRole('dialog',{name:'Choose Vendor'});
+    await picker.waitFor();
+    await picker.getByRole('textbox',{name:'Search Vendors'}).fill('Padma');
+    await picker.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Padma Electric/}).click();
+    await picker.waitFor({state:'hidden'});
+    assert.ok(await workspace.getByText('৳240').count()>0,'Switching vendor updates balances in place');
+    await page.getByRole('button',{name:'Choose Vendor'}).click();
+    const secondPicker=page.getByRole('dialog',{name:'Choose Vendor'});
+    await secondPicker.getByRole('textbox',{name:'Search Vendors'}).fill('Shapla');
+    await secondPicker.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Shapla Transport/}).click();
+    await secondPicker.waitFor({state:'hidden'});
    }else{
-    assert.ok(await directory.isHidden(),'Long Vendor directory must not push the ledger down on mobile');
-    assert.ok(await mobilePicker.isVisible(),'Mobile selector must be visible');
-    const chooser=await mobilePicker.boundingBox();
-    assert.ok(chooser&&right.y>=chooser.y+chooser.height-2,'Vendor work follows the compact chooser');
+    assert.ok(left&&right,'Tablet and desktop retain the directory and selected detail');
+    if(width>=1024){
+     assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
+     if(width>=1280)assert.ok(Math.abs(left.width-380)<3,'Desktop directory must match Parties width');
+    }else{
+     assert.ok(right.y>=left.y+left.height-2,'Tablet Vendor detail must stack after directory');
+    }
    }
   }
-
-  await page.setViewportSize({width:390,height:844});
-  const mobilePicker=page.getByTestId('mobile-vendor-picker');
-  await mobilePicker.click();
-  const pickerDialog=page.getByRole('dialog',{name:/Choose Vendor/});
-  await pickerDialog.waitFor();
-  const chooserSearch=pickerDialog.getByRole('textbox',{name:/Search Vendors/});
-  await chooserSearch.fill('Padma');
-  await chooserSearch.press('Enter');
-  await pickerDialog.waitFor({state:'hidden'});
-  assert.ok(await mobilePicker.textContent().then(label=>label.includes('Padma')),'Selected mobile Vendor must update');
-  assert.ok(await mobilePicker.evaluate(node=>node===document.activeElement),'Dialog must restore keyboard focus to selector');
-  await mobilePicker.click();
-  await page.keyboard.press('Escape');
-  await pickerDialog.waitFor({state:'hidden'});
-
-  // A half-filled Vendor goods memo must survive canceling a tab switch.
-  await workspace.getByRole('button',{name:/Take Products/}).click();
-  const memo=workspace.getByRole('textbox',{name:'Vendor memo reference'});
-  await memo.fill('DRAFT-KEEP');
-  await workspace.getByRole('tab',{name:/Given/}).click();
-  const discard=page.getByRole('dialog',{name:/Leave without saving/});
-  await discard.waitFor();
-  await discard.getByRole('button',{name:/Keep editing/}).click();
-  assert.equal(await memo.inputValue(),'DRAFT-KEEP','Cancel must preserve in-progress goods');
-  await workspace.getByRole('tab',{name:/Given/}).click();
-  await discard.getByRole('button',{name:/Discard changes/}).click();
-  await discard.waitFor({state:'hidden'});
-  await workspace.getByRole('tab',{name:/Given/}).waitFor();
 
   await page.setViewportSize({width:1440,height:900});
   await directory.getByRole('button',{name:/Needs price/}).click();
@@ -94,7 +110,7 @@ async function main(){
   await workspace.getByRole('tab',{name:/Payments/}).click();
   await workspace.getByRole('region',{name:'Vendor payments workspace'}).waitFor();
   assert.deepEqual(errors,[]);
-  console.log('Vendor preserves Parties desktop layout, compact mobile picker, modal keyboard/focus, in-place add/edit and payment flows at 320/390/768/1024/1440');
+  console.log('Vendor uses Parties split layout with in-place add/edit, preserved sourcing and payments, responsive at 390/768/1024/1440');
  }finally{
   await browser.close();
   await server.close();

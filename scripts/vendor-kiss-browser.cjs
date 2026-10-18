@@ -10,12 +10,12 @@ async function main(){
    const page=await browser.newPage({viewport:{width,height:900},colorScheme:theme,reducedMotion:'reduce'});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:4297/#/app/vendors');
-   if(width<1024){
-    await page.getByTestId('mobile-vendor-picker').click();
-    const chooser=page.getByRole('dialog',{name:/Choose Vendor/});
-    await chooser.getByRole('button',{name:/Needs price/}).click();
-    await chooser.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Shapla Transport/}).click();
-    await chooser.waitFor({state:'hidden'});
+   if(width<640){
+    await page.getByRole('button',{name:'Choose Vendor'}).click();
+    const picker=page.getByRole('dialog',{name:'Choose Vendor'});
+    await picker.getByRole('button',{name:/Needs price/}).click();
+    await picker.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Shapla Transport/}).click();
+    await picker.waitFor({state:'hidden'});
    }else{
     await page.getByRole('button',{name:/Needs price/}).click();
     await page.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Shapla Transport/}).click();
