@@ -3,6 +3,7 @@ import {
   financeAccounts as seedAccounts,
   financeTransactions as seedTransactions,
   financePeople as seedPeople,
+  relationshipSummary as seedRelationshipSummary,
   type FinanceAccount,
   type FinanceTransaction,
   type FinancePerson
@@ -48,4 +49,38 @@ export function updateFinancePreview<K extends keyof FinancePreviewState>(
 export function resetFinancePreviewForTest(): void {
   state = fresh();
   listeners.forEach(listener => listener());
+}
+
+// The baseline relationship cards contain historical balances outside the small
+// fixture transaction list. Apply only the net change from the original fixtures,
+// so Counter-created and Finance-created entries update the same balance cards.
+function relationshipNet(
+  transactions: readonly FinanceTransaction[],
+  credit: FinanceTransaction['type'],
+  debit: FinanceTransaction['type'],
+  opening: FinanceTransaction['type']
+): number {
+  return transactions.reduce((total, transaction) => {
+    if (transaction.status === 'Reversed') return total;
+    if (transaction.type === credit || transaction.type === opening) return total + transaction.amount;
+    if (transaction.type === debit) return total - transaction.amount;
+    return total;
+  }, 0);
+}
+export function financePreviewRelationshipSummary(transactions: readonly FinanceTransaction[] = state.transactions) {
+  const change = (
+    credit: FinanceTransaction['type'],
+    debit: FinanceTransaction['type'],
+    opening: FinanceTransaction['type']
+  ) => relationshipNet(transactions, credit, debit, opening)
+    - relationshipNet(seedTransactions, credit, debit, opening);
+  return {
+    ...seedRelationshipSummary,
+    ownerCapital: seedRelationshipSummary.ownerCapital
+      + change('Owner Credit', 'Owner Debit', 'Opening Owner Capital'),
+    outstandingLoan: seedRelationshipSummary.outstandingLoan
+      + change('Lender Credit', 'Lender Debit', 'Opening Loan'),
+    borrowerReceivable: seedRelationshipSummary.borrowerReceivable
+      + change('Borrower Debit', 'Borrower Credit', 'Opening Borrower Loan')
+  };
 }
