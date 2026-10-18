@@ -13,7 +13,7 @@ async function main(){
   const nav=page.getByRole('navigation',{name:'Main'});
   await nav.getByRole('link',{name:/Vendor/}).first().waitFor();
   await page.getByRole('textbox',{name:'Search Vendors'}).fill('Shapla');
-  await page.getByRole('button',{name:/Shapla Transport/}).first().click();
+  await page.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Shapla Transport/}).click();
   const tabs=page.getByRole('tablist',{name:'Vendor work tabs'});
   assert.equal(await tabs.getByRole('tab').count(),5);
   await tabs.getByRole('tab',{name:/Taken/}).click();
