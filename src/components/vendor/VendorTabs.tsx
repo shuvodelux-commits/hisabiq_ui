@@ -13,6 +13,7 @@ import {VendorGoodsEditor} from './VendorGoodsEditor';
 import {VendorSourceWorkspace} from './VendorSourceWorkspace';
 import {VendorPaymentsWorkspace} from './VendorPaymentsWorkspace';
 import {VendorDiscardDialog} from './VendorDiscardDialog';
+import {useUiCopy} from '../../i18n/useUiCopy';
 import {PurchaseEditor} from '../../pages/PurchaseEditor';
 import {projectVendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import {sourceOutstanding} from '../../vendor/vendorModel';
@@ -35,6 +36,7 @@ const labels:Record<VendorWorkTab,{english:string;bn:string}>={
 const money=(v:number)=>taka(v/100);
 export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,onDirtyChange,onEditVendor}:Props){
  const base=useId().replace(/:/g,'');
+ const {text,showHelper}=useUiCopy();
  const [range,setRange]=useState<IsoRange>({from:'',to:''});
  const [query,setQuery]=useState('');
  const [side,setSide]=useState<VendorSide>('payable');
@@ -86,7 +88,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    dispatchVendorPreview({type:'record-purchase-inventory',operationId:'vendor-normal-purchase:'+p.id,
     vendorPartyId:party.id,purchaseId:p.id,lines:(p.inventoryLines??[]).map(l=>({productId:l.productId,baseQty:l.quantity}))});
   }catch(e){toast.error('Purchase created in preview. Stock projection needs review: '+String(e));}
-  setPurchaseRevision(n=>n+1);onDirtyChange(false);
+  setPurchaseRevision(n=>n+1);updateDirty(false);
  };
  const openGoods=(mode:'taken'|'given')=>{
   if(mode!==tab&&hasUnsavedGoods){setPendingTab({next:mode,openGoods:true});return;}
@@ -115,17 +117,17 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2" role="group" aria-label="Vendor quick actions">
-   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>Give Products</Button>
+   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/>{text('Take Products','পণ্য নিন')}</Button>
+   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>{text('Give Products','পণ্য দিন')}</Button>
    {unpricedMemos>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>}
+    onClick={()=>selectTab('taken',unpricedSource?.id)}>{text('Set price','দাম ঠিক করুন')}</Button>}
    {payable>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab(payableSource?'taken':'ledger',payableSource?.id)}>Pay / return</Button>}
+    onClick={()=>selectTab(payableSource?'taken':'ledger',payableSource?.id)}>{text('Pay / return','টাকা দিন / পণ্য ফেরত দিন')}</Button>}
    {receivable>0&&<Button type="button" size="sm" variant="outline"
-    onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>Receive settlement</Button>}
-   <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>New purchase</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print Ledger</Button>
-   <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>Edit Vendor · তথ্য বদলান</Button>
+    onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>{text('Receive settlement','পাওনা নিন')}</Button>}
+   <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>{text('New purchase','নতুন ক্রয়')}</Button>
+   <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/>{text('Print Ledger','হিসাব প্রিন্ট')}</Button>
+   <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>{text('Edit Vendor','ভেন্ডরের তথ্য বদলান')}</Button>
   </div>
   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
    {unpricedMemos>0
@@ -148,7 +150,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
        (index+(e.key==='ArrowRight'?1:-1)+vendorWorkTabs.length)%vendorWorkTabs.length;
       selectTab(vendorWorkTabs[next]);
       e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
-     }}>{labels[key].english} <span className="block sm:inline font-bn text-[10px] sm:text-[11px] text-ink-400">{labels[key].bn}</span></button>)}
+     }}>{text(labels[key].english,labels[key].bn)} {showHelper&&<span className="block sm:inline font-bn text-[10px] sm:text-[11px] text-ink-400">{labels[key].bn}</span>}</button>)}
    </div>
   </div>
   <section id={base+'-panel'} role="tabpanel" aria-labelledby={base+'-'+tab} className="min-w-0">
