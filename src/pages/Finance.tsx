@@ -25,7 +25,7 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { CounterWorkspace } from '../components/finance/CounterWorkspace';
-import { getFinancePreviewSnapshot, subscribeFinancePreview, updateFinancePreview } from '../data/financePreviewStore';
+import { financePreviewRelationshipSummary, getFinancePreviewSnapshot, subscribeFinancePreview, updateFinancePreview } from '../data/financePreviewStore';
 import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog } from '../components/finance/FinanceRecordDialogs';
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
@@ -42,7 +42,6 @@ import {
   financePersonOptionLabel,
   financeAccounts as seedAccounts,
   financeTransactions as seedTransactions,
-  relationshipSummary,
   type AccountTransfer,
   type FinanceAccount,
   type FinanceAccountType,
@@ -503,6 +502,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   const [financeTab, setTab] = useState<Tab>('overview');
   const tab: Tab = counterOnly ? 'counter' : financeTab;
   const { accounts, transactions, people } = useSyncExternalStore(subscribeFinancePreview, getFinancePreviewSnapshot);
+  const relationshipSummary = financePreviewRelationshipSummary(transactions);
   const setAccounts: React.Dispatch<React.SetStateAction<FinanceAccount[]>> = (change) => updateFinancePreview('accounts', change);
   const setTransactions: React.Dispatch<React.SetStateAction<FinanceTransaction[]>> = (change) => updateFinancePreview('transactions', change);
   const setPeople: React.Dispatch<React.SetStateAction<FinancePerson[]>> = (change) => updateFinancePreview('people', change);
