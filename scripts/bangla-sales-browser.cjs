@@ -58,6 +58,19 @@ async function main(){
     await page.goto('http://127.0.0.1:4402/#/app/sales?tab=credits');
     await page.getByText(bn?'ক্রেতার টাকা ও জমা':'Customer payments & credit',{exact:false}).first().waitFor();
     await page.getByRole('button',{name:bn?'ক্রেতার টাকা নিন':'Receive customer payment',exact:true}).waitFor();
+    // Keep the Sales payment dialog responsive while rejecting invalid money prefixes.
+    await page.getByRole('button',{name:bn?'ক্রেতার টাকা নিন':'Receive customer payment',exact:true}).click();
+    const paymentDialog=page.getByRole('dialog').last();
+    await paymentDialog.waitFor();
+    const moneyField=paymentDialog.getByRole('textbox',{name:bn?'টাকা':'Amount',exact:true});
+    await moneyField.fill('1..2');
+    const saveMoney=paymentDialog.getByRole('button',{name:bn?'পেমেন্ট লিখুন':'Save payment',exact:true});
+    assert.equal(await moneyField.inputValue(),'1..2','preserve malformed text for correction');
+    assert.ok(await saveMoney.isDisabled(),'malformed customer payment cannot be recorded');
+    await moneyField.fill('100.50');
+    assert.ok(await saveMoney.isEnabled(),'valid two-decimal amount remains usable');
+    await paymentDialog.getByRole('button',{name:bn?'বাতিল':'Cancel',exact:true}).click();
+    await paymentDialog.waitFor({state:'hidden'});
     await page.getByRole('columnheader',{name:bn?'জমা টাকা':'Credit balance',exact:true}).waitFor();
     assert.deepEqual(errors,[],language+' '+width+'px browser errors');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal page overflow');
