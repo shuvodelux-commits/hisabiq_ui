@@ -30,6 +30,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
       trigger={({ toggle, open }) =>
       <div className="flex items-center gap-1">
           <button
+          data-testid="pos-customer-picker-trigger"
           onClick={toggle}
           aria-expanded={open}
           className="flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 text-left hover:border-ink-200">
@@ -63,6 +64,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
       <div>
           <div className="border-b border-border p-2">
             <Input
+            data-testid="pos-customer-picker-search"
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
