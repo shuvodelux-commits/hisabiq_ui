@@ -26,6 +26,20 @@ async function main() {
         const modal = page.getByRole('dialog', { name: /New finance transaction/ });
         await modal.waitFor({ state: 'visible' });
 
+        // Finance person follows the approved Brand select + attached gear pattern.
+        const joined = modal.getByRole('group', { name: 'Finance person' });
+        assert.equal(await joined.getByRole('combobox').count(), 1);
+        const managePeople = joined.getByRole('button', { name: 'Manage people', exact: true });
+        assert.equal(await managePeople.getAttribute('aria-haspopup'), 'dialog');
+        assert.equal(await managePeople.locator('svg').count(), 1);
+        assert.equal(await modal.getByRole('button', { name: 'Add account', exact: true }).count(), 0);
+        if (width < 600) await managePeople.tap(); else await managePeople.click();
+        const peopleDialog = page.getByRole('dialog', { name: /Finance people/ });
+        await peopleDialog.waitFor({ state: 'visible' });
+        await peopleDialog.getByRole('button', { name: 'Done', exact: true }).click();
+        await peopleDialog.waitFor({ state: 'hidden' });
+        await modal.waitFor({ state: 'visible' });
+
         // The payment split defaults to the active Cash account and follows the amount.
         await modal.locator('input[inputmode="decimal"]').last().fill('175');
         await modal.getByRole('button', { name: 'Review transaction', exact: true }).click();
