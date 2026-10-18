@@ -1,6 +1,7 @@
 import {financeAccounts} from '../data/financeAccounts.ts';
 import {validateBusinessDate,validatePartySplits} from '../utils/partyPayment.ts';
 import {projectInstallmentBalance,type InstallmentPaymentPreviewEvent,type InstallmentReceiptAllocation} from './collections.ts';
+import {projectInstallmentLifecycle,type InstallmentLifecycleEvent} from './lifecycle.ts';
 import type {PreviewInstallmentAgreement} from '../data/installmentPreviewStore.ts';
 
 export type InstallmentCollectionInput={
@@ -10,7 +11,8 @@ export type InstallmentCollectionInput={
 };
 /** Validate a single preview receipt, not a Party Ledger or Bank posting instruction. */
 export function validateInstallmentCollection(
- input:InstallmentCollectionInput,previous:readonly InstallmentPaymentPreviewEvent[]
+ input:InstallmentCollectionInput,previous:readonly InstallmentPaymentPreviewEvent[],
+ lifecycleEvents:readonly InstallmentLifecycleEvent[]=[]
 ):string[]{
  const errors:string[]=[];
  if(!input.agreement?.id)errors.push('Select an installment agreement.');
@@ -29,13 +31,17 @@ export function validateInstallmentCollection(
  }catch(error){errors.push(error instanceof Error?error.message:'Invalid payment sources.');}
  if(previous.some(event=>event.date>input.date))
    errors.push('Payment date cannot precede a later recorded installment collection.');
+ if(lifecycleEvents.some(event=>event.effectiveDate>input.date))
+   errors.push('Payment date cannot precede the current schedule or agreement adjustment.');
  if(errors.length)return errors;
  try{
    const probe:InstallmentPaymentPreviewEvent={id:'validation-'+input.operationId,
      operationId:input.operationId,agreementId:input.agreement.id,
      date:input.date,amountPaisa:input.amountPaisa,allocations:structuredClone(input.allocations),
      splits:structuredClone(input.splits),createdAt:new Date().toISOString()};
-   projectInstallmentBalance(input.agreement,[...previous,probe],input.date);
+   if(lifecycleEvents.length)
+     projectInstallmentLifecycle(input.agreement,[...previous,probe],lifecycleEvents,input.date);
+   else projectInstallmentBalance(input.agreement,[...previous,probe],input.date);
  }catch(error){errors.push(error instanceof Error?error.message:'Invalid installment allocations.');}
  return errors;
 }
