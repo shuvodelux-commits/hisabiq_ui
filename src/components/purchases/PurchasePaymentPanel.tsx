@@ -137,7 +137,7 @@ export function PurchasePaymentPanel(props: Props) {
                     onKeyDown={(event) => event.key === 'Enter' && props.onComplete()}
                     inputMode="decimal" placeholder="0" className="h-9 pl-7 text-right font-medium" />
                 </div>
-                <button type="button" aria-label={text('Fill remaining payment ' + (index + 1),'বাকি পেমেন্ট পূরণ ' + (index + 1))} onClick={() => updatePayment(payment.id,
+                <button type="button" aria-label={text('Fill remaining payment ' + (index + 1),'বাকি টাকা পূরণ ' + (index + 1))} onClick={() => updatePayment(payment.id,
                   { amount: String(paymentRemainder(totals.total, payments, payment.id)) })}
                   className="h-9 rounded-md border border-border bg-card px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50">
                   {word('remaining')}
