@@ -128,15 +128,18 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5" role="group" aria-label="Vendor quick actions">
-   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>Give Products</Button>
+   <Button type="button" size="sm" title={text('Record products received from this vendor','এই ভেন্ডর থেকে নেওয়া পণ্য লিখুন')} onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products</Button>
+   <Button type="button" size="sm" variant="outline" title={text('Record products you gave to this vendor','ভেন্ডরকে দেওয়া পণ্য লিখুন')} onClick={()=>openGoods('given')}>Give Products</Button>
    {unpricedMemos>0&&<Button type="button" size="sm" variant="outline"
+    title={text('Set the agreed price for previously unpriced goods','আগে নেওয়া পণ্যের দাম লিখুন')}
     onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>}
    {payable>0&&<Button type="button" size="sm" variant="outline"
+    title={text('Pay for taken goods or return products to settle','নেওয়া পণ্যের টাকা দিন বা পণ্য ফেরত দিন')}
     onClick={()=>selectTab(payableSource?'taken':'ledger',payableSource?.id)}>Pay / return</Button>}
    {receivable>0&&<Button type="button" size="sm" variant="outline"
+    title={text('Receive money for goods handed to this vendor','ভেন্ডরকে দেওয়া পণ্যের টাকা নিন')}
     onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>Receive settlement</Button>}
-   <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>New purchase</Button>
+   <Button type="button" size="sm" variant="outline" title={text('Open a regular purchase invoice, separate from goods memos','নেওয়া পণ্যের মেমো থেকে আলাদা সাধারণ ক্রয়ের বিল')} onClick={()=>selectTab('purchases')}>New purchase</Button>
    <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print Ledger</Button>
    <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>Edit Vendor · তথ্য বদলান</Button>
   </div>
