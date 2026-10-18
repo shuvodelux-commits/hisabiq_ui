@@ -113,14 +113,14 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    <div className="grid shrink-0 grid-cols-2 gap-2" aria-label="Vendor balances, kept separate">
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
      <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('You owe','দিতে হবে')}{showHelper&&' · দেনা'}
-      <Tooltip label="Explain Vendor payable" align="center" triggerClassName="size-7"
+      <Tooltip label="Explain Vendor payable" align="start" triggerClassName="size-7"
        content={<span className="block text-sm leading-5">Goods taken from this vendor that still need payment. Regular purchase bills are separate.<span className="mt-1 block font-bn">ভেন্ডর থেকে নেওয়া পণ্যের বাকি টাকা। সাধারণ ক্রয়ের বিল আলাদা।</span></span>}/>
      </p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(payable>0?'text-danger':'text-ink')}>{money(payable)}</p>
     </div>
     <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
      <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('Vendor owes','পাওনা')}{showHelper&&' · পাওনা'}
-      <Tooltip label="Explain Vendor receivable" align="end" triggerClassName="size-7"
+      <Tooltip label="Explain Vendor receivable" align="center" triggerClassName="size-7"
        content={<span className="block text-sm leading-5">Money the vendor still owes for goods you gave them.<span className="mt-1 block font-bn">ভেন্ডরকে দেওয়া পণ্যের জন্য যে টাকা এখনো পাবেন।</span></span>}/>
      </p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(receivable>0?'text-teal-700 dark:text-teal-300':'text-ink')}>{money(receivable)}</p>
