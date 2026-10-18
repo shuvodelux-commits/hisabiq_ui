@@ -37,6 +37,14 @@ async function main(){
   await modal.getByRole('button',{name:/Confirm preview/i}).click();
   await page.getByText(/Installment schedule/i).first().click();
   await page.getByText(/Lifecycle history/i).first().waitFor();
+  // Regression: a lifecycle reduction must not disable subsequent collections.
+  await page.getByRole('button',{name:/Receive payment/i}).click();
+  const payment=page.getByRole('dialog',{name:/Receive installment payment/i});
+  await payment.waitFor();
+  await payment.getByRole('textbox',{name:/Payment amount/i}).fill('10');
+  await payment.getByRole('button',{name:/Review payment/i}).click();
+  await payment.getByRole('button',{name:/Confirm receipt preview/i}).click();
+  await page.getByText(/Receipt #1/i).first().waitFor();
   await page.setViewportSize({width:390,height:740});
   await page.getByRole('button',{name:/Edit schedule/i}).click();
   modal=page.getByRole('dialog',{name:/Edit installment schedule/i});
