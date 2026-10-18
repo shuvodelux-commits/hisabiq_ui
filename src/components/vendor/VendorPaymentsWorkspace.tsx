@@ -26,9 +26,9 @@ export function VendorPaymentsWorkspace({state,sources,sourceId}:Props){
  const unsettled=sources.filter(s=>s.sourceKind==='sourcing'&&
   sourceOutstanding(state,s.id).unpricedBaseQty>0).length;
  return <section aria-label="Vendor payments workspace"
-   className="grid min-w-0 gap-3 lg:grid-cols-[minmax(260px,0.82fr)_minmax(0,1.18fr)] lg:items-start">
-   <Button type="button" variant="outline" className="min-h-11 w-full lg:hidden" aria-expanded={showInvoices} onClick={()=>setShowInvoices(!showInvoices)}>{showInvoices?'Back to payment · পেমেন্টে ফিরুন':`Choose another memo · মেমো বাছুন (${due.length})`}</Button>
-   <div className={(showInvoices?'block':'hidden')+' min-w-0 overflow-hidden rounded-lg border border-border bg-card lg:block'}>
+   className="grid min-w-0 gap-3 xl:grid-cols-[minmax(260px,0.82fr)_minmax(0,1.18fr)] xl:items-start">
+   <Button type="button" variant="outline" className="min-h-11 w-full xl:hidden" aria-expanded={showInvoices} onClick={()=>setShowInvoices(!showInvoices)}>{showInvoices?'Back to payment · পেমেন্টে ফিরুন':`Choose another memo · মেমো বাছুন (${due.length})`}</Button>
+   <div className={(showInvoices?'block':'hidden')+' min-w-0 overflow-hidden rounded-lg border border-border bg-card xl:block'}>
     <div className="border-b border-border p-3">
      <h4 className="text-sm font-semibold text-ink">Outstanding invoices · বাকি মেমো</h4>
      <p className="mt-1 text-xs text-ink-500">Choose a memo to record payment.</p>
@@ -57,7 +57,7 @@ export function VendorPaymentsWorkspace({state,sources,sourceId}:Props){
      {unsettled} memo(s) need a price. Set it in Taken.
     </p>}
    </div>
-   <div className={(showInvoices?'hidden':'block')+' min-w-0 rounded-lg border border-border bg-card p-4 shadow-card sm:p-5 lg:block'}>
+   <div className={(showInvoices?'hidden':'block')+' min-w-0 rounded-lg border border-border bg-card p-4 shadow-card sm:p-5 xl:block'}>
     {selected?<div>
      <div className="border-b border-border pb-3">
       <h4 className="text-sm font-semibold text-ink">{selected.sourceKind==='sourcing'?'Pay Vendor · টাকা দিন':'Receive Money · টাকা নিন'}</h4>
