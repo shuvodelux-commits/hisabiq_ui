@@ -5,6 +5,7 @@ import { Input } from '../Input';
 import { PartyAvatar } from '../PartyAvatar';
 import {getPartyPreviewSnapshot,subscribePartyPreview} from '../../data/partyPreviewStore';
 import { taka } from '../../utils/currency';
+import {rankSearch} from '../../utils/fuzzySearch';
 import type { Party } from '../../types/erp';
 import { useUiCopy } from '../../i18n/useUiCopy';
 
@@ -15,14 +16,11 @@ type CustomerPickerProps = {
 
 export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
   const [q, setQ] = useState('');
-  const { word } = useUiCopy();
+  const { word,text } = useUiCopy();
   const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
-  const customers = partyState.parties.filter((p) => {
-    if (!p.roles.includes('Customer') && !p.roles.includes('Borrower')) return false;
-    const needle = q.trim().toLowerCase();
-    if (!needle) return true;
-    return p.name.toLowerCase().includes(needle) || p.phone.toLowerCase().includes(needle);
-  });
+  // Only active Customer relationships are valid at checkout; Borrower is a separate ledger role.
+  const customers = rankSearch(partyState.parties.filter(p=>p.roles.includes('Customer')&&p.status!=='Inactive'),
+    q,p=>[p.name,p.nameBn,p.phone,p.area]);
 
   return (
     <FloatingPanel
@@ -32,6 +30,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
       trigger={({ toggle, open }) =>
       <div className="flex items-center gap-1">
           <button
+          data-testid="pos-customer-picker-trigger"
           onClick={toggle}
           aria-expanded={open}
           className="flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 text-left hover:border-ink-200">
@@ -65,9 +64,12 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
       <div>
           <div className="border-b border-border p-2">
             <Input
+            data-testid="pos-customer-picker-search"
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            onKeyDown={e=>{if(e.key==='Enter'&&q.trim()&&customers[0]){e.preventDefault();onChange(customers[0]);close();}}}
+            aria-label={word("searchCustomer")}
             placeholder={word("searchCustomer")}
             className="h-9 w-full rounded-md border border-border px-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
           
@@ -101,10 +103,11 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
                     <span className="block truncate text-[13px] font-medium text-ink">{c.name}</span>
                     <span className="block text-[11px] text-ink-500">{c.phone}</span>
                   </span>
-                  {c.balance > 0 && <span className="text-xs tabular-nums text-danger">{taka(c.balance)}</span>}
+                  {c.balance > 0 && <span className="text-xs text-danger">{taka(c.balance)}</span>}
                 </button>
               </li>
           )}
+            {q.trim()&&customers.length===0&&<li className="px-3 py-4 text-sm text-ink-500" role="status">{text('No matching customers','কোনো ক্রেতা পাওয়া যায়নি')}</li>}
           </ul>
         </div>
       }

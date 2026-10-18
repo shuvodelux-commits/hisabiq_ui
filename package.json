@@ -96,7 +96,8 @@
     "test:field-alignment": "node scripts/field-alignment-browser.cjs",
     "test:erp-fuzzy-modules": "node scripts/erp-fuzzy-module-browser.cjs",
     "test:vendor-party-layout": "node scripts/vendor-party-layout-browser.cjs",
-    "test:counter-finance-transaction": "node scripts/counter-finance-transaction-browser.cjs"
+    "test:counter-finance-transaction": "node scripts/counter-finance-transaction-browser.cjs",
+    "test:impeccable-priority": "node scripts/impeccable-priority-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

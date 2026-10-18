@@ -46,7 +46,13 @@ const toneDot = {
 export function TopBar() {
   const { text, language } = useUiCopy();
   const { setOpen, sessionOpen, expectedCash } = useCashSession();
-  const { state } = useTenantSettings();
+  const { state,actorId } = useTenantSettings();
+  const activeEmployee=state.sections.team.employees.find(employee=>employee.id===actorId&&employee.active);
+  const userName=activeEmployee?.name.trim()||text('User','ব্যবহারকারী');
+  const initials=userName.split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase();
+  const firstRole=activeEmployee?.roleIds[0];
+  const roleName=firstRole==='owner'?text('Owner','মালিক')
+    :state.sections.team.roles.find(role=>role.id===firstRole)?.name??text('Staff','কর্মী');
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const headerRef = useRef<HTMLElement>(null);
@@ -216,13 +222,13 @@ export function TopBar() {
             <button
               onClick={toggle}
               aria-expanded={open}
-              aria-label={text("User menu AR Anisur Rahman Owner","ব্যবহারকারীর মেনু AR Anisur Rahman মালিক")}
+              aria-label={text("User menu","ব্যবহারকারীর মেনু")+" "+initials+" "+userName+" "+roleName}
               className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-1.5 hover:bg-ink-50">
               
-                <span className="flex size-7 items-center justify-center rounded-full bg-inverse text-[11px] font-semibold text-white">AR</span>{' '}
+                <span className="flex size-7 items-center justify-center rounded-full bg-inverse text-[11px] font-semibold text-white">{initials}</span>{' '}
                 <span className="hidden text-left leading-tight xl:block">
-                  <span className="block text-[13px] font-medium text-ink">Anisur Rahman</span>{' '}
-                  <span className="block text-[11px] text-ink-500">{text("Owner","মালিক")}</span>
+                  <span className="block text-[13px] font-medium text-ink">{userName}</span>{' '}
+                  <span className="block text-[11px] text-ink-500">{roleName}</span>
                 </span>
                 <ChevronDown className="size-3.5 text-ink-400" aria-hidden="true" />
               </button>
@@ -231,8 +237,8 @@ export function TopBar() {
             {(close) =>
             <div className="p-1.5 text-[13px]">
                 <div className="px-2.5 py-2">
-                  <p className="font-medium text-ink">Md. Anisur Rahman</p>
-                  <p className="text-xs text-ink-500">anis@nawabpurhardware.com</p>
+                  <p className="font-medium text-ink">{userName}</p>
+                  <p className="text-xs text-ink-500">{activeEmployee?.email||text('Preview account','নমুনা অ্যাকাউন্ট')}</p>
                 </div>
                 <div className="my-1 h-px bg-ink-100" />
                 {[

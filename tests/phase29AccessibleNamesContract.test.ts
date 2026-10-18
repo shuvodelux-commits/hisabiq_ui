@@ -23,7 +23,7 @@ test('Date display contributes to accessibility name without changing ISO values
 });
 test('Header includes visible user initials in the same accessible menu name',()=>{
  const c=s('src/components/layout/TopBar.tsx');
- assert.ok(c.includes('aria-label={text("User menu AR Anisur Rahman Owner"'));
+ assert.ok(c.includes('aria-label={text("User menu","ব্যবহারকারীর মেনু")+" "+initials+" "+userName+" "+roleName}'));
  assert.ok(c.includes('data-print-hide'));
  assert.ok(c.includes('onClick={toggle}'));
 });

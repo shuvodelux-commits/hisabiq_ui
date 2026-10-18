@@ -13,6 +13,8 @@ import { RecentSalesTable } from '../components/dashboard/RecentSalesTable';
 import { DuesList } from '../components/dashboard/DuesList';
 import { CustomizeDialog } from '../components/dashboard/CustomizeDialog';
 import { useDashboardLayout } from '../hooks/useDashboardLayout';
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {useUiCopy} from '../i18n/useUiCopy';
 import type { DashboardWidget } from '../types/erp';
 
 const panelSpan: Record<string, string> = {
@@ -88,6 +90,13 @@ function PanelContent({ widget }: {widget: DashboardWidget;}) {
 }
 
 export function Dashboard() {
+  const {state,actorId}=useTenantSettings();
+  const {text}=useUiCopy();
+  const actor=state.sections.team.employees.find(employee=>employee.id===actorId&&employee.active);
+  const business=state.sections.business.name.trim()||text('Your business','আপনার ব্যবসা');
+  const now=new Date();
+  const englishDate=new Intl.DateTimeFormat('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
+  const banglaDate=new Intl.DateTimeFormat('bn-BD',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
   const { metrics, panels, setGroup, toggle, move, reset } = useDashboardLayout();
   const [editing, setEditing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -98,9 +107,10 @@ export function Dashboard() {
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
-        title="Good morning, Anis"
-        titleBn="শুভ সকাল"
-        description="Thursday, 1 October 2026 · Here’s how Nawabpur Hardware House is doing today."
+        title={actor? `Welcome, ${actor.name}` : 'Dashboard'}
+        titleBn={actor? `স্বাগতম, ${actor.name}` : 'ড্যাশবোর্ড'}
+        description={englishDate+' · '+business+' · '+text('Sample figures','নমুনার হিসাব')}
+        descriptionBn={banglaDate+' · '+business+' · নমুনার হিসাব'}
         actions={
         editing ?
         <>

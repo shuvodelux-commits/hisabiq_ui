@@ -159,6 +159,9 @@ jobs:
       - name: Check Parties-style Vendor split layout and contextual actions
         run: npm run test:vendor-party-layout
 
+      - name: Check Impeccable Dashboard and POS customer eligibility
+        run: npm run test:impeccable-priority
+
       - name: Check compact single-panel Vendor memo/settlement across screen sizes
         run: node scripts/vendor-kiss-browser.cjs
 
