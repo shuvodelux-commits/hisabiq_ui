@@ -9,7 +9,7 @@ async function main(){
    const page=await browser.newPage({viewport:{width,height:900},colorScheme:theme});const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:4297/#/app/vendors');
    await page.getByRole('button',{name:/Needs price/}).click();
-   await page.getByRole('button',{name:/Shapla Transport/}).click();
+   await page.getByRole('listbox',{name:'Vendors'}).getByRole('option',{name:/Shapla Transport/}).click();
    const work=page.getByRole('region',{name:'Taken product workplace'});
    await work.getByRole('form',{name:'Set Vendor price'}).waitFor();
    if(width<1024){
