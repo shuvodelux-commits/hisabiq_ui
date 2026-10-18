@@ -9,7 +9,8 @@ Replace the former two-step Vendor page (standalone directory, followed by a ful
 - Right panel always contains the selected Vendor. Header: avatar, bilingual name/contact and two separate balances. Toolbar: Take/Give products, Set price, Pay/Return, Receive settlement, New purchase, Print statement, Edit Vendor. Tabs: Ledger, Taken, Given, Purchases, Payments.
 - Vendor directory balance details, price-pending status, and separated receivables/payables are Vendor-specific: they are **not** modeled as a single scalar Party balance.
 - Add/Edit Vendor reuse the **existing `PartyEditorDialog` and `dispatchPartyPreview`** with Vendor role enforced; existing party identities can gain the Vendor role without creating duplicates.
-- Nested memo and payment list/detail sections switch to a single-pane chooser on narrower viewports; `VendorSourceWorkspace` and `VendorPaymentsWorkspace` are unchanged otherwise.
+- **Inner workspaces never create another split-screen layout.** Taken, Given and Payments use a compact single-column panel: selected memo summary and form stay together; `Choose another memo` expands a searchable, filterable list only when requested (on desktop as well as mobile).
+- Vendor settlement keeps split money accounts, optional goods return, due preview and correction actions in one vertical flow, with no nested two-column payment/return cards. Pricing and due calculations remain unchanged.
 
 ## Behavior preserved
 | User action | Existing source reused |
@@ -27,6 +28,7 @@ No new posting rules, pricing engine, financial offsetting or page-local product
 ## Acceptance & verification
 - `npm run build` and `npm run check:ui-contract`
 - `npm run test:vendor-party-layout`: directory/detail geometry at 1440, 1024, 768 and 390px; in-place add/edit modal; selected vendor, tabs, sourcing and payments.
+- `node scripts/vendor-kiss-browser.cjs`: at 390/768/1024/1440px and light/dark, Taken/Given/Payments are always a single panel, memo list opens on demand, selection reopens the existing source-linked forms, no whole-page overflow.
 - `npm run test:vendor-module`, `node scripts/vendor-kiss-browser.cjs`, `npm run test:vendor-context`, `npm run test:vendor-workflow`, `npm run test:vendor-correction`, `npm run test:vendor-receipt`
 - Test dropdown/popover visibility, vendor selector, modal focus and keyboard selection, compact memo chooser, light/dark contrast and overflow before merging.
 - Review gate: do **not** merge without explicit approval.
