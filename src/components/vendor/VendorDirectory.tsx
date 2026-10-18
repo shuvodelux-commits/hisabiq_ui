@@ -68,11 +68,11 @@ export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFi
               <span className="block truncate text-xs text-ink-500">{p.phone} · {p.lastActivity}</span>
             </span>
             <span className="min-w-0 max-w-[46%] shrink-0 text-right">
-              {balance.unpricedSourceCount>0&&<span className="block text-[11px] font-medium text-warning">Price pending · দাম বাকি ({balance.unpricedSourceCount})</span>}
-              {balance.knownPayablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-danger">{taka(balance.knownPayablePaisa/100)} <span className="text-[11px] font-normal">দেব</span></span>}
-              {balance.knownReceivablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-teal-700 dark:text-teal-300">{taka(balance.knownReceivablePaisa/100)} <span className="text-[11px] font-normal">পাব</span></span>}
+              {balance.unpricedSourceCount>0&&<span className="block text-xs font-medium text-warning">Price pending · দাম বাকি ({balance.unpricedSourceCount})</span>}
+              {balance.knownPayablePaisa>0&&<span className="block whitespace-nowrap text-sm font-semibold text-danger">{taka(balance.knownPayablePaisa/100)} <span className="text-[11px] font-normal">দেব</span></span>}
+              {balance.knownReceivablePaisa>0&&<span className="block whitespace-nowrap text-sm font-semibold text-teal-700 dark:text-teal-300">{taka(balance.knownReceivablePaisa/100)} <span className="text-[11px] font-normal">পাব</span></span>}
               {!balance.unpricedSourceCount&&!balance.knownPayablePaisa&&!balance.knownReceivablePaisa&&
-                <><span className="block text-xs font-semibold text-ink-400">৳0</span><span className="block text-[11px] text-ink-500">Settled · মিটেছে</span></>}
+                <><span className="block text-sm font-semibold text-ink-400">৳0</span><span className="block text-[11px] text-ink-500">Settled · মিটেছে</span></>}
             </span>
           </button>
         </li>;
