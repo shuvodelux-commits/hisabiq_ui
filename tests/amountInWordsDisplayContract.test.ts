@@ -32,10 +32,15 @@ test('shared amount-in-words component has full-width readable wrapped Bangla in
  assert.match(source,/variant = 'default'/);
  assert.ok(source.includes("variant?: 'default' | 'inverse' | 'receipt'"));
 });
-test('black payable cards use contrasting variant; paper receipt retains dedicated readable variant',()=>{
- for(const path of displays.filter(x=>/CheckoutPanel|PurchasePaymentPanel/.test(x))){
-  assert.match(readFileSync(path,'utf8'),/variant="inverse"/,path);
- }
+test('POS checkout follows the light mint words styling while purchase inverse and receipt variants remain readable',()=>{
+ const pos=readFileSync('src/components/pos/CheckoutPanel.tsx','utf8');
+ const words=readFileSync('src/components/AmountInWordsDisplay.tsx','utf8');
+ assert.match(pos,/data-pos-payable/);
+ assert.match(pos,/data-pos-payable[^>]*bg-card/);
+ assert.match(pos,/<AmountInWordsDisplay amount=\{totals\.total\} \/>/);
+ assert.doesNotMatch(pos,/bg-inverse|variant="inverse"/);
+ assert.match(words,/bg-teal-50\/70/,'default words panel keeps the approved mint tone');
+ assert.match(readFileSync('src/components/purchases/PurchasePaymentPanel.tsx','utf8'),/variant="inverse"/);
  assert.match(readFileSync('src/components/brand/ReceiptPreview.tsx','utf8'),/variant="receipt"/);
 });
 
