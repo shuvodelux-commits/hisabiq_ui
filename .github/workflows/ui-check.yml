@@ -156,6 +156,9 @@ jobs:
       - name: Check top-level Vendor module, selector and tabs
         run: npm run test:vendor-module
 
+      - name: Check Parties-style Vendor split layout and contextual actions
+        run: npm run test:vendor-party-layout
+
       - name: Check shared Vendor Party profile
         run: npm run test:vendor-party-profile
 
