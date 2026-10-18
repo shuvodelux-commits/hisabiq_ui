@@ -126,6 +126,6 @@ export function InstallmentAgreementPreview({agreement,receipts=[],events=[],onR
    </div>
    {onReturn&&!eligibility.eligible&&<p className="text-[11px] text-ink-500">
      {eligibility.reason}
-   </p>
+   </p>}
  </div>;
 }
