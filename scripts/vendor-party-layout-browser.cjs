@@ -50,10 +50,10 @@ async function main(){
   const pickerDialog=page.getByRole('dialog',{name:/Choose Vendor/});
   await pickerDialog.waitFor();
   const chooserSearch=pickerDialog.getByRole('textbox',{name:/Search Vendors/});
-  await chooserSearch.fill('Shapla');
+  await chooserSearch.fill('Padma');
   await chooserSearch.press('Enter');
   await pickerDialog.waitFor({state:'hidden'});
-  assert.ok(await mobilePicker.textContent().then(label=>label.includes('Shapla')),'Selected mobile Vendor must update');
+  assert.ok(await mobilePicker.textContent().then(label=>label.includes('Padma')),'Selected mobile Vendor must update');
   assert.ok(await mobilePicker.evaluate(node=>node===document.activeElement),'Dialog must restore keyboard focus to selector');
   await mobilePicker.click();
   await page.keyboard.press('Escape');
