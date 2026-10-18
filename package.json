@@ -93,6 +93,7 @@
     "test:sales-audit": "node scripts/sales-audit-regression-browser.cjs",
     "test:remaining-audit": "node scripts/remaining-audit-regression-browser.cjs",
     "test:number-fuzzy": "node scripts/number-fuzzy-browser.cjs",
+    "test:field-alignment": "node scripts/field-alignment-browser.cjs",
     "test:erp-fuzzy-modules": "node scripts/erp-fuzzy-module-browser.cjs",
     "test:vendor-party-layout": "node scripts/vendor-party-layout-browser.cjs"
   },

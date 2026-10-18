@@ -1242,6 +1242,7 @@ export function Sales() {
                               {qty > 0 && (
                                 <div className="mt-2 max-w-[260px] space-y-1.5">
                                   <FormSelect
+                                    aria-label={text('Return reason','ফেরতের কারণ') + ' · ' + line.name}
                                     value={returnReason[line.id] ?? 'Customer return'}
                                     onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
                                     options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
@@ -1343,6 +1344,7 @@ export function Sales() {
                     <label className="text-[12px] font-medium text-ink">
                       {sl('Settlement')}
                       <FormSelect
+                        aria-label={sl('Settlement')}
                         className="mt-1"
                         value={returnSettlement}
                         disabled={includesBundleReturn}

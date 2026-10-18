@@ -48,12 +48,12 @@ async function main(){
     await page.getByRole('columnheader',{name:bn?'ফেরতের পরিমাণ':'Return qty',exact:true}).waitFor();
     const qty=page.locator('table tbody tr').first().locator('input[inputmode="decimal"]').first();
     await qty.fill('1');
-    const reason=page.getByRole('combobox',{name:bn?'ক্রেতা ফেরত দিয়েছেন':'Customer return'}).first();
+    const reason=page.getByRole('combobox',{name:new RegExp('^'+(bn?'ফেরতের কারণ':'Return reason')+' · ')}).first();
     assert.equal(await reason.getAttribute('data-value'),'Customer return','stored source return reason');
     await reason.click();
     await page.getByRole('option',{name:bn?'ভুল পণ্য':'Wrong item',exact:true}).click();
     assert.equal(await reason.getAttribute('data-value'),'Wrong item','translated reason retains English source value');
-    const settlement=page.getByRole('combobox',{name:bn?'বাকি থেকে কমান':'Adjust due'}).first();
+    const settlement=page.getByRole('combobox',{name:bn?'হিসাব মেলানো':'Settlement',exact:true}).first();
     assert.equal(await settlement.getAttribute('data-value'),'Adjust due','stored return settlement');
     await page.goto('http://127.0.0.1:4402/#/app/sales?tab=credits');
     await page.getByText(bn?'ক্রেতার টাকা ও জমা':'Customer payments & credit',{exact:false}).first().waitFor();
