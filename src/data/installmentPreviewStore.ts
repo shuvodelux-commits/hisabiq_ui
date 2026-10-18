@@ -123,7 +123,8 @@ export function appendInstallmentLifecycleEvent(event:InstallmentLifecycleEvent)
  if(!records.some(a=>a.id===event.agreementId))throw new Error('Installment agreement not found.');
  const other=lifecycleEvents.find(e=>e.operationId===event.operationId);
  if(other){
-  if(JSON.stringify(other)!==JSON.stringify(event))
+  const {sourceSequence:_sourceSequence,...existingPayload}=other;
+  if(JSON.stringify(existingPayload)!==JSON.stringify(event))
    throw new Error('Operation already used for a different lifecycle event.');
   return structuredClone(other);
  }
