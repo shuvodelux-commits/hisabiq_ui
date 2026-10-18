@@ -80,7 +80,7 @@ export function PurchasePaymentPanel(props: Props) {
               ))}
             </div>
             <NumericInput aria-label={word("discount")} value={props.discount}
-              onChange={(event) => props.onDiscount(event.target.value.replace(/[^\\d.]/g, ''))}
+              onChange={(event) => props.onDiscount(event.target.value.replace(/[^\d.]/g, ''))}
               placeholder="0" inputMode="decimal"
               className="h-8 w-24 rounded-md border border-border bg-card px-2 text-right text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
           </div>
@@ -131,23 +131,23 @@ export function PurchasePaymentPanel(props: Props) {
                   <FormSelect value={payment.account} options={purchasePaymentAccounts[payment.method]}
                     onChange={(event) => updatePayment(payment.id, { account: event.target.value })} />
                 </div>
-                <div className="relative col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-auto sm:row-auto">
+                <div className="relative col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-auto sm:row-start-auto">
                   <span className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-sm text-ink-400">৳</span>
                   <Input ref={index === 0 ? props.paidRef : undefined}
                     aria-label={text('Paid amount ' + (index + 1),'পরিশোধের টাকা ' + (index + 1))}
                     value={payment.amount}
-                    onChange={(event) => updatePayment(payment.id, { amount: event.target.value.replace(/[^\\d.]/g, '') })}
+                    onChange={(event) => updatePayment(payment.id, { amount: event.target.value.replace(/[^\d.]/g, '') })}
                     onKeyDown={(event) => event.key === 'Enter' && props.onComplete()}
                     inputMode="decimal" placeholder="0" className="h-9 w-full pl-7 text-right font-medium" />
                 </div>
                 <button type="button" onClick={() => updatePayment(payment.id,
                   { amount: String(paymentRemainder(totals.total, payments, payment.id)) })}
-                  className="col-start-3 row-start-2 h-9 rounded-md border border-border bg-card px-2 text-[11px] font-medium text-teal-700 hover:bg-teal-50 sm:col-auto sm:row-auto">
+                  className="col-start-3 row-start-2 h-9 rounded-md border border-border bg-card px-2 text-[11px] font-medium text-teal-700 hover:bg-teal-50 sm:col-auto sm:row-start-auto">
                   {word('remaining')}
                 </button>
                 <button type="button" disabled={payments.length === 1}
                   onClick={() => props.onPayments((rows) => rows.filter((row) => row.id !== payment.id))}
-                  className="col-start-3 row-start-1 flex size-9 items-center justify-center justify-self-end rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30 sm:col-auto sm:row-auto"
+                  className="col-start-3 row-start-1 flex size-9 items-center justify-center justify-self-end rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30 sm:col-auto sm:row-start-auto"
                   aria-label={text('Remove payment ' + (index + 1),'পেমেন্ট সরান ' + (index + 1))}>
                   <Trash2 className="size-3.5" />
                 </button>
