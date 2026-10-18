@@ -95,7 +95,8 @@ export function recordInstallmentReceiptPreview(input:InstallmentReceiptPreviewI
  const agreement=getInstallmentPreview(input.agreementId);
  if(!agreement)throw new Error('Installment agreement not found.');
  const existing=receipts.filter(row=>row.agreementId===agreement.id);
- const errors=validateInstallmentCollection({...input,agreement},existing);
+ const errors=validateInstallmentCollection({...input,agreement},existing,
+   listInstallmentLifecycleEvents(agreement.id));
  if(errors.length)throw new Error(errors[0]);
  const event:InstallmentPaymentPreviewEvent={
    ...structuredClone(input),id:'installment-receipt-preview-'+(++receiptSequence),createdAt:new Date().toISOString()
