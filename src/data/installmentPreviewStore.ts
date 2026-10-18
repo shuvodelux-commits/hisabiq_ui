@@ -1,4 +1,5 @@
 import type {InstallmentHistoricalLine} from '../installments/historicalLines.ts';
+import type {InstallmentLifecycleEvent} from '../installments/lifecycle.ts';
 import {validateInstallmentCollection,type InstallmentCollectionInput} from '../installments/validateCollection.ts';
 import type {InstallmentPaymentPreviewEvent} from '../installments/collections.ts';
 import {scheduleDifferencePaisa,validateScheduleRows,type InstallmentScheduleRow} from '../installments/schedule.ts';
@@ -106,5 +107,28 @@ export function listInstallmentReceipts(agreementId:string):InstallmentPaymentPr
  return structuredClone(receipts.filter(row=>row.agreementId===agreementId));
 }
 export function resetInstallmentPreviewsForTest():void{
- sequence=0;receiptSequence=0;records.splice(0);receipts.splice(0);
+ sequence=0;receiptSequence=0;records.splice(0);receipts.splice(0);lifecycleEvents.splice(0);
+}
+
+/** Source-event append is isolated from Party/Finance/stock; still a volatile UI preview. */
+const lifecycleEvents:InstallmentLifecycleEvent[]=[];
+export function listInstallmentLifecycleEvents(agreementId:string):InstallmentLifecycleEvent[]{
+ return structuredClone(lifecycleEvents.filter(e=>e.agreementId===agreementId));
+}
+export function appendInstallmentLifecycleEvent(event:InstallmentLifecycleEvent):InstallmentLifecycleEvent{
+ if(!records.some(a=>a.id===event.agreementId))throw new Error('Installment agreement not found.');
+ const other=lifecycleEvents.find(e=>e.operationId===event.operationId);
+ if(other){
+  if(JSON.stringify(other)!==JSON.stringify(event))
+   throw new Error('Operation already used for a different lifecycle event.');
+  return structuredClone(other);
+ }
+ if(lifecycleEvents.some(e=>e.id===event.id))
+  throw new Error('Duplicate lifecycle event identity.');
+ const previous=lifecycleEvents.filter(e=>e.agreementId===event.agreementId);
+ if(event.revision!==previous.length+1)
+  throw new Error('Stale lifecycle source revision.');
+ const copy=structuredClone(event);
+ lifecycleEvents.push(copy);
+ return structuredClone(copy);
 }
