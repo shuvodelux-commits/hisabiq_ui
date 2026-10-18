@@ -40,8 +40,17 @@ async function main() {
         await peopleDialog.waitFor({ state: 'hidden' });
         await modal.waitFor({ state: 'visible' });
 
-        // The payment split defaults to the active Cash account and follows the amount.
-        await modal.locator('input[inputmode="decimal"]').last().fill('175');
+        // Amount is derived live from valid source rows, including split payments.
+        const amountInput = modal.locator('label').filter({ hasText: /^Amount/ }).getByRole('textbox');
+        assert.equal(await amountInput.getAttribute('readonly'), '');
+        const sources = modal.getByText('Payment sources', { exact: true })
+          .locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]');
+        await sources.getByRole('textbox').first().fill('100');
+        assert.equal(await amountInput.inputValue(), '100');
+        await modal.getByRole('button', { name: 'Add', exact: true }).click();
+        await sources.getByRole('textbox').nth(1).fill('75');
+        assert.equal(await amountInput.inputValue(), '175');
+        assert.match(await modal.getByTestId('amount-in-words').first().innerText(), /একশত পঁচাত্তর|একশো পঁচাত্তর/);
         await modal.getByRole('button', { name: 'Review transaction', exact: true }).click();
         await modal.getByText('Review finance transaction', { exact: true }).waitFor();
         await modal.getByRole('button', { name: 'Confirm finance transaction', exact: true }).click();
