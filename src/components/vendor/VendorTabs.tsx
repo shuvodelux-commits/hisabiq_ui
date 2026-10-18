@@ -130,7 +130,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
    {unpricedMemos>0
     ?<div className="flex flex-wrap items-center gap-2">
-      <p className="text-warning"><strong>Price not set ({unpricedMemos}) · দাম বাকি</strong> — আগে দাম ঠিক করুন, তারপর টাকা দিন।</p>
+      <p className="text-warning"><strong>Price not set ({unpricedMemos}) · দাম বাকি</strong> — দাম না লিখলে ওই পণ্যের টাকা বাকিতে ধরা হবে না।</p>
       <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম লিখুন</Button>
      </div>
     :<p className="text-ink-500">{payable>0?'You can pay money or return goods. · টাকা দিন বা পণ্য ফেরত দিন।':'No prices pending. · দাম বাকি নেই।'}</p>}
