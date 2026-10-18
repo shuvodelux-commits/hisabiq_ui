@@ -1,5 +1,5 @@
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
@@ -42,7 +42,7 @@ import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
-import {positiveSalesAmount, salesPaymentTotal} from '../utils/salesPaymentAmounts';
+import {positiveSalesAmount, salesPaymentRemainder, salesPaymentTotal} from '../utils/salesPaymentAmounts';
 import { invoiceReceipt, invoiceQuantity, returnDocument } from '../utils/salesDocuments';
 import {planBundleReturn,type BundleReturnSelection} from '../bundles/bundleReturn';
 import { downloadReport, printReport } from '../utils/reportOutput';
@@ -385,6 +385,7 @@ function PaymentDialog({
 }) {
   const {text,showHelper}=useUiCopy();
   const [rows, setRows] = useState<PaymentDraft[]>([{ id: 'p1', method: 'Cash', amount: '', account: '' }]);
+  const nextRowId = useRef(2);
 
   const total = salesPaymentTotal(rows);
 
@@ -405,49 +406,60 @@ function PaymentDialog({
 
             <div className="space-y-2">
               {rows.map((row, index) => (
-                <div key={row.id} className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[140px_1fr_120px_auto]">
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Method','মাধ্যম')}
+                <div key={row.id} className="min-w-0 rounded-lg border border-border bg-ink-50/40 p-2">
+                  <div className="grid min-w-0 grid-cols-[92px_minmax(0,1fr)_36px] gap-1.5">
                     <FormSelect
-                      className="mt-1"
+                      aria-label={text(`Payment method ${index + 1}`, `পেমেন্টের মাধ্যম ${index + 1}`)}
                       value={row.method}
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, method: event.target.value as PaymentMethod } : item))}
-                      options={paymentMethods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
+                      onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, method: event.target.value as PaymentMethod } : item))}
+                      options={paymentMethods.map(method => ({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':method==='Card'?'কার্ড':method)}))}
                     />
-                  </label>
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Account','হিসাব')}
                     <Input
-                      className="mt-1"
+                      aria-label={text(`Payment account ${index + 1}`, `পেমেন্টের হিসাব ${index + 1}`)}
+                      className="h-9 min-w-0 text-[13px]"
                       value={row.account}
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, account: event.target.value } : item))}
+                      onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, account: event.target.value } : item))}
                       placeholder={row.method === 'Cash' ? text('Cash counter','ক্যাশ কাউন্টার') : text('Account / wallet','হিসাব / ওয়ালেট')}
                     />
-                  </label>
-                  <label className="text-[12px] font-medium text-ink">
-                    {text('Amount','টাকা')}
-                    <Input
-                      className="mt-1 text-right"
-                      value={row.amount}
-                      inputMode="decimal"
-                      onChange={(event) => setRows((items) => items.map((item) => item.id === row.id ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))}
-                      placeholder="0"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    disabled={rows.length === 1}
-                    onClick={() => setRows((items) => items.filter((item) => item.id !== row.id))}
-                    className="self-end rounded-md p-2 text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
-                    aria-label={text(`Remove payment ${index + 1}`,`পেমেন্ট ${index + 1} সরান`)}>
-                    <Trash2 className="size-4" />
-                  </button>
+                    <button
+                      type="button"
+                      disabled={rows.length === 1}
+                      onClick={() => setRows(items => items.filter(item => item.id !== row.id))}
+                      className="flex size-9 items-center justify-center rounded-md text-helper hover:bg-danger-bg hover:text-danger disabled:opacity-30"
+                      aria-label={text(`Remove payment ${index + 1}`, `পেমেন্ট ${index + 1} সরান`)}>
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                  <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+                    <div className="relative min-w-0 flex-1">
+                      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
+                      <Input
+                        aria-label={text(`Payment amount ${index + 1}`, `পেমেন্টের পরিমাণ ${index + 1}`)}
+                        className="h-9 min-w-0 pl-7 text-right font-medium"
+                        value={row.amount}
+                        inputMode="decimal"
+                        onChange={(event) => setRows(items => items.map(item => item.id === row.id ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))}
+                        placeholder="0"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!Number.isFinite(salesPaymentRemainder(invoice.due, rows, row.id))}
+                      onClick={() => {
+                        const remaining = salesPaymentRemainder(invoice.due, rows, row.id);
+                        if (Number.isFinite(remaining)) setRows(items => items.map(item => item.id === row.id ? { ...item, amount: String(remaining) } : item));
+                      }}
+                      className="h-9 shrink-0 rounded-md border border-border bg-card px-2 text-[10.5px] font-medium text-teal-700 hover:bg-teal-50 disabled:opacity-40">
+                      {text('Remaining','বাকি')}
+                    </button>
+                  </div>
                 </div>
               ))}
 
+
               <button
                 type="button"
-                onClick={() => setRows((items) => [...items, { id: `p${Date.now()}`, method: 'Cash', amount: '', account: '' }])}
+                onClick={() => setRows(items => [...items, { id: `p${nextRowId.current++}`, method: 'Cash', amount: '', account: '' }])}
                 className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-700 hover:underline">
                 <Plus className="size-3.5" /> {text('Add another payment source','আরও পেমেন্ট মাধ্যম')}
               </button>
