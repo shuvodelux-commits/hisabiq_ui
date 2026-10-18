@@ -88,40 +88,56 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   }catch(e){toast.error('Purchase created in preview. Stock projection needs review: '+String(e));}
   setPurchaseRevision(n=>n+1);onDirtyChange(false);
  };
- return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
-  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
-   <div className="flex min-w-0 items-center gap-3"><PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={46}/>
-    <div className="min-w-0"><h2 className="truncate text-lg font-semibold text-ink">{party.name}
-     {party.nameBn&&<span className="ml-2 font-bn text-sm font-normal text-ink-500">{party.nameBn}</span>}</h2>
-     <p className="text-xs text-ink-500">{party.phone} · {party.area}</p></div></div>
-   <Link to={'/app/parties?id='+encodeURIComponent(party.id)+'&role=Vendor'}
-    className="rounded-md border border-border px-3 py-2 text-xs text-ink-600 hover:bg-ink-50">Party Profile · পার্টি</Link>
+ const openGoods=(mode:'taken'|'given')=>{
+  if(mode!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
+  if(mode!==tab&&hasUnsavedGoods)updateDirty(false);
+  setEditingTaken(mode==='taken');
+  setEditingGiven(mode==='given');
+  onTabChange(mode);
+ };
+ return <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
+  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-4">
+   <div className="flex min-w-0 flex-1 items-start gap-3">
+    <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52}/>
+    <div className="min-w-0">
+     <h2 className="truncate text-lg font-semibold text-ink">{party.name}
+      {party.nameBn&&<span className="ml-2 font-bn text-sm font-normal text-ink-500">{party.nameBn}</span>}</h2>
+     <p className="mt-0.5 text-xs text-ink-500">{party.phone} · {party.area}</p>
+     <span className="mt-1 inline-flex rounded-md bg-teal-50 px-1.5 py-0.5 text-[11px] font-medium text-teal-700 dark:bg-teal-900/20 dark:text-teal-200">Vendor · ভেন্ডর</span>
+    </div>
+   </div>
+   <div className="grid shrink-0 grid-cols-2 gap-2" aria-label="Vendor balances, kept separate">
+    <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
+     <p className="text-[11px] text-ink-500">You owe · দেনা</p>
+     <p className={'whitespace-nowrap text-lg font-semibold '+(payable>0?'text-danger':'text-ink')}>{money(payable)}</p>
+    </div>
+    <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
+     <p className="text-[11px] text-ink-500">Vendor owes · পাওনা</p>
+     <p className={'whitespace-nowrap text-lg font-semibold '+(receivable>0?'text-teal-700 dark:text-teal-300':'text-ink')}>{money(receivable)}</p>
+    </div>
+   </div>
   </div>
-  <div className="grid grid-cols-2 border-b border-border" role="group" aria-label="Vendor balances, kept separate">
-   <div className="min-w-0 space-y-2 p-3 border-r border-border sm:p-4">
-    <p className="text-xs text-ink-500">You owe · দেনা</p>
-    <p className={'text-xl font-semibold '+(unpricedMemos>0&&payable===0?'text-warning':'text-ink')}>
-     {unpricedMemos>0&&payable===0?'Price not set':money(payable)}
-    </p>
-    <p className="text-xs text-ink-500">{unpricedMemos>0
-     ?(payable>0?'Plus ':'')+unpricedMemos+' product line(s) with no price. No money due is recorded for those items yet.'
-     :payable>0?(payableSource?'Pay or return products to settle.':'Opening balance: review it in Ledger or Party.'):'Nothing to pay.'}</p>
-    {(unpricedMemos>0||payable>0)&&<Button type="button" size="sm"
-      variant={unpricedMemos>0?undefined:'outline'} className="h-auto min-h-11 w-full whitespace-normal py-2 sm:w-auto"
-      onClick={()=>selectTab(unpricedSource||payableSource?'taken':'ledger',unpricedSource?.id??payableSource?.id)}>
-      {unpricedMemos>0?'Set Price · দাম ঠিক করুন':payableSource?'Pay or Return · টাকা / পণ্য দিন':'View Ledger · হিসাব দেখুন'}
-     </Button>}
-   </div>
-   <div className="min-w-0 space-y-2 p-3 sm:p-4">
-    <p className="text-xs text-ink-500">Vendor owes · পাওনা</p>
-    <p className="text-xl font-semibold text-ink">{money(receivable)}</p>
-    <p className="text-xs text-ink-500">{receivable>0?(receivableSource?'Receive money or matching products.':'Balance without an open memo. Review Ledger or Party.'):'Nothing to receive.'}</p>
-    {receivable>0&&<Button type="button" size="sm" variant="outline" className="h-auto min-h-11 w-full whitespace-normal py-2 sm:w-auto"
-      onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>{receivableSource?'Receive Settlement · পাওনা নিন':'View Ledger · হিসাব দেখুন'}</Button>}
-   </div>
+  <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2" role="group" aria-label="Vendor quick actions">
+   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take products</Button>
+   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>Give products</Button>
+   {unpricedMemos>0&&<Button type="button" size="sm" variant="outline"
+    onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>}
+   {payable>0&&<Button type="button" size="sm" variant="outline"
+    onClick={()=>selectTab(payableSource?'taken':'ledger',payableSource?.id)}>Pay / return</Button>}
+   {receivable>0&&<Button type="button" size="sm" variant="outline"
+    onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>Receive settlement</Button>}
+   <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>New purchase</Button>
+   <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print statement</Button>
+   <Link to={'/app/parties?id='+encodeURIComponent(party.id)+'&role=Vendor'}
+    className="inline-flex min-h-9 items-center rounded-md border border-border px-3 py-1.5 text-xs text-ink-600 hover:bg-ink-50">Party Profile · পার্টি</Link>
+  </div>
+  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
+   {unpricedMemos>0
+    ?<p className="text-warning"><strong>Price not set ({unpricedMemos})</strong> · Unpriced goods are not counted as a money due.</p>
+    :<p className="text-ink-500">{payable>0?'Pay or return taken products to settle.':'No unpriced goods.'}</p>}
    <button type="button" onClick={()=>selectTab('purchases')}
-    className="col-span-full min-w-0 border-t border-border px-4 py-2 text-left text-xs text-ink-500 hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500">
-    Purchase due · ক্রয়ের বাকি <strong className="font-semibold text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
+    className="text-left text-ink-600 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
+    Purchase due · ক্রয়ের বাকি <strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
    </button>
   </div>
   <div className="overflow-x-auto border-b border-border scrollbar-thin">
