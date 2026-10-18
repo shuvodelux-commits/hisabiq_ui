@@ -1,6 +1,5 @@
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useEffect,useId,useMemo,useState} from 'react';
-import {Link} from 'react-router-dom';
 import {Plus,Printer} from 'lucide-react';
 import {toast} from 'sonner';
 import {Button} from '../Button';
@@ -24,7 +23,7 @@ import type {Purchase,Party} from '../../types/erp';
 import type {VendorLedgerEvent,VendorPreviewState,VendorSide} from '../../vendor/vendorTypes';
 
 type Props={party:Party;snapshot:VendorPreviewState;purchases:Purchase[];
- tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab,sourceId?:string)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void};
+ tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab,sourceId?:string)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void;onEditVendor:()=>void};
 const labels:Record<VendorWorkTab,{english:string;bn:string;button?:string}>={
  ledger:{english:'Ledger',bn:'হিসাব',button:'Print Ledger'},
  taken:{english:'Taken',bn:'নেওয়া পণ্য',button:'Take Products'},
@@ -33,7 +32,7 @@ const labels:Record<VendorWorkTab,{english:string;bn:string;button?:string}>={
  payments:{english:'Payments',bn:'পেমেন্ট'}
 };
 const money=(v:number)=>taka(v/100);
-export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,onDirtyChange}:Props){
+export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,onDirtyChange,onEditVendor}:Props){
  const base=useId().replace(/:/g,'');
  const [range,setRange]=useState<IsoRange>({from:'',to:''});
  const [query,setQuery]=useState('');
@@ -128,8 +127,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
     onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>Receive settlement</Button>}
    <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>New purchase</Button>
    <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print statement</Button>
-   <Link to={'/app/parties?id='+encodeURIComponent(party.id)+'&role=Vendor'}
-    className="inline-flex min-h-9 items-center rounded-md border border-border px-3 py-1.5 text-xs text-ink-600 hover:bg-ink-50">Party Profile · পার্টি</Link>
+   <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>Edit Vendor · তথ্য বদলান</Button>
   </div>
   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
    {unpricedMemos>0
