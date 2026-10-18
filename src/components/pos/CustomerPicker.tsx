@@ -16,7 +16,7 @@ type CustomerPickerProps = {
 
 export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
   const [q, setQ] = useState('');
-  const { word } = useUiCopy();
+  const { word,text } = useUiCopy();
   const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
   // Only active Customer relationships are valid at checkout; Borrower is a separate ledger role.
   const customers = rankSearch(partyState.parties.filter(p=>p.roles.includes('Customer')&&p.status!=='Inactive'),
@@ -105,7 +105,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
                 </button>
               </li>
           )}
-            {q.trim()&&customers.length===0&&<li className="px-3 py-4 text-sm text-ink-500" role="status">{(q.trim() ? word('searchCustomer') : word('chooseCustomer'))}</li>}
+            {q.trim()&&customers.length===0&&<li className="px-3 py-4 text-sm text-ink-500" role="status">{text('No matching customers','কোনো ক্রেতা পাওয়া যায়নি')}</li>}
           </ul>
         </div>
       }
