@@ -1,5 +1,5 @@
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowDownLeft,
@@ -25,6 +25,7 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { CounterWorkspace } from '../components/finance/CounterWorkspace';
+import { getFinancePreviewSnapshot, subscribeFinancePreview, updateFinancePreview } from '../data/financePreviewStore';
 import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog } from '../components/finance/FinanceRecordDialogs';
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
@@ -502,14 +503,15 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
   const [financeTab, setTab] = useState<Tab>('overview');
   const tab: Tab = counterOnly ? 'counter' : financeTab;
-  const [accounts, setAccounts] = useState<FinanceAccount[]>(seedAccounts);
-  const [transactions, setTransactions] = useState<FinanceTransaction[]>(seedTransactions);
+  const { accounts, transactions, people } = useSyncExternalStore(subscribeFinancePreview, getFinancePreviewSnapshot);
+  const setAccounts: React.Dispatch<React.SetStateAction<FinanceAccount[]>> = (change) => updateFinancePreview('accounts', change);
+  const setTransactions: React.Dispatch<React.SetStateAction<FinanceTransaction[]>> = (change) => updateFinancePreview('transactions', change);
+  const setPeople: React.Dispatch<React.SetStateAction<FinancePerson[]>> = (change) => updateFinancePreview('people', change);
   const [transfers, setTransfers] = useState<AccountTransfer[]>(() => seedTransfers.map((transfer) => ({
     ...transfer,
     fromAccountId: transferAccountId(transfer, 'from', seedAccounts),
     toAccountId: transferAccountId(transfer, 'to', seedAccounts)
   })));
-  const [people, setPeople] = useState<FinancePerson[]>(seedPeople);
   const [chequeRecords, setChequeRecords] = useState<ChequeRecord[]>(seedCheques);
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -698,8 +700,8 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
       <PageHeader
         title={counterOnly ? 'Counter' : 'Finance'}
         titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
-        description={counterOnly ? 'Receive customer payments, pay suppliers, record expenses and transfer money.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
-        descriptionBn={counterOnly?'ক্রেতার টাকা নিন, সরবরাহকারীকে দিন, খরচ বা ট্রান্সফার করুন।':'ক্যাশ, ব্যাংক, ঋণ, চেক ও দৈনিক টাকার হিসাব।'}
+        description={counterOnly ? 'Receive, pay, record expenses, transfer money and manage owner or loan transactions.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
+        descriptionBn={counterOnly?'ক্রেতা-সরবরাহকারীর টাকা, খরচ, ট্রান্সফার এবং মালিক ও ঋণের হিসাব করুন।':'ক্যাশ, ব্যাংক, ঋণ, চেক ও দৈনিক টাকার হিসাব।'}
         actions={counterOnly ? undefined : (
           <>
             <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
@@ -930,7 +932,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
           </>
         )}
 
-        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} onTransfer={({ fromAccountId, toAccountId, amount, date, reference }) => {
+        {tab === 'counter' && <CounterWorkspace accounts={accounts} setAccounts={setAccounts} onNewFinanceTransaction={() => setTransactionOpen(true)} onTransfer={({ fromAccountId, toAccountId, amount, date, reference }) => {
           const fromAccount = accounts.find((account) => account.id === fromAccountId);
           const toAccount = accounts.find((account) => account.id === toAccountId);
           if (!fromAccount || !toAccount) return;
