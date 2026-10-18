@@ -2,8 +2,7 @@
 /*
  * HisabIQ design contract guard.
  * Deliberately narrow: forbids new product-list AppSelect/FormSelect controls.
- * POS/Purchase are current canonical product-entry references; existing
- * Quotation/Online Sales select exceptions are grandfathered for removal.
+ * POS/Purchase and the shared quotation/online cart now use one product picker.
  * Visual parity requires browser tests and reviewer inspection.
  */
 const fs = require('node:fs');
@@ -18,10 +17,6 @@ const required = [
   'src/components/purchases/PurchaseCart.tsx',
   'src/components/purchases/PurchaseProductSearch.tsx'
 ];
-const allowedLegacy = new Set([
-  'src/pages/Quotations.tsx::Add product to quotation',
-  'src/pages/OnlineSales.tsx::Add online order product'
-]);
 
 function allCodeFiles(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -49,7 +44,6 @@ function findViolations(content,filename) {
     const after = content.slice(match.index,match.index+450);
     const label = labelOf(after);
     if (!isProductChooser(label,after)) continue;
-    if (allowedLegacy.has(filename+'::'+label)) continue;
     const line = content.slice(0,match.index).split('\n').length;
     matches.push({file:filename,line,label});
   }
@@ -71,4 +65,4 @@ if (require.main === module) {
   if (missing.length||violations.length)process.exitCode=1;
   else console.log('HisabIQ UI contract guard passed: canonical component references exist; no new standalone product-list selects.');
 }
-module.exports={check,findViolations,isProductChooser,allowedLegacy};
+module.exports={check,findViolations,isProductChooser};
