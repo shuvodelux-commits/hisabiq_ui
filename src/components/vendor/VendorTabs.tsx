@@ -24,10 +24,10 @@ import type {VendorLedgerEvent,VendorPreviewState,VendorSide} from '../../vendor
 
 type Props={party:Party;snapshot:VendorPreviewState;purchases:Purchase[];
  tab:VendorWorkTab;onTabChange:(tab:VendorWorkTab,sourceId?:string)=>void;sourceId:string|null;onDirtyChange:(dirty:boolean)=>void;onEditVendor:()=>void};
-const labels:Record<VendorWorkTab,{english:string;bn:string;button?:string}>={
- ledger:{english:'Ledger',bn:'হিসাব',button:'Print Ledger'},
- taken:{english:'Taken',bn:'নেওয়া পণ্য',button:'Take Products'},
- given:{english:'Given',bn:'দেওয়া পণ্য',button:'Give Products'},
+const labels:Record<VendorWorkTab,{english:string;bn:string}>={
+ ledger:{english:'Ledger',bn:'হিসাব'},
+ taken:{english:'Taken',bn:'নেওয়া পণ্য'},
+ given:{english:'Given',bn:'দেওয়া পণ্য'},
  purchases:{english:'Purchases',bn:'ক্রয়'},
  payments:{english:'Payments',bn:'পেমেন্ট'}
 };
@@ -68,11 +68,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   if(next!==tab&&hasUnsavedGoods&&!window.confirm('Unsaved products will be lost. Switch tabs?'))return;
   if(next!==tab&&hasUnsavedGoods){updateDirty(false);setEditingTaken(false);setEditingGiven(false);}
   onTabChange(next,selectedSourceId);
- };
- const primary=()=>{
-  if(tab==='ledger'){setStatementOpen(true);return;}
-  if(tab==='taken'){setEditingTaken(true);return;}
-  if(tab==='given'){setEditingGiven(true);return;}
  };
  const review=(event:VendorLedgerEvent)=>{
   setCorrectEvent(event.id);
@@ -117,8 +112,8 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
   </div>
   <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2" role="group" aria-label="Vendor quick actions">
-   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take products</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>Give products</Button>
+   <Button type="button" size="sm" onClick={()=>openGoods('taken')}><Plus className="size-4"/> Take Products</Button>
+   <Button type="button" size="sm" variant="outline" onClick={()=>openGoods('given')}>Give Products</Button>
    {unpricedMemos>0&&<Button type="button" size="sm" variant="outline"
     onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>}
    {payable>0&&<Button type="button" size="sm" variant="outline"
@@ -126,7 +121,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    {receivable>0&&<Button type="button" size="sm" variant="outline"
     onClick={()=>selectTab(receivableSource?'given':'ledger',receivableSource?.id)}>Receive settlement</Button>}
    <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('purchases')}>New purchase</Button>
-   <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print statement</Button>
+   <Button type="button" size="sm" variant="outline" onClick={()=>setStatementOpen(true)}><Printer className="size-4"/> Print Ledger</Button>
    <Button type="button" size="sm" variant="outline" onClick={onEditVendor}>Edit Vendor · তথ্য বদলান</Button>
   </div>
   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-ink-50/30 px-3 py-2 text-xs">
@@ -154,12 +149,6 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
   </div>
   <section id={base+'-panel'} role="tabpanel" aria-labelledby={base+'-'+tab} className="min-w-0">
-   {(tab==='ledger'||tab==='taken'||tab==='given')&&<div className="flex justify-end border-b border-border px-3 py-2">
-     <Button type="button" size="sm" variant={tab==='ledger'?'outline':undefined} onClick={primary}>
-      {tab==='ledger'?<Printer className="size-4"/>:<Plus className="size-4"/>}
-      {labels[tab].button}
-     </Button>
-    </div>}
     <div className="p-3 sm:p-4">
     {tab==='ledger'&&<>
      <div className="mb-3 flex flex-wrap items-center gap-2">
