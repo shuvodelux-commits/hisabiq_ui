@@ -3,7 +3,7 @@ import type {InstallmentPaymentPreviewEvent} from './collections.ts';
 import {validateScheduleRows,type InstallmentScheduleRow} from './schedule.ts';
 
 type AuditBase={id:string;agreementId:string;operationId:string;actorId:string;reason:string;
- effectiveDate:string;revision:number;sequence:number;requestSignature?:string};
+ effectiveDate:string;revision:number;sequence:number;sourceSequence?:number;requestSignature?:string};
 export type ScheduleRevisionPreview=AuditBase&{type:'schedule-revision';
  beforeRows:InstallmentScheduleRow[];afterRows:InstallmentScheduleRow[];
  requestSignature?:string};
@@ -101,8 +101,10 @@ export function projectInstallmentLifecycle(
   a.effectiveDate.localeCompare(b.effectiveDate)||a.sequence-b.sequence);
  const activeReceipts=receipts.filter(r=>r.date<=asOf);
  const ordered=[
-  ...activeEvents.map(e=>({date:e.effectiveDate,order:e.sequence,type:'lifecycle' as const,event:e})),
-  ...activeReceipts.map((r,i)=>({date:r.date,order:-100000+i,type:'receipt' as const,event:r}))
+  ...activeEvents.map(e=>({date:e.effectiveDate,order:e.sourceSequence??(100000+e.sequence),
+   type:'lifecycle' as const,event:e})),
+  ...activeReceipts.map((r,i)=>({date:r.date,order:r.sourceSequence??(-100000+i),
+   type:'receipt' as const,event:r}))
  ].sort((a,b)=>a.date.localeCompare(b.date)||a.order-b.order);
  let rows=rowsFrom(agreement.schedule),surplus=0,revision=0;
  const seen=new Set<string>(),applied=new Map<string,InstallmentPaymentPreviewEvent>();
