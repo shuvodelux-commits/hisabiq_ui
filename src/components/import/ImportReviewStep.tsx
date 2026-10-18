@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useState} from 'react';
 import {CheckCircle2,Search,AlertTriangle,Pencil} from 'lucide-react';
 import type {ImportTarget,StagedImportRow} from '../../import/importTypes.ts';
@@ -51,8 +52,7 @@ export function ImportReviewStep({target,rows,onRowsChange}:{
   skipped:rows.filter(row=>status(row)==='skipped').length};
  const filtered=rows.filter(row=>{
   if(filter!=='all'&&status(row)!==filter)return false;
-  const corpus=Object.values(row.mapped).map(String).join(' ').toLocaleLowerCase();
-  return !query||corpus.includes(query.toLocaleLowerCase());
+  return fuzzyMatch(query,Object.values(row.mapped).map(String));
  });
  const begin=(row:StagedImportRow)=>{
   setEditing(row.sourceRow);setDraft(Object.fromEntries(Object.entries(row.mapped).map(([key,value])=>[key,String(value??'')])));

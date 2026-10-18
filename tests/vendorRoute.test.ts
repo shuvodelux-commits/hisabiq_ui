@@ -22,3 +22,9 @@ test('canonical deep link preserves selected Vendor and tab',()=>{
  assert.equal(vendorWorkLink('v1','payments','given-17'),'/app/vendors?partyId=v1&tab=payments&sourceId=given-17');
  assert.equal(vendorWorkLink('v2'),'/app/vendors?partyId=v2');
 });
+test('fuzzy Vendor discovery keeps exact role and source identity',()=>{
+ const result=filterVendors(vendors,'bismilah steel');
+ assert.equal(result.length,1);assert.strictEqual(result[0],vendors[1]);
+ assert.deepEqual(filterVendors(vendors,'Customer'),[]);
+ assert.deepEqual(filterVendors(vendors,'01811-555556'),[]);
+});

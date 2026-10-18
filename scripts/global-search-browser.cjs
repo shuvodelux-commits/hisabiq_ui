@@ -77,7 +77,7 @@ async function main(){
    await field.fill('ulb');await list.getByText(/No matching records/).waitFor();
    await page.goto(root+'/app/settings/personal');
    const mode=page.getByRole('combobox',{name:'Search matching'});await mode.click();
-   await page.getByRole('option',{name:'Advanced — fuzzy search'}).click();
+   await page.getByRole('option',{name:'Advanced — broader fuzzy search'}).click();
    await page.getByRole('button',{name:'Save changes'}).click();
    await page.reload();await field.fill('ulb');await list.getByRole('option',{name:/LED Bulb 12W/}).waitFor();
    await field.fill('balb');await list.getByRole('option',{name:/LED Bulb 12W/}).waitFor();

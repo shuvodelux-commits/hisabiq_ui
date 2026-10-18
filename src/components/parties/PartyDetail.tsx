@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
 import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
@@ -103,7 +104,7 @@ export function PartyDetail({
   const attachments = entries.filter((e) => e.attachment);
   const shownStatement=vendorProfile?projectVendorPartyLedger(vendorProfile,vendorSide):statement;
   const shownFiltered=vendorProfile?shownStatement.rows.filter(r=>
-    [r.reference??'',r.description].some(x=>x.toLowerCase().includes(ledgerQuery.toLowerCase()))):[];
+    fuzzyMatch(ledgerQuery,[r.reference,r.description])):[];
   const shownRows=vendorProfile?shownFiltered.slice(Math.max(0,(page-1)*pageSize),page*pageSize):visibleRows;
   const shownPages=vendorProfile?Math.max(1,Math.ceil(shownFiltered.length/pageSize)):pages;
   const shownActions=(r:PartyLedgerRow)=>vendorProfile?

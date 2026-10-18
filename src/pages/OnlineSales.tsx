@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import '../notifications/erpNotificationRules'; // Keep existing module initialization.
 import {useEffect,useMemo,useState,useSyncExternalStore} from 'react';
 import {Link,useNavigate,useSearchParams} from 'react-router-dom';
@@ -331,7 +332,7 @@ export function OnlineSales(){
  };
  const filtered=useMemo(()=>orders.filter(o=>(filter==='All channels'||o.channel===filter)&&
   (stage==='All statuses'||o.stage===stage)&&
-  [o.number,o.channel,o.customerName,o.phone,o.courier??'',o.tracking??''].some(v=>v.toLowerCase().includes(query.toLowerCase().trim()))),
+  fuzzyMatch(query,[o.number,o.channel,o.customerName,o.phone,o.courier,o.tracking])),
  [orders,filter,stage,query]);
  const expected=orders.reduce((sum,o)=>sum+orderTotals(o).cod,0);
  const pending=orders.reduce((sum,o)=>sum+courierClearing(o).pending,0);

@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -125,7 +126,7 @@ export function Expenses() {
       && (categoryFilter === 'All categories' || expense.category === categoryFilter)
       && (payeeFilter === 'All payees' || expense.payee === payeeFilter)
       && (methodFilter === 'All payment methods' || paymentsFor(expense).some(payment => payment.method === methodFilter))
-      && (!q || [expense.ref, expense.category, expense.payee, expense.note, paymentLabel(expense), expense.date].some(value => value.toLocaleLowerCase().includes(q)));
+      && fuzzyMatch(q,[expense.ref,expense.category,expense.payee,expense.note,paymentLabel(expense),expense.date]);
   }), [expenses, query, categoryFilter, payeeFilter, methodFilter, statusFilter]);
   const total = activeExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const cash = activeExpenses.reduce((sum, expense) => sum + paymentsFor(expense).filter(p => p.method === 'Cash').reduce((paid, p) => paid + p.amount, 0), 0);

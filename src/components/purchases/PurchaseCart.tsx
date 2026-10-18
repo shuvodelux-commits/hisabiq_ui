@@ -92,12 +92,12 @@ export function PurchaseCart({
                         <button
                           type="button"
                           onClick={() => onUpdate(line.id, { detailsOpen: !line.detailsOpen })}
-                          aria-label={'Lot details for ' + product.name}
                           aria-expanded={line.detailsOpen}
                           className="mt-1 inline-flex min-w-0 max-w-full items-center gap-1 overflow-hidden whitespace-nowrap rounded bg-ink-50 px-1.5 py-0.5 text-[10.5px] text-ink-600 hover:bg-teal-50 hover:text-teal-700">
                           {showSerials ? <ScanLine className="size-3" /> : <ChevronDown className="size-3" />}
                           {showSerials ? 'Serials ' + count + '/' + Math.max(required, Math.ceil(baseQty(line))) + ' · ' : ''}
                           Lot sale {taka(lotBaseSellPrice(line))}/{product.unit}
+                          <span className="sr-only"> · Lot details for {product.name}</span>
                           {line.detailsOpen ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
                         </button>
                       </div>

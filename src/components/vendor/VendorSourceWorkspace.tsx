@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,CheckCircle2,ChevronRight,Search} from 'lucide-react';
 import {Button} from '../Button';
@@ -97,8 +98,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
     })).sort((a,b)=>Number(b.needsAction)-Number(a.needsAction)||b.date.localeCompare(a.date));
   },[sources,snapshot]);
   const shown=groups.filter(g=>(!needsActionOnly||g.needsAction)&&
-    (!search.trim()||g.key.toLowerCase().includes(search.trim().toLowerCase())||
-      g.lines.some(s=>productName(s).toLowerCase().includes(search.trim().toLowerCase()))));
+    fuzzyMatch(search,[g.key,...g.lines.map(s=>productName(s))]));
   const selected=sources.find(s=>s.id===selectedId)??groups.find(g=>g.needsAction)?.lines.find(s=>requiresAction(snapshot,s))
     ??groups[0]?.lines[0]??null;
   const currentGroup=selected?groups.find(g=>g.lines.some(s=>s.id===selected.id)):null;

@@ -78,9 +78,14 @@
 [data-dialog-root] { max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; }
 /* Informational notifications must not intercept a blocking form's actions.
    Keep notification buttons/links interactive, and normal swipe dismissal
-   available when no dialog is open. */
+   available on pointer-driven screens when no dialog is open. */
 body:has([data-dialog-root]) [data-sonner-toast]:not(:has(button, a, input, select, textarea, [role="button"])) {
   pointer-events: none;
+}
+/* Passive notifications also cover table actions on small touch screens.
+   Keep notifications with controls interactive; desktop swipe dismissal remains available. */
+@media (pointer: coarse) {
+  [data-sonner-toast]:not(:has(button, a, input, select, textarea, [role="button"])) { pointer-events: none; }
 }
 @media (pointer: coarse) {
   .erp-workspace button:not([role="option"]),

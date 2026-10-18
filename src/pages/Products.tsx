@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search } from 'lucide-react';
@@ -337,7 +338,7 @@ export function Products() {
       if (stockFilter === 'low' && s !== 'low') return false;
       if (stockFilter === 'out' && s !== 'out') return false;
       if (!q) return true;
-      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.nameBn ?? '').includes(q) || (p.brand ?? '').toLowerCase().includes(q);
+      return fuzzyMatch(q,[p.name,p.nameBn,p.sku,p.brand]);
     });
   }, [list, query, category, stockFilter]);
 

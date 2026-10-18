@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/Dialog';
 import {PurchaseSourceDialog} from '../components/purchases/PurchaseSourceDialog';
 import {purchasePosition,sourceEditable,sourceReturnable} from '../utils/purchaseSource';
@@ -101,7 +102,7 @@ export function Purchases() {
     const status = position(p).paid >= position(p).total ? 'Paid' : position(p).paid > 0 ? 'Partial' : 'Due';
     return (supplierFilter === 'All suppliers' || p.supplier === supplierFilter)
       && (statusFilter === 'All status' || status === statusFilter)
-      && (!q || [p.ref,p.supplier,p.items,p.date].some(value => value.toLocaleLowerCase().includes(q)));
+      && fuzzyMatch(q,[p.ref,p.supplier,p.items,p.date]);
   }), [purchases,events,query,supplierFilter,statusFilter]);
 
   const purchaseTotal = purchases.reduce((sum, p) => sum + position(p).total, 0);
@@ -121,7 +122,7 @@ export function Purchases() {
     setReturnPurchase(null);
     if (!q) { setReturnError('Enter the purchase reference or supplier name.'); return; }
     const exact = purchases.find(p => p.ref.toLocaleLowerCase() === q);
-    const matches = exact ? [exact] : purchases.filter(p => p.ref.toLocaleLowerCase().includes(q) || p.supplier.toLocaleLowerCase().includes(q));
+    const matches = exact ? [exact] : purchases.filter(p => fuzzyMatch(q,[p.ref,p.supplier]));
     if (!matches.length) { setReturnError('No purchase found. Check the reference.'); return; }
     if (matches.length > 1) { setReturnError('Several purchases match. Enter the exact purchase reference.'); return; }
     setReturnError(''); setReturnPurchase(matches[0]);

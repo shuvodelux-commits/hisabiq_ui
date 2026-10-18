@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { AppSelect } from '../components/AppSelect';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -705,8 +706,7 @@ export function Warranty() {
       if (status !== 'All status' && item.status !== status) return false;
       if (route !== 'All routes' && item.route !== route) return false;
       if (!q) return true;
-      return [item.id, item.customer, item.phone ?? '', item.invoice, item.product, item.serial ?? '', item.supplier ?? '', item.supplierRef ?? '', item.issue]
-        .some((value) => value.toLowerCase().includes(q));
+      return fuzzyMatch(q,[item.id,item.customer,item.phone,item.invoice,item.product,item.serial,item.supplier,item.supplierRef,item.issue]);
     });
   }, [cases, query, route, status, tab]);
 

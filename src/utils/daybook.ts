@@ -1,3 +1,4 @@
+import {matchesSearch as fuzzyMatch} from './fuzzySearch.ts';
 import type { EntryDateView, UnifiedTransaction } from '../types/transactions.ts';
 import { isInDateRange, sortTransactionsByDate } from './transactionDates.ts';
 
@@ -24,14 +25,14 @@ export function filterDaybookTransactions(
     if (query.user && query.user !== 'All users' && transaction.postedBy !== query.user) return false;
     if (query.status && query.status !== 'All status' && transaction.status !== query.status) return false;
     if (!search) return true;
-    return [
+    return fuzzyMatch(search,[
       transaction.reference,
       transaction.type,
       transaction.party,
       transaction.details,
       transaction.amount,
       ...transaction.accounts
-    ].filter((value) => value !== undefined).some((value) => String(value).toLowerCase().includes(search));
+    ]);
   });
   return sortTransactionsByDate(filtered, query.dateView);
 }
