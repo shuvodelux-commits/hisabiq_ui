@@ -49,7 +49,8 @@ async function main(){
     assert.ok(dueInvoice,'need an invoice with outstanding due for payment UI checks');
     await page.getByRole('button',{name:(bn?'কাজ: ':'Actions for ')+dueInvoice,exact:true}).click();
     await page.getByRole('button',{name:bn?'টাকা নিন':'Take payment',exact:true}).click();
-    const payment=page.getByRole('dialog');
+    // The invoice action popover also has role=dialog; target the modal itself.
+    const payment=page.locator('[data-slot="dialog-content"]').last();
     await payment.waitFor();
     const label=(en,bangla)=>bn?bangla:en;
     await payment.getByRole('combobox',{name:label('Payment method 1','পেমেন্টের মাধ্যম 1')}).click();
