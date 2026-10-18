@@ -968,7 +968,7 @@ export function Pos() {
           </div>
           {completedInstallment && <InstallmentAgreementPreview agreement={completedInstallment}
              receipts={completedReceipts} events={completedLifecycle}
-             onReceive={completedLifecycle.length?undefined:()=>setReceiveInstallmentOpen(true)}
+             onReceive={()=>setReceiveInstallmentOpen(true)}
              onReschedule={()=>setRescheduleOpen(true)}
              onReturn={()=>setAdjustmentMode('Return')}
              onSettle={()=>setAdjustmentMode('Settlement')}
@@ -1009,7 +1009,7 @@ export function Pos() {
             </Button>)}
             {historySelected&&<InstallmentAgreementPreview agreement={historySelected}
               receipts={historyReceipts} events={historyLifecycle}
-              onReceive={historyLifecycle.length?undefined:()=>setReceiveInstallmentOpen(true)}
+              onReceive={()=>setReceiveInstallmentOpen(true)}
               onReschedule={()=>setRescheduleOpen(true)}
               onReturn={()=>setAdjustmentMode('Return')}
               onSettle={()=>setAdjustmentMode('Settlement')}
@@ -1042,6 +1042,7 @@ export function Pos() {
       {(installmentHistoryOpen&&historySelected||completedInstallment) && <InstallmentReceivePaymentDialog open={receiveInstallmentOpen}
         agreement={(installmentHistoryOpen&&historySelected||completedInstallment)!}
         receipts={installmentHistoryOpen&&historySelected?historyReceipts:completedReceipts}
+        events={activeInstallmentEvents}
         onClose={()=>setReceiveInstallmentOpen(false)}
         onRecorded={()=>{
           const agreement=(installmentHistoryOpen&&historySelected||completedInstallment)!;
