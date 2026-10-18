@@ -35,6 +35,7 @@ async function main(){
   await modal.getByRole('textbox',{name:/Reason/i}).fill('Manager-approved settlement preview');
   await modal.getByRole('button',{name:/Review adjustment/i}).click();
   await modal.getByRole('button',{name:/Confirm preview/i}).click();
+  await page.getByText(/Installment schedule/i).first().click();
   await page.getByText(/Lifecycle history/i).first().waitFor();
   await page.setViewportSize({width:390,height:740});
   await page.getByRole('button',{name:/Edit schedule/i}).click();
