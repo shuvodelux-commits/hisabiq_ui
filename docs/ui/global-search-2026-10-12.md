@@ -1,5 +1,7 @@
 # Working global search
 
+Update, 18 October: see [shared numeric entry and fuzzy ERP search](number-fields-fuzzy-search-2026-10-18.md) for current zero-on-focus, wheel and matching behavior. The implementation history below is retained.
+
 The header search was an uncontrolled text field with a decorative Ctrl K hint. It now accepts a query and opens a real results page on Enter or the visible Search button. Ctrl/Cmd K focuses and selects the existing header input; it does not move focus outside an open modal draft.
 
 The on-demand results page uses available module navigation, current preview Products/Parties/Purchase bills and the existing sample Sales invoice dataset. Match English or Bangla names, phone, SKU, bill number and multiple words; Bangla digits normalize for matching without changing source references. Empty queries show modules; missing results have a bilingual helper. At most 50 results display with a narrowing helper. Every result is a normal keyboard/touch accessible link.

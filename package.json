@@ -91,7 +91,9 @@
     "test:deep-finance-table-scroll": "node scripts/deep-finance-table-scroll-browser.cjs",
     "test:deep-cheque-output": "node scripts/deep-cheque-output-browser.cjs",
     "test:sales-audit": "node scripts/sales-audit-regression-browser.cjs",
-    "test:remaining-audit": "node scripts/remaining-audit-regression-browser.cjs"
+    "test:remaining-audit": "node scripts/remaining-audit-regression-browser.cjs",
+    "test:number-fuzzy": "node scripts/number-fuzzy-browser.cjs",
+    "test:erp-fuzzy-modules": "node scripts/erp-fuzzy-module-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
