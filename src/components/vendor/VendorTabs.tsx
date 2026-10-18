@@ -133,7 +133,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       <p className="text-warning"><strong>Price not set ({unpricedMemos}) · দাম বাকি</strong> — আগে দাম ঠিক করুন, তারপর টাকা দিন।</p>
       <Button type="button" size="sm" variant="outline" onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম লিখুন</Button>
      </div>
-    :<p className="text-ink-500">{payable>0?'You can pay money or return goods. · টাকা দিন বা পণ্য ফেরত দিন।':'All goods have a price. · সব পণ্যের দাম লেখা আছে।'}</p>}
+    :<p className="text-ink-500">{payable>0?'You can pay money or return goods. · টাকা দিন বা পণ্য ফেরত দিন।':'No prices pending. · দাম বাকি নেই।'}</p>}
    <button type="button" onClick={()=>selectTab('purchases')}
     className="text-left text-ink-600 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
     Purchase due · ক্রয়ের বাকি <strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong> · View Purchases
