@@ -60,3 +60,19 @@ test('Counter and Finance navigation share a single subscribed finance preview s
     resetFinancePreviewForTest();
   }
 });
+
+test('Finance person uses the joined select-and-settings action; transaction payment sources cannot create accounts inline', () => {
+  const finance = readFileSync('src/pages/Finance.tsx', 'utf8');
+  const split = readFileSync('src/components/finance/FinancePaymentSplitEditor.tsx', 'utf8');
+
+  assert.match(finance, /id="finance-person-label"/);
+  assert.match(finance, /aria-labelledby="finance-person-label"/);
+  assert.match(finance, /\[&>button\]:rounded-r-none/);
+  assert.match(finance, /<Settings className="size-4" aria-hidden="true" \/>/);
+  assert.match(finance, /aria-label=\{text\('Manage people','ব্যক্তি যোগ \/ সংশোধন'\)\}/);
+  assert.match(finance, /aria-haspopup="dialog"[\s\S]*?onClick=\{\(\) => setPeopleOpen\(true\)\}/);
+  assert.match(finance, /<FinancePeopleManagerDialog open=\{open && peopleOpen\}/);
+  assert.match(finance, /<FinancePaymentSplitEditor[\s\S]*?totalAmount=\{Number\(amount\) \|\| 0\}[\s\S]*?\/>/);
+  assert.doesNotMatch(finance, /accountTarget|onCreateAccount=/);
+  assert.match(split, /onCreateAccount && <Button/,'other workflows may still opt into account creation');
+});
