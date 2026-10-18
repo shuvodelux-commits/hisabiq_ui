@@ -42,10 +42,11 @@ test('sold base quantities for whole Pcs, compound Box+Pcs and service are froze
 
 test('whole Set parent stores immutable sale-time component recipe not current product recipe',()=>{
  const p=product('bundle','Set','Bundle');
- const original:BundleSaleSnapshot={bundleRevision:3,components:[
+ const components=[
   {productId:'pA',name:'Wire',sku:'A',baseQtyPerSet:2,totalBaseQty:4,unit:'Pcs',unitFactorAtSale:1},
   {productId:'pB',name:'Fuse',sku:'B',baseQtyPerSet:1,totalBaseQty:2,unit:'Pcs',unitFactorAtSale:1}
- ]};
+ ];
+ const original:BundleSaleSnapshot={bundleRevision:3,components};
  const rows=createHistoricalInstallmentLines([{
   ...line(p,'2'),bundleRevision:3
  }],[{key:'line-bundle',amountPaisa:75000}],{
@@ -54,7 +55,7 @@ test('whole Set parent stores immutable sale-time component recipe not current p
  assert.equal(rows[0].kind,'Bundle');
  assert.equal(rows[0].originalBaseQuantity,2);
  assert.deepEqual(rows[0].bundleSnapshot,original);
- original.components[0].name='changed later';
+ components[0].name='changed later';
  assert.equal(rows[0].bundleSnapshot?.components[0].name,'Wire');
 });
 test('old agreements with no historical evidence block returns, never consult product master',()=>{
