@@ -49,6 +49,13 @@ export type UnitConversion = {
   price?: number;
 };
 
+/** One natural relationship, such as 1 Bag = 12 Box. Stored largest to smallest. */
+export type UnitRelation = {
+  leftUnit: string;
+  rightUnit: string;
+  quantity: number;
+};
+
 export type Product = {
   id: string;
   kind?: ProductKind;
@@ -61,6 +68,8 @@ export type Product = {
   /** Base (smallest) unit, e.g. "Pcs", "Gira", "Kg" */
   unit: string;
   altUnit?: UnitConversion;
+  /** Natural unit chain; all stock and FIFO quantities remain in the final unit. */
+  unitRelations?: UnitRelation[];
   /** Stock in base units */
   stock: number;
   /** Preferred display/POS unit. Quantity remains in base units. */
