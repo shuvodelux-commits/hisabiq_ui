@@ -70,7 +70,7 @@ export const availableProductBrands = () => [...new Set([...seedBrands, ...creat
 export const availableProductUnits = (): ProductUnitOption[] => {
   const units = [...initialProductUnits, ...createdProductUnits];
   for (const product of getProductImportPreviewSnapshot().products) {
-    for (const symbol of [product.unit, product.altUnit?.unit]) {
+    for (const symbol of [product.unit, product.altUnit?.unit, ...(product.unitRelations?.flatMap(row => [row.leftUnit,row.rightUnit]) ?? [])]) {
       if (symbol && !units.some((item) => isSame(item.symbol, symbol)))
         units.push({ name: symbol, symbol });
     }
