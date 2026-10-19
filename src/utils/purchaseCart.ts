@@ -1,6 +1,6 @@
 import type { Product } from '../types/erp';
-import {productUnitFactor} from './unitChain';
-import {unitsFor} from './units';
+import {productUnitFactor} from './unitChain.ts';
+import {unitsFor} from './units.ts';
 
 /** The purchase cart retains the entered display unit while storing base-unit snapshots. */
 export type PurchaseCartLine = {
