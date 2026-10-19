@@ -33,7 +33,7 @@ export function MoneyUnitInput({
         value={value}
         onChange={(event) => onChange(event.target.value.replace(/[^\d.]/g, ''))}
         placeholder={placeholder}
-        className="h-full min-w-0 flex-1 bg-transparent px-2 text-right text-sm text-ink outline-none disabled:opacity-50"
+        className="h-full min-w-0 flex-1 !rounded-none !border-0 !bg-transparent !shadow-none px-2 text-right text-sm text-ink outline-none disabled:opacity-50"
       />
       {onUnitChange && units.length > 0 && (
         <div className={(compact ? "w-[86px] sm:w-[100px]" : "w-[108px]") + " shrink-0 border-l border-border bg-ink-50/50"}>
