@@ -17,7 +17,7 @@ test('product conversion rows repeat compact joined quantity and unit controls',
 
 test('joined unit editor uses HisabIQ portal dropdown, compact stepper and one outer border', () => {
   assert.match(field, /data-numeric-joined/);
-  assert.match(field, /stepperCompact=\{compact\}/);
+  assert.match(field, /stepperCompact=\{compact && !readOnlyAmount\}/);
   assert.match(field, /readOnly=\{readOnlyAmount\}/);
   assert.match(field, /<AppSelect /);
   assert.match(field, /w-\[86px\]/);
