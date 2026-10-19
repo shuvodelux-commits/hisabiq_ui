@@ -29,7 +29,7 @@ export function assertUnitQuantities(profile:FrozenUnitProfile, quantities:UnitQ
   if(!keys.length)throw new Error('Add a quantity.');
   for(const [unit,raw] of Object.entries(quantities)){
     if(!Object.prototype.hasOwnProperty.call(profile.factors,unit))throw new Error('Unknown unit: '+unit);
-    if(raw.trim() && !/^(?:\d+)(?:\.\d{1,4})?$/.test(raw.trim()))
+    if(raw.trim() && !/^(?:\d+(?:\.\d{0,4})?|\.\d{1,4})$/.test(raw.trim()))
       throw new Error('Enter a valid '+unit+' quantity, up to four decimals.');
   }
 }
