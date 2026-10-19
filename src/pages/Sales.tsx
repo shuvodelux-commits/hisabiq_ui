@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -1039,7 +1040,7 @@ export function Sales() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -1047,15 +1048,15 @@ export function Sales() {
               aria-selected={tab === id}
               onClick={() => chooseTab(id)}
               title={helper}
-              className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
+              className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
               {id === 'sales' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{invoices.length}</span>}
               {id === 'returns' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{returns.length}</span>}
               {id === 'credits' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{credits.filter((credit) => credit.balance > 0).length}</span>}
               {id === 'drafts' && <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{drafts.length + templates.length}</span>}
-            </button>
+            <MotionTabIndicator active={tab === id} /></button>
           ))}
-        </div>
+        </MotionTabList>
 
         {tab === 'sales' && (
           <>

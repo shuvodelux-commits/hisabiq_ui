@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import '../notifications/erpNotificationRules'; // Keep existing module initialization.
 import {useEffect,useMemo,useState,useSyncExternalStore} from 'react';
@@ -350,11 +351,11 @@ export function OnlineSales(){
    </div>)}
   </div>
   <div className="rounded-xl border border-border bg-card shadow-card">
-   <div role="tablist" aria-label={ol("Online selling sections")} className="flex flex-wrap gap-1 border-b border-border p-2">
+   <MotionTabList role="tablist" aria-label={ol("Online selling sections")} className="flex flex-wrap gap-1 border-b border-border p-2">
     {tabs.map(([key,bn])=><button type="button" role="tab" aria-selected={tab===key} key={key} onClick={()=>setTab(key)}
-     className={'rounded-md px-3 py-2 text-xs font-medium '+(tab===key?'bg-primary text-primary-foreground':'text-ink-600 hover:bg-ink-50')}>
-      {ol(key)}{showHelper&&<span className="font-bn ml-1 text-[10px] opacity-75">{bn}</span>}</button>)}
-   </div>
+     className={'rounded-md px-3 py-2 text-xs font-medium '+(tab===key?'text-ink':'text-ink-600 hover:text-ink')}>
+      {ol(key)}{showHelper&&<span className="font-bn ml-1 text-[10px] opacity-75">{bn}</span>}<MotionTabIndicator active={tab===key} /></button>)}
+   </MotionTabList>
    <div className="space-y-3 p-3">
     {tab==='Orders'||tab==='Courier & COD'?<>
      <div className="flex flex-wrap gap-2">

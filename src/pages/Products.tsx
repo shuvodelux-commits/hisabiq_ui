@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
@@ -395,7 +396,7 @@ export function Products() {
         ) : undefined} />
       
 
-      <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border scrollbar-thin" role="tablist">
+      <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border scrollbar-thin" role="tablist">
         {([
           ['list', 'Product list', 'পণ্য তালিকা'],
           ['lots', 'Stock lots', 'স্টক লট'],
@@ -407,11 +408,11 @@ export function Products() {
             role="tab"
             aria-selected={view === id}
             onClick={() => chooseView(id)}
-            className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
+            className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
             {pl(label)} {showHelper&&<span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>}
-          </button>
+          <MotionTabIndicator active={view === id} /></button>
         ))}
-      </div>
+      </MotionTabList>
 
       {view === 'list' && (
         <>

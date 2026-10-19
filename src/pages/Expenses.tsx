@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
@@ -173,7 +174,7 @@ export function Expenses() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
+        <MotionTabList className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -182,15 +183,15 @@ export function Expenses() {
               onClick={() => setTab(id)}
               title={helper}
               className={`flex items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${
-                tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'
+                tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
               {id === 'expenses' && (
                 <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{expenses.length}</span>
               )}
-            </button>
+            <MotionTabIndicator active={tab === id} /></button>
           ))}
-        </div>
+        </MotionTabList>
 
         {tab === 'expenses' && (
           <>

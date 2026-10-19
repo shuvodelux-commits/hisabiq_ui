@@ -1,3 +1,5 @@
+import { MOTION_MS, MOTION_EASE } from '../../motion/tokens';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Palette, LifeBuoy } from 'lucide-react';
@@ -16,6 +18,7 @@ function getInitialCollapsed() {
 
 export function Sidebar() {
   const { text } = useUiCopy();
+  const reducedMotion = useReducedMotion();
   const { state } = useTenantSettings();
   const [collapsed, setCollapsed] = useState(getInitialCollapsed);
   const businessName = state.sections.business.name || 'Business';
@@ -39,13 +42,16 @@ export function Sidebar() {
   }, []);
 
   const linkStyle = 'flex min-h-10 items-center rounded-lg text-[13px] text-ink-600 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring';
-  return <aside
+  return <motion.aside
     data-print-hide
     data-sidebar="sidebar"
     aria-label={text('Primary navigation','প্রধান নেভিগেশন')}
     data-collapsible={collapsed ? 'icon' : 'none'}
-    className={'group/sidebar relative sticky top-0 z-20 hidden h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-linear lg:flex ' +
-      (collapsed ? 'w-[64px]' : 'w-[256px]')}
+    data-motion-sidebar=""
+    initial={false}
+    animate={{ width: collapsed ? 64 : 256 }}
+    transition={reducedMotion ? { duration: 0 } : { duration: MOTION_MS.sidebar / 1000, ease: MOTION_EASE }}
+    className="group/sidebar relative sticky top-0 z-20 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar lg:flex"
   >
     <div className={'flex h-14 shrink-0 items-center ' + (collapsed ? 'justify-center px-1' : 'justify-between px-3')}>
       <Link
@@ -108,5 +114,5 @@ export function Sidebar() {
     >
       <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-1/2 w-1 -translate-x-1/2 rounded-full group-hover/sidebar-resize:bg-sidebar-primary/15 group-focus-visible/sidebar-resize:bg-sidebar-primary/20" />
     </button>
-  </aside>;
+  </motion.aside>;
 }

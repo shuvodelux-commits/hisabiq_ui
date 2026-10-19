@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useEffect,useId,useMemo,useState} from 'react';
 import {Ellipsis,Plus,Printer} from 'lucide-react';
@@ -186,11 +187,11 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      content={<span className="block text-sm leading-5">Unpaid regular purchase invoices. These are not included in the goods-taken balance above.<span className="mt-1 block font-bn">সাধারণ ক্রয়ের বাকি বিল। উপরের নেওয়া পণ্যের দেনার সঙ্গে এটি যোগ করা হয়নি।</span></span>}/>
    </div>
   </div>
-  <div className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label="Vendor work tabs">
+  <MotionTabList className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label="Vendor work tabs">
    {vendorWorkTabs.map((key,index)=><button type="button" key={key}
     id={base+'-'+key} role="tab" aria-selected={tab===key} aria-controls={base+'-panel'} tabIndex={tab===key?0:-1}
     title={text(tabHints[key].english,tabHints[key].bn)}
-    className={'flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'erp-tab-active text-ink':'text-ink-500 hover:text-ink')}
+    className={'flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-500 '+(tab===key?'text-ink':'text-ink-500 hover:text-ink')}
     onClick={()=>selectTab(key)} onKeyDown={e=>{
      if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
      e.preventDefault();
@@ -200,8 +201,8 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
      e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
     }}>{text(labels[key].english,labels[key].bn)}
      {showHelper&&<span className="font-bn text-[11px] text-ink-500">{labels[key].bn}</span>}
-    </button>)}
-  </div>
+    <MotionTabIndicator active={tab===key} /></button>)}
+  </MotionTabList>
   <section id={base+'-panel'} role="tabpanel" aria-labelledby={base+'-'+tab} className="min-w-0">
     <div className="p-3 sm:p-4">
     {tab==='ledger'&&<>
