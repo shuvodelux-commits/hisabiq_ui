@@ -1,4 +1,6 @@
 import type {Product} from '../types/erp.ts';
+import {productUnitFactor} from './unitChain.ts';
+import {unitQuantitiesBase,freezeUnitProfile,type FrozenUnitProfile} from './multiUnitTransactions.ts';
 
 /** Parse the entire editable value. Invalid text never becomes a paid/discounted prefix. */
 export function posMoney(value:string):number {
@@ -8,7 +10,8 @@ export function posMoney(value:string):number {
   return Number.isFinite(amount)&&Number.isSafeInteger(Math.round(amount*100))?amount:NaN;
 }
 type CheckoutDraft={
-  lines:readonly {product:Product;qty:string;secondaryQty:string;unit:string;price:string}[];
+  lines:readonly {product:Product;qty:string;secondaryQty:string;unit:string;price:string;
+    unitQuantities?:Record<string,string>;historicalUnitSnapshot?:FrozenUnitProfile}[];
   discount:string;discountMode:'amount'|'percent';
   payments:readonly {id:string;method:string;account:string;amount:string}[];
   total:number;customerId?:string;availableCredit:number;
@@ -19,9 +22,15 @@ export function validatePosCheckout(draft:CheckoutDraft,accounts?:Record<string,
   for(const line of draft.lines){
     const decimal=(raw:string)=>/^(?:\d+(?:\.\d{0,6})?|\.\d{1,6})$/.test(raw.trim()||'0')?Number(raw||0):NaN;
     const qty=decimal(line.qty),secondary=decimal(line.secondaryQty);
-    const factor=line.unit===line.product.altUnit?.unit?line.product.altUnit.factor:1;
-    if(!Number.isFinite(qty)||!Number.isFinite(secondary)||!Number.isFinite(factor)||factor<=0||qty*factor+secondary<=0||
-      (factor===1&&secondary!==0)||(line.unit!==line.product.unit&&line.unit!==line.product.altUnit?.unit))return 'quantity';
+    if(line.unitQuantities) {
+      try {
+        if(unitQuantitiesBase(line.historicalUnitSnapshot??freezeUnitProfile(line.product),line.unitQuantities)<=0)return 'quantity';
+      }catch{return 'quantity';}
+    }else{
+      const factor=productUnitFactor(line.product,line.unit);
+      if(!Number.isFinite(qty)||!Number.isFinite(secondary)||!Number.isFinite(factor)||factor<=0||qty*factor+secondary<=0||
+        (factor===1&&secondary!==0))return 'quantity';
+    }
     if(!line.price.trim()||!Number.isFinite(posMoney(line.price)))return 'price';
   }
   const discount=posMoney(draft.discount);
