@@ -8,6 +8,7 @@ import { Input } from '../Input';
 import { ProductThumb } from '../ProductThumb';
 import { ProductCombobox } from '../pos/ProductCombobox';
 import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
+import {MultiUnitQuantityInput} from '../transactions/MultiUnitQuantityInput';
 import { formatStock, unitsFor } from '../../utils/units';
 import { taka } from '../../utils/currency';
 import { normalizeCompoundQuantity } from '../../utils/posQuantity';
@@ -103,7 +104,11 @@ export function PurchaseCart({
                         </button>
                       </div>
                     </div>
-                    <div data-cart-field="Quantity · পরিমাণ"><CompoundQuantityInput key={line.costUnit} product={product} unit={line.costUnit}
+                    <div data-cart-field="Quantity · পরিমাণ">{product.unitRelations && product.unitRelations.length>1 ?
+                      <MultiUnitQuantityInput product={product} quantities={line.unitQuantities??{[line.costUnit]:line.bigQty,[product.unit]:line.smallQty}}
+                        primaryRef={node=>{qtyRefs.current[line.id]=node;}} disabled={sourceLocked}
+                        onChange={unitQuantities=>onUpdate(line.id,{unitQuantities})}/>
+                      : <CompoundQuantityInput key={line.costUnit} product={product} unit={line.costUnit}
                       primary={selectedConversion(line)>1?line.bigQty:line.smallQty}
                       secondary={line.smallQty}
                       primaryRef={node=>{qtyRefs.current[line.id]=node;}}
@@ -123,7 +128,7 @@ export function PurchaseCart({
                       onSecondaryEnter={()=>{
                        normalizeQty(line,false);
                        costRefs.current[line.id]?.focus();costRefs.current[line.id]?.select();
-                      }}/></div>
+                      }}/>}</div>
                     <div data-cart-field="Cost in · একক">{unitOptions(product).length > 1 ? (
                       unitOptions(product).length > 2 ? (
                         <AppSelect label={'Unit for ' + product.name} value={line.costUnit}
