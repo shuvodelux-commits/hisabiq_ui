@@ -72,7 +72,7 @@ export function makePurchaseLine(product: Product): PurchaseCartLine {
     id: 'line-' + Math.random().toString(36).slice(2, 11),
     product, bigQty: useLarge ? '1' : '0', smallQty: useLarge ? '0' : '1',
     unitQuantities:product.unitRelations&&product.unitRelations.length>1?{[unit]:'1'}:undefined,
-    costUnit: unit, cost: String(rounded(priceInUnit(product.purchasePrice, product, unit))),
+    costUnit: unit, cost: String(rounded(product.unitPurchasePrices?.[unit] ?? priceInUnit(product.purchasePrice, product, unit))),
     lotSellUnit: unit, lotSellPrice: String(rounded(priceInUnit(product.sellPrice, product, unit))),
     detailsOpen: (product.serialTracking !== undefined && product.serialTracking !== 'Off') ||
       Boolean(product.expiry?.enabled),
@@ -103,6 +103,6 @@ export function switchPurchaseUnit(line: PurchaseCartLine, nextUnit: string): Pu
     unitQuantities:line.unitQuantities,
     bigQty: String(large),
     smallQty: String(small),
-    cost: String(Math.round(priceInUnit(unitCost, product, nextUnit) * 10000) / 10000)
+    cost: String(Math.round((product.unitPurchasePrices?.[nextUnit] ?? priceInUnit(unitCost, product, nextUnit)) * 10000) / 10000)
   };
 }
