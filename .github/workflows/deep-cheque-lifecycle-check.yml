@@ -1,15 +1,8 @@
 name: Deep Cheque Lifecycle Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/pages/Finance.tsx'
-      - 'src/components/finance/**'
-      - 'src/utils/chequeAccount.ts'
-      - 'tests/chequeAccount.test.ts'
-      - 'src/components/Dialog.tsx'
-      - 'src/index.css'
-      - 'scripts/deep-cheque-lifecycle-browser.cjs'
-      - '.github/workflows/deep-cheque-lifecycle-check.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

@@ -1,15 +1,8 @@
 name: Bundle Return Preview Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/bundles/bundleReturn.ts'
-      - 'src/pages/Sales.tsx'
-      - 'src/utils/salesDocuments.ts'
-      - 'src/data/sales.ts'
-      - 'src/types/erp.ts'
-      - 'tests/bundleReturn.test.ts'
-      - 'scripts/bundle-return-browser.cjs'
-      - '.github/workflows/bundle-return-preview-check.yml'
+  workflow_dispatch:
+
 jobs:
   returns:
     runs-on: ubuntu-latest

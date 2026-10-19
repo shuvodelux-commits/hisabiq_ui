@@ -1,21 +1,8 @@
 name: Amount in Words Readability Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/components/AmountInWordsDisplay.tsx'
-      - 'src/components/finance/CounterWorkspace.tsx'
-      - 'src/components/pos/CheckoutPanel.tsx'
-      - 'src/components/purchases/PurchasePaymentPanel.tsx'
-      - 'src/components/brand/ReceiptPreview.tsx'
-      - 'src/components/parties/PartyPaymentDialog.tsx'
-      - 'src/components/parties/PartyFinanceDialog.tsx'
-      - 'src/pages/Finance.tsx'
-      - 'src/components/TransactionReviewDialog.tsx'
-      - 'src/components/parties/PartyCreditRefundDialog.tsx'
-      - 'src/components/purchases/BillDialog.tsx'
-      - 'tests/amountInWordsDisplayContract.test.ts'
-      - 'scripts/amount-in-words-browser.cjs'
-      - '.github/workflows/amount-in-words-readability-check.yml'
+  workflow_dispatch:
+
 jobs:
   readable-money-words:
     runs-on: ubuntu-latest

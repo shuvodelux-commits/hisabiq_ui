@@ -1,9 +1,11 @@
 name: UI Check
 
+# Comprehensive regression suite. Fast pull-request checks live in pr-ci.yml.
+# Run on demand before a release or during the scheduled nightly sweep.
 on:
-  pull_request:
-  push:
-    branches: ['feat/party-*']
+  workflow_dispatch:
+  schedule:
+    - cron: '0 19 * * *'
 
 concurrency:
   group: ui-check-${{ github.workflow }}-${{ github.ref }}

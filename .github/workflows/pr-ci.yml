@@ -1,0 +1,115 @@
+name: PR Fast CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.superpowers/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-fast-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality + targeted smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Node 24 with npm download cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Detect impacted ERP modules
+        id: scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          changed="$RUNNER_TEMP/hisabiq-changed-files.txt"
+          if [[ -n "$BASE_SHA" && -n "$HEAD_SHA" ]]; then
+            git diff --name-only "$BASE_SHA" "$HEAD_SHA" > "$changed"
+          else
+            # Manual dispatch deliberately exercises the complete app.
+            git ls-files src scripts tests > "$changed"
+          fi
+          echo "Changed files:"
+          cat "$changed"
+
+          flag() {
+            local key="$1" pattern="$2"
+            if grep -Eq "$pattern" "$changed"; then
+              echo "$key=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$key=false" >> "$GITHUB_OUTPUT"
+            fi
+          }
+
+          flag browser '^(src/|scripts/.*browser\.cjs$|\.github/workflows/pr-ci\.yml$)'
+          flag pos '^(src/(pages/Pos\.tsx|components/pos/|hooks/usePosCart\.ts|bundles/|installments/)|scripts/(pos-|bundle-).*browser\.cjs$)'
+          flag purchases '^(src/(pages/(Puchases|Purchases|PurchaseEditor)\.tsx|components/purchases/|utils/purchaseSource\.ts)|scripts/(purchase-|product-quick-add).*browser\.cjs$)'
+          flag parties '^(src/(pages/(Parties|Party|Vendor|Vendors)\.tsx|components/(parties|vendor)/)|scripts/(party-|vendor-).*browser\.cjs$)'
+          flag finance '^(src/(pages/Finance\.tsx|components/finance/|utils/financePaymentDrafts\.ts)|scripts/(counter-|finance-).*browser\.cjs$)'
+          flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment).*browser\.cjs$)'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript correctness
+        run: npx tsc --noEmit
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: UI design contract
+        run: npm run check:ui-contract
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Vite production build
+        run: npm run build
+
+      - name: Install Chromium only when necessary
+        if: steps.scope.outputs.browser == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Application navigation smoke
+        if: steps.scope.outputs.browser == 'true'
+        run: node scripts/page-loading-browser.cjs
+
+      - name: POS fast checkout smoke
+        if: steps.scope.outputs.pos == 'true'
+        run: npm run test:pos-fast-counter
+
+      - name: Purchases workflow smoke
+        if: steps.scope.outputs.purchases == 'true'
+        run: npm run test:purchases
+
+      - name: Party directory and ledger smoke
+        if: steps.scope.outputs.parties == 'true'
+        run: npm run test:parties
+
+      - name: Finance counter smoke
+        if: steps.scope.outputs.finance == 'true'
+        run: npm run test:counter-ux
+
+      - name: Shared dialogs and mobile overlay accessibility
+        if: steps.scope.outputs.shared == 'true'
+        run: node scripts/dialog-accessibility-browser.cjs

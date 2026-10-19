@@ -1,19 +1,8 @@
 name: Bundle POS Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/bundles/**'
-      - 'src/components/brand/ReceiptPreview.tsx'
-      - 'src/components/pos/**'
-      - 'src/hooks/usePosCart.ts'
-      - 'src/pages/Pos.tsx'
-      - 'src/types/erp.ts'
-      - 'scripts/bundle-pos-browser.cjs'
-      - 'tests/bundleCart.test.ts'
-      - 'tests/bundleDocuments.test.ts'
-      - 'tests/bundleFulfillment.test.ts'
-      - 'scripts/bundle-component-browser.cjs'
-      - '.github/workflows/bundle-pos-check.yml'
+  workflow_dispatch:
+
 jobs:
   bundle-sale-preview:
     runs-on: ubuntu-latest
