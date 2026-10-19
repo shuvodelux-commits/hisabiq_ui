@@ -38,10 +38,13 @@ async function main(){
             const regular=modeGroup.getByRole('button',{name:labels('Regular sale','সাধারণ বিক্রি')});
             const installment=modeGroup.getByRole('button',{name:labels('Installment sale','কিস্তিতে বিক্রি')});
             assert.equal(await regular.getAttribute('aria-pressed'),'true',contextId+' regular sale is active');
+            assert.equal(await regular.getAttribute('data-variant'),'default',contextId+' selected mode uses shared primary Button');
+            assert.equal(await installment.getAttribute('data-variant'),'outline',contextId+' inactive mode uses shared outlined Button');
             const saleColors=await modeGroup.locator('button').evaluateAll(items=>items.map(item=>getComputedStyle(item).backgroundColor));
             assert.notEqual(saleColors[0],saleColors[1],contextId+' green sale modes show selected state');
             await installment.click();
             assert.equal(await installment.getAttribute('aria-pressed'),'true',contextId+' installment mode selected');
+            assert.equal(await installment.getAttribute('data-variant'),'default',contextId+' installment now uses primary Button');
             await checkout.getByText(labels('Installment terms','কিস্তির হিসাব')).first().waitFor();
             await regular.click();
             assert.equal(await regular.getAttribute('aria-pressed'),'true',contextId+' switching back restores regular mode');
@@ -78,9 +81,52 @@ async function main(){
             await quickAdd.getByRole('button',{name:labels('Cancel','বাতিল')}).click();
             await quickAdd.waitFor({state:'hidden'});
             assert.equal(await name.inputValue(),'Fast Counter Test',contextId+' cancel quick add keeps draft');
+            // Due is sourced from the live customer ledger and must not clip inside the picker.
+            const customerPicker=checkout.getByTestId('pos-customer-picker-trigger');
+            await customerPicker.click();
+            const search=page.getByTestId('pos-customer-picker-search');
+            await search.fill('Rahman');
+            await search.press('Enter');
+            const previousDue=checkout.locator('[data-pos-previous-balance]');
+            await previousDue.waitFor({state:'visible'});
+            const expectedBalance=await page.evaluate(async()=>{
+              const {getPartyPreviewSnapshot}=await import('/src/data/partyPreviewStore.ts');
+              const {customerSettlementAsOf}=await import('/src/utils/partySettlement.ts');
+              const {businessToday}=await import('/src/utils/dateRange.ts');
+              const {taka}=await import('/src/utils/currency.ts');
+              const snap=getPartyPreviewSnapshot();
+              const customer=snap.parties.find(p=>p.name==='Rahman Hardware');
+              const balance=customerSettlementAsOf(snap.sources,customer.id,businessToday()).netBalance;
+              return {balance,display:taka(Math.abs(balance))};
+            });
+            assert.ok(expectedBalance.balance>0,contextId+' fixture has an existing customer due');
+            assert.equal(await previousDue.getAttribute('data-balance-type'),'due',contextId+' due uses semantic red state');
+            assert.ok((await previousDue.innerText()).includes(expectedBalance.display),contextId+' exact previous due shown');
+            assert.ok((await previousDue.innerText()).includes(language==='Bangla'?'আগের বাকি':'Previous due'),contextId+' due clearly labelled');
+            const previousLayout=await previousDue.evaluate(el=>{
+              const box=el.getBoundingClientRect();
+              return {left:box.left,right:box.right,scroll:el.scrollWidth-el.clientWidth,amount:getComputedStyle(el.lastElementChild).color};
+            });
+            assert.ok(previousLayout.left>=-2&&previousLayout.right<=width+2&&previousLayout.scroll<=1,
+              contextId+' previous due does not clip: '+JSON.stringify(previousLayout));
+            assert.ok(!(await customerPicker.innerText()).includes('Prev. due'),contextId+' picker no longer truncates the due');
+            const clearCustomer=checkout.getByRole('button',{name:labels('Clear customer','ক্রেতা সরান')});
+            await clearCustomer.click();
+            await previousDue.waitFor({state:'hidden'});
+            assert.equal(await page.getByTestId('pos-cart-row').count(),initialRows,contextId+' switching customer preserves cart');
+
             await checkout.getByRole('button',{name:labels('Exact','পুরো টাকা'),exact:true}).click();
             const preview=checkout.getByRole('button',{name:labels('Preview sale','বিক্রির হিসাব দেখুন')});
             assert.equal(await preview.isEnabled(),true,contextId+' fully paid sale can be previewed');
+            assert.equal(await preview.getAttribute('data-variant'),'default',contextId+' checkout uses primary variant');
+            await page.mouse.move(0,0);
+            const colors=await checkout.evaluate(root=>{
+              const mode=root.querySelector('[aria-label="Sale type"],[aria-label="বিক্রির ধরন"]');
+              const active=mode.querySelector('button[aria-pressed="true"]');
+              const action=[...root.querySelectorAll('button')].find(el=>el.textContent.includes('Preview sale')||el.textContent.includes('বিক্রির হিসাব দেখুন'));
+              return {mode:getComputedStyle(active).backgroundColor,action:getComputedStyle(action).backgroundColor};
+            });
+            assert.equal(colors.mode,colors.action,contextId+' active sale mode matches primary checkout color');
             await preview.click();
             const review=page.getByRole('dialog',{name:labels('Review sale','বিক্রির হিসাব যাচাই')});
             await review.waitFor();
