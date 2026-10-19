@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/Dialog';
 import {PurchaseSourceDialog} from '../components/purchases/PurchaseSourceDialog';
@@ -164,7 +165,7 @@ export function Purchases() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
+        <MotionTabList className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -173,7 +174,7 @@ export function Purchases() {
               onClick={() => chooseTab(id)}
               title={helper}
               className={`flex items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${
-                tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'
+                tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
               {id === 'purchases' && (
@@ -182,9 +183,9 @@ export function Purchases() {
               {id === 'return-history' && (
                 <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{returnHistory.length}</span>
               )}
-            </button>
+            <MotionTabIndicator active={tab === id} /></button>
           ))}
-        </div>
+        </MotionTabList>
 
         {tab === 'purchases' && (
           <>
