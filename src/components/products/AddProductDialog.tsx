@@ -564,7 +564,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
               POS and Purchases still need their intermediate-unit cart upgrade before this feature can be merged.
             </p>}
           </div>}
-        </section>
+        </section>}
 
         <section className="rounded-xl border border-border">
           <button type="button" onClick={() => setAdvanced((value) => !value)} aria-expanded={advanced} className="flex w-full items-center justify-between px-4 py-3 text-left">
