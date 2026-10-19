@@ -6,6 +6,8 @@ import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures'
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { roundInvoice } from '../settings/model';
 import { compoundLineTotal } from '../utils/posQuantity';
+import {productUnitFactor} from '../utils/unitChain';
+import {unitsFor} from '../utils/units';
 import { moveCartLine, reorderCartLines } from '../utils/reorderCartLines';
 import { getBundleVersion } from '../data/productImportPreviewStore';
 import {posMoney} from '../utils/posCheckoutValidation';
@@ -71,7 +73,8 @@ export function makePosPaymentRow(seedIndex = 0, method: PosPaymentMethod = 'Cas
 }
 
 function line(product: Product, qty: number, unit?: string, secondaryQty = ''): CartLine {
-  const u = unit ?? product.stockViewUnit ?? product.altUnit?.unit ?? product.unit;
+  const candidate = unit ?? product.stockViewUnit ?? product.altUnit?.unit ?? product.unit;
+  const u = unitsFor(product).includes(candidate) ? candidate : product.unit;
   return {
     key: nextKey(),
     product,
@@ -126,7 +129,8 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
   };
 
   const addProduct = (product: Product) => {
-    const preferredUnit = product.stockViewUnit ?? product.altUnit?.unit ?? product.unit;
+    const candidate = product.stockViewUnit ?? product.altUnit?.unit ?? product.unit;
+    const preferredUnit = unitsFor(product).includes(candidate) ? candidate : product.unit;
     const currentRevision=product.kind==='Bundle'?getBundleVersion(product.id)?.revision:undefined;
     const signature=product.kind==='Bundle'?JSON.stringify(getBundleVersion(product.id)?.components??[]):undefined;
     const existing = lines.find((l) => l.product.id === product.id && l.unit === preferredUnit &&
@@ -179,9 +183,7 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
 
   const totals = useMemo(() => {
     const subtotal = lines.reduce((sum, line) => {
-      const factor = line.product.altUnit && line.unit === line.product.altUnit.unit
-        ? line.product.altUnit.factor
-        : 1;
+      const factor = productUnitFactor(line.product, line.unit) || 1;
       return sum + compoundLineTotal(line.qty, line.secondaryQty, factor, line.price);
     }, 0);
     const d = posMoney(discount) || 0;
