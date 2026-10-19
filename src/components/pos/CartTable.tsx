@@ -355,7 +355,6 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
       }
 
       {serialLine && (() => {
-        const factor = productUnitFactor(serialLine.product,serialLine.unit)||1;
         const baseQty = saleLineBaseQty(serialLine);
         const blocked = lines.filter((line) => line.key !== serialLine.key).flatMap((line) => line.serials);
         return (
@@ -423,7 +422,6 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
           }}/>;
       })()}
       {shortageLine && (() => {
-        const factor = productUnitFactor(shortageLine.product,shortageLine.unit)||1;
         const baseQty = saleLineBaseQty(shortageLine);
         const allocation=allocations.find(a=>a.key===shortageLine.key);
         const available=allocation?.ownBaseQty??0;
