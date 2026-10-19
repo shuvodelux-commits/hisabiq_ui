@@ -121,12 +121,19 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           </button>
         </div>
 
-        <CustomerPicker value={customer} onChange={props.onCustomer} />
-        {props.installment?.mode==='Installment' && !customer && props.onQuickAddCustomer &&
-          <button type="button" onClick={props.onQuickAddCustomer}
-            className="w-fit rounded-md px-1 py-1 text-xs font-medium text-teal-700 hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
-            + {text('Add customer','নতুন ক্রেতা যোগ করুন')}
-          </button>}
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <CustomerPicker value={customer} onChange={props.onCustomer} />
+          </div>
+          {props.onQuickAddCustomer && (
+            <Button type="button" size="sm" variant="outline" onClick={props.onQuickAddCustomer}
+              className="size-10 shrink-0 px-0 text-teal-700"
+              aria-label={text('Quick add customer', 'নতুন ক্রেতা যোগ করুন')}
+              title={text('Quick add customer', 'নতুন ক্রেতা যোগ করুন')}>
+              <Plus className="size-4" />
+            </Button>
+          )}
+        </div>
 
         {props.installment && <div role="group" aria-label={text('Sale type','বিক্রির ধরন')}
           className="grid grid-cols-2 gap-1 rounded-lg bg-ink-50 p-1">
