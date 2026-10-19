@@ -41,6 +41,9 @@ test('Fast Counter POS uses a smaller mint words variant without changing Counte
  assert.doesNotMatch(pos,/bg-inverse|variant="inverse"/);
  assert.match(words,/bg-teal-50\/70/,'default words panel keeps the approved mint tone');
  assert.match(words,/compact:[\s\S]*text-\[14px\]/,'POS compact words stay readable');
+ assert.match(words,/compact:[\s\S]*bg-card\/75/,'compact surface uses the shared theme card color');
+ assert.match(words,/compact:[\s\S]*text-teal-800/,'compact words label uses a readable semantic teal tone');
+ assert.doesNotMatch(words,/dark:text-teal-200/,'dark teal-200 is too dark for label text in HisabIQ');
  assert.match(readFileSync('src/components/purchases/PurchasePaymentPanel.tsx','utf8'),/variant="inverse"/);
  assert.match(readFileSync('src/components/brand/ReceiptPreview.tsx','utf8'),/variant="receipt"/);
 });
