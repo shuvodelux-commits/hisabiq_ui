@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
 import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
@@ -211,7 +212,7 @@ export function PartyDetail({
       </div>
        </>}
 
-      <div className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+      <MotionTabList className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
         {tabs.map((t) =>
         <button
           key={t.id}
@@ -219,16 +220,16 @@ export function PartyDetail({
           aria-selected={tab === t.id}
           onClick={() => setTab(t.id)}
           className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors ${
-          tab === t.id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`
+          tab === t.id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`
           }>
           
             {t.label}
             {t.count !== undefined &&
           <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{t.count}</span>
           }
-          </button>
+          <MotionTabIndicator active={tab === t.id} /></button>
         )}
-      </div>
+      </MotionTabList>
 
       {(vendorProfile?(!vendorProfile.documents.length&&!vendorProfile.payments.length&&!notes.length):entries.length===0) && tab !== 'notes' && tab !== 'ledger' ?
       <div className="px-4 py-14 text-center">
