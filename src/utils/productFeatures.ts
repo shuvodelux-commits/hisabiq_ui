@@ -5,8 +5,8 @@ import type {
   StockLot,
   WarrantySnapshot
 } from '../types/erp';
-import {productUnitFactor} from './unitChain';
-import {priceFor} from './units';
+import {productUnitFactor} from './unitChain.ts';
+import {priceFor} from './units.ts';
 
 export function normalizeSerials(input: string): string[] {
   return input
