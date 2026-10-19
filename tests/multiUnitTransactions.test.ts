@@ -19,7 +19,7 @@ const product:Product={
 };
 
 test('POS selected intermediary units calculate quantities and selling prices',()=>{
- assert.deepEqual(unitsFor(product),['Pcs','Box','Bag']);
+ assert.deepEqual(unitsFor(product),['Bag','Box','Pcs']);
  assert.equal(productUnitFactor(product,'Box'),15);
  assert.equal(priceFor(product,'Box'),150);
  assert.equal(priceFor(product,'Bag'),1800);
