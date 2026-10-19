@@ -153,7 +153,8 @@ export function Pos() {
   const cart = usePosCart();
   const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot,getPartyPreviewSnapshot);
   const activeCustomer=cart.customer?partyState.parties.find(p=>p.id===cart.customer?.id&&p.roles.includes('Customer')&&p.status!=='Inactive'):undefined;
-  const availableCredit=activeCustomer?customerSettlementAsOf(partyState.sources,activeCustomer.id,businessToday()).refundableCredit:0;
+  const customerSettlement=activeCustomer?customerSettlementAsOf(partyState.sources,activeCustomer.id,businessToday()):null;
+  const availableCredit=customerSettlement?.refundableCredit??0;
   const {text}=useUiCopy();
   const previewCatalog=usePreviewCatalog();
   const navigate = useNavigate();
@@ -926,6 +927,7 @@ export function Pos() {
           onComplete={beginReview}
           validationError={validationError}
           availableCredit={availableCredit}
+          previousCustomerBalance={customerSettlement?.netBalance??null}
           onQuickAddCustomer={()=>setInstallmentCustomerQuickAddOpen(true)}
           onClear={()=>{cart.reset();setInstallmentMode('Regular');setInstallmentRows([]);}}
           paidRef={paidRef}

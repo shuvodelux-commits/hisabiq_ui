@@ -1,7 +1,7 @@
 import {NumericInput} from '../NumericInput';
 import {posMoney} from '../../utils/posCheckoutValidation';
 import React from 'react';
-import { AlertTriangle, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
@@ -38,6 +38,8 @@ type CheckoutPanelProps = {
   invoice: string;
   totals: Totals;
   customer: Party | null;
+  /** Net balance from the Customer ledger before this unsaved sale; positive = due, negative = advance. */
+  previousCustomerBalance: number | null;
   onCustomer: (p: Party | null) => void;
   customerDetails: PosCustomerDetails;
   onCustomerDetails: (details: PosCustomerDetails) => void;
@@ -76,6 +78,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
   const dueWithoutCustomer = totals.due > 0 && !hasCreditCustomer && totals.total > 0;
   const quick = [500, 1000, 2000, 5000].filter((n) => n >= totals.total * 0.2);
   const [customerDetailsOpen,setCustomerDetailsOpen] = React.useState(false);
+  const customerDetailsId=React.useId();
 
   const updatePayment = (id: string, patch: Partial<PosPaymentRow>) => {
     props.onPayments((rows) => rows.map((row) => row.id === id ? { ...row, ...patch } : row));
@@ -110,7 +113,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
   return (
     <aside data-pos-checkout aria-label={text('Sale checkout','বিক্রির টাকা নিন')} className="flex min-w-0 flex-col rounded-xl border border-border bg-card shadow-card">
-      <div className="space-y-3 border-b border-border p-4">
+      <div className="space-y-3 border-b border-border p-3.5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-ink">{props.invoice}</p>
@@ -123,7 +126,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
         <div className="flex min-w-0 items-center gap-2">
           <div className="min-w-0 flex-1">
-            <CustomerPicker value={customer} onChange={props.onCustomer} />
+            <CustomerPicker value={customer} onChange={props.onCustomer} previousBalance={props.previousCustomerBalance} />
           </div>
           {props.onQuickAddCustomer && (
             <Button type="button" size="sm" variant="outline" onClick={props.onQuickAddCustomer}
@@ -136,61 +139,76 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         </div>
 
         {props.installment && <div role="group" aria-label={text('Sale type','বিক্রির ধরন')}
-          className="grid grid-cols-2 gap-1 rounded-lg bg-ink-50 p-1">
-          {(['Regular','Installment'] as const).map(mode=><button
-            key={mode} type="button" aria-pressed={props.installment?.mode===mode}
-            onClick={()=>props.installment?.onModeChange(mode)}
-            className={'h-9 rounded-md text-[12px] font-medium transition-colors '+(props.installment?.mode===mode?'bg-card text-teal-700 shadow-card':'text-ink-500 hover:text-ink')}>
-            {mode==='Regular'?text('Regular sale','সাধারণ বিক্রি'):text('Installment sale','কিস্তিতে বিক্রি')}
-          </button>)}
+          className="grid grid-cols-2 gap-1 rounded-lg bg-ink-50 p-1 dark:bg-ink-100/10">
+          {(['Regular','Installment'] as const).map(mode=>{
+            const active=props.installment?.mode===mode;
+            return <Button
+              key={mode} type="button" variant={active?'default':'outline'}
+              aria-pressed={active}
+              onClick={()=>props.installment?.onModeChange(mode)}
+              className={'h-10 w-full min-w-0 rounded-md px-1 text-[12px] font-semibold '+
+                (active?'':'border-primary/15 bg-primary/10 text-teal-700 hover:bg-primary/15')}>
+              {mode==='Regular'?text('Regular sale','সাধারণ বিক্রি'):text('Installment sale','কিস্তিতে বিক্রি')}
+            </Button>;
+          })}
         </div>}
-        {customer&&<button type="button" onClick={()=>setCustomerDetailsOpen(open=>!open)}
-          className="self-start text-[11px] font-medium text-teal-700 hover:underline">
-          {customerDetailsOpen?text('Hide customer details','ক্রেতার তথ্য লুকান'):text('Edit customer details','ক্রেতার তথ্য বদলান')}
-        </button>}
 
-
-        {(!customer || customerDetailsOpen) && <div className="rounded-lg bg-ink-50/70 p-2.5">
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-400">
-            {word("invoiceCustomer")} {showHelper && <span className="font-bn normal-case tracking-normal">· কাস্টমার তথ্য</span>}
-          </p>
-          <div data-pos-customer-fields className="grid gap-2 sm:grid-cols-2">
-            <Input
-              value={customerDetails.name}
-              onChange={(event) => updateDetails({ name: event.target.value })}
-              placeholder={word("customerName")}
-              aria-label={word("customerName")}
-              className="h-8"
-            />
-            <Input
-              value={customerDetails.phone}
-              onChange={(event) => updateDetails({ phone: event.target.value })}
-              placeholder={word("phone")}
-              aria-label={word("customerPhone")}
-              className="h-8"
-            />
-            <Input
-              value={customerDetails.guardianName}
-              onChange={(event) => updateDetails({ guardianName: event.target.value })}
-              placeholder={word("guardianName")}
-              aria-label={word("guardianName")}
-              className="h-8"
-            />
-            <Input
-              value={customerDetails.address}
-              onChange={(event) => updateDetails({ address: event.target.value })}
-              placeholder={word("address")}
-              aria-label={word("customerAddress")}
-              className="h-8"
-            />
+        <section className="rounded-lg border border-border bg-ink-50/50 dark:bg-ink-100/5">
+          <button type="button" data-testid="pos-invoice-details-toggle"
+            aria-expanded={customerDetailsOpen} aria-controls={customerDetailsId}
+            onClick={()=>setCustomerDetailsOpen(open=>!open)}
+            className="flex w-full items-center justify-between gap-2 rounded-lg p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500">
+            <span className="min-w-0 flex-1">
+              <span className="block text-[12px] font-semibold text-ink">
+                {customerDetailsOpen?'−':'+'} {word("invoiceCustomer")}
+                {showHelper && <span className="font-bn font-normal text-ink-500"> · ক্রেতার তথ্য</span>}
+              </span>
+              {!customerDetailsOpen && <span className="mt-0.5 block truncate text-[11px] text-ink-500">
+                {customerDetails.name.trim() || customerDetails.phone.trim()
+                  ? [customerDetails.name.trim(),customerDetails.phone.trim()].filter(Boolean).join(' · ')
+                  : text('Name · Phone · Guardian · Address','নাম · ফোন · অভিভাবক · ঠিকানা')}
+              </span>}
+            </span>
+            <ChevronDown aria-hidden="true" className={'size-4 shrink-0 text-ink-500 transition-transform duration-200 '+
+              (customerDetailsOpen?'rotate-180':'')}/>
+          </button>
+          <div id={customerDetailsId} hidden={!customerDetailsOpen} className="border-t border-border px-3 pb-3 pt-2.5">
+            <div data-pos-customer-fields className="grid gap-2 sm:grid-cols-2">
+              <Input
+                value={customerDetails.name}
+                onChange={(event) => updateDetails({ name: event.target.value })}
+                placeholder={word("customerName")}
+                aria-label={word("customerName")}
+                className="h-9"
+              />
+              <Input
+                value={customerDetails.phone}
+                onChange={(event) => updateDetails({ phone: event.target.value })}
+                placeholder={word("phone")}
+                aria-label={word("customerPhone")}
+                className="h-9"
+              />
+              <Input
+                value={customerDetails.guardianName}
+                onChange={(event) => updateDetails({ guardianName: event.target.value })}
+                placeholder={word("guardianName")}
+                aria-label={word("guardianName")}
+                className="h-9"
+              />
+              <Input
+                value={customerDetails.address}
+                onChange={(event) => updateDetails({ address: event.target.value })}
+                placeholder={word("address")}
+                aria-label={word("customerAddress")}
+                className="h-9"
+              />
+            </div>
+            <p className="mt-2 text-[10.5px] text-ink-500">{word("customerOptional")}</p>
           </div>
-          <p className="mt-1.5 text-[10.5px] text-ink-400">
-            {word("customerOptional")}
-          </p>
-        </div>}
+        </section>
       </div>
 
-      <div className="space-y-2 p-4">
+      <div className="space-y-2 p-3.5">
         <Row label={text(`Subtotal · ${totals.itemCount} items`, `পণ্যের মোট · ${totals.itemCount}টি`)} value={taka(totals.subtotal, totals.subtotal % 1 ? 2 : 0)} />
         <div className="flex items-center justify-between gap-3 text-sm text-ink-700">
           <span>{word("discount")}</span>
@@ -221,14 +239,14 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <Row muted label={language === "Bangla" ? (totals.roundingLabel ? "রাউন্ডিং" : word("rounding")) : (totals.roundingLabel || word("rounding"))} value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
       </div>
 
-      <div data-pos-payable className="mx-4 rounded-xl border border-border bg-card px-4 py-3.5 text-ink">
-        <div className="flex items-baseline justify-between">
-          <span className="text-sm text-ink-500">
+      <div data-pos-payable className="mx-3.5 rounded-xl border border-teal-200/80 bg-teal-50/50 px-3.5 py-3 text-ink">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+          <span className="text-[13px] text-ink-600">
             {word("totalPayable")} {showHelper && <span className="font-bn">· মোট</span>}
           </span>
+          <p className="ml-auto text-right text-[29px] font-semibold leading-tight tracking-tight sm:text-[30px]">{taka(totals.total)}</p>
         </div>
-        <p className="mt-0.5 text-right text-[34px] font-semibold leading-tight tracking-tight">{taka(totals.total)}</p>
-        <AmountInWordsDisplay amount={totals.total} />
+        <AmountInWordsDisplay amount={totals.total} variant="compact" />
       </div>
 
       {props.installment?.mode==='Installment' && <div className="px-4 pt-4">
@@ -236,7 +254,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           invoiceTotalPaisa={Math.round(totals.total*100)}
           paidPaisa={Math.round(totals.paidNum*100)}/>
       </div>}
-      <div className="space-y-3 p-4">
+      <div className="space-y-3 p-3.5">
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="text-sm font-medium text-ink">{word("payments")} {showHelper && <span className="font-bn text-xs font-normal text-ink-500">· পেমেন্ট</span>}</p>
@@ -324,10 +342,16 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         {props.validationError&&<p role="alert" className="rounded-lg bg-danger-bg p-2.5 text-xs text-danger">{props.validationError}</p>}
 
         {dueWithoutCustomer && (
-          <p className="flex items-start gap-2 rounded-lg bg-warning-bg p-2.5 text-xs text-warning">
+          <div className="flex items-start gap-2 rounded-lg bg-warning-bg p-2.5 text-xs text-warning" role="status">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-            {text("Enter customer name + phone, or select an existing customer, to record", "বাকি রাখতে ক্রেতার নাম ও ফোন দিন অথবা আগের ক্রেতা বাছুন। বাকি টাকা:")} {taka(totals.due)} {language !== "Bangla" && "as due."}
-          </p>
+            <div className="min-w-0">
+              <p>{text("Enter customer name + phone, or select an existing customer, to record", "বাকি রাখতে ক্রেতার নাম ও ফোন দিন অথবা আগের ক্রেতা বাছুন। বাকি টাকা:")} {taka(totals.due)} {language !== "Bangla" && "as due."}</p>
+              {!customerDetailsOpen && <button type="button" onClick={()=>setCustomerDetailsOpen(true)}
+                className="mt-1.5 rounded-sm font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning">
+                {text('Enter customer details','ক্রেতার তথ্য দিন')}
+              </button>}
+            </div>
+          </div>
         )}
 
         <Button

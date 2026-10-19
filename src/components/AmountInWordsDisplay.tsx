@@ -11,7 +11,7 @@ export function AmountInWordsDisplay({
   className = '',
 }: {
   amount: number;
-  variant?: 'default' | 'inverse' | 'receipt';
+  variant?: 'default' | 'compact' | 'inverse' | 'receipt';
   label?: string;
   className?: string;
 }) {
@@ -20,6 +20,13 @@ export function AmountInWordsDisplay({
       container: 'rounded-lg border border-teal-200/80 bg-teal-50/70 px-3 py-2.5 dark:border-teal-800/80 dark:bg-teal-950/30',
       label: 'text-[12px] font-medium text-teal-800 dark:text-teal-800',
       value: 'text-[15px] font-semibold leading-[1.65] text-ink sm:text-base',
+    },
+    compact: {
+      // Theme tokens invert teal shades in dark mode. Avoid fixed white/teal-950 surfaces
+      // or low-index dark-theme teal text shades, which become low-contrast here.
+      container: 'rounded-lg border border-teal-200/80 bg-card/75 px-3 py-2',
+      label: 'text-[11px] font-semibold text-teal-800',
+      value: 'text-[14px] font-semibold leading-[1.55] text-ink sm:text-[15px]',
     },
     inverse: {
       container: 'rounded-lg border border-white/20 bg-white/10 px-3 py-2.5',

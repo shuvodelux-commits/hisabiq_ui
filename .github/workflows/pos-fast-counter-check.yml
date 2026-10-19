@@ -1,0 +1,25 @@
+name: Fast Counter POS Check
+on:
+  pull_request:
+    paths:
+      - 'src/components/pos/CheckoutPanel.tsx'
+      - 'src/components/AmountInWordsDisplay.tsx'
+      - 'scripts/pos-fast-counter-browser.cjs'
+      - '.github/workflows/pos-fast-counter-check.yml'
+permissions:
+  contents: read
+jobs:
+  fast-counter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run check:ui-contract
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:pos-fast-counter
