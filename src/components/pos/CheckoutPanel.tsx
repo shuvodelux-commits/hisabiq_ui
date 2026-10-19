@@ -38,6 +38,8 @@ type CheckoutPanelProps = {
   invoice: string;
   totals: Totals;
   customer: Party | null;
+  /** Net balance from the Customer ledger before this unsaved sale; positive = due, negative = advance. */
+  previousCustomerBalance: number | null;
   onCustomer: (p: Party | null) => void;
   customerDetails: PosCustomerDetails;
   onCustomerDetails: (details: PosCustomerDetails) => void;
@@ -136,17 +138,35 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           )}
         </div>
 
+        {customer && props.previousCustomerBalance !== null && (
+          <div data-pos-previous-balance
+            data-balance-type={props.previousCustomerBalance > 0 ? 'due' : props.previousCustomerBalance < 0 ? 'advance' : 'clear'}
+            className="flex min-w-0 items-center justify-between gap-3 rounded-md bg-ink-50/70 px-3 py-2 dark:bg-ink-100/10">
+            <span className="min-w-0 text-[12px] font-medium text-ink-600">
+              {props.previousCustomerBalance < 0
+                ? text('Customer advance','ক্রেতার অগ্রিম জমা')
+                : text('Previous due','আগের বাকি')}
+            </span>
+            <span className={'shrink-0 text-[14px] font-semibold '+
+              (props.previousCustomerBalance > 0 ? 'text-danger' : props.previousCustomerBalance < 0 ? 'text-success' : 'text-ink-500')}>
+              {taka(Math.abs(props.previousCustomerBalance))}
+            </span>
+          </div>
+        )}
+
         {props.installment && <div role="group" aria-label={text('Sale type','বিক্রির ধরন')}
-          className="grid grid-cols-2 gap-1 rounded-lg bg-teal-50/60 p-1 dark:bg-teal-950/30">
-          {(['Regular','Installment'] as const).map(mode=><button
-            key={mode} type="button" aria-pressed={props.installment?.mode===mode}
-            onClick={()=>props.installment?.onModeChange(mode)}
-            className={'h-10 rounded-md px-1 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 '+
-              (props.installment?.mode===mode
-                ?'bg-teal-700 text-white shadow-card dark:bg-teal-500 dark:text-ink-950'
-                :'bg-teal-100/80 text-teal-800 hover:bg-teal-200 dark:bg-teal-950/70 dark:text-teal-200 dark:hover:bg-teal-900')}>
-            {mode==='Regular'?text('Regular sale','সাধারণ বিক্রি'):text('Installment sale','কিস্তিতে বিক্রি')}
-          </button>)}
+          className="grid grid-cols-2 gap-1 rounded-lg bg-ink-50 p-1 dark:bg-ink-100/10">
+          {(['Regular','Installment'] as const).map(mode=>{
+            const active=props.installment?.mode===mode;
+            return <Button
+              key={mode} type="button" variant={active?'default':'outline'}
+              aria-pressed={active}
+              onClick={()=>props.installment?.onModeChange(mode)}
+              className={'h-10 w-full min-w-0 rounded-md px-1 text-[12px] font-semibold '+
+                (active?'':'border-primary/15 bg-primary/10 text-primary hover:bg-primary/15')}>
+              {mode==='Regular'?text('Regular sale','সাধারণ বিক্রি'):text('Installment sale','কিস্তিতে বিক্রি')}
+            </Button>;
+          })}
         </div>}
 
         <section className="rounded-lg border border-border bg-ink-50/50 dark:bg-ink-100/5">
