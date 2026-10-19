@@ -4,6 +4,7 @@ import { MotionNavIndicator } from '../../motion/MotionNavIndicator';
 import { useEffect, useState } from 'react';
 
 const MotionLink = motion(Link);
+
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useTenantSettings } from '../../settings/TenantSettingsProvider';
