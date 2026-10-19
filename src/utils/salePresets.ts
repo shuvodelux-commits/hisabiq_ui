@@ -30,7 +30,7 @@ export function templateCart(lines:readonly CartLine[]) {
     const factor=productUnitFactor(line.product,line.unit);
     if(!Number.isFinite(qty)||!Number.isFinite(secondary)||!Number.isFinite(price)||price<0||
       !Number.isFinite(factor)||factor<1||
-      (!line.unitQuantities&&qty*factor+secondary<=0)||!Number.isSafeInteger(Math.round(price*100))||Math.abs(Math.round(price*100)/100-price)>1e-7||
+      (!line.unitQuantities&&qty*factor+secondary<=0)||!Number.isSafeInteger(Math.round(price*10000))||Math.abs(Math.round(price*10000)/10000-price)>1e-9||
       (!unitsFor(line.product).includes(line.unit))||
       (factor===1&&secondary>0)||(line.product.kind==='Bundle'&&(!Number.isSafeInteger(qty)||secondary!==0)))
       throw new Error('Check product quantities, units and prices.');
