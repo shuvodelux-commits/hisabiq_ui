@@ -5,8 +5,9 @@ import type { Party, PaymentMethod, Product, SaleStockSource, WarrantySnapshot }
 import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures';
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { roundInvoice } from '../settings/model';
-import { compoundLineTotal } from '../utils/posQuantity';
-import {productUnitFactor} from '../utils/unitChain';
+import {saleLineTotal} from '../utils/posMultiUnit';
+import type {FrozenUnitProfile} from '../utils/multiUnitTransactions';
+
 import {unitsFor} from '../utils/units';
 import { moveCartLine, reorderCartLines } from '../utils/reorderCartLines';
 import { getBundleVersion } from '../data/productImportPreviewStore';
@@ -17,6 +18,8 @@ export type CartLine = {
   product: Product;
   qty: string;
   secondaryQty: string;
+  unitQuantities?: Record<string,string>;
+  historicalUnitSnapshot?: FrozenUnitProfile;
   unit: string;
   price: string;
   serials: string[];
@@ -80,6 +83,7 @@ function line(product: Product, qty: number, unit?: string, secondaryQty = ''): 
     product,
     qty: String(qty),
     secondaryQty,
+    unitQuantities: product.unitRelations && product.unitRelations.length>1 ? {[u]:String(qty),[product.unit]:secondaryQty} : undefined,
     unit: u,
     price: String(effectivePriceForUnit(product, activeOfferFor(product.id, productOffers), u)),
     serials: [],
@@ -137,7 +141,9 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
       (product.kind!=='Bundle'||(l.bundleRevision===currentRevision&&l.bundleRecipeSignature===signature)));
     if (existing) {
       setLines((ls) =>
-        ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1), stockSource: undefined,
+        ls.map((l) => l.key === existing.key ? { ...l, qty: String((parseFloat(l.qty) || 0) + 1),
+          unitQuantities:l.unitQuantities?{...l.unitQuantities,[l.unit]:String((Number(l.unitQuantities[l.unit])||0)+1)}:undefined,
+          stockSource: undefined,
           ...(l.product.kind==='Bundle'?{bundleSources:undefined,bundleSerials:undefined}:{}) } : l)
       );
       setLastAdded(existing.key);
@@ -148,11 +154,11 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
     setLastAdded(l.key);
   };
 
-  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource' | 'bundleSources' | 'bundleSerials'>>) => {
+  const updateLine = (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unitQuantities' | 'unit' | 'price' | 'serials' | 'stockSource' | 'bundleSources' | 'bundleSerials'>>) => {
     setLines((ls) =>
       ls.map((l) => {
         if (l.key !== key) return l;
-        const quantityChanged = patch.qty !== undefined || patch.secondaryQty !== undefined || patch.unit !== undefined;
+        const quantityChanged = patch.qty !== undefined || patch.secondaryQty !== undefined || patch.unit !== undefined || patch.unitQuantities !== undefined;
         const next = { ...l, ...patch };
         if (quantityChanged && patch.stockSource === undefined) next.stockSource = undefined;
         if (quantityChanged && l.product.kind==='Bundle') {
@@ -161,7 +167,7 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
         }
         if (patch.unit && patch.unit !== l.unit) {
           next.price = String(effectivePriceForUnit(l.product, activeOfferFor(l.product.id, productOffers), patch.unit));
-          next.secondaryQty = '';
+          if (!next.unitQuantities) next.secondaryQty = '';
         }
         return next;
       })
@@ -183,8 +189,7 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
 
   const totals = useMemo(() => {
     const subtotal = lines.reduce((sum, line) => {
-      const factor = productUnitFactor(line.product, line.unit) || 1;
-      return sum + compoundLineTotal(line.qty, line.secondaryQty, factor, line.price);
+      return sum + saleLineTotal(line);
     }, 0);
     const d = posMoney(discount) || 0;
     const discountAmt = Math.min(subtotal, discountMode === 'percent' ? subtotal * d / 100 : d);
