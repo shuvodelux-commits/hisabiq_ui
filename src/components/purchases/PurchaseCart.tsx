@@ -107,7 +107,8 @@ export function PurchaseCart({
                     <div data-cart-field="Quantity · পরিমাণ">{product.unitRelations && product.unitRelations.length>1 ?
                       <MultiUnitQuantityInput product={product} quantities={line.unitQuantities??{[line.costUnit]:line.bigQty,[product.unit]:line.smallQty}}
                         primaryRef={node=>{qtyRefs.current[line.id]=node;}} disabled={sourceLocked}
-                        onChange={unitQuantities=>onUpdate(line.id,{unitQuantities})}/>
+                        onChange={unitQuantities=>onUpdate(line.id,{unitQuantities})}
+                        onLastEnter={()=>{costRefs.current[line.id]?.focus();costRefs.current[line.id]?.select();}}/>
                       : <CompoundQuantityInput key={line.costUnit} product={product} unit={line.costUnit}
                       primary={selectedConversion(line)>1?line.bigQty:line.smallQty}
                       secondary={line.smallQty}
