@@ -126,7 +126,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
         <div className="flex min-w-0 items-center gap-2">
           <div className="min-w-0 flex-1">
-            <CustomerPicker value={customer} onChange={props.onCustomer} />
+            <CustomerPicker value={customer} onChange={props.onCustomer} previousBalance={props.previousCustomerBalance} />
           </div>
           {props.onQuickAddCustomer && (
             <Button type="button" size="sm" variant="outline" onClick={props.onQuickAddCustomer}
@@ -137,22 +137,6 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             </Button>
           )}
         </div>
-
-        {customer && props.previousCustomerBalance !== null && (
-          <div data-pos-previous-balance
-            data-balance-type={props.previousCustomerBalance > 0 ? 'due' : props.previousCustomerBalance < 0 ? 'advance' : 'clear'}
-            className="flex min-w-0 items-center justify-between gap-3 rounded-md bg-ink-50/70 px-3 py-2 dark:bg-ink-100/10">
-            <span className="min-w-0 text-[12px] font-medium text-ink-600">
-              {props.previousCustomerBalance < 0
-                ? text('Customer advance','ক্রেতার অগ্রিম জমা')
-                : text('Previous due','আগের বাকি')}
-            </span>
-            <span className={'shrink-0 text-[14px] font-semibold '+
-              (props.previousCustomerBalance > 0 ? 'text-danger' : props.previousCustomerBalance < 0 ? 'text-success' : 'text-ink-500')}>
-              {taka(Math.abs(props.previousCustomerBalance))}
-            </span>
-          </div>
-        )}
 
         {props.installment && <div role="group" aria-label={text('Sale type','বিক্রির ধরন')}
           className="grid grid-cols-2 gap-1 rounded-lg bg-ink-50 p-1 dark:bg-ink-100/10">
