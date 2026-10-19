@@ -1,4 +1,4 @@
-import type {Ref} from 'react';
+import {useRef,type Ref,type MutableRefObject} from 'react';
 import type {Product} from '../../types/erp';
 import {NumericInput} from '../NumericInput';
 import {productUnits} from '../../utils/unitChain';
@@ -7,17 +7,30 @@ import type {UnitQuantityMap} from '../../utils/multiUnitTransactions';
 /** Joined numeric fields for entering three or more units on the same transaction line.
  * Traditional one/two-unit products keep CompoundQuantityInput without visual changes.
  */
-export function MultiUnitQuantityInput({product,quantities,onChange,disabled=false,primaryRef}:{
+export function MultiUnitQuantityInput({product,quantities,onChange,disabled=false,primaryRef,onLastEnter}:{
   product:Pick<Product,'unit'|'altUnit'|'unitRelations'>;
   quantities:UnitQuantityMap;
   onChange:(next:UnitQuantityMap)=>void;
   disabled?:boolean;
   primaryRef?:Ref<HTMLInputElement>;
+  onLastEnter?:()=>void;
 }) {
+  const inputs=useRef<(HTMLInputElement|null)[]>([]);
+  const units=productUnits(product);
   return <div data-multi-quantity className="grid min-w-0 grid-cols-1 gap-1">
-    {productUnits(product).map((unit,index)=>
+    {units.map((unit,index)=>
       <div key={unit} data-numeric-joined className="flex h-9 min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-card focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20">
-        <NumericInput ref={index===0?primaryRef:undefined} stepperCompact aria-label={'Quantity in '+unit}
+        <NumericInput ref={node=>{
+            inputs.current[index]=node;
+            if(index===0&&typeof primaryRef==='function')primaryRef(node);
+            else if(index===0&&primaryRef)(primaryRef as MutableRefObject<HTMLInputElement|null>).current=node;
+          }}
+          onKeyDown={event=>{if(event.key==='Enter'){
+            event.preventDefault();
+            if(index+1<units.length){const next=inputs.current[index+1];next?.focus();next?.select();}
+            else onLastEnter?.();
+          }}}
+          stepperCompact aria-label={'Quantity in '+unit}
           value={quantities[unit]??''} disabled={disabled}
           type="text" inputMode="decimal" placeholder="0"
           onChange={event=>{
