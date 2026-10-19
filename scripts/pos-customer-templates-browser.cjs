@@ -56,6 +56,10 @@ async function main(){
             const template=menu.locator('[data-testid="pos-templates-list"] button').first();
             const name=await template.getAttribute('aria-label');
             assert.ok(name,`${suffix} template is labelled`);
+            const expectedItems=Number.parseInt((await template.locator('span').nth(2).textContent()??'').trim(),10);
+            assert.ok(Number.isSafeInteger(expectedItems)&&expectedItems>0,`${suffix} template item count visible`);
+            const waitForTemplateCart=()=>page.waitForFunction(expected=>
+              document.querySelectorAll('[data-testid="pos-cart-row"]').length===expected,expectedItems);
             await template.click();
             const confirm=page.getByRole('dialog',{name:labels('Replace this sale with a template','নমুনা দিয়ে এই বিক্রি বদলাবেন')});
             await confirm.waitFor();
@@ -67,14 +71,17 @@ async function main(){
             await menu.locator('[data-testid="pos-templates-list"] button').first().click();
             await confirm.getByRole('button',{name:labels('Load template','নমুনা আনুন')}).click();
             await page.waitForURL(/mode=template&template=/);
-            assert.ok(await page.getByTestId('pos-cart-row').count()>0,`${suffix} template populates POS`);
+            // The old rows briefly remain in the DOM during their exit animation.
+            await waitForTemplateCart();
+            assert.equal(await page.getByTestId('pos-cart-row').count(),expectedItems,`${suffix} template populates POS`);
             assert.ok(await page.locator('[data-pos-checkout]').isVisible(),`${suffix} checkout remains mounted`);
 
             // A second selection of the same template must restore its source cart.
-            const firstCartCount=await page.getByTestId('pos-cart-row').count();
+            const firstCartCount=expectedItems;
             menu=await openMenu();
             await menu.locator('[data-testid="pos-templates-list"] button').first().click();
             await confirm.getByRole('button',{name:labels('Load template','নমুনা আনুন')}).click();
+            await waitForTemplateCart();
             assert.equal(await page.getByTestId('pos-cart-row').count(),firstCartCount,`${suffix} repeated same template works`);
 
             menu=await openMenu();
