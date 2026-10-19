@@ -481,13 +481,13 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
         {isStock && <section data-product-units-and-pricing className="rounded-xl border border-border p-3 sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-semibold text-ink">Units & Pricing</h3>
+              <h3 className="text-sm font-semibold text-ink">{pl("Units & Pricing")}</h3>
               <p className="text-xs text-ink-500">একক ও দাম · 1 Gauge = 16 Gira</p>
             </div>
             <div className="flex items-center gap-2">
               <button type="button" onClick={() => setAddingUnit(value => !value)}
-                className="rounded-md border border-border bg-card px-2 py-1.5 text-xs text-ink hover:bg-ink-50">Manage Units</button>
-              <Switch checked={multiUnit} onCheckedChange={setMultiUnit} aria-label="Enable multiple units" />
+                className="rounded-md border border-border bg-card px-2 py-1.5 text-xs text-ink hover:bg-ink-50">{pl("Manage Units")}</button>
+              <Switch checked={multiUnit} onCheckedChange={setMultiUnit} aria-label={pl("Enable multiple units")} />
             </div>
           </div>
           {addingUnit && <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-ink-50 p-2">
@@ -541,12 +541,12 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
             <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
               <Button size="sm" variant="outline" onClick={() => setUnitRows(previous => [
                 ...previous, { leftUnit: previous[previous.length - 1].rightUnit, rightUnit: '', quantity: '' }
-              ])}><Plus className="size-3.5" /> Add another unit</Button>
+              ])}><Plus className="size-3.5" /> {pl("Add another unit")}</Button>
               <span className="text-xs text-ink-600">
-                Stock unit: <strong>{chain?.stockUnit ?? 'Complete the units'}</strong>
+                {pl("Base unit")}: <strong>{chain?.stockUnit ?? pl("Complete the units")}</strong>
               </span>
             </div>
-            <p className="mt-2 text-xs text-ink-500">Each new row continues from the smaller unit above. Stock uses only the last unit.</p>
+            <p className="mt-2 text-xs text-ink-500">{pl("Each new row continues from the smaller unit above. Stock uses only the last unit.")}</p>
             <div className="mt-3 max-w-xs">
               <Field label="Stock / POS view unit" bn="ডিফল্ট দেখানোর একক" hint="Controls stock display and the default POS cart unit.">
                 <AppSelect label={pl('Stock / POS view unit')} value={selectedStockViewUnit}
@@ -561,7 +561,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
               </Field>
             </div>}
             {unitRows.length > 1 && <p className="mt-2 text-xs text-ink-500">
-              POS and Purchases still need their intermediate-unit cart upgrade before this feature can be merged.
+              {pl("Multi-unit transaction workflows are under review. Do not merge before validation.")}
             </p>}
           </div>}
         </section>}
