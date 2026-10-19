@@ -21,8 +21,8 @@ async function main(){
   const tabs=page.getByRole('tablist',{name:'Vendor work tabs'});
   assert.equal(await tabs.getByRole('tab').count(),5);
   assert.equal(await tabs.evaluate(el=>getComputedStyle(el).display),'flex','Vendor tabs use the same horizontal text-tab layout as Parties');
-  assert.ok((await tabs.getByRole('tab',{name:/Ledger/}).getAttribute('class'))?.includes('erp-tab-active'),
-   'Active Vendor tab uses the shared Party underline');
+  assert.equal(await tabs.getByRole('tab',{name:/Ledger/}).locator('[data-motion-tab-indicator]').count(),1,
+   'Active Vendor tab uses the shared Framer Motion underline');
   assert.ok(!(await tabs.getByRole('tab',{name:/Ledger/}).getAttribute('class'))?.includes('border-b-2'),
    'Vendor tab does not stack a second button-like underline');
   assert.match(await tabs.getByRole('tab',{name:/Taken/}).getAttribute('title')??'',/Goods received/,
