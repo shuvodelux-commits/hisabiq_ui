@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import React, { useState } from 'react';
@@ -178,18 +179,18 @@ export function ProductSettings() {
 
   return (
     <div>
-      <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+      <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
         {tabs.map(([id, label, Icon]) => (
           <button
             key={id}
             role="tab"
             aria-selected={tab === id}
             onClick={() => { setTab(id); clearNew(); }}
-            className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
+            className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
             <Icon className="size-3.5" /> {pl(label)}
-          </button>
+          <MotionTabIndicator active={tab === id} /></button>
         ))}
-      </div>
+      </MotionTabList>
 
       {tab !== 'defaults' && (
         <div className="flex flex-col gap-2 border-b border-border bg-ink-50/40 p-3 lg:flex-row lg:items-end">
