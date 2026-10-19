@@ -24,11 +24,12 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
 
   return (
     <FloatingPanel
+      className="block w-full"
       label={word("chooseCustomer")}
       align="left"
       width={320}
       trigger={({ toggle, open }) =>
-      <div className="flex items-center gap-1">
+      <div className="flex w-full min-w-0 items-center gap-1">
           <button
           data-testid="pos-customer-picker-trigger"
           onClick={toggle}
