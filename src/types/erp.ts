@@ -367,7 +367,7 @@ export type Purchase = TransactionAuditFields & {
   receipt?: string;
   inventoryLines?: PurchaseInventoryLine[];
   /** Entered units/prices retained for source editing; never reconstruct from current master data. */
-  cartSnapshot?: {id:string;product:Product;bigQty:string;smallQty:string;cost:string;costUnit:string;lotSellPrice:string;lotSellUnit:string;detailsOpen:boolean;serialText:string;batchNumber:string;manufactureDate:string;expiryDate:string}[];
+  cartSnapshot?: {id:string;product:Product;bigQty:string;smallQty:string;unitQuantities?:Record<string,string>;cost:string;costUnit:string;lotSellPrice:string;lotSellUnit:string;detailsOpen:boolean;serialText:string;batchNumber:string;manufactureDate:string;expiryDate:string}[];
   businessDate?: string;
   roundingRule?: "Nearest ৳5" | "Nearest ৳1" | "No rounding";
   sourceRevision?: number;
