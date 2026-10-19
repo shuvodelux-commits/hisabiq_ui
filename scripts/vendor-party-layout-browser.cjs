@@ -33,6 +33,14 @@ async function main(){
   // Match the shared Parties 380px/remaining desktop split and stacked mobile flow.
   for(const width of [1440,1024,768,390]){
    await page.setViewportSize({width,height:900});
+   // Resolve the responsive grid before checking its geometry.
+   if(width>=640) await page.waitForFunction(expected=>{
+     const d=document.querySelector('[aria-label="Vendor directory"]');
+     const w=document.querySelector('[aria-label="Selected Vendor work"]');
+     if(!d||!w)return false;
+     const a=d.getBoundingClientRect(),b=w.getBoundingClientRect();
+     return expected>=1024?b.x>=a.right-2:b.y>=a.bottom-2;
+   },width);
    const left=await directory.boundingBox();
    const right=await workspace.boundingBox();
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
