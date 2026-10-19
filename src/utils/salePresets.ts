@@ -3,8 +3,7 @@ import type {Product,SalePresetLine} from '../types/erp.ts';
 import {compoundLineTotal} from './posQuantity.ts';
 import {productUnitFactor} from './unitChain.ts';
 import {unitsFor} from './units.ts';
-import {saleLineBaseQty,saleLineTotal} from './posMultiUnit.ts';
-import {freezeUnitProfile} from './multiUnitTransactions.ts';
+import {saleLineBaseQty,saleLineTotal,freezeSaleLineProfile} from './posMultiUnit.ts';
 
 export function cartFromPreset(lines:readonly SalePresetLine[],products:readonly Product[]):CartLine[] {
   return lines.flatMap((sourceLine,index)=>{
@@ -42,7 +41,7 @@ export function templateCart(lines:readonly CartLine[]) {
     if(!Number.isSafeInteger(paisa))throw new Error('Template amount is too large.');
     return {productId:line.product.id,qty:line.qty,secondaryQty:line.secondaryQty,unit:line.unit,price,
       unitQuantities:line.unitQuantities?structuredClone(line.unitQuantities):undefined,
-      unitSnapshot:line.historicalUnitSnapshot??(line.unitQuantities?freezeUnitProfile(line.product):undefined),
+      unitSnapshot:line.unitQuantities?freezeSaleLineProfile(line):undefined,
       ...(line.product.kind==='Bundle'?{bundleRevision:line.bundleRevision,bundleRecipeSignature:line.bundleRecipeSignature}: {})};
   });
   return {lines:presets,items:presets.length,total:paisa/100};
