@@ -5,12 +5,14 @@ import { readFileSync } from 'node:fs';
 const field = readFileSync(new URL('../src/components/MoneyUnitInput.tsx', import.meta.url), 'utf8');
 const form = readFileSync(new URL('../src/components/products/AddProductDialog.tsx', import.meta.url), 'utf8');
 
-test('product conversion rows use two compact joined quantity and unit controls', () => {
-  const row = form.match(/data-product-unit-relationship[\s\S]*?<\/div>/)?.[0];
-  assert.ok(row, 'a unit relationship should use the shared joined field shell');
-  assert.match(row, /<QuantityUnitInput compact readOnlyAmount/);
-  assert.match(row, /<QuantityUnitInput compact[\s\S]*?value=\{row\.quantity\}/);
-  assert.doesNotMatch(row, /<Input /, 'do not use a separate numeric field alongside a unit selector');
+test('product conversion rows repeat compact joined quantity and unit controls', () => {
+  assert.match(form, /data-product-unit-relationship[\s\S]*?<QuantityUnitInput compact readOnlyAmount[\s\S]*?<QuantityUnitInput compact[\s\S]*?value=\{row\.quantity\}/);
+  assert.match(form, /unitRows\.map\(\(row, index\)/);
+  assert.match(form, /Add another unit/);
+  assert.match(form, /setUnitRows\(previous => \[/);
+  assert.match(form, /unitRelations: isStock && multiUnit/);
+  assert.match(form, /resolveUnitChain\(configuredRelations\)/);
+  assert.match(form, /Manage Units/);
 });
 
 test('joined unit editor uses HisabIQ portal dropdown, compact stepper and one outer border', () => {
