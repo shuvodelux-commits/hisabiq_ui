@@ -1,3 +1,4 @@
+import { MOTION_MS, MOTION_EASE } from '../motion/tokens';
 import { motion, useReducedMotion } from 'framer-motion';
 import {forwardRef,useRef,useEffect,useState,useCallback,type CSSProperties,type InputHTMLAttributes} from 'react';
 import {ChevronDown,ChevronUp} from 'lucide-react';
@@ -54,7 +55,7 @@ export const NumericInput=forwardRef<HTMLInputElement,NumericProps>(function Num
   {editable&&<motion.span data-number-stepper
     initial={false}
     animate={{ opacity: showStepper ? 1 : 0 }}
-    transition={{ duration: showStepper && !reducedMotion ? 0.12 : 0, ease: [0.16, 1, 0.3, 1] }}
+    transition={{ duration: showStepper && !reducedMotion ? MOTION_MS.stepper / 1000 : 0, ease: MOTION_EASE }}
     className="absolute flex flex-col justify-center" aria-label={'Adjust '+label}>
    <button type="button" tabIndex={-1} aria-label={'Increase '+label} title="Increase by 1" onPointerDown={event=>{event.preventDefault();input.current?.focus();}} onClick={()=>step(1)} className="flex min-h-0 flex-1 items-center justify-center rounded-sm text-ink-500 hover:bg-ink-50 hover:text-ink"><ChevronUp className="size-3"/></button>
    <button type="button" tabIndex={-1} aria-label={'Decrease '+label} title="Decrease by 1" onPointerDown={event=>{event.preventDefault();input.current?.focus();}} onClick={()=>step(-1)} className="flex min-h-0 flex-1 items-center justify-center rounded-sm text-ink-500 hover:bg-ink-50 hover:text-ink"><ChevronDown className="size-3"/></button>
