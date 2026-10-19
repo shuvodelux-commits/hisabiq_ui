@@ -2,6 +2,7 @@ import type {BundleVersion,Product,StockLot} from '../types/erp.ts';
 import type {CartLine} from '../hooks/usePosCart.ts';
 import {allocatableLots} from '../utils/productFeatures.ts';
 import {productUnitFactor} from '../utils/unitChain.ts';
+import {freezeUnitProfile,unitQuantitiesBase} from '../utils/multiUnitTransactions.ts';
 
 export type BundleComponentDemand={
  sourceLineKey:string;
@@ -35,7 +36,7 @@ export function expandCartStockDemand(
     (factor>1&&Number(line.secondaryQty)>=(factor))){
     errors.push('Invalid product quantity or unit for '+p.name+'.');continue;
    }
-   const total=Number(line.qty)*factor+Number(line.secondaryQty||0);
+   const total=line.unitQuantities?unitQuantitiesBase(freezeUnitProfile(p),line.unitQuantities):Number(line.qty)*factor+Number(line.secondaryQty||0);
    if(!Number.isFinite(total)||total<=0){errors.push('Quantity must be greater than zero for '+p.name+'.');continue;}
    demands.push({sourceLineKey:line.key,componentProductId:p.id,requiredBaseQty:total});
    continue;
