@@ -5,7 +5,7 @@ import {freezeUnitProfile,unitQuantitiesBase,unitQuantitiesSaleTotal,describeUni
 import {makePurchaseLine,baseQty,baseCost,lineAmount} from '../src/utils/purchaseCart.ts';
 import {saleLineBaseQty,saleLineTotal,freezeSaleLineProfile} from '../src/utils/posMultiUnit.ts';
 import type {CartLine} from '../src/hooks/usePosCart.ts';
-import {validatePosCheckout} from '../src/utils/posCheckoutValidation.ts';
+import {validatePosCheckout,posUnitPrice,posMoney} from '../src/utils/posCheckoutValidation.ts';
 
 const product:Product={
   id:'sku-1',name:'Pipe bundle',sku:'PIPE',category:'Hardware',
@@ -53,4 +53,12 @@ test('reject invalid quantities and non-configured units before checkout',()=>{
    discount:'0',discountMode:'amount' as const,payments:[],total:3175,availableCredit:0};
  assert.equal(validatePosCheckout(base),null);
  assert.equal(validatePosCheckout({...base,lines:[{...base.lines[0],unitQuantities:{Bag:'1',Box:'3',Pcs:'-5'}}]}),'quantity');
+});
+
+test('mobile decimal typing remains calculable while money payments stay in paisa',()=>{
+ const profile=freezeUnitProfile(product);
+ assert.equal(unitQuantitiesBase(profile,{Bag:'1.',Box:'.5',Pcs:''}),187.5);
+ assert.throws(()=>unitQuantitiesBase(profile,{Pcs:'1.23456'}),/four decimals/);
+ assert.equal(posUnitPrice('0.0001'),0.0001);
+ assert.ok(Number.isNaN(posMoney('0.0001')),'payments remain limited to two decimals');
 });
