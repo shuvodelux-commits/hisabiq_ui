@@ -1,7 +1,7 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { uiText } from '../i18n/uiCopy';
 import {useUiCopy} from '../i18n/useUiCopy';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Copy, FileClock, FileText, Keyboard, Pencil, Printer, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,6 +11,8 @@ import { CartTable } from '../components/pos/CartTable';
 import { CheckoutPanel } from '../components/pos/CheckoutPanel';
 import { TransactionReviewDialog } from '../components/TransactionReviewDialog';
 import { DraftsMenu } from '../components/pos/DraftsMenu';
+import { SaleTemplatesMenu } from '../components/pos/SaleTemplatesMenu';
+import { SaleTemplateDialog } from '../components/pos/SaleTemplateDialog';
 import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine, type ReceiptBranding, type ReceiptPayment } from '../components/brand/ReceiptPreview';
 import { makePosPaymentRow, posPaymentAccountsByMethod, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
@@ -53,7 +55,7 @@ import {planComponentFulfillment,componentSourceKey} from '../bundles/bundleFulf
 import {createBundleSaleSnapshot} from '../bundles/bundleDocuments';
 import {prepareVendorSalePreview} from '../vendor/vendorSalePreview';
 import {dispatchVendorPreview} from '../vendor/vendorPreviewStore';
-import type { SaleLine, SalesInvoice } from '../types/erp';
+import type { SaleLine, SaleTemplate, SalesInvoice } from '../types/erp';
 import type { PartyWorkspaceContext } from '../utils/partyNavigation';
 
 /** UI-preview only: reserve unique invoice labels across POS remounts in one browser session.
@@ -217,6 +219,8 @@ export function Pos() {
   const [installmentRows,setInstallmentRows]=useState<InstallmentScheduleRow[]>([]);
   const [installmentBreakdownOpen,setInstallmentBreakdownOpen]=useState(false);
   const [installmentCustomerQuickAddOpen,setInstallmentCustomerQuickAddOpen]=useState(false);
+  const [templateEditorOpen,setTemplateEditorOpen]=useState(false);
+  const [pendingTemplate,setPendingTemplate]=useState<SaleTemplate|null>(null);
   const installmentTotalPaisa=Math.round(cart.totals.total*100);
   const installmentDownPaisa=Math.round(cart.totals.paidNum*100);
   const installmentRemainingPaisa=Math.max(0,installmentTotalPaisa-installmentDownPaisa);
@@ -324,18 +328,14 @@ export function Pos() {
     }else setInstallmentRows([]);
   }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, draftContext, duplicatingDraft, sourceDraft, sourceMode, previewCatalog]);
 
-  useEffect(() => {
-    if (!sourceTemplate || !templateContext) return;
-    const sourceKey = `${sourceMode}:${sourceTemplate.id}`;
-    if (loadedSource.current === sourceKey) return;
-    loadedSource.current = sourceKey;
-    cart.setLines(cartFromPreset(sourceTemplate.lines,previewCatalog));
+  const restoreTemplate=useCallback((template:SaleTemplate)=>{
+    cart.setLines(cartFromPreset(template.lines,previewCatalog));
     const matches=availableParties().filter(party=>party.roles.includes('Customer')&&party.status!=='Inactive'&&
-      (sourceTemplate.customerId?party.id===sourceTemplate.customerId:party.name===sourceTemplate.customer));
+      (template.customerId?party.id===template.customerId:party.name===template.customer));
     const sourceParty=matches.length===1?matches[0]:null;
     cart.setCustomer(sourceParty);
     cart.setCustomerDetails({
-      name: sourceTemplate.customer ?? sourceParty?.name ?? '',
+      name: template.customer ?? sourceParty?.name ?? '',
       phone: sourceParty?.phone ?? '',
       guardianName: '',
       address: sourceParty?.area ?? ''
@@ -343,7 +343,15 @@ export function Pos() {
     cart.setDiscount('');
     cart.setDiscountMode('amount');
     cart.setPayments([makePosPaymentRow()]);
-  }, [cart.setCustomer, cart.setCustomerDetails, cart.setDiscount, cart.setDiscountMode, cart.setLines, cart.setPayments, sourceMode, sourceTemplate, templateContext, previewCatalog]);
+  },[cart.setCustomer,cart.setCustomerDetails,cart.setDiscount,cart.setDiscountMode,cart.setLines,cart.setPayments,previewCatalog]);
+
+  useEffect(() => {
+    if (!sourceTemplate || !templateContext) return;
+    const sourceKey = `${sourceMode}:${sourceTemplate.id}`;
+    if (loadedSource.current === sourceKey) return;
+    loadedSource.current = sourceKey;
+    restoreTemplate(sourceTemplate);
+  }, [sourceMode, sourceTemplate, templateContext, restoreTemplate]);
 
   useEffect(() => {
     if (!partyContext || !sourcePartyId) return;
@@ -679,6 +687,24 @@ export function Pos() {
     toast.success(text('Sale held as draft','বিক্রি খসড়ায় রাখা হয়েছে'));
   };
 
+  const applySaleTemplate=(template:SaleTemplate)=>{
+    // Update the cart here as well as the URL: selecting the same template twice must work.
+    loadedSource.current=`template:${template.id}`;
+    restoreTemplate(template);
+    setInstallmentMode('Regular');
+    setInstallmentRows([]);
+    setPendingTemplate(null);
+    navigate(`/app/pos?mode=template&template=${encodeURIComponent(template.id)}`,{state:null});
+    toast.success(text('Template loaded. Review before confirming.', 'নমুনা আনা হয়েছে। নিশ্চিত করার আগে যাচাই করুন।'));
+  };
+  const selectSaleTemplate=(template:SaleTemplate)=>{
+    const hasUnsavedSale=cart.lines.length>0||Boolean(cart.customer)||
+      Object.values(cart.customerDetails).some(value=>value.trim().length>0)||
+      cart.discount.trim().length>0||cart.payments.some(row=>row.amount.trim().length>0);
+    if(hasUnsavedSale){setPendingTemplate(template);return;}
+    applySaleTemplate(template);
+  };
+
   const resume = (d: SalesDraft) => {
     loadedSource.current=null;
     setInstallmentMode(d.installment?'Installment':'Regular');
@@ -735,6 +761,9 @@ export function Pos() {
               </span>
             )}
           </div>
+          <SaleTemplatesMenu templates={templates}
+            onUse={selectSaleTemplate}
+            onCreate={()=>setTemplateEditorOpen(true)} />
           <DraftsMenu
             drafts={drafts}
             canSave={cart.lines.length > 0&&!validationError}
@@ -945,6 +974,24 @@ export function Pos() {
         
       </div>
 
+      {templateEditorOpen && <SaleTemplateDialog template={null} onClose={()=>setTemplateEditorOpen(false)} />}
+      <Dialog open={Boolean(pendingTemplate)} onOpenChange={open=>{if(!open)setPendingTemplate(null);}}>
+        <DialogContent className="w-[calc(100vw-1rem)] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{text('Replace this sale with a template?', 'নমুনা দিয়ে এই বিক্রি বদলাবেন?')}</DialogTitle>
+            <DialogDescription>
+              {text('The current unsaved sale will be replaced. Hold it as a draft first if you need to keep it.',
+                'বর্তমান অসম্পূর্ণ বিক্রি বদলে যাবে। রাখতে চাইলে আগে খসড়া হিসেবে রাখুন।')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={()=>setPendingTemplate(null)}>{text('Cancel','বাতিল')}</Button>
+            <Button type="button" onClick={()=>{if(pendingTemplate)applySaleTemplate(pendingTemplate);}}>
+              {text('Load template','নমুনা আনুন')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <InstallmentCustomerQuickAddDialog open={installmentCustomerQuickAddOpen}
         initialName={cart.customerDetails.name}
         initialPhone={cart.customerDetails.phone}
