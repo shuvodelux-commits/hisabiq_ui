@@ -21,7 +21,9 @@ export function MultiUnitQuantityInput({product,quantities,onChange,disabled=fal
           value={quantities[unit]??''} disabled={disabled}
           type="text" inputMode="decimal" placeholder="0"
           onChange={event=>{
-            const clean=event.target.value.replace(/[^\d.]/g,'').replace(/(\..*)\./g,'$1');
+            const cleaned=event.target.value.replace(/[^\d.]/g,'').replace(/(\..*)\./g,'$1');
+            const [whole='',fraction]=cleaned.split('.');
+            const clean=fraction===undefined?whole:(whole||'0')+'.'+fraction.slice(0,4);
             onChange({...quantities,[unit]:clean});
           }}
           className="h-full w-0 min-w-0 flex-1 !rounded-none !border-0 !bg-transparent !shadow-none px-2 text-right text-[13px] text-ink outline-none"/>
