@@ -23,7 +23,7 @@ export function AmountInWordsDisplay({
     },
     compact: {
       // Theme tokens invert teal shades in dark mode. Avoid fixed white/teal-950 surfaces
-      // or dark:text-teal-200 (a low-contrast dark teal in the HisabIQ dark palette).
+      // or low-index dark-theme teal text shades, which become low-contrast here.
       container: 'rounded-lg border border-teal-200/80 bg-card/75 px-3 py-2',
       label: 'text-[11px] font-semibold text-teal-800',
       value: 'text-[14px] font-semibold leading-[1.55] text-ink sm:text-[15px]',
