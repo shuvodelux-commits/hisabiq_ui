@@ -37,6 +37,7 @@ export function unitsFor(product: Product): string[] {
 }
 
 export function priceFor(product: Product, unit: string): number {
+  if (product.unitSellPrices?.[unit] !== undefined) return product.unitSellPrices[unit];
   if (product.altUnit && unit === product.altUnit.unit && product.altUnit.price !== undefined)
     return product.altUnit.price;
   return product.sellPrice * productUnitFactor(product, unit);
