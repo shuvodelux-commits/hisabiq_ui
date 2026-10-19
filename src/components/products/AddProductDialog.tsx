@@ -125,6 +125,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     { leftUnit: 'Gauge', rightUnit: 'Gira', quantity: '16' }
   ]);
   const [altPrice, setAltPrice] = useState('');
+  const [customUnitPrices, setCustomUnitPrices] = useState(false);
+  const [unitSellPrices, setUnitSellPrices] = useState<Record<string,string>>({});
+  const [unitPurchasePrices, setUnitPurchasePrices] = useState<Record<string,string>>({});
   const [stockViewUnit, setStockViewUnit] = useState(defaultViewUnit);
   const [openingQty, setOpeningQty] = useState('');
   const [openingUnit, setOpeningUnit] = useState('Gauge');
@@ -206,6 +209,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setUnitRows([{ leftUnit: defaults.defaultUnit === 'Gira' ? 'Gauge' : 'Box', rightUnit: defaults.defaultUnit,
       quantity: defaults.defaultUnit === 'Gira' ? '16' : '12' }]);
     setAltPrice('');
+    setCustomUnitPrices(false);
+    setUnitSellPrices({});setUnitPurchasePrices({});
     setStockViewUnit(defaultViewUnit);
     setOpeningQty('');
     setOpeningUnit(defaults.openingUnit === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
@@ -258,6 +263,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       : [{ leftUnit: initialProduct.altUnit?.unit ?? 'Box', rightUnit: initialProduct.unit,
            quantity: String(initialProduct.altUnit?.factor ?? 12) }]);
     setAltPrice(initialProduct.altUnit?.price ? String(initialProduct.altUnit.price) : '');
+    setUnitSellPrices(Object.fromEntries(Object.entries(initialProduct.unitSellPrices??{}).map(([k,v])=>[k,String(v)])));
+    setUnitPurchasePrices(Object.fromEntries(Object.entries(initialProduct.unitPurchasePrices??{}).map(([k,v])=>[k,String(v)])));
+    setCustomUnitPrices(Boolean(Object.keys(initialProduct.unitSellPrices??{}).length||Object.keys(initialProduct.unitPurchasePrices??{}).length));
     setStockViewUnit(initialProduct.stockViewUnit ?? initialProduct.altUnit?.unit ?? initialProduct.unit);
     setOpeningQty('');
     setOpeningUnit(initialProduct.unit);
@@ -334,9 +342,16 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     if (isStock && multiUnit) {
       try { resolveUnitChain(configuredRelations); }
       catch (cause) { return setError(cause instanceof Error ? cause.message : 'Review unit relationships.'); }
-      if (initialProduct && stockUnit !== initialProduct.unit)
-        return setError('Changing the smallest stock unit of an existing product requires a stock migration.');
+      if(initialProduct && (stockUnit !== initialProduct.unit ||
+        JSON.stringify(configuredRelations) !== JSON.stringify(initialProduct.unitRelations ??
+         (initialProduct.altUnit?[{leftUnit:initialProduct.altUnit.unit,rightUnit:initialProduct.unit,quantity:initialProduct.altUnit.factor}]:[])))) {
+        return setError('Editing saved unit relationships requires reviewed stock and invoice migration.');
+      }
     }
+
+    if(customUnitPrices && [...Object.values(unitSellPrices),...Object.values(unitPurchasePrices)].some(value=>
+      value.trim() && (!/^(?:\d+)(?:\.\d{1,4})?$/.test(value)||!Number.isFinite(Number(value)))))
+      return setError('Enter valid nonnegative unit prices (up to four decimal places).');
 
     if (warrantyEnabled && (!(parseFloat(warrantyDuration) > 0) || !warrantyType)) {
       return setError(pl('Enter a valid warranty duration and type.'));
@@ -368,6 +383,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       image: photos[0],
       unit: isStock ? stockUnit : unit,
       unitRelations: isStock && multiUnit ? configuredRelations : undefined,
+      unitSellPrices: isStock && multiUnit && customUnitPrices ? Object.fromEntries(Object.entries(unitSellPrices).filter(([unit,value])=>units.includes(unit)&&value.trim()).map(([unit,value])=>[unit,Number(value)])) : undefined,
+      unitPurchasePrices: isStock && multiUnit && customUnitPrices ? Object.fromEntries(Object.entries(unitPurchasePrices).filter(([unit,value])=>units.includes(unit)&&value.trim()).map(([unit,value])=>[unit,Number(value)])) : undefined,
       // Legacy carts use this flattened largest-to-smallest conversion until all units are supported.
       altUnit: isStock && multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
       stock: initialProduct ? initialProduct.stock : openingBaseQty,
@@ -553,6 +570,29 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                   onChange={setStockViewUnit} options={units} />
               </Field>
             </div>
+            <label className="mt-3 flex cursor-pointer items-start gap-2 text-[13px] font-medium text-ink">
+              <input type="checkbox" className="mt-0.5 accent-teal-600" checked={customUnitPrices}
+                onChange={event=>setCustomUnitPrices(event.target.checked)} />
+              <span>{pl('Set different prices for each unit')}
+                <span className="block text-xs font-normal text-ink-500">{pl('Leave blank to use the converted price.')}</span>
+              </span>
+            </label>
+            {customUnitPrices && <div className="mt-2 space-y-1.5 rounded-lg border border-border bg-card p-2">
+              {units.map(name=>(
+                <div key={name} className="grid grid-cols-[minmax(55px,.7fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-1.5">
+                  <span className="truncate text-xs font-medium text-ink" title={name}>{name}</span>
+                  <div className="min-w-0"><MoneyInput aria-label={'Purchase price per '+name}
+                    value={unitPurchasePrices[name]??''}
+                    placeholder={String(Number((buyBase*(unitFactor(name)||1)).toPrecision(8)))}
+                    onChange={e=>setUnitPurchasePrices(old=>({...old,[name]:e.target.value.replace(/[^\d.]/g,'')}))}/></div>
+                  <div className="min-w-0"><MoneyInput aria-label={'Selling price per '+name}
+                    value={unitSellPrices[name]??''}
+                    placeholder={String(Number((sellBase*(unitFactor(name)||1)).toPrecision(8)))}
+                    onChange={e=>setUnitSellPrices(old=>({...old,[name]:e.target.value.replace(/[^\d.]/g,'')}))}/></div>
+                </div>
+              ))}
+              <p className="text-[11px] text-ink-500">{pl('Purchase / Selling — Auto unless edited')}</p>
+            </div>}
             {selectedSellUnit === stockUnit && <div className="mt-3 max-w-xs">
               <Field label={'Custom selling price / ' + (altUnit || 'unit')}
                 hint={autoAltSell ? 'Auto ' + taka(autoAltSell) + ' / ' + altUnit : 'Optional override'}>
