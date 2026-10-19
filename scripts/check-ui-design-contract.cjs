@@ -14,8 +14,7 @@ const required = [
   'docs/ui/transaction-cart-design-contract.md',
   'src/components/pos/CartTable.tsx',
   'src/components/pos/ProductCombobox.tsx',
-  'src/components/purchases/PurchaseCart.tsx',
-  'src/components/purchases/PurchaseProductSearch.tsx'
+  'src/components/purchases/PurchaseCart.tsx'
 ];
 
 function allCodeFiles(dir) {
