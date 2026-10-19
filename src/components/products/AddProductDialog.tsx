@@ -593,7 +593,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
               ))}
               <p className="text-[11px] text-ink-500">{pl('Purchase / Selling — Auto unless edited')}</p>
             </div>}
-            {selectedSellUnit === stockUnit && <div className="mt-3 max-w-xs">
+            {multiUnit && unitRows.length === 1 && !customUnitPrices && selectedSellUnit === stockUnit && <div className="mt-3 max-w-xs">
               <Field label={'Custom selling price / ' + (altUnit || 'unit')}
                 hint={autoAltSell ? 'Auto ' + taka(autoAltSell) + ' / ' + altUnit : 'Optional override'}>
                 <MoneyInput value={altPrice} onChange={event => setAltPrice(event.target.value.replace(/[^\d.]/g, ''))}
