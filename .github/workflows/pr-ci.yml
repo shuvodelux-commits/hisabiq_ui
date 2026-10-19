@@ -63,10 +63,11 @@ jobs:
 
           flag browser '^(src/|scripts/.*browser\.cjs$|\.github/workflows/pr-ci\.yml$)'
           flag pos '^(src/(pages/Pos\.tsx|components/pos/|hooks/usePosCart\.ts|bundles/|installments/)|scripts/(pos-|bundle-).*browser\.cjs$)'
-          flag purchases '^(src/(pages/(Puchases|Purchases|PurchaseEditor)\.tsx|components/purchases/|utils/purchaseSource\.ts)|scripts/(purchase-|product-quick-add).*browser\.cjs$)'
+          flag purchases '^(src/(pages/(Purchases|PurchaseEditor)\.tsx|components/purchases/|utils/purchaseSource\.ts)|scripts/(purchase-|product-quick-add).*browser\.cjs$)'
           flag parties '^(src/(pages/(Parties|Party|Vendor|Vendors)\.tsx|components/(parties|vendor)/)|scripts/(party-|vendor-).*browser\.cjs$)'
           flag finance '^(src/(pages/Finance\.tsx|components/finance/|utils/financePaymentDrafts\.ts)|scripts/(counter-|finance-).*browser\.cjs$)'
           flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment).*browser\.cjs$)'
+          flag mobile '^(src/index\\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\\.tsx$|scripts/mobile-carts-browser\\.cjs$)'
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
@@ -113,3 +114,7 @@ jobs:
       - name: Shared dialogs and mobile overlay accessibility
         if: steps.scope.outputs.shared == 'true'
         run: node scripts/dialog-accessibility-browser.cjs
+
+      - name: Compact phone and tablet cart smoke
+        if: steps.scope.outputs.mobile == 'true'
+        run: node scripts/mobile-carts-browser.cjs

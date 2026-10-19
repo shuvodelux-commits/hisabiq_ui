@@ -10,7 +10,7 @@ the UI contract, the complete TypeScript unit suite, and a Vite production build
 For changes under `src/`, impacted module patterns select light Playwright smoke
 checks. Chromium is installed only when one of those checks is relevant.
 A generic page-navigation smoke check runs on source changes; targeted tests cover
-POS, purchases, party, finance, and shared dialogs. PRs that change Markdown
+POS, purchases, party, finance, shared dialogs, and compact mobile carts. PRs that change Markdown
 documentation alone do not automatically run CI.
 
 ## Thorough regression testing
