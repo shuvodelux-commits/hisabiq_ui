@@ -31,6 +31,7 @@ async function main(){
             assert.ok(initialRows>0,contextId+' cart remains present');
             const toggle=checkout.getByTestId('pos-invoice-details-toggle');
             assert.equal(await toggle.getAttribute('aria-expanded'),'false',contextId+' invoice details start collapsed');
+            assert.equal(await toggle.locator('svg.lucide-chevron-down').count(),0,contextId+' invoice details uses one +/- indicator, no redundant chevron');
             const details=checkout.locator('[data-pos-customer-fields]');
             assert.equal(await details.isVisible(),false,contextId+' optional fields hidden until requested');
             assert.ok(await checkout.getByRole('button',{name:labels('Enter customer details','ক্রেতার তথ্য দিন')}).isVisible(),contextId+' due warning has direct next action');
