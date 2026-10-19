@@ -1,5 +1,5 @@
 import type { Product } from '../types/erp';
-import { productUnits, productUnitFactor, resolveUnitChain } from './unitChain';
+import { productUnits, productUnitFactor, resolveUnitChain } from './unitChain.ts';
 
 /** "34 Box 2 Pcs" for multi-unit products, "86 Pcs" otherwise */
 export function formatStock(product: Product): string {
