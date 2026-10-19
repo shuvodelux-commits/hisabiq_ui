@@ -1,3 +1,4 @@
+import { MOTION_MS, MOTION_EASE } from '../../motion/tokens';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -49,7 +50,7 @@ export function Sidebar() {
     data-motion-sidebar=""
     initial={false}
     animate={{ width: collapsed ? 64 : 256 }}
-    transition={reducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+    transition={reducedMotion ? { duration: 0 } : { duration: MOTION_MS.sidebar / 1000, ease: MOTION_EASE }}
     className="group/sidebar relative sticky top-0 z-20 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar lg:flex"
   >
     <div className={'flex h-14 shrink-0 items-center ' + (collapsed ? 'justify-center px-1' : 'justify-between px-3')}>
