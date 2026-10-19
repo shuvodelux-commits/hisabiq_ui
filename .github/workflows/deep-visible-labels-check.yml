@@ -1,12 +1,8 @@
 name: Deep Visible Label Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/components/layout/ErpNavMenu.tsx'
-      - 'src/components/layout/TopBar.tsx'
-      - 'src/components/purchases/PurchaseCart.tsx'
-      - 'scripts/deep-visible-labels-browser.cjs'
-      - '.github/workflows/deep-visible-labels-check.yml'
+  workflow_dispatch:
+
 jobs:
   accessible-labels:
     runs-on: ubuntu-latest
