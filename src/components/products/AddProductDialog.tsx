@@ -310,6 +310,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const save = () => {
     if (!name.trim()) return setError(pl('Product name is required.'));
     if (!sellNum) return setError(pl('Enter a selling price.'));
+    if (isStock && multiUnit && (!altUnit || altUnit === unit || !Number.isFinite(Number(factor)) || Number(factor) <= 1)) {
+      return setError(pl('Choose two different units and enter a conversion greater than 1.'));
+    }
 
     if (warrantyEnabled && (!(parseFloat(warrantyDuration) > 0) || !warrantyType)) {
       return setError(pl('Enter a valid warranty duration and type.'));
@@ -477,16 +480,24 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                     setMultiUnit(checked);
                   }} />
                   {multiUnit && <div className="rounded-lg bg-teal-50/60 p-3">
-                    <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink">
-                      <span className="font-medium">1</span>
-                      <div className="min-w-[156px] max-w-[240px] flex-1">
-                        <QuickAddSelect label={pl("Larger unit")} value={altUnit} options={unitOptions.map((item) => item.symbol)}
-                          onChange={setAltUnit} onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, setAltUnit)}
-                          showSymbol placeholder={pl('e.g. Box or Gauge')} />
-                      </div>
-                      <span className="text-ink-500">=</span>
-                      <Input value={factor} onChange={(e) => setFactor(e.target.value.replace(/[^\d.]/g, ''))} className="h-9 w-20 bg-card text-right font-medium" inputMode="decimal" aria-label={pl("Conversion factor")} />
-                      <span className="font-medium">{unit}</span>
+                    <div data-product-unit-relationship className="grid min-w-0 grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] items-center gap-1.5 sm:gap-2">
+                      <QuantityUnitInput compact readOnlyAmount
+                        label={pl('Larger unit quantity')} value="1" onChange={() => {}}
+                        unit={altUnit} units={unitOptions.map((item) => item.symbol).filter((name) => name !== unit)}
+                        onUnitChange={setAltUnit} />
+                      <span className="text-center text-sm font-semibold text-ink-500" aria-hidden="true">=</span>
+                      <QuantityUnitInput compact
+                        label={pl('Smaller unit quantity')} value={factor}
+                        onChange={(value) => setFactor(value.replace(/[^\d.]/g, ''))}
+                        unit={unit} units={unitOptions.map((item) => item.symbol).filter((name) => name !== altUnit)}
+                        onUnitChange={(next) => {
+                          if (sellUnit === unit) setSellUnit(next);
+                          if (buyUnit === unit) setBuyUnit(next);
+                          if (stockViewUnit === unit) setStockViewUnit(next);
+                          if (openingUnit === unit) setOpeningUnit(next);
+                          if (minUnit === unit) setMinUnit(next);
+                          setUnit(next);
+                        }} />
                     </div>
                     <p className="mt-2 flex items-center gap-1.5 text-xs text-teal-800"><Info className="size-3.5" />POS can sell in either unit; stock remains in {unit}.</p>
                     <div className="mt-3 max-w-xs">
