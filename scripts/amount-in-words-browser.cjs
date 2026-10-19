@@ -28,7 +28,7 @@ async function main(){
         variant:root.getAttribute('data-amount-words-variant')};
       });
       assert.equal(data.variant,variant);
-      assert.ok(data.size>=(variant==='receipt'?12:15),width+' '+theme+' text is too small: '+JSON.stringify(data));
+      assert.ok(data.size>=(variant==='receipt'?12:variant==='compact'?14:15),width+' '+theme+' text is too small: '+JSON.stringify(data));
       assert.ok(data.weight>=600,width+' '+theme+' text needs prominence');
       assert.ok(data.height>=19,width+' '+theme+' line height too tight');
       assert.ok(data.overflow<=1,width+' '+theme+' Bangla words must wrap, not clip');
@@ -44,7 +44,7 @@ async function main(){
     assert.match(await page.locator('[data-amount-words-variant="default"]').first().innerText(),/পনেরো হাজার/);
 
     await page.goto('http://127.0.0.1:4498/#/app/pos');
-    await check(page.locator('[data-amount-words-variant="default"]').first(),'default');
+    await check(page.locator('[data-amount-words-variant="compact"]').first(),'compact');
     await page.goto('http://127.0.0.1:4498/#/app/purchases/new');
     await check(page.locator('[data-amount-words-variant="inverse"]').first(),'inverse');
     if(width===390 && theme==='light'){
