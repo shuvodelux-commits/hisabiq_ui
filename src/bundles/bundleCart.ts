@@ -1,6 +1,7 @@
 import type {BundleVersion,Product,StockLot} from '../types/erp.ts';
 import type {CartLine} from '../hooks/usePosCart.ts';
 import {allocatableLots} from '../utils/productFeatures.ts';
+import {productUnitFactor} from '../utils/unitChain.ts';
 
 export type BundleComponentDemand={
  sourceLineKey:string;
@@ -26,7 +27,7 @@ export function expandCartStockDemand(
   keys.add(line.key);
   if(p.kind==='Service')continue;
   if(p.kind!=='Bundle'){
-   const factor=p.altUnit?.unit===line.unit?p.altUnit.factor:line.unit===p.unit?1:NaN;
+   const factor=productUnitFactor(p,line.unit);
    const validQty=/^\d+(?:\.\d{1,4})?$/.test(line.qty.trim());
    const validSecondary=!line.secondaryQty.trim()||/^\d+(?:\.\d{1,4})?$/.test(line.secondaryQty.trim());
    if(!validQty||!validSecondary||!Number.isFinite(factor)||factor<1||
