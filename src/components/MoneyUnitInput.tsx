@@ -27,7 +27,7 @@ export function MoneyUnitInput({
       <NumericInput
         aria-label={label}
         readOnly={readOnlyAmount}
-        stepperCompact={compact}
+        stepperCompact={compact && !readOnlyAmount}
         inputMode="decimal"
         disabled={disabled}
         value={value}
