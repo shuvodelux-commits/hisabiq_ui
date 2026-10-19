@@ -560,9 +560,6 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                   placeholder={autoAltSell ? String(autoAltSell) : '0'} />
               </Field>
             </div>}
-            {unitRows.length > 1 && <p className="mt-2 text-xs text-ink-500">
-              {pl("Multi-unit transaction workflows are under review. Do not merge before validation.")}
-            </p>}
           </div>}
         </section>}
 
