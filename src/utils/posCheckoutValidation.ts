@@ -9,6 +9,12 @@ export function posMoney(value:string):number {
   const amount=Number(value);
   return Number.isFinite(amount)&&Number.isSafeInteger(Math.round(amount*100))?amount:NaN;
 }
+/** Unit prices may need four decimals; payment and invoice amounts remain in paisa. */
+export function posUnitPrice(value:string):number {
+  if(!/^(?:\d+(?:\.\d{0,4})?|\.\d{1,4})$/.test(value.trim()))return NaN;
+  const amount=Number(value);
+  return Number.isFinite(amount)&&amount>=0&&Number.isSafeInteger(Math.round(amount*10000))?amount:NaN;
+}
 type CheckoutDraft={
   lines:readonly {product:Product;qty:string;secondaryQty:string;unit:string;price:string;
     unitQuantities?:Record<string,string>;historicalUnitSnapshot?:FrozenUnitProfile}[];
@@ -31,7 +37,7 @@ export function validatePosCheckout(draft:CheckoutDraft,accounts?:Record<string,
       if(!Number.isFinite(qty)||!Number.isFinite(secondary)||!Number.isFinite(factor)||factor<=0||qty*factor+secondary<=0||
         (factor===1&&secondary!==0))return 'quantity';
     }
-    if(!line.price.trim()||!Number.isFinite(posMoney(line.price)))return 'price';
+    if(!line.price.trim()||!Number.isFinite(posUnitPrice(line.price)))return 'price';
   }
   const discount=posMoney(draft.discount);
   if(!Number.isFinite(discount)||(draft.discountMode==='percent'&&discount>100))return 'discount';
