@@ -62,3 +62,11 @@ test('mobile decimal typing remains calculable while money payments stay in pais
  assert.equal(posUnitPrice('0.0001'),0.0001);
  assert.ok(Number.isNaN(posMoney('0.0001')),'payments remain limited to two decimals');
 });
+
+test('temporary invalid POS price cannot crash the live cart and is rejected at checkout',()=>{
+ const line:CartLine={key:'typing',product,unit:'Bag',qty:'1',secondaryQty:'',unitQuantities:quantities,
+   price:'-',serials:[]};
+ assert.equal(saleLineTotal(line),775);
+ const checkout={lines:[line],discount:'0',discountMode:'amount' as const,payments:[],total:775,availableCredit:0};
+ assert.equal(validatePosCheckout(checkout),'price');
+});
