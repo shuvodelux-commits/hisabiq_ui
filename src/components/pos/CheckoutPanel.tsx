@@ -147,7 +147,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
               aria-pressed={active}
               onClick={()=>props.installment?.onModeChange(mode)}
               className={'h-10 w-full min-w-0 rounded-md px-1 text-[12px] font-semibold '+
-                (active?'':'border-primary/15 bg-primary/10 text-primary hover:bg-primary/15')}>
+                (active?'':'border-primary/15 bg-primary/10 text-teal-700 hover:bg-primary/15')}>
               {mode==='Regular'?text('Regular sale','সাধারণ বিক্রি'):text('Installment sale','কিস্তিতে বিক্রি')}
             </Button>;
           })}
