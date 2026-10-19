@@ -6,6 +6,8 @@ import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import { AlertTriangle, Eye, GripVertical, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
 import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
+import {MultiUnitQuantityInput} from '../transactions/MultiUnitQuantityInput';
+import {saleLineBaseQty,saleLineTotal,saleLineQuantities} from '../../utils/posMultiUnit';
 import { ProductThumb } from '../ProductThumb';
 import { SerialPickerDialog } from './SerialPickerDialog';
 import { StockShortageDialog } from './StockShortageDialog';
@@ -32,7 +34,7 @@ type CartTableProps = {
   lines: CartLine[];
   lastAdded: string | null;
   onAdd: (p: Product) => void;
-  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource' | 'bundleSources' | 'bundleSerials'>>) => void;
+  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unitQuantities' | 'unit' | 'price' | 'serials' | 'stockSource' | 'bundleSources' | 'bundleSerials'>>) => void;
   onRemove: (key: string) => void;
   onReorder: (orderedKeys: string[]) => void;
   onMove: (key: string, delta: number) => void;
@@ -118,8 +120,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
   const componentPlan=planComponentFulfillment(bundleDemand.demands,catalog,availableStockLots(),
     {sources,serials,soldSerials});
   const allocations=allocatePosStock(lines.filter(l=>l.product.kind!=='Bundle').map(l=>({key:l.key,product:l.product,
-   requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
-    productUnitFactor(l.product,l.unit)||1),choice:l.stockSource})),stockLots);
+   requestedBaseQty:saleLineBaseQty(l),choice:l.stockSource})),stockLots);
 
   useEffect(() => {
     if (lastAdded) {
@@ -159,8 +160,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
           <AnimatePresence initial={false}>
           {lines.map((l, i) => {
             const factor = productUnitFactor(l.product,l.unit)||1;
-            const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
-            const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
+            const baseQty = saleLineBaseQty(l);
+            const lineTotal = saleLineTotal(l);
             const recipe=l.product.kind==='Bundle'&&l.bundleRevision?getBundleVersion(l.product.id,l.bundleRevision):undefined;
             const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
             const bundleCostPending=l.product.kind==='Bundle'&&Object.values(l.bundleSources??{}).some(source=>
@@ -251,7 +252,11 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     </div>
                   </div>
                 </div>
-                <div data-cart-field="Quantity · পরিমাণ"><CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
+                <div data-cart-field="Quantity · পরিমাণ">{l.product.unitRelations && l.product.unitRelations.length>1 ?
+                  <MultiUnitQuantityInput product={l.product} quantities={saleLineQuantities(l)}
+                    primaryRef={el=>{qtyRefs.current[l.key]=el;}}
+                    onChange={unitQuantities=>onUpdate(l.key,{unitQuantities})}/>
+                  : <CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
                   primaryRef={el=>{qtyRefs.current[l.key]=el;}} secondaryRef={el=>{secondaryQtyRefs.current[l.key]=el;}}
                   primaryLabel={factor>1?text(`${l.unit} quantity for ${l.product.name}`, `${l.unit} পরিমাণ: ${l.product.name}`):text(`Quantity for ${l.product.name}`, `পরিমাণ: ${l.product.name}`)}
                   secondaryLabel={text(`${l.product.unit} quantity for ${l.product.name}`, `${l.product.unit} পরিমাণ: ${l.product.name}`)}
@@ -259,7 +264,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   onSecondaryChange={value=>onUpdate(l.key,{secondaryQty:value})}
                   onPrimaryEnter={()=>{if(factor>1){secondaryQtyRefs.current[l.key]?.focus();secondaryQtyRefs.current[l.key]?.select();}else searchRef.current?.focus();}}
                   onSecondaryBlur={()=>commitSecondary(l,false)}
-                  onSecondaryEnter={()=>commitSecondary(l,true)}/></div>
+                  onSecondaryEnter={()=>commitSecondary(l,true)}/>}</div>
                 <div data-cart-field="Price in · একক">{units.length > 1 ?
                 units.length > 2 ? (
                   <AppSelect label={text('Sale unit for '+l.product.name,'বিক্রির একক: '+l.product.name)}
