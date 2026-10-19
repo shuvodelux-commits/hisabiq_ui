@@ -1,7 +1,7 @@
 import {NumericInput} from '../NumericInput';
 import {posMoney} from '../../utils/posCheckoutValidation';
 import React from 'react';
-import { AlertTriangle, ChevronDown, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
@@ -169,8 +169,6 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                   : text('Name · Phone · Guardian · Address','নাম · ফোন · অভিভাবক · ঠিকানা')}
               </span>}
             </span>
-            <ChevronDown aria-hidden="true" className={'size-4 shrink-0 text-ink-500 transition-transform duration-200 '+
-              (customerDetailsOpen?'rotate-180':'')}/>
           </button>
           <div id={customerDetailsId} hidden={!customerDetailsOpen} className="border-t border-border px-3 pb-3 pt-2.5">
             <div data-pos-customer-fields className="grid gap-2 sm:grid-cols-2">
