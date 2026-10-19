@@ -7,6 +7,9 @@ on:
       - 'src/components/pos/Installment*'
       - 'src/pages/Pos.tsx'
       - 'tests/installment*'
+      - 'src/components/pos/CheckoutPanel.tsx'
+      - 'scripts/installment-pos-browser.cjs'
+      - 'scripts/installment-payment-browser.cjs'
       - 'scripts/installment-lifecycle-browser.cjs'
       - '.github/workflows/installment-lifecycle-preview-check.yml'
 permissions:
