@@ -1,4 +1,9 @@
+import { useId } from 'react';
+import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
+import { MotionNavIndicator } from '../../motion/MotionNavIndicator';
 import { useEffect, useState } from 'react';
+
+const MotionLink = motion(Link);
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useTenantSettings } from '../../settings/TenantSettingsProvider';
@@ -21,6 +26,10 @@ type Props = {
 export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSidebar }: Props) {
   const { state, actorId, personal } = useTenantSettings();
   const location = useLocation();
+  const navScope=useId();
+  const reducedMotion=useReducedMotion();
+  const canHover=typeof window!=='undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const hoverMotion=canHover&&!reducedMotion ? { backgroundColor: 'var(--sidebar-accent)' } : undefined;
   const current = location.pathname + location.search;
   const nav = getVisibleNavigation(erpNavigation, {
     availablePaths: erpRoutePaths,
@@ -48,13 +57,13 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
   };
 
   const focus = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar';
-  const baseRow = 'group flex w-full min-w-0 items-center gap-2.5 rounded-lg text-left transition-colors duration-150 ' + focus;
+  const baseRow = 'group flex w-full min-w-0 items-center gap-2.5 rounded-lg text-left motion-nav-row ' + focus;
   const parentRow = baseRow + ' min-h-10 px-2.5 py-2';
   const collapsedRow = baseRow + ' mx-auto size-10 justify-center px-0';
-  const activeParent = 'bg-sidebar-accent text-sidebar-accent-foreground';
-  const idleParent = 'text-ink-600 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground';
+  const activeParent = 'text-sidebar-accent-foreground';
+  const idleParent = 'text-ink-600 hover:text-sidebar-foreground';
 
-  return <nav
+  return <LayoutGroup id={navScope}><nav
     aria-label={personal.language === 'Bangla' ? (mode === 'mobile' ? 'মোবাইল ERP মেনু' : 'মূল মেনু') : (mode === 'mobile' ? 'Mobile ERP navigation' : 'Main')}
     className={'min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-2 scrollbar-thin ' + (collapsed ? 'px-1.5' : 'px-2.5')}
   >
@@ -77,50 +86,58 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
         const highlighted = selected ? activeParent : idleParent;
         return <div key={group.id} className={separate ? 'mt-3 border-t border-sidebar-border pt-3' : ''}>
           {collapsed ? (
-            hasChildren ? <button
+            hasChildren ? <motion.button
               type="button"
               aria-label={personal.language === 'Bangla' ? 'সাইডবার খুলে ' + labelFor(group.label, group.bn) + ' দেখুন' : 'Expand sidebar to open ' + group.label}
               title={labelFor(group.label, group.bn)}
               aria-current={selected ? 'page' : undefined}
               onClick={() => { setExpanded(group.id); onExpandSidebar?.(); }}
+              whileHover={hoverMotion} transition={{ duration: 0.11 }}
               className={collapsedRow + ' ' + highlighted}
             >
+              <MotionNavIndicator active={selected} layoutId="erp-parent-selection" />
               <Icon className="size-[18px] shrink-0" aria-hidden="true"/>
-            </button> : <Link
+            </motion.button> : <MotionLink
               to={group.landingPath}
               aria-label={labelFor(group.label, group.bn)}
               title={labelFor(group.label, group.bn)}
               aria-current={selected ? 'page' : undefined}
               onClick={onNavigate}
+              whileHover={hoverMotion} transition={{ duration: 0.11 }}
               className={collapsedRow + ' ' + highlighted}
             >
+              <MotionNavIndicator active={selected} layoutId="erp-parent-selection" />
               <Icon className="size-[18px] shrink-0" aria-hidden="true"/>
-            </Link>
+            </MotionLink>
           ) : (
-            hasChildren ? <button
+            hasChildren ? <motion.button
               type="button"
               aria-label={parentTitle}
               aria-expanded={open}
               aria-controls={panelId}
               onClick={() => setExpanded(open ? null : group.id)}
+              whileHover={hoverMotion} transition={{ duration: 0.11 }}
               className={parentRow + ' ' + highlighted}
             >
+              <MotionNavIndicator active={selected} layoutId="erp-parent-selection" />
               <Icon className={'size-[18px] shrink-0 ' + (selected ? 'text-sidebar-primary' : 'text-ink-400')} aria-hidden="true"/>
               {bilingualLabel(group.label, group.bn)}
               <ChevronRight aria-hidden="true"
                 className={'ml-auto size-4 shrink-0 text-ink-400 transition-transform duration-200 ' + (open ? 'rotate-90' : '')}
               />
-            </button> : <Link
+            </motion.button> : <MotionLink
               to={group.landingPath}
               aria-current={selected && !childSelected ? 'page' : undefined}
               onClick={onNavigate}
+              whileHover={hoverMotion} transition={{ duration: 0.11 }}
               className={parentRow + ' ' + highlighted}
             >
+              <MotionNavIndicator active={selected} layoutId="erp-parent-selection" />
               <Icon className={'size-[18px] shrink-0 ' + (selected ? 'text-sidebar-primary' : 'text-ink-400')} aria-hidden="true"/>
               {bilingualLabel(group.label, group.bn)}
               {group.id === 'pos' &&
                 <kbd className="ml-auto rounded border border-sidebar-border px-1.5 py-0.5 text-[10px] font-normal text-ink-400">F1</kbd>}
-            </Link>
+            </MotionLink>
           )}
           {hasChildren && !collapsed && (
             <div
@@ -132,23 +149,25 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
             >
               {children.map(child => {
                 const isCurrent = selected && active?.childId === child.id;
-                return <Link
+                return <MotionLink
                   key={child.id}
                   to={child.path}
                   aria-current={isCurrent ? 'page' : undefined}
                   onClick={onNavigate}
+                  whileHover={hoverMotion} transition={{ duration: 0.11 }}
                   className={baseRow + ' min-h-9 px-2.5 py-1.5 ' +
                     (isCurrent
-                      ? 'bg-sidebar-accent font-medium text-sidebar-primary'
-                      : 'text-ink-500 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground')}
+                      ? 'font-medium text-sidebar-primary'
+                      : 'text-ink-500 hover:text-sidebar-foreground')}
                 >
+                  <MotionNavIndicator active={isCurrent} layoutId="erp-child-selection" />
                   {bilingualLabel(child.label, child.bn)}
-                </Link>;
+                </MotionLink>;
               })}
             </div>
           )}
         </div>;
       })}
     </div>
-  </nav>;
+  </nav></LayoutGroup>;
 }
