@@ -54,6 +54,8 @@ async function main() {
         await act(startSale);
         await page.getByRole('heading', { name: /New sale|নতুন বিক্রি/ }).waitFor();
         assert.match(page.url(), /\/app\/pos\?partyId=c1/);
+        // Fast Counter keeps invoice-only details collapsed; inspect the prefilled state by opening it.
+        await act(page.getByTestId('pos-invoice-details-toggle'));
         const customerName = page.locator('input[aria-label="Customer name"],input[aria-label="ক্রেতার নাম"]');
         await customerName.waitFor();
         assert.equal(await customerName.inputValue(), 'Rahman Hardware', `${suffix} customer draft is prefilled`);
