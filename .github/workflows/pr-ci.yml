@@ -67,7 +67,7 @@ jobs:
           flag parties '^(src/(pages/(Parties|Party|Vendor|Vendors)\.tsx|components/(parties|vendor)/)|scripts/(party-|vendor-).*browser\.cjs$)'
           flag finance '^(src/(pages/Finance\.tsx|components/finance/|utils/financePaymentDrafts\.ts)|scripts/(counter-|finance-).*browser\.cjs$)'
           flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment).*browser\.cjs$)'
-          flag mobile '^(src/index\\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\\.tsx$|scripts/mobile-carts-browser\\.cjs$)'
+          flag mobile '^(src/index\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\.tsx$|scripts/mobile-carts-browser\.cjs$)'
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
