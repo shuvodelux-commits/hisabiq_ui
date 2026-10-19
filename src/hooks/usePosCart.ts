@@ -83,7 +83,7 @@ function line(product: Product, qty: number, unit?: string, secondaryQty = ''): 
     product,
     qty: String(qty),
     secondaryQty,
-    unitQuantities: product.unitRelations && product.unitRelations.length>1 ? {[u]:String(qty),[product.unit]:secondaryQty} : undefined,
+    unitQuantities: product.unitRelations && product.unitRelations.length>1 ? (u===product.unit?{[u]:String(qty)}:{[u]:String(qty),[product.unit]:secondaryQty}) : undefined,
     unit: u,
     price: String(effectivePriceForUnit(product, activeOfferFor(product.id, productOffers), u)),
     serials: [],
