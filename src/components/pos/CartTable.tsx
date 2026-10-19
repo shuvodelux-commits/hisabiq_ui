@@ -255,7 +255,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                 <div data-cart-field="Quantity · পরিমাণ">{l.product.unitRelations && l.product.unitRelations.length>1 ?
                   <MultiUnitQuantityInput product={l.product} quantities={saleLineQuantities(l)}
                     primaryRef={el=>{qtyRefs.current[l.key]=el;}}
-                    onChange={unitQuantities=>onUpdate(l.key,{unitQuantities})}/>
+                    onChange={unitQuantities=>onUpdate(l.key,{unitQuantities})}
+                    onLastEnter={()=>searchRef.current?.focus()}/>
                   : <CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
                   primaryRef={el=>{qtyRefs.current[l.key]=el;}} secondaryRef={el=>{secondaryQtyRefs.current[l.key]=el;}}
                   primaryLabel={factor>1?text(`${l.unit} quantity for ${l.product.name}`, `${l.unit} পরিমাণ: ${l.product.name}`):text(`Quantity for ${l.product.name}`, `পরিমাণ: ${l.product.name}`)}
