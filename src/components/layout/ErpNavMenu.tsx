@@ -1,3 +1,4 @@
+import { MOTION_MS } from '../../motion/tokens';
 import { useId } from 'react';
 import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { MotionNavIndicator } from '../../motion/MotionNavIndicator';
@@ -94,7 +95,7 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
               title={labelFor(group.label, group.bn)}
               aria-current={selected ? 'page' : undefined}
               onClick={() => { setExpanded(group.id); onExpandSidebar?.(); }}
-              whileHover={hoverMotion} transition={{ duration: 0.11 }}
+              whileHover={hoverMotion} transition={{ duration: MOTION_MS.navHover / 1000 }}
               className={collapsedRow + ' ' + highlighted}
             >
               <MotionNavIndicator active={selected} layoutId="erp-parent-selection" />
@@ -105,7 +106,7 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
               title={labelFor(group.label, group.bn)}
               aria-current={selected ? 'page' : undefined}
               onClick={onNavigate}
-              whileHover={hoverMotion} transition={{ duration: 0.11 }}
+              whileHover={hoverMotion} transition={{ duration: MOTION_MS.navHover / 1000 }}
               className={collapsedRow + ' ' + highlighted}
             >
               <MotionNavIndicator active={selected} layoutId="erp-parent-selection" />
@@ -118,7 +119,7 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
               aria-expanded={open}
               aria-controls={panelId}
               onClick={() => setExpanded(open ? null : group.id)}
-              whileHover={hoverMotion} transition={{ duration: 0.11 }}
+              whileHover={hoverMotion} transition={{ duration: MOTION_MS.navHover / 1000 }}
               className={parentRow + ' ' + highlighted}
             >
               <MotionNavIndicator active={selected} layoutId="erp-parent-selection" />
@@ -131,7 +132,7 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
               to={group.landingPath}
               aria-current={selected && !childSelected ? 'page' : undefined}
               onClick={onNavigate}
-              whileHover={hoverMotion} transition={{ duration: 0.11 }}
+              whileHover={hoverMotion} transition={{ duration: MOTION_MS.navHover / 1000 }}
               className={parentRow + ' ' + highlighted}
             >
               <MotionNavIndicator active={selected} layoutId="erp-parent-selection" />
@@ -156,7 +157,7 @@ export function ErpNavMenu({ mode, onNavigate, collapsed = false, onExpandSideba
                   to={child.path}
                   aria-current={isCurrent ? 'page' : undefined}
                   onClick={onNavigate}
-                  whileHover={hoverMotion} transition={{ duration: 0.11 }}
+                  whileHover={hoverMotion} transition={{ duration: MOTION_MS.navHover / 1000 }}
                   className={baseRow + ' min-h-9 px-2.5 py-1.5 ' +
                     (isCurrent
                       ? 'font-medium text-sidebar-primary'
