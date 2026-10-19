@@ -44,6 +44,8 @@ import {customerSettlementAsOf} from '../utils/partySettlement';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import {productUnitFactor, productUnits} from '../utils/unitChain';
+import {saleLineBaseQty,saleLineTotal,saleLineDescription} from '../utils/posMultiUnit';
+import {freezeUnitProfile} from '../utils/multiUnitTransactions';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import { blendedVendorUnitCost } from '../utils/posStock';
 import {allocatePosStock} from '../vendor/vendorStock';
@@ -70,7 +72,7 @@ type CompletedSale = {
   customerPhone?: string;
   guardianName?: string;
   customerAddress?: string;
-  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'soldBaseQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource' | 'bundleSnapshot'>>;
+  lines: Array<ReceiptLine & Pick<SaleLine, 'productId' | 'unit' | 'returnableQuantity' | 'soldBaseQuantity' | 'unitCost' | 'serials' | 'warranty' | 'lotAllocations' | 'stockSource' | 'bundleSnapshot' | 'unitSnapshot' | 'unitQuantities'>>;
   subtotal: number;
   discount: number;
   rounding: number;
@@ -113,7 +115,18 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
   return invoice.lines.flatMap((sourceLine) => {
     const product = getProductImportPreviewSnapshot().products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
-
+    if(sourceLine.unitQuantities&&sourceLine.unitSnapshot) {
+      const quantities=structuredClone(sourceLine.unitQuantities);
+      const first=Object.keys(quantities).find(unit=>Number(quantities[unit])>0)??product.unit;
+      return [{key:'source-'+sourceLine.id,product,
+        qty:quantities[first]??'',secondaryQty:'',unit:first,unitQuantities:quantities,
+        historicalUnitSnapshot:structuredClone(sourceLine.unitSnapshot),
+        price:String(sourceLine.unitSnapshot.sellingPrices[first]??sourceLine.price),
+        serials:preserveHistorical?sourceLine.serials??[]:[],
+        stockSource:preserveHistorical?sourceLine.stockSource:undefined,
+        historicalWarranty:preserveHistorical?sourceLine.warranty:undefined,
+        historicalUnitCost:preserveHistorical?sourceLine.unitCost:undefined}];
+    }
     for (const selected of productUnits(product).filter(name => name !== product.unit)) {
       const parsed = parseCompoundQuantity(sourceLine.quantity, selected, product.unit);
       if (parsed.usesAlternate) {
@@ -452,8 +465,7 @@ export function Pos() {
     if (t.total === 0 || (t.due > 0 && !hasCreditCustomer)) return;
 
     const allocated=allocatePosStock(cart.lines.filter(l=>l.product.kind!=='Bundle').map(l=>({key:l.key,product:l.product,
-      requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
-       productUnitFactor(l.product,l.unit)||1),
+      requestedBaseQty:saleLineBaseQty(l),
       choice:l.stockSource})),stockLots);
     const unresolvedShortageLine=cart.lines.find(line=>(allocated.find(a=>a.key===line.key)?.needsSourceBaseQty??0)>0);
     if (unresolvedShortageLine) {
@@ -465,8 +477,7 @@ export function Pos() {
     }
 
     const fractionalRequiredLine = cart.lines.find((line) => {
-      const factor = productUnitFactor(line.product,line.unit)||1;
-      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      const baseQty = saleLineBaseQty(line);
       return line.product.serialTracking === 'Required' && !Number.isInteger(baseQty);
     });
     if (fractionalRequiredLine) {
@@ -491,8 +502,7 @@ export function Pos() {
     }
 
     const tooManySerialsLine = cart.lines.find((line) => {
-      const factor = productUnitFactor(line.product,line.unit)||1;
-      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      const baseQty = saleLineBaseQty(line);
       return line.serials.length > Math.ceil(baseQty);
     });
     if (tooManySerialsLine) {
@@ -501,14 +511,12 @@ export function Pos() {
     }
 
     const missingSerialLine = cart.lines.find((line) => {
-      const factor = productUnitFactor(line.product,line.unit)||1;
-      const baseQty = compoundBaseQuantity(line.qty, line.secondaryQty, factor);
+      const baseQty = saleLineBaseQty(line);
       const required = requiredSerialCount(line.product, baseQty);
       return required > 0 && line.serials.length !== required;
     });
     if (missingSerialLine) {
-      const factor = productUnitFactor(missingSerialLine.product,missingSerialLine.unit)||1;
-      const required = requiredSerialCount(missingSerialLine.product, compoundBaseQuantity(missingSerialLine.qty, missingSerialLine.secondaryQty, factor));
+      const required = requiredSerialCount(missingSerialLine.product,saleLineBaseQty(missingSerialLine));
       toast.error('Serial numbers required', { description: `${missingSerialLine.product.name}: ${missingSerialLine.serials.length}/${required} selected` });
       return;
     }
@@ -516,9 +524,8 @@ export function Pos() {
     if(installmentMode==='Installment'){
       try{
         const lines=cart.lines.map(row=>{
-          const factor=productUnitFactor(row.product,row.unit)||1;
           return {key:row.key,productId:row.product.id,
-            amountPaisa:Math.round(compoundLineTotal(row.qty,row.secondaryQty,factor,row.price)*100)};
+            amountPaisa:Math.round(saleLineTotal(row)*100)};
         });
         const amounts=allocateNegotiatedInvoiceLines(lines.map(({key,amountPaisa})=>({key,amountPaisa})),installmentTotalPaisa);
         const created=recordInstallmentPreview({
@@ -561,8 +568,7 @@ export function Pos() {
       guardianName: cart.customerDetails.guardianName.trim() || undefined,
       customerAddress: cart.customerDetails.address.trim() || undefined,
       lines: cart.lines.map((l) => {
-        const factor = productUnitFactor(l.product,l.unit)||1;
-        const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
+        const baseQty = saleLineBaseQty(l);
         const ownBaseQty=l.product.kind==='Bundle'?0:allocated.find(a=>a.key===l.key)?.ownBaseQty??0;
         const shortage=Math.max(0,baseQty-ownBaseQty);
         const vendorBlendedCost = l.stockSource?.mode === 'Vendor' && l.stockSource.unitCost!==null
@@ -581,9 +587,11 @@ export function Pos() {
           unit: l.product.unit,
           returnableQuantity: baseQty,
           soldBaseQuantity: baseQty,
-          qty: formatCompoundQuantity(l.qty, l.unit, l.secondaryQty, l.product.unit),
+          unitSnapshot:l.historicalUnitSnapshot??freezeUnitProfile(l.product),
+          unitQuantities:l.unitQuantities?structuredClone(l.unitQuantities):undefined,
+          qty: saleLineDescription(l),
           price: parseFloat(l.price) || 0,
-          total: compoundLineTotal(l.qty, l.secondaryQty, factor, l.price),
+          total: saleLineTotal(l),
           unitCost: l.product.kind==='Bundle'?undefined:l.stockSource?.mode==='Vendor' && l.stockSource.unitCost===null
             ? undefined : vendorBlendedCost ?? (editing ? (l.historicalUnitCost ?? l.product.purchasePrice) : l.product.purchasePrice),
           serials: l.serials,
@@ -631,8 +639,7 @@ export function Pos() {
     if(!completed || editing || demoVendorInvoice===completed.invoice)return;
     try{
       const allocations=allocatePosStock(cart.lines.map(l=>({key:l.key,product:l.product,
-       requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
-        productUnitFactor(l.product,l.unit)||1),
+       requestedBaseQty:saleLineBaseQty(l),
        choice:l.stockSource})),stockLots);
       const prepared=prepareVendorSalePreview(completed.invoice,allocations,cart.lines);
       if(!prepared.sources.length)throw new Error('No Vendor sourced shortage to simulate.');
