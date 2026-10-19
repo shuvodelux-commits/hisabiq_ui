@@ -15,7 +15,7 @@ import type { CartLine } from '../../hooks/usePosCart';
 import type { Product } from '../../types/erp';
 import { formatStock, unitsFor } from '../../utils/units';
 import { formatNumber, taka } from '../../utils/currency';
-import { compoundBaseQuantity, compoundLineTotal, normalizeCompoundQuantity } from '../../utils/posQuantity';
+import { normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
 import { availableSerials, productStockBreakdown, requiredSerialCount } from '../../utils/productFeatures';
@@ -356,7 +356,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
 
       {serialLine && (() => {
         const factor = productUnitFactor(serialLine.product,serialLine.unit)||1;
-        const baseQty = compoundBaseQuantity(serialLine.qty, serialLine.secondaryQty, factor);
+        const baseQty = saleLineBaseQty(serialLine);
         const blocked = lines.filter((line) => line.key !== serialLine.key).flatMap((line) => line.serials);
         return (
           <SerialPickerDialog
@@ -424,7 +424,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
       })()}
       {shortageLine && (() => {
         const factor = productUnitFactor(shortageLine.product,shortageLine.unit)||1;
-        const baseQty = compoundBaseQuantity(shortageLine.qty, shortageLine.secondaryQty, factor);
+        const baseQty = saleLineBaseQty(shortageLine);
         const allocation=allocations.find(a=>a.key===shortageLine.key);
         const available=allocation?.ownBaseQty??0;
         const shortage=Math.max(0,baseQty-available);
