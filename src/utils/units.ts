@@ -1,5 +1,5 @@
 import type { Product } from '../types/erp';
-import { resolveUnitChain } from './unitChain';
+import { productUnits, productUnitFactor, resolveUnitChain } from './unitChain';
 
 /** "34 Box 2 Pcs" for multi-unit products, "86 Pcs" otherwise */
 export function formatStock(product: Product): string {
@@ -32,14 +32,14 @@ export function formatStock(product: Product): string {
 }
 
 export function unitsFor(product: Product): string[] {
-  return product.altUnit ? [product.unit, product.altUnit.unit] : [product.unit];
+  const viewOrder = productUnits(product);
+  return product.unitRelations?.length ? [...viewOrder].reverse() : product.altUnit ? [product.unit, product.altUnit.unit] : [product.unit];
 }
 
 export function priceFor(product: Product, unit: string): number {
-  if (product.altUnit && unit === product.altUnit.unit) {
-    return product.altUnit.price ?? product.sellPrice * product.altUnit.factor;
-  }
-  return product.sellPrice;
+  if (product.altUnit && unit === product.altUnit.unit && product.altUnit.price !== undefined)
+    return product.altUnit.price;
+  return product.sellPrice * productUnitFactor(product, unit);
 }
 
 export type StockStatus = 'in' | 'low' | 'out' | 'inactive' | 'service';
