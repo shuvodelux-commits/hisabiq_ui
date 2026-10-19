@@ -3,6 +3,8 @@ import React from 'react';
 import { ChevronDown, ChevronUp, PackagePlus, Plus, ScanLine, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
+import {productUnitFactor} from '../../utils/unitChain';
 import { Input } from '../Input';
 import { ProductThumb } from '../ProductThumb';
 import { ProductCombobox } from '../pos/ProductCombobox';
@@ -12,7 +14,7 @@ import { taka } from '../../utils/currency';
 import { normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 import {
-  baseQty, conversion, describeQty, lineAmount, lotBaseSellPrice,
+  baseQty, selectedConversion, describeQty, lineAmount, lotBaseSellPrice,
   priceInUnit, rounded, type PurchaseCartLine
 } from '../../utils/purchaseCart';
 import type { Product } from '../../types/erp';
@@ -43,8 +45,8 @@ export function PurchaseCart({
   const quickItems = products.filter((p) => p.active && p.kind !== 'Service').slice(0, 8);
 
   const normalizeQty = (line: PurchaseCartLine, moveToSearch: boolean) => {
-    if (line.product.altUnit) {
-      const normalized = normalizeCompoundQuantity(line.bigQty, line.smallQty, conversion(line.product));
+    if (selectedConversion(line) > 1) {
+      const normalized = normalizeCompoundQuantity(line.bigQty, line.smallQty, selectedConversion(line));
       onUpdate(line.id, { bigQty: normalized.primaryQty, smallQty: normalized.secondaryQty });
     }
     if (moveToSearch) searchRef.current?.focus();
@@ -82,7 +84,7 @@ export function PurchaseCart({
               const showExpiry = Boolean(product.expiry?.enabled);
               return (
                 <div key={line.id} data-testid="purchase-cart-row" className="bg-card">
-                  <div data-cart-row="purchase" data-compound={Boolean(product.altUnit&&line.costUnit===product.altUnit.unit)} className={grid + ' px-3 py-1.5'}>
+                  <div data-cart-row="purchase" data-compound={selectedConversion(line)>1} className={grid + ' px-3 py-1.5'}>
                     <span className="text-right text-[13px] text-ink-400">{index + 1}.</span>
                     <div className="flex min-w-0 items-center gap-2.5">
                       <ProductThumb src={product.image} size={34} />
@@ -103,18 +105,18 @@ export function PurchaseCart({
                       </div>
                     </div>
                     <div data-cart-field="Quantity · পরিমাণ"><CompoundQuantityInput key={line.costUnit} product={product} unit={line.costUnit}
-                      primary={product.altUnit&&line.costUnit===product.altUnit.unit?line.bigQty:line.smallQty}
+                      primary={selectedConversion(line)>1?line.bigQty:line.smallQty}
                       secondary={line.smallQty}
                       primaryRef={node=>{qtyRefs.current[line.id]=node;}}
                       secondaryRef={node=>{smallRefs.current[line.id]=node;}}
-                      primaryLabel={product.altUnit&&line.costUnit===product.altUnit.unit?
-                        product.altUnit.unit+' quantity for '+product.name:'Quantity for '+product.name}
+                      primaryLabel={selectedConversion(line)>1?
+                        line.costUnit+' quantity for '+product.name:'Quantity for '+product.name}
                       secondaryLabel={product.unit+' quantity for '+product.name}
                       onPrimaryChange={value=>onUpdate(line.id,
-                       product.altUnit&&line.costUnit===product.altUnit.unit?{bigQty:value}:{smallQty:value})}
+                       selectedConversion(line)>1?{bigQty:value}:{smallQty:value})}
                       onSecondaryChange={value=>onUpdate(line.id,{smallQty:value})}
                       onPrimaryEnter={()=>{
-                       if(product.altUnit&&line.costUnit===product.altUnit.unit){
+                       if(selectedConversion(line)>1){
                         smallRefs.current[line.id]?.focus();smallRefs.current[line.id]?.select();
                        }else{costRefs.current[line.id]?.focus();costRefs.current[line.id]?.select();}
                       }}
@@ -124,6 +126,10 @@ export function PurchaseCart({
                        costRefs.current[line.id]?.focus();costRefs.current[line.id]?.select();
                       }}/></div>
                     <div data-cart-field="Cost in · একক">{unitOptions(product).length > 1 ? (
+                      unitOptions(product).length > 2 ? (
+                        <AppSelect label={'Unit for ' + product.name} value={line.costUnit}
+                          options={unitOptions(product)} onChange={(unit) => onCostUnitChange(line, unit)} />
+                      ) : (
                       <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={'Unit for ' + product.name}>
                         {unitOptions(product).map((unit) => (
                           <button key={unit} type="button" role="radio" aria-checked={line.costUnit === unit}
@@ -134,6 +140,7 @@ export function PurchaseCart({
                           </button>
                         ))}
                       </div>
+                      )
                     ) : <span className="px-2 text-sm text-ink-600">{product.unit}</span>}</div>
                     <div data-cart-field="Unit cost · ক্রয়মূল্য"><div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
