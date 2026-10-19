@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { AppSelect } from '../components/AppSelect';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -877,7 +878,7 @@ export function Warranty() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -885,14 +886,14 @@ export function Warranty() {
               aria-selected={tab === id}
               onClick={() => setTab(id)}
               title={wl(helper)}
-              className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
+              className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {wl(label)}
               <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">
                 {id === 'cases' ? openCount : id === 'supplier' ? supplierCount : cases.length - openCount}
               </span>
-            </button>
+            <MotionTabIndicator active={tab === id} /></button>
           ))}
-        </div>
+        </MotionTabList>
 
         <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
           <div className="relative min-w-0 flex-1 lg:max-w-lg">
