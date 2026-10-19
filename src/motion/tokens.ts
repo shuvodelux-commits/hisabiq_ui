@@ -7,4 +7,4 @@ export const MOTION_MS = {
   tab: 200,
 } as const;
 
-export const MOTION_EASE = [0.16, 1, 0.3, 1] as const;
+export const MOTION_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
