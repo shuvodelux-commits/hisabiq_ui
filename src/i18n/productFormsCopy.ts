@@ -11,7 +11,7 @@ const bangla:Record<string,string>={
  "Complete the units": "সব একক নির্বাচন করুন",
  "Each new row continues from the smaller unit above. Stock uses only the last unit.": "আগের সারির ছোট একক দিয়ে পরের সারি শুরু হবে। সবচেয়ে ছোট এককে স্টক হিসাব হবে।",
  "Stock, warranty, serial tracking and expiry": "স্টক, ওয়ারেন্টি, সিরিয়াল ও মেয়াদের তথ্য",
- "Multi-unit transaction workflows are under review. Do not merge before validation.": "একাধিক এককে লেনদেনের পরীক্ষা চলছে। যাচাই ছাড়া মার্জ করবেন না।"
+ "Multi-unit transaction workflows are under review. Do not merge before validation.": "একাধিক এককে লেনদেনের পরীক্ষা চলছে। যাচাই ছাড়া মার্জ করবেন না।",
  "Brands": "ব্র্যান্ডসমূহ",
  "Defaults": "সাধারণ সেটিংস",
  "Category name": "ধরনের নাম",
