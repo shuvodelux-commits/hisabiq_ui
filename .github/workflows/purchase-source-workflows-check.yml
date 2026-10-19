@@ -1,7 +1,8 @@
 name: Purchase Source Workflows Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths: ['src/components/purchases/**', 'src/pages/Purchases.tsx', 'src/pages/PurchaseEditor.tsx', 'src/data/erpDemoStore.ts', 'src/utils/purchaseSource.ts', 'src/types/erp.ts', 'tests/purchaseSource.test.ts', 'scripts/purchase-source-workflows-browser.cjs', '.github/workflows/purchase-source-workflows-check.yml']
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

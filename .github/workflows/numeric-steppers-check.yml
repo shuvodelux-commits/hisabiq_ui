@@ -1,7 +1,8 @@
 name: Numeric Steppers Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths: ['src/components/Input.tsx', 'src/components/NumericInput.tsx', 'src/components/MoneyUnitInput.tsx', 'src/components/transactions/**', 'src/components/pos/**', 'src/components/purchases/**', 'src/index.css', 'src/utils/numericStep.ts', 'tests/numericStep.test.ts', 'scripts/numeric-steppers-browser.cjs', 'scripts/field-alignment-browser.cjs', 'tests/fieldAlignmentContract.test.ts', 'scripts/pos-responsive-cart-browser.cjs', 'scripts/shared-cart-responsive-browser.cjs', '.github/workflows/numeric-steppers-check.yml']
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

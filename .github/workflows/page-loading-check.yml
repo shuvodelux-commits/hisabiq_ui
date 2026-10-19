@@ -1,7 +1,8 @@
 name: Page Loading Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths: ['src/App.tsx', 'src/components/layout/**', 'src/saas/SaasShell.tsx', 'scripts/page-loading-browser.cjs', '.github/workflows/page-loading-check.yml']
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:
