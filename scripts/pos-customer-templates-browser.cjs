@@ -52,7 +52,7 @@ async function main(){
               return page.getByRole('dialog',{name:labels('Quick sale templates','দ্রুত বিক্রির নমুনা')});};
             let menu=await openMenu();
             await menu.waitFor();
-            assert.ok(await menu.getByRole('button',{name:labels('New template','নতুন নমুনা')}).count(),`${suffix} create shortcut`);
+            assert.ok(await menu.getByTestId('pos-new-template').count(),`${suffix} create shortcut`);
             const template=menu.locator('[data-testid="pos-templates-list"] button').first();
             const name=await template.getAttribute('aria-label');
             assert.ok(name,`${suffix} template is labelled`);
@@ -78,7 +78,7 @@ async function main(){
             assert.equal(await page.getByTestId('pos-cart-row').count(),firstCartCount,`${suffix} repeated same template works`);
 
             menu=await openMenu();
-            await menu.getByRole('button',{name:labels('New template','নতুন নমুনা')}).click();
+            await menu.getByTestId('pos-new-template').click();
             const editor=page.getByRole('dialog',{name:labels('New sale template','বিক্রির নতুন নমুনা')});
             await editor.waitFor();
             const bounds=await editor.boundingBox();
