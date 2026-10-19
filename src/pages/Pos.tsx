@@ -42,7 +42,7 @@ import {cartFromPreset} from '../utils/salePresets';
 import {validatePosCheckout,type PosCheckoutIssue} from '../utils/posCheckoutValidation';
 import {customerSettlementAsOf} from '../utils/partySettlement';
 import { taka } from '../utils/currency';
-import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
+import { compoundLineTotal, parseCompoundQuantity } from '../utils/posQuantity';
 import {productUnitFactor, productUnits} from '../utils/unitChain';
 import {saleLineBaseQty,saleLineTotal,saleLineDescription,freezeSaleLineProfile} from '../utils/posMultiUnit';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
