@@ -33,7 +33,7 @@ export function formatStock(product: Product): string {
 
 export function unitsFor(product: Product): string[] {
   const viewOrder = productUnits(product);
-  return product.unitRelations?.length ? [...viewOrder].reverse() : product.altUnit ? [product.unit, product.altUnit.unit] : [product.unit];
+  return product.unitRelations?.length ? viewOrder : product.altUnit ? [product.unit, product.altUnit.unit] : [product.unit];
 }
 
 export function priceFor(product: Product, unit: string): number {
