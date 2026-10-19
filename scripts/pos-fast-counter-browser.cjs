@@ -62,6 +62,46 @@ async function main(){
             assert.ok(style.price>=28&&style.price<=30,contextId+' total is slightly reduced: '+JSON.stringify(style));
             assert.ok(style.words>=14&&style.words<=15,contextId+' words stay legible while slightly smaller: '+JSON.stringify(style));
             assert.ok(style.scroll<=1&&style.left>=-2&&style.right<=width+2,contextId+' payable does not overflow');
+
+            // Contrast is measured against the *composited* surface, not a nominal palette swatch.
+            // This catches inverted teal scale mistakes that only appear with html.dark.
+            const contrasts=await payable.evaluate(root=>{
+              const parse=str=>{
+                const match=str.match(/rgba?\(([^)]+)\)/);
+                if(!match)throw new Error('Unsupported CSS color: '+str);
+                const fields=match[1].replace('/',',').trim().split(/[,\s]+/).filter(Boolean).map(Number);
+                return [...fields.slice(0,3),fields[3]??1];
+              };
+              const background=el=>{
+                const ancestors=[];
+                for(let node=el;node;node=node.parentElement)ancestors.unshift(node);
+                return ancestors.reduce((base,node)=>{
+                  const rgba=parse(getComputedStyle(node).backgroundColor),alpha=rgba[3];
+                  return rgba.slice(0,3).map((v,i)=>v*alpha+base[i]*(1-alpha));
+                },[255,255,255]);
+              };
+              const luminance=rgb=>{
+                const linear=rgb.slice(0,3).map(v=>{
+                  const c=v/255;
+                  return c<=0.04045?c/12.92:((c+0.055)/1.055)**2.4;
+                });
+                return linear[0]*0.2126+linear[1]*0.7152+linear[2]*0.0722;
+              };
+              const ratio=el=>{
+                const fg=parse(getComputedStyle(el).color);
+                const a=luminance(fg),b=luminance(background(el));
+                return (Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
+              };
+              const words=root.querySelector('[data-amount-words-variant="compact"]');
+              const label=words.querySelector('p');
+              const value=words.querySelector('[lang="bn"]');
+              return {label:ratio(label),value:ratio(value),
+                labelColor:getComputedStyle(label).color,wordsBackground:getComputedStyle(words).backgroundColor,
+                payableBorder:getComputedStyle(root).borderColor};
+            });
+            assert.ok(contrasts.label>=4.5,contextId+' words label contrast below AA: '+JSON.stringify(contrasts));
+            assert.ok(contrasts.value>=4.5,contextId+' Bangla amount contrast below AA: '+JSON.stringify(contrasts));
+
             await toggle.click();
             assert.equal(await toggle.getAttribute('aria-expanded'),'true',contextId+' customer details open');
             const name=details.getByRole('textbox',{name:labels('Customer name','ক্রেতার নাম')});
