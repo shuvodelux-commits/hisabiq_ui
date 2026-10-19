@@ -24,7 +24,7 @@ export function resolveUnitChain(relations: readonly UnitRelation[]) {
   factors[units[units.length - 1]] = 1;
   for (let i = relations.length - 1; i >= 0; i--) {
     const row = relations[i];
-    const factor = row.quantity * factors[row.rightUnit];
+    const factor = row.quantity * factors[row.rightUnit.trim()];
     if (!Number.isFinite(factor) || factor <= 0) throw new Error('The unit conversion is too large.');
     factors[row.leftUnit] = factor;
   }
