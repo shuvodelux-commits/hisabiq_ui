@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import '../utils/accountingLabels'; // Keep existing module initialization.
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -186,19 +187,19 @@ export function Accounts() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
               role="tab"
               aria-selected={tab === id}
               onClick={() => chooseTab(id)}
-              className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'}`}>
+              className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
               {showHelper&&<span className="font-bn text-[10.5px] font-normal text-ink-400">{helper}</span>}
-            </button>
+            <MotionTabIndicator active={tab === id} /></button>
           ))}
-        </div>
+        </MotionTabList>
 
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.2fr_1fr]">
