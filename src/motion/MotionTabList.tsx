@@ -1,3 +1,4 @@
+import { MOTION_MS, MOTION_EASE } from './tokens';
 import { useId, type ComponentPropsWithoutRef } from 'react';
 import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 
@@ -22,7 +23,7 @@ export function MotionTabIndicator({ active }: { active: boolean }) {
       className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-primary"
       layoutId={reducedMotion ? undefined : 'erp-tab-selection'}
       initial={false}
-      transition={reducedMotion ? { duration: 0 } : { duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      transition={reducedMotion ? { duration: 0 } : { duration: MOTION_MS.tab / 1000, ease: MOTION_EASE }}
     />
   );
 }
