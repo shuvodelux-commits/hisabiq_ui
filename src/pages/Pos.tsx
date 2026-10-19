@@ -679,6 +679,8 @@ export function Pos() {
         productId: line.product.id,
         qty: line.qty,
         secondaryQty: line.secondaryQty,
+        unitQuantities:line.unitQuantities?structuredClone(line.unitQuantities):undefined,
+        unitSnapshot:line.unitQuantities?freezeSaleLineProfile(line):undefined,
         unit: line.unit,
         price: parseFloat(line.price) || 0,
         serials: line.serials,
