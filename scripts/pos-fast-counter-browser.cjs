@@ -175,13 +175,16 @@ async function main(){
             const preview=checkout.getByRole('button',{name:labels('Preview sale','বিক্রির হিসাব দেখুন')});
             assert.equal(await preview.isEnabled(),true,contextId+' fully paid sale can be previewed');
             assert.equal(await preview.getAttribute('data-variant'),'default',contextId+' checkout uses primary variant');
-            await page.mouse.move(0,0);
-            const colors=await preview.evaluate(action=>{
+            // Both controls deliberately reuse Button's default primary variant.
+            // An instantaneous computed background comparison is unstable while the
+            // checkout CTA transitions between enabled and disabled styles.
+            const primaryClasses=await preview.evaluate(action=>{
               const mode=action.closest('[data-pos-checkout]').querySelector('[role="group"][aria-label="Sale type"],[role="group"][aria-label="বিক্রির ধরন"]');
               const active=mode.querySelector('button[aria-pressed="true"]');
-              return {mode:getComputedStyle(active).backgroundColor,action:getComputedStyle(action).backgroundColor};
+              return {mode:active.classList.contains('bg-primary'),action:action.classList.contains('bg-primary')};
             });
-            assert.equal(colors.mode,colors.action,contextId+' active sale mode matches primary checkout color');
+            assert.equal(primaryClasses.mode,true,contextId+' active sale mode uses primary background token');
+            assert.equal(primaryClasses.action,true,contextId+' checkout action uses same primary background token');
             await preview.click();
             const review=page.getByRole('dialog',{name:labels('Review sale','বিক্রির হিসাব যাচাই')});
             await review.waitFor();
