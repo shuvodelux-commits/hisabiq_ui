@@ -5,6 +5,11 @@ import {freezeUnitProfile,unitMapFromLegacy,unitQuantitiesBase,unitQuantitiesSal
 import {activeOfferFor,effectivePriceForUnit} from './productFeatures.ts';
 import {productOffers} from '../data/productOffers.ts';
 
+/** Draft typing may temporarily be invalid; checkout has strict unit-price validation. */
+const previewPrice = (text:string):number => {
+  const number=Number(text);
+  return Number.isFinite(number) && number>=0 ? number : 0;
+};
 export function saleLineQuantities(line:CartLine): Record<string,string> {
   return line.unitQuantities ?? unitMapFromLegacy(line.product,line.unit,line.qty,line.secondaryQty);
 }
@@ -17,7 +22,7 @@ export function freezeSaleLineProfile(line:CartLine):FrozenUnitProfile {
   const profile=freezeUnitProfile(line.product);
   const offer=activeOfferFor(line.product.id,productOffers);
   for(const unit of Object.keys(profile.sellingPrices)) {
-    profile.sellingPrices[unit]=unit===line.unit?Number(line.price):effectivePriceForUnit(line.product,offer,unit);
+    profile.sellingPrices[unit]=unit===line.unit?previewPrice(line.price):effectivePriceForUnit(line.product,offer,unit);
   }
   return profile;
 }
@@ -26,7 +31,7 @@ export function saleLineTotal(line:CartLine):number {
   const profile=line.historicalUnitSnapshot??freezeUnitProfile(line.product);
   const offer=activeOfferFor(line.product.id,productOffers);
   const current=Object.fromEntries(Object.keys(line.unitQuantities).map(unit=>[
-    unit,unit===line.unit?Number(line.price):
+    unit,unit===line.unit?previewPrice(line.price):
       line.historicalUnitSnapshot?profile.sellingPrices[unit]:effectivePriceForUnit(line.product,offer,unit)
   ]));
   return unitQuantitiesSaleTotal(profile,line.unitQuantities,current);
