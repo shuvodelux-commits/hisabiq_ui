@@ -54,6 +54,12 @@ async function main(){
    await sale.getByRole('textbox',{name:'Quantity in Gauge'}).fill('1');
    await sale.getByRole('textbox',{name:'Quantity in Gira'}).fill('2');
    await sale.getByRole('textbox',{name:'Quantity in Pcs'}).fill('3');
+   await sale.getByRole('textbox',{name:'Quantity in Gauge'}).press('Enter');
+   assert.equal(await sale.getByRole('textbox',{name:'Quantity in Gira'}).evaluate(el=>document.activeElement===el),true,'Enter moves to Gira');
+   await sale.getByRole('textbox',{name:'Quantity in Gira'}).press('Enter');
+   assert.equal(await sale.getByRole('textbox',{name:'Quantity in Pcs'}).evaluate(el=>document.activeElement===el),true,'Enter moves to Pcs');
+   await sale.getByRole('textbox',{name:'Quantity in Pcs'}).press('Enter');
+   assert.equal(await addSale.evaluate(el=>document.activeElement===el),true,'POS Enter returns to product search');
    await sale.getByText(/3,750/).waitFor();
 
    await page.evaluate(()=>{location.hash='#/app/purchases/new';});
@@ -64,6 +70,8 @@ async function main(){
    await purchase.getByRole('textbox',{name:'Quantity in Gauge'}).fill('1');
    await purchase.getByRole('textbox',{name:'Quantity in Gira'}).fill('2');
    await purchase.getByRole('textbox',{name:'Quantity in Pcs'}).fill('3');
+   await purchase.getByRole('textbox',{name:'Quantity in Pcs'}).press('Enter');
+   assert.equal(await purchase.getByRole('textbox',{name:'Purchase cost for '+name}).evaluate(el=>document.activeElement===el),true,'Purchase Enter moves to cost');
    await purchase.getByText(/2,165/).waitFor();
    assert.deepEqual(errors,[],'browser errors at '+width);
    await page.close();
