@@ -957,17 +957,20 @@ export function Pos() {
             onPriceAdjustment:cart.lines.length===1?(mode:'amount'|'percent',value:string)=>{
               const line=cart.lines[0];
               const factor=productUnitFactor(line.product,line.unit)||1;
-              const quantity=(Number(line.qty)||0)+(factor>1?(Number(line.secondaryQty)||0)/factor:0);
+              const quantity=line.unitQuantities ? Number(line.unitQuantities[line.unit]||0)
+                : (Number(line.qty)||0)+(factor>1?(Number(line.secondaryQty)||0)/factor:0);
               if(!Number.isFinite(quantity)||quantity<=0){
                 toast.error('Enter a valid product quantity before adjusting the selling price.');
                 return false;
               }
               try{
-                const currentPaisa=Math.round(compoundLineTotal(line.qty,line.secondaryQty,factor,line.price)*100);
+                const currentPaisa=Math.round(saleLineTotal(line)*100);
                 const targetPaisa=negotiateInstallmentTotal(currentPaisa,{mode,value});
-                const unitPrice=Math.round((targetPaisa/100/quantity)*100)/100;
+                const fixedAmount=line.unitQuantities?saleLineTotal({...line,price:'0'}):0;
+                const unitPrice=Math.round(((targetPaisa/100-fixedAmount)/quantity)*100)/100;
                 if(!Number.isFinite(unitPrice)||unitPrice<0||
-                  Math.round(compoundLineTotal(line.qty,line.secondaryQty,factor,unitPrice)*100)!==targetPaisa){
+                  Math.round((line.unitQuantities?saleLineTotal({...line,price:String(unitPrice)}):
+                    compoundLineTotal(line.qty,line.secondaryQty,factor,unitPrice))*100)!==targetPaisa){
                   toast.error('This amount cannot be allocated exactly at the selected quantity. Edit the cart unit price instead.');
                   return false;
                 }
