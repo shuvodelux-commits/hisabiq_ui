@@ -199,7 +199,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setBuyUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setAdvanced(false);
     setMultiUnit(defaults.defaultUnit === 'Gira');
-    setUnitRows([{ leftUnit: 'Gauge', rightUnit: defaults.defaultUnit, quantity: '16' }]);
+    setUnitRows([{ leftUnit: defaults.defaultUnit === 'Gira' ? 'Gauge' : 'Box', rightUnit: defaults.defaultUnit,
+      quantity: defaults.defaultUnit === 'Gira' ? '16' : '12' }]);
     setAltPrice('');
     setStockViewUnit(defaultViewUnit);
     setOpeningQty('');
@@ -249,8 +250,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setMultiUnit(productKind === 'Stock' && Boolean(initialProduct.unitRelations?.length || initialProduct.altUnit));
     setUnitRows(initialProduct.unitRelations?.length
       ? initialProduct.unitRelations.map(row => ({ ...row, quantity: String(row.quantity) }))
-      : [{ leftUnit: initialProduct.altUnit?.unit ?? 'Gauge', rightUnit: initialProduct.unit,
-           quantity: String(initialProduct.altUnit?.factor ?? 16) }]);
+      : [{ leftUnit: initialProduct.altUnit?.unit ?? 'Box', rightUnit: initialProduct.unit,
+           quantity: String(initialProduct.altUnit?.factor ?? 12) }]);
     setAltPrice(initialProduct.altUnit?.price ? String(initialProduct.altUnit.price) : '');
     setStockViewUnit(initialProduct.stockViewUnit ?? initialProduct.altUnit?.unit ?? initialProduct.unit);
     setOpeningQty('');
@@ -432,7 +433,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
             <Field label="Bangla name" bn="বাংলা নাম (ঐচ্ছিক)">
               <Input value={nameBn} onChange={(e) => setNameBn(e.target.value)} placeholder={isStock ? 'এলইডি বাল্ব ১২ ওয়াট' : 'সিলিং ফ্যান ইনস্টলেশন'} className="font-bn" />
             </Field>
-            {isStock && <div className="min-w-0">
+            {isStock && !multiUnit && <div className="min-w-0">
               <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Base unit")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ছোট একক</span>}</p>
               <QuickAddSelect label={pl("Base unit")} value={unit} options={unitOptions.map((item) => item.symbol)}
                 onChange={(next) => {
@@ -483,17 +484,17 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           {multiUnit && <div className="rounded-lg bg-teal-50/60 p-2.5 sm:p-3">
             <div className="space-y-2">
               {unitRows.map((row, index) => (
-                <div key={index} data-product-unit-relationship className="grid min-w-0 grid-cols-[minmax(0,1fr)_14px_minmax(0,1fr)_24px] items-center gap-1 sm:gap-1.5">
-                  <QuantityUnitInput compact readOnlyAmount
+                <div key={index} data-product-unit-relationship className="grid min-w-0 grid-cols-[minmax(0,1fr)_24px] min-[480px]:grid-cols-[minmax(0,1fr)_14px_minmax(0,1fr)_24px] items-center gap-1 min-[480px]:gap-1.5">
+                  <div className="col-start-1 row-start-1 min-w-0 min-[480px]:col-auto min-[480px]:row-auto"><QuantityUnitInput compact readOnlyAmount
                     label={'Larger unit ' + (index + 1)} value="1" onChange={() => {}}
                     unit={row.leftUnit} units={unitOptions.map(item => item.symbol)}
                     onUnitChange={(next) => {
                       setUnitRows(previous => previous.map((item, i) =>
                         i === index ? { ...item, leftUnit: next } :
                         i === index - 1 ? { ...item, rightUnit: next } : item));
-                    }} />
-                  <span className="text-center text-sm font-semibold text-ink-500" aria-hidden="true">=</span>
-                  <QuantityUnitInput compact
+                    }} /></div>
+                  <span className="col-start-1 row-start-2 text-center text-sm font-semibold text-ink-500 min-[480px]:col-auto min-[480px]:row-auto" aria-hidden="true">=</span>
+                  <div className="col-start-1 row-start-3 min-w-0 min-[480px]:col-auto min-[480px]:row-auto"><QuantityUnitInput compact
                     label={'Smaller unit ' + (index + 1)} value={row.quantity}
                     onChange={value => setUnitRows(previous => previous.map((item, i) =>
                       i === index ? { ...item, quantity: value } : item))}
@@ -503,10 +504,10 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
                         i === index ? { ...item, rightUnit: next } :
                         i === index + 1 ? { ...item, leftUnit: next } : item));
                       if (index === unitRows.length - 1) setUnit(next);
-                    }} />
+                    }} /></div>
                   {unitRows.length > 1 ?
                     <button type="button" title="Remove relationship" aria-label={'Remove unit relationship ' + (index + 1)}
-                      className="flex h-8 w-6 items-center justify-center rounded-md text-ink-500 hover:bg-danger-bg hover:text-danger"
+                      className="col-start-2 row-start-3 flex h-8 w-6 items-center justify-center rounded-md text-ink-500 hover:bg-danger-bg hover:text-danger min-[480px]:col-auto min-[480px]:row-auto"
                       onClick={() => {
                         const rows = unitRows.filter((_, i) => i !== index).map(item => ({ ...item }));
                         for (let i = 1; i < rows.length; i++) rows[i].leftUnit = rows[i-1].rightUnit;
