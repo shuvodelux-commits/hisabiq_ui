@@ -3,7 +3,6 @@ import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { MotionNavIndicator } from '../../motion/MotionNavIndicator';
 import { useEffect, useState } from 'react';
 
-const MotionLink = motion(Link);
 
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
@@ -11,6 +10,8 @@ import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import { canManage, type SettingsPermission } from '../../settings/model';
 import { erpNavigation, erpRoutePaths, erpFeatureIds } from '../../navigation/erpNavigation';
 import { getVisibleNavigation, resolveNavLocation } from '../../navigation/resolveErpNavigation';
+
+const MotionLink = motion(Link);
 
 type Props = {
   mode: 'desktop' | 'mobile';
