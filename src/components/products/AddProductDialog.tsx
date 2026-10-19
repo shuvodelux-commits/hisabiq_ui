@@ -111,6 +111,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [brand, setBrand] = useState('Generic / No brand');
   const [brandOptions, setBrandOptions] = useState(availableProductBrands);
   const [unitOptions, setUnitOptions] = useState(availableProductUnits);
+  const [addingUnit, setAddingUnit] = useState(false);
+  const [newUnitName, setNewUnitName] = useState('');
+  const [newUnitSymbol, setNewUnitSymbol] = useState('');
   const [unit, setUnit] = useState('Gira');
   const [sell, setSell] = useState('');
   const [sellUnit, setSellUnit] = useState('Gira');
@@ -192,6 +195,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setBrand('Generic / No brand');
     setBrandOptions(availableProductBrands());
     setUnitOptions(availableProductUnits());
+    setAddingUnit(false);setNewUnitName('');setNewUnitSymbol('');
     setUnit(defaults.defaultUnit);
     setSell('');
     setSellUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
@@ -242,6 +246,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setBrand(initialProduct.brand ?? 'Generic / No brand');
     setBrandOptions(availableProductBrands());
     setUnitOptions(availableProductUnits());
+    setAddingUnit(false);setNewUnitName('');setNewUnitSymbol('');
     setUnit(initialProduct.unit);
     setSell(String(initialProduct.sellPrice));
     setSellUnit(initialProduct.unit);
@@ -479,8 +484,23 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
               <h3 className="text-sm font-semibold text-ink">Units & Pricing</h3>
               <p className="text-xs text-ink-500">একক ও দাম · 1 Gauge = 16 Gira</p>
             </div>
-            <Switch checked={multiUnit} onCheckedChange={setMultiUnit} aria-label="Enable multiple units" />
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setAddingUnit(value => !value)}
+                className="rounded-md border border-border bg-card px-2 py-1.5 text-xs text-ink hover:bg-ink-50">Manage Units</button>
+              <Switch checked={multiUnit} onCheckedChange={setMultiUnit} aria-label="Enable multiple units" />
+            </div>
           </div>
+          {addingUnit && <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-ink-50 p-2">
+            <Input aria-label="New unit name" value={newUnitName} onChange={event => setNewUnitName(event.target.value)}
+              placeholder="Unit name" className="min-w-0 flex-1" />
+            <Input aria-label="Unit symbol" value={newUnitSymbol} onChange={event => setNewUnitSymbol(event.target.value)}
+              placeholder="Symbol" className="w-20" />
+            <Button size="sm" disabled={!newUnitName.trim()} onClick={() => {
+              if (!newUnitName.trim()) return;
+              quickAddUnit(newUnitName, newUnitSymbol || newUnitName, () => {});
+              setNewUnitName('');setNewUnitSymbol('');setAddingUnit(false);
+            }}>Add</Button>
+          </div>}
           {multiUnit && <div className="rounded-lg bg-teal-50/60 p-2.5 sm:p-3">
             <div className="space-y-2">
               {unitRows.map((row, index) => (
@@ -550,7 +570,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           <button type="button" onClick={() => setAdvanced((value) => !value)} aria-expanded={advanced} className="flex w-full items-center justify-between px-4 py-3 text-left">
             <span>
               <span className="block text-sm font-semibold text-ink">{pl('Advanced')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· উন্নত সেটিংস</span>}</span>
-              <span className="block text-xs text-ink-500">{pl('Units, stock, warranty, serial tracking and expiry')}</span>
+              <span className="block text-xs text-ink-500">{pl('Stock, warranty, serial tracking and expiry')}</span>
             </span>
             <ChevronDown className={`size-4 text-ink-400 transition-transform ${advanced ? 'rotate-180' : ''}`} />
           </button>
