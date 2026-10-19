@@ -1,5 +1,7 @@
 import type {BundleComponent,Product,StockLot} from '../types/erp.ts';
 import {allocatableLots} from '../utils/productFeatures.ts';
+import {productUnitFactor} from '../utils/unitChain.ts';
+import {priceFor} from '../utils/units.ts';
 
 /** Preview-only current cost of a fixed recipe. It is NOT realized historical COGS. */
 export function priceBundleComponents(
@@ -28,9 +30,10 @@ export function priceBundleComponents(
    issues.push('Invalid component quantity: '+p.name);
    continue;
   }
-  const isAlternate=p.altUnit?.unit===component.selectedUnit;
-  const factor=isAlternate?p.altUnit!.factor:1;
-  const retailUnitPrice=isAlternate?p.altUnit!.price??p.sellPrice*factor:p.sellPrice;
+  const factor=productUnitFactor(p,component.selectedUnit);
+  const isAlternate=factor>1;
+  if(!Number.isFinite(factor)||factor<1){issues.push('Invalid component unit: '+p.name);continue;}
+  const retailUnitPrice=priceFor(p,component.selectedUnit);
   const primary=Number(component.primaryQty),secondary=Number(component.secondaryQty||0);
   const retailTotal=primary*retailUnitPrice+(isAlternate?secondary*retailUnitPrice/factor:0);
   let remaining=component.baseQty;
