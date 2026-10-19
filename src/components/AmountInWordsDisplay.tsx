@@ -22,8 +22,10 @@ export function AmountInWordsDisplay({
       value: 'text-[15px] font-semibold leading-[1.65] text-ink sm:text-base',
     },
     compact: {
-      container: 'rounded-lg border border-teal-200/80 bg-white/70 px-3 py-2 dark:border-teal-800/80 dark:bg-teal-950/20',
-      label: 'text-[11px] font-medium text-teal-800 dark:text-teal-200',
+      // Theme tokens invert teal shades in dark mode. Avoid fixed white/teal-950 surfaces
+      // or dark:text-teal-200 (a low-contrast dark teal in the HisabIQ dark palette).
+      container: 'rounded-lg border border-teal-200/80 bg-card/75 px-3 py-2',
+      label: 'text-[11px] font-semibold text-teal-800',
       value: 'text-[14px] font-semibold leading-[1.55] text-ink sm:text-[15px]',
     },
     inverse: {
