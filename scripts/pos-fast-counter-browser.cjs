@@ -176,10 +176,9 @@ async function main(){
             assert.equal(await preview.isEnabled(),true,contextId+' fully paid sale can be previewed');
             assert.equal(await preview.getAttribute('data-variant'),'default',contextId+' checkout uses primary variant');
             await page.mouse.move(0,0);
-            const colors=await checkout.evaluate(root=>{
-              const mode=root.querySelector('[aria-label="Sale type"],[aria-label="বিক্রির ধরন"]');
+            const colors=await preview.evaluate(action=>{
+              const mode=action.closest('[data-pos-checkout]').querySelector('[role="group"][aria-label="Sale type"],[role="group"][aria-label="বিক্রির ধরন"]');
               const active=mode.querySelector('button[aria-pressed="true"]');
-              const action=[...root.querySelectorAll('button')].find(el=>el.textContent.includes('Preview sale')||el.textContent.includes('বিক্রির হিসাব দেখুন'));
               return {mode:getComputedStyle(active).backgroundColor,action:getComputedStyle(action).backgroundColor};
             });
             assert.equal(colors.mode,colors.action,contextId+' active sale mode matches primary checkout color');
