@@ -1,7 +1,7 @@
 import type {CartLine} from '../hooks/usePosCart.ts';
 import {compoundBaseQuantity,compoundLineTotal,formatCompoundQuantity} from './posQuantity.ts';
 import {productUnitFactor} from './unitChain.ts';
-import {freezeUnitProfile,unitMapFromLegacy,unitQuantitiesBase,unitQuantitiesSaleTotal,describeUnitQuantities} from './multiUnitTransactions.ts';
+import {freezeUnitProfile,unitMapFromLegacy,unitQuantitiesBase,unitQuantitiesSaleTotal,describeUnitQuantities,type FrozenUnitProfile} from './multiUnitTransactions.ts';
 import {activeOfferFor,effectivePriceForUnit} from './productFeatures.ts';
 import {productOffers} from '../data/productOffers.ts';
 
@@ -11,6 +11,15 @@ export function saleLineQuantities(line:CartLine): Record<string,string> {
 export function saleLineBaseQty(line:CartLine):number {
   if(line.unitQuantities) return unitQuantitiesBase(line.historicalUnitSnapshot??freezeUnitProfile(line.product),line.unitQuantities);
   return compoundBaseQuantity(line.qty,line.secondaryQty,productUnitFactor(line.product,line.unit)||1);
+}
+export function freezeSaleLineProfile(line:CartLine):FrozenUnitProfile {
+  if(line.historicalUnitSnapshot)return structuredClone(line.historicalUnitSnapshot);
+  const profile=freezeUnitProfile(line.product);
+  const offer=activeOfferFor(line.product.id,productOffers);
+  for(const unit of Object.keys(profile.sellingPrices)) {
+    profile.sellingPrices[unit]=unit===line.unit?Number(line.price):effectivePriceForUnit(line.product,offer,unit);
+  }
+  return profile;
 }
 export function saleLineTotal(line:CartLine):number {
   if(!line.unitQuantities) return compoundLineTotal(line.qty,line.secondaryQty,productUnitFactor(line.product,line.unit)||1,line.price);
