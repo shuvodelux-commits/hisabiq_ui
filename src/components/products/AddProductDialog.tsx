@@ -120,6 +120,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [buy, setBuy] = useState('');
   const [buyUnit, setBuyUnit] = useState('Gira');
   const [advanced, setAdvanced] = useState(false);
+  const [unitEditorOpen, setUnitEditorOpen] = useState(false);
   const [multiUnit, setMultiUnit] = useState(true);
   const [unitRows, setUnitRows] = useState<EditableUnitRelation[]>([
     { leftUnit: 'Gauge', rightUnit: 'Gira', quantity: '16' }
@@ -205,6 +206,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setBuy('');
     setBuyUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setAdvanced(false);
+    setUnitEditorOpen(false);
     setMultiUnit(defaults.defaultUnit === 'Gira');
     setUnitRows([{ leftUnit: defaults.defaultUnit === 'Gira' ? 'Gauge' : 'Box', rightUnit: defaults.defaultUnit,
       quantity: defaults.defaultUnit === 'Gira' ? '16' : '12' }]);
@@ -287,6 +289,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setManufactureDate('');
     setExpiryDate('');
     setAdvanced(false);
+    setUnitEditorOpen(false);
     setError('');
   }, [open, initialProduct]);
 
@@ -339,9 +342,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const save = () => {
     if (!name.trim()) return setError(pl('Product name is required.'));
     if (!sellNum) return setError(pl('Enter a selling price.'));
+    if (initialProduct && !multiUnit && (initialProduct.unitRelations?.length || initialProduct.altUnit))
+      return setError(pl('Changing saved unit relationships requires a reviewed stock migration.'));
     if (isStock && multiUnit) {
       try { resolveUnitChain(configuredRelations); }
-      catch (cause) { return setError(cause instanceof Error ? cause.message : 'Review unit relationships.'); }
+      catch (cause) { setUnitEditorOpen(true); return setError(cause instanceof Error ? cause.message : 'Review unit relationships.'); }
       if(initialProduct && (stockUnit !== initialProduct.unit ||
         JSON.stringify(configuredRelations) !== JSON.stringify(initialProduct.unitRelations ??
          (initialProduct.altUnit?[{leftUnit:initialProduct.altUnit.unit,rightUnit:initialProduct.unit,quantity:initialProduct.altUnit.factor}]:[])))) {
@@ -427,86 +432,97 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           <DialogTitle>
             {pl(initialProduct ? 'Edit product' : 'Add product')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">· {initialProduct ? 'পণ্য সম্পাদনা' : 'নতুন পণ্য'}</span>}
           </DialogTitle>
-          <DialogDescription>{pl(initialProduct ? 'Update product settings. Stock corrections remain in Adjust stock.' : 'Only name and selling price are required. Optional controls stay in Advanced.')}</DialogDescription>
+          <DialogDescription>{pl(initialProduct ? 'Update product settings. Stock corrections remain in Adjust stock.' : 'Start with a name and selling price. Add stock below if needed.')}</DialogDescription>
         </DialogHeader>
 
-        <section className="space-y-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-ink-400">{pl('Basic')}</p>
-          <Field label="Photos" bn="ছবি">
-            <PhotoUploader photos={photos} onChange={setPhotos} hint={pl("Up to 4 photos. The first one appears in POS and lists.")} />
+        {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
+
+        <section data-product-core className="space-y-3">
+          <Field label="Product name *" bn="পণ্যের নাম">
+            <Input aria-label={pl("Product name")} value={name} onChange={(event) => setName(event.target.value)}
+              placeholder={pl(isStock ? 'e.g. LED Bulb 12W' : 'e.g. Ceiling Fan Installation')} autoFocus />
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Product type" bn="ধরন" hint={pl(initialProduct ? 'Product type is fixed after creation.' : 'Stock products track inventory; services do not.')}>
-              <AppSelect label={pl("Product type")} value={kind} disabled={Boolean(initialProduct)} onChange={(next) => changeKind(next as ProductKind)} options={productFormOptions(language,['Stock', 'Service'])} />
-            </Field>
-            <div>
-              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Category")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ক্যাটাগরি</span>}</p>
-              <QuickAddSelect label={pl("Category")} value={category} options={categoryOptions.filter((c) => c !== 'All')} onChange={setCategory}
-                onCreate={(name) => { createPreviewProductCategory(name); setCategoryOptions(availableProductCategories()); setCategory(name); }} />
-            </div>
-            {isStock && <div className="min-w-0">
-              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Brand")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ব্র্যান্ড</span>}</p>
-              <QuickAddSelect label={pl("Brand")} value={brand} options={brandOptions} onChange={setBrand}
-                onCreate={(name) => { createPreviewProductBrand(name); setBrandOptions(availableProductBrands()); setBrand(name); }} />
-            </div>}
-            <Field label="Product name" bn="নাম">
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={pl(isStock ? 'e.g. LED Bulb 12W' : 'e.g. Ceiling Fan Installation')} autoFocus />
-            </Field>
-            <Field label="Bangla name" bn="বাংলা নাম (ঐচ্ছিক)">
-              <Input value={nameBn} onChange={(e) => setNameBn(e.target.value)} placeholder={isStock ? 'এলইডি বাল্ব ১২ ওয়াট' : 'সিলিং ফ্যান ইনস্টলেশন'} className="font-bn" />
-            </Field>
-            {isStock && !multiUnit && <div className="min-w-0">
-              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Base unit")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ছোট একক</span>}</p>
-              <QuickAddSelect label={pl("Base unit")} value={unit} options={unitOptions.map((item) => item.symbol)}
-                onChange={(next) => {
-                  if (sellUnit === unit) setSellUnit(next);
-                  if (buyUnit === unit) setBuyUnit(next);
-                  if (stockViewUnit === unit) setStockViewUnit(next);
-                  setUnit(next);
-                }}
-                onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, (next) => {
-                  if (sellUnit === unit) setSellUnit(next);
-                  if (buyUnit === unit) setBuyUnit(next);
-                  if (stockViewUnit === unit) setStockViewUnit(next);
-                  setUnit(next);
-                })} showSymbol placeholder={pl('Unit name, e.g. Meter')} />
-              <p className="mt-1 text-xs text-ink-500">{pl('Smallest unit used for stock and serial counts.')}</p>
-            </div>}
             <div className="min-w-0">
-              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Selling price")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· বিক্রয় মূল্য</span>}</p>
+              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Selling price")} <span className="text-danger" aria-hidden="true">*</span>{showHelper&&<span className="ml-1 font-bn text-[11px] font-normal text-ink-400">· বিক্রির দাম</span>}</p>
               <MoneyUnitInput label={pl("Selling price")} value={sell} onChange={setSell}
                 unit={selectedSellUnit} units={units}
                 onUnitChange={(next) => changePriceUnit(sell, selectedSellUnit, next, setSell, setSellUnit)} />
-              <p className="mt-1 text-xs text-ink-500">
-                {sellNum && selectedSellUnit !== unit ? `${taka(sellNum)} / ${selectedSellUnit} → ${taka(sellBase)} / ${unit} automatically` : pl('Normal selling price; offers are managed separately.')}
-              </p>
+              {sellNum > 0 && selectedSellUnit !== stockUnit &&
+                <p className="mt-1 text-xs text-ink-500">{taka(sellBase)} / {stockUnit}</p>}
             </div>
             <div className="min-w-0">
-              <p className="mb-1.5 text-[13px] font-medium text-ink">
-                {pl(isStock ? 'Purchase price' : 'Service cost')}
-                {showHelper&&<span className="font-bn ml-1 text-[11px] font-normal text-ink-400">· {isStock ? 'ক্রয় মূল্য' : 'সেবা খরচ'}</span>}
-              </p>
+              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl(isStock ? 'Purchase price' : 'Service cost')}{showHelper&&<span className="ml-1 font-bn text-[11px] font-normal text-ink-400">· {isStock ? 'কেনা দাম' : 'সেবার খরচ'}</span>}</p>
               <MoneyUnitInput label={pl(isStock ? 'Purchase price' : 'Service cost')} value={buy} onChange={setBuy}
                 unit={isStock ? selectedBuyUnit : undefined} units={units}
                 onUnitChange={isStock ? (next) => changePriceUnit(buy, selectedBuyUnit, next, setBuy, setBuyUnit) : undefined} />
-              <p className="mt-1 text-xs text-ink-500">{pl('Optional internal cost.')}</p>
             </div>
           </div>
-          {margin !== null && <p className={`text-xs ${margin < 0 ? 'text-danger' : 'text-ink-500'}`}>Margin {margin.toFixed(1)}% · profit {taka(sellBase - buyBase)} per {unit}</p>}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
+              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Category")}{showHelper&&<span className="ml-1 font-bn text-[11px] font-normal text-ink-400">· ক্যাটাগরি</span>}</p>
+              <QuickAddSelect label={pl("Category")} value={category} options={categoryOptions.filter((item) => item !== 'All')}
+                onChange={setCategory} onCreate={(value) => {
+                  createPreviewProductCategory(value);setCategoryOptions(availableProductCategories());setCategory(value);
+                }} />
+            </div>
+            <Field label="Product type" bn="পণ্যের ধরন">
+              <AppSelect label={pl("Product type")} value={kind} disabled={Boolean(initialProduct)}
+                onChange={(next) => changeKind(next as ProductKind)}
+                options={productFormOptions(language,['Stock','Service'])} />
+            </Field>
+          </div>
+          {margin !== null && <p className={margin < 0 ? "text-xs text-danger" : "text-xs text-ink-500"}>{pl('Margin')} {margin.toFixed(1)}% · {pl('profit')} {taka(sellBase - buyBase)} / {stockUnit}</p>}
         </section>
 
-        {isStock && <section data-product-units-and-pricing className="rounded-xl border border-border p-3 sm:p-4">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-semibold text-ink">{pl("Units & Pricing")}</h3>
-              <p className="text-xs text-ink-500">একক ও দাম · 1 Gauge = 16 Gira</p>
-            </div>
+        {isStock && <section data-product-stock-units className="space-y-3 rounded-xl border border-border p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold text-ink">{pl("Stock & units")}</h3>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setAddingUnit(value => !value)}
-                className="rounded-md border border-border bg-card px-2 py-1.5 text-xs text-ink hover:bg-ink-50">{pl("Manage Units")}</button>
-              <Switch checked={multiUnit} onCheckedChange={setMultiUnit} aria-label={pl("Enable multiple units")} />
+              <span className="text-xs font-medium text-ink-600">{pl("Multiple units")}</span>
+              <Switch checked={multiUnit} onCheckedChange={(next) => {
+                setMultiUnit(next);
+                if(next)setUnitEditorOpen(true);
+                else{setUnitEditorOpen(false);setAddingUnit(false);}
+              }} aria-label={pl("Enable multiple units")} />
             </div>
           </div>
+          {!multiUnit && <div className="max-w-xs">
+            <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Unit")}</p>
+            <QuickAddSelect label={pl("Base unit")} value={unit} options={unitOptions.map((item) => item.symbol)}
+              onChange={(next) => {
+                if (sellUnit === unit) setSellUnit(next);
+                if (buyUnit === unit) setBuyUnit(next);
+                if (stockViewUnit === unit) setStockViewUnit(next);
+                if (openingUnit === unit) setOpeningUnit(next);
+                if (minUnit === unit) setMinUnit(next);
+                setUnit(next);
+              }}
+              onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, (next) => {
+                if (sellUnit === unit) setSellUnit(next);
+                if (buyUnit === unit) setBuyUnit(next);
+                if (stockViewUnit === unit) setStockViewUnit(next);
+                if (openingUnit === unit) setOpeningUnit(next);
+                if (minUnit === unit) setMinUnit(next);
+                setUnit(next);
+              })} showSymbol placeholder={pl('Unit name, e.g. Meter')} />
+          </div>}
+          {multiUnit && <div className="min-w-0">
+            <button type="button" aria-expanded={unitEditorOpen} aria-label={pl("Edit unit conversions")}
+              onClick={() => {setUnitEditorOpen(value => !value);setAddingUnit(false);}}
+              className="flex w-full items-center justify-between gap-2 rounded-lg bg-ink-50/60 px-3 py-2.5 text-left text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+              <span className="min-w-0">
+                <span className="block text-[13px] font-medium">{pl("Unit conversions")}</span>
+                <span className="mt-0.5 block break-words text-xs text-ink-600">
+                  {unitRows.map((row) => '1 ' + row.leftUnit + ' = ' + (row.quantity || '…') + ' ' + (row.rightUnit || '…')).join(' · ')}
+                </span>
+              </span>
+              <ChevronDown aria-hidden="true" className={'size-4 shrink-0 text-ink-500 transition-transform ' + (unitEditorOpen ? 'rotate-180' : '')} />
+            </button>
+            {unitEditorOpen && <div className="mt-2">
+              <div className="mb-2 flex justify-end">
+                <Button type="button" variant="outline" size="sm" onClick={() => setAddingUnit(value => !value)}>{pl("Manage Units")}</Button>
+              </div>
           {addingUnit && <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-ink-50 p-2">
             <Input aria-label="New unit name" value={newUnitName} onChange={event => setNewUnitName(event.target.value)}
               placeholder="Unit name" className="min-w-0 flex-1" />
@@ -518,7 +534,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
               setNewUnitName('');setNewUnitSymbol('');setAddingUnit(false);
             }}>Add</Button>
           </div>}
-          {multiUnit && <div className="rounded-lg bg-teal-50/60 p-2.5 sm:p-3">
+          {multiUnit && <div className="rounded-lg bg-ink-50/45 p-2.5 sm:p-3">
             <div className="space-y-2">
               {unitRows.map((row, index) => (
                 <div key={index} data-product-unit-relationship className="grid min-w-0 grid-cols-[minmax(0,1fr)_24px] min-[480px]:grid-cols-[minmax(0,1fr)_14px_minmax(0,1fr)_24px] items-center gap-1 min-[480px]:gap-1.5">
@@ -601,13 +617,33 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
               </Field>
             </div>}
           </div>}
+            </div>}
+          </div>}
+          <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
+            {!initialProduct && <Field label="Opening stock" bn="শুরুর স্টক">
+              <QuantityUnitInput label={pl("Opening stock")} value={openingQty} onChange={setOpeningQty}
+                unit={selectedOpeningUnit} units={units}
+                onUnitChange={(next) => changeStockUnit(openingQty, selectedOpeningUnit, next, setOpeningQty, setOpeningUnit)} />
+            </Field>}
+            <Field label="Minimum stock" bn="সর্বনিম্ন স্টক">
+              <QuantityUnitInput label={pl("Minimum stock")} value={minQty} onChange={setMinQty}
+                unit={selectedMinUnit} units={units}
+                onUnitChange={(next) => changeStockUnit(minQty, selectedMinUnit, next, setMinQty, setMinUnit)} />
+            </Field>
+          </div>
+          {!initialProduct && openingBaseQty > 0 && serialTracking === 'Required' &&
+            <button type="button" className="text-left text-xs font-medium text-teal-700 underline underline-offset-2"
+              onClick={() => setAdvanced(true)}>{pl("Serial numbers required — open Advanced")}</button>}
+          {!initialProduct && openingBaseQty > 0 && expiryEnabled && expiryDateRequired && !expiryDate &&
+            <button type="button" className="text-left text-xs font-medium text-teal-700 underline underline-offset-2"
+              onClick={() => setAdvanced(true)}>{pl("Expiry date required — open Advanced")}</button>}
         </section>}
 
         <section className="rounded-xl border border-border">
           <button type="button" onClick={() => setAdvanced((value) => !value)} aria-expanded={advanced} className="flex w-full items-center justify-between px-4 py-3 text-left">
             <span>
               <span className="block text-sm font-semibold text-ink">{pl('Advanced')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· উন্নত সেটিংস</span>}</span>
-              <span className="block text-xs text-ink-500">{pl('Stock, warranty, serial tracking and expiry')}</span>
+              <span className="block text-xs text-ink-500">{pl('Photos, names, warranty and tracking')}</span>
             </span>
             <ChevronDown className={`size-4 text-ink-400 transition-transform ${advanced ? 'rotate-180' : ''}`} />
           </button>
@@ -615,20 +651,22 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           <AnimatePresence initial={false}>
             {advanced && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
               <div className="space-y-5 border-t border-border p-4">
-                {isStock && <>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {!initialProduct && <Field label="Opening stock" bn="শুরুর স্টক">
-                      <QuantityUnitInput label={pl("Opening stock")} value={openingQty} onChange={setOpeningQty}
-                        unit={selectedOpeningUnit} units={units}
-                        onUnitChange={(next) => changeStockUnit(openingQty, selectedOpeningUnit, next, setOpeningQty, setOpeningUnit)} />
-                    </Field>}
-                    <Field label="Minimum stock" bn="সর্বনিম্ন স্টক">
-                      <QuantityUnitInput label={pl("Minimum stock")} value={minQty} onChange={setMinQty}
-                        unit={selectedMinUnit} units={units}
-                        onUnitChange={(next) => changeStockUnit(minQty, selectedMinUnit, next, setMinQty, setMinUnit)} />
-                    </Field>
-                  </div>
-                </>}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Bangla name" bn="বাংলা নাম (ঐচ্ছিক)">
+                    <Input value={nameBn} onChange={(event) => setNameBn(event.target.value)}
+                      placeholder={isStock ? 'এলইডি বাল্ব ১২ ওয়াট' : 'সিলিং ফ্যান ইনস্টলেশন'} className="font-bn" />
+                  </Field>
+                  {isStock && <div className="min-w-0">
+                    <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Brand")}</p>
+                    <QuickAddSelect label={pl("Brand")} value={brand} options={brandOptions} onChange={setBrand}
+                      onCreate={(value) => {
+                        createPreviewProductBrand(value);setBrandOptions(availableProductBrands());setBrand(value);
+                      }} />
+                  </div>}
+                </div>
+                <Field label="Photos" bn="ছবি">
+                  <PhotoUploader photos={photos} onChange={setPhotos} hint={pl("Up to 4 photos. The first one appears in POS and lists.")} />
+                </Field>
 
                 <div className="border-t border-border pt-4">
                   <SettingHeader title="Warranty" bn="ওয়ারেন্টি" hint="Independent from serial tracking; claims stay in the Warranty module." checked={warrantyEnabled} onCheckedChange={setWarrantyEnabled} />
@@ -691,7 +729,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           </AnimatePresence>
         </section>
 
-        {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{pl("Cancel")}</Button>
