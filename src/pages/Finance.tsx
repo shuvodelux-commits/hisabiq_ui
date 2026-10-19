@@ -1,3 +1,4 @@
+import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -755,7 +756,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
       )}
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        {!counterOnly && <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+        {!counterOnly && <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -764,12 +765,12 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               title={helper}
               onClick={() => setTab(id)}
               className={`min-h-11 shrink-0 px-2.5 py-2.5 text-[13px] font-medium ${
-                tab === id ? 'erp-tab-active text-ink' : 'text-ink-500 hover:text-ink'
+                tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
-            </button>
+            <MotionTabIndicator active={tab === id} /></button>
           ))}
-        </div>}
+        </MotionTabList>}
 
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.25fr_1fr]">
