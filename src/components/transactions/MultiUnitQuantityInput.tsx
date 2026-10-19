@@ -24,7 +24,7 @@ export function MultiUnitQuantityInput({product,quantities,onChange,disabled=fal
             const clean=event.target.value.replace(/[^\d.]/g,'').replace(/(\..*)\./g,'$1');
             onChange({...quantities,[unit]:clean});
           }}
-          className="h-full w-0 min-w-0 flex-1 bg-transparent px-2 text-right text-[13px] text-ink outline-none"/>
+          className="h-full w-0 min-w-0 flex-1 !rounded-none !border-0 !bg-transparent !shadow-none px-2 text-right text-[13px] text-ink outline-none"/>
         <span title={unit} className="flex w-[65px] min-w-0 shrink-0 items-center justify-center border-l border-border bg-ink-50/50 px-1 text-[12px] text-ink">{unit}</span>
       </div>
     )}
