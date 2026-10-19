@@ -11,7 +11,7 @@ export function AmountInWordsDisplay({
   className = '',
 }: {
   amount: number;
-  variant?: 'default' | 'inverse' | 'receipt';
+  variant?: 'default' | 'compact' | 'inverse' | 'receipt';
   label?: string;
   className?: string;
 }) {
@@ -20,6 +20,11 @@ export function AmountInWordsDisplay({
       container: 'rounded-lg border border-teal-200/80 bg-teal-50/70 px-3 py-2.5 dark:border-teal-800/80 dark:bg-teal-950/30',
       label: 'text-[12px] font-medium text-teal-800 dark:text-teal-800',
       value: 'text-[15px] font-semibold leading-[1.65] text-ink sm:text-base',
+    },
+    compact: {
+      container: 'rounded-lg border border-teal-200/80 bg-white/70 px-3 py-2 dark:border-teal-800/80 dark:bg-teal-950/20',
+      label: 'text-[11px] font-medium text-teal-800 dark:text-teal-200',
+      value: 'text-[14px] font-semibold leading-[1.55] text-ink sm:text-[15px]',
     },
     inverse: {
       container: 'rounded-lg border border-white/20 bg-white/10 px-3 py-2.5',
