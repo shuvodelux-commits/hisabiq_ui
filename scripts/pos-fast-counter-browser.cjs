@@ -151,8 +151,8 @@ async function main(){
               const clear=root.querySelector('[data-testid="pos-customer-clear-inline"]');
               const plus=root.querySelector('[aria-label="Quick add customer"],[aria-label="নতুন ক্রেতা যোগ করুন"]');
               const due=root.querySelector('[data-pos-previous-balance-inline]');
-              const a=picker.getBoundingClientRect(),x=clear.getBoundingClientRect(),b=plus.getBoundingClientRect(),d=due.getBoundingClientRect();
-              return {pickerHeight:a.height,pickerRight:a.right,clearRight:x.right,plusLeft:b.left,
+              const a=picker.getBoundingClientRect(),shell=picker.parentElement.getBoundingClientRect(),x=clear.getBoundingClientRect(),b=plus.getBoundingClientRect(),d=due.getBoundingClientRect();
+              return {pickerHeight:shell.height,pickerRight:a.right,clearRight:x.right,plusLeft:b.left,
                 dueRight:d.right,dueLeft:d.left,dueScroll:due.scrollWidth-due.clientWidth,
                 clearParent:clear.parentElement===picker.parentElement,viewport:innerWidth};
             });
