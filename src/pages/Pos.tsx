@@ -44,8 +44,7 @@ import {customerSettlementAsOf} from '../utils/partySettlement';
 import { taka } from '../utils/currency';
 import { compoundBaseQuantity, compoundLineTotal, formatCompoundQuantity, parseCompoundQuantity } from '../utils/posQuantity';
 import {productUnitFactor, productUnits} from '../utils/unitChain';
-import {saleLineBaseQty,saleLineTotal,saleLineDescription} from '../utils/posMultiUnit';
-import {freezeUnitProfile} from '../utils/multiUnitTransactions';
+import {saleLineBaseQty,saleLineTotal,saleLineDescription,freezeSaleLineProfile} from '../utils/posMultiUnit';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import { blendedVendorUnitCost } from '../utils/posStock';
 import {allocatePosStock} from '../vendor/vendorStock';
@@ -587,7 +586,7 @@ export function Pos() {
           unit: l.product.unit,
           returnableQuantity: baseQty,
           soldBaseQuantity: baseQty,
-          unitSnapshot:l.historicalUnitSnapshot??freezeUnitProfile(l.product),
+          unitSnapshot:freezeSaleLineProfile(l),
           unitQuantities:l.unitQuantities?structuredClone(l.unitQuantities):undefined,
           qty: saleLineDescription(l),
           price: parseFloat(l.price) || 0,
