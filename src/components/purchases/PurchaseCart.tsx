@@ -4,7 +4,6 @@ import { ChevronDown, ChevronUp, PackagePlus, Plus, ScanLine, Trash2 } from 'luc
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
 import { AppSelect } from '../AppSelect';
-import {productUnitFactor} from '../../utils/unitChain';
 import { Input } from '../Input';
 import { ProductThumb } from '../ProductThumb';
 import { ProductCombobox } from '../pos/ProductCombobox';
