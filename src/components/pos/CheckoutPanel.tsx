@@ -1,7 +1,7 @@
 import {NumericInput} from '../NumericInput';
 import {posMoney} from '../../utils/posCheckoutValidation';
 import React from 'react';
-import { AlertTriangle, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
@@ -160,7 +160,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             className="flex w-full items-center justify-between gap-2 rounded-lg p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500">
             <span className="min-w-0 flex-1">
               <span className="block text-[12px] font-semibold text-ink">
-                {customerDetailsOpen?'−':'+'} {word("invoiceCustomer")}
+                {word("invoiceCustomer")}
                 {showHelper && <span className="font-bn font-normal text-ink-500"> · ক্রেতার তথ্য</span>}
               </span>
               {!customerDetailsOpen && <span className="mt-0.5 block truncate text-[11px] text-ink-500">
@@ -169,6 +169,8 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                   : text('Name · Phone · Guardian · Address','নাম · ফোন · অভিভাবক · ঠিকানা')}
               </span>}
             </span>
+            <ChevronDown aria-hidden="true" className={'size-4 shrink-0 text-ink-500 transition-transform duration-200 '+
+              (customerDetailsOpen?'rotate-180':'')}/>
           </button>
           <div id={customerDetailsId} hidden={!customerDetailsOpen} className="border-t border-border px-3 pb-3 pt-2.5">
             <div data-pos-customer-fields className="grid gap-2 sm:grid-cols-2">
