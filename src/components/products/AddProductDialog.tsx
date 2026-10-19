@@ -1,7 +1,7 @@
 import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Info } from 'lucide-react';
+import { ChevronDown, Plus, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -21,13 +21,14 @@ import {productFormLabel,productFormOptions} from '../../i18n/productFormsCopy';
 import type {
   Product,
   ProductKind,
+  UnitRelation,
   SerialTrackingMode,
   StockAllocationMethod,
   WarrantyDurationUnit,
   WarrantyType
 } from '../../types/erp';
 import { taka } from '../../utils/currency';
-import { toBasePrice, toBaseQuantity, switchQuantityUnit } from '../../utils/productEntry';
+import { resolveUnitChain } from '../../utils/unitChain';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 
 export type ProductOpeningMeta = {
@@ -49,6 +50,7 @@ const serialModes: SerialTrackingMode[] = ['Off', 'Optional', 'Required'];
 const warrantyUnits: WarrantyDurationUnit[] = ['Days', 'Months', 'Years'];
 const warrantyTypes: WarrantyType[] = ['Seller', 'Manufacturer', 'Service', 'Replacement'];
 const allocationMethods: StockAllocationMethod[] = ['FIFO', 'FEFO'];
+type EditableUnitRelation = Omit<UnitRelation, 'quantity'> & { quantity: string };
 
 function Field({ label, bn, children, hint }: {label: string;bn?: string;children: React.ReactNode;hint?: string;}) {
   const {language,showHelper}=useUiCopy();
@@ -116,8 +118,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [buyUnit, setBuyUnit] = useState('Gira');
   const [advanced, setAdvanced] = useState(false);
   const [multiUnit, setMultiUnit] = useState(true);
-  const [altUnit, setAltUnit] = useState('Gauge');
-  const [factor, setFactor] = useState('16');
+  const [unitRows, setUnitRows] = useState<EditableUnitRelation[]>([
+    { leftUnit: 'Gauge', rightUnit: 'Gira', quantity: '16' }
+  ]);
   const [altPrice, setAltPrice] = useState('');
   const [stockViewUnit, setStockViewUnit] = useState(defaultViewUnit);
   const [openingQty, setOpeningQty] = useState('');
@@ -145,16 +148,26 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const [error, setError] = useState('');
 
   const isStock = kind === 'Stock';
-  const units = isStock && multiUnit && altUnit && altUnit !== unit ? [altUnit, unit] : [unit];
-  const f = parseFloat(factor) || 1;
-  const selectedSellUnit = units.includes(sellUnit) ? sellUnit : unit;
-  const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : unit;
-  const selectedOpeningUnit = units.includes(openingUnit) ? openingUnit : unit;
-  const selectedMinUnit = units.includes(minUnit) ? minUnit : unit;
-  const normalizedAltUnit = isStock && multiUnit && altUnit ? altUnit : undefined;
-  const selectedStockViewUnit = units.includes(stockViewUnit) ? stockViewUnit : normalizedAltUnit ?? unit;
-  const stockToBase = (qty: string, selectedUnit: string) => toBaseQuantity(qty, selectedUnit, unit, normalizedAltUnit, f);
-  const priceToBase = (amount: string, selectedUnit: string) => toBasePrice(amount, selectedUnit, unit, normalizedAltUnit, f);
+  const configuredRelations: UnitRelation[] = unitRows.map(row => ({
+    leftUnit: row.leftUnit, rightUnit: row.rightUnit, quantity: Number(row.quantity)
+  }));
+  let chain: ReturnType<typeof resolveUnitChain> | null = null;
+  if (isStock && multiUnit) {
+    try { chain = resolveUnitChain(configuredRelations); } catch { /* save displays a precise error */ }
+  }
+  const altUnit = unitRows[0]?.leftUnit ?? '';
+  const displayUnits = [unitRows[0]?.leftUnit, ...unitRows.map(row => row.rightUnit)].filter(Boolean);
+  const units = isStock && multiUnit ? [...new Set(displayUnits)] : [unit];
+  const stockUnit = chain?.stockUnit ?? unit;
+  const f = chain?.factors[altUnit] ?? 1;
+  const selectedSellUnit = units.includes(sellUnit) ? sellUnit : stockUnit;
+  const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : stockUnit;
+  const selectedOpeningUnit = units.includes(openingUnit) ? openingUnit : stockUnit;
+  const selectedMinUnit = units.includes(minUnit) ? minUnit : stockUnit;
+  const selectedStockViewUnit = units.includes(stockViewUnit) ? stockViewUnit : units[0] ?? stockUnit;
+  const unitFactor = (name: string) => chain?.factors[name] ?? (name === stockUnit ? 1 : 0);
+  const stockToBase = (qty: string, selectedUnit: string) => (Number(qty) || 0) * (unitFactor(selectedUnit) || 1);
+  const priceToBase = (amount: string, selectedUnit: string) => (Number(amount) || 0) / (unitFactor(selectedUnit) || 1);
   const sellNum = parseFloat(sell) || 0;
   const buyNum = parseFloat(buy) || 0;
   const sellBase = priceToBase(sell, selectedSellUnit);
@@ -186,8 +199,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setBuyUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
     setAdvanced(false);
     setMultiUnit(defaults.defaultUnit === 'Gira');
-    setAltUnit('Gauge');
-    setFactor('16');
+    setUnitRows([{ leftUnit: 'Gauge', rightUnit: defaults.defaultUnit, quantity: '16' }]);
     setAltPrice('');
     setStockViewUnit(defaultViewUnit);
     setOpeningQty('');
@@ -234,9 +246,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setSellUnit(initialProduct.unit);
     setBuy(String(initialProduct.purchasePrice));
     setBuyUnit(initialProduct.unit);
-    setMultiUnit(productKind === 'Stock' && Boolean(initialProduct.altUnit));
-    setAltUnit(initialProduct.altUnit?.unit ?? '');
-    setFactor(String(initialProduct.altUnit?.factor ?? 1));
+    setMultiUnit(productKind === 'Stock' && Boolean(initialProduct.unitRelations?.length || initialProduct.altUnit));
+    setUnitRows(initialProduct.unitRelations?.length
+      ? initialProduct.unitRelations.map(row => ({ ...row, quantity: String(row.quantity) }))
+      : [{ leftUnit: initialProduct.altUnit?.unit ?? 'Gauge', rightUnit: initialProduct.unit,
+           quantity: String(initialProduct.altUnit?.factor ?? 16) }]);
     setAltPrice(initialProduct.altUnit?.price ? String(initialProduct.altUnit.price) : '');
     setStockViewUnit(initialProduct.stockViewUnit ?? initialProduct.altUnit?.unit ?? initialProduct.unit);
     setOpeningQty('');
@@ -265,7 +279,7 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const changePriceUnit = (amount: string, current: string, next: string, setValue: (value: string) => void, setUnitValue: (value: string) => void) => {
     if (amount.trim() && current !== next) {
       const basePrice = priceToBase(amount, current);
-      const converted = next === normalizedAltUnit ? basePrice * f : basePrice;
+      const converted = basePrice * (unitFactor(next) || 1);
       setValue(String(Math.round(converted * 10000) / 10000));
     }
     setUnitValue(next);
@@ -277,7 +291,8 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
     setValue: (value: string) => void,
     setUnitValue: (unit: string) => void
   ) => {
-    setValue(switchQuantityUnit(amount, current, next, unit, normalizedAltUnit, f));
+    const nextValue = (Number(amount) || 0) * (unitFactor(current) || 1) / (unitFactor(next) || 1);
+    setValue(amount.trim() ? String(Number(nextValue.toPrecision(12))) : '');
     setUnitValue(next);
   };
   const quickAddUnit = (name: string, symbol: string, select: (symbol: string) => void) => {
@@ -310,8 +325,11 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
   const save = () => {
     if (!name.trim()) return setError(pl('Product name is required.'));
     if (!sellNum) return setError(pl('Enter a selling price.'));
-    if (isStock && multiUnit && (!altUnit || altUnit === unit || !Number.isFinite(Number(factor)) || Number(factor) <= 1)) {
-      return setError(pl('Choose two different units and enter a conversion greater than 1.'));
+    if (isStock && multiUnit) {
+      try { resolveUnitChain(configuredRelations); }
+      catch (cause) { return setError(cause instanceof Error ? cause.message : 'Review unit relationships.'); }
+      if (initialProduct && stockUnit !== initialProduct.unit)
+        return setError('Changing the smallest stock unit of an existing product requires a stock migration.');
     }
 
     if (warrantyEnabled && (!(parseFloat(warrantyDuration) > 0) || !warrantyType)) {
@@ -342,7 +360,9 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
       category,
       brand: isStock ? brand : undefined,
       image: photos[0],
-      unit,
+      unit: isStock ? stockUnit : unit,
+      unitRelations: isStock && multiUnit ? configuredRelations : undefined,
+      // Legacy carts use this flattened largest-to-smallest conversion until all units are supported.
       altUnit: isStock && multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
       stock: initialProduct ? initialProduct.stock : openingBaseQty,
       stockViewUnit: isStock ? selectedStockViewUnit : undefined,
@@ -452,6 +472,79 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
           {margin !== null && <p className={`text-xs ${margin < 0 ? 'text-danger' : 'text-ink-500'}`}>Margin {margin.toFixed(1)}% · profit {taka(sellBase - buyBase)} per {unit}</p>}
         </section>
 
+        {isStock && <section data-product-units-and-pricing className="rounded-xl border border-border p-3 sm:p-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-semibold text-ink">Units & Pricing</h3>
+              <p className="text-xs text-ink-500">একক ও দাম · 1 Gauge = 16 Gira</p>
+            </div>
+            <Switch checked={multiUnit} onCheckedChange={setMultiUnit} aria-label="Enable multiple units" />
+          </div>
+          {multiUnit && <div className="rounded-lg bg-teal-50/60 p-2.5 sm:p-3">
+            <div className="space-y-2">
+              {unitRows.map((row, index) => (
+                <div key={index} data-product-unit-relationship className="grid min-w-0 grid-cols-[minmax(0,1fr)_14px_minmax(0,1fr)_24px] items-center gap-1 sm:gap-1.5">
+                  <QuantityUnitInput compact readOnlyAmount
+                    label={'Larger unit ' + (index + 1)} value="1" onChange={() => {}}
+                    unit={row.leftUnit} units={unitOptions.map(item => item.symbol)}
+                    onUnitChange={(next) => {
+                      setUnitRows(previous => previous.map((item, i) =>
+                        i === index ? { ...item, leftUnit: next } :
+                        i === index - 1 ? { ...item, rightUnit: next } : item));
+                    }} />
+                  <span className="text-center text-sm font-semibold text-ink-500" aria-hidden="true">=</span>
+                  <QuantityUnitInput compact
+                    label={'Smaller unit ' + (index + 1)} value={row.quantity}
+                    onChange={value => setUnitRows(previous => previous.map((item, i) =>
+                      i === index ? { ...item, quantity: value } : item))}
+                    unit={row.rightUnit} units={unitOptions.map(item => item.symbol)}
+                    onUnitChange={(next) => {
+                      setUnitRows(previous => previous.map((item, i) =>
+                        i === index ? { ...item, rightUnit: next } :
+                        i === index + 1 ? { ...item, leftUnit: next } : item));
+                      if (index === unitRows.length - 1) setUnit(next);
+                    }} />
+                  {unitRows.length > 1 ?
+                    <button type="button" title="Remove relationship" aria-label={'Remove unit relationship ' + (index + 1)}
+                      className="flex h-8 w-6 items-center justify-center rounded-md text-ink-500 hover:bg-danger-bg hover:text-danger"
+                      onClick={() => {
+                        const rows = unitRows.filter((_, i) => i !== index).map(item => ({ ...item }));
+                        for (let i = 1; i < rows.length; i++) rows[i].leftUnit = rows[i-1].rightUnit;
+                        setUnitRows(rows);
+                        setUnit(rows[rows.length - 1].rightUnit);
+                      }}><X className="size-3.5" /></button>
+                    : <span aria-hidden="true" />}
+                </div>
+              ))}
+            </div>
+            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+              <Button size="sm" variant="outline" onClick={() => setUnitRows(previous => [
+                ...previous, { leftUnit: previous[previous.length - 1].rightUnit, rightUnit: '', quantity: '' }
+              ])}><Plus className="size-3.5" /> Add another unit</Button>
+              <span className="text-xs text-ink-600">
+                Stock unit: <strong>{chain?.stockUnit ?? 'Complete the units'}</strong>
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-ink-500">Each new row continues from the smaller unit above. Stock uses only the last unit.</p>
+            <div className="mt-3 max-w-xs">
+              <Field label="Stock / POS view unit" bn="ডিফল্ট দেখানোর একক" hint="Controls stock display and the default POS cart unit.">
+                <AppSelect label={pl('Stock / POS view unit')} value={selectedStockViewUnit}
+                  onChange={setStockViewUnit} options={units} />
+              </Field>
+            </div>
+            {selectedSellUnit === stockUnit && <div className="mt-3 max-w-xs">
+              <Field label={'Custom selling price / ' + (altUnit || 'unit')}
+                hint={autoAltSell ? 'Auto ' + taka(autoAltSell) + ' / ' + altUnit : 'Optional override'}>
+                <MoneyInput value={altPrice} onChange={event => setAltPrice(event.target.value.replace(/[^\d.]/g, ''))}
+                  placeholder={autoAltSell ? String(autoAltSell) : '0'} />
+              </Field>
+            </div>}
+            {unitRows.length > 1 && <p className="mt-2 text-xs text-ink-500">
+              POS and Purchases still need their intermediate-unit cart upgrade before this feature can be merged.
+            </p>}
+          </div>}
+        </section>
+
         <section className="rounded-xl border border-border">
           <button type="button" onClick={() => setAdvanced((value) => !value)} aria-expanded={advanced} className="flex w-full items-center justify-between px-4 py-3 text-left">
             <span>
@@ -465,53 +558,6 @@ export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = 
             {advanced && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
               <div className="space-y-5 border-t border-border p-4">
                 {isStock && <>
-                  <SettingHeader title="Sell in a larger unit too" bn="বড় এককে বিক্রি" hint="e.g. Box/Pcs or Gauge/Gira" checked={multiUnit} onCheckedChange={(checked) => {
-                    if (!checked) {
-                      if (sellUnit === altUnit) setSellUnit(unit);
-                      if (buyUnit === altUnit) setBuyUnit(unit);
-                      if (stockViewUnit === altUnit) setStockViewUnit(unit);
-                      setOpeningQty(switchQuantityUnit(openingQty, selectedOpeningUnit, unit, unit, normalizedAltUnit, f));
-                      setOpeningUnit(unit);
-                      setMinQty(switchQuantityUnit(minQty, selectedMinUnit, unit, unit, normalizedAltUnit, f));
-                      setMinUnit(unit);
-                    } else if (stockViewUnit === unit && altUnit) {
-                      setStockViewUnit(altUnit);
-                    }
-                    setMultiUnit(checked);
-                  }} />
-                  {multiUnit && <div className="rounded-lg bg-teal-50/60 p-3">
-                    <div data-product-unit-relationship className="grid min-w-0 grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] items-center gap-1.5 sm:gap-2">
-                      <QuantityUnitInput compact readOnlyAmount
-                        label={pl('Larger unit quantity')} value="1" onChange={() => {}}
-                        unit={altUnit} units={unitOptions.map((item) => item.symbol).filter((name) => name !== unit)}
-                        onUnitChange={setAltUnit} />
-                      <span className="text-center text-sm font-semibold text-ink-500" aria-hidden="true">=</span>
-                      <QuantityUnitInput compact
-                        label={pl('Smaller unit quantity')} value={factor}
-                        onChange={(value) => setFactor(value.replace(/[^\d.]/g, ''))}
-                        unit={unit} units={unitOptions.map((item) => item.symbol).filter((name) => name !== altUnit)}
-                        onUnitChange={(next) => {
-                          if (sellUnit === unit) setSellUnit(next);
-                          if (buyUnit === unit) setBuyUnit(next);
-                          if (stockViewUnit === unit) setStockViewUnit(next);
-                          if (openingUnit === unit) setOpeningUnit(next);
-                          if (minUnit === unit) setMinUnit(next);
-                          setUnit(next);
-                        }} />
-                    </div>
-                    <p className="mt-2 flex items-center gap-1.5 text-xs text-teal-800"><Info className="size-3.5" />POS can sell in either unit; stock remains in {unit}.</p>
-                    <div className="mt-3 max-w-xs">
-                      <Field label="Stock / POS view unit" bn="ডিফল্ট দেখানোর একক" hint="Controls stock display and the default POS cart unit.">
-                        <AppSelect label={pl("Stock / POS view unit")} value={selectedStockViewUnit} onChange={setStockViewUnit} options={units} />
-                      </Field>
-                    </div>
-                    {selectedSellUnit === unit && <div className="mt-3 max-w-xs">
-                      <Field label={`Custom selling price / ${altUnit || 'unit'}`} hint={autoAltSell ? `Auto ${taka(autoAltSell)} / ${altUnit}` : 'Optional override'}>
-                        <MoneyInput value={altPrice} onChange={(e) => setAltPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={autoAltSell ? String(autoAltSell) : '0'} />
-                      </Field>
-                    </div>}
-                  </div>}
-
                   <div className="grid gap-3 sm:grid-cols-2">
                     {!initialProduct && <Field label="Opening stock" bn="শুরুর স্টক">
                       <QuantityUnitInput label={pl("Opening stock")} value={openingQty} onChange={setOpeningQty}
