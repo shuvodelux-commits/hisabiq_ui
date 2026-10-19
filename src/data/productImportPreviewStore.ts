@@ -1,5 +1,6 @@
 import type {Product,StockLot,StockMovement,BundleVersion,BundleDraft} from '../types/erp.ts';
 import {validateBundleDraft} from '../bundles/bundleValidation.ts';
+import {resolveUnitChain} from '../utils/unitChain.ts';
 import type {ImportResult} from '../import/importTypes.ts';
 import type {ProductImportPlan} from '../import/productImport.ts';
 import {products as seedProducts} from './products.ts';
@@ -53,6 +54,14 @@ export function commitProductImportPreview(plan:ProductImportPlan):ImportResult 
   if(!product.name.trim()||!Number.isFinite(product.sellPrice)||product.sellPrice<=0||!Number.isFinite(product.purchasePrice)||product.purchasePrice<0)throw new Error('Invalid product master data.');
   if(!Number.isFinite(product.stock)||product.stock<0||!Number.isFinite(product.minStock)||product.minStock<0)throw new Error('Invalid stock quantity.');
   if(product.altUnit&&(!Number.isFinite(product.altUnit.factor)||product.altUnit.factor<=0||product.altUnit.unit===product.unit))throw new Error('Invalid unit conversion.');
+  if(product.unitRelations?.length){
+    const chain=resolveUnitChain(product.unitRelations);
+    if(chain.stockUnit!==product.unit)throw new Error('The smallest unit must be the stored stock unit.');
+    if(product.altUnit&&(product.altUnit.unit!==chain.units[0]||Math.abs(product.altUnit.factor-chain.factors[chain.units[0]])>1e-9))
+      throw new Error('The legacy conversion must match the unit chain.');
+    if(product.stockViewUnit&&!chain.units.includes(product.stockViewUnit))
+      throw new Error('Stock View must be a configured unit.');
+  }
   const lot=entry.openingLot,movement=entry.openingMovement;
   if(Boolean(lot)!==Boolean(movement))throw new Error('Opening lot and movement must be paired.');
   if(product.kind==='Service'&&(product.stock||lot||movement))throw new Error('A service cannot have opening stock.');
