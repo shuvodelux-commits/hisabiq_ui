@@ -4,6 +4,9 @@ import {Button} from '../Button';
 import {Input} from '../Input';
 import {ProductThumb} from '../ProductThumb';
 import {QuickAddSelect} from '../QuickAddSelect';
+import {AppSelect} from '../AppSelect';
+import {productUnitFactor} from '../../utils/unitChain';
+import {unitsFor} from '../../utils/units';
 import {ProductCombobox} from '../pos/ProductCombobox';
 import {CompoundQuantityInput} from '../transactions/CompoundQuantityInput';
 import type {BundleComponent,BundleDraft,BundleVersion,Product} from '../../types/erp';
@@ -56,7 +59,7 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
  };
  const addProduct=(product:Product)=>{
   if(selectedIds.has(product.id)){setError(text('Product already included.','এই পণ্যটি আগেই আছে।'));return;}
-  setRows(old=>[...old,{productId:product.id,unit:product.altUnit?.unit??product.unit,qty:'1',secondary:''}]);
+  setRows(old=>[...old,{productId:product.id,unit:product.stockViewUnit&&unitsFor(product).includes(product.stockViewUnit)?product.stockViewUnit:product.altUnit?.unit??product.unit,qty:'1',secondary:''}]);
   setLastAdded(product.id);setError('');
  };
  const selectUnit=(index:number,product:Product,row:Row,unit:string)=>{
@@ -65,9 +68,10 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
   try{
    const base=makeBundleComponent(product,row.unit,row.qty,row.secondary,index).baseQty;
    if(unit===product.unit)setRow(index,{unit,qty:String(base),secondary:''});
-   else if(product.altUnit?.unit===unit){
-    const whole=Math.floor((base+1e-9)/product.altUnit.factor);
-    const remaining=Number((base-whole*product.altUnit.factor).toFixed(4));
+   else if(productUnitFactor(product,unit)>1){
+    const factor=productUnitFactor(product,unit);
+    const whole=Math.floor((base+1e-9)/factor);
+    const remaining=Number((base-whole*factor).toFixed(4));
     setRow(index,{unit,qty:String(whole),secondary:remaining?String(remaining):''});
    }
   }catch(e){setError(e instanceof Error?e.message:'Review this quantity before changing the unit.');}
@@ -176,8 +180,8 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
        const product=productFor(row);
        if(!product)return <div key={row.productId} className="p-3 text-sm text-danger">{row.productId}: {text('Product missing','পণ্য নেই')}</div>;
        const amounts=findPrice(row.productId);
-       const units=[product.altUnit?.unit,product.unit].filter((u,i,a):u is string=>Boolean(u)&&a.indexOf(u)===i);
-       const isLarge=Boolean(product.altUnit&&row.unit===product.altUnit.unit);
+       const units=unitsFor(product);
+       const isLarge=productUnitFactor(product,row.unit)>1;
        return <div key={row.productId} data-cart-row="sale" data-compound={isLarge} data-testid="bundle-component-row"
         className={grid+' relative bg-card px-3 py-1.5'}>
         <div className="flex items-center justify-end"><span className="text-xs text-ink-400">{index+1}.</span></div>
@@ -198,7 +202,10 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
           onSecondaryEnter={()=>searchRef.current?.focus()}/>
         </div>
         <div data-cart-field="Price in · একক" className="min-w-0">
-         {units.length>1?<div role="radiogroup" aria-label={'Unit for '+product.name}
+         {units.length>1?units.length>2?(
+          <AppSelect label={'Unit for '+product.name} value={row.unit}
+            options={units} onChange={unit=>selectUnit(index,product,row,unit)}/>
+         ):<div role="radiogroup" aria-label={'Unit for '+product.name}
            className="flex h-9 min-w-0 rounded-md bg-ink-50 p-0.5">
           {units.map(u=><button key={u} type="button" role="radio" aria-checked={row.unit===u}
             onClick={()=>selectUnit(index,product,row,u)}
