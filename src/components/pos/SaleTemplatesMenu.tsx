@@ -31,7 +31,7 @@ export function SaleTemplatesMenu({ templates, onUse, onCreate }: SaleTemplatesM
               <p className="text-sm font-semibold text-ink">{text('Quick sale templates', 'দ্রুত বিক্রির নমুনা')}</p>
               <p className="text-[11px] text-ink-500">{text('Select a saved cart to start a sale.', 'রাখা পণ্যগুলো দিয়ে বিক্রি শুরু করুন।')}</p>
             </div>
-            <Button type="button" size="sm" variant="outline"
+            <Button type="button" size="sm" variant="outline" data-testid="pos-new-template"
               onClick={() => { close(); onCreate(); }} aria-label={text('New template', 'নতুন নমুনা')}>
               <Plus className="size-3.5" /> {text('New', 'নতুন')}
             </Button>
