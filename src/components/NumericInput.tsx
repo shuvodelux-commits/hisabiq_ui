@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from 'framer-motion';
 import {forwardRef,useRef,useEffect,useState,useCallback,type CSSProperties,type InputHTMLAttributes} from 'react';
 import {ChevronDown,ChevronUp} from 'lucide-react';
 import {Input as DesignInput} from '../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9';
@@ -11,6 +12,9 @@ export const NumericInput=forwardRef<HTMLInputElement,NumericProps>(function Num
  const layout=(/(?:^|\s)h-/.test(className)?'':'h-9 ')+(/(?:^|\s)(?:w-|flex-1)/.test(className)?'':'w-full ')+className;
  const [inferredLabel,setInferredLabel]=useState('value');
  const [clearedZero,setClearedZero]=useState(false);
+ const [showStepper,setShowStepper]=useState(false);
+ const reducedMotion=useReducedMotion();
+ const fineHover=()=>typeof window!=='undefined'&&window.matchMedia('(hover: hover) and (pointer: fine)').matches;
  const explicitLabel=props['aria-label']??props.title??props.name;
  const label=explicitLabel??inferredLabel;
  useEffect(()=>{if(!explicitLabel)setInferredLabel(input.current?.labels?.[0]?.textContent?.replace(/\s+/g,' ').trim()||'value');},[explicitLabel]);
@@ -39,18 +43,22 @@ export const NumericInput=forwardRef<HTMLInputElement,NumericProps>(function Num
   node.addEventListener('wheel',wheel,{passive:false});
   return ()=>node.removeEventListener('wheel',wheel);
  },[editable,step]);
- return <span style={{...style,'--numeric-inset':stepperInset+'px'} as CSSProperties} data-numeric-input data-stepper-size={stepperCompact?'compact':'standard'} data-editable={editable?'true':'false'} className={'relative inline-flex min-w-0 items-stretch rounded-md border border-input bg-card text-sm text-ink '+(layout+(className?'':' px-3 py-1')).replace(/\bfocus:/g,'focus-within:')}>
+ return <span onMouseEnter={()=>{if(editable&&fineHover())setShowStepper(true);}} onMouseLeave={()=>{if(input.current!==document.activeElement)setShowStepper(false);}} style={{...style,'--numeric-inset':stepperInset+'px'} as CSSProperties} data-numeric-input data-stepper-size={stepperCompact?'compact':'standard'} data-editable={editable?'true':'false'} className={'relative inline-flex min-w-0 items-stretch rounded-md border border-input bg-card text-sm text-ink '+(layout+(className?'':' px-3 py-1')).replace(/\bfocus:/g,'focus-within:')}>
   <DesignInput {...props} value={clearedZero&&props.value!==undefined&&isZeroNumberText(String(props.value))?'':props.value} type={type} min={min} max={max} disabled={disabled} readOnly={readOnly}
    ref={node=>{input.current=node;if(typeof forwardedRef==='function')forwardedRef(node);else if(forwardedRef)forwardedRef.current=node;}}
    className={className.replace(/(?:^|\s)(?:mt|mb|my)-\S+/g, "")+" numeric-input-control !h-full !min-h-0 !w-full !min-w-0 !flex-1 !rounded-none !border-0 !bg-transparent !py-0 !text-inherit !shadow-none !outline-none !ring-0 !ring-offset-0"}
-   onFocus={event=>{props.onFocus?.(event);if(editable&&!event.defaultPrevented&&isZeroNumberText(event.currentTarget.value)){setClearedZero(true);writeValue('');}}}
+   onFocus={event=>{setShowStepper(editable);props.onFocus?.(event);if(editable&&!event.defaultPrevented&&isZeroNumberText(event.currentTarget.value)){setClearedZero(true);writeValue('');}}}
    onChange={event=>{setClearedZero(event.currentTarget.value==='');props.onChange?.(event);}}
-   onBlur={event=>{setClearedZero(false);props.onBlur?.(event);}}
+   onBlur={event=>{setClearedZero(false);setShowStepper(fineHover()&&Boolean(input.current?.parentElement?.matches(':hover')));props.onBlur?.(event);}}
    onKeyDown={event=>{onKeyDown?.(event);if(event.defaultPrevented||event.altKey||event.ctrlKey||event.metaKey||event.nativeEvent.isComposing||!editable)return;if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();event.stopPropagation();step(event.key==='ArrowUp'?1:-1);}}}/>
-  {editable&&<span data-number-stepper className="absolute flex flex-col justify-center" aria-label={'Adjust '+label}>
+  {editable&&<motion.span data-number-stepper
+    initial={false}
+    animate={{ opacity: showStepper ? 1 : 0 }}
+    transition={{ duration: showStepper && !reducedMotion ? 0.12 : 0, ease: [0.16, 1, 0.3, 1] }}
+    className="absolute flex flex-col justify-center" aria-label={'Adjust '+label}>
    <button type="button" tabIndex={-1} aria-label={'Increase '+label} title="Increase by 1" onPointerDown={event=>{event.preventDefault();input.current?.focus();}} onClick={()=>step(1)} className="flex min-h-0 flex-1 items-center justify-center rounded-sm text-ink-500 hover:bg-ink-50 hover:text-ink"><ChevronUp className="size-3"/></button>
    <button type="button" tabIndex={-1} aria-label={'Decrease '+label} title="Decrease by 1" onPointerDown={event=>{event.preventDefault();input.current?.focus();}} onClick={()=>step(-1)} className="flex min-h-0 flex-1 items-center justify-center rounded-sm text-ink-500 hover:bg-ink-50 hover:text-ink"><ChevronDown className="size-3"/></button>
-  </span>}
+  </motion.span>}
  </span>;
 });
 
