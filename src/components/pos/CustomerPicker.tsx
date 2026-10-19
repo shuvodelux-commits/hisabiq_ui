@@ -47,7 +47,7 @@ export function CustomerPicker({ value, onChange }: CustomerPickerProps) {
               <span className="block truncate text-[13px] font-medium text-ink">{value ? value.name : word('walkIn')}</span>
               <span className="block truncate text-[11px] text-ink-500">
                 {value ?
-              `${value.phone} · ${word('prevDue')} ${taka(Math.max(0, value.balance))}` :
+              value.phone :
               word('cashCustomerOptional')}
               </span>
             </span>
