@@ -59,7 +59,7 @@ async function main() {
         const customerName = page.locator('input[aria-label="Customer name"],input[aria-label="ক্রেতার নাম"]');
         await customerName.waitFor();
         assert.equal(await customerName.inputValue(), 'Rahman Hardware', `${suffix} customer draft is prefilled`);
-        assert.equal(await page.locator('[data-pos-checkout] button').filter({ hasText: 'Rahman Hardware' }).count(), 1, `${suffix} source party identity stays selected`);
+        assert.equal(await page.getByTestId('pos-customer-picker-trigger').filter({ hasText: 'Rahman Hardware' }).count(), 1, `${suffix} source party identity stays selected`);
         const contextText=page.getByText(language==='Bangla'?'Rahman Hardware এর নামে বিক্রি':'Sale for Rahman Hardware',{exact:true});
         assert.ok(await contextText.count(), `${suffix} context follows the selected language`);
         const backToParty=page.getByRole('button',{name:language==='Bangla'?'পার্টিতে ফিরুন':'Back to party',exact:true});
