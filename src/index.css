@@ -50,6 +50,9 @@
   .erp-tab-active {
     box-shadow: inset 0 -2px 0 0 var(--primary);
   }
+  /* Only the shared Framer underline draws selection in migrated ERP tabs. */
+  .motion-tab-list > [role="tab"] { position: relative; }
+
 }
 
 
