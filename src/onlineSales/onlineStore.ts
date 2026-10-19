@@ -1,6 +1,7 @@
 import {transactionLineTotal} from '../utils/transactionLines.ts';
 import {requireCurrentBundleHandoffs,reviewBundleHandoffs} from '../bundles/bundleHandoff.ts';
 import type {Product} from '../types/erp.ts';
+import {productUnitFactor} from '../utils/unitChain.ts';
 import {getQuoteSnapshot,type Quotation} from '../quotations/quotePreviewStore.ts';
 
 /** Isolated UI preview; no actual stock, cash, courier or Party ledger posting. */
@@ -131,7 +132,7 @@ export function preparePosHandoff(orderId:string,products:readonly Product[]){
  const lines=order.lines.map((line,index)=>{
   const product=products.find(p=>p.id===line.productId&&p.active);
   if(!product)throw new Error('Product unavailable in POS: '+line.name);
-  if(line.unit!==product.unit&&line.unit!==product.altUnit?.unit)
+  if(productUnitFactor(product,line.unit)<=0)
    throw new Error('Product unit no longer matches POS: '+line.name);
   if(!Number.isFinite(line.quantity)||line.quantity<=0||!Number.isSafeInteger(line.quantity*1000))
    throw new Error('Unsupported order quantity for POS.');
