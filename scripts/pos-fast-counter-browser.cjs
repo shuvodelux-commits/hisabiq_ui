@@ -81,13 +81,13 @@ async function main(){
             await quickAdd.getByRole('button',{name:labels('Cancel','বাতিল')}).click();
             await quickAdd.waitFor({state:'hidden'});
             assert.equal(await name.inputValue(),'Fast Counter Test',contextId+' cancel quick add keeps draft');
-            // Due is sourced from the live customer ledger and must not clip inside the picker.
+            // Selected customer stays a compact 40px two-line picker: full ledger due is inline.
             const customerPicker=checkout.getByTestId('pos-customer-picker-trigger');
             await customerPicker.click();
             const search=page.getByTestId('pos-customer-picker-search');
             await search.fill('Rahman');
             await search.press('Enter');
-            const previousDue=checkout.locator('[data-pos-previous-balance]');
+            const previousDue=checkout.locator('[data-pos-previous-balance-inline]');
             await previousDue.waitFor({state:'visible'});
             const expectedBalance=await page.evaluate(async()=>{
               const {getPartyPreviewSnapshot}=await import('/src/data/partyPreviewStore.ts');
@@ -102,17 +102,33 @@ async function main(){
             assert.ok(expectedBalance.balance>0,contextId+' fixture has an existing customer due');
             assert.equal(await previousDue.getAttribute('data-balance-type'),'due',contextId+' due uses semantic red state');
             assert.ok((await previousDue.innerText()).includes(expectedBalance.display),contextId+' exact previous due shown');
-            assert.ok((await previousDue.innerText()).includes(language==='Bangla'?'আগের বাকি':'Previous due'),contextId+' due clearly labelled');
-            const previousLayout=await previousDue.evaluate(el=>{
-              const box=el.getBoundingClientRect();
-              return {left:box.left,right:box.right,scroll:el.scrollWidth-el.clientWidth,amount:getComputedStyle(el.lastElementChild).color};
+            assert.ok((await previousDue.innerText()).includes(language==='Bangla'?'আগের বাকি':'Prev. due'),contextId+' due clearly labelled');
+            assert.equal(await checkout.locator('[data-pos-previous-balance]').count(),0,contextId+' standalone due row removed');
+            assert.equal(await customerPicker.locator('svg.lucide-chevron-down').count(),0,contextId+' arrow is replaced by X');
+            const clearCustomer=checkout.getByTestId('pos-customer-clear-inline');
+            const geometry=await checkout.evaluate(root=>{
+              const picker=root.querySelector('[data-testid="pos-customer-picker-trigger"]');
+              const clear=root.querySelector('[data-testid="pos-customer-clear-inline"]');
+              const plus=root.querySelector('[aria-label="Quick add customer"],[aria-label="নতুন ক্রেতা যোগ করুন"]');
+              const due=root.querySelector('[data-pos-previous-balance-inline]');
+              const a=picker.getBoundingClientRect(),x=clear.getBoundingClientRect(),b=plus.getBoundingClientRect(),d=due.getBoundingClientRect();
+              return {pickerHeight:a.height,pickerRight:a.right,clearRight:x.right,plusLeft:b.left,
+                dueRight:d.right,dueLeft:d.left,dueScroll:due.scrollWidth-due.clientWidth,
+                clearParent:clear.parentElement===picker.parentElement,viewport:innerWidth};
             });
-            assert.ok(previousLayout.left>=-2&&previousLayout.right<=width+2&&previousLayout.scroll<=1,
-              contextId+' previous due does not clip: '+JSON.stringify(previousLayout));
-            assert.ok(!(await customerPicker.innerText()).includes('Prev. due'),contextId+' picker no longer truncates the due');
-            const clearCustomer=checkout.getByRole('button',{name:labels('Clear customer','ক্রেতা সরান')});
+            assert.ok(geometry.pickerHeight>=39&&geometry.pickerHeight<=41,contextId+' picker remains 40px compact');
+            assert.ok(geometry.clearParent&&geometry.clearRight<geometry.plusLeft,contextId+' X stays inside selector, before +');
+            assert.ok(geometry.dueLeft>=0&&geometry.dueRight<=geometry.pickerRight+1&&geometry.dueScroll<=1,
+              contextId+' inline due is fully visible: '+JSON.stringify(geometry));
+            await customerPicker.click();
+            await search.waitFor({state:'visible'});
+            await search.fill('Rahman');
+            await page.keyboard.press('Escape');
             await clearCustomer.click();
             await previousDue.waitFor({state:'hidden'});
+            assert.equal(await clearCustomer.count(),0,contextId+' selected-customer X disappears on clear');
+            assert.equal(await checkout.getByTestId('pos-customer-picker-trigger').locator('svg.lucide-chevron-down').count(),1,
+              contextId+' unselected picker shows dropdown arrow');
             assert.equal(await page.getByTestId('pos-cart-row').count(),initialRows,contextId+' switching customer preserves cart');
 
             await checkout.getByRole('button',{name:labels('Exact','পুরো টাকা'),exact:true}).click();
