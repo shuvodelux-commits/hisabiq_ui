@@ -1,4 +1,5 @@
 import type { BundleComponent, BundleDraft, Product } from '../types/erp.ts';
+import {productUnitFactor} from '../utils/unitChain.ts';
 
 /** Integer-scaled stock quantities prevent accumulated float errors at 4dp precision. */
 const SCALE = 10000n;
@@ -18,17 +19,16 @@ function decimalToScaled(raw: string, field: string): bigint {
 function calculateQuantity(
   product: Product, selectedUnit: string, primaryQty: string, secondaryQty: string
 ): { quantityScaled: bigint; factor: number } {
-  const isBase = selectedUnit === product.unit;
-  const isAlternate = !isBase && product.altUnit?.unit === selectedUnit;
+  const factor = productUnitFactor(product, selectedUnit);
+  const isBase = factor === 1;
+  const isAlternate = factor > 1;
   if (!isBase && !isAlternate) throw new Error("Unit '" + selectedUnit + "' is not valid for " + product.name + '.');
   const primary = decimalToScaled(primaryQty, 'Primary quantity');
   const secondary = secondaryQty.trim() ? decimalToScaled(secondaryQty, 'Secondary quantity') : 0n;
   if (isBase && secondary > 0n) throw new Error('Secondary quantity is only allowed with a larger unit.');
 
   let base = primary;
-  let factor = 1;
   if (isAlternate) {
-    factor = product.altUnit!.factor;
     if (!Number.isFinite(factor) || factor <= 1) throw new Error('Invalid unit conversion factor.');
     const scaledFactor = decimalToScaled(String(factor), 'Unit conversion factor');
     if (secondary >= scaledFactor) throw new Error('Secondary quantity must be smaller than one large unit.');
