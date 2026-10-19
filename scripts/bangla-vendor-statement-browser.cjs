@@ -21,7 +21,13 @@ async function main(){
     const vendor=page.getByRole('region',{name:'Selected Vendor work'});
     await vendor.waitFor();
     await vendor.getByRole('tab',{name:bn?/হিসাব/:/Ledger/}).click();
-    await vendor.getByRole('button',{name:bn?'হিসাব প্রিন্ট':'Print Ledger'}).click();
+    // Mobile Vendor actions are grouped behind More, using desktop action names.
+    if(width<640){
+      await vendor.getByRole('button',{name:'More Vendor actions'}).click();
+      await page.getByRole('dialog',{name:'More Vendor actions'}).getByRole('button',{name:'Print Ledger'}).click();
+    }else{
+      await vendor.getByRole('button',{name:'Print Ledger'}).click();
+    }
     const dialog=page.getByRole('dialog',{name:bn?'ভেন্ডরের হিসাবের বিবরণ':'Vendor ledger statement'});
     await dialog.waitFor();
     await dialog.getByText(bn?'শুধু নমুনা — আসল হিসাব নয়। দেনা ও পাওনা আলাদা দেখানো হয়।':'Demo preview — not accounting records. Payable and receivable are always separate.').waitFor();
