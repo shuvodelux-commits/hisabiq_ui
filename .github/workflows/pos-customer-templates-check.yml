@@ -1,0 +1,30 @@
+name: POS Customer and Templates Check
+
+on:
+  pull_request:
+    paths:
+      - 'src/pages/Pos.tsx'
+      - 'src/components/pos/CustomerPicker.tsx'
+      - 'src/components/pos/CheckoutPanel.tsx'
+      - 'src/components/pos/SaleTemplatesMenu.tsx'
+      - 'src/components/pos/SaleTemplateDialog.tsx'
+      - 'src/components/pos/InstallmentCustomerQuickAddDialog.tsx'
+      - 'src/data/salesPreviewStore.ts'
+      - 'scripts/pos-customer-templates-browser.cjs'
+      - '.github/workflows/pos-customer-templates-check.yml'
+permissions:
+  contents: read
+jobs:
+  customer-and-templates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:pos-customer-templates

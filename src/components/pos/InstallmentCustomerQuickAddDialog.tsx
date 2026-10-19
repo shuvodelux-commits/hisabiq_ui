@@ -40,7 +40,7 @@ export function InstallmentCustomerQuickAddDialog({open,onClose,onSaved,initialN
       aria-label={text('Quick add customer','নতুন ক্রেতা যোগ করুন')}>
       <DialogHeader>
         <DialogTitle>{text('Quick add customer','নতুন ক্রেতা যোগ করুন')}</DialogTitle>
-        <DialogDescription>{text('Add a customer for this installment sale. Saved to the Party preview list only.','কিস্তির জন্য ক্রেতা যোগ করুন। শুধু প্রিভিউ পার্টি তালিকায় থাকবে।')}</DialogDescription>
+        <DialogDescription>{text('Add a customer without leaving this sale. Saved to the Party preview list only.','কিস্তির জন্য ক্রেতা যোগ করুন। শুধু প্রিভিউ পার্টি তালিকায় থাকবে।')}</DialogDescription>
       </DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <label className="block space-y-1 text-xs font-medium text-ink-700">

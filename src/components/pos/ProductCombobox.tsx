@@ -72,7 +72,9 @@ ref)
     // Without this safe top inset, an upward-opening list intercepts menu taps.
     // The bilingual header can wrap to two rows on some phones; measure it rather than assume 64px.
     const headerBottom = document.querySelector<HTMLElement>('.erp-workspace > div > header')?.getBoundingClientRect().bottom ?? 0;
-    const topBoundary = viewportWidth < 1024 ? Math.max(64,headerBottom + GAP) : VIEWPORT_PADDING;
+    // Mobile menu is the real no-overlap boundary even when the bilingual header wraps.
+    const menuBottom = document.querySelector<HTMLElement>('[aria-controls="erp-mobile-drawer"]')?.getBoundingClientRect().bottom ?? 0;
+    const topBoundary = viewportWidth < 1024 ? Math.max(64, headerBottom + GAP, menuBottom + GAP) : VIEWPORT_PADDING;
     const naturalHeight = listRef.current?.scrollHeight ?? 0;
     const maxViewportHeight = Math.max(80, viewportHeight - topBoundary - VIEWPORT_PADDING);
     const spaceBelow = Math.max(0, viewportHeight - triggerRect.bottom - GAP - VIEWPORT_PADDING);
