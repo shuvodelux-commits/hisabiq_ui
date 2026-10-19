@@ -239,7 +239,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <Row muted label={language === "Bangla" ? (totals.roundingLabel ? "রাউন্ডিং" : word("rounding")) : (totals.roundingLabel || word("rounding"))} value={`${totals.rounding >= 0 ? '+' : '−'}৳${formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)}`} />
       </div>
 
-      <div data-pos-payable className="mx-3.5 rounded-xl border border-teal-200/80 bg-teal-50/50 px-3.5 py-3 text-ink dark:border-teal-800/70 dark:bg-teal-950/20">
+      <div data-pos-payable className="mx-3.5 rounded-xl border border-teal-200/80 bg-teal-50/50 px-3.5 py-3 text-ink">
         <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
           <span className="text-[13px] text-ink-600">
             {word("totalPayable")} {showHelper && <span className="font-bn">· মোট</span>}
