@@ -21,26 +21,34 @@ async function main() {
       await page.getByRole('option', { name: value, exact: true }).click();
     }
     async function selectedText(selector) { return (await selector.innerText()).trim(); }
-    async function quickAdd(field, value, symbol) {
+    async function quickAdd(field, value) {
       await product.getByRole('button', { name: 'Quick add ' + field.toLowerCase() }).click();
       const quick = page.locator('[data-slot="dialog-content"]').last();
-      const namePlaceholder = field === 'Base unit' ? 'Unit name, e.g. Meter' :
-        field === 'Larger unit' ? 'e.g. Box or Gauge' : field + ' name';
-      await quick.getByPlaceholder(namePlaceholder).fill(value);
-      if (symbol) await quick.getByPlaceholder('e.g. pcs, ft, m · defaults to name').fill(symbol);
+      await quick.getByPlaceholder(field + ' name').fill(value);
       await quick.getByRole('button', { name: 'Add ' + field.toLowerCase() }).click();
-      await page.getByPlaceholder(namePlaceholder).waitFor({ state: 'hidden' });
+      await page.getByPlaceholder(field + ' name').waitFor({ state: 'hidden' });
+    }
+    async function addUnit(value, symbol) {
+      await product.getByRole('button',{name:'Manage Units'}).click();
+      await product.getByRole('textbox',{name:'New unit name'}).fill(value);
+      await product.getByRole('textbox',{name:'Unit symbol'}).fill(symbol);
+      await product.getByRole('button',{name:'Add',exact:true}).click();
     }
     await quickAdd('Category', 'QA Components');
     await quickAdd('Brand', 'QA Manufacturer');
-    await quickAdd('Base unit', 'Sample Unit', 'su');
-    assert.equal(await selectedText(product.getByRole('combobox', { name: 'Base unit' })), 'su');
+    await addUnit('Sample Unit', 'su');
+    await addUnit('Bundle', 'bdl');
+    const largerUnit = product.getByRole('combobox',{name:'Larger unit 1 unit'});
+    const smallerUnit = product.getByRole('combobox',{name:'Smaller unit 1 unit'});
+    await chooseUnit(largerUnit,'bdl');
+    await chooseUnit(smallerUnit,'su');
+    assert.equal(await selectedText(largerUnit),'bdl');
+    assert.equal(await selectedText(smallerUnit),'su');
+    assert.equal(await product.getByRole('button',{name:'Add another unit'}).count(),1);
     const advanced = product.getByRole('button', { name: /Advanced/ });
     assert.equal(await advanced.getAttribute('aria-expanded'), 'false', 'advanced fields start collapsed for a simple product form');
     await advanced.click();
     assert.equal(await advanced.getAttribute('aria-expanded'), 'true');
-    await quickAdd('Larger unit', 'Bundle', 'bdl');
-    assert.equal(await selectedText(product.getByRole('combobox', { name: 'Larger unit' })), 'bdl');
     assert.equal(await selectedText(product.getByRole('combobox', { name: 'Category' })), 'QA Components');
     assert.equal(await selectedText(product.getByRole('combobox', { name: 'Brand' })), 'QA Manufacturer');
 
