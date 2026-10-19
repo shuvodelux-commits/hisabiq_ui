@@ -31,6 +31,9 @@ async function main(){
             assert.ok(initialRows>0,contextId+' cart remains present');
             const toggle=checkout.getByTestId('pos-invoice-details-toggle');
             assert.equal(await toggle.getAttribute('aria-expanded'),'false',contextId+' invoice details start collapsed');
+            const invoiceChevron=toggle.locator('svg.lucide-chevron-down');
+            assert.equal(await invoiceChevron.count(),1,contextId+' invoice details uses one chevron');
+            assert.doesNotMatch((await toggle.innerText()).trim(),/^[+−]/,contextId+' no plus/minus prefix in invoice details label');
             const details=checkout.locator('[data-pos-customer-fields]');
             assert.equal(await details.isVisible(),false,contextId+' optional fields hidden until requested');
             assert.ok(await checkout.getByRole('button',{name:labels('Enter customer details','ক্রেতার তথ্য দিন')}).isVisible(),contextId+' due warning has direct next action');
@@ -104,6 +107,7 @@ async function main(){
 
             await toggle.click();
             assert.equal(await toggle.getAttribute('aria-expanded'),'true',contextId+' customer details open');
+            assert.match(await invoiceChevron.getAttribute('class'),/rotate-180/,contextId+' chevron rotates when details expand');
             const name=details.getByRole('textbox',{name:labels('Customer name','ক্রেতার নাম')});
             const phone=details.getByRole('textbox',{name:labels('Customer phone','ক্রেতার ফোন')});
             await name.fill('Fast Counter Test');

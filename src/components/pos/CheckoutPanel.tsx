@@ -160,7 +160,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             className="flex w-full items-center justify-between gap-2 rounded-lg p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500">
             <span className="min-w-0 flex-1">
               <span className="block text-[12px] font-semibold text-ink">
-                {customerDetailsOpen?'−':'+'} {word("invoiceCustomer")}
+                {word("invoiceCustomer")}
                 {showHelper && <span className="font-bn font-normal text-ink-500"> · ক্রেতার তথ্য</span>}
               </span>
               {!customerDetailsOpen && <span className="mt-0.5 block truncate text-[11px] text-ink-500">
