@@ -16,7 +16,7 @@ async function main(){
   assert.deepEqual(firstThree,['/app/dashboard','/app/pos','/app/counter'],'most-used modules come first');
   await nav.getByRole('link',{name:/Counter/}).click();
   assert.ok(page.url().includes('/app/counter'),'Counter has its own top-level route');
-  await page.getByText('Receive customer payments, pay suppliers, record expenses and transfer money.').waitFor();
+  await page.getByRole('group',{name:'Counter actions'}).getByRole('button',{name:/Customer Receive/}).waitFor();
   assert.equal(await nav.getByRole('link',{name:/Counter/}).getAttribute('aria-current'),'page');
   await page.goto(base+'/app/quotations');
   await nav.getByRole('link',{name:/Quotations & Estimates/}).waitFor();
