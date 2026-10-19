@@ -2,11 +2,11 @@ import { useId, type ComponentPropsWithoutRef } from 'react';
 import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 
 /** Presentation-only tab wrapper: module state, handlers and focus remain with existing tabs. */
-export function MotionTabList({ children, ...props }: ComponentPropsWithoutRef<'div'>) {
+export function MotionTabList({ children, className, ...props }: ComponentPropsWithoutRef<'div'>) {
   const scopeId = useId();
   return (
     <LayoutGroup id={scopeId}>
-      <div {...props} role="tablist">{children}</div>
+      <div {...props} role="tablist" className={`motion-tab-list ${className ?? ""}`}>{children}</div>
     </LayoutGroup>
   );
 }
