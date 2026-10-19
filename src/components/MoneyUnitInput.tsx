@@ -37,7 +37,7 @@ export function MoneyUnitInput({
       />
       {onUnitChange && units.length > 0 && (
         <div className={(compact ? "w-[86px] sm:w-[100px]" : "w-[108px]") + " shrink-0 border-l border-border bg-ink-50/50"}>
-          <AppSelect label={label + ' unit'} value={unit} options={units} onChange={onUnitChange}
+          <AppSelect label={label + ' unit'} value={unit ?? ''} options={units} onChange={onUnitChange}
             disabled={disabled} compact className="h-full [&>button]:h-full [&>button]:rounded-none" />
         </div>
       )}
