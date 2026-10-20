@@ -190,10 +190,10 @@ export function PartyDetail({
     }
   ];
 
-  const menuItem = (item: typeof menuActions[number], close: () => void) => {
+  const menuItem = (item: typeof menuActions[number], close: () => void, variant: 'menu' | 'sheet') => {
     const Icon = item.icon;
     const disabled = Boolean(item.disabledReason);
-    return <button key={item.id} type="button" role="menuitem"
+    return <button key={item.id} type="button" role={variant === 'menu' ? 'menuitem' : undefined}
       disabled={disabled} title={item.disabledReason}
       onClick={() => { close(); item.run(); }}
       className="flex min-h-14 w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left transition-colors hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-teal-500 disabled:cursor-not-allowed disabled:opacity-50">
@@ -345,7 +345,7 @@ export function PartyDetail({
             <MoreHorizontal className="size-4" />{text('More', 'আরও')}
           </Button>}>
           {close => <div className="p-1" role="menu" aria-label={text('More actions', 'আরও কাজ')}>
-            {menuActions.map(item => menuItem(item,close))}
+            {menuActions.map(item => menuItem(item,close,'menu'))}
           </div>}
         </FloatingPanel>
       </div>
@@ -353,7 +353,7 @@ export function PartyDetail({
       <PartyActionSheet open={mobileActionsOpen} onClose={() => setMobileActionsOpen(false)}
         title={text('More actions', 'আরও কাজ')} titleBn="আরও কাজ">
         <div role="group" aria-label={text('More actions', 'আরও কাজ')}>
-          {menuActions.map(item => menuItem(item,() => setMobileActionsOpen(false)))}
+          {menuActions.map(item => menuItem(item,() => setMobileActionsOpen(false),'sheet'))}
         </div>
       </PartyActionSheet>
 
