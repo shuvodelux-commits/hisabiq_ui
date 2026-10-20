@@ -16,12 +16,13 @@ type PartyDirectoryProps = {
   onRole: (r: PartyRole | 'All') => void;
   query: string;
   onQuery: (q: string) => void;
+  picker?: boolean;
 };
 
-export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, query, onQuery }: PartyDirectoryProps) {
+export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, query, onQuery, picker=false }: PartyDirectoryProps) {
   const {text,language}=useUiCopy();
   return (
-    <div className="flex min-h-0 min-w-0 flex-col rounded-xl border border-border bg-card shadow-card">
+    <div className={`flex min-h-0 min-w-0 flex-col bg-card ${picker ? 'flex-1 overflow-hidden' : 'rounded-xl border border-border shadow-card'}`}>
       <div className="space-y-2 border-b border-border p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
@@ -30,17 +31,17 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
             onChange={(e) => onQuery(e.target.value)}
             placeholder={text('Search name or phone…','নাম বা ফোন দিয়ে খুঁজুন…')}
             aria-label={text('Search parties','পার্টি খুঁজুন')}
-            className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+            className={`${picker ? 'h-11' : 'h-8'} w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
           
         </div>
-        <div className="flex flex-wrap gap-1" role="tablist" aria-label={text('Filter by role','সম্পর্ক অনুযায়ী বাছুন')}>
+        <div className={`flex gap-1 ${picker ? 'overflow-x-auto pb-1' : 'flex-wrap'}`} role="tablist" aria-label={text('Filter by role','সম্পর্ক অনুযায়ী বাছুন')}>
           {(['All', ...partyRoles] as (PartyRole | 'All')[]).map((r) =>
           <button
             key={r}
             role="tab"
             aria-selected={role === r}
             onClick={() => onRole(r)}
-            className={`h-6 rounded-md px-2 text-[11.5px] font-medium transition-colors ${
+            className={`${picker ? 'h-9 shrink-0' : 'h-6'} rounded-md px-2 text-[11.5px] font-medium transition-colors ${
             role === r ? 'bg-inverse text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'}`
             }>
             
@@ -55,14 +56,14 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
         <span>{text('Balance','জের')}</span>
       </div>
 
-      <ul data-party-directory-list className="max-h-[calc(100vh-290px)] min-h-[320px] flex-1 overflow-auto scrollbar-thin" role="listbox" aria-label={text('Parties','পার্টি তালিকা')}>
+      <ul data-party-directory-list className={`${picker ? 'min-h-0 max-h-[min(52dvh,480px)]' : 'max-h-[calc(100vh-290px)] min-h-[320px]'} flex-1 overflow-auto scrollbar-thin`}" role="listbox" aria-label={text('Parties','পার্টি তালিকা')}>
         {parties.map((p) => {
           const active = p.id === selectedId;
           return (
             <li key={p.id} role="presentation">
               <button role="option" aria-selected={active}
                 onClick={() => onSelect(p.id)}
-                className={`flex w-full items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors ${
+                className={`flex w-full min-w-0 items-center gap-2.5 border-l-2 px-3 text-left transition-colors ${picker ? 'min-h-16 py-3' : 'py-2.5'} ${
                 active ? 'border-teal-600 bg-teal-50/60' : 'border-transparent hover:bg-ink-50'}`
                 }>
                 
@@ -76,7 +77,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
                     <span className="truncate text-[11px] text-ink-400">· {p.lastActivity}</span>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="min-w-0 shrink-0 text-right">
                   {role==='All'&&p.roles.length>1?
                     <><p className="text-[12px] font-semibold text-ink-600">{text('Multiple ledgers','একাধিক খাতা')}</p>
                       <p className="text-[10.5px] text-ink-400">{text('Select relationship','কোন সম্পর্কের হিসাব দেখবেন?')}</p></>:
