@@ -301,8 +301,8 @@ export function PartyDetail({
           <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold" onClick={() => setPaymentOpen(true)}>
             <HandCoins className="size-[18px]" />{payable ? text('Make payment', 'টাকা দিন') : text('Receive payment', 'টাকা নিন')}
           </Button>
-          {relationship === 'Customer' ? <Button size="sm" variant="outline" className="min-h-11" disabled={party.status==='Inactive'} onClick={onNewInvoice}>
-            <Plus className="size-4" />{text('New invoice', 'নতুন বিল')}
+          {relationship === 'Customer' ? <Button size="sm" variant="outline" className="min-h-11" disabled={relationship!=='Customer'||party.status==='Inactive'} onClick={onNewInvoice}>
+            <Plus className="size-4" />{text('New invoice','নতুন বিল')}
           </Button> : <Button size="sm" variant="outline" className="min-h-11" onClick={() => setOpeningOpen(true)}>
             <BookOpen className="size-4" />{text('Opening balance', 'শুরুর জের')}
           </Button>}
