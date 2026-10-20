@@ -27,12 +27,14 @@ async function main(){
     await payment.getByRole('button',{name:label('Cancel','বাতিল')}).click();
     await payment.waitFor({state:'hidden'});
 
+    if(width<768)await page.getByRole('button',{name:label('Filters','ফিল্টার')}).click();
     await page.getByRole('button',{name:label('Print statement','হিসাব প্রিন্ট')}).click();
     const statement=page.getByRole('dialog',{name:label('Party ledger statement','পক্ষের হিসাবের বিবরণ')});
     await statement.getByText(label('Opening balance (brought forward)','আগের জের'),{exact:true}).first().waitFor();
     await statement.getByRole('button',{name:label('Close','বন্ধ করুন'),exact:true}).last().click();
 
     await page.goto('http://127.0.0.1:4407/#/app/parties?id=o1&role=Owner');
+    if(width<768)await page.getByRole('button',{name:label('More actions','আরও কাজ')}).click();
     await page.getByRole('button',{name:label('Record owner finance','টাকা লেনদেন লিখুন')}).click();
     const finance=page.getByRole('dialog',{name:label('Party finance transaction','ঋণ বা মূলধনের লেনদেন')});
     await finance.getByRole('button',{name:label('Review finance transaction','লেনদেন যাচাই করুন')}).click();
