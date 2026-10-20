@@ -204,7 +204,7 @@ export function PartyDetail({
               <FormSelect title={text('Relationship', 'সম্পর্কের ধরন')} value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)} />
             </div>}
           </div>
-          <div className="hidden max-w-[280px] shrink-0 2xl:block">
+          <div className="hidden max-w-[280px] shrink-0 min-[900px]:block lg:hidden xl:block">
             {vendorProfile ?
               <div className="divide-y divide-border rounded-xl border border-border bg-card">
                 <div className="flex items-center justify-between gap-3 p-3">
@@ -225,7 +225,7 @@ export function PartyDetail({
             <ArrowLeftRight className="size-4" /> {text('Change party', 'পার্টি বদলান')}
           </Button>
         </div>
-        <div className="mt-4 2xl:hidden">
+        <div className="mt-4 min-[900px]:hidden lg:block xl:hidden">
           {vendorProfile ? <div className="divide-y divide-border rounded-lg border border-border bg-card">
             <div className="flex min-w-0 items-center justify-between gap-3 px-3 py-2.5">
               <span className="text-sm font-semibold text-danger">{text('You owe', 'আপনাকে দিতে হবে')}</span>
