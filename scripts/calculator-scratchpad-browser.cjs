@@ -42,7 +42,10 @@ async function main() {
       const pageScroll=await page.evaluate(()=>window.scrollY);
       const clear=surface.getByRole('button',{name:'Clear all calculator lines'});
       await clear.click();
-      assert.equal(await surface.locator('[data-calculator-line]').count(),1);
+      assert.equal(await surface.locator('[data-calculator-line]').count(),4,'Clear restores four editable rows');
+      const lastDefaultRow=await surface.locator('[data-calculator-line]').nth(3).boundingBox();
+      const listAfterClear=await surface.locator('[data-calculator-lines]').boundingBox();
+      assert.ok(lastDefaultRow && listAfterClear && lastDefaultRow.y+lastDefaultRow.height <= listAfterClear.y+listAfterClear.height+1,'All four default rows are actually visible');
       for(const key of ['5','0','0','+','1','0','%']) await surface.getByRole('button',{name:key,exact:true}).click();
       assert.equal((await total.textContent()).trim(),'550','Smart percentage on keypad');
       await surface.getByRole('button',{name:'Next calculation line'}).click();

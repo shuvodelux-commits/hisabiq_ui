@@ -29,10 +29,19 @@ const KEYS: CalcKey[] = [
   { label: '.', value: '.' }, { label: 'Enter', action: 'next', kind: 'next' }
 ];
 
+const MIN_VISIBLE_LINES = 4;
+
+// Keep four real editable rows visible even before the first calculation.
+function withVisibleLines(lines: string[]): string[] {
+  return lines.length >= MIN_VISIBLE_LINES
+    ? lines
+    : [...lines, ...Array<string>(MIN_VISIBLE_LINES - lines.length).fill('')];
+}
+
 function loadLines(): string[] {
-  if (typeof window === 'undefined') return [''];
-  try { return sanitizeCalculatorLines(JSON.parse(window.localStorage.getItem(CALCULATOR_STORAGE_KEY) ?? 'null')); }
-  catch { return ['']; }
+  if (typeof window === 'undefined') return withVisibleLines(['']);
+  try { return withVisibleLines(sanitizeCalculatorLines(JSON.parse(window.localStorage.getItem(CALCULATOR_STORAGE_KEY) ?? 'null'))); }
+  catch { return withVisibleLines(['']); }
 }
 
 export function Calculator() {
@@ -48,7 +57,7 @@ export function Calculator() {
   const { results, total, errors } = summarizeCalculatorLines(lines);
 
   const store = useCallback((next: string[]) => {
-    const safe = sanitizeCalculatorLines(next);
+    const safe = withVisibleLines(sanitizeCalculatorLines(next));
     linesRef.current = safe;
     setLines(safe);
     try { window.localStorage.setItem(CALCULATOR_STORAGE_KEY, JSON.stringify(safe)); }
@@ -241,7 +250,7 @@ export function Calculator() {
         </div>}
       </div>
       <div ref={listRef} data-calculator-lines
-        className="min-h-[156px] flex-1 space-y-1 overflow-y-auto overscroll-contain px-1 py-1 scrollbar-thin">
+        className="min-h-[166px] flex-1 space-y-1 overflow-y-auto overscroll-contain px-1 py-1 scrollbar-thin">
         {lines.map((line, idx) => {
           const result = results[idx] ?? evaluateCalculatorExpression(line);
           const hasError = Boolean(line.trim() && result.error);
