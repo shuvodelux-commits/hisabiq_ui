@@ -11,6 +11,7 @@ on:
       - 'src/pages/**'
       - 'src/index.css'
       - 'scripts/motion-navigation-browser.cjs'
+      - 'scripts/sidebar-interaction-browser.cjs'
       - 'tests/motionTabContract.test.ts'
       - '.github/workflows/framer-motion-check.yml'
 permissions:
@@ -31,6 +32,7 @@ jobs:
       - run: npm run check:ui-contract
       - run: npx playwright install --with-deps chromium
       - run: npm run test:motion-navigation
+      - run: npm run test:sidebar-interactions
       - run: node scripts/numeric-steppers-browser.cjs
       - run: npm run test:sidebar-target-size
       - run: npm run test:erp-navigation

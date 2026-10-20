@@ -100,7 +100,8 @@
     "test:vendor-party-layout": "node scripts/vendor-party-layout-browser.cjs",
     "test:counter-finance-transaction": "node scripts/counter-finance-transaction-browser.cjs",
     "test:impeccable-priority": "node scripts/impeccable-priority-browser.cjs",
-    "test:motion-navigation": "node scripts/motion-navigation-browser.cjs"
+    "test:motion-navigation": "node scripts/motion-navigation-browser.cjs",
+    "test:sidebar-interactions": "node scripts/sidebar-interaction-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
