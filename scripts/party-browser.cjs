@@ -61,9 +61,19 @@ async function main() {
     await choose.waitFor({state:'hidden'});
     await page.getByRole('heading',{name:/CSV Supplier QA/}).waitFor();
     await page.getByRole('button',{name:'More actions'}).click();
-    await page.getByRole('button',{name:/Opening balance/}).first().waitFor();
+    const actionSheet=page.getByRole('dialog',{name:'More actions'});
+    await actionSheet.getByRole('button',{name:/Opening balance/}).waitFor();
+    await actionSheet.getByRole('button',{name:/Print statement/}).waitFor();
+    await actionSheet.getByRole('button',{name:/Edit party/}).waitFor();
+    await actionSheet.getByRole('button',{name:/Send statement/}).isDisabled().then(ok=>assert.ok(ok));
     await page.keyboard.press('Escape');
     await page.getByRole('dialog',{name:'More actions'}).waitFor({state:'hidden'});
+    const ledgerFeed=page.getByRole('list',{name:'Transactions'});
+    assert.equal(await ledgerFeed.getByRole('button',{name:'View',exact:true}).count(),0,'no standalone View buttons in ledger feed');
+    await ledgerFeed.getByRole('button',{name:/View transaction/}).first().click();
+    const transaction=page.getByRole('dialog',{name:'Party transaction details'});
+    await transaction.waitFor();
+    await transaction.getByRole('button',{name:'Close'}).first().click();
 
     for(const width of [320,360,390,600,768,820,1024,1280,1440]){
       await page.setViewportSize({width,height:900});
