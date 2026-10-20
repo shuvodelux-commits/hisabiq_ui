@@ -1,6 +1,6 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FileText, HandCoins, MapPin, MessageSquare, MoreHorizontal, ArrowLeftRight, Clock, ChevronLeft, ChevronRight, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
@@ -76,6 +76,13 @@ export function PartyDetail({
   const {text}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
   const [mobileActionsOpen,setMobileActionsOpen] = useState(false);
+  useEffect(()=>{
+    const media=window.matchMedia('(min-width: 768px)');
+    const close=()=>{if(media.matches)setMobileActionsOpen(false);};
+    media.addEventListener('change',close);
+    close();
+    return ()=>media.removeEventListener('change',close);
+  },[]);
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
   const [editingNote, setEditingNote] = useState<LedgerEntry | null>(null);
