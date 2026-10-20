@@ -201,6 +201,9 @@ jobs:
       - name: Check Online Sales order, COD, CRM and SMS journeys
         run: npm run test:online-sales
 
+      - name: Check calculator multiline, persistence and viewport visibility
+        run: npm run test:calculator-scratchpad
+
       - name: Check shared POS compound quantity inputs and mobile geometry
         run: npm run test:compound-units
 

@@ -9,6 +9,7 @@ type FloatingPanelProps = {
   width?: number;
   label: string;
   className?: string;
+  panelClassName?: string;
 };
 
 type PanelPosition = {
@@ -22,7 +23,7 @@ type PanelPosition = {
 const VIEWPORT_PADDING = 8;
 const GAP = 8;
 
-export function FloatingPanel({ trigger, children, align = 'right', width = 320, label, className = 'inline-block' }: FloatingPanelProps) {
+export function FloatingPanel({ trigger, children, align = 'right', width = 320, label, className = 'inline-block', panelClassName = '' }: FloatingPanelProps) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<PanelPosition | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -129,7 +130,7 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.14, ease: 'easeOut' }}
-              className="fixed z-[100] overflow-y-auto rounded-xl border border-border bg-card shadow-pop scrollbar-thin"
+              className={'fixed z-[100] overflow-y-auto rounded-xl border border-border bg-card shadow-pop scrollbar-thin ' + panelClassName}
               style={{
                 top: position?.top ?? 0,
                 left: position?.left ?? 0,
