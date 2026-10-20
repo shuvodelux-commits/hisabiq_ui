@@ -71,7 +71,7 @@ async function main() {
       assert.ok(keypadBox && keypadBox.y+keypadBox.height<=height+1,'Keypad stays on screen');
       assert.ok(totalBox && totalBox.y+totalBox.height<=height+1,'Sticky grand total stays on screen');
       assert.equal(await page.evaluate(()=>window.scrollY),pageScroll,'Background page must not scroll');
-      await page.getByRole('button',{name:'Calculator',exact:true}).click();
+      await page.keyboard.press('Escape');
       await dialog.waitFor({state:'hidden'});
       await page.getByRole('button',{name:'Calculator',exact:true}).click();
       const restored=page.getByRole('dialog',{name:'Calculator',exact:true});
