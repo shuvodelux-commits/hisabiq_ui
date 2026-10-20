@@ -34,7 +34,6 @@ async function main(){
     await statement.getByRole('button',{name:label('Close','বন্ধ করুন'),exact:true}).last().click();
 
     await page.goto('http://127.0.0.1:4407/#/app/parties?id=o1&role=Owner');
-    if(width<768)await page.getByRole('button',{name:label('More actions','আরও কাজ')}).click();
     await page.getByRole('button',{name:label('Record owner finance','টাকা লেনদেন লিখুন')}).click();
     const finance=page.getByRole('dialog',{name:label('Party finance transaction','ঋণ বা মূলধনের লেনদেন')});
     await finance.getByRole('button',{name:label('Review finance transaction','লেনদেন যাচাই করুন')}).click();
