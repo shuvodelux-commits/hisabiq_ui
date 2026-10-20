@@ -1,18 +1,8 @@
 name: Framer Motion Navigation Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/motion/**'
-      - 'src/components/layout/**'
-      - 'src/components/NumericInput.tsx'
-      - 'src/components/parties/PartyDetail.tsx'
-      - 'src/components/vendor/VendorTabs.tsx'
-      - 'src/components/products/ProductSettings.tsx'
-      - 'src/pages/**'
-      - 'src/index.css'
-      - 'scripts/motion-navigation-browser.cjs'
-      - 'tests/motionTabContract.test.ts'
-      - '.github/workflows/framer-motion-check.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

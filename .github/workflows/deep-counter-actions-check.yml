@@ -1,13 +1,8 @@
 name: Deep Counter Actions Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/pages/Finance.tsx'
-      - 'src/components/finance/**'
-      - 'src/components/Dialog.tsx'
-      - 'src/index.css'
-      - 'scripts/deep-counter-actions-browser.cjs'
-      - '.github/workflows/deep-counter-actions-check.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

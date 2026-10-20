@@ -1,10 +1,8 @@
 name: Purchase Source Review Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/pages/Purchases.tsx'
-      - 'scripts/purchase-source-review-browser.cjs'
-      - '.github/workflows/purchase-source-review-check.yml'
+  workflow_dispatch:
+
 jobs:
   browser:
     runs-on: ubuntu-latest

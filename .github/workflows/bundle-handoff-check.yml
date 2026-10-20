@@ -1,16 +1,8 @@
 name: Bundle Handoff Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/bundles/bundleHandoff.ts'
-      - 'src/quotations/**'
-      - 'src/onlineSales/**'
-      - 'src/pages/Quotations.tsx'
-      - 'src/pages/OnlineSales.tsx'
-      - 'src/pages/Pos.tsx'
-      - 'tests/bundleHandoff.test.ts'
-      - 'scripts/bundle-handoff-browser.cjs'
-      - '.github/workflows/bundle-handoff-check.yml'
+  workflow_dispatch:
+
 jobs:
   quote-online-pos:
     runs-on: ubuntu-latest

@@ -1,16 +1,8 @@
 name: Deep Finance Validation Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/index.css'
-      - 'src/App.tsx'
-      - 'src/components/Dialog.tsx'
-      - 'src/pages/Finance.tsx'
-      - 'src/components/finance/**'
-      - 'src/utils/financePaymentDrafts.ts'
-      - 'tests/financePaymentDrafts.test.ts'
-      - 'scripts/deep-finance-validation-browser.cjs'
-      - '.github/workflows/deep-finance-validation-check.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

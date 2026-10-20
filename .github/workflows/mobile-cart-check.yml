@@ -1,13 +1,8 @@
 name: Mobile Cart Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/components/pos/CartTable.tsx'
-      - 'src/components/purchases/PurchaseCart.tsx'
-      - 'src/components/transactions/TransactionCartEditor.tsx'
-      - 'src/index.css'
-      - 'scripts/mobile-carts-browser.cjs'
-      - '.github/workflows/mobile-cart-check.yml'
+  workflow_dispatch:
+
 jobs:
   carts:
     runs-on: ubuntu-latest

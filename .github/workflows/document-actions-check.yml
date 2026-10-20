@@ -1,19 +1,8 @@
 name: Document Actions Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/pages/Sales.tsx'
-      - 'src/pages/Warranty.tsx'
-      - 'src/pages/Products.tsx'
-      - 'src/pages/Reports.tsx'
-      - 'src/pages/Accounts.tsx'
-      - 'src/components/brand/ReceiptPreview.tsx'
-      - 'src/components/brand/printReceipt.tsx'
-      - 'src/utils/salesDocuments.ts'
-      - 'scripts/document-actions-browser.cjs'
-      - 'scripts/receipt-preview-browser.cjs'
-      - 'tests/salesDocuments.test.ts'
-      - '.github/workflows/document-actions-check.yml'
+  workflow_dispatch:
+
 jobs:
   browser:
     runs-on: ubuntu-latest

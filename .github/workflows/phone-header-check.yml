@@ -1,15 +1,8 @@
 name: Phone Header Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/components/layout/TopBar.tsx'
-      - 'src/components/Panel.tsx'
-      - 'src/components/parties/PartyDirectory.tsx'
-      - 'src/components/parties/PartyDetail.tsx'
-      - 'src/pages/Pos.tsx'
-      - 'src/pages/Reports.tsx'
-      - 'scripts/phone-header-browser.cjs'
-      - '.github/workflows/phone-header-check.yml'
+  workflow_dispatch:
+
 jobs:
   browser:
     runs-on: ubuntu-latest

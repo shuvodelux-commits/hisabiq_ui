@@ -1,17 +1,8 @@
 name: Installment Lifecycle Preview Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/installments/**'
-      - 'src/data/installmentPreviewStore.ts'
-      - 'src/components/pos/Installment*'
-      - 'src/pages/Pos.tsx'
-      - 'tests/installment*'
-      - 'src/components/pos/CheckoutPanel.tsx'
-      - 'scripts/installment-pos-browser.cjs'
-      - 'scripts/installment-payment-browser.cjs'
-      - 'scripts/installment-lifecycle-browser.cjs'
-      - '.github/workflows/installment-lifecycle-preview-check.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

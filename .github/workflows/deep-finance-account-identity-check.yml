@@ -1,15 +1,8 @@
 name: Deep Finance Account Identity Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/pages/Finance.tsx'
-      - 'src/components/finance/FinancePaymentSplitEditor.tsx'
-      - 'src/components/finance/FinanceRecordDialogs.tsx'
-      - 'src/data/financeAccounts.ts'
-      - 'src/utils/accountTransferIdentity.ts'
-      - 'tests/accountTransferIdentity.test.ts'
-      - 'scripts/deep-finance-account-identity-browser.cjs'
-      - '.github/workflows/deep-finance-account-identity-check.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

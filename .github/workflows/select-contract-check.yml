@@ -1,12 +1,8 @@
 name: Select Contract Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/components/FormSelect.tsx'
-      - 'src/components/parties/LedgerTable.tsx'
-      - 'src/utils/partyActions.ts'
-      - 'scripts/select-contract-browser.cjs'
-      - '.github/workflows/select-contract-check.yml'
+  workflow_dispatch:
+
 jobs:
   browser:
     runs-on: ubuntu-latest

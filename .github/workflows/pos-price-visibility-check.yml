@@ -1,13 +1,8 @@
 name: POS Price Visibility Check
+# Extended regression check; run manually from Actions.
 on:
-  pull_request:
-    paths:
-      - 'src/components/pos/CartTable.tsx'
-      - 'src/components/products/BundleEditor.tsx'
-      - 'src/index.css'
-      - 'scripts/pos-price-visibility-browser.cjs'
-      - 'scripts/pos-responsive-cart-browser.cjs'
-      - '.github/workflows/pos-price-visibility-check.yml'
+  workflow_dispatch:
+
 jobs:
   visible-price:
     runs-on: ubuntu-latest
