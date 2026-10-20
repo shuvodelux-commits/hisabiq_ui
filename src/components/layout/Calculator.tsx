@@ -264,6 +264,7 @@ export function Calculator() {
                 ref={node => { inputs.current[idx] = node; }}
                 data-calculator-input
                 type="text" inputMode={touch ? 'none' : 'decimal'} readOnly={touch}
+                style={{ outline: 'none', outlineWidth: 0, boxShadow: 'none' }}
                 autoComplete="off" spellCheck={false}
                 aria-label={text('Calculation line ', 'হিসাবের লাইন ') + (idx + 1)}
                 aria-invalid={hasError} value={line}
