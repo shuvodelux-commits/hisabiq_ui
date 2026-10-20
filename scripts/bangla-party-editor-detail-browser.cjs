@@ -19,6 +19,7 @@ async function main(){
      mode:'Simple',language:lang,density:'Compact',terminology:'simple',dateView:'transaction'
     })),language);
     await page.goto('http://127.0.0.1:4406/#/app/parties?id=c1&role=Customer');
+    if(width<768)await page.getByRole('button',{name:label('Change party','পার্টি বদলান')}).click();
     await page.getByRole('button',{name:label('Add party','নতুন পার্টি যোগ করুন'),exact:true}).click();
     const editor=page.getByRole('dialog',{name:label('Add party','নতুন পার্টি যোগ করুন')});
     await editor.waitFor();
