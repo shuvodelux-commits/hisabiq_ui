@@ -66,6 +66,11 @@ export function Calculator() {
     const container = listRef.current;
     const item = inputs.current[idx]?.closest<HTMLElement>('[data-calculator-line]');
     if (!container || !item) return;
+    // Until the fifth line exists, keep every calculation line visible.
+    if (linesRef.current.length <= 4) {
+      container.scrollTop = 0;
+      return;
+    }
     const outer = container.getBoundingClientRect();
     const inner = item.getBoundingClientRect();
     if (inner.bottom > outer.bottom - 6) container.scrollTop += inner.bottom - outer.bottom + 8;
