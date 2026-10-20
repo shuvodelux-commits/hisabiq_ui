@@ -52,7 +52,23 @@ async function main() {
     });
     await page.getByRole('button',{name:/Import 1 parties/}).click();
     await page.getByText('CSV Supplier QA',{exact:true}).first().waitFor();
+    // Magic Patterns adaptive Party workspace: one selected profile plus a chooser on narrow viewports.
     await page.setViewportSize({width:375,height:800});
+    await page.getByRole('button',{name:'Change party'}).click();
+    const choose=page.getByRole('dialog',{name:'Change party'});
+    await choose.getByRole('textbox',{name:'Search parties'}).fill('CSV Supplier QA');
+    await choose.getByRole('option',{name:/CSV Supplier QA/}).click();
+    await choose.waitFor({state:'hidden'});
+    await page.getByRole('heading',{name:/CSV Supplier QA/}).waitFor();
+    await page.getByRole('button',{name:'More actions'}).click();
+    await page.getByRole('button',{name:/Opening balance/}).first().waitFor();
+
+    for(const width of [320,360,390,600,768,820,1024,1280,1440]){
+      await page.setViewportSize({width,height:900});
+      const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
+      assert.ok(overflow<=4,`Party ${width}px should not overflow horizontally (extra ${overflow}px)`);
+      assert.equal(await page.getByRole('button',{name:'Change party'}).isVisible(),width<1024,`Party chooser at ${width}px`);
+    }
     assert.equal(errors.length,0,'browser page must not throw');
     console.log('Party profile browser flow passed');
   } finally {
