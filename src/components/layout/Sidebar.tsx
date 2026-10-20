@@ -10,6 +10,7 @@ import { SidebarTrigger } from './SidebarTrigger';
 import { useUiCopy } from '../../i18n/useUiCopy';
 
 const COLLAPSED_KEY = 'hisabiq:sidebar-collapsed';
+const MotionLink = motion(Link);
 
 function getInitialCollapsed() {
   try { return window.localStorage.getItem(COLLAPSED_KEY) === 'true'; }
@@ -19,6 +20,7 @@ function getInitialCollapsed() {
 export function Sidebar() {
   const { text } = useUiCopy();
   const reducedMotion = useReducedMotion();
+  const pressMotion = reducedMotion ? undefined : { scale: 0.985 };
   const { state } = useTenantSettings();
   const [collapsed, setCollapsed] = useState(getInitialCollapsed);
   const businessName = state.sections.business.name || 'Business';
@@ -94,16 +96,18 @@ export function Sidebar() {
     <ErpNavMenu mode="desktop" collapsed={collapsed} onExpandSidebar={() => setCollapsed(false)} />
 
     <div className={'shrink-0 space-y-0.5 border-t border-sidebar-border py-2 ' + (collapsed ? 'px-2' : 'px-3')}>
-      <Link to="/app/support" aria-label={text('Help & Support','সাহায্য ও সাপোর্ট')} title={collapsed ? text('Help & Support','সাহায্য ও সাপোর্ট') : undefined}
+      <MotionLink to="/app/support" aria-label={text('Help & Support','সাহায্য ও সাপোর্ট')} title={collapsed ? text('Help & Support','সাহায্য ও সাপোর্ট') : undefined}
+        whileTap={pressMotion} transition={{ duration: reducedMotion ? 0 : MOTION_MS.navHover / 1000, ease: MOTION_EASE }}
         className={linkStyle + ' ' + (collapsed ? 'justify-center' : 'gap-2.5 px-2.5')}>
         <LifeBuoy className="size-[18px] shrink-0 text-ink-400" aria-hidden="true" />
         {!collapsed && <span>{text('Help & Support','সাহায্য ও সাপোর্ট')}</span>}
-      </Link>
-      <Link to="/design-system" aria-label={text('Brand guide','ব্র্যান্ড গাইড')} title={collapsed ? text('Brand guide','ব্র্যান্ড গাইড') : undefined}
+      </MotionLink>
+      <MotionLink to="/design-system" aria-label={text('Brand guide','ব্র্যান্ড গাইড')} title={collapsed ? text('Brand guide','ব্র্যান্ড গাইড') : undefined}
+        whileTap={pressMotion} transition={{ duration: reducedMotion ? 0 : MOTION_MS.navHover / 1000, ease: MOTION_EASE }}
         className={linkStyle + ' ' + (collapsed ? 'justify-center' : 'gap-2.5 px-2.5')}>
         <Palette className="size-[18px] shrink-0 text-ink-400" aria-hidden="true" />
         {!collapsed && <span>{text('Brand guide','ব্র্যান্ড গাইড')}</span>}
-      </Link>
+      </MotionLink>
     </div>
     <button
       type="button"
