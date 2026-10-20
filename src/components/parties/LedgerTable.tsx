@@ -43,7 +43,7 @@ function LedgerAmount({ row, value, language }: { row: PartyLedgerRow; value: nu
       <span className="break-words">{formatMoneyNumber(value)}</span>
     </span>
     <span data-testid="ledger-impact-caption" className="text-right text-[10px] font-normal leading-tight">
-      {partyLedgerCaption(language, row, info.label, info.kind)}
+      {partyLedgerCaption(language,row,info.label,info.kind)}
     </span>
   </div>;
 }
@@ -92,8 +92,8 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
               <div className="flex items-center gap-2">
                 <LedgerTypeIcon row={row} />
                 <span className="min-w-0">
-                  <span className="block font-semibold text-ink">{row.reference || partyLedgerSourceLabel(language, row.source)}</span>
-                  <span className="block text-xs text-ink-500">{partyLedgerSourceLabel(language, row.source)}</span>
+                  <span className="block font-semibold text-ink">{row.reference || partyLedgerSourceLabel(language,row.source)}</span>
+                  <span className="block text-xs text-ink-500">{partyLedgerSourceLabel(language,row.source)}</span>
                 </span>
                 {row.attachment && <button type="button" aria-label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন') + ' ' + row.attachment.name}
                   className="rounded p-1 text-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500"
@@ -127,12 +127,12 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-1.5 text-xs text-ink-500">
                 <LedgerTypeIcon row={row} />
-                <span>{partyLedgerSourceLabel(language, row.source)}</span>
+                <span>{partyLedgerSourceLabel(language,row.source)}</span>
                 <span aria-hidden="true">·</span>
                 <span className="shrink-0">{row.date}</span>
               </div>
               <p className="mt-1 break-words text-[15px] font-semibold leading-tight text-ink">
-                {row.reference || row.description || partyLedgerSourceLabel(language, row.source)}
+                {row.reference || row.description || partyLedgerSourceLabel(language,row.source)}
               </p>
             </div>
             {amount !== 0 && <div className="min-w-0 shrink-0 text-right">
