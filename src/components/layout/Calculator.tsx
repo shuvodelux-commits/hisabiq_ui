@@ -236,7 +236,7 @@ export function Calculator() {
         </div>}
       </div>
       <div ref={listRef} data-calculator-lines
-        style={{ height: 8 + 40 * visibleRowCount }}
+        style={{ height: 8 + 40 * visibleRowCount, flexShrink: 0 }}
         className="min-h-0 shrink-0 space-y-1 overflow-y-auto overscroll-contain px-1 py-1 scrollbar-thin">
         {lines.map((line, idx) => {
           const result = results[idx] ?? evaluateCalculatorExpression(line);

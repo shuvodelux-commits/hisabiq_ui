@@ -61,6 +61,10 @@ async function main() {
       assert.match(await surface.innerText(),/invalid line/);
       await surface.getByRole('button',{name:'Next calculation line'}).click();
       await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='Calculation line 4');
+      await page.waitForFunction(() => {
+        const list=document.querySelector('[data-calculator-lines]');
+        return list && list.getBoundingClientRect().height>=166;
+      },null,{timeout:10000});
       const fourArea=await surface.locator('[data-calculator-lines]').boundingBox();
       const fourRows=await surface.locator('[data-calculator-line]').all();
       const fourthRow=await fourRows[3].boundingBox();
