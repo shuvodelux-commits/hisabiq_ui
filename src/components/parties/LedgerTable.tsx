@@ -67,7 +67,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
       <div><span className="text-ink-500">{text('Period debit','এই সময়ের ডেবিট')} </span><strong>{formatMoneyNumber(statement.periodDebit)}</strong></div>
       <div><span className="text-ink-500">{text('Period credit','এই সময়ের ক্রেডিট')} </span><strong>{formatMoneyNumber(statement.periodCredit)}</strong></div>
     </div>
-    <div className="hidden w-full overflow-x-auto sm:block">
+    <div className="hidden w-full min-w-0 overflow-x-auto sm:block">
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent">
           <TableHead className="pl-4 text-xs">{text('Date','তারিখ')}</TableHead><TableHead className="text-xs">{text('Particulars','বিবরণ')}</TableHead>
@@ -95,20 +95,20 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
         </TableBody>
       </Table>
     </div>
-    <div className="space-y-2 p-3 sm:hidden">
-      {visibleRows.map(row=><div key={row.id} className="rounded-lg border border-border p-3">
+    <div className="space-y-2 p-2.5 sm:hidden">
+      {visibleRows.map(row=><div key={row.id} className="min-w-0 rounded-lg border border-border bg-card p-3 shadow-sm">
         <div className="flex items-center justify-between gap-2"><span className="text-xs text-ink-500">{row.date}</span><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></div>
         <div className="mt-1 flex flex-wrap gap-1"><StatusBadge tone={tone(row)}>{partyLedgerSourceLabel(language,row.source)}</StatusBadge>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}</div>
         <p className="my-2 break-words text-xs text-ink-600">{row.description}</p>
-        <div className="grid grid-cols-3 gap-2 text-right text-xs">
-          <div><p className="mb-1 text-ink-500">{text('Debit','ডেবিট')}</p><LedgerAmount row={row} value={row.debit} language={language}/></div>
-          <div><p className="mb-1 text-ink-500">{text('Credit','ক্রেডিট')}</p><LedgerAmount row={row} value={row.credit} language={language}/></div>
-          <div><p className="text-ink-500">{text('Balance','জের')}</p><strong>{formatMoneyNumber(Math.abs(row.runningBalance))}</strong></div>
+        <div className="grid min-w-0 grid-cols-2 gap-3 text-right text-xs">
+          <div className="min-w-0"><p className="mb-1 text-ink-500">{text('Debit','ডেবিট')}</p><LedgerAmount row={row} value={row.debit} language={language}/></div>
+          <div className="min-w-0"><p className="mb-1 text-ink-500">{text('Credit','ক্রেডিট')}</p><LedgerAmount row={row} value={row.credit} language={language}/></div>
+          <div className="col-span-2 flex min-w-0 items-center justify-between gap-2 border-t border-border pt-2 text-left"><p className="text-ink-500">{text('Balance','জের')}</p><strong className="break-words text-right text-sm">{formatMoneyNumber(Math.abs(row.runningBalance))}</strong></div>
         </div>
       </div>)}
       {!visibleRows.length&&<p className="py-8 text-center text-xs text-ink-500">{text('No transactions match these filters.','এই ফিল্টারে কোনো লেনদেন নেই।')}</p>}
     </div>
-    <div className="flex items-center justify-between gap-2 border-t border-border bg-ink-50 px-4 py-3 text-[13px] font-semibold">
+    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-border bg-ink-50 px-3 py-3 text-[13px] font-semibold sm:px-4">
       <span>{text('Closing balance','শেষ জের')}</span><span>{formatMoneyNumber(Math.abs(statement.closingBalance))} <span className="font-normal text-ink-500">{statement.closingBalance>=0?'Dr':'Cr'}</span></span>
     </div>
   </div>;
