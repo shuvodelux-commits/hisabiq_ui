@@ -68,6 +68,8 @@ async function main() {
     await actionSheet.getByRole('button',{name:/Send statement/}).isDisabled().then(ok=>assert.ok(ok));
     await page.keyboard.press('Escape');
     await page.getByRole('dialog',{name:'More actions'}).waitFor({state:'hidden'});
+    // Switch from an empty newly imported supplier to the seeded customer ledger.
+    await page.goto('http://127.0.0.1:4196/#/app/parties?id=c1&role=Customer');
     const ledgerFeed=page.getByRole('list',{name:'Transactions'});
     assert.equal(await ledgerFeed.getByRole('button',{name:'View',exact:true}).count(),0,'no standalone View buttons in ledger feed');
     await ledgerFeed.getByRole('button',{name:/View transaction/}).first().click();
