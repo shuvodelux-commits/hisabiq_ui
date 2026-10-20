@@ -31,7 +31,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
             onChange={(e) => onQuery(e.target.value)}
             placeholder={text('Search name or phone…','নাম বা ফোন দিয়ে খুঁজুন…')}
             aria-label={text('Search parties','পার্টি খুঁজুন')}
-            className={`${picker ? 'h-11' : 'h-8'} w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+            className={`${picker ? 'h-11' : 'h-8'} w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20`} />
           
         </div>
         <div className={`flex gap-1 ${picker ? 'overflow-x-auto pb-1' : 'flex-wrap'}`} role="tablist" aria-label={text('Filter by role','সম্পর্ক অনুযায়ী বাছুন')}>
