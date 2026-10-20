@@ -168,7 +168,7 @@ export function Parties() {
     }catch(error){toast.error(error instanceof Error?error.message:uiText('Note action failed','নোটের কাজ করা যায়নি'));throw error;}
   };
   return <div className="mx-auto min-w-0 max-w-[1440px] space-y-3 sm:space-y-4">
-    <div className="hidden sm:block"><PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
+    <div className="hidden md:block"><PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
       description={`${uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · ${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)} · ${uiText('preview','নমুনা')}`}
       actions={<>
         <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
@@ -176,15 +176,9 @@ export function Parties() {
         </Button>
         <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> {uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
       </>} /></div>
-    <div className="flex items-center justify-between gap-2 sm:hidden">
-      <h1 className="min-w-0 text-lg font-semibold text-ink">{uiText('Parties & Ledger','পার্টি ও খাতা')}</h1>
-      <div className="flex shrink-0 items-center gap-1.5">
-        <Button size="sm" variant="outline" onClick={()=>setImportOpen(true)} aria-label={uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}><Upload className="size-4" /></Button>
-        <Button size="sm" aria-label={uiText('Add party','নতুন পার্টি যোগ করুন')} onClick={()=>setEditing(null)}><Plus className="size-4" /> <span aria-hidden="true">{uiText('Add party','নতুন পার্টি')}</span></Button>
-      </div>
-    </div>
+    <h1 className="sr-only md:hidden">{uiText('Parties & Ledger','পার্টি ও খাতা')}</h1>
     <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
-      <div className="hidden min-w-0 lg:block"><PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
+      <div className="hidden min-w-0 lg:sticky lg:top-4 lg:block"><PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
         role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/></div>
       {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
         vendorProfile={vendorProfile}
@@ -230,7 +224,7 @@ export function Parties() {
         <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">{uiText('No parties yet. Add your first party.','এখনো কোনো পার্টি নেই। নতুন পার্টি যোগ করুন।')}</div>}
     </div>
     <Dialog open={chooserOpen} onOpenChange={setChooserOpen}>
-      <DialogContent aria-label={uiText('Change party','পার্টি বদলান')} className="flex max-h-[90dvh] w-[calc(100vw-1rem)] flex-col overflow-hidden p-0 sm:max-w-lg">
+      <DialogContent aria-label={uiText('Change party','পার্টি বদলান')} className="fixed !bottom-0 !left-0 !right-0 !top-auto flex max-h-[94dvh] w-full max-w-none !translate-x-0 !translate-y-0 flex-col overflow-hidden rounded-b-none rounded-t-xl p-0 md:!bottom-0 md:!left-auto md:!right-0 md:!top-0 md:h-dvh md:max-h-dvh md:w-[min(440px,100vw)] md:rounded-none">
         <DialogHeader className="shrink-0 border-b border-border px-4 py-3">
           <DialogTitle>{uiText('Change party','পার্টি বদলান')}</DialogTitle>
           <DialogDescription>{uiText('Search by name or phone, then choose a party.','নাম বা ফোন দিয়ে খুঁজে পার্টি বাছুন।')}</DialogDescription>
