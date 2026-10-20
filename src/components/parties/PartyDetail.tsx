@@ -174,7 +174,7 @@ export function PartyDetail({
       </div>}
 
 
-    <Button size="sm" variant="outline" onClick={onEditParty}><Pencil className="size-4" />{text('Edit party', 'তথ্য বদলান')}</Button>
+    <Button size="sm" variant="outline" className="md:hidden" onClick={onEditParty}><Pencil className="size-4" />{text('Edit party', 'তথ্য বদলান')}</Button>
   </>);
 
   return (
@@ -279,7 +279,7 @@ export function PartyDetail({
             <BookOpen className="size-4 shrink-0" /> {text('Opening balance','শুরুর জের')}
           </Button>
         </>}
-        <Button size="sm" variant="outline" className="col-span-2 min-h-10 w-full" aria-haspopup="dialog" aria-expanded={mobileActionsOpen} aria-controls="party-more-actions"
+        <Button size="sm" variant="outline" className="min-h-10 w-full" aria-haspopup="dialog" aria-expanded={mobileActionsOpen} aria-controls="party-more-actions"
           onClick={()=>setMobileActionsOpen(true)}>
           <MoreHorizontal className="size-4" /> {text('More actions','আরও কাজ')}
         </Button>
