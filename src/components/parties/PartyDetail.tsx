@@ -1,5 +1,6 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { PartyActionSheet } from './PartyActionSheet';
+import { motion, useReducedMotion } from 'framer-motion';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useEffect, useState } from 'react';
@@ -77,6 +78,7 @@ export function PartyDetail({
 }: PartyDetailProps) {
   const {text}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
+  const reduceMotion=useReducedMotion();
   const [mobileActionsOpen,setMobileActionsOpen] = useState(false);
   useEffect(()=>{
     const media=window.matchMedia('(min-width: 768px)');
@@ -208,7 +210,9 @@ export function PartyDetail({
   };
 
   return (
-    <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
+    <motion.div initial={reduceMotion ? false : {opacity:0,y:7}} animate={{opacity:1,y:0}}
+      transition={reduceMotion ? {duration:0} : {duration:0.22,ease:[0.32,0.72,0,1]}}
+      className="min-w-0 rounded-xl border border-border bg-card shadow-card">
 
       <header className="border-b border-border px-4 pb-4 pt-4 md:px-5 md:pt-5">
         <div className="flex min-w-0 items-start gap-3 md:gap-4">
@@ -568,6 +572,6 @@ export function PartyDetail({
           </div>
         </DialogContent>
       </Dialog>
-    </div>);
+    </motion.div>);
 
 }
