@@ -185,7 +185,7 @@ export function PartyDetail({
     {
       id: 'send', icon: Send, label: text('Send statement', 'হিসাব পাঠান'),
       helper: text('Send via SMS when connected', 'SMS-এর মাধ্যমে পাঠান'),
-      run: () => {},
+      run: () => toast(text('SMS service is not connected to the UI preview', 'এই প্রিভিউতে SMS চালু নেই')),
       disabledReason: text('SMS service is not connected to the UI preview', 'এই প্রিভিউতে SMS চালু নেই')
     }
   ];
