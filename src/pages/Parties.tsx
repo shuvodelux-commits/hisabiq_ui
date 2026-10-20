@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/Dialog';
-import { PartyAvatar } from '../components/parties/PartyAvatar';
+import { PartyAvatar } from '../components/PartyAvatar';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
