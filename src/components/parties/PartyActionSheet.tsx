@@ -9,13 +9,14 @@ import { X } from 'lucide-react';
  * Keeps the existing HisabIQ actions and dialogs; no prototype state/data.
  */
 export function PartyActionSheet({
-  open, onClose, title, titleBn, children, side = 'bottom'
+  open, onClose, title, titleBn, children, footer, side = 'bottom'
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   titleBn: string;
   children: ReactNode;
+  footer?: ReactNode;
   side?: 'bottom' | 'right';
 }) {
   const panel = useRef<HTMLDivElement>(null);
@@ -94,7 +95,8 @@ export function PartyActionSheet({
                 <X className="size-5" aria-hidden="true"/>
               </button>
             </div>
-            <div className="min-h-0 overflow-y-auto p-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">{children}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2">{children}</div>
+            {footer && <div className="shrink-0 border-t border-border px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">{footer}</div>}
           </motion.div>
         </motion.div>
       )}
