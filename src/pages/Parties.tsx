@@ -1,10 +1,12 @@
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Upload } from 'lucide-react';
+import { ChevronDown, Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/Dialog';
+import { PartyAvatar } from '../components/parties/PartyAvatar';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
@@ -59,6 +61,7 @@ export function Parties() {
    setRole(routeGroup?'All':known.includes(routeRole as PartyRole)?routeRole as PartyRole:'All');
   },[routeRole,routeGroup,routeId]);
   const [query,setQuery]=useState(restored?.query??'');
+  const [chooserOpen,setChooserOpen]=useState(false);
   useLayoutEffect(()=>{
     if(!restored)return;
     const frame=requestAnimationFrame(()=>{
@@ -139,6 +142,14 @@ export function Parties() {
     const target=allParties.find(p=>p.id===id);
     if(target){setParams({id,role:target.roles.includes(relationship as PartyRole)?relationship!:target.roles[0]});resetLedger();}
   };
+  const changeDirectoryRole=(value:PartyRole|'All')=>{
+    setRole(value);
+    const next=new URLSearchParams(params);
+    next.delete('group');next.delete('id');
+    if(value==='All')next.delete('role');else next.set('role',value);
+    setParams(next);
+  };
+  const chooseParty=(id:string)=>{selectParty(id);setChooserOpen(false);};
   const saveParty=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
     if(editing)dispatchPartyPreview({type:'update-party',id:editing.id,patch:draft,openings});
     else {
@@ -157,21 +168,31 @@ export function Parties() {
       if(type==='delete')dispatchPartyPreview({type:'delete-note',sourceId:idOrText});
     }catch(error){toast.error(error instanceof Error?error.message:uiText('Note action failed','নোটের কাজ করা যায়নি'));throw error;}
   };
-  return <div className="mx-auto max-w-[1440px] space-y-4">
-    <PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
+  return <div className="mx-auto min-w-0 max-w-[1440px] space-y-3 sm:space-y-4">
+    <div className="hidden sm:block"><PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
       description={`${uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · ${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)} · ${uiText('preview','নমুনা')}`}
       actions={<>
         <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
           <Upload className="size-4"/> {uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}
         </Button>
         <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> {uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
-      </>} />
-    <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
-      <PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
-        role={role} onRole={value=>{
-         setRole(value);const next=new URLSearchParams(params);next.delete('group');next.delete('id');
-         if(value==='All')next.delete('role');else next.set('role',value);setParams(next);
-        }} query={query} onQuery={setQuery}/>
+      </>} /></div>
+    <div className="flex items-center justify-between gap-2 sm:hidden">
+      <h1 className="min-w-0 text-lg font-semibold text-ink">{uiText('Parties & Ledger','পার্টি ও খাতা')}</h1>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <Button size="sm" variant="outline" onClick={()=>setImportOpen(true)} aria-label={uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}><Upload className="size-4" /></Button>
+        <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4" /> {uiText('Add party','নতুন পার্টি')}</Button>
+      </div>
+    </div>
+    {party&&<button type="button" aria-label={uiText('Change party','পার্টি বদলান')} aria-haspopup="dialog" aria-expanded={chooserOpen}
+      onClick={()=>setChooserOpen(true)} className="flex min-h-14 w-full min-w-0 items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 text-left shadow-card transition-colors hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 lg:hidden">
+      <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={36} />
+      <span className="min-w-0 flex-1"><strong className="block truncate text-sm text-ink">{party.name}</strong><span className="block truncate text-xs text-ink-500">{party.phone} · {uiText('Change party','পার্টি বদলান')}</span></span>
+      <ChevronDown className="size-5 shrink-0 text-ink-500" aria-hidden="true" />
+    </button>}
+    <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="hidden min-w-0 lg:block"><PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
+        role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/></div>
       {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
         vendorProfile={vendorProfile}
         onOpenVendorWork={(tab?:VendorWorkTab,sourceId?:string)=>
@@ -214,6 +235,20 @@ export function Parties() {
         onDeleteNote={id=>noteAction('delete',id)}/>:
         <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">{uiText('No parties yet. Add your first party.','এখনো কোনো পার্টি নেই। নতুন পার্টি যোগ করুন।')}</div>}
     </div>
+    <Dialog open={chooserOpen} onOpenChange={setChooserOpen}>
+      <DialogContent aria-label={uiText('Change party','পার্টি বদলান')} className="flex max-h-[90dvh] w-[calc(100vw-1rem)] flex-col overflow-hidden p-0 sm:max-w-lg lg:hidden">
+        <DialogHeader className="shrink-0 border-b border-border px-4 py-3">
+          <DialogTitle>{uiText('Change party','পার্টি বদলান')}</DialogTitle>
+          <DialogDescription>{uiText('Search by name or phone, then choose a party.','নাম বা ফোন দিয়ে খুঁজে পার্টি বাছুন।')}</DialogDescription>
+        </DialogHeader>
+        <PartyDirectory picker parties={filtered} selectedId={party?.id??''} onSelect={chooseParty}
+          role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/>
+        <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border p-3">
+          <Button size="sm" variant="outline" className="min-h-11 whitespace-normal" onClick={()=>{setChooserOpen(false);setImportOpen(true);}}><Upload className="size-4 shrink-0" />{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}</Button>
+          <Button size="sm" className="min-h-11" onClick={()=>{setChooserOpen(false);setEditing(null);}}><Plus className="size-4 shrink-0" />{uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     <PartyEditorDialog open={editing!==undefined} party={editing}
       existingOpenings={editing?.id?state.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
       onClose={()=>setEditing(undefined)} onSave={saveParty}/>
