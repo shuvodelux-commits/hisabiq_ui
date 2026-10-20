@@ -184,6 +184,10 @@ export function Parties() {
         <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> {uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
       </>} /></div>
     <h1 className="sr-only md:hidden">{uiText('Parties & Ledger','পার্টি ও খাতা')}</h1>
+    {!party && <div className="flex flex-wrap justify-end gap-2 md:hidden">
+      <Button size="sm" variant="outline" onClick={()=>setImportOpen(true)}><Upload className="size-4" />{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}</Button>
+      <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4" />{uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
+    </div>}
     <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
       <div className="hidden min-w-0 lg:sticky lg:top-4 lg:block"><PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
         role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/></div>
