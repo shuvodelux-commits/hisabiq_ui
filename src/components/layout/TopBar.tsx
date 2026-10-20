@@ -160,7 +160,7 @@ export function TopBar() {
 
           <FloatingPanel
             label={text("Calculator","ক্যালকুলেটর")}
-            width={360}
+            width={310}
             panelClassName="overflow-hidden"
             trigger={({ open, toggle }) =>
             <button
@@ -173,7 +173,7 @@ export function TopBar() {
               </button>
             }>
             
-            {(close) => <Calculator onClose={close} />}
+            {() => <Calculator />}
           </FloatingPanel>
 
           <FloatingPanel

@@ -29,6 +29,14 @@ async function main() {
       assert.equal((await enter.textContent()).trim(),'Enter','Next-line action has an explicit Enter label');
       const field=surface.getByRole('textbox',{name:'Calculation line 1'});
       assert.equal(await field.evaluate(el=>getComputedStyle(el).borderBottomWidth),'0px','Calculator fields have no unnecessary bottom underline');
+      assert.equal(await field.evaluate(el=>getComputedStyle(el).outlineWidth),'0px','No dark green focus outline on the calculation input');
+      const area=surface.locator('[data-calculator-lines]');
+      const row=surface.locator('[data-calculator-line]').first();
+      const areaRect=await area.boundingBox();
+      const rowRect=await row.boundingBox();
+      assert.ok(areaRect && rowRect && areaRect.height>=rowRect.height*4, 'Working area keeps at least four calculation rows visible');
+      assert.equal(await surface.locator('[data-calculator-display]').count(),1,'Restores compact result-first calculator display');
+      assert.equal(await surface.locator('[data-calculator-keypad] button').count(),20,'Restores original compact 4x5 keypad');
       await page.waitForFunction(() => document.querySelector('[data-calculator-total]')?.textContent?.trim() === '590',null,{timeout:10000});
       assert.equal((await total.textContent()).trim(),'590','Saved expressions restored on open');
       const pageScroll=await page.evaluate(()=>window.scrollY);
@@ -60,7 +68,7 @@ async function main() {
       assert.ok(keypadBox && keypadBox.y+keypadBox.height<=height+1,'Keypad stays on screen');
       assert.ok(totalBox && totalBox.y+totalBox.height<=height+1,'Sticky grand total stays on screen');
       assert.equal(await page.evaluate(()=>window.scrollY),pageScroll,'Background page must not scroll');
-      await surface.getByRole('button',{name:'Close calculator'}).click();
+      await page.getByRole('button',{name:'Calculator',exact:true}).click();
       await dialog.waitFor({state:'hidden'});
       await page.getByRole('button',{name:'Calculator',exact:true}).click();
       const restored=page.getByRole('dialog',{name:'Calculator',exact:true});

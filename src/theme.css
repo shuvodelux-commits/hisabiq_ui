@@ -213,6 +213,13 @@ html.dark { color-scheme: dark; }
   outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
+
+/* Calculator focus is communicated by its highlighted active row. */
+:root:root [data-calculator="scratchpad"] input[data-calculator-input]:focus-visible {
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+}
 :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):not(:disabled) {
   border-color: var(--input);
 }

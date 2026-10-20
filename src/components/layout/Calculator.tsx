@@ -12,23 +12,21 @@ import {
   summarizeCalculatorLines
 } from '../../utils/calculatorScratchpad';
 
-type CalculatorProps = { onClose?: () => void };
 type CalcKey = { label: string; value?: string; action?: 'back' | 'clearLine' | 'next'; kind?: 'op' | 'fn' | 'next' };
 
 const KEYS: CalcKey[] = [
-  { label: '(', value: '(', kind: 'fn' },
-  { label: ')', value: ')', kind: 'fn' },
+  { label: 'AC', action: 'clearLine', kind: 'fn' },
+  { label: '%', value: '%', kind: 'fn' },
   { label: '⌫', action: 'back', kind: 'fn' },
-  { label: 'C', action: 'clearLine', kind: 'fn' },
+  { label: '÷', value: '÷', kind: 'op' },
   { label: '7', value: '7' }, { label: '8', value: '8' },
-  { label: '9', value: '9' }, { label: '÷', value: '÷', kind: 'op' },
+  { label: '9', value: '9' }, { label: '×', value: '×', kind: 'op' },
   { label: '4', value: '4' }, { label: '5', value: '5' },
-  { label: '6', value: '6' }, { label: '×', value: '×', kind: 'op' },
+  { label: '6', value: '6' }, { label: '−', value: '-', kind: 'op' },
   { label: '1', value: '1' }, { label: '2', value: '2' },
-  { label: '3', value: '3' }, { label: '−', value: '-', kind: 'op' },
-  { label: '%', value: '%', kind: 'fn' }, { label: '0', value: '0' },
-  { label: '.', value: '.' }, { label: '+', value: '+', kind: 'op' },
-  { label: 'Enter', action: 'next', kind: 'next' }
+  { label: '3', value: '3' }, { label: '+', value: '+', kind: 'op' },
+  { label: '00', value: '00' }, { label: '0', value: '0' },
+  { label: '.', value: '.' }, { label: 'Enter', action: 'next', kind: 'next' }
 ];
 
 function loadLines(): string[] {
@@ -37,7 +35,7 @@ function loadLines(): string[] {
   catch { return ['']; }
 }
 
-export function Calculator({ onClose }: CalculatorProps) {
+export function Calculator() {
   const { text } = useUiCopy();
   const touch = useMediaQuery('(pointer: coarse)');
   const [lines, setLines] = useState<string[]>(loadLines);
@@ -144,7 +142,7 @@ export function Calculator({ onClose }: CalculatorProps) {
 
   const press = (key: CalcKey) => {
     if (key.action === 'next') { nextLine(); return; }
-    if (key.action === 'clearLine') { replaceSelection('', false, true); return; }
+    if (key.action === 'clearLine') { clearAll(); return; }
     if (key.action === 'back') {
       if (!linesRef.current[activeRef.current] && activeRef.current > 0) removeLine(activeRef.current);
       else replaceSelection('', true);
@@ -201,41 +199,61 @@ export function Calculator({ onClose }: CalculatorProps) {
       .catch(() => toast.error(text('Copy is unavailable', 'কপি করা যাচ্ছে না')));
   };
 
+  // Preserve the classic result-first layout; only the working area is new.
+  const preview = lines[activeIndex]?.trim() || [...lines].reverse().find(line => line.trim()) || '';
+
   return (
     <div ref={rootRef} data-calculator="scratchpad"
       onKeyDown={onKeyboard}
-      className="flex h-[min(590px,calc(100dvh-24px))] min-h-0 w-full flex-col overflow-hidden text-ink">
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-card px-3 py-2">
-        <div className="min-w-0">
-          <div className="text-sm font-semibold">{text('Calculator', 'ক্যালকুলেটর')}</div>
-          <div className="text-[11px] text-ink-500">{text('One calculation per line', 'প্রতি লাইনে একটি হিসাব')}</div>
+      className="flex h-[min(510px,calc(100dvh-24px))] min-h-0 w-full flex-col overflow-hidden p-3 text-ink">
+      <div className="mb-2 shrink-0 rounded-lg bg-ink-50 px-3 py-2.5 text-right" data-calculator-display>
+        <div className="mb-1 flex min-w-0 items-center justify-between gap-2 text-xs text-ink-500">
+          <span>{text('Total', 'মোট')}</span>
+          <span className="min-w-0 truncate" title={preview}>
+            {preview ? preview + ' =' : text('Calculation', 'হিসাব')}
+          </span>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <button type="button" onClick={clearAll}
-            className="rounded-md px-2 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500"
-            aria-label={text('Clear all calculator lines', 'সব হিসাব মুছুন')}>
-            {text('Clear', 'মুছুন')}
-          </button>
-          {onClose && <button type="button" onClick={onClose}
-            className="flex size-8 items-center justify-center rounded-md text-ink-500 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500"
-            aria-label={text('Close calculator', 'ক্যালকুলেটর বন্ধ করুন')}>
-            <X className="size-4" aria-hidden="true" />
-          </button>}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex shrink-0 items-center gap-0.5">
+            <button type="button" onClick={copyTotal}
+              className="flex size-7 items-center justify-center rounded text-ink-400 hover:bg-card hover:text-ink"
+              aria-label={text('Copy calculator total', 'মোট হিসাব কপি করুন')}>
+              <Copy className="size-3.5" aria-hidden="true"/>
+            </button>
+            <button type="button" onMouseDown={event => event.preventDefault()}
+              onClick={() => replaceSelection('(')} aria-label={text('Open parenthesis', 'বাম বন্ধনী')}
+              className="flex size-7 items-center justify-center rounded text-xs text-ink-500 hover:bg-card hover:text-ink">
+              (
+            </button>
+            <button type="button" onMouseDown={event => event.preventDefault()}
+              onClick={() => replaceSelection(')')} aria-label={text('Close parenthesis', 'ডান বন্ধনী')}
+              className="flex size-7 items-center justify-center rounded text-xs text-ink-500 hover:bg-card hover:text-ink">
+              )
+            </button>
+          </div>
+          <output data-calculator-total
+            className="min-w-0 max-w-full overflow-x-auto whitespace-nowrap text-right text-2xl font-semibold tracking-tight text-ink">
+            {formatCalculatorNumber(total)}
+          </output>
         </div>
+        {errors > 0 && <div role="status" className="pt-1 text-right text-[11px] text-danger">
+          {errors} {text('invalid line(s) excluded', 'টি ভুল লাইন বাদ')}
+        </div>}
       </div>
       <div ref={listRef} data-calculator-lines
-        className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-2.5 py-2 scrollbar-thin">
+        className="min-h-[156px] flex-1 space-y-1 overflow-y-auto overscroll-contain px-1 py-1 scrollbar-thin">
         {lines.map((line, idx) => {
           const result = results[idx] ?? evaluateCalculatorExpression(line);
           const hasError = Boolean(line.trim() && result.error);
           return (
             <div data-calculator-line data-active={idx === activeIndex ? 'true' : 'false'}
               key={idx}
-              className={'flex min-h-10 items-center gap-1.5 rounded-md px-1.5 py-1 ' +
-                (idx === activeIndex ? 'bg-teal-50 ring-1 ring-teal-200' : 'hover:bg-ink-50')}>
-              <span className="w-5 shrink-0 text-right text-[11px] text-ink-400" aria-hidden="true">{idx + 1}</span>
+              className={'flex min-h-9 items-center gap-1 rounded-md px-1 py-0.5 ' +
+                (idx === activeIndex ? 'bg-teal-50' : 'hover:bg-ink-50')}>
+              <span className="w-4 shrink-0 text-right text-[11px] text-ink-400" aria-hidden="true">{idx + 1}</span>
               <input
                 ref={node => { inputs.current[idx] = node; }}
+                data-calculator-input
                 type="text" inputMode={touch ? 'none' : 'decimal'} readOnly={touch}
                 autoComplete="off" spellCheck={false}
                 aria-label={text('Calculation line ', 'হিসাবের লাইন ') + (idx + 1)}
@@ -243,53 +261,37 @@ export function Calculator({ onClose }: CalculatorProps) {
                 onChange={event => editLine(idx, event.target.value)}
                 onFocus={() => { activate(idx); reveal(idx); }}
                 onPointerDown={event => onTouchLine(event, idx)}
-                className={'h-8 min-w-0 flex-1 border-0 bg-transparent px-1 text-[14px] text-ink outline-none ' +
+                className={'h-7 min-w-0 flex-1 border-0 bg-transparent px-1 text-[13px] text-ink outline-none ' +
                   (hasError ? 'text-danger' : '')}
                 placeholder={text('0 + 0', '০ + ০')} />
               <output aria-label={text('Line result', 'লাইনের ফলাফল')}
                 title={hasError ? text('Invalid expression', 'ভুল হিসাব') : formatCalculatorNumber(result.value)}
-                className={'max-w-[112px] min-w-[54px] shrink-0 overflow-x-auto whitespace-nowrap text-right text-[12px] font-semibold ' +
+                className={'max-w-[88px] min-w-[40px] shrink-0 overflow-x-auto whitespace-nowrap text-right text-[12px] font-semibold ' +
                   (hasError ? 'text-danger' : 'text-teal-700')}>
                 {line.trim() ? (hasError ? text('Error', 'ভুল') : '= ' + formatCalculatorNumber(result.value)) : ''}
               </output>
               <button type="button" aria-label={text('Remove line ', 'লাইন মুছুন ') + (idx + 1)}
                 onClick={() => removeLine(idx)}
-                className="flex size-7 shrink-0 items-center justify-center rounded text-ink-400 hover:bg-card hover:text-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">
-                <X className="size-3.5" aria-hidden="true" />
+                className="flex size-6 shrink-0 items-center justify-center rounded text-ink-400 hover:bg-ink-50 hover:text-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">
+                <X className="size-3" aria-hidden="true" />
               </button>
             </div>
           );
         })}
       </div>
-      <div className="flex shrink-0 items-center justify-between gap-2 border-y border-border bg-ink-50 px-3 py-2">
-        <div className="min-w-0">
-          <div className="text-xs font-medium text-ink-600">{text('Total', 'মোট')}</div>
-          {errors > 0 && <div role="status" className="text-[11px] text-danger">
-            {errors} {text('invalid line(s) excluded', 'টি ভুল লাইন বাদ')}
-          </div>}
-        </div>
-        <div className="flex min-w-0 items-center gap-1">
-          <output data-calculator-total className="max-w-[220px] overflow-x-auto whitespace-nowrap text-right text-xl font-semibold text-ink">
-            {formatCalculatorNumber(total)}
-          </output>
-          <button type="button" onClick={copyTotal}
-            className="flex size-8 shrink-0 items-center justify-center rounded text-ink-500 hover:bg-card hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500"
-            aria-label={text('Copy calculator total', 'মোট হিসাব কপি করুন')}>
-            <Copy className="size-4" aria-hidden="true"/>
-          </button>
-        </div>
-      </div>
-      <div className="grid max-h-[min(300px,calc(100dvh-196px))] shrink-0 grid-cols-4 gap-1.5 overflow-y-auto overscroll-contain bg-card p-2.5" aria-label={text('Calculator keys', 'ক্যালকুলেটর বাটন')}>
+      <div data-calculator-keypad
+        className="grid min-h-0 shrink grid-cols-4 gap-1.5 overflow-y-auto overscroll-contain pt-2 scrollbar-thin"
+        aria-label={text('Calculator keys', 'ক্যালকুলেটর বাটন')}>
         {KEYS.map((key, idx) => (
           <button key={idx} type="button"
             aria-label={key.action === 'back' ? text('Backspace', 'আগের সংখ্যা মুছুন')
-              : key.action === 'clearLine' ? text('Clear active line', 'এই লাইন মুছুন')
+              : key.action === 'clearLine' ? text('Clear all calculator lines', 'সব হিসাব মুছুন')
               : key.action === 'next' ? text('Next calculation line', 'পরের হিসাবের লাইন')
               : key.label}
             onMouseDown={event => event.preventDefault()}
             onClick={() => press(key)}
-            className={'flex h-10 min-w-0 items-center justify-center rounded-lg text-[16px] font-medium transition-colors active:scale-[0.98] sm:h-11 ' +
-              (key.kind === 'next' ? 'col-span-4 bg-teal-600 text-white hover:bg-teal-700' :
+            className={'flex h-10 min-w-0 shrink-0 items-center justify-center rounded-lg text-[15px] font-medium transition-colors active:scale-[0.97] ' +
+              (key.kind === 'next' ? 'bg-teal-600 text-white hover:bg-teal-700' :
                 key.kind === 'op' ? 'bg-teal-50 text-teal-700 hover:bg-teal-100' :
                 key.kind === 'fn' ? 'bg-ink-50 text-ink-600 hover:bg-ink-100' :
                 'border border-border bg-card text-ink hover:bg-ink-50')}>
