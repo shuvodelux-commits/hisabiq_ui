@@ -223,6 +223,9 @@ export function PartyDetail({
                   <span className="text-xs text-ink-500">{text('Vendor owes', 'ভেন্ডরের কাছে পাওনা')}</span>
                   <strong className="text-right text-lg text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</strong>
                 </div>
+                {vendorProfile.summary.priceNotSetBaseQty>0 && <p className="px-3 py-2 text-xs text-warning">
+                  {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}
+                </p>}
               </div> :
               <div className={isReceivable ? 'rounded-xl bg-teal-50 px-4 py-3 text-right' : currentBalance < 0 ? 'rounded-xl bg-danger-bg px-4 py-3 text-right' : 'rounded-xl bg-ink-50 px-4 py-3 text-right'}>
                 <p className="text-[13px] font-semibold text-ink-600">{balanceLabel}</p>
