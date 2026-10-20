@@ -5,7 +5,8 @@ import { Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/Dialog';
+import { PartyActionSheet } from '../components/parties/PartyActionSheet';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
@@ -61,6 +62,7 @@ export function Parties() {
   },[routeRole,routeGroup,routeId]);
   const [query,setQuery]=useState(restored?.query??'');
   const [chooserOpen,setChooserOpen]=useState(false);
+  const isTablet=useMediaQuery('(min-width: 768px)');
   useEffect(()=>{
     const media=window.matchMedia('(min-width: 1024px)');
     const close=()=>{if(media.matches)setChooserOpen(false);};
@@ -234,20 +236,20 @@ export function Parties() {
         onDeleteNote={id=>noteAction('delete',id)}/>:
         <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">{uiText('No parties yet. Add your first party.','এখনো কোনো পার্টি নেই। নতুন পার্টি যোগ করুন।')}</div>}
     </div>
-    <Dialog open={chooserOpen} onOpenChange={setChooserOpen}>
-      <DialogContent aria-label={uiText('Change party','পার্টি বদলান')} className="fixed !bottom-0 !left-0 !right-0 !top-auto flex max-h-[94dvh] w-full max-w-none !translate-x-0 !translate-y-0 flex-col overflow-hidden rounded-b-none rounded-t-xl p-0 md:!bottom-0 md:!left-auto md:!right-0 md:!top-0 md:h-dvh md:max-h-dvh md:w-[min(440px,100vw)] md:rounded-none">
-        <DialogHeader className="shrink-0 border-b border-border px-4 py-3">
-          <DialogTitle>{uiText('Change party','পার্টি বদলান')}</DialogTitle>
-          <DialogDescription>{uiText('Search by name or phone, then choose a party.','নাম বা ফোন দিয়ে খুঁজে পার্টি বাছুন।')}</DialogDescription>
-        </DialogHeader>
-        <PartyDirectory picker parties={filtered} selectedId={party?.id??''} onSelect={chooseParty}
-          role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/>
-        <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border p-3">
-          <Button size="sm" variant="outline" className="min-h-11 whitespace-normal" onClick={()=>{setChooserOpen(false);setImportOpen(true);}}><Upload className="size-4 shrink-0" />{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}</Button>
-          <Button size="sm" className="min-h-11" onClick={()=>{setChooserOpen(false);setEditing(null);}}><Plus className="size-4 shrink-0" />{uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <PartyActionSheet open={chooserOpen} onClose={()=>setChooserOpen(false)}
+      title={uiText('Change party','পার্টি বদলান')} titleBn="পার্টি বদলান"
+      side={isTablet?'right':'bottom'}
+      footer={<div className="grid grid-cols-2 gap-2">
+        <Button size="sm" variant="outline" className="min-h-11 whitespace-normal" onClick={()=>{setChooserOpen(false);setImportOpen(true);}}>
+          <Upload className="size-4 shrink-0" />{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}
+        </Button>
+        <Button size="sm" className="min-h-11" onClick={()=>{setChooserOpen(false);setEditing(null);}}>
+          <Plus className="size-4 shrink-0" />{uiText('Add party','নতুন পার্টি যোগ করুন')}
+        </Button>
+      </div>}>
+      <PartyDirectory picker parties={filtered} selectedId={party?.id??''} onSelect={chooseParty}
+        role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/>
+    </PartyActionSheet>
     <PartyEditorDialog open={editing!==undefined} party={editing}
       existingOpenings={editing?.id?state.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
       onClose={()=>setEditing(undefined)} onSave={saveParty}/>
