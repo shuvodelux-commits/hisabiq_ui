@@ -1,7 +1,7 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
-import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { FileText, HandCoins, MapPin, MessageSquare, MoreHorizontal, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -73,6 +73,7 @@ export function PartyDetail({
 }: PartyDetailProps) {
   const {text,showHelper}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
+  const [mobileActionsOpen,setMobileActionsOpen] = useState(false);
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
   const [editingNote, setEditingNote] = useState<LedgerEntry | null>(null);
@@ -128,12 +129,12 @@ export function PartyDetail({
     relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
 
   return (
-    <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
-      <div className="flex flex-wrap items-start gap-4 border-b border-border p-4">
+    <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card">
+      <div className="flex min-w-0 flex-wrap items-start gap-3 border-b border-border p-3 sm:gap-4 sm:p-4">
         <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-lg font-semibold tracking-tight text-ink">{party.name}</h2>
+            <h2 className="break-words text-lg font-semibold tracking-tight text-ink">{party.name}</h2>
             {party.nameBn && <span className="font-bn text-sm text-ink-500">{party.nameBn}</span>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -147,28 +148,58 @@ export function PartyDetail({
             <span>{text('Last activity','শেষ লেনদেন')} {party.lastActivity}</span>
           </div>
         </div>
-        {vendorProfile?<div className="flex flex-wrap gap-2">
-         <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
+        {vendorProfile?<div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:w-auto">
+         <div className="min-w-0 rounded-xl bg-danger-bg px-3 py-2 text-right">
           <p className="text-[11px] text-danger">{text('You owe','আপনাকে দিতে হবে')}{showHelper&&' · দেনা'}</p>
-          <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
-         <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
+          <p className="break-words text-lg font-semibold text-danger sm:text-xl">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
+         <div className="min-w-0 rounded-xl bg-ink-50 px-3 py-2 text-right">
           <p className="text-[11px] text-ink-600">{text('Vendor owes','ভেন্ডরের কাছে পাওনা')}{showHelper&&' · পাওনা'}</p>
-          <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
+          <p className="break-words text-lg font-semibold text-ink sm:text-xl">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
           {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
            {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}</p>}
          </div></div>:<>
-        <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
+        <div className={`w-full min-w-0 rounded-xl px-3 py-2.5 text-left sm:w-auto sm:px-4 sm:text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
           <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
             {balanceLabel}
           </p>
-          <p className={`text-2xl font-semibold tabular-nums tracking-tight ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink'}`}>
+          <p className={`break-words text-xl font-semibold tracking-tight sm:text-2xl ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink'}`}>
             {taka(Math.abs(currentBalance))}
           </p>
         </div>
         </>}
       </div>
 
-      {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
+      <div className="grid grid-cols-2 gap-2 border-b border-border px-3 py-3 md:hidden">
+        {vendorProfile ? <>
+          <Button size="sm" className="min-h-11 w-full whitespace-normal text-center" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
+          <Button size="sm" variant="outline" className="min-h-11 w-full whitespace-normal text-center" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
+        </> : relationship==='Customer'||relationship==='Supplier' ? <>
+          <Button size="sm" className="min-h-11 w-full whitespace-normal text-center" onClick={()=>setPaymentOpen(true)}>
+            <HandCoins className="size-4 shrink-0" /> {payable ? text('Make payment','টাকা দিন') : text('Receive payment','টাকা নিন')}
+          </Button>
+          {relationship==='Customer' ?
+            <Button size="sm" variant="outline" className="min-h-11 w-full whitespace-normal text-center" disabled={party.status==='Inactive'} onClick={onNewInvoice}>
+              <Plus className="size-4 shrink-0" /> {text('New invoice','নতুন বিল')}
+            </Button> :
+            <Button size="sm" variant="outline" className="min-h-11 w-full whitespace-normal text-center" onClick={()=>setOpeningOpen(true)}>
+              <BookOpen className="size-4 shrink-0" /> {text('Opening balance','শুরুর জের')}
+            </Button>}
+        </> : <>
+          <Button size="sm" className="min-h-11 w-full whitespace-normal text-center"
+            onClick={()=>['Owner','Lender','Borrower'].includes(relationship)?setFinanceOpen(true):setOpeningOpen(true)}>
+            <HandCoins className="size-4 shrink-0" /> {relationship==='Owner'?text('Capital / withdrawal','মূলধন জমা / তোলা'):relationship==='Lender'?text('Borrow / repay','ধার নেওয়া / শোধ'):relationship==='Borrower'?text('Lend / receive','ধার দেওয়া / আদায়'):text('Opening balance','শুরুর জের')}
+          </Button>
+          <Button size="sm" variant="outline" className="min-h-11 w-full whitespace-normal text-center" onClick={()=>setOpeningOpen(true)}>
+            <BookOpen className="size-4 shrink-0" /> {text('Opening balance','শুরুর জের')}
+          </Button>
+        </>}
+        <Button size="sm" variant="outline" className="col-span-2 min-h-10 w-full" aria-expanded={mobileActionsOpen} aria-controls="party-more-actions"
+          onClick={()=>setMobileActionsOpen(open=>!open)}>
+          <MoreHorizontal className="size-4" /> {mobileActionsOpen?text('Fewer actions','কম কাজ দেখুন'):text('More actions','আরও কাজ')}
+        </Button>
+      </div>
+
+      {vendorProfile?<div id="party-more-actions" className={`${mobileActionsOpen ? 'grid' : 'hidden'} grid-cols-2 flex-wrap items-center gap-2 border-b border-border px-3 py-2.5 md:flex md:px-4 [&_button]:min-h-11 md:[&_button]:min-h-0 [&_button]:whitespace-normal [&_button]:text-center md:[&_button]:whitespace-nowrap`}>
         <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
@@ -176,7 +207,7 @@ export function PartyDetail({
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
         <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
        </div>:<>
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
+      <div id="party-more-actions" className={`${mobileActionsOpen ? 'grid' : 'hidden'} grid-cols-2 flex-wrap items-center gap-2 border-b border-border px-3 py-2.5 md:flex md:px-4 [&_button]:min-h-11 md:[&_button]:min-h-0 [&_button]:whitespace-normal [&_button]:text-center md:[&_button]:whitespace-nowrap`}>
         <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
           title={relationship==='Customer'||relationship==='Supplier'?text('Record payment in browser preview','প্রিভিউতে টাকা নেওয়া-দেওয়ার হিসাব রাখুন'):text('Finance-role payments require the separate finance workflow','এই টাকা লেনদেন অর্থের আলাদা কাজ থেকে করুন')}
           onClick={()=>setPaymentOpen(true)}>
