@@ -31,7 +31,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
             onChange={(e) => onQuery(e.target.value)}
             placeholder={text('Search name or phone…','নাম বা ফোন দিয়ে খুঁজুন…')}
             aria-label={text('Search parties','পার্টি খুঁজুন')}
-            className={`${picker ? 'h-11' : 'h-8'} w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20`} />
+            className={`${picker ? 'h-11' : 'h-10'} w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20`} />
           
         </div>
         <div className={`flex gap-1 ${picker ? 'overflow-x-auto pb-1' : 'flex-wrap'}`} role="tablist" aria-label={text('Filter by role','সম্পর্ক অনুযায়ী বাছুন')}>
@@ -41,7 +41,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
             role="tab"
             aria-selected={role === r}
             onClick={() => onRole(r)}
-            className={`${picker ? 'h-9 shrink-0' : 'h-6'} rounded-md px-2 text-[11.5px] font-medium transition-colors ${
+            className={`${picker ? 'h-9 shrink-0' : 'h-7 shrink-0'} rounded-lg px-2.5 text-[13px] font-medium transition-colors ${
             role === r ? 'bg-inverse text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'}`
             }>
             
@@ -63,25 +63,25 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
             <li key={p.id} role="presentation">
               <button role="option" aria-selected={active}
                 onClick={() => onSelect(p.id)}
-                className={`flex w-full min-w-0 items-center gap-2.5 border-l-2 px-3 text-left transition-colors ${picker ? 'min-h-16 py-3' : 'py-2.5'} ${
-                active ? 'border-teal-600 bg-teal-50/60' : 'border-transparent hover:bg-ink-50'}`
+                className={`flex w-full min-w-0 items-center gap-3 border-l-2 px-3 text-left transition-colors ${picker ? 'min-h-16 py-3' : 'py-2.5'} ${
+                active ? 'border-teal-600 bg-teal-50' : 'border-transparent hover:bg-ink-50'}`
                 }>
                 
                 <PartyAvatar name={p.name} color={p.avatarColor} image={p.image} size={34} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-ink">{p.name}</p>
+                  <p className="truncate text-[14px] font-medium text-ink">{p.name}</p>
                   <div className="mt-0.5 flex items-center gap-1">
                     {p.roles.map((r) =>
                     <RoleBadge key={r} role={r} />
                     )}
-                    <span className="truncate text-[11px] text-ink-400">· {p.lastActivity}</span>
+                    <span className="truncate text-[12px] text-ink-400">· {p.lastActivity}</span>
                   </div>
                 </div>
                 <div className="min-w-0 shrink-0 text-right">
                   {role==='All'&&p.roles.length>1?
                     <><p className="text-[12px] font-semibold text-ink-600">{text('Multiple ledgers','একাধিক খাতা')}</p>
                       <p className="text-[10.5px] text-ink-400">{text('Select relationship','কোন সম্পর্কের হিসাব দেখবেন?')}</p></>:
-                    <><p className={`text-[13px] font-semibold tabular-nums ${p.balance > 0 ? 'text-teal-700' : p.balance < 0 ? 'text-danger' : 'text-ink-400'}`}>
+                    <><p className={`text-[14px] font-semibold ${p.balance > 0 ? 'text-teal-700' : p.balance < 0 ? 'text-danger' : 'text-ink-400'}`}>
                       {p.balance === 0 ? '৳0' : taka(Math.abs(p.balance))}
                     </p>
                     <p className="text-[10.5px] text-ink-400">{p.balance > 0 ? text('Receivable','পাওনা') : p.balance < 0 ? text('Payable','দেনা') : text('Settled','হিসাব মিটেছে')}</p></>}
