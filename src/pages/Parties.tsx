@@ -181,7 +181,7 @@ export function Parties() {
       <h1 className="min-w-0 text-lg font-semibold text-ink">{uiText('Parties & Ledger','পার্টি ও খাতা')}</h1>
       <div className="flex shrink-0 items-center gap-1.5">
         <Button size="sm" variant="outline" onClick={()=>setImportOpen(true)} aria-label={uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}><Upload className="size-4" /></Button>
-        <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4" /> {uiText('Add party','নতুন পার্টি')}</Button>
+        <Button size="sm" aria-label={uiText('Add party','নতুন পার্টি যোগ করুন')} onClick={()=>setEditing(null)}><Plus className="size-4" /> <span aria-hidden="true">{uiText('Add party','নতুন পার্টি')}</span></Button>
       </div>
     </div>
     {party&&<button type="button" aria-label={uiText('Change party','পার্টি বদলান')} aria-haspopup="dialog" aria-expanded={chooserOpen}
