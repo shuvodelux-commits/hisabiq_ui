@@ -115,6 +115,10 @@ jobs:
         if: steps.scope.outputs.shared == 'true'
         run: node scripts/dialog-accessibility-browser.cjs
 
+      - name: Calculator multiline, keyboard and viewport smoke
+        if: steps.scope.outputs.shared == 'true'
+        run: npm run test:calculator-scratchpad
+
       - name: Compact phone and tablet cart smoke
         if: steps.scope.outputs.mobile == 'true'
         run: node scripts/mobile-carts-browser.cjs
