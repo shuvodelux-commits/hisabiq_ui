@@ -47,7 +47,9 @@ test('Shared shell has Bangla-accessible labels without altering calculator math
   const trigger = file('src/components/layout/SidebarTrigger.tsx');
   assert.ok(top.includes('ERP মেনু খুলুন'));
   assert.ok(file('src/components/layout/GlobalSearchBox.tsx').includes('খোঁজা মুছুন'));
-  assert.ok(calc.includes("toast.success(text('Copied to clipboard','কপি হয়েছে'))"));
-  assert.ok(calc.includes('Math.round(apply(acc, value, op) * 100) / 100'));
+  assert.ok(calc.includes("toast.success(text('Total copied', 'মোট কপি হয়েছে'))"));
+  assert.ok(calc.includes('summarizeCalculatorLines(lines)'));
+  assert.ok(calc.includes('data-calculator-total'));
+  assert.ok(calc.includes("text('Calculation line ', 'হিসাবের লাইন ')"));
   assert.ok(trigger.includes("text('Expand sidebar','সাইডবার খুলুন')"));
 });
