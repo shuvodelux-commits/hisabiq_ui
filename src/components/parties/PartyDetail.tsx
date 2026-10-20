@@ -129,6 +129,54 @@ export function PartyDetail({
     relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
     relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
 
+  const otherActions = (<>
+      {vendorProfile?<div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center [&_button]:min-h-10 [&_button]:whitespace-normal [&_button]:text-center md:[&_button]:min-h-0">
+        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
+         <BookOpen className="size-4"/> {text('Opening Balance','শুরুর জের')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
+        <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
+       </div>:
+      <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center [&_button]:min-h-10 [&_button]:whitespace-normal [&_button]:text-center md:[&_button]:min-h-0">
+        <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
+          title={relationship==='Customer'||relationship==='Supplier'?text('Record payment in browser preview','প্রিভিউতে টাকা নেওয়া-দেওয়ার হিসাব রাখুন'):text('Finance-role payments require the separate finance workflow','এই টাকা লেনদেন অর্থের আলাদা কাজ থেকে করুন')}
+          onClick={()=>setPaymentOpen(true)}>
+          <HandCoins className="size-4" /> {payable ? text('Make payment','টাকা দিন') : text('Receive payment','টাকা নিন')}
+        </Button>
+        {(relationship==='Customer'||relationship==='Supplier')&&
+          <Button size="sm" variant="outline" disabled={balanceSummary.refundableCredit<=0}
+            title={balanceSummary.refundableCredit>0?text('Refund verified credit as of the selected date','নির্বাচিত তারিখ পর্যন্ত নিশ্চিত জমা টাকা ফেরত দিন'):text('No verified refundable credit yet','ফেরত দেওয়ার মতো নিশ্চিত জমা টাকা নেই')}
+            onClick={()=>setRefundOpen(true)}>
+            {text('Refund credit','জমা টাকা ফেরত')}
+          </Button>}
+        <Button size="sm" variant="outline" onClick={()=>setOpeningOpen(true)}
+          aria-label={existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')}>
+          <BookOpen className="size-4"/> {existingOpening?text('Edit opening','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
+        </Button>
+        <Button size="sm" variant="outline" disabled={relationship!=='Customer'||party.status==='Inactive'}
+          title={relationship!=='Customer'?text('New sales are available for customer relationships','শুধু ক্রেতা সম্পর্কের জন্য নতুন বিক্রি করা যায়'):party.status==='Inactive'?text('Activate this customer before starting a new sale','নতুন বিক্রির আগে ক্রেতাকে সক্রিয় করুন'):undefined}
+          onClick={onNewInvoice}>
+          <Plus className="size-4" /> {text('New invoice','নতুন বিল')}
+        </Button>
+        <Button size="sm" variant="outline" disabled title={text("SMS service is not connected to the UI preview","এই প্রিভিউতে SMS চালু নেই")}>
+          <Send className="size-4" /> {text('Send statement','হিসাব পাঠান')}
+        </Button>
+        {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
+          <Button size="sm" variant="outline" aria-label={text(`Record ${relationship.toLowerCase()} finance`,'টাকা লেনদেন লিখুন')}
+            onClick={()=>setFinanceOpen(true)}>
+            <HandCoins className="size-4"/> {relationship==='Owner'?text('Capital / withdrawal','মূলধন জমা / তোলা'):
+              relationship==='Lender'?text('Borrow / repay','ধার নেওয়া / শোধ'):text('Lend / receive','ধার দেওয়া / আদায়')}
+          </Button>}
+        <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
+          <StickyNote className="size-4" /> {text('Add note','নোট যোগ করুন')}
+        </Button>
+      </div>}
+
+
+    <Button size="sm" variant="outline" onClick={onEditParty}><Pencil className="size-4" />{text('Edit party', 'তথ্য বদলান')}</Button>
+  </>);
+
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
 
@@ -231,55 +279,27 @@ export function PartyDetail({
             <BookOpen className="size-4 shrink-0" /> {text('Opening balance','শুরুর জের')}
           </Button>
         </>}
-        <Button size="sm" variant="outline" className="col-span-2 min-h-10 w-full" aria-expanded={mobileActionsOpen} aria-controls="party-more-actions"
-          onClick={()=>setMobileActionsOpen(open=>!open)}>
-          <MoreHorizontal className="size-4" /> {mobileActionsOpen?text('Fewer actions','কম কাজ দেখুন'):text('More actions','আরও কাজ')}
+        <Button size="sm" variant="outline" className="col-span-2 min-h-10 w-full" aria-haspopup="dialog" aria-expanded={mobileActionsOpen} aria-controls="party-more-actions"
+          onClick={()=>setMobileActionsOpen(true)}>
+          <MoreHorizontal className="size-4" /> {text('More actions','আরও কাজ')}
         </Button>
       </div>
 
-      {vendorProfile?<div id="party-more-actions" className={`${mobileActionsOpen ? 'grid' : 'hidden'} grid-cols-2 flex-wrap items-center gap-2 border-b border-border px-3 py-2.5 md:flex md:px-4 [&_button]:min-h-11 md:[&_button]:min-h-0 [&_button]:whitespace-normal [&_button]:text-center md:[&_button]:whitespace-nowrap`}>
-        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
-         <BookOpen className="size-4"/> {text('Opening Balance','শুরুর জের')}</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
-        <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
-       </div>:<>
-      <div id="party-more-actions" className={`${mobileActionsOpen ? 'grid' : 'hidden'} grid-cols-2 flex-wrap items-center gap-2 border-b border-border px-3 py-2.5 md:flex md:px-4 [&_button]:min-h-11 md:[&_button]:min-h-0 [&_button]:whitespace-normal [&_button]:text-center md:[&_button]:whitespace-nowrap`}>
-        <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
-          title={relationship==='Customer'||relationship==='Supplier'?text('Record payment in browser preview','প্রিভিউতে টাকা নেওয়া-দেওয়ার হিসাব রাখুন'):text('Finance-role payments require the separate finance workflow','এই টাকা লেনদেন অর্থের আলাদা কাজ থেকে করুন')}
-          onClick={()=>setPaymentOpen(true)}>
-          <HandCoins className="size-4" /> {payable ? text('Make payment','টাকা দিন') : text('Receive payment','টাকা নিন')}
-        </Button>
-        {(relationship==='Customer'||relationship==='Supplier')&&
-          <Button size="sm" variant="outline" disabled={balanceSummary.refundableCredit<=0}
-            title={balanceSummary.refundableCredit>0?text('Refund verified credit as of the selected date','নির্বাচিত তারিখ পর্যন্ত নিশ্চিত জমা টাকা ফেরত দিন'):text('No verified refundable credit yet','ফেরত দেওয়ার মতো নিশ্চিত জমা টাকা নেই')}
-            onClick={()=>setRefundOpen(true)}>
-            {text('Refund credit','জমা টাকা ফেরত')}
-          </Button>}
-        <Button size="sm" variant="outline" onClick={()=>setOpeningOpen(true)}
-          aria-label={existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')}>
-          <BookOpen className="size-4"/> {existingOpening?text('Edit opening','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
-        </Button>
-        <Button size="sm" variant="outline" disabled={relationship!=='Customer'||party.status==='Inactive'}
-          title={relationship!=='Customer'?text('New sales are available for customer relationships','শুধু ক্রেতা সম্পর্কের জন্য নতুন বিক্রি করা যায়'):party.status==='Inactive'?text('Activate this customer before starting a new sale','নতুন বিক্রির আগে ক্রেতাকে সক্রিয় করুন'):undefined}
-          onClick={onNewInvoice}>
-          <Plus className="size-4" /> {text('New invoice','নতুন বিল')}
-        </Button>
-        <Button size="sm" variant="outline" disabled title={text("SMS service is not connected to the UI preview","এই প্রিভিউতে SMS চালু নেই")}>
-          <Send className="size-4" /> {text('Send statement','হিসাব পাঠান')}
-        </Button>
-        {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
-          <Button size="sm" variant="outline" aria-label={text(`Record ${relationship.toLowerCase()} finance`,'টাকা লেনদেন লিখুন')}
-            onClick={()=>setFinanceOpen(true)}>
-            <HandCoins className="size-4"/> {relationship==='Owner'?text('Capital / withdrawal','মূলধন জমা / তোলা'):
-              relationship==='Lender'?text('Borrow / repay','ধার নেওয়া / শোধ'):text('Lend / receive','ধার দেওয়া / আদায়')}
-          </Button>}
-        <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
-          <StickyNote className="size-4" /> {text('Add note','নোট যোগ করুন')}
-        </Button>
-      </div>
-       </>}
+
+      <div className="hidden border-b border-border px-4 py-3 md:block">{otherActions}</div>
+      <Dialog open={mobileActionsOpen} onOpenChange={setMobileActionsOpen}>
+        <DialogContent aria-label={text('More actions','আরও কাজ')}
+          className="fixed inset-x-0 bottom-0 top-auto max-h-[85dvh] w-full max-w-none overflow-y-auto rounded-b-none rounded-t-xl p-4 !translate-x-0 !translate-y-0 md:hidden">
+          <DialogHeader>
+            <DialogTitle>{text('More actions','আরও কাজ')}</DialogTitle>
+            <DialogDescription>{text('Choose an action for this party.','পার্টির জন্য কাজ বাছুন।')}</DialogDescription>
+          </DialogHeader>
+          <div id="party-more-actions" className="mt-3"
+            onClickCapture={event=>{
+              if((event.target as HTMLElement).closest('button:not([disabled])'))setMobileActionsOpen(false);
+            }}>{otherActions}</div>
+        </DialogContent>
+      </Dialog>
 
       <MotionTabList className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
         {tabs.map((t) =>
