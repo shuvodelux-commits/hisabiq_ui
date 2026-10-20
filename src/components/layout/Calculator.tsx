@@ -279,7 +279,7 @@ export function Calculator({ onClose }: CalculatorProps) {
           </button>
         </div>
       </div>
-      <div className="grid shrink-0 grid-cols-4 gap-1.5 bg-card p-2.5" aria-label={text('Calculator keys', 'ক্যালকুলেটর বাটন')}>
+      <div className="grid max-h-[min(300px,calc(100dvh-196px))] shrink-0 grid-cols-4 gap-1.5 overflow-y-auto overscroll-contain bg-card p-2.5" aria-label={text('Calculator keys', 'ক্যালকুলেটর বাটন')}>
         {KEYS.map((key, idx) => (
           <button key={idx} type="button"
             aria-label={key.action === 'back' ? text('Backspace', 'আগের সংখ্যা মুছুন')

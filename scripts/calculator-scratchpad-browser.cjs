@@ -7,7 +7,7 @@ async function main() {
   const server = await createServer({server:{host:'127.0.0.1',port:4388,strictPort:true}});
   await server.listen();
   const browser = await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
-  const cases = [[320,568],[390,700],[768,780],[1440,900]];
+  const cases = [[320,568],[390,700],[667,375],[768,780],[1024,400],[1440,900]];
   try {
     for (const [width,height] of cases) for (const theme of ['light','dark']) {
       const context = await browser.newContext({viewport:{width,height},hasTouch:width<1024,reducedMotion:'reduce'});
