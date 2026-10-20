@@ -29,19 +29,10 @@ const KEYS: CalcKey[] = [
   { label: '.', value: '.' }, { label: 'Enter', action: 'next', kind: 'next' }
 ];
 
-const MIN_VISIBLE_LINES = 4;
-
-// Keep four real editable rows visible even before the first calculation.
-function withVisibleLines(lines: string[]): string[] {
-  return lines.length >= MIN_VISIBLE_LINES
-    ? lines
-    : [...lines, ...Array<string>(MIN_VISIBLE_LINES - lines.length).fill('')];
-}
-
 function loadLines(): string[] {
-  if (typeof window === 'undefined') return withVisibleLines(['']);
-  try { return withVisibleLines(sanitizeCalculatorLines(JSON.parse(window.localStorage.getItem(CALCULATOR_STORAGE_KEY) ?? 'null'))); }
-  catch { return withVisibleLines(['']); }
+  if (typeof window === 'undefined') return [''];
+  try { return sanitizeCalculatorLines(JSON.parse(window.localStorage.getItem(CALCULATOR_STORAGE_KEY) ?? 'null')); }
+  catch { return ['']; }
 }
 
 export function Calculator() {
@@ -57,7 +48,7 @@ export function Calculator() {
   const { results, total, errors } = summarizeCalculatorLines(lines);
 
   const store = useCallback((next: string[]) => {
-    const safe = withVisibleLines(sanitizeCalculatorLines(next));
+    const safe = sanitizeCalculatorLines(next);
     linesRef.current = safe;
     setLines(safe);
     try { window.localStorage.setItem(CALCULATOR_STORAGE_KEY, JSON.stringify(safe)); }
@@ -210,11 +201,13 @@ export function Calculator() {
 
   // Preserve the classic result-first layout; only the working area is new.
   const preview = lines[activeIndex]?.trim() || [...lines].reverse().find(line => line.trim()) || '';
+  const visibleRowCount = Math.min(lines.length, 4);
 
   return (
     <div ref={rootRef} data-calculator="scratchpad"
       onKeyDown={onKeyboard}
-      className="flex h-[min(510px,calc(100dvh-24px))] min-h-0 w-full flex-col overflow-hidden p-3 text-ink">
+      className="flex min-h-0 w-full flex-col overflow-hidden p-3 text-ink"
+      style={{ height: `min(${346 + 40 * visibleRowCount}px, calc(100dvh - 24px))` }}>
       <div className="mb-2 shrink-0 rounded-lg bg-ink-50 px-3 py-2.5 text-right" data-calculator-display>
         <div className="mb-1 flex min-w-0 items-center justify-between gap-2 text-xs text-ink-500">
           <span>{text('Total', 'মোট')}</span>
@@ -223,23 +216,11 @@ export function Calculator() {
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
-          <div className="flex shrink-0 items-center gap-0.5">
-            <button type="button" onClick={copyTotal}
-              className="flex size-7 items-center justify-center rounded text-ink-400 hover:bg-card hover:text-ink"
-              aria-label={text('Copy calculator total', 'মোট হিসাব কপি করুন')}>
-              <Copy className="size-3.5" aria-hidden="true"/>
-            </button>
-            <button type="button" onMouseDown={event => event.preventDefault()}
-              onClick={() => replaceSelection('(')} aria-label={text('Open parenthesis', 'বাম বন্ধনী')}
-              className="flex size-7 items-center justify-center rounded text-xs text-ink-500 hover:bg-card hover:text-ink">
-              (
-            </button>
-            <button type="button" onMouseDown={event => event.preventDefault()}
-              onClick={() => replaceSelection(')')} aria-label={text('Close parenthesis', 'ডান বন্ধনী')}
-              className="flex size-7 items-center justify-center rounded text-xs text-ink-500 hover:bg-card hover:text-ink">
-              )
-            </button>
-          </div>
+          <button type="button" onClick={copyTotal}
+            className="flex size-7 shrink-0 items-center justify-center rounded text-ink-400 hover:bg-card hover:text-ink"
+            aria-label={text('Copy calculator total', 'মোট হিসাব কপি করুন')}>
+            <Copy className="size-3.5" aria-hidden="true"/>
+          </button>
           <output data-calculator-total
             className="min-w-0 max-w-full overflow-x-auto whitespace-nowrap text-right text-2xl font-semibold tracking-tight text-ink">
             {formatCalculatorNumber(total)}
@@ -250,7 +231,8 @@ export function Calculator() {
         </div>}
       </div>
       <div ref={listRef} data-calculator-lines
-        className="min-h-[166px] flex-1 space-y-1 overflow-y-auto overscroll-contain px-1 py-1 scrollbar-thin">
+        style={{ height: 8 + 40 * visibleRowCount }}
+        className="min-h-0 shrink-0 space-y-1 overflow-y-auto overscroll-contain px-1 py-1 scrollbar-thin">
         {lines.map((line, idx) => {
           const result = results[idx] ?? evaluateCalculatorExpression(line);
           const hasError = Boolean(line.trim() && result.error);
@@ -292,6 +274,16 @@ export function Calculator() {
       <div data-calculator-keypad
         className="grid min-h-0 shrink grid-cols-4 gap-1.5 overflow-y-auto overscroll-contain pt-2 scrollbar-thin"
         aria-label={text('Calculator keys', 'ক্যালকুলেটর বাটন')}>
+        <div data-calculator-parentheses className="col-span-4 flex items-center justify-end gap-1.5">
+          <button type="button" onMouseDown={event => event.preventDefault()}
+            onClick={() => replaceSelection('(')} aria-label={text('Open parenthesis', 'বাম বন্ধনী')}
+            className="flex h-8 min-w-10 items-center justify-center rounded-lg bg-ink-50 px-2 text-[14px] font-medium text-ink-600 hover:bg-ink-100">(
+          </button>
+          <button type="button" onMouseDown={event => event.preventDefault()}
+            onClick={() => replaceSelection(')')} aria-label={text('Close parenthesis', 'ডান বন্ধনী')}
+            className="flex h-8 min-w-10 items-center justify-center rounded-lg bg-ink-50 px-2 text-[14px] font-medium text-ink-600 hover:bg-ink-100">)
+          </button>
+        </div>
         {KEYS.map((key, idx) => (
           <button key={idx} type="button"
             aria-label={key.action === 'back' ? text('Backspace', 'আগের সংখ্যা মুছুন')
