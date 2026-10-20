@@ -19,7 +19,7 @@ async function main() {
     await dialog.getByLabel('Area').fill('Dhaka');
     await dialog.getByRole('checkbox',{name:'Supplier'}).check();
     await dialog.getByRole('button',{name:/Save party/i}).click();
-    await page.getByText('New Party QA',{exact:true}).first().waitFor();
+    await page.getByRole('heading',{name:'New Party QA'}).waitFor();
     assert.match(page.url(),/id=party-preview-/);
     await page.getByRole('combobox',{name:'Relationship'}).click();
     await page.getByRole('listbox',{name:'Relationship options'}).getByRole('option',{name:'Supplier',exact:true}).click();
@@ -27,7 +27,7 @@ async function main() {
     await page.getByRole('button',{name:/Edit party/i}).click();
     await dialog.getByLabel('Phone').fill('01888880000');
     await dialog.getByRole('button',{name:/Save party/i}).click();
-    await page.getByText('01888880000').first().waitFor();
+    await page.locator(':text-is("01888880000"):visible').first().waitFor();
     await page.getByRole('tab',{name:/Notes/}).click();
     await page.getByRole('textbox',{name:'New note'}).fill('Ask for receipt');
     await page.getByRole('textbox',{name:'New note'}).locator('..').getByRole('button',{name:'Add note'}).click();
@@ -51,7 +51,7 @@ async function main() {
       buffer:Buffer.from('name,nameBn,phone,area,roles\nCSV Supplier QA,সিএসভি,01700990011,Sylhet,Supplier|Customer\n')
     });
     await page.getByRole('button',{name:/Import 1 parties/}).click();
-    await page.getByText('CSV Supplier QA',{exact:true}).first().waitFor();
+    await page.locator(':text-is("CSV Supplier QA"):visible').first().waitFor();
     // Magic Patterns adaptive Party workspace: one selected profile plus a chooser on narrow viewports.
     await page.setViewportSize({width:375,height:800});
     await page.getByRole('button',{name:'Change party'}).click();
