@@ -57,7 +57,7 @@ function LedgerTypeIcon({ row }: { row: PartyLedgerRow }) {
 
 export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, onOpenAttachment }: Props) {
   const { text, language } = useUiCopy();
-  const balance = (value: number) => formatMoneyNumber(Math.abs(value)) + ' ' + (value >= 0 ? 'Dr' : 'Cr');
+  const balance = (value: number) => formatMoneyNumber(Math.abs(value)) + ' ' + (value>=0?'Dr':'Cr');
 
   const summary = <div className="grid grid-cols-3 gap-2 bg-ink-50/70 px-4 py-3 lg:flex lg:flex-wrap lg:gap-x-8 lg:gap-y-1 lg:py-2.5" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
     {[
