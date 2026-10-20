@@ -129,7 +129,7 @@ export function PartyDetail({
     relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card">
+    <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
       <div className="flex min-w-0 flex-wrap items-start gap-3 border-b border-border p-3 sm:gap-4 sm:p-4">
         <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52} />
         <div className="min-w-0 flex-1">
