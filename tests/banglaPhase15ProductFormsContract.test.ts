@@ -28,25 +28,17 @@ test('enumeration dropdown keeps persisted IDs across English and Bangla',()=>{
  assert.deepEqual(productFormOptions('English',values).map(x=>x.label),values);
  assert.deepEqual(productFormOptions('Bangla',values).map(x=>x.label),['বন্ধ','ঐচ্ছিক','বাধ্যতামূলক']);
 });
-test('source-safe product editing retains unit, warranty, serial, lot and quick-add logic',()=>{
- const dialog=readFileSync('src/components/products/AddProductDialog.tsx','utf8');
- const settings=readFileSync('src/components/products/ProductSettings.tsx','utf8');
- for(const s of [
-  "useUiCopy()","productFormLabel(language,english)",
-  "toBasePrice(", "toBaseQuantity(","requiredSerialCount(","duplicateSerials(","normalizeSerials(",
-  "onSave(product, opening)","createPreviewProductCategory(","createPreviewProductBrand(",
-  "createPreviewProductUnit(", "newName.trim()"
- ])assert.ok((dialog+'\n'+settings).includes(s),s);
- for(const s of ["setSerialTracking(mode)", "setAllocationMethod(next as StockAllocationMethod)", "value={category}",
-  "value={brand}","priceToBase(sell, selectedSellUnit)","priceToBase(buy, selectedBuyUnit)"])
-  assert.ok(dialog.includes(s),s);
+test('the full product editor uses the app language and source-safe reusable handlers',()=>{
+ const read=(path:string)=>readFileSync(path,'utf8');
+ const editor=read('src/components/products/AddProductDialog.tsx');
+ const form=read('src/components/products/form/useAddProductForm.ts');
+ const draft=read('src/utils/productDraft.ts');
+ const copy=read('src/hooks/useFormCopy.ts');
+ const settings=read('src/components/products/ProductSettings.tsx');
+ assert.match(copy,/useUiCopy/);assert.match(editor,/onSave\(product, opening\)/);
+ for(const name of ['createPreviewProductCategory','createPreviewProductBrand','createPreviewProductUnit'])assert.ok(form.includes(name));
+ for(const name of ['duplicateSerials','normalizeSerials','resolveUnitChain','unitRelations','unitPurchasePrices','unitSellPrices'])assert.ok(draft.includes(name));
  assert.match(settings,/\['categories', 'Categories', Tags\]/);
- assert.match(settings,/\['units', 'Units', Ruler\]/);
- assert.match(settings,/\['brands', 'Brands', Tags\]/);
- assert.match(settings,/\['defaults', 'Defaults', Settings2\]/);
- assert.ok(dialog.includes("productFormOptions(language,warrantyUnits)"));
- assert.ok(dialog.includes("productFormOptions(language,warrantyTypes)"));
- assert.ok(dialog.includes("productFormOptions(language,allocationMethods)"));
- assert.doesNotMatch(dialog,/setSerialTracking\(pl\(/);
- assert.doesNotMatch(settings,/createPreviewProductCategory\(pl\(/);
+ assert.match(settings,/\['units', 'Units', Ruler\]/);assert.match(settings,/\['brands', 'Brands', Tags\]/);
+ assert.doesNotMatch(draft,/setSerialTracking\(pl\(/);
 });

@@ -65,6 +65,8 @@ export type Product = {
   category: string;
   brand?: string;
   image?: string;
+  /** Editor gallery; image remains the cover used by carts and lists. */
+  images?: string[];
   /** Base (smallest) unit, e.g. "Pcs", "Gira", "Kg" */
   unit: string;
   altUnit?: UnitConversion;

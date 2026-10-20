@@ -8,7 +8,7 @@ import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { QuickAddSelect } from '../components/QuickAddSelect';
 import { PhotoUploader } from '../components/products/PhotoUploader';
-import { AddProductDialog } from '../components/products/AddProductDialog';
+import { AddProductDialog, type ProductOpeningMeta } from '../components/products/AddProductDialog';
 import { PurchaseCart } from '../components/purchases/PurchaseCart';
 import { TransactionReviewDialog } from '../components/TransactionReviewDialog';
 import { PurchasePaymentPanel, makePurchasePaymentRow, type PurchasePaymentRow } from '../components/purchases/PurchasePaymentPanel';
@@ -92,8 +92,8 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
     toast.success('Supplier added and selected');
   };
 
-  const addCreatedProduct = (product: Product) => {
-    createPreviewProduct(product);
+  const addCreatedProduct = (product: Product, opening?: ProductOpeningMeta) => {
+    createPreviewProduct(product, opening);
     if (product.kind !== 'Service') {
       setProducts((current) => [...current, product]);
       addProduct(product);
