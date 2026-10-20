@@ -111,13 +111,13 @@ jobs:
         if: steps.scope.outputs.finance == 'true'
         run: npm run test:counter-ux
 
-      - name: Shared dialogs and mobile overlay accessibility
-        if: steps.scope.outputs.shared == 'true'
-        run: node scripts/dialog-accessibility-browser.cjs
-
       - name: Calculator multiline, keyboard and viewport smoke
         if: steps.scope.outputs.shared == 'true'
         run: npm run test:calculator-scratchpad
+
+      - name: Shared dialogs and mobile overlay accessibility
+        if: steps.scope.outputs.shared == 'true'
+        run: node scripts/dialog-accessibility-browser.cjs
 
       - name: Compact phone and tablet cart smoke
         if: steps.scope.outputs.mobile == 'true'
