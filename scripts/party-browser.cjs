@@ -62,6 +62,8 @@ async function main() {
     await page.getByRole('heading',{name:/CSV Supplier QA/}).waitFor();
     await page.getByRole('button',{name:'More actions'}).click();
     await page.getByRole('button',{name:/Opening balance/}).first().waitFor();
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog',{name:'More actions'}).waitFor({state:'hidden'});
 
     for(const width of [320,360,390,600,768,820,1024,1280,1440]){
       await page.setViewportSize({width,height:900});
