@@ -1,7 +1,7 @@
 import { Paperclip, StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw, HandCoins, ChevronRight } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { PartyLedgerRowActions } from './PartyLedgerRowActions';
-import { Button } from '../Button';
 import type { LedgerStatement, PartyAction, PartyLedgerRow } from '../../types/partyLedger';
 import { formatMoneyNumber } from '../../utils/currency';
 import { ledgerImpact, type LedgerImpact } from '../../utils/partyLedgerImpact';
@@ -57,6 +57,7 @@ function LedgerTypeIcon({ row }: { row: PartyLedgerRow }) {
 
 export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, onOpenAttachment }: Props) {
   const { text, language } = useUiCopy();
+  const reduceMotion = useReducedMotion();
   const balance = (value: number) => formatMoneyNumber(Math.abs(value)) + ' ' + (value>=0?'Dr':'Cr');
 
   const summary = <div className="grid grid-cols-3 gap-2 bg-ink-50/70 px-4 py-3 xl:flex xl:flex-wrap xl:gap-x-8 xl:gap-y-1 xl:py-2.5" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
@@ -89,12 +90,16 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
           {visibleRows.map(row => <TableRow key={row.id} className="align-top text-[13px]">
             <TableCell className="whitespace-nowrap pl-5 py-3 text-xs text-ink-500">{row.date}</TableCell>
             <TableCell className="min-w-[170px] py-3">
-              <div className="flex items-center gap-2">
-                <LedgerTypeIcon row={row} />
-                <span className="min-w-0">
-                  <span className="block font-semibold text-ink">{row.reference || partyLedgerSourceLabel(language,row.source)}</span>
-                  <span className="block text-xs text-ink-500">{partyLedgerSourceLabel(language,row.source)}</span>
-                </span>
+              <div className="flex items-start gap-2">
+                <button type="button" aria-label={text('View transaction','লেনদেন দেখুন') + ' ' + (row.reference || row.id)}
+                  onClick={() => onAction('view',row)}
+                  className="group flex min-w-0 flex-1 items-center gap-2 rounded text-left transition-colors hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-500">
+                  <LedgerTypeIcon row={row} />
+                  <span className="min-w-0">
+                    <span className="block break-words font-semibold text-ink group-hover:text-teal-700">{row.reference || partyLedgerSourceLabel(language,row.source)}</span>
+                    <span className="block text-xs text-ink-500">{partyLedgerSourceLabel(language,row.source)}</span>
+                  </span>
+                </button>
                 {row.attachment && <button type="button" aria-label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন') + ' ' + row.attachment.name}
                   className="rounded p-1 text-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500"
                   onClick={() => onOpenAttachment(row)}><Paperclip className="size-4" /></button>}
@@ -105,10 +110,7 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
             <TableCell className="py-3 text-right"><LedgerAmount row={row} value={row.credit} language={language} /></TableCell>
             <TableCell className="whitespace-nowrap py-3 text-right font-semibold text-ink">{balance(row.runningBalance)}</TableCell>
             <TableCell className="py-2 pr-3 text-right">
-              <div className="flex items-center justify-end gap-1">
-                <Button size="sm" variant="ghost" className="text-teal-700" onClick={() => onAction('view', row)}>{text('View', 'দেখুন')}</Button>
-                <PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} />
-              </div>
+              <div className="flex items-center justify-end gap-1"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} /></div>
             </TableCell>
           </TableRow>)}
           {!visibleRows.length && <TableRow><TableCell colSpan={6} className="p-8 text-center text-sm text-ink-500">
@@ -119,10 +121,18 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
     </div>
 
     <ul className="divide-y divide-border xl:hidden" aria-label={text('Transactions', 'লেনদেন')}>
+      <AnimatePresence initial={false} mode="popLayout">
       {visibleRows.map(row => {
         const amount = row.debit || row.credit;
         const side = row.debit ? text('Debit', 'ডেবিট') : row.credit ? text('Credit', 'ক্রেডিট') : '';
-        return <li key={row.id} className="min-w-0 px-4 py-3.5">
+        return <motion.li key={row.id} className="min-w-0 px-4 py-3.5"
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' }}>
+          <button type="button" aria-label={text('View transaction','লেনদেন দেখুন') + ' ' + (row.reference || row.id)}
+            onClick={() => onAction('view',row)}
+            className="block w-full rounded-md text-left transition-colors hover:bg-ink-50/50 focus-visible:outline-2 focus-visible:outline-teal-500">
           <div className="flex min-w-0 items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-1.5 text-xs text-ink-500">
@@ -141,19 +151,19 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
             </div>}
           </div>
           {row.description && row.description !== row.reference && <p className="mt-1 line-clamp-2 break-words text-[13px] leading-snug text-ink-500">{row.description}</p>}
-          <div className="mt-3 flex min-w-0 items-center justify-between gap-2">
+          </button>
+          <div className="mt-2.5 flex min-w-0 items-center justify-between gap-2">
             <p className="min-w-0 break-words text-xs text-ink-500">{text('Balance', 'জের')} <strong className="font-semibold text-ink">{balance(row.runningBalance)}</strong></p>
             <div className="flex shrink-0 items-center gap-1">
               {row.attachment && <button type="button" className="min-h-9 rounded p-2 text-teal-700" aria-label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন') + ' ' + row.attachment.name}
                 onClick={() => onOpenAttachment(row)}><Paperclip className="size-4" /></button>}
-              <Button size="sm" className="min-h-9" onClick={() => onAction('view', row)}>
-                {text('View', 'দেখুন')} <ChevronRight className="size-4" aria-hidden="true" />
-              </Button>
+              <ChevronRight className="size-4 shrink-0 text-ink-400" aria-hidden="true" />
               <PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} />
             </div>
           </div>
-        </li>;
+        </motion.li>;
       })}
+      </AnimatePresence>
       {!visibleRows.length && <li className="p-8 text-center text-sm text-ink-500">
         {text('No transactions match these filters.', 'এই ফিল্টারে কোনো লেনদেন নেই।')}
       </li>}
