@@ -204,6 +204,9 @@ jobs:
       - name: Check shared POS compound quantity inputs and mobile geometry
         run: npm run test:compound-units
 
+      - name: Check three-level product units, mobile layouts, POS and Purchase totals
+        run: npm run test:multi-unit-products
+
       - name: Check quotations and estimates journeys
         run: npm run test:quotations
 
