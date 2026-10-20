@@ -74,7 +74,9 @@ async function main() {
       const rowBox=await current.boundingBox();
       const dialogBox=await dialog.boundingBox();
       const keypadBox=await surface.getByRole('button',{name:'Next calculation line'}).boundingBox();
+      const keypadViewport=await surface.locator('[data-calculator-keypad]').boundingBox();
       const totalBox=await total.boundingBox();
+      if(height>=560) assert.ok(keypadBox && keypadViewport && keypadBox.y+keypadBox.height<=keypadViewport.y+keypadViewport.height+1, 'Entire original keypad remains visible without scrolling on normal screens');
       assert.ok(rowBox && listBox && rowBox.y>=listBox.y-2 && rowBox.y+rowBox.height<=listBox.y+listBox.height+2,
         'Active input remains in the internally scrollable list');
       assert.ok(dialogBox && dialogBox.y>=-1 && dialogBox.y+dialogBox.height<=height+1,

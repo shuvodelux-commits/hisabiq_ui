@@ -207,7 +207,7 @@ export function Calculator() {
     <div ref={rootRef} data-calculator="scratchpad"
       onKeyDown={onKeyboard}
       className="flex min-h-0 w-full flex-col overflow-hidden p-3 text-ink"
-      style={{ height: `min(${346 + 40 * visibleRowCount}px, calc(100dvh - 24px))` }}>
+      style={{ height: `min(${386 + 40 * visibleRowCount}px, calc(100dvh - 24px))` }}>
       <div className="mb-2 shrink-0 rounded-lg bg-ink-50 px-3 py-2.5 text-right" data-calculator-display>
         <div className="mb-1 flex min-w-0 items-center justify-between gap-2 text-xs text-ink-500">
           <span>{text('Total', 'মোট')}</span>
