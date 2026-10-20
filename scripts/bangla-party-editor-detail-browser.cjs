@@ -32,8 +32,9 @@ async function main(){
     await editor.getByRole('button',{name:label('Cancel','বাতিল')}).click();
     await editor.waitFor({state:'hidden'});
 
-    if(width<768)await page.getByRole('button',{name:label('More actions','আরও কাজ')}).click();
-    await page.getByRole('button',{name:label('Edit opening balance','শুরুর জের বদলান')}).click();
+    await page.getByRole('button',{name:label('More actions','আরও কাজ')}).click();
+    const more=width<768?page.getByRole('dialog',{name:label('More actions','আরও কাজ')}):page.getByRole('dialog',{name:label('More actions','আরও কাজ')});
+    await more.getByRole('button',{name:bn?/শুরুর জের/:/Opening balance/}).click();
     const opening=page.getByRole('dialog',{name:label('Party opening balance','পার্টির শুরুর জের')});
     await opening.getByRole('textbox',{name:label('Opening balance amount','শুরুর জেরের টাকা')}).waitFor();
     await opening.getByText(label('Opening balance changes the ledger only.','শুরুর জের শুধু খাতার হিসাব বদলায়।'),{exact:false}).waitFor();
