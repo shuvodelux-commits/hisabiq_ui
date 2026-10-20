@@ -67,7 +67,7 @@ async function main() {
       const firstRow=await fourRows[0].boundingBox();
       assert.equal(fourRows.length,4,'Four real lines appear only after Enter creates them');
       assert.ok(fourArea && firstRow && fourthRow && firstRow.y>=fourArea.y-2 && fourthRow.y+fourthRow.height<=fourArea.y+fourArea.height+2,
-        'At least four calculation lines fit visibly once present');
+        'At least four calculation lines fit visibly once present: '+JSON.stringify({width,height,firstRow,fourthRow,fourArea,scroll:await surface.locator('[data-calculator-lines]').evaluate(el=>el.scrollTop)}));
       for(let i=0;i<13;i++) await surface.getByRole('button',{name:'Next calculation line'}).click();
       const current=surface.locator('[data-calculator-line][data-active="true"]');
       const listBox=await surface.locator('[data-calculator-lines]').boundingBox();
