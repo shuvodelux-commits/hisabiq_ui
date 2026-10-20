@@ -137,6 +137,6 @@ export function VendorGoodsEditor({partyId,mode,onSaved,onCancel,onDirtyChange}:
    <Button type="submit" size="sm">Save {mode==='given'?'Given':'Taken'} Products</Button>
   </div>
   <AddProductDialog open={addingProduct} onOpenChange={setAddingProduct}
-   existingSerials={[]} onSave={p=>{createPreviewProduct(p);setCatalog(items=>[...items,p]);add(p);setAddingProduct(false);}}/>
+   existingSerials={[]} onSave={(p,opening)=>{createPreviewProduct(p,opening);setCatalog(items=>[...items,p]);add(p);setAddingProduct(false);}}/>
  </form>;
 }

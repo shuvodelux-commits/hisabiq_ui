@@ -129,10 +129,10 @@ async function main() {
           const button = page.getByRole('button', { name: label }).first();
           if (await button.count()) {
             await button.click();
-            const dialog = page.getByRole('dialog').first();
+            const dialog = route === 'products' ? page.locator('[data-product-editor]') : page.getByRole('dialog').first();
             await dialog.waitFor();
             await scan(page, { width, theme, language, route, surface: 'dialog' });
-            await page.keyboard.press('Escape');
+            if(route==='products')await dialog.getByRole('button',{name:'Cancel',exact:true}).click();else await page.keyboard.press('Escape');
           }
         }
       }

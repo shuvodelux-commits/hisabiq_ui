@@ -111,7 +111,7 @@ function paymentsFromDraft(draft: SalesDraft): PosPaymentRow[] {
 }
 
 function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): CartLine[] {
-  return invoice.lines.flatMap((sourceLine) => {
+  return invoice.lines.flatMap<CartLine>((sourceLine) => {
     const product = getProductImportPreviewSnapshot().products.find((item) => item.id === sourceLine.productId);
     if (!product) return [];
     if(sourceLine.unitQuantities&&sourceLine.unitSnapshot) {

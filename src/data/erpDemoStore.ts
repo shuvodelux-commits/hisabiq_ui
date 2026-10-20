@@ -140,9 +140,23 @@ export const availableStockMovements = () => [...getProductImportPreviewSnapshot
 export function createPreviewProductCategory(category: string) {
   if (!availableProductCategories().some((item) => item.toLowerCase() === category.toLowerCase())) createdProductCategories.push(category);
 }
-export function createPreviewProduct(product: Product) {
-  if (!availableProducts().some((item) => item.id === product.id)) upsertProductPreview(product);
+/** Contextual product creation carries the same opening lot evidence as the Products page. */
+export function createPreviewProduct(product: Product, opening?: Pick<StockLot, 'serials' | 'batchNumber' | 'manufactureDate' | 'expiryDate'>) {
+  if (availableProducts().some((item) => item.id === product.id)) return;
+  if (product.kind !== 'Service' && product.stock > 0) {
+    const date = new Date().toISOString().slice(0, 10);
+    upsertProductPreview(product, {
+      id: `lot-${product.id}-opening`, productId: product.id, label: 'Opening Stock', receivedAt: date,
+      quantity: product.stock, available: product.stock, unitCost: product.purchasePrice, source: 'Opening',
+      serials: opening?.serials?.length ? opening.serials : undefined,
+      batchNumber: opening?.batchNumber, manufactureDate: opening?.manufactureDate, expiryDate: opening?.expiryDate
+    }, {
+      id: `mov-${product.id}-opening`, productId: product.id, date, type: 'Opening', quantity: product.stock,
+      balance: product.stock, reference: 'Opening Stock', note: 'Opening balance'
+    });
+  } else upsertProductPreview(product);
 }
+
 export function createPreviewParty(party: Party) {
   if (!getPartyPreviewSnapshot().parties.some((item) => item.id === party.id)) {
     dispatchPartyPreview({type:'create-party',party});

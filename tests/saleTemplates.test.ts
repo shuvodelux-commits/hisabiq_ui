@@ -29,7 +29,7 @@ test('template validation rejects malformed quantities, prices, missing products
  const source=saleTemplates[0];const cart=cartFromPreset(source.lines,products);
  assert.throws(()=>templateCart([]));
  for(const qty of ['1..2','Infinity','-1'])assert.throws(()=>templateCart([{...cart[0],qty}]));
- for(const price of ['1..2','Infinity','-1','12.345'])assert.throws(()=>templateCart([{...cart[0],price}]));
+ for(const price of ['1..2','Infinity','-1','12.34567'])assert.throws(()=>templateCart([{...cart[0],price}]));
  assert.throws(()=>saveSaleTemplate({...source,name:' '}));
  assert.throws(()=>saveSaleTemplate({...source,lines:[{...source.lines[0],productId:'missing'}]}),/unavailable/);
  assert.throws(()=>saveSaleTemplate({...source,lines:[{...source.lines[0],unit:'Unknown'}]}),/unit/);

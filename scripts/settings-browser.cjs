@@ -181,23 +181,11 @@ async function main() {
     await page
       .getByRole("button", { name: "Add product", exact: true })
       .click();
-    await page.locator('[data-slot="dialog-content"]').waitFor();
-    assert.ok(
-      await page.locator('[data-slot="dialog-content"] [role="combobox"][data-value="Pcs"]').count() > 0,
-      'default base unit uses saved Pcs preference'
-    );
-    await page.locator('[data-slot="dialog-content"]').getByRole("button", { name: /Advanced/ }).click();
-    assert.match(
-      await page
-        .locator('[data-slot="dialog-content"]')
-        .getByRole("button", { name: "Required", exact: true })
-        .getAttribute("class"),
-      /bg-card/,
-    );
-    await page
-      .locator('[data-slot="dialog-content"]')
-      .getByRole("button", { name: "Close", exact: true })
-      .click();
+    const productEditor=page.locator('[data-product-editor]');await productEditor.waitFor();
+    assert.equal(await productEditor.locator('#pf-unit').getAttribute('data-value'),'Pcs','saved tenant default unit');
+    if(await productEditor.locator('#pf-other-button').getAttribute('aria-expanded')==='false')await productEditor.locator('#pf-other-button').click();
+    assert.equal(await productEditor.getByRole('radio',{name:'Required',exact:true}).getAttribute('aria-checked'),'true');
+    await productEditor.getByRole('button',{name:'Cancel',exact:true}).click();
     await go("team");
     await mode("Advanced");
     await page.getByRole("button", { name: "Roles", exact: true }).click();

@@ -18,7 +18,8 @@ async function run(){
    await editor.getByRole('textbox',{name:'Package name'}).fill('Tubewell Set');
    const sku='PKG-'+viewport.width+'-'+Date.now();
    await editor.getByRole('textbox',{name:'Package SKU'}).fill(sku);
-   await editor.getByRole('button',{name:'Quick add category'}).click();
+   await editor.getByRole('combobox',{name:'Category',exact:true}).click();
+    await page.getByText('Add new category',{exact:true}).click();
    const quick=page.locator('[data-slot="dialog-content"]').last();
    await quick.getByPlaceholder('Category name').fill('New Package Category '+viewport.width);
    await quick.getByRole('button',{name:'Add category'}).click();

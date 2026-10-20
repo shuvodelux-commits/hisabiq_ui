@@ -438,7 +438,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
               if (available <= 0) {
                 onRemove(shortageLine.key);
               } else {
-                const useAlternate = productUnitFactor(shortageLine.product,shortageLine.unit)>1;
+                const factor = productUnitFactor(shortageLine.product, shortageLine.unit);
+                const useAlternate = factor > 1;
                 onUpdate(shortageLine.key, {
                   ...quantityFromBaseStock(available, factor, useAlternate),
                   stockSource: undefined
