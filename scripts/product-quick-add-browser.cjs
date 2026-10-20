@@ -8,9 +8,14 @@ async function main(){
   const context=await browser.newContext({viewport:{width,height:900},hasTouch:width<1024,reducedMotion:'reduce'});
   await context.addInitScript(theme=>localStorage.setItem('hisabiq-theme',theme),theme);
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('http://127.0.0.1:4181/#/app/products');await page.getByRole('button',{name:'Add product',exact:true}).click();
+  await page.goto('http://127.0.0.1:4181/#/app/products');
+  const workspace=await page.getByRole('heading',{name:'Products',exact:true}).evaluate(el=>el.closest('.mx-auto').getBoundingClientRect().toJSON());
+  await page.getByRole('button',{name:'Add product',exact:true}).click();
   const editor=page.locator('[data-product-editor]');await editor.waitFor();
   assert.equal(await editor.getAttribute('data-presentation'),'page');
+  const bounds=await editor.boundingBox(),header=await editor.locator('header').boundingBox();
+  assert.ok(Math.abs(bounds.x-workspace.x)<1&&Math.abs(bounds.width-workspace.width)<1,'editor uses Products workspace width and alignment');
+  assert.ok(Math.abs(bounds.y-workspace.y)<1&&Math.abs(header.x-workspace.x)<1,'editor uses the standard workspace top and heading inset');
   assert.equal(await editor.locator('#pf-advanced-button').getAttribute('aria-expanded'),'false');
   assert.equal(await editor.locator('#pf-other-button').getAttribute('aria-expanded'),'false');
   assert.equal(await editor.locator('[aria-label^="Quick add "]').count(),0);

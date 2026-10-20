@@ -87,8 +87,8 @@ function ProductEditor({ onOpenChange, onSave, initialProduct, existingSerials =
 
   const title = form.isEdit ? t('Edit product', 'পণ্য সম্পাদনা') : t('Add product', 'নতুন পণ্য');
   const content = (
-    <div data-product-editor data-presentation={presentation} className="product-form mx-auto w-full max-w-[920px] pb-5 md:py-6">
-      <header className="px-4 pb-4 pt-3 md:px-0 md:pt-0">
+    <div data-product-editor data-presentation={presentation} className={`product-form mx-auto w-full pb-5 ${presentation === 'page' ? 'max-w-[1440px]' : 'max-w-[920px] md:py-6'}`}>
+      <header className={presentation === 'page' ? 'pb-4' : 'px-4 pb-4 pt-3 md:px-0 md:pt-0'}>
         <div className="mb-3 flex items-center gap-1.5 text-[13px] text-ink-500">
           <Button type="button" variant="ghost" onClick={form.requestExit} className="-ml-2 h-11 gap-1 px-2 text-ink-600 md:h-9">
             <ArrowLeftIcon className="size-4" aria-hidden="true" />{t('Back', 'ফিরুন')}
@@ -102,7 +102,7 @@ function ProductEditor({ onOpenChange, onSave, initialProduct, existingSerials =
           ? t('Update details here. Stock quantity changes stay in Adjust stock.', 'এখানে তথ্য বদলান। স্টকের পরিমাণ বদলাতে Adjust stock ব্যবহার করুন।')
           : t('Fill the top part and save. Everything else can wait.', 'উপরের অংশ পূরণ করে সংরক্ষণ করুন। বাকিগুলো পরে দিলেও চলবে।')}</p>
       </header>
-      <div className="px-4 md:px-0"><ErrorSummary form={form} />
+      <div className={presentation === 'context' ? 'px-4 md:px-0' : undefined}><ErrorSummary form={form} />
         {form.saveError && <p role="alert" className="mb-4 rounded-lg bg-danger-bg p-3 text-sm text-danger">{form.saveError}</p>}
       </div>
       <AddProductForm form={form} />
