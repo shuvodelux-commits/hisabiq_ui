@@ -154,7 +154,7 @@ export function Calculator({ onClose }: CalculatorProps) {
   };
 
   const onKeyboard = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.altKey || event.metaKey || event.ctrlKey || event.isComposing) return;
+    if (event.altKey || event.metaKey || event.ctrlKey || event.nativeEvent.isComposing) return;
     const target = event.target;
     if (target instanceof HTMLButtonElement) return;
     const field = target instanceof HTMLInputElement;
