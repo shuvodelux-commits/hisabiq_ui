@@ -1,11 +1,12 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
-import { FileText, HandCoins, MapPin, MessageSquare, MoreHorizontal, ArrowLeftRight, Clock, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { FileText, HandCoins, MapPin, MessageSquare, MoreHorizontal, ArrowLeftRight, Clock, ChevronLeft, ChevronRight, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { FormSelect } from '../FormSelect';
+import { AppSelect } from '../AppSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
 import { RoleBadge } from './RoleBadge';
@@ -301,7 +302,7 @@ export function PartyDetail({
         </DialogContent>
       </Dialog>
 
-      <MotionTabList className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+      <MotionTabList className="sticky top-14 z-20 flex gap-1 overflow-x-auto border-b border-border bg-card px-3 scrollbar-thin md:static md:z-auto" role="tablist">
         {tabs.map((t) =>
         <button
           key={t.id}
@@ -342,13 +343,24 @@ export function PartyDetail({
               onStatement={onStatement} onReset={onResetLedger}/>
             <LedgerTable statement={shownStatement} visibleRows={shownRows} actionsForRow={shownActions}
               onAction={doRowAction} onOpenAttachment={()=>toast(text('No document available in preview','প্রিভিউতে কোনো ফাইল নেই'))}/>
-            <div className="flex items-center justify-between gap-2 px-4 py-2 text-xs text-ink-500">
-              <span>{text('Page','পাতা')} {page} {text('of','মোট')} {shownPages} · {shownFiltered.length||shownStatement.rows.length} {text('dated transactions','টি তারিখসহ লেনদেন')}</span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" disabled={page<=1} onClick={()=>onPage(page-1)}>{text('Previous','আগের')}</Button>
-                <Button size="sm" variant="outline" disabled={page>=shownPages} onClick={()=>onPage(page+1)}>{text('Next','পরের')}</Button>
+            <nav aria-label={text('Ledger pages','খাতার পাতা')} className="flex flex-col gap-3 border-t border-border px-4 py-3 text-[13px] text-ink-500 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+                <span aria-live="polite">{text('Showing','দেখাচ্ছে')} {shownRows.length===0?0:(page-1)*pageSize+1}–{Math.min(page*pageSize,vendorProfile?shownFiltered.length:shownStatement.rows.length)} {text('of','মোট')} {vendorProfile?shownFiltered.length:shownStatement.rows.length} {text('dated transactions','টি তারিখসহ লেনদেন')}</span>
+                <div className="lg:hidden">
+                  <AppSelect compact label={text('Rows per page','প্রতি পাতায়')} value={String(pageSize)}
+                    options={['10','25','50','100']} onChange={value=>onPageSize(Number(value))}/>
+                </div>
               </div>
-            </div>
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex">
+                <Button size="sm" variant="outline" className="min-h-9" disabled={page<=1} onClick={()=>onPage(page-1)}>
+                  <ChevronLeft className="size-4" /> {text('Previous','আগের')}
+                </Button>
+                <span className="whitespace-nowrap text-center">{text('Page','পাতা')} {page} {text('of','মোট')} {shownPages}</span>
+                <Button size="sm" variant="outline" className="min-h-9" disabled={page>=shownPages} onClick={()=>onPage(page+1)}>
+                  {text('Next','পরের')} <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            </nav>
             {vendorProfile&&vendorSide==='payable'&&vendorProfile.takenStatement.unpricedSources.length>0&&
              <p className="px-4 py-2 text-xs text-ink-500">{text('Price not set · দাম ঠিক হয়নি','দাম ঠিক হয়নি')} — {vendorProfile.takenStatement.unpricedSources.length} {text('taken record(s). No money amount assigned.','টি নেওয়া পণ্য। এখনো কোনো টাকা ধরা হয়নি।')}</p>}
           </>}
