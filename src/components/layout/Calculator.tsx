@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
-import { Check, Copy, Delete, X } from 'lucide-react';
+import { Copy, Delete, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -28,7 +28,7 @@ const KEYS: CalcKey[] = [
   { label: '3', value: '3' }, { label: '−', value: '-', kind: 'op' },
   { label: '%', value: '%', kind: 'fn' }, { label: '0', value: '0' },
   { label: '.', value: '.' }, { label: '+', value: '+', kind: 'op' },
-  { label: '=', action: 'next', kind: 'next' }
+  { label: 'Enter', action: 'next', kind: 'next' }
 ];
 
 function loadLines(): string[] {
@@ -243,7 +243,7 @@ export function Calculator({ onClose }: CalculatorProps) {
                 onChange={event => editLine(idx, event.target.value)}
                 onFocus={() => { activate(idx); reveal(idx); }}
                 onPointerDown={event => onTouchLine(event, idx)}
-                className={'h-8 min-w-0 flex-1 border-0 border-b border-transparent bg-transparent px-1 text-[14px] text-ink outline-none focus:border-teal-500 ' +
+                className={'h-8 min-w-0 flex-1 border-0 bg-transparent px-1 text-[14px] text-ink outline-none ' +
                   (hasError ? 'text-danger' : '')}
                 placeholder={text('0 + 0', '০ + ০')} />
               <output aria-label={text('Line result', 'লাইনের ফলাফল')}
@@ -293,8 +293,7 @@ export function Calculator({ onClose }: CalculatorProps) {
                 key.kind === 'op' ? 'bg-teal-50 text-teal-700 hover:bg-teal-100' :
                 key.kind === 'fn' ? 'bg-ink-50 text-ink-600 hover:bg-ink-100' :
                 'border border-border bg-card text-ink hover:bg-ink-50')}>
-            {key.action === 'next' && <Check className="mr-1 size-4" aria-hidden="true"/>}
-            {key.action === 'back' ? <Delete className="size-4" aria-hidden="true"/> : key.label}
+            {key.action === 'back' ? <Delete className="size-4" aria-hidden="true"/> : key.action === 'next' ? text('Enter', 'এন্টার') : key.label}
           </button>
         ))}
       </div>

@@ -25,6 +25,10 @@ async function main() {
       await dialog.waitFor();
       const surface=dialog.locator('[data-calculator="scratchpad"]');
       const total=surface.locator('[data-calculator-total]');
+      const enter=surface.getByRole('button',{name:'Next calculation line'});
+      assert.equal((await enter.textContent()).trim(),'Enter','Next-line action has an explicit Enter label');
+      const field=surface.getByRole('textbox',{name:'Calculation line 1'});
+      assert.equal(await field.evaluate(el=>getComputedStyle(el).borderBottomWidth),'0px','Calculator fields have no unnecessary bottom underline');
       await page.waitForFunction(() => document.querySelector('[data-calculator-total]')?.textContent?.trim() === '590',null,{timeout:10000});
       assert.equal((await total.textContent()).trim(),'590','Saved expressions restored on open');
       const pageScroll=await page.evaluate(()=>window.scrollY);
