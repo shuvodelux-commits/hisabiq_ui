@@ -19,6 +19,7 @@ async function main(){
     const bn=language==='Bangla';
     await page.goto('http://127.0.0.1:4405/#/app/parties');
     await page.getByRole('heading',{name:bn?'পার্টি ও খাতা':'Parties & Ledger',exact:true}).waitFor();
+    if(width<768)await page.getByRole('button',{name:bn?'পার্টি বদলান':'Change party'}).click();
     await page.getByRole('button',{name:bn?'এক্সেল / CSV থেকে আনুন':'Import Excel / CSV',exact:true}).waitFor();
     await page.getByRole('button',{name:bn?'নতুন পার্টি যোগ করুন':'Add party',exact:true}).click();
     const editor=page.getByRole('dialog',{name:bn?'নতুন পার্টি যোগ করুন':'Add party'});
