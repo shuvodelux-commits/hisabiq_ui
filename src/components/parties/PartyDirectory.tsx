@@ -56,7 +56,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
         <span>{text('Balance','জের')}</span>
       </div>
 
-      <ul data-party-directory-list className={`${picker ? 'min-h-0 max-h-[min(52dvh,480px)]' : 'max-h-[calc(100vh-290px)] min-h-[320px]'} flex-1 overflow-auto scrollbar-thin`}" role="listbox" aria-label={text('Parties','পার্টি তালিকা')}>
+      <ul data-party-directory-list className={`${picker ? 'min-h-0 max-h-[min(52dvh,480px)]' : 'max-h-[calc(100vh-290px)] min-h-[320px]'} flex-1 overflow-auto scrollbar-thin`} role="listbox" aria-label={text('Parties','পার্টি তালিকা')}>
         {parties.map((p) => {
           const active = p.id === selectedId;
           return (
