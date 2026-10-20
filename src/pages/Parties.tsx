@@ -1,12 +1,11 @@
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronDown, Plus, Upload } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/Dialog';
-import { PartyAvatar } from '../components/PartyAvatar';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
 import { PartyDetail } from '../components/parties/PartyDetail';
@@ -184,12 +183,6 @@ export function Parties() {
         <Button size="sm" aria-label={uiText('Add party','নতুন পার্টি যোগ করুন')} onClick={()=>setEditing(null)}><Plus className="size-4" /> <span aria-hidden="true">{uiText('Add party','নতুন পার্টি')}</span></Button>
       </div>
     </div>
-    {party&&<button type="button" aria-label={uiText('Change party','পার্টি বদলান')} aria-haspopup="dialog" aria-expanded={chooserOpen}
-      onClick={()=>setChooserOpen(true)} className="flex min-h-14 w-full min-w-0 items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 text-left shadow-card transition-colors hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 lg:hidden">
-      <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={36} />
-      <span className="min-w-0 flex-1"><strong className="block truncate text-sm text-ink">{party.name}</strong><span className="block truncate text-xs text-ink-500">{party.phone} · {uiText('Change party','পার্টি বদলান')}</span></span>
-      <ChevronDown className="size-5 shrink-0 text-ink-500" aria-hidden="true" />
-    </button>}
     <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
       <div className="hidden min-w-0 lg:block"><PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
         role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/></div>
@@ -199,6 +192,7 @@ export function Parties() {
           navigate(vendorWorkLink(party.id,tab,sourceId))}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}
+        onChangeParty={()=>setChooserOpen(true)}
         onNewInvoice={()=>navigate(`/app/pos?partyId=${encodeURIComponent(party.id)}`,{
           state:{hisabiqSource:'party-profile',returnTo:`${location.pathname}${location.search}`,
             partyWorkspace:{range,kind,ledgerQuery,page,pageSize,role,query,scrollY:window.scrollY,
