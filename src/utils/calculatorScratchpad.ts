@@ -72,7 +72,7 @@ export function evaluateCalculatorExpression(expression: string): CalculatorResu
     const left = factor();
     let value = left.value;
     let percent = left.percent;
-    while (true) {
+    while (pos < source.length) {
       skip();
       const ch = peek();
       if (ch !== '*' && ch !== '/') break;
@@ -87,7 +87,7 @@ export function evaluateCalculatorExpression(expression: string): CalculatorResu
 
   function expr(): number {
     let value = term().value;
-    while (true) {
+    while (pos < source.length) {
       skip();
       const ch = peek();
       if (ch !== '+' && ch !== '-') break;
