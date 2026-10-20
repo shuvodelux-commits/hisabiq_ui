@@ -61,6 +61,13 @@ export function Parties() {
   },[routeRole,routeGroup,routeId]);
   const [query,setQuery]=useState(restored?.query??'');
   const [chooserOpen,setChooserOpen]=useState(false);
+  useEffect(()=>{
+    const media=window.matchMedia('(min-width: 1024px)');
+    const close=()=>{if(media.matches)setChooserOpen(false);};
+    media.addEventListener('change',close);
+    close();
+    return ()=>media.removeEventListener('change',close);
+  },[]);
   useLayoutEffect(()=>{
     if(!restored)return;
     const frame=requestAnimationFrame(()=>{
