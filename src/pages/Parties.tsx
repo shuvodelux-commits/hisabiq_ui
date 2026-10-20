@@ -236,7 +236,7 @@ export function Parties() {
         <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">{uiText('No parties yet. Add your first party.','এখনো কোনো পার্টি নেই। নতুন পার্টি যোগ করুন।')}</div>}
     </div>
     <Dialog open={chooserOpen} onOpenChange={setChooserOpen}>
-      <DialogContent aria-label={uiText('Change party','পার্টি বদলান')} className="flex max-h-[90dvh] w-[calc(100vw-1rem)] flex-col overflow-hidden p-0 sm:max-w-lg lg:hidden">
+      <DialogContent aria-label={uiText('Change party','পার্টি বদলান')} className="flex max-h-[90dvh] w-[calc(100vw-1rem)] flex-col overflow-hidden p-0 sm:max-w-lg">
         <DialogHeader className="shrink-0 border-b border-border px-4 py-3">
           <DialogTitle>{uiText('Change party','পার্টি বদলান')}</DialogTitle>
           <DialogDescription>{uiText('Search by name or phone, then choose a party.','নাম বা ফোন দিয়ে খুঁজে পার্টি বাছুন।')}</DialogDescription>
