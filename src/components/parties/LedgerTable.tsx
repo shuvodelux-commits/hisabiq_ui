@@ -59,21 +59,21 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
   const { text, language } = useUiCopy();
   const balance = (value: number) => formatMoneyNumber(Math.abs(value)) + ' ' + (value>=0?'Dr':'Cr');
 
-  const summary = <div className="grid grid-cols-3 gap-2 bg-ink-50/70 px-4 py-3 lg:flex lg:flex-wrap lg:gap-x-8 lg:gap-y-1 lg:py-2.5" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
+  const summary = <div className="grid grid-cols-3 gap-2 bg-ink-50/70 px-4 py-3 xl:flex xl:flex-wrap xl:gap-x-8 xl:gap-y-1 xl:py-2.5" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
     {[
       [text('Opening balance', 'শুরুর জের'), balance(statement.openingBalance)],
       [text('Period debit', 'এই সময়ের ডেবিট'), formatMoneyNumber(statement.periodDebit)],
       [text('Period credit', 'এই সময়ের ক্রেডিট'), formatMoneyNumber(statement.periodCredit)]
-    ].map(([label, value]) => <div key={label} className="min-w-0 lg:flex lg:items-baseline lg:gap-2">
+    ].map(([label, value]) => <div key={label} className="min-w-0 xl:flex xl:items-baseline xl:gap-2">
       <p className="text-xs text-ink-500">{label}</p>
       <strong className="block break-words text-[13px] font-semibold text-ink">{value}</strong>
     </div>)}
   </div>;
 
   return <div className="min-w-0">
-    <div className="hidden lg:block">{summary}</div>
+    <div className="hidden xl:block">{summary}</div>
 
-    <div className="hidden min-w-0 overflow-x-auto lg:block">
+    <div className="hidden min-w-0 overflow-x-auto xl:block">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -118,7 +118,7 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
       </Table>
     </div>
 
-    <ul className="divide-y divide-border lg:hidden" aria-label={text('Transactions', 'লেনদেন')}>
+    <ul className="divide-y divide-border xl:hidden" aria-label={text('Transactions', 'লেনদেন')}>
       {visibleRows.map(row => {
         const amount = row.debit || row.credit;
         const side = row.debit ? text('Debit', 'ডেবিট') : row.credit ? text('Credit', 'ক্রেডিট') : '';
@@ -159,7 +159,7 @@ export function LedgerTable({ statement, visibleRows, actionsForRow, onAction, o
       </li>}
     </ul>
 
-    <div className="border-t border-border lg:hidden">{summary}</div>
+    <div className="border-t border-border xl:hidden">{summary}</div>
     <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-ink-50 px-4 py-3 text-sm">
       <strong>{text('Closing balance', 'শেষ জের')}</strong>
       <strong className="break-words text-right text-[15px]">{balance(statement.closingBalance)}</strong>
