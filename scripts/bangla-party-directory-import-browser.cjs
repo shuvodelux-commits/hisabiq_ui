@@ -17,6 +17,7 @@ async function main(){
       mode:'Simple',language:lang,density:'Compact',terminology:'simple',dateView:'transaction'
     })),language);
     await page.goto('http://127.0.0.1:4409/#/app/parties');
+    if(width<1024)await page.getByRole('button',{name:label('Change party','পার্টি বদলান')}).click();
     const search=page.getByRole('textbox',{name:label('Search parties','পার্টি খুঁজুন')});
     await search.waitFor();
     await page.getByRole('tab',{name:label('Customer','ক্রেতা'),exact:true}).click();
@@ -25,6 +26,7 @@ async function main(){
     await search.fill('zz-no-such-party-23');
     await page.getByText(label('No parties found.','কোনো পার্টি পাওয়া যায়নি।')).waitFor();
     await search.fill('');
+    if(width<1024){await page.keyboard.press('Escape');await page.getByRole('dialog',{name:label('Change party','পার্টি বদলান')}).waitFor({state:'hidden'});}
     await page.getByRole('button',{name:label('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}).click();
     const chooser=page.getByRole('dialog',{name:label('Choose Party import type','কোন পার্টির তথ্য আনবেন?')});
     await chooser.getByText(label('Imported opening balances never move Cash, Bank or Mobile Banking accounts.','আনা শুরুর জের ক্যাশ, ব্যাংক বা মোবাইল ব্যাংকিংয়ের টাকা বদলায় না।')).waitFor();
