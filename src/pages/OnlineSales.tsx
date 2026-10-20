@@ -151,8 +151,8 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
    </div>}
   {error&&<p role="alert" className="rounded-lg bg-danger-bg p-2 text-xs text-danger">{error}</p>}
   <DialogFooter><Button variant="outline" onClick={onClose}>{ol("Cancel")}</Button><Button onClick={submit}><Check className="size-4"/> {ol("Save order draft")}</Button></DialogFooter>
- <AddProductDialog open={creatingProduct} onOpenChange={setCreatingProduct} onSave={product=>{
-   createPreviewProduct(product);addProduct(product);setCreatingProduct(false);
+ <AddProductDialog open={creatingProduct} onOpenChange={setCreatingProduct} onSave={(product,opening)=>{
+   createPreviewProduct(product,opening);addProduct(product);setCreatingProduct(false);
   }}/>
  </DialogContent></Dialog>;
 }

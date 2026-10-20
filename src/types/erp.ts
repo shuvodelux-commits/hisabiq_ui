@@ -49,6 +49,13 @@ export type UnitConversion = {
   price?: number;
 };
 
+/** One natural relationship, such as 1 Bag = 12 Box. Stored largest to smallest. */
+export type UnitRelation = {
+  leftUnit: string;
+  rightUnit: string;
+  quantity: number;
+};
+
 export type Product = {
   id: string;
   kind?: ProductKind;
@@ -58,9 +65,16 @@ export type Product = {
   category: string;
   brand?: string;
   image?: string;
+  /** Editor gallery; image remains the cover used by carts and lists. */
+  images?: string[];
   /** Base (smallest) unit, e.g. "Pcs", "Gira", "Kg" */
   unit: string;
   altUnit?: UnitConversion;
+  /** Natural unit chain; all stock and FIFO quantities remain in the final unit. */
+  unitRelations?: UnitRelation[];
+  /** Custom prices per selected unit; other units use exact automatic conversions. */
+  unitSellPrices?: Record<string,number>;
+  unitPurchasePrices?: Record<string,number>;
   /** Stock in base units */
   stock: number;
   /** Preferred display/POS unit. Quantity remains in base units. */
@@ -239,6 +253,9 @@ export type SaleLine = {
   returnableQuantity?: number;
   /** Immutable original base quantity; required for historical compound-unit refund allocation. */
   soldBaseQuantity?: number;
+  /** Frozen unit names, factors and prices: never reconstruct posted quantities from edited product data. */
+  unitSnapshot?: {baseUnit:string;factors:Record<string,number>;purchasePrices:Record<string,number>;sellingPrices:Record<string,number>};
+  unitQuantities?: Record<string,string>;
   price: number;
   total: number;
   /** Historical cost per base unit at the time of sale. */
@@ -296,6 +313,8 @@ export type SalePresetLine = {
   bundleSerials?:Record<string,string[]>;
   qty: string;
   secondaryQty?: string;
+  unitQuantities?: Record<string,string>;
+  unitSnapshot?: {baseUnit:string;factors:Record<string,number>;purchasePrices:Record<string,number>;sellingPrices:Record<string,number>};
   unit: string;
   price: number;
   serials?: string[];
@@ -350,7 +369,7 @@ export type Purchase = TransactionAuditFields & {
   receipt?: string;
   inventoryLines?: PurchaseInventoryLine[];
   /** Entered units/prices retained for source editing; never reconstruct from current master data. */
-  cartSnapshot?: {id:string;product:Product;bigQty:string;smallQty:string;cost:string;costUnit:string;lotSellPrice:string;lotSellUnit:string;detailsOpen:boolean;serialText:string;batchNumber:string;manufactureDate:string;expiryDate:string}[];
+  cartSnapshot?: {id:string;product:Product;bigQty:string;smallQty:string;unitQuantities?:Record<string,string>;cost:string;costUnit:string;lotSellPrice:string;lotSellUnit:string;detailsOpen:boolean;serialText:string;batchNumber:string;manufactureDate:string;expiryDate:string}[];
   businessDate?: string;
   roundingRule?: "Nearest ৳5" | "Nearest ৳1" | "No rounding";
   sourceRevision?: number;

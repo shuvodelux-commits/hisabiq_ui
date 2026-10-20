@@ -19,7 +19,8 @@ test('reject invalid dates, negative unit price, zero qty and oversize discount'
  assert.ok(validateQuoteDraft({...make('Buyer'),lines:[{...make('Buyer').lines[0],price:-1}]}).length);
  assert.ok(validateQuoteDraft({...make('Buyer'),discount:4000}).length);
 });
-test('create edit duplicate and status changes are atomic observable preview changes',()=>{
+test('create edit duplicate and status changes are atomic observable preview changes',(t)=>{
+ t.mock.timers.enable({apis:['Date'],now:new Date('2026-10-10T06:00:00Z')});
  const before=getQuoteSnapshot();let calls=0;
  const off=subscribeQuotes(()=>calls++);
  const added=saveQuote(make('Quotation QA'));
@@ -40,7 +41,8 @@ test('create edit duplicate and status changes are atomic observable preview cha
  off();
 });
 
-test('expired sent quotes cannot be accepted until revised',()=>{
+test('expired sent quotes cannot be accepted until revised',(t)=>{
+ t.mock.timers.enable({apis:['Date'],now:new Date('2026-10-20T06:00:00Z')});
  const created=saveQuote({...make('Expired buyer'),date:'2026-09-01',validUntil:'2026-09-05'});
  changeQuoteStatus(created.id,'Sent');
  assert.equal(quoteDisplayStatus(getQuoteSnapshot().quotes.find(q=>q.id===created.id)!), 'Expired');

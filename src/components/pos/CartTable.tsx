@@ -1,9 +1,13 @@
 import {NumericInput} from '../NumericInput';
+import {AppSelect} from '../AppSelect';
+import {productUnitFactor} from '../../utils/unitChain';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import { AlertTriangle, Eye, GripVertical, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
 import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
+import {MultiUnitQuantityInput} from '../transactions/MultiUnitQuantityInput';
+import {saleLineBaseQty,saleLineTotal,saleLineQuantities} from '../../utils/posMultiUnit';
 import { ProductThumb } from '../ProductThumb';
 import { SerialPickerDialog } from './SerialPickerDialog';
 import { StockShortageDialog } from './StockShortageDialog';
@@ -11,7 +15,7 @@ import type { CartLine } from '../../hooks/usePosCart';
 import type { Product } from '../../types/erp';
 import { formatStock, unitsFor } from '../../utils/units';
 import { formatNumber, taka } from '../../utils/currency';
-import { compoundBaseQuantity, compoundLineTotal, normalizeCompoundQuantity } from '../../utils/posQuantity';
+import { normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { stockLots } from '../../data/productInventory';
 import { salesInvoices } from '../../data/sales';
 import { availableSerials, productStockBreakdown, requiredSerialCount } from '../../utils/productFeatures';
@@ -30,7 +34,7 @@ type CartTableProps = {
   lines: CartLine[];
   lastAdded: string | null;
   onAdd: (p: Product) => void;
-  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unit' | 'price' | 'serials' | 'stockSource' | 'bundleSources' | 'bundleSerials'>>) => void;
+  onUpdate: (key: string, patch: Partial<Pick<CartLine, 'qty' | 'secondaryQty' | 'unitQuantities' | 'unit' | 'price' | 'serials' | 'stockSource' | 'bundleSources' | 'bundleSerials'>>) => void;
   onRemove: (key: string) => void;
   onReorder: (orderedKeys: string[]) => void;
   onMove: (key: string, delta: number) => void;
@@ -60,7 +64,7 @@ function SortableCartRow({
       dragControls={controls}
       dragListener={false}
       dragMomentum={false}
-      data-testid="pos-cart-row" data-cart-row="sale" data-compound={Boolean(line.product.altUnit&&line.unit===line.product.altUnit.unit)}
+      data-testid="pos-cart-row" data-cart-row="sale" data-compound={productUnitFactor(line.product,line.unit)>1}
       data-line-key={line.key}
       className={`${grid} relative bg-card px-3 py-1.5`}
       initial={{ opacity: 0 }}
@@ -116,8 +120,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
   const componentPlan=planComponentFulfillment(bundleDemand.demands,catalog,availableStockLots(),
     {sources,serials,soldSerials});
   const allocations=allocatePosStock(lines.filter(l=>l.product.kind!=='Bundle').map(l=>({key:l.key,product:l.product,
-   requestedBaseQty:compoundBaseQuantity(l.qty,l.secondaryQty,
-    l.product.altUnit&&l.unit===l.product.altUnit.unit?l.product.altUnit.factor:1),choice:l.stockSource})),stockLots);
+   requestedBaseQty:saleLineBaseQty(l),choice:l.stockSource})),stockLots);
 
   useEffect(() => {
     if (lastAdded) {
@@ -134,9 +137,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
     }
   };
   const commitSecondary = (line: CartLine, focusSearch: boolean) => {
-    const factor = line.product.altUnit && line.unit === line.product.altUnit.unit
-      ? line.product.altUnit.factor
-      : 1;
+    const factor = productUnitFactor(line.product,line.unit)||1;
     onUpdate(line.key, normalizeCompoundQuantity(line.qty, line.secondaryQty, factor));
     if (focusSearch) searchRef.current?.focus();
   };
@@ -158,9 +159,9 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
           className="divide-y divide-border">
           <AnimatePresence initial={false}>
           {lines.map((l, i) => {
-            const factor = l.product.altUnit && l.unit === l.product.altUnit.unit ? l.product.altUnit.factor : 1;
-            const baseQty = compoundBaseQuantity(l.qty, l.secondaryQty, factor);
-            const lineTotal = compoundLineTotal(l.qty, l.secondaryQty, factor, l.price);
+            const factor = productUnitFactor(l.product,l.unit)||1;
+            const baseQty = saleLineBaseQty(l);
+            const lineTotal = saleLineTotal(l);
             const recipe=l.product.kind==='Bundle'&&l.bundleRevision?getBundleVersion(l.product.id,l.bundleRevision):undefined;
             const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
             const bundleCostPending=l.product.kind==='Bundle'&&Object.values(l.bundleSources??{}).some(source=>
@@ -251,16 +252,25 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     </div>
                   </div>
                 </div>
-                <div data-cart-field="Quantity · পরিমাণ"><CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
+                <div data-cart-field="Quantity · পরিমাণ">{l.product.unitRelations && l.product.unitRelations.length>1 ?
+                  <MultiUnitQuantityInput product={l.product} quantities={saleLineQuantities(l)}
+                    primaryRef={el=>{qtyRefs.current[l.key]=el;}}
+                    onChange={unitQuantities=>onUpdate(l.key,{unitQuantities})}
+                    onLastEnter={()=>searchRef.current?.focus()}/>
+                  : <CompoundQuantityInput key={l.unit} product={l.product} unit={l.unit} primary={l.qty} secondary={l.secondaryQty}
                   primaryRef={el=>{qtyRefs.current[l.key]=el;}} secondaryRef={el=>{secondaryQtyRefs.current[l.key]=el;}}
-                  primaryLabel={factor>1?text(`${l.product.altUnit!.unit} quantity for ${l.product.name}`, `${l.product.altUnit!.unit} পরিমাণ: ${l.product.name}`):text(`Quantity for ${l.product.name}`, `পরিমাণ: ${l.product.name}`)}
+                  primaryLabel={factor>1?text(`${l.unit} quantity for ${l.product.name}`, `${l.unit} পরিমাণ: ${l.product.name}`):text(`Quantity for ${l.product.name}`, `পরিমাণ: ${l.product.name}`)}
                   secondaryLabel={text(`${l.product.unit} quantity for ${l.product.name}`, `${l.product.unit} পরিমাণ: ${l.product.name}`)}
                   onPrimaryChange={value=>onUpdate(l.key,{qty:value})}
                   onSecondaryChange={value=>onUpdate(l.key,{secondaryQty:value})}
                   onPrimaryEnter={()=>{if(factor>1){secondaryQtyRefs.current[l.key]?.focus();secondaryQtyRefs.current[l.key]?.select();}else searchRef.current?.focus();}}
                   onSecondaryBlur={()=>commitSecondary(l,false)}
-                  onSecondaryEnter={()=>commitSecondary(l,true)}/></div>
+                  onSecondaryEnter={()=>commitSecondary(l,true)}/>}</div>
                 <div data-cart-field="Price in · একক">{units.length > 1 ?
+                units.length > 2 ? (
+                  <AppSelect label={text('Sale unit for '+l.product.name,'বিক্রির একক: '+l.product.name)}
+                    value={l.unit} options={units} onChange={(next)=>onUpdate(l.key,{unit:next})}/>
+                ) :
                 <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("unit")}>
                     {units.map((u) =>
                   <button
@@ -346,8 +356,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
       }
 
       {serialLine && (() => {
-        const factor = serialLine.product.altUnit && serialLine.unit === serialLine.product.altUnit.unit ? serialLine.product.altUnit.factor : 1;
-        const baseQty = compoundBaseQuantity(serialLine.qty, serialLine.secondaryQty, factor);
+        const baseQty = saleLineBaseQty(serialLine);
         const blocked = lines.filter((line) => line.key !== serialLine.key).flatMap((line) => line.serials);
         return (
           <SerialPickerDialog
@@ -414,8 +423,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
           }}/>;
       })()}
       {shortageLine && (() => {
-        const factor = shortageLine.product.altUnit && shortageLine.unit === shortageLine.product.altUnit.unit ? shortageLine.product.altUnit.factor : 1;
-        const baseQty = compoundBaseQuantity(shortageLine.qty, shortageLine.secondaryQty, factor);
+        const baseQty = saleLineBaseQty(shortageLine);
         const allocation=allocations.find(a=>a.key===shortageLine.key);
         const available=allocation?.ownBaseQty??0;
         const shortage=Math.max(0,baseQty-available);
@@ -430,7 +438,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
               if (available <= 0) {
                 onRemove(shortageLine.key);
               } else {
-                const useAlternate = Boolean(shortageLine.product.altUnit && shortageLine.unit === shortageLine.product.altUnit.unit);
+                const factor = productUnitFactor(shortageLine.product, shortageLine.unit);
+                const useAlternate = factor > 1;
                 onUpdate(shortageLine.key, {
                   ...quantityFromBaseStock(available, factor, useAlternate),
                   stockSource: undefined

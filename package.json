@@ -46,6 +46,7 @@
     "test:import-parties": "node scripts/party-import-browser.cjs",
     "test:quotations": "node scripts/quotations-browser.cjs",
     "test:compound-units": "node scripts/compound-quantity-browser.cjs",
+    "test:multi-unit-products": "node scripts/multi-unit-products-browser.cjs",
     "test:online-sales": "node scripts/online-sales-browser.cjs",
     "test:fulfillment-sms": "node scripts/fulfillment-sms-browser.cjs",
     "test:counter-ux": "node scripts/counter-ux-browser.cjs",

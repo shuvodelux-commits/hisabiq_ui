@@ -55,9 +55,9 @@ async function main() {
       ]) {
         await go(route);
         await page.getByRole('button', { name: action, exact: true }).click();
-        await page.locator('[data-slot="dialog-content"]').first().waitFor();
+        await page.locator(route==='products'?'[data-product-editor]':'[data-slot="dialog-content"]').first().waitFor();
         await check(`${route}: ${action}`, theme);
-        await page.locator('[data-slot="dialog-content"]').getByRole('button', { name: 'Close', exact: true }).first().click();
+        await page.locator(route==='products'?'[data-product-editor]':'[data-slot="dialog-content"]').getByRole('button', { name: route==='products'?'Cancel':'Close', exact: true }).first().click();
       }
       await go('sales');
       await page.getByRole('button', { name: /^Actions for INV/ }).first().click();

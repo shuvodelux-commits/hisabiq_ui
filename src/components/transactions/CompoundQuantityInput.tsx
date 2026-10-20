@@ -1,13 +1,14 @@
 import {NumericInput} from '../NumericInput';
 import React,{useEffect,useRef,useState} from 'react';
 import type {Product} from '../../types/erp';
+import {productUnitFactor} from '../../utils/unitChain';
 
 /** A single POS V2 quantity control reused by Sales, Purchases, Quotations and Online Orders.
  * Large-unit entry is ONE bordered control with two equal flexible inputs and fixed-width unit labels.
  * No native numeric spinners, nested width:auto blocks or overlapping neighbouring grid cells.
  */
 type QuantityProps={
- product:Pick<Product,'unit'|'altUnit'>;
+ product:Pick<Product,'unit'|'altUnit'|'unitRelations'>;
  unit:string;
  primary:string|number;
  secondary?:string|number;
@@ -25,7 +26,7 @@ type QuantityProps={
 const sanitize=(value:string)=>value.replace(/[^\d.]/g,'').replace(/(\..*)\./g,'$1');
 export function CompoundQuantityInput({product,unit,primary,secondary='',onPrimaryChange,onSecondaryChange,
  onPrimaryEnter,onSecondaryEnter,onSecondaryBlur,primaryRef,secondaryRef,primaryLabel,secondaryLabel,disabled=false}:QuantityProps){
- const large=Boolean(product.altUnit&&product.altUnit.unit===unit);
+ const large=productUnitFactor(product,unit)>1;
  const primaryInput=useRef<HTMLInputElement|null>(null);
  const secondaryInput=useRef<HTMLInputElement|null>(null);
  const [primaryText,setPrimaryText]=useState(String(primary));
@@ -57,7 +58,7 @@ export function CompoundQuantityInput({product,unit,primary,secondary='',onPrima
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter??(()=>secondaryInput.current?.focus()))}
    className="h-full w-0 min-w-0 flex-1 bg-transparent px-1.5 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
-  <span className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{product.altUnit!.unit}</span>
+  <span className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{unit}</span>
   <NumericInput stepperCompact ref={node=>refTo(node,'secondary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={secondaryLabel??product.unit+' quantity'} disabled={disabled} placeholder="0" value={secondaryText}
    onChange={event=>updateSecondary(event.target.value)}

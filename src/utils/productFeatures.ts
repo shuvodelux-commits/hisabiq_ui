@@ -5,6 +5,8 @@ import type {
   StockLot,
   WarrantySnapshot
 } from '../types/erp';
+import {productUnitFactor} from './unitChain.ts';
+import {priceFor} from './units.ts';
 
 export function normalizeSerials(input: string): string[] {
   return input
@@ -53,10 +55,8 @@ export function offerStatus(offer: ProductOffer, now = new Date()): ProductOffer
 
 export function offerDiscountInBaseUnit(product: Product, offer: ProductOffer): number {
   if (offer.discountType === 'Percentage') return product.sellPrice * offer.value / 100;
-  if (product.altUnit && offer.priceUnit === product.altUnit.unit) {
-    return offer.value / product.altUnit.factor;
-  }
-  return offer.value;
+  const factor = productUnitFactor(product, offer.priceUnit);
+  return offer.value / (factor || 1);
 }
 
 export function effectiveOfferPrice(product: Product, offer: ProductOffer): number {
@@ -70,9 +70,7 @@ export function validateOffer(product: Product, offer: ProductOffer, others: Pro
   if (!offer.startAt || !offer.endAt || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 'Enter valid start and end date/time.';
   if (endDate <= startDate) return 'End date and time must be after the start.';
   if (offer.discountType === 'Percentage' && offer.value > 100) return 'Percentage discount cannot exceed 100%.';
-  const normalInOfferUnit = product.altUnit && offer.priceUnit === product.altUnit.unit
-    ? product.altUnit.price ?? product.sellPrice * product.altUnit.factor
-    : product.sellPrice;
+  const normalInOfferUnit = priceFor(product, offer.priceUnit);
   const rawEffective = offer.discountType === 'Percentage'
     ? normalInOfferUnit * (1 - offer.value / 100)
     : normalInOfferUnit - offer.value;
@@ -155,23 +153,13 @@ export function availableSerials(product: Product, lots: StockLot[], now = new D
 
 
 export function effectivePriceForUnit(product: Product, offer: ProductOffer | undefined, unit: string): number {
-  const normal = product.altUnit && unit === product.altUnit.unit
-    ? product.altUnit.price ?? product.sellPrice * product.altUnit.factor
-    : product.sellPrice;
+  const normal = priceFor(product, unit);
   if (!offer || offerStatus(offer) !== 'Active') return normal;
-
-  if (offer.discountType === 'Percentage') {
+  if (offer.discountType === 'Percentage')
     return Math.max(0, normal * (1 - offer.value / 100));
-  }
-
-  let discount = offer.value;
-  if (offer.priceUnit !== unit) {
-    if (product.altUnit && offer.priceUnit === product.altUnit.unit && unit === product.unit) {
-      discount = offer.value / product.altUnit.factor;
-    } else if (product.altUnit && offer.priceUnit === product.unit && unit === product.altUnit.unit) {
-      discount = offer.value * product.altUnit.factor;
-    }
-  }
+  const offerFactor = productUnitFactor(product, offer.priceUnit) || 1;
+  const targetFactor = productUnitFactor(product, unit) || 1;
+  const discount = offer.value * targetFactor / offerFactor;
   return Math.max(0, normal - discount);
 }
 

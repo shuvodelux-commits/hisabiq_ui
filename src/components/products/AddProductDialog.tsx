@@ -1,589 +1,119 @@
-import { useTenantSettings } from '../../settings/TenantSettingsProvider';
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Info } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
+import { useEffect, useMemo, useRef } from 'react';
+import { ArrowLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
-import { Input } from '../Input';
-import { Switch } from '../Switch';
-import { AppSelect } from '../AppSelect';
-import { AppDatePicker } from '../AppDateRangePicker';
-import { QuickAddSelect } from '../QuickAddSelect';
-import { MoneyUnitInput, QuantityUnitInput } from '../MoneyUnitInput';
-import {
-  availableProductCategories, availableProductBrands, availableProductUnits,
-  createPreviewProductCategory, createPreviewProductBrand, createPreviewProductUnit
-} from '../../data/erpDemoStore';
-import { PhotoUploader } from './PhotoUploader';
-import {useUiCopy} from '../../i18n/useUiCopy';
-import {productFormLabel,productFormOptions} from '../../i18n/productFormsCopy';
+import { AddProductForm } from './form/AddProductForm';
+import { DiscardDialog } from './form/DiscardDialog';
+import { ErrorSummary } from './form/ErrorSummary';
+import { useAddProductForm } from './form/useAddProductForm';
+import { useFormCopy } from '../../hooks/useFormCopy';
+import { useTenantSettings } from '../../settings/TenantSettingsProvider';
+import { availableStockLots } from '../../data/erpDemoStore';
+import { initialProductDraft } from '../../utils/productFormInitial';
+import type { Product } from '../../types/erp';
+import type { OpeningMeta } from '../../types/productForm';
 
-import type {
-  Product,
-  ProductKind,
-  SerialTrackingMode,
-  StockAllocationMethod,
-  WarrantyDurationUnit,
-  WarrantyType
-} from '../../types/erp';
-import { taka } from '../../utils/currency';
-import { toBasePrice, toBaseQuantity, switchQuantityUnit } from '../../utils/productEntry';
-import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
-
-export type ProductOpeningMeta = {
-  serials: string[];
-  batchNumber?: string;
-  manufactureDate?: string;
-  expiryDate?: string;
-};
-
-type AddProductDialogProps = {
+export type ProductOpeningMeta = OpeningMeta;
+type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (product: Product, opening?: ProductOpeningMeta) => void;
   initialProduct?: Product | null;
   existingSerials?: string[];
+  presentation?: 'page' | 'context';
 };
 
-const serialModes: SerialTrackingMode[] = ['Off', 'Optional', 'Required'];
-const warrantyUnits: WarrantyDurationUnit[] = ['Days', 'Months', 'Years'];
-const warrantyTypes: WarrantyType[] = ['Seller', 'Manufacturer', 'Service', 'Replacement'];
-const allocationMethods: StockAllocationMethod[] = ['FIFO', 'FEFO'];
-
-function Field({ label, bn, children, hint }: {label: string;bn?: string;children: React.ReactNode;hint?: string;}) {
-  const {language,showHelper}=useUiCopy();
-  const pl=(english:string)=>productFormLabel(language,english);
-  return (
-    <label className="block">
-      <span className="mb-1.5 flex items-baseline gap-1.5 text-[13px] font-medium text-ink">
-        {pl(label)}
-        {showHelper && bn && <span className="font-bn text-[11px] font-normal text-ink-400">· {bn}</span>}
-      </span>
-      {children}
-      {hint && <span className="mt-1 block text-xs text-ink-500">{pl(hint)}</span>}
-    </label>
-  );
+/** Products uses the page; transaction quick-add keeps the same editor over its unchanged parent. */
+export function AddProductDialog(props: Props) {
+  return props.open ? <ProductEditor key={props.initialProduct?.id ?? 'new'} {...props} /> : null;
 }
 
-function MoneyInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <div className="relative">
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-      <Input {...props} inputMode="decimal" className="pl-7 text-right" />
-    </div>
-  );
-}
-
-function SettingHeader({ title, bn, hint, checked, onCheckedChange }: {
-  title: string;
-  bn: string;
-  hint: string;
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}) {
-  const {language,showHelper}=useUiCopy();
-  const pl=(english:string)=>productFormLabel(language,english);
-  return (
-    <div className="flex items-start justify-between gap-3">
-      <div>
-        <p className="text-[13px] font-medium text-ink">{pl(title)} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· {bn}</span>}</p>
-        <p className="text-xs text-ink-500">{pl(hint)}</p>
-      </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} aria-label={pl(title)} />
-    </div>
-  );
-}
-
-export function AddProductDialog({ open, onOpenChange, onSave, initialProduct = null, existingSerials = [] }: AddProductDialogProps) {
-  const {language,showHelper}=useUiCopy();
-  const pl=(english:string)=>productFormLabel(language,english);
+function ProductEditor({ onOpenChange, onSave, initialProduct, existingSerials = [], presentation = 'context' }: Props) {
+  const { t, showHelper } = useFormCopy();
   const { state } = useTenantSettings();
-  const defaults = state.sections.products;
-  const defaultViewUnit = defaults.defaultUnit === 'Gira' ? 'Gauge' : defaults.defaultUnit;
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [kind, setKind] = useState<ProductKind>('Stock');
-  const [name, setName] = useState('');
-  const [nameBn, setNameBn] = useState('');
-  const [category, setCategory] = useState('Hardware');
-  const [categoryOptions, setCategoryOptions] = useState(availableProductCategories);
-  const [brand, setBrand] = useState('Generic / No brand');
-  const [brandOptions, setBrandOptions] = useState(availableProductBrands);
-  const [unitOptions, setUnitOptions] = useState(availableProductUnits);
-  const [unit, setUnit] = useState('Gira');
-  const [sell, setSell] = useState('');
-  const [sellUnit, setSellUnit] = useState('Gira');
-  const [buy, setBuy] = useState('');
-  const [buyUnit, setBuyUnit] = useState('Gira');
-  const [advanced, setAdvanced] = useState(false);
-  const [multiUnit, setMultiUnit] = useState(true);
-  const [altUnit, setAltUnit] = useState('Gauge');
-  const [factor, setFactor] = useState('16');
-  const [altPrice, setAltPrice] = useState('');
-  const [stockViewUnit, setStockViewUnit] = useState(defaultViewUnit);
-  const [openingQty, setOpeningQty] = useState('');
-  const [openingUnit, setOpeningUnit] = useState('Gauge');
-  const [minQty, setMinQty] = useState('');
-  const [minUnit, setMinUnit] = useState('Gauge');
-  const [barcode, setBarcode] = useState('');
-
-  const [warrantyEnabled, setWarrantyEnabled] = useState(false);
-  const [warrantyDuration, setWarrantyDuration] = useState('12');
-  const [warrantyDurationUnit, setWarrantyDurationUnit] = useState<WarrantyDurationUnit>('Months');
-  const [warrantyType, setWarrantyType] = useState<WarrantyType>('Seller');
-  const [warrantyTerms, setWarrantyTerms] = useState('');
-
-  const [serialTracking, setSerialTracking] = useState<SerialTrackingMode>('Off');
-  const [openingSerialText, setOpeningSerialText] = useState('');
-
-  const [expiryEnabled, setExpiryEnabled] = useState(false);
-  const [expiryDateRequired, setExpiryDateRequired] = useState(false);
-  const [expiryWarningDays, setExpiryWarningDays] = useState('30');
-  const [allocationMethod, setAllocationMethod] = useState<StockAllocationMethod>('FIFO');
-  const [batchNumber, setBatchNumber] = useState('');
-  const [manufactureDate, setManufactureDate] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [error, setError] = useState('');
-
-  const isStock = kind === 'Stock';
-  const units = isStock && multiUnit && altUnit && altUnit !== unit ? [altUnit, unit] : [unit];
-  const f = parseFloat(factor) || 1;
-  const selectedSellUnit = units.includes(sellUnit) ? sellUnit : unit;
-  const selectedBuyUnit = units.includes(buyUnit) ? buyUnit : unit;
-  const selectedOpeningUnit = units.includes(openingUnit) ? openingUnit : unit;
-  const selectedMinUnit = units.includes(minUnit) ? minUnit : unit;
-  const normalizedAltUnit = isStock && multiUnit && altUnit ? altUnit : undefined;
-  const selectedStockViewUnit = units.includes(stockViewUnit) ? stockViewUnit : normalizedAltUnit ?? unit;
-  const stockToBase = (qty: string, selectedUnit: string) => toBaseQuantity(qty, selectedUnit, unit, normalizedAltUnit, f);
-  const priceToBase = (amount: string, selectedUnit: string) => toBasePrice(amount, selectedUnit, unit, normalizedAltUnit, f);
-  const sellNum = parseFloat(sell) || 0;
-  const buyNum = parseFloat(buy) || 0;
-  const sellBase = priceToBase(sell, selectedSellUnit);
-  const buyBase = isStock ? priceToBase(buy, selectedBuyUnit) : buyNum;
-  const margin = sellBase > 0 && buyBase > 0 ? (sellBase - buyBase) / sellBase * 100 : null;
-  const autoAltSell = sellBase > 0 && multiUnit ? sellBase * f : 0;
-  const openingBaseQty = isStock ? stockToBase(openingQty, selectedOpeningUnit) : 0;
-  const openingSerials = normalizeSerials(openingSerialText);
-  const openingSerialDuplicates = duplicateSerials(openingSerials, existingSerials);
-  const requiredOpeningSerials = !initialProduct ? requiredSerialCount({
-    id: 'draft', name: name, sku: barcode, category, unit, stock: openingBaseQty, minStock: 0,
-    sellPrice: sellBase, purchasePrice: buyBase, active: true, serialTracking, kind
-  }, openingBaseQty) : 0;
-
-  const resetForm = () => {
-    setPhotos([]);
-    setKind('Stock');
-    setName('');
-    setNameBn('');
-    setCategory('Hardware');
-    setCategoryOptions(availableProductCategories());
-    setBrand('Generic / No brand');
-    setBrandOptions(availableProductBrands());
-    setUnitOptions(availableProductUnits());
-    setUnit(defaults.defaultUnit);
-    setSell('');
-    setSellUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
-    setBuy('');
-    setBuyUnit(defaults.priceEntry === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
-    setAdvanced(false);
-    setMultiUnit(defaults.defaultUnit === 'Gira');
-    setAltUnit('Gauge');
-    setFactor('16');
-    setAltPrice('');
-    setStockViewUnit(defaultViewUnit);
-    setOpeningQty('');
-    setOpeningUnit(defaults.openingUnit === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
-    setMinQty('');
-    setMinUnit(defaults.minimumUnit === 'Base unit' ? defaults.defaultUnit : defaultViewUnit);
-    setBarcode('');
-    setWarrantyEnabled(defaults.warranty);
-    setWarrantyDuration(String(defaults.warrantyMonths));
-    setWarrantyDurationUnit('Months');
-    setWarrantyType('Seller');
-    setWarrantyTerms('');
-    setSerialTracking(defaults.serial);
-    setOpeningSerialText('');
-    setExpiryEnabled(defaults.expiry);
-    setExpiryDateRequired(false);
-    setExpiryWarningDays(String(defaults.expiryDays));
-    setAllocationMethod(defaults.allocation);
-    setBatchNumber('');
-    setManufactureDate('');
-    setExpiryDate('');
-    setError('');
+  const initialDraft = useRef(initialProductDraft(state.sections.products, initialProduct));
+  const pendingLeave = useRef<(() => void) | null>(null);
+  const close = () => {
+    const next = pendingLeave.current;
+    pendingLeave.current = null;
+    onOpenChange(false);
+    next?.();
   };
+  const knownSerials = useMemo(() => [...new Set([...existingSerials, ...availableStockLots().flatMap((lot) => lot.serials ?? [])])], [existingSerials]);
+  const form = useAddProductForm({
+    initialDraft: initialDraft.current, isEdit: Boolean(initialProduct), existing: initialProduct ?? undefined,
+    existingSerials: knownSerials, onExit: close,
+    onSave: ({ product, opening }) => { onSave(product, opening); onOpenChange(false); }
+  });
+  const live = useRef({ close, form });
+  live.current = { close, form };
 
   useEffect(() => {
-    if (!open) return;
-    if (!initialProduct) {
-      resetForm();
-      return;
-    }
-
-    const productKind = initialProduct.kind ?? 'Stock';
-    setPhotos(initialProduct.image ? [initialProduct.image] : []);
-    setKind(productKind);
-    setName(initialProduct.name);
-    setNameBn(initialProduct.nameBn ?? '');
-    setCategory(initialProduct.category);
-    setCategoryOptions(availableProductCategories());
-    setBrand(initialProduct.brand ?? 'Generic / No brand');
-    setBrandOptions(availableProductBrands());
-    setUnitOptions(availableProductUnits());
-    setUnit(initialProduct.unit);
-    setSell(String(initialProduct.sellPrice));
-    setSellUnit(initialProduct.unit);
-    setBuy(String(initialProduct.purchasePrice));
-    setBuyUnit(initialProduct.unit);
-    setMultiUnit(productKind === 'Stock' && Boolean(initialProduct.altUnit));
-    setAltUnit(initialProduct.altUnit?.unit ?? '');
-    setFactor(String(initialProduct.altUnit?.factor ?? 1));
-    setAltPrice(initialProduct.altUnit?.price ? String(initialProduct.altUnit.price) : '');
-    setStockViewUnit(initialProduct.stockViewUnit ?? initialProduct.altUnit?.unit ?? initialProduct.unit);
-    setOpeningQty('');
-    setOpeningUnit(initialProduct.unit);
-    setMinQty(String(initialProduct.minStock));
-    setMinUnit(initialProduct.unit);
-    setBarcode(initialProduct.sku);
-    setWarrantyEnabled(Boolean(initialProduct.warranty?.enabled));
-    setWarrantyDuration(String(initialProduct.warranty?.duration ?? 12));
-    setWarrantyDurationUnit(initialProduct.warranty?.durationUnit ?? 'Months');
-    setWarrantyType(initialProduct.warranty?.type ?? 'Seller');
-    setWarrantyTerms(initialProduct.warranty?.terms ?? '');
-    setSerialTracking(productKind === 'Stock' ? initialProduct.serialTracking ?? 'Off' : 'Off');
-    setOpeningSerialText('');
-    setExpiryEnabled(productKind === 'Stock' && Boolean(initialProduct.expiry?.enabled));
-    setExpiryDateRequired(initialProduct.expiry?.dateRequired ?? false);
-    setExpiryWarningDays(String(initialProduct.expiry?.warningDays ?? 30));
-    setAllocationMethod(initialProduct.expiry?.allocationMethod ?? 'FIFO');
-    setBatchNumber('');
-    setManufactureDate('');
-    setExpiryDate('');
-    setAdvanced(false);
-    setError('');
-  }, [open, initialProduct]);
-
-  const changePriceUnit = (amount: string, current: string, next: string, setValue: (value: string) => void, setUnitValue: (value: string) => void) => {
-    if (amount.trim() && current !== next) {
-      const basePrice = priceToBase(amount, current);
-      const converted = next === normalizedAltUnit ? basePrice * f : basePrice;
-      setValue(String(Math.round(converted * 10000) / 10000));
-    }
-    setUnitValue(next);
-  };
-  const changeStockUnit = (
-    amount: string,
-    current: string,
-    next: string,
-    setValue: (value: string) => void,
-    setUnitValue: (unit: string) => void
-  ) => {
-    setValue(switchQuantityUnit(amount, current, next, unit, normalizedAltUnit, f));
-    setUnitValue(next);
-  };
-  const quickAddUnit = (name: string, symbol: string, select: (symbol: string) => void) => {
-    const code = symbol.trim() || name.trim();
-    createPreviewProductUnit(name, code);
-    setUnitOptions(availableProductUnits());
-    select(code);
-  };
-
-  const changeKind = (next: ProductKind) => {
-    setKind(next);
-    if (next === 'Service') {
-      setCategory('Service');
-      setUnit('Service');
-      setSellUnit('Service');
-      setBuyUnit('Service');
-      setStockViewUnit('Service');
-      setMultiUnit(false);
-      setSerialTracking('Off');
-      setExpiryEnabled(false);
-    } else if (unit === 'Service') {
-      if (category === 'Service') setCategory('Hardware');
-      setUnit('Pcs');
-      setSellUnit('Pcs');
-      setBuyUnit('Pcs');
-      setStockViewUnit('Pcs');
-    }
-  };
-
-  const save = () => {
-    if (!name.trim()) return setError(pl('Product name is required.'));
-    if (!sellNum) return setError(pl('Enter a selling price.'));
-
-    if (warrantyEnabled && (!(parseFloat(warrantyDuration) > 0) || !warrantyType)) {
-      return setError(pl('Enter a valid warranty duration and type.'));
-    }
-
-    if (!initialProduct && isStock && serialTracking !== 'Off') {
-      if (serialTracking === 'Required' && !Number.isInteger(openingBaseQty)) return setError(pl('Required serial tracking needs a whole base-unit quantity.'));
-      if (openingSerialDuplicates.length) return setError(`${pl('Duplicate serial:')} ${openingSerialDuplicates[0]}`);
-      if (serialTracking === 'Required' && openingSerials.length !== requiredOpeningSerials) {
-        return setError(`Required serial tracking needs ${requiredOpeningSerials} unique serials for ${openingBaseQty} ${unit}.`);
-      }
-    }
-
-    if (!initialProduct && isStock && expiryEnabled && openingBaseQty > 0 && expiryDateRequired && !expiryDate) {
-      return setError(pl('Expiry date is required for opening stock.'));
-    }
-    if (manufactureDate && expiryDate && expiryDate <= manufactureDate) {
-      return setError(pl('Expiry date must be after manufacture date.'));
-    }
-
-    const product: Product = {
-      id: initialProduct?.id ?? `p${Date.now()}`,
-      kind,
-      name: name.trim(),
-      nameBn: nameBn.trim() || undefined,
-      sku: barcode || `${category.slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 8999)}`,
-      category,
-      brand: isStock ? brand : undefined,
-      image: photos[0],
-      unit,
-      altUnit: isStock && multiUnit && altUnit ? { unit: altUnit, factor: f, price: parseFloat(altPrice) || undefined } : undefined,
-      stock: initialProduct ? initialProduct.stock : openingBaseQty,
-      stockViewUnit: isStock ? selectedStockViewUnit : undefined,
-      minStock: isStock ? stockToBase(minQty, selectedMinUnit) : 0,
-      sellPrice: sellBase,
-      purchasePrice: buyBase,
-      warranty: {
-        enabled: warrantyEnabled,
-        duration: warrantyEnabled ? parseFloat(warrantyDuration) : undefined,
-        durationUnit: warrantyEnabled ? warrantyDurationUnit : undefined,
-        type: warrantyEnabled ? warrantyType : undefined,
-        terms: warrantyEnabled ? warrantyTerms.trim() || undefined : undefined
-      },
-      serialTracking: isStock ? serialTracking : 'Off',
-      expiry: isStock ? {
-        enabled: expiryEnabled,
-        dateRequired: expiryEnabled && expiryDateRequired,
-        warningDays: expiryEnabled ? Math.max(0, parseInt(expiryWarningDays) || 0) : 0,
-        allocationMethod: expiryEnabled ? allocationMethod : 'FIFO'
-      } : undefined,
-      active: initialProduct?.active ?? true
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const scroll = window.scrollY;
+    const token = `product-${Date.now()}`;
+    window.history.pushState({ ...window.history.state, hisabiqProductEditor: token }, '');
+    window.scrollTo({ top: 0 });
+    const back = () => {
+      if (live.current.form.blockLeave.current) {
+        window.history.forward();
+        live.current.form.setDiscardOpen(true);
+      } else live.current.close();
     };
+    const unload = (event: BeforeUnloadEvent) => {
+      if (!live.current.form.blockLeave.current) return;
+      event.preventDefault(); event.returnValue = '';
+    };
+    const link = (event: MouseEvent) => {
+      const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
+      if (!anchor || !live.current.form.blockLeave.current || event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || anchor.target === '_blank') return;
+      const next = new URL(anchor.href, location.href);
+      if (next.href === location.href || next.hash === '#erp-main') return;
+      event.preventDefault(); event.stopPropagation();
+      pendingLeave.current = () => { live.current.form.blockLeave.current = false; anchor.click(); };
+      live.current.form.setDiscardOpen(true);
+    };
+    window.addEventListener('popstate', back);
+    window.addEventListener('beforeunload', unload);
+    document.addEventListener('click', link, true);
+    return () => {
+      window.removeEventListener('popstate', back);
+      window.removeEventListener('beforeunload', unload);
+      document.removeEventListener('click', link, true);
+      if (window.history.state?.hisabiqProductEditor === token) window.history.back();
+      requestAnimationFrame(() => { window.scrollTo({ top: scroll }); if (opener?.isConnected) opener.focus({ preventScroll: true }); });
+    };
+  }, []);
 
-    const opening: ProductOpeningMeta | undefined = !initialProduct && isStock && openingBaseQty > 0 ? {
-      serials: openingSerials,
-      batchNumber: expiryEnabled ? batchNumber.trim() || undefined : undefined,
-      manufactureDate: expiryEnabled ? manufactureDate || undefined : undefined,
-      expiryDate: expiryEnabled ? expiryDate || undefined : undefined
-    } : undefined;
-
-    onSave(product, opening);
-    resetForm();
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl scrollbar-thin">
-        <DialogHeader>
-          <DialogTitle>
-            {pl(initialProduct ? 'Edit product' : 'Add product')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">· {initialProduct ? 'পণ্য সম্পাদনা' : 'নতুন পণ্য'}</span>}
-          </DialogTitle>
-          <DialogDescription>{pl(initialProduct ? 'Update product settings. Stock corrections remain in Adjust stock.' : 'Only name and selling price are required. Optional controls stay in Advanced.')}</DialogDescription>
-        </DialogHeader>
-
-        <section className="space-y-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-ink-400">{pl('Basic')}</p>
-          <Field label="Photos" bn="ছবি">
-            <PhotoUploader photos={photos} onChange={setPhotos} hint={pl("Up to 4 photos. The first one appears in POS and lists.")} />
-          </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Product type" bn="ধরন" hint={pl(initialProduct ? 'Product type is fixed after creation.' : 'Stock products track inventory; services do not.')}>
-              <AppSelect label={pl("Product type")} value={kind} disabled={Boolean(initialProduct)} onChange={(next) => changeKind(next as ProductKind)} options={productFormOptions(language,['Stock', 'Service'])} />
-            </Field>
-            <div>
-              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Category")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ক্যাটাগরি</span>}</p>
-              <QuickAddSelect label={pl("Category")} value={category} options={categoryOptions.filter((c) => c !== 'All')} onChange={setCategory}
-                onCreate={(name) => { createPreviewProductCategory(name); setCategoryOptions(availableProductCategories()); setCategory(name); }} />
-            </div>
-            {isStock && <div className="min-w-0">
-              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Brand")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ব্র্যান্ড</span>}</p>
-              <QuickAddSelect label={pl("Brand")} value={brand} options={brandOptions} onChange={setBrand}
-                onCreate={(name) => { createPreviewProductBrand(name); setBrandOptions(availableProductBrands()); setBrand(name); }} />
-            </div>}
-            <Field label="Product name" bn="নাম">
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={pl(isStock ? 'e.g. LED Bulb 12W' : 'e.g. Ceiling Fan Installation')} autoFocus />
-            </Field>
-            <Field label="Bangla name" bn="বাংলা নাম (ঐচ্ছিক)">
-              <Input value={nameBn} onChange={(e) => setNameBn(e.target.value)} placeholder={isStock ? 'এলইডি বাল্ব ১২ ওয়াট' : 'সিলিং ফ্যান ইনস্টলেশন'} className="font-bn" />
-            </Field>
-            {isStock && <div className="min-w-0">
-              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Base unit")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ছোট একক</span>}</p>
-              <QuickAddSelect label={pl("Base unit")} value={unit} options={unitOptions.map((item) => item.symbol)}
-                onChange={(next) => {
-                  if (sellUnit === unit) setSellUnit(next);
-                  if (buyUnit === unit) setBuyUnit(next);
-                  if (stockViewUnit === unit) setStockViewUnit(next);
-                  setUnit(next);
-                }}
-                onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, (next) => {
-                  if (sellUnit === unit) setSellUnit(next);
-                  if (buyUnit === unit) setBuyUnit(next);
-                  if (stockViewUnit === unit) setStockViewUnit(next);
-                  setUnit(next);
-                })} showSymbol placeholder={pl('Unit name, e.g. Meter')} />
-              <p className="mt-1 text-xs text-ink-500">{pl('Smallest unit used for stock and serial counts.')}</p>
-            </div>}
-            <div className="min-w-0">
-              <p className="mb-1.5 text-[13px] font-medium text-ink">{pl("Selling price")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· বিক্রয় মূল্য</span>}</p>
-              <MoneyUnitInput label={pl("Selling price")} value={sell} onChange={setSell}
-                unit={selectedSellUnit} units={units}
-                onUnitChange={(next) => changePriceUnit(sell, selectedSellUnit, next, setSell, setSellUnit)} />
-              <p className="mt-1 text-xs text-ink-500">
-                {sellNum && selectedSellUnit !== unit ? `${taka(sellNum)} / ${selectedSellUnit} → ${taka(sellBase)} / ${unit} automatically` : pl('Normal selling price; offers are managed separately.')}
-              </p>
-            </div>
-            <div className="min-w-0">
-              <p className="mb-1.5 text-[13px] font-medium text-ink">
-                {pl(isStock ? 'Purchase price' : 'Service cost')}
-                {showHelper&&<span className="font-bn ml-1 text-[11px] font-normal text-ink-400">· {isStock ? 'ক্রয় মূল্য' : 'সেবা খরচ'}</span>}
-              </p>
-              <MoneyUnitInput label={pl(isStock ? 'Purchase price' : 'Service cost')} value={buy} onChange={setBuy}
-                unit={isStock ? selectedBuyUnit : undefined} units={units}
-                onUnitChange={isStock ? (next) => changePriceUnit(buy, selectedBuyUnit, next, setBuy, setBuyUnit) : undefined} />
-              <p className="mt-1 text-xs text-ink-500">{pl('Optional internal cost.')}</p>
-            </div>
-          </div>
-          {margin !== null && <p className={`text-xs ${margin < 0 ? 'text-danger' : 'text-ink-500'}`}>Margin {margin.toFixed(1)}% · profit {taka(sellBase - buyBase)} per {unit}</p>}
-        </section>
-
-        <section className="rounded-xl border border-border">
-          <button type="button" onClick={() => setAdvanced((value) => !value)} aria-expanded={advanced} className="flex w-full items-center justify-between px-4 py-3 text-left">
-            <span>
-              <span className="block text-sm font-semibold text-ink">{pl('Advanced')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· উন্নত সেটিংস</span>}</span>
-              <span className="block text-xs text-ink-500">{pl('Units, stock, warranty, serial tracking and expiry')}</span>
-            </span>
-            <ChevronDown className={`size-4 text-ink-400 transition-transform ${advanced ? 'rotate-180' : ''}`} />
-          </button>
-
-          <AnimatePresence initial={false}>
-            {advanced && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-              <div className="space-y-5 border-t border-border p-4">
-                {isStock && <>
-                  <SettingHeader title="Sell in a larger unit too" bn="বড় এককে বিক্রি" hint="e.g. Box/Pcs or Gauge/Gira" checked={multiUnit} onCheckedChange={(checked) => {
-                    if (!checked) {
-                      if (sellUnit === altUnit) setSellUnit(unit);
-                      if (buyUnit === altUnit) setBuyUnit(unit);
-                      if (stockViewUnit === altUnit) setStockViewUnit(unit);
-                      setOpeningQty(switchQuantityUnit(openingQty, selectedOpeningUnit, unit, unit, normalizedAltUnit, f));
-                      setOpeningUnit(unit);
-                      setMinQty(switchQuantityUnit(minQty, selectedMinUnit, unit, unit, normalizedAltUnit, f));
-                      setMinUnit(unit);
-                    } else if (stockViewUnit === unit && altUnit) {
-                      setStockViewUnit(altUnit);
-                    }
-                    setMultiUnit(checked);
-                  }} />
-                  {multiUnit && <div className="rounded-lg bg-teal-50/60 p-3">
-                    <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink">
-                      <span className="font-medium">1</span>
-                      <div className="min-w-[156px] max-w-[240px] flex-1">
-                        <QuickAddSelect label={pl("Larger unit")} value={altUnit} options={unitOptions.map((item) => item.symbol)}
-                          onChange={setAltUnit} onCreate={(name, _phone, _area, symbol) => quickAddUnit(name, symbol || name, setAltUnit)}
-                          showSymbol placeholder={pl('e.g. Box or Gauge')} />
-                      </div>
-                      <span className="text-ink-500">=</span>
-                      <Input value={factor} onChange={(e) => setFactor(e.target.value.replace(/[^\d.]/g, ''))} className="h-9 w-20 bg-card text-right font-medium" inputMode="decimal" aria-label={pl("Conversion factor")} />
-                      <span className="font-medium">{unit}</span>
-                    </div>
-                    <p className="mt-2 flex items-center gap-1.5 text-xs text-teal-800"><Info className="size-3.5" />POS can sell in either unit; stock remains in {unit}.</p>
-                    <div className="mt-3 max-w-xs">
-                      <Field label="Stock / POS view unit" bn="ডিফল্ট দেখানোর একক" hint="Controls stock display and the default POS cart unit.">
-                        <AppSelect label={pl("Stock / POS view unit")} value={selectedStockViewUnit} onChange={setStockViewUnit} options={units} />
-                      </Field>
-                    </div>
-                    {selectedSellUnit === unit && <div className="mt-3 max-w-xs">
-                      <Field label={`Custom selling price / ${altUnit || 'unit'}`} hint={autoAltSell ? `Auto ${taka(autoAltSell)} / ${altUnit}` : 'Optional override'}>
-                        <MoneyInput value={altPrice} onChange={(e) => setAltPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={autoAltSell ? String(autoAltSell) : '0'} />
-                      </Field>
-                    </div>}
-                  </div>}
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {!initialProduct && <Field label="Opening stock" bn="শুরুর স্টক">
-                      <QuantityUnitInput label={pl("Opening stock")} value={openingQty} onChange={setOpeningQty}
-                        unit={selectedOpeningUnit} units={units}
-                        onUnitChange={(next) => changeStockUnit(openingQty, selectedOpeningUnit, next, setOpeningQty, setOpeningUnit)} />
-                    </Field>}
-                    <Field label="Minimum stock" bn="সর্বনিম্ন স্টক">
-                      <QuantityUnitInput label={pl("Minimum stock")} value={minQty} onChange={setMinQty}
-                        unit={selectedMinUnit} units={units}
-                        onUnitChange={(next) => changeStockUnit(minQty, selectedMinUnit, next, setMinQty, setMinUnit)} />
-                    </Field>
-                  </div>
-                </>}
-
-                <div className="border-t border-border pt-4">
-                  <SettingHeader title="Warranty" bn="ওয়ারেন্টি" hint="Independent from serial tracking; claims stay in the Warranty module." checked={warrantyEnabled} onCheckedChange={setWarrantyEnabled} />
-                  {warrantyEnabled && <div className="mt-3 grid gap-3 rounded-lg bg-ink-50/60 p-3 sm:grid-cols-2">
-                    <Field label="Duration" bn="সময়কাল">
-                      <div className="flex gap-2">
-                        <Input value={warrantyDuration} onChange={(e) => setWarrantyDuration(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="text-right" />
-                        <AppSelect label={pl("Warranty duration unit")} value={warrantyDurationUnit} onChange={(next) => setWarrantyDurationUnit(next as WarrantyDurationUnit)} options={productFormOptions(language,warrantyUnits)} className="w-32 shrink-0" />
-                      </div>
-                    </Field>
-                    <Field label="Warranty type" bn="ধরন">
-                      <AppSelect label={pl("Warranty type")} value={warrantyType} onChange={(next) => setWarrantyType(next as WarrantyType)} options={productFormOptions(language,warrantyTypes)} />
-                    </Field>
-                    <Field label="Terms" bn="শর্তাবলি" hint="This text is snapshotted onto each sold invoice item." >
-                      <textarea value={warrantyTerms} onChange={(e) => setWarrantyTerms(e.target.value)} placeholder="Coverage, exclusions, required documents…" className="min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 sm:col-span-2" />
-                    </Field>
-                  </div>}
-                </div>
-
-                {isStock && <div className="border-t border-border pt-4">
-                  <p className="text-[13px] font-medium text-ink">{pl("Serial Tracking")} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· সিরিয়াল নম্বর</span>}</p>
-                  <p className="mb-3 text-xs text-ink-500">{pl('Choose independently from warranty.')}</p>
-                  <div className="grid grid-cols-3 gap-1 rounded-lg bg-ink-50 p-1">
-                    {serialModes.map((mode) => <button key={mode} type="button" onClick={() => setSerialTracking(mode)} className={`rounded-md px-2 py-2 text-xs font-medium ${serialTracking === mode ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>{pl(mode)}</button>)}
-                  </div>
-                  {!initialProduct && serialTracking !== 'Off' && openingBaseQty > 0 && <div className="mt-3 rounded-lg border border-border p-3">
-                    <Field label="Opening stock serials" bn="শুরুর সিরিয়াল" hint="Type, scan or paste. Separate by new line, comma or semicolon.">
-                      <textarea value={openingSerialText} onChange={(e) => setOpeningSerialText(e.target.value)} placeholder={"GV34-1001\nGV34-1002"} className="min-h-24 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-ink focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
-                    </Field>
-                    <p className={`mt-2 text-xs ${serialTracking === 'Required' && openingSerials.length !== requiredOpeningSerials ? 'text-warning' : 'text-ink-500'}`}>
-                      {openingSerials.length} serials entered{serialTracking === 'Required' ? ` · ${requiredOpeningSerials} required` : ' · optional'}{openingSerialDuplicates.length ? ` · duplicate: ${openingSerialDuplicates[0]}` : ''}
-                    </p>
-                  </div>}
-                </div>}
-
-                {isStock && <div className="border-t border-border pt-4">
-                  <SettingHeader title="Expiry tracking" bn="মেয়াদ" hint="Track batch/manufacture/expiry per stock lot and optionally allocate FEFO." checked={expiryEnabled} onCheckedChange={setExpiryEnabled} />
-                  {expiryEnabled && <div className="mt-3 space-y-3 rounded-lg bg-ink-50/60 p-3">
-                    <div className="flex items-center justify-between gap-3 rounded-md bg-card px-3 py-2">
-                      <span className="text-[13px] text-ink">{pl('Expiry date required')} {showHelper&&<span className="font-bn text-[11px] text-ink-400">· মেয়াদ তারিখ আবশ্যক</span>}</span>
-                      <Switch checked={expiryDateRequired} onCheckedChange={setExpiryDateRequired} />
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Field label="Warning days" bn="আগে সতর্কতা"><Input value={expiryWarningDays} onChange={(e) => setExpiryWarningDays(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" className="text-right" /></Field>
-                      <Field label="Allocation" bn="স্টক নির্বাচন"><AppSelect label={pl("Allocation")} value={allocationMethod} onChange={(next) => setAllocationMethod(next as StockAllocationMethod)} options={productFormOptions(language,allocationMethods)} /></Field>
-                    </div>
-                    {!initialProduct && openingBaseQty > 0 && <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-3">
-                      <Field label="Batch no." bn="ব্যাচ"><Input value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} placeholder="Optional" /></Field>
-                      <Field label="Manufacture date" bn="উৎপাদন"><AppDatePicker label={pl("Manufacture date")} value={manufactureDate} onChange={setManufactureDate} /></Field>
-                      <Field label="Expiry date" bn="মেয়াদ"><AppDatePicker label={pl("Expiry date")} value={expiryDate} onChange={setExpiryDate} /></Field>
-                    </div>}
-                  </div>}
-                </div>}
-
-                <div className="border-t border-border pt-4">
-                  <Field label="Barcode / SKU" bn="বারকোড"><Input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder={pl("Auto-generated if empty")} /></Field>
-                </div>
-              </div>
-            </motion.div>}
-          </AnimatePresence>
-        </section>
-
-        {error && <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>{pl("Cancel")}</Button>
-          <Button onClick={save}>{pl(initialProduct ? 'Save changes' : 'Save product')}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+  const title = form.isEdit ? t('Edit product', 'পণ্য সম্পাদনা') : t('Add product', 'নতুন পণ্য');
+  const content = (
+    <div data-product-editor data-presentation={presentation} className={`product-form mx-auto w-full pb-5 ${presentation === 'page' ? 'max-w-[1440px]' : 'max-w-[920px] md:py-6'}`}>
+      <header className={presentation === 'page' ? 'pb-4' : 'px-4 pb-4 pt-3 md:px-0 md:pt-0'}>
+        <div className="mb-3 flex items-center gap-1.5 text-[13px] text-ink-500">
+          <Button type="button" variant="ghost" onClick={form.requestExit} className="-ml-2 h-11 gap-1 px-2 text-ink-600 md:h-9">
+            <ArrowLeftIcon className="size-4" aria-hidden="true" />{t('Back', 'ফিরুন')}
+          </Button>
+          <span>{t('Products', 'পণ্য')}</span><ChevronRightIcon className="size-3.5" aria-hidden="true" /><span className="text-ink">{title}</span>
+        </div>
+        <h1 id="pf-title" className="text-[22px] font-semibold tracking-tight text-ink">{title}
+          {showHelper && <span className="ml-2 font-bn text-[14px] font-normal text-ink-500">· {form.isEdit ? 'পণ্য সম্পাদনা' : 'নতুন পণ্য'}</span>}
+        </h1>
+        <p className="mt-1 text-[14px] text-ink-500">{form.isEdit
+          ? t('Update details here. Stock quantity changes stay in Adjust stock.', 'এখানে তথ্য বদলান। স্টকের পরিমাণ বদলাতে Adjust stock ব্যবহার করুন।')
+          : t('Fill the top part and save. Everything else can wait.', 'উপরের অংশ পূরণ করে সংরক্ষণ করুন। বাকিগুলো পরে দিলেও চলবে।')}</p>
+      </header>
+      <div className={presentation === 'context' ? 'px-4 md:px-0' : undefined}><ErrorSummary form={form} />
+        {form.saveError && <p role="alert" className="mb-4 rounded-lg bg-danger-bg p-3 text-sm text-danger">{form.saveError}</p>}
+      </div>
+      <AddProductForm form={form} />
+      <DiscardDialog open={form.discardOpen} onKeep={() => { pendingLeave.current = null; form.setDiscardOpen(false); }} onDiscard={form.confirmDiscard} />
+    </div>
   );
+  if (presentation === 'page') return content;
+  return <Dialog open onOpenChange={(open) => { if (!open) form.requestExit(); }}>
+    <DialogContent showCloseButton={false} aria-label={title}
+      className="!fixed !inset-0 !block !h-[100dvh] !max-h-none !w-screen !max-w-none !translate-x-0 !translate-y-0 overflow-y-auto !rounded-none !border-0 bg-background !p-0">
+      <DialogTitle className="sr-only">{title}</DialogTitle>{content}
+    </DialogContent>
+  </Dialog>;
 }
-

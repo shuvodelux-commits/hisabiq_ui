@@ -131,8 +131,8 @@ function QuotationEditor({open,original,onClose}:{
    </div>
    {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-sm text-danger">{error}</p>}
    <DialogFooter><Button variant="outline" onClick={onClose}>{ql("Cancel")}</Button><Button onClick={save}><Check className="size-4"/> {ql("Save draft")}</Button></DialogFooter>
-  <AddProductDialog open={creatingProduct} onOpenChange={setCreatingProduct} onSave={product=>{
-   createPreviewProduct(product);addProduct(product);setCreatingProduct(false);
+  <AddProductDialog open={creatingProduct} onOpenChange={setCreatingProduct} onSave={(product,opening)=>{
+   createPreviewProduct(product,opening);addProduct(product);setCreatingProduct(false);
   }}/>
   </DialogContent>
  </Dialog>;

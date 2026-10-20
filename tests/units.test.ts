@@ -33,3 +33,23 @@ test('respects base-unit stock view preference', () => {
 test('keeps compound stock when larger unit is the preferred view', () => {
   assert.equal(formatStock({ ...product, stockViewUnit: 'Box' }), '2 Box 5 Pcs');
 });
+
+
+test('multi-level Stock View displays Bag / Box / Pcs without mutating base stock', () => {
+  const multi: Product = {
+    ...product,
+    unit: 'Pcs',
+    stock: 450,
+    altUnit: {unit:'Bag',factor:180},
+    stockViewUnit:'Bag',
+    unitRelations:[
+      {leftUnit:'Bag',rightUnit:'Box',quantity:12},
+      {leftUnit:'Box',rightUnit:'Pcs',quantity:15}
+    ]
+  };
+  assert.equal(formatStock(multi),'2 Bag 6 Box');
+  assert.equal(formatStock({...multi,stockViewUnit:'Box'}),'30 Box');
+  assert.equal(formatStock({...multi,stockViewUnit:'Pcs'}),'450 Pcs');
+  assert.equal(formatStock({...multi,stock:-195}),'-1 Bag 1 Box');
+  assert.equal(multi.stock,450,'formatting must never change stored base quantity');
+});

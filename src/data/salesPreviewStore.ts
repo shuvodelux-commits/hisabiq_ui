@@ -1,6 +1,7 @@
 import type {CustomerCredit, SalesInvoice, SalesReturn, SaleTemplate} from '../types/erp.ts';
 import {customerCredits, salesInvoices, salesReturns, saleTemplates, salesDrafts, type SalesDraft} from './sales.ts';
 import {getProductImportPreviewSnapshot} from './productImportPreviewStore.ts';
+import {unitsFor} from '../utils/units.ts';
 import {cartFromPreset,templateCart} from '../utils/salePresets.ts';
 
 /** Single-browser-session design preview. No backend, stock, ledger or cash posting. */
@@ -23,7 +24,7 @@ export function saveSaleTemplate(template:Omit<SaleTemplate,'id'|'lastUsed'>,exp
   const catalog=getProductImportPreviewSnapshot().products;
   if(template.lines.some(line=>{
     const product=catalog.find(item=>item.id===line.productId);
-    return product&&line.unit!==product.unit&&line.unit!==product.altUnit?.unit;
+    return product&&!unitsFor(product).includes(line.unit);
   }))throw new Error('Choose a valid product unit.');
   const lines=cartFromPreset(template.lines,catalog);
   if(lines.length!==template.lines.length)throw new Error('A source product is unavailable.');

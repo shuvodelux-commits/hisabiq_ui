@@ -17,7 +17,8 @@ async function main() {
     await page.getByRole('heading', { name: /New purchase/ }).waitFor();
     assert.equal(await page.locator('[role="dialog"]').count(), 0, 'purchase editor must not be a modal');
 
-    await page.getByRole('button', { name: 'Quick add supplier' }).click();
+    await page.getByRole('combobox',{name:'Supplier',exact:true}).click();
+    await page.getByText('Add new supplier',{exact:true}).click();
     const supplierDialog = page.locator('[data-slot="dialog-content"]').last();
     await supplierDialog.waitFor({ timeout: 8000 });
     await supplierDialog.getByPlaceholder('Supplier or business name').fill('Browser QA Supplier');
@@ -29,7 +30,7 @@ async function main() {
     await page.getByRole('button', { name: 'New product' }).click();
     const productDialog = page.locator('[data-slot="dialog-content"]').last();
     await productDialog.waitFor();
-    await productDialog.getByRole('button', { name: 'Close', exact: true }).click();
+    await productDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
     await productDialog.waitFor({ state: 'hidden' });
 
     assert.ok(await page.getByRole('button', { name: /^Quick add/ }).count() >= 6, 'Quick Items must be touch-friendly');

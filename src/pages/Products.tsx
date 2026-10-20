@@ -364,6 +364,64 @@ export function Products() {
         toast.success(pl('Package saved'),{description:pl('Included products are saved. No stock or ledger posted.')});
       }}/>;
   }
+  const productEditor = (
+    <AddProductDialog presentation="page"
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingProduct(null);
+        }}
+        initialProduct={editingProduct}
+        existingSerials={knownSerials}
+        onSave={(product, opening?: ProductOpeningMeta) => {
+          if (editingProduct) {
+            const stockAtSource=getProductImportPreviewSnapshot().products.find(item=>item.id===product.id)?.stock??product.stock;
+            upsertProductPreview({...product,stock:stockAtSource});
+            setList((items) => items.map((item) => item.id === product.id ? product : item));
+            setDetailsProduct((current) => current?.id === product.id ? product : current);
+            toast.success(`${product.name} ${pl('updated')}`);
+          } else {
+            setList((items) => [product, ...items]);
+            if (product.kind !== 'Service' && product.stock > 0) {
+              const today = new Date().toISOString().slice(0, 10);
+              const lot: StockLot = {
+                id: `lot-${product.id}-opening`,
+                productId: product.id,
+                label: 'Opening Stock',
+                receivedAt: today,
+                quantity: product.stock,
+                available: product.stock,
+                unitCost: product.purchasePrice,
+                source: 'Opening',
+                serials: opening?.serials.length ? opening.serials : undefined,
+                batchNumber: opening?.batchNumber,
+                manufactureDate: opening?.manufactureDate,
+                expiryDate: opening?.expiryDate
+              };
+              const movement: StockMovement = {
+                id: `mov-${product.id}-opening`,
+                productId: product.id,
+                date: today,
+                type: 'Opening',
+                quantity: product.stock,
+                balance: product.stock,
+                reference: 'Opening Stock',
+                note: opening?.expiryDate ? `Opening lot · expiry ${opening.expiryDate}` : 'Opening balance'
+              };
+              upsertProductPreview(product,lot,movement);
+              setLots((current) => [lot, ...current]);
+              setMovements((current) => [movement, ...current]);
+            } else {
+              upsertProductPreview(product);
+            }
+            toast.success(`${product.name} ${pl('added')}`, { description: product.kind === 'Service' ? pl('Service product') : product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
+          }
+          setDialogOpen(false);
+          setEditingProduct(null);
+        }} />
+  );
+  if (dialogOpen) return productEditor;
+
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
@@ -674,60 +732,7 @@ export function Products() {
           setMovements(availableStockMovements());
           return result;
         }}/>
-      <AddProductDialog
-        open={dialogOpen}
-        onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) setEditingProduct(null);
-        }}
-        initialProduct={editingProduct}
-        existingSerials={knownSerials}
-        onSave={(product, opening?: ProductOpeningMeta) => {
-          if (editingProduct) {
-            const stockAtSource=getProductImportPreviewSnapshot().products.find(item=>item.id===product.id)?.stock??product.stock;
-            upsertProductPreview({...product,stock:stockAtSource});
-            setList((items) => items.map((item) => item.id === product.id ? product : item));
-            setDetailsProduct((current) => current?.id === product.id ? product : current);
-            toast.success(`${product.name} ${pl('updated')}`);
-          } else {
-            setList((items) => [product, ...items]);
-            if (product.kind !== 'Service' && product.stock > 0) {
-              const today = new Date().toISOString().slice(0, 10);
-              const lot: StockLot = {
-                id: `lot-${product.id}-opening`,
-                productId: product.id,
-                label: 'Opening Stock',
-                receivedAt: today,
-                quantity: product.stock,
-                available: product.stock,
-                unitCost: product.purchasePrice,
-                source: 'Opening',
-                serials: opening?.serials.length ? opening.serials : undefined,
-                batchNumber: opening?.batchNumber,
-                manufactureDate: opening?.manufactureDate,
-                expiryDate: opening?.expiryDate
-              };
-              const movement: StockMovement = {
-                id: `mov-${product.id}-opening`,
-                productId: product.id,
-                date: today,
-                type: 'Opening',
-                quantity: product.stock,
-                balance: product.stock,
-                reference: 'Opening Stock',
-                note: opening?.expiryDate ? `Opening lot · expiry ${opening.expiryDate}` : 'Opening balance'
-              };
-              upsertProductPreview(product,lot,movement);
-              setLots((current) => [lot, ...current]);
-              setMovements((current) => [movement, ...current]);
-            } else {
-              upsertProductPreview(product);
-            }
-            toast.success(`${product.name} ${pl('added')}`, { description: product.kind === 'Service' ? pl('Service product') : product.altUnit ? `1 ${product.altUnit.unit} = ${product.altUnit.factor} ${product.unit}` : undefined });
-          }
-          setDialogOpen(false);
-          setEditingProduct(null);
-        }} />
+
 
       <Dialog open={Boolean(deleteBundleTarget)} onOpenChange={open=>{if(!open)setDeleteBundleTarget(null);}}>
         <DialogContent className="sm:max-w-md">

@@ -33,14 +33,14 @@ async function main() {
       const form=page.getByRole('dialog',{name:'Add expense',exact:true});
       await form.getByRole('textbox',{name:'Expense amount',exact:true}).fill('500');
       await form.getByRole('textbox',{name:'Description / remarks',exact:true}).fill('Counter delivery test');
-      await form.getByRole('button',{name:'Quick add payee',exact:true}).click();
+      await form.getByRole('combobox',{name:'Payee',exact:true}).click();await page.getByText('Add new payee',{exact:true}).click();
       let quick=page.locator('[data-slot="dialog-content"]').last();
       await quick.getByRole('textbox',{name:/Payee name/}).fill('Counter delivery');
       await quick.getByRole('textbox',{name:/Phone/}).fill('01712345678');
       await quick.getByRole('button',{name:'Add payee',exact:true}).click();
       assert.equal(await form.getByRole('textbox',{name:'Expense amount',exact:true}).inputValue(),'500');
       assert.match(await form.getByRole('combobox',{name:'Payee',exact:true}).innerText(),/Counter delivery/);
-      await form.getByRole('button',{name:'Quick add expense category',exact:true}).click();
+      await form.getByRole('combobox',{name:'Expense category',exact:true}).click();await page.getByText('Add new expense category',{exact:true}).click();
       quick=page.locator('[data-slot="dialog-content"]').last();
       await quick.getByRole('textbox',{name:/Expense category name/}).fill('Delivery expense');
       await quick.getByRole('button',{name:'Add expense category',exact:true}).click();
