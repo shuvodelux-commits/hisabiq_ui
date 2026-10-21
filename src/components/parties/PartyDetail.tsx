@@ -2,7 +2,7 @@ import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
-import { FilePlus2, FileText, HandCoins, MoreHorizontal, MapPin, MessageSquare, Paperclip, Phone, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { FilePlus2, FileText, HandCoins, Banknote, MoreHorizontal, MapPin, MessageSquare, Paperclip, Phone, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -10,6 +10,8 @@ import { FormSelect } from '../FormSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
 import { PartyBalanceCard } from './PartyBalanceCard';
+import { partyFinanceActions, partyTradingActionIcons } from './partyRoleActions';
+import type { FinanceTransactionType } from '../../data/financeAccounts';
 import { PartySourceQuickPreview } from './PartySourceQuickPreview';
 import { PartyAttachmentQuickPreview } from './PartyAttachmentQuickPreview';
 import { RoleBadge } from './RoleBadge';
@@ -87,6 +89,7 @@ export function PartyDetail({
   const [paymentOpen,setPaymentOpen] = useState(false);
   const [refundOpen,setRefundOpen] = useState(false);
   const [financeOpen,setFinanceOpen]=useState(false);
+  const [financeStartType,setFinanceStartType]=useState<FinanceTransactionType|undefined>();
   const [openingOpen,setOpeningOpen]=useState(false);
   const existingOpening=activePartyOpening(sources,party.id,relationship);
   const [editorRow,setEditorRow]=useState<PartyLedgerRow|null>(null);
@@ -135,6 +138,8 @@ export function PartyDetail({
   { id: 'attachments', label: text('Attachments','ফাইল'), count: attachments.length }];
 
 
+  const openRoleFinance=(type?:FinanceTransactionType)=>{setFinanceStartType(type);setFinanceOpen(true);};
+  const financeActions=partyFinanceActions(relationship);
   const currentBalance=balanceSummary.netBalance;
   const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
 
@@ -175,8 +180,8 @@ export function PartyDetail({
       </div>
 
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
-        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
+        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}><Banknote className="size-4"/>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('given')}><HandCoins className="size-4"/>{text('Receive Money','টাকা নিন')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
         <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
         <FloatingPanel width={260} align="right" label={text('More actions','আরও কাজ')}
@@ -192,28 +197,27 @@ export function PartyDetail({
         </FloatingPanel>
        </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
-        <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
-          title={relationship==='Customer'||relationship==='Supplier'?text('Record payment in browser preview','প্রিভিউতে টাকা নেওয়া-দেওয়ার হিসাব রাখুন'):text('Finance-role payments require the separate finance workflow','এই টাকা লেনদেন অর্থের আলাদা কাজ থেকে করুন')}
-          onClick={()=>setPaymentOpen(true)}>
-          <HandCoins className="size-4" /> {payable ? text('Make payment','টাকা দিন') : text('Receive payment','টাকা নিন')}
-        </Button>
+        {(relationship==='Customer'||relationship==='Supplier')&&
+          <Button size="sm" title={text('Record payment in browser preview','প্রিভিউতে টাকা নেওয়া-দেওয়ার হিসাব রাখুন')}
+            onClick={()=>setPaymentOpen(true)}>
+            {(() => {const Icon=partyTradingActionIcons[relationship];return <Icon className="size-4"/>;})()}
+            {payable ? text('Make payment','টাকা দিন') : text('Receive payment','টাকা নিন')}
+          </Button>}
         {(relationship==='Customer'||relationship==='Supplier')&&
           <Button size="sm" variant="outline" disabled={balanceSummary.refundableCredit<=0}
             title={balanceSummary.refundableCredit>0?text('Refund verified credit as of the selected date','নির্বাচিত তারিখ পর্যন্ত নিশ্চিত জমা টাকা ফেরত দিন'):text('No verified refundable credit yet','ফেরত দেওয়ার মতো নিশ্চিত জমা টাকা নেই')}
             onClick={()=>setRefundOpen(true)}>
             {text('Refund credit','জমা টাকা ফেরত')}
           </Button>}
-        <Button size="sm" variant="outline" disabled={relationship!=='Customer'||party.status==='Inactive'}
-          title={relationship!=='Customer'?text('New sales are available for customer relationships','শুধু ক্রেতা সম্পর্কের জন্য নতুন বিক্রি করা যায়'):party.status==='Inactive'?text('Activate this customer before starting a new sale','নতুন বিক্রির আগে ক্রেতাকে সক্রিয় করুন'):undefined}
-          onClick={onNewInvoice}>
-          <FilePlus2 className="size-4" /> {text('New invoice','নতুন বিল')}
-        </Button>
-        {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
-          <Button size="sm" variant="outline" aria-label={text(`Record ${relationship.toLowerCase()} finance`,'টাকা লেনদেন লিখুন')}
-            onClick={()=>setFinanceOpen(true)}>
-            <HandCoins className="size-4"/> {relationship==='Owner'?text('Capital / withdrawal','মূলধন জমা / তোলা'):
-              relationship==='Lender'?text('Borrow / repay','ধার নেওয়া / শোধ'):text('Lend / receive','ধার দেওয়া / আদায়')}
+        {relationship==='Customer'&&
+          <Button size="sm" variant="outline" disabled={party.status==='Inactive'} onClick={onNewInvoice}>
+            <FilePlus2 className="size-4" />{text('New invoice','নতুন বিল')}
           </Button>}
+        {financeActions&&financeActions.map((action,i)=>{const Icon=action.Icon;return <Button size="sm"
+          key={action.id} variant={i===0?'default':'outline'}
+          onClick={()=>openRoleFinance(action.financeType)}>
+            <Icon className="size-4"/>{text(action.label,action.bangla)}
+          </Button>;})}
         <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
           <StickyNote className="size-4" /> {text('Add note','নোট যোগ করুন')}
         </Button>
@@ -389,7 +393,7 @@ export function PartyDetail({
           onClose={()=>setRefundOpen(false)} onSubmit={onRefundCredit}/>
       </>}
       {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
-        <PartyFinanceDialog open={financeOpen} party={party} relationship={relationship as FinanceRole}
+        <PartyFinanceDialog open={financeOpen} party={party} relationship={relationship as FinanceRole} initialType={financeStartType}
           onClose={()=>setFinanceOpen(false)} onSubmit={onRecordFinance}/>}
       <PartyTransactionDialog row={editorRow} mode={editorMode}
         source={sources.find(item=>item.id===editorRow?.sourceId)??null}
