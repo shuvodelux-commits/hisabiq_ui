@@ -19,6 +19,41 @@ async function main(){
      await page.goto('http://127.0.0.1:4415/#/app/'+route,{waitUntil:'domcontentloaded',timeout:120000});
      await page.locator('#erp-main h1').waitFor();
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),language+' '+width+' '+route+' page fits');
+     if(route==='sales'){
+      const bn=language==='Bangla';
+      if(width<768){
+       const record=page.locator('.sales-mobile-record').first();
+       const action=record.locator('.sales-mobile-record-actions button').first();
+       const [body,menu,summary]=await Promise.all([record.locator('button').first().boundingBox(),action.boundingBox(),record.locator('summary').boundingBox()]);
+       assert.ok(body&&menu&&summary&&menu.y>=body.y+body.height-1,'invoice action sits below totals');
+       assert.ok(Math.abs(menu.y-summary.y)<10,'invoice action is beside More details');
+       await action.click();await page.getByRole('button',{name:bn?'বিল দেখুন':'View invoice',exact:true}).click();
+       await page.locator('[data-slot="dialog-content"]').last().waitFor();await page.keyboard.press('Escape');
+      }else if(width<1280){
+       const header=label=>page.getByRole('columnheader',{name:label,exact:true});
+       assert.equal(await header(bn?'পণ্য':'Items').count(),0,'tablet Items default off');
+       assert.equal(await header(bn?'মাধ্যম':'Payment').count(),0,'tablet Payment default off');
+       await page.getByRole('button',{name:bn?'কলাম':'Columns',exact:true}).click();
+       for(const label of [bn?'পণ্য':'Items',bn?'পেমেন্ট':'Payment']){
+        const choice=page.getByRole('menuitemcheckbox',{name:label,exact:true});
+        assert.equal(await choice.getAttribute('aria-checked'),'false');await choice.click();
+       }
+       await page.keyboard.press('Escape');
+       assert.equal(await header(bn?'পণ্য':'Items').count(),1);
+       assert.equal(await header(bn?'মাধ্যম':'Payment').count(),1);
+       await page.reload({waitUntil:'domcontentloaded'});await header(bn?'পণ্য':'Items').waitFor();
+       await page.setViewportSize({width:1440,height:900});await header(bn?'মাধ্যম':'Payment').waitFor();
+       await page.setViewportSize({width,height:900});
+       await page.getByRole('button',{name:bn?'কলাম':'Columns',exact:true}).click();
+       for(const label of [bn?'পণ্য':'Items',bn?'পেমেন্ট':'Payment'])await page.getByRole('menuitemcheckbox',{name:label,exact:true}).click();
+       await page.keyboard.press('Escape');
+       assert.equal(await header(bn?'পণ্য':'Items').count(),0,'tablet overrides survive resize');
+      }else{
+       assert.equal(await page.getByRole('columnheader',{name:bn?'পণ্য':'Items',exact:true}).count(),1,'desktop Items unchanged');
+       assert.equal(await page.getByRole('columnheader',{name:bn?'মাধ্যম':'Payment',exact:true}).count(),1,'desktop Payment unchanged');
+      }
+     }
+
      if(width<768){
       assert.equal(await page.locator('.sales-mobile-summary').count(),1);
       if(['sales','quotations','online-sales'].includes(route)){

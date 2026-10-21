@@ -98,6 +98,18 @@ const defaultVisibleSalesColumns: Record<SalesColumn, boolean> = {
 };
 
 const salesColumnStorageKey = 'hisabiq-sales-visible-columns';
+const tabletSalesColumnStorageKey = 'hisabiq-sales-visible-columns-tablet';
+const tabletVisibleSalesColumns = { ...defaultVisibleSalesColumns, items: false, payment: false };
+
+function savedSalesColumns(key: string, defaults: Record<SalesColumn, boolean>) {
+  if (typeof window === 'undefined') return defaults;
+  try {
+    const stored = window.localStorage.getItem(key);
+    return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
+  } catch {
+    return defaults;
+  }
+}
 const purchasePriceByProductId = new Map(products.map((product) => [product.id, product.purchasePrice]));
 
 function isBundleReturnLine(line:SalesInvoice['lines'][number]) {
@@ -676,6 +688,7 @@ function CreditActionDialog({
 
 export function Sales() {
   const isMobile = useMediaQuery('(max-width: 767px)');
+  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1279px)');
   const {text,language,showHelper}=useUiCopy();
   const sl=(english:string)=>salesLabel(language,english);
   const navigate = useNavigate();
@@ -701,15 +714,9 @@ export function Sales() {
   const [customerFilter, setCustomerFilter] = useState('All customers');
   const [status, setStatus] = useState('All status');
   const [method, setMethod] = useState('All payments');
-  const [visibleSalesColumns, setVisibleSalesColumns] = useState<Record<SalesColumn, boolean>>(() => {
-    if (typeof window === 'undefined') return defaultVisibleSalesColumns;
-    try {
-      const stored = window.localStorage.getItem(salesColumnStorageKey);
-      return stored ? { ...defaultVisibleSalesColumns, ...JSON.parse(stored) } : defaultVisibleSalesColumns;
-    } catch {
-      return defaultVisibleSalesColumns;
-    }
-  });
+  const [wideSalesColumns, setWideSalesColumns] = useState<Record<SalesColumn, boolean>>(() => savedSalesColumns(salesColumnStorageKey, defaultVisibleSalesColumns));
+  const [tabletSalesColumns, setTabletSalesColumns] = useState<Record<SalesColumn, boolean>>(() => savedSalesColumns(tabletSalesColumnStorageKey, tabletVisibleSalesColumns));
+  const visibleSalesColumns = isTablet ? tabletSalesColumns : wideSalesColumns;
   const [detail, setDetail] = useState<SalesInvoice | null>(null);
   const [paymentTarget, setPaymentTarget] = useState<SalesInvoice | null>(null);
   const [customerPaymentOpen, setCustomerPaymentOpen] = useState(false);
@@ -726,10 +733,12 @@ export function Sales() {
   const [returnRefundAccount, setReturnRefundAccount] = useState('');
 
   const toggleSalesColumn = (column: SalesColumn) => {
-    setVisibleSalesColumns((current) => {
+    const setColumns = isTablet ? setTabletSalesColumns : setWideSalesColumns;
+    setColumns((current) => {
       const next = { ...current, [column]: !current[column] };
       try {
-        window.localStorage.setItem(salesColumnStorageKey, JSON.stringify(next));
+        if (isTablet) window.localStorage.setItem(tabletSalesColumnStorageKey, JSON.stringify(next));
+        else window.localStorage.setItem(salesColumnStorageKey, JSON.stringify(next));
       } catch {
         // Keep the current-session preference when storage is unavailable.
       }
@@ -1183,7 +1192,7 @@ export function Sales() {
               </Button></>} />)}
 
             {isMobile ? <div aria-label={text('Sales invoices','বিক্রির বিল')} className="sales-mobile-record-list">
-              {filtered.map(invoice => <SalesMobileRecord key={invoice.id} reference={visibleSalesColumns.invoice ? invoice.invoice : ''} name={visibleSalesColumns.customer ? invoice.party : ''} date={visibleSalesColumns.invoice ? invoice.date : undefined}
+              {filtered.map(invoice => <SalesMobileRecord key={invoice.id} actionsInFooter reference={visibleSalesColumns.invoice ? invoice.invoice : ''} name={visibleSalesColumns.customer ? invoice.party : ''} date={visibleSalesColumns.invoice ? invoice.date : undefined}
                 status={visibleSalesColumns.status && <PaymentStatus invoice={invoice} />} onOpen={() => setDetail(invoice)}
                 amount={visibleSalesColumns.total && <>{text('Total','মোট')} <strong className="text-ink">{taka(invoice.total)}</strong></>}
                 balance={visibleSalesColumns.due && <>{text('Due','বাকি')} <strong className={invoice.due > 0 ? 'text-danger' : 'text-ink-500'}>{taka(invoice.due)}</strong></>}

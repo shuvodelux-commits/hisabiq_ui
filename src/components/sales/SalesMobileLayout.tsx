@@ -67,9 +67,9 @@ export function SalesMobileToolbar({ search, filters, actions, activeCount, onCl
 }
 
 /** Record summary with the existing detail handler and existing action menu. */
-export function SalesMobileRecord({ reference, name, date, status, meta, amount, balance, actions, onOpen, details }: {
+export function SalesMobileRecord({ reference, name, date, status, meta, amount, balance, actions, onOpen, details, actionsInFooter = false }: {
   reference: string; name: string; date?: string; status?: ReactNode; meta?: ReactNode;
-  amount: ReactNode; balance?: ReactNode; actions?: ReactNode; onOpen?: () => void; details?: ReactNode;
+  amount: ReactNode; balance?: ReactNode; actions?: ReactNode; onOpen?: () => void; details?: ReactNode; actionsInFooter?: boolean;
 }) {
   const { text } = useUiCopy();
   const body = <>
@@ -82,9 +82,12 @@ export function SalesMobileRecord({ reference, name, date, status, meta, amount,
     <div className="min-w-0 flex-1">
     {onOpen ? <button type="button" onClick={onOpen} className="block w-full min-w-0 rounded-md px-2 py-2 text-left hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">{body}</button>
       : <div className="min-w-0 flex-1 px-2 py-2">{body}</div>}
-    {details && <details className="px-2 pb-2 text-xs"><summary className="min-h-8 cursor-pointer py-1 text-ink-500">{text('More details', 'আরও বিস্তারিত')}</summary><div className="mt-1 space-y-1 text-ink-600">{details}</div></details>}
+    {(details || actionsInFooter) && <div className="flex items-start justify-between gap-2">
+    {details && <details className="min-w-0 flex-1 px-2 pb-2 text-xs"><summary className="min-h-8 cursor-pointer py-1 text-ink-500">{text('More details', 'আরও বিস্তারিত')}</summary><div className="mt-1 space-y-1 text-ink-600">{details}</div></details>}
+    {actionsInFooter && actions && <div className="sales-mobile-record-actions shrink-0">{actions}</div>}
+    </div>}
     </div>
-    {actions && <div className="sales-mobile-record-actions shrink-0">{actions}</div>}
+    {!actionsInFooter && actions && <div className="sales-mobile-record-actions shrink-0">{actions}</div>}
   </article>;
 }
 

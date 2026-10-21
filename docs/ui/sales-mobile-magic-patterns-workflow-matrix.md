@@ -50,4 +50,12 @@ Sales, Quotations and Online Sales now use `SalesWideToolbar`. Search, columns a
 
 The responsive browser matrix checks keyboard expansion, hidden initial controls, every Sales and Online Sales selector, quotation status filtering, retained selections/results after collapse, all three language modes, and viewport overflow.
 
-Follow-up verification: build, TypeScript, UI contract guard, all 681 unit tests, and the full responsive browser matrix pass. All seven 390px screenshots are pixel-identical to the phone-only implementation. Tablet/desktop collapsed and expanded screenshots were inspected together; only the requested filter toolbar behavior changes.
+Filter-only follow-up verification: build, TypeScript, UI contract guard, all 681 unit tests, and the full responsive browser matrix pass. All seven 390px screenshots are pixel-identical to the phone-only implementation. Tablet/desktop collapsed and expanded screenshots were inspected together; only the requested filter toolbar behavior changes.
+
+## Follow-up: tablet defaults and mobile invoice menu
+
+At 768–1279px, Items and Payment start hidden in the Sales invoice table. Tablet column preferences use a separate storage key so users can enable either field without changing desktop/phone preferences. Switching widths preserves each preference set. Desktop defaults remain unchanged.
+
+On mobile invoice records, the existing action menu is beside More details, below Total/Due, matching the annotated position 2. Its invoice, payment, return and ledger callbacks are unchanged. The browser matrix checks its position, opens invoice detail from the relocated menu, and verifies tablet defaults, opt-in, reload persistence and width changes in all three languages.
+
+Verification: 681 unit tests, UI contract guard, TypeScript and build pass. Responsive browser checks pass across all three languages at 360/390/430/768/1024/1440px. All seven 1440px screenshots remain pixel-identical after this adjustment; mobile and tablet captures were inspected.
