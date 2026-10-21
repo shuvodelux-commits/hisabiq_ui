@@ -9,7 +9,7 @@ const source=(state:VendorPreviewState,id:string,cost:number|null=11000,kind:'re
  id,productId:'p1',baseQty:3,date:'2026-10-09',unitCostBasePaisa:cost,reference:'INV-'+id}});
 const pay=(id:string,sourceId:string,amountPaisa:number)=>( {type:'settle-source' as const,operationId:id,
  vendorPartyId:'v1',side:'payable' as const,kind:'pay' as const,date:'2026-10-10',amountPaisa,
- allocations:[{sourceId,amountPaisa}],paymentSplits:[{id:'cash-'+id,method:'Cash' as const,accountId:'cash-1',amountPaisa}]} );
+ allocations:[{sourceId,amountPaisa}],paymentSplits:[{id:'cash-'+id,method:'Cash' as const,accountId:'acc-cash',amountPaisa}]} );
 const giveBack=(id:string,sourceId:string,baseQty:number,amountPaisa:number|null)=>({
  type:'settle-source' as const,operationId:id,vendorPartyId:'v1',side:'payable' as const,
  kind:'return-to-vendor' as const,date:'2026-10-10',amountPaisa,
@@ -42,7 +42,7 @@ test('receivable issued 3 then receive money and return one source piece',()=>{
  assert.equal(vendorBalances(s,'v1').knownReceivablePaisa,21000);
  s=applyVendorCommand(s,{type:'settle-source',operationId:'recv-money',vendorPartyId:'v1',side:'receivable',
  kind:'receive-money',date:'2026-10-10',amountPaisa:14000,allocations:[{sourceId:'issued',amountPaisa:14000}],
- paymentSplits:[{id:'bank',method:'Bank',accountId:'bank-1',amountPaisa:14000}]});
+ paymentSplits:[{id:'bank',method:'Bank',accountId:'acc-dbl',amountPaisa:14000}]});
  assert.equal(vendorBalances(s,'v1').knownReceivablePaisa,7000);
  const stock=s.inventory!.p1;
  s=applyVendorCommand(s,{type:'settle-source',operationId:'recv-one',vendorPartyId:'v1',side:'receivable',
@@ -54,8 +54,8 @@ test('bad links, too little stock, overpayment, split mismatch, future date fail
  const s=source(fresh(),'safe'),before=JSON.stringify(s);
  assert.throws(()=>applyVendorCommand(s,pay('over','safe',33001)),/exceed/i);
  assert.throws(()=>applyVendorCommand(s,{...pay('wrong','safe',100),vendorPartyId:'v2'}),/different Vendor|source/i);
- assert.throws(()=>applyVendorCommand(s,{...pay('no-split','safe',100),paymentSplits:[]}),/payment source/i);
- assert.throws(()=>applyVendorCommand(s,{...pay('bad-split','safe',100),paymentSplits:[{id:'cash',method:'Cash',accountId:'cash',amountPaisa:99}]}),/split/i);
+ assert.throws(()=>applyVendorCommand(s,{...pay('no-split','safe',100),paymentSplits:[]}),/payment (source|account)/i);
+ assert.throws(()=>applyVendorCommand(s,{...pay('bad-split','safe',100),paymentSplits:[{id:'cash',method:'Cash',accountId:'acc-cash',amountPaisa:99}]}),/split/i);
  assert.throws(()=>applyVendorCommand(s,giveBack('over-stock','safe',7,77000)),/stock|source|return/i);
  assert.equal(JSON.stringify(s),before);
 });
@@ -63,7 +63,7 @@ test('multi-source split is atomic and duplicate source allocation rejected',()=
  let s=source(fresh(),'a',10000);s=source(s,'b',10000);
  const split=(allocations:VendorSettlementAllocation[])=>({type:'settle-source' as const,operationId:'multi',
  vendorPartyId:'v1',side:'payable' as const,kind:'pay' as const,date:'2026-10-10',
- amountPaisa:30000,allocations,paymentSplits:[{id:'cash',method:'Cash' as const,accountId:'cash',amountPaisa:30000}]});
+ amountPaisa:30000,allocations,paymentSplits:[{id:'cash',method:'Cash' as const,accountId:'acc-cash',amountPaisa:30000}]});
  s=applyVendorCommand(s,split([{sourceId:'a',amountPaisa:20000},{sourceId:'b',amountPaisa:10000}]));
  assert.equal(vendorBalances(s,'v1').knownPayablePaisa,30000);
  assert.equal(sourceOutstanding(s,'a').monetaryDuePaisa,10000);
