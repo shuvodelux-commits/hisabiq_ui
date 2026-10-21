@@ -565,3 +565,32 @@
 @container pf (min-width: 780px) {
   .pf-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+
+/* Magic Patterns-inspired, shared HisabIQ button polish.
+   Excludes icon-only controls, numeric steppers and compact POS cart rows. */
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:not([data-hisabiq-size="icon"]):not([data-hisabiq-size="icon-sm"]) {
+  min-height: 40px;
+  padding-inline: max(0.75rem, 10px);
+  border-radius: 0.625rem;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button[data-hisabiq-size="sm"] {
+  min-height: 36px;
+}
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]):is(:hover,:focus-visible):not(:disabled) {
+  background-color: var(--card);
+  border-color: var(--teal-300);
+  box-shadow: 0 1px 4px rgb(var(--color-ink) / 0.06);
+}
+:where(.erp-workspace, [data-dialog-root]) [data-cart-row] .hisabiq-button {
+  min-height: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hisabiq-button { transition: none; }
+}
