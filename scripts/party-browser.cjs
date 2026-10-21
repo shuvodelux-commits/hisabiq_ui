@@ -113,10 +113,21 @@ async function main() {
         assert.ok(await page.getByTestId('party-last-activity').isVisible(),`Last activity own line in responsive Party profile at ${width}px`);
         assert.ok(await page.locator('[data-testid="party-receivable-helper"]:visible').first().isVisible(),`Localized receivable explanation visible at ${width}px`);
       }
+      // Refund credit is a direct action; Opening balance remains in the More menu.
+      assert.ok(await page.getByRole('button',{name:'Refund credit'}).isVisible(),
+        `Refund credit is directly accessible at ${width}px`);
       if(width>=768&&width<1024){
-        assert.ok(await page.getByRole('button',{name:/Opening balance/i}).isVisible(),`Opening balance in tablet action row at ${width}px`);
+        assert.ok(await page.getByRole('button',{name:'Refund credit'}).isVisible(),
+          `Refund credit replaces Opening balance in the tablet action row at ${width}px`);
         assert.ok(await page.getByRole('button',{name:'Add note'}).isVisible(),`Add note in tablet action row at ${width}px`);
         assert.ok(await page.getByRole('button',{name:'More'}).isVisible(),`More overflow action on tablet at ${width}px`);
+        if(width===820){
+          await page.getByRole('button',{name:'More'}).click();
+          const menu=page.getByRole('dialog',{name:'More actions'});
+          await menu.getByRole('menuitem',{name:/Opening balance/}).waitFor();
+          await page.keyboard.press('Escape');
+          await menu.waitFor({state:'hidden'});
+        }
         assert.ok(await page.getByText('Period debit').first().isVisible(),`period totals above the tablet ledger at ${width}px`);
         const rowHeight=await page.locator('table tbody tr').first().evaluate(row=>row.getBoundingClientRect().height);
         assert.ok(rowHeight<=70,`tablet ${width}px ledger rows must be compact, got ${rowHeight}px`);
@@ -126,6 +137,13 @@ async function main() {
         await page.getByRole('dialog',{name:'Change party'}).waitFor({state:'hidden'});
       }
       if(width>=1024){
+        if(width===1024){
+          await page.getByRole('button',{name:'More'}).click();
+          const menu=page.getByRole('dialog',{name:'More actions'});
+          await menu.getByRole('menuitem',{name:/Opening balance/}).waitFor();
+          await page.keyboard.press('Escape');
+          await menu.waitFor({state:'hidden'});
+        }
         await page.getByRole('button',{name:'Change party'}).click();
         assert.ok(await page.getByRole('textbox',{name:'Search parties'}).evaluate(el=>document.activeElement===el),
           `desktop ${width}px Change Party focuses the existing directory`);
