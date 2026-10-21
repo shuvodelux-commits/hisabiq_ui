@@ -81,17 +81,18 @@ export function PartyBalanceCard({
         ? 'grid grid-cols-[minmax(0,1fr)_auto] grid-rows-2 items-center gap-x-2 text-left md:block md:text-right'
         : 'text-right'} ${colors.background}`}>
     <p className={`min-w-0 font-semibold leading-snug ${mobileHorizontal
-      ? 'col-start-1 row-start-1 self-end text-[15px] md:text-[13px]' : ''} ${colors.foreground}`}>
+      ? 'col-start-1 row-start-1 self-end text-[15px] md:text-[13px]' : 'text-[13px]'} ${colors.foreground}`}>
       {text(data.title[0], data.title[1])}
     </p>
     <p className={`min-w-0 break-words font-semibold leading-tight tracking-tight ${mobileHorizontal
-      ? 'col-start-2 row-span-2 self-center whitespace-nowrap text-[clamp(18px,5.4vw,27px)] md:mt-1 md:text-[26px]'
+      ? `col-start-2 row-span-2 self-center whitespace-nowrap text-[clamp(18px,5.4vw,27px)] md:mt-1 ${compact ? 'md:text-[22px]' : 'md:text-[26px]'}`
       : `mt-1 ${compact ? 'text-[22px]' : 'text-[26px]'}`} ${colors.foreground}`}>
       {taka(Math.abs(amount))}
     </p>
     <p data-testid={relationship === 'Customer' && amount > 0 ? 'party-receivable-helper' : 'party-balance-helper'}
-      className={`min-w-0 text-[12px] leading-snug md:text-[11px] ${mobileHorizontal
-        ? 'col-start-1 row-start-2 self-start md:mt-1' : 'mt-1'} ${helperColor}`}>
+      className={`min-w-0 leading-snug ${mobileHorizontal
+        ? 'col-start-1 row-start-2 self-start text-[12px] md:mt-1 md:text-[11px]'
+        : 'mt-1 text-[11px]'} ${helperColor}`}>
       {helper}
       {showHelper && <> · <span lang="bn" className="font-bn"
         data-testid={(relationship === 'Supplier' || relationship === 'Lender') && amount < 0
