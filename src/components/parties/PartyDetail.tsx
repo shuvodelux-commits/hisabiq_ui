@@ -1,7 +1,8 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
+import { FloatingPanel } from '../layout/FloatingPanel';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
-import { FilePlus2, FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { FilePlus2, FileText, HandCoins, MoreHorizontal, MapPin, MessageSquare, Paperclip, Phone, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -162,10 +163,19 @@ export function PartyDetail({
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
-         <BookOpen className="size-4"/> {text('Opening Balance','শুরুর জের')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
         <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
+        <FloatingPanel width={260} align="right" label={text('More actions','আরও কাজ')}
+          trigger={({toggle,open})=><Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
+            <MoreHorizontal className="size-4"/>{text('More','আরও')}
+          </Button>}>
+          {close=><div role="menu" aria-label={text('More actions','আরও কাজ')} className="p-1">
+            <button type="button" role="menuitem" onClick={()=>{close();onOpenVendorWork?.('ledger');}}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-ink-50">
+              <BookOpen className="size-4"/>{text('Opening balance','শুরুর জের')}
+            </button>
+          </div>}
+        </FloatingPanel>
        </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
@@ -179,17 +189,10 @@ export function PartyDetail({
             onClick={()=>setRefundOpen(true)}>
             {text('Refund credit','জমা টাকা ফেরত')}
           </Button>}
-        <Button size="sm" variant="outline" onClick={()=>setOpeningOpen(true)}
-          aria-label={existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')}>
-          <BookOpen className="size-4"/> {existingOpening?text('Edit opening','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
-        </Button>
         <Button size="sm" variant="outline" disabled={relationship!=='Customer'||party.status==='Inactive'}
           title={relationship!=='Customer'?text('New sales are available for customer relationships','শুধু ক্রেতা সম্পর্কের জন্য নতুন বিক্রি করা যায়'):party.status==='Inactive'?text('Activate this customer before starting a new sale','নতুন বিক্রির আগে ক্রেতাকে সক্রিয় করুন'):undefined}
           onClick={onNewInvoice}>
           <FilePlus2 className="size-4" /> {text('New invoice','নতুন বিল')}
-        </Button>
-        <Button size="sm" variant="outline" disabled title={text("SMS service is not connected to the UI preview","এই প্রিভিউতে SMS চালু নেই")}>
-          <Send className="size-4" /> {text('Send statement','হিসাব পাঠান')}
         </Button>
         {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
           <Button size="sm" variant="outline" aria-label={text(`Record ${relationship.toLowerCase()} finance`,'টাকা লেনদেন লিখুন')}
@@ -200,6 +203,22 @@ export function PartyDetail({
         <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
           <StickyNote className="size-4" /> {text('Add note','নোট যোগ করুন')}
         </Button>
+        <FloatingPanel width={260} align="right" label={text('More actions','আরও কাজ')}
+          trigger={({toggle,open})=><Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
+            <MoreHorizontal className="size-4"/>{text('More','আরও')}
+          </Button>}>
+          {close=><div role="menu" aria-label={text('More actions','আরও কাজ')} className="p-1">
+            <button type="button" role="menuitem" onClick={()=>{close();setOpeningOpen(true);}}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-ink-50">
+              <BookOpen className="size-4"/>{existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
+            </button>
+            <button type="button" role="menuitem" disabled
+              title={text('SMS service is not connected to the UI preview','এই প্রিভিউতে SMS চালু নেই')}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink-400 opacity-60">
+              <Send className="size-4"/>{text('Send statement','হিসাব পাঠান')}
+            </button>
+          </div>}
+        </FloatingPanel>
       </div>
        </>}
 
