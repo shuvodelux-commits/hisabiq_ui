@@ -9,7 +9,8 @@ import { PartyActionSheet } from '../components/parties/PartyActionSheet';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
-import { PartyDetail } from '../components/parties/PartyDetail';
+import { PartyDirectoryResponsive } from '../components/parties/PartyDirectoryResponsive';
+import { PartyDetailAdaptive as PartyDetail } from '../components/parties/PartyDetailAdaptive';
 import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
 import {projectVendorPartyProfile} from '../vendor/vendorPartyProjection';
 import {vendorWorkLink,type VendorWorkTab} from '../vendor/vendorRoute';
@@ -177,7 +178,7 @@ export function Parties() {
     }catch(error){toast.error(error instanceof Error?error.message:uiText('Note action failed','নোটের কাজ করা যায়নি'));throw error;}
   };
   return <div className="mx-auto min-w-0 max-w-[1440px] space-y-3 sm:space-y-4">
-    <div className="hidden md:block"><PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
+    <div className="hidden lg:block"><PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
       description={`${uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · ${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)} · ${uiText('preview','নমুনা')}`}
       actions={<>
         <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
@@ -191,7 +192,7 @@ export function Parties() {
       <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4" />{uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
     </div>}
     <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
-      <div className="hidden min-w-0 lg:sticky lg:top-4 lg:block"><PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
+      <div className="hidden min-w-0 lg:block"><PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
         role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/></div>
       {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
         vendorProfile={vendorProfile}
@@ -247,7 +248,7 @@ export function Parties() {
           <Plus className="size-4 shrink-0" />{uiText('Add party','নতুন পার্টি যোগ করুন')}
         </Button>
       </div>}>
-      <PartyDirectory picker parties={filtered} selectedId={party?.id??''} onSelect={chooseParty}
+      <PartyDirectoryResponsive picker parties={filtered} selectedId={party?.id??''} onSelect={chooseParty}
         role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/>
     </PartyActionSheet>
     <PartyEditorDialog open={editing!==undefined} party={editing}
