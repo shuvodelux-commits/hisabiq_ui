@@ -77,13 +77,19 @@ async function main() {
     await transaction.waitFor();
     await transaction.getByRole('button',{name:'Close'}).first().click();
 
-    for(const width of [320,360,390,600,768,820,1024,1280,1440]){
+    for(const width of [320,360,390,600,768,820,960,1000,1024,1280,1440]){
       await page.setViewportSize({width,height:900});
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
       assert.ok(overflow<=4,`Party ${width}px should not overflow horizontally (extra ${overflow}px)`);
-      assert.equal(await page.getByRole('list',{name:'Transactions'}).isVisible(),width<1024,`Party ${width}px shows responsive ledger feed only on phone/tablet`);
-      assert.equal(await page.locator('table').first().isVisible(),width>=1024,`Party ${width}px restores original desktop ledger table`);
-      assert.equal(await page.getByRole('button',{name:'Change party'}).count()>0,width<1024,`Party Change Party control only on phone/tablet at ${width}px`);
+      assert.equal(await page.getByRole('list',{name:'Transactions'}).isVisible(),width<768,`Party ${width}px uses transaction feed only on phones`);
+      assert.equal(await page.locator('table').first().isVisible(),width>=768,`Party ${width}px uses compact ledger table on tablet/desktop`);
+      assert.equal(await page.getByRole('button',{name:'Change party'}).count()>0,width<1024,`Change Party control only on phone/tablet at ${width}px`);
+      if(width>=768&&width<1024){
+        assert.ok(await page.getByRole('button',{name:/Opening balance/i}).isVisible(),`Opening balance in tablet action row at ${width}px`);
+        assert.ok(await page.getByRole('button',{name:'Add note'}).isVisible(),`Add note in tablet action row at ${width}px`);
+        assert.ok(await page.getByRole('button',{name:'More'}).isVisible(),`More overflow action on tablet at ${width}px`);
+        assert.ok(await page.getByText('Period debit').first().isVisible(),`period totals above the tablet ledger at ${width}px`);
+      }
     }
     assert.equal(errors.length,0,'browser page must not throw');
     console.log('Party profile browser flow passed');
