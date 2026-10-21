@@ -10,6 +10,7 @@ import { FormSelect } from '../FormSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
 import { PartyBalanceCard } from './PartyBalanceCard';
+import {VendorQuickSettlementDialog, type VendorQuickSettlementMode} from './VendorQuickSettlementDialog';
 import { partyFinanceActions, partyTradingActionIcons } from './partyRoleActions';
 import type { FinanceTransactionType } from '../../data/financeAccounts';
 import { PartySourceQuickPreview } from './PartySourceQuickPreview';
@@ -87,6 +88,7 @@ export function PartyDetail({
   const [attachment, setAttachment] = useState<LedgerEntry | null>(null);
   const [viewedRow,setViewedRow] = useState<PartyLedgerRow|null>(null);
   const [paymentOpen,setPaymentOpen] = useState(false);
+  const [vendorSettlementMode,setVendorSettlementMode]=useState<VendorQuickSettlementMode|null>(null);
   const [refundOpen,setRefundOpen] = useState(false);
   const [financeOpen,setFinanceOpen]=useState(false);
   const [financeStartType,setFinanceStartType]=useState<FinanceTransactionType|undefined>();
@@ -180,8 +182,8 @@ export function PartyDetail({
       </div>
 
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
-        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}><Banknote className="size-4"/>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('given')}><HandCoins className="size-4"/>{text('Receive Money','টাকা নিন')}</Button>
+        <Button size="sm" onClick={()=>setVendorSettlementMode('pay')}><Banknote className="size-4"/>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>setVendorSettlementMode('receive-money')}><HandCoins className="size-4"/>{text('Receive Money','টাকা নিন')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
         <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
         <FloatingPanel width={260} align="right" label={text('More actions','আরও কাজ')}
@@ -385,6 +387,9 @@ export function PartyDetail({
 
       <PartyOpeningDialog open={openingOpen} onClose={()=>setOpeningOpen(false)}
         party={party} relationship={relationship} existing={existingOpening} onSubmit={onSetOpening}/>
+      {vendorProfile && vendorSettlementMode && <VendorQuickSettlementDialog
+        open partyId={party.id} partyName={party.name} mode={vendorSettlementMode}
+        onClose={()=>setVendorSettlementMode(null)}/>}
       <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={shownStatement}/>
       {(relationship==='Customer'||relationship==='Supplier')&&<>
         <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}
