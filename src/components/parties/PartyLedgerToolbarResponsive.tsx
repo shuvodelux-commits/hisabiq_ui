@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Printer, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Printer, RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
 import { AppDateRangePicker } from '../AppDateRangePicker';
 import { AppSelect } from '../AppSelect';
 import { Button } from '../Button';
@@ -41,13 +41,13 @@ export function PartyLedgerToolbarResponsive({range,onRange,kind,onKind,query,on
     </Button>
     <div id="party-ledger-filters" className={`${filtersOpen?'grid':'hidden'} order-3 w-full min-w-0 grid-cols-2 gap-2 rounded-lg bg-ink-50/50 p-2 md:contents md:p-0`}>
       <div className="col-span-2 min-w-0 md:order-1 md:col-span-1"><AppDateRangePicker label={text('Party ledger date range','পক্ষের খাতার তারিখ')} value={range} onChange={onRange}/></div>
-      <div className="min-w-0 md:order-2"><AppSelect compact label={text('Transaction type','লেনদেনের ধরন')} value={kind} onChange={onKind}
+      <div className="min-w-0 md:order-2"><AppSelect label={text('Transaction type','লেনদেনের ধরন')} value={kind} onChange={onKind}
         options={kinds.map(item=>({...item,label:text(item.label,bn[item.label]??item.label)}))}/></div>
       <div className="min-w-0 md:order-4"><AppSelect compact label={text('Rows per page','প্রতি পাতায়')} value={String(pageSize)}
         options={['10','25','50','100']} onChange={value=>onPageSize(Number(value))}/></div>
       <div className="col-span-2 flex min-w-0 gap-2 md:order-5 md:col-span-1 md:ml-auto">
         <Button size="sm" variant="outline" className="min-h-10 flex-1 md:min-h-0 md:flex-none" onClick={onReset}
-          title={text('Clear filters','ফিল্টার মুছুন')}><X className="size-3.5" />{text('Clear filters','ফিল্টার মুছুন')}</Button>
+          title={text('Clear filters','ফিল্টার মুছুন')}><RotateCcw className="size-3.5" />{text('Clear filters','ফিল্টার মুছুন')}</Button>
         <Button size="sm" variant="outline" className="min-h-10 flex-1 md:min-h-0 md:flex-none" onClick={onStatement}>
           <Printer className="size-3.5" />{text('Print statement','হিসাব প্রিন্ট')}</Button>
       </div>
