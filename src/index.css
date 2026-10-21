@@ -94,12 +94,21 @@
 [data-sonner-toast]:not(:has(button, a, input, select, textarea, [role="button"])) {
   pointer-events: none;
 }
-/* Inline text actions and explicitly sized compact controls keep their own height. */
+/* Coarse-pointer sizing belongs to full-size form controls and primary actions,
+   never every native button: ledger links, row menus, filter icons, clear (x)
+   buttons and compact tabs must retain their own visual heights on touch devices.
+   Table editors also keep their component-defined height. */
 @media (pointer: coarse) {
-  .erp-workspace button:not([role="option"]):not(:where([data-compact-control])),
-  .erp-workspace input:not([type="checkbox"]):not([type="radio"]),
-  [data-dialog-root] button:not(:where([data-compact-control])),
-  [data-dialog-root] input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
+  :where(.erp-workspace, [data-dialog-root])
+    .hisabiq-button:not([data-compact-control]):not([data-hisabiq-size="sm"]):not([data-hisabiq-size="icon"]):not([data-hisabiq-size="icon-sm"]),
+  :where(.erp-workspace, [data-dialog-root])
+    button[role="combobox"]:not([data-compact-control]) {
+    min-height: 44px;
+  }
+  :where(.erp-workspace, [data-dialog-root])
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([data-compact-control]):not(:where(td input, th input, [data-numeric-joined] input)) {
+    min-height: 44px;
+  }
 }
 
 /* ERP field centering: preserve natural left/right text alignment while aligning
