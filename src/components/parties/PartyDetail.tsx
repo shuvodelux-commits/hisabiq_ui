@@ -1,15 +1,11 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
-import { PartyActionSheet } from './PartyActionSheet';
-import { motion, useReducedMotion } from 'framer-motion';
-import { FloatingPanel } from '../layout/FloatingPanel';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
-import { useEffect, useState } from 'react';
-import { FileText, HandCoins, MapPin, MessageSquare, MoreHorizontal, ArrowLeftRight, Clock, ChevronLeft, ChevronRight, Printer, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen, type LucideIcon } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { FormSelect } from '../FormSelect';
-import { AppSelect } from '../AppSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
 import { RoleBadge } from './RoleBadge';
@@ -45,7 +41,6 @@ type PartyDetailProps = {
   relationship: PartyRole;
   onRoleChange: (role: PartyRole) => void;
   onEditParty: () => void;
-  onChangeParty: () => void;
   onNewInvoice: () => void;
   statement: LedgerStatement;
   balanceSummary: PartyBalanceSummary;
@@ -69,24 +64,15 @@ type PartyDetailProps = {
 };
 
 export function PartyDetail({
-  party, entries, relationship, onRoleChange, onEditParty, onChangeParty, onNewInvoice, onAddNote, onEditNote, onDeleteNote,
+  party, entries, relationship, onRoleChange, onEditParty, onNewInvoice, onAddNote, onEditNote, onDeleteNote,
   statement, balanceSummary, visibleRows, range, onRange, kind, onKind, ledgerQuery, onLedgerQuery,
   pageSize, onPageSize, onResetLedger, onStatement, page, pages, onPage, actionsForRow,
   onLedgerAction, statementOpen, onCloseStatement, sources, onRecordPayment, onRefundCredit,
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
-  const {text}=useUiCopy();
+  const {text,showHelper}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
-  const reduceMotion=useReducedMotion();
-  const [mobileActionsOpen,setMobileActionsOpen] = useState(false);
-  useEffect(()=>{
-    const media=window.matchMedia('(min-width: 768px)');
-    const close=()=>{if(media.matches)setMobileActionsOpen(false);};
-    media.addEventListener('change',close);
-    close();
-    return ()=>media.removeEventListener('change',close);
-  },[]);
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
   const [editingNote, setEditingNote] = useState<LedgerEntry | null>(null);
@@ -141,227 +127,92 @@ export function PartyDetail({
     relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
     relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
 
-  // Exact Magic Patterns ActionMenuItems information architecture; real app handlers stay in place.
-  const menuActions: Array<{
-    id: string; icon: LucideIcon; label: string; helper: string;
-    run: () => void; disabledReason?: string;
-  }> = [
-    {
-      id: 'opening', icon: BookOpen,
-      label: text('Opening balance', 'শুরুর জের'), helper: text('Set or edit opening balance', 'প্রারম্ভিক জের'),
-      run: () => vendorProfile ? onOpenVendorWork?.('ledger') : setOpeningOpen(true)
-    },
-    {
-      id: 'note', icon: StickyNote, label: text('Add note', 'নোট লিখুন'),
-      helper: text('Write a note for this party', 'মন্তব্য যোগ করুন'),
-      run: () => setTab('notes')
-    },
-    {
-      id: 'edit', icon: Pencil, label: text('Edit party', 'পার্টির তথ্য বদলান'),
-      helper: text('Update party details', 'পার্টির তথ্য বদলান'), run: onEditParty
-    },
-    {
-      id: 'print', icon: Printer, label: text('Print statement', 'হিসাব প্রিন্ট'),
-      helper: text('Print the party ledger', 'স্টেটমেন্ট প্রিন্ট'), run: onStatement
-    },
-    ...(!vendorProfile && (relationship === 'Customer' || relationship === 'Supplier') ? [{
-      id: 'refund', icon: HandCoins, label: text('Refund credit', 'জমা টাকা ফেরত'),
-      helper: text('Return available customer or supplier credit', 'জমা টাকা ফেরত দিন'),
-      run: () => setRefundOpen(true),
-      disabledReason: balanceSummary.refundableCredit > 0 ? undefined : text('No verified refundable credit yet', 'ফেরত দেওয়ার মতো নিশ্চিত জমা টাকা নেই')
-    }] : []),
-    ...(!vendorProfile && (['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship) ? [{
-      id: 'finance', icon: HandCoins, label: text('Record finance transaction', 'অর্থের লেনদেন'),
-      helper: text('Capital, borrow, lend or repay', 'মূলধন বা ধার লেনদেন'),
-      run: () => setFinanceOpen(true)
-    }] : []),
-    ...(vendorProfile ? [{
-      id: 'vendor', icon: BookOpen, label: text('Open Vendor Work', 'ভেন্ডরের কাজ খুলুন'),
-      helper: text('Purchases and vendor settlements', 'ক্রয় ও ভেন্ডরের হিসাব'),
-      run: () => onOpenVendorWork?.('taken')
-    }, {
-      id: 'vendor-payment', icon: HandCoins, label: text('Vendor payments', 'ভেন্ডরের পেমেন্ট'),
-      helper: text('Open pay and receive options', 'টাকা দেওয়া ও নেওয়া'),
-      run: () => onOpenVendorWork?.('payments')
-    }] : []),
-    {
-      id: 'send', icon: Send, label: text('Send statement', 'হিসাব পাঠান'),
-      helper: text('Send via SMS when connected', 'SMS-এর মাধ্যমে পাঠান'),
-      run: () => toast(text('SMS service is not connected to the UI preview', 'এই প্রিভিউতে SMS চালু নেই')),
-      disabledReason: text('SMS service is not connected to the UI preview', 'এই প্রিভিউতে SMS চালু নেই')
-    }
-  ];
-
-  const menuItem = (item: typeof menuActions[number], close: () => void, variant: 'menu' | 'sheet') => {
-    const Icon = item.icon;
-    const disabled = Boolean(item.disabledReason);
-    return <button key={item.id} type="button" role={variant === 'menu' ? 'menuitem' : undefined}
-      disabled={disabled} title={item.disabledReason}
-      onClick={() => { close(); item.run(); }}
-      className="flex min-h-14 w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left transition-colors hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-teal-500 disabled:cursor-not-allowed disabled:opacity-50">
-      <Icon className="mt-0.5 size-[18px] shrink-0 text-ink-600" aria-hidden="true" />
-      <span className="min-w-0 flex-1">
-        <span className="block text-[14px] font-medium leading-snug text-ink">{item.label}</span>
-        <span className="block font-bn text-[13px] leading-snug text-ink-500">
-          {item.disabledReason || item.helper}
-        </span>
-      </span>
-    </button>;
-  };
-
   return (
-    <motion.div initial={reduceMotion ? false : {opacity:0,y:7}} animate={{opacity:1,y:0}}
-      transition={reduceMotion ? {duration:0} : {duration:0.22,ease:[0.32,0.72,0,1]}}
-      className="min-w-0 rounded-xl border border-border bg-card shadow-card">
-
-      <header className="border-b border-border px-4 pb-4 pt-4 md:px-5 md:pt-5">
-        <div className="flex min-w-0 items-start gap-3 md:gap-4">
-          <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52} />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h2 className="break-words text-[18px] font-semibold leading-tight tracking-tight text-ink md:text-[20px]">{party.name}</h2>
-              {party.nameBn && <span lang="bn" className="font-bn text-sm text-ink-500">{party.nameBn}</span>}
-              <Button size="sm" variant="ghost" className="hidden h-7 px-2 md:inline-flex" onClick={onEditParty}>
-                <Pencil className="size-3" /> {text('Edit party', 'তথ্য বদলান')}
-              </Button>
-            </div>
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-ink-500">
-              <span className="flex flex-wrap items-center gap-1">{party.roles.map(r => <RoleBadge key={r} role={r} />)}</span>
-              {party.phone && <a href={'tel:' + party.phone.replace(/[^+0-9]/g, '')}
-                className="hidden items-center gap-1 rounded hover:text-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500 md:inline-flex">
-                <Phone className="size-3.5" aria-hidden="true" /> {party.phone}
-              </a>}
-              {party.area && <span className="inline-flex items-center gap-1"><MapPin className="size-3.5 shrink-0" aria-hidden="true" />{party.area}</span>}
-              {party.lastActivity && <span className="hidden items-center gap-1 sm:inline-flex"><Clock className="size-3.5" aria-hidden="true" />{text('Last activity', 'শেষ লেনদেন')} {party.lastActivity}</span>}
-            </div>
-            {party.roles.length>1 && <div className="mt-2 max-w-44">
-              <FormSelect title={text('Relationship', 'সম্পর্কের ধরন')} value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)} />
-            </div>}
+    <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
+      <div className="flex flex-wrap items-start gap-4 border-b border-border p-4">
+        <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-lg font-semibold tracking-tight text-ink">{party.name}</h2>
+            {party.nameBn && <span className="font-bn text-sm text-ink-500">{party.nameBn}</span>}
           </div>
-          <div className="hidden max-w-[280px] shrink-0 min-[900px]:block lg:hidden xl:block">
-            {vendorProfile ?
-              <div className="divide-y divide-border rounded-xl border border-border bg-card">
-                <div className="flex items-center justify-between gap-3 p-3">
-                  <span className="text-xs text-danger">{text('You owe', 'আপনাকে দিতে হবে')}</span>
-                  <strong className="text-right text-lg text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 p-3">
-                  <span className="text-xs text-ink-500">{text('Vendor owes', 'ভেন্ডরের কাছে পাওনা')}</span>
-                  <strong className="text-right text-lg text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</strong>
-                </div>
-                {vendorProfile.summary.priceNotSetBaseQty>0 && <p className="px-3 py-2 text-xs text-warning">
-                  {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}
-                </p>}
-              </div> :
-              <div className={isReceivable ? 'rounded-xl bg-teal-50 px-4 py-3 text-right' : currentBalance < 0 ? 'rounded-xl bg-danger-bg px-4 py-3 text-right' : 'rounded-xl bg-ink-50 px-4 py-3 text-right'}>
-                <p className="text-[13px] font-semibold text-ink-600">{balanceLabel}</p>
-                <p className="mt-1 break-words text-[26px] font-semibold leading-tight text-ink">{taka(Math.abs(currentBalance))}</p>
-              </div>}
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" onClick={onEditParty}><Pencil className="size-3"/> {text('Edit party','তথ্য বদলান')}</Button>
+            {party.roles.length>1 && <div className="min-w-32"><FormSelect title={text("Relationship","সম্পর্কের ধরন")} value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)}/></div>}
           </div>
-          <Button size="sm" variant="outline" className="hidden shrink-0 items-center gap-1.5 md:inline-flex lg:hidden" onClick={onChangeParty}>
-            <ArrowLeftRight className="size-4" /> {text('Change party', 'পার্টি বদলান')}
-          </Button>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500">
+            <span className="flex gap-1">{party.roles.map((r) => <RoleBadge key={r} role={r} />)}</span>
+            <span className="flex items-center gap-1"><Phone className="size-3" /> {party.phone}</span>
+            <span className="flex items-center gap-1"><MapPin className="size-3" /> {party.area}</span>
+            <span>{text('Last activity','শেষ লেনদেন')} {party.lastActivity}</span>
+          </div>
         </div>
-        <div className="mt-4 min-[900px]:hidden lg:block xl:hidden">
-          {vendorProfile ? <div className="divide-y divide-border rounded-lg border border-border bg-card">
-            <div className="flex min-w-0 items-center justify-between gap-3 px-3 py-2.5">
-              <span className="text-sm font-semibold text-danger">{text('You owe', 'আপনাকে দিতে হবে')}</span>
-              <strong className="break-words text-right text-xl text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</strong>
-            </div>
-            <div className="flex min-w-0 items-center justify-between gap-3 px-3 py-2.5">
-              <span className="text-sm font-semibold text-ink">{text('Vendor owes', 'ভেন্ডরের কাছে পাওনা')}</span>
-              <strong className="break-words text-right text-xl text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</strong>
-            </div>
-          </div> : <div className={isReceivable ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-teal-50 px-3.5 py-3' : currentBalance < 0 ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-danger-bg px-3.5 py-3' : 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-ink-50 px-3.5 py-3'}>
-            <span className="min-w-0 text-sm font-semibold text-ink-700">{balanceLabel}</span>
-            <strong className="min-w-0 break-words text-right text-[22px] leading-tight text-ink">{taka(Math.abs(currentBalance))}</strong>
-          </div>}
-          {vendorProfile && vendorProfile.summary.priceNotSetBaseQty>0 && <p className="mt-1 text-xs text-warning">{vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set', 'একক · দাম ঠিক হয়নি')}</p>}
+        {vendorProfile?<div className="flex flex-wrap gap-2">
+         <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
+          <p className="text-[11px] text-danger">{text('You owe','আপনাকে দিতে হবে')}{showHelper&&' · দেনা'}</p>
+          <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
+         <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
+          <p className="text-[11px] text-ink-600">{text('Vendor owes','ভেন্ডরের কাছে পাওনা')}{showHelper&&' · পাওনা'}</p>
+          <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
+          {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
+           {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}</p>}
+         </div></div>:<>
+        <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
+          <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
+            {balanceLabel}
+          </p>
+          <p className={`text-2xl font-semibold tabular-nums tracking-tight ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink'}`}>
+            {taka(Math.abs(currentBalance))}
+          </p>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 md:hidden">
-          {party.phone ?
-            <a href={'tel:' + party.phone.replace(/[^+0-9]/g, '')}
-              aria-label={text('Call', 'ফোন করুন')+' '+party.phone}
-              className="flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-md border border-border px-2 text-sm text-ink focus-visible:ring-2 focus-visible:ring-teal-500">
-              <Phone className="size-4 shrink-0" aria-hidden="true" /><span className="truncate">{party.phone}</span>
-            </a> :
-            <Button size="sm" variant="outline" onClick={onEditParty}>{text('Edit party', 'তথ্য বদলান')}</Button>}
-          <Button size="sm" variant="outline" className="min-h-10" onClick={onChangeParty}>
-            <ArrowLeftRight className="size-4 shrink-0" /> {text('Change party', 'পার্টি বদলান')}
-          </Button>
-        </div>
-      </header>
-
-
-      <div className="grid grid-cols-2 gap-2 border-b border-border px-4 pb-4 md:hidden">
-        {vendorProfile ? <>
-          <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold" onClick={() => onOpenVendorWork?.('payments')}>
-            <HandCoins className="size-[18px]" />{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}
-          </Button>
-          <Button size="sm" variant="outline" className="min-h-11" onClick={() => onOpenVendorWork?.('payments')}>
-            {text('Receive Money', 'টাকা নিন')}
-          </Button>
-        </> : relationship === 'Customer' || relationship === 'Supplier' ? <>
-          <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold" onClick={() => setPaymentOpen(true)}>
-            <HandCoins className="size-[18px]" />{payable ? text('Make payment', 'টাকা দিন') : text('Receive payment', 'টাকা নিন')}
-          </Button>
-          {relationship === 'Customer' ? <Button size="sm" variant="outline" className="min-h-11" disabled={relationship!=='Customer'||party.status==='Inactive'} onClick={onNewInvoice}>
-            <Plus className="size-4" />{text('New invoice','নতুন বিল')}
-          </Button> : <Button size="sm" variant="outline" className="min-h-11" onClick={() => setOpeningOpen(true)}>
-            <BookOpen className="size-4" />{text('Opening balance', 'শুরুর জের')}
-          </Button>}
-        </> : <>
-          <Button size="sm" className="col-span-2 min-h-11 whitespace-normal text-[15px] font-semibold"
-            aria-label={text(`Record ${relationship.toLowerCase()} finance`, 'টাকা লেনদেন লিখুন')}
-            onClick={() => (['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship) ? setFinanceOpen(true) : setOpeningOpen(true)}>
-            <HandCoins className="size-[18px] shrink-0"/>
-            {relationship==='Owner' ? text('Capital / withdrawal','মূলধন জমা / তোলা') :
-             relationship==='Lender' ? text('Borrow / repay','ধার নেওয়া / শোধ') :
-             relationship==='Borrower' ? text('Lend / receive','ধার দেওয়া / আদায়') :
-             text('Opening balance','শুরুর জের')}
-          </Button>
-          <Button size="sm" variant="outline" className="min-h-11" onClick={() => setOpeningOpen(true)}>
-            <BookOpen className="size-4" />{text('Opening balance','শুরুর জের')}
-          </Button>
         </>}
-        <Button size="sm" variant="outline" className="min-h-11" aria-haspopup="dialog"
-          aria-expanded={mobileActionsOpen} onClick={() => setMobileActionsOpen(true)}>
-          <MoreHorizontal className="size-[17px]" />{text('More', 'আরও')}
-          <span className="sr-only"> {text('actions', 'কাজ')}</span>
+      </div>
+
+      {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
+        <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
+         <BookOpen className="size-4"/> {text('Opening Balance','শুরুর জের')}</Button>
+        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
+        <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
+       </div>:<>
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
+        <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
+          title={relationship==='Customer'||relationship==='Supplier'?text('Record payment in browser preview','প্রিভিউতে টাকা নেওয়া-দেওয়ার হিসাব রাখুন'):text('Finance-role payments require the separate finance workflow','এই টাকা লেনদেন অর্থের আলাদা কাজ থেকে করুন')}
+          onClick={()=>setPaymentOpen(true)}>
+          <HandCoins className="size-4" /> {payable ? text('Make payment','টাকা দিন') : text('Receive payment','টাকা নিন')}
+        </Button>
+        {(relationship==='Customer'||relationship==='Supplier')&&
+          <Button size="sm" variant="outline" disabled={balanceSummary.refundableCredit<=0}
+            title={balanceSummary.refundableCredit>0?text('Refund verified credit as of the selected date','নির্বাচিত তারিখ পর্যন্ত নিশ্চিত জমা টাকা ফেরত দিন'):text('No verified refundable credit yet','ফেরত দেওয়ার মতো নিশ্চিত জমা টাকা নেই')}
+            onClick={()=>setRefundOpen(true)}>
+            {text('Refund credit','জমা টাকা ফেরত')}
+          </Button>}
+        <Button size="sm" variant="outline" onClick={()=>setOpeningOpen(true)}
+          aria-label={existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')}>
+          <BookOpen className="size-4"/> {existingOpening?text('Edit opening','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
+        </Button>
+        <Button size="sm" variant="outline" disabled={relationship!=='Customer'||party.status==='Inactive'}
+          title={relationship!=='Customer'?text('New sales are available for customer relationships','শুধু ক্রেতা সম্পর্কের জন্য নতুন বিক্রি করা যায়'):party.status==='Inactive'?text('Activate this customer before starting a new sale','নতুন বিক্রির আগে ক্রেতাকে সক্রিয় করুন'):undefined}
+          onClick={onNewInvoice}>
+          <Plus className="size-4" /> {text('New invoice','নতুন বিল')}
+        </Button>
+        <Button size="sm" variant="outline" disabled title={text("SMS service is not connected to the UI preview","এই প্রিভিউতে SMS চালু নেই")}>
+          <Send className="size-4" /> {text('Send statement','হিসাব পাঠান')}
+        </Button>
+        {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
+          <Button size="sm" variant="outline" aria-label={text(`Record ${relationship.toLowerCase()} finance`,'টাকা লেনদেন লিখুন')}
+            onClick={()=>setFinanceOpen(true)}>
+            <HandCoins className="size-4"/> {relationship==='Owner'?text('Capital / withdrawal','মূলধন জমা / তোলা'):
+              relationship==='Lender'?text('Borrow / repay','ধার নেওয়া / শোধ'):text('Lend / receive','ধার দেওয়া / আদায়')}
+          </Button>}
+        <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
+          <StickyNote className="size-4" /> {text('Add note','নোট যোগ করুন')}
         </Button>
       </div>
+       </>}
 
-      <div className="hidden flex-wrap items-center gap-2 border-b border-border px-5 pb-4 md:flex">
-        {vendorProfile ? <>
-          <Button size="sm" onClick={() => onOpenVendorWork?.('payments')}>{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}</Button>
-          <Button size="sm" variant="outline" onClick={() => onOpenVendorWork?.('payments')}>{text('Receive Money', 'টাকা নিন')}</Button>
-        </> : (relationship==='Customer' || relationship==='Supplier') ? <>
-          <Button size="sm" onClick={() => setPaymentOpen(true)}><HandCoins className="size-4" />{payable?text('Make payment','টাকা দিন'):text('Receive payment','টাকা নিন')}</Button>
-          {relationship==='Customer' && <Button size="sm" variant="outline" onClick={onNewInvoice} disabled={party.status==='Inactive'}>
-            <Plus className="size-4" />{text('New invoice','নতুন বিল')}
-          </Button>}
-        </> : <Button size="sm" onClick={() => setFinanceOpen(true)}
-          aria-label={text(`Record ${relationship.toLowerCase()} finance`, 'টাকা লেনদেন লিখুন')}>
-          <HandCoins className="size-4" />{text('Finance transaction', 'অর্থের লেনদেন')}
-        </Button>}
-        <FloatingPanel width={280} align="right" label={text('More actions', 'আরও কাজ')}
-          trigger={({toggle,open}) => <Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
-            <MoreHorizontal className="size-4" />{text('More', 'আরও')}
-          </Button>}>
-          {close => <div className="p-1" role="menu" aria-label={text('More actions', 'আরও কাজ')}>
-            {menuActions.map(item => menuItem(item,close,'menu'))}
-          </div>}
-        </FloatingPanel>
-      </div>
-
-      <PartyActionSheet open={mobileActionsOpen} onClose={() => setMobileActionsOpen(false)}
-        title={text('More actions', 'আরও কাজ')} titleBn="আরও কাজ">
-        <div role="group" aria-label={text('More actions', 'আরও কাজ')}>
-          {menuActions.map(item => menuItem(item,() => setMobileActionsOpen(false),'sheet'))}
-        </div>
-      </PartyActionSheet>
-
-      <MotionTabList className="sticky top-14 z-20 flex gap-1 overflow-x-auto border-b border-border bg-card px-3 scrollbar-thin md:static md:z-auto" role="tablist">
+      <MotionTabList className="flex gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
         {tabs.map((t) =>
         <button
           key={t.id}
@@ -402,24 +253,13 @@ export function PartyDetail({
               onStatement={onStatement} onReset={onResetLedger}/>
             <LedgerTable statement={shownStatement} visibleRows={shownRows} actionsForRow={shownActions}
               onAction={doRowAction} onOpenAttachment={()=>toast(text('No document available in preview','প্রিভিউতে কোনো ফাইল নেই'))}/>
-            <nav aria-label={text('Ledger pages','খাতার পাতা')} className="flex flex-col gap-3 border-t border-border px-4 py-3 text-[13px] text-ink-500 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-                <span aria-live="polite">{text('Showing','দেখাচ্ছে')} {shownRows.length===0?0:(page-1)*pageSize+1}–{Math.min(page*pageSize,vendorProfile?shownFiltered.length:shownStatement.rows.length)} {text('of','মোট')} {vendorProfile?shownFiltered.length:shownStatement.rows.length} {text('dated transactions','টি তারিখসহ লেনদেন')}</span>
-                <div className="lg:hidden">
-                  <AppSelect compact label={text('Rows per page','প্রতি পাতায়')} value={String(pageSize)}
-                    options={['10','25','50','100']} onChange={value=>onPageSize(Number(value))}/>
-                </div>
+            <div className="flex items-center justify-between gap-2 px-4 py-2 text-xs text-ink-500">
+              <span>{text('Page','পাতা')} {page} {text('of','মোট')} {shownPages} · {shownFiltered.length||shownStatement.rows.length} {text('dated transactions','টি তারিখসহ লেনদেন')}</span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" disabled={page<=1} onClick={()=>onPage(page-1)}>{text('Previous','আগের')}</Button>
+                <Button size="sm" variant="outline" disabled={page>=shownPages} onClick={()=>onPage(page+1)}>{text('Next','পরের')}</Button>
               </div>
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex">
-                <Button size="sm" variant="outline" className="min-h-9" disabled={page<=1} onClick={()=>onPage(page-1)}>
-                  <ChevronLeft className="size-4" /> {text('Previous','আগের')}
-                </Button>
-                <span className="whitespace-nowrap text-center">{text('Page','পাতা')} {page} {text('of','মোট')} {shownPages}</span>
-                <Button size="sm" variant="outline" className="min-h-9" disabled={page>=shownPages} onClick={()=>onPage(page+1)}>
-                  {text('Next','পরের')} <ChevronRight className="size-4" />
-                </Button>
-              </div>
-            </nav>
+            </div>
             {vendorProfile&&vendorSide==='payable'&&vendorProfile.takenStatement.unpricedSources.length>0&&
              <p className="px-4 py-2 text-xs text-ink-500">{text('Price not set · দাম ঠিক হয়নি','দাম ঠিক হয়নি')} — {vendorProfile.takenStatement.unpricedSources.length} {text('taken record(s). No money amount assigned.','টি নেওয়া পণ্য। এখনো কোনো টাকা ধরা হয়নি।')}</p>}
           </>}
@@ -572,6 +412,6 @@ export function PartyDetail({
           </div>
         </DialogContent>
       </Dialog>
-    </motion.div>);
+    </div>);
 
 }
