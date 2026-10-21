@@ -1,16 +1,14 @@
 import { PartyClosingBalance } from './PartyClosingBalance';
-import { StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw, HandCoins, ChevronRight } from 'lucide-react';
+import { StickyNote, FileText, BookOpen, RefreshCcw, HandCoins, ChevronRight } from 'lucide-react';
+import { LedgerImpactAmount } from './LedgerImpactAmount';
 import { PartyLedgerAttachment, PartyLedgerSourceBadge } from './PartyLedgerIndicators';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { PartyLedgerRowActions } from './PartyLedgerRowActions';
 import type { LedgerStatement, PartyAction, PartyLedgerRow } from '../../types/partyLedger';
 import { formatMoneyNumber, taka } from '../../utils/currency';
-import { ledgerImpact, type LedgerImpact } from '../../utils/partyLedgerImpact';
 import { useUiCopy } from '../../i18n/useUiCopy';
-import { partyLedgerSourceLabel, partyLedgerCaption } from '../../i18n/partyLedgerCopy';
-import { partyLedgerImpactText } from '../../i18n/partyFinancialCopy';
-import type { UiLanguage } from '../../i18n/uiCopy';
+import { partyLedgerSourceLabel } from '../../i18n/partyLedgerCopy';
 
 type ActionAvailability = { action: PartyAction; enabled: boolean; reason?: string };
 type Row = LedgerStatement['rows'][number];
@@ -21,41 +19,6 @@ type Props = {
   onAction: (action: PartyAction, row: PartyLedgerRow) => void;
   onOpenAttachment: (row: PartyLedgerRow) => void;
 };
-
-const impactTone: Record<LedgerImpact['kind'], string> = {
-  in: 'text-emerald-700 dark:text-emerald-400',
-  out: 'text-rose-700 dark:text-rose-400',
-  due: 'text-sky-700 dark:text-sky-400',
-  adjustment: 'text-amber-700 dark:text-amber-400',
-  opening: 'text-ink-600',
-  neutral: 'text-ink-500'
-};
-
-function LedgerAmount({ row, value, language }: { row: PartyLedgerRow; value: number; language: UiLanguage }) {
-  if (!value) return <span className="text-ink-400">—</span>;
-  const info = ledgerImpact(row);
-  if (info.kind === 'neutral') return <span className="font-semibold text-ink">{formatMoneyNumber(value)}</span>;
-  const Icon = info.kind === 'in' ? ArrowDownLeft : info.kind === 'out' ? ArrowUpRight :
-    info.kind === 'due' ? FileText : info.kind === 'opening' ? BookOpen : RefreshCcw;
-  const impactLabel = partyLedgerImpactText(language, info.label);
-  return <div className={'flex flex-col items-end gap-0.5 ' + impactTone[info.kind]}>
-    <span data-testid="ledger-money-value" aria-label={impactLabel} title={impactLabel}
-      className="inline-flex max-w-full items-center justify-end gap-1 font-semibold leading-tight">
-      <Icon className="size-3.5 shrink-0" aria-hidden="true" />
-      <span className="break-words">{formatMoneyNumber(value)}</span>
-    </span>
-    <span data-testid="ledger-impact-caption" className="text-right text-[10px] font-normal leading-tight">
-      {partyLedgerCaption(language,row,info.label,info.kind)}
-    </span>
-  </div>;
-}
-
-/** Table cells stay number-first. Impact explanations remain in the phone feed. */
-function CompactAmount({ value }: { value: number }) {
-  return value === 0
-    ? <span className="text-ink-400">—</span>
-    : <span className="whitespace-nowrap font-medium text-ink">{taka(value)}</span>;
-}
 
 const formatLedgerDate = (iso: string) => {
   const date = new Date(iso + 'T12:00:00Z');
@@ -122,8 +85,8 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
                   onClick={() => onOpenAttachment(row)} />}
               </div>
             </TableCell>
-            <TableCell className="py-1.5 text-right"><CompactAmount value={row.debit} /></TableCell>
-            <TableCell className="py-1.5 text-right"><CompactAmount value={row.credit} /></TableCell>
+            <TableCell className="py-1.5 text-right"><LedgerImpactAmount row={row} value={row.debit} language={language} currency /></TableCell>
+            <TableCell className="py-1.5 text-right"><LedgerImpactAmount row={row} value={row.credit} language={language} currency /></TableCell>
             <TableCell className="whitespace-nowrap py-1.5 text-right font-semibold text-ink">{taka(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
             <TableCell className="py-1 pr-1.5 text-right">
               <div className="flex items-center justify-end gap-1"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} /></div>
@@ -162,7 +125,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
               </p>
             </div>
             {amount !== 0 && <div className="min-w-0 shrink-0 text-right">
-              <div className="text-[15px]"><LedgerAmount row={row} value={amount} language={language} /></div>
+              <div className="text-[15px]"><LedgerImpactAmount row={row} value={amount} language={language} /></div>
               <p className="mt-0.5 text-xs text-ink-500">{side}</p>
             </div>}
           </div>
