@@ -1,7 +1,7 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
-import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { FilePlus2, FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -199,7 +199,7 @@ export function PartyDetail({
         <Button size="sm" variant="outline" disabled={relationship!=='Customer'||party.status==='Inactive'}
           title={relationship!=='Customer'?text('New sales are available for customer relationships','শুধু ক্রেতা সম্পর্কের জন্য নতুন বিক্রি করা যায়'):party.status==='Inactive'?text('Activate this customer before starting a new sale','নতুন বিক্রির আগে ক্রেতাকে সক্রিয় করুন'):undefined}
           onClick={onNewInvoice}>
-          <Plus className="size-4" /> {text('New invoice','নতুন বিল')}
+          <FilePlus2 className="size-4" /> {text('New invoice','নতুন বিল')}
         </Button>
         <Button size="sm" variant="outline" disabled title={text("SMS service is not connected to the UI preview","এই প্রিভিউতে SMS চালু নেই")}>
           <Send className="size-4" /> {text('Send statement','হিসাব পাঠান')}
@@ -229,7 +229,7 @@ export function PartyDetail({
           
             {t.label}
             {t.count !== undefined &&
-          <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{t.count}</span>
+          <span data-testid="party-tab-count" className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold transition-colors ${tab===t.id ? 'bg-teal-50 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200' : 'bg-ink-50 text-ink-500'}`}>{t.count}</span>
           }
           <MotionTabIndicator active={tab === t.id} /></button>
         )}
