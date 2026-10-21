@@ -1,7 +1,7 @@
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Upload } from 'lucide-react';
+import { ArrowLeftRight, Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
@@ -159,6 +159,14 @@ export function Parties() {
     setParams(next);
   };
   const chooseParty=(id:string)=>{selectParty(id);setChooserOpen(false);};
+  const requestChangeParty=()=>{
+    // The desktop already has a full directory; use it rather than opening a second list.
+    if(window.matchMedia('(min-width: 1024px)').matches){
+      const search=document.querySelector('[data-party-directory-list]')?.parentElement?.querySelector<HTMLInputElement>('input');
+      search?.scrollIntoView({block:'nearest'});
+      search?.focus();
+    }else setChooserOpen(true);
+  };
   const saveParty=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
     if(editing)dispatchPartyPreview({type:'update-party',id:editing.id,patch:draft,openings});
     else {
@@ -178,13 +186,21 @@ export function Parties() {
     }catch(error){toast.error(error instanceof Error?error.message:uiText('Note action failed','নোটের কাজ করা যায়নি'));throw error;}
   };
   return <div className="mx-auto min-w-0 max-w-[1440px] space-y-3 sm:space-y-4">
-    <div className="hidden lg:block"><PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
+    <div className="hidden md:block"><PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
       description={`${uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · ${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)} · ${uiText('preview','নমুনা')}`}
+      descriptionContent={<>
+        {uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · {uiText('Directory receivables','মোট পাওনা')}{' '}
+        <strong className="font-semibold text-emerald-700 dark:text-emerald-400">{taka(receivable)}</strong>
+        {' · '}{uiText('payables','মোট দেনা')}{' '}
+        <strong className="font-semibold text-danger">{taka(payable)}</strong>
+        {' · '}{uiText('preview','নমুনা')}
+      </>}
       actions={<>
         <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
           <Upload className="size-4"/> {uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}
         </Button>
         <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> {uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
+        {party&&<Button size="sm" variant="outline" onClick={requestChangeParty}><ArrowLeftRight className="size-4"/>{uiText('Change party','পার্টি বদলান')}</Button>}
       </>} /></div>
     <h1 className="sr-only md:hidden">{uiText('Parties & Ledger','পার্টি ও খাতা')}</h1>
     {!party && <div className="flex flex-wrap justify-end gap-2 md:hidden">
