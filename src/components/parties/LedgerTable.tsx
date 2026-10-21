@@ -68,7 +68,18 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
           <TableHead className="text-right text-xs">{text('Running','চলতি জের')}</TableHead><TableHead className="pr-4 text-right text-xs">{text('Actions','কাজ')}</TableHead>
         </TableRow></TableHeader>
         <TableBody>
-          {visibleRows.map(row=><TableRow key={row.id} className="text-[13px]">
+          {visibleRows.map(row=><TableRow key={row.id} className="cursor-pointer text-[13px] hover:bg-ink-50/60"
+            tabIndex={0} aria-label={text('View transaction','লেনদেন দেখুন') + ' ' + (row.reference || row.id)}
+            onClick={event => {
+              if ((event.target as HTMLElement).closest('button,a,[role="menu"]')) return;
+              onAction('view',row);
+            }}
+            onKeyDown={event => {
+              if (event.target !== event.currentTarget) return;
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();onAction('view',row);
+              }
+            }}>
             <TableCell className="whitespace-nowrap pl-4 text-xs text-ink-500">{row.date}</TableCell>
             <TableCell>
               <div className="flex items-center gap-1.5">
