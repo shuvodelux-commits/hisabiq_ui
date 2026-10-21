@@ -62,7 +62,7 @@ async function main() {
     await page.getByRole('heading',{name:/CSV Supplier QA/}).waitFor();
     await page.getByRole('button',{name:'More actions'}).click();
     const actionSheet=page.getByRole('dialog',{name:'More actions'});
-    await actionSheet.getByRole('button',{name:/Opening balance/}).waitFor();
+    await actionSheet.getByRole('button',{name:/opening balance/i}).waitFor();
     await actionSheet.getByRole('button',{name:/Print statement/}).waitFor();
     await actionSheet.getByRole('button',{name:/Edit party/}).waitFor();
     await actionSheet.getByRole('button',{name:/Send statement/}).isDisabled().then(ok=>assert.ok(ok));
@@ -124,7 +124,7 @@ async function main() {
         if(width===820){
           await page.getByRole('button',{name:'More'}).click();
           const menu=page.getByRole('dialog',{name:'More actions'});
-          await menu.getByRole('menuitem',{name:/Opening balance/}).waitFor();
+          await menu.getByRole('menuitem',{name:/opening balance/i}).waitFor();
           await page.keyboard.press('Escape');
           await menu.waitFor({state:'hidden'});
         }
@@ -140,7 +140,7 @@ async function main() {
         if(width===1024){
           await page.getByRole('button',{name:'More'}).click();
           const menu=page.getByRole('dialog',{name:'More actions'});
-          await menu.getByRole('menuitem',{name:/Opening balance/}).waitFor();
+          await menu.getByRole('menuitem',{name:/opening balance/i}).waitFor();
           await page.keyboard.press('Escape');
           await menu.waitFor({state:'hidden'});
         }
