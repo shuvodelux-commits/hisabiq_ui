@@ -27,6 +27,7 @@ async function main(){
     await payment.getByRole('button',{name:label('Cancel','বাতিল')}).click();
     await payment.waitFor({state:'hidden'});
 
+    if(width<768)await page.getByRole('button',{name:label('Filters','ফিল্টার')}).click();
     await page.getByRole('button',{name:label('Print statement','হিসাব প্রিন্ট')}).click();
     const statement=page.getByRole('dialog',{name:label('Party ledger statement','পক্ষের হিসাবের বিবরণ')});
     await statement.getByText(label('Opening balance (brought forward)','আগের জের'),{exact:true}).first().waitFor();

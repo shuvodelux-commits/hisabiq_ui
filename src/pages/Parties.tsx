@@ -1,13 +1,16 @@
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Upload } from 'lucide-react';
+import { ArrowLeftRight, Plus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
+import { PartyActionSheet } from '../components/parties/PartyActionSheet';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { PartyDirectory } from '../components/parties/PartyDirectory';
-import { PartyDetail } from '../components/parties/PartyDetail';
+import { PartyDirectoryResponsive } from '../components/parties/PartyDirectoryResponsive';
+import { PartyDetailAdaptive as PartyDetail } from '../components/parties/PartyDetailAdaptive';
 import {getVendorPreviewSnapshot,subscribeVendorPreview} from '../vendor/vendorPreviewStore';
 import {projectVendorPartyProfile} from '../vendor/vendorPartyProjection';
 import {vendorWorkLink,type VendorWorkTab} from '../vendor/vendorRoute';
@@ -59,6 +62,15 @@ export function Parties() {
    setRole(routeGroup?'All':known.includes(routeRole as PartyRole)?routeRole as PartyRole:'All');
   },[routeRole,routeGroup,routeId]);
   const [query,setQuery]=useState(restored?.query??'');
+  const [chooserOpen,setChooserOpen]=useState(false);
+  const isTablet=useMediaQuery('(min-width: 768px)');
+  useEffect(()=>{
+    const media=window.matchMedia('(min-width: 1024px)');
+    const close=()=>{if(media.matches)setChooserOpen(false);};
+    media.addEventListener('change',close);
+    close();
+    return ()=>media.removeEventListener('change',close);
+  },[]);
   useLayoutEffect(()=>{
     if(!restored)return;
     const frame=requestAnimationFrame(()=>{
@@ -139,6 +151,22 @@ export function Parties() {
     const target=allParties.find(p=>p.id===id);
     if(target){setParams({id,role:target.roles.includes(relationship as PartyRole)?relationship!:target.roles[0]});resetLedger();}
   };
+  const changeDirectoryRole=(value:PartyRole|'All')=>{
+    setRole(value);
+    const next=new URLSearchParams(params);
+    next.delete('group');next.delete('id');
+    if(value==='All')next.delete('role');else next.set('role',value);
+    setParams(next);
+  };
+  const chooseParty=(id:string)=>{selectParty(id);setChooserOpen(false);};
+  const requestChangeParty=()=>{
+    // The desktop already has a full directory; use it rather than opening a second list.
+    if(window.matchMedia('(min-width: 1024px)').matches){
+      const search=document.querySelector('[data-party-directory-list]')?.parentElement?.querySelector<HTMLInputElement>('input');
+      search?.scrollIntoView({block:'nearest'});
+      search?.focus();
+    }else setChooserOpen(true);
+  };
   const saveParty=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
     if(editing)dispatchPartyPreview({type:'update-party',id:editing.id,patch:draft,openings});
     else {
@@ -157,27 +185,44 @@ export function Parties() {
       if(type==='delete')dispatchPartyPreview({type:'delete-note',sourceId:idOrText});
     }catch(error){toast.error(error instanceof Error?error.message:uiText('Note action failed','নোটের কাজ করা যায়নি'));throw error;}
   };
-  return <div className="mx-auto max-w-[1440px] space-y-4">
-    <PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
-      description={`${uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · ${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)} · ${uiText('preview','নমুনা')}`}
+  return <div className="mx-auto min-w-0 max-w-[1440px] space-y-3 sm:space-y-4">
+    <div className="hidden md:block"><PageHeader compact title="Parties & Ledger" titleBn="পার্টি ও খাতা"
+      description={`${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)}`}
+      descriptionContent={<>
+        {uiText('Directory receivables','মোট পাওনা')}{' '}
+        <strong className="font-semibold text-emerald-700 dark:text-emerald-400">{taka(receivable)}</strong>
+        {' · '}{uiText('payables','মোট দেনা')}{' '}
+        <strong className="font-semibold text-danger">{taka(payable)}</strong>
+      </>}
       actions={<>
-        <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
-          <Upload className="size-4"/> {uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}
+        <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap !bg-white text-ink transition-colors hover:border-teal-300 dark:!bg-card" onClick={()=>setImportOpen(true)}
+          aria-label={uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}>
+          <Upload className="size-4 shrink-0"/>
+          <span aria-hidden="true" className="hidden min-[900px]:inline">{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}</span>
+          <span aria-hidden="true" className="min-[900px]:hidden">{uiText('Import','আমদানি')}</span>
         </Button>
-        <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> {uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
-      </>} />
-    <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
-      <PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
-        role={role} onRole={value=>{
-         setRole(value);const next=new URLSearchParams(params);next.delete('group');next.delete('id');
-         if(value==='All')next.delete('role');else next.set('role',value);setParams(next);
-        }} query={query} onQuery={setQuery}/>
+        <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap !bg-white text-ink transition-colors hover:border-teal-300 dark:!bg-card" onClick={()=>setEditing(null)}>
+          <Plus className="size-4 shrink-0"/>{uiText('Add party','নতুন পার্টি যোগ করুন')}
+        </Button>
+        {party&&<Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap !bg-white text-ink transition-colors hover:border-teal-300 dark:!bg-card" onClick={requestChangeParty}>
+          <ArrowLeftRight className="size-4 shrink-0"/>{uiText('Change party','পার্টি বদলান')}
+        </Button>}
+      </>} /></div>
+    <h1 className="sr-only md:hidden">{uiText('Parties & Ledger','পার্টি ও খাতা')}</h1>
+    {!party && <div className="flex flex-wrap justify-end gap-2 md:hidden">
+      <Button size="sm" variant="outline" onClick={()=>setImportOpen(true)}><Upload className="size-4" />{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}</Button>
+      <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4" />{uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
+    </div>}
+    <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="hidden min-w-0 lg:block"><PartyDirectory parties={filtered} selectedId={party?.id??''} onSelect={selectParty}
+        role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/></div>
       {party&&relationship?<PartyDetail key={party.id+'-'+relationship} party={party} entries={partyEntries}
         vendorProfile={vendorProfile}
         onOpenVendorWork={(tab?:VendorWorkTab,sourceId?:string)=>
           navigate(vendorWorkLink(party.id,tab,sourceId))}
         relationship={relationship} onRoleChange={changeRole}
         onEditParty={()=>setEditing(party)}
+        onChangeParty={()=>setChooserOpen(true)}
         onNewInvoice={()=>navigate(`/app/pos?partyId=${encodeURIComponent(party.id)}`,{
           state:{hisabiqSource:'party-profile',returnTo:`${location.pathname}${location.search}`,
             partyWorkspace:{range,kind,ledgerQuery,page,pageSize,role,query,scrollY:window.scrollY,
@@ -214,6 +259,20 @@ export function Parties() {
         onDeleteNote={id=>noteAction('delete',id)}/>:
         <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-ink-500">{uiText('No parties yet. Add your first party.','এখনো কোনো পার্টি নেই। নতুন পার্টি যোগ করুন।')}</div>}
     </div>
+    <PartyActionSheet open={chooserOpen} onClose={()=>setChooserOpen(false)}
+      title={uiText('Change party','পার্টি বদলান')} titleBn="পার্টি বদলান"
+      side={isTablet?'right':'bottom'}
+      footer={<div className="grid grid-cols-2 gap-2">
+        <Button size="sm" variant="outline" className="min-h-11 whitespace-normal" onClick={()=>{setChooserOpen(false);setImportOpen(true);}}>
+          <Upload className="size-4 shrink-0" />{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}
+        </Button>
+        <Button size="sm" className="min-h-11" onClick={()=>{setChooserOpen(false);setEditing(null);}}>
+          <Plus className="size-4 shrink-0" />{uiText('Add party','নতুন পার্টি যোগ করুন')}
+        </Button>
+      </div>}>
+      <PartyDirectoryResponsive picker parties={filtered} selectedId={party?.id??''} onSelect={chooseParty}
+        role={role} onRole={changeDirectoryRole} query={query} onQuery={setQuery}/>
+    </PartyActionSheet>
     <PartyEditorDialog open={editing!==undefined} party={editing}
       existingOpenings={editing?.id?state.sources.filter(source=>source.partyId===editing.id&&source.status==='Active'&&isPartyOpening(source)):[]}
       onClose={()=>setEditing(undefined)} onSave={saveParty}/>

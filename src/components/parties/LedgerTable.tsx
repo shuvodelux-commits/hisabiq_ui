@@ -1,6 +1,6 @@
-import { Paperclip, StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw } from 'lucide-react';
+import { StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
-import { StatusBadge, type StatusTone } from '../StatusBadge';
+import { PartyLedgerSourceBadge, PartyLedgerAttachment } from './PartyLedgerIndicators';
 import { PartyLedgerRowActions } from './PartyLedgerRowActions';
 import type { LedgerStatement, PartyAction, PartyLedgerRow } from '../../types/partyLedger';
 import { formatMoneyNumber } from '../../utils/currency';
@@ -18,14 +18,6 @@ type Props={
   actionsForRow:(row:PartyLedgerRow)=>ActionAvailability[];
   onAction:(action:PartyAction,row:PartyLedgerRow)=>void;
   onOpenAttachment:(row:PartyLedgerRow)=>void;
-};
-const tone=(row:PartyLedgerRow):StatusTone=>{
-  const impact=ledgerImpact(row).kind;
-  if(impact==='in')return 'success';
-  if(impact==='out')return 'danger';
-  if(impact==='due')return 'info';
-  if(impact==='adjustment')return 'warning';
-  return 'neutral';
 };
 const impactTone:Record<LedgerImpact['kind'],string>={
  in:'text-emerald-700 dark:text-emerald-400',
@@ -80,9 +72,11 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
             <TableCell>
               <div className="flex items-center gap-1.5">
                 {row.source==='note'&&<StickyNote className="size-3.5 text-warning"/>}
-                <StatusBadge tone={tone(row)}>{partyLedgerSourceLabel(language,row.source)}</StatusBadge>
+                <PartyLedgerSourceBadge source={row.source} label={partyLedgerSourceLabel(language,row.source)}/>
                 {row.reference&&<span className="font-medium text-ink">{row.reference}</span>}
-                {row.attachment&&<button type="button" className="text-teal-700" aria-label={text('Open attachment','সংযুক্ত ফাইল খুলুন')+' '+row.attachment.name} onClick={()=>onOpenAttachment(row)}><Paperclip className="size-3.5"/></button>}
+                {row.attachment&&<span title={row.attachment.name}><PartyLedgerAttachment attachment={row.attachment}
+                  label={text('Open attachment','সংযুক্ত ফাইল খুলুন')}
+                  onClick={()=>onOpenAttachment(row)}/></span>}
               </div>
               <p className="mt-0.5 max-w-md truncate text-xs text-ink-500" title={row.description}>{row.description}</p>
             </TableCell>
@@ -98,7 +92,8 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
     <div className="space-y-2 p-3 sm:hidden">
       {visibleRows.map(row=><div key={row.id} className="rounded-lg border border-border p-3">
         <div className="flex items-center justify-between gap-2"><span className="text-xs text-ink-500">{row.date}</span><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></div>
-        <div className="mt-1 flex flex-wrap gap-1"><StatusBadge tone={tone(row)}>{partyLedgerSourceLabel(language,row.source)}</StatusBadge>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}</div>
+        <div className="mt-1 flex flex-wrap gap-1"><PartyLedgerSourceBadge source={row.source} label={partyLedgerSourceLabel(language,row.source)}/>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}{row.attachment&&<PartyLedgerAttachment attachment={row.attachment}
+                  label={text('Open attachment','সংযুক্ত ফাইল খুলুন')} onClick={()=>onOpenAttachment(row)}/>}</div>
         <p className="my-2 break-words text-xs text-ink-600">{row.description}</p>
         <div className="grid grid-cols-3 gap-2 text-right text-xs">
           <div><p className="mb-1 text-ink-500">{text('Debit','ডেবিট')}</p><LedgerAmount row={row} value={row.debit} language={language}/></div>

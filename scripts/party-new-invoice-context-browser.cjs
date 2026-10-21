@@ -36,7 +36,10 @@ async function main() {
         await page.getByRole('heading', { name: /Rahman Hardware/ }).waitFor();
         const ledgerSearch=page.getByRole('textbox',{name:/Search ledger transactions|খাতার লেনদেন খুঁজুন/});
         await ledgerSearch.fill('INV-000241');
+        if(width<1024)await act(page.getByRole('button',{name:/Change party|পার্টি বদলান/}));
         await page.getByRole('textbox',{name:/Search parties|পার্টি খুঁজুন/}).fill('Rahman');
+        if(width<1024)await page.keyboard.press('Escape');
+        if(width<768)await act(page.getByRole('button',{name:/Filters|ফিল্টার/}));
         const range=page.getByRole('button',{name:/Party ledger date range|পক্ষের খাতার তারিখ/});
         await act(range);
         const calendar=page.getByRole('dialog',{name:/Party ledger date range|পক্ষের খাতার তারিখ/});
@@ -69,7 +72,9 @@ async function main() {
         await page.getByRole('button', { name: /New invoice|নতুন বিল/ }).waitFor();
         assert.match(page.url(), /\/app\/parties\?id=c1&role=Customer/);
         assert.equal(await ledgerSearch.inputValue(),'INV-000241',`${suffix} ledger search is restored`);
+        if(width<1024)await act(page.getByRole('button',{name:/Change party|পার্টি বদলান/}));
         assert.equal(await page.getByRole('textbox',{name:/Search parties|পার্টি খুঁজুন/}).inputValue(),'Rahman',`${suffix} directory search is restored`);
+        if(width<1024)await page.keyboard.press('Escape');
         assert.equal(await range.getAttribute('aria-label'),savedRange,`${suffix} ledger range is restored`);
         await page.waitForFunction(scroll=>Math.abs(window.scrollY-scroll)<2,savedScroll);
         await act(startSale);

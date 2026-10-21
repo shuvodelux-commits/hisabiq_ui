@@ -40,3 +40,36 @@ test('Ledger dates, money, search/filter, source actions and printing remain del
  const statement=src('src/components/parties/PartyStatementDialog.tsx');
  assert.ok(statement.includes("partyLedgerImpactText"));
 });
+
+test('Party ledger source badges and attachment controls retain real source actions',()=>{
+ const badge=src('src/components/parties/PartyLedgerIndicators.tsx');
+ for(const source of ['opening','purchase','sale','customer-payment','supplier-payment','sale-return','purchase-return','finance','note']){
+  assert.ok(badge.includes(source+':')||badge.includes("'"+source+"':"),'source color '+source);
+ }
+ for(const expression of ['PartyLedgerAttachment','attachment.name','onClick={onClick}','Paperclip','PartyLedgerSourceBadge']){
+  assert.ok(badge.includes(expression),'indicator '+expression);
+ }
+ const desktop=src('src/components/parties/LedgerTable.tsx');
+ const responsive=src('src/components/parties/LedgerTableResponsive.tsx');
+ for(const table of [desktop,responsive]){
+  assert.ok(table.includes('PartyLedgerSourceBadge'),'source badge rendered');
+  assert.ok(table.includes('PartyLedgerAttachment'),'attachment rendered');
+  assert.ok(table.includes('onOpenAttachment(row)'),'existing attachment handler kept');
+ }
+});
+test('Party tabs and ledger controls follow compact reference styling while preserving handlers',()=>{
+ for(const path of ['src/components/parties/PartyDetail.tsx','src/components/parties/PartyDetailResponsive.tsx']){
+  const view=src(path);
+  assert.ok(view.includes('data-testid="party-tab-count"'));
+  assert.ok(view.includes("tab===t.id ? 'bg-teal-50"),'active tab count tinted');
+  assert.ok(view.includes('FilePlus2'),'new invoice icon');
+  assert.ok(view.includes('onNewInvoice'),'invoice handler');
+ }
+ for(const path of ['src/components/parties/PartyLedgerToolbar.tsx','src/components/parties/PartyLedgerToolbarResponsive.tsx']){
+  const view=src(path);
+  assert.ok(view.includes('RotateCcw'),'Clear filters icon');
+  assert.ok(view.includes('onClick={onReset}'),'reset handler');
+  assert.ok(view.includes('onChange={onKind}'),'transaction type selection retained');
+  assert.ok(view.includes('AppDateRangePicker'),'date selection retained');
+ }
+});

@@ -1,13 +1,15 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
+import { FloatingPanel } from '../layout/FloatingPanel';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
-import { FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { FilePlus2, FileText, HandCoins, MoreHorizontal, MapPin, MessageSquare, Paperclip, Phone, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { FormSelect } from '../FormSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
+import { PartyBalanceCard } from './PartyBalanceCard';
 import { RoleBadge } from './RoleBadge';
 import { LedgerTable } from './LedgerTable';
 import { PartyLedgerToolbar } from './PartyLedgerToolbar';
@@ -71,7 +73,7 @@ export function PartyDetail({
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
-  const {text,showHelper}=useUiCopy();
+  const {text}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
@@ -112,7 +114,7 @@ export function PartyDetail({
    [{action:'view' as const,enabled:true},{action:'source' as const,enabled:true}]:actionsForRow(r);
 
   const tabs: {id: Tab;label: string;count?: number;}[] = [
-  { id: 'ledger', label: text('Ledger','খাতা') },
+  { id: 'ledger', label: text('Ledger','খাতা'), count: shownStatement.rows.length },
   { id: 'invoices', label:vendorProfile?text('Bills & Memos','বিল ও মেমো'):text('Invoices','বিল'), count:vendorProfile?vendorProfile.documents.length:invoices.length },
   { id: 'payments', label: text('Payments','পেমেন্ট'), count:vendorProfile?vendorProfile.payments.length:payments.length },
   { id: 'notes', label: text('Notes','মন্তব্য'), count: notes.length },
@@ -120,12 +122,7 @@ export function PartyDetail({
 
 
   const currentBalance=balanceSummary.netBalance;
-  const isReceivable = currentBalance > 0;
   const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
-  const balanceLabel = relationship==='Owner'?text('Owner capital','মালিকের মূলধন'):
-    relationship==='Lender'?text('Lender loan','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
-    relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
-    relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
 
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
@@ -147,34 +144,38 @@ export function PartyDetail({
             <span>{text('Last activity','শেষ লেনদেন')} {party.lastActivity}</span>
           </div>
         </div>
-        {vendorProfile?<div className="flex flex-wrap gap-2">
-         <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
-          <p className="text-[11px] text-danger">{text('You owe','আপনাকে দিতে হবে')}{showHelper&&' · দেনা'}</p>
-          <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
-         <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
-          <p className="text-[11px] text-ink-600">{text('Vendor owes','ভেন্ডরের কাছে পাওনা')}{showHelper&&' · পাওনা'}</p>
-          <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
-          {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
-           {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}</p>}
-         </div></div>:<>
-        <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
-          <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
-            {balanceLabel}
-          </p>
-          <p className={`text-2xl font-semibold tabular-nums tracking-tight ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink'}`}>
-            {taka(Math.abs(currentBalance))}
-          </p>
-        </div>
-        </>}
+        {vendorProfile ?
+          <div className="flex flex-wrap gap-2">
+            <PartyBalanceCard compact amount={vendorProfile.summary.takenDuePaisa/100}
+              copy={{title:['Vendor payable','ভেন্ডরকে দেনা'],
+                hint:['You owe vendor','ভেন্ডরকে দেনা'],tone:'payable'}} />
+            <PartyBalanceCard compact amount={vendorProfile.summary.givenDuePaisa/100}
+              copy={{title:['Vendor receivable','ভেন্ডরের কাছে পাওনা'],
+                hint:['Vendor owes you','ভেন্ডরের কাছে পাওনা'],tone:'receivable'}}
+              extra={vendorProfile.summary.priceNotSetBaseQty>0 ?
+                <p className="mt-1 text-[11px] text-warning">
+                  {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}
+                </p> : undefined}/>
+          </div>
+          : <PartyBalanceCard compact relationship={relationship} amount={currentBalance}/>}
       </div>
 
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" onClick={()=>onOpenVendorWork?.('payments')}>{text('Pay Vendor','ভেন্ডরকে টাকা দিন')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('payments')}>{text('Receive Money','টাকা নিন')}</Button>
-        <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('ledger')}>
-         <BookOpen className="size-4"/> {text('Opening Balance','শুরুর জের')}</Button>
         <Button size="sm" variant="outline" onClick={()=>onOpenVendorWork?.('taken')}>{text('Open Vendor Work','ভেন্ডরের কাজ খুলুন')}</Button>
         <Button size="sm" variant="ghost" onClick={()=>setTab('notes')}><StickyNote className="size-4"/> {text('Add note','নোট যোগ করুন')}</Button>
+        <FloatingPanel width={260} align="right" label={text('More actions','আরও কাজ')}
+          trigger={({toggle,open})=><Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
+            <MoreHorizontal className="size-4"/>{text('More','আরও')}
+          </Button>}>
+          {close=><div role="menu" aria-label={text('More actions','আরও কাজ')} className="p-1">
+            <button type="button" role="menuitem" onClick={()=>{close();onOpenVendorWork?.('ledger');}}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-ink-50">
+              <BookOpen className="size-4"/>{text('Opening balance','শুরুর জের')}
+            </button>
+          </div>}
+        </FloatingPanel>
        </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <Button size="sm" disabled={relationship!=='Customer'&&relationship!=='Supplier'}
@@ -188,17 +189,10 @@ export function PartyDetail({
             onClick={()=>setRefundOpen(true)}>
             {text('Refund credit','জমা টাকা ফেরত')}
           </Button>}
-        <Button size="sm" variant="outline" onClick={()=>setOpeningOpen(true)}
-          aria-label={existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')}>
-          <BookOpen className="size-4"/> {existingOpening?text('Edit opening','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
-        </Button>
         <Button size="sm" variant="outline" disabled={relationship!=='Customer'||party.status==='Inactive'}
           title={relationship!=='Customer'?text('New sales are available for customer relationships','শুধু ক্রেতা সম্পর্কের জন্য নতুন বিক্রি করা যায়'):party.status==='Inactive'?text('Activate this customer before starting a new sale','নতুন বিক্রির আগে ক্রেতাকে সক্রিয় করুন'):undefined}
           onClick={onNewInvoice}>
-          <Plus className="size-4" /> {text('New invoice','নতুন বিল')}
-        </Button>
-        <Button size="sm" variant="outline" disabled title={text("SMS service is not connected to the UI preview","এই প্রিভিউতে SMS চালু নেই")}>
-          <Send className="size-4" /> {text('Send statement','হিসাব পাঠান')}
+          <FilePlus2 className="size-4" /> {text('New invoice','নতুন বিল')}
         </Button>
         {(['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)&&
           <Button size="sm" variant="outline" aria-label={text(`Record ${relationship.toLowerCase()} finance`,'টাকা লেনদেন লিখুন')}
@@ -209,6 +203,22 @@ export function PartyDetail({
         <Button size="sm" variant="ghost" onClick={() => setTab('notes')}>
           <StickyNote className="size-4" /> {text('Add note','নোট যোগ করুন')}
         </Button>
+        <FloatingPanel width={260} align="right" label={text('More actions','আরও কাজ')}
+          trigger={({toggle,open})=><Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
+            <MoreHorizontal className="size-4"/>{text('More','আরও')}
+          </Button>}>
+          {close=><div role="menu" aria-label={text('More actions','আরও কাজ')} className="p-1">
+            <button type="button" role="menuitem" onClick={()=>{close();setOpeningOpen(true);}}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-ink-50">
+              <BookOpen className="size-4"/>{existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
+            </button>
+            <button type="button" role="menuitem" disabled
+              title={text('SMS service is not connected to the UI preview','এই প্রিভিউতে SMS চালু নেই')}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink-400 opacity-60">
+              <Send className="size-4"/>{text('Send statement','হিসাব পাঠান')}
+            </button>
+          </div>}
+        </FloatingPanel>
       </div>
        </>}
 
@@ -225,7 +235,7 @@ export function PartyDetail({
           
             {t.label}
             {t.count !== undefined &&
-          <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{t.count}</span>
+          <span data-testid="party-tab-count" className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold transition-colors ${tab===t.id ? 'bg-teal-50 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200' : 'bg-ink-50 text-ink-500'}`}>{t.count}</span>
           }
           <MotionTabIndicator active={tab === t.id} /></button>
         )}
