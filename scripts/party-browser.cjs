@@ -193,6 +193,23 @@ async function main() {
           await menu.waitFor({state:'hidden'});
         }
         assert.ok(await page.getByText('Period debit').first().isVisible(),`period totals above the tablet ledger at ${width}px`);
+        if(width===820){
+          for(const kind of ['in','adjustment','due']){
+            const matching=page.locator('[data-testid="ledger-impact-amount"][data-impact-kind="'+kind+'"]:visible').first();
+            assert.ok(await matching.isVisible(),`Tablet ${width}px shows ${kind} impact icon and caption`);
+            const colors=await matching.evaluate(el=>{
+              const icon=el.querySelector('[data-testid="ledger-impact-icon"]');
+              const amount=el.querySelector('[data-testid="ledger-money-value"]');
+              const caption=el.querySelector('[data-testid="ledger-impact-caption"]');
+              return { icon: icon&&getComputedStyle(icon).color,
+                amount:amount&&getComputedStyle(amount).color,
+                caption:caption&&getComputedStyle(caption).color };
+            });
+            assert.ok(colors.icon&&colors.amount&&colors.caption,`Tablet ${kind} has icon/value/caption`);
+            if(kind==='in'||kind==='adjustment')assert.notEqual(colors.icon,colors.amount,`Only ${kind} icon has semantic color`);
+            else assert.notEqual(colors.caption,colors.amount,`Impact explanation stays muted for ${kind}`);
+          }
+        }
         const rowHeight=await page.locator('table tbody tr').first().evaluate(row=>row.getBoundingClientRect().height);
         assert.ok(rowHeight<=70,`tablet ${width}px ledger rows must be compact, got ${rowHeight}px`);
         await page.getByRole('button',{name:'Change party'}).click();
@@ -213,6 +230,17 @@ async function main() {
           `desktop ${width}px Change Party focuses the existing directory`);
       }
     }
+    // Supplier money-out impact follows the same neutral-value styling at tablet width.
+    await page.setViewportSize({width:820,height:900});
+    await page.goto('http://127.0.0.1:4196/#/app/parties?id=s1&role=Supplier');
+    await page.getByRole('heading',{name:/Karim Traders/}).waitFor();
+    const outIcon=page.locator('[data-testid="ledger-impact-amount"][data-impact-kind="out"]:visible').first();
+    assert.ok(await outIcon.isVisible(),'Supplier tablet ledger shows Money out icon and caption');
+    const outColors=await outIcon.evaluate(el=>({
+      icon:getComputedStyle(el.querySelector('[data-testid="ledger-impact-icon"]')).color,
+      value:getComputedStyle(el.querySelector('[data-testid="ledger-money-value"]')).color
+    }));
+    assert.notEqual(outColors.icon,outColors.value,'Money out icon is colored, amount remains neutral');
     assert.equal(errors.length,0,'browser page must not throw');
     console.log('Party profile browser flow passed');
   } finally {
