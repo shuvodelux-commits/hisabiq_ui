@@ -241,6 +241,36 @@ async function main() {
       value:getComputedStyle(el.querySelector('[data-testid="ledger-money-value"]')).color
     }));
     assert.notEqual(outColors.icon,outColors.value,'Money out icon is colored, amount remains neutral');
+    // Distinct Magic Patterns finance actions must preselect the correct real entry.
+    await page.setViewportSize({width:375,height:812});
+    const roleCases=[
+      {id:'l1',role:'Lender',name:'Abdul Malek',actions:[['Repay loan','Lender Debit'],['Loan received','Lender Credit']]},
+      {id:'b1',role:'Borrower',name:'Rafiq Mia',actions:[['Collect repayment','Borrower Credit'],['Lend money','Borrower Debit']]},
+      {id:'o1',role:'Owner',name:'Md. Anisur Rahman',actions:[['Add capital','Owner Credit'],['Owner drawing','Owner Debit']]}
+    ];
+    for(const fixture of roleCases){
+      await page.goto('http://127.0.0.1:4196/#/app/parties?id='+fixture.id+'&role='+fixture.role);
+      await page.getByRole('heading',{name:fixture.name}).waitFor();
+      const actions=page.getByTestId('party-mobile-actions');
+      assert.equal(await actions.locator('button:visible').count(),3,fixture.role+' has primary, secondary and More');
+      for(const [label,financeType] of fixture.actions){
+        await actions.getByRole('button',{name:label,exact:true}).click();
+        const dialog=page.getByRole('dialog',{name:'Party finance transaction'});
+        await dialog.waitFor();
+        assert.equal(await dialog.getByRole('combobox',{name:'Finance transaction type'}).getAttribute('data-value'),
+          financeType,fixture.role+' '+label+' selects audited '+financeType);
+        await dialog.getByRole('button',{name:'Cancel'}).click();
+        await dialog.waitFor({state:'hidden'});
+      }
+    }
+    // Vendor pay and receive must take DIFFERENT existing workspace routes.
+    await page.goto('http://127.0.0.1:4196/#/app/parties?id=v1&role=Vendor');
+    await page.getByRole('heading',{name:'Shapla Transport'}).waitFor();
+    await page.getByTestId('party-mobile-actions').getByRole('button',{name:'Receive Money'}).click();
+    assert.match(page.url(),/\/app\/vendors.*tab=given/,'Vendor receive opens receivable workspace');
+    await page.goto('http://127.0.0.1:4196/#/app/parties?id=v1&role=Vendor');
+    await page.getByTestId('party-mobile-actions').getByRole('button',{name:'Pay Vendor'}).click();
+    assert.match(page.url(),/\/app\/vendors.*tab=payments/,'Vendor pay opens payment workspace');
     assert.equal(errors.length,0,'browser page must not throw');
     console.log('Party profile browser flow passed');
   } finally {
