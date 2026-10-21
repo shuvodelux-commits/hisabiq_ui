@@ -62,3 +62,33 @@ test('Ledger amount colors are neutral while semantic movement icons are colored
   assert.ok(tablet.includes('<LedgerImpactAmount'),'Tablet and phone use shared semantic movement presentation');
   assert.ok(!tablet.includes('<CompactAmount'),'Plain tablet amount renderer is no longer used');
 });
+
+test('Magic Patterns role action buttons preserve correct finance debit and credit transaction types', () => {
+  const config=read('src/components/parties/partyRoleActions.ts');
+  const finance=read('src/components/parties/PartyFinanceDialog.tsx');
+  const mobile=read('src/components/parties/PartyDetailResponsive.tsx');
+  const desktop=read('src/components/parties/PartyDetail.tsx');
+  for (const [id,type] of [
+    ['repay-loan','Lender Debit'],['loan-received','Lender Credit'],
+    ['lend-money','Borrower Debit'],['collect-repayment','Borrower Credit'],
+    ['add-capital','Owner Credit'],['owner-drawing','Owner Debit']
+  ]) {
+    assert.ok(config.includes("id:'"+id+"'"),id+' action exists');
+    assert.ok(config.includes("financeType:'"+type+"'"),type+' accounting direction retained');
+  }
+  for (const icon of ['Banknote','Landmark','PiggyBank','Wallet','HandCoins','ArrowDownLeft','ArrowUpRight']) {
+    assert.ok(config.includes(icon),icon+' reference action icon');
+  }
+  assert.ok(finance.includes('available[relationship].includes(initialType)'),'Finance type validated for role');
+  assert.ok(finance.includes('initialType'),'Finance dialog accepts selected action');
+  assert.ok(finance.includes('validatePartySplits(paymentSplits,money)'),'Finance validation unchanged');
+  for (const view of [mobile,desktop]) {
+    assert.ok(view.includes("partyFinanceActions(relationship)"),'Both viewports resolve role actions');
+    assert.ok(view.includes('openRoleFinance(action.financeType)'),'Finance shortcuts use actual handler');
+    assert.ok(view.includes('initialType={financeStartType}'),'Correct preselection used on dialog');
+    assert.ok(view.includes("onOpenVendorWork?.('given')"),'Vendor receive takes distinct vendor workspace route');
+    assert.ok(view.includes("onOpenVendorWork?.('payments')"),'Vendor pay retains original route');
+  }
+  assert.ok(mobile.includes("partyTradingActionIcons[relationship]"),'Distinct customer and supplier icons on mobile');
+  assert.ok(desktop.includes("partyTradingActionIcons[relationship]"),'Distinct customer and supplier icons on desktop');
+});
