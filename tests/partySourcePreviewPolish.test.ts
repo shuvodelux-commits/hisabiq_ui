@@ -86,9 +86,22 @@ test('Magic Patterns role action buttons preserve correct finance debit and cred
     assert.ok(view.includes("partyFinanceActions(relationship)"),'Both viewports resolve role actions');
     assert.ok(view.includes('openRoleFinance(action.financeType)'),'Finance shortcuts use actual handler');
     assert.ok(view.includes('initialType={financeStartType}'),'Correct preselection used on dialog');
-    assert.ok(view.includes("onOpenVendorWork?.('given')"),'Vendor receive takes distinct vendor workspace route');
-    assert.ok(view.includes("onOpenVendorWork?.('payments')"),'Vendor pay retains original route');
+    assert.ok(view.includes('VendorQuickSettlementDialog'),'Vendor actions embed existing settlement inside Party');
+    assert.ok(view.includes("setVendorSettlementMode('pay')"),'Pay Vendor opens the local modal');
+    assert.ok(view.includes("setVendorSettlementMode('receive-money')"),'Receive Money opens the local modal');
   }
   assert.ok(mobile.includes("partyTradingActionIcons[relationship]"),'Distinct customer and supplier icons on mobile');
   assert.ok(desktop.includes("partyTradingActionIcons[relationship]"),'Distinct customer and supplier icons on desktop');
+});
+
+test('Vendor quick settlement embeds existing source-linked form and validates memo allocation', () => {
+  const quick=read('src/components/parties/VendorQuickSettlementDialog.tsx');
+  const vendor=read('src/components/parties/VendorActionDialog.tsx');
+  for(const required of ["sourceOutstanding(state,source.id)","source.status==='Active'",
+    "source.unitCostBasePaisa!==null","VendorActionDialog key=","inline mode={mode}",
+    "onChange={setSelectedId}",'getVendorPreviewSnapshot','subscribeVendorPreview',
+    "text('Pay Vendor'","text('Receive Money'"]) assert.ok(quick.includes(required),required);
+  assert.ok(vendor.includes("type:'settle-source'"),'No parallel posting path: shared Vendor settlement');
+  assert.ok(vendor.includes("amountPaisa:paidPaisa??returnPaisa"),'Allocation stays source-linked');
+  assert.ok(vendor.includes("paidPaisa!>duePaisa"),'Overpaying remains forbidden');
 });
