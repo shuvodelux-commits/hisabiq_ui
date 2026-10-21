@@ -1,3 +1,4 @@
+import { PartyClosingBalance } from './PartyClosingBalance';
 import { StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw, HandCoins, ChevronRight } from 'lucide-react';
 import { PartyLedgerAttachment, PartyLedgerSourceBadge } from './PartyLedgerIndicators';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -186,9 +187,6 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
     </ul>
 
     <div className="border-t border-border md:hidden">{summary}</div>
-    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-border bg-ink-50 px-3 py-2 text-xs">
-      <strong>{text('Closing balance', 'শেষ জের')}</strong>
-      <strong className="break-words text-right text-[15px]">{balance(statement.closingBalance)}</strong>
-    </div>
+    <PartyClosingBalance balance={statement.closingBalance} relationship={statement.relationship} compact />
   </div>;
 }
