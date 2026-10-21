@@ -75,3 +75,11 @@ The two marked mobile Sales menus (beside New sale and Filters) now use existing
 ## Follow-up: match Walk-in customer typography and spacing
 
 Mobile invoice customer names now share explicit 13px, 18px line-height, regular-weight styling, whether rendered as a linked customer button or plain walk-in text. Both use the same tight reference/name/total spacing; linked customers retain their teal ledger action. Browser regression compares the actual linked and walk-in row heights, gaps and computed typography, alongside existing action/resize/language checks. Build, lint and UI contract checks pass; tablet/desktop screenshot baselines are unchanged.
+
+## Root-cause correction: coarse-pointer 44px override
+
+The earlier viewport matrix used a fine pointer, missing the global `@media (pointer: coarse)` rule. Reproduced with `hasTouch: true` and `isMobile: true`: the linked customer button was forced to 44px and its card to 126px, versus 18px / 100px for Walk-in customer. Cosmetic gap adjustments did not address that override.
+
+The existing global touch-target rule now excludes explicitly marked `data-compact-control` controls. Only inline customer ledger buttons and the explicitly sized mobile More buttons receive that marker. The exclusion uses `:where` to preserve the original selector specificity for other controls. The linked customer row now measures 18px and its card 100px, matching Walk-in customer on the same touch viewport.
+
+The browser matrix now enables coarse touch pointers on phones/tablets, mobile emulation on phones, asserts that pointer mode, checks the actual 18px name height, and uses taps for customer/action controls. Build, 681 tests, lint and UI contract checks pass.

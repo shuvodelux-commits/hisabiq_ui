@@ -8,7 +8,7 @@ async function main(){
  try{
   for(const language of ['English','English + Bangla','Bangla']){
    for(const width of [360,390,430,768,1024,1440]){
-    const page=await browser.newPage({viewport:{width,height:900},reducedMotion:'reduce'}),errors=[];
+    const page=await browser.newPage({viewport:{width,height:900},hasTouch:width<1280,isMobile:width<768,reducedMotion:'reduce'}),errors=[];
     await page.route('https://fonts.googleapis.com/**',r=>r.fulfill({contentType:'text/css',body:''}));
     page.on('pageerror',e=>errors.push(e.message));
     await page.addInitScript(({language,dark})=>{
@@ -18,6 +18,7 @@ async function main(){
     for(const route of ['sales','sales?tab=return','sales?tab=returns','sales?tab=credits','sales?tab=drafts','quotations','online-sales']){
      await page.goto('http://127.0.0.1:4415/#/app/'+route,{waitUntil:'domcontentloaded',timeout:120000});
      await page.locator('#erp-main h1').waitFor();
+     assert.equal(await page.evaluate(()=>matchMedia('(pointer: coarse)').matches),width<1280,'touch-pointer coverage is active for phones/tablets');
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),language+' '+width+' '+route+' page fits');
      if(route==='sales'){
       const bn=language==='Bangla';
@@ -30,7 +31,7 @@ async function main(){
        assert.ok(menu.height<=32&&menu.height>=24,'compact invoice menu keeps a usable touch target');
        const total=await record.locator('.sales-mobile-record-body strong').first().boundingBox();
        assert.ok(total&&summary.y-(total.y+total.height)<=8,'More details stays close to totals');
-       await action.click();await page.getByRole('button',{name:bn?'বিল দেখুন':'View invoice',exact:true}).click();
+       await action.tap();await page.getByRole('button',{name:bn?'বিল দেখুন':'View invoice',exact:true}).click();
        await page.locator('[data-slot="dialog-content"]').last().waitFor();await page.keyboard.press('Escape');
        // Customer is an independent ledger target, with no nested buttons or accidental invoice opening.
        const ledger=record.getByRole('button',{name:(bn?'ক্রেতার খাতা':'Customer ledger')+' Rahman Hardware',exact:true});
@@ -47,7 +48,7 @@ async function main(){
        assert.equal(await record.locator('button button').count(),0,'record controls are not nested');
        await record.getByRole('button',{name:bn?/^বিস্তারিত দেখুন INV-/:/^View details INV-/}).click({position:{x:12,y:12}});
        await page.locator('[data-slot="dialog-content"]').last().waitFor();await page.keyboard.press('Escape');
-       if(width===360){await ledger.focus();await ledger.press('Enter');}else await ledger.click();
+       if(width===360){await ledger.focus();await ledger.press('Enter');}else await ledger.tap();
        await page.waitForURL(/#\/app\/parties\?id=/);
        const selectedId=new URLSearchParams(page.url().split('?')[1]).get('id');
        assert.ok(selectedId,'customer ledger receives the linked source ID');
@@ -62,6 +63,7 @@ async function main(){
        });
        const linkedMetrics=await nameMetrics(page.locator('.sales-mobile-record').first()),walkInMetrics=await nameMetrics(walkIn);
        assert.deepEqual(linkedMetrics,walkInMetrics,'linked and walk-in customer spacing/typography match');
+       assert.equal(linkedMetrics.height,18,'touch target rule must not inflate inline customer name');
        assert.equal(linkedMetrics.font,'13px','customer name is smaller');assert.equal(linkedMetrics.weight,'400','customer name uses regular weight');
 
 

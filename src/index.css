@@ -94,10 +94,11 @@
 [data-sonner-toast]:not(:has(button, a, input, select, textarea, [role="button"])) {
   pointer-events: none;
 }
+/* Inline text actions and explicitly sized compact controls keep their own height. */
 @media (pointer: coarse) {
-  .erp-workspace button:not([role="option"]),
+  .erp-workspace button:not([role="option"]):not(:where([data-compact-control])),
   .erp-workspace input:not([type="checkbox"]):not([type="radio"]),
-  [data-dialog-root] button,
+  [data-dialog-root] button:not(:where([data-compact-control])),
   [data-dialog-root] input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
 }
 
