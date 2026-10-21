@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { lockBodyScroll } from '../../utils/bodyScrollLock';
 
 /**
  * Party-local adaptation of the Magic Patterns Sheet: animated, portal-based,
@@ -29,8 +30,7 @@ export function PartyActionSheet({
   useEffect(() => {
     if (!open) return;
     opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const releaseScrollLock = lockBodyScroll();
     const frame = requestAnimationFrame(() => panel.current?.querySelector<HTMLElement>('[data-sheet-first]')?.focus());
     const keydown = (event: KeyboardEvent) => {
       if (!panel.current) return;
@@ -57,7 +57,7 @@ export function PartyActionSheet({
     return () => {
       cancelAnimationFrame(frame);
       document.removeEventListener('keydown', keydown);
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
       opener.current?.focus({ preventScroll: true });
     };
   }, [open]);
