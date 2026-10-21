@@ -1,8 +1,9 @@
 import type {
  VendorBalances, VendorLedgerEvent, VendorPreviewCommand, VendorPreviewState,
- VendorSource, VendorSourceInput, VendorOutstanding, VendorSide
+ VendorSource, VendorSourceInput, VendorOutstanding, VendorSide, VendorSettlement
 } from './vendorTypes.ts';
 import {vendorCorrectionImpact} from './vendorCorrection.ts';
+import {financeAccounts} from '../data/financeAccounts.ts';
 
 const goodDate=(date:string)=>/^\d{4}-\d\d-\d\d$/.test(date)
  && !Number.isNaN(Date.parse(date+'T12:00:00Z'))
@@ -11,6 +12,32 @@ const money=(n:number,label:string)=>{
  if(!Number.isSafeInteger(n)||n<0)throw new Error(label+' must be nonnegative integer paisa.');
  return n;
 };
+/** Validate Vendor account identity at the model boundary, not only in the dialog.
+ * Both money-settlement commands use this check so direct dispatch cannot
+ * record cash against a missing, inactive or wrong-method finance account.
+ */
+function validateVendorPaymentSplits(
+ splits:NonNullable<VendorSettlement['paymentSplits']>,expectedPaisa:number
+):void {
+ const expected=money(expectedPaisa,'Vendor payment');
+ if(!splits.length&&expected>0)throw new Error('Choose a Vendor payment account.');
+ if(!expected&&splits.length)throw new Error('No payment account is needed without money.');
+ const seen=new Set<string>();
+ let total=0;
+ for(const row of splits){
+  if(!row.id.trim()||seen.has(row.id))throw new Error('Duplicate or missing Vendor payment split ID.');
+  seen.add(row.id);
+  const amount=money(row.amountPaisa,'Vendor payment split');
+  if(amount<=0)throw new Error('Vendor payment split must be positive.');
+  const account=financeAccounts.find(a=>a.id===row.accountId&&a.status==='Active');
+  if(!account)throw new Error('Vendor payment account not found or inactive.');
+  if(row.method==='Cash'?!['Cash','Petty Cash'].includes(account.type):row.method!==account.type)
+   throw new Error('Vendor payment method does not match the selected account.');
+  total+=amount;
+  if(!Number.isSafeInteger(total))throw new Error('Vendor payment total exceeds safe paisa range.');
+ }
+ if(total!==expected)throw new Error('Vendor payment splits do not match money paid.');
+}
 const qty=(n:number)=>{
  if(!Number.isFinite(n)||n<=0)throw new Error('Source quantity must be positive.');
  return n;
@@ -348,15 +375,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   const splits=cmd.paymentSplits??[];
   if(cmd.cashPaisa===0&&splits.length)throw new Error('Do not add payment accounts when no money is paid.');
   if(cmd.cashPaisa>0&&!splits.length)throw new Error('Choose a payment account.');
-  const ids=new Set<string>();let totalCash=0;
-  for(const item of splits){
-   if(ids.has(item.id))throw new Error('Duplicate payment split.');
-   ids.add(item.id);
-   if(!item.accountId.trim()||!['Cash','Bank','Mobile Banking'].includes(item.method))
-    throw new Error('Choose a valid payment account and method.');
-   totalCash+=money(item.amountPaisa,'Payment split');
-  }
-  if(totalCash!==cmd.cashPaisa)throw new Error('Payment split amount does not match money paid.');
+  validateVendorPaymentSplits(splits,cmd.cashPaisa);
   const next=extended(state,cmd.operationId)!;
   if(cmd.returnBaseQty>0){
    if(!next.inventory)throw new Error('Owned stock preview is unavailable.');
@@ -429,16 +448,9 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    if(cmd.amountPaisa!==sumPaisa||sumPaisa<=0)throw new Error('Payment split/allocations total mismatch.');
    const splits=cmd.paymentSplits??[];
    if(!splits.length)throw new Error('Choose a payment source.');
-   const ids=new Set<string>();
-   let tally=0;
-   for(const split of splits){
-    if(ids.has(split.id))throw new Error('Duplicate payment split.');
-    ids.add(split.id);
-    if(!split.accountId.trim())throw new Error('Payment account is required.');
-    if(!['Cash','Bank','Mobile Banking'].includes(split.method))throw new Error('Invalid payment method.');
-    tally+=money(split.amountPaisa,'Payment split');
-   }
-   if(tally!==sumPaisa)throw new Error('Payment split total mismatch.');
+   validateVendorPaymentSplits(splits,sumPaisa);
+  }else if(cmd.paymentSplits?.length){
+   throw new Error('Product-only Vendor settlement must not include payment accounts.');
   }
   const settled={id:'vendor-settlement:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
    side:cmd.side,kind:cmd.kind,date:cmd.date,amountPaisa:moneyKind?sumPaisa:sumPaisa||null,
