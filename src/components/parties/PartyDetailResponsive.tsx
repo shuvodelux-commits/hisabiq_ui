@@ -139,7 +139,7 @@ export function PartyDetailResponsive({
   const balanceLabel = relationship==='Owner'?text('Owner capital','মালিকের মূলধন'):
     relationship==='Lender'?text('Lender loan','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
     relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
-    relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
+    relationship==='Customer'?(isReceivable?text('Customer receivable','ক্রেতার কাছে পাওনা'):text('Customer balance','ক্রেতার হিসাব')):text(relationship+' balance','জের');
 
   // Exact Magic Patterns ActionMenuItems information architecture; real app handlers stay in place.
   const menuActions: Array<{
@@ -254,11 +254,11 @@ export function PartyDetailResponsive({
                 </p>}
               </div> :
               <div className={isReceivable ? 'rounded-xl bg-teal-50 px-4 py-3 text-right' : currentBalance < 0 ? 'rounded-xl bg-danger-bg px-4 py-3 text-right' : 'rounded-xl bg-ink-50 px-4 py-3 text-right'}>
-                <p className="text-[13px] font-semibold text-ink-600">{balanceLabel}</p>
-                <p className="mt-1 break-words text-[26px] font-semibold leading-tight text-ink">{taka(Math.abs(currentBalance))}</p>
+                <p className={`text-[13px] font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-600"}`}>{balanceLabel}</p>
+                <p className={`mt-1 break-words text-[26px] font-semibold leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</p>
               </div>}
           </div>
-          <Button size="sm" variant="outline" className="hidden shrink-0 items-center gap-1.5 md:inline-flex lg:hidden" onClick={onChangeParty}>
+          <Button size="sm" variant="outline" className="hidden shrink-0 items-center gap-1.5" onClick={onChangeParty}>
             <ArrowLeftRight className="size-4" /> {text('Change party', 'পার্টি বদলান')}
           </Button>
         </div>
@@ -273,8 +273,8 @@ export function PartyDetailResponsive({
               <strong className="break-words text-right text-xl text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</strong>
             </div>
           </div> : <div className={isReceivable ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-teal-50 px-3.5 py-3' : currentBalance < 0 ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-danger-bg px-3.5 py-3' : 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-ink-50 px-3.5 py-3'}>
-            <span className="min-w-0 text-sm font-semibold text-ink-700">{balanceLabel}</span>
-            <strong className="min-w-0 break-words text-right text-[22px] leading-tight text-ink">{taka(Math.abs(currentBalance))}</strong>
+            <span className={`min-w-0 text-sm font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-700"}`}>{balanceLabel}</span>
+            <strong className={`min-w-0 break-words text-right text-[22px] leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</strong>
           </div>}
           {vendorProfile && vendorProfile.summary.priceNotSetBaseQty>0 && <p className="mt-1 text-xs text-warning">{vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set', 'একক · দাম ঠিক হয়নি')}</p>}
         </div>
