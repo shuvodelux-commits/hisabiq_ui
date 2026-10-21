@@ -105,3 +105,19 @@ test('Vendor quick settlement embeds existing source-linked form and validates m
   assert.ok(vendor.includes("amountPaisa:paidPaisa??returnPaisa"),'Allocation stays source-linked');
   assert.ok(vendor.includes("paidPaisa!>duePaisa"),'Overpaying remains forbidden');
 });
+
+test('Shared ERP Dialog adopts Magic Patterns Framer Motion entrance without changing existing form logic', () => {
+  const dialog=read('src/components/Dialog.tsx');
+  for(const source of ["import {animate,useReducedMotion} from 'framer-motion'",
+    'useLayoutEffect(()=>{', 'if(!modal?.open||!ref.current||reduceMotion)return',
+    'opacity:[0,1],marginTop:[24,0]', 'duration:0.22,ease:easing',
+    'animate(backdrop,{opacity:[0,1]},{duration:0.18})',
+    "data-modal-motion={reduceMotion?'reduced':'magic-patterns'}",
+    'DesignContent {...props}', 'scrollLocks++', 'previous.focus()',
+    "event.key==='Escape'", "event.key!=='Tab'"]) {
+    assert.ok(dialog.includes(source), 'Dialog preserves semantics and motion: '+source);
+  }
+  assert.ok(dialog.includes('[0.32,0.72,0,1]'), 'Original Magic Patterns bezier is matched');
+  const sheet=read('src/components/parties/PartyActionSheet.tsx');
+  assert.ok(sheet.includes('AnimatePresence'), 'Mobile More action sheet retains its existing exit animation');
+});
