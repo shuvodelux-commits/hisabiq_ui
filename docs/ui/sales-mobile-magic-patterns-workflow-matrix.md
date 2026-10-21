@@ -67,3 +67,7 @@ The invoice action trigger uses a compact 32px target in the More details row. T
 ## Follow-up: mobile customer ledger access
 
 Linked invoice customer names use the same teal affordance and source-linked Party route as the desktop table. The customer button and invoice-open button are siblings, so keyboard/touch actions are distinct without nested interactive controls. Unlinked walk-in customers remain plain text. Compact menu/detail spacing is retained. Browser checks cover ledger navigation, invoice opening, no accidental invoice dialog on a customer action, usable menu size, and spacing in all three language modes. TypeScript, build, 681 unit tests and UI contract checks pass; all 14 tablet/desktop baseline screenshots remain unchanged.
+
+## Follow-up: square toolbar menus and tighter customer rows
+
+The two marked mobile Sales menus (beside New sale and Filters) now use existing outline Button styling with square bounds. The linked customer name no longer reserves a 24px minimum height; compact invoice cards remove the extra gap above the name and reduce the gap below it. Invoice top/bottom padding is tighter without changing text sizes or removing data. Regression checks verify the outlined square buttons, name/reference/total spacing, ledger navigation and existing invoice actions. Build, TypeScript, 681 tests and UI contract pass; tablet/desktop baseline screenshots remain identical.

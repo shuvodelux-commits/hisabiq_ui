@@ -19,8 +19,10 @@
   .sales-mobile-tools > div > button { width: 100%; justify-content: flex-start; min-height: 40px; }
   .sales-mobile-record-actions > div > button,
   .sales-mobile-record-actions > button { min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
-  .sales-mobile-record-compact .sales-mobile-record-body { padding-bottom: 2px; }
-  .sales-mobile-record-compact .sales-mobile-record-footer { padding-bottom: 2px; }
+  .sales-mobile-record-compact .sales-mobile-record-body { padding-top: 6px; padding-bottom: 0; }
+  .sales-mobile-record-compact .sales-mobile-record-footer { padding-bottom: 0; }
+  .sales-mobile-record-compact .sales-mobile-customer-row { margin-top: 0; }
+  .sales-mobile-record-compact .sales-mobile-totals { margin-top: 2px; }
   .sales-mobile-record-compact details { padding-bottom: 0; }
   .sales-mobile-record-compact summary { min-height: 32px; }
   .sales-mobile-record-compact .sales-mobile-record-actions { line-height: 0; }

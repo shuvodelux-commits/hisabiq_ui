@@ -32,8 +32,8 @@ export function SalesMobileSummary({ items, primary = [0, 2] }: { items: SalesMo
   </section>;
 }
 
-export function SalesMobileMore({ label, children }: { label: string; children: (close: () => void) => ReactNode }) {
-  return <FloatingPanel label={label} width={240} trigger={({ toggle, open }) => <Button variant="ghost" size="sm" aria-label={label} aria-expanded={open} onClick={toggle} className="size-10 shrink-0 p-0">
+export function SalesMobileMore({ label, children, outlined = false }: { label: string; outlined?: boolean; children: (close: () => void) => ReactNode }) {
+  return <FloatingPanel label={label} width={240} trigger={({ toggle, open }) => <Button variant={outlined ? 'outline' : 'ghost'} size="sm" aria-label={label} aria-expanded={open} onClick={toggle} className="size-10 shrink-0 p-0">
     <MoreHorizontal className="size-4" aria-hidden="true" />
   </Button>}>
     {close => <div className="sales-mobile-tools space-y-1 p-2">{children(close)}</div>}
@@ -54,7 +54,7 @@ export function SalesMobileToolbar({ search, filters, actions, activeCount, onCl
       <Button variant="outline" size="sm" className="h-10 gap-1 px-2" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)}>
         <SlidersHorizontal className="size-3.5" aria-hidden="true" />{text('Filters', 'ফিল্টার')}{activeCount > 0 && <span className="text-teal-700">{activeCount}</span>}
       </Button>
-      {actions && <SalesMobileMore label={text('List actions', 'তালিকার অন্যান্য কাজ')}>{actions}</SalesMobileMore>}
+      {actions && <SalesMobileMore outlined label={text('List actions', 'তালিকার অন্যান্য কাজ')}>{actions}</SalesMobileMore>}
     </div>
     <AnimatePresence initial={false}>{expanded && <motion.div id={id} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.16 }} className="overflow-hidden">
       <div className="sales-mobile-filter-fields mt-2 grid grid-cols-1 gap-2 border-t border-border pt-2">{filters}</div>
@@ -74,9 +74,9 @@ export function SalesMobileRecord({ reference, name, date, status, meta, amount,
   const { text } = useUiCopy();
   const body = <>
     <span className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1"><span className="text-[13px] font-semibold text-ink">{reference}</span>{status}</span>
-    <span className="mt-0.5 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">{onNameOpen ? <button type="button" onClick={onNameOpen} aria-label={text('Customer ledger','ক্রেতার খাতা')+' '+name} className="pointer-events-auto relative z-10 min-h-6 min-w-0 break-words rounded-sm text-left text-sm font-medium text-teal-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-teal-400">{name}</button> : <span className="min-w-0 break-words text-sm font-medium text-ink">{name}</span>}{date && <span className="text-xs text-ink-500">{date}</span>}</span>
+    <span className="sales-mobile-customer-row mt-0.5 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">{onNameOpen ? <button type="button" onClick={onNameOpen} aria-label={text('Customer ledger','ক্রেতার খাতা')+' '+name} className="pointer-events-auto relative z-10 min-w-0 break-words rounded-sm text-left text-sm font-medium leading-5 text-teal-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-teal-400">{name}</button> : <span className="min-w-0 break-words text-sm font-medium text-ink">{name}</span>}{date && <span className="text-xs text-ink-500">{date}</span>}</span>
     {meta && <span className="mt-0.5 block break-words text-xs text-ink-500">{meta}</span>}
-    <span className="mt-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs text-ink-500"><span>{amount}</span>{balance && <span>{balance}</span>}</span>
+    <span className="sales-mobile-totals mt-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs text-ink-500"><span>{amount}</span>{balance && <span>{balance}</span>}</span>
   </>;
   return <article className={`sales-mobile-record ${actionsInFooter ? 'sales-mobile-record-compact' : ''} flex min-w-0 items-start gap-0.5 border-b border-border px-1 py-0.5 last:border-b-0`}>
     <div className="min-w-0 flex-1">

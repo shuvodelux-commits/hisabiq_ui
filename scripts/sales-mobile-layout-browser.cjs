@@ -35,6 +35,15 @@ async function main(){
        // Customer is an independent ledger target, with no nested buttons or accidental invoice opening.
        const ledger=record.getByRole('button',{name:(bn?'ক্রেতার খাতা':'Customer ledger')+' Rahman Hardware',exact:true});
        assert.ok((await ledger.getAttribute('class')).includes('text-teal-700'));
+       const [customerBox,totalBox,referenceBox]=await Promise.all([ledger.boundingBox(),record.locator('.sales-mobile-totals').boundingBox(),record.locator('.sales-mobile-record-body').locator('span').first().boundingBox()]);
+       assert.ok(customerBox&&totalBox&&referenceBox&&customerBox.y-(referenceBox.y+referenceBox.height)<=2,'customer name stays close to invoice reference');
+       assert.ok(totalBox.y-(customerBox.y+customerBox.height)<=4,'totals stay close below customer name');
+       for(const label of [bn?'বিক্রির অন্যান্য কাজ':'Sales actions',bn?'তালিকার অন্যান্য কাজ':'List actions']){
+        const menuButton=page.getByRole('button',{name:label,exact:true}),box=await menuButton.boundingBox();
+        assert.equal(await menuButton.getAttribute('data-hisabiq-variant'),'outline');
+        assert.ok(box&&Math.abs(box.width-box.height)<=1,'marked menu button is square');
+       }
+
        assert.equal(await record.locator('button button').count(),0,'record controls are not nested');
        await record.getByRole('button',{name:bn?/^বিস্তারিত দেখুন INV-/:/^View details INV-/}).click({position:{x:12,y:12}});
        await page.locator('[data-slot="dialog-content"]').last().waitFor();await page.keyboard.press('Escape');
