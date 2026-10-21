@@ -1,6 +1,7 @@
 import { Paperclip } from 'lucide-react';
 import { StatusBadge, type StatusTone } from '../StatusBadge';
 import type { PartyLedgerRow, PartyLedgerSource } from '../../types/partyLedger';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 /** Subtle, source-based colors; never infer transaction type from debit/credit. */
 const sourceTone: Record<PartyLedgerSource, StatusTone> = {
@@ -20,8 +21,10 @@ const sourceTone: Record<PartyLedgerSource, StatusTone> = {
 };
 
 export function PartyLedgerSourceBadge({ source, label }: { source: PartyLedgerSource; label: string }) {
+  const { text } = useUiCopy();
+  const displayLabel = source === 'sale' ? text('Sale','বিক্রি') : label;
   return <span data-testid="party-ledger-source-badge" data-source={source} className="inline-flex shrink-0">
-    <StatusBadge tone={sourceTone[source]}>{label}</StatusBadge>
+    <StatusBadge tone={sourceTone[source]}>{displayLabel}</StatusBadge>
   </span>;
 }
 
