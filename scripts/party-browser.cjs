@@ -100,6 +100,8 @@ async function main() {
         assert.ok(positions.every(rect=>Math.abs(rect.y-positions[0].y)<3),`Header actions stay in one row at ${width}px`);
         assert.ok(positions[0].x>=headingRect.x+headingRect.width-5,`Header actions right aligned at ${width}px`);
         assert.ok(Math.abs(positions[0].y-headingRect.y)<14,`Header actions align with the title at ${width}px`);
+        // Previous viewport interactions may leave the pointer hovering an action button.
+        await page.mouse.move(1,1);
         for(const button of buttons){
           const color=await button.evaluate(el=>getComputedStyle(el).backgroundColor);
           assert.equal(color,'rgb(255, 255, 255)',`Header action background white at ${width}px`);
