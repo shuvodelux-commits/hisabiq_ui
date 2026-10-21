@@ -1,3 +1,6 @@
+import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
+import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord, SalesMobileDisclosure } from '../components/sales/SalesMobileLayout';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
@@ -95,6 +98,18 @@ const defaultVisibleSalesColumns: Record<SalesColumn, boolean> = {
 };
 
 const salesColumnStorageKey = 'hisabiq-sales-visible-columns';
+const tabletSalesColumnStorageKey = 'hisabiq-sales-visible-columns-tablet';
+const tabletVisibleSalesColumns = { ...defaultVisibleSalesColumns, items: false, payment: false };
+
+function savedSalesColumns(key: string, defaults: Record<SalesColumn, boolean>) {
+  if (typeof window === 'undefined') return defaults;
+  try {
+    const stored = window.localStorage.getItem(key);
+    return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
+  } catch {
+    return defaults;
+  }
+}
 const purchasePriceByProductId = new Map(products.map((product) => [product.id, product.purchasePrice]));
 
 function isBundleReturnLine(line:SalesInvoice['lines'][number]) {
@@ -125,14 +140,17 @@ function invoiceProfit(invoice: SalesInvoice) {
 
 function SalesColumnPicker({
   visible,
-  onToggle
+  onToggle,
+  inline = false
 }: {
   visible: Record<SalesColumn, boolean>;
   onToggle: (column: SalesColumn) => void;
+  inline?: boolean;
 }) {
   const {language}=useUiCopy();
   const sl=(english:string)=>salesLabel(language,english);
-  return (
+  const [expanded,setExpanded] = useState(false);
+  return inline ? <div><Button variant="outline" size="sm" aria-expanded={expanded} className="w-full justify-between" onClick={()=>setExpanded(value=>!value)}>{sl('Columns')}<ChevronDown className="size-3.5"/></Button>{expanded && <div className="py-1">{salesColumns.map(column=><button key={column.id} type="button" role="menuitemcheckbox" aria-checked={visible[column.id]} onClick={()=>onToggle(column.id)} className="flex min-h-10 w-full items-center justify-between gap-4 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50"><span>{sl(column.label)}</span>{visible[column.id]&&<Check className="size-4 text-ink"/>}</button>)}</div>}</div> : (
     <FloatingPanel
       label={sl("Choose sales invoice columns")}
       width={210}
@@ -257,7 +275,7 @@ function InvoiceDialog({
   const navigate = useNavigate();
   return (
     <Dialog open={!!invoice} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl scrollbar-thin">
+      <DialogContent className="sales-mobile-dialog max-h-[92vh] overflow-y-auto sm:max-w-4xl scrollbar-thin">
         {invoice && (
           <>
             <DialogHeader>
@@ -397,7 +415,7 @@ function PaymentDialog({
 
   return (
     <Dialog open={!!invoice} onOpenChange={(open) => !open && close()}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sales-mobile-dialog sm:max-w-xl">
         {invoice && (
           <>
             <DialogHeader>
@@ -525,7 +543,7 @@ function CustomerPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && close()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sales-mobile-dialog sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{text('Customer payment','ক্রেতার টাকা জমা')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">কাস্টমার পেমেন্ট</span>}</DialogTitle>
           <DialogDescription>{text('Receive money against customer dues or keep it as reusable customer credit.','ক্রেতার বাকি মেটাতে টাকা নিন অথবা অগ্রিম জমা রাখুন।')}</DialogDescription>
@@ -602,7 +620,7 @@ function CreditActionDialog({
 
   return (
     <Dialog open={!!action} onOpenChange={(nextOpen) => !nextOpen && close()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sales-mobile-dialog sm:max-w-lg">
         {credit && action && (
           <>
             <DialogHeader>
@@ -669,6 +687,8 @@ function CreditActionDialog({
 }
 
 export function Sales() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1279px)');
   const {text,language,showHelper}=useUiCopy();
   const sl=(english:string)=>salesLabel(language,english);
   const navigate = useNavigate();
@@ -694,15 +714,9 @@ export function Sales() {
   const [customerFilter, setCustomerFilter] = useState('All customers');
   const [status, setStatus] = useState('All status');
   const [method, setMethod] = useState('All payments');
-  const [visibleSalesColumns, setVisibleSalesColumns] = useState<Record<SalesColumn, boolean>>(() => {
-    if (typeof window === 'undefined') return defaultVisibleSalesColumns;
-    try {
-      const stored = window.localStorage.getItem(salesColumnStorageKey);
-      return stored ? { ...defaultVisibleSalesColumns, ...JSON.parse(stored) } : defaultVisibleSalesColumns;
-    } catch {
-      return defaultVisibleSalesColumns;
-    }
-  });
+  const [wideSalesColumns, setWideSalesColumns] = useState<Record<SalesColumn, boolean>>(() => savedSalesColumns(salesColumnStorageKey, defaultVisibleSalesColumns));
+  const [tabletSalesColumns, setTabletSalesColumns] = useState<Record<SalesColumn, boolean>>(() => savedSalesColumns(tabletSalesColumnStorageKey, tabletVisibleSalesColumns));
+  const visibleSalesColumns = isTablet ? tabletSalesColumns : wideSalesColumns;
   const [detail, setDetail] = useState<SalesInvoice | null>(null);
   const [paymentTarget, setPaymentTarget] = useState<SalesInvoice | null>(null);
   const [customerPaymentOpen, setCustomerPaymentOpen] = useState(false);
@@ -719,10 +733,12 @@ export function Sales() {
   const [returnRefundAccount, setReturnRefundAccount] = useState('');
 
   const toggleSalesColumn = (column: SalesColumn) => {
-    setVisibleSalesColumns((current) => {
+    const setColumns = isTablet ? setTabletSalesColumns : setWideSalesColumns;
+    setColumns((current) => {
       const next = { ...current, [column]: !current[column] };
       try {
-        window.localStorage.setItem(salesColumnStorageKey, JSON.stringify(next));
+        if (isTablet) window.localStorage.setItem(tabletSalesColumnStorageKey, JSON.stringify(next));
+        else window.localStorage.setItem(salesColumnStorageKey, JSON.stringify(next));
       } catch {
         // Keep the current-session preference when storage is unavailable.
       }
@@ -1002,6 +1018,109 @@ export function Sales() {
     toast.success(text('Return saved in this preview session','এই প্রিভিউ সেশনে ফেরত রাখা হয়েছে'), { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
 
+  const renderReturnActions = (item: SalesReturn) => (
+<FloatingPanel
+                      label={`${sl('Actions for')} ${item.id}`}
+                      width={210}
+                      trigger={({ toggle, open }) => (
+                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`${sl('Actions for')} ${item.id}`}>
+                          <MoreHorizontal className="size-4" />
+                        </button>
+                      )}>
+                      {(close) => (
+                        <div className="py-1">
+                          <button onClick={() => { close(); setReturnDetail(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <FileText className="size-4 text-ink-400" /> {sl('View return')}
+                          </button>
+                          <button onClick={() => { close(); printReturn(item,language); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <Printer className="size-4 text-ink-400" /> {sl('Print')}
+                          </button>
+                          <button disabled={!salesReturnCustomerId(item,invoices,availableParties())} title={!salesReturnCustomerId(item,invoices,availableParties())?text('No linked customer account','ক্রেতার কোনো যুক্ত হিসাব নেই'):undefined} onClick={() => { close(); const id=salesReturnCustomerId(item,invoices,availableParties()); if(id)navigate(`/app/parties?id=${encodeURIComponent(id)}&role=Customer`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
+                          </button>
+                          <button onClick={() => {
+                            close();
+                            setReturnCustomer(item.customer);
+                            setReturnInvoiceIds([]);
+                            setReturnQty({});
+                            setReturnReason({});
+                            setReturnSerials({});
+                            setTab('return');
+                          }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                            <CornerUpLeft className="size-4 text-ink-400" /> {sl('Start another return')}
+                          </button>
+                        </div>
+                      )}
+                    </FloatingPanel>
+  );
+
+  const renderCreditActions = (credit: CustomerCredit) => (
+<FloatingPanel
+                        label={`${sl('Credit actions for')} ${credit.customer}`}
+                        width={220}
+                        trigger={({ toggle, open }) => (
+                          <button
+                            onClick={toggle}
+                            aria-expanded={open}
+                            aria-label={`${sl('Actions for')} ${credit.customer} ${sl('Customer credit')}`}
+                            className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
+                            <MoreHorizontal className="size-4" />
+                          </button>
+                        )}>
+                        {(close) => (
+                          <div className="py-1">
+                            <button
+                              disabled={credit.balance <= 0}
+                              onClick={() => { close(); setCreditAction({ credit, mode: 'apply' }); }}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
+                              <FileText className="size-4 text-ink-400" /> {sl('Apply to invoice')}
+                            </button>
+                            <button
+                              disabled={credit.balance <= 0}
+                              onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
+                              <Banknote className="size-4 text-ink-400" /> {sl('Refund credit')}
+                            </button>
+                            <button
+                              onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+                              <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
+                            </button>
+                          </div>
+                        )}
+                      </FloatingPanel>
+  );
+
+  const invoiceSearch = (<div className="relative min-w-0 flex-1 lg:max-w-lg">
+                <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  className="pl-8"
+                  placeholder={text("Search invoice, customer, phone or product","বিল, ক্রেতা, ফোন বা পণ্য খুঁজুন")}
+                  aria-label={sl("Search sales")}
+                />
+              </div>);
+  const invoiceFilters = (<><FormSelect
+                className="w-full lg:w-44"
+                value={customerFilter}
+                onChange={(event) => setCustomerFilter(event.target.value)}
+                options={[{value:'All customers',label:text('All customers','সব ক্রেতা')},...customerNames]}
+              />
+              <FormSelect
+                className="w-full lg:w-36"
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':v==='Due'?'বাকি':v==='Part returned'?'আংশিক ফেরত':'ফেরত')}))}
+              />
+              <FormSelect
+                className="w-full lg:w-40"
+                value={method}
+                onChange={(event) => setMethod(event.target.value)}
+                options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
+              /></>);
+  const exportSales = () => downloadReport('hisabiq-sales.csv', ['Invoice','Date','Customer','Phone','Items','Total','Paid','Due','Payment','Status'], filtered.map(invoice => [invoice.invoice,invoice.date,invoice.party,invoice.phone ?? '',invoice.lines.map(line => line.name+' · '+invoiceQty(line)).join('; '),invoice.total,invoice.paid,invoice.due,invoice.payments.map(p => p.method).join(' + ') || invoice.method,invoice.status]));
+
   const tabs: Array<[Tab, string, string]> = [
     ['sales', text('Sales','বিক্রির তালিকা'), text('Invoice list & management','বিলের তালিকা ও হিসাব')],
     ['return', text('Sales return','বিক্রি ফেরত'), text('Batch return across customer invoices','একসঙ্গে একাধিক বিলের পণ্য ফেরত')],
@@ -1011,25 +1130,25 @@ export function Sales() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
-      <PageHeader
+    <div className="sales-mobile-page mx-auto max-w-[1440px] space-y-4">
+      <div className="sales-mobile-header"><PageHeader
         title="Sales"
         titleBn="বিক্রয়"
         description="Manage invoices, collect due payments, handle returns, drafts and reusable sale templates."
         descriptionBn="বিক্রির বিল, বাকি টাকা ও ফেরত পণ্য দেখুন।"
         actions={
           <>
-            <Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
+            {isMobile ? <SalesMobileMore outlined label={text('Sales actions','বিক্রির অন্যান্য কাজ')}>{close => <Button variant="outline" size="sm" onClick={() => { close(); navigate('/app/parties'); }}><BookOpen className="size-4" />{text('Customer ledger','ক্রেতার খাতা')}</Button>}</SalesMobileMore> : (<Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
               <BookOpen className="size-4" /> {text('Customer ledger','ক্রেতার খাতা')}
-            </Button>
+            </Button>)}
             <Button size="sm" onClick={() => navigate('/app/pos')}>
               <Plus className="size-4" /> {text('New sale','নতুন বিক্রি')}
             </Button>
           </>
         }
-      />
+      /></div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {isMobile ? <SalesMobileSummary items={summary.map(item => ({ label: item.label, value: item.value, helper: item.sub, tone: item.tone }))} /> : (<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((item) => (
           <div key={item.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{item.label}</p>
@@ -1037,7 +1156,7 @@ export function Sales() {
             <p className="font-bn text-[11px] text-ink-400">{item.sub}</p>
           </div>
         ))}
-      </div>
+      </div>)}
 
       <div className="rounded-xl border border-border bg-card shadow-card">
         <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
@@ -1060,42 +1179,34 @@ export function Sales() {
 
         {tab === 'sales' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1 lg:max-w-lg">
-                <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                <Input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  className="pl-8"
-                  placeholder={text("Search invoice, customer, phone or product","বিল, ক্রেতা, ফোন বা পণ্য খুঁজুন")}
-                  aria-label={sl("Search sales")}
-                />
-              </div>
-              <FormSelect
-                className="w-full lg:w-44"
-                value={customerFilter}
-                onChange={(event) => setCustomerFilter(event.target.value)}
-                options={[{value:'All customers',label:text('All customers','সব ক্রেতা')},...customerNames]}
-              />
-              <FormSelect
-                className="w-full lg:w-36"
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':v==='Due'?'বাকি':v==='Part returned'?'আংশিক ফেরত':'ফেরত')}))}
-              />
-              <FormSelect
-                className="w-full lg:w-40"
-                value={method}
-                onChange={(event) => setMethod(event.target.value)}
-                options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
-              />
+            {isMobile ? <SalesMobileToolbar search={invoiceSearch} filters={invoiceFilters}
+              activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
+              onClear={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}
+              result={text(`Showing ${filtered.length} of ${invoices.length} invoices`, `মোট ${invoices.length}টি বিলের মধ্যে ${filtered.length}টি দেখাচ্ছে`)}
+              actions={close => <><SalesColumnPicker inline visible={visibleSalesColumns} onToggle={toggleSalesColumn} /><Button variant="outline" size="sm" onClick={() => { close(); exportSales(); }}><ArrowDownToLine className="size-4" />{text('Export','ডাউনলোড')}</Button></>} /> : (<SalesWideToolbar search={invoiceSearch} filters={invoiceFilters}
+              activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
+              actions={<>
               <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
               <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-sales.csv', ['Invoice','Date','Customer','Phone','Items','Total','Paid','Due','Payment','Status'], filtered.map(invoice => [invoice.invoice,invoice.date,invoice.party,invoice.phone ?? '',invoice.lines.map(line => line.name+' · '+invoiceQty(line)).join('; '),invoice.total,invoice.paid,invoice.due,invoice.payments.map(p => p.method).join(' + ') || invoice.method,invoice.status]))}>
                 <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
-              </Button>
-            </div>
+              </Button></>} />)}
 
-            <Table>
+            {isMobile ? <div aria-label={text('Sales invoices','বিক্রির বিল')} className="sales-mobile-record-list">
+              {filtered.map(invoice => <SalesMobileRecord key={invoice.id} actionsInFooter reference={visibleSalesColumns.invoice ? invoice.invoice : ''} name={visibleSalesColumns.customer ? invoice.party : ''} date={visibleSalesColumns.invoice ? invoice.date : undefined}
+                status={visibleSalesColumns.status && <PaymentStatus invoice={invoice} />} onOpen={() => setDetail(invoice)}
+                onNameOpen={invoice.partyId && visibleSalesColumns.customer ? () => navigate(`/app/parties?id=${invoice.partyId}`) : undefined}
+                amount={visibleSalesColumns.total && <>{text('Total','মোট')} <strong className="text-ink">{taka(invoice.total)}</strong></>}
+                balance={visibleSalesColumns.due && <>{text('Due','বাকি')} <strong className={invoice.due > 0 ? 'text-danger' : 'text-ink-500'}>{taka(invoice.due)}</strong></>}
+                details={<>
+                  {visibleSalesColumns.customer && <p>{sl('Customer')}: {invoice.party} · {invoice.phone ?? text('No phone','ফোন নেই')}</p>}
+                  {visibleSalesColumns.items && <p>{sl('Items')}: {invoice.lines.map(line => line.name).join(', ')} · {invoice.items}</p>}
+                  {visibleSalesColumns.profit && <p>{text('Profit','লাভ')}: {!invoiceCostKnown(invoice) ? text('Cost pending','কেনা দাম বাকি') : <>{invoiceProfit(invoice)<0?'−':''}{taka(Math.abs(invoiceProfit(invoice)),Math.abs(invoiceProfit(invoice))%1?2:0)}</>}</p>}
+                  {visibleSalesColumns.paid && <p>{text('Paid','জমা')}: {taka(invoice.paid)}</p>}
+                  {visibleSalesColumns.payment && <p>{text('Payment','মাধ্যম')}: {invoice.payments.length > 1 ? text('Multiple','একাধিক মাধ্যম') : text(invoice.method,invoice.method==='Cash'?'ক্যাশ':invoice.method==='Bank'?'ব্যাংক':invoice.method)}</p>}
+                  {visibleSalesColumns.invoice && <p>{text('Date','তারিখ')}: {invoice.date} · {invoice.time}</p>}
+                </>}
+                actions={<InvoiceActions invoice={invoice} onView={() => setDetail(invoice)} onPayment={() => setPaymentTarget(invoice)} onReturn={() => openReturn(invoice)} />} />)}
+            </div> : (<Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">{text('Invoice','বিল')}</TableHead>}
@@ -1151,7 +1262,7 @@ export function Sales() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table>)}
 
             {filtered.length === 0 && (
               <div className="px-4 py-10 text-center">
@@ -1161,7 +1272,7 @@ export function Sales() {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
+            <div className="sales-mobile-invoice-footer flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
               <span>{text(`Showing ${filtered.length} of ${invoices.length} invoices`,`মোট ${invoices.length}টি বিলের মধ্যে ${filtered.length}টি দেখাচ্ছে`)}</span>
               <span>{text('Click a row to view invoice details','বিস্তারিত দেখতে বিলের লাইনে চাপুন')}</span>
             </div>
@@ -1169,8 +1280,8 @@ export function Sales() {
         )}
 
         {tab === 'return' && (
-          <div className="grid min-w-0 grid-cols-1 gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
-            <div className="min-w-0 space-y-3">
+          <div className="sales-mobile-return-workspace grid min-w-0 grid-cols-1 gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+            <SalesMobileDisclosure title={`${returnCustomer} · ${text('Selected invoices','বাছাই করা বিল')}: ${returnInvoiceIds.length}`}><div className="min-w-0 space-y-3">
               <div className="rounded-xl border border-border bg-ink-50/50 p-4">
                 <div className="mb-3 flex items-start gap-2">
                   <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
@@ -1223,9 +1334,9 @@ export function Sales() {
                   ))}
                 </div>
               </div>
-            </div>
+            </div></SalesMobileDisclosure>
 
-            <div className="min-w-0 rounded-xl border border-border bg-card">
+            <div className="sales-mobile-return-lines min-w-0 rounded-xl border border-border bg-card">
               <div className="border-b border-border p-3">
                 <p className="text-[13px] font-medium text-ink">{sl('Return items')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ফেরত পণ্য</span>}</p>
                 <p className="mt-0.5 text-[11px] text-ink-500">{sl("Enter quantity against any item from the selected invoices.")}</p>
@@ -1233,7 +1344,7 @@ export function Sales() {
 
               {selectedReturnLines.length ? (
                 <>
-                  <Table>
+                  <Table className="sales-mobile-return-table">
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
                         <TableHead className="h-9 pl-3 text-xs">{sl('Invoice / item')}</TableHead>
@@ -1312,8 +1423,8 @@ export function Sales() {
                                 </div>
                               )}
                             </TableCell>
-                            <TableCell className="py-2">{invoiceQty(line)}</TableCell>
-                            <TableCell className="py-2">
+                            <TableCell data-mobile-label={sl('Sold')} className="py-2">{invoiceQty(line)}</TableCell>
+                            <TableCell data-mobile-label={sl('Return qty')} className="py-2">
                               <div className="flex items-center gap-2">
                                 <Input
                                   value={returnQty[line.id] ?? ''}
@@ -1331,7 +1442,7 @@ export function Sales() {
                                 {sl('max')} {returnLimit(line)} {line.unit}
                               </p>
                             </TableCell>
-                            <TableCell className="py-2 pr-3">
+                            <TableCell data-mobile-label={sl('Refund')} className="py-2 pr-3">
                               <div className="ml-auto w-28">
                                 <Input
                                   value={isBundleReturnLine(line)?String(line.price):ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice===null?text('Source allocation needed','আগের মূল্য প্রয়োজন'):String(Number((ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice??0).toFixed(6)))}
@@ -1420,7 +1531,7 @@ export function Sales() {
         )}
 
         <Dialog open={bundleReturnPreviewOpen} onOpenChange={open=>!open&&setBundleReturnPreviewOpen(false)}>
-          <DialogContent role="dialog" aria-label="Bundle return preview" className="max-h-[92vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-xl">
+          <DialogContent role="dialog" aria-label="Bundle return preview" className="sales-mobile-dialog max-h-[92vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-xl">
             <DialogHeader>
               <DialogTitle>{text('Whole-Set return preview','সম্পূর্ণ সেট ফেরত প্রিভিউ')}</DialogTitle>
               <DialogDescription>{text('Historical quantities and original lot/serial evidence only. No stock, refund, credit, invoice or ledger posting.',
@@ -1448,7 +1559,10 @@ export function Sales() {
         </Dialog>
 
         {tab === 'returns' && (
-          <Table>
+          isMobile ? <div aria-label={sl('Return history')}>{returns.map(item => <SalesMobileRecord key={item.id} reference={item.id} name={item.customer} date={item.date}
+            status={<StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{sl(item.settlement)}</StatusBadge>}
+            meta={<>{item.invoices.join(', ')} · {item.items}{item.refundMethod && <> · {item.refundMethod} {item.refundAccount}</>}</>}
+            amount={<>{sl('Amount')} <strong className="text-ink">{taka(item.amount)}</strong></>} onOpen={() => setReturnDetail(item)} actions={renderReturnActions(item)} />)}</div> : (<Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-9 pl-4 text-xs">{sl('Return')}</TableHead>
@@ -1476,44 +1590,12 @@ export function Sales() {
                     {item.refundMethod && <p className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
                   </TableCell>
                   <TableCell className="py-2 pr-4 text-right">
-                    <FloatingPanel
-                      label={`${sl('Actions for')} ${item.id}`}
-                      width={210}
-                      trigger={({ toggle, open }) => (
-                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`${sl('Actions for')} ${item.id}`}>
-                          <MoreHorizontal className="size-4" />
-                        </button>
-                      )}>
-                      {(close) => (
-                        <div className="py-1">
-                          <button onClick={() => { close(); setReturnDetail(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <FileText className="size-4 text-ink-400" /> {sl('View return')}
-                          </button>
-                          <button onClick={() => { close(); printReturn(item,language); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <Printer className="size-4 text-ink-400" /> {sl('Print')}
-                          </button>
-                          <button disabled={!salesReturnCustomerId(item,invoices,availableParties())} title={!salesReturnCustomerId(item,invoices,availableParties())?text('No linked customer account','ক্রেতার কোনো যুক্ত হিসাব নেই'):undefined} onClick={() => { close(); const id=salesReturnCustomerId(item,invoices,availableParties()); if(id)navigate(`/app/parties?id=${encodeURIComponent(id)}&role=Customer`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
-                          </button>
-                          <button onClick={() => {
-                            close();
-                            setReturnCustomer(item.customer);
-                            setReturnInvoiceIds([]);
-                            setReturnQty({});
-                            setReturnReason({});
-                            setReturnSerials({});
-                            setTab('return');
-                          }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <CornerUpLeft className="size-4 text-ink-400" /> {sl('Start another return')}
-                          </button>
-                        </div>
-                      )}
-                    </FloatingPanel>
+                    {renderReturnActions(item)}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </Table>)
         )}
 
 
@@ -1529,7 +1611,9 @@ export function Sales() {
               </Button>
             </div>
 
-            <Table>
+            {isMobile ? <div aria-label={sl('Customer credit')}>{credits.map(credit => <SalesMobileRecord key={credit.id} reference={credit.id} name={credit.customer} date={credit.updatedAt}
+              meta={credit.source} status={<StatusBadge tone={credit.balance > 0 ? 'teal' : 'neutral'}>{sl(credit.balance > 0 ? 'Available' : 'Settled')}</StatusBadge>}
+              amount={<>{sl('Credit balance')} <strong className="text-teal-700">{taka(credit.balance)}</strong></>} actions={renderCreditActions(credit)} />)}</div> : (<Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">{sl('Customer')}</TableHead>
@@ -1556,45 +1640,12 @@ export function Sales() {
                       </StatusBadge>
                     </TableCell>
                     <TableCell className="py-2 pr-4 text-right">
-                      <FloatingPanel
-                        label={`${sl('Credit actions for')} ${credit.customer}`}
-                        width={220}
-                        trigger={({ toggle, open }) => (
-                          <button
-                            onClick={toggle}
-                            aria-expanded={open}
-                            aria-label={`${sl('Actions for')} ${credit.customer} ${sl('Customer credit')}`}
-                            className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                            <MoreHorizontal className="size-4" />
-                          </button>
-                        )}>
-                        {(close) => (
-                          <div className="py-1">
-                            <button
-                              disabled={credit.balance <= 0}
-                              onClick={() => { close(); setCreditAction({ credit, mode: 'apply' }); }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
-                              <FileText className="size-4 text-ink-400" /> {sl('Apply to invoice')}
-                            </button>
-                            <button
-                              disabled={credit.balance <= 0}
-                              onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
-                              <Banknote className="size-4 text-ink-400" /> {sl('Refund credit')}
-                            </button>
-                            <button
-                              onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
-                            </button>
-                          </div>
-                        )}
-                      </FloatingPanel>
+                      {renderCreditActions(credit)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table>)}
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-ink-500">
               <span>{sl("Total customer credit")} {taka(creditTotal)}</span>
@@ -1604,7 +1655,7 @@ export function Sales() {
         )}
 
         {tab === 'drafts' && (
-          <div className="grid gap-4 p-4 xl:grid-cols-2">
+          <div className="sales-mobile-drafts grid gap-4 p-4 xl:grid-cols-2">
             <section className="overflow-hidden rounded-xl border border-border">
               <div className="flex items-center justify-between border-b border-border p-3">
                 <div>
@@ -1745,7 +1796,7 @@ export function Sales() {
         onRefund={refundCustomerCredit}
       />
       <Dialog open={!!returnDetail} onOpenChange={open => !open && setReturnDetail(null)}>
-        <DialogContent role="dialog" aria-label={sl('Sales return details')} className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
+        <DialogContent role="dialog" aria-label={sl('Sales return details')} className="sales-mobile-dialog max-h-[92dvh] overflow-y-auto sm:max-w-lg">
           <DialogHeader><DialogTitle>{returnDetail?.id}</DialogTitle><DialogDescription>{sl('Return source preview · no new refund or stock movement.')}</DialogDescription></DialogHeader>
           {returnDetail && <dl className="space-y-2 text-sm">{returnDocument(returnDetail,language).rows.map(([label,value]) => <div key={String(label)} className="flex flex-wrap justify-between gap-2"><dt className="text-ink-500">{label}</dt><dd className="max-w-full break-words text-ink">{value}</dd></div>)}</dl>}
           <DialogFooter><Button variant="outline" onClick={() => setReturnDetail(null)}>{sl('Close')}</Button><Button onClick={() => returnDetail && printReturn(returnDetail,language)}>{sl('Print return')}</Button></DialogFooter>

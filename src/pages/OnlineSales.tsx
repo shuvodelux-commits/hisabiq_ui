@@ -1,3 +1,6 @@
+import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
+import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord } from '../components/sales/SalesMobileLayout';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import '../notifications/erpNotificationRules'; // Keep existing module initialization.
@@ -75,7 +78,7 @@ function OrderEditor({original,initialDraft,onClose}:{original:OnlineOrder|null;
   }catch(e){setError(e instanceof Error?e.message:ol('Invalid online order.'));}
  };
  return <Dialog open={true} onOpenChange={value=>!value&&onClose()}>
- <DialogContent className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-4xl" role="dialog" aria-label={ol(original?'Edit online order':'New online order')}>
+ <DialogContent className="sales-mobile-dialog max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-4xl" role="dialog" aria-label={ol(original?'Edit online order':'New online order')}>
   <DialogHeader><DialogTitle>{ol(original?'Edit order draft':'New online order')} {showHelper&&<span className="font-bn text-xs font-normal text-ink-500">· অনলাইন অর্ডার</span>}</DialogTitle>
    <DialogDescription>{ol('Manual order entry for Facebook, WhatsApp, Instagram or other channels. Draft only — no accounting posting.')}</DialogDescription></DialogHeader>
   <div className="grid gap-3 sm:grid-cols-2">
@@ -173,7 +176,7 @@ function OrderActionDialog({order,action,onClose}:{order:OnlineOrder;action:Orde
   else recordCourierPayout(order.id,Number(payout),reference);
   toast.success(ol('Manual preview updated — no courier or bank API called.'));onClose();
  }catch(e){setError(e instanceof Error?e.message:ol('Cannot update.'));}};
- return <Dialog open onOpenChange={v=>!v&&onClose()}><DialogContent role="dialog" aria-label={ol('Courier action')} className="sm:max-w-lg">
+ return <Dialog open onOpenChange={v=>!v&&onClose()}><DialogContent role="dialog" aria-label={ol('Courier action')} className="sales-mobile-dialog sm:max-w-lg">
   <DialogHeader><DialogTitle>{ol(action==='courier'?'Assign courier':action==='cod'?'Record courier COD report':'Record courier payout')}</DialogTitle>
    <DialogDescription>{ol("Manual entry only. This does not contact the courier or post to Finance.")}</DialogDescription></DialogHeader>
   <div className="space-y-3 text-sm">
@@ -215,7 +218,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
   catch(e){toast.error(e instanceof Error?e.message:String(e));}};
  return <>
  <Dialog open onOpenChange={v=>!v&&onClose()}><DialogContent role="dialog" aria-label={ol('Online order')+' '+order.number}
-  className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
+  className="sales-mobile-dialog max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
   <DialogHeader><DialogTitle>{order.number} <StatusBadge tone={stageTone(order.stage)}>{ol(order.stage)}</StatusBadge></DialogTitle>
   <DialogDescription>{order.channel} · {order.customerName} · {ol('manual UI preview')}</DialogDescription></DialogHeader>
   <div className="grid gap-3 text-xs sm:grid-cols-2">
@@ -255,7 +258,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
   </div>
  </DialogContent></Dialog>
  {action&&<OrderActionDialog order={order} action={action} onClose={()=>setAction(null)}/>}
- {documentKind&&<Dialog open={true} onOpenChange={v=>!v&&setDocumentKind(null)}><DialogContent role="dialog" aria-label={'Print '+documentKind} className="max-h-[95vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
+ {documentKind&&<Dialog open={true} onOpenChange={v=>!v&&setDocumentKind(null)}><DialogContent role="dialog" aria-label={'Print '+documentKind} className="sales-mobile-dialog max-h-[95vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
    <style>{fulfillmentPrintCss}</style><DialogHeader><DialogTitle>{ol(documentKind)}</DialogTitle><DialogDescription>{ol('Print preview — no shipment, invoice, stock, or financial posting.')}</DialogDescription></DialogHeader>
    <FulfillmentDocumentPreview order={order} kind={documentKind}/><DialogFooter><Button variant="outline" onClick={()=>setDocumentKind(null)}>{ol("Close")}</Button><Button onClick={()=>printFulfillment(documentKind)}>{ol("Print document")}</Button></DialogFooter>
   </DialogContent></Dialog>}
@@ -283,7 +286,7 @@ function LeadsTab(){
    <AppSelect label={ol('CRM stage')+' '+lead.name} value={lead.stage} options={onlineOptions(language,['New','Contacted','Interested','Won','Lost'])}
     onChange={value=>move(lead,value as LeadStage)}/>
   </div>)}</div>
-  <Dialog open={add} onOpenChange={v=>setAdd(v)}><DialogContent role="dialog" aria-label={ol("New CRM lead")} className="sm:max-w-lg">
+  <Dialog open={add} onOpenChange={v=>setAdd(v)}><DialogContent role="dialog" aria-label={ol("New CRM lead")} className="sales-mobile-dialog sm:max-w-lg">
    <DialogHeader><DialogTitle>{ol('New CRM lead')}{showHelper&&' · নতুন অনুসন্ধান'}</DialogTitle><DialogDescription>{ol('Record inquiry and next follow-up; no messages are sent.')}</DialogDescription></DialogHeader>
    <div className="space-y-3 text-xs"><label className="block space-y-1">{ol("Name")}<Input aria-label={ol("Lead name")} value={name} onChange={e=>setName(e.target.value)}/></label>
     <label className="block space-y-1">{ol("Phone")}<Input aria-label={ol("Lead phone")} value={phone} onChange={e=>setPhone(e.target.value)}/></label>
@@ -296,6 +299,7 @@ function LeadsTab(){
 }
 function NotificationsTab(){return <ErpNotificationsWorkbench embedded/>;}
 export function OnlineSales(){
+ const isMobile=useMediaQuery('(max-width: 767px)');
   const {language,showHelper}=useUiCopy();
   const ol=(value:string)=>onlineLabel(language,value);
  const {orders}=useSyncExternalStore(subscribeOnline,getOnlineSnapshot);
@@ -338,33 +342,39 @@ export function OnlineSales(){
  const expected=orders.reduce((sum,o)=>sum+orderTotals(o).cod,0);
  const pending=orders.reduce((sum,o)=>sum+courierClearing(o).pending,0);
  const tabs:Array<[View,string]>= [['Orders','অর্ডার'],['Courier & COD','কুরিয়ার ও COD'],['CRM Leads','ক্রেতা যোগাযোগ'],['SMS Rules','এসএমএস নিয়ম']];
- return <div className="mx-auto max-w-[1440px] space-y-4">
-  <PageHeader title="Online Sales" titleBn="অনলাইন বিক্রি" description="Social commerce orders, courier COD and follow-ups · manual UI preview only."
+ const onlineSummary=[['Online orders',String(orders.length),'All channels'],['Awaiting shipment',String(orders.filter(o=>['Confirmed','Packed'].includes(o.stage)).length),'Confirmed + packed'],
+    ['COD to collect',taka(expected),'Expected gross, not received'],['Courier clearing',taka(pending),'Reported less fee and remittance']];
+ return <div className="sales-mobile-page mx-auto max-w-[1440px] space-y-4">
+  <div className="sales-mobile-header"><PageHeader title="Online Sales" titleBn="অনলাইন বিক্রি" description="Social commerce orders, courier COD and follow-ups · manual UI preview only."
    descriptionBn="ফেসবুকসহ অনলাইন অর্ডার, কুরিয়ারের টাকা ও ক্রেতার খোঁজখবর দেখুন · শুধু নমুনা।"
-   actions={<><Link to="/app/quotations"><Button size="sm" variant="outline"><FileText className="size-4"/> {ol("Quotations")}</Button></Link>
-    <Button size="sm" onClick={()=>{setEditing(null);setQuoteDraft(null);setEditorOpen(true);}}><Plus className="size-4"/> {ol("New online order")}</Button></>}/>
-  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-   {[['Online orders',String(orders.length),'All channels'],['Awaiting shipment',String(orders.filter(o=>['Confirmed','Packed'].includes(o.stage)).length),'Confirmed + packed'],
-    ['COD to collect',taka(expected),'Expected gross, not received'],['Courier clearing',taka(pending),'Reported less fee and remittance']]
+   actions={<>{isMobile ? <SalesMobileMore label={ol('Online sales actions')}>{close=><Button size="sm" variant="outline" onClick={()=>{close();navigate('/app/quotations');}}><FileText className="size-4"/>{ol('Quotations')}</Button>}</SalesMobileMore> : (<Link to="/app/quotations"><Button size="sm" variant="outline"><FileText className="size-4"/> {ol("Quotations")}</Button></Link>)}
+    <Button size="sm" onClick={()=>{setEditing(null);setQuoteDraft(null);setEditorOpen(true);}}><Plus className="size-4"/> {ol("New online order")}</Button></>}/></div>
+  {isMobile ? <SalesMobileSummary items={onlineSummary.map(([label,value,helper])=>({label:ol(label),value,helper:ol(helper)}))} /> : (<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+   {onlineSummary
    .map(([label,value,sub])=><div key={label} className="rounded-xl border border-border bg-card p-3 shadow-card">
     <p className="text-xs text-ink-500">{ol(label)}</p><strong className="mt-1 block text-lg text-ink">{value}</strong><p className="text-[11px] text-ink-400">{ol(sub)}</p>
    </div>)}
-  </div>
+  </div>)}
   <div className="rounded-xl border border-border bg-card shadow-card">
    <MotionTabList role="tablist" aria-label={ol("Online selling sections")} className="flex flex-wrap gap-1 border-b border-border p-2">
     {tabs.map(([key,bn])=><button type="button" role="tab" aria-selected={tab===key} key={key} onClick={()=>setTab(key)}
      className={'rounded-md px-3 py-2 text-xs font-medium '+(tab===key?'text-ink':'text-ink-600 hover:text-ink')}>
       {ol(key)}{showHelper&&<span className="font-bn ml-1 text-[10px] opacity-75">{bn}</span>}<MotionTabIndicator active={tab===key} /></button>)}
    </MotionTabList>
-   <div className="space-y-3 p-3">
+   <div className="sales-mobile-online-body space-y-3 p-3">
     {tab==='Orders'||tab==='Courier & COD'?<>
-     <div className="flex flex-wrap gap-2">
-      <div className="min-w-[180px] flex-1"><Input aria-label={ol("Search online orders")} placeholder={ol("Search order, customer, courier, phone...")} value={query} onChange={e=>setQuery(e.target.value)}/></div>
-      <AppSelect label={ol("Filter sales channel")} value={filter} className="w-40" options={onlineOptions(language,['All channels',...channels])} onChange={setFilter}/>
-      <AppSelect label={ol("Filter order status")} value={stage} className="w-44" options={onlineOptions(language,['All statuses',...stages])} onChange={setStage}/>
-     </div>
-     <div className="grid gap-2">
-      {filtered.map(o=>{const totals=orderTotals(o),clearing=courierClearing(o);return <div key={o.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
+     {isMobile ? <SalesMobileToolbar
+       search={<Input aria-label={ol('Search online orders')} placeholder={ol('Search order, customer, courier, phone...')} value={query} onChange={event=>setQuery(event.target.value)}/>}
+       filters={<><AppSelect label={ol('Filter sales channel')} value={filter} options={onlineOptions(language,['All channels',...channels])} onChange={setFilter}/><AppSelect label={ol('Filter order status')} value={stage} options={onlineOptions(language,['All statuses',...stages])} onChange={setStage}/></>}
+       activeCount={Number(filter!=='All channels')+Number(stage!=='All statuses')} onClear={()=>{setQuery('');setFilter('All channels');setStage('All statuses');}}
+       result={<>{filtered.length} / {orders.length} {ol('Orders')}</>} /> : (<SalesWideToolbar className="" search={<div className="min-w-[180px] flex-1"><Input aria-label={ol("Search online orders")} placeholder={ol("Search order, customer, courier, phone...")} value={query} onChange={e=>setQuery(e.target.value)}/></div>} filters={<> <AppSelect label={ol("Filter sales channel")} value={filter} className="w-40" options={onlineOptions(language,['All channels',...channels])} onChange={setFilter}/>
+      <AppSelect label={ol("Filter order status")} value={stage} className="w-44" options={onlineOptions(language,['All statuses',...stages])} onChange={setStage}/></>} activeCount={Number(filter!=='All channels')+Number(stage!=='All statuses')} />)}
+     <div className="sales-mobile-online-records grid gap-2">
+      {filtered.map(o=>{const totals=orderTotals(o),clearing=courierClearing(o);return isMobile ? <SalesMobileRecord key={o.id} reference={o.number} name={o.customerName}
+       status={<StatusBadge tone={stageTone(o.stage)}>{ol(o.stage)}</StatusBadge>}
+       meta={<>{o.channel} · {o.phone}{tab==='Courier & COD'&&<><br/>{o.courier??ol('Not assigned')} · {o.tracking??ol('No tracking')} · {ol('Clearing')} {taka(clearing.pending)}</>}</>}
+       amount={<>{ol('Grand total')} <strong className="text-ink">{taka(totals.grand)}</strong></>} balance={<>{ol('COD')} <strong className="text-teal-700">{taka(totals.cod)}</strong></>}
+       onOpen={()=>setSelectedId(o.id)} actions={<SalesMobileMore label={ol('Order actions')+' '+o.number}>{close=><Button variant="outline" size="sm" onClick={()=>{close();setSelectedId(o.id);}}>{ol('Open')}<ChevronRight className="size-3.5"/></Button>}</SalesMobileMore>} /> : <div key={o.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
        <div className="min-w-[135px] flex-1"><button onClick={()=>setSelectedId(o.id)} className="text-left text-sm font-semibold text-teal-700 hover:underline dark:text-teal-400">{o.number}</button><p className="text-[11px] text-ink-500">{o.channel} · {o.customerName}</p></div>
        <div className="w-[110px] text-xs"><p className="font-semibold text-ink">{taka(totals.grand)}</p><p className="text-ink-500">{ol('COD')} {taka(totals.cod)}</p></div>
        {tab==='Courier & COD'&&<div className="w-36 text-xs"><p>{o.courier??ol('Not assigned')}</p><p className="truncate text-ink-500">{o.tracking??ol('No tracking')}</p><p className="text-teal-700 dark:text-teal-400">{ol('Clearing')} {taka(clearing.pending)}</p></div>}
@@ -381,7 +391,7 @@ export function OnlineSales(){
   {selected&&<OrderDetail order={selected} onClose={()=>setSelectedId(null)} onPos={()=>openPos(selected)} onEdit={()=>{setQuoteDraft(null);setEditing(selected);setEditorOpen(true);setSelectedId(null);}}/>}
   {handoffReviewId&&(()=>{const order=orders.find(x=>x.id===handoffReviewId);if(!order)return null;
    const issues=inspectBundleHandoffs(order.lines);return <Dialog open onOpenChange={open=>!open&&setHandoffReviewId(null)}>
-    <DialogContent role="dialog" aria-label="Review changed package" className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
+    <DialogContent role="dialog" aria-label="Review changed package" className="sales-mobile-dialog max-h-[92vh] overflow-y-auto sm:max-w-lg">
      <DialogHeader><DialogTitle>Package recipe changed · প্যাকেজ বদলেছে</DialogTitle>
       <DialogDescription>Check the package contents before opening POS. This review does not change the agreed parent price, Set quantity or discount.</DialogDescription></DialogHeader>
      <div className="space-y-2 text-sm">{issues.map(issue=><div key={issue.productId} className="rounded-lg border border-border p-3">

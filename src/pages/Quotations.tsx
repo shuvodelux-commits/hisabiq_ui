@@ -1,3 +1,6 @@
+import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
+import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord } from '../components/sales/SalesMobileLayout';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {useMemo,useState,useSyncExternalStore} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -67,7 +70,7 @@ function QuotationEditor({open,original,onClose}:{
   }catch(e){setError(ql(e instanceof Error?e.message:'Cannot save quotation.'));}
  };
  return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
-  <DialogContent role="dialog" aria-label={ql(original?'Edit quotation':'New quotation')} className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-4xl">
+  <DialogContent role="dialog" aria-label={ql(original?'Edit quotation':'New quotation')} className="sales-mobile-dialog max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-4xl">
    <DialogHeader>
     <DialogTitle>{ql(original?'Revise quotation':'New quotation')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">· মূল্য প্রস্তাব</span>}</DialogTitle>
     <DialogDescription>{ql('Prices only: quotations do not reserve stock, collect money or post to the Party ledger.')}</DialogDescription>
@@ -148,7 +151,7 @@ function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete
  if(!quote)return null;
  const status=quoteDisplayStatus(quote);
  return <Dialog open={true} onOpenChange={value=>!value&&onClose()}>
-  <DialogContent role="dialog" aria-label={'Quotation '+quote.number} className="max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
+  <DialogContent role="dialog" aria-label={'Quotation '+quote.number} className="sales-mobile-dialog max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
    <style>{'@media print { body * { visibility:hidden !important } #quotation-print, #quotation-print * {visibility:visible !important} #quotation-print {position:absolute !important;inset:0; width:100%;background:white;color:black;padding:24px} }'}</style>
    <DialogHeader>
     <DialogTitle>{quote.number} <StatusBadge tone={statusTone[status]}>{ql(status)}</StatusBadge></DialogTitle>
@@ -192,6 +195,7 @@ function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete
  </Dialog>;
 }
 export function Quotations(){
+ const isMobile=useMediaQuery('(max-width: 767px)');
  const {language}=useUiCopy();
  const ql=(label:string)=>quotationLabel(language,label);
  const {quotes}=useSyncExternalStore(subscribeQuotes,getQuoteSnapshot);
@@ -212,30 +216,31 @@ export function Quotations(){
  const remove=()=>{if(!deleteTarget)return;try{deleteDraftQuote(deleteTarget.id);setDetailId(null);toast.success(ql('Draft deleted'));}catch(e){toast.error(String(e));}setDeleteTarget(null);};
  const totalValue=quotes.reduce((sum,q)=>sum+quoteTotal(q),0);
  const openCount=quotes.filter(q=>['Draft','Sent'].includes(quoteDisplayStatus(q))).length;
- return <div className="mx-auto max-w-[1440px] space-y-4">
-  <PageHeader title="Quotations" titleBn="মূল্য প্রস্তাব"
-    description={ql("Create price estimates, track customer approval and print professional quotes · UI preview only.")}
-    actions={<Button size="sm" onClick={create}><Plus className="size-4"/> {ql("New quotation")}</Button>}/>
-  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-   {[
+ const quotationSummary=[
     [ql('Total quotations'),String(quotes.length),ql('All preview quotes')],
     [ql('Open quotations'),String(openCount),ql('Draft or sent')],
     [ql('Accepted'),String(quotes.filter(q=>q.status==='Accepted').length),ql('Customer-approved')],
     [ql('Quoted value'),taka(totalValue),ql('No revenue posted')]
-   ].map(([label,value,sub])=><div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+   ];
+ return <div className="sales-mobile-page mx-auto max-w-[1440px] space-y-4">
+  <div className="sales-mobile-header"><PageHeader title="Quotations" titleBn="মূল্য প্রস্তাব"
+    description={ql("Create price estimates, track customer approval and print professional quotes · UI preview only.")}
+    actions={<Button size="sm" onClick={create}><Plus className="size-4"/> {ql("New quotation")}</Button>}/></div>
+  {isMobile ? <SalesMobileSummary primary={[0,3]} items={quotationSummary.map(([label,value,helper])=>({label,value,helper}))} /> : (<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+   {quotationSummary.map(([label,value,sub])=><div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
      <p className="text-[12.5px] text-ink-500">{label}</p><p className="mt-1 text-lg font-semibold text-ink">{value}</p><p className="text-[11px] text-ink-400">{sub}</p>
     </div>)}
-  </div>
+  </div>)}
   <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-   <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-    <div className="relative min-w-[180px] flex-1 sm:max-w-sm">
+   {isMobile ? <SalesMobileToolbar search={<div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400"/><Input aria-label={ql('Search quotations')} className="pl-8" value={search} onChange={event=>setSearch(event.target.value)} placeholder={ql('Search quote, customer or item…')}/></div>} filters={<div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(value=><Button key={value} type="button" variant={status===value?'default':'outline'} size="sm" onClick={()=>setStatus(value)}>{ql(value)}</Button>)}</div>} activeCount={Number(status !== 'All')} onClear={()=>{setSearch('');setStatus('All');}} result={<>{ql('Showing')} {filtered.length} {ql('of')} {quotes.length}</>} /> : (<SalesWideToolbar search={<div className="relative min-w-[180px] flex-1 sm:max-w-sm">
      <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400"/>
      <Input aria-label={ql("Search quotations")} className="pl-8" value={search} onChange={e=>setSearch(e.target.value)} placeholder={ql("Search quote, customer or item…")}/>
-    </div>
-    <div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(s=>
-     <Button key={s} type="button" variant={status===s?'default':'outline'} size="sm" onClick={()=>setStatus(s)}>{ql(s)}</Button>)}</div>
-   </div>
-   <div className="overflow-x-auto">
+    </div>} filters={<div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(s=>
+     <Button key={s} type="button" variant={status===s?'default':'outline'} size="sm" onClick={()=>setStatus(s)}>{ql(s)}</Button>)}</div>} activeCount={Number(status !== 'All')} />)}
+   {isMobile ? <div className="sales-mobile-quote-records" aria-label={ql('Quotations')}>{filtered.map(q=><SalesMobileRecord key={q.id} reference={q.number} name={q.customerName} date={q.date}
+     status={<StatusBadge tone={statusTone[quoteDisplayStatus(q)]}>{ql(quoteDisplayStatus(q))}</StatusBadge>}
+     meta={<>{ql('Valid:')} {q.validUntil} · {q.lines.length} {ql('Items')}</>} amount={<>{ql('Total')} <strong className="text-ink">{taka(quoteTotal(q))}</strong></>} onOpen={()=>setDetailId(q.id)}
+     actions={<SalesMobileMore label={ql('Actions')+' '+q.number}>{close=><><Button variant="outline" size="sm" onClick={()=>{close();setDetailId(q.id);}}><FileText className="size-3.5"/>{ql('View')}</Button><Button variant="outline" size="sm" onClick={()=>{close();duplicate(q);}}><Copy className="size-3.5"/>{ql('Duplicate')}</Button></>}</SalesMobileMore>} />)}</div> : (<div className="overflow-x-auto">
     <Table><TableHeader><TableRow>
      <TableHead>{ql('Quote')}</TableHead><TableHead>{ql('Customer')}</TableHead><TableHead>{ql('Date / expiry')}</TableHead>
      <TableHead className="text-right">{ql("Items")}</TableHead><TableHead className="text-right">{ql("Total")}</TableHead>
@@ -256,14 +261,14 @@ export function Quotations(){
       </div></TableCell>
      </TableRow>;
     })}</TableBody></Table>
-   </div>
+   </div>)}
    {!filtered.length&&<div className="px-4 py-12 text-center text-sm text-ink-500">{ql("No matching quotations.")} <button className="text-teal-700 underline" onClick={()=>{setSearch('');setStatus('All');}}>{ql("Clear filters")}</button></div>}
    <div className="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-ink-500"><span>{ql("Showing")} {filtered.length} {ql("of")} {quotes.length}</span><span>{ql("Prices only · no financial posting")}</span></div>
   </div>
   {editorOpen&&<QuotationEditor key={editing?.id??'new'} open original={editing} onClose={()=>{setEditorOpen(false);setEditing(null);}}/>}
   <QuotationDetail quote={detail} onClose={()=>setDetailId(null)} onEdit={edit} onDuplicate={duplicate} onTransition={transition} onDelete={setDeleteTarget} onCreateOrder={q=>navigate('/app/online-sales?quote='+encodeURIComponent(q.id))}/>
   <Dialog open={Boolean(deleteTarget)} onOpenChange={value=>!value&&setDeleteTarget(null)}>
-   <DialogContent role="dialog" aria-label={ql("Confirm delete quotation")} className="sm:max-w-md">
+   <DialogContent role="dialog" aria-label={ql("Confirm delete quotation")} className="sales-mobile-dialog sm:max-w-md">
     <DialogHeader><DialogTitle>{ql("Delete draft quotation?")}</DialogTitle><DialogDescription>{deleteTarget?.number} {ql("will be deleted from the in-memory preview. This action cannot be undone.")}</DialogDescription></DialogHeader>
     <DialogFooter><Button variant="outline" onClick={()=>setDeleteTarget(null)}>{ql("Cancel")}</Button>
      <Button onClick={remove}>{ql("Delete draft")}</Button></DialogFooter>
