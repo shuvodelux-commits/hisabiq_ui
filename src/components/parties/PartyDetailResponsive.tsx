@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useEffect, useState } from 'react';
-import { FileText, HandCoins, MapPin, MessageSquare, MoreHorizontal, ArrowLeftRight, Clock, ChevronLeft, ChevronRight, Printer, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen, type LucideIcon } from 'lucide-react';
+import { FilePlus2, FileText, HandCoins, MapPin, MessageSquare, MoreHorizontal, ArrowLeftRight, Clock, ChevronLeft, ChevronRight, Printer, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen, type LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -320,7 +320,7 @@ export function PartyDetailResponsive({
             <HandCoins className="size-[18px]" />{payable ? text('Make payment', 'টাকা দিন') : text('Receive payment', 'টাকা নিন')}
           </Button>
           {relationship === 'Customer' ? <Button size="sm" variant="outline" className="min-h-11" disabled={relationship!=='Customer'||party.status==='Inactive'} onClick={onNewInvoice}>
-            <Plus className="size-4" />{text('New invoice','নতুন বিল')}
+            <FilePlus2 className="size-4" />{text('New invoice','নতুন বিল')}
           </Button> : <Button size="sm" variant="outline" className="min-h-11" onClick={() => setOpeningOpen(true)}>
             <BookOpen className="size-4" />{text('Opening balance', 'শুরুর জের')}
           </Button>}
@@ -352,7 +352,7 @@ export function PartyDetailResponsive({
         </> : (relationship==='Customer' || relationship==='Supplier') ? <>
           <Button size="sm" onClick={() => setPaymentOpen(true)}><HandCoins className="size-4" />{payable?text('Make payment','টাকা দিন'):text('Receive payment','টাকা নিন')}</Button>
           {relationship==='Customer' && <Button size="sm" variant="outline" onClick={onNewInvoice} disabled={relationship!=='Customer'||party.status==='Inactive'}>
-            <FileText className="size-4" />{text('New invoice','নতুন বিল')}
+            <FilePlus2 className="size-4" />{text('New invoice','নতুন বিল')}
           </Button>}
         </> : <Button size="sm" onClick={() => setFinanceOpen(true)}
           aria-label={text(`Record ${relationship.toLowerCase()} finance`, 'টাকা লেনদেন লিখুন')}>
@@ -395,7 +395,7 @@ export function PartyDetailResponsive({
           
             {t.label}
             {t.count !== undefined &&
-          <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{t.count}</span>
+          <span data-testid="party-tab-count" className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold transition-colors ${tab===t.id ? 'bg-teal-50 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200' : 'bg-ink-50 text-ink-500'}`}>{t.count}</span>
           }
           <MotionTabIndicator active={tab === t.id} /></button>
         )}
