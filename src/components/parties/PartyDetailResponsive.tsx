@@ -415,9 +415,10 @@ export function PartyDetailResponsive({
             <nav aria-label={text('Ledger pages','খাতার পাতা')} className="flex flex-col gap-3 border-t border-border px-4 py-3 text-[13px] text-ink-500 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
                 <span aria-live="polite">{text('Showing','দেখাচ্ছে')} {shownRows.length===0?0:(page-1)*pageSize+1}–{Math.min(page*pageSize,vendorProfile?shownFiltered.length:shownStatement.rows.length)} {text('of','মোট')} {vendorProfile?shownFiltered.length:shownStatement.rows.length} {text('dated transactions','টি তারিখসহ লেনদেন')}</span>
-                <div className="lg:hidden">
-                  <AppSelect compact label={text('Rows per page','প্রতি পাতায়')} value={String(pageSize)}
-                    options={['10','25','50','100']} onChange={value=>onPageSize(Number(value))}/>
+                <div className="flex items-center gap-2 lg:hidden">
+                  <span className="shrink-0 text-ink-500">{text('Rows','সারি')}</span>
+                  <AppSelect menuStyle="rows" label={text('Rows per page','প্রতি পাতায়')} value={String(pageSize)}
+                    options={['5','10','25','50','100']} onChange={value=>onPageSize(Number(value))}/>
                 </div>
               </div>
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex">
