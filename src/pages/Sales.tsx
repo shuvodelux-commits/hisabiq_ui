@@ -1231,8 +1231,10 @@ export function Sales() {
                     {visibleSalesColumns.customer && <TableCell className="py-2">
                       {invoice.partyId ? (
                         <button
+                          type="button"
+                          data-compact-control
                           onClick={(event) => { event.stopPropagation(); navigate(`/app/parties?id=${invoice.partyId}`); }}
-                          className="font-medium text-teal-700 hover:underline">
+                          className="inline p-0 align-baseline font-medium leading-5 text-teal-700 hover:underline">
                           {invoice.party}
                         </button>
                       ) : <p className="font-medium text-ink">{invoice.party}</p>}
