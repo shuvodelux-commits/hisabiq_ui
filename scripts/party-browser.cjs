@@ -63,6 +63,8 @@ async function main() {
     await page.getByRole('button',{name:'More actions'}).click();
     const actionSheet=page.getByRole('dialog',{name:'More actions'});
     await actionSheet.getByRole('button',{name:/opening balance/i}).waitFor();
+    const disabledRefund=actionSheet.getByRole('button',{name:/Refund credit/i});
+    assert.ok(await disabledRefund.isDisabled(),'Mobile More retains the existing verified-credit gate');
     await actionSheet.getByRole('button',{name:/Print statement/}).waitFor();
     await actionSheet.getByRole('button',{name:/Edit party/}).waitFor();
     await actionSheet.getByRole('button',{name:/Send statement/}).isDisabled().then(ok=>assert.ok(ok));
@@ -109,13 +111,30 @@ async function main() {
         assert.ok(await page.locator('p strong.text-emerald-700').isVisible(),`directory receivables are green at ${width}px`);
         assert.ok(await page.locator('p strong.text-danger').isVisible(),`directory payables are red at ${width}px`);
       }
+      if(width<768){
+        assert.ok(!(await page.getByTestId('party-last-activity').isVisible()),`Phone ${width}px hides last activity`);
+        const mobileActions=page.getByTestId('party-mobile-actions');
+        assert.equal(await mobileActions.locator('button:visible').count(),3,`Phone ${width}px shows only payment, invoice and More`);
+        assert.ok(await mobileActions.getByRole('button',{name:'Receive payment'}).isVisible(),`Phone ${width}px primary payment stays visible`);
+        assert.ok(await mobileActions.getByRole('button',{name:'New invoice'}).isVisible(),`Phone ${width}px invoice stays visible`);
+        assert.ok(await mobileActions.getByRole('button',{name:'More actions'}).isVisible(),`Phone ${width}px overflow is visible`);
+        assert.equal(await mobileActions.getByRole('button',{name:'Refund credit'}).count(),0,`Phone ${width}px refund is overflow-only`);
+        const card=page.locator('[data-testid="party-balance-card"]:visible').first();
+        assert.ok(await card.isVisible(),`Phone ${width}px balance tile is visible`);
+        assert.equal(await card.evaluate(el=>getComputedStyle(el).display),'grid',`Phone ${width}px balance tile is horizontal`);
+        const title=await card.locator('p').nth(0).boundingBox();
+        const amount=await card.locator('p').nth(1).boundingBox();
+        assert.ok(title&&amount&&amount.x>title.x+title.width-1,`Phone ${width}px amount sits to the right of the label`);
+      } else if(width<1024){
+        assert.ok(await page.getByTestId('party-last-activity').isVisible(),`Tablet ${width}px retains last activity`);
+      }
       if(width<1024){
-        assert.ok(await page.getByTestId('party-last-activity').isVisible(),`Last activity own line in responsive Party profile at ${width}px`);
         assert.ok(await page.locator('[data-testid="party-receivable-helper"]:visible').first().isVisible(),`Localized receivable explanation visible at ${width}px`);
       }
-      // Refund credit is a direct action; Opening balance remains in the More menu.
-      assert.ok(await page.getByRole('button',{name:'Refund credit'}).isVisible(),
-        `Refund credit is directly accessible at ${width}px`);
+      if(width>=768){
+        assert.ok(await page.getByRole('button',{name:'Refund credit'}).isVisible(),
+          `Refund credit remains a tablet/desktop direct action at ${width}px`);
+      }
       if(width>=768&&width<1024){
         assert.ok(await page.getByRole('button',{name:'Refund credit'}).isVisible(),
           `Refund credit replaces Opening balance in the tablet action row at ${width}px`);
