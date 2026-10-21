@@ -93,6 +93,33 @@ async function main() {
     await transaction.waitFor();
     await transaction.getByRole('button',{name:'Close'}).first().click();
 
+    // Screenshot-inspired Rows popup: rounded upward menu, checkmark, and real page-size updates.
+    const rowsControl=page.getByRole('combobox',{name:'Rows per page'});
+    await rowsControl.click();
+    const rowOptions=page.getByRole('listbox',{name:'Rows per page options'});
+    await rowOptions.waitFor();
+    assert.equal(await rowOptions.getAttribute('data-menu-style'),'rows');
+    for(const size of ['5','10','25','50','100']){
+      assert.ok(await rowOptions.getByRole('option',{name:size,exact:true}).isVisible(),`Rows popup offers ${size}`);
+    }
+    const rowsRect=await rowsControl.boundingBox();
+    const popupRect=await rowOptions.boundingBox();
+    assert.ok(rowsRect&&popupRect&&popupRect.y+popupRect.height<=rowsRect.y+4,
+      'Ledger Rows menu opens above the footer when there is no space below');
+    await rowOptions.getByRole('option',{name:'5',exact:true}).click();
+    assert.equal(await rowsControl.getAttribute('data-value'),'5','Rows changes actual pagination size');
+    await rowsControl.click();
+    const selectedFive=rowOptions.getByRole('option',{name:'5',exact:true});
+    assert.equal(await selectedFive.getAttribute('aria-selected'),'true','Rows selected state remains accessible');
+    assert.ok(await selectedFive.locator('svg').count()>0,'Selected Rows option displays a checkmark');
+    await rowOptions.getByRole('option',{name:'10',exact:true}).click();
+    assert.equal(await rowsControl.getAttribute('data-value'),'10');
+    await rowsControl.focus();
+    await page.keyboard.press('ArrowDown');
+    await rowOptions.waitFor();
+    await page.keyboard.press('Escape');
+    await rowOptions.waitFor({state:'hidden'});
+
     for(const width of [320,360,390,600,768,820,960,1000,1024,1280,1440]){
       await page.setViewportSize({width,height:900});
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
