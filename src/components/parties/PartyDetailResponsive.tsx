@@ -259,7 +259,7 @@ export function PartyDetailResponsive({
               <div className={isReceivable ? 'rounded-xl bg-teal-50 px-4 py-3 text-right' : currentBalance < 0 ? 'rounded-xl bg-danger-bg px-4 py-3 text-right' : 'rounded-xl bg-ink-50 px-4 py-3 text-right'}>
                 <p className={`text-[13px] font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-600"}`}>{balanceLabel}</p>
                 <p className={`mt-1 break-words text-[26px] font-semibold leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</p>
-                {relationship==='Customer'&&isReceivable&&<p className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400">
+                {relationship==='Customer'&&isReceivable&&<p data-testid="party-receivable-helper" className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400">
                   {text('They owe you','ক্রেতার কাছে পাওনা')}{showHelper&&<> · <span lang="bn" className="font-bn">ক্রেতার কাছে পাওনা</span></>}
                 </p>}
               </div>}
@@ -282,7 +282,7 @@ export function PartyDetailResponsive({
             <span className={`min-w-0 text-sm font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-700"}`}>{balanceLabel}</span>
             <span className="min-w-0 text-right">
               <strong className={`block break-words text-[22px] leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</strong>
-              {relationship==='Customer'&&isReceivable&&<span className="mt-0.5 block text-[11px] text-emerald-700 dark:text-emerald-400">
+              {relationship==='Customer'&&isReceivable&&<span data-testid="party-receivable-helper" className="mt-0.5 block text-[11px] text-emerald-700 dark:text-emerald-400">
                 {text('They owe you','ক্রেতার কাছে পাওনা')}{showHelper&&<> · <span lang="bn" className="font-bn">ক্রেতার কাছে পাওনা</span></>}
               </span>}
             </span>
