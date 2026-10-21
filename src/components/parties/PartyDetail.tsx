@@ -123,9 +123,12 @@ export function PartyDetail({
   const isReceivable = currentBalance > 0;
   const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
   const balanceLabel = relationship==='Owner'?text('Owner capital','মালিকের মূলধন'):
-    relationship==='Lender'?text('Lender loan','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
+    relationship==='Lender'?text('Lender payable','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
     relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
     relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
+  const payableBangla = showHelper ? (relationship==='Supplier' ? 'সরবরাহকারীকে দেনা' :
+    relationship==='Lender' ? 'ঋণদাতাকে দেনা' : null) : null;
+
 
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
@@ -160,6 +163,7 @@ export function PartyDetail({
         <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
           <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
             {balanceLabel}
+            {payableBangla && <span data-testid="party-payable-bangla" lang="bn" className="mt-0.5 block font-bn text-[11px] font-normal">{payableBangla}</span>}
           </p>
           <p className={`text-2xl font-semibold tabular-nums tracking-tight ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink'}`}>
             {taka(Math.abs(currentBalance))}
