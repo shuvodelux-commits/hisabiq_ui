@@ -60,6 +60,9 @@ async function main() {
     await choose.getByRole('option',{name:/CSV Supplier QA/}).click();
     await choose.waitFor({state:'hidden'});
     await page.getByRole('heading',{name:/CSV Supplier QA/}).waitFor();
+    // Verify the exact payable example on the seeded supplier; new imports start at zero.
+    await page.goto('http://127.0.0.1:4196/#/app/parties?id=s1&role=Supplier');
+    await page.getByRole('heading',{name:/Karim Traders/}).waitFor();
     // Supplier screenshot contract: compact horizontal owed-card plus just the three actions.
     const supplierCard=page.locator('[data-testid="party-balance-card"]:visible').first();
     assert.equal(await supplierCard.evaluate(el=>getComputedStyle(el).display),'grid');
