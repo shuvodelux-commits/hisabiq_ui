@@ -138,7 +138,11 @@ async function main() {
         assert.equal(await card.evaluate(el=>getComputedStyle(el).display),'grid',`Phone ${width}px balance tile is horizontal`);
         const title=await card.locator('p').nth(0).boundingBox();
         const amount=await card.locator('p').nth(1).boundingBox();
-        assert.ok(title&&amount&&amount.x>title.x+title.width-1,`Phone ${width}px amount sits to the right of the label`);
+        const cardRect=await card.boundingBox();
+        const columns=await card.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length);
+        assert.ok(columns>=2 && title&&amount&&cardRect &&
+          amount.x>title.x+12 && amount.x>=cardRect.x+cardRect.width*0.45,
+          `Phone ${width}px card has a left label and right-aligned amount`);
       } else if(width<1024){
         assert.ok(await page.getByTestId('party-last-activity').isVisible(),`Tablet ${width}px retains last activity`);
       }
