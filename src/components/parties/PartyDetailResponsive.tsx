@@ -126,7 +126,7 @@ export function PartyDetailResponsive({
    [{action:'view' as const,enabled:true},{action:'source' as const,enabled:true}]:actionsForRow(r);
 
   const tabs: {id: Tab;label: string;count?: number;}[] = [
-  { id: 'ledger', label: text('Ledger','খাতা') },
+  { id: 'ledger', label: text('Ledger','খাতা'), count: shownStatement.rows.length },
   { id: 'invoices', label:vendorProfile?text('Bills & Memos','বিল ও মেমো'):text('Invoices','বিল'), count:vendorProfile?vendorProfile.documents.length:invoices.length },
   { id: 'payments', label: text('Payments','পেমেন্ট'), count:vendorProfile?vendorProfile.payments.length:payments.length },
   { id: 'notes', label: text('Notes','মন্তব্য'), count: notes.length },
@@ -214,7 +214,7 @@ export function PartyDetailResponsive({
       transition={reduceMotion ? {duration:0} : {duration:0.22,ease:[0.32,0.72,0,1]}}
       className="min-w-0 rounded-xl border border-border bg-card shadow-card">
 
-      <header className="border-b border-border px-4 pb-4 pt-4 md:px-5 md:pt-5">
+      <header className="px-4 pb-3 pt-4 md:px-5 md:pb-2 md:pt-4">
         <div className="flex min-w-0 items-start gap-3 md:gap-4">
           <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52} />
           <div className="min-w-0 flex-1">
@@ -331,25 +331,32 @@ export function PartyDetailResponsive({
         </Button>
       </div>
 
-      <div className="hidden flex-wrap items-center gap-2 border-b border-border px-5 pb-4 md:flex">
+      <div className="hidden flex-wrap items-center gap-2 border-b border-border px-5 pb-3 pt-1 md:flex">
         {vendorProfile ? <>
           <Button size="sm" onClick={() => onOpenVendorWork?.('payments')}>{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}</Button>
           <Button size="sm" variant="outline" onClick={() => onOpenVendorWork?.('payments')}>{text('Receive Money', 'টাকা নিন')}</Button>
         </> : (relationship==='Customer' || relationship==='Supplier') ? <>
           <Button size="sm" onClick={() => setPaymentOpen(true)}><HandCoins className="size-4" />{payable?text('Make payment','টাকা দিন'):text('Receive payment','টাকা নিন')}</Button>
-          {relationship==='Customer' && <Button size="sm" variant="outline" onClick={onNewInvoice} disabled={party.status==='Inactive'}>
-            <Plus className="size-4" />{text('New invoice','নতুন বিল')}
+          {relationship==='Customer' && <Button size="sm" variant="outline" onClick={onNewInvoice} disabled={relationship!=='Customer'||party.status==='Inactive'}>
+            <FileText className="size-4" />{text('New invoice','নতুন বিল')}
           </Button>}
         </> : <Button size="sm" onClick={() => setFinanceOpen(true)}
           aria-label={text(`Record ${relationship.toLowerCase()} finance`, 'টাকা লেনদেন লিখুন')}>
           <HandCoins className="size-4" />{text('Finance transaction', 'অর্থের লেনদেন')}
         </Button>}
+        <Button size="sm" variant="outline" onClick={() => vendorProfile ? onOpenVendorWork?.('ledger') : setOpeningOpen(true)}
+          aria-label={existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')}>
+          <BookOpen className="size-4" />{text('Opening balance','শুরুর জের')}
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setTab('notes')}>
+          <StickyNote className="size-4" />{text('Add note','নোট যোগ করুন')}
+        </Button>
         <FloatingPanel width={280} align="right" label={text('More actions', 'আরও কাজ')}
           trigger={({toggle,open}) => <Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
             <MoreHorizontal className="size-4" />{text('More', 'আরও')}
           </Button>}>
           {close => <div className="p-1" role="menu" aria-label={text('More actions', 'আরও কাজ')}>
-            {menuActions.map(item => menuItem(item,close,'menu'))}
+            {menuActions.filter(item=>item.id!=='opening' && item.id!=='note').map(item => menuItem(item,close,'menu'))}
           </div>}
         </FloatingPanel>
       </div>
