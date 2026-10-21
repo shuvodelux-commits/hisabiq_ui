@@ -77,12 +77,13 @@ export function PartyBalanceCard({
     <p className={`mt-1 break-words font-semibold leading-tight tracking-tight ${compact ? 'text-[22px]' : 'text-[26px]'} ${colors.foreground}`}>
       {taka(Math.abs(amount))}
     </p>
-    <p data-testid="party-balance-helper" className={`mt-1 text-[11px] leading-snug ${colors.foreground}`}>
+    <p data-testid={relationship === 'Customer' && amount > 0 ? 'party-receivable-helper' : 'party-balance-helper'}
+      className={`mt-1 text-[11px] leading-snug ${colors.foreground}`}>
       {helper}
-      {showHelper && <> · <span lang="bn" className="font-bn">{data.hint[1]}</span></>}
+      {showHelper && <> · <span lang="bn" className="font-bn"
+        data-testid={(relationship === 'Supplier' || relationship === 'Lender') && amount < 0
+          ? 'party-payable-bangla' : undefined}>{data.hint[1]}</span></>}
     </p>
-    {showHelper && relationship && (relationship === 'Supplier' || relationship === 'Lender') && amount < 0 &&
-      <span data-testid="party-payable-bangla" className="sr-only" lang="bn">{data.hint[1]}</span>}
     {extra}
   </div>;
 }
