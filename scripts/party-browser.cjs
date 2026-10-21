@@ -13,6 +13,8 @@ async function main() {
     await page.goto('http://127.0.0.1:4196/#/app/parties');
     await page.getByRole('button',{name:/Add party/i}).click();
     const dialog=page.getByRole('dialog');
+    assert.equal(await dialog.getAttribute('data-modal-motion'),'reduced',
+      'Dialog instantly opens when reduced motion is requested');
     await dialog.getByLabel('Party name').fill('New Party QA');
     await dialog.getByLabel('Bangla name').fill('নতুন পার্টি');
     await dialog.getByLabel('Phone').fill('01799990000');
@@ -321,6 +323,24 @@ async function main() {
       await page.keyboard.press('Escape');
       await desktopPay.waitFor({state:'hidden'});
     }
+    // New browser context starts without reduced-motion: the same shared
+    // dialog opens with Magic Patterns motion and preserves Escape behavior.
+    const animatedPage=await browser.newPage({viewport:{width:390,height:820},
+      reducedMotion:'no-preference'});
+    const animatedErrors=[];
+    animatedPage.on('pageerror',error=>animatedErrors.push(error.message));
+    await animatedPage.goto('http://127.0.0.1:4196/#/app/parties?id=v1&role=Vendor');
+    await animatedPage.getByTestId('party-mobile-actions').getByRole('button',{name:'Pay Vendor'}).click();
+    const animatedModal=animatedPage.getByRole('dialog',{name:'Pay Vendor'});
+    await animatedModal.waitFor();
+    assert.equal(await animatedModal.getAttribute('data-modal-motion'),'magic-patterns',
+      'Framer Motion opens dialogs for users who permit animation');
+    await animatedPage.keyboard.press('Escape');
+    await animatedModal.waitFor({state:'hidden'});
+    assert.ok(await animatedPage.getByTestId('party-mobile-actions').getByRole('button',{name:'Pay Vendor'}).isVisible(),
+      'Party button is usable after modal closes');
+    assert.deepEqual(animatedErrors,[],'Framer entrance must not throw');
+    await animatedPage.close();
     assert.equal(errors.length,0,'browser page must not throw');
     console.log('Party profile browser flow passed');
   } finally {
