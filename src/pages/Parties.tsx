@@ -186,21 +186,27 @@ export function Parties() {
     }catch(error){toast.error(error instanceof Error?error.message:uiText('Note action failed','নোটের কাজ করা যায়নি'));throw error;}
   };
   return <div className="mx-auto min-w-0 max-w-[1440px] space-y-3 sm:space-y-4">
-    <div className="hidden md:block"><PageHeader title="Parties & Ledger" titleBn="পার্টি ও খাতা"
-      description={`${uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · ${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)} · ${uiText('preview','নমুনা')}`}
+    <div className="hidden md:block"><PageHeader compact title="Parties & Ledger" titleBn="পার্টি ও খাতা"
+      description={`${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)}`}
       descriptionContent={<>
-        {uiText('Everyone you deal with, in one place','যাদের সঙ্গে লেনদেন করেন, সবাই এক জায়গায়')} · {uiText('Directory receivables','মোট পাওনা')}{' '}
+        {uiText('Directory receivables','মোট পাওনা')}{' '}
         <strong className="font-semibold text-emerald-700 dark:text-emerald-400">{taka(receivable)}</strong>
         {' · '}{uiText('payables','মোট দেনা')}{' '}
         <strong className="font-semibold text-danger">{taka(payable)}</strong>
-        {' · '}{uiText('preview','নমুনা')}
       </>}
       actions={<>
-        <Button variant="outline" size="sm" onClick={()=>setImportOpen(true)}>
-          <Upload className="size-4"/> {uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}
+        <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap bg-white text-ink dark:bg-card" onClick={()=>setImportOpen(true)}
+          aria-label={uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}>
+          <Upload className="size-4 shrink-0"/>
+          <span aria-hidden="true" className="hidden min-[900px]:inline">{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}</span>
+          <span aria-hidden="true" className="min-[900px]:hidden">{uiText('Import','আমদানি')}</span>
         </Button>
-        <Button size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> {uiText('Add party','নতুন পার্টি যোগ করুন')}</Button>
-        {party&&<Button size="sm" variant="outline" onClick={requestChangeParty}><ArrowLeftRight className="size-4"/>{uiText('Change party','পার্টি বদলান')}</Button>}
+        <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap bg-white text-ink dark:bg-card" onClick={()=>setEditing(null)}>
+          <Plus className="size-4 shrink-0"/>{uiText('Add party','নতুন পার্টি যোগ করুন')}
+        </Button>
+        {party&&<Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap bg-white text-ink dark:bg-card" onClick={requestChangeParty}>
+          <ArrowLeftRight className="size-4 shrink-0"/>{uiText('Change party','পার্টি বদলান')}
+        </Button>}
       </>} /></div>
     <h1 className="sr-only md:hidden">{uiText('Parties & Ledger','পার্টি ও খাতা')}</h1>
     {!party && <div className="flex flex-wrap justify-end gap-2 md:hidden">
