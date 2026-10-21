@@ -35,7 +35,7 @@ async function main(){
     // Opening balance is now an overflow action; Refund credit takes the visible slot.
     await page.getByRole('button',{name:label('More actions','আরও কাজ')}).click();
     const more=page.getByRole('dialog',{name:label('More actions','আরও কাজ')});
-    await more.getByRole(width<768?'button':'menuitem',{name:bn?/শুরুর জের/:/Opening balance/}).click();
+    await more.getByRole(width<768?'button':'menuitem',{name:bn?/শুরুর জের/:/opening balance/i}).click();
     const opening=page.getByRole('dialog',{name:label('Party opening balance','পার্টির শুরুর জের')});
     await opening.getByRole('textbox',{name:label('Opening balance amount','শুরুর জেরের টাকা')}).waitFor();
     await opening.getByText(label('Opening balance changes the ledger only.','শুরুর জের শুধু খাতার হিসাব বদলায়।'),{exact:false}).waitFor();
