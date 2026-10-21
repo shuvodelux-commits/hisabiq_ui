@@ -83,12 +83,29 @@ async function main() {
       assert.ok(overflow<=4,`Party ${width}px should not overflow horizontally (extra ${overflow}px)`);
       assert.equal(await page.getByRole('list',{name:'Transactions'}).isVisible(),width<768,`Party ${width}px uses transaction feed only on phones`);
       assert.equal(await page.locator('table').first().isVisible(),width>=768,`Party ${width}px uses compact ledger table on tablet/desktop`);
-      assert.equal(await page.getByRole('button',{name:'Change party'}).count()>0,width<1024,`Change Party control only on phone/tablet at ${width}px`);
+      assert.ok(await page.getByRole('button',{name:'Change party'}).isVisible(),`Change Party control is reachable at ${width}px`);
+      if(width>=768){
+        assert.ok(await page.getByRole('heading',{name:'Parties & Ledger'}).isVisible(),`Party page title stays visible at ${width}px`);
+        assert.ok(await page.getByRole('button',{name:'Add party'}).isVisible(),`Add party stays beside Change party at ${width}px`);
+        assert.ok(await page.locator('p strong.text-emerald-700').isVisible(),`directory receivables are green at ${width}px`);
+        assert.ok(await page.locator('p strong.text-danger').isVisible(),`directory payables are red at ${width}px`);
+      }
       if(width>=768&&width<1024){
         assert.ok(await page.getByRole('button',{name:/Opening balance/i}).isVisible(),`Opening balance in tablet action row at ${width}px`);
         assert.ok(await page.getByRole('button',{name:'Add note'}).isVisible(),`Add note in tablet action row at ${width}px`);
         assert.ok(await page.getByRole('button',{name:'More'}).isVisible(),`More overflow action on tablet at ${width}px`);
         assert.ok(await page.getByText('Period debit').first().isVisible(),`period totals above the tablet ledger at ${width}px`);
+        const rowHeight=await page.locator('table tbody tr').first().evaluate(row=>row.getBoundingClientRect().height);
+        assert.ok(rowHeight<=70,`tablet ${width}px ledger rows must be compact, got ${rowHeight}px`);
+        await page.getByRole('button',{name:'Change party'}).click();
+        await page.getByRole('dialog',{name:'Change party'}).waitFor();
+        await page.keyboard.press('Escape');
+        await page.getByRole('dialog',{name:'Change party'}).waitFor({state:'hidden'});
+      }
+      if(width>=1024){
+        await page.getByRole('button',{name:'Change party'}).click();
+        assert.ok(await page.getByRole('textbox',{name:'Search parties'}).evaluate(el=>document.activeElement===el),
+          `desktop ${width}px Change Party focuses the existing directory`);
       }
     }
     assert.equal(errors.length,0,'browser page must not throw');
