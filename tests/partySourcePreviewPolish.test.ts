@@ -47,3 +47,18 @@ test('Attachment quick preview offers image/PDF rendering and safe file URLs', (
   assert.ok(party.includes('receiptByPurchase'));
   assert.ok(party.includes('attachment:source.kind'));
 });
+
+test('Ledger amount colors are neutral while semantic movement icons are colored on every viewport', () => {
+  const renderer = read('src/components/parties/LedgerImpactAmount.tsx');
+  for(const kind of ["in: 'text-emerald-700", "out: 'text-rose-700", "adjustment: 'text-amber-700",
+    "due: 'text-ink-400", "opening: 'text-ink-400"]) {
+    assert.ok(renderer.includes(kind), 'Icon mapping ' + kind);
+  }
+  assert.ok(renderer.includes('font-semibold leading-tight text-ink'),'Money amount has neutral ink');
+  assert.ok(renderer.includes('font-normal leading-tight text-ink-500'),'Caption has muted neutral ink');
+  const desktop=read('src/components/parties/LedgerTable.tsx');
+  const tablet=read('src/components/parties/LedgerTableResponsive.tsx');
+  assert.ok(desktop.includes('<LedgerImpactAmount'),'Desktop uses shared semantic movement presentation');
+  assert.ok(tablet.includes('<LedgerImpactAmount'),'Tablet and phone use shared semantic movement presentation');
+  assert.ok(!tablet.includes('<CompactAmount'),'Plain tablet amount renderer is no longer used');
+});
