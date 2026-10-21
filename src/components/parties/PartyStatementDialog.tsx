@@ -1,3 +1,4 @@
+import { PartyClosingBalance } from './PartyClosingBalance';
 import { Download, Printer } from 'lucide-react';
 import { Button } from '../Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../Dialog';
@@ -67,7 +68,7 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
         <div className="ml-auto max-w-sm space-y-1 border-t border-border pt-2 text-xs">
           <div className="flex justify-between"><span>{text('Period debit','এই সময়ের ডেবিট')}</span><strong>{formatMoneyNumber(statement.periodDebit)}</strong></div>
           <div className="flex justify-between"><span>{text('Period credit','এই সময়ের ক্রেডিট')}</span><strong>{formatMoneyNumber(statement.periodCredit)}</strong></div>
-          <div className="flex justify-between border-t border-border pt-2 text-sm font-semibold"><span>{text('Closing balance','শেষ জের')}</span><span>৳{formatMoneyNumber(statement.closingBalance)}</span></div>
+          <PartyClosingBalance balance={statement.closingBalance} relationship={statement.relationship} compact />
         </div>
       </div>
       <div className="flex flex-wrap justify-end gap-2 party-statement-controls">

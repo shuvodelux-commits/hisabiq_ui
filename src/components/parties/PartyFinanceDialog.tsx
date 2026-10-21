@@ -18,14 +18,14 @@ import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeLabel} from '../../i18n/financeCopy';
 import {partyFinancialErrorText} from '../../i18n/partyFinancialCopy';
 
-type Props={open:boolean;party:Party;relationship:FinanceRole;onClose:()=>void;onSubmit:(payload:PartyFinancePayload)=>void};
+type Props={open:boolean;party:Party;relationship:FinanceRole;initialType?:FinanceTransactionType;onClose:()=>void;onSubmit:(payload:PartyFinancePayload)=>void};
 const available:Record<FinanceRole,FinanceTransactionType[]>={
  Owner:['Owner Credit','Owner Debit','Opening Owner Capital'],
  Lender:['Lender Credit','Lender Debit','Opening Loan'],
  Borrower:['Borrower Debit','Borrower Credit','Opening Borrower Loan']
 };
 const initial=():FinancePaymentDraft[]=>[{id:'cash-1',method:'Cash',accountId:'acc-cash',amount:''}];
-export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Props){
+export function PartyFinanceDialog({open,party,relationship,initialType,onClose,onSubmit}:Props){
  const {text,language,showHelper}=useUiCopy();
  const [type,setType]=useState<FinanceTransactionType>(available[relationship][0]);
  const [date,setDate]=useState(businessToday());
@@ -36,9 +36,9 @@ export function PartyFinanceDialog({open,party,relationship,onClose,onSubmit}:Pr
  const [review,setReview]=useState(false);
  const [error,setError]=useState('');
  useEffect(()=>{
-  if(open){setType(available[relationship][0]);setDate(businessToday());setAmount('');
+  if(open){setType(initialType&&available[relationship].includes(initialType)?initialType:available[relationship][0]);setDate(businessToday());setAmount('');
    setSplits(initial());setReference('');setNote('');setReview(false);setError('');}
- },[open,party.id,relationship]);
+ },[open,party.id,relationship,initialType]);
  const meta=financeTypeMeta[type];
  const opening=!!meta?.opening;
  const money=Number(amount);

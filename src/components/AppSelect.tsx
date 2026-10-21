@@ -15,15 +15,18 @@ type Props = {
   disabled?: boolean;
   placeholder?: string;
   compact?: boolean;
+  /** Roomier ledger page-size popup, keeping the same keyboard and onChange behavior. */
+  menuStyle?: 'default' | 'rows';
   id?: string;
   describedBy?: string;
 };
 
 /** Theme-token select. Unlike a native option popup, the menu matches both ERP themes. */
 export function AppSelect({
-  label, value, options, onChange, className = '', disabled = false, placeholder = 'Select…', compact = false, id: triggerId, describedBy
+  label, value, options, onChange, className = '', disabled = false, placeholder = 'Select…', compact = false, menuStyle = 'default', id: triggerId, describedBy
 }: Props) {
   const [open, setOpen] = useState(false);
+  const rowsStyle = menuStyle === 'rows';
   const [active, setActiveState] = useState(0);
   const activeRef = useRef(0);
   const setActive = (next: React.SetStateAction<number>) => {
@@ -50,11 +53,11 @@ export function AppSelect({
       if (!anchor) return;
       const availableBelow = window.innerHeight - anchor.bottom - 12;
       const availableAbove = anchor.top - 12;
-      const height = Math.min(options.length * 36 + 8, 264);
+      const height = Math.min(options.length * (rowsStyle ? 52 : 36) + 12, rowsStyle ? 284 : 264);
       const up = availableBelow < Math.min(160, height) && availableAbove > availableBelow;
       const maxHeight = Math.max(100, Math.min(height, up ? availableAbove : availableBelow));
       const top = up ? Math.max(8, anchor.top - maxHeight - 4) : anchor.bottom + 4;
-      const width = Math.max(anchor.width, 120);
+      const width = Math.max(anchor.width, rowsStyle ? 206 : 120);
       const left = Math.min(Math.max(8, anchor.left), window.innerWidth - Math.min(width, window.innerWidth - 16) - 8);
       setRect({ top, left, width: Math.min(width, window.innerWidth - 16), maxHeight });
     };
@@ -62,7 +65,7 @@ export function AppSelect({
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, true);
     return () => { window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true); };
-  }, [open, options.length]);
+  }, [open, options.length, rowsStyle]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
@@ -122,14 +125,19 @@ export function AppSelect({
           if (!open) setActive(Math.max(0, chosen));
           setOpen((v) => !v);
         }}
-        className={'flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-input bg-card px-3 text-left text-sm text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/20 disabled:opacity-50 ' + (compact ? 'border-0 bg-transparent px-2 shadow-none' : '')}
+        className={'flex h-9 w-full min-w-0 items-center justify-between gap-2 border border-input bg-card px-3 text-left text-sm text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/20 disabled:opacity-50 ' +
+          (rowsStyle
+            ? 'min-w-[88px] rounded-lg border-border bg-white dark:bg-card ' + (open ? 'border-teal-600 ring-2 ring-teal-500/15 ' : '')
+            : 'rounded-md ' + (compact ? 'border-0 bg-transparent px-2 shadow-none ' : ''))}
       >
         <span className="truncate">{currentLabel ? optionLabel(currentLabel) : value || placeholder}</span>
-        <ChevronDown className="size-4 shrink-0 text-ink-400" aria-hidden="true" />
+        <ChevronDown className={'size-4 shrink-0 text-ink-400 transition-transform ' + (rowsStyle && open ? 'rotate-180' : '')} aria-hidden="true" />
       </button>
       {open && typeof document !== 'undefined' && createPortal(
         <div ref={menu} id={id} role="listbox" aria-label={label + ' options'}
-          className="fixed z-[160] overflow-auto rounded-lg border border-border bg-popover p-1 text-ink shadow-xl scrollbar-thin"
+          data-menu-style={menuStyle}
+          className={'fixed z-[160] overflow-auto border border-border bg-popover text-ink shadow-xl scrollbar-thin ' +
+            (rowsStyle ? 'rounded-2xl p-1.5 shadow-[0_12px_28px_rgba(14,31,51,0.15)]' : 'rounded-lg p-1')}
           style={{ top: rect?.top ?? 0, left: rect?.left ?? 0, width: rect?.width ?? 160,
             maxHeight: rect?.maxHeight ?? 260, visibility: rect ? 'visible' : 'hidden' }}
         >
@@ -139,11 +147,16 @@ export function AppSelect({
               onPointerDown={(event) => event.preventDefault()}
               onPointerMove={() => setActive(index)}
               onClick={() => choose(option)}
-              className={'flex min-h-9 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] outline-none hover:bg-teal-50 hover:text-teal-700 ' +
-                (active === index ? 'bg-teal-50 text-teal-700' : '')}
+              className={'flex w-full items-center gap-2 text-left outline-none ' +
+                (rowsStyle
+                  ? 'min-h-[48px] rounded-xl px-3 text-[15px] hover:bg-ink-50 dark:hover:bg-ink-100/10 ' +
+                    (active === index ? 'bg-ink-50 dark:bg-ink-100/10 ' : '') +
+                    (value === optionValue(option) ? 'font-medium text-teal-800 dark:text-teal-400 ' : 'text-ink ')
+                  : 'min-h-9 rounded-md px-2 py-1.5 text-[13px] hover:bg-teal-50 hover:text-teal-700 ' +
+                    (active === index ? 'bg-teal-50 text-teal-700' : ''))}
             >
               <span className="min-w-0 flex-1 truncate">{optionLabel(option)}</span>
-              {value === optionValue(option) && <Check className="size-3.5 shrink-0 text-teal-600" aria-hidden="true" />}
+              {value === optionValue(option) && <Check className={rowsStyle ? 'size-[18px] shrink-0 text-teal-700' : 'size-3.5 shrink-0 text-teal-600'} aria-hidden="true" />}
             </button>
           ))}
           {options.length === 0 && <div className="p-2 text-xs text-ink-400">No options</div>}

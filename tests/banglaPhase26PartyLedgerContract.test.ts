@@ -19,7 +19,9 @@ test('Party ledger translations preserve source names, row identity and accounti
   "row.attachment.name","onAction={onAction}","actionsForRow(row)","'Dr':'Cr'"
  ])assert.ok(table.includes(expression),expression);
  assert.match(table,/partyLedgerSourceLabel\(language,row.source\)/);
- assert.match(table,/partyLedgerCaption\(language,row,info.label,info.kind\)/);
+ const shared=src('src/components/parties/LedgerImpactAmount.tsx');
+ assert.match(shared,/partyLedgerCaption\(language, row, info.label, info.kind\)/);
+ assert.ok(table.includes('LedgerImpactAmount'),'Desktop reuses the shared translated amount renderer');
  assert.ok(table.includes("useUiCopy()"));
 });
 test('Party ledger action menu translates labels without altering permissions or callbacks',()=>{

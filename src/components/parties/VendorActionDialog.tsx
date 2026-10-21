@@ -3,6 +3,7 @@ import {Plus,Trash2} from 'lucide-react';
 import {Button} from '../Button';
 import {Input} from '../Input';
 import {AppSelect} from '../AppSelect';
+import {AppDatePicker} from '../AppDateRangePicker';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '../Dialog';
 import {taka} from '../../utils/currency';
 import {businessToday} from '../../utils/dateRange';
@@ -32,13 +33,15 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
  const [qty,setQty]=useState('');
  const [splits,setSplits]=useState<SplitDraft[]>([{id:'primary',accountId:defaultAccount,amount:''}]);
  const [error,setError]=useState('');
+ const [date,setDate]=useState(businessToday());
+ const [note,setNote]=useState('');
  const isMoney=mode==='pay'||mode==='receive-money';
  const outstanding=source?sourceOutstanding(getVendorPreviewSnapshot(),source.id):null;
  const duePaisa=outstanding?.monetaryDuePaisa??0;
  // A source/mode change resets the form. The full amount is suggested but editable.
  useEffect(()=>{
   const active=source?sourceOutstanding(getVendorPreviewSnapshot(),source.id).monetaryDuePaisa:0;
-  setPrice('');setQty('');setError('');
+  setPrice('');setQty('');setError('');setDate(businessToday());setNote('');
   setSplits([{id:'primary',accountId:defaultAccount,amount:
     (mode==='pay'||mode==='receive-money')&&active?String(active/100):''}]);
  },[source?.id,mode]);
@@ -54,7 +57,7 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
    if(mode==='quote'){
     dispatchVendorPreview({type:'set-source-price',operationId:op,vendorPartyId:source.vendorPartyId,
      sourceId:source.id,unitCostBasePaisa:toPaisa(price,'Vendor unit cost'),
-     date:businessToday(),reason:'Agreed Vendor price'});
+     date:date,reason:'Agreed Vendor price'});
    }else if(mode==='pay'||mode==='receive-money'||mode==='return'||mode==='receive-goods'){
     const count=isMoney?undefined:Number(qty);
     if(!isMoney&&(!Number.isFinite(count)||count!<=0))
@@ -75,9 +78,9 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
      mode==='receive-goods'?'receive-goods':mode;
     dispatchVendorPreview({type:'settle-source',operationId:op,vendorPartyId:source.vendorPartyId,
      side:kind==='pay'||kind==='return-to-vendor'?'payable':'receivable',
-     kind,date:businessToday(),amountPaisa:paidPaisa??returnPaisa,
+     kind,date,amountPaisa:paidPaisa??returnPaisa,
      allocations:[{sourceId:source.id,amountPaisa:paidPaisa??returnPaisa,baseQty:count}],
-     paymentSplits,reason:isMoney?'Vendor cash settlement':'Matching products returned'});
+     paymentSplits,reason:note.trim()||(isMoney?'Vendor cash settlement':'Matching products returned')});
    }
    setError('');onClose();
   }catch(err){setError(err instanceof Error?err.message:'Vendor action failed.');}
@@ -112,6 +115,10 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
     {isMoney&&<>
       <div className="flex items-center justify-between gap-2">
        <span className="text-xs font-semibold text-ink">Payment Accounts <span className="font-bn font-normal text-ink-500">· পেমেন্টের মাধ্যম</span></span>
+       {splits.length===1&&<Button type="button" size="sm" variant="outline"
+        onClick={()=>setSplits([{id:'primary',accountId:splits[0]?.accountId??defaultAccount,amount:String(duePaisa/100)}])}>
+        Use full amount · পুরো টাকা
+       </Button>}
       </div>
       <div className="space-y-2">
        {splits.map((split,i)=><div key={split.id} className="grid grid-cols-[minmax(0,1fr)_minmax(95px,120px)_auto] items-center gap-2">
@@ -128,6 +135,17 @@ export function VendorActionDialog({source,mode='details',onClose,inline=false}:
        <Button type="button" size="sm" variant="outline" onClick={()=>setSplits(prev=>[
         ...prev,{id:'split-'+Date.now()+'-'+prev.length,accountId:defaultAccount,amount:''}])}>
         <Plus className="size-3.5"/> Add account</Button>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block space-y-1.5 text-xs font-medium text-ink">
+          Date · তারিখ
+          <AppDatePicker label="Vendor settlement date" value={date} onChange={setDate}/>
+        </label>
+        <label className="block space-y-1.5 text-xs font-medium text-ink">
+          Note (optional) · মন্তব্য
+          <Input aria-label="Vendor settlement note" value={note} onChange={e=>setNote(e.target.value)}
+           placeholder="e.g. bKash TrxID"/>
+        </label>
       </div>
       <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-ink-50/40 p-3 text-xs">
        <div><span className="block text-ink-500">Total {mode==='receive-money'?'received':'paid'}</span>

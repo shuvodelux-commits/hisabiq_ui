@@ -34,7 +34,7 @@ export function PartyLedgerToolbar({range,onRange,kind,onKind,query,onQuery,page
       <Input aria-label={text("Search ledger transactions","খাতার লেনদেন খুঁজুন")} value={query} onChange={event=>onQuery(event.target.value)}
         placeholder={text("Search reference or note","নম্বর বা মন্তব্য খুঁজুন")} className="pl-8"/>
     </div>
-    <AppSelect compact label={text("Rows per page","প্রতি পাতায়")} value={String(pageSize)} options={['10','25','50','100']}
+    <AppSelect menuStyle="rows" label={text("Rows per page","প্রতি পাতায়")} value={String(pageSize)} options={['5','10','25','50','100']}
       onChange={value=>onPageSize(Number(value))}/>
     <Button size="sm" variant="outline" onClick={onReset} title={text("Clear filters","ফিল্টার মুছুন")}><RotateCcw className="size-3.5"/> {text('Clear filters','ফিল্টার মুছুন')}</Button>
     <Button size="sm" variant="outline" onClick={onStatement}><Printer className="size-3.5"/> {text('Print statement','হিসাব প্রিন্ট')}</Button>

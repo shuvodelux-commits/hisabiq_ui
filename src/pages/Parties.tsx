@@ -105,12 +105,17 @@ export function Parties() {
       type:ledgerType(source.kind),ref:source.reference,description:source.description,
       debit:source.debit,credit:source.credit})):[];
 
+  const receiptByPurchase = new Map(availablePurchases()
+    .filter(purchase => Boolean(purchase.receipt))
+    .map(purchase => [purchase.ref, purchase.receipt!] as const));
   const normalizedRows:PartyLedgerRow[]=state.sources.map(source=>({
     id:source.id,partyId:source.partyId,relationship:source.relationship,
     source:source.kind,sourceId:source.id,reference:source.reference,
     date:source.date,description:source.description,debit:source.debit,credit:source.credit,
     sequence:source.sequence,status:source.status,amountPaid:source.amountPaid,
-    discount:source.discount,method:source.method,accountId:source.accountId,financeType:source.financeType
+    discount:source.discount,method:source.method,accountId:source.accountId,financeType:source.financeType,
+    attachment:source.kind==='purchase' && source.reference && receiptByPurchase.get(source.reference)
+      ? {name:source.reference+' receipt',url:receiptByPurchase.get(source.reference)} : undefined
   }));
   const statement=party&&relationship
     ? projectPartyStatement(normalizedRows,party.id,relationship,range)
