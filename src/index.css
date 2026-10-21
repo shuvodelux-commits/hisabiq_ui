@@ -26,6 +26,13 @@
   #root {
     min-height: 100%;
   }
+  /* A ledger tab can be taller than the viewport while another tab is short.
+     Likewise a modal hides body overflow. Reserve the same scrollbar gutter in
+     both states so the ERP header, tables and centred dialogs never jump sideways.
+     Overlay-scrollbar browsers (including most phones) reserve no extra width. */
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Geist', 'Hind Siliguri', system-ui, sans-serif;
@@ -63,6 +70,7 @@
 
 /* Isolate the selected party ledger in the browser's Print/Save as PDF dialog. */
 @media print {
+  html { scrollbar-gutter: auto; }
   @page { size: A4 portrait; margin: 12mm; }
   body * { visibility: hidden !important; }
   #party-statement-print, #party-statement-print * { visibility: visible !important; }

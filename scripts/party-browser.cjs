@@ -10,6 +10,51 @@ async function main() {
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   try {
+    // Detect horizontal layout shifts caused by disappearing scrollbars when
+    // a long Party ledger switches to a short tab or a modal locks the body.
+    // The header and workspace must keep EXACTLY the same width at each step.
+    const geometryPage=await browser.newPage({viewport:{width:1440,height:620},
+      reducedMotion:'reduce'});
+    const geometryErrors=[];
+    geometryPage.on('pageerror',e=>geometryErrors.push(e.message));
+    const layout=()=>geometryPage.evaluate(()=>{
+      const root=document.querySelector('.erp-workspace');
+      const header=document.querySelector('header[data-print-hide]');
+      const rect=root.getBoundingClientRect(),top=header.getBoundingClientRect();
+      return {width:rect.width,x:rect.x,headerX:top.x,headerWidth:top.width,
+        viewport:window.innerWidth,client:document.documentElement.clientWidth,
+        gutter:getComputedStyle(document.documentElement).scrollbarGutter,
+        scrolling:document.documentElement.scrollHeight>window.innerHeight+8};
+    });
+    const stable=(before,after,context)=>{
+      for(const key of ['width','x','headerX','headerWidth','client'])
+        assert.ok(Math.abs(after[key]-before[key])<=1,
+          context+': '+key+' shifted '+before[key]+' → '+after[key]);
+    };
+    await geometryPage.goto('http://127.0.0.1:4196/#/app/parties?id=c1&role=Customer');
+    await geometryPage.getByRole('tab',{name:/Ledger/}).waitFor();
+    const initial=await layout();
+    assert.equal(initial.gutter,'stable','Root reserves permanent scrollbar gutter');
+    assert.ok(initial.scrolling,'Desktop ledger is longer than the test viewport');
+    await geometryPage.getByRole('tab',{name:/Notes/}).click();
+    const shortTab=await layout();
+    stable(initial,shortTab,'Ledger to Notes');
+    await geometryPage.getByRole('tab',{name:/Invoices/}).click();
+    stable(initial,await layout(),'Notes to Invoices');
+    await geometryPage.getByRole('tab',{name:/Ledger/}).click();
+    stable(initial,await layout(),'Invoices to Ledger');
+    await geometryPage.getByRole('button',{name:'Receive payment'}).first().click();
+    const paymentModal=geometryPage.locator('[data-dialog-root]').first();
+    await paymentModal.waitFor();
+    assert.equal(await geometryPage.evaluate(()=>document.body.style.overflow),'hidden');
+    stable(initial,await layout(),'Opening payment modal');
+    await geometryPage.keyboard.press('Escape');
+    await paymentModal.waitFor({state:'hidden'});
+    stable(initial,await layout(),'Closing payment modal');
+    assert.notEqual(await geometryPage.evaluate(()=>document.body.style.overflow),'hidden');
+    assert.deepEqual(geometryErrors,[],'No errors during tab/modal transitions');
+    await geometryPage.close();
+
     await page.goto('http://127.0.0.1:4196/#/app/parties');
     await page.getByRole('button',{name:/Add party/i}).click();
     const dialog=page.getByRole('dialog');
@@ -259,7 +304,14 @@ async function main() {
         await actions.getByRole('button',{name:label,exact:true}).click();
         const dialog=page.getByRole('dialog',{name:'Party finance transaction'});
         await dialog.waitFor();
-        assert.equal(await dialog.getByRole('combobox',{name:'Finance transaction type'}).getAttribute('data-value'),
+        // Finance dialog initializes its type in a React effect after becoming
+        // visible. Check the settled value, not its transient previous selection.
+        const typeSelect=dialog.getByRole('combobox',{name:'Finance transaction type'});
+        await page.waitForFunction((expected) => {
+          const selector=document.querySelector('[role="dialog"][aria-label="Party finance transaction"] [role="combobox"][aria-label="Finance transaction type"]');
+          return selector?.getAttribute('data-value')===expected;
+        },financeType,{timeout:3000});
+        assert.equal(await typeSelect.getAttribute('data-value'),
           financeType,fixture.role+' '+label+' selects audited '+financeType);
         await dialog.getByRole('button',{name:'Cancel'}).click();
         await dialog.waitFor({state:'hidden'});

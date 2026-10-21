@@ -113,7 +113,7 @@ test('Shared ERP Dialog adopts Magic Patterns Framer Motion entrance without cha
     'opacity:[0,1],marginTop:[24,0]', 'duration:0.22,ease:easing',
     'animate(backdrop,{opacity:[0,1]},{duration:0.18})',
     "data-modal-motion={reduceMotion?'reduced':'magic-patterns'}",
-    'DesignContent {...props}', 'scrollLocks++', 'previous.focus()',
+    'DesignContent {...props}', 'lockBodyScroll()', 'previous.focus({preventScroll:true})',
     "event.key==='Escape'", "event.key!=='Tab'"]) {
     assert.ok(dialog.includes(source), 'Dialog preserves semantics and motion: '+source);
   }

@@ -27,6 +27,7 @@ import { useCashSession } from '../../contexts/CashSessionContext';
 import { notifications } from '../../data/dashboard';
 import { taka } from '../../utils/currency';
 import { useUiCopy } from '../../i18n/useUiCopy';
+import { lockBodyScroll } from '../../utils/bodyScrollLock';
 
 /** Presentation copy for static, preview-only notification fixtures. */
 const notificationBangla: Record<string, { title: string; body: string; time: string }> = {
@@ -75,14 +76,13 @@ export function TopBar() {
   const navDialog = useRef<HTMLDivElement>(null);
   const closeMobileNav = () => {
     setNavOpen(false);
-    navTrigger.current?.focus();
+    navTrigger.current?.focus({ preventScroll: true });
   };
 
   // A modal sidebar must lock background scrolling and keep keyboard focus inside it.
   useEffect(() => {
     if (!navOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const releaseScrollLock = lockBodyScroll();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -105,7 +105,7 @@ export function TopBar() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [navOpen]);
