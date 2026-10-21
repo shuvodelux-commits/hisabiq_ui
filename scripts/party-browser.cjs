@@ -263,14 +263,64 @@ async function main() {
         await dialog.waitFor({state:'hidden'});
       }
     }
-    // Vendor pay and receive must take DIFFERENT existing workspace routes.
+    // Vendor Pay and Receive stay in Parties. The existing source-linked form performs settlement.
     await page.goto('http://127.0.0.1:4196/#/app/parties?id=v1&role=Vendor');
     await page.getByRole('heading',{name:'Shapla Transport'}).waitFor();
-    await page.getByTestId('party-mobile-actions').getByRole('button',{name:'Receive Money'}).click();
-    assert.match(page.url(),/\/app\/vendors.*tab=given/,'Vendor receive opens receivable workspace');
-    await page.goto('http://127.0.0.1:4196/#/app/parties?id=v1&role=Vendor');
+    const vendorActions=page.getByTestId('party-mobile-actions');
+    await vendorActions.getByRole('button',{name:'Pay Vendor'}).click();
+    const noPay=page.getByRole('dialog',{name:'Pay Vendor'});
+    await noPay.waitFor();
+    assert.match(page.url(),/\/app\/parties/,'Pay Vendor remains in Party module');
+    assert.ok(await noPay.getByText('No priced outstanding Vendor memo for this action.',{exact:false}).isVisible(),
+      'Unpriced goods cannot be paid without setting their price');
+    await page.keyboard.press('Escape');
+    await noPay.waitFor({state:'hidden'});
+    await vendorActions.getByRole('button',{name:'Receive Money'}).click();
+    const receiveDialog=page.getByRole('dialog',{name:'Receive Money'});
+    await receiveDialog.waitFor();
+    assert.match(page.url(),/\/app\/parties/,'Receive Money remains in Party module');
+    assert.ok(await receiveDialog.getByRole('combobox',{name:'Vendor settlement memo'}).isVisible(),
+      'In-modal Vendor memo selector is available');
+    assert.equal(await receiveDialog.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'128',
+      'Receive defaults to full outstanding memo balance');
+    await receiveDialog.getByRole('textbox',{name:'Split amount 1'}).fill('20');
+    await receiveDialog.getByRole('button',{name:'Save Receipt'}).click();
+    await receiveDialog.waitFor({state:'hidden'});
+    assert.match(page.url(),/\/app\/parties/,'Saving Vendor receipt does not navigate away');
+    await vendorActions.getByRole('button',{name:'Receive Money'}).click();
+    const reducedDialog=page.getByRole('dialog',{name:'Receive Money'});
+    await reducedDialog.waitFor();
+    assert.equal(await reducedDialog.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'108',
+      'Vendor receipt changes the real remaining due in the preview store');
+    await page.keyboard.press('Escape');
+    await reducedDialog.waitFor({state:'hidden'});
+    await page.goto('http://127.0.0.1:4196/#/app/parties?id=s3&role=Vendor');
     await page.getByTestId('party-mobile-actions').getByRole('button',{name:'Pay Vendor'}).click();
-    assert.match(page.url(),/\/app\/vendors.*tab=payments/,'Vendor pay opens payment workspace');
+    const payDialog=page.getByRole('dialog',{name:'Pay Vendor'});
+    await payDialog.waitFor();
+    assert.equal(await payDialog.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'240',
+      'Vendor payment offers the existing priced memo due');
+    await payDialog.getByRole('textbox',{name:'Split amount 1'}).fill('40');
+    await payDialog.getByRole('button',{name:'Save Payment'}).click();
+    await payDialog.waitFor({state:'hidden'});
+    assert.match(page.url(),/\/app\/parties/,'Pay Vendor commits without leaving Parties');
+    await page.getByTestId('party-mobile-actions').getByRole('button',{name:'Pay Vendor'}).click();
+    const partialPay=page.getByRole('dialog',{name:'Pay Vendor'});
+    await partialPay.waitFor();
+    assert.equal(await partialPay.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'200',
+      'Partial Vendor payment reduces the next due by the payment amount');
+    await page.keyboard.press('Escape');
+    await partialPay.waitFor({state:'hidden'});
+    // Tablet and desktop use exactly the same modal; no dedicated Vendor page transition.
+    for(const width of [820,1440]){
+      await page.setViewportSize({width,height:900});
+      await page.getByRole('button',{name:'Pay Vendor'}).first().click();
+      const desktopPay=page.getByRole('dialog',{name:'Pay Vendor'});
+      await desktopPay.waitFor();
+      assert.match(page.url(),/\/app\/parties/,`Vendor payment stays in Parties at ${width}px`);
+      await page.keyboard.press('Escape');
+      await desktopPay.waitFor({state:'hidden'});
+    }
     assert.equal(errors.length,0,'browser page must not throw');
     console.log('Party profile browser flow passed');
   } finally {
