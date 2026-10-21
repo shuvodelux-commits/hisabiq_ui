@@ -12,6 +12,7 @@ import { FormSelect } from '../FormSelect';
 import { AppSelect } from '../AppSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
+import { PartyBalanceCard } from './PartyBalanceCard';
 import { RoleBadge } from './RoleBadge';
 import { LedgerTableResponsive as LedgerTable } from './LedgerTableResponsive';
 import { PartyLedgerToolbarResponsive as PartyLedgerToolbar } from './PartyLedgerToolbarResponsive';
@@ -76,7 +77,7 @@ export function PartyDetailResponsive({
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
-  const {text,showHelper}=useUiCopy();
+  const {text}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
   const reduceMotion=useReducedMotion();
   const [mobileActionsOpen,setMobileActionsOpen] = useState(false);
@@ -134,15 +135,7 @@ export function PartyDetailResponsive({
 
 
   const currentBalance=balanceSummary.netBalance;
-  const isReceivable = currentBalance > 0;
   const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
-  const balanceLabel = relationship==='Owner'?text('Owner capital','মালিকের মূলধন'):
-    relationship==='Lender'?text('Lender payable','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
-    relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
-    relationship==='Customer'?(isReceivable?text('Customer receivable','ক্রেতার কাছে পাওনা'):text('Customer balance','ক্রেতার হিসাব')):text(relationship+' balance','জের');
-  const payableBangla = showHelper ? (relationship==='Supplier' ? 'সরবরাহকারীকে দেনা' :
-    relationship==='Lender' ? 'ঋণদাতাকে দেনা' : null) : null;
-
 
   // Exact Magic Patterns ActionMenuItems information architecture; real app handlers stay in place.
   const menuActions: Array<{
@@ -245,52 +238,33 @@ export function PartyDetailResponsive({
             </div>}
           </div>
           <div className="hidden max-w-[280px] shrink-0 min-[900px]:block lg:hidden xl:block">
-            {vendorProfile ?
-              <div className="divide-y divide-border rounded-xl border border-border bg-card">
-                <div className="flex items-center justify-between gap-3 p-3">
-                  <span className="text-xs text-danger">{text('You owe', 'আপনাকে দিতে হবে')}</span>
-                  <strong className="text-right text-lg text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 p-3">
-                  <span className="text-xs text-ink-500">{text('Vendor owes', 'ভেন্ডরের কাছে পাওনা')}</span>
-                  <strong className="text-right text-lg text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</strong>
-                </div>
-                {vendorProfile.summary.priceNotSetBaseQty>0 && <p className="px-3 py-2 text-xs text-warning">
-                  {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}
-                </p>}
-              </div> :
-              <div className={isReceivable ? 'rounded-xl bg-teal-50 px-4 py-3 text-right' : currentBalance < 0 ? 'rounded-xl bg-danger-bg px-4 py-3 text-right' : 'rounded-xl bg-ink-50 px-4 py-3 text-right'}>
-                <p className={`text-[13px] font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-600"}`}>{balanceLabel}{payableBangla&&<span data-testid="party-payable-bangla" lang="bn" className="mt-0.5 block font-bn text-[11px] font-normal">{payableBangla}</span>}</p>
-                <p className={`mt-1 break-words text-[26px] font-semibold leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</p>
-                {relationship==='Customer'&&isReceivable&&<p data-testid="party-receivable-helper" className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400">
-                  {text('They owe you','ক্রেতার কাছে পাওনা')}{showHelper&&<> · <span lang="bn" className="font-bn">ক্রেতার কাছে পাওনা</span></>}
-                </p>}
-              </div>}
+            {vendorProfile ? <div className="flex flex-col gap-2">
+              <PartyBalanceCard compact amount={vendorProfile.summary.takenDuePaisa/100}
+                copy={{title:['Vendor payable','ভেন্ডরকে দেনা'],
+                  hint:['You owe vendor','ভেন্ডরকে দেনা'],tone:'payable'}}/>
+              <PartyBalanceCard compact amount={vendorProfile.summary.givenDuePaisa/100}
+                copy={{title:['Vendor receivable','ভেন্ডরের কাছে পাওনা'],
+                  hint:['Vendor owes you','ভেন্ডরের কাছে পাওনা'],tone:'receivable'}}
+                extra={vendorProfile.summary.priceNotSetBaseQty>0 ?
+                  <p className="mt-1 text-xs text-warning">
+                    {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}
+                  </p> : undefined}/>
+            </div> : <PartyBalanceCard relationship={relationship} amount={currentBalance}/>}
           </div>
-          <Button size="sm" variant="outline" className="hidden shrink-0 items-center gap-1.5" onClick={onChangeParty}>
-            <ArrowLeftRight className="size-4" /> {text('Change party', 'পার্টি বদলান')}
-          </Button>
         </div>
         <div className="mt-4 min-[900px]:hidden lg:block xl:hidden">
-          {vendorProfile ? <div className="divide-y divide-border rounded-lg border border-border bg-card">
-            <div className="flex min-w-0 items-center justify-between gap-3 px-3 py-2.5">
-              <span className="text-sm font-semibold text-danger">{text('You owe', 'আপনাকে দিতে হবে')}</span>
-              <strong className="break-words text-right text-xl text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</strong>
-            </div>
-            <div className="flex min-w-0 items-center justify-between gap-3 px-3 py-2.5">
-              <span className="text-sm font-semibold text-ink">{text('Vendor owes', 'ভেন্ডরের কাছে পাওনা')}</span>
-              <strong className="break-words text-right text-xl text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</strong>
-            </div>
-          </div> : <div className={isReceivable ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-teal-50 px-3.5 py-3' : currentBalance < 0 ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-danger-bg px-3.5 py-3' : 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-ink-50 px-3.5 py-3'}>
-            <span className={`min-w-0 text-sm font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-700"}`}>{balanceLabel}{payableBangla&&<span data-testid="party-payable-bangla" lang="bn" className="mt-0.5 block font-bn text-[11px] font-normal">{payableBangla}</span>}</span>
-            <span className="min-w-0 text-right">
-              <strong className={`block break-words text-[22px] leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</strong>
-              {relationship==='Customer'&&isReceivable&&<span data-testid="party-receivable-helper" className="mt-0.5 block text-[11px] text-emerald-700 dark:text-emerald-400">
-                {text('They owe you','ক্রেতার কাছে পাওনা')}{showHelper&&<> · <span lang="bn" className="font-bn">ক্রেতার কাছে পাওনা</span></>}
-              </span>}
-            </span>
-          </div>}
-          {vendorProfile && vendorProfile.summary.priceNotSetBaseQty>0 && <p className="mt-1 text-xs text-warning">{vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set', 'একক · দাম ঠিক হয়নি')}</p>}
+          {vendorProfile ? <div className="grid gap-2 sm:grid-cols-2">
+            <PartyBalanceCard compact amount={vendorProfile.summary.takenDuePaisa/100}
+              copy={{title:['Vendor payable','ভেন্ডরকে দেনা'],
+                hint:['You owe vendor','ভেন্ডরকে দেনা'],tone:'payable'}}/>
+            <PartyBalanceCard compact amount={vendorProfile.summary.givenDuePaisa/100}
+              copy={{title:['Vendor receivable','ভেন্ডরের কাছে পাওনা'],
+                hint:['Vendor owes you','ভেন্ডরের কাছে পাওনা'],tone:'receivable'}}/>
+          </div> : <PartyBalanceCard relationship={relationship} amount={currentBalance}/>}
+          {vendorProfile && vendorProfile.summary.priceNotSetBaseQty>0 &&
+            <p className="mt-1 text-xs text-warning">
+              {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set', 'একক · দাম ঠিক হয়নি')}
+            </p>}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 md:hidden">
           {party.phone ?
