@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { PartyLedgerRowActions } from './PartyLedgerRowActions';
 import type { LedgerStatement, PartyAction, PartyLedgerRow } from '../../types/partyLedger';
-import { formatMoneyNumber } from '../../utils/currency';
+import { formatMoneyNumber, taka } from '../../utils/currency';
 import { ledgerImpact, type LedgerImpact } from '../../utils/partyLedgerImpact';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { partyLedgerSourceLabel, partyLedgerCaption } from '../../i18n/partyLedgerCopy';
@@ -48,6 +48,19 @@ function LedgerAmount({ row, value, language }: { row: PartyLedgerRow; value: nu
   </div>;
 }
 
+/** Table cells stay number-first. Impact explanations remain in the phone feed. */
+function CompactAmount({ value }: { value: number }) {
+  return value === 0
+    ? <span className="text-ink-400">—</span>
+    : <span className="whitespace-nowrap font-medium text-ink">{taka(value)}</span>;
+}
+
+const formatLedgerDate = (iso: string) => {
+  const date = new Date(iso + 'T12:00:00Z');
+  return Number.isNaN(date.getTime()) ? iso :
+    new Intl.DateTimeFormat('en-GB', {day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'}).format(date);
+};
+
 function LedgerTypeIcon({ row }: { row: PartyLedgerRow }) {
   const Icon = row.source === 'note' ? StickyNote : row.source === 'opening' ? BookOpen :
     row.source === 'sale' || row.source === 'purchase' ? FileText :
@@ -88,7 +101,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
         </TableHeader>
         <TableBody>
           {visibleRows.map(row => <TableRow key={row.id} className="text-[12px] hover:bg-ink-50/40">
-            <TableCell className="whitespace-nowrap pl-4 py-2 text-[12px] text-ink-500">{row.date}</TableCell>
+            <TableCell className="whitespace-nowrap pl-4 py-2 text-[12px] text-ink-500">{formatLedgerDate(row.date)}</TableCell>
             <TableCell className="min-w-[180px] py-2">
               <div className="flex items-start gap-2">
                 <button type="button" aria-label={text('View transaction','লেনদেন দেখুন') + ' ' + (row.reference || row.id)}
@@ -106,9 +119,9 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
               </div>
               {row.description && <p className="mt-0.5 line-clamp-1 max-w-md text-[11px] text-ink-500" title={row.description}>{row.description}</p>}
             </TableCell>
-            <TableCell className="py-2 text-right"><LedgerAmount row={row} value={row.debit} language={language} /></TableCell>
-            <TableCell className="py-2 text-right"><LedgerAmount row={row} value={row.credit} language={language} /></TableCell>
-            <TableCell className="whitespace-nowrap py-2 text-right font-semibold text-ink">{balance(row.runningBalance)}</TableCell>
+            <TableCell className="py-2 text-right"><CompactAmount value={row.debit} /></TableCell>
+            <TableCell className="py-2 text-right"><CompactAmount value={row.credit} /></TableCell>
+            <TableCell className="whitespace-nowrap py-2 text-right font-semibold text-ink">{taka(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
             <TableCell className="py-1.5 pr-2 text-right">
               <div className="flex items-center justify-end gap-1"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} /></div>
             </TableCell>
