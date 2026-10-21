@@ -10,6 +10,8 @@ import { FormSelect } from '../FormSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
 import { PartyBalanceCard } from './PartyBalanceCard';
+import { PartySourceQuickPreview } from './PartySourceQuickPreview';
+import { PartyAttachmentQuickPreview } from './PartyAttachmentQuickPreview';
 import { RoleBadge } from './RoleBadge';
 import { LedgerTable } from './LedgerTable';
 import { PartyLedgerToolbar } from './PartyLedgerToolbar';
@@ -25,7 +27,7 @@ import type { FinanceRole } from '../../utils/partyFinance';
 import type { LedgerEntry, Party, PartyRole } from '../../types/erp';
 import type { LedgerStatement, PartyLedgerRow, PartyAction, PartyBalanceSummary, PartySourceRecord, PartyPaymentPayload, PartyRefundPayload, PartyFinancePayload, PartyOpeningPayload } from '../../types/partyLedger';
 import type { IsoRange } from '../../utils/dateRange';
-import { formatNumber, taka } from '../../utils/currency';
+import { taka } from '../../utils/currency';
 import {projectVendorPartyLedger,type VendorPartyProfile} from '../../vendor/vendorPartyProjection';
 import type {VendorSide} from '../../vendor/vendorTypes';
 import type {VendorWorkTab} from '../../vendor/vendorRoute';
@@ -99,6 +101,18 @@ export function PartyDetail({
       setEditorMode(action==='edit'?'edit':'reverse');setEditorRow(row);return;
     }
     onLedgerAction(action,row);
+  };
+
+  const openLedgerAttachment = (row: PartyLedgerRow) => {
+    const match = entries.find(entry => entry.attachment &&
+      (entry.id === row.sourceId || (row.reference && entry.ref === row.reference)));
+    if (match) { setAttachment(match); return; }
+    if (row.attachment) setAttachment({
+      id: row.id, partyId: row.partyId, date: row.date,
+      type: row.source === 'purchase' ? 'purchase' : row.source === 'sale' ? 'invoice' : 'payment',
+      ref: row.reference, description: row.description, debit: row.debit, credit: row.credit,
+      attachment: row.attachment
+    });
   };
 
   const invoices = entries.filter((e) => e.type === 'invoice' || e.type === 'purchase');
@@ -262,7 +276,7 @@ export function PartyDetail({
               query={ledgerQuery} onQuery={onLedgerQuery} pageSize={pageSize} onPageSize={onPageSize}
               onStatement={onStatement} onReset={onResetLedger}/>
             <LedgerTable statement={shownStatement} visibleRows={shownRows} actionsForRow={shownActions}
-              onAction={doRowAction} onOpenAttachment={()=>toast(text('No document available in preview','প্রিভিউতে কোনো ফাইল নেই'))}/>
+              onAction={doRowAction} onOpenAttachment={openLedgerAttachment}/>
             <div className="flex items-center justify-between gap-2 px-4 py-2 text-xs text-ink-500">
               <span>{text('Page','পাতা')} {page} {text('of','মোট')} {shownPages} · {shownFiltered.length||shownStatement.rows.length} {text('dated transactions','টি তারিখসহ লেনদেন')}</span>
               <div className="flex gap-2">
@@ -380,17 +394,10 @@ export function PartyDetail({
       <PartyTransactionDialog row={editorRow} mode={editorMode}
         source={sources.find(item=>item.id===editorRow?.sourceId)??null}
         onClose={()=>setEditorRow(null)} onEdit={onEditSourcePayment} onReverse={onReverseSource}/>
-      <Dialog open={!!viewedRow} onOpenChange={open=>!open&&setViewedRow(null)}>
-        <DialogContent role="dialog" aria-modal="true" aria-label={text("Party transaction details","পার্টির লেনদেনের তথ্য")} className="sm:max-w-md">
-          <DialogHeader><DialogTitle>{text('Transaction details','লেনদেনের তথ্য')}</DialogTitle><DialogDescription>{text('Read-only source reference in the UI preview.','এটি প্রিভিউতে লেনদেনের মূল সূত্র। এখানে বদলানো যাবে না।')}</DialogDescription></DialogHeader>
-          {viewedRow&&<div className="space-y-2 text-sm">
-            <p><strong>{text('Source:','উৎস:')}</strong> {viewedRow.source}</p><p><strong>{text('Reference:','নম্বর:')}</strong> {viewedRow.reference??viewedRow.id}</p>
-            <p><strong>{text('Date:','তারিখ:')}</strong> {viewedRow.date}</p><p><strong>{text('Details:','বিবরণ:')}</strong> {viewedRow.description}</p>
-            <p><strong>{text('Debit:','ডেবিট:')}</strong> {taka(viewedRow.debit)} · <strong>{text('Credit:','ক্রেডিট:')}</strong> {taka(viewedRow.credit)}</p>
-          </div>}
-          <div className="flex justify-end"><Button onClick={()=>setViewedRow(null)} >{text('Close','বন্ধ করুন')}</Button></div>
-        </DialogContent>
-      </Dialog>
+      <PartySourceQuickPreview row={viewedRow}
+        source={sources.find(item => item.id === viewedRow?.sourceId) ?? null}
+        onClose={() => setViewedRow(null)}
+        onOpenSource={row => onLedgerAction('source', row)} />
       <Dialog open={!!editingNote} onOpenChange={(open)=>!open&&setEditingNote(null)}>
         <DialogContent role="dialog" aria-modal="true" aria-label={text("Edit party note","পার্টির নোট বদলান")} className="sm:max-w-md">
           <DialogHeader><DialogTitle>{text('Edit note','নোট বদলান')}</DialogTitle><DialogDescription>{text("Updates this party's preview note only.",'এখানে শুধু প্রিভিউর নোট বদলাবে।')}</DialogDescription></DialogHeader>
@@ -404,24 +411,10 @@ export function PartyDetail({
           <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setDeleteNote(null)} >{text('Keep note','নোট রাখুন')}</Button><Button onClick={()=>{if(deleteNote){onDeleteNote(deleteNote.id);setDeleteNote(null);toast.success(text('Note deleted','নোট মুছে গেছে'));}}} >{text('Confirm delete','নিশ্চিত মুছুন')}</Button></div>
         </DialogContent>
       </Dialog>
-      <Dialog open={!!attachment} onOpenChange={(o) => !o && setAttachment(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Paperclip className="size-4" /> {attachment?.attachment?.name}</DialogTitle>
-            <DialogDescription>{attachment?.ref} · {attachment?.date} · {taka(attachment?.debit || attachment?.credit || 0)}</DialogDescription>
-          </DialogHeader>
-          <div className="flex min-h-48 items-center justify-center overflow-hidden rounded-lg bg-ink-50">
-            {attachment?.attachment?.url ?
-            <img src={attachment.attachment.url} alt={`${text('Attachment','ফাইল')} ${attachment.attachment.name}`} className="max-h-[60vh] w-full object-contain" /> :
-
-            <div className="py-12 text-center text-sm text-ink-500">
-                <FileText className="mx-auto mb-2 size-8 text-helper" />
-                {text('Preview not available','প্রিভিউ দেখা যাচ্ছে না')} · {formatNumber(84)} KB
-              </div>
-            }
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PartyAttachmentQuickPreview attachment={attachment?.attachment ? {
+        name: attachment.attachment.name, url: attachment.attachment.url,
+        reference: attachment.ref, date: attachment.date
+      } : null} onClose={() => setAttachment(null)} />
     </div>);
 
 }
