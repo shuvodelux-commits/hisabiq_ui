@@ -60,56 +60,56 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
   const reduceMotion = useReducedMotion();
   const balance = (value: number) => formatMoneyNumber(Math.abs(value)) + ' ' + (value>=0?'Dr':'Cr');
 
-  const summary = <div className="grid grid-cols-3 gap-2 bg-ink-50/70 px-4 py-3 xl:flex xl:flex-wrap xl:gap-x-8 xl:gap-y-1 xl:py-2.5" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
+  const summary = <div className="grid grid-cols-3 gap-x-3 gap-y-2 bg-ink-50/70 px-3 py-2.5 md:flex md:flex-wrap md:items-center md:justify-start md:gap-x-6 md:gap-y-1 md:px-4 md:py-2.5" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
     {[
       [text('Opening balance', 'শুরুর জের'), balance(statement.openingBalance)],
       [text('Period debit', 'এই সময়ের ডেবিট'), formatMoneyNumber(statement.periodDebit)],
       [text('Period credit', 'এই সময়ের ক্রেডিট'), formatMoneyNumber(statement.periodCredit)]
-    ].map(([label, value]) => <div key={label} className="min-w-0 xl:flex xl:items-baseline xl:gap-2">
+    ].map(([label, value]) => <div key={label} className="min-w-0 md:flex md:items-baseline md:gap-1.5">
       <p className="text-xs text-ink-500">{label}</p>
       <strong className="block break-words text-[13px] font-semibold text-ink">{value}</strong>
     </div>)}
   </div>;
 
   return <div className="min-w-0">
-    <div className="hidden xl:block">{summary}</div>
+    <div className="hidden md:block">{summary}</div>
 
-    <div className="hidden min-w-0 overflow-x-auto xl:block">
-      <Table>
+    <div className="hidden min-w-0 overflow-x-auto md:block">
+      <Table scrollRegionLabel={text('Party ledger transactions', 'পার্টির খাতার লেনদেন')} className="w-full min-w-[700px]">
         <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="whitespace-nowrap pl-5 text-xs">{text('Date', 'তারিখ')}</TableHead>
-            <TableHead className="text-xs">{text('Particulars', 'বিবরণ')}</TableHead>
-            <TableHead className="text-right text-xs">{text('Debit', 'ডেবিট')}</TableHead>
-            <TableHead className="text-right text-xs">{text('Credit', 'ক্রেডিট')}</TableHead>
-            <TableHead className="text-right text-xs">{text('Balance', 'জের')}</TableHead>
-            <TableHead className="pr-4 text-right text-xs">{text('Actions', 'কাজ')}</TableHead>
+          <TableRow className="h-9 bg-ink-50/30 hover:bg-transparent">
+            <TableHead className="w-[112px] whitespace-nowrap pl-4 text-[12px]">{text('Date', 'তারিখ')}</TableHead>
+            <TableHead className="min-w-[185px] text-[12px]">{text('Particulars', 'বিবরণ')}</TableHead>
+            <TableHead className="w-[102px] text-right text-[12px]">{text('Debit', 'ডেবিট')}</TableHead>
+            <TableHead className="w-[102px] text-right text-[12px]">{text('Credit', 'ক্রেডিট')}</TableHead>
+            <TableHead className="w-[122px] text-right text-[12px]">{text('Balance', 'জের')}</TableHead>
+            <TableHead className="w-[44px] pr-3 text-right text-[12px]"><span className="sr-only">{text('Actions', 'কাজ')}</span></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {visibleRows.map(row => <TableRow key={row.id} className="align-top text-[13px]">
-            <TableCell className="whitespace-nowrap pl-5 py-3 text-xs text-ink-500">{row.date}</TableCell>
-            <TableCell className="min-w-[170px] py-3">
+          {visibleRows.map(row => <TableRow key={row.id} className="text-[12px] hover:bg-ink-50/40">
+            <TableCell className="whitespace-nowrap pl-4 py-2 text-[12px] text-ink-500">{row.date}</TableCell>
+            <TableCell className="min-w-[180px] py-2">
               <div className="flex items-start gap-2">
                 <button type="button" aria-label={text('View transaction','লেনদেন দেখুন') + ' ' + (row.reference || row.id)}
                   onClick={() => onAction('view',row)}
-                  className="group flex min-w-0 flex-1 items-center gap-2 rounded text-left transition-colors hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-500">
+                  className="group flex min-w-0 flex-1 items-center gap-1.5 rounded text-left transition-colors hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-500">
                   <LedgerTypeIcon row={row} />
                   <span className="min-w-0">
-                    <span className="block break-words font-semibold text-ink group-hover:text-teal-700">{row.reference || partyLedgerSourceLabel(language,row.source)}</span>
-                    <span className="block text-xs text-ink-500">{partyLedgerSourceLabel(language,row.source)}</span>
+                    <span className="block break-words font-semibold leading-snug text-ink group-hover:text-teal-700">{row.reference || partyLedgerSourceLabel(language,row.source)}</span>
+                    <span className="block text-[11px] text-ink-500">{partyLedgerSourceLabel(language,row.source)}</span>
                   </span>
                 </button>
                 {row.attachment && <button type="button" aria-label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন') + ' ' + row.attachment.name}
                   className="rounded p-1 text-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500"
                   onClick={() => onOpenAttachment(row)}><Paperclip className="size-4" /></button>}
               </div>
-              {row.description && <p className="mt-1 line-clamp-2 max-w-md text-xs text-ink-500" title={row.description}>{row.description}</p>}
+              {row.description && <p className="mt-0.5 line-clamp-1 max-w-md text-[11px] text-ink-500" title={row.description}>{row.description}</p>}
             </TableCell>
-            <TableCell className="py-3 text-right"><LedgerAmount row={row} value={row.debit} language={language} /></TableCell>
-            <TableCell className="py-3 text-right"><LedgerAmount row={row} value={row.credit} language={language} /></TableCell>
-            <TableCell className="whitespace-nowrap py-3 text-right font-semibold text-ink">{balance(row.runningBalance)}</TableCell>
-            <TableCell className="py-2 pr-3 text-right">
+            <TableCell className="py-2 text-right"><LedgerAmount row={row} value={row.debit} language={language} /></TableCell>
+            <TableCell className="py-2 text-right"><LedgerAmount row={row} value={row.credit} language={language} /></TableCell>
+            <TableCell className="whitespace-nowrap py-2 text-right font-semibold text-ink">{balance(row.runningBalance)}</TableCell>
+            <TableCell className="py-1.5 pr-2 text-right">
               <div className="flex items-center justify-end gap-1"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} /></div>
             </TableCell>
           </TableRow>)}
@@ -120,7 +120,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
       </Table>
     </div>
 
-    <ul className="divide-y divide-border xl:hidden" aria-label={text('Transactions', 'লেনদেন')}>
+    <ul className="divide-y divide-border md:hidden" aria-label={text('Transactions', 'লেনদেন')}>
       <AnimatePresence initial={false} mode="popLayout">
       {visibleRows.map(row => {
         const amount = row.debit || row.credit;
@@ -169,7 +169,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
       </li>}
     </ul>
 
-    <div className="border-t border-border xl:hidden">{summary}</div>
+    <div className="border-t border-border md:hidden">{summary}</div>
     <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-ink-50 px-4 py-3 text-sm">
       <strong>{text('Closing balance', 'শেষ জের')}</strong>
       <strong className="break-words text-right text-[15px]">{balance(statement.closingBalance)}</strong>
