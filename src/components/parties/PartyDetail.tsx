@@ -1,7 +1,7 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
-import { FilePlus2, FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Plus, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { FilePlus2, FileText, HandCoins, MapPin, MessageSquare, Paperclip, Phone, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../Button';
 import { Input } from '../Input';
