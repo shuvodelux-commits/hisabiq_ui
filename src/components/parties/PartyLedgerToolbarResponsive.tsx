@@ -43,8 +43,8 @@ export function PartyLedgerToolbarResponsive({range,onRange,kind,onKind,query,on
       <div className="col-span-2 min-w-0 md:order-1 md:col-span-1"><AppDateRangePicker label={text('Party ledger date range','পক্ষের খাতার তারিখ')} value={range} onChange={onRange}/></div>
       <div className="min-w-0 md:order-2"><AppSelect label={text('Transaction type','লেনদেনের ধরন')} value={kind} onChange={onKind}
         options={kinds.map(item=>({...item,label:text(item.label,bn[item.label]??item.label)}))}/></div>
-      <div className="min-w-0 md:order-4"><AppSelect compact label={text('Rows per page','প্রতি পাতায়')} value={String(pageSize)}
-        options={['10','25','50','100']} onChange={value=>onPageSize(Number(value))}/></div>
+      <div className="min-w-0 md:order-4"><AppSelect menuStyle="rows" label={text('Rows per page','প্রতি পাতায়')} value={String(pageSize)}
+        options={['5','10','25','50','100']} onChange={value=>onPageSize(Number(value))}/></div>
       <div className="col-span-2 flex min-w-0 gap-2 md:order-5 md:col-span-1 md:ml-auto">
         <Button size="sm" variant="outline" className="min-h-10 flex-1 md:min-h-0 md:flex-none" onClick={onReset}
           title={text('Clear filters','ফিল্টার মুছুন')}><RotateCcw className="size-3.5" />{text('Clear filters','ফিল্টার মুছুন')}</Button>
