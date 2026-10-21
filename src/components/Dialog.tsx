@@ -1,5 +1,6 @@
-import {createContext,forwardRef,useContext,useEffect,useId,useRef,useState,type HTMLAttributes,type ReactNode} from 'react';
+import {createContext,forwardRef,useContext,useEffect,useId,useLayoutEffect,useRef,useState,type HTMLAttributes,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
+import {animate,useReducedMotion} from 'framer-motion';
 import {
  Dialog as DesignDialog,DialogContent as DesignContent,DialogTitle as DesignTitle,
  DialogDescription as DesignDescription,
@@ -28,6 +29,24 @@ export function Dialog({open,defaultOpen=false,onOpenChange,children}:{open?:boo
 export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivElement>&{showCloseButton?:boolean}>(function DialogContent({children,...props},forwarded){
  const modal=useContext(ModalContext);
  const ref=useRef<HTMLDivElement|null>(null);
+ const reduceMotion=useReducedMotion();
+ // Magic Patterns dialog easing and timing, without replacing the design-system
+ // content element (whose centering transform and close button must be preserved).
+ // marginTop animates independently of its Tailwind -translate(-50%, -50%) transform.
+ useLayoutEffect(()=>{
+  if(!modal?.open||!ref.current||reduceMotion)return;
+  const panel=ref.current;
+  const easing:[number,number,number,number]=[0.32,0.72,0,1];
+  const entrance=animate(panel,{opacity:[0,1],marginTop:[24,0]},
+   {duration:0.22,ease:easing});
+  // The upstream design system creates the backdrop immediately before its content.
+  // Animate only that dialog-owned sibling; do not affect stacked overlays.
+  const sibling=panel.previousElementSibling;
+  const backdrop=sibling instanceof HTMLElement&&sibling.classList.contains('fixed')
+    &&sibling.getAttribute('data-id')==='element-452' ? sibling : null;
+  const veil=backdrop?animate(backdrop,{opacity:[0,1]},{duration:0.18}):null;
+  return ()=>{entrance.stop();veil?.stop();};
+ },[modal?.open,modal?.id,reduceMotion]);
  const closeRef=useRef(modal?.close);closeRef.current=modal?.close;
  useEffect(()=>{
   if(!modal?.open||!ref.current)return;
@@ -67,7 +86,8 @@ export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivEleme
  if(!modal?.open)return null;
  return createPortal(<DesignContent {...props} ref={(node:HTMLDivElement|null)=>{ref.current=node;if(typeof forwarded==='function')forwarded(node);else if(forwarded)forwarded.current=node;}}
   role="dialog" aria-modal="true" aria-labelledby={props['aria-label']?undefined:modal.id+'-title'}
-  data-dialog-root={modal.id} data-dialog-id={modal.id} tabIndex={-1}>{children}</DesignContent>,document.body);
+  data-dialog-root={modal.id} data-dialog-id={modal.id}
+  data-modal-motion={reduceMotion?'reduced':'magic-patterns'} tabIndex={-1}>{children}</DesignContent>,document.body);
 });
 export const DialogTitle=forwardRef<HTMLHeadingElement,HTMLAttributes<HTMLHeadingElement>>(function DialogTitle(props,ref){const modal=useContext(ModalContext);return <DesignTitle {...props} id={props.id??modal?.id+'-title'} ref={ref}/>;});
 export const DialogDescription=forwardRef<HTMLParagraphElement,HTMLAttributes<HTMLParagraphElement>>(function DialogDescription(props,ref){const modal=useContext(ModalContext);return <DesignDescription {...props} id={props.id??modal?.id+'-description'} ref={ref}/>;});
