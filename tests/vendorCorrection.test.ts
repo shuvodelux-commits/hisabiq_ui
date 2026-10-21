@@ -19,7 +19,7 @@ const reverse=(eventId:string,op='reverse1')=>({
 const pay=(id:string,amountPaisa=20000)=>({type:'settle-source' as const,operationId:id,vendorPartyId:'v1',
  side:'payable' as const,kind:'pay' as const,date:'2026-10-09',amountPaisa,
  allocations:[{sourceId:'src1',amountPaisa}],paymentSplits:[{
- id:'cash',method:'Cash' as const,accountId:'cash-1',amountPaisa
+ id:'cash',method:'Cash' as const,accountId:'acc-cash',amountPaisa
  }]});
 test('source correction replaces an unsettled source exactly once and preserves audit history',()=>{
  let state=borrow(fresh());
