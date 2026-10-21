@@ -71,3 +71,7 @@ Linked invoice customer names use the same teal affordance and source-linked Par
 ## Follow-up: square toolbar menus and tighter customer rows
 
 The two marked mobile Sales menus (beside New sale and Filters) now use existing outline Button styling with square bounds. The linked customer name no longer reserves a 24px minimum height; compact invoice cards remove the extra gap above the name and reduce the gap below it. Invoice top/bottom padding is tighter without changing text sizes or removing data. Regression checks verify the outlined square buttons, name/reference/total spacing, ledger navigation and existing invoice actions. Build, TypeScript, 681 tests and UI contract pass; tablet/desktop baseline screenshots remain identical.
+
+## Follow-up: match Walk-in customer typography and spacing
+
+Mobile invoice customer names now share explicit 13px, 18px line-height, regular-weight styling, whether rendered as a linked customer button or plain walk-in text. Both use the same tight reference/name/total spacing; linked customers retain their teal ledger action. Browser regression compares the actual linked and walk-in row heights, gaps and computed typography, alongside existing action/resize/language checks. Build, lint and UI contract checks pass; tablet/desktop screenshot baselines are unchanged.

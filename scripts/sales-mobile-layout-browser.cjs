@@ -56,6 +56,14 @@ async function main(){
        await page.locator('.sales-mobile-record').first().waitFor();
        const walkIn=page.locator('.sales-mobile-record').filter({hasText:'Walk-in customer'}).first();
        assert.equal(await walkIn.getByRole('button',{name:/Customer ledger|ক্রেতার খাতা/}).count(),0,'unlinked walk-in has no false ledger link');
+       const nameMetrics=async row=>row.evaluate(element=>{
+        const name=element.querySelector('.sales-mobile-customer-row'),text=name.querySelector('.sales-mobile-customer-name'),total=element.querySelector('.sales-mobile-totals');
+        return {height:name.getBoundingClientRect().height,above:name.getBoundingClientRect().top-name.previousElementSibling.getBoundingClientRect().bottom,below:total.getBoundingClientRect().top-name.getBoundingClientRect().bottom,font:getComputedStyle(text).fontSize,weight:getComputedStyle(text).fontWeight};
+       });
+       const linkedMetrics=await nameMetrics(page.locator('.sales-mobile-record').first()),walkInMetrics=await nameMetrics(walkIn);
+       assert.deepEqual(linkedMetrics,walkInMetrics,'linked and walk-in customer spacing/typography match');
+       assert.equal(linkedMetrics.font,'13px','customer name is smaller');assert.equal(linkedMetrics.weight,'400','customer name uses regular weight');
+
 
       }else if(width<1280){
        const header=label=>page.getByRole('columnheader',{name:label,exact:true});
