@@ -195,16 +195,16 @@ export function Parties() {
         <strong className="font-semibold text-danger">{taka(payable)}</strong>
       </>}
       actions={<>
-        <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap bg-white text-ink dark:bg-card" onClick={()=>setImportOpen(true)}
+        <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap !bg-white text-ink transition-colors hover:border-teal-300 dark:!bg-card" onClick={()=>setImportOpen(true)}
           aria-label={uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}>
           <Upload className="size-4 shrink-0"/>
           <span aria-hidden="true" className="hidden min-[900px]:inline">{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}</span>
           <span aria-hidden="true" className="min-[900px]:hidden">{uiText('Import','আমদানি')}</span>
         </Button>
-        <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap bg-white text-ink dark:bg-card" onClick={()=>setEditing(null)}>
+        <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap !bg-white text-ink transition-colors hover:border-teal-300 dark:!bg-card" onClick={()=>setEditing(null)}>
           <Plus className="size-4 shrink-0"/>{uiText('Add party','নতুন পার্টি যোগ করুন')}
         </Button>
-        {party&&<Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap bg-white text-ink dark:bg-card" onClick={requestChangeParty}>
+        {party&&<Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap !bg-white text-ink transition-colors hover:border-teal-300 dark:!bg-card" onClick={requestChangeParty}>
           <ArrowLeftRight className="size-4 shrink-0"/>{uiText('Change party','পার্টি বদলান')}
         </Button>}
       </>} /></div>
