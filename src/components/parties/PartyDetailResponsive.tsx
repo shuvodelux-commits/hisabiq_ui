@@ -371,7 +371,7 @@ export function PartyDetailResponsive({
       <PartyActionSheet open={mobileActionsOpen} onClose={() => setMobileActionsOpen(false)}
         title={text('More actions', 'আরও কাজ')} titleBn="আরও কাজ">
         <div role="group" aria-label={text('More actions', 'আরও কাজ')}>
-          {menuActions.map(item => menuItem(item,() => setMobileActionsOpen(false),'sheet'))}
+          {menuActions.filter(item => item.id!=='refund').map(item => menuItem(item,() => setMobileActionsOpen(false),'sheet'))}
         </div>
       </PartyActionSheet>
 
