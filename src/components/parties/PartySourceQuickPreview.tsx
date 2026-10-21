@@ -1,4 +1,4 @@
-import { ExternalLink, FileText, HandCoins, ReceiptText } from 'lucide-react';
+import { ExternalLink, FileText, ReceiptText } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
 import { PartyLedgerSourceBadge } from './PartyLedgerIndicators';
