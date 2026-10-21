@@ -1,6 +1,7 @@
 import {createContext,forwardRef,useContext,useEffect,useId,useLayoutEffect,useRef,useState,type HTMLAttributes,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {animate,useReducedMotion} from 'framer-motion';
+import {lockBodyScroll} from '../utils/bodyScrollLock';
 import {
  Dialog as DesignDialog,DialogContent as DesignContent,DialogTitle as DesignTitle,
  DialogDescription as DesignDescription,
@@ -9,8 +10,6 @@ export * from '../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9';
 
 type ModalState={open:boolean;close:()=>void;id:string;opener:HTMLElement|null};
 const ModalContext=createContext<ModalState|null>(null);
-let scrollLocks=0;
-let originalOverflow='';
 const focusable='button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 /** Retain the exported design; add shared keyboard and viewport behavior to every form. */
@@ -52,7 +51,7 @@ export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivEleme
   if(!modal?.open||!ref.current)return;
   const element=ref.current;
   const previous=modal.opener;
-  if(scrollLocks++===0){originalOverflow=document.body.style.overflow;document.body.style.overflow='hidden';}
+  const releaseScrollLock=lockBodyScroll();
   const portals=()=>{
    const owned:Array<HTMLElement>=[];
    element.querySelectorAll<HTMLElement>('[aria-controls]').forEach(anchor=>{
@@ -81,7 +80,7 @@ export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivEleme
    else if(!event.shiftKey&&(active===last||!items.includes(active as HTMLElement))){event.preventDefault();first.focus();}
   };
   document.addEventListener('keydown',keydown);
-  return ()=>{cancelAnimationFrame(frame);document.removeEventListener('keydown',keydown);if(--scrollLocks===0)document.body.style.overflow=originalOverflow;if(previous?.isConnected)previous.focus();};
+  return ()=>{cancelAnimationFrame(frame);document.removeEventListener('keydown',keydown);releaseScrollLock();if(previous?.isConnected)previous.focus({preventScroll:true});};
  },[modal?.open,modal?.id]);
  if(!modal?.open)return null;
  return createPortal(<DesignContent {...props} ref={(node:HTMLDivElement|null)=>{ref.current=node;if(typeof forwarded==='function')forwarded(node);else if(forwarded)forwarded.current=node;}}
