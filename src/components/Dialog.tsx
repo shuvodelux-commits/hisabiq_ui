@@ -43,7 +43,7 @@ export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivEleme
   // Animate only that dialog-owned sibling; do not affect stacked overlays.
   const sibling=panel.previousElementSibling;
   const backdrop=sibling instanceof HTMLElement&&sibling.classList.contains('fixed')
-    &&sibling.getAttribute('data-id')==='element-452' ? sibling : null;
+    &&sibling.classList.contains('inset-0')&&!sibling.hasAttribute('role') ? sibling : null;
   const veil=backdrop?animate(backdrop,{opacity:[0,1]},{duration:0.18}):null;
   return ()=>{entrance.stop();veil?.stop();};
  },[modal?.open,modal?.id,reduceMotion]);
