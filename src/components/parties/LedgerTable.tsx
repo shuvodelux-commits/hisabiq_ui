@@ -1,3 +1,4 @@
+import { PartyClosingBalance } from './PartyClosingBalance';
 import { StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { PartyLedgerSourceBadge, PartyLedgerAttachment } from './PartyLedgerIndicators';
@@ -103,8 +104,6 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
       </div>)}
       {!visibleRows.length&&<p className="py-8 text-center text-xs text-ink-500">{text('No transactions match these filters.','এই ফিল্টারে কোনো লেনদেন নেই।')}</p>}
     </div>
-    <div className="flex items-center justify-between gap-2 border-t border-border bg-ink-50 px-4 py-3 text-[13px] font-semibold">
-      <span>{text('Closing balance','শেষ জের')}</span><span>{formatMoneyNumber(Math.abs(statement.closingBalance))} <span className="font-normal text-ink-500">{statement.closingBalance>=0?'Dr':'Cr'}</span></span>
-    </div>
+    <PartyClosingBalance balance={statement.closingBalance} relationship={statement.relationship} compact />
   </div>;
 }
