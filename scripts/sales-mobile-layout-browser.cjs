@@ -24,11 +24,30 @@ async function main(){
       if(width<768){
        const record=page.locator('.sales-mobile-record').first();
        const action=record.locator('.sales-mobile-record-actions button').first();
-       const [body,menu,summary]=await Promise.all([record.locator('button').first().boundingBox(),action.boundingBox(),record.locator('summary').boundingBox()]);
+       const [body,menu,summary]=await Promise.all([record.locator('.sales-mobile-record-body').boundingBox(),action.boundingBox(),record.locator('summary').boundingBox()]);
        assert.ok(body&&menu&&summary&&menu.y>=body.y+body.height-1,'invoice action sits below totals');
        assert.ok(Math.abs(menu.y-summary.y)<10,'invoice action is beside More details');
+       assert.ok(menu.height<=32&&menu.height>=24,'compact invoice menu keeps a usable touch target');
+       const total=await record.locator('.sales-mobile-record-body strong').first().boundingBox();
+       assert.ok(total&&summary.y-(total.y+total.height)<=8,'More details stays close to totals');
        await action.click();await page.getByRole('button',{name:bn?'বিল দেখুন':'View invoice',exact:true}).click();
        await page.locator('[data-slot="dialog-content"]').last().waitFor();await page.keyboard.press('Escape');
+       // Customer is an independent ledger target, with no nested buttons or accidental invoice opening.
+       const ledger=record.getByRole('button',{name:(bn?'ক্রেতার খাতা':'Customer ledger')+' Rahman Hardware',exact:true});
+       assert.ok((await ledger.getAttribute('class')).includes('text-teal-700'));
+       assert.equal(await record.locator('button button').count(),0,'record controls are not nested');
+       await record.getByRole('button',{name:bn?/^বিস্তারিত দেখুন INV-/:/^View details INV-/}).click({position:{x:12,y:12}});
+       await page.locator('[data-slot="dialog-content"]').last().waitFor();await page.keyboard.press('Escape');
+       if(width===360){await ledger.focus();await ledger.press('Enter');}else await ledger.click();
+       await page.waitForURL(/#\/app\/parties\?id=/);
+       const selectedId=new URLSearchParams(page.url().split('?')[1]).get('id');
+       assert.ok(selectedId,'customer ledger receives the linked source ID');
+       assert.equal(await page.locator('[data-slot="dialog-content"]').count(),0,'customer action does not open invoice dialog');
+       await page.goto('http://127.0.0.1:4415/#/app/sales',{waitUntil:'domcontentloaded'});
+       await page.locator('.sales-mobile-record').first().waitFor();
+       const walkIn=page.locator('.sales-mobile-record').filter({hasText:'Walk-in customer'}).first();
+       assert.equal(await walkIn.getByRole('button',{name:/Customer ledger|ক্রেতার খাতা/}).count(),0,'unlinked walk-in has no false ledger link');
+
       }else if(width<1280){
        const header=label=>page.getByRole('columnheader',{name:label,exact:true});
        assert.equal(await header(bn?'পণ্য':'Items').count(),0,'tablet Items default off');

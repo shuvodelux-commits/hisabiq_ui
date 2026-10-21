@@ -1194,6 +1194,7 @@ export function Sales() {
             {isMobile ? <div aria-label={text('Sales invoices','বিক্রির বিল')} className="sales-mobile-record-list">
               {filtered.map(invoice => <SalesMobileRecord key={invoice.id} actionsInFooter reference={visibleSalesColumns.invoice ? invoice.invoice : ''} name={visibleSalesColumns.customer ? invoice.party : ''} date={visibleSalesColumns.invoice ? invoice.date : undefined}
                 status={visibleSalesColumns.status && <PaymentStatus invoice={invoice} />} onOpen={() => setDetail(invoice)}
+                onNameOpen={invoice.partyId && visibleSalesColumns.customer ? () => navigate(`/app/parties?id=${invoice.partyId}`) : undefined}
                 amount={visibleSalesColumns.total && <>{text('Total','মোট')} <strong className="text-ink">{taka(invoice.total)}</strong></>}
                 balance={visibleSalesColumns.due && <>{text('Due','বাকি')} <strong className={invoice.due > 0 ? 'text-danger' : 'text-ink-500'}>{taka(invoice.due)}</strong></>}
                 details={<>

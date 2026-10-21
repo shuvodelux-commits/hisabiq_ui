@@ -59,3 +59,11 @@ At 768–1279px, Items and Payment start hidden in the Sales invoice table. Tabl
 On mobile invoice records, the existing action menu is beside More details, below Total/Due, matching the annotated position 2. Its invoice, payment, return and ledger callbacks are unchanged. The browser matrix checks its position, opens invoice detail from the relocated menu, and verifies tablet defaults, opt-in, reload persistence and width changes in all three languages.
 
 Verification: 681 unit tests, UI contract guard, TypeScript and build pass. Responsive browser checks pass across all three languages at 360/390/430/768/1024/1440px. All seven 1440px screenshots remain pixel-identical after this adjustment; mobile and tablet captures were inspected.
+
+## Follow-up: tighter mobile invoice footer
+
+The invoice action trigger uses a compact 32px target in the More details row. The inline-block baseline gap is removed, footer padding is reduced, and the detail control is closer to Total/Due. Scope is restricted to mobile invoice cards. Browser checks verify a usable menu target, detail-to-total spacing, menu opening and the responsive matrix; tablet/desktop screenshots remain unchanged. Build and UI contract checks pass.
+
+## Follow-up: mobile customer ledger access
+
+Linked invoice customer names use the same teal affordance and source-linked Party route as the desktop table. The customer button and invoice-open button are siblings, so keyboard/touch actions are distinct without nested interactive controls. Unlinked walk-in customers remain plain text. Compact menu/detail spacing is retained. Browser checks cover ledger navigation, invoice opening, no accidental invoice dialog on a customer action, usable menu size, and spacing in all three language modes. TypeScript, build, 681 unit tests and UI contract checks pass; all 14 tablet/desktop baseline screenshots remain unchanged.
