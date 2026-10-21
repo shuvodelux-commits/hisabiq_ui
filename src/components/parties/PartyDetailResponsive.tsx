@@ -76,7 +76,7 @@ export function PartyDetailResponsive({
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
-  const {text}=useUiCopy();
+  const {text,showHelper}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
   const reduceMotion=useReducedMotion();
   const [mobileActionsOpen,setMobileActionsOpen] = useState(false);
@@ -232,8 +232,11 @@ export function PartyDetailResponsive({
                 <Phone className="size-3.5" aria-hidden="true" /> {party.phone}
               </a>}
               {party.area && <span className="inline-flex items-center gap-1"><MapPin className="size-3.5 shrink-0" aria-hidden="true" />{party.area}</span>}
-              {party.lastActivity && <span className="hidden items-center gap-1 sm:inline-flex"><Clock className="size-3.5" aria-hidden="true" />{text('Last activity', 'শেষ লেনদেন')} {party.lastActivity}</span>}
             </div>
+            {party.lastActivity && <div className="mt-1 flex items-center gap-1 text-[12px] text-ink-500" data-testid="party-last-activity">
+              <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>{text('Last activity', 'শেষ লেনদেন')} {party.lastActivity}</span>
+            </div>}
             {party.roles.length>1 && <div className="mt-2 max-w-44">
               <FormSelect title={text('Relationship', 'সম্পর্কের ধরন')} value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)} />
             </div>}
@@ -256,6 +259,9 @@ export function PartyDetailResponsive({
               <div className={isReceivable ? 'rounded-xl bg-teal-50 px-4 py-3 text-right' : currentBalance < 0 ? 'rounded-xl bg-danger-bg px-4 py-3 text-right' : 'rounded-xl bg-ink-50 px-4 py-3 text-right'}>
                 <p className={`text-[13px] font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-600"}`}>{balanceLabel}</p>
                 <p className={`mt-1 break-words text-[26px] font-semibold leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</p>
+                {relationship==='Customer'&&isReceivable&&<p className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400">
+                  {text('They owe you','ক্রেতার কাছে পাওনা')}{showHelper&&<span lang="bn" className="font-bn"> · ক্রেতার কাছে পাওনা</span>}
+                </p>}
               </div>}
           </div>
           <Button size="sm" variant="outline" className="hidden shrink-0 items-center gap-1.5" onClick={onChangeParty}>
@@ -274,7 +280,12 @@ export function PartyDetailResponsive({
             </div>
           </div> : <div className={isReceivable ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-teal-50 px-3.5 py-3' : currentBalance < 0 ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-danger-bg px-3.5 py-3' : 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-ink-50 px-3.5 py-3'}>
             <span className={`min-w-0 text-sm font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-700"}`}>{balanceLabel}</span>
-            <strong className={`min-w-0 break-words text-right text-[22px] leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</strong>
+            <span className="min-w-0 text-right">
+              <strong className={`block break-words text-[22px] leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</strong>
+              {relationship==='Customer'&&isReceivable&&<span className="mt-0.5 block text-[11px] text-emerald-700 dark:text-emerald-400">
+                {text('They owe you','ক্রেতার কাছে পাওনা')}{showHelper&&<span lang="bn" className="font-bn"> · ক্রেতার কাছে পাওনা</span>}
+              </span>}
+            </span>
           </div>}
           {vendorProfile && vendorProfile.summary.priceNotSetBaseQty>0 && <p className="mt-1 text-xs text-warning">{vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set', 'একক · দাম ঠিক হয়নি')}</p>}
         </div>
