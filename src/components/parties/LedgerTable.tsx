@@ -74,9 +74,9 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
                 {row.source==='note'&&<StickyNote className="size-3.5 text-warning"/>}
                 <PartyLedgerSourceBadge source={row.source} label={partyLedgerSourceLabel(language,row.source)}/>
                 {row.reference&&<span className="font-medium text-ink">{row.reference}</span>}
-                {row.attachment&&<PartyLedgerAttachment attachment={row.attachment}
-                  label={text('Open attachment','সংযুক্ত ফাইল খুলুন')+' '+row.attachment.name.replace(row.attachment.name,'').trim()}
-                  onClick={()=>onOpenAttachment(row)}/>}
+                {row.attachment&&<span title={row.attachment.name}><PartyLedgerAttachment attachment={row.attachment}
+                  label={text('Open attachment','সংযুক্ত ফাইল খুলুন')}
+                  onClick={()=>onOpenAttachment(row)}/></span>}
               </div>
               <p className="mt-0.5 max-w-md truncate text-xs text-ink-500" title={row.description}>{row.description}</p>
             </TableCell>
@@ -92,7 +92,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
     <div className="space-y-2 p-3 sm:hidden">
       {visibleRows.map(row=><div key={row.id} className="rounded-lg border border-border p-3">
         <div className="flex items-center justify-between gap-2"><span className="text-xs text-ink-500">{row.date}</span><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></div>
-        <div className="mt-1 flex flex-wrap gap-1"><StatusBadge tone={tone(row)}>{partyLedgerSourceLabel(language,row.source)}</StatusBadge>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}{row.attachment&&<PartyLedgerAttachment attachment={row.attachment}
+        <div className="mt-1 flex flex-wrap gap-1"><PartyLedgerSourceBadge source={row.source} label={partyLedgerSourceLabel(language,row.source)}/>{row.reference&&<span className="text-xs font-medium">{row.reference}</span>}{row.attachment&&<PartyLedgerAttachment attachment={row.attachment}
                   label={text('Open attachment','সংযুক্ত ফাইল খুলুন')} onClick={()=>onOpenAttachment(row)}/>}</div>
         <p className="my-2 break-words text-xs text-ink-600">{row.description}</p>
         <div className="grid grid-cols-3 gap-2 text-right text-xs">
