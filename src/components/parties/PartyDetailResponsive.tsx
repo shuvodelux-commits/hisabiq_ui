@@ -13,6 +13,7 @@ import { AppSelect } from '../AppSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
 import { PartyBalanceCard } from './PartyBalanceCard';
+import {VendorQuickSettlementDialog, type VendorQuickSettlementMode} from './VendorQuickSettlementDialog';
 import { partyFinanceActions, partyTradingActionIcons } from './partyRoleActions';
 import type { FinanceTransactionType } from '../../data/financeAccounts';
 import { PartySourceQuickPreview } from './PartySourceQuickPreview';
@@ -100,6 +101,7 @@ export function PartyDetailResponsive({
   const [attachment, setAttachment] = useState<LedgerEntry | null>(null);
   const [viewedRow,setViewedRow] = useState<PartyLedgerRow|null>(null);
   const [paymentOpen,setPaymentOpen] = useState(false);
+  const [vendorSettlementMode,setVendorSettlementMode]=useState<VendorQuickSettlementMode|null>(null);
   const [refundOpen,setRefundOpen] = useState(false);
   const [financeOpen,setFinanceOpen]=useState(false);
   const [financeStartType,setFinanceStartType]=useState<FinanceTransactionType|undefined>();
@@ -197,7 +199,7 @@ export function PartyDetailResponsive({
     }, {
       id: 'vendor-payment', icon: HandCoins, label: text('Vendor payments', 'ভেন্ডরের পেমেন্ট'),
       helper: text('Open pay and receive options', 'টাকা দেওয়া ও নেওয়া'),
-      run: () => onOpenVendorWork?.('payments')
+      run: () => setVendorSettlementMode('pay')
     }] : []),
     {
       id: 'send', icon: Send, label: text('Send statement', 'হিসাব পাঠান'),
@@ -303,7 +305,7 @@ export function PartyDetailResponsive({
       <div data-testid="party-mobile-actions" className="grid grid-cols-2 gap-2 border-b border-border px-4 pb-4 md:hidden">
         {vendorProfile ?
           <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold"
-            onClick={() => onOpenVendorWork?.('payments')}>
+            onClick={() => setVendorSettlementMode('pay')}>
             <Banknote className="size-[18px] shrink-0" />{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}
           </Button>
         : (relationship==='Customer' || relationship==='Supplier') ?
@@ -322,7 +324,7 @@ export function PartyDetailResponsive({
             <BookOpen className="size-[18px] shrink-0"/>{text('Opening balance','শুরুর জের')}
           </Button>}
         {vendorProfile && <Button size="sm" variant="outline" className="min-h-11 min-w-0"
-          onClick={()=>onOpenVendorWork?.('given')}>
+          onClick={()=>setVendorSettlementMode('receive-money')}>
           <HandCoins className="size-4 shrink-0"/>{text('Receive Money','টাকা নিন')}
         </Button>}
         {!vendorProfile && (relationship==='Customer' || relationship==='Supplier') &&
@@ -345,8 +347,8 @@ export function PartyDetailResponsive({
 
       <div className="hidden flex-wrap items-center gap-2 border-b border-border px-5 pb-3 pt-1 md:flex">
         {vendorProfile ? <>
-          <Button size="sm" onClick={() => onOpenVendorWork?.('payments')}><Banknote className="size-4"/>{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}</Button>
-          <Button size="sm" variant="outline" onClick={() => onOpenVendorWork?.('given')}><HandCoins className="size-4"/>{text('Receive Money', 'টাকা নিন')}</Button>
+          <Button size="sm" onClick={() => setVendorSettlementMode('pay')}><Banknote className="size-4"/>{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}</Button>
+          <Button size="sm" variant="outline" onClick={() => setVendorSettlementMode('receive-money')}><HandCoins className="size-4"/>{text('Receive Money', 'টাকা নিন')}</Button>
         </> : (relationship==='Customer' || relationship==='Supplier') ? <>
           <Button size="sm" onClick={() => setPaymentOpen(true)}>
             {(() => {const Icon=partyTradingActionIcons[relationship];return <Icon className="size-4"/>;})()}
@@ -547,6 +549,9 @@ export function PartyDetailResponsive({
 
       <PartyOpeningDialog open={openingOpen} onClose={()=>setOpeningOpen(false)}
         party={party} relationship={relationship} existing={existingOpening} onSubmit={onSetOpening}/>
+      {vendorProfile && vendorSettlementMode && <VendorQuickSettlementDialog
+        open partyId={party.id} partyName={party.name} mode={vendorSettlementMode}
+        onClose={()=>setVendorSettlementMode(null)}/>}
       <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={shownStatement}/>
       {(relationship==='Customer'||relationship==='Supplier')&&<>
         <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}
