@@ -2,7 +2,7 @@
 
 Scope: Sales, Sales Return, Return History, customer credit, drafts/templates, Quotations and Online Sales. The approved compact prototype supplies presentation only. The GitHub application remains the source of truth for data, permissions, calculations and preview operations.
 
-The breakpoint is **767px maximum**. Existing tablet and desktop markup is retained. No store, API, posting rule, cart algorithm, role gate or dependency changes.
+The breakpoint is **767px maximum**. The initial integration retained tablet/desktop markup; the follow-up below changes only their filter disclosure. No store, API, posting rule, cart algorithm, role gate or dependency changes.
 
 ## Action preservation
 
@@ -36,10 +36,18 @@ The phone chooser remains mounted when collapsed. Invoice detail disclosure is o
 - Targeted ESLint: no errors; two pre-existing hook dependency warnings.
 - TypeScript: passed.
 - Production build: passed; existing chunk-size advisory remains.
-- Before/after screenshots: seven routes at 768px and 1440px are pixel-identical under the same fonts, language, density and reduced-motion settings.
+- Initial phone-only integration before/after screenshots: seven routes at 768px and 1440px were pixel-identical under the same fonts, language, density and reduced-motion settings.
 - Browser regression scripts cover list preferences/export, invoice/detail, split payment arithmetic, return source/quantity/reason/settlement, credits, quotation draft/status/duplicate/delete, online order/courier/COD/payout, CRM and SMS preview.
 - Responsive matrix covers 360, 390, 430, 768, 1024 and 1440px, all three language modes, light/dark and search state across the breakpoint.
 
-Financial, courier and SMS preview limitations are unchanged. This change does not introduce backend posting or messaging. Shared POS and purchase editors are deliberately unchanged; tablet/desktop redesign is deferred to the user's later instructions.
+Financial, courier and SMS preview limitations are unchanged. This change does not introduce backend posting or messaging. Shared POS and purchase editors are deliberately unchanged; other tablet/desktop redesign remains deferred.
 
 Reproduce browser checks after `npm run build`: run `node scripts/sales-mobile-layout-browser.cjs`, `node scripts/bangla-sales-browser.cjs`, then `TEST_MOBILE=1 node scripts/quotations-browser.cjs` and `TEST_MOBILE=1 node scripts/online-sales-browser.cjs`. Set `PLAYWRIGHT_EXECUTABLE_PATH` only when using a system Chromium instead of the Playwright browser.
+
+## Follow-up: tablet and desktop filters
+
+Sales, Quotations and Online Sales now use `SalesWideToolbar`. Search, columns and export stay visible; an accessible filter icon expands all existing filters in a row below. Filters start collapsed, show an active count, and retain controlled values/results when collapsed or when switching device width. Framer Motion follows the existing reduced-motion preference. Phone layouts and all transaction workflows remain unchanged.
+
+The responsive browser matrix checks keyboard expansion, hidden initial controls, every Sales and Online Sales selector, quotation status filtering, retained selections/results after collapse, all three language modes, and viewport overflow.
+
+Follow-up verification: build, TypeScript, UI contract guard, all 681 unit tests, and the full responsive browser matrix pass. All seven 390px screenshots are pixel-identical to the phone-only implementation. Tablet/desktop collapsed and expanded screenshots were inspected together; only the requested filter toolbar behavior changes.

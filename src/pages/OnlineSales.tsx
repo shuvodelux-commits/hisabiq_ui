@@ -1,3 +1,4 @@
+import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
 import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord } from '../components/sales/SalesMobileLayout';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
@@ -366,11 +367,8 @@ export function OnlineSales(){
        search={<Input aria-label={ol('Search online orders')} placeholder={ol('Search order, customer, courier, phone...')} value={query} onChange={event=>setQuery(event.target.value)}/>}
        filters={<><AppSelect label={ol('Filter sales channel')} value={filter} options={onlineOptions(language,['All channels',...channels])} onChange={setFilter}/><AppSelect label={ol('Filter order status')} value={stage} options={onlineOptions(language,['All statuses',...stages])} onChange={setStage}/></>}
        activeCount={Number(filter!=='All channels')+Number(stage!=='All statuses')} onClear={()=>{setQuery('');setFilter('All channels');setStage('All statuses');}}
-       result={<>{filtered.length} / {orders.length} {ol('Orders')}</>} /> : (<div className="flex flex-wrap gap-2">
-      <div className="min-w-[180px] flex-1"><Input aria-label={ol("Search online orders")} placeholder={ol("Search order, customer, courier, phone...")} value={query} onChange={e=>setQuery(e.target.value)}/></div>
-      <AppSelect label={ol("Filter sales channel")} value={filter} className="w-40" options={onlineOptions(language,['All channels',...channels])} onChange={setFilter}/>
-      <AppSelect label={ol("Filter order status")} value={stage} className="w-44" options={onlineOptions(language,['All statuses',...stages])} onChange={setStage}/>
-     </div>)}
+       result={<>{filtered.length} / {orders.length} {ol('Orders')}</>} /> : (<SalesWideToolbar className="" search={<div className="min-w-[180px] flex-1"><Input aria-label={ol("Search online orders")} placeholder={ol("Search order, customer, courier, phone...")} value={query} onChange={e=>setQuery(e.target.value)}/></div>} filters={<> <AppSelect label={ol("Filter sales channel")} value={filter} className="w-40" options={onlineOptions(language,['All channels',...channels])} onChange={setFilter}/>
+      <AppSelect label={ol("Filter order status")} value={stage} className="w-44" options={onlineOptions(language,['All statuses',...stages])} onChange={setStage}/></>} activeCount={Number(filter!=='All channels')+Number(stage!=='All statuses')} />)}
      <div className="sales-mobile-online-records grid gap-2">
       {filtered.map(o=>{const totals=orderTotals(o),clearing=courierClearing(o);return isMobile ? <SalesMobileRecord key={o.id} reference={o.number} name={o.customerName}
        status={<StatusBadge tone={stageTone(o.stage)}>{ol(o.stage)}</StatusBadge>}

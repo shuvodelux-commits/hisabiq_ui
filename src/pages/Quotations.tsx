@@ -1,3 +1,4 @@
+import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
 import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord } from '../components/sales/SalesMobileLayout';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
@@ -231,14 +232,11 @@ export function Quotations(){
     </div>)}
   </div>)}
   <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-   {isMobile ? <SalesMobileToolbar search={<div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400"/><Input aria-label={ql('Search quotations')} className="pl-8" value={search} onChange={event=>setSearch(event.target.value)} placeholder={ql('Search quote, customer or item…')}/></div>} filters={<div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(value=><Button key={value} type="button" variant={status===value?'default':'outline'} size="sm" onClick={()=>setStatus(value)}>{ql(value)}</Button>)}</div>} activeCount={Number(status !== 'All')} onClear={()=>{setSearch('');setStatus('All');}} result={<>{ql('Showing')} {filtered.length} {ql('of')} {quotes.length}</>} /> : (<div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-    <div className="relative min-w-[180px] flex-1 sm:max-w-sm">
+   {isMobile ? <SalesMobileToolbar search={<div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400"/><Input aria-label={ql('Search quotations')} className="pl-8" value={search} onChange={event=>setSearch(event.target.value)} placeholder={ql('Search quote, customer or item…')}/></div>} filters={<div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(value=><Button key={value} type="button" variant={status===value?'default':'outline'} size="sm" onClick={()=>setStatus(value)}>{ql(value)}</Button>)}</div>} activeCount={Number(status !== 'All')} onClear={()=>{setSearch('');setStatus('All');}} result={<>{ql('Showing')} {filtered.length} {ql('of')} {quotes.length}</>} /> : (<SalesWideToolbar search={<div className="relative min-w-[180px] flex-1 sm:max-w-sm">
      <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400"/>
      <Input aria-label={ql("Search quotations")} className="pl-8" value={search} onChange={e=>setSearch(e.target.value)} placeholder={ql("Search quote, customer or item…")}/>
-    </div>
-    <div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(s=>
-     <Button key={s} type="button" variant={status===s?'default':'outline'} size="sm" onClick={()=>setStatus(s)}>{ql(s)}</Button>)}</div>
-   </div>)}
+    </div>} filters={<div className="flex flex-wrap gap-1">{['All','Draft','Sent','Accepted','Declined','Expired'].map(s=>
+     <Button key={s} type="button" variant={status===s?'default':'outline'} size="sm" onClick={()=>setStatus(s)}>{ql(s)}</Button>)}</div>} activeCount={Number(status !== 'All')} />)}
    {isMobile ? <div className="sales-mobile-quote-records" aria-label={ql('Quotations')}>{filtered.map(q=><SalesMobileRecord key={q.id} reference={q.number} name={q.customerName} date={q.date}
      status={<StatusBadge tone={statusTone[quoteDisplayStatus(q)]}>{ql(quoteDisplayStatus(q))}</StatusBadge>}
      meta={<>{ql('Valid:')} {q.validUntil} · {q.lines.length} {ql('Items')}</>} amount={<>{ql('Total')} <strong className="text-ink">{taka(quoteTotal(q))}</strong></>} onOpen={()=>setDetailId(q.id)}

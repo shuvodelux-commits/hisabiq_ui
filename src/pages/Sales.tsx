@@ -1,3 +1,4 @@
+import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
 import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord, SalesMobileDisclosure } from '../components/sales/SalesMobileLayout';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
@@ -1173,14 +1174,13 @@ export function Sales() {
               activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
               onClear={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}
               result={text(`Showing ${filtered.length} of ${invoices.length} invoices`, `মোট ${invoices.length}টি বিলের মধ্যে ${filtered.length}টি দেখাচ্ছে`)}
-              actions={close => <><SalesColumnPicker inline visible={visibleSalesColumns} onToggle={toggleSalesColumn} /><Button variant="outline" size="sm" onClick={() => { close(); exportSales(); }}><ArrowDownToLine className="size-4" />{text('Export','ডাউনলোড')}</Button></>} /> : (<div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
-              {invoiceSearch}
-              {invoiceFilters}
+              actions={close => <><SalesColumnPicker inline visible={visibleSalesColumns} onToggle={toggleSalesColumn} /><Button variant="outline" size="sm" onClick={() => { close(); exportSales(); }}><ArrowDownToLine className="size-4" />{text('Export','ডাউনলোড')}</Button></>} /> : (<SalesWideToolbar search={invoiceSearch} filters={invoiceFilters}
+              activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
+              actions={<>
               <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
               <Button variant="outline" size="sm" onClick={() => downloadReport('hisabiq-sales.csv', ['Invoice','Date','Customer','Phone','Items','Total','Paid','Due','Payment','Status'], filtered.map(invoice => [invoice.invoice,invoice.date,invoice.party,invoice.phone ?? '',invoice.lines.map(line => line.name+' · '+invoiceQty(line)).join('; '),invoice.total,invoice.paid,invoice.due,invoice.payments.map(p => p.method).join(' + ') || invoice.method,invoice.status]))}>
                 <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
-              </Button>
-            </div>)}
+              </Button></>} />)}
 
             {isMobile ? <div aria-label={text('Sales invoices','বিক্রির বিল')} className="sales-mobile-record-list">
               {filtered.map(invoice => <SalesMobileRecord key={invoice.id} reference={visibleSalesColumns.invoice ? invoice.invoice : ''} name={visibleSalesColumns.customer ? invoice.party : ''} date={visibleSalesColumns.invoice ? invoice.date : undefined}
