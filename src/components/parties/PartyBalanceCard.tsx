@@ -22,7 +22,7 @@ const receivableText: Record<PartyRole, Copy['hint']> = {
 
 const payableText: Record<PartyRole, Copy['hint']> = {
   Customer: ['Customer has credit', 'ক্রেতার জমা টাকা'],
-  Supplier: ['You owe supplier', 'সরবরাহকারীকে দেনা'],
+  Supplier: ['You owe them', 'সরবরাহকারীকে দেনা'],
   Vendor: ['You owe vendor', 'ভেন্ডরকে দেনা'],
   Lender: ['You owe lender', 'ঋণদাতাকে দেনা'],
   Borrower: ['You owe borrower', 'ঋণগ্রহীতাকে দেনা'],
@@ -70,13 +70,18 @@ export function PartyBalanceCard({
     ? { background: 'bg-danger-bg dark:bg-rose-950/25', foreground: 'text-danger' }
     : { background: 'bg-ink-50 dark:bg-card', foreground: 'text-ink-700' };
   const helper = text(data.hint[0], data.hint[1]);
+  const helperColor = mobileHorizontal
+    ? data.tone === 'payable' ? 'text-ink-500 md:text-danger'
+      : data.tone === 'receivable' ? 'text-ink-500 md:text-teal-800 dark:md:text-emerald-400'
+        : 'text-ink-500 md:text-ink-700'
+    : colors.foreground;
 
   return <div data-testid="party-balance-card"
       className={`min-w-0 rounded-xl px-4 py-3 ${mobileHorizontal
         ? 'grid grid-cols-[minmax(0,1fr)_auto] grid-rows-2 items-center gap-x-2 text-left md:block md:text-right'
         : 'text-right'} ${colors.background}`}>
-    <p className={`min-w-0 text-[13px] font-semibold leading-snug ${mobileHorizontal
-      ? 'col-start-1 row-start-1 self-end md:block' : ''} ${colors.foreground}`}>
+    <p className={`min-w-0 font-semibold leading-snug ${mobileHorizontal
+      ? 'col-start-1 row-start-1 self-end text-[15px] md:text-[13px]' : ''} ${colors.foreground}`}>
       {text(data.title[0], data.title[1])}
     </p>
     <p className={`min-w-0 break-words font-semibold leading-tight tracking-tight ${mobileHorizontal
@@ -85,8 +90,8 @@ export function PartyBalanceCard({
       {taka(Math.abs(amount))}
     </p>
     <p data-testid={relationship === 'Customer' && amount > 0 ? 'party-receivable-helper' : 'party-balance-helper'}
-      className={`min-w-0 text-[11px] leading-snug ${mobileHorizontal
-        ? 'col-start-1 row-start-2 self-start md:mt-1' : 'mt-1'} ${colors.foreground}`}>
+      className={`min-w-0 text-[12px] leading-snug md:text-[11px] ${mobileHorizontal
+        ? 'col-start-1 row-start-2 self-start md:mt-1' : 'mt-1'} ${helperColor}`}>
       {helper}
       {showHelper && <> · <span lang="bn" className="font-bn"
         data-testid={(relationship === 'Supplier' || relationship === 'Lender') && amount < 0
