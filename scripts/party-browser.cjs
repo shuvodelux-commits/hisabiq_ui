@@ -85,10 +85,31 @@ async function main() {
       assert.equal(await page.locator('table').first().isVisible(),width>=768,`Party ${width}px uses compact ledger table on tablet/desktop`);
       assert.ok(await page.getByRole('button',{name:'Change party'}).isVisible(),`Change Party control is reachable at ${width}px`);
       if(width>=768){
-        assert.ok(await page.getByRole('heading',{name:'Parties & Ledger'}).isVisible(),`Party page title stays visible at ${width}px`);
-        assert.ok(await page.getByRole('button',{name:'Add party'}).isVisible(),`Add party stays beside Change party at ${width}px`);
+        const heading=page.getByRole('heading',{name:'Parties & Ledger'});
+        assert.ok(await heading.isVisible(),`Party page title stays visible at ${width}px`);
+        assert.equal(await page.getByText('Everyone you deal with, in one place').count(),0,`No redundant introductory sentence at ${width}px`);
+        const buttons=[
+          page.getByRole('button',{name:'Import Excel / CSV'}),
+          page.getByRole('button',{name:'Add party'}),
+          page.getByRole('button',{name:'Change party'})
+        ];
+        for(const button of buttons)assert.ok(await button.isVisible(),`All Party header buttons visible at ${width}px`);
+        const headingRect=await heading.boundingBox();
+        const positions=await Promise.all(buttons.map(button=>button.boundingBox()));
+        assert.ok(headingRect&&positions.every(Boolean),`Party header coordinates available at ${width}px`);
+        assert.ok(positions.every(rect=>Math.abs(rect.y-positions[0].y)<3),`Header actions stay in one row at ${width}px`);
+        assert.ok(positions[0].x>=headingRect.x+headingRect.width-5,`Header actions right aligned at ${width}px`);
+        assert.ok(Math.abs(positions[0].y-headingRect.y)<14,`Header actions align with the title at ${width}px`);
+        for(const button of buttons){
+          const color=await button.evaluate(el=>getComputedStyle(el).backgroundColor);
+          assert.equal(color,'rgb(255, 255, 255)',`Header action background white at ${width}px`);
+        }
         assert.ok(await page.locator('p strong.text-emerald-700').isVisible(),`directory receivables are green at ${width}px`);
         assert.ok(await page.locator('p strong.text-danger').isVisible(),`directory payables are red at ${width}px`);
+      }
+      if(width<1024){
+        assert.ok(await page.getByTestId('party-last-activity').isVisible(),`Last activity own line in responsive Party profile at ${width}px`);
+        assert.ok(await page.getByText('ক্রেতার কাছে পাওনা',{exact:true}).first().isVisible(),`Bangla receivable label visible at ${width}px`);
       }
       if(width>=768&&width<1024){
         assert.ok(await page.getByRole('button',{name:/Opening balance/i}).isVisible(),`Opening balance in tablet action row at ${width}px`);
