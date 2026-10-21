@@ -1,4 +1,5 @@
-import { Paperclip, StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw, HandCoins, ChevronRight } from 'lucide-react';
+import { StickyNote, ArrowDownLeft, ArrowUpRight, FileText, BookOpen, RefreshCcw, HandCoins, ChevronRight } from 'lucide-react';
+import { PartyLedgerAttachment, PartyLedgerSourceBadge } from './PartyLedgerIndicators';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { PartyLedgerRowActions } from './PartyLedgerRowActions';
@@ -107,18 +108,17 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
                 <button type="button" aria-label={text('View transaction','লেনদেন দেখুন') + ' ' + (row.reference || row.id)}
                   onClick={() => onAction('view',row)}
                   className="group flex min-w-0 flex-1 items-start gap-1.5 rounded text-left transition-colors hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-500">
-                  <LedgerTypeIcon row={row} />
                   <span className="min-w-0">
-                    <span className="flex flex-wrap items-baseline gap-x-1.5 leading-tight">
+                    <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 leading-tight">
+                      <PartyLedgerSourceBadge source={row.source} label={partyLedgerSourceLabel(language,row.source)} />
                       <strong className="break-words text-[12px] font-semibold text-ink group-hover:text-teal-700">{row.reference || partyLedgerSourceLabel(language,row.source)}</strong>
-                      <span className="text-[10px] text-ink-500">{partyLedgerSourceLabel(language,row.source)}</span>
                     </span>
                     {row.description && <span className="mt-0.5 block max-w-md truncate text-[11px] leading-tight text-ink-500" title={row.description}>{row.description}</span>}
                   </span>
                 </button>
-                {row.attachment && <button type="button" aria-label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন') + ' ' + row.attachment.name}
-                  className="rounded p-0.5 text-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500"
-                  onClick={() => onOpenAttachment(row)}><Paperclip className="size-3.5" /></button>}
+                {row.attachment && <PartyLedgerAttachment attachment={row.attachment}
+                  label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন')}
+                  onClick={() => onOpenAttachment(row)} />}
               </div>
             </TableCell>
             <TableCell className="py-1.5 text-right"><CompactAmount value={row.debit} /></TableCell>
@@ -152,7 +152,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-1.5 text-xs text-ink-500">
                 <LedgerTypeIcon row={row} />
-                <span>{partyLedgerSourceLabel(language,row.source)}</span>
+                <PartyLedgerSourceBadge source={row.source} label={partyLedgerSourceLabel(language,row.source)} />
                 <span aria-hidden="true">·</span>
                 <span className="shrink-0">{row.date}</span>
               </div>
@@ -170,8 +170,9 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
           <div className="mt-2.5 flex min-w-0 items-center justify-between gap-2">
             <p className="min-w-0 break-words text-xs text-ink-500">{text('Balance', 'জের')} <strong className="font-semibold text-ink">{balance(row.runningBalance)}</strong></p>
             <div className="flex shrink-0 items-center gap-1">
-              {row.attachment && <button type="button" className="min-h-9 rounded p-2 text-teal-700" aria-label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন') + ' ' + row.attachment.name}
-                onClick={() => onOpenAttachment(row)}><Paperclip className="size-4" /></button>}
+              {row.attachment && <PartyLedgerAttachment attachment={row.attachment}
+                label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন')}
+                onClick={() => onOpenAttachment(row)} />}
               <ChevronRight className="size-4 shrink-0 text-ink-400" aria-hidden="true" />
               <PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} />
             </div>
