@@ -109,7 +109,7 @@ async function main() {
       }
       if(width<1024){
         assert.ok(await page.getByTestId('party-last-activity').isVisible(),`Last activity own line in responsive Party profile at ${width}px`);
-        assert.ok(await page.getByTestId('party-receivable-helper').isVisible(),`Localized receivable explanation visible at ${width}px`);
+        assert.ok(await page.locator('[data-testid="party-receivable-helper"]:visible').first().isVisible(),`Localized receivable explanation visible at ${width}px`);
       }
       if(width>=768&&width<1024){
         assert.ok(await page.getByRole('button',{name:/Opening balance/i}).isVisible(),`Opening balance in tablet action row at ${width}px`);
