@@ -63,3 +63,70 @@ test('invalid Vendor, duplicate source or bad cost reject atomically',()=>{
  const done=applyVendorCommand(s,sourcing('once'));
  assert.throws(()=>applyVendorCommand(done,{...sourcing('another'),source:{...sourcing('another').source,id:'source-once'}}),/source/i);
 });
+
+test('Vendor money settlement accepts genuine bank splits and replays an exact retry once',()=>{
+ const start=applyVendorCommand(fresh(),sourcing('source-for-pay','v1',10000));
+ const command={
+  type:'settle-source' as const,operationId:'vendor-pay-valid',vendorPartyId:'v1',
+  side:'payable' as const,kind:'pay' as const,date:'2026-10-11',amountPaisa:10000,
+  allocations:[{sourceId:'source-source-for-pay',amountPaisa:10000}],
+  paymentSplits:[{id:'bank-1',accountId:'acc-dbl',method:'Bank' as const,amountPaisa:10000}],
+  reason:'Bank settlement'
+ };
+ const paid=applyVendorCommand(start,command);
+ assert.equal(sourceOutstanding(paid,'source-source-for-pay').monetaryDuePaisa,20000);
+ assert.equal(paid.settlements[0].paymentSplits?.[0].accountId,'acc-dbl');
+ assert.equal(applyVendorCommand(paid,command),paid,'Exact operation retry must not post a second payment');
+ assert.equal(paid.events.filter(e=>e.kind==='settlement').length,1);
+});
+
+test('Vendor settlement rejects unknown account, wrong method, invalid splits without mutation',()=>{
+ const start=applyVendorCommand(fresh(),sourcing('source-for-invalid-pay','v1',10000));
+ const unchanged=JSON.stringify(start);
+ const payment={
+  type:'settle-source' as const,operationId:'vendor-pay-invalid',vendorPartyId:'v1',
+  side:'payable' as const,kind:'pay' as const,date:'2026-10-11',amountPaisa:10000,
+  allocations:[{sourceId:'source-source-for-invalid-pay',amountPaisa:10000}],
+  paymentSplits:[{id:'split-1',accountId:'acc-cash',method:'Cash' as const,amountPaisa:10000}]
+ };
+ const bad=[
+  {splits:[{...payment.paymentSplits[0],accountId:'account-missing'}],reason:/account not found or inactive/i},
+  {splits:[{...payment.paymentSplits[0],method:'Bank' as const}],reason:/method does not match/i},
+  {splits:[{...payment.paymentSplits[0],amountPaisa:0}],reason:/split must be positive/i},
+  {splits:[{...payment.paymentSplits[0],amountPaisa:9999}],reason:/splits do not match/i},
+  {splits:[payment.paymentSplits[0],{...payment.paymentSplits[0]}],reason:/duplicate/i},
+  {splits:[{...payment.paymentSplits[0],id:''}],reason:/missing/i}
+ ];
+ for(const entry of bad){
+  assert.throws(()=>applyVendorCommand(start,{...payment,paymentSplits:entry.splits}),entry.reason);
+  assert.equal(JSON.stringify(start),unchanged,'Failed Vendor command must not change original state');
+ }
+});
+
+test('Clear Vendor due validates real cash account identity and payment method',()=>{
+ const start=applyVendorCommand(fresh(),sourcing('source-for-clear','v1',10000));
+ const command={
+  type:'clear-source-due' as const,operationId:'vendor-clear-valid',vendorPartyId:'v1',
+  sourceId:'source-source-for-clear',date:'2026-10-11',cashPaisa:5000,
+  returnBaseQty:0,paymentSplits:[{id:'cash-1',accountId:'acc-cash',method:'Cash' as const,amountPaisa:5000}]
+ };
+ assert.throws(()=>applyVendorCommand(start,{...command,paymentSplits:[{...command.paymentSplits[0],accountId:'missing'}]}),/account not found/i);
+ assert.throws(()=>applyVendorCommand(start,{...command,paymentSplits:[{...command.paymentSplits[0],method:'Mobile Banking' as const}]}),/method does not match/i);
+ const paid=applyVendorCommand(start,command);
+ assert.equal(sourceOutstanding(paid,'source-source-for-clear').monetaryDuePaisa,25000);
+ assert.equal(paid.settlements[0].paymentSplits?.[0].accountId,'acc-cash');
+});
+
+test('Product-only Vendor return cannot carry hidden money account splits',()=>{
+ const sourceState=applyVendorCommand(fresh(),sourcing('source-for-return','v1',10000));
+ const start={...sourceState,inventory:{p1:10}};
+ const snapshot=JSON.stringify(start);
+ const bad={
+  type:'settle-source' as const,operationId:'vendor-return-account',vendorPartyId:'v1',
+  side:'payable' as const,kind:'return-to-vendor' as const,date:'2026-10-11',amountPaisa:10000,
+  allocations:[{sourceId:'source-source-for-return',amountPaisa:10000,baseQty:1}],
+  paymentSplits:[{id:'cash-1',accountId:'acc-cash',method:'Cash' as const,amountPaisa:10000}]
+ };
+ assert.throws(()=>applyVendorCommand(start,bad),/product-only.*payment accounts/i);
+ assert.equal(JSON.stringify(start),snapshot);
+});
