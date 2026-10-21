@@ -60,6 +60,17 @@ async function main() {
     await choose.getByRole('option',{name:/CSV Supplier QA/}).click();
     await choose.waitFor({state:'hidden'});
     await page.getByRole('heading',{name:/CSV Supplier QA/}).waitFor();
+    // Supplier screenshot contract: compact horizontal owed-card plus just the three actions.
+    const supplierCard=page.locator('[data-testid="party-balance-card"]:visible').first();
+    assert.equal(await supplierCard.evaluate(el=>getComputedStyle(el).display),'grid');
+    assert.ok(await supplierCard.getByText('Supplier payable').isVisible());
+    assert.ok(await supplierCard.getByText('You owe them',{exact:false}).isVisible());
+    const supplierActions=page.getByTestId('party-mobile-actions');
+    assert.equal(await supplierActions.locator('button:visible').count(),3);
+    assert.ok(await supplierActions.getByRole('button',{name:'Make payment'}).isVisible());
+    assert.ok(await supplierActions.getByRole('button',{name:'New invoice'}).isVisible());
+    assert.ok(await supplierActions.getByRole('button',{name:'More actions'}).isVisible());
+    assert.ok(!(await page.getByTestId('party-last-activity').isVisible()));
     await page.getByRole('button',{name:'More actions'}).click();
     const actionSheet=page.getByRole('dialog',{name:'More actions'});
     await actionSheet.getByRole('button',{name:/opening balance/i}).waitFor();
