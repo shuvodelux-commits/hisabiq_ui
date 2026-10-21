@@ -243,7 +243,7 @@ export function PartyDetailResponsive({
               </a>}
               {party.area && <span className="inline-flex items-center gap-1"><MapPin className="size-3.5 shrink-0" aria-hidden="true" />{party.area}</span>}
             </div>
-            {party.lastActivity && <div className="mt-1 flex items-center gap-1 text-[12px] text-ink-500" data-testid="party-last-activity">
+            {party.lastActivity && <div className="mt-1 hidden items-center gap-1 text-[12px] text-ink-500 md:flex" data-testid="party-last-activity">
               <Clock className="size-3.5 shrink-0" aria-hidden="true" />
               <span>{text('Last activity', 'শেষ লেনদেন')} {party.lastActivity}</span>
             </div>}
@@ -268,13 +268,13 @@ export function PartyDetailResponsive({
         </div>
         <div className="mt-4 min-[900px]:hidden lg:block xl:hidden">
           {vendorProfile ? <div className="grid gap-2 sm:grid-cols-2">
-            <PartyBalanceCard compact amount={vendorProfile.summary.takenDuePaisa/100}
+            <PartyBalanceCard mobileHorizontal compact amount={vendorProfile.summary.takenDuePaisa/100}
               copy={{title:['Vendor payable','ভেন্ডরকে দেনা'],
                 hint:['You owe vendor','ভেন্ডরকে দেনা'],tone:'payable'}}/>
-            <PartyBalanceCard compact amount={vendorProfile.summary.givenDuePaisa/100}
+            <PartyBalanceCard mobileHorizontal compact amount={vendorProfile.summary.givenDuePaisa/100}
               copy={{title:['Vendor receivable','ভেন্ডরের কাছে পাওনা'],
                 hint:['Vendor owes you','ভেন্ডরের কাছে পাওনা'],tone:'receivable'}}/>
-          </div> : <PartyBalanceCard relationship={relationship} amount={currentBalance}/>}
+          </div> : <PartyBalanceCard mobileHorizontal relationship={relationship} amount={currentBalance}/>}
           {vendorProfile && vendorProfile.summary.priceNotSetBaseQty>0 &&
             <p className="mt-1 text-xs text-warning">
               {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set', 'একক · দাম ঠিক হয়নি')}
@@ -295,57 +295,39 @@ export function PartyDetailResponsive({
       </header>
 
 
-      <div className="grid grid-cols-2 gap-2 border-b border-border px-4 pb-4 md:hidden">
-        {vendorProfile ? <>
-          <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold" onClick={() => onOpenVendorWork?.('payments')}>
-            <HandCoins className="size-[18px]" />{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}
+      <div data-testid="party-mobile-actions" className="grid grid-cols-2 gap-2 border-b border-border px-4 pb-4 md:hidden">
+        {vendorProfile ?
+          <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold"
+            onClick={() => onOpenVendorWork?.('payments')}>
+            <HandCoins className="size-[18px] shrink-0" />{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}
           </Button>
-          <Button size="sm" variant="outline" className="min-h-11" onClick={() => onOpenVendorWork?.('payments')}>
-            {text('Receive Money', 'টাকা নিন')}
+        : (relationship==='Customer' || relationship==='Supplier') ?
+          <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold"
+            onClick={() => setPaymentOpen(true)}>
+            <HandCoins className="size-[18px] shrink-0" />
+            {payable ? text('Make payment', 'টাকা দিন') : text('Receive payment', 'টাকা নিন')}
           </Button>
-        </> : relationship === 'Customer' || relationship === 'Supplier' ? <>
-          <div className="col-span-2 flex min-w-0 gap-2">
-            <Button size="sm" className="min-h-11 min-w-0 flex-1 text-[14px] font-semibold"
-              onClick={() => setPaymentOpen(true)}>
-              <HandCoins className="size-4 shrink-0" />
-              {payable ? text('Make payment', 'টাকা দিন') : text('Receive payment', 'টাকা নিন')}
-            </Button>
-            <Button size="sm" variant="outline" className="min-h-11 shrink-0" aria-haspopup="dialog"
-              aria-label={text('More actions','আরও কাজ')}
-              aria-expanded={mobileActionsOpen} onClick={() => setMobileActionsOpen(true)}>
-              <MoreHorizontal className="size-4" />{text('More','আরও')}
-            </Button>
-          </div>
-          {relationship==='Customer' && <Button size="sm" variant="outline" className="min-h-11 min-w-0 whitespace-normal"
+        : <Button size="sm" className="col-span-2 min-h-11 whitespace-normal text-[15px] font-semibold"
+            aria-label={text(`Record ${relationship.toLowerCase()} finance`, 'টাকা লেনদেন লিখুন')}
+            onClick={() => (['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship)
+              ? setFinanceOpen(true) : setOpeningOpen(true)}>
+            <HandCoins className="size-[18px] shrink-0"/>
+            {relationship==='Owner' ? text('Capital / withdrawal','মূলধন জমা / তোলা')
+              : relationship==='Lender' ? text('Borrow / repay','ধার নেওয়া / শোধ')
+              : relationship==='Borrower' ? text('Lend / receive','ধার দেওয়া / আদায়')
+              : text('Opening balance','শুরুর জের')}
+          </Button>}
+        {!vendorProfile && (relationship==='Customer' || relationship==='Supplier') &&
+          <Button size="sm" variant="outline" className="min-h-11 min-w-0"
             disabled={party.status==='Inactive'} onClick={onNewInvoice}>
             <FilePlus2 className="size-4 shrink-0" />{text('New invoice','নতুন বিল')}
           </Button>}
-                    <Button size="sm" variant="outline" className={relationship==='Supplier'?'col-span-2 min-h-11':'min-h-11 min-w-0 whitespace-normal'} disabled={balanceSummary.refundableCredit<=0}
-            title={balanceSummary.refundableCredit>0
-              ? text('Refund verified credit as of the selected date','নির্বাচিত তারিখ পর্যন্ত নিশ্চিত জমা টাকা ফেরত দিন')
-              : text('No verified refundable credit yet','ফেরত দেওয়ার মতো নিশ্চিত জমা টাকা নেই')}
-            onClick={() => setRefundOpen(true)}>
-            <HandCoins className="size-4" />{text('Refund credit','জমা টাকা ফেরত')}
-          </Button>
-        </> : <>
-          <Button size="sm" className="col-span-2 min-h-11 whitespace-normal text-[15px] font-semibold"
-            aria-label={text(`Record ${relationship.toLowerCase()} finance`, 'টাকা লেনদেন লিখুন')}
-            onClick={() => (['Owner','Lender','Borrower'] as PartyRole[]).includes(relationship) ? setFinanceOpen(true) : setOpeningOpen(true)}>
-            <HandCoins className="size-[18px] shrink-0"/>
-            {relationship==='Owner' ? text('Capital / withdrawal','মূলধন জমা / তোলা') :
-             relationship==='Lender' ? text('Borrow / repay','ধার নেওয়া / শোধ') :
-             relationship==='Borrower' ? text('Lend / receive','ধার দেওয়া / আদায়') :
-             text('Opening balance','শুরুর জের')}
-          </Button>
-          <Button size="sm" variant="outline" className="min-h-11" onClick={() => setOpeningOpen(true)}>
-            <BookOpen className="size-4" />{text('Opening balance','শুরুর জের')}
-          </Button>
-        </>}
-        {relationship!=='Customer' && relationship!=='Supplier' && <Button size="sm" variant="outline" className="min-h-11" aria-haspopup="dialog"
+        <Button size="sm" variant="outline"
+          className={`min-h-11 min-w-0 ${!vendorProfile && (relationship==='Customer' || relationship==='Supplier') ? '' : 'col-span-2'}`}
+          aria-haspopup="dialog" aria-label={text('More actions','আরও কাজ')}
           aria-expanded={mobileActionsOpen} onClick={() => setMobileActionsOpen(true)}>
-          <MoreHorizontal className="size-[17px]" />{text('More', 'আরও')}
-          <span className="sr-only"> {text('actions', 'কাজ')}</span>
-        </Button>}
+          <MoreHorizontal className="size-4 shrink-0" />{text('More','আরও')}
+        </Button>
       </div>
 
       <div className="hidden flex-wrap items-center gap-2 border-b border-border px-5 pb-3 pt-1 md:flex">
@@ -385,7 +367,7 @@ export function PartyDetailResponsive({
       <PartyActionSheet open={mobileActionsOpen} onClose={() => setMobileActionsOpen(false)}
         title={text('More actions', 'আরও কাজ')} titleBn="আরও কাজ">
         <div role="group" aria-label={text('More actions', 'আরও কাজ')}>
-          {menuActions.filter(item => item.id!=='refund').map(item => menuItem(item,() => setMobileActionsOpen(false),'sheet'))}
+          {menuActions.map(item => menuItem(item,() => setMobileActionsOpen(false),'sheet'))}
         </div>
       </PartyActionSheet>
 
