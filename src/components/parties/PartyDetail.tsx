@@ -112,7 +112,7 @@ export function PartyDetail({
    [{action:'view' as const,enabled:true},{action:'source' as const,enabled:true}]:actionsForRow(r);
 
   const tabs: {id: Tab;label: string;count?: number;}[] = [
-  { id: 'ledger', label: text('Ledger','খাতা') },
+  { id: 'ledger', label: text('Ledger','খাতা'), count: shownStatement.rows.length },
   { id: 'invoices', label:vendorProfile?text('Bills & Memos','বিল ও মেমো'):text('Invoices','বিল'), count:vendorProfile?vendorProfile.documents.length:invoices.length },
   { id: 'payments', label: text('Payments','পেমেন্ট'), count:vendorProfile?vendorProfile.payments.length:payments.length },
   { id: 'notes', label: text('Notes','মন্তব্য'), count: notes.length },
