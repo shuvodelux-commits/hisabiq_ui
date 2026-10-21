@@ -81,9 +81,9 @@ async function main() {
       await page.setViewportSize({width,height:900});
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
       assert.ok(overflow<=4,`Party ${width}px should not overflow horizontally (extra ${overflow}px)`);
-      assert.equal(await page.getByRole('list',{name:'Transactions'}).isVisible(),width<1280,`Party ${width}px shows reference feed on small screens`);
-      assert.equal(await page.locator('table').first().isVisible(),width>=1280,`Party ${width}px shows reference ledger table on wide screens`);
-      assert.equal(await page.getByRole('button',{name:'Change party'}).isVisible(),width<1024,`Party chooser at ${width}px`);
+      assert.equal(await page.getByRole('list',{name:'Transactions'}).isVisible(),width<1024,`Party ${width}px shows responsive ledger feed only on phone/tablet`);
+      assert.equal(await page.locator('table').first().isVisible(),width>=1024,`Party ${width}px restores original desktop ledger table`);
+      assert.equal(await page.getByRole('button',{name:'Change party'}).count()>0,width<1024,`Party Change Party control only on phone/tablet at ${width}px`);
     }
     assert.equal(errors.length,0,'browser page must not throw');
     console.log('Party profile browser flow passed');
