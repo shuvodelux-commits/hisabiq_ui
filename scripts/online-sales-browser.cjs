@@ -3,11 +3,12 @@ const assert=require('node:assert/strict');
 async function main(){
  const {createServer}=await import('vite');
  const server=await createServer({server:{host:'127.0.0.1',port:4216,strictPort:true}});await server.listen();
- const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
- const page=await browser.newPage({viewport:{width:1280,height:850},reducedMotion:'reduce'});
+ const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox','--no-zygote','--disable-gpu','--disable-dev-shm-usage']});
+ const page=await browser.newPage({viewport:{width:process.env.TEST_MOBILE==='1'?390:1280,height:850},reducedMotion:'reduce'});
+ await page.route('https://fonts.googleapis.com/**',r=>r.fulfill({contentType:'text/css',body:''}));
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
-  await page.goto('http://127.0.0.1:4216/#/app/online-sales');
+  await page.goto('http://127.0.0.1:4216/#/app/online-sales',{waitUntil:'domcontentloaded',timeout:120000});
   await page.getByRole('button',{name:'New online order'}).click();
   const dlg=page.getByRole('dialog',{name:'New online order'});
   await dlg.getByLabel('Sales channel').click();
@@ -23,7 +24,7 @@ async function main(){
   await small.fill('3');
   const [q,u]=await Promise.all([dlg.getByTestId('compound-quantity').boundingBox(),
    dlg.getByRole('radiogroup',{name:'Order Unit row 1'}).boundingBox()]);
-  assert.ok(q&&u&&q.x+q.width<=u.x-1,'online compound quantity must not overlap unit switch');
+  assert.ok(q&&u&&(q.x+q.width<=u.x-1 || q.y+q.height<=u.y || u.y+u.height<=q.y),'online compound quantity must not overlap unit switch');
   await small.press('Enter');
   assert.equal(await dlg.getByRole('combobox',{name:'Add online order product'}).evaluate(el=>document.activeElement===el),true);
   await small.fill('0');
@@ -33,8 +34,8 @@ async function main(){
   assert.equal(await dlg.getByLabel('Prepaid amount', {exact:true}).inputValue(),'100');
   await dlg.getByRole('button',{name:'Save order draft'}).click();
   await dlg.waitFor({state:'hidden'});
-  const row=page.locator('div.rounded-lg.border').filter({hasText:'Browser Online Buyer'}).first();
-  await row.getByRole('button',{name:'Open'}).click();
+  const row=process.env.TEST_MOBILE==='1'?page.locator('.sales-mobile-record').filter({hasText:'Browser Online Buyer'}):page.locator('div.rounded-lg.border').filter({hasText:'Browser Online Buyer'}).first();
+  await row.getByRole('button',{name:process.env.TEST_MOBILE==='1'?/ON-/: 'Open'}).first().click();
   const detail=page.getByRole('dialog',{name:/Online order ON-/});
   await detail.getByText('COD expected:',{exact:false}).waitFor();
   await detail.getByRole('button',{name:'Confirmed'}).click();

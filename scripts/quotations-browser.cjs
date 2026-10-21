@@ -4,11 +4,12 @@ async function main(){
  const {createServer}=await import('vite');
  const server=await createServer({server:{host:'127.0.0.1',port:4210,strictPort:true}});
  await server.listen();
- const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
- const page=await browser.newPage({viewport:{width:1280,height:850},reducedMotion:'reduce'});
+ const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox','--no-zygote','--disable-gpu','--disable-dev-shm-usage']});
+ const page=await browser.newPage({viewport:{width:process.env.TEST_MOBILE==='1'?390:1280,height:850},reducedMotion:'reduce'});
+ await page.route('https://fonts.googleapis.com/**',r=>r.fulfill({contentType:'text/css',body:''}));
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
-  await page.goto('http://127.0.0.1:4210/#/app/quotations');
+  await page.goto('http://127.0.0.1:4210/#/app/quotations',{waitUntil:'domcontentloaded',timeout:120000});
   await page.getByRole('button',{name:'New quotation'}).click();
   const dlg=page.getByRole('dialog',{name:'New quotation'});
   await dlg.getByLabel('Quotation customer name').fill('Quotation Browser Customer');
@@ -24,7 +25,7 @@ async function main(){
   const unit=dlg.getByRole('radiogroup',{name:'Unit row 1'});
   const geometry=await Promise.all([qty.boundingBox(),unit.boundingBox(),pcs.boundingBox()]);
   assert.ok(geometry.every(Boolean),'compound quantity and unit must be rendered');
-  assert.ok(geometry[0].x+geometry[0].width<=geometry[1].x-1,'quantity input must not overlap unit switch');
+  assert.ok(geometry[0].x+geometry[0].width<=geometry[1].x-1 || geometry[0].y+geometry[0].height<=geometry[1].y || geometry[1].y+geometry[1].height<=geometry[0].y,'quantity input must not overlap unit switch');
   assert.ok(geometry[2].x+geometry[2].width<=geometry[0].x+geometry[0].width,'small-unit input must be contained');
   await dlg.getByText('3,875',{exact:false}).first().waitFor();
   await pcs.press('Enter');
@@ -36,8 +37,8 @@ async function main(){
   await dlg.getByRole('button',{name:'Save draft'}).click();
   await dlg.waitFor({state:'hidden'});
   await page.getByText('Quotation Browser Customer',{exact:true}).first().waitFor();
-  const row=page.getByRole('row').filter({hasText:'Quotation Browser Customer'});
-  await row.getByRole('button',{name:'QT-000043',exact:true}).click();
+  const row=process.env.TEST_MOBILE==='1'?page.locator('.sales-mobile-record').filter({hasText:'Quotation Browser Customer'}):page.getByRole('row').filter({hasText:'Quotation Browser Customer'});
+  await row.getByRole('button',{name:process.env.TEST_MOBILE==='1'?/QT-000043/:'QT-000043',exact:process.env.TEST_MOBILE!=='1'}).first().click();
   const details=page.getByRole('dialog',{name:'Quotation QT-000043'});
   await details.getByText('LED Bulb 12W',{exact:true}).waitFor();
   await details.getByRole('button',{name:'Mark sent'}).click();

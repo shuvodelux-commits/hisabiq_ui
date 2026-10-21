@@ -1,0 +1,45 @@
+# Sales phone layout — Magic Patterns integration
+
+Scope: Sales, Sales Return, Return History, customer credit, drafts/templates, Quotations and Online Sales. The approved compact prototype supplies presentation only. The GitHub application remains the source of truth for data, permissions, calculations and preview operations.
+
+The breakpoint is **767px maximum**. Existing tablet and desktop markup is retained. No store, API, posting rule, cart algorithm, role gate or dependency changes.
+
+## Action preservation
+
+| Area | Phone presentation | Existing outcome retained |
+| --- | --- | --- |
+| Invoice list | Flat records, search, filter disclosure | Customer/status/payment filtering; controlled search and clear |
+| Invoice fields | Main figures and expandable details | Column preferences, line items, phone, date/time, cost/profit, paid and payment method |
+| List actions | More → Columns / Export | Persisted column preferences and filtered CSV download |
+| Invoice menu | Existing InvoiceActions | Invoice preview/print, payment, return, linked customer ledger and contextual source actions with existing guards |
+| New sale | Header primary action | Existing POS route and editor |
+| Sales Return | Collapsible invoice chooser and labelled item grid | Customer/invoice selection; quantity, reason, serial/lot/bundle evidence; original refund allocation, settlement and validation |
+| Return History | Flat records and existing menu | Detail/print, linked customer ledger, another return |
+| Customer credit | Flat balances and existing menu | Receive payment, apply to invoice, refund and ledger; original disabled conditions |
+| Drafts/templates | Compact existing sections | Resume, duplicate, remove and reusable customer template editor; existing confirmations |
+| Quotations | Flat records and status filter disclosure | Existing shared cart, product selection, compound quantities, discounts, draft/edit, status, duplicate, delete, print and handoff |
+| Online orders | Flat records and channel/status filter disclosure | Existing order draft editor, shared cart, customer/address/payment mode, stage actions and POS handoff |
+| Courier / COD | Compact records with courier evidence | Assign courier, tracking, COD report, clearing, payout and fulfillment print previews |
+| CRM / SMS | Existing workbenches in compact phone shell | Lead create/update, notification rules and explicit preview-only messaging |
+| Resize | Alternate presentations of the same state | Search, filter, selected source and draft state remain owned by the page |
+
+## Shared components
+
+Presentation helpers reuse `Button`, `FloatingPanel`, `Input`, `FormSelect`/`AppSelect`, `Dialog`, `StatusBadge`, `MotionTabList`, `useUiCopy`, and `useMediaQuery`. Existing transaction editors continue to use `TransactionCartEditor`, POS `ProductCombobox`, `CompoundQuantityInput`, existing quick-add controls and payment rows. No prototype cart or store was copied.
+
+The phone chooser remains mounted when collapsed. Invoice detail disclosure is outside the record button, avoiding nested interactive controls. Phone column choices render inside their parent menu, avoiding nested portal dismissal. All CSS is scoped to the phone breakpoint.
+
+## Verification
+
+- Existing unit suite: 681 passed.
+- UI contract guard: passed (3 tests).
+- Targeted ESLint: no errors; two pre-existing hook dependency warnings.
+- TypeScript: passed.
+- Production build: passed; existing chunk-size advisory remains.
+- Before/after screenshots: seven routes at 768px and 1440px are pixel-identical under the same fonts, language, density and reduced-motion settings.
+- Browser regression scripts cover list preferences/export, invoice/detail, split payment arithmetic, return source/quantity/reason/settlement, credits, quotation draft/status/duplicate/delete, online order/courier/COD/payout, CRM and SMS preview.
+- Responsive matrix covers 360, 390, 430, 768, 1024 and 1440px, all three language modes, light/dark and search state across the breakpoint.
+
+Financial, courier and SMS preview limitations are unchanged. This change does not introduce backend posting or messaging. Shared POS and purchase editors are deliberately unchanged; tablet/desktop redesign is deferred to the user's later instructions.
+
+Reproduce browser checks after `npm run build`: run `node scripts/sales-mobile-layout-browser.cjs`, `node scripts/bangla-sales-browser.cjs`, then `TEST_MOBILE=1 node scripts/quotations-browser.cjs` and `TEST_MOBILE=1 node scripts/online-sales-browser.cjs`. Set `PLAYWRIGHT_EXECUTABLE_PATH` only when using a system Chromium instead of the Playwright browser.
