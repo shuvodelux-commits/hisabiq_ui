@@ -304,7 +304,14 @@ async function main() {
         await actions.getByRole('button',{name:label,exact:true}).click();
         const dialog=page.getByRole('dialog',{name:'Party finance transaction'});
         await dialog.waitFor();
-        assert.equal(await dialog.getByRole('combobox',{name:'Finance transaction type'}).getAttribute('data-value'),
+        // Finance dialog initializes its type in a React effect after becoming
+        // visible. Check the settled value, not its transient previous selection.
+        const typeSelect=dialog.getByRole('combobox',{name:'Finance transaction type'});
+        await page.waitForFunction((expected) => {
+          const selector=document.querySelector('[role="dialog"][aria-label="Party finance transaction"] [role="combobox"][aria-label="Finance transaction type"]');
+          return selector?.getAttribute('data-value')===expected;
+        },financeType,{timeout:3000});
+        assert.equal(await typeSelect.getAttribute('data-value'),
           financeType,fixture.role+' '+label+' selects audited '+financeType);
         await dialog.getByRole('button',{name:'Cancel'}).click();
         await dialog.waitFor({state:'hidden'});
