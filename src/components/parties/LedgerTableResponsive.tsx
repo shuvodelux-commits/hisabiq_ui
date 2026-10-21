@@ -73,7 +73,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
   const reduceMotion = useReducedMotion();
   const balance = (value: number) => formatMoneyNumber(Math.abs(value)) + ' ' + (value>=0?'Dr':'Cr');
 
-  const summary = <div className="grid grid-cols-3 gap-x-3 gap-y-2 bg-ink-50/70 px-3 py-2.5 md:flex md:flex-wrap md:items-center md:justify-start md:gap-x-6 md:gap-y-1 md:px-4 md:py-2.5" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
+  const summary = <div className="grid grid-cols-3 gap-x-2 gap-y-1 bg-ink-50/70 px-3 py-2 md:flex md:flex-wrap md:items-center md:justify-start md:gap-x-5 md:gap-y-1 md:px-4 md:py-2" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
     {[
       [text('Opening balance', 'শুরুর জের'), balance(statement.openingBalance)],
       [text('Period debit', 'এই সময়ের ডেবিট'), formatMoneyNumber(statement.periodDebit)],
@@ -88,41 +88,43 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
     <div className="hidden md:block">{summary}</div>
 
     <div className="hidden min-w-0 overflow-x-auto md:block">
-      <Table scrollRegionLabel={text('Party ledger transactions', 'পার্টির খাতার লেনদেন')} className="w-full min-w-[700px]">
+      <Table scrollRegionLabel={text('Party ledger transactions', 'পার্টির খাতার লেনদেন')} className="w-full min-w-[655px]">
         <TableHeader>
-          <TableRow className="h-9 bg-ink-50/30 hover:bg-transparent">
-            <TableHead className="w-[112px] whitespace-nowrap pl-4 text-[12px]">{text('Date', 'তারিখ')}</TableHead>
-            <TableHead className="min-w-[185px] text-[12px]">{text('Particulars', 'বিবরণ')}</TableHead>
-            <TableHead className="w-[102px] text-right text-[12px]">{text('Debit', 'ডেবিট')}</TableHead>
-            <TableHead className="w-[102px] text-right text-[12px]">{text('Credit', 'ক্রেডিট')}</TableHead>
-            <TableHead className="w-[122px] text-right text-[12px]">{text('Balance', 'জের')}</TableHead>
-            <TableHead className="w-[44px] pr-3 text-right text-[12px]"><span className="sr-only">{text('Actions', 'কাজ')}</span></TableHead>
+          <TableRow className="h-8 bg-ink-50/30 hover:bg-transparent">
+            <TableHead className="w-[105px] whitespace-nowrap pl-3 text-[11px]">{text('Date', 'তারিখ')}</TableHead>
+            <TableHead className="min-w-[178px] text-[11px]">{text('Particulars', 'বিবরণ')}</TableHead>
+            <TableHead className="w-[96px] text-right text-[11px]">{text('Debit', 'ডেবিট')}</TableHead>
+            <TableHead className="w-[96px] text-right text-[11px]">{text('Credit', 'ক্রেডিট')}</TableHead>
+            <TableHead className="w-[116px] text-right text-[11px]">{text('Balance', 'জের')}</TableHead>
+            <TableHead className="w-[40px] pr-2 text-right text-[11px]"><span className="sr-only">{text('Actions', 'কাজ')}</span></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {visibleRows.map(row => <TableRow key={row.id} className="text-[12px] hover:bg-ink-50/40">
-            <TableCell className="whitespace-nowrap pl-4 py-2 text-[12px] text-ink-500">{formatLedgerDate(row.date)}</TableCell>
-            <TableCell className="min-w-[180px] py-2">
-              <div className="flex items-start gap-2">
+            <TableCell className="whitespace-nowrap pl-3 py-1.5 text-[11px] text-ink-500">{formatLedgerDate(row.date)}</TableCell>
+            <TableCell className="min-w-[174px] py-1.5">
+              <div className="flex items-start gap-1.5">
                 <button type="button" aria-label={text('View transaction','লেনদেন দেখুন') + ' ' + (row.reference || row.id)}
                   onClick={() => onAction('view',row)}
-                  className="group flex min-w-0 flex-1 items-center gap-1.5 rounded text-left transition-colors hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-500">
+                  className="group flex min-w-0 flex-1 items-start gap-1.5 rounded text-left transition-colors hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-500">
                   <LedgerTypeIcon row={row} />
                   <span className="min-w-0">
-                    <span className="block break-words font-semibold leading-snug text-ink group-hover:text-teal-700">{row.reference || partyLedgerSourceLabel(language,row.source)}</span>
-                    <span className="block text-[11px] text-ink-500">{partyLedgerSourceLabel(language,row.source)}</span>
+                    <span className="flex flex-wrap items-baseline gap-x-1.5 leading-tight">
+                      <strong className="break-words text-[12px] font-semibold text-ink group-hover:text-teal-700">{row.reference || partyLedgerSourceLabel(language,row.source)}</strong>
+                      <span className="text-[10px] text-ink-500">{partyLedgerSourceLabel(language,row.source)}</span>
+                    </span>
+                    {row.description && <span className="mt-0.5 block max-w-md truncate text-[11px] leading-tight text-ink-500" title={row.description}>{row.description}</span>}
                   </span>
                 </button>
                 {row.attachment && <button type="button" aria-label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন') + ' ' + row.attachment.name}
-                  className="rounded p-1 text-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500"
-                  onClick={() => onOpenAttachment(row)}><Paperclip className="size-4" /></button>}
+                  className="rounded p-0.5 text-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500"
+                  onClick={() => onOpenAttachment(row)}><Paperclip className="size-3.5" /></button>}
               </div>
-              {row.description && <p className="mt-0.5 line-clamp-1 max-w-md text-[11px] text-ink-500" title={row.description}>{row.description}</p>}
             </TableCell>
-            <TableCell className="py-2 text-right"><CompactAmount value={row.debit} /></TableCell>
-            <TableCell className="py-2 text-right"><CompactAmount value={row.credit} /></TableCell>
-            <TableCell className="whitespace-nowrap py-2 text-right font-semibold text-ink">{taka(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
-            <TableCell className="py-1.5 pr-2 text-right">
+            <TableCell className="py-1.5 text-right"><CompactAmount value={row.debit} /></TableCell>
+            <TableCell className="py-1.5 text-right"><CompactAmount value={row.credit} /></TableCell>
+            <TableCell className="whitespace-nowrap py-1.5 text-right font-semibold text-ink">{taka(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
+            <TableCell className="py-1 pr-1.5 text-right">
               <div className="flex items-center justify-end gap-1"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} /></div>
             </TableCell>
           </TableRow>)}
@@ -183,7 +185,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
     </ul>
 
     <div className="border-t border-border md:hidden">{summary}</div>
-    <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-ink-50 px-4 py-3 text-sm">
+    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-border bg-ink-50 px-3 py-2 text-xs">
       <strong>{text('Closing balance', 'শেষ জের')}</strong>
       <strong className="break-words text-right text-[15px]">{balance(statement.closingBalance)}</strong>
     </div>
