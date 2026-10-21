@@ -13,7 +13,7 @@ test('coarse pointer sizes standalone actions instead of every native ERP button
 
   assert.match(rule, /\.hisabiq-button:not\(\[data-compact-control\]\)/);
   assert.match(rule, /button\[role="combobox"\]:not\(\[data-compact-control\]\)/);
-  assert.match(rule, /:not\(\:where\(td input, th input, \[data-numeric-joined\] input\)\)/);
+  assert.match(rule, /:not\(:where\(td input, th input, \[data-numeric-joined\] input\)\)/);
   assert.doesNotMatch(rule, /\.erp-workspace button:not\(/);
   assert.doesNotMatch(rule, /\[data-dialog-root\] button:not\(/);
   assert.match(css, /\[data-cart-row\] input, \[data-cart-row\] button \{ min-height: 44px; \}/, 'cart touch sizing remains');
