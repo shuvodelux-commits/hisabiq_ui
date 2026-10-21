@@ -8,6 +8,7 @@ import { Input } from '../Input';
 import { FormSelect } from '../FormSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../Dialog';
 import { PartyAvatar } from '../PartyAvatar';
+import { PartyBalanceCard } from './PartyBalanceCard';
 import { RoleBadge } from './RoleBadge';
 import { LedgerTable } from './LedgerTable';
 import { PartyLedgerToolbar } from './PartyLedgerToolbar';
@@ -71,7 +72,7 @@ export function PartyDetail({
   onEditSourcePayment, onReverseSource, onRecordFinance, onSetOpening,
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
-  const {text,showHelper}=useUiCopy();
+  const {text}=useUiCopy();
   const [tab, setTab] = useState<Tab>('ledger');
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
@@ -120,15 +121,7 @@ export function PartyDetail({
 
 
   const currentBalance=balanceSummary.netBalance;
-  const isReceivable = currentBalance > 0;
   const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
-  const balanceLabel = relationship==='Owner'?text('Owner capital','মালিকের মূলধন'):
-    relationship==='Lender'?text('Lender payable','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
-    relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
-    relationship==='Customer'?text('Customer balance','ক্রেতার হিসাব'):text(relationship+' balance','জের');
-  const payableBangla = showHelper ? (relationship==='Supplier' ? 'সরবরাহকারীকে দেনা' :
-    relationship==='Lender' ? 'ঋণদাতাকে দেনা' : null) : null;
-
 
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card shadow-card">
@@ -150,26 +143,20 @@ export function PartyDetail({
             <span>{text('Last activity','শেষ লেনদেন')} {party.lastActivity}</span>
           </div>
         </div>
-        {vendorProfile?<div className="flex flex-wrap gap-2">
-         <div className="rounded-xl bg-danger-bg px-3 py-2 text-right">
-          <p className="text-[11px] text-danger">{text('You owe','আপনাকে দিতে হবে')}{showHelper&&' · দেনা'}</p>
-          <p className="text-xl font-semibold text-danger">{taka(vendorProfile.summary.takenDuePaisa/100)}</p></div>
-         <div className="rounded-xl bg-ink-50 px-3 py-2 text-right">
-          <p className="text-[11px] text-ink-600">{text('Vendor owes','ভেন্ডরের কাছে পাওনা')}{showHelper&&' · পাওনা'}</p>
-          <p className="text-xl font-semibold text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</p>
-          {vendorProfile.summary.priceNotSetBaseQty>0&&<p className="text-[11px] text-warning">
-           {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}</p>}
-         </div></div>:<>
-        <div className={`rounded-xl px-4 py-2.5 text-right ${isReceivable ? 'bg-teal-50' : currentBalance < 0 ? 'bg-danger-bg' : 'bg-ink-50'}`}>
-          <p className={`text-[11px] font-medium ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink-500'}`}>
-            {balanceLabel}
-            {payableBangla && <span data-testid="party-payable-bangla" lang="bn" className="mt-0.5 block font-bn text-[11px] font-normal">{payableBangla}</span>}
-          </p>
-          <p className={`text-2xl font-semibold tabular-nums tracking-tight ${isReceivable ? 'text-teal-800' : currentBalance < 0 ? 'text-danger' : 'text-ink'}`}>
-            {taka(Math.abs(currentBalance))}
-          </p>
-        </div>
-        </>}
+        {vendorProfile ?
+          <div className="flex flex-wrap gap-2">
+            <PartyBalanceCard compact amount={vendorProfile.summary.takenDuePaisa/100}
+              copy={{title:['Vendor payable','ভেন্ডরকে দেনা'],
+                hint:['You owe vendor','ভেন্ডরকে দেনা'],tone:'payable'}} />
+            <PartyBalanceCard compact amount={vendorProfile.summary.givenDuePaisa/100}
+              copy={{title:['Vendor receivable','ভেন্ডরের কাছে পাওনা'],
+                hint:['Vendor owes you','ভেন্ডরের কাছে পাওনা'],tone:'receivable'}}
+              extra={vendorProfile.summary.priceNotSetBaseQty>0 ?
+                <p className="mt-1 text-[11px] text-warning">
+                  {vendorProfile.summary.priceNotSetBaseQty} {text('units · Price not set','একক · দাম ঠিক হয়নি')}
+                </p> : undefined}/>
+          </div>
+          : <PartyBalanceCard compact relationship={relationship} amount={currentBalance}/>}
       </div>
 
       {vendorProfile?<div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
