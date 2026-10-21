@@ -99,9 +99,9 @@ async function main() {
     const rowOptions=page.getByRole('listbox',{name:'Rows per page options'});
     await rowOptions.waitFor();
     assert.equal(await rowOptions.getAttribute('data-menu-style'),'rows');
-    for(const size of ['5','10','25','50','100']){
-      assert.ok(await rowOptions.getByRole('option',{name:size,exact:true}).isVisible(),`Rows popup offers ${size}`);
-    }
+    const availableSizes=await rowOptions.locator('[role="option"]').evaluateAll(options=>
+      options.map(option=>option.getAttribute('data-value')));
+    assert.deepEqual(availableSizes,['5','10','25','50','100'],'Rows popup includes every configured page size');
     const rowsRect=await rowsControl.boundingBox();
     const popupRect=await rowOptions.boundingBox();
     assert.ok(rowsRect&&popupRect&&popupRect.y+popupRect.height<=rowsRect.y+4,
