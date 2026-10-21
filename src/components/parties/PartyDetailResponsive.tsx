@@ -137,9 +137,12 @@ export function PartyDetailResponsive({
   const isReceivable = currentBalance > 0;
   const payable = ['Supplier','Lender','Owner','Payee','Vendor'].includes(relationship);
   const balanceLabel = relationship==='Owner'?text('Owner capital','মালিকের মূলধন'):
-    relationship==='Lender'?text('Lender loan','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
+    relationship==='Lender'?text('Lender payable','ঋণদাতাকে দেনা'):relationship==='Borrower'?text('Borrower balance','ঋণগ্রহীতার কাছে পাওনা'):
     relationship==='Supplier'?text('Supplier payable','সরবরাহকারীকে দেনা'):
     relationship==='Customer'?(isReceivable?text('Customer receivable','ক্রেতার কাছে পাওনা'):text('Customer balance','ক্রেতার হিসাব')):text(relationship+' balance','জের');
+  const payableBangla = showHelper ? (relationship==='Supplier' ? 'সরবরাহকারীকে দেনা' :
+    relationship==='Lender' ? 'ঋণদাতাকে দেনা' : null) : null;
+
 
   // Exact Magic Patterns ActionMenuItems information architecture; real app handlers stay in place.
   const menuActions: Array<{
@@ -257,7 +260,7 @@ export function PartyDetailResponsive({
                 </p>}
               </div> :
               <div className={isReceivable ? 'rounded-xl bg-teal-50 px-4 py-3 text-right' : currentBalance < 0 ? 'rounded-xl bg-danger-bg px-4 py-3 text-right' : 'rounded-xl bg-ink-50 px-4 py-3 text-right'}>
-                <p className={`text-[13px] font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-600"}`}>{balanceLabel}</p>
+                <p className={`text-[13px] font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-600"}`}>{balanceLabel}{payableBangla&&<span data-testid="party-payable-bangla" lang="bn" className="mt-0.5 block font-bn text-[11px] font-normal">{payableBangla}</span>}</p>
                 <p className={`mt-1 break-words text-[26px] font-semibold leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</p>
                 {relationship==='Customer'&&isReceivable&&<p data-testid="party-receivable-helper" className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400">
                   {text('They owe you','ক্রেতার কাছে পাওনা')}{showHelper&&<> · <span lang="bn" className="font-bn">ক্রেতার কাছে পাওনা</span></>}
@@ -279,7 +282,7 @@ export function PartyDetailResponsive({
               <strong className="break-words text-right text-xl text-ink">{taka(vendorProfile.summary.givenDuePaisa/100)}</strong>
             </div>
           </div> : <div className={isReceivable ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-teal-50 px-3.5 py-3' : currentBalance < 0 ? 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-danger-bg px-3.5 py-3' : 'flex min-w-0 items-center justify-between gap-3 rounded-lg bg-ink-50 px-3.5 py-3'}>
-            <span className={`min-w-0 text-sm font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-700"}`}>{balanceLabel}</span>
+            <span className={`min-w-0 text-sm font-semibold ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink-700"}`}>{balanceLabel}{payableBangla&&<span data-testid="party-payable-bangla" lang="bn" className="mt-0.5 block font-bn text-[11px] font-normal">{payableBangla}</span>}</span>
             <span className="min-w-0 text-right">
               <strong className={`block break-words text-[22px] leading-tight ${isReceivable ? "text-emerald-800 dark:text-emerald-400" : currentBalance<0 ? "text-danger" : "text-ink"}`}>{taka(Math.abs(currentBalance))}</strong>
               {relationship==='Customer'&&isReceivable&&<span data-testid="party-receivable-helper" className="mt-0.5 block text-[11px] text-emerald-700 dark:text-emerald-400">
