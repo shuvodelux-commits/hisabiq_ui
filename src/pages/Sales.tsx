@@ -709,7 +709,6 @@ export function Sales() {
   },{replace:true});};
   const {invoices,returns,credits,templates,drafts}=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot,getSalesPreviewSnapshot);
   const setInvoices=(update:(items:SalesInvoice[])=>SalesInvoice[])=>updateSalesPreview('invoices',update);
-  const setReturns=(update:(items:SalesReturn[])=>SalesReturn[])=>updateSalesPreview('returns',update);
   const setCredits=(update:(items:CustomerCredit[])=>CustomerCredit[])=>updateSalesPreview('credits',update);
   const setTemplates=(update:(items:SaleTemplate[])=>SaleTemplate[])=>updateSalesPreview('templates',update);
   const [templateEditor,setTemplateEditor]=useState<{template:SaleTemplate|null}|null>(null);
