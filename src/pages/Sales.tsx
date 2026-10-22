@@ -1012,7 +1012,8 @@ export function Sales() {
     setReturnReviewOpen(true);
   };
   const confirmReturn = () => {
-    if(returnIssues.length||getSalesPreviewSnapshot().returns!==returns){
+    const previewNow=getSalesPreviewSnapshot();
+    if(returnIssues.length||previewNow.returns!==returns||previewNow.invoices!==invoices||previewNow.credits!==credits){
       toast.error(text('Return changed. Review before saving.','ফেরতের তথ্য বদলেছে। আবার যাচাই করুন।'));
       return;
     }
