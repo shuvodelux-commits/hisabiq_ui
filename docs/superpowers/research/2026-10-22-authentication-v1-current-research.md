@@ -1,84 +1,89 @@
-# HisabIQ Authentication V1 — Current Research (2026-10-22)
+# HisabIQ Authentication V1 — UI Design and Existing-Backend Research
 
-**Purpose:** Evidence for an Astra technical design review, **not implementation authorization**.  
-**Scope:** Existing HisabIQ frontend, approved auth design, October 2026 primary-source authentication and Cloudflare/Neon capabilities.  
-**Design:** [V1 spec](../specs/2026-10-22-hisabiq-authentication-v1-design.md) · **Plan:** [Implementation proposal](../plans/2026-10-22-hisabiq-authentication-v1-implementation.md).
+**Date:** 2026-10-22  
+**Status:** Corrected after owner clarification; source inspection only, no feature implementation.  
+**Scope:** Current authentication UI design and alignment with the existing ByabsIQ application.  
+**Related:** [Spec](../specs/2026-10-22-hisabiq-authentication-v1-design.md) · [UI plan](../plans/2026-10-22-hisabiq-authentication-v1-implementation.md) · [KISS findings](../reviews/2026-10-22-authentication-kiss-impeccable-findings.md).
 
-## 1. Verified repository state
+## 1. Correct project boundary
 
-The current `main` repository is a **React 18 + Vite + TypeScript frontend/UI preview**, not a production ERP backend. This is material; a login form without a real identity store, session authority and tenant permissions must not be labeled secure or production-ready.
+The owner confirmed that Cloudflare is used only for the live `hisabiq_ui` preview and the backend is already implemented in [`shuvodelux-commits/ByabsIQ`](https://github.com/shuvodelux-commits/ByabsIQ). The former conclusion that HisabIQ has no backend was based only on the UI repository and is superseded.
 
-| Evidence | Actual finding | Consequence |
+- **Visual source:** `shuvodelux-commits/hisabiq_ui`, documentation branch `docs/superpowers-hisabiq-auth-v1-design-20261022`, inspected base `49d22ca0d16c6591164e699d567877bdf05c779e`.
+- **Backend/connected application source:** ByabsIQ `main` at `17dcadfaa86ac868063408cc2be6209ca652e164`.
+- **Current deliverable:** UI design, interaction states, shared-component reuse and a source-grounded capability map.
+- **Excluded:** new API infrastructure, Hyperdrive setup, database migrations, provider replacement, backend feature work, live integration and deployment.
+
+ByabsIQ uses NestJS + Fastify, PostgreSQL + Drizzle, Redis and pnpm workspaces. Its `apps/web` already has connected auth/onboarding/business screens and TanStack Router/Query. Source confirms an implemented foundation; this is not a fresh runtime or production-readiness certification.
+
+## 2. Existing backend contracts
+
+Endpoint paths below include the `/api` prefix configured in `apps/api/src/main.ts:63`.
+
+| Existing contract | Source | UI alignment consequence |
 | --- | --- | --- |
-| [README.md](../../../README.md) | Explicitly says UI preview, not live tenant accounting/persistence | A backend integration prerequisite is mandatory |
-| [src/App.tsx](../../../src/App.tsx) | `HashRouter`, `/app/*`, `/saas/*`, current default redirect to `/app/dashboard`; no authenticated route guard | Introduce one session gate at the route boundary, not a patch for every page |
-| [wrangler.jsonc](../../../wrangler.jsonc) | `compatibility_date: 2026-10-06`, static `assets.directory: ./dist`, SPA fallback; **no Worker main/API binding** | Design Workers API deployment explicitly; no backend assumed present |
-| [package.json](../../../package.json) | React 18, `react-router-dom ^6.26.2`, Vite, Framer Motion, Lucide; no production auth provider/DB client and no Vitest dependency | Do not claim frontend/API/server tests exist; minimize new dependencies |
-| [src/components/brand/ApplicationsSection.tsx](../../../src/components/brand/ApplicationsSection.tsx) | Existing Magic Patterns-derived **Login branding** design (around lines 127–169): Ink-left/white-right split, Bangla tagline, mobile/password, shared Input/Button | This is authoritative login visual baseline; extend, do not replace |
-| [src/components/layout/AppShell.tsx](../../../src/components/layout/AppShell.tsx) | Current app uses a tenant settings provider and local UI providers | New authenticated context must isolate the existing preview state rather than treat current demo actor as secure identity |
-| [src/components/layout/TopBar.tsx](../../../src/components/layout/TopBar.tsx) | Existing user label derives from demo `team.employees` and `actorId` | Do not equate actor selector with production authenticated `user_id`; add business switcher without duplicate headers |
-| [src/settings/TenantSettingsPage.tsx](../../../src/settings/TenantSettingsPage.tsx) | Reusable setting fields, Switch, dialogs and settings routes | Extend existing settings UX; do not create a second security dashboard |
-| [AGENTS.md](../../../AGENTS.md) | Magic Patterns styling, shadcn components, KISS, POS cart authority, no fake actions | Authenticate without redesigning POS or creating cosmetic security actions |
+| `GET /api/auth/csrf` → `{token}` | `apps/api/src/modules/auth/auth.controller.ts:45-48` | Reuse existing CSRF exchange for later connected mutations. |
+| `POST /api/auth/otp/request` with `{phone}` → 202 `{status:'sent'}` | Same controller `50-59` | Existing signup verification-code request; not a recovery or general-purpose OTP API. |
+| `POST /api/auth/signup` with `{phone,password,otpCode,email?}` → `{user}` | Same controller `26-31,61-68`; `packages/contracts/src/auth.ts:12-17` | OTP is consumed during signup; no separate verification-grant endpoint is exposed. Signup does not create a session. |
+| `POST /api/auth/login` with `{phone,password}` → `{user}` and HttpOnly cookie | Same controller `70-89` | Reuse the existing login/session behavior; no browser bearer token. |
+| `POST /api/auth/logout` → 204; `GET /api/auth/session` → `{user,activeBusinessId}` | Same controller `91-109`; `auth.service.ts:153-170` | Design honest pending/expired/lost-response states; active business comes from server context. |
+| `GET /api/businesses`; `POST /api/businesses` with `{name}` | `apps/api/src/modules/businesses/businesses.controller.ts:22-45`; `packages/contracts/src/businesses.ts` | Reuse business membership/creation boundaries; business type is not in this creation contract. |
+| `POST /api/businesses/:businessId/activate` → `{activeBusinessId}` | Same controller `57-75` | Preserve membership/CSRF guards and server-confirmed activation. |
 
-## 2. External primary-source verification
+Permanent source references: [auth controller](https://github.com/shuvodelux-commits/ByabsIQ/blob/17dcadfaa86ac868063408cc2be6209ca652e164/apps/api/src/modules/auth/auth.controller.ts), [auth contracts](https://github.com/shuvodelux-commits/ByabsIQ/blob/17dcadfaa86ac868063408cc2be6209ca652e164/packages/contracts/src/auth.ts), [business controller](https://github.com/shuvodelux-commits/ByabsIQ/blob/17dcadfaa86ac868063408cc2be6209ca652e164/apps/api/src/modules/businesses/businesses.controller.ts).
 
-| Primary authority | Checked technical guidance | HisabIQ design consequence |
+## 3. Reuse existing connected behavior
+
+| Existing source in ByabsIQ | Verified behavior to preserve during later UI alignment |
+| --- | --- |
+| `apps/web/src/lib/api-client.ts:1-47` | Same-origin `/api` client, cookie credentials, CSRF on POST, bodyless POST/204 handling, structured errors, abort support and session/business-context events. |
+| `apps/web/src/lib/foundation-api.ts:1-21` | Typed access to existing auth/business endpoints. Reuse/adapt these contracts rather than creating duplicate HTTP or session services. |
+| `apps/web/src/features/auth/{auth-layout,login-page,signup-page,verify-phone-page}.tsx` | Existing shared layout and forms. Signup credentials are transient React state; verification submits signup then normal login. Presentation needs realignment to the current approved Login branding. |
+| `apps/web/src/features/businesses/business-switcher.tsx:1-35` | One-business shortcut; existing shared select; cancels reads, clears affected query caches, reconciles server context on activation/error. |
+| `apps/web/src/app/workspace-commands.tsx:1-17` | Existing payment command lock; retain it while designing Save Draft/Discard/Stay behavior for later ERP integration. |
+| `apps/api/src/common/guards/business-membership.guard.ts` and `docs/web-foundation.md` | Authenticated session + membership is authority. `x-hisabiq-business-id` is an expected-context check on covered endpoints, not client authorization. Do not assume every domain endpoint has identical coverage. |
+
+Permanent references: [existing API client](https://github.com/shuvodelux-commits/ByabsIQ/blob/17dcadfaa86ac868063408cc2be6209ca652e164/apps/web/src/lib/api-client.ts), [foundation client](https://github.com/shuvodelux-commits/ByabsIQ/blob/17dcadfaa86ac868063408cc2be6209ca652e164/apps/web/src/lib/foundation-api.ts), [web foundation documentation](https://github.com/shuvodelux-commits/ByabsIQ/blob/17dcadfaa86ac868063408cc2be6209ca652e164/docs/web-foundation.md).
+
+## 4. Approved UI requirements versus inspected capability
+
+Missing from this map means no matching capability was found in the inspected auth contracts, module wiring and connected UI. It is not a claim about uninspected private branches or deployed services.
+
+| Approved requirement | Existing evidence / alignment gap | Design-stage treatment |
 | --- | --- | --- |
-| [Google Identity: verify server-side ID tokens](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token) | Server verifies token including signature, issuer, audience, expiry; Google **`sub`**, not email, is provider identity; Google Identity Services POST has CSRF implications | Backend-only Google verification; explicit linking; email string alone cannot merge accounts |
-| [OWASP Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html) | Reauthentication for sensitive account settings/risk events | Quick PIN is not enough for contact, authenticator, device or ownership changes |
-| [OWASP Forgot Password](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html) | Recovery must avoid enumeration, use expiring one-time secrets and rate limiting | Reusable SMS/email challenge and contact-change alerts |
-| [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html) | Session identifiers are server-bound; rotate and revoke; server-enforced idle/absolute timeouts | Logout ends session but does not by itself revoke independent 90-day device enrollment |
-| [OWASP Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) | Adaptive salted hashing, preferably Argon2id; SHA-256 alone unsuitable | Benchmark compliant verifier on real Workers environment **or use a vetted identity provider** |
-| [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b/authenticators/) | Short secrets require meaningful server-side rate limiting; SMS/PSTN carries risks | Six-digit PIN has five-attempt cutoff; SMS fallback extra checks |
-| [W3C WebAuthn L3](https://www.w3.org/TR/webauthn-3/#sctn-credential-backup) | Backup eligibility/state distinguish single- versus multi-device credentials but do **not** themselves provide physical-device attestation; passkeys may sync | Do not assume all WebAuthn credentials bind to one computer |
-| [Cloudflare Workers Web Crypto](https://developers.cloudflare.com/workers/runtime-apis/web-crypto/) (updated 2026-09-30) | Workers supports SubtleCrypto operations, with algorithm-specific differences | Challenge verification feasible in principle; **not** proof that custom PIN+device UX is secure |
-| [Cloudflare Workers Node crypto](https://developers.cloudflare.com/workers/runtime-apis/nodejs/crypto/) (updated 2026-10-17) | Built-in `node:crypto` does not support Argon2/argon2Sync | Do not select unavailable password KDFs without vetted compatible module/runtime benchmark |
-| [Cloudflare React + Vite SPA/API guide](https://developers.cloudflare.com/workers/vite-plugin/tutorial/) (updated 2026-09-05) | Vite SPA can coexist with a Workers API | Prefer incrementally adding one API layer to current Vite SPA; **do not convert UI to a different router/framework** |
-| [Cloudflare Neon integration](https://developers.cloudflare.com/workers/databases/third-party-integrations/neon/) | Hyperdrive or Neon serverless driver can link Workers to Neon | Existing planned Neon store remains plausible, but **not configured in current preview** |
-| [Cloudflare Hyperdrive pooling](https://developers.cloudflare.com/hyperdrive/concepts/connection-pooling/) | Hyperdrive is **transaction-pooled**; a Worker invocation may use multiple DB connections | Never rely on `SET tenant_id` outside one explicit transaction; enforce tenant scope and RLS if adopted |
-| [Cloudflare Hyperdrive supported features](https://developers.cloudflare.com/hyperdrive/reference/supported-databases-and-features/) (updated 2026-09-30) | SQL-level prepared statements and advisory locks unsupported in the connection model; restrictions on session state | Avoid session-scoped state and advisory lock dependencies |
-| [Cloudflare Workers Vitest integration](https://developers.cloudflare.com/workers/testing/vitest-integration/) (updated 2026-08-20) | Official **`@cloudflare/vitest-plugin`** can run tests inside Workers; older vitest-pool guide is legacy | Use current integration after pinning compatible package versions, not outdated pool recipes |
+| Mobile/password + mandatory verified mobile | Implemented in auth controller/service and shared contracts. | Reuse semantics and design all success/error/pending states. |
+| Mobile → OTP → password order | Current connected UI collects password before OTP; server verifies OTP only with final signup. | Preserve approved design order. Record the missing independent verification/resume contract; do not claim OTP is server-verified at an unsupported earlier step. |
+| Google-only account and explicit Google linking | No matching controller/client method found; `packages/db/src/schema/users.ts:13` requires `passwordHash`. | Design Google/link/conflict states; mark backend alignment required. Never manufacture a password or merge by phone/email. |
+| Email-first recovery, SMS fallback, assisted recovery | No matching recovery contract found. Optional `email` storage does not establish verification/recovery eligibility. | Design reusable recovery states and handoff; do not reuse signup OTP as password-reset authority. |
+| Custom six-digit Quick PIN, 90 days, five failures, multi-account browser, revoke | No matching enrollment/PIN/device endpoint found. | Keep complete visual states and cryptographic proof requirement. Real PIN authentication needs separate reviewed backend alignment and browser evidence. |
+| Per-user/browser 30-minute UI lock, optional OFF | No matching account preference/lock contract found. | Design default/disabled/manual/expired-session states; key browser preference independently of optional PIN enrollment. |
+| Last-used authorized business | Active business in current session and activation exist; persistent cross-session preference is not exposed in inspected contracts. | Preserve approved last-used requirement and record the contract gap. |
+| Business name + type | Creation contract currently accepts only `name`. | Keep approved fields in design; do not claim type is persisted until aligned. |
+| Save Draft & Switch / Discard & Switch / Stay Here | Existing switcher handles mutations/payment lock but does not expose a general ERP draft guard. | Reuse switcher behavior and existing domain drafts; record unsupported save cases honestly. |
+| Sensitive-action full reauthentication and remote device management | No matching action-bound reauth/device contract found. | Design prompt and return-to-action behavior; no fake successful settings changes. |
 
-## 3. High-risk architecture questions for Astra
+## 5. Policy differences to record, not change
 
-### H1 — Six-digit PIN and proof of browser possession: **BLOCKING**
+- `apps/api/src/modules/auth/session.service.ts:23-30` creates a fixed 30-day session expiry. Earlier 2h idle/12h absolute suggestions remain unapproved; this design work does not alter the backend lifetime.
+- `auth.controller.ts:80-86` uses a server cookie, HttpOnly, SameSite Strict and Secure in production. Preserve the established server boundary; do not redesign hosting/cookies as a side effect of UI work.
+- `apps/api/src/modules/auth/auth.module.ts:17-26` deliberately refuses the development OTP provider in production and has no configured production SMS adapter in this inspected milestone. No real SMS delivery is certified by the preview.
+- Google, recovery and PIN security requirements remain acceptance contracts. The absence of current endpoints is a reason to document an alignment dependency, not a reason to build a parallel backend here.
 
-The user explicitly approved **their own six-digit HisabIQ PIN**, remembered for 90 days, working after logout, with multiple independent accounts per browser. A **PIN-only cookie cannot meet** this design. WebAuthn assertions can require OS/platform user verification or authenticator presence and may create extra prompts; WebAuthn does **not** promise that the HisabIQ-defined PIN is the device's own authenticator activation PIN. IndexedDB-stored non-extractable WebCrypto keys may prove the current browser profile can perform a signature but are **not automatically hardware-bound** or resistant to all browser-profile copying / XSS.
+## 6. UI-specific implementation risks to retain in the design
 
-**Decision gate:** Before coding the PIN flow, produce an explicit threat model and a tested working prototype against target Windows Chrome/Edge, Linux Chrome/Firefox and Android Chrome as relevant. Prove: challenge freshness, device proof, PIN verification, five-error lockout, 90-day fixed expiry, separate account enrollments, cross-device-copy behavior, revocation, cookie separation, after-logout login, and fallbacks. If a supported approach cannot meet UX and security simultaneously, **full login remains the safe V1 fallback** and Astra should recommend a user-approved scope correction. No hidden substitution with platform PIN or silent “remember me” token.
+1. The approved `hisabiq_ui/src/components/brand/ApplicationsSection.tsx:127-170` Login branding block matches the attached Magic Patterns export. Preserve its composition and brand. Remove demo credentials/unverified claims from actual user flows.
+2. `hisabiq_ui/src/components/Input.tsx:23-24` routes numeric input modes into steppers. Code/PIN inputs need string semantics, leading zero preservation and no arithmetic controls; reuse the shared family with a minimal semantic exception.
+3. `hisabiq_ui/src/i18n/useUiCopy.ts:1-7` depends on tenant settings. Pre-login copy needs existing pure translation helpers without mounting demo tenant state.
+4. `hisabiq_ui/src/settings/model.ts:138-141`, its settings provider and module-level preview stores are not authenticated ByabsIQ session/membership state. Do not convert demo actors, cached business IDs or fixtures into authority.
+5. Account Security is personal, not Owner-only business administration. Reuse current settings presentation and give ordinary users access to their own methods and browser controls.
+6. Preserve the repository boundary: preview uses HashRouter; ByabsIQ connected web uses TanStack Router/Query. Reuse the appropriate existing routing/data layer; copying entire shells between repos is not a design requirement.
 
-### H2 — Managed identity versus custom Workers authentication: **BLOCKING**
+## 7. Security basis retained without new infrastructure recommendations
 
-The repository has **no existing backend**. An all-custom solution means building password verification, SMS/email OTP, Google linking, account recovery, session storage, rate limits, admin/audit capabilities and device security. This is nontrivial for a small team.
+Google stable `sub` and server verification: [Google documentation](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token). Recovery/session controls: [OWASP authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html), [forgot password](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html), [session management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html). Browser proof: [WebAuthn](https://www.w3.org/TR/webauthn-3/) and [WebCrypto storage/security limits](https://www.w3.org/TR/2017/REC-WebCryptoAPI-20170126/#security-considerations).
 
-**Review two concrete choices:** (A) established identity product/service for passwords/Google/challenges, with HisabIQ Worker doing tenant mapping, session coordination and custom optional device enrollment if feasible; (B) vetted auth framework hosted in Workers + Neon with the same single-service boundary. Compare **Cloudflare compatibility**, Bangladeshi SMS delivery/cost, Google-only onboarding, provider email OTP behavior, session semantics, optional per-user/browser PIN, data portability, and maintenance/security burden. Prefer the **fewest custom security primitives**, but do not assert a provider meets requirements without verifying current documentation. Commit a decision record before implementation.
+A non-extractable browser key is not automatically hardware/device-copy protection; WebAuthn user verification is not a user-chosen HisabIQ PIN. These are retained security constraints, not a proposal to implement cryptography during UI design. No auth provider is being selected or replaced.
 
-### H3 — Production tenant isolation and preview migration: **BLOCKING**
+## 8. Verification limits
 
-`/app/*` currently renders demo UI. A security implementation must prevent access without active session and valid tenant membership, but **it must not pretend that the existing client-side preview accounting store is durable or tenant-secure**. Architect and test the auth boundary independently; do not ship “secure login to unsafely shared production data.” Separate secure backend rollout from preview demos until real domain data has server tenancy checks.
-
-### H4 — Session policy is proposed, not owner-approved
-
-The design spec suggests **2-hour server idle/12-hour absolute** session lifetime, while user explicitly chose **optional 30-minute UI auto-lock** and **90-day fixed PIN enrollment**. Astra must review risk/UX before treating 2h/12h as final. Auto-lock OFF **never** disables server expiry; reauthentication to turn off auto-lock is also a proposed, not expressly selected detail.
-
-### H5 — SMS delivery and recovery
-
-Confirm local Bangladesh SMS vendor, DLT/operator requirements if any, trial costs, failure paths and deliverability **before** relying on SMS as the mandatory phone verification channel. For assisted recovery, rigorous verification requires an actual reviewed support process; an inert “Recover account” form is unacceptable.
-
-## 4. KISS + Impeccable findings (evidence-driven)
-
-1. **Do not redesign login:** [existing visual draft](../../../src/components/brand/ApplicationsSection.tsx), dark Ink branding panel desktop, white form, Bangla tagline. Only add Google, Forgot password and conditional Quick PIN. Compact mobile collapses tall decoration.
-2. **Avoid extra pages:** OTP is one reusable view; security settings live inside existing settings hub. Remembered-account selection appears only for 2+ enrollments.
-3. **No deceptive mock interactions:** demo mobile/password values and unverified “Trusted by 2,400+ shops” in brand draft must not become production credentials/facts.
-4. **Minimal registration:** mobile OTP/password/business name/type; Google requires mobile OTP but not a HisabIQ password. Optional extra business details later.
-5. **No new giant user-management subsystem:** current preview actor select is not an account; separately authenticate real user, then map membership. Staff UI redesign out of scope.
-6. **Consolidate into one domain per concern:** identity/session, OTP/recovery, tenant authorization, device enrollments and UI shell integrations. Avoid many generic providers until needed.
-
-## 5. Review status and source limitations
-
-- Inspected current GitHub `main` files and the **design-review branch** spec.
-- Magic Patterns reference is the **source-committed brand login component** (not an assumption about a remote editor session). The connected Magic Patterns editor was not required to establish that component's visual authority.
-- No implementation, real browser/device experiment, infrastructure credentials check, SMS vendor verification or full visual screenshot audit has been completed.
-- Findings distinguish **verified existing code**, **authoritative documentation**, and **proposed architecture**; reviewer must not mark proposals as implemented.
-
-**Astra verdict requested:** Identify false assumptions, unsafe shortcuts, scope overload, missing tests and precise plan changes; keep the user's approved UX contract and KISS constraint.
+Read-only inspection covered the named ByabsIQ backend, contracts, connected auth/client/switcher and supporting docs at the pinned commit. No runtime services, database, real OTP delivery, production configuration or browser-proof experiment were exercised. Existing repository reports are historical evidence, not newly observed passing tests. Only the five authentication documents in `hisabiq_ui` are revised; backend and feature files remain unchanged.

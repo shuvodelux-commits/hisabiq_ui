@@ -1,11 +1,11 @@
 # HisabIQ Authentication V1 — Superpowers Design Specification
 
-**Status:** Proposed written design for owner review — **not yet approved as a written specification**  
+**Status:** UI design and existing-backend alignment review — product requirements preserved; no feature execution authorized  
 **Date:** 2026-10-22  
 **Review stage:** Superpowers architectural brainstorming → specification review gate  
 **Repository:** `shuvodelux-commits/hisabiq_ui`  
-**Scope:** Registration, login, Google linking, recovery, remembered-browser PIN, sessions, business access, and security UX  
-**Explicit exclusions:** Implementation code, migrations, deployment, implementation planning, and merging to main
+**Scope:** Authentication UI design, interaction states, shared-component reuse and contract alignment with the existing `shuvodelux-commits/ByabsIQ` backend  
+**Explicit exclusions:** Feature code, new backend/API infrastructure, database changes, provider replacement, deployment, PR creation and merging. The companion plan is a UI design/alignment proposal for review.
 
 ## 1. Purpose and non-negotiable constraints
 
@@ -26,18 +26,25 @@ HisabIQ serves Bangladeshi small businesses with widely varying technical experi
 9. After authentication, open the user's **last-used authorized business**; expose a business switcher in the ERP header.
 10. For unsaved work on business switching, offer **Save Draft & Switch**, **Discard & Switch**, or **Stay Here**.
 11. **Fresh full authentication** is required for account-security, authenticator, trusted-device enrollment/renewal, and business-ownership changes. Ordinary ERP operations use their existing permissions and confirmation rules.
-12. **Research and specification only.** No feature work, migrations, release or implementation plan may begin before written-spec review and separate approval.
+12. **UI design and documentation alignment only.** The owner clarified on 2026-10-22 that the backend already exists in `ByabsIQ` and Cloudflare serves only the UI preview. Revise the documents and review-only UI plan accordingly; feature code, backend changes, releases and merges still require separate authorization.
 
 ## 2. Context, current repository boundary, and source authority
 
-The current `hisabiq_ui` repository README describes a **React/Vite UI preview**, not an operational production authentication or tenant-accounting backend. Therefore this design proposes backend-enforced rules; the existing preview cannot be treated as proof that any security control already exists. Reuse current HisabIQ/Magic Patterns shadcn-style controls, Ink/Teal/Mint tokens, Geist/Hind Siliguri, compact forms, and bilingual helpers. Do **not** redesign unrelated ERP modules.
+**Owner clarification, 2026-10-22:** This is the UI design step. Cloudflare hosts the live UI preview. The existing application/backend repository is [`shuvodelux-commits/ByabsIQ`](https://github.com/shuvodelux-commits/ByabsIQ); it must be inspected and reused, not replaced by a new backend created in `hisabiq_ui`.
 
-Existing repository references:
+- **Visual authority:** `hisabiq_ui` and its Magic Patterns-derived `src/components/brand/ApplicationsSection.tsx` Login branding draft; reuse current shared shadcn UI, Ink/Teal/Mint, Geist/Hind Siliguri, compact forms and bilingual helpers.
+- **Existing backend authority:** ByabsIQ `main` inspected at [`17dcadf`](https://github.com/shuvodelux-commits/ByabsIQ/commit/17dcadfaa86ac868063408cc2be6209ca652e164): NestJS + Fastify, PostgreSQL + Drizzle, Redis and pnpm workspaces. Source includes phone/password login, OTP-backed signup, server cookie sessions, CSRF protection, membership checks and business activation.
+- **Existing connected frontend reference:** ByabsIQ `apps/web` already has auth pages, a shared `AuthLayout`, an API client, shared contracts, TanStack Router/Query and a business switcher. Reuse its behavior/contracts during later integration while adapting presentation to the current approved UI. Do not copy the preview's router into that application.
+- **Preview boundary:** `hisabiq_ui` remains a React/Vite visual preview. Its static hosting configuration is intentional. The absence of API files in that repository does not mean HisabIQ has no backend.
+
+Current source inspection does not establish that every newly approved authentication feature is implemented. Google/OIDC and linking, recovery, trusted-browser PIN, remote enrollment management, fresh-action authentication and persistent last-used-business behavior have no matching contract in the inspected auth surface; record those as alignment gaps. Existing signup verifies the OTP together with password on `/api/auth/signup`; it has no separate phone-verification grant endpoint. Business creation currently accepts `name`, not business type. Approved UI requirements remain intact; do not invent working endpoints or silently remove fields.
+
+Read the [current research and capability map](../research/2026-10-22-authentication-v1-current-research.md) for exact source references. Existing security and tenant boundaries stay authoritative. No Worker API, Hyperdrive setup, new database foundation, authentication-provider migration or backend rewrite is part of this design step.
+
+Existing UI repository references:
 - [README.md](../../../README.md)
 - [AGENTS.md](../../../AGENTS.md)
 - [ERP context-complete workflow design](2026-10-09-erp-kiss-contextual-workflows-design.md)
-
-In the eventual production service, authentication is separate from tenant accounting; the verified user principal and current authorized tenant must be established server-side for each request.
 
 ## 3. User journeys and state transitions
 
@@ -107,7 +114,7 @@ A Google identity with a non-Gmail address is still an eligible Google login; re
 - Preference is per **user + browser enrollment/profile**, not per business. One employee cannot disable another employee's lock preference on the shared browser.
 - User can **turn automatic lock OFF** from Security settings; this affects only the optional UI overlay, **not backend session idle/absolute expiry**. Disabling it is security-sensitive and requires fresh full authentication; enabling it does not.
 - **Manual Lock** remains available even with automatic lock disabled.
-- Server sessions use secure cookie-based authentication (Secure, HttpOnly, appropriate SameSite, CSRF defenses) and independently enforced finite **idle and absolute** lifetimes. Proposed review defaults: **2-hour server idle** and **12-hour absolute** maximum. These are distinct from the 30-minute optional UI lock and 90-day remembered-device authorization.
+- Server sessions use secure cookie-based authentication (Secure, HttpOnly, appropriate SameSite, CSRF defenses) and independently enforced finite **idle and absolute** lifetimes. Earlier proposed review defaults, still unapproved: **2-hour server idle** and **12-hour absolute** maximum. ByabsIQ currently creates a fixed 30-day expiry; this is a future policy-alignment difference, not a design-step backend change. These are distinct from the 30-minute optional UI lock and 90-day remembered-device authorization.
 - On expiration or logout, the session is invalidated **on the server**. A valid trusted enrollment can create a new session using PIN plus device proof; it must never resurrect an expired session token.
 - A screen lock must not silently post, save, or discard accounting records; sensitive content is obscured, and access to any unsaved draft after returning requires the authorized user. When re-login crosses a session boundary, never display a previous user's private cached ERP data.
 
@@ -126,13 +133,13 @@ A Google identity with a non-Gmail address is still an eligible Google login; re
 4. The ERP header offers a business switcher where appropriate. Selecting a new business is a server-verified change of tenant context. Clients may submit a tenant selection **as a selector, never proof of authority**.
 5. Before switching with unfinished work, show **Save Draft & Switch**, **Discard & Switch**, **Stay Here**. Save draft under the **old tenant** and switch only after confirmed persistence. On save failure stay in the old tenant with the draft intact. Discard affects only unsaved changes; never delete a previously saved draft by accident.
 6. For forms without a draft capability, disable the misleading Save Draft option and offer a clear **Discard & Switch / Stay Here** resolution.
-7. On successful switch, invalidate/partition tenant-scoped React Query caches, background requests, subscriptions, forms and session UI; isolate drafts by both user and tenant. Never let an older in-flight response replace the new tenant's data.
-8. The backend enforces membership, role and current tenant scope on **every tenant-owned record** and financial posting. PostgreSQL RLS or equivalent database defense in depth is encouraged with request/transaction-scoped tenant context to prevent pooled-connection leakage.
+7. On successful switch, invalidate/partition the actual tenant-scoped stores, background requests, subscriptions, forms and session UI; isolate drafts by both user and tenant. ByabsIQ already uses TanStack Query; the UI preview does not. Reuse each repository's existing mechanisms rather than adding a cache library solely for authentication. Never let an older in-flight response replace the new tenant's data.
+8. The existing ByabsIQ backend remains responsible for membership, role and tenant scope. Preserve its authenticated active-business context, membership guards and transaction/RLS boundaries. An expected-business header is a stale-context precondition, never proof of access. Review coverage for the actual integrated endpoint; do not infer full ERP coverage from foundation checks.
 9. Ordinary POS/purchase/payment operations follow domain confirmations and permissions; security reauthentication is **not** added to every everyday ERP transaction.
 
 ## 5. Logical architecture and data ownership
 
-This is a **conceptual contract, not a database migration or implementation plan**.
+This is a **logical responsibility model, not a proposed replacement schema**. Map responsibilities to existing ByabsIQ modules/contracts. Rows below describe required behavior, including capabilities not yet present; they do not authorize parallel credential/session tables or a new authentication service.
 
 | Logical record/service | Owned information and invariant |
 | --- | --- |
@@ -152,7 +159,7 @@ This is a **conceptual contract, not a database migration or implementation plan
 
 **Boundary:** Global user credentials/Google identities cannot be duplicated per business. Business data (sales, inventory, parties and accounting) remains tenant-scoped. Account recovery changes the principal's login factors, not its permitted tenants.
 
-**Production integration:** Require a server-side identity/session/security layer around the existing frontend. Google verification, password/PIN verification, trusted-device checks, OTP issuance, session revocation and tenant access are server obligations. Neither the preview local store nor browser routes can certify them.
+**Existing-backend alignment:** Reuse ByabsIQ's `apps/api/src/modules/auth`, `modules/businesses`, shared contracts and connected web API client for existing behavior. Unimplemented capabilities need a separate future backend-alignment decision, not a new service in the UI repository. Google verification, credential/device verification, OTP, revocation and tenant access remain server obligations; preview screens cannot certify them.
 
 ## 6. KISS UX contract — Impeccable Distill review (2026-10-22)
 
@@ -258,26 +265,25 @@ The architecture is acceptable only if all of the following can eventually be de
 14. Mobile/tablet/desktop and English/Bangla modes preserve accessibility, existing HisabIQ visuals, and correct error states.
 15. Device-proof feasibility and threat modeling **must** pass on every browser where six-digit-only Quick PIN is offered; unsupported cases use full authentication.
 
-## 9.1 KISS delivery boundaries for the later implementation-planning stage
+## 9.1 UI design and existing-backend alignment boundaries
 
-**This is a scoping guide for a future plan, NOT the implementation plan.** Written-spec approval and a separate Superpowers planning gate are still required.
+The [companion plan](../plans/2026-10-22-hisabiq-authentication-v1-implementation.md) is now a review-only UI design/alignment proposal. It replaces the superseded 15-task new-backend proposal.
 
-The simplest coherent backend design should reuse established libraries and providers instead of writing a custom cryptography, OTP, OAuth, or device-trust framework. V1 needs only one shared email/SMS challenge primitive, one auth/session service boundary, one enrollment/PIN boundary and the existing tenant-authorization path. Do not introduce separate microservices or speculative multi-provider abstractions.
+1. Lock the approved login composition and list UI states/components.
+2. Map those states to existing ByabsIQ endpoints, contracts and connected frontend behavior.
+3. Design login, registration, verification, recovery, conditional Quick PIN and account security using the shared UI.
+4. Design lock, shell entry and safe business switching without changing unrelated ERP modules.
+5. Review responsive, multilingual, keyboard, error and unsaved-work states; retain a clear list of backend alignment gaps.
 
-A future approved plan may order dependencies as follows, without promising partially secure production releases:
+Design previews may use explicit nonsecret scenarios. They must not send real SMS, store passwords/PINs/tokens in browser storage, claim actual Google linking, or label simulated recovery/device enrollment as verified. No live backend connection is added in this step.
 
-1. **Identity + session + tenant authorization foundation** — Google/mobile identity, verified contacts, revocable sessions, account linking and tenant boundary. Without backend enforcement, UI-only auth cannot ship.
-2. **One reusable set of registration/login/recovery screens** — email-first/SMS fallback, backend-verified registration and a minimal business setup; keep routine checkout untouched.
-3. **Optional trusted PIN and UI lock** — six-digit PIN + cryptographic device proof, 90-day fixed validity, multi-account selector only when needed, per-user/browser 30-minute default lock with OFF option. **Feasibility gate:** no PIN-only fallback when secure device binding fails.
-4. **Settings, tenant switching and recovery operations** — integrate into existing header/settings dialogs, preserve unsaved drafts, provide trusted-device revocation and a rigorously controlled assisted recovery route. Roll out only after cross-user/cross-tenant regression and support-process verification.
-
-**Do not multiply screens by phase.** Keep one shared UI and separate service boundaries. Every proposed future task must name the existing component it reuses and demonstrate an actual backend security effect. Avoid broad unrelated redesigns, rewrite of existing POS carts, complex staff permission expansion, or billing-system changes.
+Do not add backend bootstrapping tasks, migration tasks, managed-provider replacement, new framework/router adoption, or production deployment steps. Later feature execution and backend alignment require separate scope and approval. Do not multiply screens or duplicate the existing component family.
 
 ## 10. Design boundaries and explicit review considerations
 
 This V1 specification intentionally does **not** add passkey-first signup, social providers other than Google, SMS on every login, passwordless mobile OTP for daily login, advanced enterprise SSO, biometric-only HisabIQ login, broad staff-role redesign, or multi-step financial-auth approvals.
 
-The following are **proposed engineering policy defaults for review**, not prior user-selected numbers: **2-hour server idle / 12-hour server absolute session bounds**, disabling auto-lock requires full reauthentication, and browser support for a custom six-digit PIN is **conditional on sound device proof**. They can be revised in this written-spec review without reopening the approved product workflows.
+The earlier **2-hour server idle / 12-hour server absolute** values and full reauthentication to disable auto-lock remain **unapproved proposals**, not changes to the current backend. ByabsIQ's inspected session service currently creates a fixed 30-day expiry. Record that difference for later policy alignment; this UI design step changes neither server timeout nor cookie policy. Custom six-digit PIN availability remains conditional on sound browser proof; the preview does not demonstrate it.
 
 **Non-negotiable security invariant:** If a browser cannot demonstrate secure device-specific proof, HisabIQ must not authorize a session with a six-digit PIN alone; use full Google/password authentication. “PIN available for 90 days” is **authorization eligibility**, never a promise to bypass revoked identity or session security.
 
@@ -297,6 +303,8 @@ The following are **proposed engineering policy defaults for review**, not prior
 
 **Deliverable:** This design spec on a documentation-only review branch.
 
-**Not authorized:** Writing an implementation plan, creating implementation code, changing production database/auth, deploying, opening an implementation PR, or merging.
+**Authorized in this revision:** Correct the authentication documents and companion UI design/alignment proposal on the existing documentation branch using ByabsIQ source evidence.
 
-**Next step only after user reviews this exact written document:** Make requested corrections or receive explicit written-spec approval. Only then may the Superpowers `writing-plans` phase begin as a separate user decision.
+**Not authorized:** Implementing frontend/backend features, connecting live services, changing credentials/data/schema, selecting a replacement provider, deploying, creating PRs, or merging.
+
+**Next step:** Review the corrected UI design and capability map. Any subsequent feature implementation must receive separate approval and reuse the actual existing backend contracts. Approval of document corrections is not approval to execute a feature plan.

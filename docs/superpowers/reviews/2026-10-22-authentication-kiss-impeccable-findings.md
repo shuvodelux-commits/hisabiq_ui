@@ -1,54 +1,66 @@
-# HisabIQ Authentication V1 — KISS + Impeccable Evaluation Findings
+# HisabIQ Authentication V1 — KISS + Impeccable UI Alignment Findings
 
 **Date:** 2026-10-22  
-**Review posture:** Design/code-context inspection only; not a live browser audit and not an authentication penetration test.  
-**Use:** Feed the Astra implementation-plan review.  
-**Source:** [Brand login draft](../../../src/components/brand/ApplicationsSection.tsx) · [AGENTS.md](../../../AGENTS.md) · [current research](../research/2026-10-22-authentication-v1-current-research.md).
+**Status:** Corrected after owner clarification; UI design/documentation only.  
+**Authority:** Current Magic Patterns/shadcn UI in `hisabiq_ui`; existing backend/contracts in `shuvodelux-commits/ByabsIQ`.  
+**Related:** [Design](../specs/2026-10-22-hisabiq-authentication-v1-design.md) · [Research/capability map](../research/2026-10-22-authentication-v1-current-research.md) · [UI plan](../plans/2026-10-22-hisabiq-authentication-v1-implementation.md).
 
-## Highest-priority observations
+## 1. Corrected scope
 
-| Priority | Existing evidence / design risk | Do less without sacrificing functionality |
+Cloudflare is only the live UI preview host for this step. ByabsIQ already implements a NestJS/Fastify backend and connected web foundation. The earlier conclusion that HisabIQ has no backend was incorrect because only the preview repo was inspected.
+
+Remove new Worker API, Hyperdrive, database bootstrapping/migrations, new session/OTP services and provider-replacement tasks. Reuse the existing backend contract as evidence and record gaps for later alignment. No feature code, backend change, live integration or deployment is authorized.
+
+## 2. Ranked design findings
+
+| Priority | Evidence / issue | Minimum design correction |
 | --- | --- | --- |
-| P0 | `src/App.tsx` directly renders `/app/*` with no production authentication guard; `wrangler.jsonc` has static assets only | One real server-side auth/session boundary and tenant authorization, **not** fake frontend-only protection |
-| P0 | Requested six-digit PIN after logout/restart could be implemented insecurely with a cookie/PIN alone | Treat secure device proof as a hard go/no-go gate, no insecure fallback |
-| P1 | The current Brand Guide already includes a complete two-column **Login branding** draft | **Reuse exact composition** and shared components, add only Google, recovery and conditionally visible PIN |
-| P1 | Numerous optional auth/security surfaces risk a long shopkeeper onboarding wizard | Ask only mobile OTP + password (unless Google) + business name/type; postpone other setup |
-| P1 | Login account chooser has no value when one remembered user exists | Only show chooser for two or more remembered accounts |
-| P1 | OTP registration/recovery duplicated components invites inconsistent behavior | One reusable OTP entry component and server challenge verifier |
-| P1 | Current `TopBar` user identity is a demo actor from tenant settings, not verified user | Wire actual server principal, keep one header and existing UX |
-| P1 | Tenant switching while composing POS/purchase could destroy a draft | Reuse existing AlertDialog and draft contracts; Save/Discard/Stay; block switch on save failure |
-| P1 | A free-standing security dashboard would duplicate existing Settings | Add compact Account Security inside `src/settings/TenantSettingsPage.tsx`/existing hub |
-| P2 | Existing login draft includes hard-coded sample phone/password and `Trusted by 2,400+ shops` | Keep visual rhythm, **remove sample credentials and unverified social proof** in production |
-| P2 | Animation and layout could make phone login hard to use on narrow screens | Collapse decorative Ink panel into small branding header on mobile; one vertical form, minimal motion |
-| P2 | Many login variants could add phone/password/Google/PIN simultaneously | Show user's **contextual** fastest login route; other methods remain clearly accessible |
-| P2 | Brand styles spread across `src/index.css`, `src/data/brand.ts` and generated design-system bundle | Reuse existing tokens; don't add new CSS-only auth theme or replace typography |
+| P1 | Previous plan treats the static UI repo as the entire system and bootstraps another backend. ByabsIQ README, auth/business controllers and connected API client prove an existing foundation. | Replace with eight UI design/alignment tasks; do not rebuild infrastructure. |
+| P1 | Approved Login branding exists in `src/components/brand/ApplicationsSection.tsx:127-170` and matches the attached Magic Patterns archive. | Preserve split Ink/white composition, logo, Bangla tagline and teal action. |
+| P1 | ByabsIQ `apps/web/src/features/auth/auth-layout.tsx` already owns connected auth presentation but uses a centered card. | Reuse its eventual integration point while aligning presentation to the current approved draft; avoid parallel auth systems. |
+| P1 | UI shared `Input.tsx:23-24` routes numeric input modes to `NumericInput` steppers. | Treat PIN/OTP as strings with a minimal code-input exception; no new input library. |
+| P1 | UI `i18n/useUiCopy.ts:1-7` depends on tenant settings outside the proposed login surface. | Use existing pure copy helpers for pre-login language; do not mount a demo tenant to translate login. |
+| P1 | New UI requirements exceed inspected backend contracts: Google-only/linking, recovery, trusted PIN, reauth and remote enrollment controls. | Keep approved designs, label missing backend alignment; no invented working calls or success claims. |
+| P1 | Backend signup consumes OTP with password; business creation accepts name only. | Preserve approved OTP-first/password-later and business-type designs, with explicit verification/persistence gaps. |
+| P1 | UI demo actor, `currentBusinessId='t1'` and module-level stores are not real identity. ByabsIQ already has real session, membership, activation and query handling. | Reuse real semantics for later integration; inventory preview stores and isolate design scenarios. |
+| P1 | Account Security placed under business-admin access can exclude ordinary employees. | Use personal settings scope and current layout/menu, independent of Owner permissions. |
+| P2 | Lock preferences tied to optional PIN enrollment exclude users who skip PIN. | Identify user/browser preference separately; default 30 minutes, OFF and manual lock all remain. |
+| P2 | Default shared dialog Escape behavior is unsuitable as an enforced lock. | Design a non-dismissible lock surface; reuse dialogs for confirmations. |
+| P2 | Guide contains sample credentials, unverified shop count and trial copy. | Preserve layout, remove credentials and only use factual enabled offers in real flow copy. |
+| P2 | Settings path/section registries and auth browser CI coverage were omitted from the earlier plan. | Include actual navigation/copy/state/test dependencies in later UI handoff. |
+| P3 | Spec/plan/review prompt disagree on approval and execution status. | Mark this as UI design/documentation alignment; feature execution remains unapproved. |
 
-## Impeccable Operate/Distill conclusions
+## 3. Impeccable Operate/Distill direction
 
-**Primary task:** Let a shopkeeper open their authorized business and make a sale with the fewest safe steps.  
-**Visual authority:** [`ApplicationsSection.tsx` lines 127–169](../../../src/components/brand/ApplicationsSection.tsx), which already has Ledger Ink branding, logo, Bangla headline, white form, focused teal Sign in CTA.  
-**Hierarchy:** One dominant primary action, secondary Google option, small Create account/Forgot password links; PIN view takes over only for remembered valid device.  
-**Consistency:** Shared `Button`, `Input`, `Switch`, `Dialog` and typography, rather than new components.  
-**Accessibility:** Explicit inputs, keyboard, readable Bengali, focus/error/loading, paste/autofill, touch sizes without blowing up dense ERP rows.  
-**Performance:** No extra splash screens, auto-animated page reveals, redundant Google/login endpoints or modal cascades.  
-**Truthfulness:** UI-only previews must not imply real auth security before Worker/Neon integration is completed.
+**Goal:** Let a shopkeeper reach the right business with a clear, familiar next action. Preserve current HisabIQ density and identity.
 
-## What to preserve
+- Default login: mobile/password, one Google alternative, small Create account/Forgot password links. No provider gallery.
+- Remembered user: direct PIN for one eligible user; chooser only for 2+; full-login fallback remains visible.
+- Signup: approved minimum phone/verification/password (except Google) and business name/type; advanced business setup stays later.
+- Verification/recovery: one reusable code-entry presentation with contextual labels, resend/backoff, change-number and readable errors.
+- Security: one personal Account Security area; compact Manage trusted browsers dialog; no separate dashboard.
+- Mobile: compact logo/tagline, immediately reachable form, visible errors above the keyboard; no tall decorative introduction.
+- Shared controls/tokens: use current Button/Input/Switch/Dialog, Geist/Hind Siliguri, Ink/Teal/Mint, keyboard/focus/loading and three language modes.
+- Business switch: existing header and shared confirmation, real draft capability, Save/Discard/Stay and fail-safe return.
 
-- Required verified mobile, Google and mobile/password signup/login, verified email/SMS fallback recovery, assisted recovery.
-- Optional 6-digit PIN with 90-day fixed enrollment, after-logout use, multi-user remembered browser support, 5-try lockout, server revocation and independent cryptographic browser/device proof.
-- User-configurable default 30-min UI lock per user/browser, independent from backend timeouts.
-- Last-used authorized business, safe draft switching, sensitive-action full reauthentication.
-- Security telemetry, tenancy and independent support approval behind the simple UI.
+## 4. Security boundaries that simplification must retain
 
-## What **not** to build by default
+Mandatory verified mobile; explicit ownership proof for linking; verified eligible recovery channels; server-side credential/session/tenant authority; no passwords/PINs/tokens in browser storage; no bare PIN/cookie-only trust; fixed 90-day authorization, five-attempt cutoff, independent remembered users, revocation; sensitive-action full reauthentication; protected unsaved work and honest unsupported/failure states.
 
-Separate security dashboard, login animations, social-login gallery, per-feature PIN customization, OTP per daily login, passkey settings dashboard, forced business picker for one business, mandatory detailed business setup, recovery codes, staff management rewrite, POS component forks, or an advanced security-risk dashboard.
+These are product/security contracts, not proof of current backend coverage. PIN browser-proof feasibility still needs separate evidence before any real authorization. Existing source reports are not freshly observed runtime results.
 
-## Review limitations and next steps
+## 5. What to remove or merge
 
-1. No current login screen exists as a functional product route; the verified login screen is a **Brand Guide preview component**.
-2. Current `hisabiq_ui` frontend alone cannot enforce real tenant sessions, password reset, or account recovery.
-3. A connected remote Magic Patterns editor is unnecessary for checking the code-committed baseline and may have different access permissions; use committed reference in the repo.
-4. Detailed security and implementation feasibility findings live in the [research doc](../research/2026-10-22-authentication-v1-current-research.md) and must be validated independently by Astra.
-5. **No implementation or PR merge authorized.**
+| Remove / merge | Reason |
+| --- | --- |
+| New API/hosting/database/session foundation tasks | Existing ByabsIQ foundation is the reuse baseline; this is UI design. |
+| Managed-auth replacement comparison as an execution prerequisite | No backend replacement is requested; first map current contracts and actual gaps. |
+| Duplicate auth layouts and page-local control styles | One component family and the approved brand composition are sufficient. |
+| Separate linking, device, PIN-preference and recovery dashboards | Focused states/settings/dialogs cover the approved actions. |
+| New router, cache library, form framework, OTP UI package or animation library | Reuse the relevant repository's current stack; no new dependency is justified for design. |
+| Mandatory email, Google password creation, detailed shop setup or repeated daily OTP | Contradicts or adds friction to approved requirements. |
+| Production support-admin expansion and live service wiring | Record future dependencies instead of growing the current UI task. |
+
+## 6. Review limits
+
+This is source-based design/documentation alignment, not a live visual audit, runtime regression run, SMS verification or authentication penetration test. ByabsIQ source was inspected at `17dcadfaa86ac868063408cc2be6209ca652e164`; its backend is unchanged. No implementation, PR, merge or deployment is authorized by this revision.

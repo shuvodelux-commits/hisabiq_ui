@@ -1,46 +1,57 @@
-# GPT Astra Review Prompt — HisabIQ Authentication V1
+# GPT Astra Review Prompt — HisabIQ Authentication UI / ByabsIQ Alignment
 
-Copy the prompt below into GPT Astra while its GitHub connection can access **`shuvodelux-commits/hisabiq_ui`**.
+Copy the prompt below into GPT Astra with GitHub access to both repositories through `shuvodelux@gmail.com`.
 
 ---
 
-You are an independent **principal security architect, senior TypeScript/Cloudflare engineer, and UX simplification reviewer**. Conduct a rigorous, skeptical, codebase-grounded review of the **HisabIQ Authentication V1** architecture and proposed implementation plan. Your work is **review and documentation only**; do **not implement code, install packages, edit existing feature files, create PRs, merge, or deploy**.
+Act as an independent principal software architect, application security reviewer and UX simplification expert. Review the HisabIQ Authentication V1 UI design and its alignment with our existing backend. Apply Superpowers, KISS and Impeccable.
 
-**GitHub repository:** `shuvodelux-commits/hisabiq_ui` (account `shuvodelux@gmail.com`).  
-**Review branch:** `docs/superpowers-hisabiq-auth-v1-design-20261022`.  
-**Source of truth:** Inspect that branch and compare any referenced component to `main`.
+**Important corrected context:** This is the UI design step. Cloudflare hosts only the live `hisabiq_ui` preview. Our backend already exists in `shuvodelux-commits/ByabsIQ` (NestJS/Fastify/PostgreSQL/Drizzle with a connected web app). Do not infer that HisabIQ lacks a backend because the design repository is static. Do not recommend or plan a new Worker API, Hyperdrive setup, database foundation/migrations, provider replacement or backend rewrite.
 
-**READ THESE FOUR DOCUMENTS FIRST**
+**Strict boundary:** Review only. Do not implement code, install packages, change GitHub files, create PRs, merge, connect live services or deploy. Recommend documentation corrections in your answer and wait for approval.
+
+## Repositories and documents
+
+- UI/design: `shuvodelux-commits/hisabiq_ui`, branch `docs/superpowers-hisabiq-auth-v1-design-20261022`.
+- Existing application/backend: `shuvodelux-commits/ByabsIQ`, `main`. Capability map was inspected at `17dcadfaa86ac868063408cc2be6209ca652e164`; verify current source and report drift.
+
+Read these four UI-branch documents:
 1. `docs/superpowers/specs/2026-10-22-hisabiq-authentication-v1-design.md`
 2. `docs/superpowers/research/2026-10-22-authentication-v1-current-research.md`
 3. `docs/superpowers/reviews/2026-10-22-authentication-kiss-impeccable-findings.md`
-4. `docs/superpowers/plans/2026-10-22-hisabiq-authentication-v1-implementation.md`
+4. `docs/superpowers/plans/2026-10-22-hisabiq-authentication-v1-implementation.md` — now an eight-task UI design/alignment proposal, not the superseded backend implementation plan.
 
-**VERIFY SOURCE FILES** `AGENTS.md`, `README.md`, `wrangler.jsonc`, `package.json`, `src/App.tsx`, `src/components/brand/ApplicationsSection.tsx` (especially Login branding), `src/components/layout/TopBar.tsx`, `src/components/layout/AppShell.tsx`, and `src/settings/TenantSettingsPage.tsx`. Do not assume the existing UI-preview is a real backend.
+Inspect UI `AGENTS.md`, `README.md`, `src/App.tsx`, `src/components/brand/ApplicationsSection.tsx:127-170`, shared Input/Button/Dialog/Switch, settings/navigation, shell and language helpers. Existing Magic Patterns Login branding is the visual authority; no generic replacement design.
 
-**Nonnegotiable user-approved requirements:** mandatory phone OTP for every account including Google; mobile+password or Google; Gmail-first/email OTP password recovery with secure SMS fallback and assisted recovery; optional **custom six-digit HisabIQ PIN**, 90-day fixed trusted-browser authorization available even after logout or normal session expiry, five failed attempts force full auth; separate account enrollments for multiple users in same browser; 30-min auto UI lock by default but OFF setting per user/browser; last-used authorized business; Save Draft & Switch / Discard & Switch / Stay Here; and fresh full auth for sensitive account/security/ownership modifications. **KISS, bilingual accessibility, and exact existing Magic Patterns Brand Guide login styling are mandatory.**
+Inspect ByabsIQ `AGENTS.md`, `README.md`, auth/business controllers, session service, auth module wiring, `packages/contracts/src/{auth,businesses}.ts`, `packages/db/src/schema/users.ts`, connected `apps/web/src/features/auth`, `apps/web/src/lib/{api-client,foundation-api}.ts`, business switcher, query/workspace handling and relevant tests. Use existing architecture authority; do not transfer routers/frameworks between repos.
 
-**Review questions — try to falsify the design:**
-1. **BLOCKER: Can the custom six-digit PIN + independent cryptographic device proof actually be implemented securely and conveniently in supported browser profiles?** Distinguish WebAuthn UV/UP and syncing from user-chosen application PIN and nonextractable browser keys. Show realistic threats: copied browser data, stolen cookie, XSS, replay, passkey sync, lost device, logout, 90-day expiry, 5 attempts, multiple remembered users. Recommend secure feasible approach with official 2026 docs, or **No-Go** and a safer user-approved alternative. No PIN-only fallback.
-2. **Identity approach:** Compare managed identity vs Workers-compatible audited auth solution on Cloudflare+Neon. Check current version support, deployment model, Gmail/SMS OTP, Google-only accounts, Bangladesh SMS deliverability/pricing and ownership linking. Explain what is actually included and which custom code remains.
-3. **Architecture accuracy:** Current repo is static Vite/HashRouter UI preview. Verify Cloudflare Worker+assets routing, same-origin cookie/CSRF, Neon+Hyperdrive pooling and tenant RLS approaches. Ensure you never treat the demo Team actor selector as a real authenticated identity.
-4. **Security:** Check token verification (`sub`, issuer/audience/nonce/state), OTP enumeration/replay, revocable server sessions, password hashing on Workers, recovery abuse, forced logout semantics, security reauthentication, audit/incident response, tenant isolation, authorization and network failures.
-5. **UX & KISS:** Insist on *existing* Brand Guide Login branding, only contextual extra controls, single reusable OTP, compact Settings, remembered-user chooser only when >1, device fallback, Bangla/English and phone widths. Identify what must be removed, merged or postponed without changing approved behavior.
-6. **Plan quality:** Does every task have real files, coherent interfaces, test-first checks, exact prerequisites, feasible Worker/DB testing, scope boundaries and gateable increments? Call out assumptions, out-of-order dependencies and tasks that attempt to ship insecure partial identity.
-7. **Owner-approved vs proposed defaults:** Specifically evaluate 2h idle/12h absolute session recommendation and full reauth to turn screen lock OFF. **Do not silently treat these as approved.**
+## Preserve approved requirements
 
-**Research standard:** Verify claims from current primary sources (Google, OWASP, NIST, W3C, Cloudflare, Neon and specific identity-provider docs); quote dates/version constraints when important. Flag all unverifiable claims explicitly.
+Mandatory verified mobile even with Google; mobile/password or Google; no forced password for Google-only users; explicit linking ownership proof; verified email/Gmail-first recovery with secure SMS fallback and assisted recovery; optional custom six-digit HisabIQ PIN, fixed 90 days, after ordinary logout/restart/session expiry, five failures requiring full auth, independent remembered users per browser; configurable default 30-minute UI lock; last-used authorized business; Save Draft & Switch / Discard & Switch / Stay Here; full reauthentication for sensitive account/security/ownership changes. Preserve existing shadcn UI, current Magic Patterns composition, compactness and English/Bangla/bilingual accessibility.
 
-**Output format:**
-- Verdict: **APPROVE / APPROVE WITH CONDITIONS / REWORK** and 1-paragraph executive summary.
-- Ranked findings `P0 blocker / P1 high / P2 medium / P3 low`, each with exact `file:section`, problem, factual evidence/link, impact and minimum correction.
-- **KISS deletion/merge table:** remove/merge/defer and reason.
-- **Threat model:** identity, recovery, PIN+device trust, tenancy, session and support.
-- **Decision table:** managed auth vs vetted Workers auth; device-proof technical choices, verified capability, trade-off and recommendation.
-- **Revised plan outline:** dependencies, critical path, TDD boundaries, rollback, tests and gating, without writing production code.
-- **Open questions for the owner:** only those truly blocking, with one best default each.
-- **Precise Markdown patches** for any documentation changes you recommend, separated from product code; **do not write them to GitHub without my explicit permission**.
+## Review priorities
 
-Finish with **what you would cut to make V1 smaller without making it less safe**. Stop after the review and await approval. Do not execute the implementation plan.
+1. Verify actual backend capabilities. Reuse phone/password, signup OTP, server cookies, CSRF, session/logout, membership and business activation. Do not duplicate them.
+2. Separate implemented contracts from missing alignment: Google/linking and Google-only password model, recovery/channel verification, PIN/device proof, remote enrollment controls, action-bound reauth, persistent last-used business and business type.
+3. Check the approved registration order against current signup: OTP is consumed together with password in signup, signup does not issue a session, and no standalone verification grant is exposed. Preserve UI requirements and flag the contract gap.
+4. Critically assess PIN feasibility as a future integration acceptance condition. Non-extractable WebCrypto keys do not automatically resist profile copying; synced passkeys do not prove the original computer; OS/WebAuthn PIN is not automatically the HisabIQ PIN. No custom crypto or fake successful enrollment during UI design.
+5. Check concrete UI reuse risks: numeric steppers on code fields; tenant-dependent translation before login; personal security access for non-Owners; lock preference without PIN enrollment; dismissible lock; cross-user/tenant cache/draft state; pending/uncertain payment protections.
+6. Preserve the existing API client's cookie/CSRF/error/context semantics during later integration. An expected-business header is a precondition, not authority. Do not assume all ERP endpoints have full coverage because foundation endpoints do.
+7. Challenge duplicated layouts, extra screens, dependencies, broad settings/POS rewrites and tasks that are too large. Keep current work to UI design and a clear integration handoff.
+8. Backend currently uses fixed 30-day session expiry in inspected source. The earlier 2h idle/12h absolute suggestion and full reauth to disable auto-lock are unapproved policy proposals. No backend policy change is part of this task.
+
+## Output
+
+- Executive verdict: Approve / Approve with conditions / Rework.
+- Prioritized P0/P1/P2/P3 findings with exact source paths, evidence and minimum correction. Distinguish UI design issues from future real-authentication blockers.
+- Existing-backend reuse/capability/gap table; no invented endpoints.
+- KISS remove/merge/defer table preserving approved functionality.
+- Review of the eight-task UI dependency order, acceptance cases and existing test reuse.
+- Future integration/security acceptance gaps without implementing or planning a new backend.
+- Only genuinely necessary owner decisions. Do not re-ask the clarified hosting/backend scope.
+
+Research primary documentation only when a security/platform claim needs verification. A source file or historic test report is not proof of freshly tested runtime behavior.
+
+Finish by explaining what you would remove to make Authentication V1 UI significantly simpler without weakening its security contract. Stop after the review.
 
 ---
