@@ -22,9 +22,27 @@ export function invoiceReceipt(invoice: SalesInvoice, language?: UiLanguage): Re
 
 export function returnDocument(item: SalesReturn, language:UiLanguage='English + Bangla'): Report {
   const label=(english:string)=>documentLabel(language,english);
-  return {title:item.id,language,subtitle:label('Sales return source preview'),headers:[label('Field'),label('Value')],rows:[
+  const auditRows=(item.lineReturns??[]).map((line,index)=>{
+    const units=line.unitQuantities
+      ?Object.entries(line.unitQuantities).filter(([,quantity])=>Number(quantity)>0)
+       .map(([unit,quantity])=>quantity+' '+unit).join(' ')
+      :line.quantity+' '+(line.sourceBaseUnit??'');
+    const original=line.historicalSourceAmountPaisa===undefined?line.amount:line.historicalSourceAmountPaisa/100;
+    const agreed=line.agreedReturnAmountPaisa===undefined?line.amount:line.agreedReturnAmountPaisa/100;
+    const adjust=line.priceDifferencePaisa===undefined?'':'; adjustment '+line.priceDifferencePaisa/100;
+    const reason=line.adjustmentReason?'; reason '+line.adjustmentReason:'';
+    return [label('Returned item')+' '+(index+1),line.invoiceId+'/'+line.lineId+' · '+units+
+      '; historical '+original+'; agreed '+agreed+adjust+reason] as [string,string];
+  });
+  return {title:item.id,language,subtitle:label('Sales return source preview'),
+    headers:[label('Field'),label('Value')],rows:[
     [label('Date'),item.date],[label('Customer'),item.customer],[label('Original invoices'),item.invoices.join(', ')],
-    [label('Items'),item.items],[label('Return amount'),item.amount],[label('Settlement'),documentLabel(language,item.settlement)],
-    [label('Refund method'),item.refundMethod ? documentMethod(language,item.refundMethod) : '—'],[label('Refund account'),item.refundAccount ?? '—']
+    [label('Items'),item.items],...auditRows,
+    ...(item.compensationExpensePaisa?[[label('Customer Compensation Expense'),item.compensationExpensePaisa/100],
+      [label('Linked expense reference'),'EXP-'+item.id]]:[]),
+    ...(item.negativeAdjustmentPaisa?[[label('Return Price Adjustment'),item.negativeAdjustmentPaisa/100]]:[]),
+    [label('Return amount'),item.amount],[label('Settlement'),documentLabel(language,item.settlement)],
+    [label('Refund method'),item.refundMethod ? documentMethod(language,item.refundMethod) : '—'],
+    [label('Refund account'),item.refundAccount ?? '—']
   ]};
 }
