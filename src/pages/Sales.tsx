@@ -836,11 +836,18 @@ export function Sales() {
       priorReturns:returns.flatMap(r=>r.bundleReturns??[])
     }));
   const includesBundleReturn=selectedBundlePlans.length>0;
+  const bundleReturnQuotes=selectedBundlePlans.map(plan=>{
+    const historic=plan.refundEstimate;
+    return {...plan,priceQuote:quoteReturnPrice({
+      amount:historic??NaN,unitPrice:historic===null||plan.sets<=0?null:historic/plan.sets,
+      quantity:plan.sets,issues:[]
+    },returnPrice[returnLineKey(plan.invoiceId,plan.lineId)])};
+  });
   const quotedOrdinaryPlans=ordinaryReturnPlans.map(plan=>({
     ...plan,quote:quoteReturnPrice(plan,returnPrice[returnLineKey(plan.invoiceId,plan.lineId)])
   }));
   const returnAmount = selectedReturnLines.reduce((sum,{invoice,line})=>{
-    if(isBundleReturnLine(line))return sum+(selectedBundlePlans.find(p=>p.invoiceId===invoice.id&&p.lineId===line.id)?.refundEstimate??0);
+    if(isBundleReturnLine(line))return sum+(bundleReturnQuotes.find(p=>p.invoiceId===invoice.id&&p.lineId===line.id)?.priceQuote.agreedReturnAmountPaisa??0)/100;
     return Math.round((sum+(quotedOrdinaryPlans.find(plan=>plan.invoiceId===invoice.id&&plan.lineId===line.id)?.quote.agreedReturnAmountPaisa??0)/100)*100)/100;
   },0);
   const returnCompensationPaisa=quotedOrdinaryPlans.reduce((sum,plan)=>sum+(plan.quantity>0?plan.quote.compensationExpensePaisa:0),0);
@@ -1539,7 +1546,7 @@ export function Sales() {
                             <TableCell data-mobile-label={sl('Refund')} className="py-2 pr-3">
                               <div className="space-y-1">
                                 <ReturnPriceField name={line.name+' '+rowKey} baseUnit={line.unit}
-                                  historicalUnitPrice={isBundleReturnLine(line)?line.price:itemPlan?.unitPrice??null}
+                                  historicalUnitPrice={isBundleReturnLine(line)?(line.netSaleTotal??line.total)/(line.soldBaseQuantity??(Number(line.quantity.match(/^\d+/)?.[0])||1)):itemPlan?.unitPrice??null}
                                   rawOverride={returnPrice[rowKey]}
                                   onChange={next=>setReturnPrice(values=>({...values,[rowKey]:next}))}
                                   onReset={()=>setReturnPrice(values=>{const next={...values};delete next[rowKey];return next;})}/>
@@ -1679,6 +1686,10 @@ export function Sales() {
                 <p className="text-xs text-ink-500">{text('Remaining before preview','এখনও ফেরতযোগ্য')}: {plan.remainingSets} Set</p>
                 <p className="font-medium">{text('Historical refund estimate','আগের বিক্রির ফেরত মূল্য')}: {plan.refundEstimate===null?
                   text('Pending source allocation','আগের মূল্য যাচাই বাকি'):taka(plan.refundEstimate)}</p>
+                {bundleReturnQuotes.find(q=>q.invoiceId===plan.invoiceId&&q.lineId===plan.lineId)?.priceQuote&&
+                  <p className="mt-1 font-semibold text-teal-700">{text('Agreed preview refund','সম্মত ফেরতের প্রিভিউ')}:
+                    {' '}{taka((bundleReturnQuotes.find(q=>q.invoiceId===plan.invoiceId&&q.lineId===plan.lineId)?.priceQuote.agreedReturnAmountPaisa??0)/100)}
+                  </p>}
                 {plan.components.map(child=><div key={child.productId} className="mt-2 rounded-md bg-ink-50 p-2 text-xs">
                   <p>{child.name} · {child.returnedBaseQty} {child.unit} · {child.disposition}</p>
                   {child.returnedSerials.length>0&&<p>Serials: {child.returnedSerials.join(', ')}</p>}
