@@ -3,6 +3,7 @@ import {Input} from '../../Input';
 import {CompoundQuantityInput} from '../../transactions/CompoundQuantityInput';
 import {MultiUnitQuantityInput} from '../../transactions/MultiUnitQuantityInput';
 import {useUiCopy} from '../../../i18n/useUiCopy';
+import {sourceUnitProfile} from '../../../utils/salesReturnDraft';
 
 /** Reuse real POS quantity controls, driven exclusively by the original invoice unit snapshot. */
 export function ReturnQuantityField({line,value,unitValues,onChange,onUnitsChange}:{
@@ -10,7 +11,7 @@ export function ReturnQuantityField({line,value,unitValues,onChange,onUnitsChang
  onChange:(next:string)=>void;onUnitsChange:(next:Record<string,string>)=>void;
 }){
  const {text}=useUiCopy();
- const p=line.unitSnapshot;
+ const p=sourceUnitProfile(line);
  const ordered=p?Object.keys(p.factors).sort((a,b)=>p.factors[b]-p.factors[a]):[];
  const sourceUnitLabels=Object.keys(line.unitQuantities??{});
  const historicalLabels=line.quantity.match(/\d+(?:\.\d+)?\s+[A-Za-z]+/g)??[];
