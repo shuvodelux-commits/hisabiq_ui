@@ -13,8 +13,10 @@ export function ReturnQuantityField({line,value,unitValues,onChange,onUnitsChang
  const p=line.unitSnapshot;
  const ordered=p?Object.keys(p.factors).sort((a,b)=>p.factors[b]-p.factors[a]):[];
  const sourceUnitLabels=Object.keys(line.unitQuantities??{});
+ const historicalLabels=line.quantity.match(/\d+(?:\.\d+)?\s+[A-Za-z]+/g)??[];
+ const soldUnits=historicalLabels.map(segment=>segment.trim().split(/\s+/).at(-1)??'');
  const hasCompound=ordered.length>1||sourceUnitLabels.length>1||
-   (line.quantity.match(/\d+(?:\.\d+)?\s+[A-Za-z]+/g)?.length??0)>1||
+   soldUnits.length>1||soldUnits.some(unit=>unit!==line.unit)||
    (line.unit!==p?.baseUnit&&!!p);
  if(!p&&hasCompound){
   const units=sourceUnitLabels.length>1?sourceUnitLabels:line.quantity.match(/[A-Za-z]+/g)?.filter((unit,index,list)=>list.indexOf(unit)===index)??[line.unit];
