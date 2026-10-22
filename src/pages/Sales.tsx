@@ -735,6 +735,7 @@ export function Sales() {
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [bundleReturnChoices,setBundleReturnChoices]=useState<Record<string,Record<string,BundleReturnSelection>>>({});
   const [bundleReturnPreviewOpen,setBundleReturnPreviewOpen]=useState(false);
+  const [returnReviewOpen,setReturnReviewOpen]=useState(false);
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
   const [returnRefundMethod, setReturnRefundMethod] = useState<Exclude<PaymentMethod, 'Customer Credit'>>('Cash');
   const [returnRefundAccount, setReturnRefundAccount] = useState('');
@@ -832,6 +833,7 @@ export function Sales() {
     setReturnInvoiceIds([invoice.id]);
     setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
     setReturnReason({});setReturnSerials({});setBundleReturnChoices({});
+    setReturnReviewOpen(false);
     setDetail(null);
     setTab('return');
   };
@@ -972,6 +974,13 @@ export function Sales() {
       return;
     }
     if(returnAmount<=0||!Number.isFinite(returnAmount)){toast.error(sl('Select invoice items and enter return quantity'));return;}
+    setReturnReviewOpen(true);
+  };
+  const confirmReturn = () => {
+    if(returnIssues.length||getSalesPreviewSnapshot().returns!==returns){
+      toast.error(text('Return changed. Review before saving.','ফেরতের তথ্য বদলেছে। আবার যাচাই করুন।'));
+      return;
+    }
     const selected = selectedReturnInvoices;
     const customerId=selected.find(invoice=>invoice.partyId)?.partyId;
     const newReturn: SalesReturn = {
@@ -1058,6 +1067,7 @@ export function Sales() {
     setReturnRefundMethod('Cash');
     setReturnRefundAccount('');
     setTab('returns');
+    setReturnReviewOpen(false);
     toast.success(text('Return saved in this preview session','এই প্রিভিউ সেশনে ফেরত রাখা হয়েছে'), { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
 
@@ -1573,6 +1583,28 @@ export function Sales() {
             </div>
           </div>
         )}
+
+        <Dialog open={returnReviewOpen} onOpenChange={setReturnReviewOpen}>
+          <DialogContent role="dialog" aria-label={text('Confirm Sales Return','বিক্রি ফেরত নিশ্চিত করুন')}
+            className="sales-mobile-dialog max-h-[92vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{text('Confirm Sales Return','বিক্রি ফেরত নিশ্চিত করুন')}</DialogTitle>
+              <DialogDescription>{text('Review the original value, agreed amount and payment before saving this session preview.','ফেরত জমার আগে আগের মূল্য, নতুন মূল্য ও টাকা যাচাই করুন।')}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 text-sm">
+              <p className="text-xs text-ink-500">{selectedReturnInvoices.map(invoice=>invoice.invoice).join(', ')}</p>
+              <div className="flex justify-between gap-2"><span>{text('Historical return value','আগের ফেরত মূল্য')}</span><strong>{taka(quotedOrdinaryPlans.filter(p=>p.quantity>0).reduce((n,p)=>n+p.quote.historicalSourceAmountPaisa,0)/100)}</strong></div>
+              {returnCompensationPaisa>0&&<div className="flex justify-between gap-2 text-warning"><span>{text('Customer Compensation Expense','ক্রেতাকে অতিরিক্ত ফেরত খরচ')}</span><strong>{taka(returnCompensationPaisa/100)}</strong></div>}
+              <div className="flex justify-between gap-2 border-t border-border pt-2"><strong>{text('Final return amount','মোট ফেরত')}</strong><strong>{taka(returnAmount)}</strong></div>
+              <p className="text-xs text-ink-500">{sl(returnSettlement)}</p>
+              {returnCompensationPaisa>0&&<p role="note" className="text-xs text-warning">{text('Above-historical refund reasons are retained in the return audit. Compensation is part of this settlement, not an additional payout.','অতিরিক্ত ফেরতের কারণ রাখা হবে। এই খরচ একই ফেরতের অংশ, আলাদা টাকা দেওয়া নয়।')}</p>}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={()=>setReturnReviewOpen(false)}>{text('Cancel','বাতিল')}</Button>
+              <Button onClick={confirmReturn}>{text('Confirm return','ফেরত নিশ্চিত করুন')}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={bundleReturnPreviewOpen} onOpenChange={open=>!open&&setBundleReturnPreviewOpen(false)}>
           <DialogContent role="dialog" aria-label="Bundle return preview" className="sales-mobile-dialog max-h-[92vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-xl">
