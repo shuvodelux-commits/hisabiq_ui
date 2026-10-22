@@ -40,7 +40,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { customerCredits as seedCredits, salesReturns as seedReturns, type SalesDraft } from '../data/sales';
 import { products } from '../data/products';
 import {availableParties} from '../data/erpDemoStore';
-import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate} from '../data/salesPreviewStore';
+import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate,commitSalesReturnPreview} from '../data/salesPreviewStore';
 import {SaleTemplateDialog} from '../components/pos/SaleTemplateDialog';
 import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
 import {quoteReturnPrice} from '../utils/salesReturnPricing';
@@ -1077,8 +1077,6 @@ export function Sales() {
         ...(returnRefundAccount.trim() ? { refundAccount: returnRefundAccount.trim() } : {})
       } : {})
     };
-    setReturns((items) => [newReturn, ...items]);
-
     const dueAdjustments = new Map<string, number>();
     let remainingAdjustment = returnSettlement === 'Adjust due' ? returnAmount : 0;
     if (returnSettlement === 'Adjust due') {
@@ -1089,29 +1087,35 @@ export function Sales() {
         remainingAdjustment -= applied;
       }
     }
-
     const creditFromReturn = returnSettlement === 'Customer credit'
       ? returnAmount
       : returnSettlement === 'Adjust due'
         ? Math.max(returnAmount - selectedReturnDue, 0)
         : 0;
-
-    if (creditFromReturn > 0) {
-      setCredits((items) => {
-        const existing = customerId ? items.find(credit=>credit.customerId===customerId) : undefined;
-        if (existing) return items.map((credit) => credit.id === existing.id ? { ...credit, balance: credit.balance + creditFromReturn, source: newReturn.id, updatedAt: newReturn.date } : credit);
-        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, ...(customerId?{customerId}:{}), customer: customerName, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
-      });
+    let nextCredits=credits;
+    if(creditFromReturn>0){
+      const existing=customerId?credits.find(credit=>credit.customerId===customerId):undefined;
+      nextCredits=existing?credits.map(credit=>credit.id===existing.id
+        ?{...credit,balance:credit.balance+creditFromReturn,source:newReturn.id,updatedAt:newReturn.date}:credit):
+        [{id:`CR-${String(32 + credits.length - seedCredits.length).padStart(6, '0')}`,
+          ...(customerId?{customerId}:{}),customer:customerName,balance:creditFromReturn,
+          source:newReturn.id,updatedAt:newReturn.date},...credits];
     }
-
-    setInvoices((items) => items.map((invoice) => {
+    const nextInvoices=invoices.map(invoice=>{
       if (!returnInvoiceIds.includes(invoice.id)) return invoice;
       const fullReturn = invoice.lines.every(line=>!isBundleReturnLine(line)&&
         (plannedLine(invoice,line)?.remaining??0)-(plannedLine(invoice,line)?.quantity??0)<=0);
-      const applied = dueAdjustments.get(invoice.id) ?? 0;
-      const due = Math.max(invoice.due - applied, 0);
-      return { ...invoice, due, status: fullReturn ? 'Returned' : 'Part returned' };
-    }));
+      const applied=dueAdjustments.get(invoice.id)??0;
+      const due=Math.max(invoice.due-applied,0);
+      return {...invoice,due,status:fullReturn?'Returned' as const:'Part returned' as const};
+    });
+    try{
+      commitSalesReturnPreview({commandId:newReturn.id,expected:getSalesPreviewSnapshot(),
+        invoices:nextInvoices,returns:[newReturn,...returns],credits:nextCredits});
+    }catch(error){
+      toast.error(error instanceof Error?error.message:String(error));
+      return;
+    }
     setReturnInvoiceIds([]);
     setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
     setReturnReason({});setReturnSerials({});
