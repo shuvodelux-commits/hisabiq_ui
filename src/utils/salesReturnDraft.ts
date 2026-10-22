@@ -25,6 +25,7 @@ const simpleDecimal=/^(?:\d+(?:\.\d{1,6})?|\.\d{1,6})$/;
 export function returnBaseQuantity(line:SaleLine,input:ReturnLineInput):{quantity:number;issues:string[]}{
  const issues:string[]=[];
  if(input.unitQuantities){
+  if(!Object.values(input.unitQuantities).some(value=>value.trim()&&Number(value)>0))return {quantity:0,issues:[]};
   const profile=line.unitSnapshot;
   if(!profile||!profile.factors?.[profile.baseUnit]||profile.baseUnit!==line.unit){
    issues.push('Historical unit conversion is unavailable for this invoice.');
