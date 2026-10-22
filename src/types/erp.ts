@@ -300,7 +300,22 @@ export type SalesReturn = TransactionAuditFields & {
   refundMethod?: Exclude<PaymentMethod, 'Customer Credit'>;
   refundAccount?: string;
   /** Source-linked ordinary return allocations in the UI preview; never stock postings. */
-  lineReturns?: Array<{invoiceId:string;lineId:string;quantity:number;amount:number;serials:string[]}>;
+  lineReturns?: Array<{
+    invoiceId: string; lineId: string; quantity: number;
+    /** Historical refunded source allocation; never overwrite it with negotiated refund. */
+    amount: number; serials: string[];
+    /** Original invoice unit map and base unit; immutable audit for compound returns. */
+    unitQuantities?: Record<string,string>; sourceBaseUnit?: string;
+    historicalSourceAmountPaisa?: number; agreedReturnAmountPaisa?: number;
+    priceDifferencePaisa?: number; effectiveUnitPrice?: number;
+    priceWasOverridden?: boolean; adjustmentReason?: string;
+  }>;
+  /** Sum of positive above-original adjustments, recognised once as compensation expense. */
+  compensationExpensePaisa?: number;
+  /** Signed negative return-price adjustments (never compensation). */
+  negativeAdjustmentPaisa?: number;
+  confirmationId?: string;
+  phoneSnapshot?: string;
   bundleReturns?:Array<{returnId:string;invoiceId:string;lineId:string;sets:number;serials?:Record<string,string[]>}>;
 };
 
