@@ -34,6 +34,7 @@ const TeamPage = lazy(() => import('./saas/admin/TeamPage').then(module => ({ de
 const TenantsPage = lazy(() => import('./saas/tenants/TenantsPage').then(module => ({ default: module.TenantsPage })));
 const TenantPage = lazy(() => import('./saas/tenants/TenantsPage').then(module => ({ default: module.TenantPage })));
 const BrandGuide = lazy(() => import('./pages/BrandGuide').then(module => ({ default: module.BrandGuide })));
+const LoginPreviewPage = lazy(() => import('./features/auth/LoginPreviewPage').then(module => ({ default: module.LoginPreviewPage })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const Pos = lazy(() => import('./pages/Pos').then(module => ({ default: module.Pos })));
 const Sales = lazy(() => import('./pages/Sales').then(module => ({ default: module.Sales })));
@@ -63,6 +64,9 @@ export function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
         <Route path="/design-system" element={<PageBoundary><BrandGuide /></PageBoundary>} />
+        <Route path="/login" element={<PageBoundary><LoginPreviewPage view="password" /></PageBoundary>} />
+        <Route path="/login/pin" element={<PageBoundary><LoginPreviewPage view="pin" /></PageBoundary>} />
+        <Route path="/login/accounts" element={<PageBoundary><LoginPreviewPage view="accounts" /></PageBoundary>} />
         <Route path="/saas" element={<SaasShell />}>
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<OverviewPage />} />

@@ -20,7 +20,8 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
   internalRef.current=node;
   if(typeof ref==='function')ref(node);else if(ref)ref.current=node;
  };
- const numeric=props.type==='number'||props.inputMode==='decimal'||props.inputMode==='numeric'&&props.type!=='tel';
+ // Phone numbers and masked codes are identifiers, never arithmetic quantities.
+ const numeric=props.type==='number'||(props.type!=='tel'&&props.type!=='password'&&(props.inputMode==='decimal'||props.inputMode==='numeric'));
  if(numeric)return <NumericInput {...props} ref={setRef}/>;
  const value=props.value;
  const searchLike=props.type==='search'||/(?:\b(?:search|find|filter|lookup)\b|খুঁজ|খোঁজ|অনুসন্ধান|সার্চ|ফিল্টার)/i.test(

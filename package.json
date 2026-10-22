@@ -9,6 +9,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "preview": "npx vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:auth-login": "node scripts/auth-login-browser.cjs",
     "check:ui-contract": "node scripts/check-ui-design-contract.cjs && node --test tests/uiDesignContractGuard.test.cjs",
     "cf:deploy": "npm run build && wrangler deploy",
     "cf:preview": "npm run build && wrangler preview",
