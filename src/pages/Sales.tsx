@@ -1381,9 +1381,14 @@ export function Sales() {
                     </TableHeader>
                     <TableBody>
                       {selectedReturnLines.map(({ invoice, line }) => {
-                        const qty = parseFloat(returnQty[line.id] ?? '') || 0;
+                        const rowKey=returnItemKey(invoice,line);
+                        const qty=line.unitSnapshot&&Object.keys(line.unitSnapshot.factors).length>1
+                          ?returnBaseQuantity(line,{invoiceId:invoice.id,lineId:line.id,unitQuantities:returnUnitQty[rowKey]??{},serials:[],reason:''}).quantity
+                          :(parseFloat(returnQty[rowKey] ?? '') || 0);
+                        const itemPlan=plannedLine(invoice,line);
+                        const itemQuote=quotedOrdinaryPlans.find(plan=>plan.invoiceId===invoice.id&&plan.lineId===line.id)?.quote;
                         return (
-                          <TableRow key={line.id} className="text-[12.5px]">
+                          <TableRow key={rowKey} className="text-[12.5px]">
                             <TableCell className="py-2 pl-3">
                               <p className="font-medium text-ink">{line.name}</p>
                               <p className="text-[11px] text-ink-400">{invoice.invoice}</p>
@@ -1393,20 +1398,20 @@ export function Sales() {
                                 <div className="mt-2 max-w-[260px] space-y-1.5">
                                   <FormSelect
                                     aria-label={`${text('Return reason','ফেরতের কারণ')} · ${line.name}`}
-                                    value={returnReason[line.id] ?? 'Customer return'}
-                                    onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
+                                    value={returnReason[rowKey] ?? 'Customer return'}
+                                    onChange={(event) => setReturnReason((value) => ({ ...value, [rowKey]: event.target.value }))}
                                     options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
                                   />
                                   {line.bundleSnapshot&&<div className="space-y-2 rounded-lg border border-border p-2" data-testid="bundle-return-components">
                                     <p className="text-[11px] font-semibold">{text('Original included products · choose condition','আগের প্যাকেজের পণ্য · অবস্থা বাছুন')}</p>
                                     {line.bundleSnapshot.components.map(part=>{
-                                      const saved=bundleReturnChoices[line.id]?.[part.productId];
+                                      const saved=bundleReturnChoices[rowKey]?.[part.productId];
                                       return <div key={part.productId} className="space-y-1 rounded-md bg-ink-50 p-2">
                                         <p className="text-[11px] font-medium">{part.name} · {Number((part.baseQtyPerSet*qty).toFixed(6))} {part.unit}</p>
                                         <label className="block text-[10px] text-ink-500">{text('Condition / stock treatment','অবস্থা / স্টক')}
                                           <FormSelect aria-label={`Disposition for ${part.name}`} className="mt-1" value={saved?.disposition??''}
                                             onChange={event=>setBundleReturnChoices(current=>({
-                                              ...current,[line.id]:{...current[line.id],[part.productId]:{
+                                              ...current,[rowKey]:{...current[line.id],[part.productId]:{
                                                 disposition:event.target.value as BundleReturnSelection['disposition'],
                                                 serials:current[line.id]?.[part.productId]?.serials??[]
                                               }}
@@ -1419,7 +1424,7 @@ export function Sales() {
                                           <label className="block text-[10px] text-ink-500">{text('Returned component serials, comma-separated','ফেরত সিরিয়াল, কমা দিয়ে লিখুন')}
                                             <Input aria-label={`Returned serials for ${part.name}`} className="mt-1 h-8" value={(saved?.serials??[]).join(', ')}
                                               onChange={event=>setBundleReturnChoices(current=>({
-                                                ...current,[line.id]:{...current[line.id],[part.productId]:{
+                                                ...current,[rowKey]:{...current[line.id],[part.productId]:{
                                                   disposition:current[line.id]?.[part.productId]?.disposition??'Do not restock',
                                                   serials:event.target.value.split(',').map(v=>v.trim()).filter(Boolean)
                                                 }}
@@ -1435,15 +1440,15 @@ export function Sales() {
                                   {line.serials?.length ? (
                                     <>
                                       <Input
-                                        value={returnSerials[line.id] ?? ''}
-                                        onChange={(event) => setReturnSerials((value) => ({ ...value, [line.id]: event.target.value }))}
+                                        value={returnSerials[rowKey] ?? ''}
+                                        onChange={(event) => setReturnSerials((value) => ({ ...value, [rowKey]: event.target.value }))}
                                         placeholder={sl("Returned serial, comma separated")}
                                         className="h-8"
                                       />
                                       <p className="text-[10.5px] text-ink-400">{sl('Sold serials:')} {line.serials.join(', ')}</p>
                                     </>
                                   ) : null}
-                                  {(returnReason[line.id] ?? 'Customer return') === 'Warranty claim' && (
+                                  {(returnReason[rowKey] ?? 'Customer return') === 'Warranty claim' && (
                                     <p className="text-[10.5px] text-teal-700">{sl("This return will be available for warranty intake.")}</p>
                                   )}
                                 </div>
@@ -1451,37 +1456,31 @@ export function Sales() {
                             </TableCell>
                             <TableCell data-mobile-label={sl('Sold')} className="py-2">{invoiceQty(line)}</TableCell>
                             <TableCell data-mobile-label={sl('Return qty')} className="py-2">
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  value={returnQty[line.id] ?? ''}
-                                  onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value}));
-                                    if(isBundleReturnLine(line))setBundleReturnChoices(value=>({...value,[line.id]:{}}));}}
-                                  inputMode={isBundleReturnLine(line)?'numeric':'decimal'}
-                                  aria-label={isBundleReturnLine(line)?`Whole Sets to return for ${line.name}`:`${sl('Return qty')} · ${line.name}`}
-                                  aria-invalid={!isBundleReturnLine(line)&&Boolean(returnQty[line.id])&&Boolean(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.issues.length)}
-                                  className="h-8 text-right"
-                                  placeholder="0"
-                                />
-                                <span className="w-10 text-[11px] text-ink-400">{line.unit}</span>
-                              </div>
-                              <p className={`mt-1 text-[10.5px] ${qty > returnLimit(line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
-                                {sl('max')} {returnLimit(line)} {line.unit}
+                              <ReturnQuantityField line={line} value={returnQty[rowKey]??''}
+                                unitValues={returnUnitQty[rowKey]}
+                                onChange={next=>{
+                                  setReturnQty(values=>({...values,[rowKey]:next}));
+                                  if(isBundleReturnLine(line))setBundleReturnChoices(values=>({...values,[rowKey]:{}}));
+                                }}
+                                onUnitsChange={next=>setReturnUnitQty(values=>({...values,[rowKey]:next}))}/>
+                              <p className={`mt-1 text-[10.5px] ${qty > returnLimit(invoice,line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
+                                {sl('max')} {returnLimit(invoice,line)} {line.unit}
                               </p>
                             </TableCell>
                             <TableCell data-mobile-label={sl('Refund')} className="py-2 pr-3">
-                              <div className="ml-auto w-28">
-                                <Input
-                                  value={isBundleReturnLine(line)?String(line.price):ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice===null?text('Source allocation needed','আগের মূল্য প্রয়োজন'):String(Number((ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice??0).toFixed(6)))}
-                                  disabled
-                                  inputMode="decimal"
-                                  className="h-8 text-right"
-                                  aria-label={`${sl('Return price for')} ${line.name}`}
-                                />
-                                <p className="mt-1 text-right text-[10.5px] text-ink-400">
-                                  {isBundleReturnLine(line)?
-                                    (qty>0?text('Historical net refund — see preview','আগের বিক্রির মূল্য — প্রিভিউ দেখুন'):'Set'):
-                                    (qty > 0 ? taka(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0) : `/${line.unit}`)}
-                                </p>
+                              <div className="space-y-1">
+                                <ReturnPriceField name={line.name+' '+rowKey} baseUnit={line.unit}
+                                  historicalUnitPrice={isBundleReturnLine(line)?line.price:itemPlan?.unitPrice??null}
+                                  rawOverride={returnPrice[rowKey]}
+                                  onChange={next=>setReturnPrice(values=>({...values,[rowKey]:next}))}
+                                  onReset={()=>setReturnPrice(values=>{const next={...values};delete next[rowKey];return next;})}/>
+                                {itemQuote&&qty>0&&<p className="text-right text-[10.5px] text-ink-400">{taka(itemQuote.agreedReturnAmountPaisa/100)}</p>}
+                                {itemQuote&&itemQuote.priceDifferencePaisa>0&&qty>0&&
+                                  <Input aria-label={text('Reason for extra refund','অতিরিক্ত ফেরতের কারণ')+' · '+line.name}
+                                    value={returnPriceReason[rowKey]??''} className="h-8 text-xs"
+                                    placeholder={text('Why is refund higher?','বেশি ফেরতের কারণ কী?')}
+                                    onChange={event=>setReturnPriceReason(values=>({...values,[rowKey]:event.target.value}))}/>}
+                                {itemQuote&&itemQuote.issues.length>0&&qty>0&&<p role="alert" className="text-[10.5px] text-danger">{itemQuote.issues.join(' ')}</p>}
                               </div>
                             </TableCell>
                           </TableRow>
