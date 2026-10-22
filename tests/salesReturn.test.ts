@@ -58,3 +58,12 @@ test('return ledger targets the original Customer identity and rejects ambiguous
  assert.equal(salesReturnCustomerId(salesReturns[1],salesInvoices,[...parties,{...parties[0],id:'other-customer'}]),undefined);
  assert.equal(salesReturnCustomerId(salesReturns[2],salesInvoices,parties),undefined);
 });
+
+test('negotiated refund preserves the historical allocation consumed by later partial returns',()=>{
+ const source={...line,id:'adjusted-line',quantity:'3',soldBaseQuantity:3,returnableQuantity:3,total:300,netSaleTotal:300,price:100};
+ const doc={...invoice,lines:[source]};
+ const first:SalesReturn={...prior(1,100),lineReturns:[{invoiceId:doc.id,lineId:source.id,quantity:1,amount:100,serials:[],historicalSourceAmountPaisa:10000,agreedReturnAmountPaisa:12000,priceDifferencePaisa:2000,unitQuantities:{Pcs:'1'},sourceBaseUnit:'Pcs'}],compensationExpensePaisa:2000};
+ const next=planOrdinaryReturn(doc,source,'1',[],[first]);
+ assert.equal(next.amount,100);
+ assert.equal(next.remaining,2);
+});
