@@ -43,6 +43,10 @@ import {availableParties} from '../data/erpDemoStore';
 import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate} from '../data/salesPreviewStore';
 import {SaleTemplateDialog} from '../components/pos/SaleTemplateDialog';
 import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
+import {quoteReturnPrice} from '../utils/salesReturnPricing';
+import {returnBaseQuantity,returnLineKey} from '../utils/salesReturnDraft';
+import {ReturnPriceField} from '../components/sales/returns/ReturnPriceField';
+import {ReturnQuantityField} from '../components/sales/returns/ReturnQuantityField';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
@@ -724,6 +728,9 @@ export function Sales() {
   const [returnCustomer, setReturnCustomer] = useState('Rahman Hardware');
   const [returnInvoiceIds, setReturnInvoiceIds] = useState<string[]>([]);
   const [returnQty, setReturnQty] = useState<Record<string, string>>({});
+  const [returnUnitQty, setReturnUnitQty] = useState<Record<string,Record<string,string>>>({});
+  const [returnPrice, setReturnPrice] = useState<Record<string,string>>({});
+  const [returnPriceReason, setReturnPriceReason] = useState<Record<string,string>>({});
   const [returnReason, setReturnReason] = useState<Record<string, string>>({});
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [bundleReturnChoices,setBundleReturnChoices]=useState<Record<string,Record<string,BundleReturnSelection>>>({});
@@ -785,29 +792,46 @@ export function Sales() {
   const selectedReturnDue = customerInvoices.filter((invoice) => returnInvoiceIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoice.due, 0);
   const selectedReturnInvoices = invoices.filter((invoice) => returnInvoiceIds.includes(invoice.id));
   const selectedReturnLines = selectedReturnInvoices.flatMap((invoice) => invoice.lines.map((line) => ({ invoice, line })));
-  const ordinaryReturnPlans=selectedReturnLines.filter(({line})=>!isBundleReturnLine(line)).map(({invoice,line})=>
-    planOrdinaryReturn(invoice,line,returnQty[line.id]??'',(returnSerials[line.id]??'').split(',').map(value=>value.trim()).filter(Boolean),returns));
-  const returnLimit=(line:SalesInvoice['lines'][number])=>isBundleReturnLine(line)
-    ?line.returnableQuantity??0:ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.remaining??0;
-  const selectedBundlePlans=selectedReturnLines.filter(({line})=>isBundleReturnLine(line)&&Number(returnQty[line.id]??'')>0)
+  const returnItemKey=(invoice:SalesInvoice,line:SalesInvoice['lines'][number])=>returnLineKey(invoice.id,line.id);
+  const ordinaryReturnPlans=selectedReturnLines.filter(({line})=>!isBundleReturnLine(line)).map(({invoice,line})=>{
+    const key=returnItemKey(invoice,line);
+    const units=line.unitSnapshot&&Object.keys(line.unitSnapshot.factors).length>1;
+    const base=returnBaseQuantity(line,{invoiceId:invoice.id,lineId:line.id,quantity:returnQty[key]??'',
+      ...(units?{unitQuantities:returnUnitQty[key]??{}}:{}),serials:[],reason:''});
+    const plan=planOrdinaryReturn(invoice,line,base.issues.length?'invalid':String(base.quantity),
+      (returnSerials[key]??'').split(',').map(value=>value.trim()).filter(Boolean),returns);
+    return {...plan,issues:[...base.issues,...plan.issues]};
+  });
+  const plannedLine=(invoice:SalesInvoice,line:SalesInvoice['lines'][number])=>
+    ordinaryReturnPlans.find(plan=>plan.invoiceId===invoice.id&&plan.lineId===line.id);
+  const returnLimit=(invoice:SalesInvoice,line:SalesInvoice['lines'][number])=>isBundleReturnLine(line)
+    ?line.returnableQuantity??0:plannedLine(invoice,line)?.remaining??0;
+  const selectedBundlePlans=selectedReturnLines.filter(({invoice,line})=>isBundleReturnLine(line)&&Number(returnQty[returnItemKey(invoice,line)]??'')>0)
     .map(({invoice,line})=>planBundleReturn({
-      invoice,line,sets:Number(returnQty[line.id]),choices:bundleReturnChoices[line.id]??{},
+      invoice,line,sets:Number(returnQty[returnItemKey(invoice,line)]),choices:bundleReturnChoices[returnItemKey(invoice,line)]??{},
       priorReturns:returns.flatMap(r=>r.bundleReturns??[])
     }));
   const includesBundleReturn=selectedBundlePlans.length>0;
-  const returnAmount = selectedReturnLines.reduce((sum,{line})=>{
-    if(isBundleReturnLine(line))return sum+(selectedBundlePlans.find(p=>p.lineId===line.id)?.refundEstimate??0);
-    return Math.round((sum+(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0))*100)/100;
+  const quotedOrdinaryPlans=ordinaryReturnPlans.map(plan=>({
+    ...plan,quote:quoteReturnPrice(plan,returnPrice[returnLineKey(plan.invoiceId,plan.lineId)])
+  }));
+  const returnAmount = selectedReturnLines.reduce((sum,{invoice,line})=>{
+    if(isBundleReturnLine(line))return sum+(selectedBundlePlans.find(p=>p.invoiceId===invoice.id&&p.lineId===line.id)?.refundEstimate??0);
+    return Math.round((sum+(quotedOrdinaryPlans.find(plan=>plan.invoiceId===invoice.id&&plan.lineId===line.id)?.quote.agreedReturnAmountPaisa??0)/100)*100)/100;
   },0);
-  const returnIssues=ordinaryReturnPlans.flatMap(plan=>plan.quantity!==0||returnQty[plan.lineId]?plan.issues:[]);
+  const returnCompensationPaisa=quotedOrdinaryPlans.reduce((sum,plan)=>sum+(plan.quantity>0?plan.quote.compensationExpensePaisa:0),0);
+  const returnIssues=quotedOrdinaryPlans.flatMap(plan=>{
+    const key=returnLineKey(plan.invoiceId,plan.lineId);
+    if(!plan.quantity&&!returnQty[key]&&!Object.values(returnUnitQty[key]??{}).some(Boolean))return [];
+    return [...plan.issues,...plan.quote.issues,
+      ...(plan.quote.priceDifferencePaisa>0&&!returnPriceReason[key]?.trim()?['Explain why return price exceeds historical net price.']:[])];
+  });
 
   const openReturn = (invoice: SalesInvoice) => {
     setReturnCustomer(invoice.party);
     setReturnInvoiceIds([invoice.id]);
-    setReturnQty({});
-    setReturnReason({});
-    setReturnSerials({});
-    setBundleReturnChoices({});
+    setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
+    setReturnReason({});setReturnSerials({});setBundleReturnChoices({});
     setDetail(null);
     setTab('return');
   };
