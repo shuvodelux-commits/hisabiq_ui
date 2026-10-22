@@ -238,9 +238,6 @@ export function PartyDetailResponsive({
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <h2 className="break-words text-[18px] font-semibold leading-tight tracking-tight text-ink md:text-[20px]">{party.name}</h2>
               {party.nameBn && <span lang="bn" className="font-bn text-sm text-ink-500">{party.nameBn}</span>}
-              <Button size="sm" variant="ghost" className="hidden h-7 px-2 md:inline-flex" onClick={onEditParty}>
-                <Pencil className="size-3" /> {text('Edit party', 'তথ্য বদলান')}
-              </Button>
             </div>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-ink-500">
               <span className="flex flex-wrap items-center gap-1">{party.roles.map(r => <RoleBadge key={r} role={r} />)}</span>
@@ -293,9 +290,8 @@ export function PartyDetailResponsive({
               aria-label={text('Call', 'ফোন করুন')+' '+party.phone}
               className="flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-md border border-border px-2 text-sm text-ink focus-visible:ring-2 focus-visible:ring-teal-500">
               <Phone className="size-4 shrink-0" aria-hidden="true" /><span className="truncate">{party.phone}</span>
-            </a> :
-            <Button size="sm" variant="outline" onClick={onEditParty}>{text('Edit party', 'তথ্য বদলান')}</Button>}
-          <Button size="sm" variant="outline" className="min-h-10" onClick={onChangeParty}>
+            </a> : null}
+          <Button size="sm" variant="outline" className={`min-h-10 ${party.phone ? '' : 'col-span-2'}`} onClick={onChangeParty}>
             <ArrowLeftRight className="size-4 shrink-0" /> {text('Change party', 'পার্টি বদলান')}
           </Button>
         </div>

@@ -20,7 +20,9 @@ async function main(){
     })),language);
     await page.goto('http://127.0.0.1:4406/#/app/parties?id=c1&role=Customer');
     if(width<768)await page.getByRole('button',{name:label('Change party','পার্টি বদলান')}).click();
-    await page.getByRole('button',{name:label('Add party','নতুন পার্টি যোগ করুন'),exact:true}).click();
+    const addParty=page.getByRole('button',{name:label('Add party','নতুন পার্টি যোগ করুন'),exact:true});
+    assert.equal(await addParty.getAttribute('data-hisabiq-variant'),'default','Add party uses primary green variant');
+    await addParty.click();
     const editor=page.getByRole('dialog',{name:label('Add party','নতুন পার্টি যোগ করুন')});
     await editor.waitFor();
     await editor.getByLabel(label('Party name','পার্টির নাম'),{exact:true}).waitFor();
@@ -32,9 +34,20 @@ async function main(){
     await editor.getByRole('button',{name:label('Cancel','বাতিল')}).click();
     await editor.waitFor({state:'hidden'});
 
-    // Opening balance is now an overflow action; Refund credit takes the visible slot.
+    // Edit Party must only appear under More, across desktop, tablet and phone.
+    assert.equal(await page.getByRole('button',{name:label('Edit party','তথ্য বদলান'),exact:true}).count(),0,
+     'No standalone Edit Party button in the profile header or actions');
     await page.getByRole('button',{name:label('More actions','আরও কাজ')}).click();
     const more=page.getByRole('dialog',{name:label('More actions','আরও কাজ')});
+    await more.getByRole(width<768?'button':'menuitem',{name:bn?/পার্টির তথ্য বদলান/:/Edit party/i}).click();
+    const editDialog=page.getByRole('dialog',{name:label('Edit party','পার্টির তথ্য বদলান')});
+    await editDialog.waitFor();
+    assert.ok((await editDialog.getByLabel(label('Party name','পার্টির নাম'),{exact:true}).inputValue()).length>0,
+     'More opens the selected party editor');
+    await editDialog.getByRole('button',{name:label('Cancel','বাতিল')}).click();
+
+    // Opening balance remains available under the same More menu.
+    await page.getByRole('button',{name:label('More actions','আরও কাজ')}).click();
     await more.getByRole(width<768?'button':'menuitem',{name:bn?/শুরুর জের/:/opening balance/i}).click();
     const opening=page.getByRole('dialog',{name:label('Party opening balance','পার্টির শুরুর জের')});
     await opening.getByRole('textbox',{name:label('Opening balance amount','শুরুর জেরের টাকা')}).waitFor();

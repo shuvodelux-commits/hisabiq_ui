@@ -58,3 +58,23 @@ test('Opening and Party Detail retain preview-only posting and source-linked cor
  assert.ok(detail.includes('onClick={onNewInvoice}'));
  assert.ok(detail.includes("text('New invoice','নতুন বিল')"));
 });
+
+test('Party edit stays inside More actions and Add party uses primary styling on all devices',()=>{
+ const page=source('src/pages/Parties.tsx');
+ const desktop=source('src/components/parties/PartyDetail.tsx');
+ const responsive=source('src/components/parties/PartyDetailResponsive.tsx');
+ assert.match(page, /<Button size="sm" className="shrink-0 whitespace-nowrap" onClick=\{\(\)=>setEditing\(null\)\}/,
+  'Desktop Add party uses default primary button styling');
+ assert.match(page, /<Button size="sm" onClick=\{\(\)=>setEditing\(null\)\}/,
+  'Small-screen Add party remains a primary button');
+ assert.equal((desktop.match(/onEditParty\(\);/g)??[]).length,2,
+  'Vendor and other desktop profiles each expose Edit Party in More');
+ assert.doesNotMatch(desktop,/onClick=\{onEditParty\}/,
+  'No desktop standalone Edit Party button');
+ assert.match(responsive, /id: 'edit'[\s\S]*?run: onEditParty/,
+  'Responsive More action runs the existing edit handler');
+ assert.doesNotMatch(responsive,/onClick=\{onEditParty\}/,
+  'No standalone Edit Party button at tablet or mobile widths');
+ assert.match(responsive, /party\.phone \? '' : 'col-span-2'/,
+  'Party switching fills the vacant phone slot instead of restoring Edit Party');
+});

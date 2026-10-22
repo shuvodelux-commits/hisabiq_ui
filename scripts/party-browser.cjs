@@ -71,7 +71,9 @@ async function main() {
     await page.getByRole('combobox',{name:'Relationship'}).click();
     await page.getByRole('listbox',{name:'Relationship options'}).getByRole('option',{name:'Supplier',exact:true}).click();
     assert.match(page.url(),/role=Supplier/);
-    await page.getByRole('button',{name:/Edit party/i}).click();
+    await page.getByRole('button',{name:'More',exact:true}).click();
+    await page.getByRole('dialog',{name:'More actions'})
+      .getByRole('menuitem',{name:/Edit party/i}).click();
     await dialog.getByLabel('Phone').fill('01888880000');
     await dialog.getByRole('button',{name:/Save party/i}).click();
     await page.locator(':text-is("01888880000"):visible').first().waitFor();
@@ -192,9 +194,15 @@ async function main() {
         assert.ok(Math.abs(positions[0].y-headingRect.y)<14,`Header actions align with the title at ${width}px`);
         // Previous viewport interactions may leave the pointer hovering an action button.
         await page.mouse.move(1,1);
-        for(const button of buttons){
+        for(const [index,button] of buttons.entries()){
           const color=await button.evaluate(el=>getComputedStyle(el).backgroundColor);
-          assert.equal(color,'rgb(255, 255, 255)',`Header action background white at ${width}px`);
+          if(index===1){
+            assert.equal(await button.getAttribute('data-hisabiq-variant'),'default',
+              `Add party is the primary action at ${width}px`);
+            assert.notEqual(color,'rgb(255, 255, 255)',`Add party has a green fill at ${width}px`);
+          }else{
+            assert.equal(color,'rgb(255, 255, 255)',`Secondary header action background white at ${width}px`);
+          }
         }
         assert.ok(await page.locator('p strong.text-emerald-700').isVisible(),`directory receivables are green at ${width}px`);
         assert.ok(await page.locator('p strong.text-danger').isVisible(),`directory payables are red at ${width}px`);
