@@ -42,3 +42,11 @@ test('original invoice uniquely proves a two-level conversion without consulting
  const uncertain={...legacy,soldBaseQuantity:undefined};
  assert.ok(returnBaseQuantity(uncertain,{...draft('a',{Box:'1',Pcs:'5'})}).issues.length);
 });
+
+test('invalid or negative multi-unit draft cannot masquerade as zero and bypass validation',()=>{
+ for(const amount of ['abc','-1','Infinity','1e2']){
+  const result=returnBaseQuantity(line,{...draft('a',{Box:amount,Pcs:'0'})});
+  assert.ok(result.issues.length,amount);
+ }
+ assert.deepEqual(returnBaseQuantity(line,{...draft('a',{Box:'0',Pcs:''})}),{quantity:0,issues:[]});
+});
