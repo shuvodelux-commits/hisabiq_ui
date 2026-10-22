@@ -1010,11 +1010,34 @@ export function Sales() {
       return;
     }
     const selected = selectedReturnInvoices;
-    const customerId=selected.find(invoice=>invoice.partyId)?.partyId;
+    const knownCustomerIds=[...new Set(selected.map(invoice=>invoice.partyId).filter((id):id is string=>Boolean(id)))];
+    const selectedCustomerChoice:ReturnCustomerChoice=knownCustomerIds.length===1
+      ?{kind:'existing',customerId:knownCustomerIds[0]}
+      :returnCreditChoice==='create'
+        ?{kind:'create',name:returnNewCustomerName,phone:returnNewCustomerPhone}
+        :returnCreditChoice
+          ?{kind:'existing',customerId:returnCreditChoice}
+          :{kind:'none'};
+    const customerIssues=validateReturnCustomerChoice(selected,selectedCustomerChoice,availableParties(),returnCreditNeeded);
+    if(customerIssues.length){toast.error(customerIssues.join(' '));return;}
+    let customerId=knownCustomerIds[0];
+    let customerName=returnCustomer;
+    if(returnCreditNeeded&&selectedCustomerChoice.kind==='existing'){
+      customerId=selectedCustomerChoice.customerId;
+      customerName=availableParties().find(p=>p.id===customerId)?.name??returnCustomer;
+    }
+    if(returnCreditNeeded&&selectedCustomerChoice.kind==='create'){
+      try {
+        const added=quickAddPartyPreview({name:selectedCustomerChoice.name,phone:selectedCustomerChoice.phone,
+          roles:['Customer'],area:''});
+        customerId=added.party.id;
+        customerName=added.party.name;
+      }catch(error){toast.error(error instanceof Error?error.message:String(error));return;}
+    }
     const newReturn: SalesReturn = {
       id: `RTN-${String(15 + returns.length - seedReturns.length).padStart(6, '0')}`,
       date: '01 Oct 2026',
-      customer: returnCustomer,
+      customer: customerName,
       ...(customerId?{customerId}:{}),
       lineReturns:quotedOrdinaryPlans.filter(plan=>plan.quantity>0).map(plan=>{
         const key=returnLineKey(plan.invoiceId,plan.lineId);
@@ -1075,9 +1098,9 @@ export function Sales() {
 
     if (creditFromReturn > 0) {
       setCredits((items) => {
-        const existing = items.find((credit) => credit.customer === returnCustomer);
+        const existing = customerId ? items.find(credit=>credit.customerId===customerId) : undefined;
         if (existing) return items.map((credit) => credit.id === existing.id ? { ...credit, balance: credit.balance + creditFromReturn, source: newReturn.id, updatedAt: newReturn.date } : credit);
-        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, ...(customerId?{customerId}:{}), customer: returnCustomer, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
+        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, ...(customerId?{customerId}:{}), customer: customerName, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
       });
     }
 
@@ -1610,6 +1633,26 @@ export function Sales() {
               {returnCompensationPaisa>0&&<div className="flex justify-between gap-2 text-warning"><span>{text('Customer Compensation Expense','ক্রেতাকে অতিরিক্ত ফেরত খরচ')}</span><strong>{taka(returnCompensationPaisa/100)}</strong></div>}
               <div className="flex justify-between gap-2 border-t border-border pt-2"><strong>{text('Final return amount','মোট ফেরত')}</strong><strong>{taka(returnAmount)}</strong></div>
               <p className="text-xs text-ink-500">{sl(returnSettlement)}</p>
+              {returnCreditNeeded&&!selectedReturnInvoices.some(invoice=>invoice.partyId)&&
+                <div className="space-y-2 rounded-md border border-border p-2">
+                  <label className="block text-xs font-medium">
+                    {text('Confirm customer for credit','ক্রেতার জমার জন্য ক্রেতা নিশ্চিত করুন')}
+                    <FormSelect className="mt-1" value={returnCreditChoice}
+                      onChange={event=>setReturnCreditChoice(event.target.value)}
+                      options={[{value:'',label:text('Choose customer','ক্রেতা বাছুন')},
+                        ...returnCustomerCandidates.map(p=>({value:p.id,label:p.name+' · '+p.phone})),
+                        {value:'create',label:text('Create new customer','নতুন ক্রেতা যোগ করুন')}]}/>
+                  </label>
+                  {returnCreditChoice==='create'&&<>
+                    <label className="block text-xs">{text('Customer name','ক্রেতার নাম')}
+                      <Input className="mt-1 h-8" value={returnNewCustomerName}
+                        onChange={event=>setReturnNewCustomerName(event.target.value)}/></label>
+                    <label className="block text-xs">{text('Mobile number','মোবাইল নম্বর')}
+                      <Input className="mt-1 h-8" value={returnNewCustomerPhone}
+                        onChange={event=>setReturnNewCustomerPhone(event.target.value)}/></label>
+                  </>}
+                  <p className="text-[10.5px] text-ink-500">{text('Confirm identity before adding credit. Sharing a phone does not prove the same person.','জমার আগে ক্রেতা নিশ্চিত করুন। একই ফোন মানেই একই ব্যক্তি নয়।')}</p>
+                </div>}
               {returnCompensationPaisa>0&&<p role="note" className="text-xs text-warning">{text('Above-historical refund reasons are retained in the return audit. Compensation is part of this settlement, not an additional payout.','অতিরিক্ত ফেরতের কারণ রাখা হবে। এই খরচ একই ফেরতের অংশ, আলাদা টাকা দেওয়া নয়।')}</p>}
             </div>
             <DialogFooter>
