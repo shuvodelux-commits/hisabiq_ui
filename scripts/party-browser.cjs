@@ -71,7 +71,9 @@ async function main() {
     await page.getByRole('combobox',{name:'Relationship'}).click();
     await page.getByRole('listbox',{name:'Relationship options'}).getByRole('option',{name:'Supplier',exact:true}).click();
     assert.match(page.url(),/role=Supplier/);
-    await page.getByRole('button',{name:/Edit party/i}).click();
+    await page.getByRole('button',{name:'More',exact:true}).click();
+    await page.getByRole('dialog',{name:'More actions'})
+      .getByRole('menuitem',{name:/Edit party/i}).click();
     await dialog.getByLabel('Phone').fill('01888880000');
     await dialog.getByRole('button',{name:/Save party/i}).click();
     await page.locator(':text-is("01888880000"):visible').first().waitFor();
