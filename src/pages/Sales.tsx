@@ -44,7 +44,7 @@ import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSal
 import {SaleTemplateDialog} from '../components/pos/SaleTemplateDialog';
 import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
 import {quoteReturnPrice} from '../utils/salesReturnPricing';
-import {returnBaseQuantity,returnLineKey} from '../utils/salesReturnDraft';
+import {returnBaseQuantity,returnLineKey,sourceUnitProfile} from '../utils/salesReturnDraft';
 import {ReturnPriceField} from '../components/sales/returns/ReturnPriceField';
 import {ReturnQuantityField} from '../components/sales/returns/ReturnQuantityField';
 import {ReturnInvoicePicker} from '../components/sales/returns/ReturnInvoicePicker';
@@ -818,7 +818,8 @@ export function Sales() {
   const returnItemKey=(invoice:SalesInvoice,line:SalesInvoice['lines'][number])=>returnLineKey(invoice.id,line.id);
   const ordinaryReturnPlans=selectedReturnLines.filter(({line})=>!isBundleReturnLine(line)).map(({invoice,line})=>{
     const key=returnItemKey(invoice,line);
-    const units=line.unitSnapshot&&Object.keys(line.unitSnapshot.factors).length>1;
+    const profile=sourceUnitProfile(line);
+    const units=profile&&Object.keys(profile.factors).length>1;
     const base=returnBaseQuantity(line,{invoiceId:invoice.id,lineId:line.id,quantity:returnQty[key]??'',
       ...(units?{unitQuantities:returnUnitQty[key]??{}}:{}),serials:[],reason:''});
     const plan=planOrdinaryReturn(invoice,line,base.issues.length?'invalid':String(base.quantity),
@@ -1450,7 +1451,7 @@ export function Sales() {
                     <TableBody>
                       {selectedReturnLines.map(({ invoice, line }) => {
                         const rowKey=returnItemKey(invoice,line);
-                        const qty=line.unitSnapshot&&Object.keys(line.unitSnapshot.factors).length>1
+                        const qty=sourceUnitProfile(line)&&Object.keys(sourceUnitProfile(line)?.factors??{}).length>1
                           ?returnBaseQuantity(line,{invoiceId:invoice.id,lineId:line.id,unitQuantities:returnUnitQty[rowKey]??{},serials:[],reason:''}).quantity
                           :(parseFloat(returnQty[rowKey] ?? '') || 0);
                         const itemPlan=plannedLine(invoice,line);
