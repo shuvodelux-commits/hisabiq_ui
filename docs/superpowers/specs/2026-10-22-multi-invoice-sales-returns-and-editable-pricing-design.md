@@ -20,6 +20,7 @@ Decisions explicitly approved during discussion:
 7. Walk-in invoices with the same normalized phone may be suggested and multi-selected. Same phone does **not** automatically prove same person.
 8. For **Customer Credit**, always confirm the existing customer candidate before linking. If none is confirmed, let the shopkeeper create a customer from the walk-in invoice name/number after reviewing the details. No automatic customer creation for cash-only return.
 9. Preserve compact English/Bangla/helper UI, original invoice links, prior-return quantity/serial checks, and current bundle posting safeguards.
+10. **Multi-unit-enabled products always display their complete return-quantity inputs** (Box + Pcs; Carton + Box + Pcs; Gauge + Gira), using the corresponding joined POS input patterns. Never show a button, tab, segmented control, or dropdown that switches quantity input between units. Every applicable unit entry stays visible without extra taps. One editable **Return price / [historical base unit]** field remains beside/below those inputs; no separate return-price unit selector.
 
 ## 2. Existing code and implementation constraints
 
@@ -39,6 +40,8 @@ Decisions explicitly approved during discussion:
 
 **Choose:** Invoice checkboxes permit multiple independently validated source invoices. Confirm that any selected invoices belong to the intended customer before return submission. Different spelling of names with same mobile is shown, not silently rewritten. The line selection includes invoice number, product, original sold quantity/unit, remaining returnable quantity, entered return quantity, return unit price, line total, reason and serial details when necessary.
 
+**Multi-unit return quantity:** For a line with source-proven multi-unit configuration, present **all** unit inputs at once, prefilled with 0/blank. For two units reuse the joined `CompoundQuantityInput`; for three or more units reuse `MultiUnitQuantityInput` with its compact stacked fields. Use a frozen-invoice-profile adapter, not mutable current-product unit settings: calculate `returnedBaseQuantity = sum(enteredUnitQuantity × frozenFactor[unit])`, validate source quantities/serials in the base unit, and display remaining stock both in human-readable compound form and exact base-unit amount where helpful. Excess smaller-unit quantities may normalize to larger units for display, but only after the user commits an input; never silently change the refund quantity. The original historical invoice profile is authoritative. Where legacy source invoices lack safe frozen unit relationships, show an explicit source-data warning, keep visible multi-unit fields when source unit labels are known, disable posting for unverifiable conversions and never guess the factor from today's product catalog. Single-unit products keep one input. **There is no switch/toggle for quantity mode or price unit**; return pricing is always entered per frozen smallest/base unit (e.g., `Return price / Pcs`), with no separate Box/Pcs pricing selector.
+
 **Edit price:** Reuse HisabIQ compact focus/wheel/keyboard numeric stepper. Default effective return price displays the historic net unit value with appropriate precision (compound units may need up to six decimal places); money is settled and stored to integer paisa. Show "Reset historical net price" **only when** the effective override differs, as tiny link-style text directly below the field, not another tall button. Clicking it reverts the effective value and recomputed total immediately; once reset, use the exact source historical allocation rather than a rounded display value. Keep native accessible button semantics, keyboard focus and Bangla helper where shown. When quantity changes, recompute the exact historical proportional allocation and adjustment without changing the selected negotiated unit price unless Reset is clicked.
 
 **Settle:** Preserve existing Adjust due, Customer credit and Cash refund options. Before final confirmation for Customer Credit, show matched existing customer identities and require the shopkeeper to select/confirm the correct one; otherwise explicitly choose Create Customer with editable prefilled name and phone. Identical phone alone is not an auto-link. Cash refund without account credit requires no customer creation. Mixed invoices and pre-existing customer IDs must reconcile to one selected identity; if conflicting, stop and request correction rather than crediting the wrong party.
@@ -53,7 +56,7 @@ Use **integer paisa** for every money boundary; use exact valid nonnegative nume
 
 For a manually edited unit price:
 
-- agreedReturnAmountPaisa = currency-rounded(negotiatedUnitPrice * validatedReturnBaseQuantity), in the same base/selling unit shown in the UI; unit conversion must use the frozen invoice unit snapshot, not current catalog pricing.
+- agreedReturnAmountPaisa = currency-rounded(negotiatedBaseUnitPrice * validatedReturnBaseQuantity). The price input always specifies the **frozen historical base unit** (e.g. Pcs) with a clear `/ Pcs` label, regardless of how many Box/Carton/Pcs quantity fields are shown. The sum of entered compound quantities is converted to base units using **frozen invoice conversion factors**, never today's product catalog prices or factors.
 - priceDifferencePaisa = agreedReturnAmountPaisa − historicalSourceAmountPaisa.
 - positiveDifferencePaisa = max(priceDifferencePaisa, 0); negativeDifferencePaisa = min(priceDifferencePaisa, 0).
 - When the price was not overridden or was reset, agreedReturnAmountPaisa = historicalSourceAmountPaisa **exactly**, avoiding fractions/rounding drift.
@@ -73,7 +76,7 @@ For **Adjust due** allocate only up to due on explicitly selected/eligible origi
 New source-linked return line attributes (final field names subject to the written implementation plan):
 
 - invoiceId + lineId as a **compound stable key** (a bare lineId may repeat between different invoices).
-- quantityBase and returned unit; original frozen unit/price snapshot reference and original invoice net allocation.
+- `quantityBase` and the complete returned `unitQuantities` map (e.g., `{Box:'1',Pcs:'5'}`), plus original frozen unit/price snapshot reference and original invoice net allocation. Keep the detailed compound quantity on return memo/print while preserving the exact base quantity for validation.
 - historicalSourceAmountPaisa, agreedReturnAmountPaisa, priceDifferencePaisa, effectiveAgreedUnitPrice.
 - priceWasOverridden, optional adjustmentReason (mandatory for any positive price difference), original serial/lot allocations.
 - The legacy lineReturns.amount remains the **source historical refunded allocation**, not the edited value, until a deliberate compatible type/data migration. This preserves existing planOrdinaryReturn prior-return arithmetic and old regression fixtures.
@@ -97,6 +100,7 @@ Legacy Sales Returns without lineReturns allocations must continue to **fail clo
 
 **Unit:**
 - Historic planner quantity/serial/source-price regressions still pass, including discounted and compound-unit partial returns.
+- A 12-Pcs Box sale can return `1 Box + 5 Pcs` as exactly 17 Pcs; a `Carton + Box + Pcs` chain shows all inputs simultaneously, converts via historical factors, handles partial repeat returns and rejects over-return. Two/three-level fields require **zero selectors/switch buttons**. Old invoices missing trustworthy conversion data fail closed.
 - Override at original, below original, above original, zero, fractional quantity, and multiple invoice lines reconciles to exact paisa.
 - Previous return has historical amount 100 and negotiated refund 120; a later eligible partial return uses 100 as historical consumed allocation, **not** 120.
 - Reset roundtrip removes override status and restores exact historical allocation even if six-decimal display rounding was used.
@@ -110,7 +114,7 @@ Legacy Sales Returns without lineReturns allocations must continue to **fail clo
 - Cash refunds do not create parties; compensation expense does not generate a second cash outflow.
 
 **Browser and responsive:**
-- Compact numeric stepper and conditional Reset historical net price link on phone/tablet/desktop; keyboard, wheel, focus, bilingual copy, and no tall controls or horizontal overflow.
+- Compact numeric stepper, **always-visible Box/Pcs or Carton/Box/Pcs fields**, no unit-mode or return-price-unit switch, and conditional Reset historical net price link on phone/tablet/desktop; keyboard, wheel, focus, bilingual copy, and no tall controls or horizontal overflow.
 - Invoice search, multiple checkbox selection, line selection, reason/confirmation, customer match confirmation and return memo details; English, English + Bangla, Bangla.
 - No accidental changes to POS, Customer/Supplier, existing completed Sales, or bundle preview limitations.
 
