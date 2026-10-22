@@ -1,0 +1,266 @@
+# HisabIQ Authentication V1 — Superpowers Design Specification
+
+**Status:** Proposed written design for owner review — **not yet approved as a written specification**  
+**Date:** 2026-10-22  
+**Review stage:** Superpowers architectural brainstorming → specification review gate  
+**Repository:** `shuvodelux-commits/hisabiq_ui`  
+**Scope:** Registration, login, Google linking, recovery, remembered-browser PIN, sessions, business access, and security UX  
+**Explicit exclusions:** Implementation code, migrations, deployment, implementation planning, and merging to main
+
+## 1. Purpose and non-negotiable constraints
+
+HisabIQ serves Bangladeshi small businesses with widely varying technical experience. Registration must be familiar, fast, bilingual, and mobile-first. A shopkeeper must be able to resume sales using a trusted-computer six-digit PIN without losing business records, even after logout or normal session expiry. The experience must not sacrifice user isolation, tenant authorization, recovery security, or accounting integrity.
+
+**Product north star:** One person has one HisabIQ identity; login methods are interchangeable entry points; business permissions are checked independently. **KISS:** Minimize mandatory fields and repetitive prompts; put rare security controls in Security settings.
+
+### Approved product decisions (locked for this design)
+
+1. **Every user must supply and verify a mobile number.** Google sign-in does not bypass phone collection. Mobile registration does not require Gmail.
+2. Support **mobile number + password** and **Continue with Google**. A Google-only user is not forced to create a HisabIQ password.
+3. **Linking Google to an existing user requires authenticated proof of ownership of that existing HisabIQ account**, not a phone match or SMS OTP alone.
+4. Password recovery defaults to an **OTP sent to verified Gmail/email** when available; **SMS OTP fallback** is offered securely. Mobile-only accounts default to SMS.
+5. When both phone and email are lost, offer **assisted recovery** with rigorous evidence review; approval is not automatic.
+6. On a supported, enrolled browser, optional **six-digit Quick PIN** login is valid for a **fixed 90-day** trusted-device authorization. It can establish a new session after browser restart, normal session expiry, or **intentional logout**. Five incorrect PIN submissions disable PIN for that enrollment pending full authentication.
+7. The same browser can remember **multiple independently enrolled users**, each with their own PIN and authorization. Show account selection only when needed.
+8. **Automatic UI screen lock** is **on by default after 30 minutes of inactivity**; users may turn it off. Preference is **per user, per browser**. Manual lock remains available.
+9. After authentication, open the user's **last-used authorized business**; expose a business switcher in the ERP header.
+10. For unsaved work on business switching, offer **Save Draft & Switch**, **Discard & Switch**, or **Stay Here**.
+11. **Fresh full authentication** is required for account-security, authenticator, trusted-device enrollment/renewal, and business-ownership changes. Ordinary ERP operations use their existing permissions and confirmation rules.
+12. **Research and specification only.** No feature work, migrations, release or implementation plan may begin before written-spec review and separate approval.
+
+## 2. Context, current repository boundary, and source authority
+
+The current `hisabiq_ui` repository README describes a **React/Vite UI preview**, not an operational production authentication or tenant-accounting backend. Therefore this design proposes backend-enforced rules; the existing preview cannot be treated as proof that any security control already exists. Reuse current HisabIQ/Magic Patterns shadcn-style controls, Ink/Teal/Mint tokens, Geist/Hind Siliguri, compact forms, and bilingual helpers. Do **not** redesign unrelated ERP modules.
+
+Existing repository references:
+- [README.md](../../../README.md)
+- [AGENTS.md](../../../AGENTS.md)
+- [ERP context-complete workflow design](2026-10-09-erp-kiss-contextual-workflows-design.md)
+
+In the eventual production service, authentication is separate from tenant accounting; the verified user principal and current authorized tenant must be established server-side for each request.
+
+## 3. User journeys and state transitions
+
+### 3.1 Register with mobile
+
+1. Show mobile-number entry and Continue with Google as two clear paths; accept common Bangladeshi `01...` and `+8801...` forms, normalize to canonical E.164; display/edit the original familiar local format.
+2. Send SMS OTP with resend controls, expiry, bounded attempts, throttling, and delivery-failure messaging. Normalize Bengali digits for input where meaningful.
+3. Only after phone verification, allow a new mobile user to create a strong password; do not require Gmail.
+4. Request minimum business setup: business name and business type. Optional address, logo, extended stock setup and details can wait.
+5. Create the person and tenant atomically/idempotently; only after successful creation open the dashboard. If enrollment is interrupted, resume the same pending registration rather than creating duplicates.
+6. Offer optional trusted-browser Quick PIN **after** full authentication; a user can skip it.
+
+### 3.2 Register with Google
+
+1. Start Google Identity Services sign-in with CSRF and redirect protections appropriate to the chosen flow.
+2. The backend verifies issuer, audience, expiry and signature; identifies the provider account using Google's stable `sub`, **never email alone**.
+3. If this Google identity is not linked, require the user's mobile number and successful SMS verification **before creating an active HisabIQ account or tenant**.
+4. If that mobile is already attached to an existing HisabIQ account, **pause creation**, explain that the account must be linked, and require existing HisabIQ password authentication or a completed secure account-recovery process. **An SMS OTP or shared email address alone must never silently merge users.**
+5. On successful verified linking, retain the pre-existing user, tenant memberships, invoices and balances. If the Google identity is already linked to another user, reject the link and route to reviewed support; do not reassign it.
+6. A newly created Google-only user may add HisabIQ password login later through fresh authentication.
+
+A Google identity with a non-Gmail address is still an eligible Google login; recovery email eligibility depends on independently established control/verification, not merely the existence of an email string in a token.
+
+### 3.3 Returning user, normal login
+
+- **Mobile/password:** normalize mobile, verify password securely, apply account status/rate limits, establish new session, then resolve business context.
+- **Google:** verify fresh Google authentication result, map `sub` to an existing account, apply account status, establish new session, then resolve business context.
+- **Trusted PIN:** if a valid user-specific browser enrollment exists, display PIN directly for one enrolled account; if multiple, show a compact user selector; authenticate using the **PIN plus verifiable registered-device proof** and establish a **new session**.
+- No automatic signup or cross-account linking just because the submitted email/mobile resembles an existing record. Generic error wording must avoid identity enumeration.
+
+### 3.4 Forgot HisabIQ password and no-password accounts
+
+- Entry requests registered mobile; the initial public response remains generic and does not reveal account existence or which contacts are linked.
+- If the account has an eligible verified Gmail/email recovery destination, send a **HisabIQ-generated email OTP** by default. This is **not** Google's OAuth sign-in and does not imply Google sends the OTP.
+- A secure **Use mobile instead** path permits SMS OTP fallback with additional risk checks (especially recent contact changes, SIM-swap signals when available, unusual attempts, or compromised-account indicators). Mobile-only users receive SMS by default.
+- Both channels require unpredictable single-use codes, short validity, server-side throttle, protected storage, and invalidation on success. Re-requesting codes cannot reset attempt counters.
+- After valid proof, permit a **new HisabIQ password**, notify verified contacts as appropriate, terminate pre-existing sessions, and revoke trusted PIN enrollments. Require a fresh complete login afterward.
+- For Google-only users who never set a HisabIQ password, emphasize **Continue with Google**; a separate verified workflow may create a HisabIQ password. Do not show a misleading “reset your existing password” message.
+- No PIN alone may change a password, phone, email or Google link.
+
+### 3.5 Assisted recovery without phone or email
+
+1. Offer a publicly discoverable **Recover my account** request with neutral messaging and a recovery case ID.
+2. Support gathers previously established, independently verifiable evidence; business name, invoices, public contact details, or caller-supplied screenshots alone are **insufficient**. Staff identity cannot automatically claim business ownership.
+3. Use documented risk scoring, trained manual review, a separate approval for high-risk ownership changes, contact notifications when safe, and a waiting/dispute period proportionate to risk.
+4. If evidence is inadequate, **deny or pause** recovery; preserving security takes priority over guaranteeing recovery.
+5. Only after approval: bind new verified mobile/recovery email, revoke former sessions, trusted devices and affected authenticators, record all decisions, notify contacts, and require full login. The user's business memberships remain unchanged unless ownership transfer was independently authorized.
+6. Recovery support cannot browse a tenant's private ledger solely by virtue of a support ticket; support tooling must use audited least-privilege access.
+
+### 3.6 First-time PIN enrollment and trust renewal
+
+- Available only after a **fresh full login**, on a browser that can meet the device-authentication security contract. Show `Enable Quick PIN on this computer` or `Not now`; PIN setup is always optional.
+- User creates and confirms exactly **six decimal digits**; no preset/reused default, and block trivially weak PINs with clear feedback. Treat the PIN as sensitive; do not log or persist it in plaintext.
+- Establish **one device enrollment per user + browser profile**, bound to server-side user identity and a cryptographically proven authenticator/device capability. A shared computer may hold multiple separate enrollments.
+- Validity is **90 × 24 hours from successful enrollment or explicitly reauthenticated renewal**, not sliding with daily PIN use.
+- Full logout invalidates the active session, **not** the enrollment. Normal idle/absolute session expiration and browser/computer restarts also leave a valid enrollment eligible for PIN login.
+- PIN login requires both server-enforced PIN attempt verification and a fresh challenge showing possession of the registered browser/device credential; rotate the resulting session identifier on success.
+- After **five consecutive bad PIN attempts on an enrollment**, disable PIN on that enrollment until the user fully authenticates; do not let browser clearing or different tabs bypass server attempt counting.
+- **Revocation, expiry, account suspension, successful password reset, approved assisted recovery, detected credential compromise, or security-triggered forced logout** overrides the 90-day enrollment.
+- Expose account name and minimal masked phone/email only as needed on the account picker, not financial information.
+
+**Security feasibility constraint:** A six-digit string or an ordinary persistent cookie **alone is not safe proof of a trusted computer**. Device proof must be origin-bound and cryptographically verified, not an easily copied browser value. WebAuthn/platform credentials are candidates; **synced passkeys are not automatically proof of the same physical computer**, and a user-specified HisabIQ PIN may not map directly to the OS/platform PIN. The eventual technology selection must demonstrate that a standalone six-digit HisabIQ PIN plus device proof meets this contract on each supported browser. If not, **do not silently downgrade to PIN-only access**: offer full Google/password login and a clear compatibility explanation instead. This is a documented security acceptance gate, not a promise of universal browser support.
+
+### 3.7 Automatic lock and session policy
+
+- **Automatic UI lock:** ON by default, after **30 minutes of local inactivity**. Track meaningful keyboard/touch/mouse ERP interaction, not automatic background polling. An eligible trusted user can unlock by PIN. If PIN is not enrolled/available, use full login.
+- Preference is per **user + browser enrollment/profile**, not per business. One employee cannot disable another employee's lock preference on the shared browser.
+- User can **turn automatic lock OFF** from Security settings; this affects only the optional UI overlay, **not backend session idle/absolute expiry**. Disabling it is security-sensitive and requires fresh full authentication; enabling it does not.
+- **Manual Lock** remains available even with automatic lock disabled.
+- Server sessions use secure cookie-based authentication (Secure, HttpOnly, appropriate SameSite, CSRF defenses) and independently enforced finite **idle and absolute** lifetimes. Proposed review defaults: **2-hour server idle** and **12-hour absolute** maximum. These are distinct from the 30-minute optional UI lock and 90-day remembered-device authorization.
+- On expiration or logout, the session is invalidated **on the server**. A valid trusted enrollment can create a new session using PIN plus device proof; it must never resurrect an expired session token.
+- A screen lock must not silently post, save, or discard accounting records; sensitive content is obscured, and access to any unsaved draft after returning requires the authorized user. When re-login crosses a session boundary, never display a previous user's private cached ERP data.
+
+### 3.8 Multiple users on one computer
+
+- Every remembered user has an independent enrollment/PIN, expiration, failed-attempt count and auto-lock preference.
+- One remembered user → immediately show PIN; two or more → show a compact account selector and **Use another account**.
+- Switching to another user invalidates the previous user's active context, prevents old responses/caches from surfacing, and requires the selected user's PIN/device proof or full login.
+- A browser profile and its local enrollment are distinct from an entire physical computer. Users who share an OS/browser profile are advised about the inherent risk, even though backend authorization remains isolated.
+
+## 4. Multi-tenant business access and unsaved work
+
+1. An authenticated user may have multiple memberships but does not become the owner of every business by logging in. Each membership has independently evaluated permissions and status.
+2. Resolve the **last-used authorized business per user**. If none is stored, choose the single authorized business automatically; if more than one with no usable history, show the compact business selector.
+3. If the last-used business has been removed or the membership revoked, do not open it; fall back to another authorized business or an informative no-access state.
+4. The ERP header offers a business switcher where appropriate. Selecting a new business is a server-verified change of tenant context. Clients may submit a tenant selection **as a selector, never proof of authority**.
+5. Before switching with unfinished work, show **Save Draft & Switch**, **Discard & Switch**, **Stay Here**. Save draft under the **old tenant** and switch only after confirmed persistence. On save failure stay in the old tenant with the draft intact. Discard affects only unsaved changes; never delete a previously saved draft by accident.
+6. For forms without a draft capability, disable the misleading Save Draft option and offer a clear **Discard & Switch / Stay Here** resolution.
+7. On successful switch, invalidate/partition tenant-scoped React Query caches, background requests, subscriptions, forms and session UI; isolate drafts by both user and tenant. Never let an older in-flight response replace the new tenant's data.
+8. The backend enforces membership, role and current tenant scope on **every tenant-owned record** and financial posting. PostgreSQL RLS or equivalent database defense in depth is encouraged with request/transaction-scoped tenant context to prevent pooled-connection leakage.
+9. Ordinary POS/purchase/payment operations follow domain confirmations and permissions; security reauthentication is **not** added to every everyday ERP transaction.
+
+## 5. Logical architecture and data ownership
+
+This is a **conceptual contract, not a database migration or implementation plan**.
+
+| Logical record/service | Owned information and invariant |
+| --- | --- |
+| `UserIdentity` | Stable internal `user_id`, canonical verified mobile (unique active binding), status and profile; never use mobile/email as immutable primary key |
+| `PasswordCredential` | Optional verifier with modern salted adaptive hashing and compromise controls; no plaintext passwords |
+| `FederatedIdentity` | Provider = Google, verified provider `sub` unique, link event and status; verified email as attribute, not principal identifier |
+| `RecoveryChannel` | Email/mobile verification, eligibility, recent-change age, status; no unverified destination used for recovery |
+| `OTPChallenge` | Purpose, destination reference, protected verifier, expires-at, consumed-at, attempts, resend throttle; never log code |
+| `TrustedBrowserEnrollment` | User, browser/device proof reference, fixed enrolled/expires-at, revocation and bad-PIN counter; independent from sessions |
+| `PINCredential` | Protected PIN verifier/activation mechanism linked to one enrollment; no plaintext/local PIN database |
+| `AuthSession` | User, method, created/last-used/expiry, revocation, recent full-reauth evidence; independent of trusted enrollment |
+| `UserDevicePreference` | Per-user/browser auto-lock ON/OFF and UI preference metadata |
+| `BusinessMembership` | User, tenant, role/status/permissions; authorization source of truth |
+| `LastBusinessPreference` | User's last-used tenant, validated against current membership at sign-in |
+| `RecoveryCase` | Review evidence references, security reviewer(s), decisions, timestamps, outcome, audit |
+| `SecurityAuditEvent` | Redacted login, lockout, session, enrollment, recovery, linking and ownership-change history |
+
+**Boundary:** Global user credentials/Google identities cannot be duplicated per business. Business data (sales, inventory, parties and accounting) remains tenant-scoped. Account recovery changes the principal's login factors, not its permitted tenants.
+
+**Production integration:** Require a server-side identity/session/security layer around the existing frontend. Google verification, password/PIN verification, trusted-device checks, OTP issuance, session revocation and tenant access are server obligations. Neither the preview local store nor browser routes can certify them.
+
+## 6. UI surfaces and interaction contract
+
+Use compact responsive shadcn-style components already in HisabIQ; preserve brand and shared input styling. English primary labels with concise Bengali help; bilingual/full-English/full-Bangla compatibility; do not use monospaced digits.
+
+| Surface | Minimum content |
+| --- | --- |
+| Login | Phone + password, Continue with Google, Forgot password, Create account; if trusted accounts exist, show PIN path prominently |
+| Registration | Phone OTP + password path or Google → phone OTP path, then shop name/business type |
+| OTP | One code field supporting paste/autofill, resend wait, destination correction, accessible errors |
+| PIN entry | Six cells/one semantic input, keyboard and touch keypad support, clear “Use password/Google instead”, lockout feedback |
+| Account selector | Remembered user label(s), masked identifier and Use another account; no tenant balances |
+| Security settings | Linked Google, verified contacts, change password, Quick PIN enrollment, auto-lock ON/OFF, Trusted Devices, remove devices |
+| Business header | Current business, list of memberships, quick switch; normally hidden selector for one-business users |
+| Unsaved-work confirmation | Save Draft & Switch, Discard & Switch, Stay Here; handle unavailable draft save honestly |
+| Recovery | Generic request feedback, protected email/SMS choice after appropriate proof, help for both methods lost |
+
+**Interaction requirements:** Accessible names, visible focus, screen-reader-friendly OTP error states, low-bandwidth messaging, mobile keyboards, Bangla digits accepted where sensible, masked recovery destination, no overwhelming wizard, no deceptive “success” before backend confirmation. No gratuitous UI transitions during security-critical entry.
+
+## 7. Security policy and threat controls
+
+| Threat/edge case | Required protection |
+| --- | --- |
+| User enumeration through login/recovery | Generic pre-proof responses; avoid revealing whether a phone/email belongs to an account |
+| Account duplication / incorrect linking | Unique active provider `sub` and verified mobile binding; explicit ownership challenge |
+| Credential theft and brute force | Adaptive password hashing, generic auth errors, server rate limits and risk analysis |
+| OTP guessing/spamming | Cryptographically secure OTP, single-use, expiry, rate limits by account/destination/IP/device; notification throttling |
+| SIM swap / phone reassignment | SMS is a riskier recovery channel; extra checks and possibly holding period on suspicious fallback |
+| Six-digit PIN guessing | Enrollment-specific 5-attempt cutoff, server-side counters, device proof; never accept bare PIN or offline verifier alone |
+| Stolen browser cookies | HttpOnly/Secure session cookie; rotate identifiers, server revocation; device enrollment **not** a session cookie |
+| Cross-site request forgery / account-link injection | State/nonce/CSRF defenses for Google linking and other authenticated mutations |
+| Cross-site scripting / browser compromise | Strict CSP and output encoding; minimize browser-held secrets; device proof cannot be supplied by arbitrary server data |
+| Cross-tenant access | Backend membership checks and tenant scoping for every resource; fail closed when tenant context absent |
+| Shared-device user confusion | Separate enrollment/lock preference/session per user; wipe cached financial state on account switch |
+| Recovery fraud | Trained review, independent evidence, approvals for elevated risks, audit events, dispute channel |
+| Malicious support action | Least privilege, separation of duties for high-risk recovery, audit and notifications |
+| Loss of only trusted computer | Full Google/password login remains; owner can revoke that computer remotely |
+| Password reset / confirmed compromise | Revoke sessions and affected enrollments and require full sign-in |
+| Network failure mid-login / switch | No premature successful-login state; no partial tenant switch or duplicate registration |
+
+### Fresh authentication rule
+
+Security-sensitive actions **must not** rely solely on a PIN-created session. Require recent primary proof (HisabIQ password or fresh Google authentication, with risk-appropriate additional verification) for:
+- Adding/removing Google login; changing email/mobile or password
+- Creating/renewing/removing sensitive trusted-device authorizations and changing PIN
+- Turning automatic UI lock OFF (turning it ON is unrestricted)
+- Ownership transfer, recovery-method replacement and other critical account-security modifications
+
+Routine sale, purchase, receipt, return and ledger corrections retain their own separate approval, audit and authorization controls; authentication does not replace accounting-domain permissions.
+
+## 8. Error handling and irreversible events
+
+- **SMS delayed/undelivered:** clear retry/backoff, safe cancellation, don't create active tenant until verification.
+- **Google canceled or callback invalid:** return to login without changing account links.
+- **Existing phone discovered during Google onboarding:** require existing-account ownership proof; never create a duplicate based on another phone attempt.
+- **Google email changes:** stable `sub` retains link, recovery email eligibility separately re-evaluated.
+- **Wrong PIN:** increment server attempts, display remaining attempts without leaking sensitive enrollment details; five failures demand primary authentication.
+- **Browser credential unavailable/unsupported:** disable PIN quick login for that enrollment, explain full-login route; do not fall back to PIN-only.
+- **Trust expires during PIN prompt:** reject, discard challenge and require full login.
+- **Business permission revoked mid-session:** subsequent access fails closed; invalidate selected tenant context and cancel in-flight old-tenant queries.
+- **Save draft on business switch fails:** stay in original business and preserve data; do not show success.
+- **Account compromise reported:** account suspension and security revocation supersede any remembered PIN convenience.
+- **Recovery denied:** provide status/appeal pathway without exposing sensitive account identifiers.
+
+## 9. Acceptance criteria and review scenarios
+
+The architecture is acceptable only if all of the following can eventually be demonstrated by implementation tests; **none are claimed to be implemented now**:
+
+1. Mobile registration succeeds without Gmail, with verified unique phone and minimal business setup.
+2. First-time Google sign-in cannot enter a business before verified phone capture.
+3. Account linking never silently creates duplicate tenants or merges users by phone/email match.
+4. A verified Gmail/email receives default recovery OTP; SMS fallback is available with risk checks; unauthenticated responses are non-enumerating.
+5. Google-only account is not forced to maintain a password and has a safe password-creation route.
+6. Assisted recovery requires independent ownership checks; denied cases do not expose data.
+7. Quick PIN is optional and **six digits**, with a 90-day fixed enrollment that survives logout, session expiry, restart; five failures trigger full auth.
+8. Two users on the same browser can use separate PINs and receive distinct tenant-authorized data; a single remembered user avoids account selection.
+9. Auto-lock defaults to 30 min, can be turned off **per user/browser**, and has no authority to alter backend server session expiry.
+10. Fresh authentication is required for critical security/ownership changes, but ordinary POS operations are not burdened by arbitrary extra OTP.
+11. Session revocation, password reset, trusted device removal and 90-day expiry are enforced server-side.
+12. Last-used accessible business opens by default; switching respects membership and no cross-tenant cached state leaks.
+13. Save Draft & Switch persists under the old tenant before changing; failures do not lose work; Discard does not delete an already-saved draft.
+14. Mobile/tablet/desktop and English/Bangla modes preserve accessibility, existing HisabIQ visuals, and correct error states.
+15. Device-proof feasibility and threat modeling **must** pass on every browser where six-digit-only Quick PIN is offered; unsupported cases use full authentication.
+
+## 10. Design boundaries and explicit review considerations
+
+This V1 specification intentionally does **not** add passkey-first signup, social providers other than Google, SMS on every login, passwordless mobile OTP for daily login, advanced enterprise SSO, biometric-only HisabIQ login, broad staff-role redesign, or multi-step financial-auth approvals.
+
+The following are **proposed engineering policy defaults for review**, not prior user-selected numbers: **2-hour server idle / 12-hour server absolute session bounds**, disabling auto-lock requires full reauthentication, and browser support for a custom six-digit PIN is **conditional on sound device proof**. They can be revised in this written-spec review without reopening the approved product workflows.
+
+**Non-negotiable security invariant:** If a browser cannot demonstrate secure device-specific proof, HisabIQ must not authorize a session with a six-digit PIN alone; use full Google/password authentication. “PIN available for 90 days” is **authorization eligibility**, never a promise to bypass revoked identity or session security.
+
+## 11. Primary sources and research basis
+
+1. [Google Identity Services — Verify Google ID token on the server](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token): verify token claims; use stable provider `sub`; link existing accounts through proof.
+2. [OWASP — Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html): sensitive-action reauthentication and login defense.
+3. [OWASP — Forgot Password Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html): single-use recovery credentials, anti-enumeration, rate limits.
+4. [OWASP — Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html): server-side revocation and distinct idle/absolute timeouts.
+5. [OWASP — Multifactor Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html): secure factor changes and risk-based controls.
+6. [OWASP — Multi Tenant Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html): server-verified tenant context, authorization and cache isolation.
+7. [OWASP — Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): adaptive salted password-verifier storage.
+8. [NIST SP 800-63B (current revision)](https://pages.nist.gov/800-63-4/sp800-63b.html): authenticators, short secret rate limits, risks of SMS-based verification.
+9. [W3C Web Authentication Level 3](https://www.w3.org/TR/webauthn-3/): origin-bound public-key credentials and authenticator user verification.
+
+## 12. Review gate — stop here
+
+**Deliverable:** This design spec on a documentation-only review branch.
+
+**Not authorized:** Writing an implementation plan, creating implementation code, changing production database/auth, deploying, opening an implementation PR, or merging.
+
+**Next step only after user reviews this exact written document:** Make requested corrections or receive explicit written-spec approval. Only then may the Superpowers `writing-plans` phase begin as a separate user decision.
