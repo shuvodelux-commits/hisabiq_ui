@@ -47,6 +47,9 @@ import {quoteReturnPrice} from '../utils/salesReturnPricing';
 import {returnBaseQuantity,returnLineKey} from '../utils/salesReturnDraft';
 import {ReturnPriceField} from '../components/sales/returns/ReturnPriceField';
 import {ReturnQuantityField} from '../components/sales/returns/ReturnQuantityField';
+import {ReturnInvoicePicker} from '../components/sales/returns/ReturnInvoicePicker';
+import {normalizeBdMobile,findReturnCustomerCandidates,validateReturnCustomerChoice,type ReturnCustomerChoice} from '../utils/salesReturnIdentity';
+import {quickAddPartyPreview} from '../data/partyPreviewStore';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
@@ -726,6 +729,10 @@ export function Sales() {
   const [customerPaymentOpen, setCustomerPaymentOpen] = useState(false);
   const [creditAction, setCreditAction] = useState<{ credit: CustomerCredit; mode: 'apply' | 'refund' } | null>(null);
   const [returnCustomer, setReturnCustomer] = useState('Rahman Hardware');
+  const [returnSearch,setReturnSearch]=useState('');
+  const [returnCreditChoice,setReturnCreditChoice]=useState('');
+  const [returnNewCustomerName,setReturnNewCustomerName]=useState('');
+  const [returnNewCustomerPhone,setReturnNewCustomerPhone]=useState('');
   const [returnInvoiceIds, setReturnInvoiceIds] = useState<string[]>([]);
   const [returnQty, setReturnQty] = useState<Record<string, string>>({});
   const [returnUnitQty, setReturnUnitQty] = useState<Record<string,Record<string,string>>>({});
@@ -789,9 +796,25 @@ export function Sales() {
     { label: text('Sales returns','বিক্রি ফেরত'), value: taka(returnTotal), sub: text(`${returns.length} return memos · credit ${taka(creditTotal)}`,`${returns.length}টি ফেরত · জমা ${taka(creditTotal)}`), tone: 'text-warning' }
   ];
 
-  const customerInvoices = invoices.filter((invoice) => invoice.party === returnCustomer);
-  const selectedReturnDue = customerInvoices.filter((invoice) => returnInvoiceIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoice.due, 0);
   const selectedReturnInvoices = invoices.filter((invoice) => returnInvoiceIds.includes(invoice.id));
+  const returnSource=selectedReturnInvoices[0];
+  const customerInvoices = invoices.filter(invoice=>{
+    if(returnSource){
+      if(returnSource.partyId)return invoice.partyId===returnSource.partyId;
+      const phone=normalizeBdMobile(returnSource.phone??'');
+      return invoice.id===returnSource.id||
+        (!invoice.partyId&&Boolean(phone)&&normalizeBdMobile(invoice.phone??'')===phone);
+    }
+    return returnSearch.trim()!==''||invoice.party===returnCustomer;
+  }).filter(invoice=>{
+    const q=returnSearch.trim().toLowerCase();
+    return !q||[invoice.invoice,invoice.party,invoice.phone??'',...invoice.lines.map(l=>l.name)]
+      .some(value=>value.toLowerCase().includes(q));
+  });
+  const selectedReturnDue = selectedReturnInvoices.reduce((sum, invoice) => sum + invoice.due, 0);
+  const returnPhone=selectedReturnInvoices.find(invoice=>normalizeBdMobile(invoice.phone??''))?.phone??'';
+  const returnCustomerCandidates=findReturnCustomerCandidates(returnPhone,availableParties());
+
   const selectedReturnLines = selectedReturnInvoices.flatMap((invoice) => invoice.lines.map((line) => ({ invoice, line })));
   const returnItemKey=(invoice:SalesInvoice,line:SalesInvoice['lines'][number])=>returnLineKey(invoice.id,line.id);
   const ordinaryReturnPlans=selectedReturnLines.filter(({line})=>!isBundleReturnLine(line)).map(({invoice,line})=>{
@@ -821,6 +844,7 @@ export function Sales() {
     return Math.round((sum+(quotedOrdinaryPlans.find(plan=>plan.invoiceId===invoice.id&&plan.lineId===line.id)?.quote.agreedReturnAmountPaisa??0)/100)*100)/100;
   },0);
   const returnCompensationPaisa=quotedOrdinaryPlans.reduce((sum,plan)=>sum+(plan.quantity>0?plan.quote.compensationExpensePaisa:0),0);
+  const returnCreditNeeded=returnSettlement==='Customer credit'||(returnSettlement==='Adjust due'&&returnAmount>selectedReturnDue);
   const returnIssues=quotedOrdinaryPlans.flatMap(plan=>{
     const key=returnLineKey(plan.invoiceId,plan.lineId);
     if(!plan.quantity&&!returnQty[key]&&!Object.values(returnUnitQty[key]??{}).some(Boolean))return [];
@@ -830,6 +854,10 @@ export function Sales() {
 
   const openReturn = (invoice: SalesInvoice) => {
     setReturnCustomer(invoice.party);
+    setReturnSearch('');
+    setReturnCreditChoice('');
+    setReturnNewCustomerName(invoice.party==='Walk-in customer'?'':invoice.party);
+    setReturnNewCustomerPhone(invoice.phone??'');
     setReturnInvoiceIds([invoice.id]);
     setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
     setReturnReason({});setReturnSerials({});setBundleReturnChoices({});
@@ -1361,34 +1389,19 @@ export function Sales() {
                 />
               </div>
 
-              <div className="rounded-xl border border-border bg-card">
-                <div className="border-b border-border p-3">
-                  <p className="text-[13px] font-medium text-ink">{sl('Select invoices')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ইনভয়েস বাছুন</span>}</p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">{sl("Choose one or more invoices for a batch return.")}</p>
-                </div>
-                <div className="divide-y divide-border">
-                  {customerInvoices.map((invoice) => (
-                    <label key={invoice.id} className="flex cursor-pointer items-center gap-3 p-3 hover:bg-ink-50">
-                      <input
-                        type="checkbox"
-                        checked={returnInvoiceIds.includes(invoice.id)}
-                        onChange={(event) => {
-                          setReturnInvoiceIds((ids) => event.target.checked ? [...ids, invoice.id] : ids.filter((id) => id !== invoice.id));
-                          setReturnQty({});
-                          setReturnReason({});
-                          setReturnSerials({});
-                        }}
-                        className="size-4 rounded border-ink-300 text-teal-600 focus:ring-teal-500"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[13px] font-medium text-ink">{invoice.invoice}</span>
-                        <span className="block text-[11px] text-ink-400">{invoice.date} · {invoice.items} lines · {taka(invoice.total)}</span>
-                      </span>
-                      <PaymentStatus invoice={invoice} />
-                    </label>
-                  ))}
-                </div>
-              </div>
+              <ReturnInvoicePicker invoices={customerInvoices} selectedIds={returnInvoiceIds}
+                search={returnSearch} onSearchChange={setReturnSearch}
+                onToggle={(invoice,checked)=>{
+                  if(checked&&!returnInvoiceIds.length){
+                    setReturnCustomer(invoice.party);
+                    setReturnNewCustomerName(invoice.party==='Walk-in customer'?'':invoice.party);
+                    setReturnNewCustomerPhone(invoice.phone??'');
+                  }
+                  setReturnInvoiceIds(ids=>checked?[...ids,invoice.id]:ids.filter(id=>id!==invoice.id));
+                  setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
+                  setReturnReason({});setReturnSerials({});
+                  setReturnCreditChoice('');
+                }}/>
             </div></SalesMobileDisclosure>
 
             <div className="sales-mobile-return-lines min-w-0 rounded-xl border border-border bg-card">
