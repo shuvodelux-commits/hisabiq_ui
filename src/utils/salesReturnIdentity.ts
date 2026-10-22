@@ -7,7 +7,7 @@ export type ReturnCustomerChoice=
 
 /** Compare valid Bangladeshi mobile numbers only; never normalize a name into an identity. */
 export function normalizeBdMobile(raw:string):string|null {
- const compact=raw.trim().replace(/[\s.()\-]/g,'');
+ const compact=raw.trim().replace(/[-\s.()]/g,'');
  const local=compact.startsWith('+880')?'0'+compact.slice(4):
   compact.startsWith('880')?'0'+compact.slice(3):compact;
  if(!/^01[3-9]\d{8}$/.test(local)||/^01[3-9]0{8}$/.test(local))return null;
