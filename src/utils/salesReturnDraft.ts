@@ -1,5 +1,5 @@
 import type {SaleLine,SalesInvoice,SalesReturn} from '../types/erp.ts';
-import {unitQuantitiesBase} from './multiUnitTransactions.ts';
+import {unitQuantitiesBase,type FrozenUnitProfile} from './multiUnitTransactions.ts';
 import {planOrdinaryReturn} from './salesReturn.ts';
 import {quoteReturnPrice,type ReturnPriceQuote} from './salesReturnPricing.ts';
 
@@ -21,12 +21,31 @@ export type ReturnDraftQuote={
 export const returnLineKey=(invoiceId:string,lineId:string)=>JSON.stringify([invoiceId,lineId]);
 const simpleDecimal=/^(?:\d+(?:\.\d{1,6})?|\.\d{1,6})$/;
 
+/** One historical sale may uniquely prove a 2-unit ratio, without consulting mutable Products. */
+export function sourceUnitProfile(line:SaleLine):FrozenUnitProfile|null {
+ if(line.unitSnapshot&&Object.keys(line.unitSnapshot.factors).length>0)return line.unitSnapshot;
+ const matches=[...line.quantity.matchAll(/(\d+(?:\.\d+)?)\s+([A-Za-z]+)/g)];
+ if(matches.length<1||matches.length>2||!Number.isFinite(line.soldBaseQuantity))return null;
+ const [primary,secondary]=matches;
+ const bigUnit=primary[2],baseUnit=line.unit;
+ if(bigUnit===baseUnit||Number(primary[1])<=0||!bigUnit)return null;
+ if(secondary&&secondary[2]!==baseUnit)return null;
+ const base=Number(line.soldBaseQuantity),big=Number(primary[1]);
+ const small=secondary?Number(secondary[1]):0;
+ const factor=(base-small)/big;
+ if(!Number.isSafeInteger(factor)||factor<=1||factor>1e9||
+    !Number.isFinite(big)||big<=0||!Number.isFinite(small)||small<0||
+    Math.abs(base-(big*factor+small))>0.0000001)return null;
+ return {baseUnit,factors:{[bigUnit]:factor,[baseUnit]:1},
+   sellingPrices:{},purchasePrices:{}};
+}
+
 /** Do not recover missing historic ratios from the mutable current Product catalog. */
 export function returnBaseQuantity(line:SaleLine,input:ReturnLineInput):{quantity:number;issues:string[]}{
  const issues:string[]=[];
  if(input.unitQuantities){
   if(!Object.values(input.unitQuantities).some(value=>value.trim()&&Number(value)>0))return {quantity:0,issues:[]};
-  const profile=line.unitSnapshot;
+  const profile=sourceUnitProfile(line);
   if(!profile||!profile.factors?.[profile.baseUnit]||profile.baseUnit!==line.unit){
    issues.push('Historical unit conversion is unavailable for this invoice.');
    return {quantity:0,issues};
