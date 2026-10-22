@@ -154,8 +154,8 @@ export function PartyDetail({
             <h2 className="text-lg font-semibold tracking-tight text-ink">{party.name}</h2>
             {party.nameBn && <span className="font-bn text-sm text-ink-500">{party.nameBn}</span>}
           </div>
-          {party.roles.length>1 && <div className="mt-1 min-w-32">
-            <FormSelect title={text("Relationship","সম্পর্কের ধরন")} value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)}/>
+          {party.roles.length>1 && <div className="mt-1 flex flex-wrap items-center gap-2">
+            <div className="min-w-32"><FormSelect title={text("Relationship","সম্পর্কের ধরন")} value={relationship} options={party.roles} onChange={event=>onRoleChange(event.target.value as PartyRole)}/></div>
           </div>}
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500">
             <span className="flex gap-1">{party.roles.map((r) => <RoleBadge key={r} role={r} />)}</span>
