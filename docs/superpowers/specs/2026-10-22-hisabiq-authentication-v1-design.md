@@ -154,23 +154,42 @@ This is a **conceptual contract, not a database migration or implementation plan
 
 **Production integration:** Require a server-side identity/session/security layer around the existing frontend. Google verification, password/PIN verification, trusted-device checks, OTP issuance, session revocation and tenant access are server obligations. Neither the preview local store nor browser routes can certify them.
 
-## 6. UI surfaces and interaction contract
+## 6. KISS UX contract — Impeccable Distill review (2026-10-22)
 
-Use compact responsive shadcn-style components already in HisabIQ; preserve brand and shared input styling. English primary labels with concise Bengali help; bilingual/full-English/full-Bangla compatibility; do not use monospaced digits.
+**Mode:** Operate — shopkeepers need to finish a task, not understand authentication architecture. These rules are based on the existing GitHub UI shell and settings controls and the user-provided Magic Patterns export (Geist + Hind Siliguri, Ink/Teal, shadcn-style fields). No new competing component library, authentication dashboard, animated tour, or speculative settings is authorized.
 
-| Surface | Minimum content |
-| --- | --- |
-| Login | Phone + password, Continue with Google, Forgot password, Create account; if trusted accounts exist, show PIN path prominently |
-| Registration | Phone OTP + password path or Google → phone OTP path, then shop name/business type |
-| OTP | One code field supporting paste/autofill, resend wait, destination correction, accessible errors |
-| PIN entry | Six cells/one semantic input, keyboard and touch keypad support, clear “Use password/Google instead”, lockout feedback |
-| Account selector | Remembered user label(s), masked identifier and Use another account; no tenant balances |
-| Security settings | Linked Google, verified contacts, change password, Quick PIN enrollment, auto-lock ON/OFF, Trusted Devices, remove devices |
-| Business header | Current business, list of memberships, quick switch; normally hidden selector for one-business users |
-| Unsaved-work confirmation | Save Draft & Switch, Discard & Switch, Stay Here; handle unavailable draft save honestly |
-| Recovery | Generic request feedback, protected email/SMS choice after appropriate proof, help for both methods lost |
+### 6.1 One purpose per screen, minimum prompts
 
-**Interaction requirements:** Accessible names, visible focus, screen-reader-friendly OTP error states, low-bandwidth messaging, mobile keyboards, Bangla digits accepted where sensible, masked recovery destination, no overwhelming wizard, no deceptive “success” before backend confirmation. No gratuitous UI transitions during security-critical entry.
+| User-facing surface | Smallest successful experience | Hide until needed |
+| --- | --- | --- |
+| Sign in | Mobile number + password and one **Continue with Google** alternative; Create account / Forgot password as small links | Enrollment notices and advanced security controls |
+| Quick PIN | One six-digit PIN entry when exactly one trusted account exists; visible **Use another login method** | Account selection unless 2+ remembered users |
+| Remembered account chooser | Compact list of remembered users → that user's PIN; **Use another account** | Business/financial data; expired enrollments handled through full login |
+| Create account | Mobile → SMS OTP → password → business name/type. Google → mobile verification → business setup; never require email on mobile path | Address/logo, optional password for Google-only, PIN setup |
+| OTP step | One reusable OTP component for SMS/email, clear resend/correct-number and failure behavior | Multiple channel choices before permitted disclosure |
+| Business setup | Business name + type → Start using HisabIQ | Logo, advanced stock, banking, permissions |
+| Forgot password | Enter registered mobile; recovery OTP through Gmail-first or secure SMS fallback | Channel details before adequate verification; support case only for lost-both-methods |
+| Security settings | A compact **Account Security** area inside existing `/app/settings/:section`: contacts, Google, password, **Quick PIN**, **Automatic lock** toggle and **Manage trusted devices** | Advanced device/audit detail behind one Manage link |
+| Business switch | Header switcher only for users with multiple authorized businesses | Separate post-login business selector when last-used membership remains valid |
+| Unfinished-work switch | Reuse existing shared confirmation dialog: Save Draft & Switch / Discard & Switch / Stay Here; honest disabled Save when unsupported | New dedicated switching wizard |
+
+**One primary action per surface.** No standalone full-page screen for account linking, trusted devices, PIN preferences, or recovery-status dashboard when a small existing settings section or focused dialog is sufficient. No mandatory intro tour, duplicate Google and email-sign-in controls, or repeated OTP on every return login.
+
+### 6.2 Reuse first; don't redesign HisabIQ
+
+- Use the existing `AppShell`, `TopBar`, tenant settings hub, shared `Button`, `Input`, `Switch`, `Dialog`/`AlertDialog` and theme tokens; auth screens are outside the protected ERP shell but share styling and controls.
+- Match the approved Magic Patterns Ink/Teal/Mint palette, Geist and Hind Siliguri, current field sizing and compact spacing. Avoid excessive nested cards and new icon/color families. Use existing responsive and dark-mode conventions; no monospace digits.
+- Desktop/tablet: a restrained, narrow sign-in form, not a multi-panel sales-style page. Mobile: a single vertical column with appropriate touch targets and visible errors above the keyboard.
+- Labels are familiar: **Mobile number**, **Password**, **Continue with Google**, **Forgot password?**, **Quick PIN**, **Lock automatically**, **Trusted devices**, **Switch business**. Short Bengali helpers only where they aid understanding; full English/বাংলা modes remain available.
+- Motion only communicates focus/state/error or the opening of an existing shared dialog; avoid animated onboarding and delayed authentication steps.
+- Accessible labels/focus, paste and SMS autofill, Bangla-digit normalization, failed/expired code feedback, generic account-discovery responses, and disabled/loading states are required even though the UI is minimal.
+- A success toast cannot substitute for a verified backend action or safe account/session change.
+
+### 6.3 Distill: what is NOT a V1 end-user feature
+
+Do **not** add a security-score card, device risk map, separate password policies editor, account linking wizard, recovery-code enrollment, WebAuthn/passkey management UI, detailed session dashboard, support-agent workflow screens, device nickname wizard, push notification MFA, or optional login-provider gallery. These are not needed for the agreed flows. Staff-assisted recovery can reuse an audited support case workflow; the minimum necessary internal reviewer tooling and dual-control process still must exist before that recovery path is advertised as operational.
+
+**Separation of concerns remains important:** a simplified *UI* must not merge user identities, recovery/OTP verifiers, browser enrollments, sessions, tenant memberships, or audit events into unsafe shared state.
 
 ## 7. Security policy and threat controls
 
@@ -236,6 +255,21 @@ The architecture is acceptable only if all of the following can eventually be de
 13. Save Draft & Switch persists under the old tenant before changing; failures do not lose work; Discard does not delete an already-saved draft.
 14. Mobile/tablet/desktop and English/Bangla modes preserve accessibility, existing HisabIQ visuals, and correct error states.
 15. Device-proof feasibility and threat modeling **must** pass on every browser where six-digit-only Quick PIN is offered; unsupported cases use full authentication.
+
+## 9.1 KISS delivery boundaries for the later implementation-planning stage
+
+**This is a scoping guide for a future plan, NOT the implementation plan.** Written-spec approval and a separate Superpowers planning gate are still required.
+
+The simplest coherent backend design should reuse established libraries and providers instead of writing a custom cryptography, OTP, OAuth, or device-trust framework. V1 needs only one shared email/SMS challenge primitive, one auth/session service boundary, one enrollment/PIN boundary and the existing tenant-authorization path. Do not introduce separate microservices or speculative multi-provider abstractions.
+
+A future approved plan may order dependencies as follows, without promising partially secure production releases:
+
+1. **Identity + session + tenant authorization foundation** — Google/mobile identity, verified contacts, revocable sessions, account linking and tenant boundary. Without backend enforcement, UI-only auth cannot ship.
+2. **One reusable set of registration/login/recovery screens** — email-first/SMS fallback, backend-verified registration and a minimal business setup; keep routine checkout untouched.
+3. **Optional trusted PIN and UI lock** — six-digit PIN + cryptographic device proof, 90-day fixed validity, multi-account selector only when needed, per-user/browser 30-minute default lock with OFF option. **Feasibility gate:** no PIN-only fallback when secure device binding fails.
+4. **Settings, tenant switching and recovery operations** — integrate into existing header/settings dialogs, preserve unsaved drafts, provide trusted-device revocation and a rigorously controlled assisted recovery route. Roll out only after cross-user/cross-tenant regression and support-process verification.
+
+**Do not multiply screens by phase.** Keep one shared UI and separate service boundaries. Every proposed future task must name the existing component it reuses and demonstrate an actual backend security effect. Avoid broad unrelated redesigns, rewrite of existing POS carts, complex staff permission expansion, or billing-system changes.
 
 ## 10. Design boundaries and explicit review considerations
 
