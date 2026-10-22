@@ -19,8 +19,8 @@ async function main(){
     })));
    });
    await page.getByRole('checkbox').first().check();
-   const box=page.getByRole('textbox',{name:/Box quantity|Quantity in Box/});
-   const pcs=page.getByRole('textbox',{name:/Pcs quantity|Quantity in Pcs/});
+   const box=page.getByRole('textbox',{name:/Box (return )?quantity|Quantity in Box/});
+   const pcs=page.getByRole('textbox',{name:/Pcs (return )?quantity|Quantity in Pcs/});
    assert.equal(await box.count(),1,'Box input always visible');
    assert.equal(await pcs.count(),1,'Pcs input always visible');
    const price=page.getByRole('textbox',{name:/Return price for Teflon Tape|Return price.*Teflon Tape/});
