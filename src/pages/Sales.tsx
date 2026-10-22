@@ -979,17 +979,38 @@ export function Sales() {
       date: '01 Oct 2026',
       customer: returnCustomer,
       ...(customerId?{customerId}:{}),
-      lineReturns:ordinaryReturnPlans.filter(plan=>plan.quantity>0).map(({invoiceId,lineId,quantity,amount,serials})=>({invoiceId,lineId,quantity,amount,serials})),
+      lineReturns:quotedOrdinaryPlans.filter(plan=>plan.quantity>0).map(plan=>{
+        const key=returnLineKey(plan.invoiceId,plan.lineId);
+        const q=plan.quote;
+        return {invoiceId:plan.invoiceId,lineId:plan.lineId,quantity:plan.quantity,
+          amount:plan.amount,serials:plan.serials,
+          ...(returnUnitQty[key]?{unitQuantities:{...returnUnitQty[key]}}:{}),
+          sourceBaseUnit:selectedReturnLines.find(p=>p.invoice.id===plan.invoiceId&&p.line.id===plan.lineId)?.line.unit,
+          historicalSourceAmountPaisa:q.historicalSourceAmountPaisa,
+          agreedReturnAmountPaisa:q.agreedReturnAmountPaisa,
+          priceDifferencePaisa:q.priceDifferencePaisa,
+          effectiveUnitPrice:q.effectiveUnitPrice??undefined,
+          priceWasOverridden:q.overridden,
+          ...(returnPriceReason[key]?.trim()?{adjustmentReason:returnPriceReason[key].trim()}: {})
+        };
+      }),
       invoices: selected.map((invoice) => invoice.invoice),
       items: selectedReturnLines
-        .filter(({ line }) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0)
-        .map(({ line }) => {
-          const reason = returnReason[line.id] ?? 'Customer return';
-          const serial = (returnSerials[line.id] ?? '').trim();
-          return `${line.name} · ${returnQty[line.id]} ${line.unit} · ${reason}${serial ? ` · SN ${serial}` : ''}`;
-        })
-        .join(', '),
+        .filter(({invoice,line})=>Boolean(quotedOrdinaryPlans.find(plan=>
+          plan.invoiceId===invoice.id&&plan.lineId===line.id&&plan.quantity>0)))
+        .map(({invoice,line})=>{
+          const key=returnItemKey(invoice,line);
+          const units=returnUnitQty[key];
+          const amount=units?Object.entries(units).filter(([,v])=>Number(v)>0).map(([u,v])=>v+' '+u).join(' '):
+            (returnQty[key]??'0')+' '+line.unit;
+          const reason=returnReason[key]??'Customer return';
+          const serial=(returnSerials[key]??'').trim();
+          return `${line.name} · ${amount} · ${reason}${serial?' · SN '+serial:''}`;
+        }).join(', '),
       amount: returnAmount,
+      compensationExpensePaisa:returnCompensationPaisa,
+      negativeAdjustmentPaisa:quotedOrdinaryPlans.reduce((sum,p)=>sum+(p.quantity>0?p.quote.negativeAdjustmentPaisa:0),0),
+      phoneSnapshot:selected[0]?.phone,
       settlement: returnSettlement,
       ...(returnSettlement === 'Cash refund' ? {
         refundMethod: returnRefundMethod,
@@ -1026,16 +1047,14 @@ export function Sales() {
     setInvoices((items) => items.map((invoice) => {
       if (!returnInvoiceIds.includes(invoice.id)) return invoice;
       const fullReturn = invoice.lines.every(line=>!isBundleReturnLine(line)&&
-        (ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.remaining??0)-(Number(returnQty[line.id]??0))<=0);
+        (plannedLine(invoice,line)?.remaining??0)-(plannedLine(invoice,line)?.quantity??0)<=0);
       const applied = dueAdjustments.get(invoice.id) ?? 0;
       const due = Math.max(invoice.due - applied, 0);
-      const total = applied > 0 ? Math.max(invoice.total - applied, invoice.paid) : invoice.total;
-      return { ...invoice, total, due, status: fullReturn ? 'Returned' : 'Part returned' };
+      return { ...invoice, due, status: fullReturn ? 'Returned' : 'Part returned' };
     }));
     setReturnInvoiceIds([]);
-    setReturnQty({});
-    setReturnReason({});
-    setReturnSerials({});
+    setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
+    setReturnReason({});setReturnSerials({});
     setReturnRefundMethod('Cash');
     setReturnRefundAccount('');
     setTab('returns');
