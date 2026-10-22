@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { Copy, Delete, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUiCopy } from '../../i18n/useUiCopy';
@@ -86,6 +86,13 @@ export function Calculator() {
       reveal(next); // scroll only our list; never the ERP page behind the popover
     });
   }, [activate, reveal]);
+
+  // Rapid Enter taps can commit a new row before the focus animation frame runs.
+  // Keep the active line within the scratchpad scroll viewport in the same
+  // layout commit; the later focus frame still preserves the caret position.
+  useLayoutEffect(() => {
+    reveal(activeIndex);
+  }, [activeIndex, lines.length, reveal]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => focusLine(activeRef.current));

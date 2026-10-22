@@ -22,6 +22,21 @@ async function main(){
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),language+' '+width+' '+route+' page fits');
      if(route==='sales'){
       const bn=language==='Bangla';
+      if(width>=768){
+       // Linked ledger text and phone must stay stacked without a 44px button gap.
+       const linkedRow=page.locator('tbody tr').filter({hasText:'Rahman Hardware'}).first();
+       const ledgerLink=linkedRow.getByRole('button',{name:'Rahman Hardware',exact:true});
+       await ledgerLink.waitFor();
+       assert.notEqual(await ledgerLink.getAttribute('data-compact-control'),null,'customer link is an explicit compact text action');
+       const metrics=await ledgerLink.evaluate(link=>{
+        const phone=link.nextElementSibling;
+        const nameBox=link.getBoundingClientRect(),phoneBox=phone.getBoundingClientRect();
+        return {height:nameBox.height,gap:phoneBox.top-nameBox.bottom,phone:phone.textContent};
+       });
+       assert.ok(metrics.height<=24,'ledger name uses text height instead of 44px');
+       assert.ok(metrics.gap>=-2&&metrics.gap<=5,'customer and phone stay tightly stacked');
+       assert.ok(metrics.phone?.trim(),'phone number remains below customer');
+      }
       if(width<768){
        const record=page.locator('.sales-mobile-record').first();
        const action=record.locator('.sales-mobile-record-actions button').first();
@@ -138,7 +153,14 @@ async function main(){
     // Switch at the breakpoint while a controlled search is filled: state must survive.
     await page.goto('http://127.0.0.1:4415/#/app/sales',{waitUntil:'domcontentloaded'});
     const search=page.getByRole('textbox',{name:/Search sales|বিক্রি খুঁজুন/});
-    await search.fill('INV');await page.setViewportSize({width:width<768?1024:390,height:900});
+    await search.fill('INV');
+    // Inline clear icon must not inherit standalone button touch sizing.
+    if(width<1280){
+     const clear=search.locator('..').locator('button[aria-label^="Clear "]');
+     const clearBox=await clear.boundingBox();
+     assert.ok(clearBox&&clearBox.height<=32,'input clear icon remains inside its field');
+    }
+    await page.setViewportSize({width:width<768?1024:390,height:900});
     await page.locator(width<768?'table':'.sales-mobile-record').first().waitFor();
     assert.equal(await search.inputValue(),'INV','search state survives phone/tablet switch');
     assert.deepEqual(errors,[]);await page.close();console.log(language+' '+width+'px layouts and resize passed');
