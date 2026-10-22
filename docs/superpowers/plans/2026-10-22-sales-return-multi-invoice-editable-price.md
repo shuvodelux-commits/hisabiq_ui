@@ -61,7 +61,7 @@
 
 **Interfaces:**
 - Consumes: existing `planOrdinaryReturn(invoice,line,rawQuantity,serials,returns)`.
-- Produces: `SalesReturn.lineReturns?: Array<{invoiceId:string;lineId:string;quantity:number;amount:number;serials:string[];historicalSourceAmountPaisa?:number;agreedReturnAmountPaisa?:number;priceDifferencePaisa?:number;effectiveUnitPrice?:number;priceWasOverridden?:boolean;adjustmentReason?:string}>`; `SalesReturn.compensationExpensePaisa?`, `SalesReturn.negativeAdjustmentPaisa?`, `SalesReturn.confirmationId?`, `SalesReturn.phoneSnapshot?`. Keep optional fields to read legacy returns.
+- Produces: `SalesReturn.lineReturns?: Array<{invoiceId:string;lineId:string;quantity:number;unitQuantities?:Record<string,string>;sourceBaseUnit?:string;amount:number;serials:string[];historicalSourceAmountPaisa?:number;agreedReturnAmountPaisa?:number;priceDifferencePaisa?:number;effectiveUnitPrice?:number;priceWasOverridden?:boolean;adjustmentReason?:string}>`; `SalesReturn.compensationExpensePaisa?`, `SalesReturn.negativeAdjustmentPaisa?`, `SalesReturn.confirmationId?`, `SalesReturn.phoneSnapshot?`. Keep optional fields to read legacy returns.
 
 - [ ] **Step 1: Write failing test.** In `tests/salesReturn.test.ts`, type a previous partial return whose `lineReturns[0].amount` is the historical ৳100 and agreed amount is ৳120; assert a subsequent `planOrdinaryReturn` consumes exactly ৳100. Include discounted source, final-paisa allocation and previous serial exclusion.
 - [ ] **Step 2: Run red.** `node --experimental-strip-types --test tests/salesReturn.test.ts`; the new typed fixture/assertions must demonstrate the old type lacks the proposed audit fields (also run `npx tsc --noEmit` to confirm type failure).
