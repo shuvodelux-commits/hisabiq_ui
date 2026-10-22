@@ -35,3 +35,10 @@ test('over-return after partial prior return is rejected using remaining base qu
  const result=buildReturnPreview({invoiceIds:['a'],lines:[draft('a',{Box:'8'})],invoices:[a],returns:[previous],settlement:'Cash refund'});
  assert.ok(result.issues.length);
 });
+
+test('original invoice uniquely proves a two-level conversion without consulting the product catalog',()=>{
+ const legacy={...line,unitSnapshot:undefined,quantity:'3 Box 6 Pcs',soldBaseQuantity:42,returnableQuantity:42,total:420,netSaleTotal:420};
+ assert.deepEqual(returnBaseQuantity(legacy,{...draft('a',{Box:'1',Pcs:'5'})}),{quantity:17,issues:[]});
+ const uncertain={...legacy,soldBaseQuantity:undefined};
+ assert.ok(returnBaseQuantity(uncertain,{...draft('a',{Box:'1',Pcs:'5'})}).issues.length);
+});
