@@ -46,7 +46,7 @@ async function main(){
     }
     await quantity.fill('1');
     const rate=page.getByRole('textbox',{name:new RegExp(label('Return price for','ফেরত পণ্যের দাম:')+' MS Angle')});
-    assert.ok(await rate.isDisabled(),'historical refund rate cannot be overwritten');
+    assert.equal(await rate.isDisabled(),false,'return price is editable and historical reset is available when changed');
     // Opening/cancelling a contextual child must preserve the partially entered parent return.
     await tab('Drafts & templates','খসড়া ও নমুনা');
     const templates=page.locator('section').filter({hasText:label('Sale templates','বিক্রির নমুনা')});
@@ -60,6 +60,7 @@ async function main(){
     await tab('Sales return','বিক্রি ফেরত');assert.equal(await quantity.inputValue(),'1');
     // Exhaust a source line, then verify the balance and denial survive module navigation.
     await quantity.fill('220');await click(page.getByRole('button',{name:label('Complete return','ফেরত সম্পন্ন করুন'),exact:true}));
+    await click(page.getByRole('dialog',{name:label('Confirm Sales Return','বিক্রি ফেরত নিশ্চিত করুন')}).getByRole('button',{name:label('Confirm return','ফেরত নিশ্চিত করুন')}));
     await page.getByText('RTN-000015',{exact:true}).waitFor();
     await tab('Sales return','বিক্রি ফেরত');await page.getByRole('checkbox').first().check();await quantity.fill('1');
     assert.ok(await page.getByRole('button',{name:label('Complete return','ফেরত সম্পন্ন করুন'),exact:true}).isDisabled());
