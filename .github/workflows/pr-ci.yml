@@ -67,6 +67,7 @@ jobs:
           flag parties '^(src/(pages/(Parties|Party|Vendor|Vendors)\.tsx|components/(parties|vendor)/)|scripts/(party-|vendor-).*browser\.cjs$)'
           flag finance '^(src/(pages/Finance\.tsx|components/finance/|utils/financePaymentDrafts\.ts)|scripts/(counter-|finance-).*browser\.cjs$)'
           flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment).*browser\.cjs$)'
+          flag salesreturns '^(src/pages/Sales\.tsx|src/components/sales/returns/|src/utils/(salesReturn|returnCompensation)|scripts/sales-return-.*browser\.cjs)'
           flag mobile '^(src/index\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\.tsx$|scripts/mobile-carts-browser\.cjs$)'
 
       - name: Install dependencies
@@ -94,6 +95,12 @@ jobs:
       - name: Application navigation smoke
         if: steps.scope.outputs.browser == 'true'
         run: node scripts/page-loading-browser.cjs
+
+      - name: Sales return price and multi-invoice smoke
+        if: steps.scope.outputs.salesreturns == 'true'
+        run: |
+          node scripts/sales-return-price-browser.cjs
+          node scripts/sales-return-multi-invoice-browser.cjs
 
       - name: POS fast checkout smoke
         if: steps.scope.outputs.pos == 'true'
