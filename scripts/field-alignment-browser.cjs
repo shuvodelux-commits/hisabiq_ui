@@ -78,8 +78,8 @@ async function scan(page, contextName) {
     for (const shell of document.querySelectorAll('[data-field-shell="money-unit"]')) {
       if (!visible(shell)) continue;
       const height = rect(shell).height;
-      if (matchMedia('(pointer: coarse)').matches && height < 43)
-        report('Touch amount/unit shell smaller than 44px', shell, { height });
+      if (Math.abs(height - 36) > 2)
+        report('Amount/unit shell differs from universal 36px height', shell, { height });
     }
     for (const stepper of document.querySelectorAll('[data-number-stepper]')) {
       if (!visible(stepper)) continue;
