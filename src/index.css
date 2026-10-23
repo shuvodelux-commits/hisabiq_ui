@@ -632,6 +632,17 @@
   outline: none;
   box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
 }
+/* Joined amount/unit fields and deliberately borderless selectors keep their
+   parent component's geometry rather than inheriting standalone field chrome. */
+:root:root [data-hisabiq-select][data-hisabiq-compact] {
+  border-color: transparent;
+  border-radius: 0.375rem;
+  background-color: transparent;
+}
+:root:root :is([data-numeric-joined], [data-field-shell="money-unit"]) [data-hisabiq-select] {
+  border-radius: 0;
+  box-shadow: none;
+}
 [data-hisabiq-select-menu] {
   border: 1px solid var(--border);
   border-radius: 0.75rem;
