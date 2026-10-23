@@ -645,6 +645,16 @@
     min-height: 40px;
   }
 }
+/* On touch tablets, standalone Party ledger filters become 44px via the
+   existing coarse-pointer control rule. Match only their two peer actions;
+   desktop remains 36px and the phone's compact filter row remains 40px. */
+@media (pointer: coarse) and (min-width: 768px) {
+  :where(.erp-workspace, [data-dialog-root])
+  [data-hisabiq-field-group="party-ledger"] [data-ledger-filter-action] {
+    height: 44px;
+    min-height: 44px;
+  }
+}
 /* Shared input-field parity with the approved Magic Patterns focus language.
    Deliberately no control-height changes: POS carts, tablet rows, numeric
    steppers and already-compact inputs retain their geometry. */
