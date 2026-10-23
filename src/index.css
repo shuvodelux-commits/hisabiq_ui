@@ -36,7 +36,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Geist', 'Hind Siliguri', system-ui, sans-serif;
-    font-feature-settings: 'tnum' 1;
+    font-variant-numeric: proportional-nums;
+    font-feature-settings: 'pnum' 1;
   }
 }
 @layer utilities {
