@@ -585,30 +585,61 @@
 }
 
 
-/* Magic Patterns-inspired, shared HisabIQ button polish.
-   Excludes icon-only controls, numeric steppers and compact POS cart rows. */
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:not([data-hisabiq-size="icon"]):not([data-hisabiq-size="icon-sm"]) {
-  min-height: 40px;
-  padding-inline: max(0.75rem, 10px);
-  border-radius: 0.625rem;
+/* Shared Magic Patterns controls: compact 8px buttons, pale borders, mint focus.
+   Keep cart rows, numerical steppers and icon controls at their original sizes. */
+.hisabiq-button:not([data-hisabiq-size^="icon"]) {
+  min-height: 36px;
+  border-radius: 0.5rem;
+  font-size: 13px;
+  font-weight: 500;
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button[data-hisabiq-size="sm"] {
-  min-height: 36px;
-}
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
+.hisabiq-button[data-hisabiq-size="xs"] { min-height: 28px; }
+.hisabiq-button[data-hisabiq-size="sm"] { min-height: 32px; }
+.hisabiq-button[data-hisabiq-size="lg"] { min-height: 44px; padding-inline: 1rem; font-size: 14px; }
+.hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
   background-color: var(--card);
   border: 1px solid var(--border);
   color: var(--foreground);
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]):is(:hover,:focus-visible):not(:disabled) {
+.hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]):hover:not(:disabled) {
+  border-color: rgb(var(--color-ink-200));
+  background-color: var(--background);
+}
+.hisabiq-button[data-hisabiq-variant="default"]:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+:root:root .hisabiq-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
+}
+:root:root :is([data-hisabiq-input], [data-hisabiq-select]) {
+  border-color: var(--border);
+  border-radius: 0.5rem;
   background-color: var(--card);
-  border-color: var(--teal-300);
-  box-shadow: 0 1px 4px rgb(var(--color-ink) / 0.06);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
-:where(.erp-workspace, [data-dialog-root]) [data-cart-row] .hisabiq-button {
-  min-height: 0;
+:root:root :is([data-hisabiq-input], [data-hisabiq-select]):not([aria-invalid="true"]):is(:focus, :focus-visible),
+:root:root [data-hisabiq-select][aria-expanded="true"]:not([aria-invalid="true"]) {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
 }
+:root:root :is([data-hisabiq-input], [data-hisabiq-select])[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+:root:root :is([data-hisabiq-input], [data-hisabiq-select])[aria-invalid="true"]:is(:focus, :focus-visible) {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
+}
+[data-hisabiq-select-menu] {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background-color: var(--popover);
+  box-shadow: 0 12px 32px rgb(var(--color-ink) / 0.12);
+}
+[data-hisabiq-select-menu] [role="option"] { border-radius: 0.5rem; }
+:where(.erp-workspace, [data-dialog-root]) [data-cart-row] .hisabiq-button { min-height: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .hisabiq-button { transition: none; }
+  .hisabiq-button, [data-hisabiq-input], [data-hisabiq-select] { transition: none; }
 }
