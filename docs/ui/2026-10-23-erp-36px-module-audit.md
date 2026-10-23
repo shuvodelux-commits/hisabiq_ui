@@ -3,7 +3,7 @@
 **Date:** 23 October 2026  
 **Baseline:** `main`, squash merge `47e9037` (PR #198, universal 36px)  
 **Follow-up:** branch `audit/erp-36px-components-20261023`  
-**Status:** source review and targeted cleanup; computed-pixel checks require a live browser run.
+**Status:** source review and targeted cleanup completed; PR Fast CI, including a live Playwright size check across 22 routes at 390/768/1440px, passed. Native controls and opened subdialogs still require targeted visual review.
 
 ## What "36px universal" means
 
@@ -58,6 +58,20 @@ The ERP's standard single-line interactive control is **36 CSS px tall** on phon
 
 **P3 — Tests and coverage:** One source-level static inventory is not proof of displayed pixels. Add samples with mobile 390px, tablet 768px, desktop 1440px, English/Bangla, light/dark, and dialog/filter open states. Reduce false alarms by flagging only peers that must be 36px.
 
+## Verified CI evidence (23 October 2026)
+
+[PR #199 CI](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/39914147352) completed successfully after the full rendered-size check, POS fast checkout, Party directory/ledger, calculator and dialog accessibility smoke tests.
+
+- Source inventory scanned **226 TSX files** and detected **671 shared Button tags, 290 native button tags, 545 input/select tags** (source occurrences, not number simultaneously visible).
+- Lightweight source regex marked **11 explicit sizing candidates**, including **2 Brand Guide candidates outside the business ERP scope**. This is not an exhaustive defect count.
+- Playwright's strict shared-control size check passed on **531 visible sampled control instances**, across **22 routes at 390px, 768px and 1440px**.
+- A separate *nonblocking* native-control inventory still found height outliers. Among 1440px routes, Sales had 20 and POS 22; among 390px routes, Sales had 12 and ERP Notifications 36. These counts include rich selectable rows, navigation, internal clear controls and other likely intentional exceptions. **They are not 36px defect totals** until inspected individually.
+- The CI browser check measured default rendered surfaces, not every expanded popup or modal in each language/theme.
+
+### Interpretation
+
+The shared-control 36px standard is **verified on the sampled rendered controls**, and the earlier Party/Sales visual mismatches are addressed in source. The separate native-control population (290 JSX occurrences) remains the most important *remaining audit category*. The user should not be told every button or nested panel is pixel-perfect based solely on the green CI.
+
 ## Validation commands
 
 - `npm run check:ui-contract` — source contracts and lightweight full-code inventory (CI).
@@ -66,4 +80,4 @@ The ERP's standard single-line interactive control is **36 CSS px tall** on phon
 - `npm run test:field-size-parity` — live 22-route browser dimensions; write JSON via `FIELD_SIZE_REPORT=...`.
 - `npm run test:field-alignment` — compound amount/unit alignment.
 
-The 36px changes from PR #198 **are merged**. This new audit/fix branch is **not automatically merged**. Browser measurement must be run before stating all modules are pixel-accurate.
+The 36px changes from PR #198 **are merged**. The follow-up audit/fix branch has passed its CI—including rendered checks—but remains **unmerged** pending review of native controls and rich popup exceptions.
