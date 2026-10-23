@@ -28,7 +28,7 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
  const supportsClear=(clearable??searchLike)&&
   !props.disabled&&!props.readOnly&&(!!onClear||!!props.onChange);
  // Preserve a stable input node while typing or clearing, so focus never jumps.
- if(!supportsClear)return <DesignInput {...props} ref={setRef}/>;
+ if(!supportsClear)return <DesignInput {...props} data-hisabiq-input="" ref={setRef}/>;
  const canClear=typeof value==='string'&&value.length>0;
  const clear=()=>{
   const input=internalRef.current;
@@ -43,7 +43,7 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
   input?.focus();
  };
  return <span className="relative block min-w-0 flex-1">
-  <DesignInput {...props} ref={setRef}
+  <DesignInput {...props} data-hisabiq-input="" ref={setRef}
    className={(props.className??'')+' pr-10 [&::-webkit-search-cancel-button]:hidden'}/>
   {canClear&&<button type="button" aria-label={'Clear '+(props['aria-label']||props.placeholder||'input')}
    title="Clear" onMouseDown={event=>event.preventDefault()} onClick={clear}
