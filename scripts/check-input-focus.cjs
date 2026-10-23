@@ -40,7 +40,7 @@ assert.match(css, /\.hisabiq-button\[data-hisabiq-size="sm"\]\s*\{\s*min-height:
   'The prior button size must stay unchanged');
 assert.doesNotMatch(css, /\[data-hisabiq-action-context="page"\]/,
   'Reverted button-priority overrides must not return');
-assert.match(input, /className=\\{alignedClass\\}/,
+assert.match(input, /className=\{alignedClass\}/,
   'Ordinary Input must use the shared height normalizer');
 assert.match(input, /h-9/,
   'Default Input should align to the 36px select/numeric baseline');
@@ -48,8 +48,8 @@ assert.match(numeric, /data-compact-control/,
   'Explicit compact numeric inputs must opt out of coarse-pointer enlargement');
 assert.match(css, /data-hisabiq-field-group="party-ledger"/,
   'Party ledger mobile filter controls need a common height');
-assert.match(css, /data-hisabiq-numeric.*not\\(\\[data-compact-control\\]\\)/,
+assert.match(css, /data-hisabiq-numeric.*not\(\[data-compact-control\]\)/,
   'Touch numeric controls must match standalone text and select heights');
-assert.match(css, /product-form button\\[data-hisabiq-select\\]/,
+assert.match(css, /product-form button\[data-hisabiq-select\]/,
   'Product editor selector height must track the form sizing token');
 console.log('HisabIQ input focus consistency source contract: PASS');
