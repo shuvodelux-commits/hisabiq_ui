@@ -184,7 +184,7 @@ export function TopBar() {
               onClick={toggle}
               aria-label={text("Notifications","নোটিফিকেশন")}
               aria-expanded={open}
-              className={`relative flex size-8 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink ${open ? 'bg-ink-50 text-ink' : ''}`}>
+              className={`relative flex size-9 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink ${open ? 'bg-ink-50 text-ink' : ''}`}>
               
                 <Bell className="size-4" />
                 {/* Preview notices have no read-state tracking: do not imply unread messages. */}
