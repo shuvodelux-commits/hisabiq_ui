@@ -352,6 +352,12 @@ async function main() {
     await vendorActions.getByRole('button',{name:'Receive Money'}).click();
     const reducedDialog=page.getByRole('dialog',{name:'Receive Money'});
     await reducedDialog.waitFor();
+    // VendorActionDialog seeds its split amount inside a React effect after
+    // the modal appears. Wait for the settled amount, not the initial empty input.
+    await page.waitForFunction(() => {
+      const dialog=document.querySelector('[role="dialog"][aria-label="Receive Money"]');
+      return dialog?.querySelector('input[aria-label="Split amount 1"]')?.value==='108';
+    },undefined,{timeout:5000});
     assert.equal(await reducedDialog.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'108',
       'Vendor receipt changes the real remaining due in the preview store');
     await page.keyboard.press('Escape');
@@ -369,6 +375,10 @@ async function main() {
     await page.getByTestId('party-mobile-actions').getByRole('button',{name:'Pay Vendor'}).click();
     const partialPay=page.getByRole('dialog',{name:'Pay Vendor'});
     await partialPay.waitFor();
+    await page.waitForFunction(() => {
+      const dialog=document.querySelector('[role="dialog"][aria-label="Pay Vendor"]');
+      return dialog?.querySelector('input[aria-label="Split amount 1"]')?.value==='200';
+    },undefined,{timeout:5000});
     assert.equal(await partialPay.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'200',
       'Partial Vendor payment reduces the next due by the payment amount');
     await page.keyboard.press('Escape');
