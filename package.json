@@ -104,7 +104,8 @@
     "test:motion-navigation": "node scripts/motion-navigation-browser.cjs",
     "test:sidebar-interactions": "node scripts/sidebar-interaction-browser.cjs",
     "test:calculator-scratchpad": "node scripts/calculator-scratchpad-browser.cjs",
-    "check:input-focus": "node scripts/check-input-focus.cjs"
+    "check:input-focus": "node scripts/check-input-focus.cjs",
+    "test:field-size-parity": "node scripts/field-size-parity-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
