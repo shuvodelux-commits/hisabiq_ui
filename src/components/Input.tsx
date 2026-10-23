@@ -26,7 +26,7 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
  // editors and date controls default to 36px. Match that baseline unless a
  // caller explicitly chose a compact/large height (cart rows, POS, dialogs).
  const suppliedClass=props.className??'';
- const alignedClass=/(?:^|\\s)!?h-\\S+/.test(suppliedClass)
+ const alignedClass=/(?:^|\s)!?h-\S+/.test(suppliedClass)
   ? suppliedClass
   : ('h-9 '+suppliedClass).trim();
  const value=props.value;
