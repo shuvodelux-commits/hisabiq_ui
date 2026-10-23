@@ -292,7 +292,7 @@ export function Expenses() {
                 <p className="text-[13px] font-medium text-ink">{text("Expense categories","খরচের ধরনসমূহ")}</p>
                 <p className="text-[11px] text-ink-500">{text("Manage categories for new entries. Renaming keeps historical expense labels.","নতুন খরচের ধরন যোগ বা বদলান। আগের খরচের তথ্য বদলাবে না।")}</p>
               </div>
-              <Button size="sm" onClick={() => { setCategoryEditor({name: ''}); setActionError(''); }}>
+              <Button onClick={() => { setCategoryEditor({name: ''}); setActionError(''); }}>
                 <Plus className="size-4" /> {text("Add category","ধরন যোগ করুন")}
               </Button>
             </div>
@@ -336,7 +336,7 @@ export function Expenses() {
                 <p className="text-[13px] font-medium text-ink">{text("Expense payees","টাকা প্রাপকদের তালিকা")}</p>
                 <p className="text-[11px] text-ink-500">{text("Reusable payees. Payees with linked transactions cannot be deactivated.","প্রাপকের নাম আবার ব্যবহার করা যাবে। আগের লেনদেন থাকলে বন্ধ করা যাবে না।")}</p>
               </div>
-              <Button size="sm" onClick={() => setPayeeEditor({})}>
+              <Button onClick={() => setPayeeEditor({})}>
                 <Plus className="size-4" /> {text("Add payee","প্রাপক যোগ করুন")}
               </Button>
             </div>
