@@ -608,6 +608,15 @@
     font-size: 13px;
   }
 }
+/* Two-action dialog footers: the confirm/save action has greater visual weight
+   than Cancel. Lone Close buttons stay standard; table/row actions are unaffected. */
+:where([data-slot="dialog-footer"], [data-slot="alert-dialog-footer"])
+  > .hisabiq-button[data-hisabiq-variant="default"]:not(:only-child) {
+  min-height: 44px;
+  padding-inline: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
 /* Shared Magic Patterns controls: compact 8px buttons, pale borders, mint focus.
    Keep cart rows, numerical steppers and icon controls at their original sizes. */
 .hisabiq-button:not([data-hisabiq-size^="icon"]) {
