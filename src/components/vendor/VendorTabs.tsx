@@ -152,10 +152,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-stretch gap-2 border-b border-border p-3 sm:hidden" role="group" aria-label="Vendor quick actions">
    {actions.filter(action=>action.visible&&(action.key==='taken'||action.key===mobileSecondary)).map(action=>
     <Button type="button" key={action.key} size="sm" variant={action.key==='taken'?'default':'outline'}
-     className="min-h-11 min-w-0 px-2 text-xs" title={action.hint} onClick={action.run}>
+     className="h-9 min-w-0 px-2 text-xs" title={action.hint} onClick={action.run}>
      {action.key==='taken'&&<Plus className="size-4"/>}{action.label}
     </Button>)}
-   <Button type="button" size="sm" variant="outline" className="min-h-11 px-2" aria-label="More Vendor actions"
+   <Button type="button" size="sm" variant="outline" className="h-9 px-2" aria-label="More Vendor actions"
     onClick={()=>setMobileMoreOpen(true)}><Ellipsis className="size-5"/> More</Button>
   </div>
   <Dialog open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
@@ -164,7 +164,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
     <DialogDescription>Choose a Vendor task · ভেন্ডরের কাজ বাছুন</DialogDescription>
     <div className="grid gap-2 pt-3">
      {actions.filter(action=>action.visible&&action.key!=='taken'&&action.key!==mobileSecondary).map(action=>
-      <Button key={action.key} type="button" size="sm" variant="outline" className="min-h-11 justify-start"
+      <Button key={action.key} type="button" size="sm" variant="outline" className="h-9 justify-start"
        title={action.hint} onClick={()=>{setMobileMoreOpen(false);action.run();}}>
        {action.key==='print'&&<Printer className="size-4"/>}{action.label}
       </Button>)}
@@ -221,10 +221,10 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
       {unpricedMemos>0&&<div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-warning-bg p-3">
        <div className="min-w-0 flex-1"><strong className="block text-sm text-warning">Price not set ({unpricedMemos})</strong>
         <p className="mt-0.5 text-xs text-warning">Unpriced goods are not counted as money due.</p></div>
-       <Button type="button" size="sm" variant="outline" className="min-h-11" onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>
+       <Button type="button" size="sm" variant="outline" className="h-9" onClick={()=>selectTab('taken',unpricedSource?.id)}>Set price · দাম ঠিক করুন</Button>
       </div>}
       <button type="button" onClick={()=>selectTab('purchases')}
-       className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg bg-ink-50 px-3 text-left text-sm text-ink-600 focus-visible:outline-2 focus-visible:outline-teal-500">
+       className="flex h-9 w-full items-center justify-between gap-2 rounded-lg bg-ink-50 px-3 text-left text-sm text-ink-600 focus-visible:outline-2 focus-visible:outline-teal-500">
        <span>Purchase due · ক্রয়ের বাকি</span><strong className="text-ink">{money(profile.summary.purchaseDuePaisa)}</strong>
       </button>
      </div>
