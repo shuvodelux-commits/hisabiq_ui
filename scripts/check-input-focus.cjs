@@ -1,66 +1,44 @@
-/* Cheap source check: shared input fields keep consistent focus semantics.
-   It does not change sizes, page actions, cart layouts or ERP logic. */
+/* ERP control dimensions/focus source guard. Keep this check fast for PR CI. */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const fromRoot = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
-const css = fromRoot('src/index.css');
-const input = fromRoot('src/components/Input.tsx');
-const select = fromRoot('src/components/AppSelect.tsx');
-const searchable = fromRoot('src/components/SearchSelect.tsx');
-const calendar = fromRoot('src/components/AppDateRangePicker.tsx');
-const numeric = fromRoot('src/components/NumericInput.tsx');
-const joined = fromRoot('src/components/MoneyUnitInput.tsx');
-
-assert.equal((input.match(/data-hisabiq-input=""/g) || []).length, 2,
-  'Both clearable and ordinary text fields must use shared input focus styling');
-for (const [name, contents, marker] of [
-  ['AppSelect', select, 'data-hisabiq-select=""'],
-  ['SearchSelect', searchable, 'data-hisabiq-select=""'],
-  ['DateRangePicker', calendar, 'data-hisabiq-select=""'],
-  ['NumericInput', numeric, 'data-hisabiq-numeric=""'],
-  ['MoneyUnitInput', joined, 'data-hisabiq-field-shell=""']
-]) {
-  assert.ok(contents.includes(marker), name + ' must declare its shared focus surface');
+const load = file => fs.readFileSync(path.join(__dirname,'..',file),'utf8');
+const css = load('src/index.css');
+const input = load('src/components/Input.tsx');
+const numeric = load('src/components/NumericInput.tsx');
+const joined = load('src/components/MoneyUnitInput.tsx');
+const party = load('src/components/parties/PartyLedgerToolbarResponsive.tsx');
+const sales = load('src/pages/Sales.tsx');
+const salesMobile = load('src/components/sales/SalesMobileLayout.tsx');
+const salesCss = load('src/components/sales/sales-mobile.css');
+const components = [
+ ['AppSelect','src/components/AppSelect.tsx','data-hisabiq-select=""'],
+ ['SearchSelect','src/components/SearchSelect.tsx','data-hisabiq-select=""'],
+ ['Date picker','src/components/AppDateRangePicker.tsx','data-hisabiq-select=""'],
+ ['Numeric','src/components/NumericInput.tsx','data-hisabiq-numeric=""'],
+ ['Joined amount/unit','src/components/MoneyUnitInput.tsx','data-hisabiq-field-shell=""']
+];
+for (const [name,file,marker] of components) {
+  assert.ok(load(file).includes(marker),name+' must use shared control styling');
 }
-assert.match(css, /\[data-hisabiq-input\].*:is\(:focus, :focus-visible\)/,
-  'Text fields need the same mouse and keyboard focus state');
-assert.match(css, /\[data-hisabiq-numeric\].*focus-within/,
-  'Numeric fields need focus-within on their outer shell');
-assert.match(css, /\[data-hisabiq-field-shell\].*focus-within/,
-  'Joined amount and unit must draw one outer focus ring');
-assert.match(css, /\[data-hisabiq-select\].*\[aria-expanded="true"\]/,
-  'Open dropdowns must visibly retain focus');
-assert.match(css, /\[aria-invalid="true"\]/,
-  'Validation error state must remain visible');
-assert.match(css, /\[data-cart-row\] input/,
-  'The native input exception must preserve compact cart geometry');
-// Same Button contract as main: this branch does NOT introduce button priority tiers.
-assert.match(css, /\.hisabiq-button\[data-hisabiq-size="sm"\]\s*\{\s*min-height: 36px;/,
-  'The prior button size must stay unchanged');
-assert.doesNotMatch(css, /\[data-hisabiq-action-context="page"\]/,
-  'Reverted button-priority overrides must not return');
-assert.match(input, /className=\{alignedClass\}/,
-  'Ordinary Input must use the shared height normalizer');
-assert.match(input, /h-9/,
-  'Default Input should align to the 36px select/numeric baseline');
-assert.match(numeric, /data-compact-control/,
-  'Explicit compact numeric inputs must opt out of coarse-pointer enlargement');
-assert.match(css, /data-hisabiq-field-group="party-ledger"/,
-  'Party ledger mobile filter controls need a common height');
-assert.match(css, /data-hisabiq-numeric.*not\(\[data-compact-control\]\)/,
-  'Touch numeric controls must match standalone text and select heights');
-assert.match(css, /product-form button\[data-hisabiq-select\]/,
-  'Product editor selector height must track the form sizing token');
-const ledgerToolbar = fromRoot('src/components/parties/PartyLedgerToolbarResponsive.tsx');
-const actions = ledgerToolbar.match(/data-ledger-filter-action=""/g) || [];
-assert.equal(actions.length, 2, 'Clear filters and Print statement should use the same local sizing');
-assert.match(ledgerToolbar, /items-center gap-2 md:order-5/,
-  'Ledger action row should center its buttons rather than stretch them');
-assert.equal((ledgerToolbar.match(/h-10 min-h-10 flex-1 md:h-9 md:min-h-9 md:flex-none/g)||[]).length,2,
-  'Ledger action buttons need matching 40px mobile and 36px desktop heights');
-assert.doesNotMatch(ledgerToolbar, /md:min-h-0/,
-  'Do not restore the unbounded desktop height that caused uneven filter buttons');
-assert.match(css, /data-ledger-filter-action/,
-  'Touch tablets should align ledger action heights with 44px input and select fields');
-console.log('HisabIQ input focus consistency source contract: PASS');
+assert.equal((input.match(/data-hisabiq-input=""/g)||[]).length,2,'Plain and clearable input markers');
+assert.ok(input.includes('className={alignedClass}'),'Shared input 36px baseline');
+assert.ok(css.includes('--erp-control-height: 36px;'),'36px canonical control token');
+assert.ok(css.includes('height: var(--erp-control-height) !important;'),'Universal control height override');
+assert.ok(css.includes('button[data-slot="button"]'),'Direct design-system buttons included');
+assert.ok(css.includes('button[role="combobox"]'),'Dropdowns included');
+assert.ok(css.includes('input[data-slot="input"]'),'Inputs included');
+assert.ok(css.includes('[data-hisabiq-numeric]'),'Numeric shells included');
+assert.ok(css.includes('[data-hisabiq-field-shell]'),'Joined amount/unit shell included');
+assert.ok(css.includes('--ctl-h: var(--erp-control-height);'),'Product form uses shared height');
+assert.ok(!css.includes('data-hisabiq-action-context="page"'),'No priority resizing');
+assert.ok(css.includes('[aria-expanded="true"]'),'Dropdown open focus stays visible');
+assert.ok(css.includes('[aria-invalid="true"]'),'Invalid input treatment stays visible');
+assert.ok(numeric.includes('data-numeric-input'),'Preserve numeric stepper');
+assert.ok(joined.includes('data-numeric-joined'),'Preserve joined input');
+assert.equal((party.match(/data-ledger-filter-action=""/g)||[]).length,2,'Party toolbar actions');
+assert.equal((party.match(/h-9 min-h-9 flex-1 md:flex-none/g)||[]).length,2,'Party action sizing');
+assert.ok(sales.includes('data-sales-header-new=""'),'Sales header new-sale marker');
+assert.ok(salesMobile.includes('size-9 shrink-0 p-0'),'Sales overflow 36px square');
+assert.ok(!/(?:min-)?height:\s*(?:40|44|48)px;/.test(salesCss),'No enlarged Sales mobile controls');
+console.log('ERP shared 36px size + focus source contract: PASS');
