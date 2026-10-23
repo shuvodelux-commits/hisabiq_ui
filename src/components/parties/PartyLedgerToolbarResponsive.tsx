@@ -29,7 +29,7 @@ export function PartyLedgerToolbarResponsive({range,onRange,kind,onKind,query,on
   const [filtersOpen,setFiltersOpen]=useState(false);
   const activeCount=Number(Boolean(range.from||range.to))+Number(kind!=='All types')+Number(Boolean(query.trim()))+Number(pageSize!==25);
   const bn:Record<string,string>={'All transactions':'সব লেনদেন',Sales:'বিক্রি',Purchases:'ক্রয়','Customer payments':'ক্রেতার টাকা','Supplier payments':'সরবরাহকারীকে টাকা',Finance:'টাকার লেনদেন','Opening balance':'শুরুর জের',Notes:'মন্তব্য'};
-  return <div className="flex min-w-0 flex-wrap items-center gap-2 border-b border-border px-3 py-2 sm:px-4 md:gap-1.5 md:py-1.5">
+  return <div data-hisabiq-field-group="party-ledger" className="flex min-w-0 flex-wrap items-center gap-2 border-b border-border px-3 py-2 sm:px-4 md:gap-1.5 md:py-1.5">
     <div className="relative order-1 min-w-0 flex-1 md:order-3 md:min-w-[180px]">
       <Search className="pointer-events-none absolute left-2 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true"/>
       <Input aria-label={text('Search ledger transactions','খাতার লেনদেন খুঁজুন')} value={query} onChange={event=>onQuery(event.target.value)}
