@@ -129,7 +129,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
   }, [open]);
   const shownDate = single ? (value.from ? datePickerDayLabel(language,value.from) : t('Select date','তারিখ বাছুন')) : datePickerRangeLabel(language,value);
   return <div className={'min-w-0 ' + className}>
-    <button ref={anchor} type="button" aria-label={label + ': ' + shownDate} aria-haspopup="dialog" aria-expanded={open}
+    <button ref={anchor} type="button" data-hisabiq-select="" aria-label={label + ': ' + shownDate} aria-haspopup="dialog" aria-expanded={open}
       aria-controls={open ? id : undefined} onClick={() => open ? close() : show()}
       className="flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input bg-card px-3 text-left text-[12px] text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:ring-2 focus-visible:ring-teal-500/20">
       <CalendarDays className="size-4 shrink-0 text-teal-600" aria-hidden="true" />
