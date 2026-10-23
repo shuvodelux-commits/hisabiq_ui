@@ -278,7 +278,7 @@ function LeadsTab(){
   catch(e){toast.error(String(e));}};
  return <div className="space-y-3">
   <div className="flex items-center justify-between"><p className="text-sm text-ink-500">{ol("Simple inquiry tracking: manual sources, follow-ups and contact stages. No inbox integration.")}</p>
-   <Button size="sm" onClick={()=>setAdd(true)}><Plus className="size-4"/> {ol("Add lead")}</Button></div>
+   <Button onClick={()=>setAdd(true)}><Plus className="size-4"/> {ol("Add lead")}</Button></div>
   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{leads.map(lead=><div key={lead.id} className="space-y-2 rounded-xl border border-border bg-card p-4">
    <div className="flex justify-between gap-2"><strong className="text-sm text-ink">{lead.name}</strong><span className="text-xs text-teal-700 dark:text-teal-400">{lead.channel}</span></div>
    <p className="text-xs text-ink-500">{lead.phone} · {ol('Follow up:')} {lead.nextFollowUp||ol('Not scheduled')}</p>
