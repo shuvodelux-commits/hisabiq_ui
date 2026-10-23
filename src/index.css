@@ -612,3 +612,63 @@
 @media (prefers-reduced-motion: reduce) {
   .hisabiq-button { transition: none; }
 }
+
+/* Shared input-field parity with the approved Magic Patterns focus language.
+   Deliberately no control-height changes: POS carts, tablet rows, numeric
+   steppers and already-compact inputs retain their geometry. */
+:root:root :is(
+  [data-hisabiq-input],
+  [data-hisabiq-select]:not([data-hisabiq-compact]),
+  [data-hisabiq-numeric],
+  [data-hisabiq-field-shell],
+  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) textarea
+) {
+  border-color: var(--border);
+  border-radius: 0.5rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+/* Real text input: focus on click and keyboard, with just one mint halo. */
+:root:root [data-hisabiq-input]:not([aria-invalid="true"]):is(:focus, :focus-visible),
+:root:root [data-hisabiq-select]:not([data-hisabiq-compact]):not([aria-invalid="true"]):not(:where([data-numeric-joined] [data-hisabiq-select])):is(:focus, :focus-visible, [aria-expanded="true"]),
+:root:root [data-hisabiq-numeric]:not(:where([data-numeric-joined] [data-hisabiq-numeric])):focus-within:not(:has([aria-invalid="true"])),
+:root:root [data-hisabiq-field-shell]:focus-within:not([data-invalid="true"]),
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) textarea:not([aria-invalid="true"]):is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
+}
+/* Preserve errors and the selected state, not a misleading success-colored ring. */
+:root:root :is(
+  [data-hisabiq-input],
+  [data-hisabiq-select],
+  [data-hisabiq-numeric],
+  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) textarea
+)[aria-invalid="true"],
+:root:root [data-hisabiq-field-shell][data-invalid="true"],
+:root:root [data-hisabiq-numeric]:has([aria-invalid="true"]) {
+  border-color: var(--destructive);
+}
+:root:root :is([data-hisabiq-input], [data-hisabiq-select])[aria-invalid="true"]:is(:focus, :focus-visible),
+:root:root [data-hisabiq-numeric]:has([aria-invalid="true"]):focus-within,
+:root:root [data-hisabiq-field-shell][data-invalid="true"]:focus-within,
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) textarea[aria-invalid="true"]:is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
+}
+/* One amount/unit shell owns the focus treatment; nested editors do not
+   add a second ring or alter the combined field's square internal corners. */
+:root:root [data-numeric-joined] [data-hisabiq-numeric],
+:root:root [data-numeric-joined] [data-hisabiq-select] {
+  border-radius: 0;
+  box-shadow: none;
+}
+:root:root [data-hisabiq-select][data-hisabiq-compact] {
+  border-color: transparent;
+  background: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is([data-hisabiq-input], [data-hisabiq-select], [data-hisabiq-numeric], [data-hisabiq-field-shell]) {
+    transition: none;
+  }
+}
