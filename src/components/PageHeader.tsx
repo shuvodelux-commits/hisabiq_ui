@@ -24,7 +24,7 @@ export function PageHeader({ title, titleBn, description, descriptionContent, de
         </div>
         {(descriptionContent ?? description) && <p className={compact ? "mt-0.5 text-xs text-ink-500 xl:text-sm" : "mt-0.5 text-sm text-ink-500"}>{descriptionContent ?? (descriptionBn && language === "Bangla" ? descriptionBn : description)}</p>}
       </div>
-      {actions && <div className={compact ? "flex shrink-0 flex-nowrap items-center justify-end gap-1.5 xl:gap-2" : "flex flex-wrap items-center gap-2"}>{actions}</div>}
+      {actions && <div data-hisabiq-action-context="page" className={compact ? "flex shrink-0 flex-nowrap items-center justify-end gap-1.5 xl:gap-2" : "flex flex-wrap items-center gap-2"}>{actions}</div>}
     </div>);
 
 }
