@@ -554,6 +554,15 @@
 .product-form [data-field-shell="money-unit"] { height: var(--ctl-h) !important; }
 .product-form :not([data-numeric-joined]) > [data-numeric-input] { height: var(--ctl-h); }
 .product-form :not([data-numeric-input]) > input[data-slot="input"] { height: var(--ctl-h); }
+/* Product editor deliberately uses 40px fields (44px on touch screens).
+   Apply the same existing --ctl-h to dropdowns and search/date triggers,
+   otherwise default AppSelect stays 36px beside 40/44px Input fields.
+   Nested amount/unit selectors inherit their joined shell height. */
+.product-form button[data-hisabiq-select]:not([data-hisabiq-compact]):not(:where([data-numeric-joined] button)),
+.product-form :not([data-numeric-joined]) > [data-hisabiq-select] {
+  height: var(--ctl-h);
+}
+
 .product-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 .product-form textarea,
 .product-form [data-numeric-joined] button[role="combobox"] { font-size: var(--ctl-fs); }
