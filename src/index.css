@@ -622,6 +622,13 @@
   .hisabiq-button { transition: none; }
 }
 
+/* Party ledger phone filter controls align with its existing 40px search
+   and Filters controls; desktop remains the established 36px compact scale. */
+@media (max-width: 767px) {
+  [data-hisabiq-field-group="party-ledger"] button[data-hisabiq-select] {
+    height: 40px;
+  }
+}
 /* Shared input-field parity with the approved Magic Patterns focus language.
    Deliberately no control-height changes: POS carts, tablet rows, numeric
    steppers and already-compact inputs retain their geometry. */
