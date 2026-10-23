@@ -113,7 +113,7 @@ export function AppSelect({
   return (
     <div className={'min-w-0 ' + className}>
       <button
-        ref={trigger} type="button" role="combobox" id={triggerId} data-value={value} aria-label={label} aria-describedby={describedBy}
+        ref={trigger} type="button" role="combobox" data-hisabiq-select="" id={triggerId} data-value={value} aria-label={label} aria-describedby={describedBy}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined}
         aria-activedescendant={open ? id + '-opt-' + active : undefined}
         disabled={disabled}
@@ -125,19 +125,19 @@ export function AppSelect({
           if (!open) setActive(Math.max(0, chosen));
           setOpen((v) => !v);
         }}
-        className={'flex h-9 w-full min-w-0 items-center justify-between gap-2 border border-input bg-card px-3 text-left text-sm text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/20 disabled:opacity-50 ' +
+        className={'flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 text-left text-sm text-ink outline-none transition-colors hover:bg-ink-50/40 disabled:opacity-50 ' +
           (rowsStyle
-            ? 'min-w-[88px] rounded-lg border-border bg-white dark:bg-card ' + (open ? 'border-teal-600 ring-2 ring-teal-500/15 ' : '')
-            : 'rounded-md ' + (compact ? 'border-0 bg-transparent px-2 shadow-none ' : ''))}
+            ? 'min-w-[88px] rounded-lg border-border bg-card ' + (open ? 'border-teal-600 ring-2 ring-teal-500/15 ' : '')
+            : 'rounded-lg ' + (compact ? 'border-0 bg-transparent px-2 shadow-none ' : ''))}
       >
         <span className="truncate">{currentLabel ? optionLabel(currentLabel) : value || placeholder}</span>
         <ChevronDown className={'size-4 shrink-0 text-ink-400 transition-transform ' + (rowsStyle && open ? 'rotate-180' : '')} aria-hidden="true" />
       </button>
       {open && typeof document !== 'undefined' && createPortal(
         <div ref={menu} id={id} role="listbox" aria-label={label + ' options'}
-          data-menu-style={menuStyle}
+          data-menu-style={menuStyle} data-hisabiq-select-menu=""
           className={'fixed z-[160] overflow-auto border border-border bg-popover text-ink shadow-xl scrollbar-thin ' +
-            (rowsStyle ? 'rounded-2xl p-1.5 shadow-[0_12px_28px_rgba(14,31,51,0.15)]' : 'rounded-lg p-1')}
+            (rowsStyle ? 'rounded-xl p-1.5' : 'rounded-xl p-1')}
           style={{ top: rect?.top ?? 0, left: rect?.left ?? 0, width: rect?.width ?? 160,
             maxHeight: rect?.maxHeight ?? 260, visibility: rect ? 'visible' : 'hidden' }}
         >
@@ -152,8 +152,9 @@ export function AppSelect({
                   ? 'min-h-[48px] rounded-xl px-3 text-[15px] hover:bg-ink-50 dark:hover:bg-ink-100/10 ' +
                     (active === index ? 'bg-ink-50 dark:bg-ink-100/10 ' : '') +
                     (value === optionValue(option) ? 'font-medium text-teal-800 dark:text-teal-400 ' : 'text-ink ')
-                  : 'min-h-9 rounded-md px-2 py-1.5 text-[13px] hover:bg-teal-50 hover:text-teal-700 ' +
-                    (active === index ? 'bg-teal-50 text-teal-700' : ''))}
+                  : 'min-h-10 rounded-lg px-2.5 py-2 text-[14px] hover:bg-ink-50 dark:hover:bg-ink-100/10 ' +
+                    (active === index ? 'bg-ink-50 dark:bg-ink-100/10 ' : '') +
+                    (value === optionValue(option) ? 'font-semibold text-teal-800 dark:text-teal-400' : 'text-ink'))}
             >
               <span className="min-w-0 flex-1 truncate">{optionLabel(option)}</span>
               {value === optionValue(option) && <Check className={rowsStyle ? 'size-[18px] shrink-0 text-teal-700' : 'size-3.5 shrink-0 text-teal-600'} aria-hidden="true" />}
