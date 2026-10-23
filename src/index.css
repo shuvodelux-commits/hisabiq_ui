@@ -622,6 +622,19 @@
   .hisabiq-button { transition: none; }
 }
 
+/* Coarse-pointer controls grow together to 44px. Previously the global
+   touch rule increased Input and Select, but did not increase the standalone
+   NumericInput's outer shell. Avoid changing compact 32px controls, joined
+   amount/unit components and independently sized POS/purchase cart rows. */
+@media (pointer: coarse) {
+  :where(.erp-workspace, [data-dialog-root])
+  [data-hisabiq-numeric]:not([data-compact-control]):not(:where(
+    [data-numeric-joined] [data-hisabiq-numeric],
+    [data-cart-row] [data-hisabiq-numeric]
+  )) {
+    min-height: 44px;
+  }
+}
 /* Party ledger phone filter controls align with its existing 40px search
    and Filters controls; desktop remains the established 36px compact scale. */
 @media (max-width: 767px) {
