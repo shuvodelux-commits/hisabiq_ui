@@ -569,6 +569,13 @@
   padding-inline: max(0.75rem, 10px);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
+/* Icon-only controls are also 36 x 36, regardless of legacy icon-xs/sm/lg. */
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+:is(.hisabiq-button[data-hisabiq-size^="icon"], button[data-slot="button"][data-size^="icon"]) {
+  width: var(--erp-control-height) !important;
+  min-width: var(--erp-control-height);
+  padding-inline: 0;
+}
 :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
   background-color: var(--card);
