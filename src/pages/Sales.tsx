@@ -577,7 +577,7 @@ function CustomerPaymentDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={close}>{text('Cancel','বাতিল')}</Button>
-          <Button disabled={!customer || !Number.isFinite(amountNumber) || amountNumber <= 0} onClick={() => {
+          <Button size="lg" disabled={!customer || !Number.isFinite(amountNumber) || amountNumber <= 0} onClick={() => {
             if (onSave({ customer, amount, method, account, allocation })) close();
           }}>{text('Save payment','পেমেন্ট লিখুন')}</Button>
         </DialogFooter>
@@ -1489,7 +1489,7 @@ export function Sales() {
                       <p className="text-[11px] text-ink-400">{sl('Return amount')}</p>
                       <p className="text-base font-semibold text-ink">{includesBundleReturn&&selectedBundlePlans.some(p=>p.refundEstimate===null)?text('Pending historical price','আগের মূল্য যাচাই বাকি'):taka(returnAmount)}</p>
                     </div>
-                    <Button disabled={!includesBundleReturn&&returnIssues.length>0} onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
+                    <Button size="lg" disabled={!includesBundleReturn&&returnIssues.length>0} onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
                       text('Preview return only','শুধু ফেরত প্রিভিউ'):sl('Complete return')}</Button>
                     {!includesBundleReturn&&returnIssues.length>0&&<p role="alert" className="text-xs text-danger sm:col-span-3">{text('Check the remaining return quantity and original serials. A historical net refund allocation is required.','অবশিষ্ট ফেরত পরিমাণ ও আগের সিরিয়াল যাচাই করুন। আগের ফেরত মূল্যের তথ্য প্রয়োজন।')}</p>}
                     {!includesBundleReturn&&<p role="note" className="text-xs text-ink-500 sm:col-span-3">{text('Historical net price only. This session preview does not post refunds, stock or ledger entries.','শুধু আগের বিক্রির মূল্য। এই সেশনের প্রিভিউতে টাকা ফেরত, স্টক বা খাতায় জমা হবে না।')}</p>}
@@ -1608,7 +1608,7 @@ export function Sales() {
                 <p className="text-[13px] font-medium text-ink">{sl('Customer payments & credit')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span>}</p>
                 <p className="mt-0.5 text-[11px] text-ink-500">{sl("Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.")}</p>
               </div>
-              <Button size="sm" onClick={() => setCustomerPaymentOpen(true)}>
+              <Button size="lg" onClick={() => setCustomerPaymentOpen(true)}>
                 <Plus className="size-4" /> {sl("Receive customer payment")}
               </Button>
             </div>
