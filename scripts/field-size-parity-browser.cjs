@@ -1,8 +1,7 @@
 /* Read-only rendered ERP component size survey.
  * Run: npm run test:field-size-parity
  * Optional: FIELD_SIZE_REPORT=/tmp/hisabiq-field-size.json
- * Checks 22 live routes at 390/768/1440px; intentionally ignores POS cart
- * internals, numeric steppers and explicitly compact inline fields.
+ * Checks 22 routes at 390/768/1440px; control heights should always be 36px.
  */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
@@ -16,7 +15,6 @@ const routes = [
 ];
 const widths = [390, 768, 1440];
 const failures = [], report = [];
-const near = (a,b) => Math.abs(a-b) <= 2;
 async function scan(page, route, width, surface = 'page') {
   const result = await page.evaluate(() => {
     const controls = [], violations = [];
@@ -25,32 +23,27 @@ async function scan(page, route, width, surface = 'page') {
       return r.height > 0 && r.width > 0 && style.display !== 'none' &&
         style.visibility !== 'hidden';
     };
-    const coarse = matchMedia('(pointer: coarse)').matches;
     const candidates = document.querySelectorAll(
       '[data-hisabiq-input],button[data-hisabiq-select],'+
-      '[data-hisabiq-numeric],[data-hisabiq-field-shell]'
+      '[data-hisabiq-numeric],[data-hisabiq-field-shell],'+
+      '.hisabiq-button,button[data-slot="button"],input[data-slot="input"],select'
     );
     for (const el of candidates) {
-      if (!visible(el) || el.closest('[data-cart-row]') || el.hasAttribute('data-compact-control')) continue;
+      if (!visible(el) || el.closest('[data-number-stepper]')) continue;
+      if (el.closest('[data-numeric-input]') && !el.hasAttribute('data-hisabiq-numeric')) continue;
       if (el.closest('[data-numeric-joined]') && !el.hasAttribute('data-hisabiq-field-shell')) continue;
-      if (el.hasAttribute('data-hisabiq-compact')) continue;
       const rect = el.getBoundingClientRect();
-      const type = el.hasAttribute('data-hisabiq-input') ? 'input'
+      const type = el.matches('button[data-slot="button"]') ? 'button' : el.hasAttribute('data-hisabiq-input') ? 'input'
         : el.hasAttribute('data-hisabiq-select') ? 'select'
         : el.hasAttribute('data-hisabiq-numeric') ? 'numeric' : 'joined';
       const product = el.closest('.product-form');
       const ledger = el.closest('[data-hisabiq-field-group="party-ledger"]');
       const context = product ? 'product-editor' : ledger ? 'party-ledger' : 'standard';
-      const expected = product ? Number.parseFloat(getComputedStyle(product).getPropertyValue('--ctl-h'))
-        : ledger && innerWidth < 768 && type !== 'numeric' ? 40
-        : coarse ? 44 : 36;
+      const expected = 36;
       const actual = Math.round(rect.height * 10) / 10;
-      // Some forms explicitly request h-10/h-12. Record those but do not
-      // call them regressions without knowing the local layout intent.
-      const explicit = /(?:^|\s)!?h-(?:8|10|11|12)(?:\s|$)/.test(el.className || '');
-      controls.push({ type, context, actual, expected, explicit,
+      controls.push({ type, context, actual, expected,
         aria: el.getAttribute('aria-label') || el.getAttribute('placeholder') || '' });
-      if (!explicit && Math.abs(actual - expected) > 2)
+      if (Math.abs(actual - expected) > 2)
         violations.push({ type, context, actual, expected, aria: el.getAttribute('aria-label') || '' });
     }
     return { controls, violations };
