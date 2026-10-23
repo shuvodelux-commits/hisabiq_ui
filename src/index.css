@@ -669,11 +669,24 @@
   border-color: var(--destructive);
   box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
 }
+/* Some legacy forms still use a native select instead of FormSelect. */
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+  select:not(:where([data-numeric-joined] select, [data-cart-row] select)):is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
+}
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+  select[aria-invalid="true"]:is(:focus, :focus-visible) {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
+}
 /* One amount/unit shell owns the focus treatment; nested editors do not
    add a second ring or alter the combined field's square internal corners. */
 :root:root [data-numeric-joined] [data-hisabiq-numeric],
 :root:root [data-numeric-joined] [data-hisabiq-select] {
   border-radius: 0;
+  outline: none;
   box-shadow: none;
 }
 :root:root [data-hisabiq-select][data-hisabiq-compact] {
