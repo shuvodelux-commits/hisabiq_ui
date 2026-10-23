@@ -146,7 +146,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
               key={mode} type="button" variant={active?'default':'outline'}
               aria-pressed={active}
               onClick={()=>props.installment?.onModeChange(mode)}
-              className={'h-10 w-full min-w-0 rounded-md px-1 text-[12px] font-semibold '+
+              className={'h-9 w-full min-w-0 rounded-md px-1 text-[12px] font-semibold '+
                 (active?'':'border-primary/15 bg-primary/10 text-teal-700 hover:bg-primary/15')}>
               {mode==='Regular'?text('Regular sale','সাধারণ বিক্রি'):text('Installment sale','কিস্তিতে বিক্রি')}
             </Button>;
@@ -213,7 +213,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <div className="flex items-center justify-between gap-3 text-sm text-ink-700">
           <span>{word("discount")}</span>
           <div className="flex items-center gap-1">
-            <div className="flex h-8 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("discount")}>
+            <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("discount")}>
               {(['amount', 'percent'] as DiscountMode[]).map((mode) => (
                 <button
                   key={mode}
@@ -231,7 +231,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
               onChange={(event) => props.onDiscount(event.target.value)}
               placeholder="0"
               inputMode="decimal"
-              className="h-8 w-24 rounded-md border border-border px-2 text-right text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="h-9 w-24 rounded-md border border-border px-2 text-right text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
           </div>
         </div>
@@ -320,11 +320,11 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         </div>
 
         <div className="flex flex-wrap gap-1.5">
-          {props.installment?.mode!=='Installment' && <button onClick={() => setSinglePayment(totals.total)} className="h-8 rounded-md border border-teal-200 bg-teal-50 px-2.5 text-xs font-medium text-teal-800 hover:bg-teal-100">
+          {props.installment?.mode!=='Installment' && <button onClick={() => setSinglePayment(totals.total)} className="h-9 rounded-md border border-teal-200 bg-teal-50 px-2.5 text-xs font-medium text-teal-800 hover:bg-teal-100">
             {word("exact")}
           </button>}
           {quick.map((amount) => (
-            <button key={amount} onClick={() => setSinglePayment(amount, 'Cash')} className="h-8 rounded-md border border-border px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+            <button key={amount} onClick={() => setSinglePayment(amount, 'Cash')} className="h-9 rounded-md border border-border px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
               ৳{formatNumber(amount)}
             </button>
           ))}
@@ -358,7 +358,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           ref={props.completeRef}
           onClick={props.onComplete}
           disabled={totals.total === 0 || dueWithoutCustomer || Boolean(props.validationError) || (props.installment?.mode==='Installment' && !customer)}
-          className="h-12 w-full text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
+          className="h-9 w-full text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
           {props.completeLabel ?? word('completeSale')} · {taka(totals.total)}
           <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>

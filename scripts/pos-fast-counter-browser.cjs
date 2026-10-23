@@ -125,7 +125,7 @@ async function main(){
             await quickAdd.getByRole('button',{name:labels('Cancel','বাতিল')}).click();
             await quickAdd.waitFor({state:'hidden'});
             assert.equal(await name.inputValue(),'Fast Counter Test',contextId+' cancel quick add keeps draft');
-            // Selected customer stays a compact 40px two-line picker: full ledger due is inline.
+            // Selected customer stays a compact 36px two-line picker: full ledger due is inline.
             const customerPicker=checkout.getByTestId('pos-customer-picker-trigger');
             await customerPicker.click();
             const search=page.getByTestId('pos-customer-picker-search');
@@ -160,7 +160,7 @@ async function main(){
                 dueRight:d.right,dueLeft:d.left,dueScroll:due.scrollWidth-due.clientWidth,
                 clearParent:clear.parentElement===picker.parentElement,viewport:innerWidth};
             });
-            assert.ok(geometry.pickerHeight>=39&&geometry.pickerHeight<=41,contextId+' picker remains 40px compact');
+            assert.ok(Math.abs(geometry.pickerHeight-36)<=1,contextId+' picker follows the 36px ERP standard');
             assert.ok(geometry.clearParent&&geometry.clearRight<geometry.plusLeft,contextId+' X stays inside selector, before +');
             assert.ok(geometry.dueLeft>=0&&geometry.dueRight<=geometry.pickerRight+1&&geometry.dueScroll<=1,
               contextId+' inline due is fully visible: '+JSON.stringify(geometry));

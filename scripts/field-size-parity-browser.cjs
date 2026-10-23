@@ -17,7 +17,7 @@ const widths = [390, 768, 1440];
 const failures = [], report = [];
 async function scan(page, route, width, surface = 'page') {
   const result = await page.evaluate(() => {
-    const controls = [], violations = [];
+    const controls = [], violations = [], nativeOutliers = [];
     const visible = el => {
       const r = el.getBoundingClientRect(), style = getComputedStyle(el);
       return r.height > 0 && r.width > 0 && style.display !== 'none' &&
@@ -33,7 +33,7 @@ async function scan(page, route, width, surface = 'page') {
       if (el.closest('[data-numeric-input]') && !el.hasAttribute('data-hisabiq-numeric')) continue;
       if (el.closest('[data-numeric-joined]') && !el.hasAttribute('data-hisabiq-field-shell')) continue;
       const rect = el.getBoundingClientRect();
-      const type = el.matches('button[data-slot="button"]') ? 'button' : el.hasAttribute('data-hisabiq-input') ? 'input'
+      const type = el.matches('button[data-slot="button"],.hisabiq-button') ? 'button' : el.hasAttribute('data-hisabiq-input') ? 'input'
         : el.hasAttribute('data-hisabiq-select') ? 'select'
         : el.hasAttribute('data-hisabiq-numeric') ? 'numeric' : 'joined';
       const product = el.closest('.product-form');
@@ -46,7 +46,24 @@ async function scan(page, route, width, surface = 'page') {
       if (Math.abs(actual - expected) > 2)
         violations.push({ type, context, actual, expected, aria: el.getAttribute('aria-label') || '' });
     }
-    return { controls, violations };
+    // Inventory legacy native controls that do not have a shared marker.
+    // Keep separate from hard failures: tabs, rich result rows and inline
+    // record links can require different geometry and manual classification.
+    for (const el of document.querySelectorAll('button,input,select')) {
+      if (!visible(el) || el.matches('[data-slot],[data-hisabiq-input],[data-hisabiq-select],.hisabiq-button')) continue;
+      if (el.closest('[data-number-stepper], [role="tablist"], [data-calculator], [data-cart-row], [data-dialog-overlay]')) continue;
+      if (el.matches('input[type="checkbox"],input[type="radio"],input[type="file"],input[type="hidden"],input[type="range"]')) continue;
+      if (el.matches('button[role="menuitem"],button[role="menuitemcheckbox"],button[role="option"]')) continue;
+      if (el.classList.contains('numeric-input-control')) continue;
+      const r = el.getBoundingClientRect();
+      const actual = Math.round(r.height * 10) / 10;
+      if (Math.abs(actual - 36) > 2) nativeOutliers.push({
+        type:el.tagName.toLowerCase(), actual, name:el.getAttribute('aria-label') ||
+          el.textContent?.trim().replace(/\\s+/g,' ').slice(0,64) || '',
+        className:typeof el.className==='string'?el.className.slice(0,110):''
+      });
+    }
+    return { controls, violations, nativeOutliers };
   });
   report.push({ route, width, surface, ...result });
   failures.push(...result.violations.map(item=>({ route, width, surface, ...item })));
@@ -65,6 +82,8 @@ async function main() {
       for (const route of routes) {
         await page.goto('http://127.0.0.1:4992/#/app/'+route,{waitUntil:'domcontentloaded'});
         await page.locator('#erp-main').waitFor();
+        // Let lazy route modules and their visible filter controls mount.
+        await page.waitForTimeout(180);
         await scan(page,route,width);
         if (route === 'products') {
           const add = page.getByRole('button',{name:/Add product/i}).first();
@@ -82,6 +101,10 @@ async function main() {
   }
   const file = process.env.FIELD_SIZE_REPORT;
   if (file) {fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify({report,failures},null,2));}
+  const nativeByRoute = report.filter(row=>row.nativeOutliers.length).map(row=>({
+    route:row.route,width:row.width,surface:row.surface,count:row.nativeOutliers.length
+  }));
+  if (nativeByRoute.length) console.log('Native controls requiring review:',JSON.stringify(nativeByRoute.slice(0,50)));
   if (failures.length) console.error(JSON.stringify(failures.slice(0,40),null,2));
   assert.equal(failures.length,0,'Unexpected standalone field-height drift');
   console.log('Field size parity:',report.reduce((sum,r)=>sum+r.controls.length,0),'controls across',routes.length,'routes and',widths.join('/'),'px');

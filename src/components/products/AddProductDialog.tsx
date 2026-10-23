@@ -90,7 +90,7 @@ function ProductEditor({ onOpenChange, onSave, initialProduct, existingSerials =
     <div data-product-editor data-presentation={presentation} className={`product-form mx-auto w-full pb-5 ${presentation === 'page' ? 'max-w-[1440px]' : 'max-w-[920px] md:py-6'}`}>
       <header className={presentation === 'page' ? 'pb-4' : 'px-4 pb-4 pt-3 md:px-0 md:pt-0'}>
         <div className="mb-3 flex items-center gap-1.5 text-[13px] text-ink-500">
-          <Button type="button" variant="ghost" onClick={form.requestExit} className="-ml-2 h-11 gap-1 px-2 text-ink-600 md:h-9">
+          <Button type="button" variant="ghost" onClick={form.requestExit} className="-ml-2 h-9 gap-1 px-2 text-ink-600">
             <ArrowLeftIcon className="size-4" aria-hidden="true" />{t('Back', 'ফিরুন')}
           </Button>
           <span>{t('Products', 'পণ্য')}</span><ChevronRightIcon className="size-3.5" aria-hidden="true" /><span className="text-ink">{title}</span>

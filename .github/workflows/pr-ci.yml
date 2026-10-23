@@ -95,6 +95,10 @@ jobs:
         if: steps.scope.outputs.browser == 'true'
         run: node scripts/page-loading-browser.cjs
 
+      - name: ERP rendered 36px component audit
+        if: steps.scope.outputs.browser == 'true' && contains(github.event.pull_request.title, '36px')
+        run: npm run test:field-size-parity
+
       - name: POS fast checkout smoke
         if: steps.scope.outputs.pos == 'true'
         run: npm run test:pos-fast-counter

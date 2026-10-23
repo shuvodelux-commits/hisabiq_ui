@@ -241,7 +241,7 @@ export function AuditEditDialog({
                     <div key={index} className="grid grid-cols-[1fr_130px_32px] gap-2">
                       <FormSelect value={payment.account} onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, account: event.target.value } : item))} options={moneyAccountNames} />
                       <Input className="text-right" inputMode="decimal" value={payment.amount} onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))} placeholder="0" />
-                      <button type="button" onClick={() => setPayments((current) => current.filter((_, i) => i !== index))} className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger" aria-label={text("Remove payment","পেমেন্ট সরান")}><Trash2 className="size-3.5" /></button>
+                      <button type="button" onClick={() => setPayments((current) => current.filter((_, i) => i !== index))} className="flex size-9 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger" aria-label={text("Remove payment","পেমেন্ট সরান")}><Trash2 className="size-3.5" /></button>
                     </div>
                   ))}
                   <div className="flex justify-between border-t border-border pt-2 text-[11px] text-ink-500">

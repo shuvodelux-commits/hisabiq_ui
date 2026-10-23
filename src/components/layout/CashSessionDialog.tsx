@@ -92,7 +92,7 @@ export function CashSessionDialog() {
         <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
           <div>
             {countMode==='total'?<label className="block text-sm font-medium text-ink">{text('Cash counted','হাতে গোনা টাকা')}{showHelper && <span className="font-bn font-normal text-ink-500"> · হাতে গোনা টাকা</span>}
-             <Input aria-label={text("Cash counted","হাতে গোনা টাকা")} className="mt-2 h-11 text-right text-lg" inputMode="decimal" value={total} onChange={event=>setTotal(event.target.value)} placeholder="৳0.00"/>
+             <Input aria-label={text("Cash counted","হাতে গোনা টাকা")} className="mt-2 h-9 text-right text-lg" inputMode="decimal" value={total} onChange={event=>setTotal(event.target.value)} placeholder="৳0.00"/>
              <span className="mt-2 block text-xs font-normal text-ink-500">{text('Count the cash in your drawer, then enter the total.','ড্রয়ারের টাকা গুনে মোট অঙ্কটি লিখুন।')}</span>
             </label>:<><p className="mb-2 text-xs font-medium uppercase tracking-wider text-ink-400">{text('Count drawer','ড্রয়ারের ক্যাশ গুনুন')}</p>
             <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
@@ -106,7 +106,7 @@ export function CashSessionDialog() {
                       aria-label={`${text("Number of notes","নোটের সংখ্যা")} ৳${d}`}
                       value={counts[d] ?? ''}
                       onChange={(e) => setCounts({ ...counts, [d]: e.target.value.replace(/\D/g, '') })}
-                      className="h-11 w-20 text-right sm:h-9"
+                      className="h-9 w-20 text-right"
                       inputMode="numeric"
                       placeholder="0" />
                     

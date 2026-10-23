@@ -144,7 +144,7 @@ export function TopBar() {
 
           {state.sections.money.cashSession && <button
             onClick={() => setOpen(true)}
-            className="hidden h-8 items-center gap-2 rounded-lg border border-border px-2.5 text-[13px] text-ink-700 transition-colors hover:bg-ink-50 sm:flex">
+            className="hidden h-9 items-center gap-2 rounded-lg border border-border px-2.5 text-[13px] text-ink-700 transition-colors hover:bg-ink-50 sm:flex">
             
             <span className={`size-2 rounded-full ${sessionOpen ? 'bg-success' : 'bg-ink-300'}`} aria-hidden="true" />
             <Wallet className="size-3.5 text-ink-400" aria-hidden="true" />
@@ -167,7 +167,7 @@ export function TopBar() {
               onClick={toggle}
               aria-label={text("Calculator","ক্যালকুলেটর")}
               aria-expanded={open}
-              className={`flex size-8 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink ${open ? 'bg-ink-50 text-ink' : ''}`}>
+              className={`flex size-9 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink ${open ? 'bg-ink-50 text-ink' : ''}`}>
               
                 <CalculatorIcon className="size-4" />
               </button>
@@ -184,7 +184,7 @@ export function TopBar() {
               onClick={toggle}
               aria-label={text("Notifications","নোটিফিকেশন")}
               aria-expanded={open}
-              className={`relative flex size-8 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink ${open ? 'bg-ink-50 text-ink' : ''}`}>
+              className={`relative flex size-9 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink ${open ? 'bg-ink-50 text-ink' : ''}`}>
               
                 <Bell className="size-4" />
                 {/* Preview notices have no read-state tracking: do not imply unread messages. */}
@@ -247,17 +247,17 @@ export function TopBar() {
               { icon: Languages, label: text('Language','ভাষা') + ': ' + (language === 'Bangla' ? 'বাংলা' : language === 'English + Bangla' ? 'English + বাংলা' : 'English'), route: '/app/settings/personal' },
               { icon: Settings, label: text('Business settings','ব্যবসার সেটিংস'), route: '/app/settings/business' }].
               map(({ icon: Icon, label, route }) =>
-              <button key={route + label} onClick={() => { close(); navigate(route); }} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
+              <button key={route + label} onClick={() => { close(); navigate(route); }} className="flex h-9 w-full items-center gap-2 rounded-md px-2.5 py-1 text-ink-700 hover:bg-ink-50">
                     <Icon className="size-4 text-ink-400" /> <span className="font-bn">{label}</span>
                   </button>
               )}
-                <Link to="/design-system" onClick={close} className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-700 hover:bg-ink-50">
+                <Link to="/design-system" onClick={close} className="flex h-9 w-full items-center gap-2 rounded-md px-2.5 py-1 text-ink-700 hover:bg-ink-50">
                   <Palette className="size-4 text-ink-400" /> {text("Brand guide","ব্র্যান্ড গাইড")}
                 </Link>
                 <div className="my-1 h-px bg-ink-100" />
                 <button type="button" disabled aria-disabled="true"
                   title={text("Sign out is not available in the UI preview","UI প্রিভিউতে সাইন আউট চালু নেই")}
-                  className="flex w-full cursor-not-allowed items-center gap-2 rounded-md px-2.5 py-1.5 text-ink-400 opacity-70">
+                  className="flex h-9 w-full cursor-not-allowed items-center gap-2 rounded-md px-2.5 py-1 text-ink-400 opacity-70">
                   <LogOut className="size-4" /> {text("Sign out (preview only)","সাইন আউট (শুধু প্রিভিউ)")}
                 </button>
               </div>
