@@ -312,6 +312,7 @@ export function SearchSelect({
       <div ref={groupRef} className="flex min-w-0">
         <button
           ref={triggerRef}
+          data-hisabiq-select=""
           id={id}
           data-value={value}
           disabled={disabled}
@@ -335,7 +336,7 @@ export function SearchSelect({
           }}
           className={
             'flex h-[var(--ctl-h,36px)] min-w-0 flex-1 items-center gap-2 border bg-card px-3 text-left text-[length:var(--ctl-fs,14px)] text-ink transition-colors duration-150 ease-out hover:bg-ink-50 ' +
-            'rounded-md ' + (invalid ? 'border-danger' : 'border-input')
+            'rounded-lg ' + (invalid ? 'border-danger' : 'border-border')
           }
         >
           <span id={`${id}-value`} className={'min-w-0 flex-1 truncate ' + (selected ? '' : 'text-ink-400')}>
