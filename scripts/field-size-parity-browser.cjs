@@ -82,6 +82,8 @@ async function main() {
       for (const route of routes) {
         await page.goto('http://127.0.0.1:4992/#/app/'+route,{waitUntil:'domcontentloaded'});
         await page.locator('#erp-main').waitFor();
+        // Let lazy route modules and their visible filter controls mount.
+        await page.waitForTimeout(180);
         await scan(page,route,width);
         if (route === 'products') {
           const add = page.getByRole('button',{name:/Add product/i}).first();
