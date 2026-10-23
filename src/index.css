@@ -656,6 +656,20 @@
   border-color: var(--destructive);
   box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
 }
+/* Legacy native text fields share the same focus language without
+   changing their sizes or the geometry of carts, calculators and joined inputs. */
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not([data-hisabiq-input]):not([data-calculator-input]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input, [data-slot="input-group"] input))
+:is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
+}
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not([data-hisabiq-input]):not([data-calculator-input]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input, [data-slot="input-group"] input))[aria-invalid="true"]:is(:focus, :focus-visible) {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
+}
 /* One amount/unit shell owns the focus treatment; nested editors do not
    add a second ring or alter the combined field's square internal corners. */
 :root:root [data-numeric-joined] [data-hisabiq-numeric],
