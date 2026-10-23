@@ -49,7 +49,7 @@ async function main() {
       await receive.waitFor();
       assert.ok((await receive.evaluate(node => node.getBoundingClientRect().height)) >= 44,
         'Receiving customer payment must use the prominent contextual size');
-      await page.getByRole('tab', { name: /^sales(?:\\s|$)|^বিক্রি/i }).first().click();
+      await page.getByRole('tab', { name: /^sales(?:\s|$)|^বিক্রি/i }).first().click();
       if (width >= 768) {
         // Desktop Sales keeps its existing collapsed-filter behavior.
         const filters = page.getByRole('button', { name: /filters|ফিল্টার/i }).first();
