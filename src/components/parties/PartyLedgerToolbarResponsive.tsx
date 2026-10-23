@@ -46,9 +46,9 @@ export function PartyLedgerToolbarResponsive({range,onRange,kind,onKind,query,on
       <div className="min-w-0 md:order-4"><AppSelect menuStyle="rows" label={text('Rows per page','প্রতি পাতায়')} value={String(pageSize)}
         options={['5','10','25','50','100']} onChange={value=>onPageSize(Number(value))}/></div>
       <div className="col-span-2 flex min-w-0 items-center gap-2 md:order-5 md:col-span-1 md:ml-auto">
-        <Button size="sm" variant="outline" className="h-10 min-h-10 flex-1 md:h-9 md:min-h-9 md:flex-none" onClick={onReset}
+        <Button size="sm" variant="outline" data-ledger-filter-action="" className="h-10 min-h-10 flex-1 md:h-9 md:min-h-9 md:flex-none" onClick={onReset}
           title={text('Clear filters','ফিল্টার মুছুন')}><RotateCcw className="size-3.5" />{text('Clear filters','ফিল্টার মুছুন')}</Button>
-        <Button size="sm" variant="outline" className="h-10 min-h-10 flex-1 md:h-9 md:min-h-9 md:flex-none" onClick={onStatement}>
+        <Button size="sm" variant="outline" data-ledger-filter-action="" className="h-10 min-h-10 flex-1 md:h-9 md:min-h-9 md:flex-none" onClick={onStatement}>
           <Printer className="size-3.5" />{text('Print statement','হিসাব প্রিন্ট')}</Button>
       </div>
     </div>
