@@ -11,7 +11,7 @@ test('ERP-wide button polish retains existing component events and variants', ()
     assert.ok(button.includes(value), value);
   }
   for (const value of ['data-hisabiq-variant="outline"', 'data-hisabiq-variant="secondary"',
-    'background-color: var(--card)', 'min-height: 40px', 'data-hisabiq-size="sm"']) {
+    'background-color: var(--card)', '--erp-control-height: 36px', 'height: var(--erp-control-height) !important']) {
     assert.ok(css.includes(value), value);
   }
   assert.ok(css.includes('data-cart-row'));
