@@ -22,7 +22,7 @@ export function SalesMobileSummary({ items, primary = [0, 2] }: { items: SalesMo
   return <section aria-label={text('Sales summary', 'বিক্রির সারাংশ')} className="sales-mobile-summary border-y border-border py-2">
     <div className="flex items-center gap-2">
       <dl className="grid min-w-0 flex-1 grid-cols-2 gap-3">{items.filter((_, index) => primary.includes(index)).map(metric)}</dl>
-      <Button variant="ghost" size="sm" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)} className="h-10 gap-1 px-1.5 text-xs text-ink-500">
+      <Button variant="ghost" size="sm" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)} className="h-9 gap-1 px-1.5 text-xs text-ink-500">
         {text('Summary', 'সারাংশ')}<ChevronDown className={`size-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" />
       </Button>
     </div>
@@ -33,7 +33,7 @@ export function SalesMobileSummary({ items, primary = [0, 2] }: { items: SalesMo
 }
 
 export function SalesMobileMore({ label, children, outlined = false }: { label: string; outlined?: boolean; children: (close: () => void) => ReactNode }) {
-  return <FloatingPanel label={label} width={240} trigger={({ toggle, open }) => <Button data-compact-control variant={outlined ? 'outline' : 'ghost'} size="sm" aria-label={label} aria-expanded={open} onClick={toggle} className="size-10 shrink-0 p-0">
+  return <FloatingPanel label={label} width={240} trigger={({ toggle, open }) => <Button data-compact-control variant={outlined ? 'outline' : 'ghost'} size="sm" aria-label={label} aria-expanded={open} onClick={toggle} className="size-9 shrink-0 p-0">
     <MoreHorizontal className="size-4" aria-hidden="true" />
   </Button>}>
     {close => <div className="sales-mobile-tools space-y-1 p-2">{children(close)}</div>}
@@ -51,7 +51,7 @@ export function SalesMobileToolbar({ search, filters, actions, activeCount, onCl
   return <div className="sales-mobile-toolbar border-b border-border p-3">
     <div className="flex min-w-0 items-center gap-1.5">
       <div className="min-w-0 flex-1">{search}</div>
-      <Button variant="outline" size="sm" className="h-10 gap-1 px-2" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)}>
+      <Button variant="outline" size="sm" className="h-9 gap-1 px-2" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)}>
         <SlidersHorizontal className="size-3.5" aria-hidden="true" />{text('Filters', 'ফিল্টার')}{activeCount > 0 && <span className="text-teal-700">{activeCount}</span>}
       </Button>
       {actions && <SalesMobileMore outlined label={text('List actions', 'তালিকার অন্যান্য কাজ')}>{actions}</SalesMobileMore>}
@@ -61,7 +61,7 @@ export function SalesMobileToolbar({ search, filters, actions, activeCount, onCl
     </motion.div>}</AnimatePresence>
     <div className="mt-1 flex min-h-5 flex-wrap items-center justify-between gap-1 text-xs text-ink-500">
       <span aria-live="polite">{result}</span>
-      {activeCount > 0 && <Button variant="ghost" size="sm" className="h-8 px-1 text-xs text-teal-700" onClick={onClear}>{text('Clear filters', 'ফিল্টার মুছুন')}</Button>}
+      {activeCount > 0 && <Button variant="ghost" size="sm" className="h-9 px-1 text-xs text-teal-700" onClick={onClear}>{text('Clear filters', 'ফিল্টার মুছুন')}</Button>}
     </div>
   </div>;
 }
@@ -101,7 +101,7 @@ export function SalesMobileDisclosure({ title, children }: { title: string; chil
   const id = useId();
   if (!mobile) return <>{children}</>;
   return <section className="sales-mobile-disclosure min-w-0">
-    <Button variant="ghost" className="h-auto min-h-10 w-full justify-between gap-2 whitespace-normal text-left text-[13px]" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)}>
+    <Button variant="ghost" className="h-9 min-h-9 w-full justify-between gap-2 whitespace-normal text-left text-[13px]" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)}>
       {title}<ChevronDown className={`size-4 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" />
     </Button>
     <div id={id} hidden={!expanded}>{children}</div>

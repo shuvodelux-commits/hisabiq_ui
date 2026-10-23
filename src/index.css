@@ -94,22 +94,8 @@
 [data-sonner-toast]:not(:has(button, a, input, select, textarea, [role="button"])) {
   pointer-events: none;
 }
-/* Coarse-pointer sizing belongs to full-size form controls and primary actions,
-   never every native button: ledger links, row menus, filter icons, clear (x)
-   buttons and compact tabs must retain their own visual heights on touch devices.
-   Table editors also keep their component-defined height. */
-@media (pointer: coarse) {
-  :where(.erp-workspace, [data-dialog-root])
-    .hisabiq-button:not([data-compact-control]):not([data-hisabiq-size="sm"]):not([data-hisabiq-size="icon"]):not([data-hisabiq-size="icon-sm"]),
-  :where(.erp-workspace, [data-dialog-root])
-    button[role="combobox"]:not([data-compact-control]) {
-    min-height: 44px;
-  }
-  :where(.erp-workspace, [data-dialog-root])
-    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([data-compact-control]):not(:where(td input, th input, [data-numeric-joined] input)) {
-    min-height: 44px;
-  }
-}
+/* HisabIQ control height is 36px on all screens and pointer types. Detailed
+   sizing is owned by the canonical control block below, not touch overrides. */
 
 /* ERP field centering: preserve natural left/right text alignment while aligning
    legacy inline controls with their labels and adjoining action buttons. */
@@ -119,24 +105,8 @@
   button[role="combobox"]
 ) { vertical-align: middle; }
 
-/* Coarse-pointer min-height is for standalone touch targets. Joined amount/unit
-   and compound quantity fields have ONE sized outer shell. Allowing each inner
-   control to grow to 44px independently spills it outside that shell and makes
-   the text, unit selector and borders look off-center on tablets and phones. */
-@media (pointer: coarse) {
-  :where(.erp-workspace, [data-dialog-root]) [data-numeric-joined]
-  :is(input:not([type="checkbox"]):not([type="radio"]), button[role="combobox"]) {
-    min-height: 0 !important;
-  }
-  /* Preserve the full 44px touch target on the combined field itself. Cart
-     compound editors keep their existing breakpoint-specific 36/40/44px size. */
-  :where(.erp-workspace, [data-dialog-root]) [data-field-shell="money-unit"] {
-    height: 44px;
-  }
-  :where(.erp-workspace, [data-dialog-root]) [data-field-shell="money-unit"] button[role="combobox"] {
-    height: 100%;
-  }
-}
+/* Joined inputs retain a single 36px outer shell and natural inner sizing.
+   Stepper arrow halves do not receive the standalone control height. */
 
 /* The same transaction controls become compact rows on phones and tablets. */
 [data-cart-field] { display: contents; }
@@ -162,9 +132,9 @@
     content: attr(data-cart-field); display: block; margin-bottom: 4px;
     font-size: 11px; font-weight: 500; color: var(--muted-foreground);
   }
-  [data-cart-row] input, [data-cart-row] button { min-height: 44px; }
+  [data-cart-row] input, [data-cart-row] button { min-height: var(--erp-control-height); }
   [data-cart-row] [data-testid="compound-quantity"], [data-cart-row] [data-testid="single-quantity"],
-  [data-cart-row] [role="radiogroup"] { height: 44px; }
+  [data-cart-row] [role="radiogroup"] { height: var(--erp-control-height); }
   [data-cart-kind] [data-cart-add] { min-width: 0; grid-template-columns: 36px minmax(0, 1fr); }
   [data-cart-add] > :nth-child(n+3) { display: none; }
 }
@@ -217,7 +187,7 @@
 .numeric-input-control::-webkit-inner-spin-button,
 .numeric-input-control::-webkit-outer-spin-button { appearance: none; margin: 0; }
 @media (pointer: coarse) {
-  /* Preserve each field's own 32/36/44px height instead of globally forcing 48px. */
+  /* Keep inner stepper buttons half-height while the outer control is 36px. */
   [data-number-stepper] { width: 20px; }
 }
 @media (max-width: 639px) {
@@ -338,7 +308,7 @@
   [data-cart-kind="sale"] [data-cart-row] button { min-height: 0; }
   [data-cart-kind="sale"] [data-cart-row] [data-testid="compound-quantity"],
   [data-cart-kind="sale"] [data-cart-row] [data-testid="single-quantity"],
-  [data-cart-kind="sale"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="sale"] [data-cart-row] [role="radiogroup"] { height: var(--erp-control-height); }
   [data-cart-kind="sale"] [data-cart-row] > :nth-child(7) { width: 30px; height: 34px; }
   [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) [role="radiogroup"] { min-width: 0; }
   [data-cart-kind="sale"] [data-cart-add] {
@@ -460,7 +430,7 @@
   [data-cart-kind="purchase"] [data-cart-row] button { min-height: 0; }
   [data-cart-kind="purchase"] [data-cart-row] [data-testid="compound-quantity"],
   [data-cart-kind="purchase"] [data-cart-row] [data-testid="single-quantity"],
-  [data-cart-kind="purchase"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="purchase"] [data-cart-row] [role="radiogroup"] { height: var(--erp-control-height); }
   [data-cart-kind="purchase"] [data-cart-row] > :nth-child(n + 3):nth-child(-n + 6)::before {
     display: block; margin-bottom: 3px; font-size: 10px; line-height: 12px;
     color: var(--muted-foreground); font-weight: 500;
@@ -515,7 +485,7 @@
   [data-cart-kind="shared"] [data-cart-row] button { min-height: 0; }
   [data-cart-kind="shared"] [data-cart-row] [data-testid="compound-quantity"],
   [data-cart-kind="shared"] [data-cart-row] [data-testid="single-quantity"],
-  [data-cart-kind="shared"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="shared"] [data-cart-row] [role="radiogroup"] { height: var(--erp-control-height); }
   [data-cart-kind="shared"] [data-cart-row] > :nth-child(n + 3):nth-child(-n + 5)::before {
     display: block; margin-bottom: 3px; font-size: 10px; line-height: 12px;
     color: var(--muted-foreground); font-weight: 500;
@@ -541,30 +511,31 @@
   }
 }
 
-/* Approved Magic Patterns Add Product layout. */
+/* Add Product uses the universal 36px field height on every device. */
 .product-form {
-  --ctl-h: 40px;
+  --ctl-h: var(--erp-control-height);
   --ctl-fs: 14px;
   --label-fs: 13px;
   font-feature-settings: normal;
 }
 @media (max-width: 767px), (pointer: coarse) {
-  .product-form { --ctl-h: 44px; --ctl-fs: 16px; --label-fs: 14px; }
+  .product-form { --ctl-fs: 16px; --label-fs: 14px; }
 }
-.product-form [data-field-shell="money-unit"] { height: var(--ctl-h) !important; }
+.product-form [data-field-shell="money-unit"] { height: var(--ctl-h); }
 .product-form :not([data-numeric-joined]) > [data-numeric-input] { height: var(--ctl-h); }
 .product-form :not([data-numeric-input]) > input[data-slot="input"] { height: var(--ctl-h); }
+.product-form button[data-hisabiq-select]:not([data-hisabiq-compact]) { height: var(--ctl-h); }
 .product-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 .product-form textarea,
 .product-form [data-numeric-joined] button[role="combobox"] { font-size: var(--ctl-fs); }
 /* Columns follow the form's real width (sidebar, rail, rotation), not the device. */
 .pf-container { container: pf / inline-size; }
-.pf-unit-row { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 12px; align-items: end; }
+.pf-unit-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 12px; align-items: end; }
 .pf-unit-select { grid-column: 1; }
 .pf-unit-ratio { grid-column: 1 / -1; grid-row: 2; }
 .pf-unit-remove { grid-column: 2; grid-row: 1; }
 @container pf (min-width: 600px) {
-  .pf-unit-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px; }
+  .pf-unit-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px; }
   .pf-unit-ratio { grid-column: 2; grid-row: 1; }
   .pf-unit-remove { grid-column: 3; }
 }
@@ -585,30 +556,160 @@
 }
 
 
-/* Magic Patterns-inspired, shared HisabIQ button polish.
-   Excludes icon-only controls, numeric steppers and compact POS cart rows. */
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:not([data-hisabiq-size="icon"]):not([data-hisabiq-size="icon-sm"]) {
-  min-height: 40px;
-  padding-inline: max(0.75rem, 10px);
+/* Component control dimensions: one shared size, not action-priority tiers.
+   Input, Button, numeric, select and date controls all render at 36px;
+   the same policy holds at phone, tablet and desktop widths. */
+:root { --erp-control-height: 36px; }
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+.hisabiq-button {
+  height: var(--erp-control-height) !important;
+  min-height: var(--erp-control-height) !important;
+  max-height: var(--erp-control-height);
   border-radius: 0.625rem;
+  padding-inline: max(0.75rem, 10px);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button[data-hisabiq-size="sm"] {
-  min-height: 36px;
+/* Icon-only controls are also 36 x 36, regardless of legacy icon-xs/sm/lg. */
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+:is(.hisabiq-button[data-hisabiq-size^="icon"], button[data-slot="button"][data-size^="icon"]) {
+  width: var(--erp-control-height) !important;
+  min-width: var(--erp-control-height);
+  padding-inline: 0;
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+.hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
   background-color: var(--card);
   border: 1px solid var(--border);
   color: var(--foreground);
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]):is(:hover,:focus-visible):not(:disabled) {
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+.hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]):is(:hover,:focus-visible):not(:disabled) {
   background-color: var(--card);
   border-color: var(--teal-300);
   box-shadow: 0 1px 4px rgb(var(--color-ink) / 0.06);
 }
-:where(.erp-workspace, [data-dialog-root]) [data-cart-row] .hisabiq-button {
-  min-height: 0;
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+:is(
+  input[data-slot="input"]:not(.numeric-input-control),
+  button[data-slot="button"],
+  button[role="combobox"],
+  [data-hisabiq-input],
+  button[data-hisabiq-select],
+  [data-hisabiq-numeric],
+  [data-hisabiq-field-shell],
+  select,
+  [data-ledger-filter-action],
+  [data-sales-column-trigger]
+) {
+  box-sizing: border-box;
+  height: var(--erp-control-height) !important;
+  min-height: var(--erp-control-height) !important;
+  max-height: var(--erp-control-height);
 }
+/* Native text fields used in older forms still share the same 36px baseline.
+   Leave checkboxes, radio buttons, multiline textarea, icon-only internal
+   controls, calculator keys and numeric stepper halves intact. */
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-input]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input)) {
+  box-sizing: border-box;
+  height: var(--erp-control-height);
+  min-height: var(--erp-control-height);
+}
+/* Dropdown list options keep the same 36px row rhythm. Native calendar
+   day buttons and numeric up/down halves are internal controls, not peers. */
+[data-hisabiq-select-menu] button[role="option"] {
+  height: var(--erp-control-height);
+  min-height: var(--erp-control-height);
+  max-height: var(--erp-control-height);
+}
+/* Joined amount/unit editors are a single 36px control, never two rings.
+   Icon-only stepper arrows remain halves of the parent's total height. */
+[data-numeric-joined] [data-hisabiq-numeric] { height: 100% !important; min-height: 0 !important; }
+[data-numeric-joined] button[data-hisabiq-select] { height: 100% !important; min-height: 0 !important; }
 @media (prefers-reduced-motion: reduce) {
   .hisabiq-button { transition: none; }
+}
+/* Shared input-field focus parity with the approved Magic Patterns design.
+   Visible standalone controls are 36px; joined shells own focus decoration. */
+:root:root :is(
+  [data-hisabiq-input],
+  [data-hisabiq-select]:not([data-hisabiq-compact]),
+  [data-hisabiq-numeric],
+  [data-hisabiq-field-shell],
+  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea
+) {
+  border-color: var(--border);
+  border-radius: 0.5rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+/* Real text input: focus on click and keyboard, with just one mint halo. */
+:root:root [data-hisabiq-input]:not([aria-invalid="true"]):is(:focus, :focus-visible),
+:root:root [data-hisabiq-select]:not([data-hisabiq-compact]):not([aria-invalid="true"]):not(:where([data-numeric-joined] [data-hisabiq-select])):is(:focus, :focus-visible, [aria-expanded="true"]),
+:root:root [data-hisabiq-numeric]:not(:where([data-numeric-joined] [data-hisabiq-numeric])):focus-within:not(:has([aria-invalid="true"])),
+:root:root [data-hisabiq-field-shell]:focus-within:not([data-invalid="true"]),
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea:not([aria-invalid="true"]):is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
+}
+/* Preserve errors and the selected state, not a misleading success-colored ring. */
+:root:root :is(
+  [data-hisabiq-input],
+  [data-hisabiq-select],
+  [data-hisabiq-numeric],
+  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea
+)[aria-invalid="true"],
+:root:root [data-hisabiq-field-shell][data-invalid="true"],
+:root:root [data-hisabiq-numeric]:has([aria-invalid="true"]) {
+  border-color: var(--destructive);
+}
+:root:root :is([data-hisabiq-input], [data-hisabiq-select])[aria-invalid="true"]:is(:focus, :focus-visible),
+:root:root [data-hisabiq-numeric]:has([aria-invalid="true"]):focus-within,
+:root:root [data-hisabiq-field-shell][data-invalid="true"]:focus-within,
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea[aria-invalid="true"]:is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
+}
+/* Legacy native text fields share the same focus language without
+   changing their sizes or the geometry of carts, calculators and joined inputs. */
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not([data-hisabiq-input]):not([data-calculator-input]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input, [data-slot="input-group"] input)):is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
+}
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not([data-hisabiq-input]):not([data-calculator-input]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input, [data-slot="input-group"] input))[aria-invalid="true"]:is(:focus, :focus-visible) {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
+}
+/* Some legacy forms still use a native select instead of FormSelect. */
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+  select:not(:where([data-numeric-joined] select, [data-cart-row] select)):is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
+}
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+  select[aria-invalid="true"]:is(:focus, :focus-visible) {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
+}
+/* One amount/unit shell owns the focus treatment; nested editors do not
+   add a second ring or alter the combined field's square internal corners. */
+:root:root [data-numeric-joined] [data-hisabiq-numeric],
+:root:root [data-numeric-joined] [data-hisabiq-select] {
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
+}
+:root:root [data-hisabiq-select][data-hisabiq-compact] {
+  border-color: transparent;
+  background: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is([data-hisabiq-input], [data-hisabiq-select], [data-hisabiq-numeric], [data-hisabiq-field-shell]) {
+    transition: none;
+  }
 }

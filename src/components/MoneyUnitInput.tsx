@@ -31,7 +31,7 @@ export function MoneyUnitInput({
 }: MoneyUnitInputProps) {
   const generatedId = useId();
   return (
-    <div data-numeric-joined data-field-shell="money-unit" className={"flex h-9 min-w-0 overflow-hidden rounded-md border bg-card shadow-xs focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 " + (invalid ? "border-danger" : "border-input")}>
+    <div data-numeric-joined data-field-shell="money-unit" data-hisabiq-field-shell="" data-invalid={invalid ? "true" : undefined} className={"flex h-9 min-w-0 overflow-hidden rounded-md border bg-card shadow-xs focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 " + (invalid ? "border-danger" : "border-input")}>
       {prefix && <span className="flex shrink-0 items-center pl-3 text-sm text-ink-400" aria-hidden="true">{prefix}</span>}
       <NumericInput
         id={id}
