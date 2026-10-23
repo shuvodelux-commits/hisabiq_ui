@@ -132,9 +132,9 @@
     content: attr(data-cart-field); display: block; margin-bottom: 4px;
     font-size: 11px; font-weight: 500; color: var(--muted-foreground);
   }
-  [data-cart-row] input, [data-cart-row] button { min-height: 44px; }
+  [data-cart-row] input, [data-cart-row] button { min-height: var(--erp-control-height); }
   [data-cart-row] [data-testid="compound-quantity"], [data-cart-row] [data-testid="single-quantity"],
-  [data-cart-row] [role="radiogroup"] { height: 44px; }
+  [data-cart-row] [role="radiogroup"] { height: var(--erp-control-height); }
   [data-cart-kind] [data-cart-add] { min-width: 0; grid-template-columns: 36px minmax(0, 1fr); }
   [data-cart-add] > :nth-child(n+3) { display: none; }
 }
@@ -308,7 +308,7 @@
   [data-cart-kind="sale"] [data-cart-row] button { min-height: 0; }
   [data-cart-kind="sale"] [data-cart-row] [data-testid="compound-quantity"],
   [data-cart-kind="sale"] [data-cart-row] [data-testid="single-quantity"],
-  [data-cart-kind="sale"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="sale"] [data-cart-row] [role="radiogroup"] { height: var(--erp-control-height); }
   [data-cart-kind="sale"] [data-cart-row] > :nth-child(7) { width: 30px; height: 34px; }
   [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) [role="radiogroup"] { min-width: 0; }
   [data-cart-kind="sale"] [data-cart-add] {
@@ -430,7 +430,7 @@
   [data-cart-kind="purchase"] [data-cart-row] button { min-height: 0; }
   [data-cart-kind="purchase"] [data-cart-row] [data-testid="compound-quantity"],
   [data-cart-kind="purchase"] [data-cart-row] [data-testid="single-quantity"],
-  [data-cart-kind="purchase"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="purchase"] [data-cart-row] [role="radiogroup"] { height: var(--erp-control-height); }
   [data-cart-kind="purchase"] [data-cart-row] > :nth-child(n + 3):nth-child(-n + 6)::before {
     display: block; margin-bottom: 3px; font-size: 10px; line-height: 12px;
     color: var(--muted-foreground); font-weight: 500;
@@ -485,7 +485,7 @@
   [data-cart-kind="shared"] [data-cart-row] button { min-height: 0; }
   [data-cart-kind="shared"] [data-cart-row] [data-testid="compound-quantity"],
   [data-cart-kind="shared"] [data-cart-row] [data-testid="single-quantity"],
-  [data-cart-kind="shared"] [data-cart-row] [role="radiogroup"] { height: 40px; }
+  [data-cart-kind="shared"] [data-cart-row] [role="radiogroup"] { height: var(--erp-control-height); }
   [data-cart-kind="shared"] [data-cart-row] > :nth-child(n + 3):nth-child(-n + 5)::before {
     display: block; margin-bottom: 3px; font-size: 10px; line-height: 12px;
     color: var(--muted-foreground); font-weight: 500;
@@ -530,12 +530,12 @@
 .product-form [data-numeric-joined] button[role="combobox"] { font-size: var(--ctl-fs); }
 /* Columns follow the form's real width (sidebar, rail, rotation), not the device. */
 .pf-container { container: pf / inline-size; }
-.pf-unit-row { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 12px; align-items: end; }
+.pf-unit-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 12px; align-items: end; }
 .pf-unit-select { grid-column: 1; }
 .pf-unit-ratio { grid-column: 1 / -1; grid-row: 2; }
 .pf-unit-remove { grid-column: 2; grid-row: 1; }
 @container pf (min-width: 600px) {
-  .pf-unit-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px; }
+  .pf-unit-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px; }
   .pf-unit-ratio { grid-column: 2; grid-row: 1; }
   .pf-unit-remove { grid-column: 3; }
 }
@@ -584,6 +584,8 @@
 :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
 :is(
   input[data-slot="input"]:not(.numeric-input-control),
+  button[data-slot="button"],
+  button[role="combobox"],
   [data-hisabiq-input],
   button[data-hisabiq-select],
   [data-hisabiq-numeric],
@@ -601,10 +603,7 @@
    Leave checkboxes, radio buttons, multiline textarea, icon-only internal
    controls, calculator keys and numeric stepper halves intact. */
 :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
-input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-input])
-:not([type="checkbox"]):not([type="radio"]):not([type="file"])
-:not([type="hidden"]):not([type="range"]):not([type="color"])
-:not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input)) {
+input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-input]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input)) {
   box-sizing: border-box;
   height: var(--erp-control-height);
   min-height: var(--erp-control-height);
