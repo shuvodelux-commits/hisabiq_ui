@@ -29,15 +29,13 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
  const alignedClass=/(?:^|\s)!?h-\S+/.test(suppliedClass)
   ? suppliedClass
   : ('h-9 '+suppliedClass).trim();
- // A deliberately 28–32px inline field must remain compact on touch screens.
- const compactHeight=/(?:^|\s)!?h-(?:[1-8])(?=\s|$)/.test(suppliedClass);
  const value=props.value;
  const searchLike=props.type==='search'||/(?:\b(?:search|find|filter|lookup)\b|খুঁজ|খোঁজ|অনুসন্ধান|সার্চ|ফিল্টার)/i.test(
   [props['aria-label'],props.placeholder,props.name,props.id].filter(Boolean).join(' '));
  const supportsClear=(clearable??searchLike)&&
   !props.disabled&&!props.readOnly&&(!!onClear||!!props.onChange);
  // Preserve a stable input node while typing or clearing, so focus never jumps.
- if(!supportsClear)return <DesignInput {...props} data-hisabiq-input="" data-compact-control={compactHeight ? "" : undefined} className={alignedClass} ref={setRef}/>;
+ if(!supportsClear)return <DesignInput {...props} data-hisabiq-input="" className={alignedClass} ref={setRef}/>;
  const canClear=typeof value==='string'&&value.length>0;
  const clear=()=>{
   const input=internalRef.current;
@@ -52,7 +50,7 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
   input?.focus();
  };
  return <span className="relative block min-w-0 flex-1">
-  <DesignInput {...props} data-hisabiq-input="" data-compact-control={compactHeight ? "" : undefined} ref={setRef}
+  <DesignInput {...props} data-hisabiq-input="" ref={setRef}
    className={alignedClass+' pr-10 [&::-webkit-search-cancel-button]:hidden'}/>
   {canClear&&<button type="button" aria-label={'Clear '+(props['aria-label']||props.placeholder||'input')}
    title="Clear" onMouseDown={event=>event.preventDefault()} onClick={clear}
