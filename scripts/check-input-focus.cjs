@@ -52,4 +52,15 @@ assert.match(css, /data-hisabiq-numeric.*not\(\[data-compact-control\]\)/,
   'Touch numeric controls must match standalone text and select heights');
 assert.match(css, /product-form button\[data-hisabiq-select\]/,
   'Product editor selector height must track the form sizing token');
+const ledgerToolbar = fromRoot('src/components/parties/PartyLedgerToolbarResponsive.tsx');
+const actions = ledgerToolbar.match(/data-ledger-filter-action=""/g) || [];
+assert.equal(actions.length, 2, 'Clear filters and Print statement should use the same local sizing');
+assert.match(ledgerToolbar, /items-center gap-2 md:order-5/,
+  'Ledger action row should center its buttons rather than stretch them');
+assert.equal((ledgerToolbar.match(/h-10 min-h-10 flex-1 md:h-9 md:min-h-9 md:flex-none/g)||[]).length,2,
+  'Ledger action buttons need matching 40px mobile and 36px desktop heights');
+assert.doesNotMatch(ledgerToolbar, /md:min-h-0/,
+  'Do not restore the unbounded desktop height that caused uneven filter buttons');
+assert.match(css, /data-ledger-filter-action/,
+  'Touch tablets should align ledger action heights with 44px input and select fields');
 console.log('HisabIQ input focus consistency source contract: PASS');
