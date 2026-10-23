@@ -36,6 +36,20 @@ async function main() {
         assert.equal(await button.evaluate(node => getComputedStyle(node).borderRadius), '8px',
           'Shared outline buttons must use the same 8px corners');
       }
+      // Page-header context determines visual size; tiny table/menu actions do not grow.
+      const pageAction = page.locator('[data-hisabiq-action-context="page"] .hisabiq-button[data-hisabiq-variant="default"]:visible').first();
+      await pageAction.waitFor();
+      const actionHeight = await pageAction.evaluate(node => node.getBoundingClientRect().height);
+      assert.ok(actionHeight >= (width < 640 ? 40 : 44),
+        `The page's primary CTA must outrank utility controls at ${width}px (got ${actionHeight}px)`);
+
+      const creditTab = page.getByRole('tab', { name: /customer credit|ক্রেতার জমা/i }).first();
+      await creditTab.click();
+      const receive = page.getByRole('button', { name: /receive customer payment|ক্রেতার টাকা/i }).first();
+      await receive.waitFor();
+      assert.ok((await receive.evaluate(node => node.getBoundingClientRect().height)) >= 44,
+        'Receiving customer payment must use the prominent contextual size');
+      await page.getByRole('tab', { name: /^sales(?:\\s|$)|^বিক্রি/i }).first().click();
       if (width >= 768) {
         // Desktop Sales keeps its existing collapsed-filter behavior.
         const filters = page.getByRole('button', { name: /filters|ফিল্টার/i }).first();
