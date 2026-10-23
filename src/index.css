@@ -94,22 +94,8 @@
 [data-sonner-toast]:not(:has(button, a, input, select, textarea, [role="button"])) {
   pointer-events: none;
 }
-/* Coarse-pointer sizing belongs to full-size form controls and primary actions,
-   never every native button: ledger links, row menus, filter icons, clear (x)
-   buttons and compact tabs must retain their own visual heights on touch devices.
-   Table editors also keep their component-defined height. */
-@media (pointer: coarse) {
-  :where(.erp-workspace, [data-dialog-root])
-    .hisabiq-button:not([data-compact-control]):not([data-hisabiq-size="sm"]):not([data-hisabiq-size="icon"]):not([data-hisabiq-size="icon-sm"]),
-  :where(.erp-workspace, [data-dialog-root])
-    button[role="combobox"]:not([data-compact-control]) {
-    min-height: 44px;
-  }
-  :where(.erp-workspace, [data-dialog-root])
-    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([data-compact-control]):not(:where(td input, th input, [data-numeric-joined] input)) {
-    min-height: 44px;
-  }
-}
+/* HisabIQ control height is 36px on all screens and pointer types. Detailed
+   sizing is owned by the canonical control block below, not touch overrides. */
 
 /* ERP field centering: preserve natural left/right text alignment while aligning
    legacy inline controls with their labels and adjoining action buttons. */
@@ -119,24 +105,8 @@
   button[role="combobox"]
 ) { vertical-align: middle; }
 
-/* Coarse-pointer min-height is for standalone touch targets. Joined amount/unit
-   and compound quantity fields have ONE sized outer shell. Allowing each inner
-   control to grow to 44px independently spills it outside that shell and makes
-   the text, unit selector and borders look off-center on tablets and phones. */
-@media (pointer: coarse) {
-  :where(.erp-workspace, [data-dialog-root]) [data-numeric-joined]
-  :is(input:not([type="checkbox"]):not([type="radio"]), button[role="combobox"]) {
-    min-height: 0 !important;
-  }
-  /* Preserve the full 44px touch target on the combined field itself. Cart
-     compound editors keep their existing breakpoint-specific 36/40/44px size. */
-  :where(.erp-workspace, [data-dialog-root]) [data-field-shell="money-unit"] {
-    height: 44px;
-  }
-  :where(.erp-workspace, [data-dialog-root]) [data-field-shell="money-unit"] button[role="combobox"] {
-    height: 100%;
-  }
-}
+/* Joined inputs retain a single 36px outer shell and natural inner sizing.
+   Stepper arrow halves do not receive the standalone control height. */
 
 /* The same transaction controls become compact rows on phones and tablets. */
 [data-cart-field] { display: contents; }
@@ -541,28 +511,20 @@
   }
 }
 
-/* Approved Magic Patterns Add Product layout. */
+/* Add Product uses the universal 36px field height on every device. */
 .product-form {
-  --ctl-h: 40px;
+  --ctl-h: var(--erp-control-height);
   --ctl-fs: 14px;
   --label-fs: 13px;
   font-feature-settings: normal;
 }
 @media (max-width: 767px), (pointer: coarse) {
-  .product-form { --ctl-h: 44px; --ctl-fs: 16px; --label-fs: 14px; }
+  .product-form { --ctl-fs: 16px; --label-fs: 14px; }
 }
-.product-form [data-field-shell="money-unit"] { height: var(--ctl-h) !important; }
+.product-form [data-field-shell="money-unit"] { height: var(--ctl-h); }
 .product-form :not([data-numeric-joined]) > [data-numeric-input] { height: var(--ctl-h); }
 .product-form :not([data-numeric-input]) > input[data-slot="input"] { height: var(--ctl-h); }
-/* Product editor deliberately uses 40px fields (44px on touch screens).
-   Apply the same existing --ctl-h to dropdowns and search/date triggers,
-   otherwise default AppSelect stays 36px beside 40/44px Input fields.
-   Nested amount/unit selectors inherit their joined shell height. */
-.product-form button[data-hisabiq-select]:not([data-hisabiq-compact]):not(:where([data-numeric-joined] button)),
-.product-form :not([data-numeric-joined]) > [data-hisabiq-select] {
-  height: var(--ctl-h);
-}
-
+.product-form button[data-hisabiq-select]:not([data-hisabiq-compact]) { height: var(--ctl-h); }
 .product-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 .product-form textarea,
 .product-form [data-numeric-joined] button[role="combobox"] { font-size: var(--ctl-fs); }
@@ -594,66 +556,65 @@
 }
 
 
-/* Magic Patterns-inspired, shared HisabIQ button polish.
-   Excludes icon-only controls, numeric steppers and compact POS cart rows. */
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:not([data-hisabiq-size="icon"]):not([data-hisabiq-size="icon-sm"]) {
-  min-height: 40px;
-  padding-inline: max(0.75rem, 10px);
+/* Component control dimensions: one shared size, not action-priority tiers.
+   Input, Button, numeric, select and date controls all render at 36px;
+   the same policy holds at phone, tablet and desktop widths. */
+:root { --erp-control-height: 36px; }
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+.hisabiq-button {
+  height: var(--erp-control-height) !important;
+  min-height: var(--erp-control-height) !important;
+  max-height: var(--erp-control-height);
   border-radius: 0.625rem;
+  padding-inline: max(0.75rem, 10px);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button[data-hisabiq-size="sm"] {
-  min-height: 36px;
-}
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+.hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
   background-color: var(--card);
   border: 1px solid var(--border);
   color: var(--foreground);
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]):is(:hover,:focus-visible):not(:disabled) {
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+.hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]):is(:hover,:focus-visible):not(:disabled) {
   background-color: var(--card);
   border-color: var(--teal-300);
   box-shadow: 0 1px 4px rgb(var(--color-ink) / 0.06);
 }
-:where(.erp-workspace, [data-dialog-root]) [data-cart-row] .hisabiq-button {
-  min-height: 0;
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:is(
+  input[data-slot="input"]:not(.numeric-input-control),
+  [data-hisabiq-input],
+  button[data-hisabiq-select],
+  [data-hisabiq-numeric],
+  [data-hisabiq-field-shell],
+  select,
+  [data-ledger-filter-action],
+  [data-sales-column-trigger]
+) {
+  box-sizing: border-box;
+  height: var(--erp-control-height) !important;
+  min-height: var(--erp-control-height) !important;
+  max-height: var(--erp-control-height);
 }
+/* Native text fields used in older forms still share the same 36px baseline.
+   Leave checkboxes, radio buttons, multiline textarea, icon-only internal
+   controls, calculator keys and numeric stepper halves intact. */
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-input])
+:not([type="checkbox"]):not([type="radio"]):not([type="file"])
+:not([type="hidden"]):not([type="range"]):not([type="color"])
+:not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input)) {
+  box-sizing: border-box;
+  height: var(--erp-control-height);
+  min-height: var(--erp-control-height);
+}
+/* Joined amount/unit editors are a single 36px control, never two rings.
+   Icon-only stepper arrows remain halves of the parent's total height. */
+[data-numeric-joined] [data-hisabiq-numeric] { height: 100% !important; min-height: 0 !important; }
+[data-numeric-joined] button[data-hisabiq-select] { height: 100% !important; min-height: 0 !important; }
 @media (prefers-reduced-motion: reduce) {
   .hisabiq-button { transition: none; }
-}
-
-/* Coarse-pointer controls grow together to 44px. Previously the global
-   touch rule increased Input and Select, but did not increase the standalone
-   NumericInput's outer shell. Avoid changing compact 32px controls, joined
-   amount/unit components and independently sized POS/purchase cart rows. */
-@media (pointer: coarse) {
-  :where(.erp-workspace, [data-dialog-root])
-  [data-hisabiq-numeric]:not([data-compact-control]):not(:where(
-    [data-numeric-joined] [data-hisabiq-numeric],
-    [data-cart-row] [data-hisabiq-numeric]
-  )) {
-    min-height: 44px;
-  }
-}
-/* Party ledger phone filter controls align with its existing 40px search
-   and Filters controls; desktop remains the established 36px compact scale. */
-@media (max-width: 767px) {
-  [data-hisabiq-field-group="party-ledger"] :is(
-    [data-hisabiq-input], button[data-hisabiq-select]
-  ) {
-    height: 40px;
-    min-height: 40px;
-  }
-}
-/* On touch tablets, standalone Party ledger filters become 44px via the
-   existing coarse-pointer control rule. Match only their two peer actions;
-   desktop remains 36px and the phone's compact filter row remains 40px. */
-@media (pointer: coarse) and (min-width: 768px) {
-  :where(.erp-workspace, [data-dialog-root])
-  [data-hisabiq-field-group="party-ledger"] [data-ledger-filter-action] {
-    height: 44px;
-    min-height: 44px;
-  }
 }
 /* Shared input-field parity with the approved Magic Patterns focus language.
    Deliberately no control-height changes: POS carts, tablet rows, numeric
