@@ -724,7 +724,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
             <Button variant="outline" size="sm" onClick={() => setChequeOpen(true)}>
               <Plus className="size-4" /> {text('New cheque','নতুন চেক')}
             </Button>
-            <Button size="sm" onClick={() => setTransactionOpen(true)}>
+            <Button size="lg" onClick={() => setTransactionOpen(true)}>
               <Plus className="size-4" /> {text('New transaction','নতুন লেনদেন')}
             </Button>
           </>
@@ -896,7 +896,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
               <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
                 <UserRoundCog className="size-4" /> {text('Finance people','হিসাবের ব্যক্তি')}
               </Button>
-              <Button size="sm" onClick={() => setTransactionOpen(true)}>
+              <Button size="lg" onClick={() => setTransactionOpen(true)}>
                 <Plus className="size-4" /> {text('New transaction','নতুন লেনদেন')}
               </Button>
             </div>
@@ -974,7 +974,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                 <Button variant="outline" size="sm" onClick={() => openTransfer()}>
                   <ArrowLeftRight className="size-4" /> {text('Transfer','ট্রান্সফার')}
                 </Button>
-                <Button size="sm" onClick={() => setAccountOpen(true)}>
+                <Button size="lg" onClick={() => setAccountOpen(true)}>
                   <Plus className="size-4" /> {text('Add account','হিসাব যোগ করুন')}
                 </Button>
               </div>
@@ -1073,7 +1073,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                 <p className="text-[13px] font-medium text-ink">{text('Cheque register','চেকের তালিকা')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· পাওয়া ও দেওয়া চেক</span>}</p>
                 <p className="text-[11px] text-ink-500">{text('Post-dated cheques stay visible. Bank balance changes only when a cheque clears.','ভবিষ্যৎ তারিখের চেক দেখা যাবে। ক্লিয়ার হলেই ব্যাংকের টাকা বদলাবে।')}</p>
               </div>
-              <Button size="sm" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> {text('New cheque','নতুন চেক')}</Button>
+              <Button size="lg" onClick={() => setChequeOpen(true)}><Plus className="size-4" /> {text('New cheque','নতুন চেক')}</Button>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border">
