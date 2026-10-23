@@ -343,10 +343,10 @@ export function PartyDetailResponsive({
 
       <div className="hidden flex-wrap items-center gap-2 border-b border-border px-5 pb-3 pt-1 md:flex">
         {vendorProfile ? <>
-          <Button size="sm" onClick={() => setVendorSettlementMode('pay')}><Banknote className="size-4"/>{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}</Button>
+          <Button size="lg" onClick={() => setVendorSettlementMode('pay')}><Banknote className="size-4"/>{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}</Button>
           <Button size="sm" variant="outline" onClick={() => setVendorSettlementMode('receive-money')}><HandCoins className="size-4"/>{text('Receive Money', 'টাকা নিন')}</Button>
         </> : (relationship==='Customer' || relationship==='Supplier') ? <>
-          <Button size="sm" onClick={() => setPaymentOpen(true)}>
+          <Button size="lg" onClick={() => setPaymentOpen(true)}>
             {(() => {const Icon=partyTradingActionIcons[relationship];return <Icon className="size-4"/>;})()}
             {payable?text('Make payment','টাকা দিন'):text('Receive payment','টাকা নিন')}
           </Button>
@@ -354,11 +354,11 @@ export function PartyDetailResponsive({
             <FilePlus2 className="size-4" />{text('New invoice','নতুন বিল')}
           </Button>}
         </> : financeActions ? <>
-          {financeActions.map((action,i)=>{const Icon=action.Icon;return <Button size="sm" key={action.id}
+          {financeActions.map((action,i)=>{const Icon=action.Icon;return <Button size={i===0?'lg':'sm'} key={action.id}
             variant={i===0?'default':'outline'} onClick={()=>openRoleFinance(action.financeType)}>
             <Icon className="size-4"/>{text(action.label,action.bangla)}
           </Button>;})}
-        </> : <Button size="sm" onClick={()=>setOpeningOpen(true)}><BookOpen className="size-4"/>
+        </> : <Button size="lg" onClick={()=>setOpeningOpen(true)}><BookOpen className="size-4"/>
           {text('Opening balance','শুরুর জের')}</Button>}
         {!vendorProfile && (relationship==='Customer' || relationship==='Supplier') && <Button size="sm" variant="outline"
           disabled={balanceSummary.refundableCredit<=0}
