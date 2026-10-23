@@ -187,7 +187,7 @@
 .numeric-input-control::-webkit-inner-spin-button,
 .numeric-input-control::-webkit-outer-spin-button { appearance: none; margin: 0; }
 @media (pointer: coarse) {
-  /* Preserve each field's own 32/36/44px height instead of globally forcing 48px. */
+  /* Keep inner stepper buttons half-height while the outer control is 36px. */
   [data-number-stepper] { width: 20px; }
 }
 @media (max-width: 639px) {
@@ -560,7 +560,7 @@
    Input, Button, numeric, select and date controls all render at 36px;
    the same policy holds at phone, tablet and desktop widths. */
 :root { --erp-control-height: 36px; }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button {
   height: var(--erp-control-height) !important;
   min-height: var(--erp-control-height) !important;
@@ -569,19 +569,19 @@
   padding-inline: max(0.75rem, 10px);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]) {
   background-color: var(--card);
   border: 1px solid var(--border);
   color: var(--foreground);
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button:is([data-hisabiq-variant="outline"],[data-hisabiq-variant="secondary"]):is(:hover,:focus-visible):not(:disabled) {
   background-color: var(--card);
   border-color: var(--teal-300);
   box-shadow: 0 1px 4px rgb(var(--color-ink) / 0.06);
 }
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 :is(
   input[data-slot="input"]:not(.numeric-input-control),
   button[data-slot="button"],
@@ -602,11 +602,18 @@
 /* Native text fields used in older forms still share the same 36px baseline.
    Leave checkboxes, radio buttons, multiline textarea, icon-only internal
    controls, calculator keys and numeric stepper halves intact. */
-:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-input]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input)) {
   box-sizing: border-box;
   height: var(--erp-control-height);
   min-height: var(--erp-control-height);
+}
+/* Dropdown list options keep the same 36px row rhythm. Native calendar
+   day buttons and numeric up/down halves are internal controls, not peers. */
+[data-hisabiq-select-menu] button[role="option"] {
+  height: var(--erp-control-height);
+  min-height: var(--erp-control-height);
+  max-height: var(--erp-control-height);
 }
 /* Joined amount/unit editors are a single 36px control, never two rings.
    Icon-only stepper arrows remain halves of the parent's total height. */
@@ -615,15 +622,14 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
 @media (prefers-reduced-motion: reduce) {
   .hisabiq-button { transition: none; }
 }
-/* Shared input-field parity with the approved Magic Patterns focus language.
-   Deliberately no control-height changes: POS carts, tablet rows, numeric
-   steppers and already-compact inputs retain their geometry. */
+/* Shared input-field focus parity with the approved Magic Patterns design.
+   Visible standalone controls are 36px; joined shells own focus decoration. */
 :root:root :is(
   [data-hisabiq-input],
   [data-hisabiq-select]:not([data-hisabiq-compact]),
   [data-hisabiq-numeric],
   [data-hisabiq-field-shell],
-  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) textarea
+  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea
 ) {
   border-color: var(--border);
   border-radius: 0.5rem;
@@ -634,7 +640,7 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
 :root:root [data-hisabiq-select]:not([data-hisabiq-compact]):not([aria-invalid="true"]):not(:where([data-numeric-joined] [data-hisabiq-select])):is(:focus, :focus-visible, [aria-expanded="true"]),
 :root:root [data-hisabiq-numeric]:not(:where([data-numeric-joined] [data-hisabiq-numeric])):focus-within:not(:has([aria-invalid="true"])),
 :root:root [data-hisabiq-field-shell]:focus-within:not([data-invalid="true"]),
-:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) textarea:not([aria-invalid="true"]):is(:focus, :focus-visible) {
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea:not([aria-invalid="true"]):is(:focus, :focus-visible) {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
@@ -644,7 +650,7 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   [data-hisabiq-input],
   [data-hisabiq-select],
   [data-hisabiq-numeric],
-  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) textarea
+  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea
 )[aria-invalid="true"],
 :root:root [data-hisabiq-field-shell][data-invalid="true"],
 :root:root [data-hisabiq-numeric]:has([aria-invalid="true"]) {
@@ -653,32 +659,32 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
 :root:root :is([data-hisabiq-input], [data-hisabiq-select])[aria-invalid="true"]:is(:focus, :focus-visible),
 :root:root [data-hisabiq-numeric]:has([aria-invalid="true"]):focus-within,
 :root:root [data-hisabiq-field-shell][data-invalid="true"]:focus-within,
-:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app) textarea[aria-invalid="true"]:is(:focus, :focus-visible) {
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea[aria-invalid="true"]:is(:focus, :focus-visible) {
   outline: none;
   border-color: var(--destructive);
   box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
 }
 /* Legacy native text fields share the same focus language without
    changing their sizes or the geometry of carts, calculators and joined inputs. */
-:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not([data-hisabiq-input]):not([data-calculator-input]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input, [data-slot="input-group"] input)):is(:focus, :focus-visible) {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
 }
-:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not([data-hisabiq-input]):not([data-calculator-input]):not(:where([data-numeric-input] input, [data-numeric-joined] input, [data-cart-row] input, [data-slot="input-group"] input))[aria-invalid="true"]:is(:focus, :focus-visible) {
   border-color: var(--destructive);
   box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
 }
 /* Some legacy forms still use a native select instead of FormSelect. */
-:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
   select:not(:where([data-numeric-joined] select, [data-cart-row] select)):is(:focus, :focus-visible) {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgb(var(--color-teal-100) / 0.95);
 }
-:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app)
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
   select[aria-invalid="true"]:is(:focus, :focus-visible) {
   border-color: var(--destructive);
   box-shadow: 0 0 0 2px rgb(var(--color-danger) / 0.16);
