@@ -155,14 +155,16 @@ function SalesColumnPicker({
       label={sl("Choose sales invoice columns")}
       width={210}
       trigger={({ toggle, open }) => (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={toggle}
           aria-expanded={open}
-          className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+          className="h-9 min-h-9 gap-2 px-2.5">
           {sl('Columns')}
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-        </button>
+        </Button>
       )}>
       {() => (
         <div className="py-1">
@@ -1141,7 +1143,7 @@ export function Sales() {
             {isMobile ? <SalesMobileMore outlined label={text('Sales actions','বিক্রির অন্যান্য কাজ')}>{close => <Button variant="outline" size="sm" onClick={() => { close(); navigate('/app/parties'); }}><BookOpen className="size-4" />{text('Customer ledger','ক্রেতার খাতা')}</Button>}</SalesMobileMore> : (<Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
               <BookOpen className="size-4" /> {text('Customer ledger','ক্রেতার খাতা')}
             </Button>)}
-            <Button size="sm" onClick={() => navigate('/app/pos')}>
+            <Button size="sm" data-sales-header-new="" onClick={() => navigate('/app/pos')}>
               <Plus className="size-4" /> {text('New sale','নতুন বিক্রি')}
             </Button>
           </>
@@ -1608,7 +1610,7 @@ export function Sales() {
                 <p className="text-[13px] font-medium text-ink">{sl('Customer payments & credit')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span>}</p>
                 <p className="mt-0.5 text-[11px] text-ink-500">{sl("Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.")}</p>
               </div>
-              <Button size="sm" onClick={() => setCustomerPaymentOpen(true)}>
+              <Button size="sm" data-sales-credit-receive="" onClick={() => setCustomerPaymentOpen(true)}>
                 <Plus className="size-4" /> {sl("Receive customer payment")}
               </Button>
             </div>
