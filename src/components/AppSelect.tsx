@@ -113,7 +113,7 @@ export function AppSelect({
   return (
     <div className={'min-w-0 ' + className}>
       <button
-        ref={trigger} type="button" role="combobox" data-hisabiq-select="" id={triggerId} data-value={value} aria-label={label} aria-describedby={describedBy}
+        ref={trigger} type="button" role="combobox" data-hisabiq-select="" data-hisabiq-compact={compact ? "" : undefined} id={triggerId} data-value={value} aria-label={label} aria-describedby={describedBy}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined}
         aria-activedescendant={open ? id + '-opt-' + active : undefined}
         disabled={disabled}
