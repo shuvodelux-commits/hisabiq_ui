@@ -586,6 +586,28 @@
 }
 
 
+/* Priority is contextual, not one ERP-wide minimum height:
+   page primary 44px, page utilities 36px, row/table actions retain 32-36px.
+   Custom POS steppers and transaction-cart inline editors are untouched. */
+[data-hisabiq-action-context="page"] .hisabiq-button[data-hisabiq-variant="default"]:not([data-compact-control]) {
+  min-height: 44px;
+  padding-inline: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+[data-hisabiq-action-context="page"] .hisabiq-button:is(
+  [data-hisabiq-variant="outline"], [data-hisabiq-variant="secondary"]
+):not([data-compact-control]) {
+  min-height: 36px;
+}
+@media (max-width: 639px) {
+  /* Phone header must remain compact and fit Bangla labels on one line. */
+  [data-hisabiq-action-context="page"] .hisabiq-button[data-hisabiq-variant="default"]:not([data-compact-control]) {
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: 13px;
+  }
+}
 /* Shared Magic Patterns controls: compact 8px buttons, pale borders, mint focus.
    Keep cart rows, numerical steppers and icon controls at their original sizes. */
 .hisabiq-button:not([data-hisabiq-size^="icon"]) {
