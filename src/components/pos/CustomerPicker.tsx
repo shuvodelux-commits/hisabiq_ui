@@ -31,7 +31,7 @@ export function CustomerPicker({ value, onChange, previousBalance }: CustomerPic
       align="left"
       width={320}
       trigger={({ toggle, open }) =>
-        <div className="flex h-10 w-full min-w-0 items-center rounded-lg border border-border bg-card focus-within:border-teal-500 hover:border-ink-200">
+        <div className="flex h-9 w-full min-w-0 items-center rounded-lg border border-border bg-card focus-within:border-teal-500 hover:border-ink-200">
           <button
             type="button"
             data-testid="pos-customer-picker-trigger"
