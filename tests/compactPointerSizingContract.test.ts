@@ -4,19 +4,17 @@ import { readFileSync } from 'node:fs';
 
 const read = (path: string) => readFileSync(path, 'utf8');
 
-test('coarse pointer sizes standalone actions instead of every native ERP button', () => {
+test('universal control sizing keeps 36px form controls on every pointer device', () => {
   const css = read('src/index.css');
-  const start = css.indexOf('/* Coarse-pointer sizing belongs');
-  const end = css.indexOf('/* ERP field centering', start);
-  assert.ok(start !== -1 && end > start, 'scoped touch rule exists');
-  const rule = css.slice(start, end);
-
-  assert.match(rule, /\.hisabiq-button:not\(\[data-compact-control\]\)/);
-  assert.match(rule, /button\[role="combobox"\]:not\(\[data-compact-control\]\)/);
-  assert.match(rule, /:not\(:where\(td input, th input, \[data-numeric-joined\] input\)\)/);
-  assert.doesNotMatch(rule, /\.erp-workspace button:not\(/);
-  assert.doesNotMatch(rule, /\[data-dialog-root\] button:not\(/);
-  assert.match(css, /\[data-cart-row\] input, \[data-cart-row\] button \{ min-height: 44px; \}/, 'cart touch sizing remains');
+  assert.match(css, /--erp-control-height:\s*36px;/);
+  for (const marker of ['.hisabiq-button', 'button[role="combobox"]',
+    'input[data-slot="input"]', '[data-hisabiq-numeric]', '[data-hisabiq-field-shell]']) {
+    assert.ok(css.includes(marker), marker + ' participates in the 36px contract');
+  }
+  assert.match(css, /\[data-cart-row\] input, \[data-cart-row\] button \{ min-height: var\(--erp-control-height\); \}/);
+  assert.doesNotMatch(css, /(?:min-)?height:\s*44px;/);
+  assert.ok(css.includes('[data-number-stepper] > button'),
+    'Stepper half-buttons stay internal, not full-height controls');
 });
 
 test('Sales table ledger link explicitly keeps compact inline sizing and navigation', () => {
