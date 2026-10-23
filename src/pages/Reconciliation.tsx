@@ -149,7 +149,7 @@ function ErpEditor({
             }}>
             Save preview correction
           </Button>
-          <Button size="sm" disabled={Boolean(matchError)||dirty} onClick={onMatch}>
+          <Button size="lg" disabled={Boolean(matchError)||dirty} onClick={onMatch}>
             <Link2 className="size-4" /> {text('Match transaction','লেনদেন মিলান')}
           </Button>
         </div>
