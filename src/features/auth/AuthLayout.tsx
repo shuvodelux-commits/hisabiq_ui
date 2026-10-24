@@ -45,6 +45,8 @@ export function AuthLayout({ language, onLanguageChange, children }: Props) {
           <NavLink to="/login" end>{text('Sign in', 'সাইন ইন')}</NavLink>
           <NavLink to="/login/pin">{text('Quick PIN', 'কুইক পিন')}</NavLink>
           <NavLink to="/login/accounts">{text('Choose account', 'অ্যাকাউন্ট বাছুন')}</NavLink>
+          <NavLink to="/signup">{text('Sign up', 'নিবন্ধন')}</NavLink>
+          <NavLink to="/recovery">{text('Recovery', 'পাসওয়ার্ড ফেরত')}</NavLink>
         </nav>
       </footer>
     </div>
