@@ -57,3 +57,17 @@ Three minor finishing details remain: mobile table/tab scrolling has a weak disc
 Inherited typography caveat: `src/index.css` sets body `font-feature-settings: 'tnum' 1`. Reports adds no monospaced or tabular-number class, but source alone cannot establish the requested proportional digits while that inherited rule applies. Resolving the global rule is outside this documentation boundary and is not recorded as a new design-system decision.
 
 Only this review file is written by the documentation pass.
+
+## Follow-up: semantic cues and guided help
+
+The user requested green/blue semantic colors, badges, Bangla helpers and guided tooltips. `src/reports/guidance.ts` now maps existing semantic roles: sales/positive values use green, purchases/information blue, customer dues/review/missing costs amber, and expenses/payables/losses/expired stock red. Zero or absent numeric values remain neutral where appropriate. Status badges retain explicit text, so color is supplementary.
+
+`ReportGuidance.tsx` provides labels and contextual explanations for amounts, payments, invoice age, historical costs, margins, stock and purchasing assumptions. English, Bangla and bilingual helpers follow the existing Settings language; bilingual labels and help include Bangla support. Missing-cost cells now use an explicit amber “Cost missing” badge while unknown summary totals retain a dash and explanation.
+
+The shared `Tooltip.tsx` adds opt-in interactive portal help that escapes clipped tables/panels and supports pointer, keyboard and touch. Default tooltip behavior remains intact. Help uses the existing theme roles and normal 36px trigger controls; no new tokens or source calculations were introduced.
+
+Inspected captures: `.impeccable/review/guidance-1440-light.png`, `guidance-1440-dark.png`, `guidance-390-light.png` and `guidance-390-dark.png`. They retain the incumbent shell, card hierarchy and responsive layout while showing the semantic totals, text badges and help affordances. The bilingual desktop capture shows Bangla helper labels; the dark mobile capture shows Bangla copy.
+
+Supplied verification reports passing pointer/keyboard/touch tooltip checks in four profiles, passing main report workflows and print tests, and zero axe issues on the stock route in those four profiles. This follow-up does not claim an accessibility audit of every report route.
+
+The final finish review returned **SHIP**, detector `[]`, after customer receivables were made consistently amber. Existing preview-data limits, unavailable-report explanations and minor observations above still apply. This documentation follow-up modifies only this review file.

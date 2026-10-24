@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { ArrowLeft, ExternalLink, Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../Button';
+import { StatusBadge } from '../StatusBadge';
+import { ReportHelp, ReportLabel } from './ReportGuidance';
+import { reportStatusTone } from '../../reports/guidance';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../Dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { useUiCopy } from '../../i18n/useUiCopy';
@@ -20,7 +23,7 @@ export function ReportDetails({row,onClose,onPrint}:{row:ReportRow;onClose:()=>v
    <DialogHeader><DialogTitle>{text('Report details','রিপোর্টের বিস্তারিত')}</DialogTitle><DialogDescription>{text('Read the source evidence behind this result.','এই ফলাফলের পেছনের মূল তথ্য দেখুন।')}</DialogDescription></DialogHeader>
    {trail.length>1&&<Button variant="ghost" className="w-fit" onClick={()=>setTrail(v=>v.slice(0,-1))}><ArrowLeft className="size-4" aria-hidden="true"/>{text('Back to summary','সারাংশে ফিরুন')}</Button>}
    <h3 className="text-base font-semibold text-ink">{language==='Bangla'?(current.labelBn??current.label):current.label}</h3>
-   <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">{fields.map(k=><div key={k} className="min-w-0"><dt className="text-xs text-ink-500">{text(reportColumns[k].en,reportColumns[k].bn)}</dt><dd className="mt-0.5 break-words text-sm font-medium text-ink">{formatReportCell(current,k,language)}</dd></div>)}</dl>
+   <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">{fields.map(k=><div key={k} className="min-w-0"><dt className="flex items-center gap-1 text-xs text-ink-500"><ReportLabel en={reportColumns[k].en} bn={reportColumns[k].bn}/><ReportHelp guide={k} label={text(reportColumns[k].en,reportColumns[k].bn)}/></dt><dd className="mt-0.5 break-words text-sm font-medium text-ink">{k==='status'?<StatusBadge tone={reportStatusTone(current.status)} dot>{formatReportCell(current,k,language)}</StatusBadge>:formatReportCell(current,k,language)}</dd></div>)}</dl>
    {current.note&&<p className="rounded-lg bg-ink-50 p-3 text-sm text-ink-600">{reportPhrase(current.note,language)}</p>}
    {current.children&&current.children.length>0&&<div className="overflow-hidden rounded-lg border border-border">
     <Table scrollRegionLabel={text('Contributing records','মূল রেকর্ড')}>

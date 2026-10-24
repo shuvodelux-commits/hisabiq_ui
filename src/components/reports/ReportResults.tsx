@@ -1,6 +1,8 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, FileSearch } from 'lucide-react';
 import { Button } from '../Button';
 import { AppSelect } from '../AppSelect';
+import { StatusBadge } from '../StatusBadge';
+import { ReportHelp, ReportLabel } from './ReportGuidance';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { taka, formatNumber } from '../../utils/currency';
@@ -8,6 +10,7 @@ import { formatDay } from '../../utils/dateRange';
 import { reportColumns } from '../../reports/catalog';
 import { reportCell } from '../../reports/model';
 import { reportPhrase } from '../../reports/copy';
+import { reportStatusTone, reportValueTone, reportToneClass } from '../../reports/guidance';
 import type { ReportDefinition, ReportFilters, ReportResult, ReportRow } from '../../reports/types';
 
 export function formatReportCell(row:ReportRow,key:string,language:string):string{
@@ -36,15 +39,17 @@ export function ReportResults({definition,result,filters,onChange,visible,onDeta
   </div>
   <Table scrollRegionLabel={text(definition.en+' table',definition.bn+' টেবিল')}>
    <TableHeader><TableRow>{columns.map(k=><TableHead key={k} scope="col" aria-sort={filters.sort===k?(filters.direction==='asc'?'ascending':'descending'):undefined} className={reportColumns[k]?.kind&&reportColumns[k]?.kind!=='date'?'text-right':''}>
-    <button type="button" className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-ink-600 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={()=>onChange({...filters,sort:k,direction:filters.sort===k&&filters.direction==='asc'?'desc':'asc'})}>
-     {text(reportColumns[k]?.en??k,reportColumns[k]?.bn??k)}{filters.sort===k?(filters.direction==='asc'?<ArrowUp className="size-3" aria-hidden="true"/>:<ArrowDown className="size-3" aria-hidden="true"/>):<ArrowUpDown className="size-3 text-ink-400" aria-hidden="true"/>}
-    </button>
+    <div className="inline-flex items-center gap-0.5"><button type="button" className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-ink-600 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={()=>onChange({...filters,sort:k,direction:filters.sort===k&&filters.direction==='asc'?'desc':'asc'})}>
+     <ReportLabel en={reportColumns[k]?.en??k} bn={reportColumns[k]?.bn??k}/>{filters.sort===k?(filters.direction==='asc'?<ArrowUp className="size-3" aria-hidden="true"/>:<ArrowDown className="size-3" aria-hidden="true"/>):<ArrowUpDown className="size-3 text-ink-400" aria-hidden="true"/>}
+    </button><ReportHelp guide={k} label={text(reportColumns[k]?.en??k,reportColumns[k]?.bn??k)}/></div>
    </TableHead>)}</TableRow></TableHeader>
    <TableBody>
     {rows.map(row=><TableRow key={row.id} data-report-row="" className="text-[13px]">
      {columns.map(k=><TableCell key={k} className={reportColumns[k]?.kind&&reportColumns[k]?.kind!=='date'?'whitespace-nowrap py-1 text-right':'max-w-[300px] py-1'}>
       {k==='label'?<button type="button" onClick={()=>onDetail(row)} className="max-w-full text-left font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{formatReportCell(row,k,language)}</button>:
-       <span className={k==='profit'&&Number(row.values.profit)<0?'text-danger':''}>{formatReportCell(row,k,language)}</span>}
+       k==='status'&&row.status?<span data-report-status={row.status} data-report-tone={reportStatusTone(row.status)}><StatusBadge tone={reportStatusTone(row.status)} dot>{formatReportCell(row,k,language)}</StatusBadge></span>:
+       (k==='cost'||k==='profit')&&row.values[k]===null?<span data-report-cost-missing=""><StatusBadge tone="warning">{text('Cost missing','খরচ নেই')}</StatusBadge></span>:
+       <span data-report-value-tone={reportValueTone(k,row,definition.id)} className={reportColumns[k]?.kind==='money'||k==='stock'||k==='expired'?reportToneClass[reportValueTone(k,row,definition.id)]:''}>{formatReportCell(row,k,language)}</span>}
      </TableCell>)}
     </TableRow>)}
     {!rows.length&&<TableRow><TableCell colSpan={Math.max(1,columns.length)}><div className="flex flex-col items-center gap-2 px-3 py-10 text-center"><FileSearch className="size-7 text-ink-400" aria-hidden="true"/><p className="text-sm font-medium text-ink">{text('No records match your filters.','এই ফিল্টারে কোনো রেকর্ড নেই।')}</p><p className="max-w-md text-xs text-ink-500">{text('Try another date range or clear a filter. Missing source records are never filled with invented values.','অন্য সময়কাল বাছুন বা ফিল্টার মুছুন। অনুপস্থিত তথ্যের জায়গায় অনুমান করা মান দেখানো হয় না।')}</p></div></TableCell></TableRow>}

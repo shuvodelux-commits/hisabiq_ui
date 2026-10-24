@@ -52,3 +52,8 @@ Mobile tab-scroll affordance is subtle; the long record-search placeholder trunc
 - Keep a small shared report engine instead of separate duplicated table/filter implementations.
 - Basic/Counter commercial restrictions are documented but a new entitlement/security system is not implemented in this UI change.
 
+## Follow-up: colors, badges and help
+Added semantic totals/status cues, explicit missing-cost badges, bilingual Bangla helper labels and opt-in portal tooltips. Help covers report terms, comparison and buying assumptions; it opens by pointer, focus or touch, stays within the viewport and dismisses before its parent dialog on Escape. Source calculations are unchanged.
+
+The dedicated guidance browser test passes four language/theme/device profiles, including four stock-route axe scans with no findings. Existing report workflow and print/popup tests still pass. TypeScript, build and UI-contract checks pass; the full unit result remains 709 passing and the same two pre-existing quotation failures. Fresh visual review returned SHIP after matching the receivables summary to amber due values; detector returned no findings. The report CI step now includes the guidance check without adding another workflow.
+

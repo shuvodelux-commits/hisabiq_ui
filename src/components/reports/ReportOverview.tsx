@@ -1,6 +1,9 @@
 import { ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Button } from '../Button';
+import { StatusBadge } from '../StatusBadge';
+import { ReportHelp, ReportLabel } from './ReportGuidance';
+import { reportToneClass, type ReportTone } from '../../reports/guidance';
 import { Panel } from '../Panel';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { taka, takaCompact, formatNumber } from '../../utils/currency';
@@ -35,9 +38,17 @@ export function ReportOverview({data,filters,current,previous,onReport,onDetail}
  ];
  const difference=previous&&current.rows.length&&previous.rows.length?Number(current.totals.amount)-Number(previous.totals.amount):null;
  return <div className="space-y-4">
-  <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{cards.map(card=><button key={card.key} type="button" data-report-summary="" onClick={()=>onReport(card.key)} className="h-auto min-h-0 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-4">
-   <span className="block text-xs text-ink-600">{text(card.en,card.bn)}</span><span className="mt-1 block text-xl font-semibold tracking-tight text-ink">{card.value===null?'—':taka(card.value)}</span><span className="mt-1 block text-[11px] text-ink-500">{card.value===null?text('Historical costs incomplete','ঐতিহাসিক খরচ অসম্পূর্ণ'):text(card.note,card.noteBn)}</span>
-  </button>)}</div>
+  <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{cards.map(card=>{
+   const tone:ReportTone=card.value===null||card.key==='receivables'?'warning':card.key==='purchases'?'info':['expenses','payables'].includes(card.key)||Number(card.value)<0?'danger':'success';
+   const guide=card.key==='product-profit'?'profit':['receivables','payables'].includes(card.key)?'due':'amount';
+   return <div key={card.key} data-report-summary={card.key} data-report-tone={tone} className="rounded-xl border border-border bg-card p-3 text-left sm:p-4">
+    <div className="flex items-start justify-between gap-1 text-xs text-ink-600"><ReportLabel en={card.en} bn={card.bn}/><ReportHelp guide={guide} label={text(card.en,card.bn)}/></div>
+    <button type="button" aria-label={text('Open '+card.en,card.bn+' দেখুন')} onClick={()=>onReport(card.key)} className="block h-auto min-h-0 w-full rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+     <span className={'mt-1 block text-xl font-semibold tracking-tight '+reportToneClass[tone]}>{card.value===null?'—':taka(card.value)}</span>
+     <span className="mt-1 block text-[11px] text-ink-500">{card.value===null?<StatusBadge tone="warning">{text('Historical cost missing','ঐতিহাসিক খরচ নেই')}</StatusBadge>:text(card.note,card.noteBn)}</span>
+    </button>
+   </div>;
+  })}</div>
   {previous&&<div className="flex flex-wrap items-center gap-2 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
    {difference===null?<AlertCircle className="size-4" aria-hidden="true"/>:difference>=0?<ArrowUpRight className="size-4 text-success" aria-hidden="true"/>:<ArrowDownRight className="size-4 text-danger" aria-hidden="true"/>}
    {difference===null?text('Comparable source records are missing in one period; no percentage has been invented.','একটি সময়কালে তুলনাযোগ্য রেকর্ড নেই; শতাংশ অনুমান করা হয়নি।'):text('Recorded sales change: ','লেখা বিক্রয়ের পরিবর্তন: ')+taka(difference)}
@@ -54,7 +65,7 @@ export function ReportOverview({data,filters,current,previous,onReport,onDetail}
     <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-ink-500"><span>{text('Recorded returns: ','লেখা ফেরত: ')+taka(returns.totals.amount??0)}</span><Button variant="ghost" size="sm" onClick={()=>onReport('sales-returns')}>{text('Review returns','ফেরত দেখুন')}<ArrowRight className="size-3" aria-hidden="true"/></Button></div>
    </Panel>
    <Panel title={text('Where to focus','যেখানে নজর দেবেন')} subtitle={text('Review first, then decide','আগে দেখুন, তারপর সিদ্ধান্ত নিন')} bodyClassName="p-1.5">
-    <ul className="divide-y divide-border">{alerts.map(a=><li key={a.key}><button type="button" className="flex h-auto min-h-0 w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={()=>onReport(a.key)}><span className="min-w-0 flex-1"><span className="block text-[13px] font-medium text-ink">{text(a.en,a.bn)}</span><span className="mt-0.5 block text-xs text-ink-500">{text(a.hint,a.hintBn)}</span></span><span className="shrink-0 text-sm font-semibold text-primary">{formatNumber(a.count)}</span></button></li>)}</ul>
+    <ul className="divide-y divide-border">{alerts.map(a=><li key={a.key}><button type="button" className="flex h-auto min-h-0 w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={()=>onReport(a.key)}><span className="min-w-0 flex-1"><span className="block text-[13px] font-medium text-ink">{text(a.en,a.bn)}</span><span className="mt-0.5 block text-xs text-ink-500">{text(a.hint,a.hintBn)}</span></span><StatusBadge tone={a.count===0?'neutral':a.key==='expiry'?'danger':'warning'}>{formatNumber(a.count)}</StatusBadge></button></li>)}</ul>
    </Panel>
   </div>
   <div className="grid gap-4 lg:grid-cols-2">

@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
+import { StatusBadge } from '../components/StatusBadge';
+import { ReportHelp, ReportLabel } from '../components/reports/ReportGuidance';
 import { SearchSelect } from '../components/SearchSelect';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
 import { MotionTabIndicator, MotionTabList } from '../motion/MotionTabList';
@@ -24,7 +26,7 @@ import { taka } from '../utils/currency';
 import type { PurchaseAssumptions, ReportFilters, ReportKey, ReportRow } from '../reports/types';
 
 export function Reports() {
- const {text,language}=useUiCopy(),{state,actorId}=useTenantSettings(),navigate=useNavigate();
+ const {text,language,showHelper}=useUiCopy(),{state,actorId}=useTenantSettings(),navigate=useNavigate();
  const [params,setParams]=useSearchParams();
  const definition=reportDefinition(params.get('report')??'overview');
  const filters=useMemo(()=>{
@@ -119,13 +121,13 @@ export function Reports() {
    </aside>
    <section id="report-panel" role="tabpanel" aria-labelledby={'report-tab-'+definition.group} className="min-w-0 space-y-4">
     <div className="lg:hidden"><SearchSelect id="mobile-report-picker" noun={{en:'report',bn:'রিপোর্ট'}} ariaLabel={text('Choose report','রিপোর্ট বাছুন')} value={definition.id} options={reportCatalog.map(r=>({value:r.id,label:text(r.en,r.bn)}))} onChange={v=>selectReport(reportDefinition(v).id)}/></div>
-    <div className="flex items-start justify-between gap-2"><div className="min-w-0"><h2 className="text-base font-semibold text-ink">{reportTitle}</h2><p className="mt-0.5 text-sm text-ink-500">{text(definition.question,definition.questionBn)}</p></div>
+    <div className="flex items-start justify-between gap-2"><div className="min-w-0"><h2 className="text-base font-semibold text-ink">{reportTitle}</h2>{showHelper&&<p data-bangla-helper="" className="font-bn text-xs text-ink-500">{definition.bn}</p>}<p className="mt-0.5 text-sm text-ink-500"><ReportLabel en={definition.question} bn={definition.questionBn}/></p></div>
      <div className="flex shrink-0 gap-1"><Button variant="ghost" size="icon" aria-label={text(favorite?'Unpin report':'Pin report',favorite?'রিপোর্টের পিন খুলুন':'রিপোর্ট পিন করুন')} aria-pressed={favorite} onClick={toggleFavorite}><Star className={'size-4 '+(favorite?'fill-current text-primary':'text-ink-400')} aria-hidden="true"/></Button><Button variant="ghost" size="icon" aria-label={text('How this report is calculated','রিপোর্ট কীভাবে হিসাব হয়')} aria-expanded={showBasis} onClick={()=>setShowBasis(v=>!v)}><Info className="size-4" aria-hidden="true"/></Button></div>
     </div>
     {showBasis&&<div className="rounded-lg bg-ink-50 p-3 text-xs leading-relaxed text-ink-600">{text(result.basis,result.basisBn)}. {text('Draft, deleted and reversed source records are excluded. Missing cost is unknown, not zero. Open a row for supporting records. Stock and outstanding balances are current snapshots, not reconstructed historical balances.','খসড়া, মুছে দেওয়া ও বিপরীত করা রেকর্ড বাদ। খরচ অনুপস্থিত হলে শূন্য ধরা হয় না। মূল তথ্য দেখতে রেকর্ড খুলুন। স্টক ও বাকি বর্তমান অবস্থা, পুরোনো তারিখের পুনর্গঠিত জের নয়।')}</div>}
     {definition.unavailable?<section className="rounded-xl border border-border bg-card p-6">
      <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-ink-50 text-ink-500"><Search className="size-5" aria-hidden="true"/></div>
-     <h3 className="text-sm font-semibold text-ink">{text('Source data required','মূল তথ্য দরকার')}</h3><p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-600">{text(definition.unavailable.en,definition.unavailable.bn)}</p>
+     <h3 className="text-sm font-semibold text-ink"><StatusBadge tone="warning">{text('Source data required','মূল তথ্য দরকার')}</StatusBadge></h3><p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-600">{text(definition.unavailable.en,definition.unavailable.bn)}</p>
      <div className="mt-4 flex flex-wrap gap-2"><Button variant="outline" onClick={()=>selectReport('data-quality')}>{text('Review data completeness','তথ্যের পূর্ণতা দেখুন')}<ArrowRight className="size-4" aria-hidden="true"/></Button>{definition.id==='reconciliation'&&<Button onClick={()=>navigate('/app/reconciliation')}>{text('Open reconciliation','হিসাব মিলানো খুলুন')}</Button>}</div>
     </section>:<>
      <ReportToolbar definition={definition} filters={filters} options={rawOptions} onChange={update} onColumns={()=>setDialog('columns')} onSaved={()=>setDialog('saved')} asOf={data.asOf}/>
@@ -133,7 +135,7 @@ export function Reports() {
       <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="text-sm font-semibold text-ink">{text('Buying assumptions','ক্রয়ের অনুমান')}</h3><p className="mt-1 text-xs text-ink-500">{text('Assumptions apply in each product’s base unit.','প্রতিটি পণ্যের মূল এককে এই অনুমান প্রযোজ্য।')}</p></div><Button variant="outline" disabled={!suggestedRows.length} onClick={downloadPurchaseList}><ArrowDownToLine className="size-4" aria-hidden="true"/>{text('Download purchase list','ক্রয়ের তালিকা নামান')}</Button></div>
       <div className="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-5">{([
        {key:'leadDays',en:'Lead time (days)',bn:'ডেলিভারির সময় (দিন)'},{key:'reviewDays',en:'Review interval (days)',bn:'পরের পর্যালোচনা (দিন)'},{key:'safety',en:'Safety stock (base units)',bn:'সেফটি স্টক (মূল একক)'},{key:'pack',en:'Purchase pack (base units)',bn:'ক্রয়ের প্যাক (মূল একক)'},{key:'budget',en:'Budget (BDT)',bn:'বাজেট (টাকা)'}
-      ] as const).map(f=><label key={f.key} className="space-y-1 text-xs text-ink-600"><span>{text(f.en,f.bn)}</span><Input type="number" aria-label={text(f.en,f.bn)} min={f.key==='pack'?1:0} max={f.key==='leadDays'||f.key==='reviewDays'?365:100000000} value={assumptions[f.key]} onChange={e=>{const n=Number(e.target.value);if(Number.isFinite(n))setAssumptions(v=>({...v,[f.key]:Math.max(f.key==='pack'?1:0,Math.min(n,f.key==='leadDays'||f.key==='reviewDays'?365:100000000))}));}}/></label>)}</div>
+      ] as const).map(f=><div key={f.key} className="space-y-1 text-xs text-ink-600"><div className="flex items-center justify-between gap-1"><label htmlFor={'report-assumption-'+f.key}><ReportLabel en={f.en} bn={f.bn}/></label><ReportHelp guide={f.key} label={text(f.en,f.bn)}/></div><Input id={'report-assumption-'+f.key} type="number" aria-label={text(f.en,f.bn)} min={f.key==='pack'?1:0} max={f.key==='leadDays'||f.key==='reviewDays'?365:100000000} value={assumptions[f.key]} onChange={e=>{const n=Number(e.target.value);if(Number.isFinite(n))setAssumptions(v=>({...v,[f.key]:Math.max(f.key==='pack'?1:0,Math.min(n,f.key==='leadDays'||f.key==='reviewDays'?365:100000000))}));}}/></div>)}</div>
       <p className="mt-3 text-xs text-ink-600">{text('Estimated purchase cost: ','প্রস্তাবিত ক্রয়ের খরচ: ')}<strong>{plannedCost===null?text('Some costs are unknown','কিছু খরচ অজানা'):taka(plannedCost??0)}</strong>{assumptions.budget>0&&plannedCost!==null&&<span className={(plannedCost??0)>assumptions.budget?'ml-2 text-danger':'ml-2 text-success'}>{(plannedCost??0)>assumptions.budget?text('Over budget by ','বাজেটের বেশি ')+taka((plannedCost??0)-assumptions.budget):text('Within budget','বাজেটের মধ্যে')}</span>}</p>
       <p className="mt-1 text-xs text-ink-500">{text('Estimate only. Incoming orders, reservations and lost sales are not available in this preview. Review each quantity before ordering.','শুধু অনুমান। এই প্রিভিউতে আসন্ন পণ্য, সংরক্ষণ ও হারানো বিক্রয়ের তথ্য নেই। অর্ডারের আগে প্রতিটি পরিমাণ যাচাই করুন।')}</p>
      </section>}
