@@ -23,8 +23,9 @@ async function main(){
   if(screenshotDir){mkdirSync(screenshotDir,{recursive:true});await page.screenshot({path:screenshotDir+'/security-desktop.png',fullPage:true});}
   const lock=page.getByRole('switch',{name:'Preview auto-lock after 30 minutes'});
   assert.equal(await lock.getAttribute('aria-checked'),'true');
-  await lock.click();await section.getByText(/Preview: Off/).waitFor();
-  await lock.click();await section.getByText(/Preview: On/).waitFor();
+  const lockSurface=section.locator('label[data-slot="switch"]');
+  await lockSurface.click();await section.getByText(/Preview: Off/).waitFor();
+  await lockSurface.click();await section.getByText(/Preview: On/).waitFor();
 
   await section.getByRole('button',{name:'Preview setup'}).click();
   const dialog=page.getByRole('dialog',{name:'Set a 6-digit PIN (preview)'});
