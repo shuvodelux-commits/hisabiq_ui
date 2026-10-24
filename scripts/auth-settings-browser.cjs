@@ -53,10 +53,10 @@ async function main(){
   await phoneDialog.getByLabel('New mobile number').fill('০১৭১১-০০০২৪৫');
   await phoneDialog.getByRole('button',{name:'Review number'}).click();
   await phoneDialog.getByRole('status').getByText(/No account phone was changed/).waitFor();
-  await phoneDialog.getByRole('button',{name:'Close'}).click();
+  await phoneDialog.getByRole('button',{name:'Close',exact:true}).last().click();
   await section.getByRole('button',{name:'View devices'}).click();
   await page.getByRole('dialog',{name:'Manage trusted devices'}).getByText(/None can be removed or authorized/).waitFor();
-  await page.getByRole('dialog',{name:'Manage trusted devices'}).getByRole('button',{name:'Close'}).click();
+  await page.getByRole('dialog',{name:'Manage trusted devices'}).getByRole('button',{name:'Close',exact:true}).last().click();
   const stored=await page.evaluate(()=>JSON.stringify([Object.entries(localStorage),Object.entries(sessionStorage)]));
   assert.ok(!stored.includes('123456')&&!stored.includes('01711000245'));
   assert.deepEqual(writes,[],'Security preview must not post identity changes');
