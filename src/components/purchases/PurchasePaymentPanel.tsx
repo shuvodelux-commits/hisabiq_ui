@@ -172,7 +172,7 @@ export function PurchasePaymentPanel(props: Props) {
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
             {text("Purchase payments exceed the supplier bill. Reduce the amount before completing.","সরবরাহকারীর বিলের চেয়ে বেশি টাকা দেওয়া হয়েছে। সম্পন্ন করার আগে টাকা কমান।")}
           </p>}
-        <Button type="button" onClick={props.onComplete}
+        <Button type="button" data-erp-workflow-action="complete" onClick={props.onComplete}
           disabled={totals.total <= 0 || totals.excess > 0}
           className="h-12 w-full text-[15px] font-semibold">
           {props.actionLabel ? text(props.actionLabel,props.actionLabel==="Review payment"?"পেমেন্ট যাচাই করুন":props.actionLabel==="Complete purchase"?"ক্রয় সম্পন্ন করুন":props.actionLabel) : text("Complete purchase","ক্রয় সম্পন্ন করুন")} · {taka(totals.total)}
