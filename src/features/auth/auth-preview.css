@@ -140,3 +140,17 @@
 @media (prefers-reduced-motion: reduce) {
   .auth-channel-option, .auth-flow-progress span { transition: none; }
 }
+
+/* Public authentication has larger phone tap surfaces; do not change ERP controls. */
+@media (max-width: 767px), (pointer: coarse) {
+  .auth-preview.hisabiq-app .hisabiq-button.auth-submit,
+  .auth-preview.hisabiq-app .hisabiq-button.auth-google {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: none !important;
+  }
+  .auth-preview.hisabiq-app .auth-form-panel .auth-field input {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+}
