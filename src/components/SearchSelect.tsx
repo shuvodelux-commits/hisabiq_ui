@@ -312,6 +312,7 @@ export function SearchSelect({
       <div ref={groupRef} className="flex min-w-0">
         <button
           ref={triggerRef}
+          data-hisabiq-select=""
           id={id}
           data-value={value}
           disabled={disabled}

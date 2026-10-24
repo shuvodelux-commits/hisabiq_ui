@@ -397,7 +397,7 @@ export function Reconciliation() {
                 <CheckCircle2 className="size-4" /> {completed[accountId]?text('Preview saved','নমুনা সংরক্ষিত'):text('Save reviewed preview','নমুনা যাচাই সংরক্ষণ')}
               </Button>
             </div>
-            <div className="p-3 lg:hidden"><Button variant="outline" className="min-h-11 w-full" aria-expanded={showRows} onClick={()=>setShowRows(!showRows)}>{showRows?text('Back to selected transaction','বাছা লেনদেনে ফিরুন'):text('Choose statement transaction · লেনদেন বাছুন','স্টেটমেন্টের লেনদেন বাছুন')}</Button></div>
+            <div className="p-3 lg:hidden"><Button variant="outline" className="h-9 w-full" aria-expanded={showRows} onClick={()=>setShowRows(!showRows)}>{showRows?text('Back to selected transaction','বাছা লেনদেনে ফিরুন'):text('Choose statement transaction · লেনদেন বাছুন','স্টেটমেন্টের লেনদেন বাছুন')}</Button></div>
             <div className="grid lg:min-h-[620px] lg:grid-cols-2">
             <section className={(showRows?'block':'hidden')+' min-w-0 border-b border-border lg:block lg:border-b-0 lg:border-r'}>
               <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">

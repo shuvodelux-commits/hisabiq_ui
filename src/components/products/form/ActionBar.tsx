@@ -30,10 +30,10 @@ export function ActionBar({ isEdit, errorCount, onCancel }: ActionBarProps) {
             : t('Only the English name and selling price are required.', 'শুধু ইংরেজি নাম ও বিক্রয় মূল্য আবশ্যক।')}
         </p>
         <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2 md:flex md:shrink-0">
-          <Button type="button" variant="outline" onClick={onCancel} className="h-12 whitespace-nowrap px-4 text-[15px] md:h-[var(--ctl-h)] md:px-5 md:text-sm">
+          <Button type="button" variant="outline" onClick={onCancel} className="h-9 whitespace-nowrap px-4 text-[14px] md:h-[var(--ctl-h)] md:px-5 md:text-sm">
             {t('Cancel', 'বাতিল')}
           </Button>
-          <Button type="submit" className="h-12 whitespace-nowrap px-4 text-[15px] font-semibold md:h-[var(--ctl-h)] md:min-w-[148px] md:text-sm">
+          <Button type="submit" className="h-9 whitespace-nowrap px-4 text-[14px] font-semibold md:h-[var(--ctl-h)] md:min-w-[148px] md:text-sm">
             {isEdit ? t('Save changes', 'পরিবর্তন সংরক্ষণ') : t('Save product', 'পণ্য সংরক্ষণ')}
           </Button>
         </div>

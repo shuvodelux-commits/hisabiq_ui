@@ -9,8 +9,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "preview": "npx vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "test:auth-login": "node scripts/auth-login-browser.cjs",
-    "check:ui-contract": "node scripts/check-ui-design-contract.cjs && node --test tests/uiDesignContractGuard.test.cjs",
+    "check:ui-contract": "node scripts/check-ui-design-contract.cjs && node --test tests/uiDesignContractGuard.test.cjs && node scripts/check-input-focus.cjs && node scripts/audit-erp-controls.cjs",
     "cf:deploy": "npm run build && wrangler deploy",
     "cf:preview": "npm run build && wrangler preview",
     "test:theme": "node scripts/theme-browser.cjs",
@@ -104,7 +103,11 @@
     "test:impeccable-priority": "node scripts/impeccable-priority-browser.cjs",
     "test:motion-navigation": "node scripts/motion-navigation-browser.cjs",
     "test:sidebar-interactions": "node scripts/sidebar-interaction-browser.cjs",
-    "test:calculator-scratchpad": "node scripts/calculator-scratchpad-browser.cjs"
+    "test:calculator-scratchpad": "node scripts/calculator-scratchpad-browser.cjs",
+    "check:input-focus": "node scripts/check-input-focus.cjs",
+    "test:field-size-parity": "node scripts/field-size-parity-browser.cjs",
+    "audit:erp-controls": "node scripts/audit-erp-controls.cjs",
+    "test:auth-login": "node scripts/auth-login-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

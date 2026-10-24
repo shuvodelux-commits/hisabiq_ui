@@ -150,19 +150,21 @@ function SalesColumnPicker({
   const {language}=useUiCopy();
   const sl=(english:string)=>salesLabel(language,english);
   const [expanded,setExpanded] = useState(false);
-  return inline ? <div><Button variant="outline" size="sm" aria-expanded={expanded} className="w-full justify-between" onClick={()=>setExpanded(value=>!value)}>{sl('Columns')}<ChevronDown className="size-3.5"/></Button>{expanded && <div className="py-1">{salesColumns.map(column=><button key={column.id} type="button" role="menuitemcheckbox" aria-checked={visible[column.id]} onClick={()=>onToggle(column.id)} className="flex min-h-10 w-full items-center justify-between gap-4 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50"><span>{sl(column.label)}</span>{visible[column.id]&&<Check className="size-4 text-ink"/>}</button>)}</div>}</div> : (
+  return inline ? <div><Button variant="outline" size="sm" aria-expanded={expanded} className="w-full justify-between" onClick={()=>setExpanded(value=>!value)}>{sl('Columns')}<ChevronDown className="size-3.5"/></Button>{expanded && <div className="py-1">{salesColumns.map(column=><button key={column.id} type="button" role="menuitemcheckbox" aria-checked={visible[column.id]} onClick={()=>onToggle(column.id)} className="flex h-9 w-full items-center justify-between gap-4 px-3 py-1 text-left text-[13px] text-ink-700 hover:bg-ink-50"><span>{sl(column.label)}</span>{visible[column.id]&&<Check className="size-4 text-ink"/>}</button>)}</div>}</div> : (
     <FloatingPanel
       label={sl("Choose sales invoice columns")}
       width={210}
       trigger={({ toggle, open }) => (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={toggle}
           aria-expanded={open}
-          className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+          className="h-9 min-h-9 gap-2 px-2.5">
           {sl('Columns')}
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-        </button>
+        </Button>
       )}>
       {() => (
         <div className="py-1">
@@ -1141,7 +1143,7 @@ export function Sales() {
             {isMobile ? <SalesMobileMore outlined label={text('Sales actions','বিক্রির অন্যান্য কাজ')}>{close => <Button variant="outline" size="sm" onClick={() => { close(); navigate('/app/parties'); }}><BookOpen className="size-4" />{text('Customer ledger','ক্রেতার খাতা')}</Button>}</SalesMobileMore> : (<Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
               <BookOpen className="size-4" /> {text('Customer ledger','ক্রেতার খাতা')}
             </Button>)}
-            <Button size="sm" onClick={() => navigate('/app/pos')}>
+            <Button size="sm" data-sales-header-new="" onClick={() => navigate('/app/pos')}>
               <Plus className="size-4" /> {text('New sale','নতুন বিক্রি')}
             </Button>
           </>
@@ -1393,7 +1395,7 @@ export function Sales() {
                                         </label>
                                         {Boolean(part.serials?.length)&&<>
                                           <label className="block text-[10px] text-ink-500">{text('Returned component serials, comma-separated','ফেরত সিরিয়াল, কমা দিয়ে লিখুন')}
-                                            <Input aria-label={`Returned serials for ${part.name}`} className="mt-1 h-8" value={(saved?.serials??[]).join(', ')}
+                                            <Input aria-label={`Returned serials for ${part.name}`} className="mt-1 h-9" value={(saved?.serials??[]).join(', ')}
                                               onChange={event=>setBundleReturnChoices(current=>({
                                                 ...current,[line.id]:{...current[line.id],[part.productId]:{
                                                   disposition:current[line.id]?.[part.productId]?.disposition??'Do not restock',
@@ -1414,7 +1416,7 @@ export function Sales() {
                                         value={returnSerials[line.id] ?? ''}
                                         onChange={(event) => setReturnSerials((value) => ({ ...value, [line.id]: event.target.value }))}
                                         placeholder={sl("Returned serial, comma separated")}
-                                        className="h-8"
+                                        className="h-9"
                                       />
                                       <p className="text-[10.5px] text-ink-400">{sl('Sold serials:')} {line.serials.join(', ')}</p>
                                     </>
@@ -1435,7 +1437,7 @@ export function Sales() {
                                   inputMode={isBundleReturnLine(line)?'numeric':'decimal'}
                                   aria-label={isBundleReturnLine(line)?`Whole Sets to return for ${line.name}`:`${sl('Return qty')} · ${line.name}`}
                                   aria-invalid={!isBundleReturnLine(line)&&Boolean(returnQty[line.id])&&Boolean(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.issues.length)}
-                                  className="h-8 text-right"
+                                  className="h-9 text-right"
                                   placeholder="0"
                                 />
                                 <span className="w-10 text-[11px] text-ink-400">{line.unit}</span>
@@ -1450,7 +1452,7 @@ export function Sales() {
                                   value={isBundleReturnLine(line)?String(line.price):ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice===null?text('Source allocation needed','আগের মূল্য প্রয়োজন'):String(Number((ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice??0).toFixed(6)))}
                                   disabled
                                   inputMode="decimal"
-                                  className="h-8 text-right"
+                                  className="h-9 text-right"
                                   aria-label={`${sl('Return price for')} ${line.name}`}
                                 />
                                 <p className="mt-1 text-right text-[10.5px] text-ink-400">
@@ -1608,7 +1610,7 @@ export function Sales() {
                 <p className="text-[13px] font-medium text-ink">{sl('Customer payments & credit')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· কাস্টমার জমা</span>}</p>
                 <p className="mt-0.5 text-[11px] text-ink-500">{sl("Receive customer payments, settle invoice dues, keep advance credit, or refund unused credit.")}</p>
               </div>
-              <Button size="sm" onClick={() => setCustomerPaymentOpen(true)}>
+              <Button size="sm" data-sales-credit-receive="" onClick={() => setCustomerPaymentOpen(true)}>
                 <Plus className="size-4" /> {sl("Receive customer payment")}
               </Button>
             </div>

@@ -268,10 +268,10 @@ export function Parties() {
       title={uiText('Change party','পার্টি বদলান')} titleBn="পার্টি বদলান"
       side={isTablet?'right':'bottom'}
       footer={<div className="grid grid-cols-2 gap-2">
-        <Button size="sm" variant="outline" className="min-h-11 whitespace-normal" onClick={()=>{setChooserOpen(false);setImportOpen(true);}}>
+        <Button size="sm" variant="outline" className="h-9 whitespace-nowrap" onClick={()=>{setChooserOpen(false);setImportOpen(true);}}>
           <Upload className="size-4 shrink-0" />{uiText('Import Excel / CSV','এক্সেল / CSV থেকে আনুন')}
         </Button>
-        <Button size="sm" className="min-h-11" onClick={()=>{setChooserOpen(false);setEditing(null);}}>
+        <Button size="sm" className="h-9" onClick={()=>{setChooserOpen(false);setEditing(null);}}>
           <Plus className="size-4 shrink-0" />{uiText('Add party','নতুন পার্টি যোগ করুন')}
         </Button>
       </div>}>

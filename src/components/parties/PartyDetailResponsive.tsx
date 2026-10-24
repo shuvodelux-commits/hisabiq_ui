@@ -288,10 +288,10 @@ export function PartyDetailResponsive({
           {party.phone ?
             <a href={'tel:' + party.phone.replace(/[^+0-9]/g, '')}
               aria-label={text('Call', 'ফোন করুন')+' '+party.phone}
-              className="flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-md border border-border px-2 text-sm text-ink focus-visible:ring-2 focus-visible:ring-teal-500">
+              className="flex h-9 min-w-0 items-center justify-center gap-2 rounded-md border border-border px-2 text-sm text-ink focus-visible:ring-2 focus-visible:ring-teal-500">
               <Phone className="size-4 shrink-0" aria-hidden="true" /><span className="truncate">{party.phone}</span>
             </a> : null}
-          <Button size="sm" variant="outline" className={`min-h-10 ${party.phone ? '' : 'col-span-2'}`} onClick={onChangeParty}>
+          <Button size="sm" variant="outline" className={`h-9 ${party.phone ? '' : 'col-span-2'}`} onClick={onChangeParty}>
             <ArrowLeftRight className="size-4 shrink-0" /> {text('Change party', 'পার্টি বদলান')}
           </Button>
         </div>
@@ -300,40 +300,40 @@ export function PartyDetailResponsive({
 
       <div data-testid="party-mobile-actions" className="grid grid-cols-2 gap-2 border-b border-border px-4 pb-4 md:hidden">
         {vendorProfile ?
-          <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold"
+          <Button size="sm" className="col-span-2 h-9 text-[15px] font-semibold"
             onClick={() => setVendorSettlementMode('pay')}>
             <Banknote className="size-[18px] shrink-0" />{text('Pay Vendor', 'ভেন্ডরকে টাকা দিন')}
           </Button>
         : (relationship==='Customer' || relationship==='Supplier') ?
-          <Button size="sm" className="col-span-2 min-h-11 text-[15px] font-semibold"
+          <Button size="sm" className="col-span-2 h-9 text-[15px] font-semibold"
             onClick={() => setPaymentOpen(true)}>
             {(() => {const Icon=partyTradingActionIcons[relationship];return <Icon className="size-[18px] shrink-0"/>;})()}
             {payable ? text('Make payment', 'টাকা দিন') : text('Receive payment', 'টাকা নিন')}
           </Button>
         : financeActions ? (()=>{const action=financeActions[0];const Icon=action.Icon;return <Button size="sm"
-            className="col-span-2 min-h-11 whitespace-normal text-[15px] font-semibold"
+            className="col-span-2 h-9 whitespace-nowrap text-[13px] font-semibold"
             onClick={()=>openRoleFinance(action.financeType)}>
             <Icon className="size-[18px] shrink-0"/>{text(action.label,action.bangla)}
           </Button>;})()
-        : <Button size="sm" className="col-span-2 min-h-11 whitespace-normal text-[15px] font-semibold"
+        : <Button size="sm" className="col-span-2 h-9 whitespace-nowrap text-[13px] font-semibold"
             onClick={() => setOpeningOpen(true)}>
             <BookOpen className="size-[18px] shrink-0"/>{text('Opening balance','শুরুর জের')}
           </Button>}
-        {vendorProfile && <Button size="sm" variant="outline" className="min-h-11 min-w-0"
+        {vendorProfile && <Button size="sm" variant="outline" className="h-9 min-w-0"
           onClick={()=>setVendorSettlementMode('receive-money')}>
           <HandCoins className="size-4 shrink-0"/>{text('Receive Money','টাকা নিন')}
         </Button>}
         {!vendorProfile && (relationship==='Customer' || relationship==='Supplier') &&
-          <Button size="sm" variant="outline" className="min-h-11 min-w-0"
+          <Button size="sm" variant="outline" className="h-9 min-w-0"
             disabled={party.status==='Inactive'} onClick={onNewInvoice}>
             <FilePlus2 className="size-4 shrink-0" />{text('New invoice','নতুন বিল')}
           </Button>}
         {financeActions && (()=>{const action=financeActions[1];const Icon=action.Icon;return <Button size="sm"
-          variant="outline" className="min-h-11 min-w-0 whitespace-normal"
+          variant="outline" className="h-9 min-w-0 whitespace-normal"
           onClick={()=>openRoleFinance(action.financeType)}>
           <Icon className="size-4 shrink-0"/>{text(action.label,action.bangla)}
         </Button>;})()}
-        <Button size="sm" variant="outline" className={`min-h-11 min-w-0 ${vendorProfile ||
+        <Button size="sm" variant="outline" className={`h-9 min-w-0 ${vendorProfile ||
           relationship==='Customer' || relationship==='Supplier'||financeActions ? '' : 'col-span-2'}`}
           aria-haspopup="dialog" aria-label={text('More actions','আরও কাজ')}
           aria-expanded={mobileActionsOpen} onClick={() => setMobileActionsOpen(true)}>
