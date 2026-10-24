@@ -7,7 +7,8 @@ const summaries:Record<string,string>={
  notifications:'ERP-wide SMS event rules and templates. Preview only — no SMS sent.',
  data:'Import/export management; contextual Product and Party tools remain available.',
  subscription:'Tenant plan, invoices, billing and SMS-credit balance.',
- appearance:'Your language, light/dark theme and personal display preferences.'
+ appearance:'Your language, light/dark theme and personal display preferences.',
+ security:'Account sign-in, password recovery, PIN, trusted devices and screen lock.'
 };
 export type SettingsHubItem=ErpNavChild&{description:string};
 export function getSettingsHubItems(context:NavigationContext):SettingsHubItem[]{
