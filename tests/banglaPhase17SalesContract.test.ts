@@ -38,7 +38,7 @@ test('Sales localized presentation does not alter sales, payments, returns, cart
   "const [method, setMethod] = useState('All payments')",
   "const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due')",
   "const [returnReason, setReturnReason] = useState<Record<string, string>>({})",
-  "value={returnReason[line.id] ?? 'Customer return'}",
+  "value={returnReason[rowKey] ?? 'Customer return'}",
   "returnSettlement === 'Adjust due'",
   "returnSettlement === 'Cash refund'",
   "const filtered = useMemo(",

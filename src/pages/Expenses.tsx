@@ -1,4 +1,6 @@
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
+import {getSalesPreviewSnapshot,subscribeSalesPreview} from '../data/salesPreviewStore';
+import {deriveReturnCompensation} from '../utils/returnCompensation';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
@@ -84,6 +86,8 @@ export function Expenses() {
   const {text,language,showHelper}=useUiCopy();
   const [tab, setTab] = useState<Tab>('expenses');
   const { expenses, audit } = useSyncExternalStore(subscribeExpensePreview, getExpensePreviewSnapshot);
+  const salesPreview=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot);
+  const returnCompensation=deriveReturnCompensation(salesPreview.returns);
   useSyncExternalStore(subscribePartyPreview, getPartyPreviewSnapshot);
   const payees = payeesForPreview();
   const [, refreshCategories] = useState(0);
@@ -120,6 +124,13 @@ export function Expenses() {
     ? text('Sep 2026','সেপ্টেম্বর ২০২৬') : formatRange(reportRange);
 
 
+  const filteredCompensation=returnCompensation.filter(entry=>
+    (statusFilter==='All status'||statusFilter==='Active')&&
+    (categoryFilter==='All categories'||categoryFilter==='Customer Compensation')&&
+    (payeeFilter==='All payees'||payeeFilter===entry.customerName)&&
+    methodFilter==='All payment methods'&&
+    fuzzyMatch(query,[entry.sourceReturnId,entry.customerName,entry.category,...entry.invoiceRefs])
+  );
   const filteredExpenses = useMemo(() => expenses.filter(expense => {
     const q = query.trim().toLocaleLowerCase();
     const active = expense.recordStatus !== 'Deleted';
@@ -129,10 +140,10 @@ export function Expenses() {
       && (methodFilter === 'All payment methods' || paymentsFor(expense).some(payment => payment.method === methodFilter))
       && fuzzyMatch(q,[expense.ref,expense.category,expense.payee,expense.note,paymentLabel(expense),expense.date]);
   }), [expenses, query, categoryFilter, payeeFilter, methodFilter, statusFilter]);
-  const total = activeExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const total = activeExpenses.reduce((sum, expense) => sum + expense.amount, 0)+returnCompensation.reduce((sum,entry)=>sum+entry.expenseAmountPaisa/100,0);
   const cash = activeExpenses.reduce((sum, expense) => sum + paymentsFor(expense).filter(p => p.method === 'Cash').reduce((paid, p) => paid + p.amount, 0), 0);
   const bankAndMfs = activeExpenses.reduce((sum, expense) => sum + paymentsFor(expense).filter(p => p.method !== 'Cash').reduce((paid, p) => paid + p.amount, 0), 0);
-  const categoryCount = new Set(activeExpenses.map(expense => expense.category)).size;
+  const categoryCount = new Set([...activeExpenses.map(expense => expense.category),...(returnCompensation.length?['Customer Compensation']:[])]).size;
 
   const tabs: Array<[Tab, string, string]> = [
     ['expenses', text('Expense list','খরচের তালিকা'), text('History, filters, edit and cancel','খরচের ইতিহাস, খোঁজ ও সংশোধন')],
@@ -142,7 +153,7 @@ export function Expenses() {
   ];
 
   const summary = [
-    { label: text('Active expenses','চালু খরচ'), value: taka(total), sub: `${activeExpenses.length} ${text('active entries','টি চালু খরচ')}` },
+    { label: text('Active expenses','চালু খরচ'), value: taka(total), sub: `${activeExpenses.length+returnCompensation.length} ${text('active entries','টি চালু খরচ')}` },
     { label: text('Cash expenses','নগদ খরচ'), value: taka(cash), sub: text('Paid from cash','নগদে দেওয়া হয়েছে') },
     { label: text('Bank & mobile','ব্যাংক ও মোবাইল'), value: taka(bankAndMfs), sub: text('Bank, bKash, Nagad & card','ব্যাংক, বিকাশ, নগদ ও কার্ড') },
     { label: text('Categories used','খরচের ধরন'), value: String(categoryCount), sub: text('Used in active entries','চালু খরচে ব্যবহার হয়েছে') }
@@ -205,8 +216,8 @@ export function Expenses() {
                   placeholder={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
                 />
               </div>
-              <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="w-full lg:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
-              <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
+              <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="w-full lg:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category), ...(returnCompensation.length?['Customer Compensation']:[])])]} />
+              <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee), ...returnCompensation.map(x=>x.customerName)])]} />
               <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
               <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="w-full lg:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
               <Button variant="ghost" size="sm" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
@@ -279,7 +290,21 @@ export function Expenses() {
                     </TableRow>
                   );
                 })}
-                {!filteredExpenses.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">{text('No expenses match these filters.','কোনো খরচ মেলেনি।')} <button className="text-teal-700 underline" onClick={resetFilters}>{text('Reset filters','ফিল্টার মুছুন')}</button></TableCell></TableRow>}
+                {filteredCompensation.map(entry=><TableRow key={entry.id} className="text-[13px]">
+                    <TableCell className="py-2 pl-4">
+                      <p className="font-medium text-ink">EXP-{entry.sourceReturnId}</p>
+                      <p className="text-[10.5px] text-ink-400">{entry.date}</p>
+                    </TableCell>
+                    <TableCell><StatusBadge tone="warning">{text('Customer Compensation','ক্রেতাকে অতিরিক্ত ফেরত')}</StatusBadge></TableCell>
+                    <TableCell className="text-ink-600">{entry.customerName}</TableCell>
+                    <TableCell>—</TableCell>
+                    <TableCell className="text-[11px] text-ink-500">{text('Included in return settlement','ফেরতের টাকার মধ্যে')}</TableCell>
+                    <TableCell><Link to="/app/sales?tab=returns" className="text-teal-700 hover:underline">{entry.sourceReturnId}</Link></TableCell>
+                    <TableCell className="text-right font-semibold">{taka(entry.expenseAmountPaisa/100)}</TableCell>
+                    <TableCell><StatusBadge tone="info">{text('Linked','সংযুক্ত')}</StatusBadge></TableCell>
+                    <TableCell className="pr-4 text-right"><Link to="/app/sales?tab=returns" className="text-teal-700 hover:underline">{text('View return','ফেরত দেখুন')}</Link></TableCell>
+                  </TableRow>)}
+                {!filteredExpenses.length&&!filteredCompensation.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">{text('No expenses match these filters.','কোনো খরচ মেলেনি।')} <button className="text-teal-700 underline" onClick={resetFilters}>{text('Reset filters','ফিল্টার মুছুন')}</button></TableCell></TableRow>}
               </TableBody>
             </Table>
           </>

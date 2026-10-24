@@ -36,3 +36,15 @@ test('return document uses the original references, settlement and amount; no sy
   assert.deepEqual(report.rows.find(row=>row[0]==='Return amount'),['Return amount',source.amount]);
   assert.deepEqual(report.rows.find(row=>row[0]==='Settlement'),['Settlement',source.settlement]);
 });
+
+test('return memo shows historical versus negotiated line and one compensation expense reference',()=>{
+ const source={...salesReturns[0],id:'RTN-new',compensationExpensePaisa:4000,amount:240,
+  lineReturns:[{invoiceId:'s1',lineId:'l1',quantity:2,amount:200,serials:[],
+   unitQuantities:{Box:'1',Pcs:'5'},sourceBaseUnit:'Pcs',
+   historicalSourceAmountPaisa:20000,agreedReturnAmountPaisa:24000,
+   priceDifferencePaisa:4000,adjustmentReason:'Defective goods'}]};
+ const report=returnDocument(source);
+ assert.ok(report.rows.some(row=>row[0]==='Customer Compensation Expense'&&row[1]===40));
+ assert.ok(report.rows.some(row=>String(row[1]).includes('1 Box 5 Pcs')));
+ assert.ok(report.rows.some(row=>String(row[1]).includes('Defective goods')));
+});

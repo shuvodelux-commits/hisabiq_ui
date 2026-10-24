@@ -16,6 +16,33 @@ export function updateSalesPreview<K extends keyof SalesPreview>(key:K,update:(i
   snapshot={...snapshot,[key]:update(snapshot[key])};
   for(const listener of listeners)listener();
 }
+const committedSalesReturns=new Set<string>();
+/** One notification across the Sales preview. Not a production cash/stock/ledger posting. */
+export function commitSalesReturnPreview(command:{
+ commandId:string;expected:SalesPreview;invoices:SalesInvoice[];
+ returns:SalesReturn[];credits:CustomerCredit[];
+}):SalesReturn {
+ if(committedSalesReturns.has(command.commandId))
+  throw new Error('Return already recorded.');
+ if(snapshot!==command.expected)
+  throw new Error('Sales preview changed; revalidate quantities and credit.');
+ if(!command.commandId.trim()||command.returns.length!==snapshot.returns.length+1)
+  throw new Error('Invalid return preview command.');
+ const newReturn=command.returns.find(item=>item.id===command.commandId);
+ if(!newReturn||snapshot.returns.some(item=>item.id===newReturn.id)||
+   newReturn.amount<0||!Number.isFinite(newReturn.amount))
+  throw new Error('Invalid or duplicate return source.');
+ const expectedIds=new Set(snapshot.returns.map(item=>item.id));
+ if(snapshot.returns.some(item=>!command.returns.some(next=>next.id===item.id))||
+  command.returns.some(item=>item.id!==command.commandId&&!expectedIds.has(item.id)))
+  throw new Error('Existing return history cannot be overwritten by the preview commit.');
+ if(command.invoices.length!==snapshot.invoices.length)throw new Error('Invoice history changed.');
+ snapshot={...snapshot,invoices:command.invoices,returns:command.returns,credits:command.credits};
+ committedSalesReturns.add(command.commandId);
+ for(const listener of listeners)listener();
+ return newReturn;
+}
+
 export function saveSaleTemplate(template:Omit<SaleTemplate,'id'|'lastUsed'>,expected?:SaleTemplate):SaleTemplate {
   if(!template.name.trim()||!template.lines.length||!Number.isFinite(template.total)||template.total<0)
     throw new Error('Add a template name and valid products.');

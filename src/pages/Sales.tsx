@@ -40,9 +40,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { customerCredits as seedCredits, salesReturns as seedReturns, type SalesDraft } from '../data/sales';
 import { products } from '../data/products';
 import {availableParties} from '../data/erpDemoStore';
-import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate} from '../data/salesPreviewStore';
+import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate,commitSalesReturnPreview} from '../data/salesPreviewStore';
 import {SaleTemplateDialog} from '../components/pos/SaleTemplateDialog';
 import {planOrdinaryReturn,salesReturnCustomerId} from '../utils/salesReturn';
+import {quoteReturnPrice} from '../utils/salesReturnPricing';
+import {returnBaseQuantity,returnLineKey,sourceUnitProfile} from '../utils/salesReturnDraft';
+import {ReturnPriceField} from '../components/sales/returns/ReturnPriceField';
+import {ReturnQuantityField} from '../components/sales/returns/ReturnQuantityField';
+import {ReturnInvoicePicker} from '../components/sales/returns/ReturnInvoicePicker';
+import {normalizeBdMobile,findReturnCustomerCandidates,validateReturnCustomerChoice,type ReturnCustomerChoice} from '../utils/salesReturnIdentity';
+import {quickAddPartyPreview} from '../data/partyPreviewStore';
 import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore';
 import type { CustomerCredit, PaymentMethod, SalePayment, SalesInvoice, SalesInvoiceStatus, SalesReturn, SaleTemplate } from '../types/erp';
 import { taka } from '../utils/currency';
@@ -702,7 +709,6 @@ export function Sales() {
   },{replace:true});};
   const {invoices,returns,credits,templates,drafts}=useSyncExternalStore(subscribeSalesPreview,getSalesPreviewSnapshot,getSalesPreviewSnapshot);
   const setInvoices=(update:(items:SalesInvoice[])=>SalesInvoice[])=>updateSalesPreview('invoices',update);
-  const setReturns=(update:(items:SalesReturn[])=>SalesReturn[])=>updateSalesPreview('returns',update);
   const setCredits=(update:(items:CustomerCredit[])=>CustomerCredit[])=>updateSalesPreview('credits',update);
   const setTemplates=(update:(items:SaleTemplate[])=>SaleTemplate[])=>updateSalesPreview('templates',update);
   const [templateEditor,setTemplateEditor]=useState<{template:SaleTemplate|null}|null>(null);
@@ -722,12 +728,20 @@ export function Sales() {
   const [customerPaymentOpen, setCustomerPaymentOpen] = useState(false);
   const [creditAction, setCreditAction] = useState<{ credit: CustomerCredit; mode: 'apply' | 'refund' } | null>(null);
   const [returnCustomer, setReturnCustomer] = useState('Rahman Hardware');
+  const [returnSearch,setReturnSearch]=useState('');
+  const [returnCreditChoice,setReturnCreditChoice]=useState('');
+  const [returnNewCustomerName,setReturnNewCustomerName]=useState('');
+  const [returnNewCustomerPhone,setReturnNewCustomerPhone]=useState('');
   const [returnInvoiceIds, setReturnInvoiceIds] = useState<string[]>([]);
   const [returnQty, setReturnQty] = useState<Record<string, string>>({});
+  const [returnUnitQty, setReturnUnitQty] = useState<Record<string,Record<string,string>>>({});
+  const [returnPrice, setReturnPrice] = useState<Record<string,string>>({});
+  const [returnPriceReason, setReturnPriceReason] = useState<Record<string,string>>({});
   const [returnReason, setReturnReason] = useState<Record<string, string>>({});
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [bundleReturnChoices,setBundleReturnChoices]=useState<Record<string,Record<string,BundleReturnSelection>>>({});
   const [bundleReturnPreviewOpen,setBundleReturnPreviewOpen]=useState(false);
+  const [returnReviewOpen,setReturnReviewOpen]=useState(false);
   const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due');
   const [returnRefundMethod, setReturnRefundMethod] = useState<Exclude<PaymentMethod, 'Customer Credit'>>('Cash');
   const [returnRefundAccount, setReturnRefundAccount] = useState('');
@@ -781,33 +795,80 @@ export function Sales() {
     { label: text('Sales returns','বিক্রি ফেরত'), value: taka(returnTotal), sub: text(`${returns.length} return memos · credit ${taka(creditTotal)}`,`${returns.length}টি ফেরত · জমা ${taka(creditTotal)}`), tone: 'text-warning' }
   ];
 
-  const customerInvoices = invoices.filter((invoice) => invoice.party === returnCustomer);
-  const selectedReturnDue = customerInvoices.filter((invoice) => returnInvoiceIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoice.due, 0);
   const selectedReturnInvoices = invoices.filter((invoice) => returnInvoiceIds.includes(invoice.id));
+  const returnSource=selectedReturnInvoices[0];
+  const customerInvoices = invoices.filter(invoice=>{
+    if(returnSource){
+      if(returnSource.partyId)return invoice.partyId===returnSource.partyId;
+      const phone=normalizeBdMobile(returnSource.phone??'');
+      return invoice.id===returnSource.id||
+        (!invoice.partyId&&Boolean(phone)&&normalizeBdMobile(invoice.phone??'')===phone);
+    }
+    return returnSearch.trim()!==''||invoice.party===returnCustomer;
+  }).filter(invoice=>{
+    const q=returnSearch.trim().toLowerCase();
+    return !q||[invoice.invoice,invoice.party,invoice.phone??'',...invoice.lines.map(l=>l.name)]
+      .some(value=>value.toLowerCase().includes(q));
+  });
+  const selectedReturnDue = selectedReturnInvoices.reduce((sum, invoice) => sum + invoice.due, 0);
+  const returnPhone=selectedReturnInvoices.find(invoice=>normalizeBdMobile(invoice.phone??''))?.phone??'';
+  const returnCustomerCandidates=findReturnCustomerCandidates(returnPhone,availableParties());
+
   const selectedReturnLines = selectedReturnInvoices.flatMap((invoice) => invoice.lines.map((line) => ({ invoice, line })));
-  const ordinaryReturnPlans=selectedReturnLines.filter(({line})=>!isBundleReturnLine(line)).map(({invoice,line})=>
-    planOrdinaryReturn(invoice,line,returnQty[line.id]??'',(returnSerials[line.id]??'').split(',').map(value=>value.trim()).filter(Boolean),returns));
-  const returnLimit=(line:SalesInvoice['lines'][number])=>isBundleReturnLine(line)
-    ?line.returnableQuantity??0:ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.remaining??0;
-  const selectedBundlePlans=selectedReturnLines.filter(({line})=>isBundleReturnLine(line)&&Number(returnQty[line.id]??'')>0)
+  const returnItemKey=(invoice:SalesInvoice,line:SalesInvoice['lines'][number])=>returnLineKey(invoice.id,line.id);
+  const ordinaryReturnPlans=selectedReturnLines.filter(({line})=>!isBundleReturnLine(line)).map(({invoice,line})=>{
+    const key=returnItemKey(invoice,line);
+    const profile=sourceUnitProfile(line);
+    const units=profile&&Object.keys(profile.factors).length>1;
+    const base=returnBaseQuantity(line,{invoiceId:invoice.id,lineId:line.id,quantity:returnQty[key]??'',
+      ...(units?{unitQuantities:returnUnitQty[key]??{}}:{}),serials:[],reason:''});
+    const plan=planOrdinaryReturn(invoice,line,base.issues.length?'invalid':String(base.quantity),
+      (returnSerials[key]??'').split(',').map(value=>value.trim()).filter(Boolean),returns);
+    return {...plan,issues:[...base.issues,...plan.issues]};
+  });
+  const plannedLine=(invoice:SalesInvoice,line:SalesInvoice['lines'][number])=>
+    ordinaryReturnPlans.find(plan=>plan.invoiceId===invoice.id&&plan.lineId===line.id);
+  const returnLimit=(invoice:SalesInvoice,line:SalesInvoice['lines'][number])=>isBundleReturnLine(line)
+    ?line.returnableQuantity??0:plannedLine(invoice,line)?.remaining??0;
+  const selectedBundlePlans=selectedReturnLines.filter(({invoice,line})=>isBundleReturnLine(line)&&Number(returnQty[returnItemKey(invoice,line)]??'')>0)
     .map(({invoice,line})=>planBundleReturn({
-      invoice,line,sets:Number(returnQty[line.id]),choices:bundleReturnChoices[line.id]??{},
+      invoice,line,sets:Number(returnQty[returnItemKey(invoice,line)]),choices:bundleReturnChoices[returnItemKey(invoice,line)]??{},
       priorReturns:returns.flatMap(r=>r.bundleReturns??[])
     }));
   const includesBundleReturn=selectedBundlePlans.length>0;
-  const returnAmount = selectedReturnLines.reduce((sum,{line})=>{
-    if(isBundleReturnLine(line))return sum+(selectedBundlePlans.find(p=>p.lineId===line.id)?.refundEstimate??0);
-    return Math.round((sum+(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0))*100)/100;
+  const bundleReturnQuotes=selectedBundlePlans.map(plan=>{
+    const historic=plan.refundEstimate;
+    return {...plan,priceQuote:quoteReturnPrice({
+      amount:historic??NaN,unitPrice:historic===null||plan.sets<=0?null:historic/plan.sets,
+      quantity:plan.sets,issues:[]
+    },returnPrice[returnLineKey(plan.invoiceId,plan.lineId)])};
+  });
+  const quotedOrdinaryPlans=ordinaryReturnPlans.map(plan=>({
+    ...plan,quote:quoteReturnPrice(plan,returnPrice[returnLineKey(plan.invoiceId,plan.lineId)])
+  }));
+  const returnAmount = selectedReturnLines.reduce((sum,{invoice,line})=>{
+    if(isBundleReturnLine(line))return sum+(bundleReturnQuotes.find(p=>p.invoiceId===invoice.id&&p.lineId===line.id)?.priceQuote.agreedReturnAmountPaisa??0)/100;
+    return Math.round((sum+(quotedOrdinaryPlans.find(plan=>plan.invoiceId===invoice.id&&plan.lineId===line.id)?.quote.agreedReturnAmountPaisa??0)/100)*100)/100;
   },0);
-  const returnIssues=ordinaryReturnPlans.flatMap(plan=>plan.quantity!==0||returnQty[plan.lineId]?plan.issues:[]);
+  const returnCompensationPaisa=quotedOrdinaryPlans.reduce((sum,plan)=>sum+(plan.quantity>0?plan.quote.compensationExpensePaisa:0),0);
+  const returnCreditNeeded=returnSettlement==='Customer credit'||(returnSettlement==='Adjust due'&&returnAmount>selectedReturnDue);
+  const returnIssues=quotedOrdinaryPlans.flatMap(plan=>{
+    const key=returnLineKey(plan.invoiceId,plan.lineId);
+    if(!plan.quantity&&!returnQty[key]&&!Object.values(returnUnitQty[key]??{}).some(Boolean))return [];
+    return [...plan.issues,...plan.quote.issues,
+      ...(plan.quote.priceDifferencePaisa>0&&!returnPriceReason[key]?.trim()?['Explain why return price exceeds historical net price.']:[])];
+  });
 
   const openReturn = (invoice: SalesInvoice) => {
     setReturnCustomer(invoice.party);
+    setReturnSearch('');
+    setReturnCreditChoice('');
+    setReturnNewCustomerName(invoice.party==='Walk-in customer'?'':invoice.party);
+    setReturnNewCustomerPhone(invoice.phone??'');
     setReturnInvoiceIds([invoice.id]);
-    setReturnQty({});
-    setReturnReason({});
-    setReturnSerials({});
-    setBundleReturnChoices({});
+    setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
+    setReturnReason({});setReturnSerials({});setBundleReturnChoices({});
+    setReturnReviewOpen(false);
     setDetail(null);
     setTab('return');
   };
@@ -948,32 +1009,82 @@ export function Sales() {
       return;
     }
     if(returnAmount<=0||!Number.isFinite(returnAmount)){toast.error(sl('Select invoice items and enter return quantity'));return;}
+    setReturnReviewOpen(true);
+  };
+  const confirmReturn = () => {
+    const previewNow=getSalesPreviewSnapshot();
+    if(returnIssues.length||previewNow.returns!==returns||previewNow.invoices!==invoices||previewNow.credits!==credits){
+      toast.error(text('Return changed. Review before saving.','ফেরতের তথ্য বদলেছে। আবার যাচাই করুন।'));
+      return;
+    }
     const selected = selectedReturnInvoices;
-    const customerId=selected.find(invoice=>invoice.partyId)?.partyId;
+    const knownCustomerIds=[...new Set(selected.map(invoice=>invoice.partyId).filter((id):id is string=>Boolean(id)))];
+    const selectedCustomerChoice:ReturnCustomerChoice=knownCustomerIds.length===1
+      ?{kind:'existing',customerId:knownCustomerIds[0]}
+      :returnCreditChoice==='create'
+        ?{kind:'create',name:returnNewCustomerName,phone:returnNewCustomerPhone}
+        :returnCreditChoice
+          ?{kind:'existing',customerId:returnCreditChoice}
+          :{kind:'none'};
+    const customerIssues=validateReturnCustomerChoice(selected,selectedCustomerChoice,availableParties(),returnCreditNeeded);
+    if(customerIssues.length){toast.error(customerIssues.join(' '));return;}
+    let customerId=knownCustomerIds[0];
+    let customerName=returnCustomer;
+    if(returnCreditNeeded&&selectedCustomerChoice.kind==='existing'){
+      customerId=selectedCustomerChoice.customerId;
+      customerName=availableParties().find(p=>p.id===customerId)?.name??returnCustomer;
+    }
+    if(returnCreditNeeded&&selectedCustomerChoice.kind==='create'){
+      try {
+        const added=quickAddPartyPreview({name:selectedCustomerChoice.name,phone:selectedCustomerChoice.phone,
+          roles:['Customer'],area:''});
+        customerId=added.party.id;
+        customerName=added.party.name;
+      }catch(error){toast.error(error instanceof Error?error.message:String(error));return;}
+    }
     const newReturn: SalesReturn = {
       id: `RTN-${String(15 + returns.length - seedReturns.length).padStart(6, '0')}`,
       date: '01 Oct 2026',
-      customer: returnCustomer,
+      customer: customerName,
       ...(customerId?{customerId}:{}),
-      lineReturns:ordinaryReturnPlans.filter(plan=>plan.quantity>0).map(({invoiceId,lineId,quantity,amount,serials})=>({invoiceId,lineId,quantity,amount,serials})),
+      lineReturns:quotedOrdinaryPlans.filter(plan=>plan.quantity>0).map(plan=>{
+        const key=returnLineKey(plan.invoiceId,plan.lineId);
+        const q=plan.quote;
+        return {invoiceId:plan.invoiceId,lineId:plan.lineId,quantity:plan.quantity,
+          amount:plan.amount,serials:plan.serials,
+          ...(returnUnitQty[key]?{unitQuantities:{...returnUnitQty[key]}}:{}),
+          sourceBaseUnit:selectedReturnLines.find(p=>p.invoice.id===plan.invoiceId&&p.line.id===plan.lineId)?.line.unit,
+          historicalSourceAmountPaisa:q.historicalSourceAmountPaisa,
+          agreedReturnAmountPaisa:q.agreedReturnAmountPaisa,
+          priceDifferencePaisa:q.priceDifferencePaisa,
+          effectiveUnitPrice:q.effectiveUnitPrice??undefined,
+          priceWasOverridden:q.overridden,
+          ...(returnPriceReason[key]?.trim()?{adjustmentReason:returnPriceReason[key].trim()}: {})
+        };
+      }),
       invoices: selected.map((invoice) => invoice.invoice),
       items: selectedReturnLines
-        .filter(({ line }) => (parseFloat(returnQty[line.id] ?? '') || 0) > 0)
-        .map(({ line }) => {
-          const reason = returnReason[line.id] ?? 'Customer return';
-          const serial = (returnSerials[line.id] ?? '').trim();
-          return `${line.name} · ${returnQty[line.id]} ${line.unit} · ${reason}${serial ? ` · SN ${serial}` : ''}`;
-        })
-        .join(', '),
+        .filter(({invoice,line})=>Boolean(quotedOrdinaryPlans.find(plan=>
+          plan.invoiceId===invoice.id&&plan.lineId===line.id&&plan.quantity>0)))
+        .map(({invoice,line})=>{
+          const key=returnItemKey(invoice,line);
+          const units=returnUnitQty[key];
+          const amount=units?Object.entries(units).filter(([,v])=>Number(v)>0).map(([u,v])=>v+' '+u).join(' '):
+            (returnQty[key]??'0')+' '+line.unit;
+          const reason=returnReason[key]??'Customer return';
+          const serial=(returnSerials[key]??'').trim();
+          return `${line.name} · ${amount} · ${reason}${serial?' · SN '+serial:''}`;
+        }).join(', '),
       amount: returnAmount,
+      compensationExpensePaisa:returnCompensationPaisa,
+      negativeAdjustmentPaisa:quotedOrdinaryPlans.reduce((sum,p)=>sum+(p.quantity>0?p.quote.negativeAdjustmentPaisa:0),0),
+      phoneSnapshot:selected[0]?.phone,
       settlement: returnSettlement,
       ...(returnSettlement === 'Cash refund' ? {
         refundMethod: returnRefundMethod,
         ...(returnRefundAccount.trim() ? { refundAccount: returnRefundAccount.trim() } : {})
       } : {})
     };
-    setReturns((items) => [newReturn, ...items]);
-
     const dueAdjustments = new Map<string, number>();
     let remainingAdjustment = returnSettlement === 'Adjust due' ? returnAmount : 0;
     if (returnSettlement === 'Adjust due') {
@@ -984,37 +1095,42 @@ export function Sales() {
         remainingAdjustment -= applied;
       }
     }
-
     const creditFromReturn = returnSettlement === 'Customer credit'
       ? returnAmount
       : returnSettlement === 'Adjust due'
         ? Math.max(returnAmount - selectedReturnDue, 0)
         : 0;
-
-    if (creditFromReturn > 0) {
-      setCredits((items) => {
-        const existing = items.find((credit) => credit.customer === returnCustomer);
-        if (existing) return items.map((credit) => credit.id === existing.id ? { ...credit, balance: credit.balance + creditFromReturn, source: newReturn.id, updatedAt: newReturn.date } : credit);
-        return [{ id: `CR-${String(32 + items.length - seedCredits.length).padStart(6, '0')}`, ...(customerId?{customerId}:{}), customer: returnCustomer, balance: creditFromReturn, source: newReturn.id, updatedAt: newReturn.date }, ...items];
-      });
+    let nextCredits=credits;
+    if(creditFromReturn>0){
+      const existing=customerId?credits.find(credit=>credit.customerId===customerId):undefined;
+      nextCredits=existing?credits.map(credit=>credit.id===existing.id
+        ?{...credit,balance:credit.balance+creditFromReturn,source:newReturn.id,updatedAt:newReturn.date}:credit):
+        [{id:`CR-${String(32 + credits.length - seedCredits.length).padStart(6, '0')}`,
+          ...(customerId?{customerId}:{}),customer:customerName,balance:creditFromReturn,
+          source:newReturn.id,updatedAt:newReturn.date},...credits];
     }
-
-    setInvoices((items) => items.map((invoice) => {
+    const nextInvoices=invoices.map(invoice=>{
       if (!returnInvoiceIds.includes(invoice.id)) return invoice;
       const fullReturn = invoice.lines.every(line=>!isBundleReturnLine(line)&&
-        (ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.remaining??0)-(Number(returnQty[line.id]??0))<=0);
-      const applied = dueAdjustments.get(invoice.id) ?? 0;
-      const due = Math.max(invoice.due - applied, 0);
-      const total = applied > 0 ? Math.max(invoice.total - applied, invoice.paid) : invoice.total;
-      return { ...invoice, total, due, status: fullReturn ? 'Returned' : 'Part returned' };
-    }));
+        (plannedLine(invoice,line)?.remaining??0)-(plannedLine(invoice,line)?.quantity??0)<=0);
+      const applied=dueAdjustments.get(invoice.id)??0;
+      const due=Math.max(invoice.due-applied,0);
+      return {...invoice,due,status:fullReturn?'Returned' as const:'Part returned' as const};
+    });
+    try{
+      commitSalesReturnPreview({commandId:newReturn.id,expected:getSalesPreviewSnapshot(),
+        invoices:nextInvoices,returns:[newReturn,...returns],credits:nextCredits});
+    }catch(error){
+      toast.error(error instanceof Error?error.message:String(error));
+      return;
+    }
     setReturnInvoiceIds([]);
-    setReturnQty({});
-    setReturnReason({});
-    setReturnSerials({});
+    setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
+    setReturnReason({});setReturnSerials({});
     setReturnRefundMethod('Cash');
     setReturnRefundAccount('');
     setTab('returns');
+    setReturnReviewOpen(false);
     toast.success(text('Return saved in this preview session','এই প্রিভিউ সেশনে ফেরত রাখা হয়েছে'), { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
 
@@ -1308,34 +1424,19 @@ export function Sales() {
                 />
               </div>
 
-              <div className="rounded-xl border border-border bg-card">
-                <div className="border-b border-border p-3">
-                  <p className="text-[13px] font-medium text-ink">{sl('Select invoices')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· ইনভয়েস বাছুন</span>}</p>
-                  <p className="mt-0.5 text-[11px] text-ink-500">{sl("Choose one or more invoices for a batch return.")}</p>
-                </div>
-                <div className="divide-y divide-border">
-                  {customerInvoices.map((invoice) => (
-                    <label key={invoice.id} className="flex cursor-pointer items-center gap-3 p-3 hover:bg-ink-50">
-                      <input
-                        type="checkbox"
-                        checked={returnInvoiceIds.includes(invoice.id)}
-                        onChange={(event) => {
-                          setReturnInvoiceIds((ids) => event.target.checked ? [...ids, invoice.id] : ids.filter((id) => id !== invoice.id));
-                          setReturnQty({});
-                          setReturnReason({});
-                          setReturnSerials({});
-                        }}
-                        className="size-4 rounded border-ink-300 text-teal-600 focus:ring-teal-500"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[13px] font-medium text-ink">{invoice.invoice}</span>
-                        <span className="block text-[11px] text-ink-400">{invoice.date} · {invoice.items} lines · {taka(invoice.total)}</span>
-                      </span>
-                      <PaymentStatus invoice={invoice} />
-                    </label>
-                  ))}
-                </div>
-              </div>
+              <ReturnInvoicePicker invoices={customerInvoices} selectedIds={returnInvoiceIds}
+                search={returnSearch} onSearchChange={setReturnSearch}
+                onToggle={(invoice,checked)=>{
+                  if(checked&&!returnInvoiceIds.length){
+                    setReturnCustomer(invoice.party);
+                    setReturnNewCustomerName(invoice.party==='Walk-in customer'?'':invoice.party);
+                    setReturnNewCustomerPhone(invoice.phone??'');
+                  }
+                  setReturnInvoiceIds(ids=>checked?[...ids,invoice.id]:ids.filter(id=>id!==invoice.id));
+                  setReturnQty({});setReturnUnitQty({});setReturnPrice({});setReturnPriceReason({});
+                  setReturnReason({});setReturnSerials({});
+                  setReturnCreditChoice('');
+                }}/>
             </div></SalesMobileDisclosure>
 
             <div className="sales-mobile-return-lines min-w-0 rounded-xl border border-border bg-card">
@@ -1357,9 +1458,14 @@ export function Sales() {
                     </TableHeader>
                     <TableBody>
                       {selectedReturnLines.map(({ invoice, line }) => {
-                        const qty = parseFloat(returnQty[line.id] ?? '') || 0;
+                        const rowKey=returnItemKey(invoice,line);
+                        const qty=sourceUnitProfile(line)&&Object.keys(sourceUnitProfile(line)?.factors??{}).length>1
+                          ?returnBaseQuantity(line,{invoiceId:invoice.id,lineId:line.id,unitQuantities:returnUnitQty[rowKey]??{},serials:[],reason:''}).quantity
+                          :(parseFloat(returnQty[rowKey] ?? '') || 0);
+                        const itemPlan=plannedLine(invoice,line);
+                        const itemQuote=quotedOrdinaryPlans.find(plan=>plan.invoiceId===invoice.id&&plan.lineId===line.id)?.quote;
                         return (
-                          <TableRow key={line.id} className="text-[12.5px]">
+                          <TableRow key={rowKey} className="text-[12.5px]">
                             <TableCell className="py-2 pl-3">
                               <p className="font-medium text-ink">{line.name}</p>
                               <p className="text-[11px] text-ink-400">{invoice.invoice}</p>
@@ -1369,20 +1475,20 @@ export function Sales() {
                                 <div className="mt-2 max-w-[260px] space-y-1.5">
                                   <FormSelect
                                     aria-label={`${text('Return reason','ফেরতের কারণ')} · ${line.name}`}
-                                    value={returnReason[line.id] ?? 'Customer return'}
-                                    onChange={(event) => setReturnReason((value) => ({ ...value, [line.id]: event.target.value }))}
+                                    value={returnReason[rowKey] ?? 'Customer return'}
+                                    onChange={(event) => setReturnReason((value) => ({ ...value, [rowKey]: event.target.value }))}
                                     options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
                                   />
                                   {line.bundleSnapshot&&<div className="space-y-2 rounded-lg border border-border p-2" data-testid="bundle-return-components">
                                     <p className="text-[11px] font-semibold">{text('Original included products · choose condition','আগের প্যাকেজের পণ্য · অবস্থা বাছুন')}</p>
                                     {line.bundleSnapshot.components.map(part=>{
-                                      const saved=bundleReturnChoices[line.id]?.[part.productId];
+                                      const saved=bundleReturnChoices[rowKey]?.[part.productId];
                                       return <div key={part.productId} className="space-y-1 rounded-md bg-ink-50 p-2">
                                         <p className="text-[11px] font-medium">{part.name} · {Number((part.baseQtyPerSet*qty).toFixed(6))} {part.unit}</p>
                                         <label className="block text-[10px] text-ink-500">{text('Condition / stock treatment','অবস্থা / স্টক')}
                                           <FormSelect aria-label={`Disposition for ${part.name}`} className="mt-1" value={saved?.disposition??''}
                                             onChange={event=>setBundleReturnChoices(current=>({
-                                              ...current,[line.id]:{...current[line.id],[part.productId]:{
+                                              ...current,[rowKey]:{...current[line.id],[part.productId]:{
                                                 disposition:event.target.value as BundleReturnSelection['disposition'],
                                                 serials:current[line.id]?.[part.productId]?.serials??[]
                                               }}
@@ -1395,7 +1501,7 @@ export function Sales() {
                                           <label className="block text-[10px] text-ink-500">{text('Returned component serials, comma-separated','ফেরত সিরিয়াল, কমা দিয়ে লিখুন')}
                                             <Input aria-label={`Returned serials for ${part.name}`} className="mt-1 h-8" value={(saved?.serials??[]).join(', ')}
                                               onChange={event=>setBundleReturnChoices(current=>({
-                                                ...current,[line.id]:{...current[line.id],[part.productId]:{
+                                                ...current,[rowKey]:{...current[line.id],[part.productId]:{
                                                   disposition:current[line.id]?.[part.productId]?.disposition??'Do not restock',
                                                   serials:event.target.value.split(',').map(v=>v.trim()).filter(Boolean)
                                                 }}
@@ -1411,15 +1517,15 @@ export function Sales() {
                                   {line.serials?.length ? (
                                     <>
                                       <Input
-                                        value={returnSerials[line.id] ?? ''}
-                                        onChange={(event) => setReturnSerials((value) => ({ ...value, [line.id]: event.target.value }))}
+                                        value={returnSerials[rowKey] ?? ''}
+                                        onChange={(event) => setReturnSerials((value) => ({ ...value, [rowKey]: event.target.value }))}
                                         placeholder={sl("Returned serial, comma separated")}
                                         className="h-8"
                                       />
                                       <p className="text-[10.5px] text-ink-400">{sl('Sold serials:')} {line.serials.join(', ')}</p>
                                     </>
                                   ) : null}
-                                  {(returnReason[line.id] ?? 'Customer return') === 'Warranty claim' && (
+                                  {(returnReason[rowKey] ?? 'Customer return') === 'Warranty claim' && (
                                     <p className="text-[10.5px] text-teal-700">{sl("This return will be available for warranty intake.")}</p>
                                   )}
                                 </div>
@@ -1427,37 +1533,31 @@ export function Sales() {
                             </TableCell>
                             <TableCell data-mobile-label={sl('Sold')} className="py-2">{invoiceQty(line)}</TableCell>
                             <TableCell data-mobile-label={sl('Return qty')} className="py-2">
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  value={returnQty[line.id] ?? ''}
-                                  onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value}));
-                                    if(isBundleReturnLine(line))setBundleReturnChoices(value=>({...value,[line.id]:{}}));}}
-                                  inputMode={isBundleReturnLine(line)?'numeric':'decimal'}
-                                  aria-label={isBundleReturnLine(line)?`Whole Sets to return for ${line.name}`:`${sl('Return qty')} · ${line.name}`}
-                                  aria-invalid={!isBundleReturnLine(line)&&Boolean(returnQty[line.id])&&Boolean(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.issues.length)}
-                                  className="h-8 text-right"
-                                  placeholder="0"
-                                />
-                                <span className="w-10 text-[11px] text-ink-400">{line.unit}</span>
-                              </div>
-                              <p className={`mt-1 text-[10.5px] ${qty > returnLimit(line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
-                                {sl('max')} {returnLimit(line)} {line.unit}
+                              <ReturnQuantityField line={line} value={returnQty[rowKey]??''}
+                                unitValues={returnUnitQty[rowKey]}
+                                onChange={next=>{
+                                  setReturnQty(values=>({...values,[rowKey]:next}));
+                                  if(isBundleReturnLine(line))setBundleReturnChoices(values=>({...values,[rowKey]:{}}));
+                                }}
+                                onUnitsChange={next=>setReturnUnitQty(values=>({...values,[rowKey]:next}))}/>
+                              <p className={`mt-1 text-[10.5px] ${qty > returnLimit(invoice,line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
+                                {sl('max')} {returnLimit(invoice,line)} {line.unit}
                               </p>
                             </TableCell>
                             <TableCell data-mobile-label={sl('Refund')} className="py-2 pr-3">
-                              <div className="ml-auto w-28">
-                                <Input
-                                  value={isBundleReturnLine(line)?String(line.price):ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice===null?text('Source allocation needed','আগের মূল্য প্রয়োজন'):String(Number((ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.unitPrice??0).toFixed(6)))}
-                                  disabled
-                                  inputMode="decimal"
-                                  className="h-8 text-right"
-                                  aria-label={`${sl('Return price for')} ${line.name}`}
-                                />
-                                <p className="mt-1 text-right text-[10.5px] text-ink-400">
-                                  {isBundleReturnLine(line)?
-                                    (qty>0?text('Historical net refund — see preview','আগের বিক্রির মূল্য — প্রিভিউ দেখুন'):'Set'):
-                                    (qty > 0 ? taka(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0) : `/${line.unit}`)}
-                                </p>
+                              <div className="space-y-1">
+                                <ReturnPriceField name={line.name+' '+rowKey} baseUnit={line.unit}
+                                  historicalUnitPrice={isBundleReturnLine(line)?(line.netSaleTotal??line.total)/(line.soldBaseQuantity??(Number(line.quantity.match(/^\d+/)?.[0])||1)):itemPlan?.unitPrice??null}
+                                  rawOverride={returnPrice[rowKey]}
+                                  onChange={next=>setReturnPrice(values=>({...values,[rowKey]:next}))}
+                                  onReset={()=>setReturnPrice(values=>{const next={...values};delete next[rowKey];return next;})}/>
+                                {itemQuote&&qty>0&&<p className="text-right text-[10.5px] text-ink-400">{taka(itemQuote.agreedReturnAmountPaisa/100)}</p>}
+                                {itemQuote&&itemQuote.priceDifferencePaisa>0&&qty>0&&
+                                  <Input aria-label={text('Reason for extra refund','অতিরিক্ত ফেরতের কারণ')+' · '+line.name}
+                                    value={returnPriceReason[rowKey]??''} className="h-8 text-xs"
+                                    placeholder={text('Why is refund higher?','বেশি ফেরতের কারণ কী?')}
+                                    onChange={event=>setReturnPriceReason(values=>({...values,[rowKey]:event.target.value}))}/>}
+                                {itemQuote&&itemQuote.issues.length>0&&qty>0&&<p role="alert" className="text-[10.5px] text-danger">{itemQuote.issues.join(' ')}</p>}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1532,6 +1632,48 @@ export function Sales() {
           </div>
         )}
 
+        <Dialog open={returnReviewOpen} onOpenChange={setReturnReviewOpen}>
+          <DialogContent role="dialog" aria-label={text('Confirm Sales Return','বিক্রি ফেরত নিশ্চিত করুন')}
+            className="sales-mobile-dialog max-h-[92vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{text('Confirm Sales Return','বিক্রি ফেরত নিশ্চিত করুন')}</DialogTitle>
+              <DialogDescription>{text('Review the original value, agreed amount and payment before saving this session preview.','ফেরত জমার আগে আগের মূল্য, নতুন মূল্য ও টাকা যাচাই করুন।')}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 text-sm">
+              <p className="text-xs text-ink-500">{selectedReturnInvoices.map(invoice=>invoice.invoice).join(', ')}</p>
+              <div className="flex justify-between gap-2"><span>{text('Historical return value','আগের ফেরত মূল্য')}</span><strong>{taka(quotedOrdinaryPlans.filter(p=>p.quantity>0).reduce((n,p)=>n+p.quote.historicalSourceAmountPaisa,0)/100)}</strong></div>
+              {returnCompensationPaisa>0&&<div className="flex justify-between gap-2 text-warning"><span>{text('Customer Compensation Expense','ক্রেতাকে অতিরিক্ত ফেরত খরচ')}</span><strong>{taka(returnCompensationPaisa/100)}</strong></div>}
+              <div className="flex justify-between gap-2 border-t border-border pt-2"><strong>{text('Final return amount','মোট ফেরত')}</strong><strong>{taka(returnAmount)}</strong></div>
+              <p className="text-xs text-ink-500">{sl(returnSettlement)}</p>
+              {returnCreditNeeded&&!selectedReturnInvoices.some(invoice=>invoice.partyId)&&
+                <div className="space-y-2 rounded-md border border-border p-2">
+                  <label className="block text-xs font-medium">
+                    {text('Confirm customer for credit','ক্রেতার জমার জন্য ক্রেতা নিশ্চিত করুন')}
+                    <FormSelect className="mt-1" value={returnCreditChoice}
+                      onChange={event=>setReturnCreditChoice(event.target.value)}
+                      options={[{value:'',label:text('Choose customer','ক্রেতা বাছুন')},
+                        ...returnCustomerCandidates.map(p=>({value:p.id,label:p.name+' · '+p.phone})),
+                        {value:'create',label:text('Create new customer','নতুন ক্রেতা যোগ করুন')}]}/>
+                  </label>
+                  {returnCreditChoice==='create'&&<>
+                    <label className="block text-xs">{text('Customer name','ক্রেতার নাম')}
+                      <Input className="mt-1 h-8" value={returnNewCustomerName}
+                        onChange={event=>setReturnNewCustomerName(event.target.value)}/></label>
+                    <label className="block text-xs">{text('Mobile number','মোবাইল নম্বর')}
+                      <Input className="mt-1 h-8" value={returnNewCustomerPhone}
+                        onChange={event=>setReturnNewCustomerPhone(event.target.value)}/></label>
+                  </>}
+                  <p className="text-[10.5px] text-ink-500">{text('Confirm identity before adding credit. Sharing a phone does not prove the same person.','জমার আগে ক্রেতা নিশ্চিত করুন। একই ফোন মানেই একই ব্যক্তি নয়।')}</p>
+                </div>}
+              {returnCompensationPaisa>0&&<p role="note" className="text-xs text-warning">{text('Above-historical refund reasons are retained in the return audit. Compensation is part of this settlement, not an additional payout.','অতিরিক্ত ফেরতের কারণ রাখা হবে। এই খরচ একই ফেরতের অংশ, আলাদা টাকা দেওয়া নয়।')}</p>}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={()=>setReturnReviewOpen(false)}>{text('Cancel','বাতিল')}</Button>
+              <Button onClick={confirmReturn}>{text('Confirm return','ফেরত নিশ্চিত করুন')}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={bundleReturnPreviewOpen} onOpenChange={open=>!open&&setBundleReturnPreviewOpen(false)}>
           <DialogContent role="dialog" aria-label="Bundle return preview" className="sales-mobile-dialog max-h-[92vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-xl">
             <DialogHeader>
@@ -1545,6 +1687,10 @@ export function Sales() {
                 <p className="text-xs text-ink-500">{text('Remaining before preview','এখনও ফেরতযোগ্য')}: {plan.remainingSets} Set</p>
                 <p className="font-medium">{text('Historical refund estimate','আগের বিক্রির ফেরত মূল্য')}: {plan.refundEstimate===null?
                   text('Pending source allocation','আগের মূল্য যাচাই বাকি'):taka(plan.refundEstimate)}</p>
+                {bundleReturnQuotes.find(q=>q.invoiceId===plan.invoiceId&&q.lineId===plan.lineId)?.priceQuote&&
+                  <p className="mt-1 font-semibold text-teal-700">{text('Agreed preview refund','সম্মত ফেরতের প্রিভিউ')}:
+                    {' '}{taka((bundleReturnQuotes.find(q=>q.invoiceId===plan.invoiceId&&q.lineId===plan.lineId)?.priceQuote.agreedReturnAmountPaisa??0)/100)}
+                  </p>}
                 {plan.components.map(child=><div key={child.productId} className="mt-2 rounded-md bg-ink-50 p-2 text-xs">
                   <p>{child.name} · {child.returnedBaseQty} {child.unit} · {child.disposition}</p>
                   {child.returnedSerials.length>0&&<p>Serials: {child.returnedSerials.join(', ')}</p>}
