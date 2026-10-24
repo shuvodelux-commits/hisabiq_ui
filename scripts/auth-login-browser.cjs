@@ -114,7 +114,7 @@ async function main() {
           await language(option);
           await page.getByRole('heading', { name: heading, exact: true }).waitFor();
           for (const [route, englishTitle, banglaTitle] of [['/login', 'Sign in', 'সাইন ইন'], ['/login/pin', 'Welcome back', 'আবার স্বাগতম'], ['/login/accounts', 'Choose account', 'অ্যাকাউন্ট বাছুন'], ['/signup', 'Create account', 'অ্যাকাউন্ট খুলুন'], ['/recovery', 'Recover password', 'পাসওয়ার্ড পুনরুদ্ধার']]) {
-            const state = route.slice(1).replace(/\W/g, '-');
+            const state = route.split('/').pop();
             await go(route);
             await page.getByRole('heading', { name: option === 'বাংলা' ? banglaTitle : englishTitle, exact: true }).waitFor();
             assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
