@@ -189,7 +189,7 @@ export function BundleEditor({initialProduct=null,catalog,onSave,onCancel}:Bundl
          <ProductThumb src={product.image} size={32}/>
          <div className="min-w-0">
           <p className="truncate text-[13px] font-medium text-ink">{product.name}</p>
-          <p className="truncate text-[11px] text-ink-500">{product.sku} · {product.category}</p>
+          <p data-table-helper="" className="truncate text-[11px] text-ink-500">{product.sku} · {product.category}</p>
          </div>
         </div>
         <div data-cart-field="Quantity · পরিমাণ">

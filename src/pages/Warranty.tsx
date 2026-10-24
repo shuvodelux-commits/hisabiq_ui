@@ -940,7 +940,7 @@ export function Warranty() {
               <TableRow key={item.id} className="cursor-pointer text-[13px]" onClick={() => setDetail(item)}>
                 <TableCell className="py-2 pl-4">
                   <p className="font-medium text-ink">{item.id}</p>
-                  <p className="text-[11px] text-ink-400">{item.receivedAt}</p>
+                  <p data-table-helper="" className="text-[11px] text-ink-400">{item.receivedAt}</p>
                 </TableCell>
                 <TableCell className="py-2">
                   {item.customerId ? (
@@ -950,15 +950,15 @@ export function Warranty() {
                       {item.customer}
                     </button>
                   ) : <p className="font-medium text-ink">{item.customer}</p>}
-                  <p className="text-[11px] text-ink-400">{item.phone ?? item.invoice}</p>
+                  <p data-table-helper="" className="text-[11px] text-ink-400">{item.phone ?? item.invoice}</p>
                 </TableCell>
                 <TableCell className="max-w-[280px] py-2">
                   <p className="truncate font-medium text-ink">{item.product}</p>
-                  <p className="truncate text-[11px] text-ink-400">{item.serial ? `SN ${item.serial} · ` : ''}{item.issue}</p>
+                  <p data-table-helper="" className="truncate text-[11px] text-ink-400">{item.serial ? `SN ${item.serial} · ` : ''}{item.issue}</p>
                 </TableCell>
                 <TableCell className="py-2">
                   <p className="text-ink-600">{item.supplier ?? wl(item.route)}</p>
-                  <p className="text-[11px] text-ink-400">{item.supplierRef ?? wl(item.route)}</p>
+                  <p data-table-helper="" className="text-[11px] text-ink-400">{item.supplierRef ?? wl(item.route)}</p>
                 </TableCell>
                 <TableCell className="py-2 text-ink-600">{item.expectedDate ?? '—'}</TableCell>
                 <TableCell className="py-2">

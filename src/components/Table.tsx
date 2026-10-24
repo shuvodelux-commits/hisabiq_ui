@@ -66,6 +66,7 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(function Table({ s
   return (
     <DesignTable
       {...props}
+      data-erp-table=""
       ref={(node) => {
         tableRef.current = node;
         if (typeof forwardedRef === 'function') forwardedRef(node);

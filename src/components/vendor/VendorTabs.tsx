@@ -251,7 +251,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
        No transactions in this view · এই হিসাবে লেনদেন নেই
       </div>}
      </div>
-     <div className="hidden overflow-x-auto sm:block"><table className="w-full min-w-[560px] text-xs">
+     <div className="hidden overflow-x-auto sm:block"><table data-erp-table="" className="w-full min-w-[560px] text-xs">
       <thead><tr className="border-b border-border bg-ink-50">
        {['Date','Details','Increase','Decrease','Running','Actions'].map(x=><th key={x} className="p-2 text-left">{x}</th>)}
       </tr></thead><tbody>

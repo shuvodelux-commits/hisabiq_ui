@@ -179,14 +179,14 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   <ProductThumb src={l.product.image} size={32} />
                   <div className="min-w-0">
                     <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
-                    <p className="truncate text-[11px] text-ink-500">
+                    <p data-table-helper="" className="truncate text-[11px] text-ink-500">
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
                       {l.product.category}{l.product.kind==='Bundle'?` · Package · ${bundleAvailable} Set available`:l.product.kind === 'Service' ? ` · ${word('service')}` : l.product.expiry?.enabled ? ` · ${word('sellable')} ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · ${word('stock')} ${formatStock(l.product)}`}
                     </p>
                     <div className="mt-0.5 flex flex-wrap items-center gap-1">
                       {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
                         <button
-                          type="button"
+                          type="button" data-table-badge=""
                           onClick={() => setSerialLine(l)}
                           className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-medium ${
                             (l.product.serialTracking === 'Required' && l.serials.length !== requiredSerialCount(l.product, baseQty)) ||
@@ -198,10 +198,10 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                           {word('serials')} {l.serials.length}/{Math.max(requiredSerialCount(l.product, baseQty), Math.ceil(baseQty))}
                         </button>
                       )}
-                      {l.product.kind==='Bundle'&&<span role="status" className="rounded bg-teal-50 px-1.5 py-0.5 text-[10px] text-teal-800">{text('Package','প্যাকেজ')} · {recipe?.components.length??0} {text('products','পণ্য')} · {text('Version','সংস্করণ')} {l.bundleRevision??'?'}</span>}
-                      {invalidSets&&<span role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Whole Sets only','শুধু পূর্ণ সেট')}</span>}
-                      {staleRecipe&&<span role="alert" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle recipe changed — add again','প্যাকেজের পণ্য বদলেছে — আবার যোগ করুন')}</span>}
-                      {relatedShortages.length>0&&<span role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Shared component shortage','প্যাকেজের পণ্য কম')} · {relatedShortages.map(s=>`${catalog.find(p=>p.id===s.componentProductId)?.name??s.componentProductId}: ${s.shortageBaseQty}`).join(', ')}</span>}
+                      {l.product.kind==='Bundle'&&<span data-table-helper="" role="status" className="rounded bg-teal-50 px-1.5 py-0.5 text-[10px] text-teal-800">{text('Package','প্যাকেজ')} · {recipe?.components.length??0} {text('products','পণ্য')} · {text('Version','সংস্করণ')} {l.bundleRevision??'?'}</span>}
+                      {invalidSets&&<span data-table-helper="" role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Whole Sets only','শুধু পূর্ণ সেট')}</span>}
+                      {staleRecipe&&<span data-table-helper="" role="alert" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle recipe changed — add again','প্যাকেজের পণ্য বদলেছে — আবার যোগ করুন')}</span>}
+                      {relatedShortages.length>0&&<span data-table-helper="" role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Shared component shortage','প্যাকেজের পণ্য কম')} · {relatedShortages.map(s=>`${catalog.find(p=>p.id===s.componentProductId)?.name??s.componentProductId}: ${s.shortageBaseQty}`).join(', ')}</span>}
                       {l.product.kind==='Bundle'&&recipe&&<details className="text-[11px] text-ink-500">
                         <summary className="cursor-pointer">{text('View included products','ভেতরের পণ্য দেখুন')}</summary>
                         <div className="mt-1 space-y-1.5">

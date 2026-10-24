@@ -230,7 +230,7 @@ export function DataSettings() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table data-erp-table="" className="w-full text-left text-xs">
               <thead className="text-ink-500">
                 <tr>
                   <th className="px-2 py-2">When</th>

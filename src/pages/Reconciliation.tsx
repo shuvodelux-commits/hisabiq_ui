@@ -554,7 +554,7 @@ export function Reconciliation() {
                   <TableRow key={item.id} className="text-[13px]">
                     <TableCell className="py-2 pl-4">
                       <p className="font-medium text-ink">{item.id}</p>
-                      <p className="text-[11px] text-ink-400">{item.period}</p>
+                      <p data-table-helper="" className="text-[11px] text-ink-400">{item.period}</p>
                     </TableCell>
                     <TableCell className="py-2 font-medium text-ink">{item.accountName}</TableCell>
                     <TableCell className="py-2 text-ink-600">{item.statementFile}</TableCell>

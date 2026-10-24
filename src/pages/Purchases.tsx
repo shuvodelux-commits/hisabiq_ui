@@ -228,7 +228,7 @@ export function Purchases() {
                     <TableRow key={p.id} className="cursor-pointer text-[13px]" onClick={open}>
                       <TableCell className="py-2 pl-4">
                         <span className="font-medium text-ink">{p.ref}</span>
-                        <span className="block text-[11px] text-ink-400">{p.date}</span>
+                        <span data-table-helper="" className="block text-[11px] text-ink-400">{p.date}</span>
                       </TableCell>
                       <TableCell className="py-2">
                         <Link
@@ -376,7 +376,7 @@ export function Purchases() {
                   <TableRow key={item.id} className="text-[13px]">
                     <TableCell className="py-2 pl-4">
                       <span className="font-medium text-ink">{item.id}</span>
-                      <span className="block text-[11px] text-ink-400">{item.date}</span>
+                      <span data-table-helper="" className="block text-[11px] text-ink-400">{item.date}</span>
                     </TableCell>
                     <TableCell className="py-2 text-teal-700">{item.purchase}</TableCell>
                     <TableCell className="py-2">{item.supplier}</TableCell>

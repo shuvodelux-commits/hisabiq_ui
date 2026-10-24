@@ -42,7 +42,7 @@ export function VendorStatementDialog({open,onClose,party,state,range}:Props){
      </div>
     </div>
     <div className="text-sm">{text("Opening:","শুরুর জের:")} <strong>{taka(statement.openingPaisa/100)}</strong></div>
-    <div className="overflow-x-auto"><table className="w-full text-xs">
+    <div className="overflow-x-auto"><table data-erp-table="" className="w-full text-xs">
       <thead><tr className="border-y border-border bg-ink-50">
        <th className="p-2 text-left">{text("Date","তারিখ")}</th><th className="p-2 text-left">{text("Source","উৎস")}</th>
        <th className="p-2 text-right">{text("Increase","বেড়েছে")}</th><th className="p-2 text-right">{text("Decrease","কমেছে")}</th>

@@ -44,7 +44,7 @@ export function LedgerImpactAmount({
       <Icon data-testid="ledger-impact-icon" className={`size-3.5 shrink-0 ${iconTone[info.kind]}`} aria-hidden="true" />
       <span className="break-words">{formatted}</span>
     </span>
-    <span data-testid="ledger-impact-caption" className="text-right text-[10px] font-normal leading-tight text-ink-500">
+    <span data-table-helper="" data-testid="ledger-impact-caption" className="text-right text-[10px] font-normal leading-tight text-ink-500">
       {caption}
     </span>
   </div>;

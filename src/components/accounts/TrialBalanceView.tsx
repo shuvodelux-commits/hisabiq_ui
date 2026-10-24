@@ -82,7 +82,7 @@ export function TrialBalanceView({ postings, terminologyMode }: { postings: Post
               return (
                 <TableRow key={account.id} className="text-[13px]">
                   <TableCell className="py-2 pl-4 text-ink-500">{account.code}</TableCell>
-                  <TableCell className="py-2"><p className="font-medium text-ink">{accountingAccountLabel(account, terminologyMode)}</p><p className="font-bn text-[10.5px] text-ink-400">{account.helperBn}</p></TableCell>
+                  <TableCell className="py-2"><p className="font-medium text-ink">{accountingAccountLabel(account, terminologyMode)}</p><p data-table-helper="" className="font-bn text-[10.5px] text-ink-400">{account.helperBn}</p></TableCell>
                   <TableCell className="py-2 text-ink-500">{text(account.group,account.group==='Asset'?'সম্পদ':account.group==='Liability'?'দেনা':account.group==='Income'?'আয়':account.group==='Expense'?'খরচ':account.group==='Equity'?'মূলধন':account.group)}</TableCell>
                   <TableCell className="py-2 text-right">{row.debit ? taka(row.debit) : '—'}</TableCell>
                   <TableCell className="py-2 pr-4 text-right">{row.credit ? taka(row.credit) : '—'}</TableCell>

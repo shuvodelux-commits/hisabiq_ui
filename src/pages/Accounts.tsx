@@ -282,7 +282,7 @@ export function Accounts() {
                   {sources.slice().reverse().map((source) => (
                     <TableRow key={source.id} className="text-[13px]">
                       <TableCell className="py-2 pl-4">{source.transactionDate}</TableCell>
-                      <TableCell className="py-2"><p className="font-medium text-ink">{sourceLabel(source.source)}</p><p className="font-bn text-[10.5px] text-ink-400">{sourceHelper(source.source)}</p></TableCell>
+                      <TableCell className="py-2"><p className="font-medium text-ink">{sourceLabel(source.source)}</p><p data-table-helper="" className="font-bn text-[10.5px] text-ink-400">{sourceHelper(source.source)}</p></TableCell>
                       <TableCell className="py-2 font-medium text-teal-700">{source.reference}</TableCell>
                       <TableCell className="max-w-[360px] py-2"><p className="truncate text-ink-600">{source.description || '—'}</p></TableCell>
                       <TableCell className="py-2 text-ink-600">{source.postedBy}</TableCell>

@@ -44,7 +44,7 @@ export function RecentSalesTable() {
             <TableRow key={s.id} className="text-[13px]">
               <TableCell className="py-2 pl-4">
                 <span className="font-medium text-ink">{s.invoice}</span>
-                <span className="block text-[11px] text-ink-400">{s.date} · {s.time}</span>
+                <span data-table-helper="" className="block text-[11px] text-ink-400">{s.date} · {s.time}</span>
               </TableCell>
               <TableCell className="py-2 text-ink-700">{s.party}</TableCell>
               <TableCell className="py-2">

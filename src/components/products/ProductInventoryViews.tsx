@@ -116,11 +116,11 @@ export function StockLotsView({
                 <TableRow key={lot.id} className="text-[13px]">
                   <TableCell className="py-2">
                     <p className="font-medium text-ink">{lot.label}</p>
-                    {lot.reference && <p className="text-[11px] text-ink-400">{lot.reference}</p>}
+                    {lot.reference && <p data-table-helper="" className="text-[11px] text-ink-400">{lot.reference}</p>}
                   </TableCell>
                   <TableCell className="py-2">
                     <p className="font-medium text-ink">{product.name}</p>
-                    {product.nameBn && <p className="font-bn text-[11px] text-ink-400">{product.nameBn}</p>}
+                    {product.nameBn && <p data-table-helper="" className="font-bn text-[11px] text-ink-400">{product.nameBn}</p>}
                   </TableCell>
                   <TableCell className="py-2 text-ink-600">{lot.receivedAt}</TableCell>
                   <TableCell className="py-2 text-right text-ink-600">{formatStock({ ...product, stock: lot.quantity })}</TableCell>
@@ -130,7 +130,7 @@ export function StockLotsView({
                   <TableCell className="py-2 text-right font-medium text-ink">{taka(lotValue, lotValue % 1 ? 2 : 0)}</TableCell>
                   <TableCell className="py-2">
                     <p className="text-ink-600">{lot.batchNumber ? `${pl('Batch')} ${lot.batchNumber}` : pl('No batch')}</p>
-                    <p className="text-[11px] text-ink-400">{lot.expiryDate ? `${pl('Exp')} ${lot.expiryDate}` : pl('No expiry')}{lot.serials?.length ? ` · ${lot.serials.length} ${pl('serials')}` : ''}</p>
+                    <p data-table-helper="" className="text-[11px] text-ink-400">{lot.expiryDate ? `${pl('Exp')} ${lot.expiryDate}` : pl('No expiry')}{lot.serials?.length ? ` · ${lot.serials.length} ${pl('serials')}` : ''}</p>
                   </TableCell>
                   <TableCell className="py-2">
                     <StatusBadge tone={lot.available <= 0 ? 'neutral' : expiryState === 'Expired' ? 'danger' : expiryState === 'Expiring soon' ? 'warning' : 'success'} dot>
@@ -213,7 +213,7 @@ export function StockHistoryView({
                 <TableCell className="py-2 text-ink-600">{movement.date}</TableCell>
                 <TableCell className="py-2">
                   <p className="font-medium text-ink">{product.name}</p>
-                  {product.nameBn && <p className="font-bn text-[11px] text-ink-400">{product.nameBn}</p>}
+                  {product.nameBn && <p data-table-helper="" className="font-bn text-[11px] text-ink-400">{product.nameBn}</p>}
                 </TableCell>
                 <TableCell className="py-2"><StatusBadge tone={movementTone[movement.type]}>{pl(movement.type)}</StatusBadge></TableCell>
                 <TableCell className={`py-2 text-right font-medium ${movement.quantity < 0 ? 'text-danger' : 'text-success'}`}>

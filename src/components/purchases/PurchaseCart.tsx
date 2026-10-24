@@ -62,11 +62,11 @@ export function PurchaseCart({
       <section data-cart-kind="purchase" className="min-w-0 rounded-xl border border-border bg-card shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5">
           <div>
-            <p className="text-[13px] font-semibold text-ink">Purchase cart <span className="font-bn text-[11px] font-normal text-ink-400">· ক্রয়ের পণ্য</span></p>
-            <p className="text-[11px] text-ink-500">Add products inline, same as POS · 2 Box 5 Pcs / 1 Gauge 12 Gira</p>
+            <p className="text-[13px] font-semibold text-ink">Purchase cart <span data-table-helper="" className="font-bn text-[11px] font-normal text-ink-400">· ক্রয়ের পণ্য</span></p>
+            <p data-table-helper="" className="text-[11px] text-ink-500">Add products inline, same as POS · 2 Box 5 Pcs / 1 Gauge 12 Gira</p>
           </div>
           <Button disabled={sourceLocked} size="sm" variant="outline" onClick={onCreate}>
-            <PackagePlus className="size-4" /> New product <span className="font-bn text-[11px] font-normal">· নতুন পণ্য</span>
+            <PackagePlus className="size-4" /> New product <span data-table-helper="" className="font-bn text-[11px] font-normal">· নতুন পণ্য</span>
           </Button>
         </div>
 
@@ -90,7 +90,7 @@ export function PurchaseCart({
                       <ProductThumb src={product.image} size={34} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] font-medium text-ink">{product.name}</p>
-                        <p className="truncate text-[11px] text-ink-500"><span className="font-bn">{product.nameBn}</span>{product.nameBn ? ' · ' : ''}{product.category} · Stock {formatStock(product)}</p>
+                        <p data-table-helper="" className="truncate text-[11px] text-ink-500"><span className="font-bn">{product.nameBn}</span>{product.nameBn ? ' · ' : ''}{product.category} · Stock {formatStock(product)}</p>
                         <button
                           type="button"
                           onClick={() => onUpdate(line.id, { detailsOpen: !line.detailsOpen })}
@@ -148,7 +148,7 @@ export function PurchaseCart({
                       )
                     ) : <span className="px-2 text-sm text-ink-600">{product.unit}</span>}</div>
                     <div data-cart-field="Unit cost · ক্রয়মূল্য"><div className="relative">
-                      <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
+                      <span data-table-helper="" className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <NumericInput ref={(node) => { costRefs.current[line.id] = node; }}
                         aria-label={'Purchase cost for ' + product.name} inputMode="decimal" value={line.cost} readOnly={sourceLocked}
                         className={entryInput + ' pl-5'}
@@ -156,7 +156,7 @@ export function PurchaseCart({
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); lotPriceRefs.current[line.id]?.focus(); lotPriceRefs.current[line.id]?.select(); } }} />
                     </div></div>
                     <div data-cart-field="Lot sale · বিক্রয়মূল্য"><div className="relative">
-                      <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
+                      <span data-table-helper="" className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <NumericInput stepperInset={48}
                         ref={(node) => { lotPriceRefs.current[line.id] = node; }}
                         aria-label={'Lot selling price for ' + product.name}
@@ -166,7 +166,7 @@ export function PurchaseCart({
                         onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
                       />
-                      <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{line.lotSellUnit}</span>
+                      <span data-table-helper="" className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{line.lotSellUnit}</span>
                     </div></div>
                     <span data-cart-field="Total · মোট" className="text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
                     <button type="button" aria-label={'Remove ' + product.name} onClick={() => onRemove(line.id)}
@@ -177,16 +177,16 @@ export function PurchaseCart({
                   {!sourceLocked && line.detailsOpen && (
                     <div className="border-t border-border/60 bg-ink-50/50 px-3 py-3">
                       <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="text-[12px] font-semibold text-ink">Purchase lot details <span className="font-bn font-normal text-ink-400">· লটের তথ্য</span></p>
-                        <p className="text-[10.5px] text-ink-500">Lot price applies to this batch, not the product's default price</p>
+                        <p data-table-helper="" className="text-[12px] font-semibold text-ink">Purchase lot details <span className="font-bn font-normal text-ink-400">· লটের তথ্য</span></p>
+                        <p data-table-helper="" className="text-[10.5px] text-ink-500">Lot price applies to this batch, not the product's default price</p>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="min-w-0">
-                          <p className="mb-1 text-[11px] font-medium text-ink">Lot selling price unit <span className="font-bn text-ink-500">· বিক্রয় একক</span></p>
+                          <p data-table-helper="" className="mb-1 text-[11px] font-medium text-ink">Lot selling price unit <span className="font-bn text-ink-500">· বিক্রয় একক</span></p>
                           <FormSelect className="w-full [&>select]:text-xs"
                             value={line.lotSellUnit} options={unitOptions(product)}
                             onChange={(event) => changeLotSellUnit(line, event.target.value)} />
-                          <p className="mt-1 text-[10.5px] text-ink-500">Base {taka(lotBaseSellPrice(line))}/{product.unit} · Cost {taka(lineAmount(line))} total</p>
+                          <p data-table-helper="" className="mt-1 text-[10.5px] text-ink-500">Base {taka(lotBaseSellPrice(line))}/{product.unit} · Cost {taka(lineAmount(line))} total</p>
                         </div>
                         <label className="block min-w-0 text-[11px] font-medium text-ink">
                           Batch / lot number <span className="font-bn font-normal text-ink-400">· ব্যাচ</span>
@@ -214,7 +214,7 @@ export function PurchaseCart({
                               placeholder="Scan, type or paste serial numbers · one per line or comma separated"
                               onChange={(event) => onUpdate(line.id, { serialText: event.target.value })}
                             />
-                            <span className="mt-1 block text-[11px] font-normal text-ink-500">{count} entered · {required} mandatory · {baseQty(line)} base units purchased</span>
+                            <span data-table-helper="" className="mt-1 block text-[11px] font-normal text-ink-500">{count} entered · {required} mandatory · {baseQty(line)} base units purchased</span>
                           </label>
                         )}
                       </div>
@@ -228,15 +228,15 @@ export function PurchaseCart({
               <span className="text-right text-[13px] font-medium text-teal-700">{lines.length + 1}.</span>
               <ProductCombobox products={products} ref={searchRef} mode="purchase" onSelect={onAdd}
                 onCreate={onCreate} ariaLabel="Search product to add to purchase" />
-              <span className="pr-2 text-right text-[12px] text-ink-400">Qty</span>
-              <span className="text-[12px] text-ink-400">Unit</span>
-              <span className="text-right text-[12px] text-ink-400">Cost</span>
-              <span className="text-right text-[12px] text-ink-400">Lot sale</span>
-              <span className="text-right text-[12px] text-ink-400">Total</span><span />
+              <span data-table-helper="" className="pr-2 text-right text-[12px] text-ink-400">Qty</span>
+              <span data-table-helper="" className="text-[12px] text-ink-400">Unit</span>
+              <span data-table-helper="" className="text-right text-[12px] text-ink-400">Cost</span>
+              <span data-table-helper="" className="text-right text-[12px] text-ink-400">Lot sale</span>
+              <span data-table-helper="" className="text-right text-[12px] text-ink-400">Total</span><span />
             </div>}
           </div>
         </div>
-        {lines.length === 0 && <p className="border-t border-border p-5 text-center text-[12px] text-ink-500">Search above or tap a quick item below. <span className="font-bn">পণ্য যোগ করুন।</span></p>}
+        {lines.length === 0 && <p data-table-helper="" className="border-t border-border p-5 text-center text-[12px] text-ink-500">Search above or tap a quick item below. <span className="font-bn">পণ্য যোগ করুন।</span></p>}
         <div className="flex items-center justify-between gap-2 border-t border-border bg-ink-50/50 px-3 py-2.5 text-xs text-ink-500">
           <span>{lines.length} product line{lines.length === 1 ? '' : 's'}</span>
           <span className="font-medium text-ink">{lines.length ? describeQty(lines[lines.length - 1]) + ' · ' : ''}Subtotal {taka(rounded(lines.reduce((sum, line) => sum + lineAmount(line), 0)))}</span>

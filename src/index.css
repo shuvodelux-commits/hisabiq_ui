@@ -66,6 +66,7 @@
 
 /* Personal density applies only to the business workspace. */
 .erp-workspace[data-density="Comfortable"] table td { padding-top: 0.9rem; padding-bottom: 0.9rem; }
+
 .erp-settings input[type="radio"]:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 4px; }
 
 /* Isolate the selected party ledger in the browser's Print/Save as PDF dialog. */
@@ -712,4 +713,38 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   :is([data-hisabiq-input], [data-hisabiq-select], [data-hisabiq-numeric], [data-hisabiq-field-shell]) {
     transition: none;
   }
+}
+
+/* Products is the approved typography reference for every data table and its
+   responsive rows. Roles win over legacy page-local size utilities. */
+:root {
+  --erp-table-data-size: 13px;
+  --erp-table-heading-size: 12px;
+  --erp-table-helper-size: 11px;
+}
+:root:root:root :is([data-erp-table], [data-erp-table-view], [data-cart-row]) {
+  font-size: var(--erp-table-data-size);
+  line-height: 20px;
+  font-feature-settings: normal;
+  font-variant-numeric: normal;
+}
+:root:root:root :is([data-erp-table], [data-erp-table-view], [data-cart-row], [data-cart-header]) :where(*) {
+  font-size: inherit;
+  line-height: inherit;
+  font-feature-settings: inherit;
+  font-variant-numeric: inherit;
+}
+:root:root:root [data-erp-table] :is(th),
+:root:root:root [data-cart-header] {
+  font-size: var(--erp-table-heading-size);
+  line-height: 16px;
+}
+:root:root:root [data-cart-row] [data-cart-field]::before {
+  font-size: var(--erp-table-heading-size);
+  line-height: 16px;
+}
+:root:root:root :is([data-erp-table], [data-erp-table-view], [data-cart-row], [data-cart-header])
+  :is([data-table-helper], [data-table-badge], [data-bangla-helper], [data-slot="badge"]) {
+  font-size: var(--erp-table-helper-size);
+  line-height: 16px;
 }

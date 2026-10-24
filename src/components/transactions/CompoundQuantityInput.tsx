@@ -58,19 +58,19 @@ export function CompoundQuantityInput({product,unit,primary,secondary='',onPrima
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter??(()=>secondaryInput.current?.focus()))}
    className="h-full w-0 min-w-0 flex-1 bg-transparent px-1.5 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
-  <span className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{unit}</span>
+  <span data-table-helper="" className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{unit}</span>
   <NumericInput stepperCompact ref={node=>refTo(node,'secondary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={secondaryLabel??product.unit+' quantity'} disabled={disabled} placeholder="0" value={secondaryText}
    onChange={event=>updateSecondary(event.target.value)}
    onBlur={onSecondaryBlur} onKeyDown={event=>onEnter(event,onSecondaryEnter)}
    className="h-full w-0 min-w-0 flex-1 border-l border-border bg-transparent px-1.5 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
-  <span className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{product.unit}</span>
+  <span data-table-helper="" className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{product.unit}</span>
  </div>;
  return <div data-numeric-joined data-testid="single-quantity" className="flex h-9 w-full min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
   <NumericInput ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter)}
    className="h-full w-0 min-w-0 flex-1 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
-  <span className="flex shrink-0 items-center px-2 text-[10.5px] text-ink-500">{unit}</span>
+  <span data-table-helper="" className="flex shrink-0 items-center px-2 text-[10.5px] text-ink-500">{unit}</span>
  </div>;
 }

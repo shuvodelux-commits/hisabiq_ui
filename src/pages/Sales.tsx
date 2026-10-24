@@ -314,8 +314,8 @@ function InvoiceDialog({
                         <TableRow key={line.id} className="text-[12.5px]">
                           <TableCell className="py-2 pl-3">
                             <p className="font-medium text-ink">{line.name}</p>
-                            {line.serials?.length ? <p className="mt-0.5 text-[11px] text-ink-400">{text('Serial','সিরিয়াল')}: {line.serials.join(', ')}</p> : null}
-                            {line.warranty ? <p className="mt-0.5 text-[11px] text-ink-400">{text('Warranty','ওয়ারেন্টি')}: {line.warranty.duration} {line.warranty.durationUnit} · {line.warranty.type}{line.warranty.terms ? ` · ${line.warranty.terms}` : ''}</p> : null}
+                            {line.serials?.length ? <p data-table-helper="" className="mt-0.5 text-[11px] text-ink-400">{text('Serial','সিরিয়াল')}: {line.serials.join(', ')}</p> : null}
+                            {line.warranty ? <p data-table-helper="" className="mt-0.5 text-[11px] text-ink-400">{text('Warranty','ওয়ারেন্টি')}: {line.warranty.duration} {line.warranty.durationUnit} · {line.warranty.type}{line.warranty.terms ? ` · ${line.warranty.terms}` : ''}</p> : null}
                           </TableCell>
                           <TableCell className="py-2">{invoiceQty(line)}</TableCell>
                           <TableCell className="py-2 text-right">{taka(line.price, line.price % 1 ? 2 : 0)}/{line.unit}</TableCell>
@@ -1228,7 +1228,7 @@ export function Sales() {
                   <TableRow key={invoice.id} className="cursor-pointer text-[13px]" onClick={() => setDetail(invoice)}>
                     {visibleSalesColumns.invoice && <TableCell className="py-2 pl-4">
                       <span className="font-medium text-ink">{invoice.invoice}</span>
-                      <span className="block text-[11px] text-ink-400">{invoice.date} · {invoice.time}</span>
+                      <span data-table-helper="" className="block text-[11px] text-ink-400">{invoice.date} · {invoice.time}</span>
                     </TableCell>}
                     {visibleSalesColumns.customer && <TableCell className="py-2">
                       {invoice.partyId ? (
@@ -1240,11 +1240,11 @@ export function Sales() {
                           {invoice.party}
                         </button>
                       ) : <p className="font-medium text-ink">{invoice.party}</p>}
-                      <p className="text-[11px] text-ink-400">{invoice.phone ?? text('No phone','ফোন নেই')}</p>
+                      <p data-table-helper="" className="text-[11px] text-ink-400">{invoice.phone ?? text('No phone','ফোন নেই')}</p>
                     </TableCell>}
                     {visibleSalesColumns.items && <TableCell className="max-w-[270px] py-2 text-ink-600">
                       <span className="block truncate">{invoice.lines.map((line) => line.name).join(', ')}</span>
-                      <span className="text-[11px] text-ink-400">{text(`${invoice.items} line${invoice.items === 1 ? '' : 's'}`,`${invoice.items}টি পণ্য`)}</span>
+                      <span data-table-helper="" className="text-[11px] text-ink-400">{text(`${invoice.items} line${invoice.items === 1 ? '' : 's'}`,`${invoice.items}টি পণ্য`)}</span>
                     </TableCell>}
                     {visibleSalesColumns.total && <TableCell className="py-2 text-right font-medium">{taka(invoice.total)}</TableCell>}
                     {visibleSalesColumns.profit && <TableCell className={`py-2 text-right font-medium ${!invoiceCostKnown(invoice)?'text-warning':invoiceProfit(invoice)<0?'text-danger':'text-success'}`}>
@@ -1364,9 +1364,9 @@ export function Sales() {
                           <TableRow key={line.id} className="text-[12.5px]">
                             <TableCell className="py-2 pl-3">
                               <p className="font-medium text-ink">{line.name}</p>
-                              <p className="text-[11px] text-ink-400">{invoice.invoice}</p>
-                              {isBundleReturnLine(line)&&!line.bundleSnapshot&&<p role="alert" className="mt-1 text-[10.5px] text-danger">{text('Original package snapshot missing — cannot post return','আগের প্যাকেজের তথ্য নেই — ফেরত জমা হবে না')}</p>}
-                              {line.bundleSnapshot&&<p className="mt-1 text-[10.5px] font-medium text-teal-700">{text('Whole package only · historical recipe v','শুধু সম্পূর্ণ প্যাকেজ · আগের সংস্করণ ')}{line.bundleSnapshot.bundleRevision}</p>}
+                              <p data-table-helper="" className="text-[11px] text-ink-400">{invoice.invoice}</p>
+                              {isBundleReturnLine(line)&&!line.bundleSnapshot&&<p data-table-helper="" role="alert" className="mt-1 text-[10.5px] text-danger">{text('Original package snapshot missing — cannot post return','আগের প্যাকেজের তথ্য নেই — ফেরত জমা হবে না')}</p>}
+                              {line.bundleSnapshot&&<p data-table-helper="" className="mt-1 text-[10.5px] font-medium text-teal-700">{text('Whole package only · historical recipe v','শুধু সম্পূর্ণ প্যাকেজ · আগের সংস্করণ ')}{line.bundleSnapshot.bundleRevision}</p>}
                               {qty > 0 && (
                                 <div className="mt-2 max-w-[260px] space-y-1.5">
                                   <FormSelect
@@ -1376,12 +1376,12 @@ export function Sales() {
                                     options={salesOptions(language,['Customer return', 'Damaged', 'Wrong item', 'Warranty claim'])}
                                   />
                                   {line.bundleSnapshot&&<div className="space-y-2 rounded-lg border border-border p-2" data-testid="bundle-return-components">
-                                    <p className="text-[11px] font-semibold">{text('Original included products · choose condition','আগের প্যাকেজের পণ্য · অবস্থা বাছুন')}</p>
+                                    <p data-table-helper="" className="text-[11px] font-semibold">{text('Original included products · choose condition','আগের প্যাকেজের পণ্য · অবস্থা বাছুন')}</p>
                                     {line.bundleSnapshot.components.map(part=>{
                                       const saved=bundleReturnChoices[line.id]?.[part.productId];
                                       return <div key={part.productId} className="space-y-1 rounded-md bg-ink-50 p-2">
-                                        <p className="text-[11px] font-medium">{part.name} · {Number((part.baseQtyPerSet*qty).toFixed(6))} {part.unit}</p>
-                                        <label className="block text-[10px] text-ink-500">{text('Condition / stock treatment','অবস্থা / স্টক')}
+                                        <p data-table-helper="" className="text-[11px] font-medium">{part.name} · {Number((part.baseQtyPerSet*qty).toFixed(6))} {part.unit}</p>
+                                        <label className="block text-[10px] text-ink-500"><span data-table-helper="">{text('Condition / stock treatment','অবস্থা / স্টক')}</span>
                                           <FormSelect aria-label={`Disposition for ${part.name}`} className="mt-1" value={saved?.disposition??''}
                                             onChange={event=>setBundleReturnChoices(current=>({
                                               ...current,[line.id]:{...current[line.id],[part.productId]:{
@@ -1394,7 +1394,7 @@ export function Sales() {
                                               {value:'Do not restock',label:text('Do not restock — damaged/consumed','স্টকে নয় — নষ্ট/ব্যবহৃত')}]}/>
                                         </label>
                                         {Boolean(part.serials?.length)&&<>
-                                          <label className="block text-[10px] text-ink-500">{text('Returned component serials, comma-separated','ফেরত সিরিয়াল, কমা দিয়ে লিখুন')}
+                                          <label className="block text-[10px] text-ink-500"><span data-table-helper="">{text('Returned component serials, comma-separated','ফেরত সিরিয়াল, কমা দিয়ে লিখুন')}</span>
                                             <Input aria-label={`Returned serials for ${part.name}`} className="mt-1 h-9" value={(saved?.serials??[]).join(', ')}
                                               onChange={event=>setBundleReturnChoices(current=>({
                                                 ...current,[line.id]:{...current[line.id],[part.productId]:{
@@ -1403,10 +1403,10 @@ export function Sales() {
                                                 }}
                                               }))}/>
                                           </label>
-                                          <p className="text-[10px] text-ink-400">{text('Original serials','আগের সিরিয়াল')}: {part.serials?.join(', ')}</p>
+                                          <p data-table-helper="" className="text-[10px] text-ink-400">{text('Original serials','আগের সিরিয়াল')}: {part.serials?.join(', ')}</p>
                                         </>}
-                                        {part.lotAllocations?.length?<p className="text-[10px] text-ink-400">{text('Original lots','আগের লট')}: {part.lotAllocations.map(l=>l.lotId).join(', ')}</p>:
-                                          <p className="text-[10px] text-warning">{text('No original owned-lot evidence; do not restock','আগের লট নেই; স্টকে ফেরত নয়')}</p>}
+                                        {part.lotAllocations?.length?<p data-table-helper="" className="text-[10px] text-ink-400">{text('Original lots','আগের লট')}: {part.lotAllocations.map(l=>l.lotId).join(', ')}</p>:
+                                          <p data-table-helper="" className="text-[10px] text-warning">{text('No original owned-lot evidence; do not restock','আগের লট নেই; স্টকে ফেরত নয়')}</p>}
                                       </div>;
                                     })}
                                   </div>}
@@ -1418,11 +1418,11 @@ export function Sales() {
                                         placeholder={sl("Returned serial, comma separated")}
                                         className="h-9"
                                       />
-                                      <p className="text-[10.5px] text-ink-400">{sl('Sold serials:')} {line.serials.join(', ')}</p>
+                                      <p data-table-helper="" className="text-[10.5px] text-ink-400">{sl('Sold serials:')} {line.serials.join(', ')}</p>
                                     </>
                                   ) : null}
                                   {(returnReason[line.id] ?? 'Customer return') === 'Warranty claim' && (
-                                    <p className="text-[10.5px] text-teal-700">{sl("This return will be available for warranty intake.")}</p>
+                                    <p data-table-helper="" className="text-[10.5px] text-teal-700">{sl("This return will be available for warranty intake.")}</p>
                                   )}
                                 </div>
                               )}
@@ -1440,9 +1440,9 @@ export function Sales() {
                                   className="h-9 text-right"
                                   placeholder="0"
                                 />
-                                <span className="w-10 text-[11px] text-ink-400">{line.unit}</span>
+                                <span data-table-helper="" className="w-10 text-[11px] text-ink-400">{line.unit}</span>
                               </div>
-                              <p className={`mt-1 text-[10.5px] ${qty > returnLimit(line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
+                              <p data-table-helper="" className={`mt-1 text-[10.5px] ${qty > returnLimit(line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
                                 {sl('max')} {returnLimit(line)} {line.unit}
                               </p>
                             </TableCell>
@@ -1455,7 +1455,7 @@ export function Sales() {
                                   className="h-9 text-right"
                                   aria-label={`${sl('Return price for')} ${line.name}`}
                                 />
-                                <p className="mt-1 text-right text-[10.5px] text-ink-400">
+                                <p data-table-helper="" className="mt-1 text-right text-[10.5px] text-ink-400">
                                   {isBundleReturnLine(line)?
                                     (qty>0?text('Historical net refund — see preview','আগের বিক্রির মূল্য — প্রিভিউ দেখুন'):'Set'):
                                     (qty > 0 ? taka(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.amount??0) : `/${line.unit}`)}
@@ -1583,7 +1583,7 @@ export function Sales() {
                 <TableRow key={item.id} className="text-[13px]">
                   <TableCell className="py-2 pl-4">
                     <p className="font-medium text-ink">{item.id}</p>
-                    <p className="text-[11px] text-ink-400">{item.date}</p>
+                    <p data-table-helper="" className="text-[11px] text-ink-400">{item.date}</p>
                   </TableCell>
                   <TableCell className="py-2 font-medium">{item.customer}</TableCell>
                   <TableCell className="py-2 text-ink-600">{item.invoices.join(', ')}</TableCell>
@@ -1591,7 +1591,7 @@ export function Sales() {
                   <TableCell className="py-2 text-right font-medium">{taka(item.amount)}</TableCell>
                   <TableCell className="py-2">
                     <StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{sl(item.settlement)}</StatusBadge>
-                    {item.refundMethod && <p className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
+                    {item.refundMethod && <p data-table-helper="" className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
                   </TableCell>
                   <TableCell className="py-2 pr-4 text-right">
                     {renderReturnActions(item)}
@@ -1633,7 +1633,7 @@ export function Sales() {
                   <TableRow key={credit.id} className="text-[13px]">
                     <TableCell className="py-2 pl-4">
                       <p className="font-medium text-ink">{credit.customer}</p>
-                      <p className="text-[11px] text-ink-400">{credit.id}</p>
+                      <p data-table-helper="" className="text-[11px] text-ink-400">{credit.id}</p>
                     </TableCell>
                     <TableCell className="py-2 text-ink-600">{credit.source}</TableCell>
                     <TableCell className="py-2 text-ink-500">{credit.updatedAt}</TableCell>

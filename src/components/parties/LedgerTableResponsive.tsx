@@ -77,7 +77,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
                       <PartyLedgerSourceBadge source={row.source} label={partyLedgerSourceLabel(language,row.source)} />
                       <strong className="break-words text-[12px] font-semibold text-ink group-hover:text-teal-700">{row.reference || partyLedgerSourceLabel(language,row.source)}</strong>
                     </span>
-                    {row.description && <span className="mt-0.5 block max-w-md truncate text-[11px] leading-tight text-ink-500" title={row.description}>{row.description}</span>}
+                    {row.description && <span data-table-helper="" className="mt-0.5 block max-w-md truncate text-[11px] leading-tight text-ink-500" title={row.description}>{row.description}</span>}
                   </span>
                 </button>
                 {row.attachment && <PartyLedgerAttachment attachment={row.attachment}
@@ -87,7 +87,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
             </TableCell>
             <TableCell className="py-1.5 text-right"><LedgerImpactAmount row={row} value={row.debit} language={language} currency /></TableCell>
             <TableCell className="py-1.5 text-right"><LedgerImpactAmount row={row} value={row.credit} language={language} currency /></TableCell>
-            <TableCell className="whitespace-nowrap py-1.5 text-right font-semibold text-ink">{taka(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
+            <TableCell className="whitespace-nowrap py-1.5 text-right font-semibold text-ink">{taka(Math.abs(row.runningBalance))} <span data-table-helper="" className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
             <TableCell className="py-1 pr-1.5 text-right">
               <div className="flex items-center justify-end gap-1"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} /></div>
             </TableCell>
@@ -99,7 +99,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
       </Table>
     </div>
 
-    <ul className="divide-y divide-border md:hidden" aria-label={text('Transactions', 'লেনদেন')}>
+    <ul data-erp-table-view="" className="divide-y divide-border md:hidden" aria-label={text('Transactions', 'লেনদেন')}>
       <AnimatePresence initial={false} mode="popLayout">
       {visibleRows.map(row => {
         const amount = row.debit || row.credit;
@@ -126,13 +126,13 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
             </div>
             {amount !== 0 && <div className="min-w-0 shrink-0 text-right">
               <div className="text-[15px]"><LedgerImpactAmount row={row} value={amount} language={language} /></div>
-              <p className="mt-0.5 text-xs text-ink-500">{side}</p>
+              <p data-table-helper="" className="mt-0.5 text-xs text-ink-500">{side}</p>
             </div>}
           </div>
           {row.description && row.description !== row.reference && <p className="mt-1 line-clamp-2 break-words text-[13px] leading-snug text-ink-500">{row.description}</p>}
           </button>
           <div className="mt-2.5 flex min-w-0 items-center justify-between gap-2">
-            <p className="min-w-0 break-words text-xs text-ink-500">{text('Balance', 'জের')} <strong className="font-semibold text-ink">{balance(row.runningBalance)}</strong></p>
+            <p className="min-w-0 break-words text-xs text-ink-500"><span data-table-helper="">{text('Balance', 'জের')}</span> <strong data-testid="ledger-running-balance" className="font-semibold text-ink">{balance(row.runningBalance)}</strong></p>
             <div className="flex shrink-0 items-center gap-1">
               {row.attachment && <PartyLedgerAttachment attachment={row.attachment}
                 label={text('Open attachment', 'সংযুক্ত ফাইল খুলুন')}
