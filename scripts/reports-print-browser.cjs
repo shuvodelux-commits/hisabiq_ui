@@ -1,6 +1,6 @@
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires -- Playwright CLI scripts use CommonJS. */
-/* Print the same labelled September sample report as the accountant CSV. */
+/* Print the current filtered report and recover from a blocked popup. */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 async function main() {
@@ -28,7 +28,8 @@ async function main() {
       },profile);
       await page.goto('http://127.0.0.1:4393/#/app/reports');
       await page.getByRole('heading',{name:profile.language==='Bangla'?'রিপোর্ট':'Reports',exact:true}).waitFor();
-      assert.equal(await page.getByRole('list',{name:/Expense categories|খরচের খাত/}).getByRole('listitem').count(),6,'expense labels remain available after hiding the decorative chart');
+      await page.getByRole('heading',{name:profile.language==='Bangla'?'ব্যবসার সারাংশ':'Business overview',exact:true}).waitFor();
+      const expectedRows=await page.locator('[data-report-row]').count();assert.ok(expectedRows>0);
       const button=page.getByRole('button',{name:/Print report|রিপোর্ট প্রিন্ট/});
       const popupEvent=page.waitForEvent('popup',{timeout:10000});
       if(profile.width===320) {
@@ -40,14 +41,12 @@ async function main() {
         await button.click();
       }
       const popup=await popupEvent;
-      await popup.getByRole('heading',{name:/September business report|সেপ্টেম্বরের ব্যবসায়িক রিপোর্ট/}).waitFor();
+      await popup.getByRole('heading',{name:profile.language==='Bangla'?'ব্যবসার সারাংশ':'Business overview',exact:true}).waitFor();
       await page.waitForFunction(()=>window.__printCalls===1);
       const body=await popup.locator('body').innerText();
-      assert.match(body,profile.language==='Bangla'?/সরাসরি হিসাব নয়/:/not live accounting/);
-      assert.match(body,profile.language==='Bangla'?/সেপ্টেম্বরের লাভের সারাংশ/:/September profit summary/);
-      assert.match(body,profile.language==='Bangla'?/মাসিক মোট \/ নিট লাভ/:/Monthly gross \/ net/);
-      assert.match(body,profile.language==='Bangla'?/সেপ্টেম্বরের খরচের খাত/:/September expense categories/);
-      assert.match(body,profile.language==='Bangla'?/পাওনা \/ দেনার বয়সভিত্তিক হিসাব/:/Receivable \/ payable aging/);
+      assert.match(body,profile.language==='Bangla'?/প্রিভিউ/:/preview/);
+      assert.match(body,profile.language==='Bangla'?/নির্বাচিত সময়কালের মূল রেকর্ড/:/Source records in the selected period/);
+      assert.equal(await popup.locator('tbody tr').count(),expectedRows,'print the same complete filtered rows');
       assert.match(body,/INV|1,?\d{3}|\d{4,}/);
       assert.equal(await popup.evaluate(()=>window.opener),null);
       assert.deepEqual(errors,[],`runtime errors ${profile.language} ${profile.width}px ${profile.theme}`);
@@ -61,6 +60,6 @@ async function main() {
       await context.close();
     }
   } finally { await browser.close();await server.close(); }
-  console.log('Reports print preview and blocked-popup recovery passed in 4 responsive, theme and language profiles.');
+  console.log('Filtered Reports print and blocked-popup recovery passed in 4 responsive, theme and language profiles.');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

@@ -68,6 +68,7 @@ jobs:
           flag finance '^(src/(pages/Finance\.tsx|components/finance/|utils/financePaymentDrafts\.ts)|scripts/(counter-|finance-).*browser\.cjs$)'
           flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment).*browser\.cjs$)'
           flag mobile '^(src/index\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\.tsx$|scripts/mobile-carts-browser\.cjs$)'
+          flag reports '^(src/(pages/Reports\.tsx|reports/|components/reports/)|scripts/(report-workspace|report-guidance|reports-print)-browser\.cjs$)'
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
@@ -94,6 +95,12 @@ jobs:
       - name: Application navigation smoke
         if: steps.scope.outputs.browser == 'true'
         run: node scripts/page-loading-browser.cjs
+
+      - name: Reports filters, output and purchase planning
+        if: steps.scope.outputs.reports == 'true'
+        run: |
+          npm run test:report-workspace
+          npm run test:report-guidance
 
       - name: ERP rendered 36px component audit
         if: steps.scope.outputs.browser == 'true' && contains(github.event.pull_request.title, '36px')
