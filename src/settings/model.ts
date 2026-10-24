@@ -9,8 +9,9 @@ export type SettingsSection =
   | "team"
   | "notifications"
   | "personal"
-  | "data";
-export type BusinessSection = Exclude<SettingsSection, "personal" | "data">;
+  | "data"
+  | "security";
+export type BusinessSection = Exclude<SettingsSection, "personal" | "data" | "security">;
 export type SettingsPermission = "view" | BusinessSection | "export" | "import";
 export interface BusinessSettings {
   name: string;

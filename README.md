@@ -18,10 +18,21 @@ Focused browser workflows are available via `npm run test:remaining-audit`, `npm
 
 ## Architecture
 
+- `/#/login` — sign-in preview; `/#/login/pin` and `/#/login/accounts` show returning-user states. `/#/signup` (alias `/#/register`) and `/#/recovery` (alias `/#/forgot-password`) show the mobile-first registration and password-recovery walkthroughs. The Brand Guide links to the login. Existing `/app/*` entry remains unchanged.
 - `/app/*` — tenant ERP screens: Dashboard, POS, Counter, Sales, Purchases, Products, Parties, Finance and related workflows.
 - `/saas/*` — separate SaaS platform administration (roles, tenant subscriptions, support and billing).
 - `src/components/pos`, `src/components/purchases`, `src/components/transactions` — shared product transaction UI family.
 - `src/data/*PreviewStore.ts` — demo/session preview records, not production data storage.
+
+### Login design review
+
+The login preview reuses `LogoLockup`, `Button`, `Input`, `AppSelect`, `Dialog`, existing theme tokens and Geist/Hind Siliguri. It supports English, বাংলা and bilingual copy independently of tenant settings. Only the public language preference is saved; passwords and PINs remain in component memory and are cleared after a preview submission or when leaving the screen.
+
+Submissions validate the fields and report that no authentication request was sent. Create account and Forgot password navigate to full UI-only walkthroughs (phone registration, verification-code entry, business name; recovery Gmail OTP default with SMS fallback and reset-password entry). Any six-digit code advances the visual preview only. No code is sent or verified, no account/business is created and no password is changed. Google still opens an explanatory dialog; no OAuth, OTP, session, enrollment or tenant authorization is simulated. The account chooser contains explicit sample accounts, not discovered users. The six-slot PIN presentation uses one masked input without arithmetic steppers. Real PIN/device-proof feasibility and ByabsIQ integration remain separate work.
+
+Run `npm run test:auth-login` for focused Chromium coverage. To capture review screenshots, set `AUTH_SCREENSHOT_DIR` to a local output directory. No dependency or hosting changes are required.
+
+See [login implementation scope and verification](docs/ui/auth-login-preview.md) for the preview boundaries and known unrelated test limitation.
 
 ## Rules before making changes
 

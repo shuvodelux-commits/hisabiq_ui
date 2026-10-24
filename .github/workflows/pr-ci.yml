@@ -69,6 +69,7 @@ jobs:
           flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment|table-typography).*browser\.cjs$)'
           flag mobile '^(src/index\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\.tsx$|scripts/mobile-carts-browser\.cjs$)'
           flag reports '^(src/(pages/Reports\.tsx|reports/|components/reports/)|scripts/(report-workspace|report-guidance|reports-print)-browser\.cjs$)'
+          flag auth '^(src/(features/auth/|App\.tsx$|components/(Input|AppSelect|Dialog)\.tsx$|theme\.css$)|scripts/auth-login-browser\.cjs$)'
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
@@ -101,6 +102,10 @@ jobs:
         run: |
           npm run test:report-workspace
           npm run test:report-guidance
+
+      - name: Login preview responsive and interaction smoke
+        if: steps.scope.outputs.auth == 'true'
+        run: npm run test:auth-login
 
       - name: ERP rendered 36px component audit
         if: steps.scope.outputs.browser == 'true' && contains(github.event.pull_request.title, '36px')

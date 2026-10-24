@@ -109,6 +109,8 @@
     "check:input-focus": "node scripts/check-input-focus.cjs",
     "test:field-size-parity": "node scripts/field-size-parity-browser.cjs",
     "audit:erp-controls": "node scripts/audit-erp-controls.cjs",
+    "test:auth-login": "node scripts/auth-login-browser.cjs",
+    "test:auth-settings": "node scripts/auth-settings-browser.cjs",
     "test:table-typography": "node scripts/table-typography-browser.cjs"
   },
   "dependencies": {

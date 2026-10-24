@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Eye, Lock, Phone } from 'lucide-react';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -139,7 +140,7 @@ export function ApplicationsSection() {
                 <p className="font-bn text-2xl font-medium leading-snug">সহজ হিসাব,<br />স্মার্ট ব্যবসা</p>
                 <p className="mt-2 text-sm text-ink-300">Sales, stock, dues and cash — in one calm place.</p>
               </div>
-              <p className="relative text-xs text-ink-400">Trusted by 2,400+ shops across Bangladesh</p>
+              <Link to="/login" className="relative text-xs text-white underline underline-offset-4">Open interactive login preview</Link>
             </div>
             <div className="flex flex-col justify-center p-8">
               <p className="text-xl font-semibold tracking-tight text-ink">Sign in</p>
@@ -149,20 +150,20 @@ export function ApplicationsSection() {
                   Mobile number
                   <div className="relative mt-1.5">
                     <Phone className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                    <Input className="pl-9" defaultValue="01711-000245" />
+                    <Input className="pl-9" type="tel" placeholder="01XXXXXXXXX" readOnly />
                   </div>
                 </label>
                 <label className="block text-[13px] font-medium text-ink">
                   Password
                   <div className="relative mt-1.5">
                     <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                    <Input className="pl-9 pr-9" type="password" defaultValue="hisabiq2026" />
+                    <Input className="pl-9 pr-9" type="password" placeholder="Enter your password" readOnly />
                     <Eye className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
                   </div>
                 </label>
                 <Button className="h-10 w-full">Sign in</Button>
                 <p className="text-center text-xs text-ink-500">
-                  New shop? <span className="font-medium text-teal-700">Start free for 30 days</span>
+                  New to HisabIQ? <span className="font-medium text-teal-700">Create account</span>
                 </p>
               </div>
             </div>
