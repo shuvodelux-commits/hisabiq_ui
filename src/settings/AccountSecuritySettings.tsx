@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, KeyRound, LockKeyhole, Mail, MonitorSmartphone, Phone, ShieldCheck, Smartphone, Users, Clock3, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle2, KeyRound, LockKeyhole, Mail, MonitorSmartphone, Phone, Users, Clock3, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { uiText, showBanglaHelper, type UiLanguage } from '../i18n/uiCopy';
 import { Button, Input, Switch, SettingCard, SettingsDialog, SettingsField } from './ui';
 
