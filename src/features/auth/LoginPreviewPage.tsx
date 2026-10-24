@@ -8,7 +8,7 @@ import { showBanglaHelper, uiText, type UiLanguage } from '../../i18n/uiCopy';
 import { AuthLayout } from './AuthLayout';
 
 type View = 'password' | 'pin' | 'accounts';
-type Info = 'recovery' | 'signup' | 'google';
+type Info = 'google';
 const languageKey = 'hisabiq-auth-language';
 // These identities are explicit design fixtures, never browser enrollments or authority.
 const sampleAccounts = [
@@ -80,8 +80,7 @@ function LoginPreviewScreen({ view, account }: { view: View; account: typeof sam
     setVisible(false);
     setNotice(true);
   };
-  const dialogTitle = info === 'recovery' ? text('Password recovery', 'পাসওয়ার্ড পুনরুদ্ধার')
-    : info === 'signup' ? text('Create account', 'অ্যাকাউন্ট খুলুন') : text('Continue with Google', 'Google দিয়ে চালিয়ে যান');
+  const dialogTitle = text('Continue with Google', 'Google দিয়ে চালিয়ে যান');
 
   return <AuthLayout language={language} onLanguageChange={changeLanguage}>
     <h1 id="auth-title" className="auth-title">{view === 'accounts' ? text('Choose account', 'অ্যাকাউন্ট বাছুন') : view === 'pin' ? text('Welcome back', 'আবার স্বাগতম') : text('Sign in', 'সাইন ইন')}</h1>
@@ -143,7 +142,7 @@ function LoginPreviewScreen({ view, account }: { view: View; account: typeof sam
           </div>
           {errors.password && <p id="auth-password-error" className="auth-error" role="alert">{errors.password}</p>}
         </div>
-        <div className="auth-forgot"><button type="button" className="auth-text-link" onClick={() => openInfo('recovery')}>{text('Forgot password?', 'পাসওয়ার্ড ভুলে গেছেন?')}</button></div>
+        <div className="auth-forgot"><Link className="auth-text-link" to="/recovery">{text('Forgot password?', 'পাসওয়ার্ড ভুলে গেছেন?')}</Link></div>
       </>}
       <Button type="submit" className="auth-submit w-full">{text('Sign in', 'সাইন ইন')}</Button>
       {notice && <p role="status" className="auth-notice">{text('UI preview only. No sign-in request was sent. Your credentials have not been verified.', 'এটি শুধু UI প্রিভিউ। সাইন ইনের অনুরোধ পাঠানো হয়নি। আপনার পরিচয় যাচাই করা হয়নি।')}</p>}
@@ -153,16 +152,14 @@ function LoginPreviewScreen({ view, account }: { view: View; account: typeof sam
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.3 30.5 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.3 13.7 17.7 9.5 24 9.5Z"/><path fill="#4285F4" d="M47 24.6c0-1.6-.1-3.2-.4-4.6H24v9.1h12.9c-.6 2.9-2.2 5.4-4.7 7.1l7.6 5.9C44.4 37.9 47 31.8 47 24.6Z"/><path fill="#FBBC05" d="M10.5 28.7a14.4 14.4 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1Z"/><path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.9l-7.6-5.9c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.2-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48Z"/></svg>
           {text('Continue with Google', 'Google দিয়ে চালিয়ে যান')}
         </Button>
-        <p className="auth-create">{text('New to HisabIQ?', 'HisabIQ-এ নতুন?')} <button type="button" className="auth-text-link" onClick={() => openInfo('signup')}>{text('Create account', 'অ্যাকাউন্ট খুলুন')}</button></p>
+        <p className="auth-create">{text('New to HisabIQ?', 'HisabIQ-এ নতুন?')} <Link className="auth-text-link" to="/signup">{text('Create account', 'অ্যাকাউন্ট খুলুন')}</Link></p>
       </>}
     </form>}
     <Dialog open={info !== null} onOpenChange={open => { if (!open) setInfo(null); }}>
       <DialogContent className="max-w-sm">
         <DialogTitle>{dialogTitle}</DialogTitle>
         <DialogDescription className="mt-2">
-          {info === 'recovery' ? text('Recovery is not connected in this UI preview. No email or SMS will be sent.', 'এই UI প্রিভিউতে পুনরুদ্ধার চালু নেই। কোনো ইমেইল বা SMS পাঠানো হবে না।')
-            : info === 'signup' ? text('Account creation is not connected in this UI preview. No account will be created.', 'এই UI প্রিভিউতে অ্যাকাউন্ট খোলা চালু নেই। কোনো অ্যাকাউন্ট তৈরি হবে না।')
-            : text('Google sign-in is not connected in this UI preview. No Google account will be linked.', 'এই UI প্রিভিউতে Google সাইন ইন চালু নেই। কোনো Google অ্যাকাউন্ট যুক্ত হবে না।')}
+          {text('Google sign-in is not connected in this UI preview. No Google account will be linked.', 'এই UI প্রিভিউতে Google সাইন ইন চালু নেই। কোনো Google অ্যাকাউন্ট যুক্ত হবে না.')}
         </DialogDescription>
         <Button type="button" className="mt-4 w-full" onClick={() => setInfo(null)}>{text('Back to sign in', 'সাইন ইনে ফিরুন')}</Button>
       </DialogContent>
