@@ -355,10 +355,11 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         )}
 
         <Button
+          data-erp-workflow-action="complete"
           ref={props.completeRef}
           onClick={props.onComplete}
           disabled={totals.total === 0 || dueWithoutCustomer || Boolean(props.validationError) || (props.installment?.mode==='Installment' && !customer)}
-          className="h-9 w-full text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
+          className="h-12 w-full text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
           {props.completeLabel ?? word('completeSale')} · {taka(totals.total)}
           <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>

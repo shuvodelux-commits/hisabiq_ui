@@ -69,13 +69,13 @@ export function PrimitivesSection() {
             <Button variant="link">Link</Button>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Button size="lg" className="h-12 px-6 text-[15px] font-semibold">Complete sale · ৳12,450</Button>
+            <Button size="lg" data-erp-workflow-action="complete" className="h-12 px-6 text-[15px] font-semibold">Complete sale · ৳12,450</Button>
             <Button size="sm" variant="outline">Small</Button>
             <Button size="xs" variant="outline">XS</Button>
             <Button size="icon" variant="outline" aria-label="Search"><Search className="size-4" /></Button>
             <Button disabled>Disabled</Button>
           </div>
-          <p className="mt-4 text-xs text-ink-500">One primary (teal) button per view. Checkout uses the large 48px size for touch.</p>
+          <p className="mt-4 text-xs text-ink-500">Standard buttons and inputs use 36px. Major checkout and transaction completion actions use 48px; primary color alone does not imply larger size.</p>
         </Block>
 
         <Block title="Badges & status">

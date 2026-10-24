@@ -557,10 +557,9 @@
 }
 
 
-/* Component control dimensions: one shared size, not action-priority tiers.
-   Input, Button, numeric, select and date controls all render at 36px;
-   the same policy holds at phone, tablet and desktop widths. */
-:root { --erp-control-height: 36px; }
+/* HisabIQ source brand hierarchy: 36px ordinary controls, 48px explicit
+   terminal transaction actions. Do not size generic primary buttons by color. */
+:root { --erp-control-height: 36px; --erp-workflow-action-height: 48px; }
 :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button {
   height: var(--erp-control-height) !important;
@@ -615,6 +614,15 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   box-sizing: border-box;
   height: var(--erp-control-height);
   min-height: var(--erp-control-height);
+}
+/* Explicit completion-action exception to BOTH global 36px button rules.
+   Keep the marker semantic; never generalize to teal/primary or lg buttons. */
+:root:root :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+:is(.hisabiq-button, button[data-slot="button"])[data-erp-workflow-action="complete"] {
+  height: var(--erp-workflow-action-height) !important;
+  min-height: var(--erp-workflow-action-height) !important;
+  max-height: var(--erp-workflow-action-height);
+  padding-inline: 1rem;
 }
 /* Dropdown list options keep the same 36px row rhythm. Native calendar
    day buttons and numeric up/down halves are internal controls, not peers. */

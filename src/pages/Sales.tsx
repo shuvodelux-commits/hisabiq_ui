@@ -1491,7 +1491,7 @@ export function Sales() {
                       <p className="text-[11px] text-ink-400">{sl('Return amount')}</p>
                       <p className="text-base font-semibold text-ink">{includesBundleReturn&&selectedBundlePlans.some(p=>p.refundEstimate===null)?text('Pending historical price','আগের মূল্য যাচাই বাকি'):taka(returnAmount)}</p>
                     </div>
-                    <Button disabled={!includesBundleReturn&&returnIssues.length>0} onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
+                    <Button data-erp-workflow-action="complete" className="h-12 px-4 text-[15px] font-semibold" disabled={!includesBundleReturn&&returnIssues.length>0} onClick={completeReturn}><CornerUpLeft className="size-4" /> {includesBundleReturn?
                       text('Preview return only','শুধু ফেরত প্রিভিউ'):sl('Complete return')}</Button>
                     {!includesBundleReturn&&returnIssues.length>0&&<p role="alert" className="text-xs text-danger sm:col-span-3">{text('Check the remaining return quantity and original serials. A historical net refund allocation is required.','অবশিষ্ট ফেরত পরিমাণ ও আগের সিরিয়াল যাচাই করুন। আগের ফেরত মূল্যের তথ্য প্রয়োজন।')}</p>}
                     {!includesBundleReturn&&<p role="note" className="text-xs text-ink-500 sm:col-span-3">{text('Historical net price only. This session preview does not post refunds, stock or ledger entries.','শুধু আগের বিক্রির মূল্য। এই সেশনের প্রিভিউতে টাকা ফেরত, স্টক বা খাতায় জমা হবে না।')}</p>}

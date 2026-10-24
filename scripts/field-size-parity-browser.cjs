@@ -1,7 +1,8 @@
 /* Read-only rendered ERP component size survey.
  * Run: npm run test:field-size-parity
  * Optional: FIELD_SIZE_REPORT=/tmp/hisabiq-field-size.json
- * Checks 22 routes at 390/768/1440px; control heights should always be 36px.
+ * Checks 22 routes at 390/768/1440px: ordinary controls 36px,
+ * explicitly marked major transaction completion actions 48px.
  */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
@@ -39,7 +40,7 @@ async function scan(page, route, width, surface = 'page') {
       const product = el.closest('.product-form');
       const ledger = el.closest('[data-hisabiq-field-group="party-ledger"]');
       const context = product ? 'product-editor' : ledger ? 'party-ledger' : 'standard';
-      const expected = 36;
+      const expected = el.matches('button[data-erp-workflow-action="complete"]') ? 48 : 36;
       const actual = Math.round(rect.height * 10) / 10;
       controls.push({ type, context, actual, expected,
         aria: el.getAttribute('aria-label') || el.getAttribute('placeholder') || '' });
@@ -57,7 +58,7 @@ async function scan(page, route, width, surface = 'page') {
       if (el.classList.contains('numeric-input-control')) continue;
       const r = el.getBoundingClientRect();
       const actual = Math.round(r.height * 10) / 10;
-      if (Math.abs(actual - 36) > 2) nativeOutliers.push({
+      if (Math.abs(actual - (el.matches('button[data-erp-workflow-action="complete"]') ? 48 : 36)) > 2) nativeOutliers.push({
         type:el.tagName.toLowerCase(), actual, name:el.getAttribute('aria-label') ||
           el.textContent?.trim().replace(/\\s+/g,' ').slice(0,64) || '',
         className:typeof el.className==='string'?el.className.slice(0,110):''
