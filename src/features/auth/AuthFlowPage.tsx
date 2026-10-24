@@ -36,7 +36,7 @@ function AuthFlowPage({ mode }: { mode: Mode }) {
   const t = (en: string, bn: string) => uiText(language, en, bn);
   const helper = showBanglaHelper(language);
   const isSignup = mode === 'signup';
-  const lastStep = isSignup ? 3 : 3;
+  const lastStep = 3;
   const setLanguagePreference = (value: UiLanguage) => {
     setLanguage(value);
     setErrors({});
@@ -155,7 +155,7 @@ function AuthFlowPage({ mode }: { mode: Mode }) {
     {step === 0 ? <Link to="/login" className="auth-flow-back"><ArrowLeft size={15} aria-hidden="true" />{t('Back to sign in', 'সাইন ইনে ফিরুন')}</Link>
       : step < lastStep ? <button type="button" className="auth-flow-back" onClick={goBack}><ArrowLeft size={15} aria-hidden="true" />{t('Back', 'পেছনে')}</button>
         : <Link to="/login" className="auth-flow-back"><ArrowLeft size={15} aria-hidden="true" />{t('Sign in', 'সাইন ইন')}</Link>}
-    <div className="auth-flow-progress" aria-label={t('Step progress', 'ধাপের অগ্রগতি')}>
+    <div className="auth-flow-progress" role="group" aria-label={t('Step progress', 'ধাপের অগ্রগতি')}>
       {Array.from({ length: 3 }, (_, index) => <span key={index} className={index <= Math.min(step, 2) ? 'is-active' : ''} aria-hidden="true" />)}
     </div>
     <h1 id="auth-title" className="auth-title">{titles[step]}</h1>
