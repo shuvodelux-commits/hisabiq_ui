@@ -14,11 +14,11 @@ test('tenant settings includes only the seven approved logical destinations',()=
 });
 test('Settings removes unready destinations instead of showing broken tiles',()=>{
  const onlyCore:NavigationContext={...all,availablePaths:new Set(['/app/settings/business','/app/settings/personal'])};
- assert.deepEqual(getSettingsHubItems(onlyCore).map(e=>e.id),['general','appearance','security']);
+ assert.deepEqual(getSettingsHubItems(onlyCore).map(e=>e.id),['general','appearance']);
  const noSms:NavigationContext={...all,enabledFeatures:new Set(['quotations','online-sales'])};
  assert.equal(getSettingsHubItems(noSms).some(e=>e.id==='notifications'),false);
 });
 test('cashier sees ordinary personal settings, not owner subscription or provider configuration',()=>{
  const cashier:NavigationContext={...all,canAccess:p=>!['team','notifications','export','owner'].includes(p)};
- assert.deepEqual(getSettingsHubItems(cashier).map(e=>e.id),['general','appearance']);
+ assert.deepEqual(getSettingsHubItems(cashier).map(e=>e.id),['general','appearance','security']);
 });
