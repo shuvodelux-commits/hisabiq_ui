@@ -97,6 +97,11 @@ async function main() {
 
     const screenshotDir = process.env.AUTH_SCREENSHOT_DIR;
     if (screenshotDir) mkdirSync(screenshotDir, { recursive: true });
+    const capture = async name => {
+      if (!screenshotDir) return;
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({ path: screenshotDir + '/' + name + '.png', fullPage: true });
+    };
     const accessible = async () => {
       await page.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
       const violations = await page.evaluate(async () => (await window.axe.run(document.querySelector('.auth-preview'), {
@@ -168,24 +173,30 @@ async function main() {
     await page.getByLabel('Confirm password').fill('DemoPassword123');
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByRole('heading', { name: 'Verify mobile number' }).waitFor();
+    await capture('signup-verification');
     assert.ok((await page.getByText(/no SMS was sent/i).count()) > 0);
     await page.getByLabel('6-digit verification code').fill('000123');
     assert.equal(await page.locator('[data-numeric-input]').count(), 0);
     await page.getByRole('button', { name: 'Continue preview' }).click();
+    await capture('signup-business');
     await page.getByLabel('Business / shop name').fill('Test Shop');
     await page.getByRole('button', { name: 'Finish UI preview' }).click();
     assert.ok((await page.getByText(/No account or business was created/i).count()) > 0);
+    await capture('signup-complete');
     await go('/recovery');
     await page.getByLabel('Mobile number').fill('01711000245');
     await page.getByRole('button', { name: 'Review recovery methods' }).click();
     assert.equal(await page.getByRole('radio', { name: /Gmail OTP/ }).isChecked(), true);
+    await capture('recovery-methods');
     await page.getByRole('radio', { name: /SMS OTP/ }).check();
     await page.getByLabel('6-digit verification code').fill('123456');
     await page.getByRole('button', { name: 'Continue preview' }).click();
+    await capture('recovery-new-password');
     await page.getByLabel('Password', { exact: true }).fill('NewPassword123');
     await page.getByLabel('Confirm password').fill('NewPassword123');
     await page.getByRole('button', { name: 'Finish UI preview' }).click();
     assert.ok((await page.getByText(/password was not changed/i).count()) > 0);
+    await capture('recovery-complete');
     assert.deepEqual(requests, [], 'Signup and recovery previews must not send network writes');
 
     await go('/app/dashboard');
