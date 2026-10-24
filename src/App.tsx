@@ -35,6 +35,8 @@ const TenantsPage = lazy(() => import('./saas/tenants/TenantsPage').then(module 
 const TenantPage = lazy(() => import('./saas/tenants/TenantsPage').then(module => ({ default: module.TenantPage })));
 const BrandGuide = lazy(() => import('./pages/BrandGuide').then(module => ({ default: module.BrandGuide })));
 const LoginPreviewPage = lazy(() => import('./features/auth/LoginPreviewPage').then(module => ({ default: module.LoginPreviewPage })));
+const SignupPreviewPage = lazy(() => import('./features/auth/AuthFlowPage').then(module => ({ default: module.SignupPreviewPage })));
+const RecoveryPreviewPage = lazy(() => import('./features/auth/AuthFlowPage').then(module => ({ default: module.RecoveryPreviewPage })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const Pos = lazy(() => import('./pages/Pos').then(module => ({ default: module.Pos })));
 const Sales = lazy(() => import('./pages/Sales').then(module => ({ default: module.Sales })));
@@ -67,6 +69,12 @@ export function App() {
         <Route path="/login" element={<PageBoundary><LoginPreviewPage view="password" /></PageBoundary>} />
         <Route path="/login/pin" element={<PageBoundary><LoginPreviewPage view="pin" /></PageBoundary>} />
         <Route path="/login/accounts" element={<PageBoundary><LoginPreviewPage view="accounts" /></PageBoundary>} />
+        <Route path="/signup" element={<PageBoundary><SignupPreviewPage /></PageBoundary>} />
+        <Route path="/register" element={<Navigate to="/signup" replace />} />
+        <Route path="/login/signup" element={<Navigate to="/signup" replace />} />
+        <Route path="/recovery" element={<PageBoundary><RecoveryPreviewPage /></PageBoundary>} />
+        <Route path="/forgot-password" element={<Navigate to="/recovery" replace />} />
+        <Route path="/login/recovery" element={<Navigate to="/recovery" replace />} />
         <Route path="/saas" element={<SaasShell />}>
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<OverviewPage />} />
