@@ -7,6 +7,9 @@ on:
       - 'src/App.tsx'
       - 'src/components/Input.tsx'
       - 'scripts/auth-login-browser.cjs'
+      - 'scripts/auth-settings-browser.cjs'
+      - 'src/settings/**'
+      - 'src/navigation/erpNavigation.ts'
       - '.github/workflows/auth-ui-preview-check.yml'
   workflow_dispatch:
 
@@ -38,6 +41,8 @@ jobs:
         env:
           AUTH_SCREENSHOT_DIR: auth-ui-screenshots
         run: npm run test:auth-login
+      - name: Verify in-app account security settings
+        run: npm run test:auth-settings
       - name: Publish review screenshots
         if: always()
         uses: actions/upload-artifact@v4
