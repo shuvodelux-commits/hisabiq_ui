@@ -15,7 +15,7 @@ Implement the owner's approved, refined login mockups in `hisabiq_ui`: normal si
 - Three language modes use existing pure copy helpers; public language preference has a dedicated key because tenant settings are unavailable before authentication.
 - Shared `Input` must treat masked numeric codes as identifiers. Password inputs with numeric input mode do not receive quantity steppers. No PIN verifier, cryptographic key, attempt counter, trust cookie, enrollment or browser identity is implemented.
 - One real shared masked input presents six decorative PIN slots, preserving leading zeros, paste and keyboard editing. Choosing a sample account is not authorization.
-- Recovery, signup and Google entry points use the existing focused dialog to explain their unconnected status. Field submission never authenticates or navigates to the ERP. Secrets are not stored or sent.
+- Signup and recovery now have complete routed UI-only walkthroughs. Google remains an explanatory dialog. Field submission never authenticates, creates accounts, changes passwords or navigates to the ERP. Secrets are not stored or sent.
 - No new dependencies, backend changes, Worker API, Hyperdrive, database migrations, deployment or merge. The other authentication flows and production integration remain later work.
 
 ## Acceptance coverage
@@ -37,3 +37,16 @@ Final review identified a query-only account change retaining an unsubmitted PIN
 - Additional existing `scripts/number-fuzzy-browser.cjs` smoke stops at its absent POS `Customer name` textbox selector (line 38). Reproduced unchanged on base commit `2e99832c73f5ccc4d9846c71b2d56492c4423e5f`; it is not a login regression. Its preceding number-entry wheel/arrow checks pass. This unrelated stale-selector test was not modified.
 
 Browser verification used Chromium 153 through the existing `PLAYWRIGHT_EXECUTABLE_PATH` mechanism because this environment's default Playwright browser download returned an invalid archive. No production services, real credentials or live SMS were exercised. No screen-reader or non-Chromium certification is claimed.
+
+
+## Extension — 24 October 2026: signup and recovery
+
+The visual flow was expanded without changing the established auth layout, brand guide composition or existing ERP entry.
+
+- `/#/signup` (`/#/register`) — name, Bangladeshi mobile, password/confirmation, code-entry preview, initial business name, and explicit no-account-created finish.
+- `/#/recovery` (`/#/forgot-password`) — mobile identification, Gmail OTP selected by default **when linked**, SMS fallback, code-entry preview, new password/confirmation, and explicit no-password-changed finish.
+- Both screens reuse AuthLayout, Input and Button; theme, public English/Bangla/bilingual language preference, focus feedback and responsive layout are shared with sign-in.
+- Code-entry validation is **format-only**. Entering any six digits advances a visual preview, not an identity check. No OTP, account, business, device authorization, Google OAuth or password state is ever created or changed.
+- Browser suite now checks the five routes across 4 viewport widths × 3 language modes × 2 themes (120 states) and exercises both multi-step previews. Its results must be read from the latest PR CI run; the observed login-only verification above is from the earlier design slice.
+- PR #201 stays draft; main was merged into the feature branch with a clean conflict resolution that retains the ERP's shared 36px input standard and excludes password/phone OTP inputs from quantity steppers.
+- A separate Cloudflare feature-preview deployment is still required. The production worker is not updated by this PR.
