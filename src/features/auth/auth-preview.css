@@ -95,3 +95,48 @@
   .auth-identity > a { max-width: 74px; text-align: right; }
 }
 @media (prefers-reduced-motion: reduce) { .auth-account-row { transition: none; } }
+
+
+/* Auth public signup and recovery: same Ink/Teal form language as sign-in. */
+.auth-flow-back { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; margin-bottom: 14px; color: var(--muted-foreground); font-size: 12px; border-radius: 5px; text-underline-offset: 3px; }
+.auth-flow-back:hover { color: var(--primary); text-decoration: underline; }
+.auth-flow-back:focus-visible, .auth-visibility:focus-visible, .auth-channel-option:focus-within { outline: 2px solid var(--ring); outline-offset: 3px; }
+.auth-flow-progress { display: flex; gap: 5px; margin-bottom: 20px; }
+.auth-flow-progress span { flex: 1; height: 4px; border-radius: 4px; background: var(--border); transition: background-color 160ms ease; }
+.auth-flow-progress span.is-active { background: var(--primary); }
+.auth-flow-form { margin-top: 20px; gap: 14px; }
+.auth-field-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.auth-field-heading > label { font-size: 13px; font-weight: 500; }
+.auth-visibility { display: inline-flex; gap: 5px; align-items: center; min-height: 30px; padding: 2px 5px; font-size: 12px; }
+.auth-channel-group { border: 0; padding: 0; min-width: 0; }
+.auth-channel-group legend { margin-bottom: 8px; font-size: 13px; font-weight: 500; }
+.auth-channel-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.auth-channel-option { position: relative; display: flex; align-items: flex-start; gap: 9px; min-width: 0; padding: 12px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
+.auth-channel-option:hover { background: var(--muted); }
+.auth-channel-option.is-selected { border-color: var(--primary); background: var(--muted); }
+.auth-channel-option input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.auth-channel-option svg { flex: none; color: var(--primary); margin-top: 1px; }
+.auth-channel-option span { display: grid; gap: 3px; min-width: 0; }
+.auth-channel-option strong { font-size: 12px; font-weight: 600; }
+.auth-channel-option small { font-size: 11px; line-height: 1.4; color: var(--muted-foreground); }
+.auth-flow-identity { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 9px; background: var(--muted); color: var(--foreground); font-size: 12px; overflow-wrap: anywhere; }
+.auth-flow-identity svg { flex: none; color: var(--primary); }
+.auth-flow-disclaimer { color: var(--muted-foreground); font-size: 12px; line-height: 1.55; }
+.auth-flow-preview-note { margin-top: -5px; font-size: 11px; line-height: 1.5; text-align: center; color: var(--muted-foreground); }
+.auth-flow-switch { margin-top: 20px; }
+.auth-flow-finished { padding-top: 20px; }
+.auth-flow-finished-mark { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; color: var(--primary); background: var(--muted); }
+.auth-flow-finished-title { margin-top: 14px; font-size: 17px; line-height: 1.4; font-weight: 600; }
+.auth-finish-link { margin-top: 24px; }
+@media (max-width: 767px) {
+  .auth-flow-back { min-height: 44px; margin-bottom: 10px; }
+  .auth-field-heading > label, .auth-channel-group legend { font-size: 14px; }
+  .auth-channel-option { min-height: 68px; }
+}
+@media (max-width: 359px) {
+  .auth-channel-options { grid-template-columns: 1fr; }
+  .auth-channel-option { min-height: 52px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-channel-option, .auth-flow-progress span { transition: none; }
+}
