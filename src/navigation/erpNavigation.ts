@@ -50,7 +50,8 @@ export const erpNavigation:readonly ErpNavGroup[]=[
   {id:'notifications',label:'Notifications & SMS',bn:'এসএমএস ও বার্তা',path:'/app/notifications',feature:'notifications',permission:'notifications'},
   {id:'data',label:'Data Import / Export',bn:'ডেটা আমদানি/রপ্তানি',path:'/app/settings/data',permission:'export'},
   {id:'subscription',label:'Subscription & Billing',bn:'সাবস্ক্রিপশন',path:'/app/subscription',permission:'owner'},
-  {id:'appearance',label:'Appearance & Defaults',bn:'থিম ও পছন্দ',path:'/app/settings/personal'}
+  {id:'appearance',label:'Appearance & Defaults',bn:'থিম ও পছন্দ',path:'/app/settings/personal'},
+  {id:'security',label:'Account & Security',bn:'অ্যাকাউন্ট ও নিরাপত্তা',path:'/app/settings/security'}
  ]}
 ];
 /** Verified in App.tsx of the source branch. Query-driven children share these same route paths. */
@@ -59,7 +60,7 @@ export const erpRoutePaths=new Set([
  '/app/purchases','/app/purchases/new','/app/vendors','/app/products','/app/parties','/app/expenses',
  '/app/finance','/app/accounts','/app/daybook','/app/reconciliation','/app/audit-ledger',
  '/app/warranty','/app/reports','/app/settings/business','/app/settings/team',
- '/app/settings/data','/app/settings/personal','/app/notifications','/app/subscription',
+ '/app/settings/data','/app/settings/personal','/app/settings/security','/app/notifications','/app/subscription',
  '/app/support'
 ]);
 export const erpFeatureIds=new Set(['quotations','online-sales','notifications']);

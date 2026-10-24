@@ -12,7 +12,7 @@ async function main(){
   await page.goto(base+'/app/settings/business');
   const hub=page.getByRole('region',{name:'Settings shortcuts'});
   await hub.waitFor();
-  for(const label of ['Business & General','Users & Roles','Notifications & SMS','Data Import / Export','Subscription & Billing','Appearance & Defaults']){
+  for(const label of ['Business & General','Users & Roles','Notifications & SMS','Data Import / Export','Subscription & Billing','Appearance & Defaults','Account & Security']){
    assert.equal(await hub.getByRole('link',{name:new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))}).count(),1,label+' should link to real module');
   }
   await hub.getByText('Preview only',{exact:false}).waitFor();
@@ -39,8 +39,13 @@ async function main(){
   await mobileHub.getByRole('link',{name:/Appearance & Defaults/}).click();
   assert.ok(page.url().includes('/app/settings/personal'));
   await page.getByRole('heading',{name:'Business settings'}).waitFor();
+  await page.goto(base+'/app/settings/business');
+  await page.getByRole('region',{name:'Settings shortcuts'}).getByRole('link',{name:/Account & Security/}).click();
+  assert.ok(page.url().includes('/app/settings/security'));
+  await page.getByTestId('account-security-settings').waitFor();
+  assert.equal(await page.getByRole('button',{name:'Save changes'}).count(),0,'Security must not use business settings save');
   assert.deepEqual(errors,[]);
-  console.log('Settings hub: 6 destinations, unsaved draft guard, SMS/data/billing, mobile appearance and no runtime errors passed');
+  console.log('Settings hub: 7 destinations, unsaved draft guard, SMS/data/billing, mobile appearance and no runtime errors passed');
  }finally{await browser.close();await server.close();}
 }
 main().catch(err=>{console.error(err);process.exitCode=1;});

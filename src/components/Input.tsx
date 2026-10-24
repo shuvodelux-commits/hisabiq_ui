@@ -20,7 +20,8 @@ export const Input=forwardRef<HTMLInputElement,InputProps>(function Input({
   internalRef.current=node;
   if(typeof ref==='function')ref(node);else if(ref)ref.current=node;
  };
- const numeric=props.type==='number'||props.inputMode==='decimal'||props.inputMode==='numeric'&&props.type!=='tel';
+ // Mobile numbers and 6-digit authentication codes are identifiers, not quantities.
+ const numeric=props.type==='number'||(props.type!=='tel'&&props.type!=='password'&&(props.inputMode==='decimal'||props.inputMode==='numeric'));
  if(numeric)return <NumericInput {...props} ref={setRef}/>;
  // The exported design-system Input starts at 32px, but ERP selects, numeric
  // editors and date controls default to 36px. Match that baseline unless a

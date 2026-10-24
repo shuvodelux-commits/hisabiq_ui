@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {Bell,Building2,Database,Palette,Users,CreditCard,ArrowUpRight} from 'lucide-react';
+import {Bell,Building2,Database,Palette,Users,CreditCard,ArrowUpRight,ShieldCheck} from 'lucide-react';
 import {useTenantSettings} from './TenantSettingsProvider';
 import {canManage,type SettingsPermission} from './model';
 import {erpRoutePaths,erpFeatureIds} from '../navigation/erpNavigation';
@@ -9,7 +9,7 @@ import {getSettingsHubItems} from './settingsHub';
 /** Shortcuts into canonical Settings and tenant portal routes; no duplicate SMS/billing state. */
 export function TenantSettingsHub({onNavigate}:{onNavigate?:(path:string,event:React.MouseEvent<HTMLAnchorElement>)=>void}){
  const {state,actorId,personal}=useTenantSettings();
- const icons={general:Building2,users:Users,notifications:Bell,data:Database,subscription:CreditCard,appearance:Palette};
+ const icons={general:Building2,users:Users,notifications:Bell,data:Database,subscription:CreditCard,appearance:Palette,security:ShieldCheck};
  const items=getSettingsHubItems({availablePaths:erpRoutePaths,enabledFeatures:erpFeatureIds,
   canAccess:p=>p==='owner'
    ?Boolean(state.sections.team.employees.find(e=>e.id===actorId)?.roleIds.includes('owner'))

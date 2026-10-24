@@ -14,7 +14,9 @@ const first=[makeBundleComponent(a,a.unit,'2','',0),makeBundleComponent(b,b.unit
 const changed=[makeBundleComponent(a,a.unit,'3','',0),makeBundleComponent(b,b.unit,'1','',1)];
 const newBundle=()=>upsertBundlePreview({product:item,components:first},null);
 const quoteInput=(pin:ReturnType<typeof captureBundleHandoff>)=>({
- date:'2026-10-17',validUntil:'2026-10-23',customerName:'Bangladesh Shop',
+ date:new Date(Date.now()+6*60*60*1000).toISOString().slice(0,10),
+ validUntil:new Date(Date.now()+30*24*60*60*1000+6*60*60*1000).toISOString().slice(0,10),
+ customerName:'Bangladesh Shop',
  note:'',status:'Draft' as const,discount:50,lines:[{id:'bundle-quote-line',productId:item.id,name:item.name,unit:'Set',quantity:2,price:1800,...pin}]
 });
 test('quote → accepted order keeps whole Sets, parent agreed price, revision and recipe signature',()=>{

@@ -25,6 +25,7 @@ import {
   Settings2,
   CheckCircle2,
   ImagePlus,
+  ShieldCheck,
 } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -49,6 +50,7 @@ import {
 import { TeamSettings } from "./TeamSettings";
 import { DataSettings } from "./DataSettings";
 import { TenantSettingsHub } from "./TenantSettingsHub";
+import { AccountSecuritySettings } from "./AccountSecuritySettings";
 
 const icons = {
   business: Building2,
@@ -61,6 +63,7 @@ const icons = {
   notifications: Bell,
   personal: SlidersHorizontal,
   data: Database,
+  security: ShieldCheck,
 };
 type Draft = SettingsSections[BusinessSection];
 function LogoField({
@@ -354,7 +357,7 @@ function SettingsPageContent() {
   const [draft, setDraft] = useState<Draft>(() =>
     structuredClone(
       state.sections[
-        section === "personal" || section === "data" ? "business" : section
+        section === "personal" || section === "data" || section === "security" ? "business" : section
       ],
     ),
   );
@@ -377,17 +380,17 @@ function SettingsPageContent() {
   const dirty =
     section === "personal"
       ? personalDirty
-      : section === "data"
+      : section === "data" || section === "security"
         ? false
         : JSON.stringify(draft) !== baseline;
   const editable =
-    section === "personal" ||
+    section === "personal" || section === "security" ||
     (section !== "data" && canManage(state, actorId, section));
-  const canView = section === "personal" || canManage(state, actorId, "view");
+  const canView = section === "personal" || section === "security" || canManage(state, actorId, "view");
   const load = () => {
     const next = structuredClone(
       state.sections[
-        section === "personal" || section === "data" ? "business" : section
+        section === "personal" || section === "data" || section === "security" ? "business" : section
       ],
     );
     setDraft(next);
@@ -439,7 +442,7 @@ function SettingsPageContent() {
       setNotice("Personal preferences saved for this device.");
       return;
     }
-    if (section === "data") return;
+    if (section === "data" || section === "security") return;
     const result = save(section, draft as never, revision);
     if (!result.ok) {
       setError(result.error || "Could not save settings.");
@@ -452,7 +455,7 @@ function SettingsPageContent() {
     setReviewOpen(false);
   };
   const changes =
-    section === "personal" || section === "data"
+    section === "personal" || section === "data" || section === "security"
       ? []
       : (settingsFields[section] || []).filter(
           (field) =>
@@ -673,6 +676,8 @@ function SettingsPageContent() {
                 demo employee or open My preferences.
               </p>
             </SettingCard>
+          ) : section === "security" ? (
+            <AccountSecuritySettings language={personal.language} />
           ) : section === "data" ? (
             <DataSettings />
           ) : (
@@ -1035,7 +1040,7 @@ function SettingsPageContent() {
               if (section === "personal") {
                 setPersonalDraft({ ...personalDefaults, mode: personal.mode });
                 setThemeDraft("system");
-              } else if (section !== "data")
+              } else if (section !== "data" && section !== "security")
                 setDraft(
                   structuredClone(defaults(state.tenantId).sections[section]),
                 );
