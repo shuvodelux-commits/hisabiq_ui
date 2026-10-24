@@ -25,13 +25,10 @@ async function main() {
       },{theme,language});
       await page.goto('http://127.0.0.1:4392/#/app/reports');
       await page.getByRole('heading',{name:language==='Bangla'?'রিপোর্ট':'Reports',exact:true}).waitFor();
-      await page.waitForFunction(()=>document.querySelectorAll('.recharts-pie-sector path.recharts-sector').length===6);
-      assert.equal(await page.getByRole('list',{name:/Expense categories|খরচের খাত/}).getByRole('listitem').count(),6,'all expense chart values remain available as text');
-      assert.equal(await page.locator('.size-36[aria-hidden="true"] [tabindex]:not([tabindex="-1"])').count(),0,'decorative expense chart has no keyboard-focusable descendants');
-      assert.equal(await page.getByRole('radio',{name:language==='Bangla'?'সেপ্টেম্বর':'September',exact:true}).isEnabled(),true);
-      for(const label of language==='Bangla'?['আজ','এই সপ্তাহ','ত্রৈমাসিক','অর্থবছর ২০২৬–২৭']:['Today','This week','Quarter','FY 2026–27']) {
-        assert.equal(await page.getByRole('radio',{name:label,exact:true}).isDisabled(),true,`${label} stays unavailable for sample-only data`);
-      }
+      await page.getByRole('heading',{name:language==='Bangla'?'ব্যবসার সারাংশ':'Business overview',exact:true}).waitFor();
+      await page.locator('[data-report-row]').first().waitFor();
+      assert.equal(await page.getByRole('tablist',{name:/Report groups|রিপোর্টের বিভাগ/}).getByRole('tab').count(),7);
+      assert.equal(await page.getByRole('button',{name:/^Report date range:|^রিপোর্টের সময়কাল:/}).isEnabled(),true,'date ranges must work with source records');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`horizontal document overflow at ${width}px ${theme} ${language}`);
       await page.addScriptTag({path:require.resolve('axe-core')});
       const result=await page.evaluate(async()=>await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}));

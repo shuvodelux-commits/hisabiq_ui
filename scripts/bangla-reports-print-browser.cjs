@@ -18,7 +18,7 @@ async function main() {
         const bn=language==='Bangla';
         await page.goto('http://127.0.0.1:4388/#/app/reports');
         await page.getByRole('heading',{name:bn?'রিপোর্ট':'Reports',exact:true}).waitFor();
-        await page.getByText(bn?/সেপ্টেম্বরের নমুনা হিসাব/:/September sample figures/).first().waitFor();
+        await page.getByText(bn?/ইউআই প্রিভিউ · বর্তমান ব্রাউজারের রেকর্ড/:/UI preview · current in-browser records/).first().waitFor();
         await page.goto('http://127.0.0.1:4388/#/app/daybook');
         await page.getByRole('heading',{name:bn?'দৈনিক লেনদেন':'Daybook',exact:true}).waitFor();
         await page.getByRole('columnheader',{name:bn?'টাকা এসেছে':'Money In',exact:true}).waitFor();
@@ -37,7 +37,8 @@ async function main() {
         assert.ok(content.csv.includes('"INV-000001","127.5"'));
         await page.goto('http://127.0.0.1:4388/#/app/sales');
         await page.getByRole('heading',{name:bn?'বিক্রয়':'Sales',exact:true}).waitFor();
-        await page.locator('tbody tr').first().click();
+        if(width===390)await page.locator('.sales-mobile-record').first().getByRole('button',{name:/View details|বিস্তারিত দেখুন/}).click();
+        else await page.locator('tbody tr').first().click();
         const dialog=page.getByRole('dialog').first();
         await dialog.waitFor();
         const receipt=dialog.locator('.theme-light').first();

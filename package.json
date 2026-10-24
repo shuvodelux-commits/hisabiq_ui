@@ -59,6 +59,7 @@
     "test:bangla-workflows": "node scripts/bangla-workflows-browser.cjs",
     "test:bangla-reports-print": "node scripts/bangla-reports-print-browser.cjs",
     "test:reports-print": "node scripts/reports-print-browser.cjs",
+    "test:report-workspace": "node scripts/report-workspace-browser.cjs",
     "test:reports-a11y-matrix": "node scripts/reports-a11y-matrix-browser.cjs",
     "test:bangla-accounting": "node scripts/bangla-accounting-browser.cjs",
     "test:bangla-finance": "node scripts/bangla-finance-browser.cjs",
