@@ -42,6 +42,8 @@ jobs:
           AUTH_SCREENSHOT_DIR: auth-ui-screenshots
         run: npm run test:auth-login
       - name: Verify in-app account security settings
+        env:
+          AUTH_SCREENSHOT_DIR: auth-ui-screenshots
         run: npm run test:auth-settings
       - name: Publish review screenshots
         if: always()
