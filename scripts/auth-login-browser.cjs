@@ -45,20 +45,17 @@ async function main() {
     assert.equal(await password.inputValue(), '');
     assert.match(page.url(), /#\/login$/);
 
-    for (const [action, title] of [
-      ['Forgot password?', 'Password recovery'],
-      ['Create account', 'Create account'],
-      ['Continue with Google', 'Continue with Google'],
-    ]) {
-      const opener = page.getByRole('button', { name: action, exact: true });
-      await opener.click();
-      const dialog = page.getByRole('dialog', { name: title, exact: true });
-      await dialog.waitFor();
-      assert.match(await dialog.innerText(), /preview/i);
-      await page.keyboard.press('Escape');
-      await dialog.waitFor({ state: 'hidden' });
-      assert.equal(await opener.evaluate(el => el === document.activeElement), true);
-    }
+    await page.getByRole('link', { name: 'Forgot password?', exact: true }).click();
+    await page.getByRole('heading', { name: 'Recover password', exact: true }).waitFor();
+    await go('/login');
+    await page.getByRole('link', { name: 'Create account', exact: true }).click();
+    await page.getByRole('heading', { name: 'Create account', exact: true }).waitFor();
+    await go('/login');
+    const google = page.getByRole('button', { name: 'Continue with Google', exact: true });
+    await google.click();
+    await page.getByRole('dialog', { name: 'Continue with Google' }).waitFor();
+    await page.keyboard.press('Escape');
+    assert.equal(await google.evaluate(el => el === document.activeElement), true);
 
     await page.getByRole('navigation', { name: 'Login design states' }).getByRole('link', { name: 'Quick PIN', exact: true }).click();
     const pin = page.getByLabel('Enter your 6-digit PIN', { exact: true });
