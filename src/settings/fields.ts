@@ -82,6 +82,11 @@ export const sectionNames: Record<
     description:
       "Appearance and display preferences for this device, separate from business-wide settings.",
   },
+  security: {
+    label: "Account & security",
+    bn: "অ্যাকাউন্ট ও নিরাপত্তা",
+    description: "Login, recovery, PIN, trusted devices and auto-lock settings for your account.",
+  },
   data: {
     label: "Data & activity",
     bn: "তথ্য ও কার্যক্রম",
