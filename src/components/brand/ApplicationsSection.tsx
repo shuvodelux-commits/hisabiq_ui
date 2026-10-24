@@ -90,7 +90,7 @@ export function ApplicationsSection() {
                 <p className="font-medium tabular-nums text-ink">৳23,100</p>
               </div>
             </div>
-            <table className="mx-8 mt-4 w-[calc(100%-4rem)] text-[11.5px]">
+            <table data-erp-table="" className="mx-8 mt-4 w-[calc(100%-4rem)] text-[11.5px]">
               <thead>
                 <tr className="border-b border-ink-200 text-left text-ink-400">
                   <th className="py-1.5 font-medium">#</th>

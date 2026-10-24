@@ -563,7 +563,7 @@ export function Products() {
                       <ProductThumb src={p.image} size={34} />
                       <div className="min-w-0">
                         <p className="truncate font-medium text-ink">{p.name}</p>
-                        <p className="truncate text-[11px] text-ink-500">
+                        <p data-table-helper="" className="truncate text-[11px] text-ink-500">
                           {p.nameBn && <span className="font-bn">{p.nameBn}</span>}
                           {p.nameBn ? ' · ' : ''}{p.sku}
                         </p>
@@ -571,25 +571,25 @@ export function Products() {
                     </div>
                   </TableCell>}
                   {visibleColumns.category && <TableCell className="py-2 text-ink-600">
-                    {p.category}{p.brand && p.brand !== 'Generic / No brand' && <span className="block text-[11px] text-ink-400">{p.brand}</span>}
+                    {p.category}{p.brand && p.brand !== 'Generic / No brand' && <span data-table-helper="" className="block text-[11px] text-ink-400">{p.brand}</span>}
                   </TableCell>}
                   {visibleColumns.stock &&
                   <TableCell className={`py-2 text-right font-medium ${s === 'low' ? 'text-warning' : s === 'out' ? 'text-danger' : 'text-ink'}`}>
                     {p.kind === 'Service' ? '—' : p.kind==='Bundle' ? (projection?.availableSets??0)+' Set' : formatStock(p)}
-                    {p.kind !== 'Service' && p.kind !== 'Bundle' && <span className="block text-[11px] font-normal text-ink-400">{pl("min")} {formatStock({ ...p, stock: p.minStock })}</span>}
+                    {p.kind !== 'Service' && p.kind !== 'Bundle' && <span data-table-helper="" className="block text-[11px] font-normal text-ink-400">{pl("min")} {formatStock({ ...p, stock: p.minStock })}</span>}
                   </TableCell>}
                   {visibleColumns.stockValue &&
                   <TableCell className="py-2 text-right font-medium text-ink">
                     {p.kind === 'Service' || p.kind === 'Bundle' ? '—' : taka(rowStockValue, rowStockValue % 1 ? 2 : 0)}
-                    {p.kind !== 'Service' && p.kind !== 'Bundle' && <span className="block text-[11px] font-normal text-ink-400">{pl("at purchase price")}</span>}
+                    {p.kind !== 'Service' && p.kind !== 'Bundle' && <span data-table-helper="" className="block text-[11px] font-normal text-ink-400">{pl("at purchase price")}</span>}
                   </TableCell>}
                   {visibleColumns.unit &&
                   <TableCell className="py-2 text-ink-600">
                     {p.altUnit ?
                     <span>
                         {p.altUnit.unit} / {p.unit}
-                        <span className="block text-[11px] text-ink-400">1 {p.altUnit.unit} = {p.altUnit.factor} {p.unit}</span>
-                        <span className="block text-[11px] text-teal-700">{pl("POS default:")} {p.stockViewUnit ?? p.altUnit.unit}</span>
+                        <span data-table-helper="" className="block text-[11px] text-ink-400">1 {p.altUnit.unit} = {p.altUnit.factor} {p.unit}</span>
+                        <span data-table-helper="" className="block text-[11px] text-teal-700">{pl("POS default:")} {p.stockViewUnit ?? p.altUnit.unit}</span>
                       </span> :
 
                     p.unit
@@ -604,7 +604,7 @@ export function Products() {
                     {taka(p.sellPrice, p.sellPrice % 1 ? 2 : 0)}
                     <span className="font-normal text-ink-400">/{p.unit}</span>
                     {p.altUnit &&
-                    <span className="block text-[11px] font-normal text-ink-500">
+                    <span data-table-helper="" className="block text-[11px] font-normal text-ink-500">
                         {taka(p.altUnit.price ?? p.sellPrice * p.altUnit.factor)}/{p.altUnit.unit}
                       </span>
                     }

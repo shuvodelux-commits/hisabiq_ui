@@ -56,11 +56,11 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
                   label={text('Open attachment','সংযুক্ত ফাইল খুলুন')}
                   onClick={()=>onOpenAttachment(row)}/></span>}
               </div>
-              <p className="mt-0.5 max-w-md truncate text-xs text-ink-500" title={row.description}>{row.description}</p>
+              <p data-table-helper="" className="mt-0.5 max-w-md truncate text-xs text-ink-500" title={row.description}>{row.description}</p>
             </TableCell>
             <TableCell className="text-right align-middle"><LedgerImpactAmount row={row} value={row.debit} language={language}/></TableCell>
             <TableCell className="text-right align-middle"><LedgerImpactAmount row={row} value={row.credit} language={language}/></TableCell>
-            <TableCell className="text-right font-medium">{formatMoneyNumber(Math.abs(row.runningBalance))} <span className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
+            <TableCell className="text-right font-medium">{formatMoneyNumber(Math.abs(row.runningBalance))} <span data-table-helper="" className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
             <TableCell className="pr-4 text-right"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></TableCell>
           </TableRow>)}
           {!visibleRows.length&&<TableRow><TableCell colSpan={6} className="p-8 text-center text-xs text-ink-500">{text('No transactions match these filters.','এই ফিল্টারে কোনো লেনদেন নেই।')}</TableCell></TableRow>}

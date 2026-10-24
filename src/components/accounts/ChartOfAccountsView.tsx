@@ -129,7 +129,7 @@ export function ChartOfAccountsView({
                 <TableCell className="py-2 pl-4 text-ink-500">{account.code}</TableCell>
                 <TableCell className="py-2">
                   <p className="font-medium text-ink">{accountingAccountLabel(account, terminologyMode)}</p>
-                  <p className="font-bn text-[10.5px] text-ink-400">{account.helperBn}</p>
+                  <p data-table-helper="" className="font-bn text-[10.5px] text-ink-400">{account.helperBn}</p>
                 </TableCell>
                 <TableCell className="py-2 text-ink-600">{account.group}</TableCell>
                 <TableCell className="py-2 text-ink-500">{account.parent}</TableCell>

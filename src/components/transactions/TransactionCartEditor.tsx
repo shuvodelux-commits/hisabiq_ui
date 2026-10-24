@@ -61,7 +61,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
      <div className="flex min-w-0 items-center gap-2.5">
       <ProductThumb size={32} src={product?.image}/>
       <div className="min-w-0"><p className="truncate text-[13px] font-medium text-ink">{line.name}</p>
-       <p className="truncate text-[11px] text-ink-500"><span className="font-bn">{product?.nameBn??''}</span>
+       <p data-table-helper="" className="truncate text-[11px] text-ink-500"><span className="font-bn">{product?.nameBn??''}</span>
         {product?.nameBn?' · ':''}{product?.category??'Product'} · {product?formatStock(product):'Saved quote item'}
        </p>
       </div>
@@ -104,7 +104,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
          {unit}
        </button>)}
       </div> : <span className="px-2 text-sm text-ink-600">{line.unit}</span>}</div>
-     <div data-cart-field="Price · দাম"><div className="relative"><span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
+     <div data-cart-field="Price · দাম"><div className="relative"><span data-table-helper="" className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
       <NumericInput aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
        disabled={!canChange} value={line.price} onChange={event=>onUpdate(line.id,{price:Number(event.target.value)} as Partial<L>)}
        onKeyDown={backToProduct} className={input+' pl-5'}/></div></div>
@@ -122,10 +122,10 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
    {!locked&&<div data-testid="transaction-add-row" data-cart-add className={grid+' bg-teal-50/35 px-3 py-2'}>
     <span className="text-right text-sm text-teal-600">{lines.length+1}.</span>
     <ProductCombobox ref={searchRef} mode={mode} products={products} onSelect={onAdd} onCreate={onCreate?()=>onCreate():undefined} ariaLabel={productLabel}/>
-    <span className="text-right text-xs text-ink-400">Qty</span><span className="text-xs text-ink-400">Unit</span>
-    <span className="text-right text-xs text-ink-400">Price</span><span className="text-right text-xs text-ink-400">Amount</span><span/>
+    <span data-table-helper="" className="text-right text-xs text-ink-400">Qty</span><span data-table-helper="" className="text-xs text-ink-400">Unit</span>
+    <span data-table-helper="" className="text-right text-xs text-ink-400">Price</span><span data-table-helper="" className="text-right text-xs text-ink-400">Amount</span><span/>
    </div>}
   </div>
-  {!lines.length&&<p className="px-4 py-5 text-center text-xs text-ink-500">Search to add your first product · <span className="font-bn">পণ্য যোগ করুন</span></p>}
+  {!lines.length&&<p data-table-helper="" className="px-4 py-5 text-center text-xs text-ink-500">Search to add your first product · <span className="font-bn">পণ্য যোগ করুন</span></p>}
  </div>;
 }

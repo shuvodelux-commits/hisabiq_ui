@@ -38,7 +38,7 @@ export function DaybookDialog({ open, onOpenChange }: {open: boolean;onOpenChang
                   </TableCell>
                   <TableCell className="py-2">
                     <span className="font-medium text-ink">{d.ref}</span>
-                    <span className="block text-xs text-ink-500">{d.particulars}</span>
+                    <span data-table-helper="" className="block text-xs text-ink-500">{d.particulars}</span>
                   </TableCell>
                   <TableCell className="py-2 text-right ">{d.in ? formatNumber(d.in) : '—'}</TableCell>
                   <TableCell className="py-2 pr-3 text-right ">{d.out ? formatNumber(d.out) : '—'}</TableCell>

@@ -60,7 +60,7 @@ export function PartySourceQuickPreview({ row, source, onClose, onOpenSource }: 
             <div><p className="text-ink-500">{text('Due','বাকি')}</p><strong>{taka(sale.due)}</strong></div>
           </div>
           <div className="overflow-x-auto rounded-md border border-border">
-            <table className="w-full text-xs"><thead className="bg-ink-50"><tr>
+            <table data-erp-table="" className="w-full text-xs"><thead className="bg-ink-50"><tr>
               <th className="p-2 text-left">{text('Product','পণ্য')}</th><th className="p-2 text-left">{text('Quantity','পরিমাণ')}</th><th className="p-2 text-right">{text('Amount','টাকা')}</th>
             </tr></thead><tbody>{sale.lines.map(line=><tr key={line.id} className="border-t border-border">
               <td className="p-2">{line.name}</td><td className="p-2">{line.quantity}</td><td className="p-2 text-right">{taka(line.total)}</td>

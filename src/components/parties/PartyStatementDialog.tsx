@@ -47,7 +47,7 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
         </div>
         <div className="flex justify-between text-sm"><span title={text("Balance before the selected date range; dated opening entries appear in the table","বাছা সময়ের আগের জের; শুরুর লেনদেন তারিখসহ তালিকায় আছে")}>{text('Opening balance (brought forward)','আগের জের')}</span><strong>৳{formatMoneyNumber(statement.openingBalance)}</strong></div>
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-xs">
+          <table data-erp-table="" className="w-full border-collapse text-xs">
             <thead><tr className="border-y border-border bg-ink-50 text-ink-700">
               <th className="p-2 text-left">{text('Date','তারিখ')}</th><th className="p-2 text-left">{text('Particulars','বিবরণ')}</th>
               <th className="p-2 text-right">{text('Debit','ডেবিট')}</th><th className="p-2 text-right">{text('Credit','ক্রেডিট')}</th><th className="p-2 text-right">{text('Balance','জের')}</th>
@@ -55,7 +55,7 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
             <tbody>{rows.map(row=><tr key={row.id} className="border-b border-border/70">
               <td className="whitespace-nowrap p-2">{row.date}</td>
               <td className="p-2"><span className="font-medium">{row.reference||row.source}</span>
-               <span className="ml-1 text-[10px] text-ink-500">· {partyLedgerImpactText(language,ledgerImpact(row).label)}</span>
+               <span data-table-helper="" className="ml-1 text-[10px] text-ink-500">· {partyLedgerImpactText(language,ledgerImpact(row).label)}</span>
                <p className="max-w-sm break-words text-ink-500">{row.description}</p></td>
               <td className="p-2 text-right">{row.debit?formatMoneyNumber(row.debit):'—'}</td>
               <td className="p-2 text-right">{row.credit?formatMoneyNumber(row.credit):'—'}</td>

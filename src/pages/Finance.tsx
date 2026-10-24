@@ -825,7 +825,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                       <TableRow key={item.id} className="text-[13px]">
                         <TableCell className="py-2 pl-4">
                           <p className="font-medium text-ink">{item.type}</p>
-                          <p className="text-[10.5px] text-ink-400">{item.date} · {item.id}</p>
+                          <p data-table-helper="" className="text-[10.5px] text-ink-400">{item.date} · {item.id}</p>
                         </TableCell>
                         <TableCell className="py-2">{item.party ?? '—'}</TableCell>
                         <TableCell className="py-2 text-ink-500">{item.relationship ?? item.account ?? '—'}</TableCell>
@@ -919,7 +919,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                   <TableRow key={item.id} className="text-[13px]">
                     <TableCell className="py-2 pl-4">
                       <p className="font-medium text-ink">{item.type}</p>
-                      <p className="text-[10.5px] text-ink-400">{item.date} · {item.id}{item.reference ? ` · ${item.reference}` : ''}</p>
+                      <p data-table-helper="" className="text-[10.5px] text-ink-400">{item.date} · {item.id}{item.reference ? ` · ${item.reference}` : ''}</p>
                     </TableCell>
                     <TableCell className="py-2 text-ink-600">{item.relationship ?? '—'}</TableCell>
                     <TableCell className="py-2 font-medium text-ink">{item.party ?? '—'}</TableCell>
@@ -1046,7 +1046,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     <TableRow key={item.id} className="text-[13px]">
                       <TableCell className="py-2 pl-4">
                         <p className="font-medium text-ink">{item.id}</p>
-                        <p className="text-[10.5px] text-ink-400">{item.date}{item.reference ? ` · ${item.reference}` : ''}</p>
+                        <p data-table-helper="" className="text-[10.5px] text-ink-400">{item.date}{item.reference ? ` · ${item.reference}` : ''}</p>
                       </TableCell>
                       <TableCell className="py-2">{transferAccountLabel(item, 'from', accounts)}</TableCell>
                       <TableCell className="py-2">{transferAccountLabel(item, 'to', accounts)}</TableCell>
@@ -1097,13 +1097,13 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                       <TableRow key={cheque.id} className="text-[13px]">
                         <TableCell className="py-2 pl-4">
                           <p className="font-medium text-ink">{financeLabel(language,cheque.direction)} · #{cheque.chequeNumber}</p>
-                          <p className="text-[10.5px] text-ink-400">{cheque.id}{pdc ? ' · PDC' : ''}{cheque.reference ? ' · ' + cheque.reference : ''}</p>
+                          <p data-table-helper="" className="text-[10.5px] text-ink-400">{cheque.id}{pdc ? ' · PDC' : ''}{cheque.reference ? ' · ' + cheque.reference : ''}</p>
                         </TableCell>
                         <TableCell className="py-2 font-medium text-ink">{cheque.party}</TableCell>
                         <TableCell className="py-2 text-ink-500">{cheque.bank}{cheque.branch ? ' · ' + cheque.branch : ''}</TableCell>
                         <TableCell className="py-2">
                           <p className="text-ink-600">{cheque.chequeDate}</p>
-                          {pdc && <p className="font-bn text-[10.5px] text-warning">{text('Post-dated cheque','ভবিষ্যৎ তারিখের চেক')}</p>}
+                          {pdc && <p data-table-helper="" className="font-bn text-[10.5px] text-warning">{text('Post-dated cheque','ভবিষ্যৎ তারিখের চেক')}</p>}
                         </TableCell>
                         <TableCell className="py-2 text-ink-500">{cheque.depositAccount || '—'}</TableCell>
                         <TableCell className="py-2 text-right font-semibold">{taka(cheque.amount)}</TableCell>
@@ -1183,7 +1183,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     <TableRow key={session.id} className="text-[13px]">
                       <TableCell className="py-2 pl-4">
                         <p className="font-medium text-ink">{session.id}</p>
-                        <p className="text-[10.5px] text-ink-400">{session.date}</p>
+                        <p data-table-helper="" className="text-[10.5px] text-ink-400">{session.date}</p>
                       </TableCell>
                       <TableCell className="py-2 text-ink-500">{session.openedAt}{session.closedAt ? ` → ${session.closedAt}` : ' → now'}</TableCell>
                       <TableCell className="py-2 text-right">{taka(session.openingCash)}</TableCell>

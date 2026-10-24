@@ -66,7 +66,7 @@ jobs:
           flag purchases '^(src/(pages/(Purchases|PurchaseEditor)\.tsx|components/purchases/|utils/purchaseSource\.ts)|scripts/(purchase-|product-quick-add).*browser\.cjs$)'
           flag parties '^(src/(pages/(Parties|Party|Vendor|Vendors)\.tsx|components/(parties|vendor)/)|scripts/(party-|vendor-).*browser\.cjs$)'
           flag finance '^(src/(pages/Finance\.tsx|components/finance/|utils/financePaymentDrafts\.ts)|scripts/(counter-|finance-).*browser\.cjs$)'
-          flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment).*browser\.cjs$)'
+          flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment|table-typography).*browser\.cjs$)'
           flag mobile '^(src/index\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\.tsx$|scripts/mobile-carts-browser\.cjs$)'
           flag reports '^(src/(pages/Reports\.tsx|reports/|components/reports/)|scripts/(report-workspace|report-guidance|reports-print)-browser\.cjs$)'
 
@@ -129,6 +129,10 @@ jobs:
       - name: Shared dialogs and mobile overlay accessibility
         if: steps.scope.outputs.shared == 'true'
         run: node scripts/dialog-accessibility-browser.cjs
+
+      - name: Products-standard table typography
+        if: steps.scope.outputs.shared == 'true'
+        run: npm run test:table-typography
 
       - name: Compact phone and tablet cart smoke
         if: steps.scope.outputs.mobile == 'true'

@@ -108,7 +108,8 @@
     "test:calculator-scratchpad": "node scripts/calculator-scratchpad-browser.cjs",
     "check:input-focus": "node scripts/check-input-focus.cjs",
     "test:field-size-parity": "node scripts/field-size-parity-browser.cjs",
-    "audit:erp-controls": "node scripts/audit-erp-controls.cjs"
+    "audit:erp-controls": "node scripts/audit-erp-controls.cjs",
+    "test:table-typography": "node scripts/table-typography-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

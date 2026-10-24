@@ -26,7 +26,7 @@ export function FulfillmentDocumentPreview({order,kind}:{order:OnlineOrder;kind:
     <p>{label('Tracking:')} {order.tracking??'—'}</p>
     <p>{label('Order state:')} {label(order.stage)}</p></div>
   </div>
-  <table className="w-full border-collapse text-xs">
+  <table data-erp-table="" className="w-full border-collapse text-xs">
    <thead><tr className="border-b border-border text-left">
     <th scope="col" className="py-2">#</th><th scope="col">{label('Product / description')}</th>
     <th scope="col" className="text-right">{label('Quantity')}</th>

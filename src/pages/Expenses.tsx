@@ -236,7 +236,7 @@ export function Expenses() {
                     <TableRow key={expense.id} className="cursor-pointer text-[13px]" onClick={open}>
                       <TableCell className="py-2 pl-4">
                         <span className="font-medium text-ink">{expense.ref}</span>
-                        <span className="block text-[11px] text-ink-400">{expense.date}</span>
+                        <span data-table-helper="" className="block text-[11px] text-ink-400">{expense.date}</span>
                       </TableCell>
                       <TableCell className="py-2"><StatusBadge tone="neutral">{expense.category}</StatusBadge></TableCell>
                       <TableCell className="py-2">
@@ -250,13 +250,13 @@ export function Expenses() {
                         ) : (
                           <span className="text-ink-700">{expense.payee}</span>
                         )}
-                        <span className="block max-w-[220px] truncate text-[11px] text-ink-400">{expense.note}</span>
+                        <span data-table-helper="" className="block max-w-[220px] truncate text-[11px] text-ink-400">{expense.note}</span>
                       </TableCell>
                       <TableCell className="py-2"><ReceiptThumb src={expense.receipt} onClick={open} /></TableCell>
                       <TableCell className="py-2 text-ink-600">
                         {paymentLabel(expense) === 'Multiple' ? text('Multiple','একাধিক') : documentMethod(language,paymentLabel(expense))}
                         {expense.payments && expense.payments.length > 1 && (
-                          <span className="block text-[10.5px] text-ink-400">
+                          <span data-table-helper="" className="block text-[10.5px] text-ink-400">
                             {expense.payments.map((payment) => payment.method).join(' + ')}
                           </span>
                         )}

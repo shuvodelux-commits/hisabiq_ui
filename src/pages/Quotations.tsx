@@ -166,7 +166,7 @@ function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete
      <p className="font-semibold">{quote.customerName}</p><p className="text-xs">{quote.customerPhone??''}</p>
     </div>
     <div className="overflow-x-auto">
-     <table className="w-full border-collapse text-left text-xs">
+     <table data-erp-table="" className="w-full border-collapse text-left text-xs">
       <thead><tr className="border-b border-border text-ink-500"><th className="py-2">#</th><th>{ql("Product")}</th><th className="text-right">{ql("Qty")}</th><th className="text-right">{ql("Price")}</th><th className="text-right">{ql("Amount")}</th></tr></thead>
       <tbody>{quote.lines.map((line,i)=><tr key={line.id} className="border-b border-border/60"><td className="py-2">{i+1}</td><td>{line.name}</td><td className="text-right">{line.quantity} {line.unit}</td><td className="text-right">{taka(line.price)}</td><td className="text-right">{taka(quoteLineTotal(line))}</td></tr>)}</tbody>
      </table>
@@ -250,8 +250,8 @@ export function Quotations(){
      const currentStatus=quoteDisplayStatus(q);
      return <TableRow key={q.id}>
       <TableCell><button className="font-semibold text-teal-700 hover:underline dark:text-teal-400" onClick={()=>setDetailId(q.id)}>{q.number}</button></TableCell>
-      <TableCell><span className="font-medium text-ink">{q.customerName}</span><p className="text-[11px] text-ink-400">{q.customerPhone||'—'}</p></TableCell>
-      <TableCell><p>{q.date}</p><p className="text-[11px] text-ink-500">{ql("Valid:")} {q.validUntil}</p></TableCell>
+      <TableCell><span className="font-medium text-ink">{q.customerName}</span><p data-table-helper="" className="text-[11px] text-ink-400">{q.customerPhone||'—'}</p></TableCell>
+      <TableCell><p>{q.date}</p><p data-table-helper="" className="text-[11px] text-ink-500">{ql("Valid:")} {q.validUntil}</p></TableCell>
       <TableCell className="text-right">{q.lines.length}</TableCell>
       <TableCell className="text-right font-semibold">{taka(quoteTotal(q))}</TableCell>
       <TableCell><StatusBadge tone={statusTone[currentStatus]}>{ql(currentStatus)}</StatusBadge></TableCell>

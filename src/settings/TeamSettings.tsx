@@ -98,7 +98,7 @@ export function TeamSettings({
         control this settings demonstration; no invitation email is sent.
       </p>
       <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-left text-[13px]">
+        <table data-erp-table="" className="w-full text-left text-[13px]">
           <thead className="bg-ink-50 text-ink-600">
             <tr>
               <th className="px-3 py-2 font-medium">
@@ -117,12 +117,12 @@ export function TeamSettings({
                   <tr key={e.id}>
                     <td className="px-3 py-3">
                       <p className="font-medium text-ink">{e.name}</p>
-                      <p className="text-xs text-ink-500">{e.email}</p>
+                      <p data-table-helper="" className="text-xs text-ink-500">{e.email}</p>
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-1">
                         {e.roleIds.map((id) => (
-                          <span
+                          <span data-table-helper=""
                             key={id}
                             className="rounded bg-ink-100 px-2 py-1 text-xs text-ink-600"
                           >

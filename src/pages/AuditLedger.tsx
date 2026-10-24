@@ -247,13 +247,13 @@ export function AuditLedger() {
                     <TableCell className="py-2 text-ink-500">{secondaryDate}</TableCell>
                     <TableCell className="py-2">
                       <p className="font-medium text-ink">{source.reference}</p>
-                      <p className="text-[10.5px] text-ink-400">{source.source === 'adjustment' ? 'Adjustment Entry' : source.source.replaceAll('-', ' ')}</p>
+                      <p data-table-helper="" className="text-[10.5px] text-ink-400">{source.source === 'adjustment' ? 'Adjustment Entry' : source.source.replaceAll('-', ' ')}</p>
                     </TableCell>
                     <TableCell className="py-2 text-ink-600">{source.party || '—'}</TableCell>
                     <TableCell className="py-2 text-ink-500">{text(sourceLabel(source),sourceLabel(source)==='Sales'?'বিক্রি':sourceLabel(source)==='Purchase'?'ক্রয়':sourceLabel(source)==='Expense'?'খরচ':sourceLabel(source)==='Transfer'?'হিসাবে টাকা সরানো':sourceLabel(source))}</TableCell>
                     <TableCell className="max-w-[220px] py-2"><p className="truncate text-ink-500">{accountLabel(source)}</p></TableCell>
                     <TableCell className="py-2 text-right font-semibold text-ink">{taka(source.amount)}</TableCell>
-                    <TableCell className="py-2"><p className="font-medium text-ink">{source.postedBy}</p><p className="text-[10.5px] text-ink-400">{source.createdAt.slice(11, 16)}</p></TableCell>
+                    <TableCell className="py-2"><p className="font-medium text-ink">{source.postedBy}</p><p data-table-helper="" className="text-[10.5px] text-ink-400">{source.createdAt.slice(11, 16)}</p></TableCell>
                     <TableCell className="py-2 text-ink-500">{lastChange?.user || '—'}</TableCell>
                     <TableCell className="py-2"><StatusBadge tone={source.status === 'Posted' ? 'success' : 'neutral'} dot>{text(source.status,source.status==='Posted'?'লেখা হয়েছে':'মুছে ফেলা')}</StatusBadge></TableCell>
                     <TableCell className="py-2 pr-4 text-right">
@@ -282,7 +282,7 @@ export function AuditLedger() {
                   <TableCell colSpan={11} className="py-14 text-center">
                     <ShieldCheck className="mx-auto size-5 text-helper" />
                     <p className="mt-2 text-sm font-medium text-ink">{text('No audit records found','কোনো লেনদেন মেলেনি')}</p>
-                    <p className="mt-1 font-bn text-xs text-ink-400">এই ফিল্টারে কোনো লেনদেন নেই</p>
+                    <p data-table-helper="" className="mt-1 font-bn text-xs text-ink-400">এই ফিল্টারে কোনো লেনদেন নেই</p>
                   </TableCell>
                 </TableRow>
               )}
