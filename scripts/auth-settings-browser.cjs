@@ -1,4 +1,5 @@
 const {chromium}=require('playwright');
+const {mkdirSync}=require('node:fs');
 const assert=require('node:assert/strict');
 async function main(){
  const {createServer}=await import('vite');
@@ -18,6 +19,8 @@ async function main(){
   await section.waitFor();
   assert.equal(await page.getByRole('button',{name:'Save changes'}).count(),0,'Security may not write tenant settings');
   await section.getByText('Authentication UI preview',{exact:true}).waitFor();
+  const screenshotDir=process.env.AUTH_SCREENSHOT_DIR;
+  if(screenshotDir){mkdirSync(screenshotDir,{recursive:true});await page.screenshot({path:screenshotDir+'/security-desktop.png',fullPage:true});}
   const lock=page.getByRole('switch',{name:'Preview auto-lock after 30 minutes'});
   assert.equal(await lock.getAttribute('aria-checked'),'true');
   await lock.click();await section.getByText(/Preview: Off/).waitFor();
@@ -59,6 +62,7 @@ async function main(){
   for(const [width,height] of [[390,844],[320,700],[900,1000],[1365,900]]){
    await page.setViewportSize({width,height});await page.goto(root+'/app/settings/security');await section.waitFor();
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),width+'px security route must not overflow');
+   if(screenshotDir && width===390)await page.screenshot({path:screenshotDir+'/security-mobile.png',fullPage:true});
   }
   await page.getByRole('link',{name:/Account picker/}).click();
   assert.match(page.url(),/#\/login\/accounts/);
