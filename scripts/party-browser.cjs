@@ -366,6 +366,11 @@ async function main() {
     await page.getByTestId('party-mobile-actions').getByRole('button',{name:'Pay Vendor'}).click();
     const payDialog=page.getByRole('dialog',{name:'Pay Vendor'});
     await payDialog.waitFor();
+    // The seeded split amount is populated by a React effect after modal mount.
+    await page.waitForFunction(() => {
+      const dialog=document.querySelector('[role="dialog"][aria-label="Pay Vendor"]');
+      return dialog?.querySelector('input[aria-label="Split amount 1"]')?.value==='240';
+    },undefined,{timeout:5000});
     assert.equal(await payDialog.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'240',
       'Vendor payment offers the existing priced memo due');
     await payDialog.getByRole('textbox',{name:'Split amount 1'}).fill('40');
