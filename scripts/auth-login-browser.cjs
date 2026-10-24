@@ -113,8 +113,9 @@ async function main() {
           await go('/login');
           await language(option);
           await page.getByRole('heading', { name: heading, exact: true }).waitFor();
-          for (const [state, englishTitle, banglaTitle] of [['', 'Sign in', 'সাইন ইন'], ['pin', 'Welcome back', 'আবার স্বাগতম'], ['accounts', 'Choose account', 'অ্যাকাউন্ট বাছুন']]) {
-            await go('/login' + (state ? '/' + state : ''));
+          for (const [route, englishTitle, banglaTitle] of [['/login', 'Sign in', 'সাইন ইন'], ['/login/pin', 'Welcome back', 'আবার স্বাগতম'], ['/login/accounts', 'Choose account', 'অ্যাকাউন্ট বাছুন'], ['/signup', 'Create account', 'অ্যাকাউন্ট খুলুন'], ['/recovery', 'Recover password', 'পাসওয়ার্ড পুনরুদ্ধার']]) {
+            const state = route.slice(1).replace(/\W/g, '-');
+            await go(route);
             await page.getByRole('heading', { name: option === 'বাংলা' ? banglaTitle : englishTitle, exact: true }).waitFor();
             assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
             assert.equal(await page.getByRole('combobox', { name: /Language|ভাষা/ }).count(), 1);
@@ -160,7 +161,7 @@ async function main() {
     await go('/app/dashboard');
     await page.getByRole('heading', { name: /Welcome,|Dashboard/ }).first().waitFor();
     assert.deepEqual(errors, []);
-    console.log('Login preview passed: validation, password visibility, focused dialogs, PIN leading zeros/no steppers, account changes clear secrets, storage/network boundaries, blocked-storage touch input, 72 state/viewport/language/theme combinations, automated WCAG AA checks and existing ERP entry.');
+    console.log('Login preview passed: validation, password visibility, focused dialogs, PIN leading zeros/no steppers, account changes clear secrets, storage/network boundaries, blocked-storage touch input, 120 state/viewport/language/theme combinations, automated WCAG AA checks and existing ERP entry.');
   } finally {
     await browser?.close();
     await server.close();
