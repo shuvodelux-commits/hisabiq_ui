@@ -158,6 +158,36 @@ async function main() {
       await privatePage.getByRole('heading', { name: 'সাইন ইন', exact: true }).waitFor();
       assert.deepEqual(privateErrors, [], 'Public login and language selection must work with blocked storage');
     } finally { await privateContext.close(); }
+    await language('English');
+    await go('/signup');
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    assert.equal(await page.getByLabel('Your name').getAttribute('aria-invalid'), 'true');
+    await page.getByLabel('Your name').fill('Test Merchant');
+    await page.getByLabel('Mobile number').fill('01711000245');
+    await page.getByLabel('Password', { exact: true }).fill('DemoPassword123');
+    await page.getByLabel('Confirm password').fill('DemoPassword123');
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByRole('heading', { name: 'Verify mobile number' }).waitFor();
+    assert.ok((await page.getByText(/no SMS was sent/i).count()) > 0);
+    await page.getByLabel('6-digit verification code').fill('000123');
+    assert.equal(await page.locator('[data-numeric-input]').count(), 0);
+    await page.getByRole('button', { name: 'Continue preview' }).click();
+    await page.getByLabel('Business / shop name').fill('Test Shop');
+    await page.getByRole('button', { name: 'Finish UI preview' }).click();
+    assert.ok((await page.getByText(/No account or business was created/i).count()) > 0);
+    await go('/recovery');
+    await page.getByLabel('Mobile number').fill('01711000245');
+    await page.getByRole('button', { name: 'Review recovery methods' }).click();
+    assert.equal(await page.getByRole('radio', { name: /Gmail OTP/ }).isChecked(), true);
+    await page.getByRole('radio', { name: /SMS OTP/ }).check();
+    await page.getByLabel('6-digit verification code').fill('123456');
+    await page.getByRole('button', { name: 'Continue preview' }).click();
+    await page.getByLabel('Password', { exact: true }).fill('NewPassword123');
+    await page.getByLabel('Confirm password').fill('NewPassword123');
+    await page.getByRole('button', { name: 'Finish UI preview' }).click();
+    assert.ok((await page.getByText(/password was not changed/i).count()) > 0);
+    assert.deepEqual(requests, [], 'Signup and recovery previews must not send network writes');
+
     await go('/app/dashboard');
     await page.getByRole('heading', { name: /Welcome,|Dashboard/ }).first().waitFor();
     assert.deepEqual(errors, []);
