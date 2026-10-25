@@ -276,3 +276,67 @@ Support engineers do not gain general delete/restore powers through configuratio
 - Delete and Restore are traceable, and routine data recovery does not require purchasing an upgrade.
 
 No code, merge, deployment, public pricing or production data change is authorized by recording this decision.
+
+## 12. Tenant diagnostic logs — SaaS-only support access
+
+**Decision date:** 25 October 2026 (Asia/Dhaka).  
+**Status:** Owner-requested product requirement. Implementation remains a separate task.
+
+### 12.1 Placement and purpose
+
+Every tenant must have separately scoped technical diagnostic logs so authorized support engineers can investigate reported problems. Expose them through **SaaS Dashboard → Tenants → Selected business → Diagnostics / Logs** and ticket-linked diagnostics. Do not add a technical-log viewer or raw technical-log download to the customer's normal ERP interface.
+
+This requirement applies to all plans. Diagnosing a HisabIQ fault does not require a customer upgrade.
+
+“SaaS-only” describes visibility in the product UI; it does not authorize undisclosed collection of arbitrary business data. The customer-facing privacy/support information must describe diagnostic collection and authorized staff access.
+
+### 12.2 Separate diagnostic events from business records
+
+Technical diagnostics include error codes, failed requests, validation categories, duration, retry outcomes, release/build version, affected module/action, server timestamp, request/correlation ID and an internal authorized tenant/user reference where needed.
+
+Business transaction history, original invoices, balances, source-linked corrections and owner-visible support/configuration changes remain in their existing authorized workflows. This decision does not remove customer access to their own records or replace the business audit trail with hidden technical logs.
+
+Platform security/access audit is also a separate protected record, including who viewed or exported diagnostics. A diagnostic viewer must not grant permission to alter business transactions, financial evidence or audit history.
+
+### 12.3 Tenant attribution and privacy
+
+Backend log attribution uses the authenticated session and validated membership/business context. Never trust a browser-supplied tenant ID as proof of context. Frontend errors are untrusted telemetry: validate/redact/rate-limit them and attach authoritative tenant context server-side. Preserve the business context at the time of the event when users switch businesses.
+
+Use structured, allowlisted event fields and safe error categories. Exclude passwords, OTPs, PINs, session cookies/tokens, authorization headers, payment credentials, raw payment proof, attachment contents and unnecessary names/phone numbers or financial values.
+
+Do not collect full request/response bodies, entire localStorage, typed form values, screen recordings or database dumps by default. Stack traces and third-party error messages require sanitization before storage/display because they can include sensitive values.
+
+Authentication failures before tenant context is established belong in separate restricted platform diagnostics; do not assign them to a guessed tenant.
+
+### 12.4 Support workflow and authorization
+
+1. Open the relevant support ticket and select the verified business.
+2. View recent safe diagnostic events for that business, filtered by date, module, severity, action, error code or correlation ID.
+3. Link the relevant event/correlation to the ticket and record the diagnosis.
+4. If more evidence is necessary, use a separately authorized, bounded diagnostic action or the existing consented support process.
+
+Standard access to minimal redacted technical metadata follows a dedicated platform diagnostics permission and assigned tenant/ticket scope; it does not require unrestricted customer impersonation. Access to business records, attachments or sensitive data requires its own authority and applicable customer consent. A ticket or log-view permission does not itself grant that authority.
+
+Enforce tenant and staff scope on the server for list, detail, search and export. A filtered frontend over unrestricted logs is insufficient. Search must not reveal other tenants through suggestions, counts, error messages or correlation lookups.
+
+Show staff identity and access purpose in the protected access audit. Record log viewing/export and sensitive diagnostic actions, require additional export permission, and keep exports redacted and limited. Support cannot edit/delete evidence or grant themselves broader access.
+
+### 12.5 Reliability and minimum UI
+
+The SaaS view should show readable error summaries, event time, module/action, severity, result, release and correlation ID, with safe details on expansion. Distinguish frontend-reported events from authoritative backend outcomes; an error event alone does not prove that a sale/payment failed to commit.
+
+Link retry/commit outcomes by correlation or operation ID so support can distinguish a lost response from an unposted transaction. Logging must not duplicate business operations or expose an action to replay financial requests directly.
+
+Collection, storage and search need bounded event sizes, rate limits, appropriate sampling and a documented retention policy before deployment. Do not promise unlimited logs or indefinite diagnostic retention. Keep required transaction/security audit evidence under its own policy, outside sampled diagnostic streams.
+
+### 12.6 Acceptance for eventual implementation
+
+- Authorized support can diagnose a ticket using only the selected tenant's safe events.
+- Customers cannot open the internal diagnostic viewer or retrieve raw logs through an ERP API.
+- Staff without the correct scope cannot access another tenant through IDs, searches, exports or correlated-event links.
+- Secret-bearing requests and representative failure cases produce redacted events.
+- Business switching attributes each event to its actual authorized context.
+- Diagnostic access is audited; ordinary support cannot erase logs or use them to mutate stock, money or permissions.
+- Customer business history and consented-change history remain available through their authorized workflows.
+
+This records the product requirement; no application code, deployment or production logging configuration is changed.
