@@ -5,6 +5,8 @@
 
 ## Read in this order
 
+**First apply the [ERP-wide KISS UI/UX contract](../specs/2026-10-25-hisabiq-erp-wide-kiss-uiux-contract.md).** It supersedes older screen/tab counts and optional UI steps while preserving all agreed product and safety behavior.
+
 1. [Final owner decisions](../specs/2026-10-25-hisabiq-approved-business-model-decisions.md), sections 10–12.
 2. [Shared UI design and backend requirements](../specs/2026-10-25-hisabiq-settings-saas-ui-backend-design.md).
 3. [Tenant Settings and ERP experience UI plan](2026-10-25-hisabiq-settings-erp-experience-ui.md).
@@ -19,7 +21,8 @@
 | C | Recycle Bin and tenant support consent | Settings Tasks 7–8; safe draft adapter only, no financial resurrection |
 | D | SaaS workspace/configuration/grants/history | SaaS Tasks 1–4; same contracts and actual shared preview settings |
 | E | SaaS-only diagnostic samples | SaaS Tasks 5–6; no real collector or private payloads |
-| F | Combined review | Both plans' final browser tasks; no merge/deployment |
+| F | Commerce/payment/SMS UI | Required 12-task companion plan and shared commerce contracts |
+| G | Combined review | All three plans' final browser tasks; no merge/deployment |
 | Later | ByabsIQ backend | Separate approval and execution plan based on shared spec section 8 |
 
 The two UI plans share contracts and fixtures; do not run competing edits to those shared files concurrently. Each task has an independent verification and review gate. Native sequential execution fits the existing shared state; this package does not select or authorize an execution method.
@@ -59,3 +62,11 @@ The original 16 Settings/Control Center tasks plus these 12 commerce tasks form 
 Bank payout is separate from verified customer collection. A settled provider success/verified manual collection fulfills exactly once; browser proof alone does not. Trial/pass/paid-plan expiry recomputes Free plus surviving grants. Merchant SMS credits and wholesale supplier procurement are separate ledgers.
 
 Counter/grace/checkout deadlines/provider/tax/operational defaults are explicitly flagged where proposed, not silently turned into approved business policy. Backend APIs, drivers, jobs, migrations and real reconciliation remain later work.
+
+## KISS refinement applied
+
+The 28 tasks are engineering/review work, not 28 pages. Merchant settings now use one module selector and progressive disclosure; harmless personal changes save inline. SaaS tenant workspace has five primary tabs, with existing Members and Diagnostics preserved inside appropriate panels. Checkout is shared across products; activation/refund/exception views stay in existing workflows.
+
+Premium retains full eligible capabilities with coherent defaults and details on demand. Basic keeps its standard workable routes; Medium retains connected actions. All financial, privacy, consent, recovery and tenant-isolation checks remain mandatory.
+
+Both Opus/Magic Patterns chats must read the KISS contract before finalizing screens.

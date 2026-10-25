@@ -359,3 +359,13 @@ The owner requested explicit coverage of payment collection, verification, featu
 The planning package now includes [Commerce Operations UI design and later backend requirements](2026-10-25-hisabiq-saas-commerce-messaging-design.md) and a [12-task commerce UI plan](../plans/2026-10-25-hisabiq-saas-commerce-messaging-ui.md).
 
 This completes the required scope alongside Settings, configuration/support, recovery and diagnostics. It does not approve a specific payment gateway/SMS supplier, contract fee, tax classification, production credential, changed grace policy or new expiry deadline. Proposed operating defaults are marked for review in the new specification. No code, integration, merge or deployment is authorized by writing these requirements.
+
+## 15. ERP-wide KISS refinement
+
+The owner requested that KISS be applied to UI/UX after the complete Settings, SaaS and commerce requirements were assembled.
+
+The [ERP-wide KISS contract](2026-10-25-hisabiq-erp-wide-kiss-uiux-contract.md) now governs screen composition and progressive disclosure: common actions first, one clear primary action, fewer screens/tabs, relevant defaults, reused components and shorter copy. It takes precedence over earlier optional layout/step suggestions while preserving approved plan differences and safety requirements.
+
+The five-tab tenant workspace, one module selector, conditional impact review and shared checkout are planning choices implementing this instruction. They do not change prices, grants, data retention, verification, support consent or backend authority. Premium is fully capable without expanding every detail by default; Basic remains workable and Medium connected.
+
+This is a documentation/design-plan refinement. Application UI implementation, backend integration, merge and deployment have not started.

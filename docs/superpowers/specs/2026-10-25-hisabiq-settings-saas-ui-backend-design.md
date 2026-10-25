@@ -1,5 +1,7 @@
 # HisabIQ Settings and SaaS Control Center — UI Design and Deferred Backend Requirements
 
+> **KISS design precedence:** Apply the [ERP-wide KISS UI/UX contract](2026-10-25-hisabiq-erp-wide-kiss-uiux-contract.md) before this document. It supersedes older tab counts, screen fragmentation and optional confirmation steps; product capabilities, safety and backend contracts remain mandatory.
+
 **Date:** 25 October 2026, Asia/Dhaka.  
 **Status:** Planning package for review. No implementation, merge, production configuration or price publication is authorized.  
 **Authority:** [Owner decisions](2026-10-25-hisabiq-approved-business-model-decisions.md), especially sections 10–12. Those sections override conflicting older commercial proposals.
@@ -126,13 +128,13 @@ All UI ports reject with a normalized typed safe error on load/respond/propose f
 Add /app/settings/interface and /app/settings/recycle-bin through the existing :section route and navigation catalog. Extend special-section handling in TenantSettingsPage so new routes never index missing business settings or accidentally save a business draft. Existing security, notifications, subscription and data routes remain canonical.
 
 Interface & workflows screen:
-1. Page heading, current plan label, short description, scope picker (My preferences / Business defaults when allowed).
-2. Module selector using Party Ledger-style underline tabs; search within available settings.
-3. Groups: Columns / Details / Links & Actions, using underline tabs or restrained section headings.
-4. Each setting shows label, optional Bangla helper, toggle/value, effective source and explanation when blocked. No raw capability key in merchant copy.
-5. Review changes shows target, affected module, before/after and dependent effects. Save/discard/reset use existing controls; conflict reload preserves draft until explicit discard.
-6. Preview current module at desktop/tablet/mobile shape using the same column resolver; no production claim.
-7. Essential controls remain editable as already permitted. Basic sees a short “More controls in Medium/Premium” explanation instead of a wall of unusable toggles.
+1. Heading and one small plan label; default to My preferences, with an explicit Business defaults option for authorized owners.
+2. One searchable module selector and common eligible controls first.
+3. Columns, Details and Links & Actions use short section headings; only add one underline-tab row when separate views are actually needed.
+4. Rare controls sit under one Advanced disclosure. Show effective source on demand, never raw keys.
+5. Inline Save/Discard. Compact impact review only for other-user/business/dependency/operational changes; harmless personal display changes require no second confirmation.
+6. Reset restores inheritance in the selected scope; optional inline preview uses the same column resolver.
+7. Basic gets a brief extra-controls explanation, not a wall of locked toggles. Recycle Bin is grouped under Data & recovery with its direct route preserved.
 
 Medium sees eligible connection controls and limited columns. Premium sees the full eligible catalog and can simplify it. User scope cannot edit other employees without explicit authority. No personal preference can override an owner-enforced security permission.
 
@@ -155,17 +157,15 @@ Support inside tenant ERP:
 
 ## 6. SaaS dashboard UI
 
-Extend /saas/tenants/:id, use ?tab=overview|configuration|features|members|support-access|diagnostics|history; refresh/deep link retains selected tenant and allowed tab. Reuse existing billing/SMS/services/support links and existing Members panel. Do not replace or silently discard them.
+Extend /saas/tenants/:id using five primary tabs: ?tab=overview|settings|plan-usage|support|history. Refresh and direct links retain permitted tenant/tab/panel. Legacy configuration/features/members/support-access/diagnostics query values redirect to the corresponding new tab/panel, as defined in the KISS contract. Preserve existing billing/SMS/services/support links.
 
 | Tab | Content |
 |---|---|
-| Overview | Current plan/profile, account/subscription separate states, open tickets, capability summary, warnings |
-| Configuration | Module/search/scope; effective value/source; safe setting proposal and diff; no arbitrary JSON editor |
-| Features & Limits | Plan inclusion, independent passes, expiry, usage, dependencies; complimentary grants separate from settings |
-| Members | Existing tenant membership context and permitted role summary; sensitive changes use dedicated workflows |
-| Support Access | Exact pending requests, consent/expiry/revocation, engineer/ticket; no “Login as customer” |
-| Diagnostics | Tenant-scoped technical events only; role/ticket scoped list/detail/correlation filters |
-| History | Customer configuration, commercial grants and support access events; differentiate from diagnostic events |
+| Overview | Business/account/plan summary, current issue and next action |
+| Settings | Module controls, exact proposal diff and existing authorized Members/Users & Permissions panel |
+| Plan & Usage | Plan inclusion, independent grants, expiry, quotas and canonical commerce links |
+| Support | Tickets, consent/access state and authorized direct-linkable Diagnostics panel |
+| History | Configuration, commercial and access audit summaries with details on demand |
 
 Configuration workflow: choose business and target → choose eligible setting → preview diff → send approval request → tenant approves → assigned support applies once → exact approved tenant/user preference changes → owner sees result and Undo. Disable Apply until actual approval, re-check permission/current plan/revision/expiry on apply. Support role cannot edit contract prices, balances, security or its own authority.
 

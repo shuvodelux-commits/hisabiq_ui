@@ -1,5 +1,7 @@
 # HisabIQ SaaS Commerce Operations — UI Design and Deferred Backend Requirements
 
+> **KISS design precedence:** Apply the [ERP-wide KISS UI/UX contract](2026-10-25-hisabiq-erp-wide-kiss-uiux-contract.md) before this document. It supersedes older tab counts, screen fragmentation and optional confirmation steps; product capabilities, safety and backend contracts remain mandatory.
+
 **Date:** 25 October 2026, Asia/Dhaka.  
 **Status:** Planning extension requested by the owner; no live integrations, price publication or production changes.  
 **Authority:** [Business decisions](2026-10-25-hisabiq-approved-business-model-decisions.md); [Settings/SaaS shared design](2026-10-25-hisabiq-settings-saas-ui-backend-design.md). This document completes the previously underspecified payment, fulfillment, subscription and messaging operations. Existing approved prices/free rights remain unchanged.
@@ -161,7 +163,7 @@ Refund unused credits only after checking reservations/usage; no refund of consu
 
 Platform controls provider integration and wholesale contract; merchants buy HisabIQ credits. Do not ask every shop to enter a gateway API key. BYO-provider is deferred.
 
-SaaS SMS → Providers:
+SaaS SMS uses Delivery / Packages & Credits / Providers. Provider setup and procurement share the selected Provider detail; advanced fields expand only when needed. SaaS SMS → Providers:
 1. Select a supported driver from a fixed catalog; identify legal supplier, account, environment and route class.
 2. Enter credentials through a write-only secure mechanism in the future backend. UI shows saved/not configured and masked identifier, never a retrievable secret.
 3. Configure approved sender/route, allowed message category and operator coverage.
@@ -252,7 +254,7 @@ Receipt/private evidence retention, operational logs, billing/audit retention an
 | SaaS Refunds/Exceptions | Quote/approve/refund/query, holds/compensation and operational ownership |
 | SaaS Services | Quote/payment/assignment/schedule/delivery tracked separately |
 
-Keep existing SaaS navigation; extend Plans, Payment verification, Subscriptions, SMS, Services and Reports rather than create a competing app. Underline tabs and current 36px/13–12–11 typography remain.
+These are functional areas, not a requirement for a separate route/dashboard for each row. Use one shared merchant checkout; embed activation/refund/exception views in existing billing operations, and provider tariffs/procurement inside Provider detail. Keep existing SaaS navigation; extend Plans, Payment verification, Subscriptions, SMS, Services and Reports rather than create a competing app. Underline tabs and current 36px/13–12–11 typography remain.
 
 ## 14. Deferred backend contract and readiness
 

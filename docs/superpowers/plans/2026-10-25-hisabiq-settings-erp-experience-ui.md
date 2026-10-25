@@ -1,5 +1,7 @@
 # HisabIQ Tenant Settings and ERP Experience Implementation Plan
 
+> **KISS design precedence:** Apply the [ERP-wide KISS UI/UX contract](../specs/2026-10-25-hisabiq-erp-wide-kiss-uiux-contract.md) before this document. It supersedes older tab counts, screen fragmentation and optional confirmation steps; product capabilities, safety and backend contracts remain mandatory.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Implement reviewable tenant Settings, three-level ERP experiences and safe recovery UI using existing HisabIQ components and preview workflows.
@@ -72,9 +74,9 @@ Use real fixture objects matching section 4, not unsafe cast partials.
 **Files:** Create src/settings/InterfaceSettings.tsx; modify src/settings/{model.ts,fields.ts,TenantSettingsPage.tsx,TenantSettingsHub.tsx,settingsHub.ts}, src/navigation/erpNavigation.ts; test tests/interfaceSettings.test.ts and existing settingsHubNavigation.test.ts.
 **Interfaces:** InterfaceSettings consumes SettingsPort and ExperienceSnapshot; save uses SaveSettingsCommand and SaveResult exactly. Scope controls tenant default or current-user preferences.
 
-- [ ] Write failing tests named `interfaceRouteDoesNotIndexBusinessDraft`, `basicSearchOmitsIneligibleRichSettings`, `mediumExposesLinksNotRichColumns`, `saveConflictPreservesDraft`, `contextSwitchRequiresDiscardOrStay`. Assert rejected changes do not increment revision.
+- [ ] Write failing tests named `interfaceRouteDoesNotIndexBusinessDraft`, `basicSearchOmitsIneligibleRichSettings`, `mediumExposesLinksNotRichColumns`, `saveConflictPreservesDraft`, `contextSwitchRequiresDiscardOrStay, harmlessPersonalDisplaySaveNeedsNoExtraConfirmation`. Assert rejected changes do not increment revision.
 - [ ] Run `node --experimental-strip-types --test tests/interfaceSettings.test.ts tests/settingsHubNavigation.test.ts`; expect intended failures.
-- [ ] Add interface/recycle-bin routes as special sections, module/Columns/Details/Links & Actions navigation, search, scope, plan summary, shared controls, effective-source helper, review/save/discard/reset. Route filtering must not use only the old 'export' permission for Bin access. Do not relabel Account Security controls as paid.
+- [ ] Add interface/recycle-bin routes as special sections, one searchable module selector and Columns/Details/Links & Actions section headings, search, scope, plan summary, shared controls, effective-source helper, inline save/discard/reset; review only meaningful cross-user/dependency/operational impact. Route filtering must not use only the old 'export' permission for Bin access. Do not relabel Account Security controls as paid.
 - [ ] Implement invalid value/dependency/conflict/permission/loading states. Save does not optimistically claim persistence. Reset affects only eligible presentation preferences in selected scope and requires review.
 - [ ] Run targeted tests and `npm run test:settings-hub`, `npm run test:settings`; expect PASS. Commit `feat: add plan-aware interface settings`.
 

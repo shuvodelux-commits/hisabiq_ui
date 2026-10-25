@@ -1,5 +1,7 @@
 # HisabIQ SaaS Commerce and Messaging UI Implementation Plan
 
+> **KISS design precedence:** Apply the [ERP-wide KISS UI/UX contract](../specs/2026-10-25-hisabiq-erp-wide-kiss-uiux-contract.md) before this document. It supersedes older tab counts, screen fragmentation and optional confirmation steps; product capabilities, safety and backend contracts remain mandatory.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Complete the merchant-to-HisabIQ commerce prototype: payment collection/review, purchased access, lifecycle downgrade, SMS/provider operations, refunds, services and reconciliation.
@@ -88,7 +90,7 @@ Task 1 defines shared records from spec section 3; later task contracts consume 
 - [ ] Write failing tests paidReportUnlocksOnlyReports, partialNeverFulfilled, duplicateCallbackOneGrant, concurrentOverlapCreditCannotSpendTwice, grantFailureLeavesPaymentVerifiedNotFulfilled, notificationFailureDoesNotRollBackGrant, staticPackSurvivesPlanExpiry.
 - [ ] Run `node --experimental-strip-types --test tests/saasCommerceRecovery.test.ts`; confirm failures.
 - [ ] Atomically simulate fully funded order → one grant/credit lot + audit/outbox; distinguish PAID/FULFILLMENT_PENDING/FULFILLED. Retry repairs activation without requesting another payment.
-- [ ] Display paid-but-not-active queue, source order and safe retry; preserve independently purchased grants and employee rights. Run tests; commit `feat: add idempotent purchase fulfillment preview`.
+- [ ] Display paid-but-not-active filtered queue within existing billing operations, source order and safe retry; preserve independently purchased grants and employee rights. Run tests; commit `feat: add idempotent purchase fulfillment preview`.
 
 ## Task 5: Trial/renewal/cancellation/downgrade
 
@@ -118,7 +120,7 @@ Task 1 defines shared records from spec section 3; later task contracts consume 
 
 - [ ] Add failing tests providerConfigNeedsPermission, activationNeedsTestAndSenderReview, unsupportedEndpointRejected, credentialsNotPersistedOrExported, tariffChangePreservesOldCost, supplierRechargeDoesNotMintMerchantCredits.
 - [ ] Run targeted tests; expect failures.
-- [ ] Add fixed supported-driver selector and mock environments; masked dummy credential indicator, route/sender readiness, versioned tariff/tax/validity/minimum fields, balance/recharge/invoice references. Use injected simulated tests; do not accept actual credentials in this browser preview.
+- [ ] Use Delivery / Packages & Credits / Providers as one tab row, with procurement/tariffs inside Provider detail. Add fixed supported-driver selector and mock environments; masked dummy credential indicator, route/sender readiness, versioned tariff/tax/validity/minimum fields, balance/recharge/invoice references. Use injected simulated tests; do not accept actual credentials in this browser preview.
 - [ ] Show Configured/Testing/Ready/Active/Degraded/Disabled; no false provider-connected state. Add margin check and low supplier balance warning. Run tests; commit `feat: design SMS provider onboarding and procurement`.
 
 ## Task 8: Segment, send, resolve delivery and retry
@@ -168,7 +170,7 @@ Task 1 defines shared records from spec section 3; later task contracts consume 
 **Consumes:** All prior shared contracts and complete spec acceptance stories.
 
 - [ ] Write browser journeys for report purchase pending→verified→active→expiry; early renewal; partial/overpayment; duplicated verification; paid activation retry; Pro downgrade with surviving pass; SMS sale/reserve/unknown/reconcile; provider setup test; refund hold; service payment/delivery.
-- [ ] Check desktop/tablet/mobile, light/dark and English/Bangla/bilingual using existing Playwright conventions. Register test:saas-commerce; assert actual shared preview records change, not only toasts.
+- [ ] Check that one shared checkout serves all SKU purposes without redundant confirmation and every consolidated operations action remains reachable. Check desktop/tablet/mobile, light/dark and English/Bangla/bilingual using existing Playwright conventions. Register test:saas-commerce; assert actual shared preview records change, not only toasts.
 - [ ] Run `npm test`, `npm run test:saas-commerce`, `npm run test:saas`, `npm run test:saas-control-center`, `npm run check:ui-contract`, `npm run build`; document exact unavailable/pre-existing failures.
 - [ ] Deliver screen/action/state inventory and gaps. Commit `test: verify SaaS commerce and messaging journeys`; request owner review, no merge/deploy.
 

@@ -1,5 +1,7 @@
 # HisabIQ SaaS Tenant Control Center Implementation Plan
 
+> **KISS design precedence:** Apply the [ERP-wide KISS UI/UX contract](../specs/2026-10-25-hisabiq-erp-wide-kiss-uiux-contract.md) before this document. It supersedes older tab counts, screen fragmentation and optional confirmation steps; product capabilities, safety and backend contracts remain mandatory.
+
 > **Required companion:** This Control Center plan covers configuration/support/diagnostics. The full SaaS UI also requires the [Commerce and messaging plan](2026-10-25-hisabiq-saas-commerce-messaging-ui.md) and [operations design](../specs/2026-10-25-hisabiq-saas-commerce-messaging-design.md), including payment collection/review, fulfillment, trial/Free downgrade, SMS providers, refunds and reconciliation. Complete both workstreams before claiming SaaS completion.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -46,16 +48,16 @@ Create:
 
 Modify src/saas/tenants/TenantsPage.tsx (list retained; TenantPage delegates focused workspace), support/TicketsPage.tsx, permissions.ts, state.ts, types.ts, validateState.ts, seed.ts, components.tsx only if needed to reuse underline tabs; App.tsx preserves canonical route. No global SaaS redesign.
 
-Use query tab at /saas/tenants/:id?tab=configuration etc. Existing billing/SMS/services links retain ?tenant=id filtering. Do not add diagnostics to customer nav or rely on tab visibility for authorization.
+Use query tab at /saas/tenants/:id?tab=settings etc.; preserve legacy tab aliases through the KISS contract mapping. Existing billing/SMS/services links retain ?tenant=id filtering. Do not add diagnostics to customer nav or rely on tab visibility for authorization.
 
 ## Task 1: Tenant workspace and scoped navigation
 
 **Files:** TenantWorkspace.tsx, existing TenantsPage.tsx, permissions.ts, components.tsx; tests/saasTenantConfiguration.test.ts.
 **Interfaces:** Workspace consumes existing SaasState actor/tenant assignment model. Add literal permissions configuration.view/propose/apply, features.view/grant, diagnostics.view/export and supportAccess.view; permission scope remains per-assignment, not a flattened union across tenants.
 
-- [ ] Write failing tests `allowedTenantTabsOnly`, `directDiagnosticTabDenied`, `combinedRoleDoesNotWidenTenant`, `unknownTabFallsBackToOverview`, `billingLinksKeepSelectedTenant`.
+- [ ] Write failing tests `allowedTenantTabsOnly`, `directDiagnosticTabDenied`, `combinedRoleDoesNotWidenTenant`, `unknownTabFallsBackToOverview, legacyTabsReachPreservedPanels, diagnosticsInsideSupportStillPermissionChecked`, `billingLinksKeepSelectedTenant`.
 - [ ] Run `node --experimental-strip-types --test tests/saasTenantConfiguration.test.ts`; confirm new cases fail.
-- [ ] Extract focused workspace, add Overview/Configuration/Features & Limits/Members/Support Access/Diagnostics/History underline tabs. Preserve existing subscription/billing/SMS/services/support links and lifecycle actions with their existing permission checks.
+- [ ] Extract focused workspace, add Overview/Settings/Plan & Usage/Support/History underline tabs. Preserve Members inside Settings; support access and authorized Diagnostics are panels under Support, not extra primary tabs. Preserve existing subscription/billing/SMS/services/support links and lifecycle actions with their existing permission checks.
 - [ ] Use route query for tab; show the same generic “Tenant not found or outside your access” for absent/out-of-scope tenants. On tenant change, clear local proposed changes and re-fetch the selected context.
 - [ ] Run targeted tests and `npm run test:saas`; expect PASS. Commit `feat: add scoped SaaS tenant control workspace`.
 
