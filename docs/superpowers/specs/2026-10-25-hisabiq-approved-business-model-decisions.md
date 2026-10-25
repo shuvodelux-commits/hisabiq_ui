@@ -219,3 +219,60 @@ Financial amounts, balances, source references, required warnings and historical
 ### 10.4 Implementation boundary
 
 This records the final packaging choice. The next implementation specification must inventory every module against this three-level matrix, reconcile existing plan/grant behavior and reuse the current settings/UI components. No application code, public prices, backend enforcement or production configuration is changed by recording this amendment.
+
+## 11. Approved Recycle Bin and recovery policy
+
+**Decision date:** 25 October 2026 (Asia/Dhaka).  
+**Status:** Owner-approved product direction, recorded after the owner accepted the Recycle Bin recommendation with “Okay done”. Implementation is a separate task.
+
+### 11.1 Purpose and plan availability
+
+Provide **Settings → Recycle Bin** for recovering accidental deletions. Basic recovery is available on every plan, including Free; it is a data-protection capability and is not removed by the simplified Basic interface policy.
+
+Ordinary eligible deleted records have a **30-day recovery window**. Show their expiry clearly. Offer a short **Undo** action immediately after a successful deletion. Undo follows the same permissions, validation and audit rules as Restore.
+
+Longer recovery for eligible nonfinancial records and advanced recovery filters are possible Premium enhancements; no extended duration or additional price is finalized here.
+
+### 11.2 Record-specific behavior
+
+| Record | Approved behavior |
+|---|---|
+| Draft sales, quotations, templates and notes | Move eligible records to the Bin; restore with validation |
+| Products or parties with no transaction history | Move to the Bin only after dependency checks; restore after duplicate/conflict checks |
+| Products or parties linked to transactions | Archive instead of deleting their historical identity; reactivate through the archive workflow |
+| Posted sales invoices, purchases, expenses and payments | Use authorized, source-linked cancellation or accounting reversal; do not treat them as ordinary restorable Bin records |
+| Individual ledger projections/entries | Correct through their originating transaction; no independent delete/restore |
+
+A posted cancellation or reversal preserves its original document, accounting/stock effects and audit trail. Reinstatement, where supported, must be a validated correction/reposting workflow with current dependency, payment, stock and period checks. It must never silently reactivate an old transaction and duplicate its effects.
+
+The 30-day window does not authorize destruction of posted financial history or audit records. Financial retention follows the separate applicable retention policy.
+
+### 11.3 Minimum UI
+
+Display record/module, recognizable name or reference, deletion time, deleting user, recovery deadline and eligible Restore action. Provide search and basic module filters on every plan. Explain why a record cannot be restored and link or direct the authorized user to the appropriate correction/archive workflow.
+
+Do not expose another employee's restricted records simply because they are in the Bin. A list or preview remains subject to tenant isolation and record/field permissions.
+
+There is no ordinary **Empty Bin** action for posted financial records. Permanent deletion and retention expiry for other records require a separately defined safe policy; this decision does not authorize bulk destructive cleanup.
+
+### 11.4 Restore integrity and authority
+
+The tenant owner controls delete/restore permissions; having a paid plan does not grant every employee permission. Server-side checks must validate current tenant membership, authority, dependencies, record state and identifier conflicts.
+
+Examples: a recreated product code, duplicate party identifier, archived parent or already-restored record must produce a clear safe result. Never overwrite a replacement record, merge parties automatically, cascade-restore unrelated records or silently recreate missing dependencies.
+
+Record the actual actor, business, original deletion, restoration, timestamps and outcome in the audit trail. Restore must preserve record identity and relationships, be atomic where related changes are required, and be idempotent under repeated clicks/retries. Restoring a draft must not post a sale, change stock or move money.
+
+Support engineers do not gain general delete/restore powers through configuration access; any assistance must use separately authorized, consented scopes.
+
+### 11.5 Acceptance for eventual implementation
+
+- An authorized user deletes an eligible draft and can Undo or restore it within 30 days.
+- Basic users retain the same essential recovery rights.
+- Unauthorized users and foreign tenants cannot list, preview, delete or restore the record.
+- Duplicate identifiers, changed dependencies, expired recovery windows and concurrent restore requests are handled without overwrites or duplicate effects.
+- Archive/reactivation preserves transaction-linked products and parties.
+- Posted transactions and ledger entries cannot bypass audited correction/reversal rules through the Bin.
+- Delete and Restore are traceable, and routine data recovery does not require purchasing an upgrade.
+
+No code, merge, deployment, public pricing or production data change is authorized by recording this decision.
