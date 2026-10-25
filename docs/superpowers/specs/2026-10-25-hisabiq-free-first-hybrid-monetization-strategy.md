@@ -1,5 +1,7 @@
 # HisabIQ Free-First Growth and Hybrid Monetization Strategy
 
+> **Decision update — 25 October 2026:** The owner accepted the [business-model decision record](2026-10-25-hisabiq-approved-business-model-decisions.md). It supersedes conflicting proposals below. The [completed research report](2026-10-25-hisabiq-bangladesh-business-model-report.md) provides rationale; experimental prices and launch gates remain conditional. No implementation or public pricing publication is authorized by this update.
+
 **Date:** 2026-10-25  
 **Status:** Research proposal for Astra review — not an approved pricing change, production launch, or implementation authorization.  
 **Product:** HisabIQ, by Sher Software Solutions  

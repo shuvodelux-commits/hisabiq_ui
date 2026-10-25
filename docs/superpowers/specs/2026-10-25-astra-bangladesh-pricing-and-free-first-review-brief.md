@@ -1,5 +1,7 @@
 # Astra Independent Review Brief — Bangladesh Market, SaaS Pricing, In-App Purchases and Exclusive Support
 
+> **Decision update — 25 October 2026:** The owner accepted the [business-model decision record](2026-10-25-hisabiq-approved-business-model-decisions.md). It supersedes conflicting proposals below. The [completed research report](2026-10-25-hisabiq-bangladesh-business-model-report.md) provides rationale; experimental prices and launch gates remain conditional. No implementation or public pricing publication is authorized by this update.
+
 **Prepared:** 2026-10-25
 **Status:** Input brief for independent research. No implementation or commercial terms approved.
 

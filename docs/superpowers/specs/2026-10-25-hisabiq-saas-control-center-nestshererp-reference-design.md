@@ -1,5 +1,7 @@
 # HisabIQ SaaS Control Center — NestSherERP Reference and Commercial Support Design
 
+> **Decision update — 25 October 2026:** The owner accepted the [business-model decision record](2026-10-25-hisabiq-approved-business-model-decisions.md). It supersedes conflicting proposals below. The [completed research report](2026-10-25-hisabiq-bangladesh-business-model-report.md) provides rationale; experimental prices and launch gates remain conditional. No implementation or public pricing publication is authorized by this update.
+
 **Date:** 2026-10-25
 **Status:** PROPOSED / requires independent Astra and owner review. **No implementation authorized.**
 **Applies to:** HisabIQ ERP React UI (`shuvodelux-commits/hisabiq_ui`) and the future API implementation in ByabsIQ (`shuvodelux-commits/ByabsIQ`).
