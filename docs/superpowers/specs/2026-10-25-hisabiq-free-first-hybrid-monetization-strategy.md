@@ -245,10 +245,98 @@ Preserve the current /saas administration shell. Add **Commerce** capabilities r
 - Profit dashboard: cash collections vs earned revenue, direct SMS costs, fee losses, storage/support costs, contribution by SKU and tenant cohort.
 - Offers & experiments: verifiable promotion grants and targeted audience/variant tracking with consent and exit criteria.
 - Audit log: sensitive price/version changes, manual grants, feature activations, refunds and expiry.
+- **Exclusive Support & Configuration:** consented, limited customer-support sessions and reversible tenant/user presentation settings, feature trials and access history.
 
 Tenant-facing **My Plan & Extras** should use the current HisabIQ brand guide, consistent 36px ordinary controls, Products table typography and Party Ledger **underline-style tabs** (My Plan / Feature Store / SMS Credits / Bills & Payments), not oversized button-style navigation. Present one clear primary action and quiet Bangla helper text.
 
-## 11. Suggested phased roadmap (no implementation approved)
+
+## 11. Exclusive support, remote configuration and temporary module access (new product requirement)
+
+**Owner's vision:** HisabIQ offers unusually helpful, personal assistance. A merchant may say, "I don't want to see Profit in the Sales list," and an authorized support engineer should be able to configure this through the SaaS dashboard. The service should also handle feature on/off controls, temporary feature trials, and narrowly scoped time-limited support access. **This is not authorization to silently impersonate tenants or read and modify every business record.** The support experience is both a product differentiator and a measurable retention experiment for the first 1,000 free businesses.
+
+### 11.1 Separate three classes of controls
+
+| Type | Example | Who can approve/change? | Important boundary |
+| --- | --- | --- | --- |
+| **Presentation preference** | Hide Sales Profit column, change visible list columns, default view or report filters | Customer self-service or consented support configuration | Cosmetic only. Hiding a column is NOT a security or confidentiality restriction. |
+| **Commercial feature entitlement** | Activate Reports Plus or Attachments Plus for 7 days, pause a licensed feature, extend purchased feature access | Verified payment, approved complimentary trial/promotion or authorized platform operator | Must preserve paid contract, quotas, expiry and audit trail. Cannot silently remove paid value. |
+| **Business/employee authorization** | Staff can view Sales but cannot view profit, can open Reports for one hour but cannot post sales | Tenant owner and backend permission service; scoped delegated assistance only | Server-enforced roles, field redaction, module/API permissions, tenant isolation and expiring grants. |
+
+**Critical distinction:** If a merchant only wants Profit hidden from their own Sales screen, change the per-user or tenant default presentation setting. If they want workers unable to see margins or cost data, create and enforce a separate sensitive-field permission (e.g., sales.profit.view), filtering server responses, exports, details and reports. A hidden table column cannot secure sensitive data.
+
+### 11.2 Real merchant request: Hide Profit column
+
+1. Merchant requests "Hide Profit column in Sales History" in a support ticket, or directly uses existing Sales → Columns.
+2. Support determines whether the desired scope is **tenant default**, **one employee**, **all business users**, or **device-specific desktop/tablet**. Ask only when essential; never change all employees based on a single user's preference without agreement.
+3. SaaS console: **Tenants → [Selected Business] → Configuration → Sales → List columns → Profit: Off**. Preview before/after with exact affected scope.
+4. Engineer needs a valid role to propose the configuration; for remote adjustment, obtain the tenant owner's consent or a previously approved limited configuration delegation. No access to their passwords or unrestricted owner account.
+5. Persist the preference under the correct business/user/device scope using a validated, audited API mutation. Record support operator, related ticket, approval reference, old/new values and timestamp.
+6. Customer sees "Configured by HisabIQ support" plus a clear **Undo / Restore defaults** option. Updates should sync on appropriate sessions/devices.
+7. Verify desktop, tablet and mobile display; restore stays available to the customer without support intervention.
+
+**Existing code to reuse:** src/pages/Sales.tsx already defines and renders Profit-column selection and stores desktop/tablet visibility in localStorage. It is browser-local, not a tenant-scoped remote-config service. Reuse the picker and extend preference persistence; do not redesign Sales merely to offer remote control.
+
+Suggested precedence: application default → owner-defined tenant default → per-user preference → optional per-device preference. Document inheritance, what "Reset" means, concurrent edits/versioning and how owner-level enforced choices interact with optional user overrides. None of these preferences act as access controls.
+
+### 11.3 Support actions and permissions
+
+Support should be able to help with:
+- **Remote UI configuration:** table columns, available list views, default filters, customer-requested workflow simplifications, settings and printing preferences, localization and helper labels, with schema validation and visible change previews.
+- **Complimentary feature trials:** issue a clearly labelled limited grant (e.g., Advanced Reports for 1, 3, 7 or 30 days) with tenant, product/SKU, quota, start/end, ticket, reason, operator and separate commercial approval where needed; automatic expiry and normal access restoration.
+- **Temporarily open a module:** allow a business to try a Reports feature for 48 hours or enable a specific employee to inspect a module for one hour, only after both feature entitlement and staff permission policies are satisfied. Module visibility alone never authorizes APIs.
+- **Guided support visits:** consented, time-limited "Support View" of an approved module or configuration panel. Default read-only; separate scope required to modify benign settings. Prefer redacted metadata to full ledger data.
+- **Diagnostics:** effective feature/plan/quota details, screen size, product version, error codes and ticket-linked traces, without wholesale access to customer sales, bank accounts or attachments.
+- **Protected operations:** refund, paid entitlement revocation, billing changes, account security, balances and stock corrections use specialized authorized workflows. Do not make a single "turn anything on/off" superpower that bypasses accounting or paid rights.
+
+**Always available basics:** bug support, safe access to own records, basic instructions and issue reporting remain accessible on Free Basic. Priority response, guided setup, migration and longer service sessions may be subscription benefits or separately sold services; study willingness to pay and cost, do not promise unlimited engineer visits.
+
+### 11.4 SaaS dashboard: proposed tenant support workspace
+
+Extend existing SaaS Tenant Details rather than create another application:
+
+| Tab / area | Content and actions |
+| --- | --- |
+| Overview | Business status, plan, features, open tickets and support eligibility |
+| **Configuration** | Search by ERP module; view effective settings; hide/show columns; target tenant/user/device; preview/diff; Apply/Undo/Reset |
+| **Feature Access** | Plan features vs independent paid passes vs authorized complimentary trials; quotas, effective dates, buy/extend and history |
+| **Support Access** | Request, consent, active session, allowed module/actions, remaining time, revoke immediately |
+| Employees & Permissions | View scoped staff rights, profit/cost field access and temporary employee grants; honor tenant owner authority |
+| Activity & Audit | Who visited, what they accessed or changed, approval, old/new values, denied actions and expirations |
+
+Support workflow: **Support Ticket → Request Configuration Help → Choose module and action → Set duration → Customer approval → Begin limited support session → Preview and apply allowed change → Confirm result → End session**.
+
+The customer's app displays an obvious "HisabIQ support is assisting you" indicator while a live support session exists, with support engineer identity, scope and **Revoke now**. Give the owner access history and a summary of changed settings. Never require sharing OTPs, login passwords, PINs or payment credentials.
+
+### 11.5 Temporary support lease: backend contract and security
+
+Recommended persisted lease fields: request_id, ticket_id, tenant_id, staff_id, granted_by, purpose, allowed_modules, allowed_actions, target_user_scope, start_at, expires_at, revoked_at, status, session_id and audit references. Keep paid feature grants in a **different table/domain** from temporary support-access leases.
+
+- Default read-only; allow explicit settings-update scopes separately. Offer short interactive durations such as **15, 30 or 60 minutes**; longer sessions require new approval. Existing demo currently accepts expiry within 24 hours; that is not a production default.
+- Server checks tenant, staff identity, role, active support consent, approved module/action scope, start/end times, revocation and current business status on **every** sensitive API request. Never depend on client clocks or menu hiding.
+- Every mutation records **the actual engineer** as actor "on behalf of" the business; don't falsely attribute it to the customer. Use version/revision checks and idempotency where applicable.
+- No support pathway to bypass tenant isolation, 2FA/PIN, owner's business role, stored paid entitlements, payment verification, posted financial history, immutable audit, receipts, sensitive bank data or other customers' records.
+- A support visit does **not** automatically make them a member of the tenant's staff roles. The lease grants only the designated support capability, separately approved.
+- Explicit revocation immediately ends associated privileged requests/sessions. Consent, expiry and logs are visible to the merchant.
+- Emergency recovery when the owner cannot consent belongs to a separate rigorously verified account-recovery process, **not** a hidden override in Support.
+
+### 11.6 Verified starting point and missing implementation
+
+- src/saas/support/TicketsPage.tsx already offers tickets and access request/consent/revoke UI; the displayed notice explicitly states that the prototype only records a request, **not impersonation**.
+- src/saas/support/transitions.ts stores tenant/staff, textual scope, reason, expiry and status, and requires tenant consent to an unexpired request. There is **no authenticated, backend-enforced, delegated session** yet.
+- src/pages/Sales.tsx already has a functioning local Profit-column chooser, with separate desktop/tablet localStorage keys. It is not yet centrally configured or correctly scoped for all users.
+- ByabsIQ AGENTS.md requires authenticated session business context, tenant isolation, separate admin/business permissions, audit, validation and transactional integrity; all still apply.
+- Required backend work: durable tenant/user preferences, narrowly typed preference keys, support grant and consent API, temporary scoped session, feature-trial entitlements, audit event schema, field-level access control, sync/revocation, tests for lease expiry and cross-tenant access.
+- Required frontend work: new SaaS Config/Feature Access/Support Access views, a visible consent session UI inside tenant ERP, preference sync using existing UI components and the current Sales picker, effective-permission explanations.
+
+**Acceptance tests for eventual implementation:** a merchant can request Profit hidden; consented support changes only the selected setting for the right target; it persists and can be restored; a worker without profit permission cannot retrieve margins via any API/export/detail; paid add-on entitlements are not silently altered; free trial grants auto-expire; session access ends immediately on expiry/revoke; support cannot post sales or view unapproved financial data; actions appear with correct identity in audit.
+
+### 11.7 Astra business and behavioral research questions
+
+Assess whether dedicated human assistance is a real differentiation for Bangladeshi merchants, rather than assuming it. Research what builds trust, whether users prefer self-service versus a support engineer configuring the app, and how consent should be explained in clear Bangla. Determine which support is free versus Counter/Medium/Premium priority versus one-time purchase; estimate agent time, cost per assisted tenant, SLA, staffing model and 1,000-free-user capacity. Evaluate retention, referrals, paid conversion, feature-trial adoption, trust complaints and abuse. Recommend minimum viable support functions versus expensive, high-risk capabilities to defer.
+
+**Important business principle:** support gives customers control over their own ERP, not HisabIQ uncontrolled access to their data. Its commercial value should come from solving customer problems quickly, not forcing expensive plans or creating dependency.
+
+## 12. Suggested phased roadmap (no implementation approved)
 
 **Phase A — Astra independent research:** review this document and linked code, validate (or reject) the free-first premise and find gaps in pricing, trust, UX, funnel, SMS economics and cost structure.
 
@@ -256,13 +344,13 @@ Tenant-facing **My Plan & Extras** should use the current HisabIQ brand guide, c
 
 **Phase C — backend contracts:** reconcile ByabsIQ 30-day Pro trial, 2-plan enum and read-only expiry; introduce correct Free Basic status, durable catalog, orders, grants, permission resolver, usage/accounting and audit. Test migration and historical integrity.
 
-**Phase D — UI integration:** add accurate commerce pages, tenant purchase and expiry states, honest feature gates for reports/print/attachments, SMS package purchase, conversion prompts and existing design-system consistency. Do not replace the current ERP modules.
+**Phase D — UI integration:** add accurate commerce pages, tenant purchase and expiry states, honest feature gates for reports/print/attachments, SMS package purchase, conversion prompts and existing design-system consistency; add consent, Support Configuration and self-service settings using current Sales columns UI. Do not replace the current ERP modules.
 
-**Phase E — provider + operations:** payment settlement, commercial notifications, real SMS/provider reconciliation, storage uploads, backup/retention, abuse prevention, support tools, alerts and production readiness.
+**Phase E — provider + operations:** payment settlement, commercial notifications, real SMS/provider reconciliation, storage uploads, backup/retention, abuse prevention, backend support leases and auditing, settings synchronization, alerts and production readiness.
 
 **Phase F — limited launch:** invite cohorts, verify activation and support capacity, monitor margins and only then scale to first 1,000 free businesses.
 
-## 12. Unresolved decisions requiring explicit approval
+## 13. Unresolved decisions requiring explicit approval
 
 - Is the 15-day trial definitely included for all, or should free-first activation avoid a full trial?
 - Exactly which receipts/printing, reports and data exports are permanently free? What limits are acceptable without damaging trust?
@@ -273,6 +361,9 @@ Tenant-facing **My Plan & Extras** should use the current HisabIQ brand guide, c
 - Which devices/users may purchase for a tenant; can owner delegate purchases? How are refunds and consent handled?
 - How much free-user support and storage can 1,000 businesses consume, and what would their runway cost be?
 - Which signals should trigger a helpful upsell without becoming intrusive?
+- What customer-consented support scopes, short session durations and per-tier service guarantees are financially sustainable at 1,000 free businesses?
+- How should tenant-wide, employee-specific and device-specific column preferences interact, and which changes need owner approval?
+- Can support staff issue temporary complimentary feature grants, and what independent approvals/reasons must those grants require?
 - What purchase/conversion/retention metrics must pass before any marketing scale-up?
 
 **Decision status:** Nothing in this document should be implemented as a production policy until market research, costing and owner approval. GitHub is source of truth; edits to UI/backend require separate reviewed plans and PRs.
