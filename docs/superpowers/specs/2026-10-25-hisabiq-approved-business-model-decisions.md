@@ -340,3 +340,14 @@ Collection, storage and search need bounded event sizes, rate limits, appropriat
 - Customer business history and consented-change history remain available through their authorized workflows.
 
 This records the product requirement; no application code, deployment or production logging configuration is changed.
+
+## 13. Settings and SaaS planning package
+
+A Superpowers planning package now translates sections 10–12 into UI work and deferred backend requirements:
+
+1. [Planning index and delivery order](../plans/2026-10-25-hisabiq-settings-saas-planning-index.md).
+2. [Shared UI design and deferred ByabsIQ requirements](2026-10-25-hisabiq-settings-saas-ui-backend-design.md).
+3. [Tenant Settings and ERP-wide experience UI plan](../plans/2026-10-25-hisabiq-settings-erp-experience-ui.md).
+4. [SaaS tenant Control Center UI plan](../plans/2026-10-25-hisabiq-saas-control-center-ui.md).
+
+These documents are for review, not a claim of implemented functionality. They preserve the final owner decisions, identify planner-selected defaults and deferred commercial/operational approvals, and separate the UI preview phase from later backend implementation. No merge, deployment or production change is authorized by writing the plans.
