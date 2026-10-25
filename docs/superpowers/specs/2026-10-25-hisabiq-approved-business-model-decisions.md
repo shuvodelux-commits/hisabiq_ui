@@ -6,6 +6,8 @@
 
 ## Authority and related documents
 
+> **Latest owner decision:** [Section 10](#10-final-amendment--three-levels-of-interface-capability-across-every-module) defines the final ERP-wide UI ladder: Basic = simple; Medium = interconnectivity with limited richness; Premium = full information and functionality. It takes precedence over earlier interface-packaging statements.
+
 This decision supersedes conflicting commercial proposals in the earlier free-first strategy and Control Center reference design. The original research remains available as historical rationale.
 
 - [Full Bangladesh market research, economics and decision report](2026-10-25-hisabiq-bangladesh-business-model-report.md)
@@ -157,3 +159,63 @@ Owner acceptance settles the commercial direction. It does not establish merchan
 The report's full Keep / Change / Reject / Test table remains the detailed decision matrix. Its Test and Later items remain experiments or deferrals, not approved immediate features.
 
 No code implementation, automatic merging, public price announcement, customer outreach, provider purchase, deployment or production change is authorized by this documentation task. Next work requires a separately scoped instruction.
+
+## 10. Final amendment — three levels of interface capability across every module
+
+**Date:** 25 October 2026 (Asia/Dhaka).  
+**Status:** Final owner choice.  
+**Owner clarification:** “Basic see simple UI without details information and interconnectivity. Medium get interconnectivity but not get fully information richness and premium full functionality”.
+
+This amendment supersedes any earlier statement treating Medium and Premium as the same full interface. It also supersedes conflicting interface-packaging recommendations in the research report. The final model is **Basic = simple**, **Medium = connected**, **Premium = connected and information-rich**.
+
+Names in this amendment follow the owner's terminology: Basic is Free; Medium corresponds to the previously recorded Pro tier; Premium corresponds to Plus. This clarification does not change prices or authorize a deployed plan-code rename. Counter retains its previously specified package benefits; this message does not assign it the whole Medium or Premium interface.
+
+### 10.1 ERP-wide behavior
+
+| Capability | Basic / Free | Medium / Pro | Premium / Plus |
+|---|---|---|---|
+| Default screen | Simple workable interface | Connected interface with restrained detail | Full information-rich interface |
+| Table information | Essential fields only | Essential fields plus selected operational fields | All implemented optional fields and rich details, subject to employee permission |
+| Cross-module record links | Plain names/references; use normal module navigation | Enabled | Enabled |
+| Customer name in Sales History | Plain text | Opens customer ledger | Opens customer ledger |
+| Invoice reference in Party Ledger | Reference text | Opens invoice | Opens invoice |
+| Receive payment from a selected invoice | Use the standard payment workflow | Contextual payment action available | Contextual payment action available |
+| Party Ledger item/payment breakdowns and extra visual detail | Omitted from the simple table | Limited detail; no full rich table | Full implemented details, breakdowns, indicators and expansion controls |
+| Sales/Product optional columns | Fixed essential baseline plus common preferences | A restricted operational set | Full eligible column catalog and defaults |
+| Advanced Settings | Common settings | Workflow connections and permitted operational settings | Full eligible display/detail/column/workflow controls |
+| Ability to simplify the interface further | Common preferences | May turn available connections/details off | May turn available connections/details off |
+
+Basic users retain a complete standard route to essential work: for example, open Sales to find an invoice, Parties to find a customer, or the standard payment workflow to record money. The Basic list itself does not provide the paid cross-module shortcuts. Do not leave dead clickable names, fake buttons or unexplained disabled actions in simple tables.
+
+Medium adds interconnectivity and contextual actions but does not automatically unlock every optional column, expanded item breakdown, indicator, summary or advanced information panel. Premium receives the full implemented rich experience and its configuration controls.
+
+“Full functionality” refers to the implemented ERP UI and workflows within the purchased commercial scope. It does not mean unlimited SMS, unlimited storage/support, bypassing employee permissions, unfinished integrations or features explicitly deferred in V1. Other previously recorded quotas and historical-data protections remain applicable.
+
+### 10.2 Apply to all modules
+
+Review Dashboard, POS/Counter, Sales and Returns, Purchases and Returns, Products/Inventory, Parties/Ledger, Finance/Expenses/Daybook, Reports, and any enabled vendor, bundle, installment, quotation or online-sales workspace.
+
+For each module, list:
+1. Essential fields/actions that make the Basic workflow usable.
+2. Cross-module links and contextual actions provided by Medium and Premium.
+3. Rich optional information provided by Premium.
+4. Settings controlling each available capability and its tenant/user scope.
+5. The standard Basic route to complete each essential action.
+
+This is a module-by-module application of the same policy, not a request for unrelated redesigns or new modules. Existing components and current design rules remain the implementation authority.
+
+### 10.3 Settings and effective behavior
+
+The Settings module must expose precise ERP-wide controls, grouped by module: default table columns, optional detail sections, transaction indicators, expandable rows, record links and contextual actions.
+
+A plan decides which controls and capabilities are available. The customer decides which of those available capabilities to enable. A customer preference cannot enable a capability outside their plan or an independently purchased grant.
+
+Use distinct stable capabilities for interconnectivity and information richness; do not implement one `advancedUI` boolean that gives Medium all Premium details. Existing standalone add-on grants remain valid only for the specific capability purchased; purchasing a report pass does not silently upgrade the whole ERP interface.
+
+Customer-owned settings, employee permissions, commercial entitlements and support delegation remain separate. Support can configure only eligible settings with the previously approved consent/audit safeguards. Premium owners can choose a simple interface; staff still see only what their permissions allow.
+
+Financial amounts, balances, source references, required warnings and historical records must remain correct and accessible through the authorized standard workflow. Simplified tables do not change accounting rules or delete underlying data.
+
+### 10.4 Implementation boundary
+
+This records the final packaging choice. The next implementation specification must inventory every module against this three-level matrix, reconcile existing plan/grant behavior and reuse the current settings/UI components. No application code, public prices, backend enforcement or production configuration is changed by recording this amendment.
