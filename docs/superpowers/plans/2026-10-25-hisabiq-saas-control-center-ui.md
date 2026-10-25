@@ -1,5 +1,7 @@
 # HisabIQ SaaS Tenant Control Center Implementation Plan
 
+> **Required companion:** This Control Center plan covers configuration/support/diagnostics. The full SaaS UI also requires the [Commerce and messaging plan](2026-10-25-hisabiq-saas-commerce-messaging-ui.md) and [operations design](../specs/2026-10-25-hisabiq-saas-commerce-messaging-design.md), including payment collection/review, fulfillment, trial/Free downgrade, SMS providers, refunds and reconciliation. Complete both workstreams before claiming SaaS completion.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Extend the existing SaaS tenant workspace to configure eligible settings with consent, inspect feature grants and diagnose tenant errors using scoped sample logs.

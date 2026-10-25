@@ -351,3 +351,11 @@ A Superpowers planning package now translates sections 10–12 into UI work and 
 4. [SaaS tenant Control Center UI plan](../plans/2026-10-25-hisabiq-saas-control-center-ui.md).
 
 These documents are for review, not a claim of implemented functionality. They preserve the final owner decisions, identify planner-selected defaults and deferred commercial/operational approvals, and separate the UI preview phase from later backend implementation. No merge, deployment or production change is authorized by writing the plans.
+
+## 14. Commerce operations planning completeness
+
+The owner requested explicit coverage of payment collection, verification, feature activation after payment, downgrade when trials end, SMS sales, SMS provider integration and related SaaS operations.
+
+The planning package now includes [Commerce Operations UI design and later backend requirements](2026-10-25-hisabiq-saas-commerce-messaging-design.md) and a [12-task commerce UI plan](../plans/2026-10-25-hisabiq-saas-commerce-messaging-ui.md).
+
+This completes the required scope alongside Settings, configuration/support, recovery and diagnostics. It does not approve a specific payment gateway/SMS supplier, contract fee, tax classification, production credential, changed grace policy or new expiry deadline. Proposed operating defaults are marked for review in the new specification. No code, integration, merge or deployment is authorized by writing these requirements.

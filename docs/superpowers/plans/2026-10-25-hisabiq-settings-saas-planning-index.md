@@ -45,3 +45,17 @@ Counter's additional experience inclusion is not silently decided; the preview u
 Existing source paths, routes, package scripts and backend boundaries were inspected. A fresh builder review identified scope-reset/inheritance and Medium-column ambiguities; the shared contract now explicitly defines RESET/removal of overrides, scoped snapshots, descriptor value schemas, server time/version metadata and Medium's payment-method/brand columns as planner defaults. A second check confirmed these fixes and identified a missing customer-safe proposal reason; that field is now part of proposal, consent and future HTTP contracts.
 
 No new merchant research, runtime verification, production security certification or backend readiness is claimed. Execution must refresh repository instructions and file drift, preserve the approved design and run the checks specified in each task.
+
+## Commerce completeness extension
+
+The SaaS plan must also cover platform payment collection, independent verification, source-linked activation, expiry/Free downgrade, renewals, refunds, SMS sales, provider procurement/configuration, delivery and reconciliation.
+
+Read these additional documents before finalizing architecture or generating the SaaS UI:
+5. [Commerce/payment/SMS operations design and deferred backend requirements](../specs/2026-10-25-hisabiq-saas-commerce-messaging-design.md).
+6. [Commerce and messaging UI plan — 12 tasks](2026-10-25-hisabiq-saas-commerce-messaging-ui.md).
+
+The original 16 Settings/Control Center tasks plus these 12 commerce tasks form a 28-task UI planning package. Complete the commerce contract layer after shared experience types; run its workflows alongside existing billing/SMS/services panels before the final combined review. Do not declare the SaaS dashboard complete based only on configuration/support/log screens.
+
+Bank payout is separate from verified customer collection. A settled provider success/verified manual collection fulfills exactly once; browser proof alone does not. Trial/pass/paid-plan expiry recomputes Free plus surviving grants. Merchant SMS credits and wholesale supplier procurement are separate ledgers.
+
+Counter/grace/checkout deadlines/provider/tax/operational defaults are explicitly flagged where proposed, not silently turned into approved business policy. Backend APIs, drivers, jobs, migrations and real reconciliation remain later work.

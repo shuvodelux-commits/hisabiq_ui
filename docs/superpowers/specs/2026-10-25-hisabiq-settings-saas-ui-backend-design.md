@@ -285,3 +285,13 @@ Required end-to-end review stories:
 UI plans reference this contract rather than inventing independent settings, grant and recovery models. Backend requirements are later work; the UI may claim “preview applied” only when fixture records actually change. No live provider or background collector is implied.
 
 Owner decisions 10 → sections 3–7; decision 11 → section 5/recovery backend; decision 12 → section 6/diagnostics backend; consent and grants → sections 4, 6, 8; design consistency → section 9. Counter catalog and proposed backend operational defaults remain explicit release decisions, not hidden assumptions.
+
+## 11. Required commerce and messaging extension
+
+The [SaaS Commerce Operations design](2026-10-25-hisabiq-saas-commerce-messaging-design.md) completes platform billing and messaging behavior that this Settings/Control Center specification references but does not fully define. Its [UI implementation plan](../plans/2026-10-25-hisabiq-saas-commerce-messaging-ui.md) is a required companion.
+
+Use one canonical commercial order/payment/grant/credit model. Configuration panels and the existing grants UI consume that ledger; do not implement separate fulfillment or complimentary-grant stores per page. The shared experience resolver reads active source-linked grants and never manufactures paid rights from a preference.
+
+The extension specifies authoritative quotes, manual and integrated collection, evidence review, capture versus payout, deterministic fulfillment, activation delay, calendar renewal, optional trial expiry, writable Free fallback, independently purchased passes, SMS lots/reservations, supplier configuration/procurement, encoding, unknown dispatch outcomes, refunds and exception reconciliation.
+
+Actual gateway/SMS driver contracts, secrets, production jobs, migrations and tax/retention approval remain deferred. The later backend plan must implement both documents' requirements, not just the Settings endpoints.
