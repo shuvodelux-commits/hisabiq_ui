@@ -336,7 +336,7 @@ Assess whether dedicated human assistance is a real differentiation for Banglade
 
 **Important business principle:** support gives customers control over their own ERP, not HisabIQ uncontrolled access to their data. Its commercial value should come from solving customer problems quickly, not forcing expensive plans or creating dependency.
 
-## 12. Suggested phased roadmap (no implementation approved)
+**Nested reference integration (2026-10-25):** See [HisabIQ SaaS Control Center — NestSherERP Reference and Commercial Support Design](2026-10-25-hisabiq-saas-control-center-nestshererp-reference-design.md) for source-verified reusable patterns, typed settings registry, dependency gates, support delegated consent and short leases, proposed admin tabs, pricing research checklist and phased integration. This is the implementation-facing companion to the business strategy; neither document authorizes implementation.\n\n## 12. Suggested phased roadmap (no implementation approved)
 
 **Phase A — Astra independent research:** review this document and linked code, validate (or reject) the free-first premise and find gaps in pricing, trust, UX, funnel, SMS economics and cost structure.
 
