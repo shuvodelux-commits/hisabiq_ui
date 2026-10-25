@@ -366,4 +366,4 @@ Assess whether dedicated human assistance is a real differentiation for Banglade
 - Can support staff issue temporary complimentary feature grants, and what independent approvals/reasons must those grants require?
 - What purchase/conversion/retention metrics must pass before any marketing scale-up?
 
-**Decision status:** Nothing in this document should be implemented as a production policy until market research, costing and owner approval. GitHub is source of truth; edits to UI/backend require separate reviewed plans and PRs.
+**Research handoff:** Use [Astra Bangladesh pricing and free-first finalization brief](2026-10-25-astra-bangladesh-pricing-and-free-first-review-brief.md) alongside the linked SaaS Control Center design. Require evidence-backed Bangladesh pricing, in-app purchase psychology, SMS segment margins, human-support costs, secure remote configuration, and clear owner decisions.\n\n**Decision status:** Nothing in this document should be implemented as a production policy until market research, costing and owner approval. GitHub is source of truth; edits to UI/backend require separate reviewed plans and PRs.
