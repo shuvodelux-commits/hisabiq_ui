@@ -1,6 +1,6 @@
 # HisabIQ UI instruction for any AI
 
-Read docs/ui/HISABIQ-DESIGN-GUIDE.md in full before designing or modifying UI. It is the consolidated v2.0 reference. Read AGENTS.md and the relevant current contract, then inspect the actual shared component and reference screen. GitHub shuvodelux-commits/hisabiq_ui is the implementation source of truth. In Magic Patterns, read the same guide under docs/ui/; the visual Brand Guide exposes the same chapters.
+Read docs/ui/HISABIQ-DESIGN-GUIDE.md in full before designing or modifying UI. It is the consolidated v2.1 reference. Read AGENTS.md and the relevant current contract, then inspect the actual shared component and reference screen. GitHub shuvodelux-commits/hisabiq_ui is the implementation source of truth. In Magic Patterns, read the same guide under docs/ui/; the visual Brand Guide exposes the same chapters.
 
 Compose HisabIQ's existing design. Dashboard supplies summary composition; Party Ledger supplies underline tabs and record workspaces; Products supplies table typography; POS V2 supplies product search, editable carts and transaction interaction. Use actual components, not copied lookalikes. The machine inventory docs/ui/design-system.json lists current files, exported primitives, colors and Lucide usages; it is an index, not proof that every legacy screen follows the rules.
 
@@ -15,3 +15,5 @@ Stay inside the requested business context. Reuse the existing full editor and r
 If a needed component is absent, compose the nearest existing family first. Do not invent an exported Card, Drawer, ActionMenu or ProductPicker because a plan mentioned it. Propose the smallest shared extension, specify its states/keyboard/language/responsive rules and document the gap. Do not redesign unrelated modules or add another component/icon/motion library.
 
 Verify the touched scope in light/dark, keyboard/touch, reduced motion where applicable, long English/Bangla, phone/tablet/desktop, dirty-draft handling and errors. Run guide sync --check and the relevant existing build/type/UI/browser checks. Report actual evidence and remaining gaps. When guide rules change, edit the canonical Markdown, regenerate the visual data/inventory and synchronize the same version to Magic Patterns.
+
+Use the rendered visual component library and src/data/componentCatalog.json as the example index. Inspect the actual specimen and state coverage, not just the source-file inventory. For Party actions, the active relationship chooses the exact icon/action pair from partyRoleActions.ts; follow guide section 23. Add a working visual specimen for every new shared family, and label prepared future compositions honestly.

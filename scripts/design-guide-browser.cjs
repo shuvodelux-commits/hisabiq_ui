@@ -4,6 +4,7 @@ const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { verifyComponentLibrary } = require('./component-library-browser-checks.cjs');
 
 async function main() {
   const { createServer } = await import('vite');
@@ -32,6 +33,7 @@ async function main() {
       await page.route('https://fonts.googleapis.com/**', (route) => route.abort());
       await page.goto('http://127.0.0.1:4993/#/design-system');
       await page.getByRole('heading', { name: 'One guide for every HisabIQ screen' }).waitFor();
+      await verifyComponentLibrary(page, profile);
       assert.equal(await page.locator('#complete-guide details[id^="guide-"]').count(), 32);
       await page.locator('#guide-search').fill('no-match-xyz');
       await page.getByText('No matching design rule', { exact: true }).waitFor();
@@ -105,6 +107,19 @@ async function main() {
         fs.mkdirSync(process.env.DESIGN_GUIDE_CAPTURE, { recursive: true });
         await page.evaluate(() => scrollTo(0, 0));
         await page.screenshot({ path: path.join(process.env.DESIGN_GUIDE_CAPTURE, 'guide-' + profile.width + '-' + profile.theme + '.png') });
+      }
+      if (profile === profiles[0]) {
+        await page.goto('http://127.0.0.1:4993/#/app/reports?report=sales-register');
+        await page.locator('#erp-main').waitFor();
+        await page.getByRole('button', { name: 'Columns', exact: true }).click();
+        const actualColumns = page.locator('[data-dialog-root]');
+        assert.equal(await actualColumns.locator('fieldset input:disabled').count(), 1);
+        const option = actualColumns.getByRole('checkbox').nth(1);
+        const checked = await option.isChecked(), before = page.url();
+        await option.setChecked(!checked);
+        assert.equal(await option.isChecked(), !checked, 'Shared editor changes the real Reports column state');
+        assert.notEqual(page.url(), before, 'Real Reports retains its URL column preference');
+        await actualColumns.getByRole('button', { name: 'Done', exact: true }).click();
       }
       console.log('PASS guide', profile.width, profile.theme, profile.language);
       await context.close();

@@ -1,4 +1,5 @@
 export const brandSections = [
+{ id: 'component-library', label: 'Components' },
 { id: 'complete-guide', label: 'Complete guide' },
 { id: 'live-components', label: 'Live components' },
 { id: 'logo', label: 'Logo' },

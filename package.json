@@ -114,7 +114,8 @@
     "test:table-typography": "node scripts/table-typography-browser.cjs",
     "sync:design-guide": "node scripts/sync-design-guide.cjs",
     "check:design-guide": "node scripts/sync-design-guide.cjs --check",
-    "test:design-guide": "node scripts/design-guide-browser.cjs"
+    "test:design-guide": "node scripts/design-guide-browser.cjs",
+    "export:component-library": "node scripts/export-component-library.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

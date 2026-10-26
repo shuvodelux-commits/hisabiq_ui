@@ -1,8 +1,264 @@
 {
-  "version": "2.0",
+  "version": "2.1",
   "date": "2026-10-26",
-  "guideSha256": "7353abaf92ab9c75196c6dc81327e5a79a586f8bca1fa701809d4ba0cb899783",
+  "guideSha256": "d0469886648aa336b07b41a1803f5419830286aaef17b4559e9acf5c9219a59f",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
+  "visualSpecimens": [
+    {
+      "id": "parties",
+      "category": "parties",
+      "title": "Party identity, balance & role actions",
+      "bn": "পক্ষের পরিচয়, ব্যালেন্স ও সম্পর্কের কাজ",
+      "wide": true,
+      "status": "existing",
+      "sources": [
+        "src/components/parties/partyRoleActions.ts",
+        "src/components/parties/RoleBadge.tsx",
+        "src/components/PartyAvatar.tsx",
+        "src/components/parties/PartyBalanceCard.tsx"
+      ],
+      "states": [
+        "Customer",
+        "Supplier",
+        "Owner",
+        "Lender",
+        "Borrower",
+        "Vendor",
+        "Payee",
+        "disabled refund",
+        "context preview"
+      ]
+    },
+    {
+      "id": "reports",
+      "category": "tables",
+      "title": "Report search, comparison, filters, columns & saved views",
+      "bn": "রিপোর্টে খোঁজা, তুলনা, ফিল্টার, কলাম ও ভিউ",
+      "wide": true,
+      "status": "existing",
+      "sources": [
+        "src/components/reports/ReportToolbar.tsx",
+        "src/components/reports/ReportGuidance.tsx",
+        "src/components/ColumnVisibilityEditor.tsx",
+        "src/components/Table.tsx",
+        "src/components/StatusBadge.tsx"
+      ],
+      "states": [
+        "search",
+        "two-month calendar",
+        "comparison",
+        "filter chips",
+        "columns",
+        "saved views",
+        "source drilldown",
+        "empty results"
+      ]
+    },
+    {
+      "id": "buttons",
+      "category": "forms",
+      "title": "Buttons, icons, busy state & choice controls",
+      "bn": "বোতাম, আইকন, লোডিং ও বিকল্প",
+      "wide": false,
+      "status": "existing",
+      "sources": [
+        "src/components/Button.tsx",
+        "src/components/Switch.tsx"
+      ],
+      "states": [
+        "primary",
+        "outline",
+        "secondary",
+        "ghost",
+        "destructive",
+        "link",
+        "icon",
+        "disabled",
+        "loading",
+        "36px normal",
+        "48px terminal",
+        "radio"
+      ]
+    },
+    {
+      "id": "cards",
+      "category": "tables",
+      "title": "Page header, summary cards & charts",
+      "bn": "পর্দার শিরোনাম, সারাংশ কার্ড ও চার্ট",
+      "wide": true,
+      "status": "existing",
+      "sources": [
+        "src/components/PageHeader.tsx",
+        "src/components/Panel.tsx",
+        "src/components/dashboard/MetricCard.tsx",
+        "src/components/dashboard/SalesTrendChart.tsx",
+        "src/components/dashboard/CashflowChart.tsx"
+      ],
+      "states": [
+        "receivable",
+        "payable",
+        "sample values",
+        "chart legend",
+        "chart detail",
+        "responsive",
+        "source navigation"
+      ]
+    },
+    {
+      "id": "inputs",
+      "category": "forms",
+      "title": "Input states & focused search",
+      "bn": "ইনপুটের অবস্থা ও ফোকাসসহ খোঁজা",
+      "wide": false,
+      "status": "existing",
+      "sources": [
+        "src/components/Input.tsx"
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "clear",
+        "invalid",
+        "read-only",
+        "disabled",
+        "multiline"
+      ]
+    },
+    {
+      "id": "quantities",
+      "category": "forms",
+      "title": "Number, money, unit & compound quantity",
+      "bn": "সংখ্যা, টাকা, একক ও যৌগিক পরিমাণ",
+      "wide": false,
+      "status": "existing",
+      "sources": [
+        "src/components/NumericInput.tsx",
+        "src/components/MoneyUnitInput.tsx",
+        "src/components/transactions/CompoundQuantityInput.tsx",
+        "src/components/transactions/MultiUnitQuantityInput.tsx",
+        "src/components/AmountInWordsDisplay.tsx"
+      ],
+      "states": [
+        "stepper",
+        "keyboard",
+        "focused wheel",
+        "joined shell",
+        "compound units",
+        "multi-unit chain",
+        "Bangla amount words"
+      ]
+    },
+    {
+      "id": "selectors",
+      "category": "forms",
+      "title": "Select, searchable entity & Quick Add",
+      "bn": "বাছাই, খোঁজা ও নতুন যোগ",
+      "wide": false,
+      "status": "existing",
+      "sources": [
+        "src/components/AppSelect.tsx",
+        "src/components/SearchSelect.tsx",
+        "src/components/QuickAddDialog.tsx"
+      ],
+      "states": [
+        "closed",
+        "open",
+        "keyboard",
+        "search",
+        "no match",
+        "create",
+        "duplicate",
+        "cancel",
+        "auto-select"
+      ]
+    },
+    {
+      "id": "dates",
+      "category": "forms",
+      "title": "Single date & two-month range calendar",
+      "bn": "একটি তারিখ ও দুই মাসের ক্যালেন্ডার",
+      "wide": false,
+      "status": "existing",
+      "sources": [
+        "src/components/AppDateRangePicker.tsx"
+      ],
+      "states": [
+        "single date",
+        "range start/end",
+        "presets",
+        "clear",
+        "cancel",
+        "apply",
+        "keyboard",
+        "viewport flip"
+      ]
+    },
+    {
+      "id": "overlays",
+      "category": "overlays",
+      "title": "Bilingual help, More menu, modal & attachment",
+      "bn": "দুই ভাষার সহায়তা, আরও মেনু, ডায়ালগ ও ফাইল",
+      "wide": false,
+      "status": "existing",
+      "sources": [
+        "src/components/Tooltip.tsx",
+        "src/components/reports/ReportGuidance.tsx",
+        "src/components/layout/FloatingPanel.tsx",
+        "src/components/Dialog.tsx",
+        "src/components/Switch.tsx"
+      ],
+      "states": [
+        "focus/touch/hover",
+        "English + Bangla divider",
+        "Escape",
+        "menu action",
+        "modal focus return",
+        "setting on/off"
+      ]
+    },
+    {
+      "id": "feedback",
+      "category": "future",
+      "title": "Empty, error, loading, permission & Advanced",
+      "bn": "ফাঁকা, ভুল, লোডিং, অনুমতি ও আরও সেটিংস",
+      "wide": false,
+      "status": "prepared",
+      "sources": [
+        "src/components/FeedbackState.tsx",
+        "src/components/products/fields/Disclosure.tsx"
+      ],
+      "states": [
+        "empty",
+        "no results",
+        "retry",
+        "loading",
+        "permission",
+        "reduced motion",
+        "advanced collapsed/expanded"
+      ]
+    },
+    {
+      "id": "uploads",
+      "category": "forms",
+      "title": "Photo selection, preview & removal",
+      "bn": "ছবি বাছাই, দেখা ও মুছে ফেলা",
+      "wide": false,
+      "status": "existing",
+      "sources": [
+        "src/components/products/PhotoUploader.tsx"
+      ],
+      "states": [
+        "choose",
+        "drag/drop",
+        "preview",
+        "remove",
+        "maximum files",
+        "local-only preview",
+        "legacy copy gap"
+      ]
+    }
+  ],
   "note": "Generated source inventory, not a conformance certificate. Component-owned behavior and this guide govern use.",
   "colors": {
     "light": {
@@ -1360,6 +1616,14 @@
       ]
     },
     {
+      "file": "src/components/ColumnVisibilityEditor.tsx",
+      "kind": "component",
+      "exports": [
+        "ColumnVisibilityEditor"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/Dialog.tsx",
       "kind": "component",
       "exports": [
@@ -1371,6 +1635,14 @@
       "reexports": [
         "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
       ]
+    },
+    {
+      "file": "src/components/FeedbackState.tsx",
+      "kind": "component",
+      "exports": [
+        "FeedbackState"
+      ],
+      "reexports": []
     },
     {
       "file": "src/components/FormSelect.tsx",
@@ -1672,6 +1944,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/brand/PartyRoleSpecimen.tsx",
+      "kind": "component",
+      "exports": [
+        "PartyRoleSpecimen"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/brand/PrimitivesSection.tsx",
       "kind": "component",
       "exports": [
@@ -1688,6 +1968,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/brand/ReportToolbarSpecimen.tsx",
+      "kind": "component",
+      "exports": [
+        "ReportToolbarSpecimen"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/brand/SectionHeader.tsx",
       "kind": "component",
       "exports": [
@@ -1700,6 +1988,14 @@
       "kind": "component",
       "exports": [
         "TypographySection"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/brand/VisualComponentLibrary.tsx",
+      "kind": "component",
+      "exports": [
+        "VisualComponentLibrary"
       ],
       "reexports": []
     },
@@ -3401,6 +3697,7 @@
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Bookmark": [
+      "src/components/brand/VisualComponentLibrary.tsx",
       "src/components/reports/ReportToolbar.tsx"
     ],
     "BookmarkPlus": [
@@ -3408,6 +3705,7 @@
     ],
     "BookOpen": [
       "src/components/brand/CompleteDesignGuide.tsx",
+      "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/parties/LedgerImpactAmount.tsx",
@@ -3526,6 +3824,9 @@
       "src/components/NumericInput.tsx",
       "src/components/purchases/PurchaseCart.tsx"
     ],
+    "CircleAlert": [
+      "src/components/FeedbackState.tsx"
+    ],
     "CircleDollarSign": [
       "src/pages/Finance.tsx"
     ],
@@ -3592,6 +3893,7 @@
     "Eye": [
       "src/components/brand/ApplicationsSection.tsx",
       "src/components/brand/DesignGuideExamples.tsx",
+      "src/components/brand/VisualComponentLibrary.tsx",
       "src/components/daybook/DaybookActions.tsx",
       "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/pos/CartTable.tsx",
@@ -3617,6 +3919,7 @@
       "src/components/purchases/BillDetailDialog.tsx"
     ],
     "FilePlus2": [
+      "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx"
     ],
@@ -3653,6 +3956,7 @@
       "src/components/pos/CartTable.tsx"
     ],
     "HandCoins": [
+      "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/dashboard/MetricCard.tsx",
       "src/components/parties/LedgerTableResponsive.tsx",
@@ -3722,6 +4026,10 @@
       "src/components/vendor/VendorPaymentsWorkspace.tsx",
       "src/components/vendor/VendorSourceWorkspace.tsx"
     ],
+    "LoaderCircle": [
+      "src/components/FeedbackState.tsx",
+      "src/components/brand/VisualComponentLibrary.tsx"
+    ],
     "Lock": [
       "src/components/brand/ApplicationsSection.tsx",
       "src/components/layout/CashSessionDialog.tsx"
@@ -3730,6 +4038,7 @@
       "src/components/products/fields/KindToggle.tsx"
     ],
     "LockKeyhole": [
+      "src/components/FeedbackState.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
       "src/settings/AccountSecuritySettings.tsx"
@@ -3745,6 +4054,7 @@
       "src/settings/AccountSecuritySettings.tsx"
     ],
     "MapPin": [
+      "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx"
     ],
@@ -3771,6 +4081,8 @@
     ],
     "MoreHorizontal": [
       "src/components/accounts/ChartOfAccountsView.tsx",
+      "src/components/brand/PartyRoleSpecimen.tsx",
+      "src/components/brand/VisualComponentLibrary.tsx",
       "src/components/daybook/DaybookActions.tsx",
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
@@ -3807,6 +4119,9 @@
     "PackagePlus": [
       "src/components/purchases/PurchaseCart.tsx"
     ],
+    "PackageSearch": [
+      "src/components/FeedbackState.tsx"
+    ],
     "Palette": [
       "src/components/layout/Sidebar.tsx",
       "src/components/layout/TopBar.tsx",
@@ -3817,6 +4132,7 @@
     ],
     "Paperclip": [
       "src/components/brand/PrimitivesSection.tsx",
+      "src/components/brand/VisualComponentLibrary.tsx",
       "src/components/finance/ChequeActionDialog.tsx",
       "src/components/parties/PartyAttachmentQuickPreview.tsx",
       "src/components/parties/PartyDetail.tsx",
@@ -3848,6 +4164,7 @@
     ],
     "Phone": [
       "src/components/brand/ApplicationsSection.tsx",
+      "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/features/auth/AuthFlowPage.tsx",
@@ -3867,6 +4184,7 @@
       "src/components/audit/AuditEditDialog.tsx",
       "src/components/brand/DesignGuideExamples.tsx",
       "src/components/brand/PrimitivesSection.tsx",
+      "src/components/brand/VisualComponentLibrary.tsx",
       "src/components/finance/CounterWorkspace.tsx",
       "src/components/finance/FinancePaymentSplitEditor.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
@@ -4004,6 +4322,7 @@
       "src/components/brand/CompleteDesignGuide.tsx",
       "src/components/brand/DesignGuideExamples.tsx",
       "src/components/brand/PrimitivesSection.tsx",
+      "src/components/brand/VisualComponentLibrary.tsx",
       "src/components/daybook/DaybookFilters.tsx",
       "src/components/finance/CounterWorkspace.tsx",
       "src/components/import/ImportReviewStep.tsx",
@@ -4031,6 +4350,9 @@
     ],
     "SearchIcon": [
       "src/components/SearchSelect.tsx"
+    ],
+    "SearchX": [
+      "src/components/FeedbackState.tsx"
     ],
     "Send": [
       "src/components/parties/PartyDetail.tsx",
@@ -4086,6 +4408,7 @@
       "src/pages/Reports.tsx"
     ],
     "StickyNote": [
+      "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/parties/LedgerTable.tsx",
       "src/components/parties/LedgerTableResponsive.tsx",
       "src/components/parties/PartyDetail.tsx",

@@ -69,7 +69,7 @@ function Examples() {
             <div className="sm:col-span-2"><p className="mb-1.5 text-[13px] font-medium text-ink">{text('Date range', 'তারিখের সীমা')}</p><AppDateRangePicker label={text('Sample date range', 'নমুনা তারিখের সীমা')} value={dates} onChange={setDates} /></div>
             <Field id={id + '-invalid'} label={text('Phone · invalid example', 'মোবাইল · ভুল নমুনা')}><Input id={id + '-invalid'} type="tel" value="01711-48" readOnly aria-invalid="true" aria-describedby={id + '-error'} /><p id={id + '-error'} className="mt-1 text-xs text-danger">{text('Enter an 11-digit mobile number.', '১১ সংখ্যার মোবাইল নম্বর দিন।')}</p></Field>
             <Field id={id + '-readonly'} label={text('Reference · read-only', 'রেফারেন্স · শুধু দেখুন')}><Input id={id + '-readonly'} value="SAMPLE-1024" readOnly /></Field>
-            <label className="flex items-center gap-2 text-sm text-ink"><Switch checked={enabled} onCheckedChange={setEnabled} />{text('Show sample details', 'নমুনার বিস্তারিত দেখান')}</label>
+            <div className="flex items-center gap-2 text-sm text-ink"><Switch aria-label={text('Show sample details', 'নমুনার বিস্তারিত দেখান')} checked={enabled} onCheckedChange={setEnabled} />{text('Show sample details', 'নমুনার বিস্তারিত দেখান')}</div>
             <Field id={id + '-disabled'} label={text('Disabled field', 'বন্ধ ফিল্ড')}><Input id={id + '-disabled'} value="Unavailable in sample" disabled /></Field>
           </div>
         </Panel>

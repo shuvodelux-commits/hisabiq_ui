@@ -1,6 +1,6 @@
 # HisabIQ complete UI design guide
 
-Version 2.0 · 26 October 2026 · Sher Software Solutions
+Version 2.1 · 26 October 2026 · Sher Software Solutions
 
 Purpose: give every designer and AI the same vocabulary, components, values and interaction rules. Build new screens by composing the existing HisabIQ system. Keep it easy for a shopkeeper who uses the software alone, on a keyboard or an inexpensive phone.
 
@@ -147,7 +147,7 @@ Use aria-invalid and aria-describedby for field errors; role=status for passive 
 
 ## 08. Buttons and action priority
 
-EXISTING: src/components/Button.tsx wraps the exported design-system Button. Import it rather than a raw styled button for normal actions. All size props, ordinary primary/outline/secondary/ghost/destructive/link buttons, toolbar/filter actions, dialog Save/Cancel and standalone icon actions have 36px visual height. Icon action outer box is 36 by 36px.
+EXISTING: src/components/Button.tsx wraps the exported design-system Button. Import it rather than a raw styled button for normal actions. The wrapper forwards its ref to the real button; focus restoration must target a connected control, including More → sheet action → modal → close. All size props, ordinary primary/outline/secondary/ghost/destructive/link buttons, toolbar/filter actions, dialog Save/Cancel and standalone icon actions have 36px visual height. Icon action outer box is 36 by 36px.
 
 | Variant | Intended use | Appearance |
 | --- | --- | --- |
@@ -376,6 +376,20 @@ EXISTING library: lucide-react. UI glyphs normally 16px; navigation/section glyp
 | Expand / collapse | ChevronDown / ChevronUp |
 | Password / PIN security | LockKeyhole |
 
+EXISTING PARTY ACTION ICON RULE — screenshots 4, 5 and 6 are concrete authority for action semantics. The selected relationship, not a generic payment label or balance sign, selects the action and icon. Import src/components/parties/partyRoleActions.ts: partyFinanceActions and partyTradingActionIcons. Identity/role glyph suggestions above are distinct from these action buttons.
+
+| Active relationship | Primary action / exact Lucide icon | Secondary action / exact icon | Current workflow source |
+| --- | --- | --- | --- |
+| Customer | Receive payment / HandCoins | Refund credit (text action); New invoice / FilePlus2 | PartyPaymentDialog, PartyCreditRefundDialog, POS V2 |
+| Supplier | Make payment / Banknote | Refund credit (text action) | PartyPaymentDialog, PartyCreditRefundDialog |
+| Owner | Add capital / PiggyBank | Owner drawing / Wallet | Owner Credit / Owner Debit in PartyFinanceDialog |
+| Lender | Repay loan / Landmark | Loan received / ArrowDownLeft | Lender Debit / Lender Credit |
+| Borrower | Collect repayment / HandCoins | Lend money / ArrowUpRight | Borrower Credit / Borrower Debit |
+| Vendor with vendor profile | Pay Vendor / Banknote | Receive Money / HandCoins | VendorQuickSettlementDialog pay / receive-money |
+| Payee | Current compact workspace: Opening balance / BookOpen | Expense payment belongs to its existing Expense context | PartyOpeningDialog; do not invent a customer receipt |
+
+Customer and supplier refund availability comes from verified refundable credit at the selected date; disabled buttons explain why. Switching a multi-role party changes the action pair and its real finance type without mixing role balances. Owner drawing is not a supplier payment; borrowing is not sales income. Keep existing primary/outline priority and 36px controls. Mobile may place secondary operations under More; it must preserve the same icon, wording and source workflow. RoleBadge and PartyAvatar have their own identity/tint rules and must not determine the financial action. Future role-aware controls extend this shared map rather than adding a page-local icon choice.
+
 The mapping is a STANDARD for a new use with no approved existing glyph; preserve current module/role glyphs when reusing a source component. Similar roles are differentiated by the existing RoleBadge and label/tint; do not add a new icon package to make every party unique. The generated inventory records every currently imported Lucide name and usage path, including legacy alternatives; it is an availability/audit index, not a second competing mapping. Brand imagery is literal and restrained; financial figures never use emoji as status.
 
 ## 24. Bangla, English and accessible copy
@@ -478,7 +492,15 @@ Test text zoom 200%, reflow 320 CSS px for normal content, and larger text/trans
 
 The actual current z-index stack has component-specific levels: sidebar 20, top bar 30, mobile nav 80, search sheet 150, date popup 155, select/search popup 160, skip link 200, plus component-owned dialog/toast layers. These are an inventory, not permission to stack everything higher. Reuse each shared portal/ownership behavior; a popup inside an overlay must appear above it and unrelated background portals must not steal focus. GAP: consolidate layered-overlay policy in a future shared fix if testing finds conflicts; avoid page-local z-9999 hacks.
 
-## 31. Existing component catalogue and extension policy
+## 31. Visual component library, catalogue and extension policy
+
+The visible library at /#/design-system starts with rendered, interactive component specimens, not a file-name list. src/data/componentCatalog.json identifies each specimen's sources, covered states and whether it is used in HisabIQ or is a prepared future composition. Screenshots 1–3 map to actual Input focus/search, ReportToolbar plus AppDateRangePicker, and ReportHelp/Tooltip. Screenshots 4–6 map to the Party role-action rules in section 23.
+
+The library currently contains 11 rendered specimen groups, covering Party role actions; report tables/filtering/columns/saved views; button variants/busy/radio; page headers/cards/charts; text/search states; quantity/money/units; selectors/Quick Add; single/range calendars; bilingual help/menus/dialogs/switches; future feedback/Advanced; and photos. Existing Dashboard chart tooltips/metric footnotes and upload thumbnail copy have documented language/accessibility gaps; they are inspected source examples, not certified future defaults.
+
+Every new or changed shared UI family must add/update a visual specimen and its state coverage. For a reproducible prototype-only source export, run npm run export:component-library. It derives the same theme utilities/tokens and copies the current source dependency graph. Its adapters are limited to the prototype SDK entries, isolated preview language, pure report defaults/date validation and scoped theme hosts for portals; adapters do not belong in production business modules.
+
+The inventory is supplementary; a source-file count does not substitute for a usable demonstration. A specimen provides controlled isolated state, a meaningful result for every active action, readable source names and the actual shared implementation. Source/detail previews preserve filters; saved-view examples restore their column/filter state; a missing result shows a clear empty state. Prepared components, such as FeedbackState, are labelled and must never be described as already used across all modules. ColumnVisibilityEditor is shared by actual Reports and the library. Actual Lucide glyphs appear in the atlas via generated static imports of the used set only.
 
 The generated docs/ui/design-system.json is the complete authored TSX-file, shared-export, token and imported-icon inventory at this revision. It includes components, pages, providers and UI outside the components directory, labelled by kind. It is generated from source; it does not imply every authored domain component is an independent primitive or should be reused across unrelated business domains. The following is the canonical family map.
 
@@ -531,4 +553,4 @@ Required relevant checks: TypeScript, build, lint for changed code, npm run chec
 
 Acceptance checklist: one guide version; existing brand identity; full tokens; complete shared family inventory; states; buttons/inputs/choices; dates/menus/overlays; cards/tables/filters; navigation/responsive rules; motion; icons; Bangla; financial/cart patterns; report/print/import/auth/settings context; accessibility; extension policy; actual evidence. There is always room for a future business feature, but a future AI should select and compose the declared system instead of inventing a look.
 
-Current change log: v2.0 consolidates binding 36px/48px and 13/12/11 rules, replaces ambiguous identity specimens as implementation instructions, inventories current tokens/components/icons, specifies missing states and composition defaults, and documents known gaps without claiming their migration is done. It does not change ERP-wide transaction behavior, authentication guarantees or backend posting.
+Current change log: v2.1 adds screenshot-complete live specimens, exact relationship-dependent Party action rules, the visual glyph atlas, a shared Reports column chooser and labelled future feedback compositions. v2.0 consolidates binding 36px/48px and 13/12/11 rules, replaces ambiguous identity specimens as implementation instructions, inventories current tokens/components/icons, specifies missing states and composition defaults, and documents known gaps without claiming their migration is done. It does not change ERP-wide transaction behavior, authentication guarantees or backend posting.

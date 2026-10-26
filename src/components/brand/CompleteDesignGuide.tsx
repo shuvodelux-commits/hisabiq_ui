@@ -37,7 +37,7 @@ export function CompleteDesignGuide() {
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-t border-border pt-6">
       <div className="max-w-2xl">
         <p className="mb-2 flex items-center gap-2 text-xs font-medium text-teal-700"><BookOpen className="size-4" aria-hidden="true" /> Design system v{guide.version} · {guide.date}</p>
-        <h1 id="complete-guide-title" className="text-2xl font-semibold tracking-tight text-ink">One guide for every HisabIQ screen</h1>
+        <h2 id="complete-guide-title" className="text-2xl font-semibold tracking-tight text-ink">One guide for every HisabIQ screen</h2>
         <p className="mt-2 text-sm leading-6 text-ink-500">Exact rules, actual component sources and states. Read this before generating UI, then compose the existing system.</p>
         <p lang="bn" className="font-bn mt-1 text-sm text-ink-500">একই উপাদান, একই নিয়ম — সহজ হিসাব, স্মার্ট ব্যবসা।</p>
       </div>

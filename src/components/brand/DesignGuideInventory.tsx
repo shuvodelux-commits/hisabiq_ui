@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import inventory from '../../../docs/ui/design-system.json';
+import { designIconComponents } from '../../data/designIconComponents';
 import { Input } from '../Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 
@@ -8,6 +9,7 @@ export function DesignGuideInventory() {
   const matches = (value: string) => value.toLowerCase().includes(query.trim().toLowerCase());
   const files = inventory.componentFiles.filter((item) => matches(item.file + ' ' + item.exports.join(' ')));
   const icons = Object.entries(inventory.icons).filter(([name]) => matches(name));
+  const glyphs = new Map(designIconComponents.map((entry) => [entry.name, entry.Icon]));
   const colors = Object.entries(inventory.colors.light).filter(([name]) => matches(name));
   return <div id="source-inventory" className="mt-8 space-y-3">
     <h2 className="text-xl font-semibold text-ink">Complete source inventory</h2>
@@ -33,7 +35,7 @@ export function DesignGuideInventory() {
     </details>
     <details className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
       <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-ink">Lucide source names · {icons.length}</summary>
-      <div className="max-h-[32rem] overflow-auto border-t border-border p-4" role="region" aria-label="Imported Lucide icon names" tabIndex={0}><ul className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-4">{icons.map(([name, usages]) => <li key={name} className="min-w-0"><p className="break-words text-[13px] font-medium text-ink">{name}</p><p className="text-xs text-ink-500">{usages.length} source files</p></li>)}</ul>{!icons.length && <p className="text-sm text-ink-500">No matching imported icon.</p>}</div>
+      <div className="max-h-[32rem] overflow-auto border-t border-border p-4" role="region" aria-label="Imported Lucide icon names" tabIndex={0}><ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{icons.map(([name, usages]) => { const Icon = glyphs.get(name); return <li key={name} className="min-w-0 rounded-lg border border-border p-3">{Icon && <Icon className="mb-2 size-5 text-ink-700" strokeWidth={1.75} aria-hidden="true" />}<p className="break-words text-[13px] font-medium text-ink">{name}</p><p className="text-xs text-ink-500">{usages.length} source files</p></li>; })}</ul>{!icons.length && <p className="text-sm text-ink-500">No matching imported icon.</p>}</div>
     </details>
     <details className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
       <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-ink">Typed primitives and bundled availability</summary>
