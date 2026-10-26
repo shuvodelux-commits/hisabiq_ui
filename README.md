@@ -36,7 +36,7 @@ See [login implementation scope and verification](docs/ui/auth-login-preview.md)
 
 ## Rules before making changes
 
-The [complete HisabIQ Design Guide v2.1](docs/ui/HISABIQ-DESIGN-GUIDE.md) covers tokens, every shared component family, states, tables, filters, navigation, motion, icons, Bangla, accessibility and KISS composition. Open `/#/design-system` for searchable chapters, copy/download and the live shared-component playground. Give any AI the [portable UI instruction](docs/ui/AI-UI-PROMPT.md). Run `node scripts/sync-design-guide.cjs --check` to detect drift between the authored guide, visual reference and [generated source inventory](docs/ui/design-system.json).
+The [complete HisabIQ Design Guide v2.2](docs/ui/HISABIQ-DESIGN-GUIDE.md) covers tokens, every shared component family, states, tables, filters, navigation, motion, icons, Bangla, accessibility and KISS composition. Open `/#/design-system` for searchable chapters, copy/download and the live shared-component playground. Give any AI the [portable UI instruction](docs/ui/AI-UI-PROMPT.md). Run `node scripts/sync-design-guide.cjs --check` to detect drift between the authored guide, visual reference and [generated source inventory](docs/ui/design-system.json).
 
 Read [AGENTS.md](AGENTS.md), the [transaction cart design contract](docs/ui/transaction-cart-design-contract.md), and the [context-complete workflow contract](docs/superpowers/specs/2026-10-09-erp-kiss-contextual-workflows-design.md). Preserve the original [Magic Patterns UI](https://www.magicpatterns.com/c/t6q3mxi6nhuak3qjvx8cwn), current shared inputs, Bangla text, keyboard/touch controls, and POS-style carts. Never present a sample payment or stock change as a real backend posting.
 

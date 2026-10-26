@@ -31,7 +31,7 @@ async function main() {
         localStorage.setItem('hisabiq-erp-personal-v1', JSON.stringify({ mode: 'Simple', language: value.language, density: 'Compact', terminology: 'simple', dateView: 'transaction' }));
       }, profile);
       await page.route('https://fonts.googleapis.com/**', (route) => route.abort());
-      await page.goto('http://127.0.0.1:4993/#/design-system');
+      await page.goto('http://127.0.0.1:4993/#/design-system', { waitUntil: 'domcontentloaded' });
       await page.getByRole('heading', { name: 'One guide for every HisabIQ screen' }).waitFor();
       await verifyComponentLibrary(page, profile);
       assert.equal(await page.locator('#complete-guide details[id^="guide-"]').count(), 32);

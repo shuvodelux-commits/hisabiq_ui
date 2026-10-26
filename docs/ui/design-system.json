@@ -1,7 +1,7 @@
 {
-  "version": "2.1",
+  "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "d0469886648aa336b07b41a1803f5419830286aaef17b4559e9acf5c9219a59f",
+  "guideSha256": "6c3cc838038f8a0f9828c914216e345ff9c40d3477644c04b5995af39194d496",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {

@@ -1,6 +1,6 @@
 # HisabIQ complete UI design guide
 
-Version 2.1 · 26 October 2026 · Sher Software Solutions
+Version 2.2 · 26 October 2026 · Sher Software Solutions
 
 Purpose: give every designer and AI the same vocabulary, components, values and interaction rules. Build new screens by composing the existing HisabIQ system. Keep it easy for a shopkeeper who uses the software alone, on a keyboard or an inexpensive phone.
 
@@ -87,7 +87,7 @@ EXISTING: Geist for English and UI; Hind Siliguri for Bangla. Use the installed 
 | Workspace / dialog heading | 18 / 26px | 600 | Short contextual heading |
 | Panel title | 14 / 20px | 600 | Panel |
 | Body | 14 / 20px | 400 | Forms and explanatory copy |
-| Ordinary input value | 16 / 24px base, 14 / 20px from md | 400 | Existing Input; table roles override to 13px |
+| Ordinary input value / textarea | 13 / 20px at every breakpoint | 400 | Shared input typography contract; Ink 600 values, muted placeholders |
 | Form label | 13 / 20px | 500 | Label above field |
 | Main table / responsive row data | 13 / 20px | 400 or 500 | Products authority |
 | Column heading | 12 / 16px | 500 | All data tables |
@@ -167,11 +167,13 @@ Use sentence-case verbs: New sale, Receive payment, Review purchase, Save draft,
 
 EXISTING: src/components/Input.tsx routes actual quantities to NumericInput and gives controlled search/find/filter fields the shared X clear action. Ordinary fields are 36px high, full available width, card surface, 8px radius. The bundled Input uses 10px horizontal padding; existing numeric/joined assemblies own their insets. Use the default Button variant size for new ordinary actions, keeping one 14px action-label baseline; inherited sm/xs text sizes are legacy differences, not new layout choices. Label above the control, required marker where genuinely required; placeholder is an example, never the only label.
 
+Input values are deliberately quieter than headings and totals: 13px / 20px, weight 400, normal letter spacing, existing Geist/Hind Siliguri and proportional digits in every viewport and language. Use Ink 600 for entered, read-only and numeric values; use muted foreground for placeholders at regular weight. A surrounding medium-weight label must not make its input or textarea bold. The shared --erp-input-* tokens and src/index.css own this typography, including numeric/joined editors and native text entry inside the app. Do not restore the bundled 16px/14px input sizes or add page-local semibold/black input values. Labels keep their separate 13px medium role; totals and headings keep their existing emphasis. Disabled opacity, error messages/borders, alignment and edit behavior stay unchanged. Calculator scratchpad text retains its own specific contract.
+
 Focus uses primary border and one 2px teal-100 halo. Error uses destructive border and a 2px danger halo on focus. Joined fields own a single outer focus treatment; nested editors do not add rings. src/index.css owns these rules; do not recreate them page by page.
 
 Search has a leading Search glyph if the existing assembly supplies one, typed query, optional trailing X, actual filtering and a clear no-results message. Clearing keeps focus and updates results. Search terms and selected entity are separate states. Use an appropriate input type: tel for phone; password for secrets; email for email; text/search for identifiers/search. Use autocomplete correctly for sign-in and personal fields.
 
-STANDARD textarea: shared field surface/focus, 14/20 text, 12px padding, minimum 3 text lines, vertical resize where safe. Notes may grow; count only where a real limit exists. Calculator follows its own multiline scratchpad reference: input always visible, one line initially, at least four visible lines for multiline work. Do not apply 36px max-height to multiline content or calculator keys.
+STANDARD textarea: shared field surface/focus and 13/20 regular input typography, 12px padding, minimum 3 text lines, vertical resize where safe. Notes may grow; count only where a real limit exists. Calculator follows its own multiline scratchpad reference: input always visible, one line initially, at least four visible lines for multiline work. Do not apply 36px max-height to multiline content or calculator keys.
 
 ## 10. Numeric, money, unit and compound fields
 

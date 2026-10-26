@@ -5,6 +5,26 @@ const assert = require('node:assert/strict');
 async function verifyComponentLibrary(page, profile) {
   const library = page.locator('#component-library');
   await library.waitFor();
+  const entryStyles = await library.locator('#specimen-inputs input, #specimen-inputs textarea, #specimen-quantities input').evaluateAll((nodes) => nodes.map((node) => {
+    const value = getComputedStyle(node), placeholder = getComputedStyle(node, '::placeholder');
+    return { size: value.fontSize, weight: value.fontWeight, line: value.lineHeight, color: value.color,
+      expectedColor: 'rgb(' + value.getPropertyValue('--color-ink-600').trim().split(/\s+/).join(', ') + ')',
+      placeholderWeight: placeholder.fontWeight, placeholderOpacity: placeholder.opacity };
+  }));
+  assert.ok(entryStyles.length >= 10, 'Shared input, textarea and joined numeric specimens are present');
+  for (const style of entryStyles) {
+    assert.equal(style.size, '13px', 'Entry text keeps the compact scale in every viewport');
+    assert.equal(style.weight, '400', 'Entry text does not inherit a medium-weight label');
+    assert.equal(style.line, '20px');
+    assert.equal(style.color, style.expectedColor, 'Entry text resolves the active theme Ink 600');
+    assert.equal(style.placeholderWeight, '400');
+    assert.equal(style.placeholderOpacity, '1');
+  }
+  const fieldSearch = library.locator('#specimen-inputs input[type="search"]');
+  await fieldSearch.fill('sample');
+  await library.locator('#specimen-inputs').getByRole('button', { name: /^Clear / }).click();
+  assert.equal(await fieldSearch.inputValue(), '');
+  assert.equal(await fieldSearch.evaluate((node) => node === document.activeElement), true);
   const party = library.locator('[data-library-party-role]');
   const selector = party.getByRole('combobox');
   const roleChecks = [
