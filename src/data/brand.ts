@@ -1,4 +1,6 @@
 export const brandSections = [
+{ id: 'complete-guide', label: 'Complete guide' },
+{ id: 'live-components', label: 'Live components' },
 { id: 'logo', label: 'Logo' },
 { id: 'clear-space', label: 'Clear space' },
 { id: 'color', label: 'Color' },
@@ -49,10 +51,10 @@ export const tealScale = [
 
 
 export const semanticColors = [
-{ name: 'Success', hex: '#15803D', bg: '#E8F5EC', use: 'Paid, in stock, balanced cash' },
-{ name: 'Warning', hex: '#B45309', bg: '#FDF3E3', use: 'Partial payment, low stock, notes' },
-{ name: 'Danger', hex: '#C0362C', bg: '#FCEBEA', use: 'Due, out of stock, delete, short cash' },
-{ name: 'Info', hex: '#2563EB', bg: '#EAF0FD', use: 'Suppliers, neutral system messages' }];
+{ name: 'Success', hex: '#116F35', bg: '#E8F5EC', use: 'Paid, in stock, balanced cash' },
+{ name: 'Warning', hex: '#974407', bg: '#FDF3E3', use: 'Partial payment, low stock, notes' },
+{ name: 'Danger', hex: '#B92E25', bg: '#FCEBEA', use: 'Due, out of stock, delete, short cash' },
+{ name: 'Info', hex: '#1E56D3', bg: '#EAF0FD', use: 'Suppliers, neutral system messages' }];
 
 
 export const voicePrinciples = [

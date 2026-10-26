@@ -10,9 +10,9 @@ function copy(hex: string) {
 
 function Scale({ title, steps }: {title: string;steps: {step: string;hex: string;}[];}) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="mb-2 text-xs font-medium uppercase tracking-wider text-ink-400">{title}</p>
-      <div className="flex overflow-hidden rounded-xl border border-ink-100">
+      <div className="flex overflow-x-auto rounded-xl border border-ink-100" role="region" aria-label={title + ' swatches'} tabIndex={0}>
         {steps.map((s, i) => {
           const dark = i < steps.length / 2;
           return (
@@ -43,7 +43,7 @@ export function ColorSection() {
         description="A deep ink neutral carries trust and legibility. Hisab Teal — slightly green, slightly deep — is our single accent: ownable, calm and distinct from the bright blue-greens of fintech. Signal Mint is used sparingly, like a highlighter." />
       
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {coreColors.map((c, i) =>
         <button
           key={c.hex}
@@ -56,7 +56,7 @@ export function ColorSection() {
             <div className="space-y-1 p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-ink">{c.name}</p>
-                <p className="text-xs tabular-nums text-ink-500">{c.hex}</p>
+                <p className="text-xs text-ink-500">{c.hex}</p>
               </div>
               <p className="text-xs leading-relaxed text-ink-500">{c.role}</p>
               {c.contrast &&
@@ -69,14 +69,15 @@ export function ColorSection() {
         )}
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Scale title="Ink scale" steps={inkScale} />
         <Scale title="Teal scale" steps={tealScale} />
       </div>
 
       <div className="mt-6">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-ink-400">Semantic status</p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-ink-400">Current light-theme semantic status</p>
+        <p className="mb-3 text-xs leading-5 text-ink-500">Identity swatches above preserve the master palette. Build UI with src/theme.css tokens; chapter 04 and the generated inventory include the complete light and dark values.</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {semanticColors.map((s) =>
           <div key={s.name} className="flex items-center gap-3 rounded-xl border border-ink-100 bg-white p-3">
               <div className="flex shrink-0 overflow-hidden rounded-lg">
@@ -85,7 +86,7 @@ export function ColorSection() {
               </div>
               <div className="min-w-0">
                 <p className="text-[13px] font-semibold" style={{ color: s.hex }}>
-                  {s.name} <span className="font-normal tabular-nums text-ink-400">{s.hex}</span>
+                  {s.name} <span className="font-normal text-ink-400">{s.hex}</span>
                 </p>
                 <p className="truncate text-xs text-ink-500">{s.use}</p>
               </div>

@@ -1,5 +1,7 @@
 # HisabIQ UI — Mandatory Agent Rules
 
+Before designing, generating, implementing, polishing or reviewing any UI, read the [complete HisabIQ Design Guide](docs/ui/HISABIQ-DESIGN-GUIDE.md). Map each element to its actual shared source; use the guide's states, tokens, Bangla, accessibility and responsive rules. [AI handoff](docs/ui/AI-UI-PROMPT.md) is the portable instruction; [generated inventory](docs/ui/design-system.json) lists current exports/files/icons. Regenerate guide data with `node scripts/sync-design-guide.cjs`; verify with `--check`. Inventory is not a visual-conformance certificate. This guide consolidates the binding contracts below; current explicit user decisions and narrower current contracts retain priority.
+
 This file applies to the entire repository, all pages, PRs, and AI-generated UI changes. Read [UI Design & Transaction Cart Contract](docs/ui/transaction-cart-design-contract.md) **before** modifying any screen, reusable component, or product transaction workflow.
 
 ## Non-negotiable design authority
