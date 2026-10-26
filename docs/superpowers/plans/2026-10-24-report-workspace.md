@@ -1,3 +1,5 @@
+> Historical completed plan. Do not execute it as the current Reports roadmap; use the [canonical26 October implementation plan](2026-10-26-hisabiq-reports-uiux-implementation-plan.md). Its execution results below are dated historical evidence.
+
 # Reports Workspace Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking.

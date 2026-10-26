@@ -1,3 +1,5 @@
+> Historical verification from24 October, preserved unchanged below. These results are not fresh runs for the26 October consolidation; see the [current Reports index](reports/README.md) and source/review record.
+
 # Reports workspace verification and scope
 24 October 2026 · branch feat/reports-decision-workspace-20261024
 
