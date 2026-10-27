@@ -36,7 +36,7 @@ async function main(){
    assert(await page.getByRole('button',{name:en?'Columns':'কলাম'}).count()>0,'column visibility control retained');
    const suffix=profile.language==='Bangla'?'bn':'en-bn';
    await page.screenshot({path:path.join(dir,`${profile.width}-${profile.theme}-${suffix}-hybrid.png`),fullPage:true,animations:'disabled'});
-   await page.getByRole('button',{name:en?'Choose detailed Sales & Profit report':'বিক্রি ও লাভের রিপোর্ট বাছুন'}).click();
+   await page.getByRole('combobox',{name:en?'Choose detailed Sales & Profit report':'বিক্রি ও লাভের রিপোর্ট বাছুন'}).click();
    await page.getByRole('option',{name:en?'Product performance':'পণ্যভিত্তিক বিক্রয়'}).click();
    assert(page.url().includes('report=product-sales'),'experiment selection persists URL');
    assert.equal(await page.locator('#reports-screen-sales-lab').getAttribute('aria-selected'),'true');
