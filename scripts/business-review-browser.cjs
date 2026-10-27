@@ -36,6 +36,7 @@ async function main(){
   const monthTrigger=page.getByRole('button',{name:isBn?'মাস বাছুন':'Choose month'});
   await monthTrigger.click();
   const monthDialog=page.getByRole('dialog',{name:isBn?'মাস বাছুন ক্যালেন্ডার':'Choose month calendar'});
+  await monthDialog.waitFor({state:'visible'});
   assert.equal(await monthDialog.locator('[data-month-value]').count(),12,'12 month options in calendar');
   await monthDialog.locator('[data-month-value="2026-09"]').click();
   await monthDialog.waitFor({state:'hidden'});
@@ -46,6 +47,7 @@ async function main(){
   await page.getByRole('option',{name:isBn?'বার্ষিক অডিট রিপোর্ট':'Yearly audit report'}).click();
   await page.getByRole('button',{name:isBn?'বছর বাছুন':'Choose year'}).click();
   const yearDialog=page.getByRole('dialog',{name:isBn?'বছর বাছুন ক্যালেন্ডার':'Choose year calendar'});
+  await yearDialog.waitFor({state:'visible'});
   assert((await yearDialog.locator('[data-year-value]').count())>=10,'year picker options visible');
   await yearDialog.locator('[data-year-value="2025"]').click();
   assert(await page.getByText('2025-01-01 – 2025-12-31').count()>0,'year selection updates period');
