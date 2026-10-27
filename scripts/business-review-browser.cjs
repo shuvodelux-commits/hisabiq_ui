@@ -31,10 +31,24 @@ async function main(){
   assert.equal(await page.locator('[data-business-review] [data-hisabiq-select]').count(),1,'shared HisabIQ select');
   assert(await page.locator('[data-business-review]').getByText(/not a certified audit|প্রত্যয়িত অডিট/i).count()>0,'uncertified disclaimer shown');
   const suffix=p.language==='Bangla'?'bn':'en';
-  await page.screenshot({path:path.join(out,p.width+'-'+p.theme+'-'+suffix+'-summary.png'),fullPage:true,animations:'disabled'});
   const isBn=p.language==='Bangla';
+  // Audits use a real HisabIQ calendar for month/year rather than unthemed native text inputs.
+  const monthTrigger=page.getByRole('button',{name:isBn?'মাস বাছুন':'Choose month'});
+  await monthTrigger.click();
+  const monthDialog=page.getByRole('dialog',{name:isBn?'মাস বাছুন ক্যালেন্ডার':'Choose month calendar'});
+  assert.equal(await monthDialog.locator('[data-month-value]').count(),12,'12 month options in calendar');
+  await monthDialog.locator('[data-month-value="2026-09"]').click();
+  await monthDialog.waitFor({state:'hidden'});
+  assert(await page.getByText('2026-09-01 – 2026-09-30').count()>0,'month selection updates period');
+  assert.equal(await page.locator('input[type="month"]').count(),0,'browser-dependent native month input removed');
+  await page.screenshot({path:path.join(out,p.width+'-'+p.theme+'-'+suffix+'-summary.png'),fullPage:true,animations:'disabled'});
   await page.getByRole('combobox',{name:isBn?'অডিটের সময়কাল':'Audit period'}).click();
   await page.getByRole('option',{name:isBn?'বার্ষিক অডিট রিপোর্ট':'Yearly audit report'}).click();
+  await page.getByRole('button',{name:isBn?'বছর বাছুন':'Choose year'}).click();
+  const yearDialog=page.getByRole('dialog',{name:isBn?'বছর বাছুন ক্যালেন্ডার':'Choose year calendar'});
+  assert((await yearDialog.locator('[data-year-value]').count())>=10,'year picker options visible');
+  await yearDialog.locator('[data-year-value="2025"]').click();
+  assert(await page.getByText('2025-01-01 – 2025-12-31').count()>0,'year selection updates period');
   await page.getByRole('tab',{name:isBn?'মাসভিত্তিক হিসাব':'Monthly figures'}).click();
   assert(await page.locator('[data-business-review] table tbody tr').count()>=1,'yearly monthly schedule visible');
   await page.screenshot({path:path.join(out,p.width+'-'+p.theme+'-'+suffix+'-months.png'),fullPage:true,animations:'disabled'});
