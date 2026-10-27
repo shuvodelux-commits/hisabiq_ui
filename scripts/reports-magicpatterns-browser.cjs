@@ -1,0 +1,95 @@
+// Focused visual and functional smoke for directly imported Magic Patterns Reports.
+// Screenshots are private PR artifacts; no deployment or production data is touched.
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const screens=['advisor','profit','buying','cashflow','customers','overview','sales','stock','dues','money','library'];
+const out=path.resolve('test-results/reports-magicpatterns');
+const presets=[
+ {width:1440,theme:'light',language:'English + Bangla'},
+ {width:1024,theme:'light',language:'English + Bangla'},
+ {width:768,theme:'light',language:'English + Bangla'},
+ {width:390,theme:'light',language:'English + Bangla'},
+ {width:1440,theme:'dark',language:'English + Bangla'},
+ {width:390,theme:'dark',language:'English + Bangla'},
+ {width:390,theme:'light',language:'Bangla'},
+ {width:390,theme:'dark',language:'Bangla'},
+];
+const personal=(language)=>({mode:'Simple',language,density:'Compact',terminology:'simple',dateView:'transaction',searchMode:'Default'});
+async function main(){
+ fs.mkdirSync(out,{recursive:true});
+ const {preview}=await import('vite');
+ const server=await preview({preview:{host:'127.0.0.1',port:4262,strictPort:true}});
+ const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
+ try{
+  for(const p of presets){
+   const context=await browser.newContext({viewport:{width:p.width,height:900},reducedMotion:'reduce'});
+   await context.addInitScript(({theme,language})=>{
+    localStorage.setItem('hisabiq-theme',theme);
+    localStorage.setItem('hisabiq-erp-personal-v1',JSON.stringify({mode:'Simple',language,density:'Compact',terminology:'simple',dateView:'transaction',searchMode:'Default'}));
+   },p);
+   const page=await context.newPage();
+   const errors=[];
+   page.on('pageerror',e=>errors.push(e.stack||e.message));
+   await page.goto('http://127.0.0.1:4262/#/app/reports');
+   try{
+    await page.locator('[data-report-workspace]').waitFor({timeout:18000});
+    await page.locator('#reports-screen-overview').waitFor({timeout:18000});
+   }catch(e){
+    const body=await page.locator('body').innerText().catch(()=>'<body failed>');
+    fs.writeFileSync(path.join(out,`ERROR-${p.width}-${p.theme}.txt`),JSON.stringify({errors,body:body.slice(0,4000)},null,2));
+    throw e;
+   }
+   assert.equal(await page.locator('[id^="reports-screen-"][role="tab"]').count(),11,'keep all 11 report destinations');
+   assert.equal(await page.locator('#reports-screen-advisor svg.lucide-sparkles').count(),1,'keep Sparkles icon');
+   for(const id of screens){
+    await page.locator('#reports-screen-'+id).click();
+    if(id!=='library'){
+     await page.locator('[data-magic-patterns-reports="'+id+'"]').waitFor({timeout:15000});
+     assert.equal(await page.getByText('What deserves attention next, and what evidence supports it?',{exact:true}).count(),0,'rejected duplicate helper absent');
+     assert.equal(await page.getByText('Supporting report:',{exact:false}).count(),0,'no extra generic source table');
+     assert.equal(await page.locator('[data-magic-period-strip]').count(),1,'original period/as-of strip');
+    }else{
+     await page.locator('#report-panel').waitFor();
+     assert((await page.locator('#report-panel').innerText()).length>40,'library retains tools');
+    }
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'no app-wide horizontal overflow: '+id+' / '+JSON.stringify(p));
+    const suffix=p.language==='Bangla'?'bn':'en-bn';
+    await page.screenshot({path:path.join(out,`${p.width}-${p.theme}-${suffix}-${id}.png`),fullPage:true,animations:'disabled'});
+   }
+   if(p.width===1440&&p.theme==='light'){
+    await page.locator('#reports-screen-cashflow').click();
+    await page.locator('[data-magic-patterns-reports="cashflow"]').waitFor();
+    assert.equal(await page.getByText('Cash forecast — next 30 days').count(),1);
+    assert.equal(await page.getByText('Week by week').count(),1);
+    assert.equal(await page.getByText('Working capital').count(),1);
+    assert.equal(await page.locator('.recharts-composed-chart').count(),1,'original cash chart present');
+    await page.getByLabel('If customers pay').selectOption('15');
+    await page.getByLabel('Include stock purchases').uncheck();
+    assert.equal(await page.getByLabel('Include stock purchases').isChecked(),false);
+    await page.getByText('Opening cash (assumed)',{exact:true}).first().click();
+    await page.getByRole('dialog').waitFor();
+    assert.match(await page.getByRole('dialog').innerText(),/Illustrative projection/);
+    await page.getByRole('button',{name:/Close details/}).click();
+    await page.locator('#reports-screen-profit').click();
+    await page.locator('.recharts-scatter').first().waitFor();
+    const source=page.locator('[data-magic-patterns-reports="profit"]').getByRole('button',{name:'View source'});
+    // Table links are the keyboard/touch alternative to scatter marks.
+    const links=page.locator('[data-magic-patterns-reports="profit"] button').filter({hasText:/Pipe|Cable|Switch|Wire/});
+    if(await links.count()){
+      await links.first().click();
+      await page.getByRole('dialog').waitFor();
+      await page.getByRole('button',{name:/Close details/}).click();
+    }
+    await page.locator('#reports-screen-overview').focus();
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await page.locator('#reports-screen-sales').getAttribute('aria-selected'),'true','keyboard tabs advance');
+   }
+   assert.deepEqual(errors,[],'console runtime errors in '+JSON.stringify(p));
+   await context.close();
+   console.log('PASS Magic Reports '+p.width+' '+p.theme+' '+p.language+'; 11 views and screenshots');
+  }
+ }finally{await browser.close();await new Promise(resolve=>server.httpServer.close(resolve));}
+}
+main().catch(err=>{console.error(err);process.exitCode=1;});
