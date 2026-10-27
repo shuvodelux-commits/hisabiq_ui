@@ -4157,6 +4157,7 @@
       "src/pages/Purchases.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reconciliation.tsx",
+      "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx"
     ],
