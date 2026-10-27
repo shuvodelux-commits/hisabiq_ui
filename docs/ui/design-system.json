@@ -2920,6 +2920,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/reports/BusinessReview.tsx",
+      "kind": "component",
+      "exports": [
+        "BusinessReview"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/reports/DaybookDialog.tsx",
       "kind": "component",
       "exports": [
@@ -3798,6 +3806,7 @@
       "src/components/accounts/LedgerView.tsx",
       "src/components/accounts/StatementsView.tsx",
       "src/components/accounts/TrialBalanceView.tsx",
+      "src/components/reports/BusinessReview.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Daybook.tsx",
@@ -3932,7 +3941,8 @@
       "src/reports/magicpatterns/MagicReportsView.tsx"
     ],
     "CalendarRange": [
-      "src/components/pos/InstallmentTermsPanel.tsx"
+      "src/components/pos/InstallmentTermsPanel.tsx",
+      "src/components/reports/BusinessReview.tsx"
     ],
     "Check": [
       "src/components/AppSelect.tsx",
@@ -4139,6 +4149,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartySourceQuickPreview.tsx",
       "src/components/pos/SaleTemplatesMenu.tsx",
+      "src/components/reports/BusinessReview.tsx",
       "src/navigation/erpNavigation.ts",
       "src/pages/Accounts.tsx",
       "src/pages/OnlineSales.tsx",
@@ -4451,6 +4462,7 @@
       "src/components/parties/PartyStatementDialog.tsx",
       "src/components/parties/VendorStatementDialog.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
+      "src/components/reports/BusinessReview.tsx",
       "src/components/reports/ReportDetails.tsx",
       "src/components/vendor/VendorTabs.tsx",
       "src/pages/AuditLedger.tsx",
@@ -4507,6 +4519,7 @@
       "src/components/accounts/VoucherActionDialog.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/pos/DraftsMenu.tsx",
+      "src/components/reports/BusinessReview.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Scale": [
@@ -4553,6 +4566,9 @@
       "src/pages/Warranty.tsx",
       "src/saas/components.tsx",
       "src/settings/TenantSettingsPage.tsx"
+    ],
+    "SearchCheck": [
+      "src/components/reports/BusinessReview.tsx"
     ],
     "SearchIcon": [
       "src/components/SearchSelect.tsx"
