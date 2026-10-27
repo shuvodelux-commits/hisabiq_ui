@@ -1,8 +1,8 @@
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 import { Button as HisabButton } from '../../../components/Button';
 import { MotionTabList, MotionTabIndicator } from '../../../motion/MotionTabList';
 import { downloadReport } from '../../../utils/reportOutput';
-type Kind='outline'|'ghost'|'default';
+type Kind='outline'|'ghost'|'default'|'primary';
 export function Button({kind='default',...rest}:{kind?:Kind}&ComponentProps<typeof HisabButton>){
  return <HisabButton {...rest} variant={kind==='default'?'default':kind}/>;
 }

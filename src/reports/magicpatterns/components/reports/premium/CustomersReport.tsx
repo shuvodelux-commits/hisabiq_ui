@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Phone } from 'lucide-react';
 import { Panel } from '../../Panel';
 import { StatusBadge, type StatusTone } from '../../StatusBadge';
@@ -70,7 +70,7 @@ export function CustomersReport({ core, period }: { core: ReportsCore; period: P
           <tbody>
             {rows.length === 0 && <EmptyRow cols={10} message="No customers in this group." />}
             {rows.map((c) => (
-              <tr key={c.id} className="border-t border-ink-100 hover:bg-ink-50/60">
+              <tr key={c.id} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
                   <span className="font-medium text-ink">{c.name}</span>
                   <a href={`tel:${c.phone}`} className="flex items-center gap-1 text-[11px] text-teal-700 hover:underline"><Phone className="size-3" />{c.phone}</a>

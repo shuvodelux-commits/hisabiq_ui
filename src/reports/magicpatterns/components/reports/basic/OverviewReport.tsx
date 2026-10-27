@@ -1,4 +1,3 @@
-import React from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Panel } from '../../Panel';

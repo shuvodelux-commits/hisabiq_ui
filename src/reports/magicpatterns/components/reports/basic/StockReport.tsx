@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Download } from 'lucide-react';
 import { Panel } from '../../Panel';
 import { StatusBadge, type StatusTone } from '../../StatusBadge';
@@ -83,7 +83,7 @@ export function StockReport({ core }: { core: ReportsCore }) {
           <tbody>
             {rows.length === 0 && <EmptyRow cols={6} message="No products match this filter." />}
             {rows.map((s) => (
-              <tr key={s.product.id} className="border-t border-ink-100 hover:bg-ink-50/60">
+              <tr key={s.product.id} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
                   <span className="font-medium text-ink">{s.product.name}</span>
                   <span className="block text-[11px] text-ink-500">{s.product.category}</span>

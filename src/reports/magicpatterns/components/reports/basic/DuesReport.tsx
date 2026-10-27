@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Download, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Panel } from '../../Panel';
@@ -54,7 +54,7 @@ export function DuesReport({ core }: { core: ReportsCore }) {
             <div key={b} className="min-w-0">
               <div className="flex items-baseline justify-between gap-2 text-[12px]">
                 <span className="text-ink-600">{b}</span>
-                <span className={`font-semibold tabular-nums ${i >= 2 ? 'text-danger' : 'text-ink'}`}>{taka(amount)}</span>
+                <span className={`font-semibold ${i >= 2 ? 'text-danger' : 'text-ink'}`}>{taka(amount)}</span>
               </div>
               <div className="mt-1.5"><ShareBar value={receivable ? amount / receivable : 0} tone={i >= 3 ? 'danger' : i === 2 ? 'warning' : 'teal'} /></div>
             </div>
@@ -89,7 +89,7 @@ export function DuesReport({ core }: { core: ReportsCore }) {
               {byCustomer.map((c) => {
                 const stat = customers.find((x) => x.id === c.id);
                 return (
-                  <tr key={c.id} className="border-t border-ink-100 hover:bg-ink-50/60">
+                  <tr key={c.id} className="border-t border-border hover:bg-ink-50/60">
                     <Td>
                       <span className="font-medium text-ink">{c.name}</span>
                       <span className="block text-[11px] text-ink-500">{c.phone}</span>
@@ -124,7 +124,7 @@ export function DuesReport({ core }: { core: ReportsCore }) {
             <tbody>
               {payables.length === 0 && <EmptyRow cols={5} message="You owe nothing to suppliers." />}
               {payables.map((p) => (
-                <tr key={p.supplier} className="border-t border-ink-100 hover:bg-ink-50/60">
+                <tr key={p.supplier} className="border-t border-border hover:bg-ink-50/60">
                   <Td><span className="font-medium text-ink">{p.supplier}</span></Td>
                   <Td className="text-ink-600">{p.source === 'Vendor ledger' ? <Link className="text-teal-700 hover:underline" to="/app/vendors">Vendor ledger</Link> : p.source}</Td>
                   <Td className="text-ink-600">{p.oldestDue ? longDate(p.oldestDue) : '—'}</Td>

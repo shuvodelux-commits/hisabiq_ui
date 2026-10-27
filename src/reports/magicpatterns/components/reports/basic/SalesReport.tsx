@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
 import { Panel } from '../../Panel';
 import { Tabs, Button, downloadCsv } from '../../../prototype/Ui';
@@ -94,7 +94,7 @@ export function SalesReport({ core, period }: { core: ReportsCore; period: Perio
           <tbody>
             {rows.length === 0 && <EmptyRow cols={8} message="No sales in this period." />}
             {rows.map((r) => (
-              <tr key={r.key} className="border-t border-ink-100 hover:bg-ink-50/60">
+              <tr key={r.key} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
                   <span className="font-medium text-ink">{r.label}</span>
                   {r.sub && <span className="block text-[11px] text-ink-500">{r.sub}</span>}
@@ -113,7 +113,7 @@ export function SalesReport({ core, period }: { core: ReportsCore; period: Perio
           </tbody>
           {rows.length > 0 && (
             <tfoot>
-              <tr className="border-t border-ink-100 bg-ink-50 font-semibold">
+              <tr className="border-t border-border bg-ink-50 font-semibold">
                 <Td>Total</Td>
                 <Td numeric>{core.current.invoices}</Td>
                 {view === 'product' && <Td numeric>—</Td>}

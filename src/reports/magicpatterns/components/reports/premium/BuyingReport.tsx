@@ -1,4 +1,3 @@
-import React from 'react';
 import { Download, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { Panel } from '../../Panel';
@@ -57,7 +56,7 @@ export function BuyingReport({ core, insights, settings, onSettings }: Props) {
             <label className="hidden items-center gap-2 text-xs text-ink-600 sm:flex">
               Budget
               <select
-                className="ref-control rounded-lg border border-ink-200 bg-white px-2 text-[13px]"
+                className="ref-control rounded-lg border border-ink-200 bg-card px-2 text-[13px]"
                 value={settings.budget}
                 onChange={(e) => onSettings({ ...settings, budget: Number(e.target.value) })}
               >
@@ -68,10 +67,10 @@ export function BuyingReport({ core, insights, settings, onSettings }: Props) {
           </>
         }
       >
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ink-100 bg-ink-50/50 px-4 py-2 text-xs text-ink-600">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border bg-ink-50/50 px-4 py-2 text-xs text-ink-600">
           <label className="flex items-center gap-2 sm:hidden">
             Budget
-            <select className="ref-control rounded-lg border border-ink-200 bg-white px-2 text-[13px]" value={settings.budget} onChange={(e) => onSettings({ ...settings, budget: Number(e.target.value) })}>
+            <select className="ref-control rounded-lg border border-ink-200 bg-card px-2 text-[13px]" value={settings.budget} onChange={(e) => onSettings({ ...settings, budget: Number(e.target.value) })}>
               {budgets.map((b) => <option key={b} value={b}>{taka(b)}</option>)}
             </select>
           </label>
@@ -96,7 +95,7 @@ export function BuyingReport({ core, insights, settings, onSettings }: Props) {
           <tbody>
             {plan.rows.length === 0 && <EmptyRow cols={9} message="Nothing needs ordering right now." />}
             {plan.rows.map((r) => (
-              <tr key={r.stat.product.id} className="border-t border-ink-100 hover:bg-ink-50/60">
+              <tr key={r.stat.product.id} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
                   <span className="font-medium text-ink">{r.stat.product.name}</span>
                   <span className="mt-0.5 block"><StatusBadge tone={healthTone[r.stat.health]}>{healthLabel[r.stat.health]}</StatusBadge></span>
@@ -113,7 +112,7 @@ export function BuyingReport({ core, insights, settings, onSettings }: Props) {
             ))}
           </tbody>
         </TableShell>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3">
           <p className="text-xs text-ink-500">Selling speed: {fmtQty(core.stats30.reduce((s, x) => s + x.avgDaily, 0))} units/day across all items · last 30 days</p>
           <Button
             kind="primary"
@@ -140,7 +139,7 @@ export function BuyingReport({ core, insights, settings, onSettings }: Props) {
           <tbody>
             {core.tied.length === 0 && <EmptyRow cols={6} message="No slow-moving stock. Your money is working well." />}
             {core.tied.map((t) => (
-              <tr key={t.stat.product.id} className="border-t border-ink-100 hover:bg-ink-50/60">
+              <tr key={t.stat.product.id} className="border-t border-border hover:bg-ink-50/60">
                 <Td><span className="font-medium text-ink">{t.stat.product.name}</span><span className="mt-0.5 block"><StatusBadge tone={healthTone[t.stat.health]}>{healthLabel[t.stat.health]}</StatusBadge></span></Td>
                 <Td numeric>{t.stat.product.stock.toLocaleString('en-IN')} <span className="font-normal text-ink-500">{t.stat.product.unit}</span></Td>
                 <Td numeric>{fmtQty(t.stat.avgDaily * 30)}</Td>

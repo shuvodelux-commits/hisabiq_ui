@@ -88,7 +88,7 @@ export function tiedStock(stats: ProductStat[]): TiedRow[] {
 
 // ---------- Working capital ----------
 
-export function workingCapital(ds: ReportDataset, stats: ProductStat[]) {
+export function workingCapital(ds: ReportDataset, _stats: ProductStat[]) {
   const asOf = ds.asOf;
   const from90 = addDays(asOf, -89);
   const stockValue = stats.reduce((s, r) => s + (r.stockValue ?? 0), 0);

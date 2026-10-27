@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ArrowRight, Check, CheckCircle2, RotateCcw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Panel } from '../../Panel';
@@ -61,7 +61,7 @@ export function AdvisorReport({ core, insights, onOpen }: Props) {
   return (
     <div className="space-y-4">
       <section className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)]">
-        <div className="rounded-xl border border-ink-100 bg-ink p-4 text-white shadow-card sm:p-5">
+        <div className="rounded-xl border border-border bg-ink p-4 text-white shadow-card sm:p-5">
           <p className="text-xs text-ink-300">Last 30 days, in one line <span className="font-bn">· এক নজরে</span></p>
           <p className="mt-2 text-[15px] leading-relaxed">
             You sold <b>{taka(core.last30.netSales)}</b> and kept about <b className="text-mint">{taka(core.last30.netProfit)}</b> after expenses.
@@ -69,7 +69,7 @@ export function AdvisorReport({ core, insights, onOpen }: Props) {
           <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/10 pt-4">
             <div>
               <p className="text-[11px] text-ink-300">Possible extra profit / month</p>
-              <p className="text-xl font-semibold tabular-nums text-mint">{taka(profitGain)}</p>
+              <p className="text-xl font-semibold text-mint">{taka(profitGain)}</p>
             </div>
             <div>
               <p className="text-[11px] text-ink-300">Cash you could free up</p>
@@ -84,7 +84,7 @@ export function AdvisorReport({ core, insights, onOpen }: Props) {
               key={h.id}
               type="button"
               onClick={() => onOpen(h.tab)}
-              className="flex min-w-0 flex-col rounded-xl border border-ink-100 bg-white p-3 text-left shadow-card transition-colors hover:border-teal-200 sm:p-4"
+              className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-3 text-left shadow-card transition-colors hover:border-teal-200 sm:p-4"
             >
               <span className="flex items-center justify-between gap-2">
                 <span className="text-xs text-ink-600">{h.label} <span className="font-bn text-[11px] text-ink-400">{h.labelBn}</span></span>
@@ -137,7 +137,7 @@ export function AdvisorReport({ core, insights, onOpen }: Props) {
                   </div>
                   {r.impact > 0 && (
                     <div className="text-right">
-                      <p className={`text-base font-semibold tabular-nums ${r.impactKind === 'profit' ? 'text-success' : r.impactKind === 'cash' ? 'text-teal-700' : 'text-warning'}`}>{taka(r.impact)}</p>
+                      <p className={`text-base font-semibold ${r.impactKind === 'profit' ? 'text-success' : r.impactKind === 'cash' ? 'text-teal-700' : 'text-warning'}`}>{taka(r.impact)}</p>
                       <p className="text-[11px] text-ink-500">{r.impactKind === 'profit' ? 'profit impact' : r.impactKind === 'cash' ? 'cash impact' : 'at risk'}</p>
                     </div>
                   )}

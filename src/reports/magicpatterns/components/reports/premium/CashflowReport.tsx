@@ -1,4 +1,3 @@
-import React from 'react';
 import { Area, ComposedChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar } from 'recharts';
 import { Panel } from '../../Panel';
 import { taka, takaCompact } from '../../../utils/currency';
@@ -39,14 +38,14 @@ export function CashflowReport({ core, insights, settings, onSettings }: Props) 
         <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-600">
           <label className="flex items-center gap-2">
             Keep at least
-            <select className="ref-control rounded-lg border border-ink-200 bg-white px-2 text-[13px]" value={settings.buffer} onChange={(e) => onSettings({ ...settings, buffer: Number(e.target.value) })}>
+            <select className="ref-control rounded-lg border border-ink-200 bg-card px-2 text-[13px]" value={settings.buffer} onChange={(e) => onSettings({ ...settings, buffer: Number(e.target.value) })}>
               {buffers.map((b) => <option key={b} value={b}>{taka(b)}</option>)}
             </select>
             <InfoTip text="Your safety level. The forecast warns you when cash may fall below it." />
           </label>
           <label className="flex items-center gap-2">
             If customers pay
-            <select className="ref-control rounded-lg border border-ink-200 bg-white px-2 text-[13px]" value={settings.lateDays} onChange={(e) => onSettings({ ...settings, lateDays: Number(e.target.value) })}>
+            <select className="ref-control rounded-lg border border-ink-200 bg-card px-2 text-[13px]" value={settings.lateDays} onChange={(e) => onSettings({ ...settings, lateDays: Number(e.target.value) })}>
               {lateOptions.map((d) => <option key={d} value={d}>{d === 0 ? 'on their usual time' : `${d} days late`}</option>)}
             </select>
           </label>
@@ -88,7 +87,7 @@ export function CashflowReport({ core, insights, settings, onSettings }: Props) 
             </thead>
             <tbody>
               {f.weeks.map((w) => (
-                <tr key={w.label} className="border-t border-ink-100">
+                <tr key={w.label} className="border-t border-border">
                   <Td className="text-ink-600">{w.label}</Td>
                   <Td numeric className="text-success">{taka(w.inflow)}</Td>
                   <Td numeric className="text-danger">{taka(w.outflow)}</Td>
@@ -108,7 +107,7 @@ export function CashflowReport({ core, insights, settings, onSettings }: Props) 
             ].map(([label, v, help, bn]) => (
               <div key={label as string} className="rounded-lg bg-ink-50 p-3">
                 <p className="text-[11px] text-ink-500">{label as string} <span className="font-bn">· {bn as string}</span></p>
-                <p className="text-lg font-semibold tabular-nums text-ink">{v === null ? '—' : Math.round(v as number)}</p>
+                <p className="text-lg font-semibold text-ink">{v === null ? '—' : Math.round(v as number)}</p>
                 <p className="text-[11px] text-ink-500">{help as string}</p>
               </div>
             ))}
@@ -121,13 +120,13 @@ export function CashflowReport({ core, insights, settings, onSettings }: Props) 
             Stock {taka(wc.stockValue)} + customer dues {taka(wc.receivable)} − supplier dues {taka(wc.payable)} = <b className="text-ink">{taka(wc.net)}</b> of your money is working in the business.
           </p>
           {collectSoon.length > 0 && (
-            <div className="mt-3 border-t border-ink-100 pt-3">
+            <div className="mt-3 border-t border-border pt-3">
               <p className="text-xs font-medium text-ink-600">Fastest way to improve cash: collect these overdue bills</p>
               <ul className="mt-1.5 space-y-1 text-[13px]">
                 {collectSoon.map((o) => (
                   <li key={o.invoice.id} className="flex justify-between gap-3">
                     <span className="truncate">{o.invoice.customer} <span className="text-[11px] text-ink-500">· {o.invoice.id} · {o.age} days</span></span>
-                    <span className="shrink-0 font-medium tabular-nums text-warning">{taka(o.due)}</span>
+                    <span className="shrink-0 font-medium text-warning">{taka(o.due)}</span>
                   </li>
                 ))}
               </ul>

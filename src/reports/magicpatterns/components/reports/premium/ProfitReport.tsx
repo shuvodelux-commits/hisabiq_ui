@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, ReferenceLine } from 'recharts';
 import { Panel } from '../../Panel';
 import { StatusBadge, type StatusTone } from '../../StatusBadge';
@@ -49,7 +49,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
         <Panel title="Where your sales money goes" subtitle={`${period.label} · from sales to what you keep`}>
           <ul className="space-y-2">
             {bridge.map((b) => (
-              <li key={b.label} className={`grid grid-cols-[minmax(0,150px)_minmax(0,1fr)_96px] items-center gap-3 text-[13px] ${b.kind === 'sub' || b.kind === 'total' ? 'border-t border-ink-100 pt-2 font-semibold' : ''}`}>
+              <li key={b.label} className={`grid grid-cols-[minmax(0,150px)_minmax(0,1fr)_96px] items-center gap-3 text-[13px] ${b.kind === 'sub' || b.kind === 'total' ? 'border-t border-border pt-2 font-semibold' : ''}`}>
                 <span className={b.kind === 'skip' ? 'text-ink-500' : 'text-ink-700'}>{b.label}</span>
                 <span className="h-2.5 overflow-hidden rounded-full bg-ink-50">
                   <span
@@ -57,7 +57,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
                     style={{ width: `${(Math.abs(b.value) / maxBar) * 100}%` }}
                   />
                 </span>
-                <span className={`text-right tabular-nums ${b.kind === 'total' || b.kind === 'sub' ? (b.value >= 0 ? 'text-success' : 'text-danger') : b.value < 0 ? 'text-ink-600' : 'text-ink'}`}>{taka(b.value)}</span>
+                <span className={`text-right ${b.kind === 'total' || b.kind === 'sub' ? (b.value >= 0 ? 'text-success' : 'text-danger') : b.value < 0 ? 'text-ink-600' : 'text-ink'}`}>{taka(b.value)}</span>
               </li>
             ))}
           </ul>
@@ -82,7 +82,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
                     const d = payload?.[0]?.payload as (typeof scatter)[number] | undefined;
                     if (!d) return null;
                     return (
-                      <div className="rounded-lg border border-ink-100 bg-white px-3 py-2 text-xs shadow-pop">
+                      <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-pop">
                         <p className="font-semibold text-ink">{d.name}</p>
                         <p className="text-ink-600">Sales {taka(d.revenue)} · Margin {d.margin}%</p>
                         <p className="text-ink-500">{d.quadrant}</p>
@@ -130,7 +130,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
             <tbody>
               {ranked.length === 0 && <EmptyRow cols={8} message="No sales in this period." />}
               {ranked.map((s: ProductStat) => (
-                <tr key={s.product.id} className="border-t border-ink-100 hover:bg-ink-50/60">
+                <tr key={s.product.id} className="border-t border-border hover:bg-ink-50/60">
                   <Td><span className="font-medium text-ink">{s.product.name}</span><span className="block text-[11px] text-ink-500">{s.product.category}</span></Td>
                   <Td numeric>{taka(s.revenue)}</Td>
                   <Td numeric className={s.profit === null ? 'text-warning' : 'text-success'}>{s.profit === null ? 'Cost missing' : taka(s.profit)}</Td>
@@ -151,7 +151,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
             </thead>
             <tbody>
               {cats.map((r) => (
-                <tr key={r.category} className="border-t border-ink-100 hover:bg-ink-50/60">
+                <tr key={r.category} className="border-t border-border hover:bg-ink-50/60">
                   <Td><span className="font-medium text-ink">{r.category}</span></Td>
                   <Td numeric>{taka(r.revenue)}</Td>
                   <Td numeric className="text-success">{taka(r.profit)}{!r.costed && <span className="text-warning">*</span>}</Td>
@@ -174,7 +174,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
                 const prev = s.profile.previousCost as number;
                 const effect = (s.unitCost as number - prev) * s.avgDaily * 30;
                 return (
-                  <tr key={s.product.id} className="border-t border-ink-100 hover:bg-ink-50/60">
+                  <tr key={s.product.id} className="border-t border-border hover:bg-ink-50/60">
                     <Td><span className="font-medium text-ink">{s.product.name}</span><span className="block text-[11px] text-ink-500">per {s.product.unit}</span></Td>
                     <Td numeric className="text-ink-500">{taka(prev, prev < 10 ? 2 : 0)}</Td>
                     <Td numeric className={s.unitCost! > prev ? 'text-danger' : 'text-success'}>{taka(s.unitCost as number, prev < 10 ? 2 : 0)}</Td>
