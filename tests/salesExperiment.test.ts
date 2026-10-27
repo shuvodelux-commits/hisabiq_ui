@@ -37,11 +37,11 @@ test('deep links and saved views retain screen, selected report and existing fil
 });
 
 test('switching detailed reports preserves period and comparison but drops invalid dimension filters and old search/sort',()=>{
- const change=selectSalesExperimentReport('category-sales',from);
+ const change=selectSalesExperimentReport('customer-sales',from);
  assert.equal(change.from,from.from);assert.equal(change.to,from.to);
  assert.equal(change.compare,'previous');
- assert.equal(change.party,'');
- assert.equal(change.product,'p1');
+ assert.equal(change.party,'c1');
+ assert.equal(change.product,'');
  assert.equal(change.sort,'date');assert.equal(change.direction,'desc');
  assert.equal(from.party,'c1','source filters remain unchanged');
 });
