@@ -35,6 +35,7 @@ async function main(){
    assert.equal(await page.locator('[data-sales-hybrid] .recharts-surface').count()>0,true,'existing sales trend chart reused');
    assert(await page.getByRole('button',{name:en?'Columns':'কলাম'}).count()>0,'column visibility control retained');
    const suffix=profile.language==='Bangla'?'bn':'en-bn';
+   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'hybrid viewport has no document horizontal overflow');
    await page.screenshot({path:path.join(dir,`${profile.width}-${profile.theme}-${suffix}-hybrid.png`),fullPage:true,animations:'disabled'});
    await page.getByRole('combobox',{name:en?'Choose detailed Sales & Profit report':'বিক্রি ও লাভের রিপোর্ট বাছুন'}).click();
    await page.getByRole('option',{name:en?'Product performance':'পণ্যভিত্তিক বিক্রয়'}).click();
@@ -55,7 +56,7 @@ async function main(){
    assert.equal(await page.locator('[data-sales-hybrid]').count(),0,'original Sales & profit is separate');
    await page.locator('#reports-screen-library').click();
    await page.locator('#report-panel').waitFor();
-   assert.equal(await page.getByRole('tablist',{name:en?'Report groups':'রিপোর্টের বিভাগ'}).getByRole('tab').count(),7,'original report library unchanged');
+   assert.equal(await page.locator('#reports-screen-panel').getByRole('tablist',{name:en?'Report groups':'রিপোর্টের বিভাগ'}).getByRole('tab').count(),7,'original report library unchanged');
    assert.deepEqual(errors,[],'no runtime exceptions');
    await context.close();
    console.log('PASS Sales hybrid '+profile.width+' '+profile.theme+' '+profile.language);
