@@ -31,7 +31,7 @@ export function evidenceKey(screen:ReportScreen,label:string):ReportKey {
  if(/cash|money in/.test(value))return 'cash-book';
  return screen==='profit'?'product-profit':screen==='buying'?'reorder':screen==='stock'?'stock':screen==='dues'?'receivables':screen==='money'?'cash-book':screen==='customers'?'customer-sales':'sales-register';
 }
-export function MagicReportsView({screen,data,filters,onFilters,onDetail,onReport,onScreen}:Props){
+export function MagicReportsView({screen,data,filters,onFilters,onDetail,onReport,onScreen,scopeKey}:Props){
  const {text}=useUiCopy();
  const {core,period}=useReportsCore(data,filters);
  const [settings,setSettings]=useState(defaultPremiumSettings);
@@ -91,7 +91,7 @@ export function MagicReportsView({screen,data,filters,onFilters,onDetail,onRepor
     {screen==='stock'&&<StockReport core={core}/>}
     {screen==='dues'&&<DuesReport core={core}/>}
     {screen==='money'&&<MoneyReport core={core} period={period}/>}
-    {screen==='advisor'&&<AdvisorReport core={core} insights={insights} onOpen={onScreen}/>}
+    {screen==='advisor'&&<AdvisorReport core={core} insights={insights} onOpen={onScreen} scopeKey={scopeKey}/>}
     {screen==='profit'&&<ProfitReport core={core} period={period}/>}
     {screen==='buying'&&<BuyingReport core={core} insights={insights} settings={settings} onSettings={setSettings}/>}
     {screen==='cashflow'&&<CashflowReport core={core} insights={insights} settings={settings} onSettings={setSettings}/>}

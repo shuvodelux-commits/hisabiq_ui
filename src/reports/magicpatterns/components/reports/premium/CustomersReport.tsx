@@ -73,7 +73,7 @@ export function CustomersReport({ core, period }: { core: ReportsCore; period: P
               <tr key={c.id} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
                   <SourceLink report="customer-sales" label={c.name} field="party" value={c.name}>{c.name}</SourceLink>
-                  <a href={`tel:${c.phone}`} className="flex items-center gap-1 text-[11px] text-teal-700 hover:underline"><Phone className="size-3" />{c.phone}</a>
+                  {c.phone?<a href={`tel:${c.phone}`} className="flex items-center gap-1 text-[11px] text-teal-700 hover:underline"><Phone className="size-3" />{c.phone}</a>:<span className="block text-[11px] text-ink-500">Phone not recorded</span>}
                 </Td>
                 <Td numeric>{taka(c.revenue)}</Td>
                 <Td numeric className={c.profit === null ? 'text-warning' : 'text-success'}>{c.profit === null ? 'Cost missing' : taka(c.profit)}</Td>

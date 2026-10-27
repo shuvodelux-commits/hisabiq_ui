@@ -10,7 +10,7 @@ import type { PremiumInsights } from '../../../hooks/usePremiumInsights';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import { InfoTip, SectionNote, SourceEvidenceContext } from '../ReportBits';
 
-type Props = { core: ReportsCore; insights: PremiumInsights; onOpen: (tab: ReportsTab) => void };
+type Props = { core: ReportsCore; insights: PremiumInsights; onOpen: (tab: ReportsTab) => void; scopeKey:string };
 
 const statusTone: Record<'Good' | 'Watch' | 'Act', StatusTone> = { Good: 'success', Watch: 'warning', Act: 'danger' };
 const statusBn: Record<'Good' | 'Watch' | 'Act', string> = { Good: 'ভালো', Watch: 'নজর রাখুন', Act: 'ব্যবস্থা নিন' };
@@ -19,32 +19,34 @@ const areas: ('All' | AdvisorArea)[] = ['All', 'Stock', 'Profit', 'Cash', 'Dues'
 const STORE_KEY = 'hisabiq-reports-advisor-v1';
 
 type Saved = Record<string, 'done' | 'dismissed'>;
-const readSaved = (): Saved => {
+const readSaved = (storageKey:string): Saved => {
   try {
-    return JSON.parse(localStorage.getItem(STORE_KEY) || '{}') as Saved;
+    return JSON.parse(localStorage.getItem(storageKey) || '{}') as Saved;
   } catch {
     return {};
   }
 };
 
-export function AdvisorReport({ core, insights, onOpen }: Props) {
+export function AdvisorReport({ core, insights, onOpen, scopeKey }: Props) {
+  const storageKey=STORE_KEY+':'+scopeKey;
+  const sourceVersion=(r:Recommendation)=>r.id+':'+r.title+':'+r.what+':'+r.impact;
   const { recommendations, health } = insights;
   const sourceEvidence=useContext(SourceEvidenceContext);
   const [area, setArea] = useState<'All' | AdvisorArea>('All');
-  const [saved, setSaved] = useState<Saved>(readSaved);
+  const [saved, setSaved] = useState<Saved>(()=>readSaved(storageKey));
   const [showHandled, setShowHandled] = useState(false);
 
   const persist = (next: Saved) => {
     setSaved(next);
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(next));
+      localStorage.setItem(storageKey, JSON.stringify(next));
     } catch {
       /* storage unavailable */
     }
   };
 
-  const active = recommendations.filter((r) => !saved[r.id]);
-  const handled = recommendations.filter((r) => saved[r.id]);
+  const active = recommendations.filter((r) => !saved[sourceVersion(r)]);
+  const handled = recommendations.filter((r) => saved[sourceVersion(r)]);
   const list = (showHandled ? handled : active).filter((r) => area === 'All' || r.area === area);
   const profitGain = active.filter((r) => r.impactKind === 'profit').reduce((s, r) => s + r.impact, 0);
   const cashGain = active.filter((r) => r.impactKind === 'cash').reduce((s, r) => s + r.impact, 0);
@@ -55,7 +57,7 @@ export function AdvisorReport({ core, insights, onOpen }: Props) {
   }, [active]);
 
   const mark = (r: Recommendation, kind: 'done' | 'dismissed') => {
-    persist({ ...saved, [r.id]: kind });
+    persist({ ...saved, [sourceVersion(r)]: kind });
     toast.success(kind === 'done' ? 'Marked as done' : 'Hidden from your list', { description: r.title });
   };
 
@@ -158,7 +160,7 @@ export function AdvisorReport({ core, insights, onOpen }: Props) {
                 </dl>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {saved[r.id] ? (
-                    <Button kind="outline" onClick={() => { const n = { ...saved }; delete n[r.id]; persist(n); }}><RotateCcw className="size-4" />Restore</Button>
+                    <Button kind="outline" onClick={() => { const n = { ...saved }; delete n[sourceVersion(r)]; persist(n); }}><RotateCcw className="size-4" />Restore</Button>
                   ) : (
                     <>
                       <Button kind="outline" onClick={() => sourceEvidence?.({report:r.tab==="buying"?"reorder":r.tab==="profit"?"product-profit":r.tab==="stock"?"low-stock":r.tab==="dues"?"collections":r.tab==="customers"?"customer-sales":r.tab==="money"?"cash-book":"sales-register",label:r.title})}>See details <ArrowRight className="size-4" /></Button>

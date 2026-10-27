@@ -72,22 +72,22 @@ type KpiProps = {
 };
 
 export function Kpi({ label, bn, value, tone = 'neutral', help, footer, onClick }: KpiProps) {
-  const evidence = useContext(KpiEvidenceContext);
-  const click = evidence ? () => evidence(label) : onClick;
-  const Comp = click ? 'button' : 'div';
+  const evidence=useContext(KpiEvidenceContext);
+  const click=evidence ? () => { onClick?.(); evidence(label); } : onClick;
   return (
-    <Comp
-      {...(click ? { type: 'button' as const, onClick:click } : {})}
-      className={`min-w-0 rounded-xl border border-border bg-card p-3 text-left shadow-card sm:p-4 ${click ? 'transition-colors hover:border-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary' : ''}`}
-    >
+    <div className={`min-w-0 rounded-xl border border-border bg-card p-3 text-left shadow-card sm:p-4 ${click ? 'transition-colors hover:border-teal-200' : ''}`}>
       <span className="flex items-center gap-1 text-xs text-ink-600">
-        {label}
+        {click
+          ? <button type="button" onClick={click} className="min-w-0 text-left focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{label}</button>
+          : label}
         {help && <InfoTip text={help} label={`About ${label}`} />}
       </span>
       {bn && <span className="block font-bn text-[11px] leading-4 text-ink-400">{bn}</span>}
-      <span className={`mt-1 block truncate text-xl font-semibold tracking-tight ${toneText[tone]}`}>{value}</span>
+      {click
+        ? <button type="button" onClick={click} aria-label={`View evidence for ${label}: ${value}`} className={`mt-1 block w-full truncate text-left text-xl font-semibold tracking-tight focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${toneText[tone]}`}>{value}</button>
+        : <span className={`mt-1 block truncate text-xl font-semibold tracking-tight ${toneText[tone]}`}>{value}</span>}
       {footer && <span className="mt-1 block">{footer}</span>}
-    </Comp>
+    </div>
   );
 }
 
@@ -130,7 +130,7 @@ export function Th({ children, help, numeric = false, className = '' }: { childr
 
 export function Td({ children, numeric = false, className = '' }: { children: React.ReactNode; numeric?: boolean; className?: string }) {
   return (
-    <td data-numeric={numeric ? 'true' : undefined} className={`whitespace-nowrap px-3 py-2 ${numeric ? 'text-right font-medium tabular-nums' : ''} ${className}`}>
+    <td data-numeric={numeric ? 'true' : undefined} className={`whitespace-nowrap px-3 py-2 ${numeric ? 'text-right font-medium' : ''} ${className}`}>
       {children}
     </td>
   );

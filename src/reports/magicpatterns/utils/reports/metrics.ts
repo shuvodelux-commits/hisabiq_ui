@@ -27,7 +27,7 @@ export type Summary = {
 
 export function summarize(ds: ReportDataset, from: string, to: string): Summary {
   const lines = ds.lines.filter((l) => inRange(l.date, from, to));
-  const gross = lines.reduce((s, l) => s + l.qty * l.price, 0);
+  const gross = lines.reduce((s, l) => s + l.revenue + l.discount, 0);
   const discount = lines.reduce((s, l) => s + l.discount, 0);
   const revenue = gross - discount;
   const costed = lines.filter((l) => l.unitCost !== null);
@@ -315,8 +315,8 @@ export function payables(ds: ReportDataset): Payable[] {
     if (due < 1) continue;
     const row = map.get(p.supplier) ?? { supplier: p.supplier, amount: 0, oldestDue: null, overdue: 0, source: 'Purchase bills' };
     row.amount += due;
-    if (!row.oldestDue || p.dueDate < row.oldestDue) row.oldestDue = p.dueDate;
-    if (p.dueDate < ds.asOf) row.overdue += due;
+    if (p.dueDate && (!row.oldestDue || p.dueDate < row.oldestDue)) row.oldestDue = p.dueDate;
+    if (p.dueDate && p.dueDate < ds.asOf) row.overdue += due;
     map.set(p.supplier, row);
   }
   for (const v of ds.vendorBalances) {

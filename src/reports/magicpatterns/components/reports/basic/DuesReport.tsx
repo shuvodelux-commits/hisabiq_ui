@@ -101,9 +101,9 @@ export function DuesReport({ core }: { core: ReportsCore }) {
                     <Td className="text-ink-600">{stat?.avgPayDays == null ? '—' : `${Math.round(stat.avgPayDays)} days`}</Td>
                     <Td numeric className="text-warning">{taka(c.due)}</Td>
                     <Td>
-                      <a href={`tel:${c.phone}`} className="ref-action ref-button-outline inline-flex items-center gap-1.5 px-3 text-[12px]">
+                      {c.phone?<a href={`tel:${c.phone}`} className="ref-action ref-button-outline inline-flex items-center gap-1.5 px-3 text-[12px]">
                         <Phone className="size-3.5" />Call
-                      </a>
+                      </a>:<span className="text-[11px] text-ink-500">No phone</span>}
                     </Td>
                   </tr>
                 );

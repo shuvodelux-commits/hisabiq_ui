@@ -105,7 +105,7 @@ export function Reports() {
    <Button variant="outline" disabled={!!definition.unavailable} onClick={()=>print()}><Printer className="size-4" aria-hidden="true"/>{screen==='library'||screen==='overview'?text('Print report','রিপোর্ট প্রিন্ট'):text('Print source report','মূল রিপোর্ট প্রিন্ট')}</Button>
    <Button disabled={!!definition.unavailable} onClick={exportCsv}><ArrowDownToLine className="size-4" aria-hidden="true"/>{screen==='library'||screen==='overview'?text('Export CSV','সিএসভি নামান'):text('Source CSV','মূল তথ্য নামান')}</Button>
   </>}/>
-  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-500"><div className="flex flex-wrap items-center gap-2"><StatusBadge tone="info">{text('Demo data','ডেমো তথ্য')}</StatusBadge><p>{text('Current in-browser records · not live accounting','বর্তমান ব্রাউজারের রেকর্ড · লাইভ হিসাব নয়')}</p></div><span>{text('Asia/Dhaka','ঢাকার সময়')} · {data.asOf}</span></div>
+  {screen==='library'&&<div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-500"><div className="flex flex-wrap items-center gap-2"><StatusBadge tone="info">{text('Demo data','ডেমো তথ্য')}</StatusBadge><p>{text('Current in-browser records · not live accounting','বর্তমান ব্রাউজারের রেকর্ড · লাইভ হিসাব নয়')}</p></div><span>{text('Asia/Dhaka','ঢাকার সময়')} · {data.asOf}</span></div>
   {storageWarning&&<p role="status" className="text-xs text-warning">{storageWarning}</p>}
   <ReportsNav value={screen} onChange={selectScreen}/>
   <div id="reports-screen-panel" role="tabpanel" aria-labelledby={'reports-screen-'+screen} className="min-w-0 space-y-4">
