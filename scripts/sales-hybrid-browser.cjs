@@ -49,7 +49,7 @@ async function main(){
    assert.equal(await page.locator('#sales-experiment-visual').count(),0,'summary can collapse for table-focused work');
    await page.getByRole('button',{name:en?'Show summary':'সারাংশ দেখুন'}).click();
    await page.getByRole('button',{name:en?'Original Magic Patterns grouping':'মূল Magic Patterns গ্রুপিং'}).click();
-   assert.equal(await page.getByRole('heading',{name:'Sales & profit'}).count(),1,'unmodified original Magic Patterns component shown on demand');
+   assert.equal(await page.getByRole('heading',{name:'Sales & profit',exact:true}).count(),1,'unmodified original Magic Patterns component shown on demand');
    await page.getByRole('button',{name:en?'Original Sales & profit':'মূল বিক্রি ও লাভ'}).click();
    await page.locator('[data-magic-patterns-reports="sales"]').waitFor();
    assert.equal(await page.locator('[data-sales-hybrid]').count(),0,'original Sales & profit is separate');
