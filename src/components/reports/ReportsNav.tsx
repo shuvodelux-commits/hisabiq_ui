@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { ChevronRight } from "lucide-react";
+import { Fragment, useEffect, useRef } from "react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import { MotionTabIndicator, MotionTabList } from "../../motion/MotionTabList";
 import { useUiCopy } from "../../i18n/useUiCopy";
 import { reportScreens } from "../../reports/screens";
@@ -12,7 +12,7 @@ export function ReportsNav({
   value: ReportScreen;
   onChange: (screen: ReportScreen) => void;
 }) {
-  const { text } = useUiCopy(),
+  const { text, showHelper } = useUiCopy(),
     rail = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const selected = rail.current?.querySelector<HTMLElement>(
@@ -34,9 +34,10 @@ export function ReportsNav({
           className="flex w-max min-w-full gap-1"
         >
           {reportScreens.map((item, index) => (
+            <Fragment key={item.id}>
+             {index > 0 && reportScreens[index-1].premium && !item.premium && <span aria-hidden="true" className="mx-1 my-2.5 w-px shrink-0 bg-border" />}
             <button
               type="button"
-              key={item.id}
               id={"reports-screen-" + item.id}
               role="tab"
               aria-selected={value === item.id}
@@ -70,9 +71,12 @@ export function ReportsNav({
                   : "text-ink-500 hover:text-ink")
               }
             >
-              {text(item.en, item.bn)}
+              {item.premium && <Sparkles className="size-3 text-primary" aria-hidden="true" />}
+              <span>{text(item.en, item.bn)}</span>
+              {showHelper && <span className="hidden font-bn text-[11px] font-normal text-ink-500 xl:inline">{item.bn}</span>}
               <MotionTabIndicator active={value === item.id} />
             </button>
+            </Fragment>
           ))}
         </MotionTabList>
       </div>

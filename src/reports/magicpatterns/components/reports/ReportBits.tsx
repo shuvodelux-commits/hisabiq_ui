@@ -1,4 +1,11 @@
-import React, { useId, useState } from 'react';
+import React, { createContext, useContext, useId, useState } from 'react';
+export type EvidenceRequest = {report:string;label:string;field?:string;value?:string;date?:string};
+export const SourceEvidenceContext = createContext<((request:EvidenceRequest)=>void)|null>(null);
+export const KpiEvidenceContext = createContext<((label:string)=>void)|null>(null);
+export function SourceLink({report,label,field,value,children}:{report:string;label:string;field?:string;value?:string;children:React.ReactNode}){
+ const open=useContext(SourceEvidenceContext);
+ return <button type="button" className="text-left font-medium text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onClick={()=>open?.({report,label,field,value})}>{children}</button>;
+}
 import { ArrowDownRight, ArrowUpRight, Info } from 'lucide-react';
 import type { Tone } from '../../types/reports';
 
@@ -32,7 +39,7 @@ export function InfoTip({ text, label = 'More information' }: { text: React.Reac
         <span
           role="tooltip"
           id={id}
-          className="absolute left-1/2 top-full z-50 mt-1 w-64 -translate-x-1/2 rounded-lg border border-ink-100 bg-white px-3 py-2.5 text-left text-xs font-normal leading-relaxed text-ink-600 shadow-pop"
+          className="absolute left-1/2 top-full z-50 mt-1 w-64 -translate-x-1/2 rounded-lg border border-border bg-card px-3 py-2.5 text-left text-xs font-normal leading-relaxed text-ink-600 shadow-pop"
         >
           {text}
         </span>
@@ -65,18 +72,20 @@ type KpiProps = {
 };
 
 export function Kpi({ label, bn, value, tone = 'neutral', help, footer, onClick }: KpiProps) {
-  const Comp = onClick ? 'button' : 'div';
+  const evidence = useContext(KpiEvidenceContext);
+  const click = evidence ? () => evidence(label) : onClick;
+  const Comp = click ? 'button' : 'div';
   return (
     <Comp
-      {...(onClick ? { type: 'button' as const, onClick } : {})}
-      className={`min-w-0 rounded-xl border border-ink-100 bg-white p-3 text-left shadow-card sm:p-4 ${onClick ? 'transition-colors hover:border-teal-200' : ''}`}
+      {...(click ? { type: 'button' as const, onClick:click } : {})}
+      className={`min-w-0 rounded-xl border border-border bg-card p-3 text-left shadow-card sm:p-4 ${click ? 'transition-colors hover:border-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary' : ''}`}
     >
       <span className="flex items-center gap-1 text-xs text-ink-600">
         {label}
         {help && <InfoTip text={help} label={`About ${label}`} />}
       </span>
       {bn && <span className="block font-bn text-[11px] leading-4 text-ink-400">{bn}</span>}
-      <span className={`mt-1 block truncate text-xl font-semibold tracking-tight tabular-nums ${toneText[tone]}`}>{value}</span>
+      <span className={`mt-1 block truncate text-xl font-semibold tracking-tight ${toneText[tone]}`}>{value}</span>
       {footer && <span className="mt-1 block">{footer}</span>}
     </Comp>
   );
@@ -98,7 +107,7 @@ export function SectionNote({ children, tone = 'neutral' }: { children: React.Re
       ? 'border-warning/20 bg-warning-bg text-warning'
       : tone === 'teal'
         ? 'border-teal-200 bg-teal-50 text-teal-800'
-        : 'border-ink-100 bg-ink-50 text-ink-600';
+        : 'border-border bg-ink-50 text-ink-600';
   return (
     <div className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-xs leading-relaxed ${cls}`}>
       <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
