@@ -93,6 +93,19 @@ jobs:
         if: steps.scope.outputs.browser == 'true'
         run: npx playwright install --with-deps chromium
 
+      - name: Business Review monthly/yearly, bilingual, print and responsive smoke
+        if: steps.scope.outputs.reports == 'true'
+        run: npm run test:business-review
+
+      - name: Upload Business Review screenshots
+        if: always() && steps.scope.outputs.reports == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: business-review-${{ github.sha }}
+          path: test-results/business-review/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Magic Patterns Reports fidelity, route, interaction and responsive captures
         if: steps.scope.outputs.reports == 'true'
         run: npm run test:reports-magicpatterns
