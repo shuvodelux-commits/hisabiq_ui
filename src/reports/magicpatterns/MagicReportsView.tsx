@@ -1,9 +1,6 @@
 import { useCallback, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { useUiCopy } from '../../i18n/useUiCopy';
-import { reportDefinition } from '../catalog';
-import { runReport } from '../model';
-import { filtersForAnalysisReport } from '../screens';
 import type { ReportData, ReportFilters, ReportKey, ReportRow, ReportScreen } from '../types';
 import { useReportsCore } from './hooks/useReportsData';
 import { usePremiumInsights, defaultPremiumSettings } from './hooks/usePremiumInsights';
@@ -20,6 +17,7 @@ import { CashflowReport } from './components/reports/premium/CashflowReport';
 import { CustomersReport } from './components/reports/premium/CustomersReport';
 import { addDays, longDate, presetLabels } from './utils/reports/period';
 import type { PeriodPreset } from './types/reports';
+import { resolveMagicEvidence } from './evidence';
 
 type Props={screen:ReportScreen;data:ReportData;filters:ReportFilters;onFilters:(f:ReportFilters)=>void;onDetail:(r:ReportRow)=>void;onReport:(k:ReportKey)=>void;onScreen:(s:ReportScreen)=>void;scopeKey:string};
 const dateScreen=new Set<ReportScreen>(['overview','sales','money','profit','customers']);
@@ -39,18 +37,16 @@ export function MagicReportsView({screen,data,filters,onFilters,onDetail,onRepor
  const [settings,setSettings]=useState(defaultPremiumSettings);
  const [manualRange,setManualRange]=useState(false);
  const insights=usePremiumInsights(core,settings);
- const evidence=useCallback(({report,label,field,value,date}:EvidenceRequest)=>{
-  const key=reportDefinition(report).id;
-  const scoped={...filtersForAnalysisReport(key,filters,screen)};
-  if(date){scoped.from=date;scoped.to=date;}
-  const result=runReport(key,data,scoped);
-  const match=(r:ReportRow)=>!field||!value||String(r[field as 'id'|'productId'|'category'|'party'|'partyId']??'')===value
-    ||!!r.children?.some(child=>String(child[field as 'id'|'productId'|'category'|'party'|'partyId']??'')===value);
-  const contributors=result.rows.filter(match);
-  onDetail({id:'magic-evidence-'+screen+'-'+key+'-'+(value??date??'all'),label,date:date??'',status:'Evidence',values:{},
-   note:contributors.length?result.basis+' · Select the original supporting record to inspect its nested contributors.':
-   'No supporting source is available for this selection. No values have been fabricated.',children:contributors});
- },[data,filters,onDetail,screen]);
+ const evidence=useCallback((req:EvidenceRequest)=>{
+  if(screen==='cashflow'&&req.date&&req.date>data.asOf){
+   const day=insights.forecast.days.find(d=>d.date===req.date);
+   onDetail({id:'cash-projection-'+req.date,label:req.label,date:req.date,status:'Illustrative projection',
+    values:{inflow:day?.inflow??null,outflow:day?.outflow??null,balance:day?.balance??null},
+    note:'Forecast point, not a posted transaction. Customer payments '+settings.lateDays+' days later than usual, safety buffer '+settings.buffer+' BDT and stock purchases '+(settings.includePurchases?'included':'excluded')+'. Reconciled opening cash is unavailable. No source record or payment was created.'});
+   return;
+  }
+  onDetail(resolveMagicEvidence(req,data,filters,screen));
+ },[data,filters,onDetail,screen,settings,insights]);
  const kpiEvidence=useCallback((label:string)=>{
   if(screen==='cashflow'){
    onDetail({id:'forecast-assumptions-'+label,label,date:'',status:'Illustrative projection',values:{},

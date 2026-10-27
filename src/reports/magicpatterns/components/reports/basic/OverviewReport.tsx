@@ -8,6 +8,7 @@ import type { ReportsCore } from '../../../hooks/useReportsData';
 import type { Period } from '../../../types/reports';
 import { Delta, Kpi, SectionNote, ShareBar, SourceLink, SourceEvidenceContext } from '../ReportBits';
 import { useContext } from 'react';
+import { addDays } from '../../../utils/reports/period';
 
 type Props = { core: ReportsCore; period: Period; onOpen: (tab: string) => void };
 
@@ -89,7 +90,7 @@ export function OverviewReport({ core, period, onOpen }: Props) {
         <Panel title="Sales and gross profit" subtitle={`${period.label} · ${series.length > 45 ? 'weekly' : 'daily'} totals`}>
           <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} onClick={state=>{const day=(state?.activePayload?.[0]?.payload as {key?:string}|undefined)?.key;if(day)sourceEvidence?.({report:"sales-register",label:"Sales & gross profit · "+day,date:day});}}>
+              <AreaChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} onClick={state=>{const day=(state?.activePayload?.[0]?.payload as {key?:string}|undefined)?.key;if(day)sourceEvidence?.({report:"sales-register",label:"Sales & gross profit · "+day,date:day,toDate:period.days>45?(addDays(day,6)>period.to?period.to:addDays(day,6)):day});}}>
                 <CartesianGrid stroke="#E3E8EE" vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#5A6B80' }} tickLine={false} axisLine={false} minTickGap={24} />
                 <YAxis tick={{ fontSize: 11, fill: '#5A6B80' }} tickLine={false} axisLine={false} tickFormatter={takaCompact} width={52} />

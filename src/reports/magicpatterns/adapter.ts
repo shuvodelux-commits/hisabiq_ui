@@ -1,6 +1,6 @@
 import type { ReportData, ReportRow } from '../types';
 import type { ReportDataset, ReportProduct, ProductProfile, ReportCustomer } from './types/reports';
-import { addDays } from './utils/reports/period';
+import { addDays } from './utils/reports/period.ts';
 
 /** Presentation-only view model: all records come from the existing HisabIQ ReportData. */
 const n=(value:unknown):number|null=>typeof value==='number'&&Number.isFinite(value)?value:null;
@@ -25,7 +25,7 @@ export function toMagicReportsDataset(data:ReportData):ReportDataset {
    dueOverride:positive(r.values.due),payments,source:'Recorded' as const};
  });
  const purchases=data.purchases.map(r=>({id:r.id,date:r.date,supplierId:r.partyId??r.party??'unknown',supplier:r.party??'Unknown supplier',
- productId:'',name:r.label,category:'',qty:0,unit:'',unitCost:0,amount:positive(r.values.amount),paid:positive(r.values.paid),dueDate:r.date}));
+ productId:'',name:r.label,category:'',qty:0,unit:'',unitCost:0,amount:positive(r.values.amount),paid:positive(r.values.paid),dueDate:''}));
  const supplierIndex=new Map(purchases.map(p=>[p.supplierId,{id:p.supplierId,name:p.supplier,phone:'',area:''}]));
  const suppliers=[...supplierIndex.values()];
  const latestSoldPrice=new Map<string,number>();

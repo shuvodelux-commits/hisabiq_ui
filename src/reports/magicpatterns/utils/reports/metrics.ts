@@ -2,7 +2,7 @@
 
 import type { ReportProduct as Product } from '../../types/reports';
 import type { InvoiceRec, ProductProfile, ReportDataset, SaleLineRec } from '../../types/reports';
-import { addDays, diffDays, inRange, shortDate } from './period';
+import { addDays, diffDays, inRange, shortDate } from './period.ts';
 
 // ---------- Summary ----------
 
