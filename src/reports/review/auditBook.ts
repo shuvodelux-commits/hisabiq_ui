@@ -41,10 +41,15 @@ function rank(rows:ReportRow[],key:(r:ReportRow)=>string,label:(r:ReportRow)=>st
   .sort((a,b)=>b.amount-a.amount||a.label.localeCompare(b.label)).slice(0,5);
 }
 function trend(rows:ReportRow[],review:BusinessReviewResult):AuditRank[]{
- const isLong=review.months.length>1;
- const byWeek=(day:string)=>'Week '+(Math.floor((Number(day.slice(8,10))-1)/7)+1);
- const filtered=take(rows,review);
- return rank(filtered,r=>isLong?r.date.slice(0,7):byWeek(r.date),r=>isLong?r.date.slice(0,7):byWeek(r.date)).sort((a,b)=>isLong?a.id.localeCompare(b.id):a.id.localeCompare(b.id));
+ const isLong=review.months.length>1,groups=new Map<string,{cents:number;source:ReportRow[]}>();
+ for(const r of take(rows,review)){
+  if(!finite(r.values.amount))continue;
+  const id=isLong?r.date.slice(0,7):'Week '+(Math.floor((Number(r.date.slice(8,10))-1)/7)+1);
+  const current=groups.get(id)??{cents:0,source:[]};
+  current.cents+=cents(r.values.amount);current.source.push(r);groups.set(id,current);
+ }
+ return [...groups.entries()].sort(([a],[b])=>isLong?a.localeCompare(b):a.localeCompare(b))
+  .slice(-12).map(([id,value])=>({id,label:id,amount:round(value.cents),quantity:null,unit:'',source:value.source}));
 }
 export function buildAuditBook(data:ReportData,review:BusinessReviewResult):AuditBook{
  if(data.asOf!==review.request.asOf)throw new Error('Review and source snapshot do not have matching as-of dates');
@@ -58,7 +63,7 @@ export function buildAuditBook(data:ReportData,review:BusinessReviewResult):Audi
  return {
   review,
   topSelling:rank(lines,r=>r.productId??'',r=>r.label,'amount',true),
-  topCustomers:rank(sales,r=>r.partyId||r.party||'Walk-in',r=>r.party||'Walk-in customer'),
+  topCustomers:rank(sales,r=>r.partyId||(!r.party||/^walk[ -]?in|cash customer/i.test(r.party)?'':r.party),r=>r.party||'Unspecified customer'),
   topPerformers:rank(lines,r=>r.productId??'',r=>r.label,'profit',false,true),
   topSuppliers:rank(purchases,r=>r.partyId||r.party||'Unknown',r=>r.party||'Unspecified supplier'),
   topOrdered:rank(purchaseLines,r=>r.productId??'',r=>r.label,'amount',true),

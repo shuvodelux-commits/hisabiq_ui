@@ -99,7 +99,8 @@ export function auditBookHtml(book:AuditBook,language:UiLanguage='English + Bang
  '<div class="split">'+pieChart(t('Expense categories by recorded amount','খাতভিত্তিক ব্যয়ের অংশ'),formatRank(book.expenseCategories),language)+
  transactions(t('Largest recorded expenses','বড় ব্যয়ের তালিকা'),book.expenses,language)+'</div>'+
  barChart(t('Recorded expense-category amounts','ব্যয় খাতের পরিমাণ'),formatRank(book.expenseCategories),language);
- const cashBars=[{label:t('Money in','জমা'),amount:m.cashIn.value??0},{label:t('Money out','খরচ'),amount:m.cashOut.value??0}];
+ const cashBars=[{label:t('Money in','জমা'),amount:m.cashIn.value},{label:t('Money out','খরচ'),amount:m.cashOut.value}]
+  .filter((r):r is {label:string;amount:number}=>r.amount!==null);
  const advice=book.priorities.length?book.priorities.map((p,i)=>'<li><b>'+escape((i+1)+'. '+t(p.title,p.titleBn))+'</b><p>'+escape(t(p.description,p.descriptionBn))+'</p>'+
  '<small>'+escape(p.source.map(s=>s.label).slice(0,4).join(' · '))+'</small></li>').join(''):
  '<li>'+escape(t('No supported recommendation is available from these records.','এই রেকর্ড থেকে নিশ্চিত পরামর্শ নেই।'))+'</li>';
