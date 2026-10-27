@@ -1,9 +1,9 @@
-import { reportCatalog, reportDefinition } from './catalog.ts';
+import { reportDefinition } from './catalog.ts';
 import type { ReportFilters, ReportKey } from './types';
 
-export const salesExperimentReports=reportCatalog.filter(r=>r.group==='sales' && [
+export const salesExperimentReports:ReturnType<typeof reportDefinition>[]=([
  'sales-register','product-sales','category-sales','customer-sales','product-profit','sales-returns','discounts'
-].includes(r.id));
+] as const).map(reportDefinition);
 
 export function salesExperimentReportKey(requested?:string|null):ReportKey {
  return salesExperimentReports.find(r=>r.id===requested)?.id??'sales-register';
