@@ -1,3 +1,5 @@
+> Historical visual review, preserved below. Current Reports presentation and styling direction are defined by the [canonical26 October specification](../superpowers/specs/2026-10-26-hisabiq-reports-final-uiux-design.md) and current Visual component library. This dated review is not fresh rendered verification.
+
 # Reports workspace UI review — 2026-10-24
 
 ## Scope and authority

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { lockBodyScroll } from '../../utils/bodyScrollLock';
+import { useUiCopy } from '../../i18n/useUiCopy';
 
 /**
  * Party-local adaptation of the Magic Patterns Sheet: animated, portal-based,
@@ -20,6 +21,7 @@ export function PartyActionSheet({
   footer?: ReactNode;
   side?: 'bottom' | 'right';
 }) {
+  const { text, showHelper } = useUiCopy();
   const panel = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const id = useId();
@@ -88,10 +90,10 @@ export function PartyActionSheet({
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
               <div className="min-w-0">
                 <h2 id={id + '-title'} className="text-base font-semibold leading-snug text-ink">{title}</h2>
-                <p lang="bn" className="font-bn text-[13px] leading-snug text-ink-500">{titleBn}</p>
+                {showHelper && titleBn !== title && <p lang="bn" className="font-bn text-[13px] leading-snug text-ink-500">{titleBn}</p>}
               </div>
-              <button type="button" aria-label="Close" onClick={onClose} data-sheet-first
-                className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-600 transition-colors hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-teal-500">
+              <button type="button" aria-label={text('Close', 'বন্ধ করুন')} onClick={onClose} data-sheet-first
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-600 transition-colors hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-teal-500">
                 <X className="size-5" aria-hidden="true"/>
               </button>
             </div>

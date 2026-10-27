@@ -9,7 +9,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "preview": "npx vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "check:ui-contract": "node scripts/check-ui-design-contract.cjs && node --test tests/uiDesignContractGuard.test.cjs && node --test tests/workflowActionSizing.test.cjs && node scripts/check-input-focus.cjs && node scripts/audit-erp-controls.cjs",
+    "test:reports-magicpatterns": "node scripts/reports-magicpatterns-browser.cjs",
+    "check:ui-contract": "node scripts/sync-design-guide.cjs --check && node scripts/check-ui-design-contract.cjs && node --test tests/uiDesignContractGuard.test.cjs && node --test tests/workflowActionSizing.test.cjs && node scripts/check-input-focus.cjs && node scripts/audit-erp-controls.cjs",
     "cf:deploy": "npm run build && wrangler deploy",
     "cf:preview": "npm run build && wrangler preview",
     "test:theme": "node scripts/theme-browser.cjs",
@@ -111,7 +112,12 @@
     "audit:erp-controls": "node scripts/audit-erp-controls.cjs",
     "test:auth-login": "node scripts/auth-login-browser.cjs",
     "test:auth-settings": "node scripts/auth-settings-browser.cjs",
-    "test:table-typography": "node scripts/table-typography-browser.cjs"
+    "test:table-typography": "node scripts/table-typography-browser.cjs",
+    "sync:design-guide": "node scripts/sync-design-guide.cjs",
+    "check:design-guide": "node scripts/sync-design-guide.cjs --check",
+    "test:design-guide": "node scripts/design-guide-browser.cjs",
+    "export:component-library": "node scripts/export-component-library.cjs",
+    "test:reports-analysis": "node scripts/reports-analysis-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

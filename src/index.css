@@ -559,7 +559,13 @@
 
 /* HisabIQ source brand hierarchy: 36px ordinary controls, 48px explicit
    terminal transaction actions. Do not size generic primary buttons by color. */
-:root { --erp-control-height: 36px; --erp-workflow-action-height: 48px; }
+:root {
+  --erp-control-height: 36px;
+  --erp-workflow-action-height: 48px;
+  --erp-input-font-size: 13px;
+  --erp-input-line-height: 20px;
+  --erp-input-font-weight: 400;
+}
 :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button {
   height: var(--erp-control-height) !important;
@@ -755,4 +761,32 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   :is([data-table-helper], [data-table-badge], [data-bangla-helper], [data-slot="badge"]) {
   font-size: var(--erp-table-helper-size);
   line-height: 16px;
+}
+
+/* Entry values stay quieter than labels and totals, including inside medium
+   labels and joined numeric controls. The calculator owns its text scale. */
+:root:root:root :is(
+  [data-hisabiq-input],
+  [data-hisabiq-numeric],
+  .numeric-input-control,
+  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+    :is(input:not([data-calculator-input]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]), textarea)
+) {
+  font-size: var(--erp-input-font-size);
+  line-height: var(--erp-input-line-height);
+  font-weight: var(--erp-input-font-weight);
+  letter-spacing: normal;
+  color: rgb(var(--color-ink-600));
+  font-feature-settings: normal;
+  font-variant-numeric: normal;
+}
+:root:root:root :is(
+  [data-hisabiq-input],
+  .numeric-input-control,
+  :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
+    :is(input:not([data-calculator-input]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]), textarea)
+)::placeholder {
+  color: rgb(var(--color-muted-foreground));
+  font-weight: var(--erp-input-font-weight);
+  opacity: 1;
 }

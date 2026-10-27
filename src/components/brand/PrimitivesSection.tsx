@@ -41,7 +41,7 @@ const icons = [
 
 function Block({ title, children, className = '' }: {title: string;children: React.ReactNode;className?: string;}) {
   return (
-    <div className={`rounded-2xl border border-ink-100 bg-white p-6 ${className}`}>
+    <div className={`min-w-0 overflow-hidden rounded-2xl border border-ink-100 bg-white p-6 ${className}`}>
       <p className="mb-4 text-xs font-medium uppercase tracking-wider text-ink-400">{title}</p>
       {children}
     </div>);
@@ -58,7 +58,7 @@ export function PrimitivesSection() {
         description="Shadcn-based components tuned to HisabIQ: 10px radius, 1px Ink-100 borders, one shadow for floating layers, teal reserved for the action that matters." />
       
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Block title="Buttons" className="lg:col-span-2">
           <div className="flex flex-wrap items-center gap-2">
             <Button><Plus className="size-4" /> New sale</Button>
@@ -102,7 +102,7 @@ export function PrimitivesSection() {
               Amount
               <div className="relative mt-1.5">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">৳</span>
-                <Input className="pl-7 text-right tabular-nums" defaultValue="48,650" />
+                <Input className="pl-7 text-right" defaultValue="48,650" />
               </div>
             </label>
             <label className="block text-[13px] font-medium text-ink">
@@ -122,12 +122,12 @@ export function PrimitivesSection() {
               </div>
               <span className="flex size-7 items-center justify-center rounded-lg bg-ink-50 text-ink-700"><ArrowDownLeft className="size-3.5" /></span>
             </div>
-            <p className="mt-2 text-[22px] font-semibold tabular-nums tracking-tight">৳1,80,300</p>
+            <p className="mt-2 text-[22px] font-semibold tracking-tight">৳1,80,300</p>
             <p className="text-[11.5px] text-ink-500">From 6 parties · পাবো</p>
           </div>
           <div className="mt-3 rounded-xl border border-ink-100 bg-ink p-3.5 text-white">
             <p className="text-sm text-ink-300">Total payable · মোট</p>
-            <p className="text-right text-[28px] font-semibold tabular-nums">৳12,450</p>
+            <p className="text-right text-[28px] font-semibold">৳12,450</p>
           </div>
         </Block>
 
@@ -156,18 +156,18 @@ export function PrimitivesSection() {
                 ['Wire Mesh Net 3 ft', '3', 'Gauge', '180', '540']].
                 map((r, i) =>
                 <TableRow key={r[0]} className="text-[13px]">
-                    <TableCell className="py-2 pl-3 tabular-nums text-ink-400">{i + 1}.</TableCell>
+                    <TableCell className="py-2 pl-3 text-ink-400">{i + 1}.</TableCell>
                     <TableCell className="py-2 font-medium">{r[0]}</TableCell>
-                    <TableCell className="py-2 text-right tabular-nums">{r[1]}</TableCell>
+                    <TableCell className="py-2 text-right">{r[1]}</TableCell>
                     <TableCell className="py-2 text-ink-600">{r[2]}</TableCell>
-                    <TableCell className="py-2 text-right tabular-nums">৳{r[3]}</TableCell>
-                    <TableCell className="py-2 pr-3 text-right font-semibold tabular-nums">৳{r[4]}</TableCell>
+                    <TableCell className="py-2 text-right">৳{r[3]}</TableCell>
+                    <TableCell className="py-2 pr-3 text-right font-semibold">৳{r[4]}</TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </div>
-          <p className="mt-2 text-xs text-ink-500">36–40px rows, line numbers with a period, numbers right-aligned, units as plain words.</p>
+          <p className="mt-2 text-xs text-ink-500">Rows grow with content. Data 13px, headings 12px, helpers/badges 11px; numbers right-aligned and units as plain words.</p>
         </Block>
 
         <Block title="Iconography">

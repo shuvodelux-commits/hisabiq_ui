@@ -93,6 +93,19 @@ jobs:
         if: steps.scope.outputs.browser == 'true'
         run: npx playwright install --with-deps chromium
 
+      - name: Magic Patterns Reports fidelity, route, interaction and responsive captures
+        if: steps.scope.outputs.reports == 'true'
+        run: npm run test:reports-magicpatterns
+
+      - name: Upload draft Reports screenshots and browser diagnostics
+        if: always() && steps.scope.outputs.reports == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-magicpatterns-${{ github.sha }}
+          path: test-results/reports-magicpatterns/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Application navigation smoke
         if: steps.scope.outputs.browser == 'true'
         run: node scripts/page-loading-browser.cjs

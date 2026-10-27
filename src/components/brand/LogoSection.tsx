@@ -25,11 +25,11 @@ export function LogoSection() {
         description="The wordmark sets “Hisab” in Ledger Ink and “IQ” in Hisab Teal — one word, no space, capital H, I and Q. The mark compresses the same idea into a ledger-like H." />
       
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="flex min-h-[300px] flex-col justify-between rounded-2xl border border-ink-100 bg-white p-8">
           <p className="text-xs font-medium uppercase tracking-wider text-ink-400">Primary wordmark</p>
           <div className="flex flex-1 items-center justify-center py-8">
-            <Wordmark size={96} />
+            <Wordmark size={96} className="!text-[clamp(2.5rem,7vw,6rem)]" />
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-500">
             <span>Geist 650 · tracking −3.5%</span>
@@ -103,8 +103,8 @@ export function LogoSection() {
           bn="ফাঁকা জায়গা"
           description="Keep a margin of x on every side, where x is half the mark’s height. Below the minimum sizes, the double rule and dot lose clarity." />
         
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <div className="flex items-center justify-center rounded-2xl border border-ink-100 bg-white p-10">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
+          <div className="flex min-w-0 items-center justify-center overflow-x-auto rounded-2xl border border-ink-100 bg-white p-4 sm:p-10">
             <div className="relative" style={{ padding: 32 }}>
               <div
                 className="absolute inset-0 rounded-md border border-dashed border-teal-500 bg-teal-50"
@@ -128,7 +128,7 @@ export function LogoSection() {
               {[16, 24, 32, 48].map((s) =>
               <div key={s} className="flex flex-col items-center gap-2">
                   <LogoMark size={s} />
-                  <span className={`text-[11px] tabular-nums ${s === 16 ? 'font-semibold text-teal-700' : 'text-ink-500'}`}>{s}px</span>
+                  <span className={`text-[11px] ${s === 16 ? 'font-semibold text-teal-700' : 'text-ink-500'}`}>{s}px</span>
                 </div>
               )}
             </div>

@@ -35,7 +35,7 @@ export function ApplicationsSection() {
         description="The same ink, teal and double rule across the phone home screen, the printed invoice, the sign-in screen and an 80mm thermal receipt." />
       
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.6fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.6fr]">
         <Frame title="App icon" note="iOS · Android adaptive · favicon">
           <div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-8">
             <div className="flex items-end gap-6">

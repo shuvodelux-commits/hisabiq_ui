@@ -1,3 +1,5 @@
+> Historical delivered design. For subsequent Reports work, conflicting visual/navigation/demo guidance is superseded by the [canonical26 October specification](2026-10-26-hisabiq-reports-final-uiux-design.md). Existing behavior and source evidence remain valid references.
+
 # Reports workspace design
 
 The user requested implementation of the reporting roadmap with Superpowers and Impeccable, and selected Business overview as the default landing view. This request authorizes a working UI extension in hisabiq_ui, preserving the incumbent visual system.

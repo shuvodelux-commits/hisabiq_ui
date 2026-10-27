@@ -16,12 +16,12 @@ export function BrandHero() {
   const navigate = useNavigate();
   return (
     <section id="top" className="mx-auto max-w-[1280px] px-6 pb-16 pt-14">
-      <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
+      <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
         <div>
           <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-ink-100 bg-white px-3 py-1 text-xs text-ink-600 shadow-card">
             <span className="size-1.5 rounded-full bg-teal-600" /> Business management for Bangladesh SMEs
           </p>
-          <Wordmark size={88} />
+          <Wordmark size={88} className="!text-[clamp(3rem,10vw,5.5rem)]" />
           <p className="mt-6 font-bn text-2xl font-medium text-ink">সহজ হিসাব, স্মার্ট ব্যবসা</p>
           <p className="mt-1 text-xl text-ink-500">Simple accounts. Smarter business.</p>
 
