@@ -4,7 +4,7 @@ import { MotionTabList, MotionTabIndicator } from '../../../motion/MotionTabList
 import { downloadReport } from '../../../utils/reportOutput';
 type Kind='outline'|'ghost'|'default'|'primary';
 export function Button({kind='default',...rest}:{kind?:Kind}&ComponentProps<typeof HisabButton>){
- return <HisabButton {...rest} variant={kind==='default'?'default':kind}/>;
+ return <HisabButton {...rest} variant={kind==='primary'?'default':kind}/>;
 }
 export function Tabs({label,items,value,onChange}:{label:string;items:{id:string;label:string;count?:number}[];value:string;onChange:(v:string)=>void}){
  return <MotionTabList aria-label={label} className="flex min-w-max max-w-full gap-1 overflow-x-auto border-b border-border">
