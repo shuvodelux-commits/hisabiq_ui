@@ -47,7 +47,7 @@ test('switching detailed reports preserves period and comparison but drops inval
 });
 
 test('experiment uses the canonical historical-cost calculation without inventing gross profit',()=>{
- const report=runReport('product-profit',data,from);
+ const report=runReport('product-profit',data,{...from,party:'Rahman'});
  assert.equal(report.rows.some(r=>r.values.profit===null),true);
  assert.equal(data.saleLines[0].values.cost,null);
 });
