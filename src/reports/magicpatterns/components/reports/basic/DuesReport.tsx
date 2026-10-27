@@ -8,7 +8,7 @@ import { taka } from '../../../utils/currency';
 import { longDate } from '../../../utils/reports/period';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import type { OpenInvoice } from '../../../utils/reports/metrics';
-import { EmptyRow, Kpi, ShareBar, TableShell, Td, Th } from '../ReportBits';
+import { EmptyRow, Kpi, ShareBar, SourceLink, TableShell, Td, Th } from '../ReportBits';
 
 type View = 'customers' | 'suppliers';
 const buckets: OpenInvoice['bucket'][] = ['0–15 days', '16–30 days', '31–60 days', '60+ days'];
@@ -45,7 +45,7 @@ export function DuesReport({ core }: { core: ReportsCore }) {
         <Kpi label="Customers owe you" bn="গ্রাহকের পাওনা" value={taka(receivable)} tone="warning" onClick={() => setView('customers')} />
         <Kpi label="Older than 30 days" bn="৩০ দিনের বেশি" value={taka(bucketTotals[2].amount + bucketTotals[3].amount)} tone="danger" help="These are harder to collect. Call these customers first." />
         <Kpi label="You owe suppliers" bn="সরবরাহকারীর দেনা" value={taka(payable)} tone="danger" onClick={() => setView('suppliers')} />
-        <Kpi label="Supplier bills overdue" bn="মেয়াদোত্তীর্ণ" value={taka(overdueSupplier)} tone={overdueSupplier ? 'warning' : 'neutral'} help="Bills past their agreed payment date." />
+        <Kpi label="Supplier bills to review" bn="মেয়াদোত্তীর্ণ" value={taka(overdueSupplier)} tone={overdueSupplier ? 'warning' : 'neutral'} help="Bill dates reflect the recorded source; contractual due dates are not reliably available." />
       </div>
 
       <Panel title="How old are customer dues?" subtitle="Days since the bill date">
@@ -91,7 +91,7 @@ export function DuesReport({ core }: { core: ReportsCore }) {
                 return (
                   <tr key={c.id} className="border-t border-border hover:bg-ink-50/60">
                     <Td>
-                      <span className="font-medium text-ink">{c.name}</span>
+                      <SourceLink report="receivables" label={c.name} field="party" value={c.name}>{c.name}</SourceLink>
                       <span className="block text-[11px] text-ink-500">{c.phone}</span>
                     </Td>
                     <Td numeric>{c.bills}</Td>
@@ -125,7 +125,7 @@ export function DuesReport({ core }: { core: ReportsCore }) {
               {payables.length === 0 && <EmptyRow cols={5} message="You owe nothing to suppliers." />}
               {payables.map((p) => (
                 <tr key={p.supplier} className="border-t border-border hover:bg-ink-50/60">
-                  <Td><span className="font-medium text-ink">{p.supplier}</span></Td>
+                  <Td><SourceLink report="payables" label={p.supplier} field="party" value={p.supplier}>{p.supplier}</SourceLink></Td>
                   <Td className="text-ink-600">{p.source === 'Vendor ledger' ? <Link className="text-teal-700 hover:underline" to="/app/vendors">Vendor ledger</Link> : p.source}</Td>
                   <Td className="text-ink-600">{p.oldestDue ? longDate(p.oldestDue) : '—'}</Td>
                   <Td numeric className={p.overdue ? 'text-danger' : 'text-ink-400'}>{p.overdue ? taka(p.overdue) : '—'}</Td>

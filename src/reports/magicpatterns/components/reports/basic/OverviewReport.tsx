@@ -6,11 +6,13 @@ import { pctChange } from '../../../utils/reports/period';
 import { salesSeries } from '../../../utils/reports/metrics';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import type { Period } from '../../../types/reports';
-import { Delta, Kpi, SectionNote, ShareBar } from '../ReportBits';
+import { Delta, Kpi, SectionNote, ShareBar, SourceLink, SourceEvidenceContext } from '../ReportBits';
+import { useContext } from 'react';
 
 type Props = { core: ReportsCore; period: Period; onOpen: (tab: string) => void };
 
 export function OverviewReport({ core, period, onOpen }: Props) {
+  const sourceEvidence = useContext(SourceEvidenceContext);
   const { ds, current: c, previous: p, stats, open, payables, tied } = core;
   const series = salesSeries(ds, period.from, period.to);
   const receivable = open.reduce((s, o) => s + o.due, 0);
@@ -87,7 +89,7 @@ export function OverviewReport({ core, period, onOpen }: Props) {
         <Panel title="Sales and gross profit" subtitle={`${period.label} · ${series.length > 45 ? 'weekly' : 'daily'} totals`}>
           <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <AreaChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} onClick={state=>{const day=(state?.activePayload?.[0]?.payload as {key?:string}|undefined)?.key;if(day)sourceEvidence?.({report:"sales-register",label:"Sales & gross profit · "+day,date:day});}}>
                 <CartesianGrid stroke="#E3E8EE" vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#5A6B80' }} tickLine={false} axisLine={false} minTickGap={24} />
                 <YAxis tick={{ fontSize: 11, fill: '#5A6B80' }} tickLine={false} axisLine={false} tickFormatter={takaCompact} width={52} />
@@ -129,7 +131,7 @@ export function OverviewReport({ core, period, onOpen }: Props) {
             {topProducts.map((s) => (
               <li key={s.product.id} className="text-[13px]">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="truncate text-ink">{s.product.name}</span>
+                  <SourceLink report="product-sales" label={s.product.name} field="productId" value={s.product.id}>{s.product.name}</SourceLink>
                   <span className="shrink-0 font-medium tabular-nums">{taka(s.revenue)}</span>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
@@ -150,7 +152,7 @@ export function OverviewReport({ core, period, onOpen }: Props) {
               {expenseList.map(([cat, amount]) => (
                 <li key={cat} className="text-[13px]">
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-ink">{cat}</span>
+                    <SourceLink report="expense-categories" label={cat} field="category" value={cat}>{cat}</SourceLink>
                     <span className="font-medium tabular-nums">{taka(amount)}</span>
                   </div>
                   <div className="mt-1"><ShareBar value={amount / Math.max(1, c.expenses)} tone="ink" /></div>

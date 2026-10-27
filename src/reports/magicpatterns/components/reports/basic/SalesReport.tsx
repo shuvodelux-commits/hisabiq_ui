@@ -6,7 +6,7 @@ import { taka } from '../../../utils/currency';
 import { inRange } from '../../../utils/reports/period';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import type { Period } from '../../../types/reports';
-import { EmptyRow, SectionNote, ShareBar, TableShell, Td, Th } from '../ReportBits';
+import { EmptyRow, SectionNote, ShareBar, SourceLink, TableShell, Td, Th } from '../ReportBits';
 
 type View = 'product' | 'category' | 'customer' | 'day';
 type Row = { key: string; label: string; sub?: string; qty?: string; revenue: number; discount: number; profit: number | null; bills: number };
@@ -96,7 +96,7 @@ export function SalesReport({ core, period }: { core: ReportsCore; period: Perio
             {rows.map((r) => (
               <tr key={r.key} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
-                  <span className="font-medium text-ink">{r.label}</span>
+                  <SourceLink report={view==='product'?'product-sales':view==='category'?'category-sales':view==='customer'?'customer-sales':'sales-register'} label={r.label} field={view==='product'?'productId':view==='category'?'category':view==='customer'?'party':undefined} value={view==='customer'?r.label:r.key} date={view==='day'?r.key:undefined}>{r.label}</SourceLink>
                   {r.sub && <span className="block text-[11px] text-ink-500">{r.sub}</span>}
                 </Td>
                 <Td numeric>{r.bills}</Td>

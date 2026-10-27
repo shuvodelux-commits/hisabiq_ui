@@ -8,7 +8,7 @@ import { fmtQty, type BuyDecision } from '../../../utils/reports/planning';
 
 import type { PremiumInsights, PremiumSettings } from '../../../hooks/usePremiumInsights';
 import type { ReportsCore } from '../../../hooks/useReportsData';
-import { EmptyRow, Kpi, SectionNote, TableShell, Td, Th } from '../ReportBits';
+import { EmptyRow, Kpi, SectionNote, SourceLink, TableShell, Td, Th } from '../ReportBits';
 import { healthLabel, healthTone } from '../basic/StockReport';
 
 const decisionTone: Record<BuyDecision, StatusTone> = { 'Buy now': 'teal', 'Buy part': 'info', 'Wait — over budget': 'warning', 'Add cost first': 'neutral' };
@@ -97,7 +97,7 @@ export function BuyingReport({ core, insights, settings, onSettings }: Props) {
             {plan.rows.map((r) => (
               <tr key={r.stat.product.id} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
-                  <span className="font-medium text-ink">{r.stat.product.name}</span>
+                  <SourceLink report="reorder" label={r.stat.product.name} field="productId" value={r.stat.product.id}>{r.stat.product.name}</SourceLink>
                   <span className="mt-0.5 block"><StatusBadge tone={healthTone[r.stat.health]}>{healthLabel[r.stat.health]}</StatusBadge></span>
                 </Td>
                 <Td className="text-ink-600">{supplierOf(r.stat.profile.supplierId)}</Td>

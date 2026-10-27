@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, ReferenceLine } from 'recharts';
 import { Panel } from '../../Panel';
 import { StatusBadge, type StatusTone } from '../../StatusBadge';
@@ -7,7 +7,7 @@ import { taka, takaCompact } from '../../../utils/currency';
 import { categoryStats, type ProductStat, type Quadrant } from '../../../utils/reports/metrics';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import type { Period } from '../../../types/reports';
-import { EmptyRow, SectionNote, TableShell, Td, Th } from '../ReportBits';
+import { EmptyRow, SectionNote, SourceEvidenceContext, SourceLink, TableShell, Td, Th } from '../ReportBits';
 
 const quadrantInfo: Record<Quadrant, { tone: StatusTone; color: string; advice: string }> = {
   Star: { tone: 'success', color: '#15803D', advice: 'Never run out. Keep the price firm.' },
@@ -20,6 +20,7 @@ const quadrantInfo: Record<Quadrant, { tone: StatusTone; color: string; advice: 
 type View = 'products' | 'categories' | 'costs';
 
 export function ProfitReport({ core, period }: { core: ReportsCore; period: Period }) {
+  const sourceEvidence=useContext(SourceEvidenceContext);
   const [view, setView] = useState<View>('products');
   const c = core.current;
   const stats = core.stats.filter((s) => s.revenue > 0);
@@ -90,7 +91,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
                     );
                   }}
                 />
-                <Scatter data={scatter}>
+                <Scatter data={scatter} onClick={point=>{const d=point as {name?:string};const match=stats.find(s=>s.product.name===d.name);if(match)sourceEvidence?.({report:'product-profit',label:match.product.name,field:'productId',value:match.product.id});}}>
                   {scatter.map((d) => <Cell key={d.name} fill={quadrantInfo[d.quadrant].color} fillOpacity={0.75} />)}
                 </Scatter>
               </ScatterChart>
@@ -131,7 +132,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
               {ranked.length === 0 && <EmptyRow cols={8} message="No sales in this period." />}
               {ranked.map((s: ProductStat) => (
                 <tr key={s.product.id} className="border-t border-border hover:bg-ink-50/60">
-                  <Td><span className="font-medium text-ink">{s.product.name}</span><span className="block text-[11px] text-ink-500">{s.product.category}</span></Td>
+                  <Td><SourceLink report="product-profit" label={s.product.name} field="productId" value={s.product.id}>{s.product.name}</SourceLink><span className="block text-[11px] text-ink-500">{s.product.category}</span></Td>
                   <Td numeric>{taka(s.revenue)}</Td>
                   <Td numeric className={s.profit === null ? 'text-warning' : 'text-success'}>{s.profit === null ? 'Cost missing' : taka(s.profit)}</Td>
                   <Td numeric>{s.margin === null ? '—' : `${s.margin.toFixed(1)}%`}</Td>
@@ -152,7 +153,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
             <tbody>
               {cats.map((r) => (
                 <tr key={r.category} className="border-t border-border hover:bg-ink-50/60">
-                  <Td><span className="font-medium text-ink">{r.category}</span></Td>
+                  <Td><SourceLink report="category-sales" label={r.category} field="category" value={r.category}>{r.category}</SourceLink></Td>
                   <Td numeric>{taka(r.revenue)}</Td>
                   <Td numeric className="text-success">{taka(r.profit)}{!r.costed && <span className="text-warning">*</span>}</Td>
                   <Td numeric>{r.revenue ? `${((r.profit / r.revenue) * 100).toFixed(1)}%` : '—'}</Td>

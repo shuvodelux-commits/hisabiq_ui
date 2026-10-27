@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useContext } from 'react';
 import { ArrowRight, Check, CheckCircle2, RotateCcw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Panel } from '../../Panel';
@@ -8,7 +8,7 @@ import { taka } from '../../../utils/currency';
 import type { AdvisorArea, Recommendation, ReportsTab } from '../../../utils/reports/advisor';
 import type { PremiumInsights } from '../../../hooks/usePremiumInsights';
 import type { ReportsCore } from '../../../hooks/useReportsData';
-import { InfoTip, SectionNote } from '../ReportBits';
+import { InfoTip, SectionNote, SourceEvidenceContext } from '../ReportBits';
 
 type Props = { core: ReportsCore; insights: PremiumInsights; onOpen: (tab: ReportsTab) => void };
 
@@ -29,6 +29,7 @@ const readSaved = (): Saved => {
 
 export function AdvisorReport({ core, insights, onOpen }: Props) {
   const { recommendations, health } = insights;
+  const sourceEvidence=useContext(SourceEvidenceContext);
   const [area, setArea] = useState<'All' | AdvisorArea>('All');
   const [saved, setSaved] = useState<Saved>(readSaved);
   const [showHandled, setShowHandled] = useState(false);
@@ -160,7 +161,7 @@ export function AdvisorReport({ core, insights, onOpen }: Props) {
                     <Button kind="outline" onClick={() => { const n = { ...saved }; delete n[r.id]; persist(n); }}><RotateCcw className="size-4" />Restore</Button>
                   ) : (
                     <>
-                      <Button kind="outline" onClick={() => onOpen(r.tab)}>See details <ArrowRight className="size-4" /></Button>
+                      <Button kind="outline" onClick={() => sourceEvidence?.({report:r.tab==="buying"?"reorder":r.tab==="profit"?"product-profit":r.tab==="stock"?"low-stock":r.tab==="dues"?"collections":r.tab==="customers"?"customer-sales":r.tab==="money"?"cash-book":"sales-register",label:r.title})}>See details <ArrowRight className="size-4" /></Button>
                       <Button kind="outline" onClick={() => mark(r, 'done')}><Check className="size-4" />Mark done</Button>
                       <Button kind="ghost" onClick={() => mark(r, 'dismissed')}><X className="size-4" />Not now</Button>
                     </>

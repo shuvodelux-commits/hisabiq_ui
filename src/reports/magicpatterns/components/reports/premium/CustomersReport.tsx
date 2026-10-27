@@ -7,7 +7,7 @@ import { taka } from '../../../utils/currency';
 import type { CreditRisk, CustomerStatus } from '../../../utils/reports/metrics';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import type { Period } from '../../../types/reports';
-import { EmptyRow, Kpi, SectionNote, TableShell, Td, Th } from '../ReportBits';
+import { EmptyRow, Kpi, SectionNote, SourceLink, TableShell, Td, Th } from '../ReportBits';
 
 const statusTone: Record<CustomerStatus, StatusTone> = { Loyal: 'success', Regular: 'teal', New: 'info', 'At risk': 'warning', Lost: 'danger' };
 const riskTone: Record<CreditRisk, StatusTone> = { Low: 'success', Medium: 'warning', High: 'danger' };
@@ -72,7 +72,7 @@ export function CustomersReport({ core, period }: { core: ReportsCore; period: P
             {rows.map((c) => (
               <tr key={c.id} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
-                  <span className="font-medium text-ink">{c.name}</span>
+                  <SourceLink report="customer-sales" label={c.name} field="party" value={c.name}>{c.name}</SourceLink>
                   <a href={`tel:${c.phone}`} className="flex items-center gap-1 text-[11px] text-teal-700 hover:underline"><Phone className="size-3" />{c.phone}</a>
                 </Td>
                 <Td numeric>{taka(c.revenue)}</Td>

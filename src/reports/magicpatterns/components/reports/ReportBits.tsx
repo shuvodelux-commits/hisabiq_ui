@@ -2,9 +2,9 @@ import React, { createContext, useContext, useId, useState } from 'react';
 export type EvidenceRequest = {report:string;label:string;field?:string;value?:string;date?:string};
 export const SourceEvidenceContext = createContext<((request:EvidenceRequest)=>void)|null>(null);
 export const KpiEvidenceContext = createContext<((label:string)=>void)|null>(null);
-export function SourceLink({report,label,field,value,children}:{report:string;label:string;field?:string;value?:string;children:React.ReactNode}){
+export function SourceLink({report,label,field,value,date,children}:{report:string;label:string;field?:string;value?:string;date?:string;children:React.ReactNode}){
  const open=useContext(SourceEvidenceContext);
- return <button type="button" className="text-left font-medium text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onClick={()=>open?.({report,label,field,value})}>{children}</button>;
+ return <button type="button" className="text-left font-medium text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onClick={()=>open?.({report,label,field,value,date})}>{children}</button>;
 }
 import { ArrowDownRight, ArrowUpRight, Info } from 'lucide-react';
 import type { Tone } from '../../types/reports';

@@ -1,10 +1,11 @@
 import { Area, ComposedChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar } from 'recharts';
+import { useContext } from 'react';
 import { Panel } from '../../Panel';
 import { taka, takaCompact } from '../../../utils/currency';
 import { longDate } from '../../../utils/reports/period';
 import type { PremiumInsights, PremiumSettings } from '../../../hooks/usePremiumInsights';
 import type { ReportsCore } from '../../../hooks/useReportsData';
-import { InfoTip, Kpi, SectionNote, TableShell, Td, Th } from '../ReportBits';
+import { InfoTip, Kpi, SectionNote, SourceEvidenceContext, SourceLink, TableShell, Td, Th } from '../ReportBits';
 
 type Props = { core: ReportsCore; insights: PremiumInsights; settings: PremiumSettings; onSettings: (s: PremiumSettings) => void };
 
@@ -12,8 +13,9 @@ const buffers = [25000, 50000, 75000, 100000];
 const lateOptions = [0, 7, 15, 30];
 
 export function CashflowReport({ core, insights, settings, onSettings }: Props) {
+  const sourceEvidence=useContext(SourceEvidenceContext);
   const { forecast: f, wc } = insights;
-  const chart = f.days.map((d) => ({ label: d.label, balance: d.balance, in: d.inflow, out: -d.outflow }));
+  const chart = f.days.map((d) => ({ label: d.label, date:d.date, balance: d.balance, in: d.inflow, out: -d.outflow }));
   const collectSoon = core.open.filter((o) => o.age > 30).slice(0, 6);
 
   return (
@@ -56,7 +58,7 @@ export function CashflowReport({ core, insights, settings, onSettings }: Props) 
         </div>
         <div className="h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chart} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} stackOffset="sign">
+            <ComposedChart data={chart} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} stackOffset="sign" onClick={state=>{const d=(state?.activePayload?.[0]?.payload as {date?:string}|undefined)?.date;if(d)sourceEvidence?.({report:"cash-book",label:"Projected cash · "+d,date:d});}}>
               <CartesianGrid stroke="#E3E8EE" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#5A6B80' }} tickLine={false} axisLine={false} minTickGap={20} />
               <YAxis tick={{ fontSize: 11, fill: '#5A6B80' }} tickLine={false} axisLine={false} tickFormatter={takaCompact} width={56} />
@@ -125,7 +127,7 @@ export function CashflowReport({ core, insights, settings, onSettings }: Props) 
               <ul className="mt-1.5 space-y-1 text-[13px]">
                 {collectSoon.map((o) => (
                   <li key={o.invoice.id} className="flex justify-between gap-3">
-                    <span className="truncate">{o.invoice.customer} <span className="text-[11px] text-ink-500">· {o.invoice.id} · {o.age} days</span></span>
+                    <span className="truncate"><SourceLink report="receivables" label={o.invoice.customer} field="id" value={o.invoice.id}>{o.invoice.customer}</SourceLink> <span className="text-[11px] text-ink-500">· {o.invoice.id} · {o.age} days</span></span>
                     <span className="shrink-0 font-medium text-warning">{taka(o.due)}</span>
                   </li>
                 ))}

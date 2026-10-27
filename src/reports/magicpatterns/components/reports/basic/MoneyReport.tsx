@@ -7,7 +7,7 @@ import { taka } from '../../../utils/currency';
 import { inRange, longDate, pctChange } from '../../../utils/reports/period';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import type { Period } from '../../../types/reports';
-import { Delta, EmptyRow, Kpi, SectionNote, ShareBar, TableShell, Td, Th } from '../ReportBits';
+import { Delta, EmptyRow, Kpi, SectionNote, ShareBar, SourceLink, TableShell, Td, Th } from '../ReportBits';
 
 export function MoneyReport({ core, period }: { core: ReportsCore; period: Period }) {
   const { ds, current: c, previous: p } = core;
@@ -59,7 +59,7 @@ export function MoneyReport({ core, period }: { core: ReportsCore; period: Perio
               {categories.length === 0 && <EmptyRow cols={5} message="No expenses recorded." />}
               {categories.map((r) => (
                 <tr key={r.category} className="border-t border-border hover:bg-ink-50/60">
-                  <Td><span className="font-medium text-ink">{r.category}</span><span className="block text-[11px] text-ink-500">{r.count} entries</span></Td>
+                  <Td><SourceLink report="expense-categories" label={r.category} field="category" value={r.category}>{r.category}</SourceLink><span className="block text-[11px] text-ink-500">{r.count} entries</span></Td>
                   <Td className="w-32"><ShareBar value={c.expenses ? r.now / c.expenses : 0} tone="ink" /></Td>
                   <Td numeric className="text-ink-500">{taka(r.before)}</Td>
                   <Td numeric>{taka(r.now)}</Td>
@@ -96,7 +96,7 @@ export function MoneyReport({ core, period }: { core: ReportsCore; period: Perio
             {recent.map((e) => (
               <tr key={e.id} className="border-t border-border">
                 <Td className="text-xs text-ink-500">{longDate(e.date)}</Td>
-                <Td>{e.category}</Td>
+                <Td><SourceLink report="expenses" label={e.category+" · "+e.id} field="id" value={e.id}>{e.category}</SourceLink></Td>
                 <Td className="text-ink-600">{e.payee}</Td>
                 <Td className={e.hasReceipt ? 'text-ink-500' : 'text-warning'}>{e.hasReceipt ? 'Attached' : 'Missing'}</Td>
                 <Td numeric>{taka(e.amount)}</Td>
@@ -105,7 +105,7 @@ export function MoneyReport({ core, period }: { core: ReportsCore; period: Perio
           </tbody>
         </TableShell>
       </Panel>
-      <SectionNote>Product purchases are stock, not expenses — they become cost only when the items are sold. Account balances are the opening balances of this demo.</SectionNote>
+      <SectionNote>Product purchases are stock, not expenses — they become cost only when the items are sold. Account balances are not reconstructed by this preview.</SectionNote>
     </div>
   );
 }

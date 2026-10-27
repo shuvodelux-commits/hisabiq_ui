@@ -7,7 +7,7 @@ import { taka } from '../../../utils/currency';
 import { fmtQty } from '../../../utils/reports/planning';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import type { StockHealth } from '../../../utils/reports/metrics';
-import { EmptyRow, Kpi, SectionNote, TableShell, Td, Th } from '../ReportBits';
+import { EmptyRow, Kpi, SectionNote, SourceLink, TableShell, Td, Th } from '../ReportBits';
 
 type Filter = 'all' | 'low' | 'slow';
 
@@ -48,7 +48,7 @@ export function StockReport({ core }: { core: ReportsCore }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Stock value" bn="স্টকের মূল্য" value={taka(value)} tone="teal" help="Units in stock × latest purchase cost. Items without a cost are not included." />
+        <Kpi label="Stock value" bn="স্টকের মূল্য" value={taka(value)} tone="teal" help="Valued from reconciled available stock lots only. Unknown costs remain unavailable." />
         <Kpi label="Low or out of stock" bn="কম স্টক" value={String(low.length)} tone={low.length ? 'danger' : 'success'} help="Products that may run out before the supplier can deliver." onClick={() => setFilter('low')} />
         <Kpi label="Slow-moving stock" bn="ধীরে বিক্রি" value={taka(slowValue)} tone={slowValue ? 'warning' : 'neutral'} help="Value of stock beyond what you need for about 45 days of sales." onClick={() => setFilter('slow')} />
         <Kpi label="Products tracked" bn="পণ্য" value={String(stats.length)} help="Active stock products in this report." />
@@ -85,7 +85,7 @@ export function StockReport({ core }: { core: ReportsCore }) {
             {rows.map((s) => (
               <tr key={s.product.id} className="border-t border-border hover:bg-ink-50/60">
                 <Td>
-                  <span className="font-medium text-ink">{s.product.name}</span>
+                  <SourceLink report="stock" label={s.product.name} field="productId" value={s.product.id}>{s.product.name}</SourceLink>
                   <span className="block text-[11px] text-ink-500">{s.product.category}</span>
                 </Td>
                 <Td numeric>{s.product.stock.toLocaleString('en-IN')} <span className="font-normal text-ink-500">{s.product.unit}</span></Td>
