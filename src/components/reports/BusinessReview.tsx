@@ -13,6 +13,8 @@ import { useUiCopy } from '../../i18n/useUiCopy';
 import { taka, formatNumber } from '../../utils/currency';
 import { downloadReport, printReport } from '../../utils/reportOutput';
 import { buildBusinessReview, reviewPeriod } from '../../reports/review/businessReview';
+import { buildAuditBook } from '../../reports/review/auditBook';
+import { printAuditBook } from '../../reports/review/auditBookHtml';
 import type { ReviewMode, ReviewMetricKey, ReviewMetric, Readiness } from '../../reports/review/types';
 import type { ReportData, ReportRow } from '../../reports/types';
 
@@ -82,6 +84,11 @@ export function BusinessReview({data}:{data:ReportData}){
  const headings=[text('Month','মাস'),...columns.map(k=>text(label(k).en,label(k).bn)),text('Readiness','তথ্যের অবস্থা')];
  const printDraft=(monthly=false)=>{
   if(!report)return;
+  if(!monthly){
+   if(!printAuditBook(buildAuditBook(data,report),language))
+    toast.error(text('Allow the print popup and try again.','প্রিন্টের অনুমতি দিয়ে আবার চেষ্টা করুন।'));
+   return;
+  }
   const source=monthly?{title:text('Monthly audit schedule — draft','মাসিক অডিট বিবরণ — খসড়া'),headers:headings,rows:monthRows()}:
    {title:text('Internal business audit sheet — NOT certified','অভ্যন্তরীণ অডিট শিট — প্রত্যয়িত নয়'),
     headers:[text('Measure','হিসাব'),text('Recorded amount','লিখিত পরিমাণ'),text('Readiness','তথ্যের অবস্থা')],
@@ -156,8 +163,8 @@ export function BusinessReview({data}:{data:ReportData}){
   </section>}
   {report&&active==='documents'&&<section className="space-y-3 rounded-xl border border-border bg-card p-4">
    <h3 className="text-sm font-semibold text-ink">{text('Generate a draft internal audit sheet','অভ্যন্তরীণ অডিট শিটের খসড়া')}</h3>
-   <p className="text-sm text-ink-600">{text('Print your owner summary or the month-by-month supporting schedule; export recorded figures as CSV. Browser Print can save PDF. A certified report, bank-approved document or XLSX generator is not available.','সারাংশ বা মাসভিত্তিক বিবরণ প্রিন্ট করুন এবং সিএসভি নিন। ব্রাউজার প্রিন্ট থেকে পিডিএফ রাখা যায়। প্রত্যয়িত বা ব্যাংক অনুমোদিত নথি এবং এক্সেল জেনারেটর এখানে নেই।')}</p>
-   <div className="flex flex-wrap gap-2"><Button onClick={()=>printDraft()}><Printer className="size-4"/>{text('Print owner summary','সারাংশ প্রিন্ট')}</Button>
+   <p className="text-sm text-ink-600">{text('Print the five-page A4 portrait illustrated audit pack, or the separate monthly supporting schedule. Save PDF from the browser print dialog. Charts and rankings use recorded sources; this is not a certified report.','চিত্রসহ পাঁচ পাতার A4 অডিট রিপোর্ট অথবা আলাদা মাসভিত্তিক বিবরণ প্রিন্ট করুন। প্রিন্ট থেকে পিডিএফ রাখতে পারবেন। সব চার্ট ও তালিকা মূল তথ্যভিত্তিক; এটি প্রত্যয়িত অডিট নয়।')}</p>
+   <div className="flex flex-wrap gap-2"><Button onClick={()=>printDraft()}><Printer className="size-4"/>{text('Print 5-page A4 audit report','৫ পাতার A4 অডিট রিপোর্ট প্রিন্ট')}</Button>
     <Button variant="outline" onClick={()=>printDraft(true)}><FileText className="size-4"/>{text('Print monthly schedule','মাসভিত্তিক বিবরণ প্রিন্ট')}</Button>
     <Button variant="outline" onClick={csv}><ArrowDownToLine className="size-4"/>{text('Download CSV','সিএসভি নামান')}</Button>
     <Button variant="outline" onClick={saveSession}><Save className="size-4"/>{text('Keep draft this session','এই সেশনে খসড়া রাখুন')}</Button>

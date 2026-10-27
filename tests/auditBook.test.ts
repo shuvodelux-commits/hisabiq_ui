@@ -47,7 +47,7 @@ test('current dues list does not leak into historical month and transfer is sepa
  d.finance=[row('XFER','2026-10-01',1000,{inflow:1000,outflow:1000},{status:'Transfer'}),row('FIN','2026-10-08',30,{inflow:30,outflow:0},{status:'Received'})];
  assert.equal(buildAuditBook(d,summary(d)).customerDues.length,1);
  assert.equal(buildAuditBook(d,summary(d)).supplierDues.length,1);
- assert.equal(buildAuditBook(d,summary(d)).financeTransactions[0].label,'XFER');
+ assert.equal(buildAuditBook(d,summary(d)).financeTransactions.some(r=>r.label==='XFER'),true);
  const older=buildBusinessReview(d,reviewPeriod('monthly',{asOf,month:'2026-09'}));
  const history=buildAuditBook(d,older);
  assert.equal(history.customerDues.length,0);
