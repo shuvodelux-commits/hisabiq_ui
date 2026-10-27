@@ -3,7 +3,7 @@ import { getSalesPreviewSnapshot, subscribeSalesPreview } from '../data/salesPre
 import { getProductImportPreviewSnapshot, subscribeProductImportPreview } from '../data/productImportPreviewStore';
 import { getExpensePreviewSnapshot, subscribeExpensePreview } from '../data/expensePreviewStore';
 import { getFinancePreviewSnapshot, subscribeFinancePreview } from '../data/financePreviewStore';
-import { availableProducts, availablePurchases, availablePurchaseEvents, availableStockLots, availableStockMovements } from '../data/erpDemoStore';
+import { availableProducts, availablePurchases, availablePurchaseEvents, availableStockLots, availableStockMovements, getPurchasesPreviewRevision, subscribePurchasesPreview } from '../data/erpDemoStore';
 import { daybookTransactions } from '../data/daybook';
 import { warrantyCases } from '../data/warranty';
 import { businessToday, expenseDateIso } from '../utils/dateRange';
@@ -15,6 +15,7 @@ export function useReportData(refresh:number) {
  const products=useSyncExternalStore(subscribeProductImportPreview,getProductImportPreviewSnapshot);
  const expenses=useSyncExternalStore(subscribeExpensePreview,getExpensePreviewSnapshot);
  const finance=useSyncExternalStore(subscribeFinancePreview,getFinancePreviewSnapshot);
+ const purchasesRevision=useSyncExternalStore(subscribePurchasesPreview,getPurchasesPreviewRevision);
  return useMemo(()=>{
   const purchases=availablePurchases();
   const lots=availableStockLots().map(lot=>{
@@ -34,6 +35,6 @@ export function useReportData(refresh:number) {
   return buildReportData({asOf:businessToday(),invoices:sales.invoices,returns:sales.returns,purchases,purchaseEvents:availablePurchaseEvents(),expenses:expenses.expenses,
    products:availableProducts(),lots,movements:availableStockMovements(),warranty:warrantyCases,
    transactions:[...financial,...daybookTransactions.filter(t=>['customer-payment','supplier-payment','cheque','transfer'].includes(t.source))]});
- },[sales,products,expenses,finance,refresh]);
+ },[sales,products,expenses,finance,purchasesRevision,refresh]);
 }
 

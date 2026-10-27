@@ -10,6 +10,10 @@ Start with the canonical documents below. They consolidate the five 26 October p
 | [Workflow test matrix](../reports-uiux-workflow-test-matrix.md) | Concrete interaction/data/visual/language/theme/device/accessibility gates |
 | [Consolidation source and review record](2026-10-26-consolidation-review.md) | Exact source versions, independent findings, synchronization and checks actually run |
 
+## Implementation progress
+
+The [27 October first Reports UI build](2026-10-27-report-ui-first-build.md) records the initial implementation slice, exact delivered behaviors, verification and remaining canonical tasks. The [review/decision record](2026-10-27-first-build-review.md) and [eight UI captures](qa-2026-10-27/) accompany it. It supersedes this documentation branch’s earlier authorization boundary only for the newly requested implementation; it does not mark the whole plan complete.
+
 ## Read order and authority
 
 Read [AGENTS](../../../AGENTS.md) → [v2.2 guide](../HISABIQ-DESIGN-GUIDE.md) → specification → relevant existing contract/actual source → component mapping → implementation plan/QA. Current explicit user choices and narrower current contracts retain priority. Magic Patterns Reports is the page-composition reference; the current visual library is the control-styling reference; GitHub is the implementation source of truth.

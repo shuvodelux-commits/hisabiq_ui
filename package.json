@@ -115,7 +115,8 @@
     "sync:design-guide": "node scripts/sync-design-guide.cjs",
     "check:design-guide": "node scripts/sync-design-guide.cjs --check",
     "test:design-guide": "node scripts/design-guide-browser.cjs",
-    "export:component-library": "node scripts/export-component-library.cjs"
+    "export:component-library": "node scripts/export-component-library.cjs",
+    "test:reports-analysis": "node scripts/reports-analysis-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

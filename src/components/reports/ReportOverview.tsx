@@ -1,12 +1,12 @@
 import { ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle } from 'lucide-react';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { ReportSalesTrend } from './ReportSalesTrend';
 import { Button } from '../Button';
 import { StatusBadge } from '../StatusBadge';
 import { ReportHelp, ReportLabel } from './ReportGuidance';
 import { reportToneClass, type ReportTone } from '../../reports/guidance';
 import { Panel } from '../Panel';
 import { useUiCopy } from '../../i18n/useUiCopy';
-import { taka, takaCompact, formatNumber } from '../../utils/currency';
+import { taka, formatNumber } from '../../utils/currency';
 import { runReport } from '../../reports/model';
 import { reportDefinition } from '../../reports/catalog';
 import type { ReportData, ReportFilters, ReportKey, ReportResult, ReportRow } from '../../reports/types';
@@ -14,8 +14,9 @@ import type { ReportData, ReportFilters, ReportKey, ReportResult, ReportRow } fr
 export function ReportOverview({data,filters,current,previous,onReport,onDetail}:{data:ReportData;filters:ReportFilters;current:ReportResult;previous:ReportResult|null;onReport:(key:ReportKey)=>void;onDetail:(r:ReportRow)=>void}){
  const {text,language}=useUiCopy();
  const related={...filters,category:'',brand:'',product:'',user:'',status:'',account:''};
- const purchases=runReport('purchases',data,related),expenses=runReport('expenses',data,related),returns=runReport('sales-returns',data,related);
+ const purchases=runReport('purchases',data,related),expenses=runReport('expenses',data,related);
  const receivables=runReport('receivables',data,related),payables=runReport('payables',data,related);
+ const cash=runReport('cash-book',data,related);
  const profit=runReport('product-profit',data,filters);
  const cards:{en:string;bn:string;value:number|null;key:ReportKey;note:string;noteBn:string}[]=[
   {en:'Recorded sales',bn:'লেখা বিক্রয়',value:current.totals.amount,key:'sales-register',note:'Before recorded returns',noteBn:'লেখা ফেরতের আগে'},
@@ -23,10 +24,10 @@ export function ReportOverview({data,filters,current,previous,onReport,onDetail}
   {en:'Recorded purchases',bn:'লেখা ক্রয়',value:purchases.totals.amount,key:'purchases',note:'Selected period',noteBn:'নির্বাচিত সময়কাল'},
   {en:'Recorded expenses',bn:'লেখা খরচ',value:expenses.totals.amount,key:'expenses',note:'Not a complete P&L',noteBn:'পূর্ণ লাভ-ক্ষতির হিসাব নয়'},
   {en:'Customer outstanding',bn:'গ্রাহকের কাছে পাওনা',value:receivables.totals.due,key:'receivables',note:'Current invoice balances',noteBn:'বিলের বর্তমান বাকি'},
-  {en:'Supplier outstanding',bn:'সরবরাহকারীর দেনা',value:payables.totals.due,key:'payables',note:'Current bill balances',noteBn:'ক্রয় বিলের বর্তমান বাকি'}
+  {en:'Supplier outstanding',bn:'সরবরাহকারীর দেনা',value:payables.totals.due,key:'payables',note:'Current bill balances',noteBn:'ক্রয় বিলের বর্তমান বাকি'},
+  {en:'Recorded money in',bn:'লেখা টাকা এসেছে',value:cash.totals.inflow,key:'cash-book',note:'Recorded payment movements',noteBn:'সংরক্ষিত পেমেন্টের চলাচল'},
+  {en:'Recorded money out',bn:'লেখা টাকা গেছে',value:cash.totals.outflow,key:'cash-book',note:'Not a reconciled cash balance',noteBn:'মিলিয়ে নেওয়া ক্যাশের জের নয়'}
  ];
- const buckets=new Map<string,number>();for(const r of current.rows)buckets.set(r.date,(buckets.get(r.date)??0)+Number(r.values.amount));
- const trend=[...buckets].sort(([a],[b])=>a.localeCompare(b)).map(([date,amount])=>({date:date.slice(5),amount}));
  const top=runReport('product-sales',data,{...filters,sort:'amount',direction:'desc'}).rows.slice(0,5);
  const expenseRows=runReport('expense-categories',data,{...related,sort:'amount',direction:'desc'}).rows;
  const urgent=data.stock.filter(r=>r.status!=='In stock'),expiry=data.lots.filter(r=>r.status==='Expired'||r.status==='Expiring soon');
@@ -38,12 +39,12 @@ export function ReportOverview({data,filters,current,previous,onReport,onDetail}
  ];
  const difference=previous&&current.rows.length&&previous.rows.length?Number(current.totals.amount)-Number(previous.totals.amount):null;
  return <div className="space-y-4">
-  <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{cards.map(card=>{
-   const tone:ReportTone=card.value===null||card.key==='receivables'?'warning':card.key==='purchases'?'info':['expenses','payables'].includes(card.key)||Number(card.value)<0?'danger':'success';
+  <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">{cards.map(card=>{
+   const tone:ReportTone=card.value===null?'warning':card.key==='purchases'?'info':['expenses','payables'].includes(card.key)||card.en==='Recorded money out'||Number(card.value)<0?'danger':'success';
    const guide=card.key==='product-profit'?'profit':['receivables','payables'].includes(card.key)?'due':'amount';
-   return <div key={card.key} data-report-summary={card.key} data-report-tone={tone} className="rounded-xl border border-border bg-card p-3 text-left sm:p-4">
+   return <div key={card.en} data-report-summary={card.key} data-report-tone={tone} className="rounded-xl border border-border bg-card p-3 text-left sm:p-4">
     <div className="flex items-start justify-between gap-1 text-xs text-ink-600"><ReportLabel en={card.en} bn={card.bn}/><ReportHelp guide={guide} label={text(card.en,card.bn)}/></div>
-    <button type="button" aria-label={text('Open '+card.en,card.bn+' দেখুন')} onClick={()=>onReport(card.key)} className="block h-auto min-h-0 w-full rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+    <button type="button" aria-label={text('Open '+card.en,card.bn+' দেখুন')} onClick={()=>onDetail({id:'summary-'+card.en,label:text(card.en,card.bn),date:data.asOf,status:'Demo data',values:{amount:card.value},note:text(card.note,card.noteBn),children:runReport(card.key,data,related).rows})} className="block h-auto min-h-0 w-full rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
      <span className={'mt-1 block text-xl font-semibold tracking-tight '+reportToneClass[tone]}>{card.value===null?'—':taka(card.value)}</span>
      <span className="mt-1 block text-[11px] text-ink-500">{card.value===null?<StatusBadge tone="warning">{text('Historical cost missing','ঐতিহাসিক খরচ নেই')}</StatusBadge>:text(card.note,card.noteBn)}</span>
     </button>
@@ -54,16 +55,7 @@ export function ReportOverview({data,filters,current,previous,onReport,onDetail}
    {difference===null?text('Comparable source records are missing in one period; no percentage has been invented.','একটি সময়কালে তুলনাযোগ্য রেকর্ড নেই; শতাংশ অনুমান করা হয়নি।'):text('Recorded sales change: ','লেখা বিক্রয়ের পরিবর্তন: ')+taka(difference)}
   </div>}
   <div className="grid gap-4 xl:grid-cols-3">
-   <Panel title={text('Sales over time','সময়ের সঙ্গে বিক্রয়')} subtitle={text('Actual source dates in this selection','নির্বাচিত রেকর্ডের প্রকৃত তারিখ')} className="xl:col-span-2">
-    {trend.length?<div role="img" aria-label={text('Sales trend. Exact source totals are available in the report table below.','বিক্রয়ের পরিবর্তন। সঠিক মূল রেকর্ড নিচের টেবিলে আছে।')} className="h-[250px]">
-     <ResponsiveContainer width="100%" height="100%"><AreaChart data={trend} margin={{top:12,right:12,left:0,bottom:0}} accessibilityLayer={false}>
-      <CartesianGrid stroke="var(--border)" vertical={false}/><XAxis dataKey="date" tickLine={false} axisLine={false} tick={{fill:'var(--helper)',fontSize:11}}/><YAxis tickFormatter={takaCompact} tickLine={false} axisLine={false} width={55} tick={{fill:'var(--helper)',fontSize:11}}/>
-      <Tooltip formatter={(v:number)=>[taka(v),text('Recorded sales','লেখা বিক্রয়')]} contentStyle={{background:'var(--popover)',border:'1px solid var(--border)',borderRadius:8,color:'var(--foreground)',fontSize:12}}/>
-      <Area dataKey="amount" type="linear" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.08} strokeWidth={2} isAnimationActive={false}/>
-     </AreaChart></ResponsiveContainer>
-    </div>:<div className="flex h-[250px] items-center justify-center text-sm text-ink-500">{text('No sales in this period.','এই সময়কালে বিক্রয় নেই।')}</div>}
-    <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-ink-500"><span>{text('Recorded returns: ','লেখা ফেরত: ')+taka(returns.totals.amount??0)}</span><Button variant="ghost" size="sm" onClick={()=>onReport('sales-returns')}>{text('Review returns','ফেরত দেখুন')}<ArrowRight className="size-3" aria-hidden="true"/></Button></div>
-   </Panel>
+   <ReportSalesTrend rows={current.rows} onDetail={onDetail} className="xl:col-span-2"/>
    <Panel title={text('Where to focus','যেখানে নজর দেবেন')} subtitle={text('Review first, then decide','আগে দেখুন, তারপর সিদ্ধান্ত নিন')} bodyClassName="p-1.5">
     <ul className="divide-y divide-border">{alerts.map(a=><li key={a.key}><button type="button" className="flex h-auto min-h-0 w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={()=>onReport(a.key)}><span className="min-w-0 flex-1"><span className="block text-[13px] font-medium text-ink">{text(a.en,a.bn)}</span><span className="mt-0.5 block text-xs text-ink-500">{text(a.hint,a.hintBn)}</span></span><StatusBadge tone={a.count===0?'neutral':a.key==='expiry'?'danger':'warning'}>{formatNumber(a.count)}</StatusBadge></button></li>)}</ul>
    </Panel>

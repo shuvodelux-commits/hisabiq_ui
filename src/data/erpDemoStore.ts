@@ -1,7 +1,7 @@
 import {demoPermissions,sourcePermissionGroup} from '../utils/permissions.ts';
 import {purchasePosition, returnedQuantity, sourceEditable, validatePurchaseSource, validatePurchaseSplits, purchaseReturnQuote, type PurchaseSourceEvent} from '../utils/purchaseSource.ts';
 import {toPaisa,validateBusinessDate} from '../utils/partyPayment.ts';
-import type { LedgerEntry, Party, Product, Purchase, StockLot, PaymentSplit } from '../types/erp';
+import type { LedgerEntry, Party, Product, Purchase, StockLot, StockMovement, PaymentSplit } from '../types/erp';
 import { purchases as seedPurchases, expenseCategories } from './purchases.ts';
 import { ledgerEntries as seedLedgerEntries } from './parties.ts';
 import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore.ts';
@@ -18,6 +18,11 @@ const inactiveExpenseCategories = new Set<string>();
 const renamedExpenseCategories = new Map<string, string>();
 const createdPurchases: Purchase[] = [];
 const purchaseEvents: PurchaseSourceEvent[] = [];
+let purchasesRevision=0;
+const purchaseListeners=new Set<()=>void>();
+export const getPurchasesPreviewRevision=()=>purchasesRevision;
+export function subscribePurchasesPreview(listener:()=>void) {purchaseListeners.add(listener);return ()=>{purchaseListeners.delete(listener);};}
+function publishPurchases(){purchasesRevision++;for(const listener of purchaseListeners)listener();}
 export const availablePurchaseEvents = () => structuredClone(purchaseEvents);
 export const purchaseRevision = (purchase:Purchase) => purchase.sourceRevision ?? 0;
 export function mutatePreviewPurchase(expected:Purchase, operation:{kind:'correction';next:Purchase;reason:string;date:string}|{kind:'payment';payments:PaymentSplit[];reason:string;date:string}|{kind:'return';lines:{index:number;quantity:number}[];settlement:'credit'|'cash';payments:PaymentSplit[];reason:string;date:string}) {
@@ -46,7 +51,7 @@ export function mutatePreviewPurchase(expected:Purchase, operation:{kind:'correc
  next.sourceRevision=purchaseRevision(current)+1;
  const event:PurchaseSourceEvent={id:'purchase-event-'+current.id+'-'+next.sourceRevision,purchaseId:current.id,kind:operation.kind,date:operation.date,reason:operation.reason.trim(),before:structuredClone(current),after:structuredClone(next),amount,refund,
   ...(operation.kind==='return'?{lines:operation.lines.filter(l=>l.quantity>0),settlement:operation.settlement}:{}),...(operation.kind!=='correction'?{payments:operation.payments}:{})};
- createdPurchases[index]=next;purchaseEvents.push(event);return structuredClone(next);
+ createdPurchases[index]=next;purchaseEvents.push(event);publishPurchases();return structuredClone(next);
 }
 
 
@@ -134,7 +139,27 @@ export const availableStockLots = (): StockLot[] => [
   }))),
   ...getProductImportPreviewSnapshot().lots
 ];
-export const availableStockMovements = () => [...getProductImportPreviewSnapshot().movements];
+export function availableStockMovements():StockMovement[] {
+ const movements:StockMovement[]=[];
+ for(const purchase of createdPurchases){
+  const history=purchaseEvents.filter(event=>event.purchaseId===purchase.id);
+  const original=history[0]?.before??purchase;
+  for(const [index,line] of (original.inventoryLines??[]).entries())movements.push({id:purchase.id+'-movement-'+index,productId:line.productId,date:original.businessDate??original.date,type:'Purchase',quantity:line.quantity,balance:0,reference:purchase.ref});
+  for(const event of history){
+   if(event.kind==='return')for(const line of event.lines??[]){
+    if(line.quantity>0)movements.push({id:event.id+'-'+line.index,productId:event.before.inventoryLines![line.index].productId,date:event.date,type:'Return',quantity:-line.quantity,balance:0,reference:purchase.ref,note:event.reason});
+   }
+   if(event.kind==='correction')for(const productId of new Set([...(event.before.inventoryLines??[]),...(event.after.inventoryLines??[])].map(line=>line.productId))){
+    const quantity=(event.after.inventoryLines??[]).filter(line=>line.productId===productId).reduce((sum,line)=>sum+line.quantity,0)-(event.before.inventoryLines??[]).filter(line=>line.productId===productId).reduce((sum,line)=>sum+line.quantity,0);
+    if(quantity)movements.push({id:event.id+'-'+productId,productId,date:event.date,type:'Adjustment',quantity,balance:0,reference:purchase.ref,note:event.reason});
+   }
+  }
+ }
+ const balances=new Map(getProductImportPreviewSnapshot().products.map(product=>[product.id,product.stock]));
+ movements.sort((a,b)=>a.date.localeCompare(b.date));
+ for(const movement of movements){const balance=(balances.get(movement.productId)??0)+movement.quantity;balances.set(movement.productId,balance);movement.balance=balance;}
+ return [...getProductImportPreviewSnapshot().movements,...movements];
+}
 
 
 export function createPreviewProductCategory(category: string) {
@@ -182,5 +207,5 @@ export function renamePreviewExpenseCategory(previous: string, next: string) {
   if (inactiveExpenseCategories.delete(previous)) inactiveExpenseCategories.add(name);
 }
 export function createPreviewPurchase(purchase: Purchase) {
-  if (!availablePurchases().some((item) => item.id === purchase.id)) { if(purchase.cartSnapshot)validatePurchaseSource(purchase); createdPurchases.unshift(structuredClone(purchase)); }
+  if (!availablePurchases().some((item) => item.id === purchase.id)) { if(purchase.cartSnapshot)validatePurchaseSource(purchase); createdPurchases.unshift(structuredClone(purchase)); publishPurchases(); }
 }
