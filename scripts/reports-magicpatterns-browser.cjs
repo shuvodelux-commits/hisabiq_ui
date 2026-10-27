@@ -93,8 +93,12 @@ async function main(){
     assert.match(await page.getByRole('dialog').innerText(),/Illustrative projection/);
     await page.getByRole('button',{name:/Close details/}).click();
     await page.locator('#reports-screen-profit').click();
-    await page.locator('.recharts-scatter').first().waitFor();
-    const source=page.locator('[data-magic-patterns-reports="profit"]').getByRole('button',{name:'View source'});
+    await page.locator('[data-magic-patterns-reports="profit"] svg.recharts-surface').first().waitFor();
+    const bubbleCount=await page.locator('[data-magic-patterns-reports="profit"] .recharts-scatter').count();
+    if(!bubbleCount){
+     assert.equal(await page.getByText('No products with known historical issue costs to plot.',{exact:false}).count(),1,
+      'When sale-time costs are unknown, Profit Insights must disclose why scatter bubbles are unavailable');
+    }
     // Table links are the keyboard/touch alternative to scatter marks.
     const links=page.locator('[data-magic-patterns-reports="profit"] button').filter({hasText:/Pipe|Cable|Switch|Wire/});
     if(await links.count()){
