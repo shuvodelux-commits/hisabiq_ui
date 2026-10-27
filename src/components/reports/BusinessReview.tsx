@@ -3,8 +3,8 @@ import { ArrowDownToLine, CalendarRange, FileText, Printer, SearchCheck, Save } 
 import { toast } from 'sonner';
 import { AppSelect } from '../AppSelect';
 import { AppDateRangePicker } from '../AppDateRangePicker';
+import { AppMonthYearPicker } from '../AppMonthYearPicker';
 import { Button } from '../Button';
-import { Input } from '../Input';
 import { StatusBadge } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
@@ -108,8 +108,14 @@ export function BusinessReview({data}:{data:ReportData}){
     <AppSelect label={text('Audit period','অডিটের সময়কাল')} value={mode} onChange={v=>setMode(v as ReviewMode)}
      options={[{value:'monthly',label:text('Monthly audit report','মাসিক অডিট রিপোর্ট')},{value:'yearly',label:text('Yearly audit report','বার্ষিক অডিট রিপোর্ট')},
       {value:'last24',label:text('Last 24 complete months','শেষ ২৪টি পূর্ণ মাস')},{value:'custom',label:text('Custom dates','পছন্দের তারিখ')}]}/>
-    {mode==='monthly'&&<label className="flex items-center gap-2 text-xs text-ink-600">{text('Month','মাস')}<Input type="month" aria-label={text('Choose month','মাস বাছুন')} max={data.asOf.slice(0,7)} value={month} onChange={e=>setMonth(e.target.value)} className="w-[165px]"/></label>}
-    {mode==='yearly'&&<label className="flex items-center gap-2 text-xs text-ink-600">{text('Year','বছর')}<Input type="number" min="2000" max={data.asOf.slice(0,4)} aria-label={text('Choose year','বছর বাছুন')} value={year} onChange={e=>setYear(e.target.value)} className="w-28"/></label>}
+    {mode==='monthly'&&<div className="flex items-center gap-2 text-xs text-ink-600">
+     <span>{text('Month','মাস')}</span>
+     <AppMonthYearPicker mode="month" value={month} maxDate={data.asOf} label={text('Choose month','মাস বাছুন')} onChange={setMonth} className="w-[170px]"/>
+    </div>}
+    {mode==='yearly'&&<div className="flex items-center gap-2 text-xs text-ink-600">
+     <span>{text('Year','বছর')}</span>
+     <AppMonthYearPicker mode="year" value={year} maxDate={data.asOf} label={text('Choose year','বছর বাছুন')} onChange={setYear} className="w-[135px]"/>
+    </div>}
     {mode==='custom'&&<AppDateRangePicker label={text('Date range','সময়কাল')} value={range} onChange={setRange}/>}
     <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-ink-500"><CalendarRange className="size-4"/>{period}</span>
    </div>
