@@ -10,7 +10,6 @@ const monthEnd=(first:string)=>addDays(addMonths(first,1),-1);
 const inRange=(row:ReportRow,from:string,to:string)=>!!row.date&&row.date>=from&&row.date<=to;
 const records=(rows:ReportRow[],from:string,to:string)=>rows.filter(r=>inRange(r,from,to));
 const valueOf=(row:ReportRow,key:string)=>row.values[key];
-const number=(value:unknown)=>finite(value)?value:null;
 const total=(rows:ReportRow[],field:string)=>rows.length&&rows.every(row=>finite(valueOf(row,field)))?two(rows.reduce((n,row)=>n+Number(row.values[field]),0)):null;
 const reasonNoRecords='No verified coverage or recorded entries for this section. Missing is not zero.';
 const reasonPreview='Sum of recorded source rows in the selected period. Source coverage and corrections require owner review.';
