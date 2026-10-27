@@ -57,6 +57,15 @@ async function main(){
      assert.equal(await groupTabs.count(),7,'all seven Library groups remain available');
      for(let group=0;group<7;group++){
       await groupTabs.nth(group).click();
+      if(p.width>=1024){
+       const sidebar=page.locator('#reports-screen-panel aside');
+       const content=page.locator('#report-panel > :visible').first();
+       const [sidebarBox,contentBox]=await Promise.all([sidebar.boundingBox(),content.boundingBox()]);
+       assert(sidebarBox&&contentBox,'Library sidebar and report panel must both be visible');
+       assert(Math.abs(sidebarBox.y-contentBox.y)<=2,
+        'Report Library filter and sidebar must begin on the same horizontal line in group '+group+
+        ' (sidebar y='+sidebarBox.y+', report y='+contentBox.y+')');
+      }
       assert.equal(await page.getByText('What needs your attention?',{exact:true}).count(),0,'no redundant question in Library group '+group);
       assert.equal(await page.locator('#report-panel h2').count(),0,'no duplicate report title in Library group '+group);
       assert.equal(await page.getByRole('group',{name:'Report actions'}).count(),1,'retain report actions in group navigation');
