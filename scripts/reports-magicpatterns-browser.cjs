@@ -41,7 +41,7 @@ async function main(){
     fs.writeFileSync(path.join(out,`ERROR-${p.width}-${p.theme}.txt`),JSON.stringify({errors,body:body.slice(0,4000)},null,2));
     throw e;
    }
-   assert.equal(await page.locator('[id^="reports-screen-"][role="tab"]').count(),11,'keep all 11 report destinations');
+   assert.equal(await page.locator('[id^="reports-screen-"][role="tab"]').count(),12,'keep all 11 originals plus the experiment');
    assert.equal(await page.locator('#reports-screen-advisor svg.lucide-sparkles').count(),1,'keep Sparkles icon');
    for(const id of screens){
     await page.locator('#reports-screen-'+id).click();
@@ -112,7 +112,7 @@ async function main(){
    }
    assert.deepEqual(errors,[],'console runtime errors in '+JSON.stringify(p));
    await context.close();
-   console.log('PASS Magic Reports '+p.width+' '+p.theme+' '+p.language+'; 11 views and screenshots');
+   console.log('PASS Magic Reports '+p.width+' '+p.theme+' '+p.language+'; original 11 screens retained');
   }
  }finally{await browser.close();await new Promise(resolve=>server.httpServer.close(resolve));}
 }
