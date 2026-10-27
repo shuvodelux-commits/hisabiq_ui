@@ -91,7 +91,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
                     );
                   }}
                 />
-                <Scatter data={scatter} onClick={point=>{const d=point as {name?:string};const match=stats.find(s=>s.product.name===d.name);if(match)sourceEvidence?.({report:'product-profit',label:match.product.name,field:'productId',value:match.product.id});}}>
+                <Scatter data={scatter} onClick={point=>{const d=point as {payload?:{name?:string};name?:string};const match=stats.find(s=>s.product.name===(d.payload?.name??d.name));if(match)sourceEvidence?.({report:'product-profit',label:match.product.name,field:'productId',value:match.product.id});}}>
                   {scatter.map((d) => <Cell key={d.name} fill={quadrantInfo[d.quadrant].color} fillOpacity={0.75} />)}
                 </Scatter>
               </ScatterChart>

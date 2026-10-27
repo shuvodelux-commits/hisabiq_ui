@@ -9,6 +9,7 @@ import type { AdvisorArea, Recommendation, ReportsTab } from '../../../utils/rep
 import type { PremiumInsights } from '../../../hooks/usePremiumInsights';
 import type { ReportsCore } from '../../../hooks/useReportsData';
 import { InfoTip, SectionNote, SourceEvidenceContext } from '../ReportBits';
+import { advisorEvidenceRequest } from '../../../advisorEvidence';
 
 type Props = { core: ReportsCore; insights: PremiumInsights; onOpen: (tab: ReportsTab) => void; scopeKey:string };
 
@@ -58,7 +59,7 @@ export function AdvisorReport({ core, insights, onOpen, scopeKey }: Props) {
 
   const mark = (r: Recommendation, kind: 'done' | 'dismissed') => {
     persist({ ...saved, [sourceVersion(r)]: kind });
-    toast.success(kind === 'done' ? 'Marked as done' : 'Hidden from your list', { description: r.title });
+    toast.success(kind === 'done' ? 'Marked as reviewed' : 'Hidden from your list', { description: r.title+' · No transaction is posted.' });
   };
 
   return (
@@ -67,7 +68,7 @@ export function AdvisorReport({ core, insights, onOpen, scopeKey }: Props) {
         <div className="rounded-xl border border-border bg-ink p-4 text-white shadow-card sm:p-5">
           <p className="text-xs text-ink-300">Last 30 days, in one line <span className="font-bn">· এক নজরে</span></p>
           <p className="mt-2 text-[15px] leading-relaxed">
-            You sold <b>{taka(core.last30.netSales)}</b> and kept about <b className="text-mint">{taka(core.last30.netProfit)}</b> after expenses.
+            You sold <b>{taka(core.last30.netSales)}</b>. {core.last30.uncostedRevenue>0 ? <span>Net profit is unavailable because historical costs are missing.</span> : <span>Estimated profit after expenses: <b className="text-mint">{taka(core.last30.netProfit)}</b>.</span>}
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/10 pt-4">
             <div>
@@ -163,7 +164,7 @@ export function AdvisorReport({ core, insights, onOpen, scopeKey }: Props) {
                     <Button kind="outline" onClick={() => { const n = { ...saved }; delete n[sourceVersion(r)]; persist(n); }}><RotateCcw className="size-4" />Restore</Button>
                   ) : (
                     <>
-                      <Button kind="outline" onClick={() => sourceEvidence?.({report:r.tab==="buying"?"reorder":r.tab==="profit"?"product-profit":r.tab==="stock"?"low-stock":r.tab==="dues"?"collections":r.tab==="customers"?"customer-sales":r.tab==="money"?"cash-book":"sales-register",label:r.title})}>See details <ArrowRight className="size-4" /></Button>
+                      <Button kind="outline" onClick={() => sourceEvidence?.(advisorEvidenceRequest(r))}>See details <ArrowRight className="size-4" /></Button>
                       <Button kind="outline" onClick={() => mark(r, 'done')}><Check className="size-4" />Mark done</Button>
                       <Button kind="ghost" onClick={() => mark(r, 'dismissed')}><X className="size-4" />Not now</Button>
                     </>

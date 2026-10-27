@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useId, useState } from 'react';
-export type EvidenceRequest = {report:string;label:string;field?:string;value?:string;date?:string;toDate?:string};
+export type EvidenceRequest = {report:string;label:string;field?:string;value?:string;date?:string;toDate?:string;forecast?:boolean;context?:string};
 export const SourceEvidenceContext = createContext<((request:EvidenceRequest)=>void)|null>(null);
 export const KpiEvidenceContext = createContext<((label:string)=>void)|null>(null);
 export function SourceLink({report,label,field,value,date,toDate,children}:{report:string;label:string;field?:string;value?:string;date?:string;toDate?:string;children:React.ReactNode}){

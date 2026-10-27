@@ -75,10 +75,10 @@ export function OverviewReport({ core, period, onOpen }: Props) {
         <Kpi
           label="Net profit (estimate)"
           bn="নিট লাভ"
-          value={taka(c.netProfit)}
+          value={c.uncostedRevenue>0?'—':taka(c.netProfit)}
           tone={c.netProfit >= 0 ? 'success' : 'danger'}
-          help="Gross profit minus expenses. It is an estimate, not an audited Profit & Loss statement."
-          footer={<Delta value={pctChange(c.netProfit, p.netProfit)} />}
+          help="Only shown when all historical issue costs are known; otherwise net profit remains unavailable. This is not an audited Profit & Loss statement."
+          footer={c.uncostedRevenue>0?<span className="text-[11px] text-warning">Missing historical cost</span>:<Delta value={p.uncostedRevenue>0?null:pctChange(c.netProfit,p.netProfit)} />}
         />
         <Kpi label="Money received" bn="আদায়" value={taka(c.collected)} help="All customer payments received in this period, including old dues." />
         <Kpi label="Customers owe you" bn="পাওনা" value={taka(receivable)} tone="warning" help="Unpaid customer invoices today." onClick={() => onOpen('dues')} />

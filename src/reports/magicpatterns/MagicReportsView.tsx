@@ -38,11 +38,11 @@ export function MagicReportsView({screen,data,filters,onFilters,onDetail,onRepor
  const [manualRange,setManualRange]=useState(false);
  const insights=usePremiumInsights(core,settings);
  const evidence=useCallback((req:EvidenceRequest)=>{
-  if(screen==='cashflow'&&req.date&&req.date>data.asOf){
+  if(req.forecast || (screen==='cashflow'&&req.date&&req.date>data.asOf)){
    const day=insights.forecast.days.find(d=>d.date===req.date);
-   onDetail({id:'cash-projection-'+req.date,label:req.label,date:req.date,status:'Illustrative projection',
-    values:{inflow:day?.inflow??null,outflow:day?.outflow??null,balance:day?.balance??null},
-    note:'Forecast point, not a posted transaction. Customer payments '+settings.lateDays+' days later than usual, safety buffer '+settings.buffer+' BDT and stock purchases '+(settings.includePurchases?'included':'excluded')+'. Reconciled opening cash is unavailable. No source record or payment was created.'});
+   onDetail({id:'cash-projection-'+(req.date??'summary'),label:req.label,date:req.date??'',status:'Illustrative projection',
+    values:{inflow:day?.inflow??(req.forecast?insights.forecast.totalIn:null),outflow:day?.outflow??(req.forecast?insights.forecast.totalOut:null),balance:day?.balance??null},
+    note:(req.context?req.context+' · ':'')+'Forecast point, not a posted transaction. Customer payments '+settings.lateDays+' days later than usual, safety buffer '+settings.buffer+' BDT and stock purchases '+(settings.includePurchases?'included':'excluded')+'. Reconciled opening cash is unavailable. No source record or payment was created.'});
    return;
   }
   onDetail(resolveMagicEvidence(req,data,filters,screen));

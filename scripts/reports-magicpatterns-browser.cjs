@@ -64,7 +64,7 @@ async function main(){
     assert.equal(await page.getByText('Cash forecast — next 30 days').count(),1);
     assert.equal(await page.getByText('Week by week').count(),1);
     assert.equal(await page.getByText('Working capital').count(),1);
-    assert.equal(await page.locator('.recharts-composed-chart').count(),1,'original cash chart present');
+    assert.equal(await page.locator('[data-magic-patterns-reports="cashflow"] svg.recharts-surface').count(),1,'original cash chart present');
     await page.getByLabel('If customers pay').selectOption('15');
     await page.getByLabel('Include stock purchases').uncheck();
     assert.equal(await page.getByLabel('Include stock purchases').isChecked(),false);

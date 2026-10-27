@@ -20,7 +20,7 @@ export function resolveMagicEvidence(req:EvidenceRequest,data:ReportData,filters
   values[prop]=seen.every(r=>typeof r.values[prop]==='number')?seen.reduce((sum,row)=>sum+Number(row.values[prop]),0):null;
  }
  return {id:'magic-evidence-'+screen+'-'+key+'-'+(req.value??req.date??'all'),label:req.label,date:req.date??'',status:children.length?'Source evidence':'Source unavailable',values,
-  note:children.length?result.basis+' · The entries below reconcile to this selection. Open a row for its recorded contributors.':
+  note:children.length?(req.context?req.context+' · ':'')+result.basis+' · The entries below reconcile to this selection. Open a row for its recorded contributors.':
    'No exact supporting source is available in the current selection. Missing information remains unknown; no source records were fabricated.',
   children};
 }
