@@ -71,3 +71,21 @@ test('five A4 portrait print pages each include vector chart; escape source labe
  assert.match(h,/INVOICE &lt;script&gt;/);
  assert.match(h,/Buyer &amp; Co/);
 });
+
+
+test('yearly sales trend is chronological and not a top-five-month ranking',()=>{
+ const d=empty();
+ d.sales=Array.from({length:10},(_,i)=>row('INV'+i,'2026-'+String(i+1).padStart(2,'0')+'-08',10+i*7));
+ const book=buildAuditBook(d,summary(d,'yearly'));
+ assert.equal(book.salesTrend.length,10);
+ assert.equal(book.salesTrend[0].label,'2026-01');
+ assert.equal(book.salesTrend[9].label,'2026-10');
+});
+test('walk-in invoices are not incorrectly ranked as a single named best customer',()=>{
+ const d=empty();
+ d.sales=[row('INV-A','2026-10-02',800,{}, {party:'Walk-in customer'}),
+  row('INV-B','2026-10-03',30,{}, {party:'Rahman Hardware',partyId:'c2'})];
+ const book=buildAuditBook(d,summary(d));
+ assert.equal(book.topCustomers.length,1);
+ assert.equal(book.topCustomers[0].label,'Rahman Hardware');
+});
