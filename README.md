@@ -44,3 +44,7 @@ Cloudflare scripts, if configured in your environment, are `npm run cf:preview` 
 
 
 The visual library leads the guide with working Party role actions, the actual report toolbar/calendar/help, field states, shared columns, quantity/unit controls and labelled future feedback compositions. See `src/data/componentCatalog.json` for source and state coverage.
+
+## Reports planning
+
+The [canonical Reports documentation](docs/ui/reports/README.md) consolidates the current Visual component library, Magic Patterns Reports, preserved source details and connected purchase/demo workflows. It is documentation for review, not implemented Reports UI.

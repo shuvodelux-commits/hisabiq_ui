@@ -20,7 +20,13 @@ async function main() {
       assert(!requests.some(url => /\/assets\/(Pos|Products|Expenses|Reports|GlobalSearch)-/.test(url)), 'dashboard must not download unrelated page code');
       for (const route of [...erp.map(p=>'/app/'+p),...saas.map(p=>'/saas/'+p),'/design-system']) {
         await page.goto(base+route);
-        await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]') && !!document.querySelector('h1,h2'));
+        try {
+          await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]') && !!document.querySelector('h1,h2'));
+        } catch (err) {
+          console.error('Failed production route',route,'theme',theme,'browser errors',errors);
+          console.error('Document diagnostic',await page.locator('body').innerText().then(t=>t.slice(0,1800)).catch(()=>'<unreadable>'));
+          throw err;
+        }
         assert.equal(await page.getByRole('button',{name:'Reload page',exact:true}).count(),0,route+' must render without error fallback');
         assert.equal(await page.getAttribute('html','data-theme'),theme);
         if (route !== '/design-system') assert((await page.locator('main').innerText()).trim().length > 30,route+' must render page content');
