@@ -43,6 +43,28 @@ async function main(){
   await page.getByRole('button',{name:isBn?'সিএসভি নামান':'Download CSV'}).click();
   const download=await downloadPromise;
   assert(download.suggestedFilename().endsWith('.csv'),'exports real CSV data');
+  const popupPromise=page.waitForEvent('popup',{timeout:15000});
+  await page.getByRole('button',{name:isBn?'৫ পাতার A4 অডিট রিপোর্ট প্রিন্ট':'Print 5-page A4 audit report'}).click();
+  const printed=await popupPromise;
+  await printed.locator('.audit-page').first().waitFor();
+  assert.equal(await printed.locator('.audit-page').count(),5,'five A4 portrait report pages');
+  assert((await printed.locator('svg.audit-chart').count())>=5,'each page retains a vector chart');
+  assert.equal(await printed.locator('.audit-page footer .page-index').count(),5,'each page has page numbering');
+  assert((await printed.locator('style').textContent()).includes('size:A4 portrait'),'print paper size A4 portrait');
+  for(let i=0;i<5;i++){
+   const frame=printed.locator('.audit-page').nth(i);
+   assert((await frame.locator('svg.audit-chart').count())>=1,'chart rendered on page '+(i+1));
+   const bounds=await frame.evaluate(node=>{
+    const content=node.querySelector('.page-content'),footer=node.querySelector('footer');
+    return {last:content.getBoundingClientRect().bottom,footer:footer.getBoundingClientRect().top};
+   });
+   assert(bounds.last<=bounds.footer+2,'page '+(i+1)+' content must not overlap footer');
+  }
+  if(p.width===1440){
+   await printed.pdf({path:path.join(out,'audit-5-page-A4.pdf'),printBackground:true,preferCSSPageSize:true});
+   for(let i=0;i<5;i++)await printed.locator('.audit-page').nth(i).screenshot({path:path.join(out,'audit-page-'+(i+1)+'.png')});
+  }
+  await printed.close();
   await page.getByRole('tab',{name:isBn?'পর্যালোচনার ইতিহাস':'Review history'}).click();
   assert.equal(await page.locator('[data-business-review] [role="tab"]').count(),4);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'no document horizontal overflow');
