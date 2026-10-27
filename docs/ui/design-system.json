@@ -2928,10 +2928,26 @@
       "reexports": []
     },
     {
+      "file": "src/components/reports/ReportAnalysis.tsx",
+      "kind": "component",
+      "exports": [
+        "ReportAnalysis"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/reports/ReportDetails.tsx",
       "kind": "component",
       "exports": [
         "ReportDetails"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/reports/ReportEvidencePanel.tsx",
+      "kind": "component",
+      "exports": [
+        "ReportEvidencePanel"
       ],
       "reexports": []
     },
@@ -2962,10 +2978,42 @@
       "reexports": []
     },
     {
+      "file": "src/components/reports/ReportSalesTrend.tsx",
+      "kind": "component",
+      "exports": [
+        "ReportSalesTrend"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/reports/ReportToolbar.tsx",
       "kind": "component",
       "exports": [
         "ReportToolbar"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/reports/ReportsNav.tsx",
+      "kind": "component",
+      "exports": [
+        "ReportsNav"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/reports/premium/AdvisorReport.tsx",
+      "kind": "component",
+      "exports": [
+        "AdvisorReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/reports/premium/CashflowReport.tsx",
+      "kind": "component",
+      "exports": [
+        "CashflowReport"
       ],
       "reexports": []
     },
@@ -3322,6 +3370,138 @@
       "reexports": []
     },
     {
+      "file": "src/reports/magicpatterns/MagicReportsView.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "evidenceKey",
+        "MagicReportsView"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/Panel.tsx",
+      "kind": "component",
+      "exports": [],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/StatusBadge.tsx",
+      "kind": "component",
+      "exports": [],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/ReportBits.tsx",
+      "kind": "component",
+      "exports": [
+        "SourceEvidenceContext",
+        "KpiEvidenceContext",
+        "SourceLink",
+        "InfoTip",
+        "Delta",
+        "Kpi",
+        "ShareBar",
+        "SectionNote",
+        "Th",
+        "Td",
+        "TableShell",
+        "EmptyRow"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/basic/DuesReport.tsx",
+      "kind": "component",
+      "exports": [
+        "DuesReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/basic/MoneyReport.tsx",
+      "kind": "component",
+      "exports": [
+        "MoneyReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
+      "kind": "component",
+      "exports": [
+        "OverviewReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/basic/SalesReport.tsx",
+      "kind": "component",
+      "exports": [
+        "SalesReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/basic/StockReport.tsx",
+      "kind": "component",
+      "exports": [
+        "healthTone",
+        "healthLabel",
+        "StockReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
+      "kind": "component",
+      "exports": [
+        "AdvisorReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
+      "kind": "component",
+      "exports": [
+        "BuyingReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/premium/CashflowReport.tsx",
+      "kind": "component",
+      "exports": [
+        "CashflowReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/premium/CustomersReport.tsx",
+      "kind": "component",
+      "exports": [
+        "CustomersReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/reports/premium/ProfitReport.tsx",
+      "kind": "component",
+      "exports": [
+        "ProfitReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/prototype/Ui.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "Button",
+        "Tabs",
+        "downloadCsv"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/saas/AttachmentField.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -3595,7 +3775,8 @@
       "src/components/pos/CartTable.tsx",
       "src/components/pos/CheckoutPanel.tsx",
       "src/components/pos/StockShortageDialog.tsx",
-      "src/components/purchases/PurchasePaymentPanel.tsx"
+      "src/components/purchases/PurchasePaymentPanel.tsx",
+      "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx"
     ],
     "ArrowDown": [
       "src/components/reports/ReportResults.tsx",
@@ -3610,7 +3791,8 @@
       "src/pages/Finance.tsx"
     ],
     "ArrowDownRight": [
-      "src/components/reports/ReportOverview.tsx"
+      "src/components/reports/ReportOverview.tsx",
+      "src/reports/magicpatterns/components/reports/ReportBits.tsx"
     ],
     "ArrowDownToLine": [
       "src/components/accounts/LedgerView.tsx",
@@ -3652,9 +3834,14 @@
       "src/components/brand/BrandNav.tsx",
       "src/components/dashboard/WidgetFrame.tsx",
       "src/components/finance/CounterWorkspace.tsx",
+      "src/components/reports/ReportAnalysis.tsx",
+      "src/components/reports/ReportEvidencePanel.tsx",
       "src/components/reports/ReportOverview.tsx",
+      "src/components/reports/premium/AdvisorReport.tsx",
       "src/pages/BrandGuide.tsx",
       "src/pages/Reports.tsx",
+      "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
+      "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/saas/OverviewPage.tsx",
       "src/settings/AccountSecuritySettings.tsx"
     ],
@@ -3674,6 +3861,8 @@
       "src/pages/Daybook.tsx",
       "src/pages/Finance.tsx",
       "src/pages/GlobalSearch.tsx",
+      "src/reports/magicpatterns/components/reports/ReportBits.tsx",
+      "src/reports/magicpatterns/components/reports/basic/MoneyReport.tsx",
       "src/saas/SaasShell.tsx",
       "src/settings/TenantSettingsHub.tsx"
     ],
@@ -3739,7 +3928,8 @@
     ],
     "CalendarDays": [
       "src/components/AppDateRangePicker.tsx",
-      "src/components/pos/InstallmentAgreementPreview.tsx"
+      "src/components/pos/InstallmentAgreementPreview.tsx",
+      "src/reports/magicpatterns/MagicReportsView.tsx"
     ],
     "CalendarRange": [
       "src/components/pos/InstallmentTermsPanel.tsx"
@@ -3752,13 +3942,15 @@
       "src/components/parties/PartyCreditRefundDialog.tsx",
       "src/components/parties/PartyFinanceDialog.tsx",
       "src/components/parties/PartyPaymentDialog.tsx",
+      "src/components/reports/premium/CashflowReport.tsx",
       "src/components/vendor/VendorMemoPickerDialog.tsx",
       "src/pages/Dashboard.tsx",
       "src/pages/OnlineSales.tsx",
       "src/pages/Products.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reports.tsx",
-      "src/pages/Sales.tsx"
+      "src/pages/Sales.tsx",
+      "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx"
     ],
     "CheckCircle2": [
       "src/components/TransactionReviewDialog.tsx",
@@ -3774,6 +3966,8 @@
       "src/pages/Pos.tsx",
       "src/pages/Reconciliation.tsx",
       "src/pages/Warranty.tsx",
+      "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
+      "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/saas/OverviewPage.tsx",
       "src/settings/AccountSecuritySettings.tsx",
       "src/settings/TenantSettingsPage.tsx"
@@ -3791,6 +3985,7 @@
       "src/components/pos/CustomerPicker.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
       "src/components/purchases/PurchaseCart.tsx",
+      "src/components/reports/premium/AdvisorReport.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Products.tsx",
       "src/pages/Sales.tsx",
@@ -3813,6 +4008,7 @@
       "src/components/parties/LedgerTableResponsive.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/reports/ReportResults.tsx",
+      "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
       "src/pages/OnlineSales.tsx",
       "src/saas/components.tsx"
@@ -3874,6 +4070,11 @@
       "src/components/parties/PartyStatementDialog.tsx",
       "src/components/parties/VendorStatementDialog.tsx",
       "src/pages/Products.tsx",
+      "src/reports/magicpatterns/components/reports/basic/DuesReport.tsx",
+      "src/reports/magicpatterns/components/reports/basic/MoneyReport.tsx",
+      "src/reports/magicpatterns/components/reports/basic/SalesReport.tsx",
+      "src/reports/magicpatterns/components/reports/basic/StockReport.tsx",
+      "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
       "src/settings/DataSettings.tsx"
     ],
     "Ellipsis": [
@@ -3981,7 +4182,8 @@
     "Info": [
       "src/components/Tooltip.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
-      "src/pages/Reports.tsx"
+      "src/pages/Reports.tsx",
+      "src/reports/magicpatterns/components/reports/ReportBits.tsx"
     ],
     "Keyboard": [
       "src/pages/Pos.tsx",
@@ -4169,6 +4371,8 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
+      "src/reports/magicpatterns/components/reports/basic/DuesReport.tsx",
+      "src/reports/magicpatterns/components/reports/premium/CustomersReport.tsx",
       "src/settings/AccountSecuritySettings.tsx"
     ],
     "PieChart": [
@@ -4291,7 +4495,9 @@
       "src/components/pos/InstallmentAdjustmentDialog.tsx",
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/pos/InstallmentReceiptReversalDialog.tsx",
+      "src/components/reports/premium/AdvisorReport.tsx",
       "src/pages/Warranty.tsx",
+      "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Ruler": [
@@ -4388,6 +4594,7 @@
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/dashboard/MetricCard.tsx",
       "src/navigation/erpNavigation.ts",
+      "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "SlidersHorizontal": [
@@ -4402,7 +4609,8 @@
       "src/features/auth/AuthFlowPage.tsx"
     ],
     "Sparkles": [
-      "src/components/brand/VoiceSection.tsx"
+      "src/components/brand/VoiceSection.tsx",
+      "src/components/reports/ReportsNav.tsx"
     ],
     "Star": [
       "src/pages/Reports.tsx"
@@ -4538,6 +4746,7 @@
       "src/components/transactions/TransactionCartEditor.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reconciliation.tsx",
+      "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/saas/components.tsx",
       "src/settings/ui.tsx"
     ]

@@ -106,7 +106,7 @@ export function buildReportData(input:ReportInput):ReportData {
   data.stock.push(row);
   if(!complete)issue(row,'Lot quantities or valuation costs do not fully reconcile to the current stock snapshot.');
   for(const l of lots)data.lots.push({...row,id:l.id,label:product.name+' · '+(l.batchNumber??l.label),date:day(l.receivedAt),
-   values:{quantity:l.available,unit:product.unit,days:l.expiryDate?age(input.asOf,l.expiryDate):age(day(l.receivedAt),input.asOf),expiry:l.expiryDate??'',cost:finite(l.unitCost)?money(l.available*l.unitCost):null},
+   values:{quantity:l.available,unit:product.unit,days:age(day(l.receivedAt),input.asOf),expiryDays:l.expiryDate?age(input.asOf,l.expiryDate):null,expiry:l.expiryDate??'',cost:finite(l.unitCost)?money(l.available*l.unitCost):null},
    status:l.expiryDate&&l.expiryDate<input.asOf?'Expired':l.expiryDate&&Number(age(input.asOf,l.expiryDate))<=30?'Expiring soon':'In stock',note:l.reference??l.source});
  }
  for(const m of input.movements){
@@ -116,7 +116,7 @@ export function buildReportData(input:ReportInput):ReportData {
  for(const t of input.transactions.filter(t=>t.status==='Posted')){
   if(!['finance','transfer','cheque','customer-payment','supplier-payment','receipt-voucher','payment-voucher'].includes(t.source))continue;
   const base:ReportRow={id:t.id,label:t.reference,date:t.transactionDate,party:t.party,partyId:t.partyId,user:t.postedBy,status:t.type,account:t.accounts.join(' + '),values:{inflow:t.moneyIn,outflow:t.moneyOut,amount:t.amount},note:t.details,route:t.sourceRoute};
-  if(t.source==='transfer'){
+  if(t.source==='transfer'||t.type==='Transfer'||!t.countsTowardCashflow){
    data.finance.push(base); // Transfers stay separate from operating cash movement.
    continue;
   }

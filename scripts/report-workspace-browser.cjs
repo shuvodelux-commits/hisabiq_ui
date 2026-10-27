@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires -- Browser verification uses CommonJS. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -12,7 +13,8 @@ async function main(){
   await page.addInitScript(()=>localStorage.setItem('hisabiq-erp-personal-v1',JSON.stringify({mode:'Simple',language:'English',density:'Compact',terminology:'simple',dateView:'transaction'})));
   await page.goto('http://127.0.0.1:4398/#/app/reports');
   await page.getByRole('heading',{name:'Business overview',exact:true}).waitFor();
-  await page.getByRole('tab',{name:'Sales & profit',exact:true}).click();
+  await page.locator('#reports-screen-library').click();
+  await page.getByRole('tablist',{name:'Report groups'}).getByRole('tab',{name:'Sales & profit',exact:true}).click();
   await page.getByRole('heading',{name:'Sales register',exact:true}).waitFor();
   await page.getByRole('button',{name:'Product performance',exact:true}).click();
   await page.getByRole('heading',{name:'Product performance',exact:true}).waitFor();
