@@ -53,6 +53,15 @@ async function main(){
     }else{
      await page.locator('#report-panel').waitFor();
      assert((await page.locator('#report-panel').innerText()).length>40,'library retains tools');
+     const groupTabs=page.getByRole('tablist',{name:'Report groups'}).getByRole('tab');
+     assert.equal(await groupTabs.count(),7,'all seven Library groups remain available');
+     for(let group=0;group<7;group++){
+      await groupTabs.nth(group).click();
+      assert.equal(await page.getByText('What needs your attention?',{exact:true}).count(),0,'no redundant question in Library group '+group);
+      assert.equal(await page.locator('#report-panel h2').count(),0,'no duplicate report title in Library group '+group);
+      assert.equal(await page.getByRole('group',{name:'Report actions'}).count(),1,'retain report actions in group navigation');
+     }
+     await groupTabs.first().click();
     }
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'no app-wide horizontal overflow: '+id+' / '+JSON.stringify(p));
     const suffix=p.language==='Bangla'?'bn':'en-bn';

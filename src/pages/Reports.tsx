@@ -1,6 +1,6 @@
 import { ReportsNav } from '../components/reports/ReportsNav';
 import { MagicReportsView } from '../reports/magicpatterns/MagicReportsView';
-import { reportScreens,reportScreenQuestions,reportKeyForScreen } from '../reports/screens';
+import { reportScreens,reportKeyForScreen } from '../reports/screens';
 import { ColumnVisibilityEditor } from '../components/ColumnVisibilityEditor';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -29,10 +29,9 @@ import { taka } from '../utils/currency';
 import type { PurchaseAssumptions, ReportFilters, ReportKey, ReportRow, ReportScreen } from '../reports/types';
 
 export function Reports() {
- const {text,language,showHelper}=useUiCopy(),{state,actorId}=useTenantSettings(),navigate=useNavigate();
+ const {text,language}=useUiCopy(),{state,actorId}=useTenantSettings(),navigate=useNavigate();
  const [params,setParams]=useSearchParams();
  const screen=reportScreenFromParams(params);
- const screenDefinition=reportScreens.find(item=>item.id===screen)!;
  const definition=reportDefinition(reportKeyForScreen(screen,params.get('report')));
  const filters=useMemo(()=>{
   const f=filtersFromParams(params);
@@ -109,7 +108,8 @@ export function Reports() {
   {storageWarning&&<p role="status" className="text-xs text-warning">{storageWarning}</p>}
   <ReportsNav value={screen} onChange={selectScreen}/>
   <div id="reports-screen-panel" role="tabpanel" aria-labelledby={'reports-screen-'+screen} className="min-w-0 space-y-4">
-  {screen==='library'&&<div className="overflow-x-auto border-b border-border">
+  {screen==='library'&&<div className="flex min-w-0 items-center border-b border-border">
+   <div className="min-w-0 flex-1 overflow-x-auto">
    <MotionTabList aria-label={text('Report groups','রিপোর্টের বিভাগ')} className="flex min-w-max gap-1">
     {reportGroups.map((g,index)=><button key={g.id} id={'report-tab-'+g.id} type="button" role="tab" aria-selected={definition.group===g.id} aria-controls="report-panel" tabIndex={definition.group===g.id?0:-1}
      onClick={()=>selectReport(reportCatalog.find(r=>r.group===g.id)!.id)}
@@ -118,6 +118,8 @@ export function Reports() {
      {text(g.en,g.bn)}<MotionTabIndicator active={definition.group===g.id}/>
     </button>)}
    </MotionTabList>
+   </div>
+   <div className="flex shrink-0 items-center gap-1 pl-2" role="group" aria-label={text('Report actions','রিপোর্টের কাজ')}><Button variant="ghost" size="icon" aria-label={text(favorite?'Unpin report':'Pin report',favorite?'রিপোর্টের পিন খুলুন':'রিপোর্ট পিন করুন')} aria-pressed={favorite} onClick={toggleFavorite}><Star className={'size-4 '+(favorite?'fill-current text-primary':'text-ink-400')} aria-hidden="true"/></Button><Button variant="ghost" size="icon" aria-label={text('How this report is calculated','রিপোর্ট কীভাবে হিসাব হয়')} aria-expanded={showBasis} onClick={()=>setShowBasis(v=>!v)}><Info className="size-4" aria-hidden="true"/></Button></div>
   </div>}
   <div className={'grid min-w-0 gap-4 '+(screen==='library'?'lg:grid-cols-[215px_minmax(0,1fr)]':'')}>
    {screen==='library'&&<aside className="hidden min-w-0 self-start rounded-xl border border-border bg-card p-2 lg:block" aria-label={text('Report library','রিপোর্টের তালিকা')}>
@@ -129,9 +131,6 @@ export function Reports() {
    </aside>}
    <section id="report-panel" role={screen==='library'?'tabpanel':undefined} aria-labelledby={screen==='library'?'report-tab-'+definition.group:undefined} className="min-w-0 space-y-4">
     {screen==='library'&&<div className="lg:hidden"><SearchSelect id="mobile-report-picker" noun={{en:'report',bn:'রিপোর্ট'}} ariaLabel={text('Choose report','রিপোর্ট বাছুন')} value={definition.id} options={reportCatalog.map(r=>({value:r.id,label:text(r.en,r.bn)}))} onChange={v=>selectReport(reportDefinition(v).id)}/></div>}
-    {screen==='library'&&<div className="flex items-start justify-between gap-2"><div className="min-w-0"><h2 className="text-base font-semibold text-ink">{screen==='library'||screen==='overview'?reportTitle:text(screenDefinition.en,screenDefinition.bn)}</h2>{showHelper&&<p data-bangla-helper="" className="font-bn text-xs text-ink-500">{screen==='library'?definition.bn:screenDefinition.bn}</p>}<p className="mt-0.5 text-sm text-ink-500"><ReportLabel en={reportScreenQuestions[screen]?.en??definition.question} bn={reportScreenQuestions[screen]?.bn??definition.questionBn}/></p></div>
-     <div className="flex shrink-0 gap-1"><Button variant="ghost" size="icon" aria-label={text(favorite?'Unpin report':'Pin report',favorite?'রিপোর্টের পিন খুলুন':'রিপোর্ট পিন করুন')} aria-pressed={favorite} onClick={toggleFavorite}><Star className={'size-4 '+(favorite?'fill-current text-primary':'text-ink-400')} aria-hidden="true"/></Button><Button variant="ghost" size="icon" aria-label={text('How this report is calculated','রিপোর্ট কীভাবে হিসাব হয়')} aria-expanded={showBasis} onClick={()=>setShowBasis(v=>!v)}><Info className="size-4" aria-hidden="true"/></Button></div>
-    </div>}
     {screen==='library'&&showBasis&&<div className="rounded-lg bg-ink-50 p-3 text-xs leading-relaxed text-ink-600">{text(result.basis,result.basisBn)}. {text('Draft, deleted and reversed source records are excluded. Missing cost is unknown, not zero. Open a row for supporting records. Stock and outstanding balances are current snapshots, not reconstructed historical balances.','খসড়া, মুছে দেওয়া ও বিপরীত করা রেকর্ড বাদ। খরচ অনুপস্থিত হলে শূন্য ধরা হয় না। মূল তথ্য দেখতে রেকর্ড খুলুন। স্টক ও বাকি বর্তমান অবস্থা, পুরোনো তারিখের পুনর্গঠিত জের নয়।')}</div>}
     {definition.unavailable?<section className="rounded-xl border border-border bg-card p-6">
      <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-ink-50 text-ink-500"><Search className="size-5" aria-hidden="true"/></div>
