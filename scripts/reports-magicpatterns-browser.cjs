@@ -56,6 +56,8 @@ async function main(){
     }
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'no app-wide horizontal overflow: '+id+' / '+JSON.stringify(p));
     const suffix=p.language==='Bangla'?'bn':'en-bn';
+    // The imported Recharts components animate on mount. Capture after their original animation cycle.
+    if(['overview','profit','cashflow'].includes(id))await page.waitForTimeout(1700);
     await page.screenshot({path:path.join(out,`${p.width}-${p.theme}-${suffix}-${id}.png`),fullPage:true,animations:'disabled'});
    }
    if(p.width===1440&&p.theme==='light'){

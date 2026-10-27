@@ -2,7 +2,7 @@ import { reportDefinition } from '../catalog.ts';
 import { runReport } from '../model.ts';
 import { filtersForAnalysisReport } from '../screens.ts';
 import type { ReportData, ReportFilters, ReportRow, ReportScreen, CellValue } from '../types';
-export type EvidenceRequest = {report:string;label:string;field?:string;value?:string;date?:string;toDate?:string};
+import type { EvidenceRequest } from './components/reports/ReportBits';
 /** Pure bridge: the imported presentation never owns or copies operational transactions. */
 export function resolveMagicEvidence(req:EvidenceRequest,data:ReportData,filters:ReportFilters,screen:ReportScreen):ReportRow {
  const key=reportDefinition(req.report).id;

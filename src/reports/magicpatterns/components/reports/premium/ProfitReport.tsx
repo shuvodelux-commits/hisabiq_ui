@@ -38,7 +38,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
     { label: 'Cost of goods sold', value: -c.cogs, kind: 'minus' },
     { label: 'Gross profit', value: c.grossProfit, kind: 'sub' },
     { label: 'Expenses', value: -c.expenses, kind: 'minus' },
-    { label: 'Net profit (estimate)', value: c.netProfit, kind: 'total' },
+    { label: c.uncostedRevenue>0?'Net profit · cost missing':'Net profit (estimate)', value: c.uncostedRevenue>0?0:c.netProfit, kind: 'total' },
   ].filter((b) => b.kind !== 'skip' || b.value !== 0);
   const maxBar = Math.max(...bridge.map((b) => Math.abs(b.value)), 1);
 
@@ -58,18 +58,17 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
                     style={{ width: `${(Math.abs(b.value) / maxBar) * 100}%` }}
                   />
                 </span>
-                <span className={`text-right ${b.kind === 'total' || b.kind === 'sub' ? (b.value >= 0 ? 'text-success' : 'text-danger') : b.value < 0 ? 'text-ink-600' : 'text-ink'}`}>{taka(b.value)}</span>
+                <span className={`text-right ${b.kind === 'total' || b.kind === 'sub' ? (b.value >= 0 ? 'text-success' : 'text-danger') : b.value < 0 ? 'text-ink-600' : 'text-ink'}`} >{b.kind==='total'&&c.uncostedRevenue>0?'—':taka(b.value)}</span>
               </li>
             ))}
           </ul>
           <p className="mt-3 text-[11px] text-ink-500">
-            You keep about <b className="text-ink">৳{c.netSales > 0 ? Math.max(0, (c.netProfit / c.netSales) * 100).toFixed(1) : '0'}</b> from every ৳100 sold.
-            {c.uncostedRevenue > 0 && ' Sales without a known cost are left out of profit.'}
+            {c.uncostedRevenue>0 ? 'Net profit per ৳100 cannot be calculated until all recorded sale-time costs are known.' : <>You keep about <b className="text-ink">৳{c.netSales > 0 ? Math.max(0, (c.netProfit / c.netSales) * 100).toFixed(1) : '0'}</b> from every ৳100 sold.</>}
           </p>
         </Panel>
 
         <Panel title="Which products earn your profit?" subtitle="Bubble size = gross profit">
-          <div className="h-[230px]">
+          <div className="relative h-[230px]">
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
                 <CartesianGrid stroke="#E3E8EE" />
@@ -96,6 +95,7 @@ export function ProfitReport({ core, period }: { core: ReportsCore; period: Peri
                 </Scatter>
               </ScatterChart>
             </ResponsiveContainer>
+            {scatter.length===0&&<p role="status" className="pointer-events-none absolute inset-0 flex items-center justify-center px-5 text-center text-xs text-ink-500">No products with known historical issue costs to plot. Recorded revenue is still shown in the source table below.</p>}
           </div>
           <p className="mt-1 text-[11px] text-ink-500">
             Your top 3 products bring <b className="text-ink">{Math.round(top3Share * 100)}%</b> of gross profit. Dashed line = your average margin.
