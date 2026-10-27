@@ -36,7 +36,7 @@ export function paramsForReport(report:ReportKey,filters:ReportFilters,columns:s
  return p;
 }
 
-const reportScreens:ReportScreen[]=['overview','sales','stock','dues','money','advisor','profit','buying','cashflow','customers','library'];
+const reportScreens:ReportScreen[]=['overview','sales','sales-lab','stock','dues','money','advisor','profit','buying','cashflow','customers','library'];
 export function reportScreenFromParams(params:URLSearchParams):ReportScreen {
  const screen=params.get('screen') as ReportScreen;
  if(reportScreens.includes(screen))return screen;

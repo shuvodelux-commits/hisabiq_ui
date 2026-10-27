@@ -1,4 +1,5 @@
 import { reportDefinition } from "./catalog.ts";
+import { salesExperimentReportKey } from "./salesExperiment.ts";
 import type { ReportFilters, ReportKey, ReportScreen } from "./types";
 export const reportScreens: {
   id: ReportScreen;
@@ -49,6 +50,7 @@ export const reportScreens: {
     bn: "বিক্রি ও লাভ",
     report: "sales-register",
   },
+  { id: "sales-lab", en: "Sales experiment", bn: "বিক্রির পরীক্ষামূলক ভিউ", report: "sales-register" },
   { id: "stock", en: "Stock", bn: "স্টক", report: "stock" },
   { id: "dues", en: "Dues", bn: "পাওনা-দেনা", report: "receivables" },
   { id: "money", en: "Cash & expenses", bn: "টাকা ও খরচ", report: "cash-book" },
@@ -100,7 +102,8 @@ export function reportKeyForScreen(
   screen: ReportScreen,
   requested?: string | null,
 ): ReportKey {
-  return screen === "library"
+  return screen === "sales-lab" ? salesExperimentReportKey(requested)
+    : screen === "library"
     ? reportDefinition(requested ?? "overview").id
     : (reportScreens.find((item) => item.id === screen) ?? reportScreens[0])
         .report;
