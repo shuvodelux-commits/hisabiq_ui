@@ -1,7 +1,7 @@
 {
   "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "be94797b56836aed1626598973460d4b508fb933237c9a455d62031c10c20d00",
+  "guideSha256": "0b0ce1244d3dfceda2da042dc537ce5abc185a57e91774cce0fd67350de6d413",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {
@@ -270,7 +270,12 @@
         "src/financial-display/model.ts",
         "src/settings/ui.tsx",
         "src/settings/SettingsTabs.tsx",
-        "src/hooks/useMediaQuery.ts"
+        "src/hooks/useMediaQuery.ts",
+        "src/components/WorkspaceLibrary.tsx",
+        "src/components/WorkspaceToolbar.tsx",
+        "src/settings/EmployeeDirectory.tsx",
+        "src/settings/SettingsActivity.tsx",
+        "src/settings/SettingsSqlBackup.tsx"
       ],
       "states": [
         "Accounting",
@@ -283,7 +288,11 @@
         "read-only through business editor",
         "Party-aligned phone/tablet/desktop navigation",
         "horizontal and vertical keyboard tabs",
-        "draft retained during resize"
+        "draft retained during resize",
+        "Report Library sidebar search",
+        "employee joined-date filter and columns",
+        "encrypted SQL restore review",
+        "three invoice language styles"
       ]
     }
   ],
@@ -1798,6 +1807,22 @@
       "kind": "component",
       "exports": [
         "TransactionReviewDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/WorkspaceLibrary.tsx",
+      "kind": "component",
+      "exports": [
+        "WorkspaceLibrary"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/WorkspaceToolbar.tsx",
+      "kind": "component",
+      "exports": [
+        "WorkspaceToolbar"
       ],
       "reexports": []
     },
@@ -3764,6 +3789,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/EmployeeDirectory.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "EmployeeDirectory"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/FinancialTerminologySettings.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -3800,6 +3833,22 @@
       "kind": "authored-ui",
       "exports": [
         "OutputDesignSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/SettingsActivity.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsActivity"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/SettingsSqlBackup.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsSqlBackup"
       ],
       "reexports": []
     },
@@ -4103,7 +4152,8 @@
       "src/components/AppDateRangePicker.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/reports/ReportResults.tsx",
-      "src/saas/components.tsx"
+      "src/saas/components.tsx",
+      "src/settings/EmployeeDirectory.tsx"
     ],
     "ChevronRight": [
       "src/components/AppDateRangePicker.tsx",
@@ -4115,7 +4165,8 @@
       "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
       "src/pages/OnlineSales.tsx",
-      "src/saas/components.tsx"
+      "src/saas/components.tsx",
+      "src/settings/EmployeeDirectory.tsx"
     ],
     "ChevronRightIcon": [
       "src/components/products/AddProductDialog.tsx"
@@ -4139,7 +4190,9 @@
       "src/settings/AccountSecuritySettings.tsx"
     ],
     "Columns3": [
-      "src/components/reports/ReportToolbar.tsx"
+      "src/components/reports/ReportToolbar.tsx",
+      "src/settings/EmployeeDirectory.tsx",
+      "src/settings/SettingsActivity.tsx"
     ],
     "Copy": [
       "src/components/accounts/VoucherActionDialog.tsx",
@@ -4179,7 +4232,8 @@
       "src/reports/magicpatterns/components/reports/basic/SalesReport.tsx",
       "src/reports/magicpatterns/components/reports/basic/StockReport.tsx",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
-      "src/settings/DataSettings.tsx"
+      "src/settings/DataSettings.tsx",
+      "src/settings/SettingsSqlBackup.tsx"
     ],
     "Ellipsis": [
       "src/components/vendor/VendorTabs.tsx"
@@ -4207,7 +4261,7 @@
       "src/features/auth/LoginPreviewPage.tsx",
       "src/pages/AuditLedger.tsx",
       "src/settings/AccountSecuritySettings.tsx",
-      "src/settings/TeamSettings.tsx"
+      "src/settings/EmployeeDirectory.tsx"
     ],
     "EyeOff": [
       "src/components/dashboard/WidgetFrame.tsx",
@@ -4222,6 +4276,9 @@
     ],
     "FileImage": [
       "src/components/purchases/BillDetailDialog.tsx"
+    ],
+    "FileLock2": [
+      "src/settings/SettingsSqlBackup.tsx"
     ],
     "FilePlus2": [
       "src/components/brand/PartyRoleSpecimen.tsx",
@@ -4276,8 +4333,7 @@
     ],
     "History": [
       "src/components/parties/VendorCorrectionDialog.tsx",
-      "src/saas/SaasShell.tsx",
-      "src/settings/DataSettings.tsx"
+      "src/saas/SaasShell.tsx"
     ],
     "ImagePlus": [
       "src/components/products/PhotoUploader.tsx",
@@ -4464,7 +4520,7 @@
       "src/pages/Pos.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Sales.tsx",
-      "src/settings/TeamSettings.tsx"
+      "src/settings/EmployeeDirectory.tsx"
     ],
     "Percent": [
       "src/components/dashboard/MetricCard.tsx"
@@ -4657,8 +4713,7 @@
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
-      "src/saas/components.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/saas/components.tsx"
     ],
     "SearchIcon": [
       "src/components/SearchSelect.tsx"
@@ -4710,6 +4765,8 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/components/sales/SalesWideToolbar.tsx",
       "src/pages/Dashboard.tsx",
+      "src/settings/EmployeeDirectory.tsx",
+      "src/settings/SettingsActivity.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Smartphone": [
@@ -4790,7 +4847,8 @@
     "Upload": [
       "src/pages/Parties.tsx",
       "src/pages/Products.tsx",
-      "src/settings/DataSettings.tsx"
+      "src/settings/DataSettings.tsx",
+      "src/settings/SettingsSqlBackup.tsx"
     ],
     "UploadCloud": [
       "src/components/import/ImportUploadStep.tsx"

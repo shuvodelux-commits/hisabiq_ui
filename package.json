@@ -18,6 +18,7 @@
     "test:saas": "node scripts/saas-browser.cjs",
     "test:settings": "node scripts/settings-browser.cjs",
     "test:settings-redesign": "node scripts/settings-redesign-browser.cjs",
+    "test:settings-library": "node scripts/settings-library-browser.cjs",
     "test:settings-responsive": "node scripts/settings-responsive-browser.cjs",
     "test:erp-navigation": "node scripts/erp-navigation-browser.cjs",
     "test:settings-hub": "node scripts/settings-hub-browser.cjs",

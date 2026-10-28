@@ -106,6 +106,7 @@ export interface BusinessEmployee {
   id: string;
   name: string;
   email: string;
+  joinedDate?: string;
   roleIds: string[];
   active: boolean;
 }
@@ -393,13 +394,16 @@ export function validateSection<K extends BusinessSection>(
           !e.name.trim() ||
           typeof e.email !== "string" ||
           !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.email) ||
+          (e.joinedDate !== undefined && e.joinedDate !== "" &&
+            (typeof e.joinedDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(e.joinedDate) ||
+              Number.isNaN(Date.parse(e.joinedDate)) || new Date(e.joinedDate).toISOString().slice(0, 10) !== e.joinedDate)) ||
           typeof e.active !== "boolean" ||
           !Array.isArray(e.roleIds) ||
           !e.roleIds.length ||
           e.roleIds.some((id) => !roles.some((r) => r.id === id)),
       )
     )
-      return "Each employee needs a valid email and at least one existing role.";
+      return "Each employee needs a valid email, joined date (if entered) and at least one existing role.";
     if (
       new Set(employees.map((e) => e.id)).size !== employees.length ||
       new Set(employees.map((e) => e.email.trim().toLowerCase())).size !==

@@ -15,3 +15,6 @@ Implementation: selected section title at the top; remove the section dropdown a
 Verification: inspect both sides of 768px and 1024px, plus 799/800px to reject the previous assumption; check long Bangla, light/dark, keyboard tabs, horizontal scrolling, unsaved changes and draft preservation during resize. Update existing navigation/browser checks and the design guide.
 
 Main tabs retain keyboard focus after route changes, including navigation resumed through the dirty guard. Selected horizontal tabs remain visible after resizing and language changes. Nested-tab changes keep the section draft; shared Save validates every sub-page.
+
+
+Approved library follow-up: desktop lists use the actual 215px Report Library shell with sidebar search and teal row selection; horizontal compact tabs retain their underline. WorkspaceToolbar is shared with Reports. Employee and activity filters act on their own lists; form search stays separate. No 800px breakpoint was introduced.

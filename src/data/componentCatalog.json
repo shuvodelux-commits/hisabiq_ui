@@ -265,7 +265,12 @@
       "src/financial-display/model.ts",
       "src/settings/ui.tsx",
       "src/settings/SettingsTabs.tsx",
-      "src/hooks/useMediaQuery.ts"
+      "src/hooks/useMediaQuery.ts",
+      "src/components/WorkspaceLibrary.tsx",
+      "src/components/WorkspaceToolbar.tsx",
+      "src/settings/EmployeeDirectory.tsx",
+      "src/settings/SettingsActivity.tsx",
+      "src/settings/SettingsSqlBackup.tsx"
     ],
     "states": [
       "Accounting",
@@ -278,7 +283,11 @@
       "read-only through business editor",
       "Party-aligned phone/tablet/desktop navigation",
       "horizontal and vertical keyboard tabs",
-      "draft retained during resize"
+      "draft retained during resize",
+      "Report Library sidebar search",
+      "employee joined-date filter and columns",
+      "encrypted SQL restore review",
+      "three invoice language styles"
     ]
   }
 ]

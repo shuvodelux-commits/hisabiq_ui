@@ -31,10 +31,24 @@ function positiveWords(value:number):string {
  return parts.join(' ');
 }
 /** Converts safely rounded paisa to Bengali text. Non-finite amounts produce no words. */
-export function amountInWords(value:number):string {
+const englishSmall = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+function englishWords(value: number): string {
+ if(value < 20) return englishSmall[value];
+ if(value < 100) return ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'][Math.floor(value / 10)] + (value % 10 ? '-' + englishSmall[value % 10] : '');
+ if(value < 1000) return englishSmall[Math.floor(value / 100)] + ' hundred' + (value % 100 ? ' ' + englishWords(value % 100) : '');
+ for(const [unit, label] of [[10000000,'crore'],[100000,'lakh'],[1000,'thousand']] as const) {
+  if(value >= unit) return englishWords(Math.floor(value / unit)) + ' ' + label + (value % unit ? ' ' + englishWords(value % unit) : '');
+ }
+ return '';
+}
+export function amountInWords(value:number, language: 'Bangla' | 'English' = 'Bangla'):string {
  if(!Number.isFinite(value))return '';
  const paisa=Math.round(Math.abs(value)*100);
  if(!Number.isSafeInteger(paisa))return '';
  const taka=Math.floor(paisa/100),remainder=paisa%100;
+ if(language === 'English') {
+  const result = (value < 0 && paisa > 0 ? 'minus ' : '') + englishWords(taka) + ' taka' + (remainder ? ' and ' + englishWords(remainder) + ' paisa' : '') + ' only';
+  return result[0].toUpperCase() + result.slice(1);
+ }
  return (value<0&&paisa>0?'ঋণাত্মক ':'')+positiveWords(taka)+' টাকা'+(remainder?' '+positiveWords(remainder)+' পয়সা':'')+' মাত্র';
 }

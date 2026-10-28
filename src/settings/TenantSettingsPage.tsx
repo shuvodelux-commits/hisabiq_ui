@@ -1,3 +1,4 @@
+import { WorkspaceToolbar } from "../components/WorkspaceToolbar";
 import { SettingsTabs } from "./SettingsTabs";
 import { settingsSubsections, businessFieldGroup } from "./subsections";
 import { listenSettingsPop } from "./navigationGuard";
@@ -27,7 +28,6 @@ import {
   Bell,
   SlidersHorizontal,
   Database,
-  Search,
   Save,
   RotateCcw,
   Settings2,
@@ -619,7 +619,7 @@ export function SettingsPageContent({
         aria-labelledby={embedded ? undefined : `${tabsId}-main-${section}`}
         className={
           subsections.length
-            ? "grid min-w-0 gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]"
+            ? "grid min-w-0 gap-4 lg:grid-cols-[215px_minmax(0,1fr)]"
             : "min-w-0"
         }
       >
@@ -630,6 +630,8 @@ export function SettingsPageContent({
               id={`${tabsId}-sub`}
               panelId={`${tabsId}-sub-content`}
               label={`${info.label} sub-settings`}
+              libraryTitle={personal.language === "Bangla" ? info.bn : info.label}
+              libraryGroup={personal.language === "Bangla" ? "এই বিভাগের সেটিংস" : "In this section"}
               value={activeSubsection}
               language={personal.language}
               items={subsections}
@@ -646,16 +648,9 @@ export function SettingsPageContent({
           }
           className="min-w-0 space-y-4"
         >
-          <div className="relative">
-            <Search className="pointer-events-none absolute z-10 left-3 top-1/2 size-4 -translate-y-1/2 text-ink-500" />
-            <Input
-              aria-label="Search settings"
-              className="pl-9"
-              placeholder="Search settings…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
+          {section !== "team" && <WorkspaceToolbar search={
+            <Input type="search" aria-label="Search settings" placeholder="Search settings…" value={query} onChange={e => setQuery(e.target.value)} />
+          } />}
           {query && (
             <div
               className="space-y-1 rounded-lg border border-border bg-card p-2"
@@ -745,7 +740,6 @@ export function SettingsPageContent({
                 </p>
               )}
               {section === "team" ? (
-                <SettingCard title="Business employees & roles">
                   <TeamSettings
                     state={state}
                     actorId={actorId}
@@ -755,7 +749,6 @@ export function SettingsPageContent({
                     advanced={personal.mode === "Advanced"}
                     onChange={setDraft}
                   />
-                </SettingCard>
               ) : section === "interface" ? (
                 <InterfaceSettings
                   value={draft as ModuleViews}

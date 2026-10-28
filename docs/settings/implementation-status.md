@@ -56,3 +56,8 @@ Baseline: 734 unit tests passed before changes. Added tests cover migration, rol
 Run `npm test`, `npx tsc --noEmit`, `npm run check:ui-contract` and `npm run build`. Browser checks: `scripts/settings-responsive-browser.cjs`, `settings-redesign-browser.cjs`, `settings-browser.cjs`, `settings-hub-browser.cjs`, `auth-settings-browser.cjs`, `party-ledger-browser.cjs`, `pos-fast-counter-browser.cjs`, `table-typography-browser.cjs`, `dialog-accessibility-browser.cjs` and `calculator-scratchpad-browser.cjs`. A custom Chromium path can be supplied with `PLAYWRIGHT_EXECUTABLE_PATH`.
 
 Final verification results and review resolutions are recorded in the PR. Existing large production chunks and existing lint warnings are not presented as newly solved work.
+
+
+### Approved library and detail follow-up — 28 October 2026
+
+Shared Reports library/search and toolbar shells now serve Settings. Employee list has actual search, status/role/date filtering, optional joined dates, column choices and pagination; activity has search, dates, section filter and columns. Employee dates are optional for legacy records and use the existing account-edit/save-time permission checks. Settings backup adds an authenticated encrypted SQL snapshot with a user-held HisabIQ secret key and strict parse/review/authorized restore; arbitrary SQL is never run. This is a Settings-only snapshot, not a full business/server database backup. Three invoice templates now render all three document-language styles, secondary Bangla helpers and language-correct amount words. Custom user-entered data is not auto-translated. Server database backup/recovery, key custody/rotation and production scheduling remain backend work.

@@ -164,7 +164,7 @@ async function main() {
       "01711000245",
     );
     await page
-      .getByRole("textbox", { name: "Search settings", exact: true })
+      .getByRole("searchbox", { name: "Search settings", exact: true })
       .fill("logo");
     await page
       .getByRole("region", { name: "Settings search results" })

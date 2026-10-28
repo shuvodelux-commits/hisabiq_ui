@@ -8,12 +8,11 @@ export function InvoiceDocument(p: ReceiptPreviewProps) {
   const d = { ...invoiceDesignDefaults(), ...p.branding?.design };
   const language = d.language;
   const bn = language === "Bangla";
-  const label = (en: string, bangla?: string) =>
-    bn
-      ? (bangla ?? documentLabel("Bangla", en))
-      : language === "English"
-        ? en
-        : `${en} · ${bangla ?? documentLabel("Bangla", en)}`;
+  const label = (en: string, bangla = documentLabel("Bangla", en)) => {
+    if (bn) return bangla;
+    if (language === "English" || bangla === en) return en;
+    return <span className="inline-flex flex-col align-top leading-tight"><span>{en}</span><span data-document-helper="" lang="bn" data-table-helper className="font-bn mt-0.5 text-[11px] font-normal text-ink-600">{bangla}</span></span>;
+  };
   const n = (v: number) => formatNumber(v, v % 1 ? 2 : 0);
   const thermal = d.paper === "80 mm" || d.paper === "58 mm";
   const sections = {
@@ -88,7 +87,7 @@ export function InvoiceDocument(p: ReceiptPreviewProps) {
           <thead>
             <tr className="border-y border-slate-300 bg-slate-50">
               <th className="p-2 text-left">{label("Item", "পণ্য")}</th>
-              {d.showSku && <th className="p-2 text-left">SKU</th>}
+              {d.showSku && <th className="p-2 text-left">{label("SKU", "পণ্যের কোড")}</th>}
               {d.showBarcode && (
                 <th className="p-2 text-left">{label("Barcode", "বারকোড")}</th>
               )}
@@ -105,6 +104,7 @@ export function InvoiceDocument(p: ReceiptPreviewProps) {
               >
                 <td className="p-2 align-top">
                   <span>{bn ? line.nameBn || line.name : line.name}</span>
+                  {language === "English + Bangla" && line.nameBn && <span data-document-helper="" lang="bn" data-table-helper className="mt-0.5 block font-bn text-[11px] text-ink-600">{line.nameBn}</span>}
                   {d.showSerial && line.serials?.length ? (
                     <p className="mt-1 text-[10px]">
                       {label("Serial")}: {line.serials.join(", ")}
@@ -185,6 +185,7 @@ export function InvoiceDocument(p: ReceiptPreviewProps) {
         {d.showWords && (
           <AmountInWordsDisplay
             amount={p.total}
+            language={language}
             variant="receipt"
             label={label("In words", "কথায়")}
           />
@@ -237,7 +238,7 @@ export function InvoiceDocument(p: ReceiptPreviewProps) {
     ) : null,
     footer: (
       <footer className="whitespace-pre-wrap text-center text-xs">
-        {d.footer || p.branding?.footer}
+        {language === "English" && d.footer === invoiceDesignDefaults().footer ? "Thank you. Please visit again." : d.footer || p.branding?.footer}
       </footer>
     ),
   };

@@ -1,5 +1,8 @@
+import { AppDatePicker } from "../components/AppDateRangePicker";
+import { businessToday } from "../utils/dateRange";
+import { EmployeeDirectory } from "./EmployeeDirectory";
 import { useState, useId } from "react";
-import { Plus, ShieldCheck, LockKeyhole, Eye, Pencil } from "lucide-react";
+import { Plus, ShieldCheck, LockKeyhole } from "lucide-react";
 import { Button, Input, SettingsDialog, SettingsField } from "./ui";
 import { SettingsTabs } from "./SettingsTabs";
 import {
@@ -85,6 +88,7 @@ export function TeamSettings({
             id: crypto.randomUUID(),
             name: "",
             email: "",
+            joinedDate: businessToday(),
             roleIds: ["cashier"],
             active: true,
           },
@@ -102,7 +106,7 @@ export function TeamSettings({
       <div
         className={
           tabs.length > 1
-            ? "grid min-w-0 gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]"
+            ? "grid min-w-0 gap-4 lg:grid-cols-[215px_minmax(0,1fr)]"
             : "min-w-0 space-y-4"
         }
       >
@@ -110,6 +114,8 @@ export function TeamSettings({
           id={tabsId}
           panelId={`${tabsId}-panel`}
           label="Employee settings views"
+          libraryTitle={language === "Bangla" ? "কর্মীর সেটিংস" : "Employee settings"}
+          libraryGroup={language === "Bangla" ? "প্রবেশাধিকার" : "Access management"}
           secondary={tabs.length > 1}
           language={language}
           items={tabs.map((id) => ({
@@ -121,7 +127,7 @@ export function TeamSettings({
           onChange={setTab}
         />
         <div className="min-w-0 space-y-4">
-          <div className="flex justify-end">
+          {activeTab === "roles" && (<div className="flex justify-end">
             {activeTab && (activeTab === "roles" ? canRoles : canCreate) && (
               <Button
                 onClick={() =>
@@ -132,12 +138,7 @@ export function TeamSettings({
                 {activeTab === "roles" ? "Create role" : "Add demo employee"}
               </Button>
             )}
-          </div>
-          <p className="text-xs text-helper">
-            Business roles are separate from SaaS staff. Changes below are
-            staged until Save changes. Production authentication and session
-            revocation require the server; no password is collected here.
-          </p>
+          </div>)}
           <div
             role="tabpanel"
             id={`${tabsId}-panel`}
@@ -148,62 +149,8 @@ export function TeamSettings({
                 User and role lists require their separate view permissions.
               </p>
             ) : activeTab === "employees" ? (
-              <div className="overflow-x-auto">
-                <table data-erp-table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="p-2">Employee</th>
-                      <th className="p-2">Roles</th>
-                      <th className="p-2">Status</th>
-                      <th className="p-2 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {value.employees.map((e) => (
-                      <tr key={e.id} className="border-b border-border">
-                        <td className="p-2">
-                          <strong>{e.name}</strong>
-                          <p data-table-helper className="text-helper">
-                            {e.email}
-                          </p>
-                        </td>
-                        <td className="p-2">
-                          {e.roleIds
-                            .map(
-                              (id) =>
-                                value.roles.find((r) => r.id === id)?.name,
-                            )
-                            .join(" · ")}
-                        </td>
-                        <td className="p-2">
-                          {e.active ? "Active" : "Disabled"}
-                        </td>
-                        <td className="p-2">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              aria-label={`View access for ${e.name}`}
-                              onClick={() => setAccess(e)}
-                            >
-                              <Eye className="size-4" />
-                            </Button>
-                            {!disabled &&
-                              authority.includes("user.account.edit") && (
-                                <Button
-                                  variant="ghost"
-                                  aria-label={`Edit employee ${e.name}`}
-                                  onClick={() => openEmployee(e)}
-                                >
-                                  <Pencil className="size-4" />
-                                </Button>
-                              )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <EmployeeDirectory value={value} canEdit={!disabled && authority.includes("user.account.edit")} onAccess={setAccess} onEdit={openEmployee} language={language}
+                actions={canCreate ? <Button onClick={() => openEmployee()}><Plus className="size-4" />Add demo employee</Button> : null} />
             ) : (
               <>
                 <p className="text-xs text-helper">
@@ -300,6 +247,7 @@ export function TeamSettings({
           </div>
         </div>
       </div>
+      <p className="text-xs text-helper">{language === "Bangla" ? "সংরক্ষণ করুন চাপার আগে পরিবর্তন খসড়ায় থাকে। ভূমিকার অনুমতি এই ব্যবসার জন্য প্রযোজ্য।" : "Changes stay in your draft until you choose Save changes. Role permissions apply to this business."}</p>
       {error && !role && !employee && (
         <p role="alert" className="text-sm text-danger">
           {error}
@@ -500,6 +448,10 @@ export function TeamSettings({
                 />
               )}
             </SettingsField>
+            <SettingsField label="Joined date" bn="যোগদানের তারিখ">
+              {() => <AppDatePicker label="Joined date" value={employee.joinedDate ?? ""} onChange={joinedDate => setEmployee({ ...employee, joinedDate })} />}
+            </SettingsField>
+            <p className="text-xs text-helper">Leave blank when the original joining date is unknown.</p>
             <fieldset className="space-y-2">
               <legend className="text-sm font-medium">Assigned roles</legend>
               {value.roles.map((r) => (

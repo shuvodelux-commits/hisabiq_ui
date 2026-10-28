@@ -7,7 +7,7 @@ export function Button({kind='default',...rest}:{kind?:Kind}&ComponentProps<type
  return <HisabButton {...rest} variant={kind==='primary'?'default':kind}/>;
 }
 export function Tabs({label,items,value,onChange}:{label:string;items:{id:string;label:string;count?:number}[];value:string;onChange:(v:string)=>void}){
- return <MotionTabList aria-label={label} className="flex min-w-max max-w-full gap-1 overflow-x-auto border-b border-border">
+ return <MotionTabList aria-label={label} className="flex w-full min-w-0 max-w-full gap-1 overflow-x-auto border-b border-border">
  {items.map((item,i)=><button type="button" key={item.id} role="tab" aria-selected={value===item.id} tabIndex={value===item.id?0:-1}
  onClick={()=>onChange(item.id)} onKeyDown={e=>{if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?items.length-1:(i+(e.key==='ArrowRight'?1:-1)+items.length)%items.length;onChange(items[next].id);e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();}}}
  className={'relative flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-3 text-[13px] font-medium '+(value===item.id?'text-primary':'text-ink-500 hover:text-ink')}>

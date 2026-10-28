@@ -144,8 +144,8 @@ export function DocumentDesignSettings({
                     update({ language: v as InvoiceDesign["language"] })
                   }
                   options={[
-                    { value: "English", label: "English" },
-                    { value: "English + Bangla", label: "English + Bangla" },
+                    { value: "English", label: "Full English" },
+                    { value: "English + Bangla", label: "English + Bangla helpers" },
                     { value: "Bangla", label: "Full Bangla" },
                   ]}
                 />
@@ -217,8 +217,8 @@ export function DocumentDesignSettings({
             </SettingsField>
           )}
           <p className="text-xs text-helper">
-            Full Bangla works independently of app language. Product/party names
-            use stored data; unavailable translations are not invented.
+            Full English, Full Bangla or English with smaller Bangla helpers — independent of app language.
+            All three templates and paper sizes support these styles. Product/party names and custom notes use stored data; unavailable translations are not invented.
           </p>
         </SettingCard>
         <SettingCard title="Sections & visible fields">
