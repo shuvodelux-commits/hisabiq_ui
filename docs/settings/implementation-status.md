@@ -6,7 +6,7 @@ This branch delivers the first UI implementation slice of [the approved roadmap]
 
 | Area | Working behavior and source |
 | --- | --- |
-| Settings shell | Compact section selector, optional category disclosure, bilingual field search, shared Save/Discard, stale-revision checks, memory-only save warning and unsaved navigation guard. Existing Simple/Advanced compatibility is retained. |
+| Settings shell | Selected section title, horizontal underline main tabs, Party-aligned responsive sub-settings navigation, bilingual field search, shared Save/Discard, stale-revision checks, memory-only save warning and unsaved navigation guard. Existing Simple/Advanced compatibility is retained. |
 | Module entry | Settings opens the same canonical editor inside the module; the underlying page stays mounted so filters and drafts survive returning. Switching modules closes the local editor. |
 | Names & Khata | Closed financial term registry, English/Bangla/helper edits per relationship, account-aware previews, independent whole-column ordering. Party tables/balances/statements and account ledgers consume the shared settings. Custom wording never changes canonical debit/credit amounts or posting rules. |
 | Module columns | Sales and Products share their existing column choosers with Settings. Personal browser overrides take precedence over business defaults; required identity/totals stay visible. Tablet Sales keeps its existing separate preference key. Column visibility is not data authorization. |
@@ -53,6 +53,6 @@ Reuses the actual `Button`, `Input`, `AppSelect`, settings `Switch`/`SettingsFie
 
 Baseline: 734 unit tests passed before changes. Added tests cover migration, role command boundaries, context semantics, asymmetric column values, profiles, preservation of receipt details, memory-only document consumers, presentation immutability and draft recovery.
 
-Run `npm test`, `npx tsc --noEmit`, `npm run check:ui-contract` and `npm run build`. Browser checks: `scripts/settings-redesign-browser.cjs`, `settings-browser.cjs`, `settings-hub-browser.cjs`, `auth-settings-browser.cjs`, `party-ledger-browser.cjs`, `pos-fast-counter-browser.cjs`, `table-typography-browser.cjs`, `dialog-accessibility-browser.cjs` and `calculator-scratchpad-browser.cjs`. A custom Chromium path can be supplied with `PLAYWRIGHT_EXECUTABLE_PATH`.
+Run `npm test`, `npx tsc --noEmit`, `npm run check:ui-contract` and `npm run build`. Browser checks: `scripts/settings-responsive-browser.cjs`, `settings-redesign-browser.cjs`, `settings-browser.cjs`, `settings-hub-browser.cjs`, `auth-settings-browser.cjs`, `party-ledger-browser.cjs`, `pos-fast-counter-browser.cjs`, `table-typography-browser.cjs`, `dialog-accessibility-browser.cjs` and `calculator-scratchpad-browser.cjs`. A custom Chromium path can be supplied with `PLAYWRIGHT_EXECUTABLE_PATH`.
 
 Final verification results and review resolutions are recorded in the PR. Existing large production chunks and existing lint warnings are not presented as newly solved work.

@@ -1,18 +1,21 @@
-import {listenSettingsPop} from './navigationGuard';
-import {InterfaceSettings} from './InterfaceSettings';
-import type {ModuleViews} from './moduleViews';
-import {OutputDesignSettings} from './OutputDesignSettings';
-import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
-import { AppSelect } from '../components/AppSelect';
+import { SettingsTabs } from "./SettingsTabs";
+import { settingsSubsections, businessFieldGroup } from "./subsections";
+import { listenSettingsPop } from "./navigationGuard";
+import { InterfaceSettings } from "./InterfaceSettings";
+import type { ModuleViews } from "./moduleViews";
+import { OutputDesignSettings } from "./OutputDesignSettings";
+import { matchesSearch as fuzzyMatch } from "../utils/fuzzySearch";
+import { AppSelect } from "../components/AppSelect";
 import {
   useEffect,
   useLayoutEffect,
   useRef,
+  useId,
   useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   Building2,
   ShoppingCart,
@@ -54,9 +57,9 @@ import {
 } from "./ui";
 import { TeamSettings } from "./TeamSettings";
 import { DataSettings } from "./DataSettings";
-import {FinancialTerminologySettings} from "./FinancialTerminologySettings";
-import {DocumentDesignSettings} from "./DocumentDesignSettings";
-import type {FinancialDisplay} from "../financial-display/model";
+import { FinancialTerminologySettings } from "./FinancialTerminologySettings";
+import { DocumentDesignSettings } from "./DocumentDesignSettings";
+import type { FinancialDisplay } from "../financial-display/model";
 import { AccountSecuritySettings } from "./AccountSecuritySettings";
 
 const icons = {
@@ -186,7 +189,7 @@ function Fields({
 }) {
   const data = value as unknown as Record<string, unknown>;
   return (
-    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+    <div className="grid gap-x-6 gap-y-5 md:[grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))]">
       {fields.map((field) => {
         const v = data[field.key];
         const update = (next: unknown) =>
@@ -197,7 +200,7 @@ function Fields({
             data-field-key={field.key}
             className={
               field.kind === "textarea" || field.kind === "logo"
-                ? "sm:col-span-2"
+                ? "md:col-span-full"
                 : ""
             }
           >
@@ -221,8 +224,15 @@ function Fields({
                   );
                 if (field.kind === "select")
                   return (
-                    <AppSelect id={id} describedBy={descriptionId} label={field.label} value={v as string}
-  onChange={update} disabled={disabled} options={field.options ?? []} />
+                    <AppSelect
+                      id={id}
+                      describedBy={descriptionId}
+                      label={field.label}
+                      value={v as string}
+                      onChange={update}
+                      disabled={disabled}
+                      options={field.options ?? []}
+                    />
                   );
                 if (field.kind === "textarea")
                   return (
@@ -280,11 +290,18 @@ function Fields({
     </div>
   );
 }
-export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOverride?:SettingsSection;embedded?:boolean}={}) {
+export function SettingsPageContent({
+  sectionOverride,
+  embedded = false,
+}: { sectionOverride?: SettingsSection; embedded?: boolean } = {}) {
   const { section: routeSection } = useParams();
   const navigate = useNavigate();
-  const section: SettingsSection = sectionOverride ?? (
-    routeSection && routeSection in sectionNames
+  const routeState = useLocation().state as {
+    settingsTabFocus?: string;
+  } | null;
+  const section: SettingsSection =
+    sectionOverride ??
+    (routeSection && routeSection in sectionNames
       ? (routeSection as SettingsSection)
       : "business");
   const { state, personal, actorId, setActorId, save, updatePersonal } =
@@ -294,7 +311,9 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
   const [draft, setDraft] = useState<Draft>(() =>
     structuredClone(
       state.sections[
-        section === "personal" || section === "data" || section === "security" ? "business" : section
+        section === "personal" || section === "data" || section === "security"
+          ? "business"
+          : section
       ],
     ),
   );
@@ -311,6 +330,22 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
     [reviewOpen, setReviewOpen] = useState(false),
     [leaveOpen, setLeaveOpen] = useState(false);
   const pending = useRef<(() => void) | null>(null);
+  const tabsId = "settings-" + useId().replace(/:/g, "");
+  const [activeSubsections, setActiveSubsections] = useState<
+    Record<string, string>
+  >({});
+  const subsections =
+    settingsSubsections[section as keyof typeof settingsSubsections] ?? [];
+  const activeSubsection =
+    activeSubsections[section] ?? subsections[0]?.id ?? "";
+  const selectSubsection = (id: string) =>
+    setActiveSubsections((previous) => ({ ...previous, [section]: id }));
+  useLayoutEffect(() => {
+    if (!embedded && routeState?.settingsTabFocus === section)
+      document
+        .getElementById(`${tabsId}-main-${section}`)
+        ?.focus({ preventScroll: true });
+  }, [section, embedded, routeState, tabsId]);
   const personalDirty =
     JSON.stringify({ ...personalDraft, mode: personal.mode }) !==
       JSON.stringify(personal) || themeDraft !== theme;
@@ -321,13 +356,22 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
         ? false
         : JSON.stringify(draft) !== baseline;
   const editable =
-    section === "personal" || section === "security" ||
+    section === "personal" ||
+    section === "security" ||
     (section !== "data" && canManage(state, actorId, section));
-  const canView = section === "personal" || section === "security" || canManage(state, actorId, "view") || (section === "team" && (canManage(state,actorId,"user.account.view") || canManage(state,actorId,"user.role.view")));
+  const canView =
+    section === "personal" ||
+    section === "security" ||
+    canManage(state, actorId, "view") ||
+    (section === "team" &&
+      (canManage(state, actorId, "user.account.view") ||
+        canManage(state, actorId, "user.role.view")));
   const load = () => {
     const next = structuredClone(
       state.sections[
-        section === "personal" || section === "data" || section === "security" ? "business" : section
+        section === "personal" || section === "data" || section === "security"
+          ? "business"
+          : section
       ],
     );
     setDraft(next);
@@ -364,26 +408,40 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
       pending.current = () => navigate(url.hash.slice(1));
       setLeaveOpen(true);
     };
-    const originalUrl=location.href;
-    const originalHistoryState=window.history.state;
+    const originalUrl = location.href;
+    const originalHistoryState = window.history.state;
     let resuming = false;
-    const pop=(event:PopStateEvent)=>{
-      if(resuming){resuming=false;return;}
-      if(location.href===originalUrl){event.stopImmediatePropagation();return;}
-      const target=location.hash.slice(1);
+    const pop = (event: PopStateEvent) => {
+      if (resuming) {
+        resuming = false;
+        return;
+      }
+      if (location.href === originalUrl) {
+        event.stopImmediatePropagation();
+        return;
+      }
+      const target = location.hash.slice(1);
       event.stopImmediatePropagation();
-      const fromIndex=originalHistoryState?.idx, toIndex=event.state?.idx;
-      if(Number.isInteger(fromIndex)&&Number.isInteger(toIndex)&&fromIndex!==toIndex){
-        window.history.go(fromIndex-toIndex);
-        pending.current=()=>{resuming=true;window.history.go(toIndex-fromIndex);};
-      }else{
+      const fromIndex = originalHistoryState?.idx,
+        toIndex = event.state?.idx;
+      if (
+        Number.isInteger(fromIndex) &&
+        Number.isInteger(toIndex) &&
+        fromIndex !== toIndex
+      ) {
+        window.history.go(fromIndex - toIndex);
+        pending.current = () => {
+          resuming = true;
+          window.history.go(toIndex - fromIndex);
+        };
+      } else {
         // External hash entries may have no router index. Keep the current draft visible.
-        window.history.pushState(originalHistoryState,'',originalUrl);
-        pending.current=()=>navigate(target,{replace:true});
+        window.history.pushState(originalHistoryState, "", originalUrl);
+        pending.current = () => navigate(target, { replace: true });
       }
       setLeaveOpen(true);
     };
-    const stopPop=listenSettingsPop(pop);
+    const stopPop = listenSettingsPop(pop);
     window.addEventListener("beforeunload", unload);
     document.addEventListener("click", click, true);
     return () => {
@@ -392,7 +450,7 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
       document.removeEventListener("click", click, true);
     };
   }, [dirty, navigate]);
-  const commit = ():boolean => {
+  const commit = (): boolean => {
     setError("");
     if (section === "personal") {
       updatePersonal({ ...personalDraft, mode: personal.mode });
@@ -409,7 +467,11 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
     }
     setRevision(result.revision ?? state.revision + 1);
     setBaseline(JSON.stringify(draft));
-    setNotice(result.persisted===false?"Changes are in memory only. Download a backup before leaving.":"Business settings saved.");
+    setNotice(
+      result.persisted === false
+        ? "Changes are in memory only. Download a backup before leaving."
+        : "Business settings saved.",
+    );
     setReviewOpen(false);
     return true;
   };
@@ -432,7 +494,11 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
   );
   const categoryResults = (Object.keys(sectionNames) as SettingsSection[])
     .filter((key) =>
-      fuzzyMatch(query,[sectionNames[key].label,sectionNames[key].bn,sectionNames[key].description]),
+      fuzzyMatch(query, [
+        sectionNames[key].label,
+        sectionNames[key].bn,
+        sectionNames[key].description,
+      ]),
     )
     .map((key) => ({
       section: key,
@@ -450,7 +516,12 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
         .flatMap(([key, fields]) =>
           fields!
             .filter((f) =>
-              fuzzyMatch(query,[f.label,f.bn,f.hint,sectionNames[key as SettingsSection].label]),
+              fuzzyMatch(query, [
+                f.label,
+                f.bn,
+                f.hint,
+                sectionNames[key as SettingsSection].label,
+              ]),
             )
             .map((field) => ({ section: key as SettingsSection, field })),
         )
@@ -461,55 +532,120 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
     Icon = icons[section];
   return (
     <div data-settings-dirty={dirty} className="erp-settings min-w-0 space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">
-            Business settings
-          </h1>
-          <p className="mt-1 text-xs text-ink-500">
-            <span className="font-bn">ব্যবসার সেটিংস · </span>
-            {state.sections.business.name}
+      <header className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <Icon aria-hidden="true" className="size-5 text-primary" />
+            <h1
+              data-testid="settings-title"
+              className="text-xl font-semibold tracking-tight text-ink"
+            >
+              {personal.language === "Bangla" ? info.bn : info.label}
+            </h1>
+            {personal.language === "English + Bangla" && (
+              <span lang="bn" className="font-bn text-xs text-helper">
+                {info.bn}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-helper">
+            Settings · {state.sections.business.name}
           </p>
         </div>
-        <fieldset className="flex rounded-lg border border-border bg-card p-1">
-          <legend className="sr-only">Settings mode</legend>
-          {(["Simple", "Advanced"] as const).map((mode) => (
-            <label
-              key={mode}
-              className={`cursor-pointer rounded-md px-3 py-2 text-xs font-medium ${personal.mode === mode ? "bg-accent text-accent-foreground" : "text-ink-600"}`}
-            >
-              <input
-                className="mr-1.5 size-3"
-                type="radio"
-                name="settings-mode"
-                value={mode}
-                checked={personal.mode === mode}
-                onChange={() => updatePersonal({ mode })}
-              />
-              <span>{mode}</span>
-            </label>
-          ))}
-        </fieldset>
-      </div>
-
-      <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
-        <p className="max-w-xl text-xs leading-relaxed text-ink-500">
-          Demo business preferences · Shared settings apply to this business.
-          Personal display preferences stay on this device. Policy previews do
-          not enforce transaction rules or send messages.
-        </p>
-        <label className="space-y-1 text-[11px] font-medium text-ink-600">
-          Demo employee access
-          <AppSelect label="Demo employee access" value={actorId}
-  onChange={(id) => requestChange(() => setActorId(id))}
-  options={state.sections.team.employees.map((e) => ({
-    value: e.id, label: e.name + (!e.active ? ' · Disabled' : '')
-  }))} />
-        </label>
-      </div>
-      <div className="min-w-0 space-y-4">
-        <aside className="min-w-0 space-y-3">
-          {!embedded&&<SettingsField label="Settings section" bn="সেটিংসের বিভাগ">{id=><AppSelect id={id} label="Settings section" value={section} options={Object.entries(sectionNames).map(([value,v])=>({value,label:v.label}))} onChange={v=>requestChange(()=>navigate(`/app/settings/${v}`))}/>}</SettingsField>}
+        <div className="flex min-w-0 flex-wrap items-end gap-3">
+          <p
+            className="self-center text-xs text-helper"
+            title="Demo business preferences only. Personal display preferences stay on this device. Policies do not enforce transactions or send messages."
+          >
+            UI preview · No server posting
+          </p>
+          <label className="min-w-0 space-y-1 text-[11px] font-medium text-ink-600">
+            Preview as
+            <AppSelect
+              label="Demo employee access"
+              value={actorId}
+              onChange={(id) => requestChange(() => setActorId(id))}
+              options={state.sections.team.employees.map((e) => ({
+                value: e.id,
+                label: e.name + (!e.active ? " · Disabled" : ""),
+              }))}
+            />
+          </label>
+          <fieldset className="flex rounded-lg border border-border bg-card p-1">
+            <legend className="sr-only">Settings mode</legend>
+            {(["Simple", "Advanced"] as const).map((mode) => (
+              <label
+                key={mode}
+                className={`cursor-pointer rounded-md px-3 py-2 text-xs font-medium ${personal.mode === mode ? "bg-accent text-accent-foreground" : "text-ink-600"}`}
+              >
+                <input
+                  className="mr-1.5 size-3"
+                  type="radio"
+                  name="settings-mode"
+                  value={mode}
+                  checked={personal.mode === mode}
+                  onChange={() => updatePersonal({ mode })}
+                />
+                {mode}
+              </label>
+            ))}
+          </fieldset>
+        </div>
+      </header>
+      {!embedded && (
+        <SettingsTabs
+          id={`${tabsId}-main`}
+          panelId={`${tabsId}-content`}
+          label="Settings categories"
+          value={section}
+          language={personal.language}
+          items={Object.entries(sectionNames).map(([id, item]) => ({
+            id,
+            ...item,
+          }))}
+          onChange={(value) => {
+            if (value !== section)
+              requestChange(() =>
+                navigate(`/app/settings/${value}`, {
+                  state: { settingsTabFocus: value },
+                }),
+              );
+          }}
+        />
+      )}
+      <div
+        id={`${tabsId}-content`}
+        role={embedded ? undefined : "tabpanel"}
+        aria-labelledby={embedded ? undefined : `${tabsId}-main-${section}`}
+        className={
+          subsections.length
+            ? "grid min-w-0 gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]"
+            : "min-w-0"
+        }
+      >
+        {subsections.length > 0 && (
+          <aside className="min-w-0 self-start">
+            <SettingsTabs
+              secondary
+              id={`${tabsId}-sub`}
+              panelId={`${tabsId}-sub-content`}
+              label={`${info.label} sub-settings`}
+              value={activeSubsection}
+              language={personal.language}
+              items={subsections}
+              onChange={selectSubsection}
+            />
+          </aside>
+        )}
+        <div
+          data-settings-subpanel
+          id={`${tabsId}-sub-content`}
+          role={subsections.length ? "tabpanel" : undefined}
+          aria-labelledby={
+            subsections.length ? `${tabsId}-sub-${activeSubsection}` : undefined
+          }
+          className="min-w-0 space-y-4"
+        >
           <div className="relative">
             <Search className="pointer-events-none absolute z-10 left-3 top-1/2 size-4 -translate-y-1/2 text-ink-500" />
             <Input
@@ -532,21 +668,37 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                     type="button"
                     key={`${s}-${field.key}`}
                     className="block w-full rounded-md px-2 py-2 text-left text-xs text-ink hover:bg-accent"
-                    onClick={() =>
-                      requestChange(() => {
+                    onClick={() => {
+                      const reveal = () => {
+                        if (s === "business")
+                          setActiveSubsections((previous) => ({
+                            ...previous,
+                            business: businessFieldGroup(field.key),
+                          }));
+                        if (s === "invoices")
+                          setActiveSubsections((previous) => ({
+                            ...previous,
+                            invoices: "invoice",
+                          }));
                         if (field.advanced)
                           updatePersonal({ mode: "Advanced" });
-                        navigate(`/app/settings/${s}`);
+                        if (s !== section || embedded)
+                          navigate(`/app/settings/${s}`);
                         setQuery("");
                         setTimeout(
                           () =>
                             document
                               .querySelector(`[data-field-key="${field.key}"]`)
-                              ?.querySelector<HTMLElement>("input,textarea,button,[role=combobox]")?.focus(),
+                              ?.querySelector<HTMLElement>(
+                                "input,textarea,button,[role=combobox]",
+                              )
+                              ?.focus(),
                           100,
                         );
-                      })
-                    }
+                      };
+                      if (s === section && !embedded) reveal();
+                      else requestChange(reveal);
+                    }}
                   >
                     {field.label}
                     <span className="mt-1 block text-[10px] text-ink-500">
@@ -562,68 +714,6 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
               )}
             </div>
           )}
-          {!embedded&&<details><summary className="cursor-pointer text-xs font-medium text-primary">Browse all settings · সব সেটিংস</summary><nav
-            aria-label="Settings categories"
-            className="mt-2 flex flex-wrap gap-1 rounded-xl border border-border bg-card p-2"
-          >
-            {(Object.keys(sectionNames) as SettingsSection[]).map((key) => {
-              const CategoryIcon = icons[key];
-              return (
-                <button
-                  type="button"
-                  key={key}
-                  aria-current={section === key ? "page" : undefined}
-                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-xs ${section === key ? "bg-accent font-medium text-accent-foreground" : "text-ink-600 hover:bg-ink-50"}`}
-                  onClick={() =>
-                    requestChange(() => navigate(`/app/settings/${key}`))
-                  }
-                >
-                  <CategoryIcon className="size-4 shrink-0" />
-                  <span>
-                    {personal.language === "Bangla"
-                      ? sectionNames[key].bn
-                      : sectionNames[key].label}
-                    {personal.language !== "English" && (
-                      <span className="font-bn mt-1 hidden text-[10.5px] font-normal text-helper lg:block">
-                        {personal.language === "Bangla"
-                          ? sectionNames[key].label
-                          : sectionNames[key].bn}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              );
-            })}
-          </nav></details>}
-          <div className="hidden space-y-2 px-2 text-xs lg:block">
-            {state.sections.team.employees.find(e=>e.id===actorId)?.roleIds.includes("owner") && <Link
-              className="block text-teal-700 hover:underline"
-              to="/app/subscription"
-            >
-              Subscription & SMS credits
-            </Link>}
-            <Link
-              className="block text-teal-700 hover:underline"
-              to="/app/support"
-            >
-              Get support
-            </Link>
-          </div>
-        </aside>
-        <div className="min-w-0 space-y-4">
-          <div className="flex items-start gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-              <Icon className="size-5" />
-            </span>
-            <div>
-              <h2 className="text-lg font-semibold text-ink">
-                {personal.language === "Bangla" ? info.bn : info.label}
-              </h2>
-              <p className="mt-1 text-xs leading-relaxed text-ink-500">
-                {info.description}
-              </p>
-            </div>
-          </div>
           {!canView ? (
             <SettingCard title="Settings access unavailable">
               <p className="text-sm text-ink-600">
@@ -637,6 +727,7 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
             <DataSettings />
           ) : (
             <form
+              noValidate
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!dirty || !editable || readingLogo) return;
@@ -658,18 +749,30 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                   <TeamSettings
                     state={state}
                     actorId={actorId}
+                    language={personal.language}
                     value={draft as SettingsSections["team"]}
                     disabled={!editable}
                     advanced={personal.mode === "Advanced"}
                     onChange={setDraft}
                   />
                 </SettingCard>
-              ) : section === "interface" ? (<InterfaceSettings value={draft as ModuleViews} onChange={setDraft} disabled={!editable}/>) : section === "financialTerminology" ? (
-                <FinancialTerminologySettings value={draft as FinancialDisplay} disabled={!editable} language={personal.language} onChange={setDraft}/>
+              ) : section === "interface" ? (
+                <InterfaceSettings
+                  value={draft as ModuleViews}
+                  onChange={setDraft}
+                  disabled={!editable}
+                />
+              ) : section === "financialTerminology" ? (
+                <FinancialTerminologySettings
+                  value={draft as FinancialDisplay}
+                  disabled={!editable}
+                  language={personal.language}
+                  onChange={setDraft}
+                />
               ) : section === "personal" ? (
                 <>
                   <SettingCard title="Appearance & language">
-                    <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="grid gap-5 md:grid-cols-2">
                       <SettingsField
                         label="Appearance"
                         bn="চেহারা"
@@ -677,9 +780,19 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                         hint="Uses your existing Light, Dark and System theme setting."
                       >
                         {(id) => (
-                          <AppSelect id={id} label="Appearance" value={themeDraft}
-  onChange={(next) => setThemeDraft(next as typeof theme)}
-  options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'},{value:'system',label:'System'}]} />
+                          <AppSelect
+                            id={id}
+                            label="Appearance"
+                            value={themeDraft}
+                            onChange={(next) =>
+                              setThemeDraft(next as typeof theme)
+                            }
+                            options={[
+                              { value: "light", label: "Light" },
+                              { value: "dark", label: "Dark" },
+                              { value: "system", label: "System" },
+                            ]}
+                          />
                         )}
                       </SettingsField>
                       <SettingsField
@@ -689,9 +802,19 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                         hint="Applies to settings and navigation. Existing module content remains in its current language."
                       >
                         {(id) => (
-                          <AppSelect id={id} label="Language" value={personalDraft.language}
-  onChange={(language) => setPersonalDraft({ ...personalDraft, language: language as PersonalSettings['language'] })}
-  options={['English + Bangla', 'English', 'Bangla']} />
+                          <AppSelect
+                            id={id}
+                            label="Language"
+                            value={personalDraft.language}
+                            onChange={(language) =>
+                              setPersonalDraft({
+                                ...personalDraft,
+                                language:
+                                  language as PersonalSettings["language"],
+                              })
+                            }
+                            options={["English + Bangla", "English", "Bangla"]}
+                          />
                         )}
                       </SettingsField>
                     </div>
@@ -704,24 +827,53 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                       hint="Both modes tolerate spelling mistakes. Default requires all words; Advanced also finds partial words and broader text matches. Numeric references stay exact. Enter opens the first result."
                     >
                       {(id) => (
-                        <AppSelect id={id} label="Search matching" value={personalDraft.searchMode}
-                          onChange={(searchMode) => setPersonalDraft({ ...personalDraft, searchMode: searchMode as PersonalSettings['searchMode'] })}
-                          options={[{ value: 'Default', label: 'Default — focused fuzzy search' }, { value: 'Advanced', label: 'Advanced — broader fuzzy search' }]} />
+                        <AppSelect
+                          id={id}
+                          label="Search matching"
+                          value={personalDraft.searchMode}
+                          onChange={(searchMode) =>
+                            setPersonalDraft({
+                              ...personalDraft,
+                              searchMode:
+                                searchMode as PersonalSettings["searchMode"],
+                            })
+                          }
+                          options={[
+                            {
+                              value: "Default",
+                              label: "Default — focused fuzzy search",
+                            },
+                            {
+                              value: "Advanced",
+                              label: "Advanced — broader fuzzy search",
+                            },
+                          ]}
+                        />
                       )}
                     </SettingsField>
                   </SettingCard>
                   {personal.mode === "Advanced" && (
                     <SettingCard title="Advanced display preferences">
-                      <div className="grid gap-5 sm:grid-cols-2">
+                      <div className="grid gap-5 md:grid-cols-2">
                         <SettingsField
                           label="Table density"
                           bn="টেবিলের ঘনত্ব"
                           hint="Changes row spacing across this business workspace."
                         >
                           {(id) => (
-                            <AppSelect id={id} label="Table density" value={personalDraft.density}
-  onChange={(density) => setPersonalDraft({ ...personalDraft, density: density as PersonalSettings['density'] })}
-  options={['Compact', 'Comfortable']} />
+                            <AppSelect
+                              id={id}
+                              label="Table density"
+                              value={personalDraft.density}
+                              onChange={(density) =>
+                                setPersonalDraft({
+                                  ...personalDraft,
+                                  density:
+                                    density as PersonalSettings["density"],
+                                })
+                              }
+                              options={["Compact", "Comfortable"]}
+                            />
                           )}
                         </SettingsField>
                         <SettingsField
@@ -730,9 +882,25 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                           hint="Uses the existing finance and daybook terminology preference."
                         >
                           {(id) => (
-                            <AppSelect id={id} label="Financial terminology" value={personalDraft.terminology}
-  onChange={(terminology) => setPersonalDraft({ ...personalDraft, terminology: terminology as PersonalSettings['terminology'] })}
-  options={[{value:'simple',label:'Simple words'},{value:'accounting',label:'Accounting terms'}]} />
+                            <AppSelect
+                              id={id}
+                              label="Financial terminology"
+                              value={personalDraft.terminology}
+                              onChange={(terminology) =>
+                                setPersonalDraft({
+                                  ...personalDraft,
+                                  terminology:
+                                    terminology as PersonalSettings["terminology"],
+                                })
+                              }
+                              options={[
+                                { value: "simple", label: "Simple words" },
+                                {
+                                  value: "accounting",
+                                  label: "Accounting terms",
+                                },
+                              ]}
+                            />
                           )}
                         </SettingsField>
                         <SettingsField
@@ -741,41 +909,107 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                           hint="Uses the existing daybook date display preference."
                         >
                           {(id) => (
-                            <AppSelect id={id} label="Transaction date display" value={personalDraft.dateView}
-  onChange={(dateView) => setPersonalDraft({ ...personalDraft, dateView: dateView as PersonalSettings['dateView'] })}
-  options={[{value:'transaction',label:'Transaction date'},{value:'created',label:'Entry date'}]} />
+                            <AppSelect
+                              id={id}
+                              label="Transaction date display"
+                              value={personalDraft.dateView}
+                              onChange={(dateView) =>
+                                setPersonalDraft({
+                                  ...personalDraft,
+                                  dateView:
+                                    dateView as PersonalSettings["dateView"],
+                                })
+                              }
+                              options={[
+                                {
+                                  value: "transaction",
+                                  label: "Transaction date",
+                                },
+                                { value: "created", label: "Entry date" },
+                              ]}
+                            />
                           )}
                         </SettingsField>
                       </div>
                     </SettingCard>
                   )}
                 </>
+              ) : section === "business" ? (
+                <>
+                  {settingsSubsections.business.map((group) => (
+                    <div key={group.id} hidden={activeSubsection !== group.id}>
+                      <SettingCard
+                        title={
+                          personal.language === "Bangla"
+                            ? group.bn
+                            : group.label
+                        }
+                      >
+                        <Fields
+                          fields={(settingsFields.business ?? []).filter(
+                            (field) =>
+                              businessFieldGroup(field.key) === group.id &&
+                              (!field.advanced || personal.mode === "Advanced"),
+                          )}
+                          value={draft}
+                          onChange={setDraft}
+                          disabled={!editable}
+                          language={personal.language}
+                          onReading={setReadingLogo}
+                        />
+                        {group.id === "general" && (
+                          <p className="border-t border-border pt-4 text-xs text-helper">
+                            Currency: BDT · Timezone: Asia/Dhaka
+                          </p>
+                        )}
+                      </SettingCard>
+                    </div>
+                  ))}
+                </>
               ) : (
                 <>
-                  {(section!=="invoices" || (settingsFields.invoices||[]).some(f=>!f.advanced&&["prefix","copies","showPurchaseCost"].includes(f.key)))&&<SettingCard title="Common settings">
-                    <Fields
-                      fields={(settingsFields[section] || []).filter(
-                        (f) => !f.advanced && (section!=="invoices" || ["prefix","copies","showPurchaseCost"].includes(f.key)),
-                      )}
-                      value={draft}
-                      onChange={setDraft}
-                      disabled={!editable}
-                      language={personal.language}
-                      onReading={setReadingLogo}
-                    />
-                    {section === "business" && (
-                      <div className="flex gap-3 border-t border-border pt-4 text-xs text-ink-500">
-                        <span>Currency: BDT</span>
-                        <span>Timezone: Asia/Dhaka</span>
-                      </div>
-                    )}
-                  </SettingCard>}
+                  {(section !== "invoices" ||
+                    (activeSubsection === "invoice" &&
+                      (settingsFields.invoices || []).some(
+                        (f) =>
+                          !f.advanced &&
+                          ["prefix", "copies", "showPurchaseCost"].includes(
+                            f.key,
+                          ),
+                      ))) && (
+                    <SettingCard title="Common settings">
+                      <Fields
+                        fields={(settingsFields[section] || []).filter(
+                          (f) =>
+                            !f.advanced &&
+                            (section !== "invoices" ||
+                              ["prefix", "copies", "showPurchaseCost"].includes(
+                                f.key,
+                              )),
+                        )}
+                        value={draft}
+                        onChange={setDraft}
+                        disabled={!editable}
+                        language={personal.language}
+                        onReading={setReadingLogo}
+                      />
+                    </SettingCard>
+                  )}
                   {personal.mode === "Advanced" &&
+                    (section !== "invoices" ||
+                      activeSubsection === "invoice") &&
                     (settingsFields[section] || []).some((f) => f.advanced) && (
                       <SettingCard title="Advanced settings">
                         <Fields
                           fields={(settingsFields[section] || []).filter(
-                            (f) => f.advanced && (section!=="invoices" || ["prefix","copies","showPurchaseCost"].includes(f.key)),
+                            (f) =>
+                              f.advanced &&
+                              (section !== "invoices" ||
+                                [
+                                  "prefix",
+                                  "copies",
+                                  "showPurchaseCost",
+                                ].includes(f.key)),
                           )}
                           value={draft}
                           onChange={setDraft}
@@ -816,7 +1050,24 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                     </Link>
                   )}
                   {section === "invoices" && (
-                    <><DocumentDesignSettings value={draft as SettingsSections["invoices"]} business={state.sections.business} disabled={!editable} onChange={setDraft}/><OutputDesignSettings value={draft as SettingsSections["invoices"]} business={state.sections.business} disabled={!editable} onChange={setDraft}/></>
+                    <>
+                      <div hidden={activeSubsection !== "invoice"}>
+                        <DocumentDesignSettings
+                          value={draft as SettingsSections["invoices"]}
+                          business={state.sections.business}
+                          disabled={!editable}
+                          onChange={setDraft}
+                        />
+                      </div>
+                      <div hidden={activeSubsection !== "output"}>
+                        <OutputDesignSettings
+                          value={draft as SettingsSections["invoices"]}
+                          business={state.sections.business}
+                          disabled={!editable}
+                          onChange={setDraft}
+                        />
+                      </div>
+                    </>
                   )}
                   {section === "notifications" && (
                     <SettingCard title="Notification preview">
@@ -833,14 +1084,21 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
                         Asia/Dhaka. No message is sent.
                       </p>
                       <p className="text-xs text-ink-500">
-                        Configure shared sales completion, due collection and courier SMS event switches in Online Sales.
-                        SMS sending remains disconnected in this UI preview.
+                        Configure shared sales completion, due collection and
+                        courier SMS event switches in Online Sales. SMS sending
+                        remains disconnected in this UI preview.
                       </p>
                       <div className="flex flex-wrap gap-3">
-                        <Link to="/app/notifications" className="inline-block text-xs text-teal-700 hover:underline">
+                        <Link
+                          to="/app/notifications"
+                          className="inline-block text-xs text-teal-700 hover:underline"
+                        >
                           Configure ERP-wide SMS alerts →
                         </Link>
-                        <Link to="/app/subscription" className="inline-block text-xs text-teal-700 hover:underline">
+                        <Link
+                          to="/app/subscription"
+                          className="inline-block text-xs text-teal-700 hover:underline"
+                        >
                           Review SMS packages & credits →
                         </Link>
                       </div>
@@ -959,6 +1217,18 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
           )}
         </div>
       </div>
+      <footer className="flex flex-wrap gap-4 text-xs">
+        {state.sections.team.employees
+          .find((e) => e.id === actorId)
+          ?.roleIds.includes("owner") && (
+          <Link className="text-primary hover:underline" to="/app/subscription">
+            Subscription & SMS credits
+          </Link>
+        )}
+        <Link className="text-primary hover:underline" to="/app/support">
+          Get support
+        </Link>
+      </footer>
       <SettingsDialog
         title="Discard unsaved changes?"
         description="Your saved settings will be kept. Changes in this form will be discarded."
@@ -966,7 +1236,17 @@ export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOve
         onClose={() => setLeaveOpen(false)}
       >
         <div className="flex flex-wrap justify-end gap-2">
-          <Button onClick={()=>{if(commit()){setLeaveOpen(false);pending.current?.();pending.current=null;}}}>Save and continue</Button>
+          <Button
+            onClick={() => {
+              if (commit()) {
+                setLeaveOpen(false);
+                pending.current?.();
+                pending.current = null;
+              }
+            }}
+          >
+            Save and continue
+          </Button>
           <Button variant="outline" onClick={() => setLeaveOpen(false)}>
             Keep editing
           </Button>

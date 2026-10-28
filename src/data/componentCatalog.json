@@ -263,7 +263,9 @@
     "sources": [
       "src/settings/FinancialTerminologySettings.tsx",
       "src/financial-display/model.ts",
-      "src/settings/ui.tsx"
+      "src/settings/ui.tsx",
+      "src/settings/SettingsTabs.tsx",
+      "src/hooks/useMediaQuery.ts"
     ],
     "states": [
       "Accounting",
@@ -273,7 +275,10 @@
       "sample ledger",
       "search",
       "reset",
-      "read-only through business editor"
+      "read-only through business editor",
+      "Party-aligned phone/tablet/desktop navigation",
+      "horizontal and vertical keyboard tabs",
+      "draft retained during resize"
     ]
   }
 ]

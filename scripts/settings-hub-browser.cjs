@@ -20,21 +20,16 @@ async function main() {
     page.on("pageerror", (e) => errors.push(e.message));
     const base = "http://127.0.0.1:4239/#";
     const section = async (value) => {
-      await page
-        .getByRole("combobox", { name: "Settings section", exact: true })
-        .click();
-      await page.locator(`[role=option][data-value=${value}]`).click();
+      await page.locator(`[data-settings-section="${value}"]`).click();
     };
     await page.goto(base + "/app/settings/business");
+    await page.getByTestId("settings-title").waitFor();
     assert.equal(
       await page.getByRole("region", { name: "Settings shortcuts" }).count(),
       0,
       "Repeated shortcut hub was removed",
     );
-    await page
-      .getByText("Browse all settings · সব সেটিংস", { exact: true })
-      .click();
-    const categories = page.getByRole("navigation", {
+    const categories = page.getByRole("tablist", {
       name: "Settings categories",
     });
     for (const label of [
@@ -49,7 +44,7 @@ async function main() {
     ]) {
       assert.equal(
         await categories
-          .getByRole("button", {
+          .getByRole("tab", {
             name: new RegExp(
               "^" + label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
             ),
@@ -107,7 +102,7 @@ async function main() {
     );
     assert.deepEqual(errors, []);
     console.log(
-      "Settings navigation: compact section switcher, category disclosure, draft guard, data, billing, mobile preferences/security passed.",
+      "Underline Settings navigation, selected heading, draft guard, data, billing and mobile preferences/security passed.",
     );
   } finally {
     await browser?.close();

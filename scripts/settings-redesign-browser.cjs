@@ -24,6 +24,7 @@ async function main() {
     await page.locator("#erp-main").waitFor();
   };
   const select = async (label, value) => {
+    if(label==='Settings section'){await page.locator(`[data-settings-section="${value}"]`).click();return;}
     await page.getByRole("combobox", { name: label, exact: true }).click();
     await page.locator(`[role=option][data-value="${value}"]`).click();
   };
@@ -234,6 +235,7 @@ async function main() {
       0,
     );
     await go("settings/invoices");
+    await page.getByRole('tab',{name:/Ledger & report designs/}).click();
     await select("Output language", "Bangla");
     await select("Output orientation", "Landscape");
     await page
@@ -314,7 +316,7 @@ async function main() {
       ]) {
         await go("settings/" + section);
         await page
-          .getByRole("heading", { name: "Business settings", exact: true })
+          .getByTestId("settings-title")
           .waitFor();
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth + 1,
@@ -328,6 +330,7 @@ async function main() {
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await go("settings/invoices");
+    await page.getByRole('tab',{name:/Invoice design/}).click();
     await select("Paper mode", "58 mm");
     await page.evaluate(() => {
       window.__originalSettingsWrite = Storage.prototype.setItem;
@@ -377,7 +380,7 @@ async function main() {
     await select("Demo employee access", "rafiq");
     assert.equal(
       await page
-        .getByRole("tab", { name: /Employees|Roles & permissions/ })
+        .getByRole("tablist", {name:"Employee settings views"})
         .count(),
       0,
     );

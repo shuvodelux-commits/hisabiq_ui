@@ -1,3 +1,4 @@
+import {SettingsTabs} from '../../settings/SettingsTabs';
 import {FinancialTerminologySettings} from '../../settings/FinancialTerminologySettings';
 import {financialDefaults} from '../../financial-display/model';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -112,7 +113,7 @@ function UploadStates() {
   return <div><PhotoUploader photos={photos} max={2} label={text('Add sample photo', 'নমুনা ছবি যোগ')} onChange={(next) => { photos.filter((url) => !next.includes(url)).forEach((url) => URL.revokeObjectURL(url)); setPhotos(next); }} hint={text('Local image preview only; no file is uploaded.', 'শুধু এই ব্রাউজারে ছবি দেখা যাবে। আপলোড হয় না।')} /><p className="mt-3 text-xs text-ink-500">{text('Current uploader has some legacy English thumbnail labels; this source gap remains visible for later localization.', 'ছবির ছোট কিছু লেখা এখনো ইংরেজি। পরের ভাষার আপডেটে ঠিক করতে হবে।')}</p></div>;
 }
 
-function FinancialSettingsSpecimen(){const [value,setValue]=useState(financialDefaults);return <FinancialTerminologySettings value={value} onChange={setValue} disabled={false} language="English + Bangla"/>;}
+function FinancialSettingsSpecimen(){const [value,setValue]=useState(financialDefaults);const[tab,setTab]=useState('editor');return <div className="grid min-w-0 gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]"><SettingsTabs secondary id="library-settings-tabs" panelId="library-settings-panel" label="Settings navigation specimen" value={tab} onChange={setTab} items={[{id:'editor',label:'Names & Khata',bn:'হিসাবের নাম'},{id:'notes',label:'Navigation behavior',bn:'নেভিগেশনের নিয়ম'}]}/><div id="library-settings-panel" role="tabpanel" aria-labelledby={`library-settings-tabs-${tab}`} className="min-w-0">{tab==='editor'?<FinancialTerminologySettings value={value} onChange={setValue} disabled={false} language="English + Bangla"/>:<p className="text-sm text-helper">Party viewport bands: phone below 768px, tablet 768–1023px, desktop from 1024px. Sub-settings move to the left only on desktop. Use arrows and Enter to switch tabs; the editor draft is kept.</p>}</div></div>;}
 
 function Library() {
   const { text } = useUiCopy();

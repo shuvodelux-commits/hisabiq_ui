@@ -1,7 +1,7 @@
 {
   "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "99daf3f0c4b6e08a6ef22b5ef818940f6a8e84ca6c48dcc31b16cadd20cc1242",
+  "guideSha256": "be94797b56836aed1626598973460d4b508fb933237c9a455d62031c10c20d00",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {
@@ -268,7 +268,9 @@
       "sources": [
         "src/settings/FinancialTerminologySettings.tsx",
         "src/financial-display/model.ts",
-        "src/settings/ui.tsx"
+        "src/settings/ui.tsx",
+        "src/settings/SettingsTabs.tsx",
+        "src/hooks/useMediaQuery.ts"
       ],
       "states": [
         "Accounting",
@@ -278,7 +280,10 @@
         "sample ledger",
         "search",
         "reset",
-        "read-only through business editor"
+        "read-only through business editor",
+        "Party-aligned phone/tablet/desktop navigation",
+        "horizontal and vertical keyboard tabs",
+        "draft retained during resize"
       ]
     }
   ],
@@ -3795,6 +3800,14 @@
       "kind": "authored-ui",
       "exports": [
         "OutputDesignSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/SettingsTabs.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsTabs"
       ],
       "reexports": []
     },

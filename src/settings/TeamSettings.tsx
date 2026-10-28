@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 import { Plus, ShieldCheck, LockKeyhole, Eye, Pencil } from "lucide-react";
 import { Button, Input, SettingsDialog, SettingsField } from "./ui";
-import { MotionTabList, MotionTabIndicator } from "../motion/MotionTabList";
+import { SettingsTabs } from "./SettingsTabs";
 import {
   permissions,
   canManage,
@@ -33,6 +33,7 @@ export function TeamSettings({
   disabled,
   state,
   actorId,
+  language = "English + Bangla",
 }: {
   value: TeamData;
   onChange: (value: TeamData) => void;
@@ -40,6 +41,7 @@ export function TeamSettings({
   advanced: boolean;
   state: TenantSettings;
   actorId: string;
+  language?: string;
 }) {
   const [tab, setTab] = useState("employees"),
     [role, setRole] = useState<BusinessRole | null>(null),
@@ -47,6 +49,7 @@ export function TeamSettings({
     [access, setAccess] = useState<BusinessEmployee | null>(null),
     [error, setError] = useState(""),
     [ack, setAck] = useState(false);
+  const tabsId = "team-" + useId().replace(/:/g, "");
   const authority = effectivePermissions(state.sections.team, actorId);
   const canSeeUsers = authority.includes("user.account.view");
   const canSeeRoles = authority.includes("user.role.view");
@@ -96,216 +99,206 @@ export function TeamSettings({
   const impact = role ? roleImpact(value, role) : null;
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <MotionTabList
-          aria-label="Employee settings views"
-          className="flex border-b border-border"
-        >
-          {tabs.map((t, i) => (
-            <button
-              key={t}
-              type="button"
-              role="tab"
-              id={`team-tab-${t}`}
-              aria-controls={`team-panel-${t}`}
-              aria-selected={t === activeTab}
-              tabIndex={t === activeTab ? 0 : -1}
-              onKeyDown={(e) => {
-                if (
-                  ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
-                ) {
-                  e.preventDefault();
-                  const next =
-                    tabs[
-                      e.key === "Home"
-                        ? 0
-                        : e.key === "End"
-                          ? tabs.length - 1
-                          : (i +
-                              (e.key === "ArrowLeft" ? -1 : 1) +
-                              tabs.length) %
-                            tabs.length
-                    ];
-                  setTab(next);
-                  document.getElementById(`team-tab-${next}`)?.focus();
-                }
-              }}
-              onClick={() => setTab(t)}
-              className="relative px-4 py-3 text-[13px] font-medium"
-            >
-              <span>
-                {t === "employees"
-                  ? "Employees · কর্মী"
-                  : "Roles & permissions · ভূমিকা"}
-              </span>
-              <MotionTabIndicator active={activeTab === t} />
-            </button>
-          ))}
-        </MotionTabList>
-        {activeTab && (activeTab === "roles" ? canRoles : canCreate) && (
-          <Button
-            onClick={() =>
-              activeTab === "roles" ? openRole() : openEmployee()
-            }
-          >
-            <Plus className="size-4" />
-            {activeTab === "roles" ? "Create role" : "Add demo employee"}
-          </Button>
-        )}
-      </div>
-      <p className="text-xs text-helper">
-        Business roles are separate from SaaS staff. Changes below are staged
-        until Save changes. Production authentication and session revocation
-        require the server; no password is collected here.
-      </p>
       <div
-        role="tabpanel"
-        id={`team-panel-${activeTab}`}
-        aria-labelledby={`team-tab-${activeTab}`}
+        className={
+          tabs.length > 1
+            ? "grid min-w-0 gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]"
+            : "min-w-0 space-y-4"
+        }
       >
-        {!activeTab ? (
-          <p role="status" className="text-xs text-helper">
-            User and role lists require their separate view permissions.
+        <SettingsTabs
+          id={tabsId}
+          panelId={`${tabsId}-panel`}
+          label="Employee settings views"
+          secondary={tabs.length > 1}
+          language={language}
+          items={tabs.map((id) => ({
+            id,
+            label: id === "employees" ? "Employees" : "Roles & permissions",
+            bn: id === "employees" ? "কর্মী" : "ভূমিকা",
+          }))}
+          value={activeTab ?? ""}
+          onChange={setTab}
+        />
+        <div className="min-w-0 space-y-4">
+          <div className="flex justify-end">
+            {activeTab && (activeTab === "roles" ? canRoles : canCreate) && (
+              <Button
+                onClick={() =>
+                  activeTab === "roles" ? openRole() : openEmployee()
+                }
+              >
+                <Plus className="size-4" />
+                {activeTab === "roles" ? "Create role" : "Add demo employee"}
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-helper">
+            Business roles are separate from SaaS staff. Changes below are
+            staged until Save changes. Production authentication and session
+            revocation require the server; no password is collected here.
           </p>
-        ) : activeTab === "employees" ? (
-          <div className="overflow-x-auto">
-            <table data-erp-table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="p-2">Employee</th>
-                  <th className="p-2">Roles</th>
-                  <th className="p-2">Status</th>
-                  <th className="p-2 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {value.employees.map((e) => (
-                  <tr key={e.id} className="border-b border-border">
-                    <td className="p-2">
-                      <strong>{e.name}</strong>
-                      <p data-table-helper className="text-helper">
-                        {e.email}
-                      </p>
-                    </td>
-                    <td className="p-2">
-                      {e.roleIds
-                        .map((id) => value.roles.find((r) => r.id === id)?.name)
-                        .join(" · ")}
-                    </td>
-                    <td className="p-2">{e.active ? "Active" : "Disabled"}</td>
-                    <td className="p-2">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          aria-label={`View access for ${e.name}`}
-                          onClick={() => setAccess(e)}
-                        >
-                          <Eye className="size-4" />
-                        </Button>
-                        {!disabled &&
-                          authority.includes("user.account.edit") && (
+          <div
+            role="tabpanel"
+            id={`${tabsId}-panel`}
+            aria-labelledby={activeTab ? `${tabsId}-${activeTab}` : undefined}
+          >
+            {!activeTab ? (
+              <p role="status" className="text-xs text-helper">
+                User and role lists require their separate view permissions.
+              </p>
+            ) : activeTab === "employees" ? (
+              <div className="overflow-x-auto">
+                <table data-erp-table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="p-2">Employee</th>
+                      <th className="p-2">Roles</th>
+                      <th className="p-2">Status</th>
+                      <th className="p-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {value.employees.map((e) => (
+                      <tr key={e.id} className="border-b border-border">
+                        <td className="p-2">
+                          <strong>{e.name}</strong>
+                          <p data-table-helper className="text-helper">
+                            {e.email}
+                          </p>
+                        </td>
+                        <td className="p-2">
+                          {e.roleIds
+                            .map(
+                              (id) =>
+                                value.roles.find((r) => r.id === id)?.name,
+                            )
+                            .join(" · ")}
+                        </td>
+                        <td className="p-2">
+                          {e.active ? "Active" : "Disabled"}
+                        </td>
+                        <td className="p-2">
+                          <div className="flex justify-end gap-2">
                             <Button
                               variant="ghost"
-                              aria-label={`Edit employee ${e.name}`}
-                              onClick={() => openEmployee(e)}
+                              aria-label={`View access for ${e.name}`}
+                              onClick={() => setAccess(e)}
                             >
-                              <Pencil className="size-4" />
+                              <Eye className="size-4" />
+                            </Button>
+                            {!disabled &&
+                              authority.includes("user.account.edit") && (
+                                <Button
+                                  variant="ghost"
+                                  aria-label={`Edit employee ${e.name}`}
+                                  onClick={() => openEmployee(e)}
+                                >
+                                  <Pencil className="size-4" />
+                                </Button>
+                              )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-helper">
+                  {value.roles.length} roles ·{" "}
+                  {value.employees.filter((e) => e.active).length} active people
+                  ·{" "}
+                  {
+                    value.roles.filter((r) => !systemRoleIds.includes(r.id))
+                      .length
+                  }{" "}
+                  custom roles
+                </p>
+                <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                  {value.roles.map((r) => (
+                    <section
+                      key={r.id}
+                      className="rounded-xl border border-border bg-card p-4"
+                    >
+                      <header className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2">
+                          <ShieldCheck className="size-5 text-primary" />
+                          <div>
+                            <h4 className="text-sm font-semibold">{r.name}</h4>
+                            <p className="text-xs text-helper">
+                              {
+                                value.employees.filter(
+                                  (e) => e.active && e.roleIds.includes(r.id),
+                                ).length
+                              }{" "}
+                              people hold this
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[11px] text-helper">
+                          {r.id === "owner"
+                            ? "Always full access"
+                            : systemRoleIds.includes(r.id)
+                              ? "Built in"
+                              : "Custom"}
+                        </span>
+                      </header>
+                      <ul className="mt-3 space-y-1 text-xs">
+                        {r.permissions.slice(0, 6).map((p) => (
+                          <li key={p}>✓ {permissionLabel(p)}</li>
+                        ))}
+                      </ul>
+                      {r.permissions.length > 6 && (
+                        <p className="mt-1 text-xs text-helper">
+                          + {r.permissions.length - 6} more permissions
+                        </p>
+                      )}
+                      {!r.permissions.length && (
+                        <p className="mt-3 text-xs text-helper">
+                          No permissions assigned.
+                        </p>
+                      )}
+                      {canRoles && (
+                        <div className="mt-3 flex gap-2">
+                          <Button variant="outline" onClick={() => openRole(r)}>
+                            {r.id === "owner" ? "Rename" : "Edit role"}
+                          </Button>
+                          {!systemRoleIds.includes(r.id) && (
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                const reason = validateRoleChange(
+                                  value,
+                                  null,
+                                  actorId,
+                                  r.id,
+                                );
+                                if (reason) {
+                                  setError(reason);
+                                  return;
+                                }
+                                onChange({
+                                  ...value,
+                                  roles: value.roles.filter(
+                                    (x) => x.id !== r.id,
+                                  ),
+                                });
+                              }}
+                            >
+                              Delete unused role
                             </Button>
                           )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <>
-            <p className="text-xs text-helper">
-              {value.roles.length} roles ·{" "}
-              {value.employees.filter((e) => e.active).length} active people ·{" "}
-              {value.roles.filter((r) => !systemRoleIds.includes(r.id)).length}{" "}
-              custom roles
-            </p>
-            <div className="mt-3 grid gap-3 lg:grid-cols-2">
-              {value.roles.map((r) => (
-                <section
-                  key={r.id}
-                  className="rounded-xl border border-border bg-card p-4"
-                >
-                  <header className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2">
-                      <ShieldCheck className="size-5 text-primary" />
-                      <div>
-                        <h4 className="text-sm font-semibold">{r.name}</h4>
-                        <p className="text-xs text-helper">
-                          {
-                            value.employees.filter(
-                              (e) => e.active && e.roleIds.includes(r.id),
-                            ).length
-                          }{" "}
-                          people hold this
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-[11px] text-helper">
-                      {r.id === "owner"
-                        ? "Always full access"
-                        : systemRoleIds.includes(r.id)
-                          ? "Built in"
-                          : "Custom"}
-                    </span>
-                  </header>
-                  <ul className="mt-3 space-y-1 text-xs">
-                    {r.permissions.slice(0, 6).map((p) => (
-                      <li key={p}>✓ {permissionLabel(p)}</li>
-                    ))}
-                  </ul>
-                  {r.permissions.length > 6 && (
-                    <p className="mt-1 text-xs text-helper">
-                      + {r.permissions.length - 6} more permissions
-                    </p>
-                  )}
-                  {!r.permissions.length && (
-                    <p className="mt-3 text-xs text-helper">
-                      No permissions assigned.
-                    </p>
-                  )}
-                  {canRoles && (
-                    <div className="mt-3 flex gap-2">
-                      <Button variant="outline" onClick={() => openRole(r)}>
-                        {r.id === "owner" ? "Rename" : "Edit role"}
-                      </Button>
-                      {!systemRoleIds.includes(r.id) && (
-                        <Button
-                          variant="ghost"
-                          onClick={() => {
-                            const reason = validateRoleChange(
-                              value,
-                              null,
-                              actorId,
-                              r.id,
-                            );
-                            if (reason) {
-                              setError(reason);
-                              return;
-                            }
-                            onChange({
-                              ...value,
-                              roles: value.roles.filter((x) => x.id !== r.id),
-                            });
-                          }}
-                        >
-                          Delete unused role
-                        </Button>
+                        </div>
                       )}
-                    </div>
-                  )}
-                </section>
-              ))}
-            </div>
-          </>
-        )}
+                    </section>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
       {error && !role && !employee && (
         <p role="alert" className="text-sm text-danger">

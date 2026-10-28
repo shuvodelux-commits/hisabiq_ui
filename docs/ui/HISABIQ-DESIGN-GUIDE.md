@@ -560,3 +560,8 @@ Current change log: v2.1 adds screenshot-complete live specimens, exact relation
 ### Settings and document compositions — 27 October 2026
 
 Settings uses the existing field/button/select/dialog families. `src/settings/FinancialTerminologySettings.tsx` and `src/financial-display/model.ts` supply context-owned names/helpers and whole-column order; the library specimen uses isolated sample state. `DocumentDesignSettings` and `OutputDesignSettings` use the same `InvoiceDocument`/report rendering paths as print. These are local UI-preview consumers, not production authorization, financial posting or payment fulfillment. NestSherERP roles/permissions are ported through `src/settings/rbac.ts`, preserving legacy multi-role records; real reauthentication remains a server boundary. Business Pad applies its content-start offset once. Settings changes never rewrite historical financial facts.
+
+
+### Settings responsive navigation — 28 October 2026
+
+Settings follows Party's actual viewport bands: phone below 768px, tablet 768–1023px, desktop at 1024px and above. The 900px Party content-fit rules do not define a desktop band, and Settings must not introduce an 800px device cutoff. `SettingsTabs` reuses `useMediaQuery`, `MotionTabList` and `MotionTabIndicator`; its nested strip becomes a left list only at desktop `lg`. Main sections remain horizontal underline tabs. The selected section is the page title. Business/invoice sub-pages and employee/role views keep their parent draft across navigation and resizing; sections without multiple sub-pages retain full width. Search reveals the target sub-page. Preserve the same fonts, 36px controls, permissions, shared Save and conflict/dirty guards in each band.

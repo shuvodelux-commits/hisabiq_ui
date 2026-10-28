@@ -123,7 +123,7 @@ export function FinancialTerminologySettings({
         and party debit/credit have different meanings; amounts and posting
         never change.
       </p>
-      <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
         <SettingCard title="Labels & Bangla helpers">
           <Input
             aria-label="Search financial terms"
@@ -171,7 +171,7 @@ export function FinancialTerminologySettings({
             <p className="text-xs text-helper">No matching terms.</p>
           )}
         </SettingCard>
-        <div className="self-start xl:sticky xl:top-4">
+        <div className="min-w-0 self-start xl:sticky xl:top-4">
           <SettingCard title={`${context} preview · নমুনা খাতা`}>
             <div>
               <strong>
@@ -185,7 +185,7 @@ export function FinancialTerminologySettings({
                 Opening {sample.balanceLabel} ৳2,000 · Sample entries
               </p>
             </div>
-            <div className="overflow-x-auto">
+            <div tabIndex={0} role="region" aria-label={`${context} sample ledger`} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
               <table data-erp-table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border">

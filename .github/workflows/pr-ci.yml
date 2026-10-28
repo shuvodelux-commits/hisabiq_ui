@@ -128,6 +128,7 @@ jobs:
       - name: Settings profiles, roles, recovery and responsive save flows
         if: steps.scope.outputs.settings == 'true'
         run: |
+          npm run test:settings-responsive
           npm run test:settings-redesign
           npm run test:settings
 
