@@ -10,6 +10,7 @@
     "preview": "npx vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:reports-magicpatterns": "node scripts/reports-magicpatterns-browser.cjs",
+    "test:business-review": "node scripts/business-review-browser.cjs",
     "check:ui-contract": "node scripts/sync-design-guide.cjs --check && node scripts/check-ui-design-contract.cjs && node --test tests/uiDesignContractGuard.test.cjs && node --test tests/workflowActionSizing.test.cjs && node scripts/check-input-focus.cjs && node scripts/audit-erp-controls.cjs",
     "cf:deploy": "npm run build && wrangler deploy",
     "cf:preview": "npm run build && wrangler preview",

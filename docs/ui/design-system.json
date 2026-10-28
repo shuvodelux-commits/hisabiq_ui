@@ -1629,6 +1629,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/AppMonthYearPicker.tsx",
+      "kind": "component",
+      "exports": [
+        "AppMonthYearPicker"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/AppSelect.tsx",
       "kind": "component",
       "exports": [
@@ -2975,6 +2983,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/reports/BusinessReview.tsx",
+      "kind": "component",
+      "exports": [
+        "BusinessReview"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/reports/DaybookDialog.tsx",
       "kind": "component",
       "exports": [
@@ -3951,6 +3967,7 @@
       "src/components/accounts/LedgerView.tsx",
       "src/components/accounts/StatementsView.tsx",
       "src/components/accounts/TrialBalanceView.tsx",
+      "src/components/reports/BusinessReview.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Daybook.tsx",
@@ -4083,11 +4100,13 @@
     ],
     "CalendarDays": [
       "src/components/AppDateRangePicker.tsx",
+      "src/components/AppMonthYearPicker.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
       "src/reports/magicpatterns/MagicReportsView.tsx"
     ],
     "CalendarRange": [
-      "src/components/pos/InstallmentTermsPanel.tsx"
+      "src/components/pos/InstallmentTermsPanel.tsx",
+      "src/components/reports/BusinessReview.tsx"
     ],
     "Check": [
       "src/components/AppSelect.tsx",
@@ -4152,6 +4171,7 @@
     ],
     "ChevronLeft": [
       "src/components/AppDateRangePicker.tsx",
+      "src/components/AppMonthYearPicker.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/saas/components.tsx",
@@ -4160,6 +4180,7 @@
     ],
     "ChevronRight": [
       "src/components/AppDateRangePicker.tsx",
+      "src/components/AppMonthYearPicker.tsx",
       "src/components/dashboard/DuesList.tsx",
       "src/components/layout/ErpNavMenu.tsx",
       "src/components/parties/LedgerTableResponsive.tsx",
@@ -4304,6 +4325,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartySourceQuickPreview.tsx",
       "src/components/pos/SaleTemplatesMenu.tsx",
+      "src/components/reports/BusinessReview.tsx",
       "src/navigation/erpNavigation.ts",
       "src/pages/Accounts.tsx",
       "src/pages/OnlineSales.tsx",
@@ -4311,6 +4333,7 @@
       "src/pages/Purchases.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reconciliation.tsx",
+      "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx"
     ],
@@ -4616,6 +4639,7 @@
       "src/components/parties/PartyStatementDialog.tsx",
       "src/components/parties/VendorStatementDialog.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
+      "src/components/reports/BusinessReview.tsx",
       "src/components/reports/ReportDetails.tsx",
       "src/components/vendor/VendorTabs.tsx",
       "src/pages/AuditLedger.tsx",
@@ -4673,6 +4697,7 @@
       "src/components/accounts/VoucherActionDialog.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/pos/DraftsMenu.tsx",
+      "src/components/reports/BusinessReview.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Scale": [
@@ -4718,6 +4743,9 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/saas/components.tsx"
+    ],
+    "SearchCheck": [
+      "src/components/reports/BusinessReview.tsx"
     ],
     "SearchIcon": [
       "src/components/SearchSelect.tsx"
