@@ -3871,6 +3871,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/SettingsDirectory.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsDirectory"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/SettingsSqlBackup.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -3883,14 +3891,6 @@
       "kind": "authored-ui",
       "exports": [
         "SettingsTabs"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/settings/SettingsWorkspaceSidebar.tsx",
-      "kind": "authored-ui",
-      "exports": [
-        "SettingsWorkspaceSidebar"
       ],
       "reexports": []
     },
@@ -4071,7 +4071,7 @@
     ],
     "Bell": [
       "src/components/layout/TopBar.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4096,7 +4096,7 @@
       "src/pages/Finance.tsx",
       "src/pages/Sales.tsx",
       "src/saas/SaasShell.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx"
+      "src/settings/SettingsDirectory.tsx"
     ],
     "Briefcase": [
       "src/saas/SaasShell.tsx"
@@ -4106,7 +4106,7 @@
     ],
     "Building2": [
       "src/saas/SaasShell.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4261,7 +4261,7 @@
       "src/settings/TenantSettingsHub.tsx"
     ],
     "Database": [
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4520,7 +4520,7 @@
       "src/components/brand/BrandHero.tsx",
       "src/components/brand/PrimitivesSection.tsx",
       "src/navigation/erpNavigation.ts",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "PackageCheck": [
@@ -4546,12 +4546,6 @@
     ],
     "PanelLeft": [
       "src/components/layout/SidebarTrigger.tsx"
-    ],
-    "PanelLeftClose": [
-      "src/settings/SettingsWorkspaceSidebar.tsx"
-    ],
-    "PanelLeftOpen": [
-      "src/settings/SettingsWorkspaceSidebar.tsx"
     ],
     "Paperclip": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -4684,7 +4678,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/DocumentDesignSettings.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Receipt": [
@@ -4777,7 +4771,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/saas/components.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx"
+      "src/settings/SettingsDirectory.tsx"
     ],
     "SearchCheck": [
       "src/components/reports/BusinessReview.tsx"
@@ -4814,7 +4808,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/saas/SaasShell.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TeamSettings.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
@@ -4825,7 +4819,7 @@
       "src/components/dashboard/MetricCard.tsx",
       "src/navigation/erpNavigation.ts",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "SlidersHorizontal": [
@@ -4836,7 +4830,7 @@
       "src/pages/Dashboard.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsActivity.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Smartphone": [
@@ -4906,7 +4900,7 @@
     "Truck": [
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/pos/StockShortageDialog.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx"
+      "src/settings/SettingsDirectory.tsx"
     ],
     "Undo2": [
       "src/pages/Purchases.tsx",
@@ -4931,7 +4925,7 @@
       "src/components/pos/CustomerPicker.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx"
+      "src/settings/SettingsDirectory.tsx"
     ],
     "UserRoundCog": [
       "src/components/finance/FinanceRecordDialogs.tsx",
@@ -4943,7 +4937,7 @@
       "src/navigation/erpNavigation.ts",
       "src/saas/SaasShell.tsx",
       "src/settings/AccountSecuritySettings.tsx",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4954,7 +4948,7 @@
       "src/components/layout/TopBar.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/navigation/erpNavigation.ts",
-      "src/settings/SettingsWorkspaceSidebar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "WalletCards": [
