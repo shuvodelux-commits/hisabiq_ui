@@ -60,6 +60,7 @@ import { FinancialTerminologySettings } from "./FinancialTerminologySettings";
 import { DocumentDesignSettings } from "./DocumentDesignSettings";
 import type { FinancialDisplay } from "../financial-display/model";
 import { AccountSecuritySettings } from "./AccountSecuritySettings";
+import { RegionalCurrencySettings, TaxVatSettings, DocumentNumberingSettings } from "./CommerceSettingsPanels";
 
 const icons = {
   interface: SlidersHorizontal,
@@ -488,7 +489,11 @@ export function SettingsPageContent({
               ],
             ),
         );
-  const needsReview = changes.some((f) =>
+  const nestedChanged = section === "business" ?
+    JSON.stringify((draft as SettingsSections["business"]).regional) !== JSON.stringify(state.sections.business.regional) ||
+    JSON.stringify((draft as SettingsSections["business"]).tax) !== JSON.stringify(state.sections.business.tax) :
+    section === "invoices" && JSON.stringify((draft as SettingsSections["invoices"]).numbering) !== JSON.stringify(state.sections.invoices.numbering);
+  const needsReview = nestedChanged || changes.some((f) =>
     ["rounding", "allocation", "prefix", "lockDate"].includes(f.key),
   );
   const categoryResults = (Object.keys(sectionNames) as SettingsSection[])
@@ -510,6 +515,11 @@ export function SettingsPageContent({
         advanced: key === "team",
       },
     }));
+  const subsectionResults = [
+    {section:"business" as const, field:{key:"regional",label:"Regional & Currency",bn:"আঞ্চলিক ও মুদ্রা",hint:"BDT, symbol, digits, date and time formatting",kind:"text" as const}},
+    {section:"business" as const, field:{key:"tax",label:"Tax & VAT",bn:"কর ও ভ্যাট",hint:"VAT registration, rates, inclusive or exclusive pricing",kind:"text" as const}},
+    {section:"invoices" as const, field:{key:"numbering",label:"Document numbering",bn:"ডকুমেন্ট নম্বর",hint:"Invoice, purchase, return, quotation, prefix, sequence",kind:"text" as const}},
+  ].filter(({section: s,field})=>fuzzyMatch(query,[field.label,field.bn,field.hint,sectionNames[s].label]));
   const results = query.trim()
     ? Object.entries(settingsFields)
         .flatMap(([key, fields]) =>
@@ -524,7 +534,7 @@ export function SettingsPageContent({
             )
             .map((field) => ({ section: key as SettingsSection, field })),
         )
-        .concat(categoryResults)
+        .concat(categoryResults,subsectionResults)
         .slice(0, 12)
     : [];
   const info = sectionNames[section],
@@ -589,12 +599,12 @@ export function SettingsPageContent({
                           if (s === "business")
                             setActiveSubsections((previous) => ({
                               ...previous,
-                              business: businessFieldGroup(field.key),
+                              business: ["regional","tax"].includes(field.key) ? field.key : businessFieldGroup(field.key),
                             }));
                           if (s === "invoices")
                             setActiveSubsections((previous) => ({
                               ...previous,
-                              invoices: "invoice",
+                              invoices: field.key === "numbering" ? "numbering" : "invoice",
                             }));
                           if (field.advanced)
                             updatePersonal({ mode: "Advanced" });
@@ -942,31 +952,33 @@ export function SettingsPageContent({
                 <>
                   {settingsSubsections.business.map((group) => (
                     <div key={group.id} hidden={activeSubsection !== group.id}>
-                      <SettingCard
-                        title={
-                          personal.language === "Bangla"
-                            ? group.bn
-                            : group.label
-                        }
-                      >
-                        <Fields
-                          fields={(settingsFields.business ?? []).filter(
-                            (field) =>
-                              businessFieldGroup(field.key) === group.id &&
-                              (!field.advanced || personal.mode === "Advanced"),
-                          )}
-                          value={draft}
-                          onChange={setDraft}
+                      {group.id === "regional" ? (
+                        <>
+                          <RegionalCurrencySettings
+                            value={(draft as SettingsSections["business"]).regional}
+                            financialYear={(draft as SettingsSections["business"]).financialYear}
+                            disabled={!editable}
+                            onChange={(regional) => setDraft((previous) => ({ ...previous, regional }))}
+                          />
+                          <SettingCard title={personal.language === "Bangla" ? "অর্থবছর" : "Financial year"}>
+                            <Fields fields={(settingsFields.business ?? []).filter(field => businessFieldGroup(field.key) === "regional")}
+                              value={draft} onChange={setDraft} disabled={!editable} language={personal.language} onReading={setReadingLogo}/>
+                          </SettingCard>
+                        </>
+                      ) : group.id === "tax" ? (
+                        <TaxVatSettings
+                          value={(draft as SettingsSections["business"]).tax}
+                          regional={(draft as SettingsSections["business"]).regional}
                           disabled={!editable}
-                          language={personal.language}
-                          onReading={setReadingLogo}
+                          onChange={(tax) => setDraft((previous) => ({ ...previous, tax }))}
                         />
-                        {group.id === "general" && (
-                          <p className="border-t border-border pt-4 text-xs text-helper">
-                            Currency: BDT · Timezone: Asia/Dhaka
-                          </p>
-                        )}
-                      </SettingCard>
+                      ) : (
+                        <SettingCard title={personal.language === "Bangla" ? group.bn : group.label}>
+                          <Fields
+                            fields={(settingsFields.business ?? []).filter(field => businessFieldGroup(field.key) === group.id && (!field.advanced || personal.mode === "Advanced"))}
+                            value={draft} onChange={setDraft} disabled={!editable} language={personal.language} onReading={setReadingLogo}/>
+                        </SettingCard>
+                      )}
                     </div>
                   ))}
                 </>
@@ -1061,6 +1073,13 @@ export function SettingsPageContent({
                           business={state.sections.business}
                           disabled={!editable}
                           onChange={setDraft}
+                        />
+                      </div>
+                      <div hidden={activeSubsection !== "numbering"}>
+                        <DocumentNumberingSettings
+                          value={(draft as SettingsSections["invoices"]).numbering}
+                          disabled={!editable}
+                          onChange={(numbering) => setDraft((previous) => ({ ...previous, numbering, prefix: numbering.sale.prefix }))}
                         />
                       </div>
                       <div hidden={activeSubsection !== "output"}>
@@ -1321,6 +1340,10 @@ export function SettingsPageContent({
               </p>
             </div>
           ))}
+          {nestedChanged && <div className="rounded-lg border border-border p-3 text-sm">
+            <p className="font-medium">{section === "business" ? "Regional & VAT preferences" : "Document numbering"}</p>
+            <p className="mt-1 text-xs text-helper">Future-facing settings only. Existing invoices, transactions, and issued references remain unchanged.</p>
+          </div>}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setReviewOpen(false)}>
               Keep editing
