@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, CircleAlert, FileHash, BadgePercent, Globe2 } from 'lucide-react';
+import { Plus, Trash2, CircleAlert, Hash, BadgePercent, Globe2 } from 'lucide-react';
 import { AppSelect, type SelectOption } from '../components/AppSelect';
 import { useUiCopy } from '../i18n/useUiCopy';
 import { businessToday } from '../utils/dateRange';
@@ -169,7 +169,7 @@ export function DocumentNumberingSettings({ value, disabled, onChange }: Numberi
   return <div data-settings-numbering className="space-y-4">
     <SettingCard title={text('Document numbering', 'ডকুমেন্ট নম্বর')}>
       <div className="flex items-start gap-2 text-xs text-helper">
-        <FileHash className="mt-0.5 size-4 shrink-0" aria-hidden="true"/>
+        <Hash className="mt-0.5 size-4 shrink-0" aria-hidden="true"/>
         {text('Set prefixes and preview numbers for future documents. Issued reference numbers never change. These settings do not reserve numbers; the production backend must allocate unique sequences transactionally.',
           'নতুন ডকুমেন্টের নম্বর কেমন হবে তা ঠিক করুন। আগের নম্বর বদলাবে না। এটি নম্বর সংরক্ষণ করে না; সার্ভার থেকে নিরাপদে একক নম্বর দিতে হবে।')}
       </div>
