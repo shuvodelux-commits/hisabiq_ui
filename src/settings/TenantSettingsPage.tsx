@@ -704,6 +704,7 @@ export function SettingsPageContent({
         {subsections.length > 0 && (
           <aside className="min-w-0 self-start">
             <SettingsTabs
+              secondary inline
               id={`${tabsId}-sub`}
               panelId={`${tabsId}-sub-content`}
               label={`${info.label} sub-settings`}
