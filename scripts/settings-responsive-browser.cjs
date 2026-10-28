@@ -99,7 +99,7 @@ async function main() {
         "Responsive draft shop",
       );
       await page.waitForFunction(desktop => {
-        if (desktop) return !!document.querySelector('[data-settings-directory] a[aria-current="page"]');
+        if (desktop) return !!document.querySelector('[data-settings-directory] [role="tab"][aria-selected="true"]');
         const nav = document.querySelector('[data-settings-navigation="sections"]');
         const tab = nav.querySelector('[aria-selected="true"]');
         const a = nav.getBoundingClientRect(), b = tab.getBoundingClientRect();
@@ -128,7 +128,7 @@ async function main() {
         return {
           selectedVisible: mainBox.width > 0
             ? selectedBox.left >= mainBox.left - 1 && selectedBox.right <= mainBox.right + 1
-            : !!document.querySelector('[data-settings-directory] a[aria-current="page"]'),
+            : !!document.querySelector('[data-settings-directory] [role="tab"][aria-selected="true"]'),
           overflow: document.documentElement.scrollWidth > innerWidth + 1,
           left: a.right <= b.left + 1,
           above: a.bottom <= b.top + 1,
