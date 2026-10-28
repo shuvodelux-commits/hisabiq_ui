@@ -163,7 +163,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const factor = productUnitFactor(l.product,l.unit)||1;
             const baseQty = saleLineBaseQty(l);
             const lineTotal = saleLineTotal(l);
-            const lotPrice = l.product.kind === 'Stock'
+            const lotPrice = l.product.kind !== 'Service' && l.product.kind !== 'Bundle'
               ? resolveLotSalePrice(l.product, l.unit, saleLineBaseQty(l), availableStockLots())
               : null;
             const recipe=l.product.kind==='Bundle'&&l.bundleRevision?getBundleVersion(l.product.id,l.bundleRevision):undefined;
