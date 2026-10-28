@@ -78,7 +78,8 @@ async function main() {
     await table.getByRole('columnheader', { name: 'Roles', exact: true }).waitFor();
     for (const width of [390, 768, 800, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
-      await page.waitForFunction(desktop => document.querySelector('[aria-label="Employee settings views"]').getAttribute('aria-orientation') === (desktop ? 'vertical' : 'horizontal'), width >= 1024);
+      await page.waitForFunction(() => document.querySelector('[aria-label="Employee settings views"]').getAttribute('aria-orientation') === 'horizontal');
+      assert.equal(await page.locator('[data-settings-sidebar]').isVisible(), width >= 1024, 'Only desktop shows Settings sidebar');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'Employee page fits at ' + width);
     }
     fs.mkdirSync('.superpowers/sdd/settings-report-library/screens', { recursive: true });
