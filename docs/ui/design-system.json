@@ -3791,6 +3791,16 @@
       "reexports": []
     },
     {
+      "file": "src/settings/CommerceSettingsPanels.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "RegionalCurrencySettings",
+        "TaxVatSettings",
+        "DocumentNumberingSettings"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/DataSettings.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4046,6 +4056,9 @@
       "src/saas/SaasShell.tsx",
       "src/settings/TenantSettingsHub.tsx"
     ],
+    "BadgePercent": [
+      "src/settings/CommerceSettingsPanels.tsx"
+    ],
     "Banknote": [
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/dashboard/MetricCard.tsx",
@@ -4212,7 +4225,8 @@
       "src/components/reports/SalesProfitExperiment.tsx"
     ],
     "CircleAlert": [
-      "src/components/FeedbackState.tsx"
+      "src/components/FeedbackState.tsx",
+      "src/settings/CommerceSettingsPanels.tsx"
     ],
     "CircleDollarSign": [
       "src/pages/Finance.tsx"
@@ -4354,6 +4368,9 @@
     "FlaskConical": [
       "src/components/reports/SalesProfitExperiment.tsx"
     ],
+    "Globe2": [
+      "src/settings/CommerceSettingsPanels.tsx"
+    ],
     "GripVertical": [
       "src/components/dashboard/CustomizeDialog.tsx",
       "src/components/pos/CartTable.tsx"
@@ -4371,6 +4388,9 @@
       "src/components/pos/InstallmentReceivePaymentDialog.tsx",
       "src/components/purchases/BillDetailDialog.tsx",
       "src/navigation/erpNavigation.ts"
+    ],
+    "Hash": [
+      "src/settings/CommerceSettingsPanels.tsx"
     ],
     "History": [
       "src/components/parties/VendorCorrectionDialog.tsx",
@@ -4621,6 +4641,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Vendors.tsx",
       "src/pages/Warranty.tsx",
+      "src/settings/CommerceSettingsPanels.tsx",
       "src/settings/TeamSettings.tsx"
     ],
     "PlusCircle": [
@@ -4868,7 +4889,8 @@
       "src/pages/AuditLedger.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reports.tsx",
-      "src/pages/Sales.tsx"
+      "src/pages/Sales.tsx",
+      "src/settings/CommerceSettingsPanels.tsx"
     ],
     "Trash2Icon": [
       "src/components/products/form/AdvancedStockPanel.tsx"
