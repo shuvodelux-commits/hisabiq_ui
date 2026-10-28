@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { baseQty, baseCost, lineAmount, lotBaseSellPrice, makePurchaseLine, priceInUnit, switchPurchaseUnit } from '../src/utils/purchaseCart.ts';
+import { baseQty, baseCost, lineAmount, lotBaseSellPrice, enteredLotBaseSellPrice, makePurchaseLine, priceInUnit, switchPurchaseUnit } from '../src/utils/purchaseCart.ts';
 
 const box = {
   id: 'p2', name: 'LED Bulb 12W', sku: 'LED', category: 'Electrical',
@@ -19,13 +19,19 @@ test('lot selling price is independently editable and converts between units', (
   assert.equal(priceInUnit(lotBaseSellPrice(line), box, 'Box'), 1850);
   assert.equal(priceInUnit(baseCost({ ...line, cost: '1500', costUnit: 'Box' }), box, 'Pcs'), 150);
 });
-test('new purchase lines capture an initial lot selling price without mutating product price', () => {
+test('new purchase lots inherit the product default unless the buyer enters a price', () => {
   const line = makePurchaseLine(box);
   assert.equal(line.lotSellUnit, 'Box');
-  assert.equal(line.lotSellPrice, '1650');
+  assert.equal(line.lotSellPrice, '');
+  assert.equal(enteredLotBaseSellPrice(line), undefined);
   assert.equal(lotBaseSellPrice(line), 165);
   assert.equal(box.sellPrice, 165);
   assert.equal(line.detailsOpen, false);
+  const entered = {...line, lotSellPrice: '1750'};
+  assert.equal(enteredLotBaseSellPrice(entered), 175);
+  assert.equal(lotBaseSellPrice(entered), 175);
+  assert.equal(enteredLotBaseSellPrice({...line, lotSellPrice: '0'}), NaN);
+  assert.equal(enteredLotBaseSellPrice({...line, lotSellPrice: 'invalid'}), NaN);
 });
 
 test('POS-style unit switch keeps the same compound stock quantity and purchase total', () => {
@@ -49,6 +55,12 @@ test('single-unit product ignores unsupported unit switch', () => {
   const item = { ...box, altUnit: undefined };
   const initial = makePurchaseLine(item);
   assert.deepEqual(switchPurchaseUnit(initial, 'Box'), initial);
+});
+
+test('switching units does not turn an inherited default into a stored lot price', () => {
+  const line = switchPurchaseUnit(makePurchaseLine(box), 'Pcs');
+  assert.equal(line.lotSellPrice, '');
+  assert.equal(lotBaseSellPrice(line), 165);
 });
 
 test('switching units retains independently entered lot selling price', () => {
