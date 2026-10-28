@@ -87,7 +87,10 @@ export function SearchSelect({
   };
   const closeQuickAdd = () => {
     setQuickName(null);
-    window.setTimeout(() => triggerRef.current?.focus(), 40);
+    window.setTimeout(() => {
+      // Preserve focus if the user has already reopened a picker or moved on.
+      if (!document.activeElement || document.activeElement === document.body) triggerRef.current?.focus();
+    }, 40);
   };
   const activate = (index: number) => {
     if (index < filtered.length) choose(filtered[index].value);

@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires -- Playwright CLI uses CommonJS. */
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
 async function main(){const {createServer}=await import('vite');const server=await createServer({server:{host:'127.0.0.1',port:4300,strictPort:true}});await server.listen();
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
@@ -12,8 +14,12 @@ async function main(){const {createServer}=await import('vite');const server=awa
   await dialog.locator('#pf-name').fill('Preserved draft');await dialog.locator('#pf-category').click();
   await page.getByText('Add new category',{exact:true}).click();const child=page.getByRole('dialog',{name:'New category',exact:true});await child.waitFor();
   await child.locator('#qa-name').fill('Nested draft');await page.keyboard.press('Escape');await child.waitFor({state:'hidden'});
+  // Quick Add returns focus asynchronously; wait before opening the next picker.
+  await page.waitForFunction(()=>document.activeElement?.id==='pf-category');
   assert.equal(await dialog.locator('#pf-name').inputValue(),'Preserved draft');assert.equal(await page.evaluate(()=>document.body.style.overflow),'hidden');
-  await dialog.locator('#pf-category').click();await page.getByRole('combobox',{name:'Search category',exact:true}).focus();await page.keyboard.press('Escape');assert.equal(await dialog.isVisible(),true,'picker Escape preserves editor');
+  await dialog.locator('#pf-category').click();const popupId=await dialog.locator('#pf-category').getAttribute('aria-controls');assert.ok(popupId);const pickerSearch=page.getByRole('combobox',{name:'Search category',exact:true});await pickerSearch.focus();
+  // Catch late Quick Add focus restoration stealing a newly opened picker's focus.
+  await page.waitForTimeout(100);assert.equal(await pickerSearch.evaluate(node=>document.activeElement===node),true,'new picker keeps focus after child dialog restoration');await pickerSearch.press('Escape');await page.locator('#'+popupId).waitFor({state:'hidden'});assert.equal(await dialog.isVisible(),true,'picker Escape preserves editor');
   await dialog.getByRole('button',{name:'Cancel',exact:true}).click();await page.getByRole('button',{name:'Discard',exact:true}).click();await dialog.waitFor({state:'hidden'});
   assert.notEqual(await page.evaluate(()=>document.body.style.overflow),'hidden');assert.equal(await search.isVisible(),true);
   await context.close();

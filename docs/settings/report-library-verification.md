@@ -24,6 +24,10 @@ Implemented on the Settings draft branch; no merge performed. Requirements and s
 - `scripts/report-workspace-browser.cjs` was updated from the retired overview heading/duplicate report-title assertions to actual current overview rendering and library URL selection. Its filters, comparison, Back navigation, detail, columns, saved views, CSV, purchase planner and responsive checks now pass. `scripts/report-guidance-browser.cjs` now checks actual Library comparison help rather than retired overview summary controls; semantic table badges, translated helpers, keyboard/touch tooltip bounds, nested Escape and axe checks pass in four profiles.
 - `scripts/bangla-shared-date-picker-browser.cjs` expects the phone Party date range to be visible before opening Filters. Current Party mobile layout puts it inside Filters. Shared native-modal date behavior is independently checked in Settings in all three languages and widths.
 
+## CI overlay regression
+
+GitHub's final dialog check exposed an existing delayed Quick Add focus callback that could steal focus after a picker was reopened. The expanded regression check failed on that focus jump before the fix. `SearchSelect` now restores focus only when no connected control holds it; the test also waits for the picker to close before cancelling the parent editor. This preserves the current entry draft and nested Escape behavior without retries or skipped coverage.
+
 ## Scope decisions
 
 The encrypted SQL snapshot covers actual Settings data, designs, employees, roles and activity. Uploaded SQL is parsed as one declared snapshot format and never executed. Restore preserves the current audit trail and appends a restore event; snapshot activity is reference only. No full server SQL database, sales/stock/payment restore, server key custody, production authentication or scheduled cloud backup is claimed. Names/custom notes remain stored source values rather than invented translations.
