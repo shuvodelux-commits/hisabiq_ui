@@ -91,12 +91,7 @@ async function main() {
     for (const width of [320, 767, 768, 799, 800, 1023, 1024, 1280, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       await page.waitForFunction(
-        (desktop) =>
-          document
-            .querySelector('[aria-label="Business profile sub-settings"]')
-            .getAttribute("aria-orientation") ===
-          (desktop ? "vertical" : "horizontal"),
-        width >= 1024,
+        () => document.querySelector('[aria-label="Business profile sub-settings"]').getAttribute("aria-orientation") === "horizontal",
       );
       assert.equal(await main.getAttribute("aria-orientation"), "horizontal");
       assert.equal(
@@ -146,7 +141,7 @@ async function main() {
       });
       assert.equal(await header.getByRole("searchbox", { name: "Search settings", exact: true }).count(), 1, width + " keeps search in header");
       assert.equal(await page.locator('[data-settings-sidebar]').isVisible(), width >= 1024, width + ' uses the contextual Settings sidebar only on laptop/desktop');
-      if (width >= 1024) assert.equal(await page.getByRole("button", { name: "Scroll Business profile sub-settings right", exact: true }).count(), 0, "Vertical sidebar has no scroll arrows");
+      if (width >= 1024) assert.equal(await page.locator('[data-settings-directory] nav[aria-label="Settings categories"]').isVisible(), true, "Embedded Party directory replaces a second app sidebar");
       assert.equal(geometry.overflow, false, width + " page fits");
       assert.equal(
         geometry.selectedVisible,
@@ -154,7 +149,7 @@ async function main() {
         width + " selected main tab stays visible",
       );
       assert.equal(
-        width >= 1024 ? geometry.left : geometry.above,
+        geometry.above,
         true,
         width + " uses Party workspace bands",
       );
@@ -171,7 +166,7 @@ async function main() {
     await page.getByLabel("Phone number", { exact: true }).fill("01711000245");
     await page.setViewportSize({ width: 1024, height: 1000 });
     await sub.getByRole("tab", { name: /Contact & address/ }).focus();
-    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowRight");
     await page.keyboard.press("Enter");
     await page.getByLabel("Business logo", { exact: true }).waitFor();
     await sub.getByRole("tab", { name: /General/ }).click();
