@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { products } from '../data/products';
 import { productOffers } from '../data/productOffers';
 import type { Party, PaymentMethod, Product, SaleStockSource, WarrantySnapshot } from '../types/erp';
-import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures';
 import { resolveLotSalePrice } from '../utils/lotSellingPrice';
 import { availableStockLots } from '../data/erpDemoStore';
 import { productUnitFactor } from '../utils/unitChain';
