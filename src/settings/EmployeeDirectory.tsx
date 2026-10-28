@@ -39,7 +39,7 @@ export function EmployeeDirectory({ value, canEdit, onAccess, onEdit, actions, l
   const shown = rows.slice((current - 1) * size, current * size);
   const active = Number(!!role) + Number(!!status);
   return <div className="space-y-4">
-    <WorkspaceToolbar search={<Input type="search" aria-label={text("Search employees", "কর্মী খুঁজুন")} placeholder={text("Search employees, email or role…", "নাম, ইমেইল বা ভূমিকা খুঁজুন…")}
+    <WorkspaceToolbar variant="plain" search={<Input type="search" aria-label={text("Search employees", "কর্মী খুঁজুন")} placeholder={text("Search employees, email or role…", "নাম, ইমেইল বা ভূমিকা খুঁজুন…")}
       value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />}
       details={<>
         {expanded && <div id={filterId} className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
@@ -63,10 +63,7 @@ export function EmployeeDirectory({ value, canEdit, onAccess, onEdit, actions, l
       {actions}
     </WorkspaceToolbar>
     <section className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-        <h3 className="text-sm font-medium">{text("Employees", "কর্মী")} <span className="text-xs font-normal text-helper">({rows.length})</span></h3>
-        <p className="text-xs text-helper">{text("People with access to this business", "এই ব্যবসায় প্রবেশাধিকার আছে যাদের")}</p>
-      </header>
+      <h3 className="sr-only">{text("Employees", "কর্মী")} ({rows.length})</h3>
       <div className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={text("Employees table", "কর্মীদের তালিকা")} tabIndex={0}>
         <table data-erp-table className="w-full text-left"><thead className="bg-background text-ink-600"><tr>
           {columns.filter(c => visible(c.id)).map(c => <th key={c.id} className={`px-3 py-2 ${c.id === "actions" ? "text-right" : ""}`}>{c.label}</th>)}

@@ -3871,6 +3871,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/SettingsDirectory.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsDirectory"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/SettingsSqlBackup.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4063,6 +4071,7 @@
     ],
     "Bell": [
       "src/components/layout/TopBar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4086,7 +4095,8 @@
       "src/pages/Accounts.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Sales.tsx",
-      "src/saas/SaasShell.tsx"
+      "src/saas/SaasShell.tsx",
+      "src/settings/SettingsDirectory.tsx"
     ],
     "Briefcase": [
       "src/saas/SaasShell.tsx"
@@ -4096,6 +4106,7 @@
     ],
     "Building2": [
       "src/saas/SaasShell.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4250,6 +4261,7 @@
       "src/settings/TenantSettingsHub.tsx"
     ],
     "Database": [
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4508,6 +4520,7 @@
       "src/components/brand/BrandHero.tsx",
       "src/components/brand/PrimitivesSection.tsx",
       "src/navigation/erpNavigation.ts",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "PackageCheck": [
@@ -4665,6 +4678,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/DocumentDesignSettings.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Receipt": [
@@ -4756,7 +4770,8 @@
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
-      "src/saas/components.tsx"
+      "src/saas/components.tsx",
+      "src/settings/SettingsDirectory.tsx"
     ],
     "SearchCheck": [
       "src/components/reports/BusinessReview.tsx"
@@ -4793,6 +4808,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/saas/SaasShell.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TeamSettings.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
@@ -4803,6 +4819,7 @@
       "src/components/dashboard/MetricCard.tsx",
       "src/navigation/erpNavigation.ts",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "SlidersHorizontal": [
@@ -4813,6 +4830,7 @@
       "src/pages/Dashboard.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsActivity.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Smartphone": [
@@ -4881,7 +4899,8 @@
     ],
     "Truck": [
       "src/components/brand/PrimitivesSection.tsx",
-      "src/components/pos/StockShortageDialog.tsx"
+      "src/components/pos/StockShortageDialog.tsx",
+      "src/settings/SettingsDirectory.tsx"
     ],
     "Undo2": [
       "src/pages/Purchases.tsx",
@@ -4905,7 +4924,8 @@
     "UserRound": [
       "src/components/pos/CustomerPicker.tsx",
       "src/pages/Sales.tsx",
-      "src/pages/Warranty.tsx"
+      "src/pages/Warranty.tsx",
+      "src/settings/SettingsDirectory.tsx"
     ],
     "UserRoundCog": [
       "src/components/finance/FinanceRecordDialogs.tsx",
@@ -4917,6 +4937,7 @@
       "src/navigation/erpNavigation.ts",
       "src/saas/SaasShell.tsx",
       "src/settings/AccountSecuritySettings.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4927,6 +4948,7 @@
       "src/components/layout/TopBar.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/navigation/erpNavigation.ts",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "WalletCards": [
