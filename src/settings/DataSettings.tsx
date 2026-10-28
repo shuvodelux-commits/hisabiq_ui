@@ -1,3 +1,4 @@
+import {DraftRecovery} from './DraftRecovery';
 import { AppSelect } from '../components/AppSelect';
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -41,6 +42,7 @@ export function DataSettings() {
     : [];
   return (
     <div className="space-y-5">
+      <DraftRecovery/>
       <div className="grid gap-4 xl:grid-cols-2">
         <SettingCard title="Settings backup">
           <p className="text-sm text-ink-600">
@@ -219,7 +221,7 @@ export function DataSettings() {
           {notice}
         </p>
       )}
-      <SettingCard title="Settings activity">
+      {canManage(state,actorId,"audit.event.view") && <SettingCard title="Settings activity">
         <p className="flex items-center gap-2 text-xs text-ink-500">
           <History className="size-4" />
           Business settings changes · Asia/Dhaka
@@ -264,6 +266,7 @@ export function DataSettings() {
           </div>
         )}
       </SettingCard>
+      }
       <SettingsDialog
         title="Review settings restore"
         description="Review the affected sections before replacing their saved settings."

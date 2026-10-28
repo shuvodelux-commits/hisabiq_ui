@@ -1,7 +1,9 @@
+import {publishPreviewSettings} from '../documents/previewSettings';
 import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -72,7 +74,7 @@ type SettingsContextValue = {
     section: K,
     value: SettingsSections[K],
     expectedRevision: number,
-  ) => { ok: boolean; error?: string };
+  ) => { ok: boolean; error?: string; persisted?:boolean; revision?:number };
   updatePersonal: (patch: Partial<PersonalSettings>) => void;
   restore: (
     value: TenantSettings,
@@ -84,6 +86,8 @@ export function TenantSettingsProvider({ children }: { children: ReactNode }) {
   const [initial] = useState(readInitial);
   const [state, setState] = useState(initial.state);
   const ref = useRef(state);
+  useLayoutEffect(()=>{publishPreviewSettings(state);},[state]);
+  useEffect(()=>()=>publishPreviewSettings(undefined),[]);
   const [personal, setPersonal] = useState(initial.personal);
   const personalRef = useRef(personal);
   const [warning, setWarning] = useState(initial.warning);
@@ -111,10 +115,12 @@ export function TenantSettingsProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(settingsKey(next.tenantId), JSON.stringify(next));
       setWarning("");
+      return true;
     } catch {
       setWarning(
         "Changes are in memory only: browser storage is unavailable or full. Download a settings backup before leaving.",
       );
+      return false;
     }
   }
   const save: SettingsContextValue["save"] = (
@@ -131,8 +137,8 @@ export function TenantSettingsProvider({ children }: { children: ReactNode }) {
       new Date().toISOString(),
     );
     if (!result.ok) return result;
-    persist(result.state);
-    return { ok: true };
+    const persisted=persist(result.state);
+    return { ok: true, persisted,revision:result.state.revision };
   };
   function updatePersonal(patch: Partial<PersonalSettings>) {
     const next = { ...personalRef.current, ...patch };

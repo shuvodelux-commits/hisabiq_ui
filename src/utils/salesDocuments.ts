@@ -1,3 +1,4 @@
+import {readPreviewSettings,reconstructInvoiceCopy} from '../documents/previewSettings.ts';
 import type { SalesInvoice, SalesReturn } from '../types/erp';
 import type { ReceiptPreviewProps } from '../components/brand/ReceiptPreview';
 import type { Report } from './reportOutput';
@@ -8,7 +9,8 @@ export const invoiceQuantity = (line: SalesInvoice['lines'][number]) =>
   line.quantity.toLowerCase().includes(line.unit.toLowerCase()) ? line.quantity : `${line.quantity} ${line.unit}`;
 
 export function invoiceReceipt(invoice: SalesInvoice, language?: UiLanguage): ReceiptPreviewProps {
-  return {
+  if(invoice.documentSnapshot)return structuredClone(invoice.documentSnapshot);
+  const result:ReceiptPreviewProps={
     language,
     invoice: invoice.invoice, customer: invoice.party === 'Walk-in customer' ? undefined : invoice.party,
     customerPhone: invoice.phone, guardianName: invoice.guardianName, customerAddress: invoice.address,
@@ -18,6 +20,7 @@ export function invoiceReceipt(invoice: SalesInvoice, language?: UiLanguage): Re
     payments:invoice.payments.map(payment=>({...payment})),
     method: invoice.payments.length > 1 ? 'Multiple' : invoice.method, dateTime: `${invoice.date}, ${invoice.time}`
   };
+  const settings=readPreviewSettings();return settings?reconstructInvoiceCopy(result,settings):result;
 }
 
 export function returnDocument(item: SalesReturn, language:UiLanguage='English + Bangla'): Report {

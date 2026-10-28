@@ -1,3 +1,4 @@
+import {ModuleSettingsEntry} from '../../settings/ModuleSettingsEntry';
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { PageBoundary } from './PageBoundary';
@@ -41,7 +42,7 @@ function Workspace() {
                   {warning}
                 </p>
               )}
-              <PageBoundary><Outlet /></PageBoundary>
+              <ModuleSettingsEntry><PageBoundary><Outlet /></PageBoundary></ModuleSettingsEntry>
             </main>
           </div>
         </div>

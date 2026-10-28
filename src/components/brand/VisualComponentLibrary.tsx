@@ -1,3 +1,5 @@
+import {FinancialTerminologySettings} from '../../settings/FinancialTerminologySettings';
+import {financialDefaults} from '../../financial-display/model';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Bookmark, Eye, LoaderCircle, MoreHorizontal, Paperclip, Plus, Search } from 'lucide-react';
 import { TenantSettingsProvider } from '../../settings/TenantSettingsProvider';
@@ -110,12 +112,14 @@ function UploadStates() {
   return <div><PhotoUploader photos={photos} max={2} label={text('Add sample photo', 'নমুনা ছবি যোগ')} onChange={(next) => { photos.filter((url) => !next.includes(url)).forEach((url) => URL.revokeObjectURL(url)); setPhotos(next); }} hint={text('Local image preview only; no file is uploaded.', 'শুধু এই ব্রাউজারে ছবি দেখা যাবে। আপলোড হয় না।')} /><p className="mt-3 text-xs text-ink-500">{text('Current uploader has some legacy English thumbnail labels; this source gap remains visible for later localization.', 'ছবির ছোট কিছু লেখা এখনো ইংরেজি। পরের ভাষার আপডেটে ঠিক করতে হবে।')}</p></div>;
 }
 
+function FinancialSettingsSpecimen(){const [value,setValue]=useState(financialDefaults);return <FinancialTerminologySettings value={value} onChange={setValue} disabled={false} language="English + Bangla"/>;}
+
 function Library() {
   const { text } = useUiCopy();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const categories = [{ id: 'all', en: 'All components', bn: 'সব উপাদান' }, { id: 'parties', en: 'Party Ledger', bn: 'পক্ষের খাতা' }, { id: 'forms', en: 'Forms & fields', bn: 'ফর্ম ও ফিল্ড' }, { id: 'tables', en: 'Tables & filters', bn: 'টেবিল ও ফিল্টার' }, { id: 'overlays', en: 'Help & overlays', bn: 'সহায়তা ও ডায়ালগ' }, { id: 'future', en: 'Future compositions', bn: 'ভবিষ্যতের ব্যবহার' }];
-  const examples: Record<string, ReactNode> = { parties: <PartyRoleSpecimen />, reports: <ReportToolbarSpecimen />, buttons: <ButtonStates />, cards: <CardStates />, inputs: <InputStates />, quantities: <QuantityStates />, selectors: <SelectStates />, dates: <DateStates />, overlays: <OverlayStates />, feedback: <FutureStates />, uploads: <UploadStates /> };
+  const examples: Record<string, ReactNode> = { settings: <FinancialSettingsSpecimen/>, parties: <PartyRoleSpecimen />, reports: <ReportToolbarSpecimen />, buttons: <ButtonStates />, cards: <CardStates />, inputs: <InputStates />, quantities: <QuantityStates />, selectors: <SelectStates />, dates: <DateStates />, overlays: <OverlayStates />, feedback: <FutureStates />, uploads: <UploadStates /> };
   const visible = componentCatalog.filter((entry) => (category === 'all' || entry.category === category) && (entry.title + entry.bn + entry.sources.join(' ') + entry.states.join(' ')).toLowerCase().includes(search.trim().toLowerCase()));
   return <section id="component-library" className="mx-auto max-w-[1280px] scroll-mt-20 px-4 py-8 sm:px-6" aria-labelledby="component-library-title">
     <div className="mb-5"><p className="mb-2 text-xs font-medium text-teal-700">HisabIQ · Visual component library</p><h1 id="component-library-title" className="text-2xl font-semibold tracking-tight text-ink">{text('See it, try it, reuse the same component.', 'দেখুন, ব্যবহার করুন, একই উপাদান নিন।')}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">{text('Working specimens from the ERP, including role-sensitive Party actions, report filters and bilingual help. Prepared future compositions are labelled separately. All examples use isolated sample state.', 'ERP-এর আসল উপাদানের নমুনা: সম্পর্ক অনুযায়ী কাজ, রিপোর্টের ফিল্টার ও দুই ভাষার সহায়তা। ভবিষ্যতের নমুনা আলাদা করে চিহ্নিত।')}</p></div>

@@ -252,5 +252,28 @@
       "local-only preview",
       "legacy copy gap"
     ]
+  },
+  {
+    "id": "settings",
+    "category": "forms",
+    "title": "Financial names, presets and whole-column order",
+    "bn": "হিসাবের নাম, সহায়ক লেখা ও কলামের অবস্থান",
+    "wide": true,
+    "status": "existing",
+    "sources": [
+      "src/settings/FinancialTerminologySettings.tsx",
+      "src/financial-display/model.ts",
+      "src/settings/ui.tsx"
+    ],
+    "states": [
+      "Accounting",
+      "Local party Khata",
+      "Custom labels",
+      "context isolation",
+      "sample ledger",
+      "search",
+      "reset",
+      "read-only through business editor"
+    ]
   }
 ]

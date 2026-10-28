@@ -1,7 +1,12 @@
+import {listenSettingsPop} from './navigationGuard';
+import {InterfaceSettings} from './InterfaceSettings';
+import type {ModuleViews} from './moduleViews';
+import {OutputDesignSettings} from './OutputDesignSettings';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { AppSelect } from '../components/AppSelect';
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type Dispatch,
@@ -49,10 +54,14 @@ import {
 } from "./ui";
 import { TeamSettings } from "./TeamSettings";
 import { DataSettings } from "./DataSettings";
-import { TenantSettingsHub } from "./TenantSettingsHub";
+import {FinancialTerminologySettings} from "./FinancialTerminologySettings";
+import {DocumentDesignSettings} from "./DocumentDesignSettings";
+import type {FinancialDisplay} from "../financial-display/model";
 import { AccountSecuritySettings } from "./AccountSecuritySettings";
 
 const icons = {
+  interface: SlidersHorizontal,
+  financialTerminology: Wallet,
   business: Building2,
   sales: ShoppingCart,
   products: Package,
@@ -271,85 +280,13 @@ function Fields({
     </div>
   );
 }
-function InvoicePreview({
-  value,
-  business,
-}: {
-  value: SettingsSections["invoices"];
-  business: SettingsSections["business"];
-}) {
-  return (
-    <SettingCard title="Invoice layout preview">
-      <div
-        className={`theme-light mx-auto rounded-lg border border-border bg-card p-4 text-sm text-ink ${value.paper === "A4" ? "max-w-xl" : "max-w-xs"}`}
-      >
-        <div className="text-center">
-          {value.showLogo && business.logo && (
-            <img
-              className="mx-auto mb-2 size-12 object-contain"
-              src={business.logo}
-              alt="Invoice business logo"
-            />
-          )}
-          <p className="text-base font-semibold">{business.name}</p>
-          {value.showBangla && business.nameBn && (
-            <p className="font-bn mt-1 text-xs text-ink-500">
-              {business.nameBn}
-            </p>
-          )}
-          <p className="mt-1 text-xs text-ink-500">
-            {business.address} · {business.phone}
-          </p>
-        </div>
-        <div className="my-4 flex justify-between border-y border-border py-2 text-xs">
-          <span>{value.prefix}-PREVIEW</span>
-          <span>{value.paper} · Customer copy</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>
-            PVC elbow · 2 Box 5 Pcs
-            {value.showBangla && (
-              <span className="font-bn block text-xs text-ink-500">
-                পিভিসি এলবো
-              </span>
-            )}
-          </span>
-          <span>৳1,250</span>
-        </div>
-        {value.showSerial && (
-          <p className="mt-3 text-xs text-ink-500">Serial: SAMPLE-001</p>
-        )}
-        {value.showWarranty && (
-          <p className="mt-1 text-xs text-ink-500">
-            Warranty: 12 months · example
-          </p>
-        )}
-        <div className="mt-4 flex justify-between border-t border-border pt-2 font-semibold">
-          <span>Total</span>
-          <span>৳1,250</span>
-        </div>
-        <p className="mt-4 text-center text-xs text-ink-500">{value.footer}</p>
-      </div>
-      {value.showPurchaseCost && (
-        <p className="rounded bg-warning-bg p-2 text-xs text-warning">
-          Staff preview only: purchase cost ৳900. This cost is excluded from the
-          customer copy above.
-        </p>
-      )}
-      <p className="text-xs text-ink-500">
-        Sample layout. Historical invoice numbers and warranty snapshots remain
-        unchanged.
-      </p>
-    </SettingCard>
-  );
-}
-function SettingsPageContent() {
+export function SettingsPageContent({sectionOverride,embedded=false}:{sectionOverride?:SettingsSection;embedded?:boolean}={}) {
   const { section: routeSection } = useParams();
   const navigate = useNavigate();
-  const section: SettingsSection =
+  const section: SettingsSection = sectionOverride ?? (
     routeSection && routeSection in sectionNames
       ? (routeSection as SettingsSection)
-      : "business";
+      : "business");
   const { state, personal, actorId, setActorId, save, updatePersonal } =
     useTenantSettings();
   const { theme, setTheme } = useTheme();
@@ -386,7 +323,7 @@ function SettingsPageContent() {
   const editable =
     section === "personal" || section === "security" ||
     (section !== "data" && canManage(state, actorId, section));
-  const canView = section === "personal" || section === "security" || canManage(state, actorId, "view");
+  const canView = section === "personal" || section === "security" || canManage(state, actorId, "view") || (section === "team" && (canManage(state,actorId,"user.account.view") || canManage(state,actorId,"user.role.view")));
   const load = () => {
     const next = structuredClone(
       state.sections[
@@ -410,7 +347,7 @@ function SettingsPageContent() {
       setLeaveOpen(true);
     } else action();
   }
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!dirty) return;
     const unload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -427,32 +364,54 @@ function SettingsPageContent() {
       pending.current = () => navigate(url.hash.slice(1));
       setLeaveOpen(true);
     };
+    const originalUrl=location.href;
+    const originalHistoryState=window.history.state;
+    let resuming = false;
+    const pop=(event:PopStateEvent)=>{
+      if(resuming){resuming=false;return;}
+      if(location.href===originalUrl){event.stopImmediatePropagation();return;}
+      const target=location.hash.slice(1);
+      event.stopImmediatePropagation();
+      const fromIndex=originalHistoryState?.idx, toIndex=event.state?.idx;
+      if(Number.isInteger(fromIndex)&&Number.isInteger(toIndex)&&fromIndex!==toIndex){
+        window.history.go(fromIndex-toIndex);
+        pending.current=()=>{resuming=true;window.history.go(toIndex-fromIndex);};
+      }else{
+        // External hash entries may have no router index. Keep the current draft visible.
+        window.history.pushState(originalHistoryState,'',originalUrl);
+        pending.current=()=>navigate(target,{replace:true});
+      }
+      setLeaveOpen(true);
+    };
+    const stopPop=listenSettingsPop(pop);
     window.addEventListener("beforeunload", unload);
     document.addEventListener("click", click, true);
     return () => {
+      stopPop();
       window.removeEventListener("beforeunload", unload);
       document.removeEventListener("click", click, true);
     };
   }, [dirty, navigate]);
-  const commit = () => {
+  const commit = ():boolean => {
     setError("");
     if (section === "personal") {
       updatePersonal({ ...personalDraft, mode: personal.mode });
       setTheme(themeDraft);
       setNotice("Personal preferences saved for this device.");
-      return;
+      return true;
     }
-    if (section === "data" || section === "security") return;
+    if (section === "data" || section === "security") return false;
     const result = save(section, draft as never, revision);
     if (!result.ok) {
       setError(result.error || "Could not save settings.");
       setReviewOpen(false);
-      return;
+      return false;
     }
-    setRevision(state.revision + 1);
+    setRevision(result.revision ?? state.revision + 1);
     setBaseline(JSON.stringify(draft));
-    setNotice("Business settings saved.");
+    setNotice(result.persisted===false?"Changes are in memory only. Download a backup before leaving.":"Business settings saved.");
     setReviewOpen(false);
+    return true;
   };
   const changes =
     section === "personal" || section === "data" || section === "security"
@@ -501,7 +460,7 @@ function SettingsPageContent() {
   const info = sectionNames[section],
     Icon = icons[section];
   return (
-    <div className="erp-settings min-w-0 space-y-5">
+    <div data-settings-dirty={dirty} className="erp-settings min-w-0 space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-ink">
@@ -532,9 +491,7 @@ function SettingsPageContent() {
           ))}
         </fieldset>
       </div>
-      {section === "business" && <TenantSettingsHub onNavigate={(path,event)=>{
-        if(dirty){event.preventDefault();requestChange(()=>navigate(path));}
-      }}/>}
+
       <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
         <p className="max-w-xl text-xs leading-relaxed text-ink-500">
           Demo business preferences · Shared settings apply to this business.
@@ -550,8 +507,9 @@ function SettingsPageContent() {
   }))} />
         </label>
       </div>
-      <div className="grid min-w-0 gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
+      <div className="min-w-0 space-y-4">
         <aside className="min-w-0 space-y-3">
+          {!embedded&&<SettingsField label="Settings section" bn="সেটিংসের বিভাগ">{id=><AppSelect id={id} label="Settings section" value={section} options={Object.entries(sectionNames).map(([value,v])=>({value,label:v.label}))} onChange={v=>requestChange(()=>navigate(`/app/settings/${v}`))}/>}</SettingsField>}
           <div className="relative">
             <Search className="pointer-events-none absolute z-10 left-3 top-1/2 size-4 -translate-y-1/2 text-ink-500" />
             <Input
@@ -584,10 +542,7 @@ function SettingsPageContent() {
                           () =>
                             document
                               .querySelector(`[data-field-key="${field.key}"]`)
-                              ?.scrollIntoView({
-                                block: "center",
-                                behavior: "smooth",
-                              }),
+                              ?.querySelector<HTMLElement>("input,textarea,button,[role=combobox]")?.focus(),
                           100,
                         );
                       })
@@ -607,9 +562,9 @@ function SettingsPageContent() {
               )}
             </div>
           )}
-          <nav
+          {!embedded&&<details><summary className="cursor-pointer text-xs font-medium text-primary">Browse all settings · সব সেটিংস</summary><nav
             aria-label="Settings categories"
-            className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-card p-2 lg:block lg:space-y-1"
+            className="mt-2 flex flex-wrap gap-1 rounded-xl border border-border bg-card p-2"
           >
             {(Object.keys(sectionNames) as SettingsSection[]).map((key) => {
               const CategoryIcon = icons[key];
@@ -618,7 +573,7 @@ function SettingsPageContent() {
                   type="button"
                   key={key}
                   aria-current={section === key ? "page" : undefined}
-                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-xs lg:w-full ${section === key ? "bg-accent font-medium text-accent-foreground" : "text-ink-600 hover:bg-ink-50"}`}
+                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-xs ${section === key ? "bg-accent font-medium text-accent-foreground" : "text-ink-600 hover:bg-ink-50"}`}
                   onClick={() =>
                     requestChange(() => navigate(`/app/settings/${key}`))
                   }
@@ -639,7 +594,7 @@ function SettingsPageContent() {
                 </button>
               );
             })}
-          </nav>
+          </nav></details>}
           <div className="hidden space-y-2 px-2 text-xs lg:block">
             {state.sections.team.employees.find(e=>e.id===actorId)?.roleIds.includes("owner") && <Link
               className="block text-teal-700 hover:underline"
@@ -702,12 +657,15 @@ function SettingsPageContent() {
                 <SettingCard title="Business employees & roles">
                   <TeamSettings
                     state={state}
+                    actorId={actorId}
                     value={draft as SettingsSections["team"]}
                     disabled={!editable}
                     advanced={personal.mode === "Advanced"}
                     onChange={setDraft}
                   />
                 </SettingCard>
+              ) : section === "interface" ? (<InterfaceSettings value={draft as ModuleViews} onChange={setDraft} disabled={!editable}/>) : section === "financialTerminology" ? (
+                <FinancialTerminologySettings value={draft as FinancialDisplay} disabled={!editable} language={personal.language} onChange={setDraft}/>
               ) : section === "personal" ? (
                 <>
                   <SettingCard title="Appearance & language">
@@ -794,10 +752,10 @@ function SettingsPageContent() {
                 </>
               ) : (
                 <>
-                  <SettingCard title="Common settings">
+                  {(section!=="invoices" || (settingsFields.invoices||[]).some(f=>!f.advanced&&["prefix","copies","showPurchaseCost"].includes(f.key)))&&<SettingCard title="Common settings">
                     <Fields
                       fields={(settingsFields[section] || []).filter(
-                        (f) => !f.advanced,
+                        (f) => !f.advanced && (section!=="invoices" || ["prefix","copies","showPurchaseCost"].includes(f.key)),
                       )}
                       value={draft}
                       onChange={setDraft}
@@ -811,13 +769,13 @@ function SettingsPageContent() {
                         <span>Timezone: Asia/Dhaka</span>
                       </div>
                     )}
-                  </SettingCard>
+                  </SettingCard>}
                   {personal.mode === "Advanced" &&
                     (settingsFields[section] || []).some((f) => f.advanced) && (
                       <SettingCard title="Advanced settings">
                         <Fields
                           fields={(settingsFields[section] || []).filter(
-                            (f) => f.advanced,
+                            (f) => f.advanced && (section!=="invoices" || ["prefix","copies","showPurchaseCost"].includes(f.key)),
                           )}
                           value={draft}
                           onChange={setDraft}
@@ -858,10 +816,7 @@ function SettingsPageContent() {
                     </Link>
                   )}
                   {section === "invoices" && (
-                    <InvoicePreview
-                      value={draft as SettingsSections["invoices"]}
-                      business={state.sections.business}
-                    />
+                    <><DocumentDesignSettings value={draft as SettingsSections["invoices"]} business={state.sections.business} disabled={!editable} onChange={setDraft}/><OutputDesignSettings value={draft as SettingsSections["invoices"]} business={state.sections.business} disabled={!editable} onChange={setDraft}/></>
                   )}
                   {section === "notifications" && (
                     <SettingCard title="Notification preview">
@@ -1010,7 +965,8 @@ function SettingsPageContent() {
         open={leaveOpen}
         onClose={() => setLeaveOpen(false)}
       >
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button onClick={()=>{if(commit()){setLeaveOpen(false);pending.current?.();pending.current=null;}}}>Save and continue</Button>
           <Button variant="outline" onClick={() => setLeaveOpen(false)}>
             Keep editing
           </Button>

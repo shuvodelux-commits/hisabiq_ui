@@ -1,7 +1,7 @@
 {
   "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "6c3cc838038f8a0f9828c914216e345ff9c40d3477644c04b5995af39194d496",
+  "guideSha256": "99daf3f0c4b6e08a6ef22b5ef818940f6a8e84ca6c48dcc31b16cadd20cc1242",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {
@@ -256,6 +256,29 @@
         "maximum files",
         "local-only preview",
         "legacy copy gap"
+      ]
+    },
+    {
+      "id": "settings",
+      "category": "forms",
+      "title": "Financial names, presets and whole-column order",
+      "bn": "হিসাবের নাম, সহায়ক লেখা ও কলামের অবস্থান",
+      "wide": true,
+      "status": "existing",
+      "sources": [
+        "src/settings/FinancialTerminologySettings.tsx",
+        "src/financial-display/model.ts",
+        "src/settings/ui.tsx"
+      ],
+      "states": [
+        "Accounting",
+        "Local party Khata",
+        "Custom labels",
+        "context isolation",
+        "sample ledger",
+        "search",
+        "reset",
+        "read-only through business editor"
       ]
     }
   ],
@@ -3153,6 +3176,14 @@
       "reexports": []
     },
     {
+      "file": "src/documents/InvoiceDocument.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InvoiceDocument"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/features/auth/AuthFlowPage.tsx",
       "kind": "page-or-feature",
       "exports": [
@@ -3712,6 +3743,62 @@
       "reexports": []
     },
     {
+      "file": "src/settings/DocumentDesignSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "DocumentDesignSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/DraftRecovery.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "DraftRecovery"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/FinancialTerminologySettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "FinancialTerminologySettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/InterfaceSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InterfaceSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/InvoicePresentationEditor.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InvoicePresentationEditor"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/ModuleSettingsEntry.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "ModuleSettingsEntry"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/OutputDesignSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "OutputDesignSettings"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/TeamSettings.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -3731,6 +3818,7 @@
       "file": "src/settings/TenantSettingsPage.tsx",
       "kind": "authored-ui",
       "exports": [
+        "SettingsPageContent",
         "TenantSettingsPage"
       ],
       "reexports": []
@@ -3780,7 +3868,8 @@
     ],
     "ArrowDown": [
       "src/components/reports/ReportResults.tsx",
-      "src/components/transactions/TransactionCartEditor.tsx"
+      "src/components/transactions/TransactionCartEditor.tsx",
+      "src/settings/DocumentDesignSettings.tsx"
     ],
     "ArrowDownLeft": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -3815,7 +3904,8 @@
       "src/components/reports/ReportDetails.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/pages/Pos.tsx",
-      "src/pages/PurchaseEditor.tsx"
+      "src/pages/PurchaseEditor.tsx",
+      "src/settings/ModuleSettingsEntry.tsx"
     ],
     "ArrowLeftIcon": [
       "src/components/SearchSelect.tsx",
@@ -3847,7 +3937,8 @@
     ],
     "ArrowUp": [
       "src/components/reports/ReportResults.tsx",
-      "src/components/transactions/TransactionCartEditor.tsx"
+      "src/components/transactions/TransactionCartEditor.tsx",
+      "src/settings/DocumentDesignSettings.tsx"
     ],
     "ArrowUpDown": [
       "src/components/reports/ReportResults.tsx"
@@ -4243,7 +4334,8 @@
       "src/components/FeedbackState.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
-      "src/settings/AccountSecuritySettings.tsx"
+      "src/settings/AccountSecuritySettings.tsx",
+      "src/settings/TeamSettings.tsx"
     ],
     "LockKeyholeIcon": [
       "src/components/products/form/AdvancedStockPanel.tsx"
@@ -4461,6 +4553,7 @@
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
+      "src/settings/DocumentDesignSettings.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Receipt": [
@@ -4576,6 +4669,7 @@
       "src/components/products/ProductSettings.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/Expenses.tsx",
+      "src/settings/ModuleSettingsEntry.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "ShieldCheck": [

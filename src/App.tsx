@@ -1,3 +1,4 @@
+import './settings/navigationGuard';
 import { lazy } from 'react';
 import { PageBoundary } from './components/layout/PageBoundary';
 

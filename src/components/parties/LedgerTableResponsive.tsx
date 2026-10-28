@@ -1,3 +1,5 @@
+import {useFinancialDisplay} from '../../financial-display/useFinancialDisplay';
+import {financialContexts,type FinancialContext} from '../../financial-display/model';
 import { PartyClosingBalance } from './PartyClosingBalance';
 import { StickyNote, FileText, BookOpen, RefreshCcw, HandCoins, ChevronRight } from 'lucide-react';
 import { LedgerImpactAmount } from './LedgerImpactAmount';
@@ -35,6 +37,7 @@ function LedgerTypeIcon({ row }: { row: PartyLedgerRow }) {
 
 export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, onAction, onOpenAttachment }: Props) {
   const { text, language } = useUiCopy();
+  const financial=useFinancialDisplay(financialContexts.includes(statement.relationship as FinancialContext)?statement.relationship as FinancialContext:'Customer');
   const reduceMotion = useReducedMotion();
   const balance = (value: number) => formatMoneyNumber(Math.abs(value)) + ' ' + (value>=0?'Dr':'Cr');
 
@@ -58,8 +61,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
           <TableRow className="h-8 bg-ink-50/30 hover:bg-transparent">
             <TableHead className="w-[105px] whitespace-nowrap pl-3 text-[11px]">{text('Date', 'তারিখ')}</TableHead>
             <TableHead className="min-w-[178px] text-[11px]">{text('Particulars', 'বিবরণ')}</TableHead>
-            <TableHead className="w-[96px] text-right text-[11px]">{text('Debit', 'ডেবিট')}</TableHead>
-            <TableHead className="w-[96px] text-right text-[11px]">{text('Credit', 'ক্রেডিট')}</TableHead>
+            {financial.columns.map(side=><TableHead key={side} className="w-[96px] text-right text-[11px]">{financial.label(side)}</TableHead>)}
             <TableHead className="w-[116px] text-right text-[11px]">{text('Balance', 'জের')}</TableHead>
             <TableHead className="w-[40px] pr-2 text-right text-[11px]"><span className="sr-only">{text('Actions', 'কাজ')}</span></TableHead>
           </TableRow>
@@ -85,8 +87,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
                   onClick={() => onOpenAttachment(row)} />}
               </div>
             </TableCell>
-            <TableCell className="py-1.5 text-right"><LedgerImpactAmount row={row} value={row.debit} language={language} currency /></TableCell>
-            <TableCell className="py-1.5 text-right"><LedgerImpactAmount row={row} value={row.credit} language={language} currency /></TableCell>
+            {financial.columns.map(side=><TableCell key={side} className="py-1.5 text-right"><LedgerImpactAmount row={row} value={row[side]} language={language} currency /></TableCell>)}
             <TableCell className="whitespace-nowrap py-1.5 text-right font-semibold text-ink">{taka(Math.abs(row.runningBalance))} <span data-table-helper="" className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
             <TableCell className="py-1 pr-1.5 text-right">
               <div className="flex items-center justify-end gap-1"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} /></div>
@@ -103,7 +104,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
       <AnimatePresence initial={false} mode="popLayout">
       {visibleRows.map(row => {
         const amount = row.debit || row.credit;
-        const side = row.debit ? text('Debit', 'ডেবিট') : row.credit ? text('Credit', 'ক্রেডিট') : '';
+        const side = row.debit ? financial.label('debit') : row.credit ? financial.label('credit') : '';
         return <motion.li key={row.id} className="min-w-0 px-4 py-3.5"
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}

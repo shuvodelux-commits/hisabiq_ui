@@ -46,7 +46,7 @@ async function main() {
         .click();
     await page
       .getByRole("status")
-      .filter({ hasText: /settings saved|preferences saved/ })
+      .filter({ hasText: /settings saved|preferences saved|Changes are in memory only/ })
       .waitFor();
   };
   const read = () =>
@@ -71,6 +71,7 @@ async function main() {
     await page
       .getByLabel("Business name", { exact: true })
       .fill("Unsaved shop");
+    await page.getByText("Browse all settings · সব সেটিংস", {exact:true}).click();
     await page
       .getByRole("navigation", { name: "Settings categories" })
       .getByRole("button", { name: /^Sales & POS/ })
@@ -188,19 +189,21 @@ async function main() {
     await productEditor.getByRole('button',{name:'Cancel',exact:true}).click();
     await go("team");
     await mode("Advanced");
-    await page.getByRole("button", { name: "Roles", exact: true }).click();
+    await page.getByRole("tab", { name: /Roles & permissions/ }).click();
     await page
       .getByRole("button", { name: "Create role", exact: true })
       .click();
     await page.getByLabel("Role name").fill("Sales settings assistant");
+    await page.getByText("Module-specific settings access", {exact:true}).click();
     await page
-      .getByRole("checkbox", { name: "Manage Sales & POS", exact: true })
+      .getByRole("checkbox", { name: "Sales & POS", exact: true })
       .check();
+    await page.getByRole("checkbox", {name:/I reviewed who is affected/}).check();
     await page
       .getByRole("button", { name: "Keep role draft", exact: true })
       .click();
     await save();
-    await page.getByRole("button", { name: "Employees", exact: true }).click();
+    await page.getByRole("tab", { name: /Employees/ }).click();
     await page
       .getByRole("button", { name: "Edit employee Rafiq Islam", exact: true })
       .click();
@@ -420,12 +423,8 @@ async function main() {
         (value) => document.documentElement.dataset.theme === value,
         theme.toLowerCase(),
       );
-      for (const [index, section] of sections.entries()) {
-        await page
-          .getByRole("navigation", { name: "Settings categories" })
-          .locator("button")
-          .nth(index)
-          .click();
+      for (const section of sections) {
+        await go(section);
         await page.waitForURL(`**/#/app/settings/${section}`);
         await mode("Simple");
         await check(`${theme} Simple ${section}`);
@@ -436,6 +435,7 @@ async function main() {
       await page
         .getByLabel("Business name", { exact: true })
         .fill("Unsaved preview");
+      await page.getByText("Browse all settings · সব সেটিংস", {exact:true}).click();
       await page
         .getByRole("navigation", { name: "Settings categories" })
         .getByRole("button", { name: /^Sales & POS/ })
@@ -460,7 +460,7 @@ async function main() {
         .click();
       await check(`${theme} employee dialog`);
       await page.keyboard.press("Escape");
-      await page.getByRole("button", { name: "Roles", exact: true }).click();
+      await page.getByRole("tab", { name: /Roles & permissions/ }).click();
       await page
         .getByRole("button", { name: "Create role", exact: true })
         .click();
@@ -489,6 +489,7 @@ async function main() {
     await page
       .getByLabel("Business name", { exact: true })
       .fill("Mobile draft");
+    await page.getByText("Browse all settings · সব সেটিংস", {exact:true}).click();
     await page
       .getByRole("navigation", { name: "Settings categories" })
       .getByRole("button", { name: /^Sales & POS/ })

@@ -1,3 +1,4 @@
+import {useModuleColumns} from '../settings/useModuleColumns';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useSearchParams } from 'react-router-dom';
@@ -97,6 +98,7 @@ function ProductColumnPicker({
             <button
               key={column.id}
               type="button"
+              disabled={["product","stock","selling"].includes(column.id)}
               role="menuitemcheckbox"
               aria-checked={visible[column.id]}
               onClick={() => onToggle(column.id)}
@@ -224,27 +226,8 @@ export function Products() {
   const [inventoryProductFilter, setInventoryProductFilter] = useState('');
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
   const knownSerials = useMemo(() => [...lots.flatMap((lot) => lot.serials ?? []), ...soldSerials], [lots, soldSerials]);
-  const [visibleColumns, setVisibleColumns] = useState<Record<ProductColumn, boolean>>(() => {
-    if (typeof window === 'undefined') return defaultVisibleColumns;
-    try {
-      const stored = window.localStorage.getItem(columnStorageKey);
-      return stored ? { ...defaultVisibleColumns, ...JSON.parse(stored) } : defaultVisibleColumns;
-    } catch {
-      return defaultVisibleColumns;
-    }
-  });
-
-  const toggleColumn = (column: ProductColumn) => {
-    setVisibleColumns((current) => {
-      const next = { ...current, [column]: !current[column] };
-      try {
-        window.localStorage.setItem(columnStorageKey, JSON.stringify(next));
-      } catch {
-        // Keep the current-session preference even when storage is unavailable.
-      }
-      return next;
-    });
-  };
+  const {columns:visibleColumns,setColumns:setVisibleColumns}=useModuleColumns('products',columnStorageKey,defaultVisibleColumns);
+  const toggleColumn=(column:ProductColumn)=>setVisibleColumns(current=>({...current,[column]:!current[column]}));
 
   const openLots = (product: Product) => {
     setInventoryProductFilter(product.id);

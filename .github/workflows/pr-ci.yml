@@ -69,6 +69,7 @@ jobs:
           flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment|table-typography).*browser\.cjs$)'
           flag mobile '^(src/index\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\.tsx$|scripts/mobile-carts-browser\.cjs$)'
           flag reports '^(src/(pages/Reports\.tsx|reports/|components/reports/)|scripts/(report-workspace|report-guidance|reports-print)-browser\.cjs$)'
+          flag settings '^(src/(settings/|documents/|financial-display/|utils/(reportOutput|salesDocuments)\.tsx?$)|scripts/settings.*browser\.cjs$)'
           flag auth '^(src/(features/auth/|App\.tsx$|components/(Input|AppSelect|Dialog)\.tsx$|theme\.css$)|scripts/auth-login-browser\.cjs$)'
 
       - name: Install dependencies
@@ -123,6 +124,12 @@ jobs:
       - name: ERP rendered 36px component audit
         if: steps.scope.outputs.browser == 'true' && contains(github.event.pull_request.title, '36px')
         run: npm run test:field-size-parity
+
+      - name: Settings profiles, roles, recovery and responsive save flows
+        if: steps.scope.outputs.settings == 'true'
+        run: |
+          npm run test:settings-redesign
+          npm run test:settings
 
       - name: POS fast checkout smoke
         if: steps.scope.outputs.pos == 'true'

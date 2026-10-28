@@ -14,7 +14,7 @@ test('Party ledger translations preserve source names, row identity and accounti
  assert.match(copy,/partyLedgerImpactText\(language,label\)/);
  const table=src('src/components/parties/LedgerTable.tsx');
  for(const expression of [
-  "row.debit","row.credit","row.runningBalance","statement.periodDebit","statement.periodCredit",
+  "financial.columns.map(side", "row[side]","row.runningBalance","statement.periodDebit","statement.periodCredit",
   "statement.openingBalance","statement.closingBalance","row.source","row.reference",
   "row.attachment.name","onAction={onAction}","actionsForRow(row)","'Dr':'Cr'"
  ])assert.ok(table.includes(expression),expression);

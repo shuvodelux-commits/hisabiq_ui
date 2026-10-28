@@ -1,202 +1,484 @@
 import { useState } from "react";
-import { Plus, Pencil, Eye, ShieldCheck } from "lucide-react";
+import { Plus, ShieldCheck, LockKeyhole, Eye, Pencil } from "lucide-react";
+import { Button, Input, SettingsDialog, SettingsField } from "./ui";
+import { MotionTabList, MotionTabIndicator } from "../motion/MotionTabList";
 import {
-  canManage,
   permissions,
-  type BusinessEmployee,
+  canManage,
   type BusinessRole,
+  type BusinessEmployee,
   type TeamSettings as TeamData,
   type TenantSettings,
 } from "./model";
-import { Button, Input, SettingsDialog, SettingsField } from "./ui";
+import {
+  permissionCatalogue,
+  effectivePermissions,
+  roleImpact,
+  validateRoleChange,
+  systemRoleIds,
+} from "./rbac";
 import { sectionNames } from "./fields";
-
+const permissionLabel = (code: string) =>
+  permissionCatalogue.find((p) => p.code === code)?.label ??
+  (code === "view"
+    ? "View settings"
+    : code === "export"
+      ? "Download settings backup"
+      : code === "import"
+        ? "Restore settings backup"
+        : (sectionNames[code as keyof typeof sectionNames]?.label ?? code));
 export function TeamSettings({
   value,
   onChange,
   disabled,
-  advanced,
   state,
+  actorId,
 }: {
   value: TeamData;
-  onChange: (v: TeamData) => void;
+  onChange: (value: TeamData) => void;
   disabled: boolean;
   advanced: boolean;
   state: TenantSettings;
+  actorId: string;
 }) {
-  const [selectedTab, setTab] = useState("employees");
-  const tab = advanced ? selectedTab : "employees";
-  const [employee, setEmployee] = useState<BusinessEmployee | null>(null);
-  const [role, setRole] = useState<BusinessRole | null>(null);
-  const [access, setAccess] = useState<BusinessEmployee | null>(null);
-  const [initial, setInitial] = useState("");
-  const [error, setError] = useState("");
-  const openEmployee = (e?: BusinessEmployee) => {
-    const next = e
-      ? structuredClone(e)
-      : {
-          id: crypto.randomUUID(),
-          name: "",
-          email: "",
-          roleIds: ["cashier"],
-          active: true,
-        };
-    setInitial(JSON.stringify(next));
+  const [tab, setTab] = useState("employees"),
+    [role, setRole] = useState<BusinessRole | null>(null),
+    [employee, setEmployee] = useState<BusinessEmployee | null>(null),
+    [access, setAccess] = useState<BusinessEmployee | null>(null),
+    [error, setError] = useState(""),
+    [ack, setAck] = useState(false);
+  const authority = effectivePermissions(state.sections.team, actorId);
+  const canSeeUsers = authority.includes("user.account.view");
+  const canSeeRoles = authority.includes("user.role.view");
+  const activeTab = (tab === "employees" ? canSeeUsers : canSeeRoles)
+    ? tab
+    : canSeeUsers
+      ? "employees"
+      : canSeeRoles
+        ? "roles"
+        : null;
+  const canRoles = !disabled && authority.includes("user.role.manage");
+  const canCreate = !disabled && authority.includes("user.account.create");
+  const close = () => {
+    setRole(null);
+    setEmployee(null);
     setError("");
-    setEmployee(next);
+    setAck(false);
   };
   const openRole = (r?: BusinessRole) => {
-    const next = r
-      ? structuredClone(r)
-      : {
-          id: crypto.randomUUID(),
-          name: "",
-          permissions: ["view"] as BusinessRole["permissions"],
-        };
-    setInitial(JSON.stringify(next));
+    setRole(
+      r
+        ? structuredClone(r)
+        : { id: crypto.randomUUID(), name: "", permissions: [] },
+    );
     setError("");
-    setRole(next);
+    setAck(false);
   };
-  const close = () => {
-    if (
-      (employee || role) &&
-      JSON.stringify(employee || role) !== initial &&
-      !window.confirm("Discard this unsaved editor?")
-    )
-      return;
-    setEmployee(null);
-    setRole(null);
+  const openEmployee = (e?: BusinessEmployee) => {
+    setEmployee(
+      e
+        ? structuredClone(e)
+        : {
+            id: crypto.randomUUID(),
+            name: "",
+            email: "",
+            roleIds: ["cashier"],
+            active: true,
+          },
+    );
     setError("");
   };
   const preview = { ...state, sections: { ...state.sections, team: value } };
+  const groups = [...new Set(permissionCatalogue.map((p) => p.group))];
+  const tabs = ["employees", "roles"].filter((t) =>
+    t === "employees" ? canSeeUsers : canSeeRoles,
+  );
+  const impact = role ? roleImpact(value, role) : null;
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-2" aria-label="Employee settings views">
-          {(advanced ? ["employees", "roles"] : ["employees"]).map((t) => (
-            <Button
-              key={t}
-              variant={tab === t ? "secondary" : "ghost"}
-              onClick={() => setTab(t)}
-              aria-pressed={tab === t}
-            >
-              {t === "employees" ? "Employees" : "Roles"}
-            </Button>
-          ))}
-        </div>
-        <Button
-          size="sm"
-          disabled={disabled}
-          onClick={() => (tab === "employees" ? openEmployee() : openRole())}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <MotionTabList
+          aria-label="Employee settings views"
+          className="flex border-b border-border"
         >
-          <Plus className="size-4" />
-          {tab === "employees" ? "Add demo employee" : "Create role"}
-        </Button>
+          {tabs.map((t, i) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              id={`team-tab-${t}`}
+              aria-controls={`team-panel-${t}`}
+              aria-selected={t === activeTab}
+              tabIndex={t === activeTab ? 0 : -1}
+              onKeyDown={(e) => {
+                if (
+                  ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
+                ) {
+                  e.preventDefault();
+                  const next =
+                    tabs[
+                      e.key === "Home"
+                        ? 0
+                        : e.key === "End"
+                          ? tabs.length - 1
+                          : (i +
+                              (e.key === "ArrowLeft" ? -1 : 1) +
+                              tabs.length) %
+                            tabs.length
+                    ];
+                  setTab(next);
+                  document.getElementById(`team-tab-${next}`)?.focus();
+                }
+              }}
+              onClick={() => setTab(t)}
+              className="relative px-4 py-3 text-[13px] font-medium"
+            >
+              <span>
+                {t === "employees"
+                  ? "Employees · কর্মী"
+                  : "Roles & permissions · ভূমিকা"}
+              </span>
+              <MotionTabIndicator active={activeTab === t} />
+            </button>
+          ))}
+        </MotionTabList>
+        {activeTab && (activeTab === "roles" ? canRoles : canCreate) && (
+          <Button
+            onClick={() =>
+              activeTab === "roles" ? openRole() : openEmployee()
+            }
+          >
+            <Plus className="size-4" />
+            {activeTab === "roles" ? "Create role" : "Add demo employee"}
+          </Button>
+        )}
       </div>
-      <p className="text-xs text-ink-500">
-        Business employees are separate from SaaS support staff. These roles
-        control this settings demonstration; no invitation email is sent.
+      <p className="text-xs text-helper">
+        Business roles are separate from SaaS staff. Changes below are staged
+        until Save changes. Production authentication and session revocation
+        require the server; no password is collected here.
       </p>
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table data-erp-table="" className="w-full text-left text-[13px]">
-          <thead className="bg-ink-50 text-ink-600">
-            <tr>
-              <th className="px-3 py-2 font-medium">
-                {tab === "employees" ? "Employee" : "Role"}
-              </th>
-              <th className="px-3 py-2 font-medium">
-                {tab === "employees" ? "Responsibilities" : "Permissions"}
-              </th>
-              <th className="px-3 py-2 font-medium">Status</th>
-              <th className="px-3 py-2 text-right font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {tab === "employees"
-              ? value.employees.map((e) => (
-                  <tr key={e.id}>
-                    <td className="px-3 py-3">
-                      <p className="font-medium text-ink">{e.name}</p>
-                      <p data-table-helper="" className="text-xs text-ink-500">{e.email}</p>
+      <div
+        role="tabpanel"
+        id={`team-panel-${activeTab}`}
+        aria-labelledby={`team-tab-${activeTab}`}
+      >
+        {!activeTab ? (
+          <p role="status" className="text-xs text-helper">
+            User and role lists require their separate view permissions.
+          </p>
+        ) : activeTab === "employees" ? (
+          <div className="overflow-x-auto">
+            <table data-erp-table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="p-2">Employee</th>
+                  <th className="p-2">Roles</th>
+                  <th className="p-2">Status</th>
+                  <th className="p-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {value.employees.map((e) => (
+                  <tr key={e.id} className="border-b border-border">
+                    <td className="p-2">
+                      <strong>{e.name}</strong>
+                      <p data-table-helper className="text-helper">
+                        {e.email}
+                      </p>
                     </td>
-                    <td className="px-3 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {e.roleIds.map((id) => (
-                          <span data-table-helper=""
-                            key={id}
-                            className="rounded bg-ink-100 px-2 py-1 text-xs text-ink-600"
-                          >
-                            {value.roles.find((r) => r.id === id)?.name}
-                          </span>
-                        ))}
-                      </div>
+                    <td className="p-2">
+                      {e.roleIds
+                        .map((id) => value.roles.find((r) => r.id === id)?.name)
+                        .join(" · ")}
                     </td>
-                    <td className="px-3 py-3">
-                      <span
-                        className={e.active ? "text-success" : "text-ink-500"}
-                      >
-                        {e.active ? "Active" : "Disabled"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <div className="flex justify-end gap-1">
+                    <td className="p-2">{e.active ? "Active" : "Disabled"}</td>
+                    <td className="p-2">
+                      <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
-                          size="sm"
-                          onClick={() => setAccess(e)}
                           aria-label={`View access for ${e.name}`}
+                          onClick={() => setAccess(e)}
                         >
                           <Eye className="size-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={disabled}
-                          onClick={() => openEmployee(e)}
-                          aria-label={`Edit employee ${e.name}`}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
+                        {!disabled &&
+                          authority.includes("user.account.edit") && (
+                            <Button
+                              variant="ghost"
+                              aria-label={`Edit employee ${e.name}`}
+                              onClick={() => openEmployee(e)}
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                          )}
                       </div>
                     </td>
                   </tr>
-                ))
-              : value.roles.map((r) => (
-                  <tr key={r.id}>
-                    <td className="px-3 py-3 font-medium text-ink">{r.name}</td>
-                    <td className="px-3 py-3 text-ink-600">
-                      {r.permissions.length} permissions ·{" "}
-                      {
-                        value.employees.filter((e) => e.roleIds.includes(r.id))
-                          .length
-                      }{" "}
-                      employees
-                    </td>
-                    <td className="px-3 py-3 text-xs text-ink-500">
-                      {r.id === "owner" ? "Protected" : "Configurable"}
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={disabled || r.id === "owner"}
-                        onClick={() => openRole(r)}
-                      >
-                        Edit role
-                      </Button>
-                    </td>
-                  </tr>
                 ))}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <>
+            <p className="text-xs text-helper">
+              {value.roles.length} roles ·{" "}
+              {value.employees.filter((e) => e.active).length} active people ·{" "}
+              {value.roles.filter((r) => !systemRoleIds.includes(r.id)).length}{" "}
+              custom roles
+            </p>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              {value.roles.map((r) => (
+                <section
+                  key={r.id}
+                  className="rounded-xl border border-border bg-card p-4"
+                >
+                  <header className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2">
+                      <ShieldCheck className="size-5 text-primary" />
+                      <div>
+                        <h4 className="text-sm font-semibold">{r.name}</h4>
+                        <p className="text-xs text-helper">
+                          {
+                            value.employees.filter(
+                              (e) => e.active && e.roleIds.includes(r.id),
+                            ).length
+                          }{" "}
+                          people hold this
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] text-helper">
+                      {r.id === "owner"
+                        ? "Always full access"
+                        : systemRoleIds.includes(r.id)
+                          ? "Built in"
+                          : "Custom"}
+                    </span>
+                  </header>
+                  <ul className="mt-3 space-y-1 text-xs">
+                    {r.permissions.slice(0, 6).map((p) => (
+                      <li key={p}>✓ {permissionLabel(p)}</li>
+                    ))}
+                  </ul>
+                  {r.permissions.length > 6 && (
+                    <p className="mt-1 text-xs text-helper">
+                      + {r.permissions.length - 6} more permissions
+                    </p>
+                  )}
+                  {!r.permissions.length && (
+                    <p className="mt-3 text-xs text-helper">
+                      No permissions assigned.
+                    </p>
+                  )}
+                  {canRoles && (
+                    <div className="mt-3 flex gap-2">
+                      <Button variant="outline" onClick={() => openRole(r)}>
+                        {r.id === "owner" ? "Rename" : "Edit role"}
+                      </Button>
+                      {!systemRoleIds.includes(r.id) && (
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            const reason = validateRoleChange(
+                              value,
+                              null,
+                              actorId,
+                              r.id,
+                            );
+                            if (reason) {
+                              setError(reason);
+                              return;
+                            }
+                            onChange({
+                              ...value,
+                              roles: value.roles.filter((x) => x.id !== r.id),
+                            });
+                          }}
+                        >
+                          Delete unused role
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </section>
+              ))}
+            </div>
+          </>
+        )}
       </div>
+      {error && !role && !employee && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
+      <SettingsDialog
+        title={
+          role
+            ? value.roles.some((r) => r.id === role.id)
+              ? "Configure role"
+              : "Create role"
+            : "Configure role"
+        }
+        description="Protected owner, separate capabilities and affected-member review. Save the section to apply this draft."
+        open={!!role}
+        onClose={close}
+      >
+        {role && (
+          <div className="space-y-4">
+            <SettingsField label="Role name" bn="ভূমিকার নাম">
+              {(id) => (
+                <Input
+                  id={id}
+                  aria-label="Role name"
+                  value={role.name}
+                  maxLength={60}
+                  onChange={(e) => setRole({ ...role, name: e.target.value })}
+                />
+              )}
+            </SettingsField>
+            {role.id === "owner" ? (
+              <p className="flex items-center gap-2 text-xs text-helper">
+                <LockKeyhole className="size-4" />
+                Owner can be renamed, never deleted or deprived of permissions.
+              </p>
+            ) : (
+              <>
+                {groups.map((group) => (
+                  <fieldset
+                    key={group}
+                    className="space-y-2 border-t border-border pt-3"
+                  >
+                    <legend className="text-sm font-medium">{group}</legend>
+                    {permissionCatalogue
+                      .filter((p) => p.group === group)
+                      .map((p) => (
+                        <label
+                          key={p.code}
+                          className="flex items-start gap-2 text-[13px]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={role.permissions.includes(p.code)}
+                            disabled={!authority.includes(p.code)}
+                            onChange={(e) =>
+                              setRole({
+                                ...role,
+                                permissions: e.target.checked
+                                  ? [...role.permissions, p.code]
+                                  : role.permissions.filter(
+                                      (x) => x !== p.code,
+                                    ),
+                              })
+                            }
+                          />
+                          <span>
+                            {p.label}
+                            <span className="block text-xs text-helper">
+                              {p.detail}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                  </fieldset>
+                ))}
+                <details>
+                  <summary className="cursor-pointer text-sm font-medium">
+                    Module-specific settings access
+                  </summary>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {permissions
+                      .filter(
+                        (p) => !permissionCatalogue.some((c) => c.code === p),
+                      )
+                      .map((p) => (
+                        <label
+                          key={p}
+                          className="flex items-center gap-2 text-xs"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={role.permissions.includes(p)}
+                            disabled={p === "import" || !authority.includes(p)}
+                            onChange={(e) =>
+                              setRole({
+                                ...role,
+                                permissions: e.target.checked
+                                  ? [...role.permissions, p]
+                                  : role.permissions.filter((x) => x !== p),
+                              })
+                            }
+                          />
+                          {permissionLabel(p)}
+                        </label>
+                      ))}
+                  </div>
+                </details>
+              </>
+            )}
+            <div className="rounded-lg border border-border p-3 text-xs">
+              <p className="font-medium">Change impact</p>
+              <p>
+                {impact?.affectedMembers.length
+                  ? impact.affectedMembers.join(", ")
+                  : "No current members"}
+              </p>
+              <p>
+                Added: {impact?.added.map(permissionLabel).join(", ") || "None"}
+              </p>
+              <p>
+                Removed:{" "}
+                {impact?.removed.map(permissionLabel).join(", ") || "None"}
+              </p>
+            </div>
+            <label className="flex items-start gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={ack}
+                onChange={(e) => setAck(e.target.checked)}
+              />
+              I reviewed who is affected. Apply only to the local UI preview.
+            </label>
+            {error && (
+              <p role="alert" className="text-sm text-danger">
+                {error}
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={close}>
+                Cancel
+              </Button>
+              <Button
+                disabled={!ack || !canRoles}
+                onClick={() => {
+                  const reason = validateRoleChange(value, role, actorId);
+                  if (reason) {
+                    setError(reason);
+                    return;
+                  }
+                  onChange({
+                    ...value,
+                    roles: [
+                      ...value.roles.filter((r) => r.id !== role.id),
+                      { ...role, name: role.name.trim() },
+                    ],
+                  });
+                  close();
+                }}
+              >
+                Keep role draft
+              </Button>
+            </div>
+          </div>
+        )}
+      </SettingsDialog>
       <SettingsDialog
         title={
           employee && value.employees.some((e) => e.id === employee.id)
             ? "Edit employee"
             : "Add demo employee"
         }
-        description="Assign multiple responsibilities. Save the section to apply this draft."
+        description="Assign one or more existing roles. No invitation is sent from this preview."
         open={!!employee}
         onClose={close}
       >
@@ -226,23 +508,27 @@ export function TeamSettings({
               )}
             </SettingsField>
             <fieldset className="space-y-2">
-              <legend className="mb-2 text-sm font-medium">
-                Assigned roles
-              </legend>
+              <legend className="text-sm font-medium">Assigned roles</legend>
               {value.roles.map((r) => (
                 <label
                   key={r.id}
-                  className="flex items-center gap-2 rounded border border-border p-2 text-sm"
+                  className="flex items-center gap-2 text-[13px]"
                 >
                   <input
                     type="checkbox"
+                    disabled={
+                      r.id === "owner" &&
+                      !state.sections.team.employees
+                        .find((e) => e.id === actorId)
+                        ?.roleIds.includes("owner")
+                    }
                     checked={employee.roleIds.includes(r.id)}
                     onChange={(e) =>
                       setEmployee({
                         ...employee,
                         roleIds: e.target.checked
                           ? [...employee.roleIds, r.id]
-                          : employee.roleIds.filter((id) => id !== r.id),
+                          : employee.roleIds.filter((x) => x !== r.id),
                       })
                     }
                   />
@@ -254,6 +540,7 @@ export function TeamSettings({
               <input
                 type="checkbox"
                 checked={employee.active}
+                disabled={!authority.includes("user.account.disable")}
                 onChange={(e) =>
                   setEmployee({ ...employee, active: e.target.checked })
                 }
@@ -261,7 +548,7 @@ export function TeamSettings({
               Active employee
             </label>
             {error && (
-              <p role="alert" className="text-sm text-danger">
+              <p role="alert" className="text-danger">
                 {error}
               </p>
             )}
@@ -273,12 +560,14 @@ export function TeamSettings({
                 onClick={() => {
                   if (
                     !employee.name.trim() ||
-                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employee.email) ||
-                    !employee.roleIds.length
-                  )
-                    return setError(
-                      "Enter a name, a valid email and at least one role.",
+                    !employee.roleIds.length ||
+                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employee.email)
+                  ) {
+                    setError(
+                      "Enter a name, valid email and at least one role.",
                     );
+                    return;
+                  }
                   onChange({
                     ...value,
                     employees: [
@@ -286,7 +575,7 @@ export function TeamSettings({
                       employee,
                     ],
                   });
-                  setEmployee(null);
+                  close();
                 }}
               >
                 Keep employee draft
@@ -296,115 +585,8 @@ export function TeamSettings({
         )}
       </SettingsDialog>
       <SettingsDialog
-        title="Configure role"
-        description="One employee can combine this role with other roles. Owner authority is protected."
-        open={!!role}
-        onClose={close}
-      >
-        {role && (
-          <div className="space-y-4">
-            <SettingsField label="Role name" bn="দায়িত্বের নাম">
-              {(id) => (
-                <Input
-                  id={id}
-                  value={role.name}
-                  onChange={(e) => setRole({ ...role, name: e.target.value })}
-                />
-              )}
-            </SettingsField>
-            <fieldset className="grid gap-2 sm:grid-cols-2">
-              <legend className="mb-2 text-sm font-medium">
-                Settings permissions
-              </legend>
-              {permissions.map((p) => (
-                <label
-                  key={p}
-                  className="flex items-center gap-2 rounded border border-border p-2 text-xs"
-                >
-                  <input
-                    type="checkbox"
-                    disabled={p === "view" || p === "import"}
-                    checked={role.permissions.includes(p)}
-                    onChange={(e) =>
-                      setRole({
-                        ...role,
-                        permissions: e.target.checked
-                          ? [...role.permissions, p]
-                          : role.permissions.filter((id) => id !== p),
-                      })
-                    }
-                  />
-                  {p === "view"
-                    ? "View settings"
-                    : p === "export"
-                      ? "Download backups"
-                      : p === "import"
-                        ? "Restore backups (owner only)"
-                        : `Manage ${sectionNames[p].label}`}
-                </label>
-              ))}
-            </fieldset>
-            {error && (
-              <p role="alert" className="text-sm text-danger">
-                {error}
-              </p>
-            )}
-            <div className="flex flex-wrap justify-between gap-2">
-              <Button
-                variant="outline"
-                disabled={
-                  !value.roles.some((r) => r.id === role.id) ||
-                  value.employees.some((e) => e.roleIds.includes(role.id))
-                }
-                onClick={() => {
-                  onChange({
-                    ...value,
-                    roles: value.roles.filter((r) => r.id !== role.id),
-                  });
-                  setRole(null);
-                }}
-              >
-                Delete unused role
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={close}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (
-                      !role.name.trim() ||
-                      value.roles.some(
-                        (r) =>
-                          r.id !== role.id &&
-                          r.name.trim().toLowerCase() ===
-                            role.name.trim().toLowerCase(),
-                      )
-                    )
-                      return setError("Use a unique role name.");
-                    onChange({
-                      ...value,
-                      roles: [
-                        ...value.roles.filter((r) => r.id !== role.id),
-                        role,
-                      ],
-                    });
-                    setRole(null);
-                  }}
-                >
-                  Keep role draft
-                </Button>
-              </div>
-            </div>
-            <p className="text-xs text-ink-500">
-              Reassign employees before deleting a used role.
-            </p>
-          </div>
-        )}
-      </SettingsDialog>
-      <SettingsDialog
         title={`Effective access: ${access?.name || ""}`}
-        description="Combined permissions from every assigned role in this business."
+        description="Union of all active assigned roles; paid plans never grant employee permissions."
         open={!!access}
         onClose={() => setAccess(null)}
       >
@@ -413,33 +595,18 @@ export function TeamSettings({
             {permissions.map((p) => (
               <div
                 key={p}
-                className="flex items-center justify-between gap-3 rounded border border-border px-3 py-2 text-sm"
+                className="flex justify-between gap-3 border-b border-border py-2 text-xs"
               >
-                <span>
-                  {p === "view"
-                    ? "View settings"
-                    : p === "export"
-                      ? "Download backups"
-                      : p === "import"
-                        ? "Restore backups (owner only)"
-                        : sectionNames[p].label}
-                </span>
-                <span
+                <span>{permissionLabel(p)}</span>
+                <strong
                   className={
                     canManage(preview, access.id, p)
                       ? "text-success"
-                      : "text-ink-500"
+                      : "text-helper"
                   }
                 >
-                  {canManage(preview, access.id, p) ? (
-                    <span className="flex items-center gap-1">
-                      <ShieldCheck className="size-4" />
-                      Allowed
-                    </span>
-                  ) : (
-                    "Read only"
-                  )}
-                </span>
+                  {canManage(preview, access.id, p) ? "Allowed" : "Not granted"}
+                </strong>
               </div>
             ))}
           </div>
