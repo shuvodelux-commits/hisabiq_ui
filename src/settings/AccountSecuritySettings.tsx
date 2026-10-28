@@ -60,8 +60,7 @@ export function AccountSecuritySettings({ language }: Props) {
 
   return <div className="space-y-4" data-testid="account-security-settings">
     <div role="note" className="rounded-lg border border-border bg-info-bg px-3 py-3 text-xs leading-relaxed text-info">
-      <strong>{t('Authentication UI preview', 'অ্যাকাউন্ট নিরাপত্তা প্রিভিউ')}</strong>
-      <span className="mt-1 block">{t('These controls show the approved workflow. No sign-in, PIN, trusted device, recovery contact or screen lock is changed until the ByabsIQ authentication service is connected.', 'এগুলো অনুমোদিত ডিজাইন প্রিভিউ। ByabsIQ অথেন্টিকেশন চালু না হওয়া পর্যন্ত লগইন, পিন, বিশ্বস্ত ডিভাইস, যোগাযোগের তথ্য বা স্ক্রিন লক বদলাবে না।')}</span>
+      {t('Security preview only. Account, PIN and device access are not changed.', 'শুধু নিরাপত্তার নমুনা। অ্যাকাউন্ট, পিন বা ডিভাইসের অনুমতি বদলাবে না।')}
     </div>
 
     <SettingCard title={t('Sign-in & account', 'লগইন ও অ্যাকাউন্ট')}>

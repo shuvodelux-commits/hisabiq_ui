@@ -18,7 +18,7 @@ async function main(){
   const section=page.getByTestId('account-security-settings');
   await section.waitFor();
   assert.equal(await page.getByRole('button',{name:'Save changes'}).count(),0,'Security may not write tenant settings');
-  await section.getByText('Authentication UI preview',{exact:true}).waitFor();
+  await section.getByText('Security preview only. Account, PIN and device access are not changed.',{exact:true}).waitFor();
   const screenshotDir=process.env.AUTH_SCREENSHOT_DIR;
   if(screenshotDir){mkdirSync(screenshotDir,{recursive:true});await page.screenshot({path:screenshotDir+'/security-desktop.png',fullPage:true});}
   const lock=page.getByRole('switch',{name:'Preview auto-lock after 30 minutes'});

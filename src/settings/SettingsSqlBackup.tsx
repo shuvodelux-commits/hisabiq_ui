@@ -18,10 +18,10 @@ export function SettingsSqlBackup({ state, exportAllowed, importAllowed, onRevie
     <p className="flex items-start gap-2 text-xs text-helper"><FileLock2 className="size-4 shrink-0" aria-hidden="true" />{text("Settings snapshot: business preferences, invoice designs, roles, employees and settings activity. Sales, stock, payments and the server database are not included.", "সেটিংসের ব্যাকআপ: ব্যবসার পছন্দ, বিলের ডিজাইন, ভূমিকা, কর্মী ও কার্যক্রম। বিক্রি, স্টক, পেমেন্ট ও সার্ভারের ডেটাবেস এতে নেই।")}</p>
     <p className="text-xs text-helper">{text("Choose your own HisabIQ secret key. Keep it safely: it is never stored here and cannot be recovered. AES-256-GCM protects the SQL file; restore requires this same key.", "নিজের HisabIQ গোপন চাবি বাছুন। এটি নিরাপদে রাখুন: এখানে সংরক্ষিত হয় না এবং হারালে ফেরত পাওয়া যায় না। SQL ফাইল AES-256-GCM দিয়ে সুরক্ষিত থাকে; পুনরুদ্ধারে একই চাবি লাগবে।")}</p>
     {!supported && <p role="status" className="text-xs text-warning">{text("Encrypted backups need a secure HTTPS browser session.", "এনক্রিপ্ট করা ব্যাকআপের জন্য নিরাপদ HTTPS ব্রাউজার দরকার।")}</p>}
-    <SettingsField label={text("HisabIQ secret key", "HisabIQ গোপন চাবি")} bn="">
+    <SettingsField label="HisabIQ secret key" bn="HisabIQ গোপন চাবি">
       {id => <Input id={id} type="password" autoComplete="new-password" value={secret} minLength={12} maxLength={1024} disabled={busy || (!exportAllowed && !importAllowed)} onChange={e => setSecret(e.target.value)} placeholder={text("At least 12 characters", "কমপক্ষে ১২টি অক্ষর")} />}
     </SettingsField>
-    <SettingsField label={text("Confirm secret key for download", "ডাউনলোডের জন্য চাবি আবার লিখুন")} bn="">
+    <SettingsField label="Confirm secret key for download" bn="ডাউনলোডের জন্য চাবি আবার লিখুন">
       {id => <Input id={id} type="password" autoComplete="new-password" value={confirm} maxLength={1024} disabled={busy || !exportAllowed} onChange={e => setConfirm(e.target.value)} />}
     </SettingsField>
     <Button variant="outline" disabled={!exportAllowed || !supported || busy || secret.length < 12 || secret !== confirm} onClick={async () => {

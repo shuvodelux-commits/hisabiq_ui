@@ -14,7 +14,6 @@ export interface SettingField {
     | "time"
     | "logo";
   options?: string[];
-  advanced?: boolean;
   min?: number;
   max?: number;
   live?: boolean;
@@ -31,16 +30,26 @@ export const sectionNames: Record<
   SettingsSection,
   { label: string; bn: string; description: string }
 > = {
-  interface:{label:"Interface & workflows",bn:"ভিউ ও কাজের ধারা",description:"Module columns and inherited business defaults. Essential identities, totals and warnings stay available."},
-  financialTerminology:{label:"Names & Khata",bn:"হিসাবের নাম ও খাতা",description:"Financial labels, Bangla helpers and ledger column order. Display changes never change accounting."},
+  interface: {
+    label: "Columns & layout",
+    bn: "কলাম ও সাজানো",
+    description:
+      "Module columns and inherited business defaults. Essential identities, totals and warnings stay available.",
+  },
+  financialTerminology: {
+    label: "Names & Khata",
+    bn: "খাতার নাম",
+    description:
+      "Financial labels, Bangla helpers and ledger column order. Display changes never change accounting.",
+  },
   business: {
-    label: "Business profile",
-    bn: "ব্যবসার পরিচিতি",
+    label: "Shop",
+    bn: "দোকান",
     description: "Your business details, contact information and branding.",
   },
   sales: {
-    label: "Sales & POS",
-    bn: "বিক্রি ও পিওএস",
+    label: "Sales",
+    bn: "বিক্রি",
     description:
       "Checkout defaults and sales policy. Compound units and multiple payments remain available.",
   },
@@ -52,7 +61,7 @@ export const sectionNames: Record<
   },
   purchases: {
     label: "Purchases",
-    bn: "ক্রয়",
+    bn: "কেনাকাটা",
     description: "Supplier memo, attachment and purchase policy preferences.",
   },
   money: {
@@ -67,8 +76,8 @@ export const sectionNames: Record<
     description: "Preview your business branding and invoice layout.",
   },
   team: {
-    label: "Employees & access",
-    bn: "কর্মী ও অনুমতি",
+    label: "Employees",
+    bn: "কর্মী",
     description:
       "Assign several roles to one employee and review their combined settings access.",
   },
@@ -79,19 +88,20 @@ export const sectionNames: Record<
       "Review alert preferences and notification samples. This demo sends no messages.",
   },
   personal: {
-    label: "My preferences",
-    bn: "আমার পছন্দ",
+    label: "Language & appearance",
+    bn: "ভাষা ও চেহারা",
     description:
       "Appearance and display preferences for this device, separate from business-wide settings.",
   },
   security: {
-    label: "Account & security",
-    bn: "অ্যাকাউন্ট ও নিরাপত্তা",
-    description: "Login, recovery, PIN, trusted devices and auto-lock settings for your account.",
+    label: "Security",
+    bn: "নিরাপত্তা",
+    description:
+      "Login, recovery, PIN, trusted devices and auto-lock settings for your account.",
   },
   data: {
-    label: "Data & activity",
-    bn: "তথ্য ও কার্যক্রম",
+    label: "Data & backups",
+    bn: "ডেটা ও ব্যাকআপ",
     description:
       "Download a settings backup, preview imports and review saved changes.",
   },
@@ -141,7 +151,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "ওয়েবসাইট",
         "Use a full URL beginning with https://.",
         "text",
-        { advanced: true },
       ),
       f(
         "financialYear",
@@ -149,7 +158,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "অর্থবছর",
         "Reporting policy preview; historical records keep their dates.",
         "select",
-        { options: ["January–December", "July–June"], advanced: true },
+        { options: ["January–December", "July–June"] },
       ),
       f(
         "registration",
@@ -157,7 +166,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "নিবন্ধনের তথ্য",
         "Optional business registration reference.",
         "text",
-        { advanced: true },
       ),
     ],
     sales: [
@@ -211,7 +219,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "স্টক ঘাটতির বিকল্প",
         "Policy preview. Negative Sale and Vendor remain explicit choices.",
         "select",
-        { options: ["Ask every time", "Own stock"], advanced: true },
+        { options: ["Ask every time", "Own stock"] },
       ),
       f(
         "priceOverride",
@@ -219,7 +227,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "দাম পরিবর্তনের অনুমতি",
         "Review who should be allowed to override a price.",
         "select",
-        { options: ["Owner only", "Authorized employee"], advanced: true },
+        { options: ["Owner only", "Authorized employee"] },
       ),
       f(
         "discountLimit",
@@ -227,7 +235,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "সর্বোচ্চ ছাড়",
         "Sales policy preview, between 0 and 100 percent.",
         "number",
-        { advanced: true, min: 0, max: 100 },
+        { min: 0, max: 100 },
       ),
       f(
         "returnDays",
@@ -235,7 +243,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "ফেরতের সময়সীমা",
         "Policy preview for new sales; existing return screens keep their current behavior.",
         "number",
-        { advanced: true, min: 0, max: 3650 },
+        { min: 0, max: 3650 },
       ),
     ],
     products: [
@@ -287,7 +295,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "লট নির্বাচনের নিয়ম",
         "FIFO: oldest received first. FEFO: earliest expiry first. Applies to new products.",
         "select",
-        { options: ["FIFO", "FEFO"], advanced: true, live: true },
+        { options: ["FIFO", "FEFO"], live: true },
       ),
       f(
         "serial",
@@ -297,7 +305,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "select",
         {
           options: ["Off", "Optional", "Required"],
-          advanced: true,
           live: true,
         },
       ),
@@ -307,7 +314,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "ডিফল্ট ওয়ারেন্টি",
         "Enables warranty on new product forms.",
         "switch",
-        { advanced: true, live: true },
+        { live: true },
       ),
       f(
         "warrantyMonths",
@@ -315,7 +322,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "ওয়ারেন্টির মাস",
         "Existing sold items retain their warranty snapshots.",
         "number",
-        { advanced: true, min: 1, max: 1200, live: true },
+        { min: 1, max: 1200, live: true },
       ),
       f(
         "expiry",
@@ -323,7 +330,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "মেয়াদ ট্র্যাকিং",
         "Prefills expiry tracking for new products.",
         "switch",
-        { advanced: true, live: true },
+        { live: true },
       ),
       f(
         "expiryDays",
@@ -331,7 +338,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "মেয়াদের সতর্কতা",
         "Prefills the warning period for new products.",
         "number",
-        { advanced: true, min: 0, max: 3650, live: true },
+        { min: 0, max: 3650, live: true },
       ),
     ],
     purchases: [
@@ -369,7 +376,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "ক্রয়ের অনুমোদন",
         "Policy preview: purchases do not enter an approval queue in this demo.",
         "switch",
-        { advanced: true },
       ),
       f(
         "backdateDays",
@@ -377,7 +383,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "পূর্বের তারিখের সীমা",
         "Review the intended purchase date policy.",
         "number",
-        { advanced: true, min: 0, max: 3650 },
+        { min: 0, max: 3650 },
       ),
       f(
         "costAllocation",
@@ -385,7 +391,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "অতিরিক্ত খরচের বণ্টন",
         "Preview how transport and other costs should be distributed.",
         "select",
-        { options: ["By value", "By quantity"], advanced: true },
+        { options: ["By value", "By quantity"] },
       ),
     ],
     money: [
@@ -424,7 +430,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "ক্যাশ সেশন ব্যবহার",
         "Shows or hides the workspace cash-session control.",
         "switch",
-        { advanced: true, live: true },
+        { live: true },
       ),
       f(
         "closeCount",
@@ -432,7 +438,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "সেশন শেষে নগদ গণনা",
         "Policy preview for closing a cash session.",
         "switch",
-        { advanced: true },
       ),
       f(
         "lockDate",
@@ -440,7 +445,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "লেনদেন লক করার তারিখ",
         "Policy preview: transaction editing is not locked in this demo.",
         "date",
-        { advanced: true },
       ),
       f(
         "adjustment",
@@ -448,7 +452,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "সমন্বয়ের অনুমতি",
         "Review the intended permission for financial adjustments.",
         "select",
-        { options: ["Owner only", "Authorized employee"], advanced: true },
+        { options: ["Owner only", "Authorized employee"] },
       ),
     ],
     invoices: [
@@ -489,7 +493,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "বিল নম্বরের শুরু",
         "Numbering preview only. Existing invoice IDs are preserved.",
         "text",
-        { advanced: true },
       ),
       f(
         "showSerial",
@@ -497,7 +500,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "সিরিয়াল নম্বর দেখান",
         "Invoice layout preview.",
         "switch",
-        { advanced: true },
       ),
       f(
         "showWarranty",
@@ -505,7 +507,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "ওয়ারেন্টির তথ্য দেখান",
         "Invoice layout preview.",
         "switch",
-        { advanced: true },
       ),
       f(
         "showPurchaseCost",
@@ -513,7 +514,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "কর্মীর জন্য ক্রয়মূল্য",
         "Staff-only layout preview. Customer receipts never show this cost.",
         "switch",
-        { advanced: true },
       ),
       f(
         "copies",
@@ -521,7 +521,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "প্রিন্টের কপি",
         "Print setup preview, between 1 and 5 copies.",
         "number",
-        { advanced: true, min: 1, max: 5 },
+        { min: 1, max: 5 },
       ),
     ],
     notifications: [
@@ -552,7 +552,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "বিজ্ঞপ্তির মাধ্যম",
         "SMS uses paid credits when connected. No messages are sent from this demo.",
         "select",
-        { options: ["In-app only", "In-app + SMS"], advanced: true },
+        { options: ["In-app only", "In-app + SMS"] },
       ),
       f(
         "recipients",
@@ -560,7 +560,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "প্রাপকেরা",
         "Names or roles for the notification setup preview.",
         "text",
-        { advanced: true },
       ),
       f(
         "time",
@@ -568,7 +567,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "পছন্দের সময়",
         "Asia/Dhaka. No background schedule runs in this demo.",
         "time",
-        { advanced: true },
       ),
       f(
         "expiryDays",
@@ -576,7 +574,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "মেয়াদের আগের দিন",
         "Preview when expiry reminders should appear.",
         "number",
-        { advanced: true, min: 0, max: 3650 },
+        { min: 0, max: 3650 },
       ),
       f(
         "dueDays",
@@ -584,7 +582,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "বকেয়ার অনুস্মারক",
         "Preview reminder intervals.",
         "number",
-        { advanced: true, min: 1, max: 3650 },
+        { min: 1, max: 3650 },
       ),
       f(
         "smsTemplate",
@@ -592,7 +590,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "এসএমএসের লেখা",
         "Review the message content; previewing does not use credits.",
         "textarea",
-        { advanced: true },
       ),
     ],
   };

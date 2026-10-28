@@ -22,32 +22,41 @@ async function main() {
   const base = "http://127.0.0.1:4176";
   const go = async (section) => {
     await page.goto(`${base}/#/app/settings/${section}`);
+    await page.getByTestId("settings-title").waitFor();
+  };
+  const sectionNav = async (id) => {
+    const row = page.locator(`[data-settings-section="${id}"]:visible`).first();
+    if (!(await row.count())) await page.locator('[id$="-choose"]').click();
     await page
-      .getByTestId("settings-title")
-      .waitFor();
+      .locator(`[data-settings-section="${id}"]:visible`)
+      .first()
+      .click();
   };
-  const sectionNav = id => page.locator(`[data-settings-directory] a[href$="/app/settings/${id}"]:visible, [data-settings-section="${id}"]:visible`).first();
   const chooseOption = async (label, value) => {
+    if (label === "Demo employee access")
+      await page
+        .getByRole("button", { name: "About this preview", exact: true })
+        .click();
     await page.getByLabel(label, { exact: true }).click();
-    await page.locator('[role="option"][data-value=' + JSON.stringify(value) + ']').click();
+    await page
+      .locator('[role="option"][data-value=' + JSON.stringify(value) + "]")
+      .click();
   };
-  const mode = async (value) =>
-    page.getByRole("radio", { name: value, exact: true }).check();
+  const mode = async () =>
+    assert.equal(await page.locator('input[name="settings-mode"]').count(), 0);
   const save = async () => {
     await page
       .getByRole("button", { name: "Save changes", exact: true })
       .click();
-    if (
-      await page
-        .getByRole("dialog", { name: "Review settings changes" })
-        .count()
-    )
+    if (await page.getByRole("dialog", { name: "Review changes" }).count())
       await page
         .getByRole("button", { name: "Confirm save", exact: true })
         .click();
     await page
       .getByRole("status")
-      .filter({ hasText: /settings saved|preferences saved|Changes are in memory only/ })
+      .filter({
+        hasText: /settings saved|preferences saved|Changes are in memory only/,
+      })
       .waitFor();
   };
   const read = () =>
@@ -72,10 +81,8 @@ async function main() {
     await page
       .getByLabel("Business name", { exact: true })
       .fill("Unsaved shop");
-    await sectionNav("sales").click();
-    await page
-      .getByRole("dialog", { name: "Discard unsaved changes?" })
-      .waitFor();
+    await sectionNav("sales");
+    await page.getByRole("dialog", { name: "Save your changes?" }).waitFor();
     await page
       .getByRole("button", { name: "Keep editing", exact: true })
       .click();
@@ -83,7 +90,7 @@ async function main() {
       await page.getByLabel("Business name", { exact: true }).inputValue(),
       "Unsaved shop",
     );
-    await sectionNav("sales").click();
+    await sectionNav("sales");
     await page
       .getByRole("button", { name: "Discard and continue", exact: true })
       .click();
@@ -91,7 +98,7 @@ async function main() {
     await mode("Simple");
     assert.equal(
       await page.getByLabel("Maximum discount (%)", { exact: true }).count(),
-      0,
+      1,
     );
     await mode("Advanced");
     await page.getByLabel("Maximum discount (%)", { exact: true }).fill("15");
@@ -120,13 +127,13 @@ async function main() {
     );
     await page.getByText("Rounding (off)", { exact: true }).waitFor();
     assert.equal(
-      await page.locator('[role="combobox"][data-value="bKash"]').count() > 0,
+      (await page.locator('[role="combobox"][data-value="bKash"]').count()) > 0,
       true,
       "First payment uses saved method",
     );
     await go("sales");
     await chooseOption("Demo employee access", "rafiq");
-    await page.getByText(/Read-only access/).waitFor();
+    await page.getByText(/View only/).waitFor();
     assert.equal(
       await page.getByLabel("Invoice rounding", { exact: true }).isDisabled(),
       true,
@@ -147,8 +154,8 @@ async function main() {
     await page.getByLabel("Default base unit", { exact: true }).waitFor();
     assert.equal(
       await page
-        .getByRole("radio", { name: "Advanced", exact: true })
-        .isChecked(),
+        .getByRole("combobox", { name: "Default lot allocation", exact: true })
+        .isVisible(),
       true,
     );
     await chooseOption("Default base unit", "Pcs");
@@ -164,7 +171,7 @@ async function main() {
       true,
     );
     await save();
-    await page.getByRole("link", { name: "Manage units", exact: true }).click();
+    await page.getByRole("link", { name: "Units", exact: true }).click();
     await page.getByRole("tab", { name: /Units/ }).waitFor();
     assert.equal(
       await page
@@ -176,11 +183,28 @@ async function main() {
     await page
       .getByRole("button", { name: "Add product", exact: true })
       .click();
-    const productEditor=page.locator('[data-product-editor]');await productEditor.waitFor();
-    assert.equal(await productEditor.locator('#pf-unit').getAttribute('data-value'),'Pcs','saved tenant default unit');
-    if(await productEditor.locator('#pf-other-button').getAttribute('aria-expanded')==='false')await productEditor.locator('#pf-other-button').click();
-    assert.equal(await productEditor.getByRole('radio',{name:'Required',exact:true}).getAttribute('aria-checked'),'true');
-    await productEditor.getByRole('button',{name:'Cancel',exact:true}).click();
+    const productEditor = page.locator("[data-product-editor]");
+    await productEditor.waitFor();
+    assert.equal(
+      await productEditor.locator("#pf-unit").getAttribute("data-value"),
+      "Pcs",
+      "saved tenant default unit",
+    );
+    if (
+      (await productEditor
+        .locator("#pf-other-button")
+        .getAttribute("aria-expanded")) === "false"
+    )
+      await productEditor.locator("#pf-other-button").click();
+    assert.equal(
+      await productEditor
+        .getByRole("radio", { name: "Required", exact: true })
+        .getAttribute("aria-checked"),
+      "true",
+    );
+    await productEditor
+      .getByRole("button", { name: "Cancel", exact: true })
+      .click();
     await go("team");
     await mode("Advanced");
     await page.getByRole("tab", { name: /Roles & permissions/ }).click();
@@ -188,16 +212,21 @@ async function main() {
       .getByRole("button", { name: "Create role", exact: true })
       .click();
     await page.getByLabel("Role name").fill("Sales settings assistant");
-    await page.getByText("Module-specific settings access", {exact:true}).click();
     await page
-      .getByRole("checkbox", { name: "Sales & POS", exact: true })
+      .getByText("Module-specific settings access", { exact: true })
+      .click();
+    await page.getByRole("checkbox", { name: "Sales", exact: true }).check();
+    await page
+      .getByRole("checkbox", { name: /I reviewed who is affected/ })
       .check();
-    await page.getByRole("checkbox", {name:/I reviewed who is affected/}).check();
     await page
       .getByRole("button", { name: "Keep role draft", exact: true })
       .click();
     await save();
-    await page.getByRole("tablist", {name:"Employee settings views"}).getByRole("tab", { name: /Employees/ }).click();
+    await page
+      .getByRole("tablist", { name: "Employee settings views" })
+      .getByRole("tab", { name: /Employees/ })
+      .click();
     await page
       .getByRole("button", { name: "Edit employee Rafiq Islam", exact: true })
       .click();
@@ -235,12 +264,12 @@ async function main() {
       .getByRole("alert")
       .filter({ hasText: /at least one active business owner/ })
       .waitFor();
-    await page.getByRole("button", { name: "Discard", exact: true }).click();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await go("personal");
     await mode("Advanced");
     await chooseOption("Appearance", "dark");
-    await chooseOption("Financial terminology", "accounting");
-    await chooseOption("Transaction date display", "created");
+    await chooseOption("Financial words", "accounting");
+    await chooseOption("Date to show", "created");
     await save();
     await page.waitForFunction(
       () => document.documentElement.dataset.theme === "dark",
@@ -258,6 +287,10 @@ async function main() {
       "created",
     );
     await go("data");
+    const jsonBackup = page
+      .locator("details")
+      .filter({ has: page.locator("summary", { hasText: "JSON backup" }) });
+    if (await jsonBackup.count()) await jsonBackup.locator("summary").click();
     const backup = await read();
     const invalid = { ...backup, tenantId: "t2" };
     await page
@@ -291,6 +324,7 @@ async function main() {
       .filter({ hasText: /Business settings restored/ })
       .waitFor();
     assert.equal((await read()).sections.invoices.footer, "Restored footer");
+    await page.getByRole("tab", { name: "Record files", exact: true }).click();
     await page
       .getByLabel("Product CSV preview", { exact: true })
       .setInputFiles({
@@ -329,7 +363,7 @@ async function main() {
       .getByRole("alert")
       .filter({ hasText: /changed since you opened/ })
       .waitFor();
-    await page.getByRole("button", { name: "Discard", exact: true }).click();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     assert.equal(
       await page.getByLabel("Business name", { exact: true }).inputValue(),
       "Other tab shop",
@@ -429,15 +463,13 @@ async function main() {
       await page
         .getByLabel("Business name", { exact: true })
         .fill("Unsaved preview");
-      await sectionNav("sales").click();
-      await page
-        .getByRole("dialog", { name: "Discard unsaved changes?" })
-        .waitFor();
+      await sectionNav("sales");
+      await page.getByRole("dialog", { name: "Save your changes?" }).waitFor();
       await check(`${theme} unsaved dialog`);
       await page
         .getByRole("button", { name: "Keep editing", exact: true })
         .click();
-      await page.getByRole("button", { name: "Discard", exact: true }).click();
+      await page.getByRole("button", { name: "Cancel", exact: true }).click();
       await page
         .getByRole("button", { name: "Restore defaults", exact: true })
         .click();
@@ -479,16 +511,14 @@ async function main() {
     await page
       .getByLabel("Business name", { exact: true })
       .fill("Mobile draft");
-    await sectionNav("sales").click();
-    await page
-      .getByRole("dialog", { name: "Discard unsaved changes?" })
-      .waitFor();
+    await sectionNav("sales");
+    await page.getByRole("dialog", { name: "Save your changes?" }).waitFor();
     await page.keyboard.press("Escape");
     assert.equal(await page.getByRole("dialog").count(), 0);
     assert.equal(
       await page
         .getByRole("tablist", { name: "Settings categories" })
-        .getByRole("tab", { name: /^Sales & POS/ })
+        .getByRole("tab", { name: /^Sales/ })
         .evaluate((el) => el === document.activeElement),
       true,
       "Escape restores focus to the navigation trigger",

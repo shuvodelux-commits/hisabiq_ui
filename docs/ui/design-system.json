@@ -1,7 +1,7 @@
 {
   "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "03333f696aad16c940f2412a919067cd34a75537255b5a633d22c7b330cca916",
+  "guideSha256": "0daf773a470740816b9b90cdb2605cd02e32e0b3f1b4abd0afe7d2e6202a17a1",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {
@@ -4096,7 +4096,8 @@
       "src/pages/Finance.tsx",
       "src/pages/Sales.tsx",
       "src/saas/SaasShell.tsx",
-      "src/settings/SettingsDirectory.tsx"
+      "src/settings/SettingsDirectory.tsx",
+      "src/settings/TenantSettingsPage.tsx"
     ],
     "Briefcase": [
       "src/saas/SaasShell.tsx"
@@ -4184,7 +4185,8 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Products.tsx",
       "src/pages/Sales.tsx",
-      "src/pages/Vendors.tsx"
+      "src/pages/Vendors.tsx",
+      "src/settings/TenantSettingsPage.tsx"
     ],
     "ChevronDownIcon": [
       "src/components/SearchSelect.tsx",
@@ -4396,7 +4398,8 @@
       "src/components/Tooltip.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
       "src/pages/Reports.tsx",
-      "src/reports/magicpatterns/components/reports/ReportBits.tsx"
+      "src/reports/magicpatterns/components/reports/ReportBits.tsx",
+      "src/settings/TenantSettingsPage.tsx"
     ],
     "Keyboard": [
       "src/pages/Pos.tsx",
@@ -4771,7 +4774,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/saas/components.tsx",
-      "src/settings/SettingsDirectory.tsx"
+      "src/settings/TenantSettingsPage.tsx"
     ],
     "SearchCheck": [
       "src/components/reports/BusinessReview.tsx"
@@ -4798,8 +4801,7 @@
       "src/components/products/ProductSettings.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/Expenses.tsx",
-      "src/settings/ModuleSettingsEntry.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/ModuleSettingsEntry.tsx"
     ],
     "ShieldCheck": [
       "src/features/auth/AuthFlowPage.tsx",

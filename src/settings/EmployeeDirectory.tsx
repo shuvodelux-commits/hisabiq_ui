@@ -75,8 +75,8 @@ export function EmployeeDirectory({ value, canEdit, onAccess, onEdit, actions, l
             {visible("status") && <td className="px-3 py-2"><StatusBadge tone={e.active ? "success" : "neutral"}>{e.active ? text("Active", "সক্রিয়") : text("Disabled", "নিষ্ক্রিয়")}</StatusBadge></td>}
             {visible("joined") && <td className="whitespace-nowrap px-3 py-2">{e.joinedDate ? formatDay(e.joinedDate) : text("Not recorded", "তথ্য নেই")}</td>}
             <td className="px-3 py-2"><div className="flex justify-end gap-2">
-              <Button variant="ghost" aria-label={`View access for ${e.name}`} onClick={() => onAccess(e)}><Eye className="size-4" aria-hidden="true" /></Button>
-              {canEdit && <Button variant="ghost" aria-label={`Edit employee ${e.name}`} onClick={() => onEdit(e)}><Pencil className="size-4" aria-hidden="true" /></Button>}
+              <Button variant="ghost" aria-label={text(`View access for ${e.name}`,`${e.name} এর অনুমতি দেখুন`)} onClick={() => onAccess(e)}><Eye className="size-4" aria-hidden="true" /></Button>
+              {canEdit && <Button variant="ghost" aria-label={text(`Edit employee ${e.name}`,`${e.name} এর তথ্য বদলান`)} onClick={() => onEdit(e)}><Pencil className="size-4" aria-hidden="true" /></Button>}
             </div></td>
           </tr>)}
           {!shown.length && <tr><td colSpan={columns.filter(c => visible(c.id)).length} className="p-6 text-center text-helper">{text("No matching employees.", "মিলে এমন কর্মী নেই।")}</td></tr>}

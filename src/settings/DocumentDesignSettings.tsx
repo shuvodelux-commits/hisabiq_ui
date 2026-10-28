@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTenantSettings } from "./TenantSettingsProvider";
 import { ArrowUp, ArrowDown, Printer } from "lucide-react";
 import { Button, Input, Switch, SettingsField, SettingCard } from "./ui";
 import { AppSelect } from "../components/AppSelect";
@@ -24,6 +25,9 @@ export function DocumentDesignSettings({
   onChange: (v: InvoiceSettings) => void;
   disabled: boolean;
 }) {
+  const { personal } = useTenantSettings();
+  const text = (en: string, bn: string) =>
+    personal.language === "Bangla" ? bn : en;
   const [previewTemplate, setPreviewTemplate] = useState<
       InvoiceDesign["template"] | null
     >(null),
@@ -112,16 +116,12 @@ export function DocumentDesignSettings({
   return (
     <div className="grid min-w-0 gap-4 xl:grid-cols-2">
       <div className="space-y-4">
-        <SettingCard title="Invoice design · চালানের ডিজাইন">
-          <p className="text-xs text-helper">
-            Choose the layout, language and paper for your invoices. The preview
-            uses the same design as printing.
-          </p>
+        <SettingCard title="Invoice design" titleBn="বিলের ডিজাইন">
           <SettingsField label="Invoice template" bn="চালানের ডিজাইন">
             {(id) => (
               <AppSelect
                 id={id}
-                label="Invoice template"
+                label={text("Invoice template", "বিলের ডিজাইন")}
                 value={d.template}
                 disabled={disabled}
                 options={["Standard", "Classic", "Compact"]}
@@ -133,35 +133,50 @@ export function DocumentDesignSettings({
             )}
           </SettingsField>
           <div className="grid gap-3 sm:grid-cols-2">
-            <SettingsField label="Document language" bn="প্রিন্টের ভাষা">
+            <SettingsField
+              fieldKey="showBangla"
+              label="Document language"
+              bn="প্রিন্টের ভাষা"
+            >
               {(id) => (
                 <AppSelect
                   id={id}
-                  label="Document language"
+                  label={text("Document language", "প্রিন্টের ভাষা")}
                   value={d.language}
                   disabled={disabled}
                   onChange={(v) =>
                     update({ language: v as InvoiceDesign["language"] })
                   }
                   options={[
-                    { value: "English", label: "Full English" },
-                    { value: "English + Bangla", label: "English + Bangla helpers" },
-                    { value: "Bangla", label: "Full Bangla" },
+                    { value: "English", label: text("Full English", "ইংরেজি") },
+                    {
+                      value: "English + Bangla",
+                      label: text("English + Bangla helpers", "ইংরেজি ও বাংলা"),
+                    },
+                    { value: "Bangla", label: text("Full Bangla", "বাংলা") },
                   ]}
                 />
               )}
             </SettingsField>
-            <SettingsField label="Paper mode" bn="কাগজের ধরন">
+            <SettingsField fieldKey="paper" label="Paper mode" bn="কাগজের ধরন">
               {(id) => (
                 <AppSelect
                   id={id}
-                  label="Paper mode"
+                  label={text("Paper mode", "কাগজের ধরন")}
                   value={d.paper}
                   disabled={disabled}
                   onChange={(v) =>
                     update({ paper: v as InvoiceDesign["paper"] })
                   }
-                  options={["A4", "80 mm", "58 mm", "Business Pad"]}
+                  options={["A4", "80 mm", "58 mm", "Business Pad"].map(
+                    (value) => ({
+                      value,
+                      label:
+                        value === "Business Pad"
+                          ? text(value, "দোকানের প্যাড")
+                          : value,
+                    }),
+                  )}
                 />
               )}
             </SettingsField>
@@ -169,13 +184,19 @@ export function DocumentDesignSettings({
               {(id) => (
                 <AppSelect
                   id={id}
-                  label="Orientation"
+                  label={text("Orientation", "কাগজের দিক")}
                   value={d.orientation}
                   disabled={disabled || d.paper.includes("mm")}
                   onChange={(v) =>
                     update({ orientation: v as InvoiceDesign["orientation"] })
                   }
-                  options={["Portrait", "Landscape"]}
+                  options={[
+                    {
+                      value: "Portrait",
+                      label: text("Portrait", "লম্বালম্বি"),
+                    },
+                    { value: "Landscape", label: text("Landscape", "আড়াআড়ি") },
+                  ]}
                 />
               )}
             </SettingsField>
@@ -183,7 +204,7 @@ export function DocumentDesignSettings({
               {(id) => (
                 <Input
                   id={id}
-                  aria-label="Page margins (mm)"
+                  aria-label={text("Page margins (mm)", "চারপাশে ফাঁকা (মিমি)")}
                   type="number"
                   min={2}
                   max={30}
@@ -217,25 +238,34 @@ export function DocumentDesignSettings({
             </SettingsField>
           )}
           <p className="text-xs text-helper">
-            Full English, Full Bangla or English with smaller Bangla helpers — independent of app language.
-            All three templates and paper sizes support these styles. Product/party names and custom notes use stored data; unavailable translations are not invented.
+            {text(
+              "Print language is separate from app language.",
+              "বিলের ভাষা অ্যাপের ভাষা থেকে আলাদা।",
+            )}
           </p>
         </SettingCard>
-        <SettingCard title="Sections & visible fields">
+        <SettingCard title="What to print" titleBn="বিলে যা দেখাবে">
           <div className="grid gap-3 sm:grid-cols-2">
             {flags.map(([key, en, bn]) => (
               <label
                 key={key}
+                data-field-key={key}
+                tabIndex={-1}
                 className="flex items-start justify-between gap-3 text-[13px]"
               >
                 <span>
-                  {en}
-                  <span className="block font-bn text-xs text-helper">
-                    {bn}
-                  </span>
+                  {text(en, bn)}
+                  {personal.language === "English + Bangla" && (
+                    <span
+                      lang="bn"
+                      className="ml-2 font-bn text-[11px] text-helper"
+                    >
+                      {bn}
+                    </span>
+                  )}
                 </span>
                 <Switch
-                  aria-label={en}
+                  aria-label={text(en, bn)}
                   disabled={disabled}
                   checked={d[key] as boolean}
                   onCheckedChange={(v) => update({ [key]: v })}
@@ -244,14 +274,17 @@ export function DocumentDesignSettings({
             ))}
           </div>
           <p className="text-xs text-helper">
-            Internal cost/margin is never included in customer output. Identity,
-            source and financial totals are retained.
+            {text(
+              "Customer bills never show purchase cost. Totals stay visible.",
+              "ক্রেতার বিলে ক্রয়মূল্য দেখাবে না। মোট টাকা দেখা যাবে।",
+            )}
           </p>
         </SettingCard>
-        <SettingCard title="Notes, terms & section order">
+        <SettingCard title="Notes & terms" titleBn="লেখা ও শর্ত">
           {(["footer", "terms", "note", "message"] as const).map((k) => (
             <SettingsField
               key={k}
+              fieldKey={k}
               label={
                 k === "terms"
                   ? "Terms & conditions"
@@ -285,7 +318,7 @@ export function DocumentDesignSettings({
           ))}
           <details>
             <summary className="cursor-pointer text-sm font-medium">
-              Section order · অংশের ক্রম
+              {text("Section order", "অংশের ক্রম")}
             </summary>
             <ol className="mt-2 space-y-1">
               {d.sections.map((s, i) => (
@@ -319,7 +352,7 @@ export function DocumentDesignSettings({
         </SettingCard>
       </div>
       <div className="min-w-0 self-start xl:sticky xl:top-4">
-        <SettingCard title="Invoice preview · একই ডিজাইনে প্রিন্ট">
+        <SettingCard title="Invoice preview" titleBn="বিলের নমুনা">
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
@@ -333,7 +366,7 @@ export function DocumentDesignSettings({
               }}
             >
               <Printer className="size-4" />
-              Print preview
+              {text("Print preview", "প্রিন্ট দেখুন")}
             </Button>
             <Button
               variant="ghost"
@@ -341,7 +374,7 @@ export function DocumentDesignSettings({
                 setPreviewTemplate(previewTemplate ? "Standard" : "Classic")
               }
             >
-              Compare design
+              {text("Compare design", "ডিজাইন মিলিয়ে দেখুন")}
             </Button>
           </div>
           {notice && (
@@ -353,8 +386,10 @@ export function DocumentDesignSettings({
             <ReceiptPreview {...sample} />
           </div>
           <p className="text-xs text-helper">
-            Sample data · Preview and final output use the same renderer.
-            Existing issued documents keep their captured design.
+            {text(
+              "Sample bill. Existing bills keep their design.",
+              "নমুনা বিল। পুরোনো বিলের ডিজাইন বদলাবে না।",
+            )}
           </p>
         </SettingCard>
       </div>

@@ -21,7 +21,8 @@ import {
   systemRoleIds,
 } from "./rbac";
 import { sectionNames } from "./fields";
-const permissionLabel = (code: string) =>
+import { settingsCopy } from "../i18n/settingsCopy";
+const englishPermissionLabel = (code: string) =>
   permissionCatalogue.find((p) => p.code === code)?.label ??
   (code === "view"
     ? "View settings"
@@ -41,11 +42,17 @@ export function TeamSettings({
   value: TeamData;
   onChange: (value: TeamData) => void;
   disabled: boolean;
-  advanced: boolean;
   state: TenantSettings;
   actorId: string;
   language?: string;
 }) {
+  const text = (en: string, bn: string) => (language === "Bangla" ? bn : en);
+  const copy = (message: string) => settingsCopy(language, message);
+  const permissionLabel = (code: string) =>
+    language === "Bangla"
+      ? (sectionNames[code as keyof typeof sectionNames]?.bn ??
+        copy(englishPermissionLabel(code)))
+      : englishPermissionLabel(code);
   const [tab, setTab] = useState("employees"),
     [role, setRole] = useState<BusinessRole | null>(null),
     [employee, setEmployee] = useState<BusinessEmployee | null>(null),
@@ -108,8 +115,12 @@ export function TeamSettings({
           id={tabsId}
           panelId={`${tabsId}-panel`}
           label="Employee settings views"
-          libraryTitle={language === "Bangla" ? "কর্মীর সেটিংস" : "Employee settings"}
-          libraryGroup={language === "Bangla" ? "প্রবেশাধিকার" : "Access management"}
+          libraryTitle={
+            language === "Bangla" ? "কর্মীর সেটিংস" : "Employee settings"
+          }
+          libraryGroup={
+            language === "Bangla" ? "প্রবেশাধিকার" : "Access management"
+          }
           secondary={false}
           language={language}
           items={tabs.map((id) => ({
@@ -121,18 +132,22 @@ export function TeamSettings({
           onChange={setTab}
         />
         <div className="min-w-0 space-y-4">
-          {activeTab === "roles" && (<div className="flex justify-end">
-            {activeTab && (activeTab === "roles" ? canRoles : canCreate) && (
-              <Button
-                onClick={() =>
-                  activeTab === "roles" ? openRole() : openEmployee()
-                }
-              >
-                <Plus className="size-4" />
-                {activeTab === "roles" ? "Create role" : "Add demo employee"}
-              </Button>
-            )}
-          </div>)}
+          {activeTab === "roles" && (
+            <div className="flex justify-end">
+              {activeTab && (activeTab === "roles" ? canRoles : canCreate) && (
+                <Button
+                  onClick={() =>
+                    activeTab === "roles" ? openRole() : openEmployee()
+                  }
+                >
+                  <Plus className="size-4" />
+                  {activeTab === "roles"
+                    ? text("Create role", "ভূমিকা যোগ")
+                    : text("Add demo employee", "নমুনা কর্মী যোগ")}
+                </Button>
+              )}
+            </div>
+          )}
           <div
             role="tabpanel"
             id={`${tabsId}-panel`}
@@ -140,22 +155,37 @@ export function TeamSettings({
           >
             {!activeTab ? (
               <p role="status" className="text-xs text-helper">
-                User and role lists require their separate view permissions.
+                {copy(
+                  "User and role lists require their separate view permissions.",
+                )}
               </p>
             ) : activeTab === "employees" ? (
-              <EmployeeDirectory value={value} canEdit={!disabled && authority.includes("user.account.edit")} onAccess={setAccess} onEdit={openEmployee} language={language}
-                actions={canCreate ? <Button onClick={() => openEmployee()}><Plus className="size-4" />Add demo employee</Button> : null} />
+              <EmployeeDirectory
+                value={value}
+                canEdit={!disabled && authority.includes("user.account.edit")}
+                onAccess={setAccess}
+                onEdit={openEmployee}
+                language={language}
+                actions={
+                  canCreate ? (
+                    <Button onClick={() => openEmployee()}>
+                      <Plus className="size-4" />
+                      {text("Add demo employee", "নমুনা কর্মী যোগ")}
+                    </Button>
+                  ) : null
+                }
+              />
             ) : (
               <>
                 <p className="text-xs text-helper">
-                  {value.roles.length} roles ·{" "}
-                  {value.employees.filter((e) => e.active).length} active people
-                  ·{" "}
+                  {value.roles.length} {text("roles", "ভূমিকা")} ·{" "}
+                  {value.employees.filter((e) => e.active).length}{" "}
+                  {text("active people", "জন চালু কর্মী")}·{" "}
                   {
                     value.roles.filter((r) => !systemRoleIds.includes(r.id))
                       .length
                   }{" "}
-                  custom roles
+                  {text("custom roles", "নিজের তৈরি ভূমিকা")}
                 </p>
                 <div className="mt-3 grid gap-3 lg:grid-cols-2">
                   {value.roles.map((r) => (
@@ -174,16 +204,16 @@ export function TeamSettings({
                                   (e) => e.active && e.roleIds.includes(r.id),
                                 ).length
                               }{" "}
-                              people hold this
+                              {text("people hold this", "জনের এই ভূমিকা আছে")}
                             </p>
                           </div>
                         </div>
                         <span className="text-[11px] text-helper">
                           {r.id === "owner"
-                            ? "Always full access"
+                            ? text("Always full access", "সব অনুমতি")
                             : systemRoleIds.includes(r.id)
-                              ? "Built in"
-                              : "Custom"}
+                              ? text("Built in", "নির্ধারিত")
+                              : text("Custom", "নিজের তৈরি")}
                         </span>
                       </header>
                       <ul className="mt-3 space-y-1 text-xs">
@@ -193,7 +223,8 @@ export function TeamSettings({
                       </ul>
                       {r.permissions.length > 6 && (
                         <p className="mt-1 text-xs text-helper">
-                          + {r.permissions.length - 6} more permissions
+                          + {r.permissions.length - 6}{" "}
+                          {text("more permissions", "টি অনুমতি আরও আছে")}
                         </p>
                       )}
                       {!r.permissions.length && (
@@ -204,7 +235,9 @@ export function TeamSettings({
                       {canRoles && (
                         <div className="mt-3 flex gap-2">
                           <Button variant="outline" onClick={() => openRole(r)}>
-                            {r.id === "owner" ? "Rename" : "Edit role"}
+                            {r.id === "owner"
+                              ? text("Rename", "নাম বদলান")
+                              : text("Edit role", "ভূমিকা বদলান")}
                           </Button>
                           {!systemRoleIds.includes(r.id) && (
                             <Button
@@ -228,7 +261,7 @@ export function TeamSettings({
                                 });
                               }}
                             >
-                              Delete unused role
+                              {copy("Delete unused role")}
                             </Button>
                           )}
                         </div>
@@ -241,21 +274,27 @@ export function TeamSettings({
           </div>
         </div>
       </div>
-      <p className="text-xs text-helper">{language === "Bangla" ? "সংরক্ষণ করুন চাপার আগে পরিবর্তন খসড়ায় থাকে। ভূমিকার অনুমতি এই ব্যবসার জন্য প্রযোজ্য।" : "Changes stay in your draft until you choose Save changes. Role permissions apply to this business."}</p>
+      <p className="text-xs text-helper">
+        {language === "Bangla"
+          ? "সংরক্ষণ করুন চাপার আগে পরিবর্তন খসড়ায় থাকে। ভূমিকার অনুমতি এই ব্যবসার জন্য প্রযোজ্য।"
+          : "Changes stay in your draft until you choose Save changes. Role permissions apply to this business."}
+      </p>
       {error && !role && !employee && (
         <p role="alert" className="text-sm text-danger">
-          {error}
+          {copy(error)}
         </p>
       )}
       <SettingsDialog
         title={
           role
             ? value.roles.some((r) => r.id === role.id)
-              ? "Configure role"
-              : "Create role"
-            : "Configure role"
+              ? copy("Configure role")
+              : copy("Create role")
+            : copy("Configure role")
         }
-        description="Protected owner, separate capabilities and affected-member review. Save the section to apply this draft."
+        description={copy(
+          "Review affected people, then save the section to apply.",
+        )}
         open={!!role}
         onClose={close}
       >
@@ -265,7 +304,7 @@ export function TeamSettings({
               {(id) => (
                 <Input
                   id={id}
-                  aria-label="Role name"
+                  aria-label={copy("Role name")}
                   value={role.name}
                   maxLength={60}
                   onChange={(e) => setRole({ ...role, name: e.target.value })}
@@ -275,7 +314,9 @@ export function TeamSettings({
             {role.id === "owner" ? (
               <p className="flex items-center gap-2 text-xs text-helper">
                 <LockKeyhole className="size-4" />
-                Owner can be renamed, never deleted or deprived of permissions.
+                {copy(
+                  "Owner can be renamed, never deleted or deprived of permissions.",
+                )}
               </p>
             ) : (
               <>
@@ -284,7 +325,9 @@ export function TeamSettings({
                     key={group}
                     className="space-y-2 border-t border-border pt-3"
                   >
-                    <legend className="text-sm font-medium">{group}</legend>
+                    <legend className="text-sm font-medium">
+                      {copy(group)}
+                    </legend>
                     {permissionCatalogue
                       .filter((p) => p.group === group)
                       .map((p) => (
@@ -308,9 +351,9 @@ export function TeamSettings({
                             }
                           />
                           <span>
-                            {p.label}
+                            {copy(p.label)}
                             <span className="block text-xs text-helper">
-                              {p.detail}
+                              {copy(p.detail)}
                             </span>
                           </span>
                         </label>
@@ -319,7 +362,7 @@ export function TeamSettings({
                 ))}
                 <details>
                   <summary className="cursor-pointer text-sm font-medium">
-                    Module-specific settings access
+                    {copy('Module-specific settings access')}
                   </summary>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {permissions
@@ -352,18 +395,20 @@ export function TeamSettings({
               </>
             )}
             <div className="rounded-lg border border-border p-3 text-xs">
-              <p className="font-medium">Change impact</p>
+              <p className="font-medium">{copy("Change impact")}</p>
               <p>
                 {impact?.affectedMembers.length
                   ? impact.affectedMembers.join(", ")
-                  : "No current members"}
+                  : copy('No current members')}
               </p>
               <p>
-                Added: {impact?.added.map(permissionLabel).join(", ") || "None"}
+                {copy("Added")}:{" "}
+                {impact?.added.map(permissionLabel).join(", ") || copy("None")}
               </p>
               <p>
-                Removed:{" "}
-                {impact?.removed.map(permissionLabel).join(", ") || "None"}
+                {copy("Removed")}:{" "}
+                {impact?.removed.map(permissionLabel).join(", ") ||
+                  copy("None")}
               </p>
             </div>
             <label className="flex items-start gap-2 text-xs">
@@ -372,16 +417,18 @@ export function TeamSettings({
                 checked={ack}
                 onChange={(e) => setAck(e.target.checked)}
               />
-              I reviewed who is affected. Apply only to the local UI preview.
+              {copy(
+                "I reviewed who is affected. Apply only to the local UI preview.",
+              )}
             </label>
             {error && (
               <p role="alert" className="text-sm text-danger">
-                {error}
+                {copy(error)}
               </p>
             )}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={close}>
-                Cancel
+                {copy("Cancel")}
               </Button>
               <Button
                 disabled={!ack || !canRoles}
@@ -401,7 +448,7 @@ export function TeamSettings({
                   close();
                 }}
               >
-                Keep role draft
+                {copy("Keep role draft")}
               </Button>
             </div>
           </div>
@@ -410,10 +457,12 @@ export function TeamSettings({
       <SettingsDialog
         title={
           employee && value.employees.some((e) => e.id === employee.id)
-            ? "Edit employee"
-            : "Add demo employee"
+            ? copy("Edit employee")
+            : copy("Add demo employee")
         }
-        description="Assign one or more existing roles. No invitation is sent from this preview."
+        description={copy(
+          "Assign one or more existing roles. No invitation is sent from this preview.",
+        )}
         open={!!employee}
         onClose={close}
       >
@@ -442,12 +491,27 @@ export function TeamSettings({
                 />
               )}
             </SettingsField>
-            <SettingsField label="Joined date" bn="যোগদানের তারিখ">
-              {() => <AppDatePicker label="Joined date" value={employee.joinedDate ?? ""} onChange={joinedDate => setEmployee({ ...employee, joinedDate })} />}
+            <SettingsField
+              label={text("Joined date", "যোগদানের তারিখ")}
+              bn="যোগদানের তারিখ"
+            >
+              {() => (
+                <AppDatePicker
+                  label={text("Joined date", "যোগদানের তারিখ")}
+                  value={employee.joinedDate ?? ""}
+                  onChange={(joinedDate) =>
+                    setEmployee({ ...employee, joinedDate })
+                  }
+                />
+              )}
             </SettingsField>
-            <p className="text-xs text-helper">Leave blank when the original joining date is unknown.</p>
+            <p className="text-xs text-helper">
+              {copy("Leave blank when the original joining date is unknown.")}
+            </p>
             <fieldset className="space-y-2">
-              <legend className="text-sm font-medium">Assigned roles</legend>
+              <legend className="text-sm font-medium">
+                {copy("Assigned roles")}
+              </legend>
               {value.roles.map((r) => (
                 <label
                   key={r.id}
@@ -484,16 +548,16 @@ export function TeamSettings({
                   setEmployee({ ...employee, active: e.target.checked })
                 }
               />
-              Active employee
+              {copy("Active employee")}
             </label>
             {error && (
               <p role="alert" className="text-danger">
-                {error}
+                {copy(error)}
               </p>
             )}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={close}>
-                Cancel
+                {copy("Cancel")}
               </Button>
               <Button
                 onClick={() => {
@@ -517,15 +581,17 @@ export function TeamSettings({
                   close();
                 }}
               >
-                Keep employee draft
+                {copy("Keep employee draft")}
               </Button>
             </div>
           </div>
         )}
       </SettingsDialog>
       <SettingsDialog
-        title={`Effective access: ${access?.name || ""}`}
-        description="Union of all active assigned roles; paid plans never grant employee permissions."
+        title={`${text("Effective access", "যে অনুমতি আছে")}: ${access?.name || ""}`}
+        description={copy(
+          "Combined access from assigned roles. Plans do not grant staff permissions.",
+        )}
         open={!!access}
         onClose={() => setAccess(null)}
       >
@@ -544,7 +610,11 @@ export function TeamSettings({
                       : "text-helper"
                   }
                 >
-                  {canManage(preview, access.id, p) ? "Allowed" : "Not granted"}
+                  {copy(
+                    canManage(preview, access.id, p)
+                      ? "Allowed"
+                      : "Not granted",
+                  )}
                 </strong>
               </div>
             ))}

@@ -20,7 +20,13 @@ async function main() {
     page.on("pageerror", (e) => errors.push(e.message));
     const base = "http://127.0.0.1:4239/#";
     const section = async (value) => {
-      await page.locator(`[data-settings-section="${value}"]`).click();
+      if (
+        !(await page
+          .locator(`[data-settings-section="${value}"]:visible`)
+          .count())
+      )
+        await page.locator('[id$="-choose"]').click();
+      await page.locator(`[data-settings-section="${value}"]:visible`).click();
     };
     await page.goto(base + "/app/settings/business");
     await page.getByTestId("settings-title").waitFor();
@@ -33,12 +39,12 @@ async function main() {
       name: "Settings categories",
     });
     for (const label of [
-      "Business profile",
-      "Employees & access",
+      "Shop",
+      "Employees",
       "Notifications",
-      "Data & activity",
-      "My preferences",
-      "Account & security",
+      "Data & backups",
+      "Language & appearance",
+      "Security",
       "Names & Khata",
       "Invoices & printing",
     ]) {
@@ -58,7 +64,7 @@ async function main() {
       .fill("Unsaved Navigation Shop");
     await section("notifications");
     const confirm = page.getByRole("dialog", {
-      name: "Discard unsaved changes?",
+      name: "Save your changes?",
     });
     await confirm.waitFor();
     assert.match(page.url(), /settings\/business/);
@@ -72,11 +78,14 @@ async function main() {
     assert.match(page.url(), /settings\/notifications/);
     await section("data");
     await page
+      .getByRole("tab", { name: "Recover drafts", exact: true })
+      .click();
+    await page
       .getByRole("heading", { name: "Recycle Bin · রিসাইকেল বিন", exact: true })
       .waitFor();
     await page.goto(base + "/app/settings/business");
     await page
-      .getByRole("link", { name: /Subscription/ })
+      .getByRole("link", { name: /Plan & SMS credits/ })
       .last()
       .click();
     assert.match(

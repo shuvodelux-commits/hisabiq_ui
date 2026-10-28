@@ -24,7 +24,19 @@ async function main() {
     await page.locator("#erp-main").waitFor();
   };
   const select = async (label, value) => {
-    if(label==='Settings section'){await page.locator(`[data-settings-directory] a[href$="/app/settings/${value}"]:visible, [data-settings-section="${value}"]:visible`).first().click();return;}
+    if (label === "Demo employee access")
+      await page
+        .getByRole("button", { name: "About this preview", exact: true })
+        .click();
+    if (label === "Settings section") {
+      await page
+        .locator(
+          `[data-settings-directory] a[href$="/app/settings/${value}"]:visible, [data-settings-section="${value}"]:visible`,
+        )
+        .first()
+        .click();
+      return;
+    }
     await page.getByRole("combobox", { name: label, exact: true }).click();
     await page.locator(`[role=option][data-value="${value}"]`).click();
   };
@@ -43,6 +55,7 @@ async function main() {
       .getByRole("heading", { name: "Names & Khata", exact: true })
       .waitFor();
     await select("Naming preset", "Local party Khata");
+    await page.getByRole("button", { name: "Edit names", exact: true }).click();
     await page
       .getByRole("textbox", { name: "Credit Bangla", exact: true })
       .fill("জমা");
@@ -142,7 +155,7 @@ async function main() {
       .getByRole("heading", { name: "Stock assistant", exact: true })
       .waitFor();
     await select("Demo employee access", "rafiq");
-    await page.getByText(/Read-only access/).waitFor();
+    await page.getByText(/View only/).waitFor();
     assert.equal(
       await page
         .getByRole("button", { name: "Create role", exact: true })
@@ -175,7 +188,7 @@ async function main() {
     await save();
     await select("Apply to", "mine");
     await page
-      .getByRole("button", { name: "Use inherited defaults", exact: true })
+      .getByRole("button", { name: "Reset columns", exact: true })
       .click();
     await go("sales");
     assert.equal(
@@ -219,6 +232,7 @@ async function main() {
       .click();
     await page.getByRole("button", { name: "Archive", exact: true }).click();
     await go("settings/data");
+    await page.getByRole('tab',{name:'Recover drafts',exact:true}).click();
     await page
       .getByRole("button", { name: "Restore draft", exact: true })
       .click();
@@ -235,7 +249,7 @@ async function main() {
       0,
     );
     await go("settings/invoices");
-    await page.getByRole('tab',{name:/Ledger & report designs/}).click();
+    await page.getByRole("tab", { name: /Ledger & report designs/ }).click();
     await select("Output language", "Bangla");
     await select("Output orientation", "Landscape");
     await page
@@ -260,7 +274,7 @@ async function main() {
       .fill("Unsaved browser-back edit");
     await page.goBack();
     await page
-      .getByRole("dialog", { name: "Discard unsaved changes?", exact: true })
+      .getByRole("dialog", { name: "Save your changes?", exact: true })
       .waitFor();
     await page
       .getByRole("button", { name: "Keep editing", exact: true })
@@ -269,7 +283,7 @@ async function main() {
       await page.getByLabel("Business name", { exact: true }).inputValue(),
       "Unsaved browser-back edit",
     );
-    await page.getByRole("button", { name: "Discard", exact: true }).click();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     // Both entries are created by the router; external hashes are covered above.
     await go("settings/business");
     await select("Settings section", "invoices");
@@ -280,7 +294,7 @@ async function main() {
     await page.getByText("Unsaved changes", { exact: true }).waitFor();
     await page.goBack();
     await page
-      .getByRole("dialog", { name: "Discard unsaved changes?", exact: true })
+      .getByRole("dialog", { name: "Save your changes?", exact: true })
       .waitFor();
     await page
       .getByRole("button", { name: "Keep editing", exact: true })
@@ -291,7 +305,7 @@ async function main() {
     );
     await page.goBack();
     await page
-      .getByRole("dialog", { name: "Discard unsaved changes?", exact: true })
+      .getByRole("dialog", { name: "Save your changes?", exact: true })
       .waitFor();
     await page
       .getByRole("button", { name: "Discard and continue", exact: true })
@@ -315,9 +329,7 @@ async function main() {
         "team",
       ]) {
         await go("settings/" + section);
-        await page
-          .getByTestId("settings-title")
-          .waitFor();
+        await page.getByTestId("settings-title").waitFor();
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth + 1,
         );
@@ -330,7 +342,7 @@ async function main() {
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await go("settings/invoices");
-    await page.getByRole('tab',{name:/Invoice design/}).click();
+    await page.getByRole("tab", { name: /Invoice design/ }).click();
     await select("Paper mode", "58 mm");
     await page.evaluate(() => {
       window.__originalSettingsWrite = Storage.prototype.setItem;
@@ -380,7 +392,7 @@ async function main() {
     await select("Demo employee access", "rafiq");
     assert.equal(
       await page
-        .getByRole("tablist", {name:"Employee settings views"})
+        .getByRole("tablist", { name: "Employee settings views" })
         .count(),
       0,
     );
@@ -391,6 +403,7 @@ async function main() {
       )
       .waitFor();
     await go("settings/data");
+    assert.equal(await page.getByRole('tab',{name:'History',exact:true}).count(),0);
     assert.equal(
       await page
         .getByRole("heading", { name: "Settings activity", exact: true })

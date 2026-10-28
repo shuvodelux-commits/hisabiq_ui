@@ -28,7 +28,26 @@ export function FinancialTerminologySettings({
 }) {
   const [context, setContext] = useState<FinancialContext>("Customer"),
     [query, setQuery] = useState(""),
-    [showAll, setShowAll] = useState(false);
+    [showAll, setShowAll] = useState(false),
+    [editing, setEditing] = useState(false);
+  const text = (en: string, bn: string) => (language === "Bangla" ? bn : en);
+  const contextNames: Record<string, string> = {
+    "Cash & bank": "ক্যাশ ও ব্যাংক",
+    Customer: "ক্রেতা",
+    Supplier: "সরবরাহকারী",
+    Owner: "মালিক",
+    Lender: "ঋণদাতা",
+    Borrower: "ঋণগ্রহীতা",
+    Vendor: "ভেন্ডর",
+    Payee: "খরচের প্রাপক",
+    Reports: "রিপোর্ট",
+  };
+  const presetNames: Record<string, string> = {
+    Accounting: "প্রচলিত হিসাবের নাম",
+    "Money movement": "টাকা আসা ও যাওয়া",
+    "Local party Khata": "দোকানের খাতা",
+    Custom: "নিজের নাম",
+  };
   const profile = value.contexts[context];
   const update = (patch: Partial<FinancialProfile>) =>
     onChange({
@@ -62,10 +81,13 @@ export function FinancialTerminologySettings({
           {(id) => (
             <AppSelect
               id={id}
-              label="Account / relationship"
+              label={text("Account / relationship", "হিসাবের ধরন")}
               value={context}
               onChange={(v) => setContext(v as FinancialContext)}
-              options={[...financialContexts]}
+              options={financialContexts.map((value) => ({
+                value,
+                label: text(value, contextNames[value] ?? value),
+              }))}
             />
           )}
         </SettingsField>
@@ -73,7 +95,7 @@ export function FinancialTerminologySettings({
           {(id) => (
             <AppSelect
               id={id}
-              label="Naming preset"
+              label={text("Naming preset", "নামের ধরন")}
               value={profile.preset}
               disabled={disabled}
               onChange={(v) =>
@@ -85,11 +107,13 @@ export function FinancialTerminologySettings({
                   ),
                 )
               }
-              options={
-                context === "Cash & bank"
-                  ? ["Accounting", "Money movement", "Custom"]
-                  : ["Accounting", "Local party Khata", "Custom"]
-              }
+              options={(context === "Cash & bank"
+                ? ["Accounting", "Money movement", "Custom"]
+                : ["Accounting", "Local party Khata", "Custom"]
+              ).map((value) => ({
+                value,
+                label: text(value, presetNames[value]),
+              }))}
             />
           )}
         </SettingsField>
@@ -97,15 +121,27 @@ export function FinancialTerminologySettings({
           {(id) => (
             <AppSelect
               id={id}
-              label="Column order"
+              label={text("Column order", "কলামের অবস্থান")}
               value={profile.order}
               disabled={disabled}
               onChange={(v) =>
                 update({ order: v as FinancialProfile["order"] })
               }
               options={[
-                { value: "debit-first", label: "Debit left · Credit right" },
-                { value: "credit-first", label: "Credit left · Debit right" },
+                {
+                  value: "debit-first",
+                  label: text(
+                    "Debit left · Credit right",
+                    `${financialLabel(value, context, "debit", "Bangla")} আগে · ${financialLabel(value, context, "credit", "Bangla")} পরে`,
+                  ),
+                },
+                {
+                  value: "credit-first",
+                  label: text(
+                    "Credit left · Debit right",
+                    `${financialLabel(value, context, "credit", "Bangla")} আগে · ${financialLabel(value, context, "debit", "Bangla")} পরে`,
+                  ),
+                },
               ]}
             />
           )}
@@ -115,64 +151,92 @@ export function FinancialTerminologySettings({
           disabled={disabled}
           onClick={() => update(financialDefaults().contexts[context])}
         >
-          Reset this context
+          {text("Reset these names", "এই নামগুলো আগের মতো করুন")}
         </Button>
       </div>
       <p className="text-xs text-helper">
-        Business wording applies to new displays and statements. Cash movement
-        and party debit/credit have different meanings; amounts and posting
-        never change.
+        {text(
+          "Only names and column order change. Amounts stay the same.",
+          "শুধু নাম ও কলামের ক্রম বদলাবে। টাকার হিসাব ঠিক থাকবে।",
+        )}
       </p>
+      <Button
+        variant="outline"
+        disabled={disabled}
+        aria-expanded={editing}
+        onClick={() => setEditing(!editing)}
+      >
+        {editing
+          ? text("Close name editor", "নামের ঘর বন্ধ করুন")
+          : text("Edit names", "নাম বদলান")}
+      </Button>
       <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
-        <SettingCard title="Labels & Bangla helpers">
-          <Input
-            aria-label="Search financial terms"
-            placeholder="Search terms · হিসাবের নাম খুঁজুন"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {(query || showAll ? terms : terms.slice(0, 6)).map((key) => (
-            <div
-              key={key}
-              className="space-y-2 border-b border-border pb-3"
-              data-field-key={key}
-            >
-              <p className="text-[13px] font-medium">
-                {financialTerms[key][0]}
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {(["en", "bn"] as const).map((field) => (
-                  <Input
-                    key={field}
-                    aria-label={`${financialTerms[key][0]} ${field === "en" ? "English" : "Bangla"}`}
-                    maxLength={60}
-                    disabled={disabled}
-                    value={profile.terms[key][field]}
-                    onChange={(e) => edit(key, field, e.target.value)}
-                  />
-                ))}
+        {editing && (
+          <SettingCard
+            title="Names & short explanations"
+            titleBn="নাম ও ছোট ব্যাখ্যা"
+          >
+            <Input
+              aria-label="Search financial terms"
+              placeholder={text("Find a name…", "নাম খুঁজুন…")}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {(query || showAll ? terms : terms.slice(0, 6)).map((key) => (
+              <div
+                key={key}
+                className="space-y-2 border-b border-border pb-3"
+                data-field-key={key}
+              >
+                <p className="text-[13px] font-medium">
+                  {text(financialTerms[key][0], financialTerms[key][1])}
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(["en", "bn"] as const).map((field) => (
+                    <Input
+                      key={field}
+                      aria-label={`${financialTerms[key][0]} ${field === "en" ? "English" : "Bangla"}`}
+                      maxLength={60}
+                      disabled={disabled}
+                      value={profile.terms[key][field]}
+                      onChange={(e) => edit(key, field, e.target.value)}
+                    />
+                  ))}
+                </div>
+                <Input
+                  aria-label={`${financialTerms[key][0]} helper`}
+                  placeholder={text(
+                    "Short explanation (optional)",
+                    "ছোট ব্যাখ্যা (ইচ্ছামতো)",
+                  )}
+                  maxLength={120}
+                  disabled={disabled}
+                  value={profile.terms[key].helper}
+                  onChange={(e) => edit(key, "helper", e.target.value)}
+                />
               </div>
-              <Input
-                aria-label={`${financialTerms[key][0]} helper`}
-                placeholder="Optional explanation · সহায়ক লেখা"
-                maxLength={120}
-                disabled={disabled}
-                value={profile.terms[key].helper}
-                onChange={(e) => edit(key, "helper", e.target.value)}
-              />
-            </div>
-          ))}
-          {!query && (
-            <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
-              {showAll ? "Show common terms" : "Show all financial terms"}
-            </Button>
-          )}
-          {terms.length === 0 && (
-            <p className="text-xs text-helper">No matching terms.</p>
-          )}
-        </SettingCard>
-        <div className="min-w-0 self-start xl:sticky xl:top-4">
-          <SettingCard title={`${context} preview · নমুনা খাতা`}>
+            ))}
+            {!query && (
+              <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+                {showAll
+                  ? text("Show fewer names", "কম নাম দেখান")
+                  : text("Show all names", "সব নাম দেখান")}
+              </Button>
+            )}
+            {terms.length === 0 && (
+              <p className="text-xs text-helper">
+                {text("No matching names.", "মিল পাওয়া যায়নি।")}
+              </p>
+            )}
+          </SettingCard>
+        )}
+        <div
+          className={
+            "min-w-0 self-start " +
+            (editing ? "xl:sticky xl:top-4" : "xl:col-span-2")
+          }
+        >
+          <SettingCard title="Sample ledger" titleBn="নমুনা খাতা">
             <div>
               <strong>
                 {context === "Cash & bank"
@@ -185,18 +249,23 @@ export function FinancialTerminologySettings({
                 Opening {sample.balanceLabel} ৳2,000 · Sample entries
               </p>
             </div>
-            <div tabIndex={0} role="region" aria-label={`${context} sample ledger`} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+            <div
+              tabIndex={0}
+              role="region"
+              aria-label={`${context} sample ledger`}
+              className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            >
               <table data-erp-table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="p-2">Date</th>
-                    <th className="p-2">Description</th>
+                    <th className="p-2">{text("Date", "তারিখ")}</th>
+                    <th className="p-2">{text("Description", "বিবরণ")}</th>
                     {financialColumns(value, context).map((k) => (
                       <th key={k} className="p-2 text-right">
                         {financialLabel(value, context, k, language)}
                       </th>
                     ))}
-                    <th className="p-2 text-right">Balance</th>
+                    <th className="p-2 text-right">{text("Balance", "জের")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -217,10 +286,6 @@ export function FinancialTerminologySettings({
             </div>
             <p className="text-right text-sm font-semibold">
               Closing {sample.balanceLabel} ৳2,820
-            </p>
-            <p className="text-xs text-helper">
-              The sample uses this account or relationship’s debit/credit
-              meaning. Changing names/order preserves every value.
             </p>
           </SettingCard>
         </div>

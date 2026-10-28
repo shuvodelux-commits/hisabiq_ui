@@ -75,7 +75,7 @@ type SettingsContextValue = {
     value: SettingsSections[K],
     expectedRevision: number,
   ) => { ok: boolean; error?: string; persisted?:boolean; revision?:number };
-  updatePersonal: (patch: Partial<PersonalSettings>) => void;
+  updatePersonal: (patch: Partial<PersonalSettings>) => boolean;
   restore: (
     value: TenantSettings,
     expectedRevision: number,
@@ -142,17 +142,19 @@ export function TenantSettingsProvider({ children }: { children: ReactNode }) {
   };
   function updatePersonal(patch: Partial<PersonalSettings>) {
     const next = { ...personalRef.current, ...patch };
-    if (!validPersonal(next)) return;
+    if (!validPersonal(next)) return false;
     personalRef.current = next;
     setPersonal(next);
     try {
       localStorage.setItem(personalKey, JSON.stringify(next));
       localStorage.setItem("hisabiq-terminology-mode", next.terminology);
       localStorage.setItem("hisabiq-entry-date-view", next.dateView);
+      return true;
     } catch {
       setWarning(
         "Personal preferences are in memory only because browser storage is unavailable or full.",
       );
+      return false;
     }
   }
   function restore(value: TenantSettings, expectedRevision: number) {

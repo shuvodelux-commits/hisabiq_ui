@@ -14,6 +14,9 @@ type Props = {
   label?: string;
   className?: string;
   single?: boolean;
+  id?: string;
+  disabled?: boolean;
+  describedBy?: string;
 };
 const empty: IsoRange = { from: '', to: '' };
 const presets = ['Today', 'Yesterday', 'Last 7 days', 'This week', 'This month', 'Last month'];
@@ -64,7 +67,7 @@ function Month({
 }
 
 /** Compact, themed shadcn-style calendar/popover. Only Apply commits a draft range. */
-export function AppDateRangePicker({ value, onChange, label = 'Date range', className = '', single = false }: Props) {
+export function AppDateRangePicker({ value, onChange, label = 'Date range', className = '', single = false, id: triggerId, disabled = false, describedBy }: Props) {
   const {language}=useUiCopy();
   const t=(en:string,bn:string)=>datePickerWord(language,en,bn);
   const [open, setOpen] = useState(false);
@@ -129,7 +132,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
   }, [open]);
   const shownDate = single ? (value.from ? datePickerDayLabel(language,value.from) : t('Select date','তারিখ বাছুন')) : datePickerRangeLabel(language,value);
   return <div className={'min-w-0 ' + className}>
-    <button ref={anchor} type="button" data-hisabiq-select="" aria-label={label + ': ' + shownDate} aria-haspopup="dialog" aria-expanded={open}
+    <button ref={anchor} id={triggerId} disabled={disabled} aria-describedby={describedBy} type="button" data-hisabiq-select="" aria-label={label + ': ' + shownDate} aria-haspopup="dialog" aria-expanded={open}
       aria-controls={open ? id : undefined} onClick={() => open ? close() : show()}
       className="flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input bg-card px-3 text-left text-[12px] text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:ring-2 focus-visible:ring-teal-500/20">
       <CalendarDays className="size-4 shrink-0 text-teal-600" aria-hidden="true" />
@@ -177,9 +180,9 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
   </div>;
 }
 
-export function AppDatePicker({ value, onChange, label = 'Date', className = '' }: {
-  value: string; onChange: (date: string) => void; label?: string; className?: string;
+export function AppDatePicker({ value, onChange, label = 'Date', className = '', ...props }: {
+  value: string; onChange: (date: string) => void; label?: string; className?: string; id?: string; disabled?: boolean; describedBy?: string;
 }) {
-  return <AppDateRangePicker single label={label} className={className}
+  return <AppDateRangePicker {...props} single label={label} className={className}
     value={{ from: value, to: value }} onChange={(range) => onChange(range.from)} />;
 }
