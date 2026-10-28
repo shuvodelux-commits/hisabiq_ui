@@ -26,7 +26,7 @@ async function main() {
       .getByTestId("settings-title")
       .waitFor();
   };
-  const sectionNav = id => page.locator(`[data-settings-sidebar] a[href$="/app/settings/${id}"]:visible, [data-settings-section="${id}"]:visible`).first();
+  const sectionNav = id => page.locator(`[data-settings-directory] a[href$="/app/settings/${id}"]:visible, [data-settings-section="${id}"]:visible`).first();
   const chooseOption = async (label, value) => {
     await page.getByLabel(label, { exact: true }).click();
     await page.locator('[role="option"][data-value=' + JSON.stringify(value) + ']').click();
