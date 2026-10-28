@@ -1612,231 +1612,6 @@
       "reexports": []
     },
     {
-      "file": "src/components/AmountInWordsDisplay.tsx",
-      "kind": "component",
-      "exports": [
-        "AmountInWordsDisplay"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/AppDateRangePicker.tsx",
-      "kind": "component",
-      "exports": [
-        "AppDateRangePicker",
-        "AppDatePicker"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/AppMonthYearPicker.tsx",
-      "kind": "component",
-      "exports": [
-        "AppMonthYearPicker"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/AppSelect.tsx",
-      "kind": "component",
-      "exports": [
-        "AppSelect"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/Badge.tsx",
-      "kind": "component",
-      "exports": [],
-      "reexports": [
-        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
-      ]
-    },
-    {
-      "file": "src/components/Button.tsx",
-      "kind": "component",
-      "exports": [
-        "Button"
-      ],
-      "reexports": [
-        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
-      ]
-    },
-    {
-      "file": "src/components/ColumnVisibilityEditor.tsx",
-      "kind": "component",
-      "exports": [
-        "ColumnVisibilityEditor"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/Dialog.tsx",
-      "kind": "component",
-      "exports": [
-        "Dialog",
-        "DialogContent",
-        "DialogTitle",
-        "DialogDescription"
-      ],
-      "reexports": [
-        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
-      ]
-    },
-    {
-      "file": "src/components/FeedbackState.tsx",
-      "kind": "component",
-      "exports": [
-        "FeedbackState"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/FormSelect.tsx",
-      "kind": "component",
-      "exports": [
-        "FormSelect"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/Input.tsx",
-      "kind": "component",
-      "exports": [
-        "Input"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/MoneyUnitInput.tsx",
-      "kind": "component",
-      "exports": [
-        "MoneyUnitInput",
-        "QuantityUnitInput"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/NumericInput.tsx",
-      "kind": "component",
-      "exports": [
-        "NumericInput"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/PageHeader.tsx",
-      "kind": "component",
-      "exports": [
-        "PageHeader"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/Panel.tsx",
-      "kind": "component",
-      "exports": [
-        "Panel"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/PartyAvatar.tsx",
-      "kind": "component",
-      "exports": [
-        "PartyAvatar"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/ProductThumb.tsx",
-      "kind": "component",
-      "exports": [
-        "ProductThumb"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/QuickAddDialog.tsx",
-      "kind": "component",
-      "exports": [
-        "QuickAddDialog"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/QuickAddSelect.tsx",
-      "kind": "component",
-      "exports": [
-        "QuickAddSelect"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/SearchSelect.tsx",
-      "kind": "component",
-      "exports": [
-        "SearchSelect"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/StatusBadge.tsx",
-      "kind": "component",
-      "exports": [
-        "StatusBadge"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/Switch.tsx",
-      "kind": "component",
-      "exports": [],
-      "reexports": [
-        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
-      ]
-    },
-    {
-      "file": "src/components/Table.tsx",
-      "kind": "component",
-      "exports": [
-        "Table"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/Tooltip.tsx",
-      "kind": "component",
-      "exports": [
-        "Tooltip"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/TransactionReviewDialog.tsx",
-      "kind": "component",
-      "exports": [
-        "TransactionReviewDialog"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/WorkspaceLibrary.tsx",
-      "kind": "component",
-      "exports": [
-        "WorkspaceLibrary"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/WorkspaceToolbar.tsx",
-      "kind": "component",
-      "exports": [
-        "WorkspaceToolbar"
-      ],
-      "reexports": []
-    },
-    {
       "file": "src/components/accounts/ChartOfAccountsView.tsx",
       "kind": "component",
       "exports": [
@@ -1893,6 +1668,39 @@
       "reexports": []
     },
     {
+      "file": "src/components/AmountInWordsDisplay.tsx",
+      "kind": "component",
+      "exports": [
+        "AmountInWordsDisplay"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/AppDateRangePicker.tsx",
+      "kind": "component",
+      "exports": [
+        "AppDateRangePicker",
+        "AppDatePicker"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/AppMonthYearPicker.tsx",
+      "kind": "component",
+      "exports": [
+        "AppMonthYearPicker"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/AppSelect.tsx",
+      "kind": "component",
+      "exports": [
+        "AppSelect"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/audit/AuditDetailsDialog.tsx",
       "kind": "component",
       "exports": [
@@ -1931,6 +1739,14 @@
         "ImpactPreview"
       ],
       "reexports": []
+    },
+    {
+      "file": "src/components/Badge.tsx",
+      "kind": "component",
+      "exports": [],
+      "reexports": [
+        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
+      ]
     },
     {
       "file": "src/components/brand/ApplicationsSection.tsx",
@@ -2023,6 +1839,15 @@
       "reexports": []
     },
     {
+      "file": "src/components/brand/printReceipt.tsx",
+      "kind": "component",
+      "exports": [
+        "receiptPrintHtml",
+        "printReceipt"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/brand/ReceiptPreview.tsx",
       "kind": "component",
       "exports": [
@@ -2071,11 +1896,20 @@
       "reexports": []
     },
     {
-      "file": "src/components/brand/printReceipt.tsx",
+      "file": "src/components/Button.tsx",
       "kind": "component",
       "exports": [
-        "receiptPrintHtml",
-        "printReceipt"
+        "Button"
+      ],
+      "reexports": [
+        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
+      ]
+    },
+    {
+      "file": "src/components/ColumnVisibilityEditor.tsx",
+      "kind": "component",
+      "exports": [
+        "ColumnVisibilityEditor"
       ],
       "reexports": []
     },
@@ -2160,6 +1994,27 @@
       "reexports": []
     },
     {
+      "file": "src/components/Dialog.tsx",
+      "kind": "component",
+      "exports": [
+        "Dialog",
+        "DialogContent",
+        "DialogTitle",
+        "DialogDescription"
+      ],
+      "reexports": [
+        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
+      ]
+    },
+    {
+      "file": "src/components/FeedbackState.tsx",
+      "kind": "component",
+      "exports": [
+        "FeedbackState"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/finance/CashSessionDetailsDialog.tsx",
       "kind": "component",
       "exports": [
@@ -2211,6 +2066,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/FormSelect.tsx",
+      "kind": "component",
+      "exports": [
+        "FormSelect"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/import/ImportFinishStep.tsx",
       "kind": "component",
       "exports": [
@@ -2247,6 +2110,14 @@
       "kind": "component",
       "exports": [
         "ImportWizard"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/Input.tsx",
+      "kind": "component",
+      "exports": [
+        "Input"
       ],
       "reexports": []
     },
@@ -2339,6 +2210,23 @@
       "reexports": []
     },
     {
+      "file": "src/components/MoneyUnitInput.tsx",
+      "kind": "component",
+      "exports": [
+        "MoneyUnitInput",
+        "QuantityUnitInput"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/NumericInput.tsx",
+      "kind": "component",
+      "exports": [
+        "NumericInput"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/online/FulfillmentDocumentPreview.tsx",
       "kind": "component",
       "exports": [
@@ -2346,6 +2234,22 @@
         "FulfillmentDocumentPreview",
         "printFulfillment",
         "fulfillmentPrintCss"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/PageHeader.tsx",
+      "kind": "component",
+      "exports": [
+        "PageHeader"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/Panel.tsx",
+      "kind": "component",
+      "exports": [
+        "Panel"
       ],
       "reexports": []
     },
@@ -2603,6 +2507,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/PartyAvatar.tsx",
+      "kind": "component",
+      "exports": [
+        "PartyAvatar"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/pos/CartTable.tsx",
       "kind": "component",
       "exports": [
@@ -2751,42 +2663,6 @@
       "kind": "component",
       "exports": [
         "BundleEditor"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/products/PhotoUploader.tsx",
-      "kind": "component",
-      "exports": [
-        "PhotoUploader"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/products/ProductInventoryDialogs.tsx",
-      "kind": "component",
-      "exports": [
-        "ProductDetailsDialog",
-        "StockAdjustmentDialog",
-        "StockLotDialog",
-        "ManageOffersDialog"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/products/ProductInventoryViews.tsx",
-      "kind": "component",
-      "exports": [
-        "StockLotsView",
-        "StockHistoryView"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/products/ProductSettings.tsx",
-      "kind": "component",
-      "exports": [
-        "ProductSettings"
       ],
       "reexports": []
     },
@@ -2943,6 +2819,50 @@
       "reexports": []
     },
     {
+      "file": "src/components/products/PhotoUploader.tsx",
+      "kind": "component",
+      "exports": [
+        "PhotoUploader"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/products/ProductInventoryDialogs.tsx",
+      "kind": "component",
+      "exports": [
+        "ProductDetailsDialog",
+        "StockAdjustmentDialog",
+        "StockLotDialog",
+        "ManageOffersDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/products/ProductInventoryViews.tsx",
+      "kind": "component",
+      "exports": [
+        "StockLotsView",
+        "StockHistoryView"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/products/ProductSettings.tsx",
+      "kind": "component",
+      "exports": [
+        "ProductSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/ProductThumb.tsx",
+      "kind": "component",
+      "exports": [
+        "ProductThumb"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/purchases/BillDetailDialog.tsx",
       "kind": "component",
       "exports": [
@@ -2983,6 +2903,22 @@
       "reexports": []
     },
     {
+      "file": "src/components/QuickAddDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "QuickAddDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/QuickAddSelect.tsx",
+      "kind": "component",
+      "exports": [
+        "QuickAddSelect"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/reports/BusinessReview.tsx",
       "kind": "component",
       "exports": [
@@ -2995,6 +2931,22 @@
       "kind": "component",
       "exports": [
         "DaybookDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/reports/premium/AdvisorReport.tsx",
+      "kind": "component",
+      "exports": [
+        "AdvisorReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/reports/premium/CashflowReport.tsx",
+      "kind": "component",
+      "exports": [
+        "CashflowReport"
       ],
       "reexports": []
     },
@@ -3057,14 +3009,6 @@
       "reexports": []
     },
     {
-      "file": "src/components/reports/ReportToolbar.tsx",
-      "kind": "component",
-      "exports": [
-        "ReportToolbar"
-      ],
-      "reexports": []
-    },
-    {
       "file": "src/components/reports/ReportsNav.tsx",
       "kind": "component",
       "exports": [
@@ -3073,26 +3017,18 @@
       "reexports": []
     },
     {
+      "file": "src/components/reports/ReportToolbar.tsx",
+      "kind": "component",
+      "exports": [
+        "ReportToolbar"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/reports/SalesProfitExperiment.tsx",
       "kind": "component",
       "exports": [
         "SalesProfitExperiment"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/reports/premium/AdvisorReport.tsx",
-      "kind": "component",
-      "exports": [
-        "AdvisorReport"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/components/reports/premium/CashflowReport.tsx",
-      "kind": "component",
-      "exports": [
-        "CashflowReport"
       ],
       "reexports": []
     },
@@ -3113,6 +3049,54 @@
       "kind": "component",
       "exports": [
         "SalesWideToolbar"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/SearchSelect.tsx",
+      "kind": "component",
+      "exports": [
+        "SearchSelect"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/StatusBadge.tsx",
+      "kind": "component",
+      "exports": [
+        "StatusBadge"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/Switch.tsx",
+      "kind": "component",
+      "exports": [],
+      "reexports": [
+        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
+      ]
+    },
+    {
+      "file": "src/components/Table.tsx",
+      "kind": "component",
+      "exports": [
+        "Table"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/Tooltip.tsx",
+      "kind": "component",
+      "exports": [
+        "Tooltip"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/TransactionReviewDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "TransactionReviewDialog"
       ],
       "reexports": []
     },
@@ -3201,6 +3185,22 @@
       "kind": "component",
       "exports": [
         "VendorTabs"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/WorkspaceLibrary.tsx",
+      "kind": "component",
+      "exports": [
+        "WorkspaceLibrary"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/WorkspaceToolbar.tsx",
+      "kind": "component",
+      "exports": [
+        "WorkspaceToolbar"
       ],
       "reexports": []
     },
@@ -3457,43 +3457,9 @@
       "reexports": []
     },
     {
-      "file": "src/reports/magicpatterns/MagicReportsView.tsx",
-      "kind": "authored-ui",
-      "exports": [
-        "evidenceKey",
-        "MagicReportsView"
-      ],
-      "reexports": []
-    },
-    {
       "file": "src/reports/magicpatterns/components/Panel.tsx",
       "kind": "component",
       "exports": [],
-      "reexports": []
-    },
-    {
-      "file": "src/reports/magicpatterns/components/StatusBadge.tsx",
-      "kind": "component",
-      "exports": [],
-      "reexports": []
-    },
-    {
-      "file": "src/reports/magicpatterns/components/reports/ReportBits.tsx",
-      "kind": "component",
-      "exports": [
-        "SourceEvidenceContext",
-        "KpiEvidenceContext",
-        "SourceLink",
-        "InfoTip",
-        "Delta",
-        "Kpi",
-        "ShareBar",
-        "SectionNote",
-        "Th",
-        "Td",
-        "TableShell",
-        "EmptyRow"
-      ],
       "reexports": []
     },
     {
@@ -3579,58 +3545,46 @@
       "reexports": []
     },
     {
+      "file": "src/reports/magicpatterns/components/reports/ReportBits.tsx",
+      "kind": "component",
+      "exports": [
+        "SourceEvidenceContext",
+        "KpiEvidenceContext",
+        "SourceLink",
+        "InfoTip",
+        "Delta",
+        "Kpi",
+        "ShareBar",
+        "SectionNote",
+        "Th",
+        "Td",
+        "TableShell",
+        "EmptyRow"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/components/StatusBadge.tsx",
+      "kind": "component",
+      "exports": [],
+      "reexports": []
+    },
+    {
+      "file": "src/reports/magicpatterns/MagicReportsView.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "evidenceKey",
+        "MagicReportsView"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/reports/magicpatterns/prototype/Ui.tsx",
       "kind": "authored-ui",
       "exports": [
         "Button",
         "Tabs",
         "downloadCsv"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/saas/AttachmentField.tsx",
-      "kind": "authored-ui",
-      "exports": [
-        "AttachmentField"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/saas/OverviewPage.tsx",
-      "kind": "authored-ui",
-      "exports": [
-        "OverviewPage"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/saas/SaasProvider.tsx",
-      "kind": "provider-or-context",
-      "exports": [
-        "SaasProvider",
-        "useSaas",
-        "command"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/saas/SaasShell.tsx",
-      "kind": "authored-ui",
-      "exports": [
-        "navigation",
-        "SaasShell",
-        "Guard"
-      ],
-      "reexports": []
-    },
-    {
-      "file": "src/saas/TenantPortal.tsx",
-      "kind": "authored-ui",
-      "exports": [
-        "TenantSession",
-        "TenantSupport",
-        "TenantSubscription"
       ],
       "reexports": []
     },
@@ -3671,6 +3625,14 @@
       "kind": "authored-ui",
       "exports": [
         "TeamPage"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/saas/AttachmentField.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "AttachmentField"
       ],
       "reexports": []
     },
@@ -3748,6 +3710,34 @@
       "reexports": []
     },
     {
+      "file": "src/saas/OverviewPage.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "OverviewPage"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/saas/SaasProvider.tsx",
+      "kind": "provider-or-context",
+      "exports": [
+        "SaasProvider",
+        "useSaas",
+        "command"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/saas/SaasShell.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "navigation",
+        "SaasShell",
+        "Guard"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/saas/services/ServicesPage.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -3770,6 +3760,16 @@
       "exports": [
         "TicketsPage",
         "TicketPage"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/saas/TenantPortal.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "TenantSession",
+        "TenantSupport",
+        "TenantSubscription"
       ],
       "reexports": []
     },
@@ -3883,6 +3883,14 @@
       "kind": "authored-ui",
       "exports": [
         "SettingsTabs"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/SettingsWorkspaceSidebar.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsWorkspaceSidebar"
       ],
       "reexports": []
     },
@@ -4063,6 +4071,7 @@
     ],
     "Bell": [
       "src/components/layout/TopBar.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4086,7 +4095,8 @@
       "src/pages/Accounts.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Sales.tsx",
-      "src/saas/SaasShell.tsx"
+      "src/saas/SaasShell.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx"
     ],
     "Briefcase": [
       "src/saas/SaasShell.tsx"
@@ -4096,6 +4106,7 @@
     ],
     "Building2": [
       "src/saas/SaasShell.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4250,6 +4261,7 @@
       "src/settings/TenantSettingsHub.tsx"
     ],
     "Database": [
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4508,6 +4520,7 @@
       "src/components/brand/BrandHero.tsx",
       "src/components/brand/PrimitivesSection.tsx",
       "src/navigation/erpNavigation.ts",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "PackageCheck": [
@@ -4533,6 +4546,12 @@
     ],
     "PanelLeft": [
       "src/components/layout/SidebarTrigger.tsx"
+    ],
+    "PanelLeftClose": [
+      "src/settings/SettingsWorkspaceSidebar.tsx"
+    ],
+    "PanelLeftOpen": [
+      "src/settings/SettingsWorkspaceSidebar.tsx"
     ],
     "Paperclip": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -4665,6 +4684,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/DocumentDesignSettings.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Receipt": [
@@ -4756,7 +4776,8 @@
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
-      "src/saas/components.tsx"
+      "src/saas/components.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx"
     ],
     "SearchCheck": [
       "src/components/reports/BusinessReview.tsx"
@@ -4793,6 +4814,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/saas/SaasShell.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TeamSettings.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
@@ -4803,6 +4825,7 @@
       "src/components/dashboard/MetricCard.tsx",
       "src/navigation/erpNavigation.ts",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "SlidersHorizontal": [
@@ -4813,6 +4836,7 @@
       "src/pages/Dashboard.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsActivity.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Smartphone": [
@@ -4881,7 +4905,8 @@
     ],
     "Truck": [
       "src/components/brand/PrimitivesSection.tsx",
-      "src/components/pos/StockShortageDialog.tsx"
+      "src/components/pos/StockShortageDialog.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx"
     ],
     "Undo2": [
       "src/pages/Purchases.tsx",
@@ -4905,7 +4930,8 @@
     "UserRound": [
       "src/components/pos/CustomerPicker.tsx",
       "src/pages/Sales.tsx",
-      "src/pages/Warranty.tsx"
+      "src/pages/Warranty.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx"
     ],
     "UserRoundCog": [
       "src/components/finance/FinanceRecordDialogs.tsx",
@@ -4917,6 +4943,7 @@
       "src/navigation/erpNavigation.ts",
       "src/saas/SaasShell.tsx",
       "src/settings/AccountSecuritySettings.tsx",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4927,6 +4954,7 @@
       "src/components/layout/TopBar.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/navigation/erpNavigation.ts",
+      "src/settings/SettingsWorkspaceSidebar.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "WalletCards": [
