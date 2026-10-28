@@ -3,6 +3,9 @@ import { products } from '../data/products';
 import { productOffers } from '../data/productOffers';
 import type { Party, PaymentMethod, Product, SaleStockSource, WarrantySnapshot } from '../types/erp';
 import { activeOfferFor, effectivePriceForUnit } from '../utils/productFeatures';
+import { resolveLotSalePrice } from '../utils/lotSellingPrice';
+import { availableStockLots } from '../data/erpDemoStore';
+import { productUnitFactor } from '../utils/unitChain';
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { roundInvoice } from '../settings/model';
 import {saleLineTotal} from '../utils/posMultiUnit';
@@ -85,7 +88,7 @@ function line(product: Product, qty: number, unit?: string, secondaryQty = ''): 
     secondaryQty,
     unitQuantities: product.unitRelations && product.unitRelations.length>1 ? (u===product.unit?{[u]:String(qty)}:{[u]:String(qty),[product.unit]:secondaryQty}) : undefined,
     unit: u,
-    price: String(effectivePriceForUnit(product, activeOfferFor(product.id, productOffers), u)),
+    price: String(resolveLotSalePrice(product, u, qty * productUnitFactor(product, u), availableStockLots(), productOffers).price),
     serials: [],
     ...(product.kind==='Bundle' ? {bundleRevision:getBundleVersion(product.id)?.revision,
       bundleRecipeSignature:JSON.stringify(getBundleVersion(product.id)?.components??[])} : {})
@@ -166,7 +169,7 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
           next.bundleSerials=undefined;
         }
         if (patch.unit && patch.unit !== l.unit) {
-          next.price = String(effectivePriceForUnit(l.product, activeOfferFor(l.product.id, productOffers), patch.unit));
+          next.price = String(resolveLotSalePrice(l.product, patch.unit, Math.max(1, Number(next.qty) || 1) * productUnitFactor(l.product, patch.unit), availableStockLots(), productOffers).price);
           if (!next.unitQuantities) next.secondaryQty = '';
         }
         return next;
