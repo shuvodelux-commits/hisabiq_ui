@@ -40,8 +40,8 @@ async function main() {
     const header = page.locator(".erp-settings > header");
     assert.equal(await header.getByRole("searchbox", { name: "Search settings", exact: true }).count(), 1, "Global Settings search is in the annotated header position");
     assert.equal(await page.locator("[data-settings-subpanel]").getByRole("searchbox", { name: "Search settings", exact: true }).count(), 0, "Position 2 contains no duplicate global search");
-    const main = page.locator('[aria-label="Settings categories"]');
-    const navigateSection = (section) => page.locator(`[data-settings-sidebar] a[href$="/app/settings/${section}"]:visible, [data-settings-section="${section}"]:visible`).first().click();
+    const main = page.locator('[data-settings-navigation="sections"] [aria-label="Settings categories"]');
+    const navigateSection = (section) => page.locator(`[data-settings-directory] a[href$="/app/settings/${section}"]:visible, [data-settings-section="${section}"]:visible`).first().click();
     const sub = page.getByRole("tablist", {
       name: "Business profile sub-settings",
       exact: true,
@@ -99,7 +99,7 @@ async function main() {
         "Responsive draft shop",
       );
       await page.waitForFunction(desktop => {
-        if (desktop) return !!document.querySelector('[data-settings-sidebar] a[aria-current="page"]');
+        if (desktop) return !!document.querySelector('[data-settings-directory] a[aria-current="page"]');
         const nav = document.querySelector('[data-settings-navigation="sections"]');
         const tab = nav.querySelector('[aria-selected="true"]');
         const a = nav.getBoundingClientRect(), b = tab.getBoundingClientRect();
@@ -128,7 +128,7 @@ async function main() {
         return {
           selectedVisible: mainBox.width > 0
             ? selectedBox.left >= mainBox.left - 1 && selectedBox.right <= mainBox.right + 1
-            : !!document.querySelector('[data-settings-sidebar] a[aria-current="page"]'),
+            : !!document.querySelector('[data-settings-directory] a[aria-current="page"]'),
           overflow: document.documentElement.scrollWidth > innerWidth + 1,
           left: a.right <= b.left + 1,
           above: a.bottom <= b.top + 1,
@@ -140,7 +140,7 @@ async function main() {
         };
       });
       assert.equal(await header.getByRole("searchbox", { name: "Search settings", exact: true }).count(), 1, width + " keeps search in header");
-      assert.equal(await page.locator('[data-settings-sidebar]').isVisible(), width >= 1024, width + ' uses the contextual Settings sidebar only on laptop/desktop');
+      assert.equal(await page.locator('[data-settings-directory]').isVisible(), width >= 1024, width + ' uses the contextual Settings sidebar only on laptop/desktop');
       if (width >= 1024) assert.equal(await page.locator('[data-settings-directory] nav[aria-label="Settings categories"]').isVisible(), true, "Embedded Party directory replaces a second app sidebar");
       assert.equal(geometry.overflow, false, width + " page fits");
       assert.equal(
@@ -322,7 +322,7 @@ async function main() {
       await page.evaluate(dark => document.documentElement.classList.toggle("dark", dark), dark);
       for (const width of [320, 768, 1440]) {
         await page.setViewportSize({ width, height: 1000 });
-        if (width >= 1024) await page.locator('[data-settings-sidebar] a[aria-current="page"]').waitFor();
+        if (width >= 1024) await page.locator('[data-settings-directory] a[aria-current="page"]').waitFor();
         else await page.getByRole("button", { name: "আগের সেটিং বিভাগ দেখুন", exact: true }).waitFor();
         assert.equal(await search.getAttribute("placeholder"), "সেটিং খুঁজুন…");
         await search.fill("logo");
