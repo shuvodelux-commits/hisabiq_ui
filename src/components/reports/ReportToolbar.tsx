@@ -1,3 +1,4 @@
+import { WorkspaceToolbar } from '../WorkspaceToolbar';
 import { useId, useState } from 'react';
 import { SlidersHorizontal, Columns3, Bookmark, X } from 'lucide-react';
 import { Button } from '../Button';
@@ -23,15 +24,7 @@ export function ReportToolbar({definition,filters,options,onChange,onColumns,onS
   {key:'party',en:'Customer / supplier',bn:'গ্রাহক / সরবরাহকারী'},{key:'user',en:'Recorded by',bn:'এন্ট্রি করেছেন'},
   {key:'account',en:'Account',bn:'অ্যাকাউন্ট'},{key:'status',en:'Status',bn:'অবস্থা'}];
  const selected=fields.filter(f=>definition.dimensions.includes(f.key)&&filters[f.key]);
- return <div className="space-y-3 rounded-xl border border-border bg-card p-3">
-  <div className="flex flex-wrap items-center gap-2">
-   <div className="min-w-[160px] flex-1"><Input type="search" aria-label={text('Search report records','রিপোর্টের রেকর্ড খুঁজুন')} placeholder={text('Search records, references, people…','রেকর্ড, নম্বর, নাম খুঁজুন…')} value={filters.search} onChange={e=>onChange({...filters,search:e.target.value})}/></div>
-   {!definition.snapshot&&<AppDateRangePicker label={text('Report date range','রিপোর্টের সময়কাল')} value={{from:validDay(filters.from)?filters.from:'',to:validDay(filters.to)?filters.to:''}} onChange={r=>onChange({...filters,...r})} className="max-w-full"/>}
-   {!definition.snapshot&&<div className="flex items-center"><AppSelect label={text('Compare','তুলনা')} value={filters.compare} className="w-40" options={[{value:'none',label:text('No comparison','তুলনা ছাড়া')},{value:'previous',label:text('Previous period','আগের সময়কাল')}]} onChange={v=>onChange({...filters,compare:v==='previous'?'previous':'none'})}/><ReportHelp guide="compare" label={text('Period comparison','সময়ের তুলনা')}/></div>}
-   <Button variant="outline" onClick={()=>setExpanded(v=>!v)} aria-expanded={expanded} aria-controls={id}><SlidersHorizontal className="size-4" aria-hidden="true"/>{text('Filters','ফিল্টার')}{selected.length>0&&<span className="text-primary">({selected.length})</span>}</Button>
-   <Button variant="outline" onClick={onColumns}><Columns3 className="size-4" aria-hidden="true"/>{text('Columns','কলাম')}</Button>
-   <Button variant="outline" onClick={onSaved}><Bookmark className="size-4" aria-hidden="true"/>{text('Saved views','সংরক্ষিত ভিউ')}</Button>
-  </div>
+ return <WorkspaceToolbar search={<Input type="search" aria-label={text('Search report records','রিপোর্টের রেকর্ড খুঁজুন')} placeholder={text('Search records, references, people…','রেকর্ড, নম্বর, নাম খুঁজুন…')} value={filters.search} onChange={e=>onChange({...filters,search:e.target.value})}/>} details={<>
   {!definition.snapshot&&((filters.from&&!validDay(filters.from))||(filters.to&&!validDay(filters.to))||(filters.from&&filters.to&&filters.from>filters.to))&&<p role="alert" className="text-xs text-danger">{text('Choose a valid date range to view records.','রেকর্ড দেখতে সঠিক সময়কাল বাছুন।')}</p>}
   {expanded&&<div id={id} className="grid grid-cols-1 gap-3 border-t border-border pt-3 sm:grid-cols-2 lg:grid-cols-4">
    {fields.filter(f=>definition.dimensions.includes(f.key)).map(f=><label key={f.key} className="min-w-0 space-y-1 text-xs text-ink-600">
@@ -45,6 +38,12 @@ export function ReportToolbar({definition,filters,options,onChange,onColumns,onS
    {selected.map(f=><Button key={f.key} variant="outline" size="sm" onClick={()=>onChange({...filters,[f.key]:''})} aria-label={text('Clear '+f.en,f.bn+' মুছুন')}>{text(f.en,f.bn)}: {reportPhrase(options[f.key]?.find(o=>o.value===filters[f.key])?.label??filters[f.key],language)}<X className="size-3" aria-hidden="true"/></Button>)}
    {(selected.length>0||filters.search)&&<Button variant="ghost" size="sm" onClick={()=>onChange({...filters,search:'',category:'',brand:'',product:'',party:'',user:'',account:'',status:''})}>{text('Clear filters','ফিল্টার মুছুন')}</Button>}
   </div>}
- </div>;
+ </>}>
+   {!definition.snapshot&&<AppDateRangePicker label={text('Report date range','রিপোর্টের সময়কাল')} value={{from:validDay(filters.from)?filters.from:'',to:validDay(filters.to)?filters.to:''}} onChange={r=>onChange({...filters,...r})} className="max-w-full"/>}
+   {!definition.snapshot&&<div className="flex items-center"><AppSelect label={text('Compare','তুলনা')} value={filters.compare} className="w-40" options={[{value:'none',label:text('No comparison','তুলনা ছাড়া')},{value:'previous',label:text('Previous period','আগের সময়কাল')}]} onChange={v=>onChange({...filters,compare:v==='previous'?'previous':'none'})}/><ReportHelp guide="compare" label={text('Period comparison','সময়ের তুলনা')}/></div>}
+   <Button variant="outline" onClick={()=>setExpanded(v=>!v)} aria-expanded={expanded} aria-controls={id}><SlidersHorizontal className="size-4" aria-hidden="true"/>{text('Filters','ফিল্টার')}{selected.length>0&&<span className="text-primary">({selected.length})</span>}</Button>
+   <Button variant="outline" onClick={onColumns}><Columns3 className="size-4" aria-hidden="true"/>{text('Columns','কলাম')}</Button>
+   <Button variant="outline" onClick={onSaved}><Bookmark className="size-4" aria-hidden="true"/>{text('Saved views','সংরক্ষিত ভিউ')}</Button>
+ </WorkspaceToolbar>;
 }
 

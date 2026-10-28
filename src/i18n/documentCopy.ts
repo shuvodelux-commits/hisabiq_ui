@@ -3,12 +3,14 @@ import {uiText, type UiLanguage} from './uiCopy.ts';
 /** Presentation-only document terminology. Never translate record or CSV field values. */
 const terms: Record<string, string> = {
   Customer: 'ক্রেতা',
+  Invoice:'চালান', Quantity:'পরিমাণ', Rate:'দর',Item:'পণ্য', Revenue:'আয়',Expense:'ব্যয়',Profit:'লাভ',Stock:'মজুত', 'Stock statement':'মজুতের বিবরণ',
   'Walk-in': 'সাধারণ ক্রেতা',
   Phone: 'ফোন',
   Guardian: 'অভিভাবক',
   Address: 'ঠিকানা',
   Serial: 'সিরিয়াল',
   Warranty: 'ওয়ারেন্টি',
+  Days:'দিন', Months:'মাস', Years:'বছর', Seller:'বিক্রেতা', Manufacturer:'প্রস্তুতকারক', Service:'সার্ভিস', Replacement:'পরিবর্তন',
   Subtotal: 'পণ্যের মোট',
   Discount: 'ছাড়',
   Rounding: 'রাউন্ডিং',
@@ -37,6 +39,7 @@ const terms: Record<string, string> = {
   Card: 'কার্ড',
   'Money in': 'টাকা এসেছে',
   'Money out': 'টাকা গেছে',
+  'Account ledger':'হিসাবের খাতা',
   Date: 'তারিখ',
   Type: 'ধরন',
   Reference: 'রেফারেন্স',
@@ -91,4 +94,9 @@ export function printDocumentLanguage(language: UiLanguage): 'bn' | 'en' {
 }
 export function documentMethod(language: UiLanguage, method: string): string {
   return documentLabel(language, method);
+}
+
+export function documentHeading(language:UiLanguage,heading:string):string{
+ const canonical=Object.keys(terms).find(key=>heading===key||heading===terms[key]||heading===`${key} · ${terms[key]}`)??heading;
+ return documentLabel(language,canonical);
 }

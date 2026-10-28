@@ -31,6 +31,8 @@ export const sectionNames: Record<
   SettingsSection,
   { label: string; bn: string; description: string }
 > = {
+  interface:{label:"Interface & workflows",bn:"ভিউ ও কাজের ধারা",description:"Module columns and inherited business defaults. Essential identities, totals and warnings stay available."},
+  financialTerminology:{label:"Names & Khata",bn:"হিসাবের নাম ও খাতা",description:"Financial labels, Bangla helpers and ledger column order. Display changes never change accounting."},
   business: {
     label: "Business profile",
     bn: "ব্যবসার পরিচিতি",

@@ -1,3 +1,8 @@
+import {useTenantSettings} from '../../settings/TenantSettingsProvider';
+import {outputProfileDefaults} from '../../documents/outputProfile';
+import {documentLabel} from '../../i18n/documentCopy';
+import {accountFinancialContext} from '../../financial-display/model';
+import {useFinancialDisplay} from '../../financial-display/useFinancialDisplay';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useMemo, useState } from 'react';
 import { ArrowDownToLine, Printer, Search } from 'lucide-react';
@@ -39,8 +44,12 @@ export function LedgerView({
   dateView: EntryDateView;
   terminologyMode: TerminologyMode;
 }) {
-  const {text,language,showHelper}=useUiCopy();
+  const {text,showHelper}=useUiCopy();
+  const {state}=useTenantSettings();
+  const outputProfile=state.sections.invoices.profiles?.ledger??outputProfileDefaults("ledger");
   const [accountId, setAccountId] = useState('asset-cash');
+  const financial=useFinancialDisplay(accountFinancialContext(accountId));
+  const official=useFinancialDisplay(accountFinancialContext(accountId),outputProfile.language);
   const [from, setFrom] = useState('2026-09-01');
   const [to, setTo] = useState('2026-10-31');
   const [search, setSearch] = useState('');
@@ -62,8 +71,9 @@ export function LedgerView({
 
   const closing = rows.at(-1)?.balance ?? 0;
   const printLedger=()=>{
-    const headers=[text('Date','তারিখ'),text('Reference','রেফারেন্স'),text('Details','বিবরণ'),text('Debit','ডেবিট'),text('Credit','ক্রেডিট'),text('Balance','জের')];
-    if(!printReport({title:text('Account ledger','হিসাবের খাতা')+' · '+accountingAccountLabel(account,terminologyMode),language,subtitle:`${from} — ${to} · ${text(dateView==='transaction'?'Transaction Date':'Created Date',dateView==='transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}`,headers,rows:rows.map(row=>[row.displayDate,row.reference,row.description,row.debit,row.credit,row.balance])}))toast.error(text('Allow the print popup and try again.','প্রিন্ট উইন্ডো খুলে আবার চেষ্টা করুন।'));
+    const doc=(key:string)=>documentLabel(outputProfile.language,key);
+    const headers=[doc('Date'),doc('Reference'),doc('Details'),...official.columns.map(side=>official.label(side)),official.label('balance')];
+    if(!printReport({title:doc('Account ledger')+' · '+accountingAccountLabel(account,terminologyMode),language:outputProfile.language,profile:outputProfile,businessName:state.sections.business.name,subtitle:`${from} — ${to} · ${doc(dateView==='transaction'?'Transaction Date':'Created Date')}`,headers,rows:rows.map(row=>[row.displayDate,row.reference,row.description,...official.columns.map(side=>row[side]),row.balance])}))toast.error(text('Allow the print popup and try again.','প্রিন্ট উইন্ডো খুলে আবার চেষ্টা করুন।'));
   };
 
   return (
@@ -106,8 +116,7 @@ export function LedgerView({
                 <TableHead className="h-9 pl-4 text-xs">{text('Date','তারিখ')}</TableHead>
                 <TableHead className="h-9 text-xs">{text('Voucher / Ref','ভাউচার / নম্বর')}</TableHead>
                 <TableHead className="h-9 text-xs">{text('Details','বিবরণ')}</TableHead>
-                <TableHead className="h-9 text-right text-xs">{text('Debit','ডেবিট')}</TableHead>
-                <TableHead className="h-9 text-right text-xs">{text('Credit','ক্রেডিট')}</TableHead>
+                {financial.columns.map(side=><TableHead key={side} className="h-9 text-right text-xs">{financial.label(side)}</TableHead>)}
                 <TableHead className="h-9 pr-4 text-right text-xs">{text('Balance','জের')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -117,8 +126,7 @@ export function LedgerView({
                   <TableCell className="py-2 pl-4">{row.displayDate}</TableCell>
                   <TableCell className="py-2 font-medium text-teal-700">{row.reference}</TableCell>
                   <TableCell className="py-2 text-ink-600">{row.description}</TableCell>
-                  <TableCell className="py-2 text-right">{row.debit ? taka(row.debit) : '—'}</TableCell>
-                  <TableCell className="py-2 text-right">{row.credit ? taka(row.credit) : '—'}</TableCell>
+                  {financial.columns.map(side=><TableCell key={side} className="py-2 text-right">{row[side]?taka(row[side]):'—'}</TableCell>)}
                   <TableCell className="py-2 pr-4 text-right font-medium">{row.balance < 0 ? '−' : ''}{taka(Math.abs(row.balance))}</TableCell>
                 </TableRow>
               )) : <TableRow><TableCell colSpan={6} className="py-12 text-center text-sm text-ink-400">{text('No ledger entries match this period.','এই সময়ে কোনো খাতার এন্ট্রি নেই।')}</TableCell></TableRow>}
@@ -133,8 +141,8 @@ export function LedgerView({
           {selected && <div className="grid gap-2 sm:grid-cols-2">
             <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Transaction Date','লেনদেনের তারিখ')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.transactionDate}</p></div>
             <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Created Date','লেখার তারিখ')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.createdAt.replace('T', ' ').slice(0, 16)}</p></div>
-            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Debit','ডেবিট')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.debit ? taka(selected.debit) : '—'}</p></div>
-            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{text('Credit','ক্রেডিট')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.credit ? taka(selected.credit) : '—'}</p></div>
+            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{financial.label('debit')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.debit ? taka(selected.debit) : '—'}</p></div>
+            <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{financial.label('credit')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.credit ? taka(selected.credit) : '—'}</p></div>
             <div className="rounded-lg bg-ink-50 p-3 sm:col-span-2"><p className="text-[10.5px] text-ink-400">{text('Details','বিবরণ')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.description}</p><p className="mt-1 text-[10.5px] text-ink-400">{selected.postingId}</p></div>
           </div>}
           <DialogFooter><Button variant="outline" onClick={printLedger}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button><Button onClick={() => setSelected(null)}>{text('Close','বন্ধ করুন')}</Button></DialogFooter>

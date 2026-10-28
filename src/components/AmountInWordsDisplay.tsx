@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+import type { UiLanguage } from '../i18n/uiCopy';
 import { amountInWords } from '../utils/amountInWords';
 
 /** Shared, readable amount-in-words display for ERP screens, dialogs and printed receipts.
@@ -9,10 +11,12 @@ export function AmountInWordsDisplay({
   variant = 'default',
   label = 'In words · কথায়',
   className = '',
+  language = 'Bangla',
 }: {
   amount: number;
   variant?: 'default' | 'compact' | 'inverse' | 'receipt';
-  label?: string;
+  label?: ReactNode;
+  language?: UiLanguage;
   className?: string;
 }) {
   const styles = {
@@ -44,10 +48,11 @@ export function AmountInWordsDisplay({
     <div data-testid="amount-in-words" data-amount-words-variant={variant}
       className={`mt-2 w-full min-w-0 max-w-full text-left ${styles.container} ${className}`}>
       <p className={styles.label}>{label}</p>
-      <p lang="bn" aria-live="polite" aria-atomic="true"
-        className={`font-bn mt-1 min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] ${styles.value}`}>
-        {amountInWords(amount)}
+      <p lang={language === "Bangla" ? "bn" : "en"} aria-live="polite" aria-atomic="true"
+        className={`${language === "Bangla" ? "font-bn" : ""} mt-1 min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] ${styles.value}`}>
+        {amountInWords(amount, language === "Bangla" ? "Bangla" : "English")}
       </p>
+      {language === 'English + Bangla' && <p lang="bn" className="font-bn mt-1 text-[11px] leading-relaxed text-ink-600">{amountInWords(amount)}</p>}
     </div>
   );
 }

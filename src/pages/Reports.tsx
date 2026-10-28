@@ -1,4 +1,6 @@
+import { WorkspaceLibrary } from '../components/WorkspaceLibrary';
 import { ReportsNav } from '../components/reports/ReportsNav';
+import { BusinessReview } from '../components/reports/BusinessReview';
 import { MagicReportsView } from '../reports/magicpatterns/MagicReportsView';
 import { SalesProfitExperiment } from '../components/reports/SalesProfitExperiment';
 import { salesExperimentReportKey, selectSalesExperimentReport } from '../reports/salesExperiment';
@@ -6,7 +8,7 @@ import { reportScreens,reportKeyForScreen } from '../reports/screens';
 import { ColumnVisibilityEditor } from '../components/ColumnVisibilityEditor';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowDownToLine, ArrowRight, BookmarkPlus, Check, Info, Printer, RefreshCw, Search, Star, Trash2 } from 'lucide-react';
+import { ArrowDownToLine, ArrowRight, BookmarkPlus, Check, FileText, Info, Printer, RefreshCw, Search, Star, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/Button';
@@ -33,6 +35,7 @@ import type { PurchaseAssumptions, ReportFilters, ReportKey, ReportRow, ReportSc
 export function Reports() {
  const {text,language}=useUiCopy(),{state,actorId}=useTenantSettings(),navigate=useNavigate();
  const [params,setParams]=useSearchParams();
+ const reviewWorkspace=params.get('workspace')==='business-review';
  const screen=reportScreenFromParams(params);
  const definition=reportDefinition(reportKeyForScreen(screen,params.get('report')));
  const filters=useMemo(()=>{
@@ -106,12 +109,18 @@ export function Reports() {
  const downloadPurchaseList=()=>downloadReport('hisabiq-purchase-plan.csv',headers(),outputRows(suggestedRows));
 
  return <div className="mx-auto max-w-[1440px] space-y-4" data-report-workspace="">
-  <PageHeader title="Reports" titleBn="রিপোর্ট" description="Understand your business. Decide what to buy, collect and improve." descriptionBn="ব্যবসার অবস্থা বুঝুন। কী কিনবেন, কত আদায় করবেন ও কোথায় উন্নতি করবেন ঠিক করুন।" actions={<>
+  <PageHeader title={reviewWorkspace?'Business Review':'Reports'} titleBn={reviewWorkspace?'ব্যবসা পর্যালোচনা':'রিপোর্ট'} description={reviewWorkspace?'Monthly and yearly internal audit reports from recorded sources.':'Understand your business. Decide what to buy, collect and improve.'} descriptionBn={reviewWorkspace?'মাসিক ও বার্ষিক অভ্যন্তরীণ অডিট রিপোর্ট':'ব্যবসার অবস্থা বুঝুন। কী কিনবেন, কত আদায় করবেন ও কোথায় উন্নতি করবেন ঠিক করুন।'} actions={<>
+   <Button variant="outline" onClick={()=>{const next=new URLSearchParams(params);if(reviewWorkspace)next.delete('workspace');else next.set('workspace','business-review');setParams(next);}}>
+    <FileText className="size-4" aria-hidden="true"/>{reviewWorkspace?text('Back to reports','রিপোর্টে ফিরুন'):text('Audit report','অডিট রিপোর্ট')}
+   </Button>
+   {!reviewWorkspace&&<>
    <Button variant="outline" onClick={()=>{setRefresh(v=>v+1);toast(text('Preview records refreshed.','প্রিভিউ রেকর্ড আবার পড়া হয়েছে।'));}} aria-label={text('Refresh reports','রিপোর্ট হালনাগাদ')}><RefreshCw className="size-4" aria-hidden="true"/></Button>
    <Button variant="outline" onClick={()=>setDialog('save')}><BookmarkPlus className="size-4" aria-hidden="true"/>{text('Save view','ভিউ সংরক্ষণ')}</Button>
    <Button variant="outline" disabled={!!definition.unavailable} onClick={()=>print()}><Printer className="size-4" aria-hidden="true"/>{screen==='library'||screen==='overview'?text('Print report','রিপোর্ট প্রিন্ট'):text('Print source report','মূল রিপোর্ট প্রিন্ট')}</Button>
    <Button disabled={!!definition.unavailable} onClick={exportCsv}><ArrowDownToLine className="size-4" aria-hidden="true"/>{screen==='library'||screen==='overview'?text('Export CSV','সিএসভি নামান'):text('Source CSV','মূল তথ্য নামান')}</Button>
+  </>}
   </>}/>
+  {reviewWorkspace?<BusinessReview data={data}/>:<>
   {screen==='library'&&<div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-500"><div className="flex flex-wrap items-center gap-2"><StatusBadge tone="info">{text('Demo data','ডেমো তথ্য')}</StatusBadge><p>{text('Current in-browser records · not live accounting','বর্তমান ব্রাউজারের রেকর্ড · লাইভ হিসাব নয়')}</p></div><span>{text('Asia/Dhaka','ঢাকার সময়')} · {data.asOf}</span></div>}
   {storageWarning&&<p role="status" className="text-xs text-warning">{storageWarning}</p>}
   <ReportsNav value={screen} onChange={selectScreen}/>
@@ -130,13 +139,11 @@ export function Reports() {
    <div className="flex shrink-0 items-center gap-1 pl-2" role="group" aria-label={text('Report actions','রিপোর্টের কাজ')}><Button variant="ghost" size="icon" aria-label={text(favorite?'Unpin report':'Pin report',favorite?'রিপোর্টের পিন খুলুন':'রিপোর্ট পিন করুন')} aria-pressed={favorite} onClick={toggleFavorite}><Star className={'size-4 '+(favorite?'fill-current text-primary':'text-ink-400')} aria-hidden="true"/></Button><Button variant="ghost" size="icon" aria-label={text('How this report is calculated','রিপোর্ট কীভাবে হিসাব হয়')} aria-expanded={showBasis} onClick={()=>setShowBasis(v=>!v)}><Info className="size-4" aria-hidden="true"/></Button></div>
   </div>}
   <div className={'grid min-w-0 gap-4 '+(screen==='library'?'lg:grid-cols-[215px_minmax(0,1fr)]':'')}>
-   {screen==='library'&&<aside className="hidden min-w-0 self-start rounded-xl border border-border bg-card p-2 lg:block" aria-label={text('Report library','রিপোর্টের তালিকা')}>
-    <div className="px-1 pb-2"><h2 className="mb-2 text-xs font-semibold text-ink-600">{text('Report library','রিপোর্টের তালিকা')}</h2><Input type="search" aria-label={text('Find a report','রিপোর্ট খুঁজুন')} placeholder={text('Find a report…','রিপোর্ট খুঁজুন…')} value={librarySearch} onChange={e=>setLibrarySearch(e.target.value)}/></div>
+   {screen==='library'&&<div className="hidden min-w-0 lg:block"><WorkspaceLibrary title={text('Report library','রিপোর্টের তালিকা')} searchLabel={text('Find a report','রিপোর্ট খুঁজুন')} placeholder={text('Find a report…','রিপোর্ট খুঁজুন…')} search={librarySearch} onSearch={setLibrarySearch} footer={text('34 reports · detailed sources, saved views and exports. Subscription rules are unchanged in this preview.','৩৪টি রিপোর্ট · মূল তথ্য, সংরক্ষিত ভিউ ও রপ্তানি। এই প্রিভিউতে সাবস্ক্রিপশনের নিয়ম অপরিবর্তিত।')}>
     {!librarySearch&&<p className="px-2 py-1 text-[11px] text-ink-500">{definition.group==='overview'?text('Pinned reports','পিন করা রিপোর্ট'):text(reportGroups.find(g=>g.id===definition.group)!.en,reportGroups.find(g=>g.id===definition.group)!.bn)}</p>}
     <nav className="space-y-0.5">{library.map(r=><button key={r.id} type="button" aria-current={r.id===definition.id?'page':undefined} onClick={()=>{selectReport(r.id);setLibrarySearch('');}} className={'flex h-9 w-full items-center gap-2 rounded-lg px-2 text-left text-[12px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary '+(r.id===definition.id?'bg-teal-50 font-medium text-teal-700':'text-ink-600 hover:bg-ink-50')}><span className="min-w-0 flex-1 truncate">{text(r.en,r.bn)}</span>{r.unavailable&&<Info className="size-3 shrink-0 text-ink-400" aria-label={text('Needs source data','মূল তথ্য দরকার')}/>}</button>)}</nav>
     {!library.length&&<p className="p-2 text-xs text-ink-500">{text('No matching reports.','মিলে এমন রিপোর্ট নেই।')}</p>}
-    <div className="mt-3 border-t border-border px-2 pt-3 text-[11px] text-ink-500">{text('34 reports · detailed sources, saved views and exports. Subscription rules are unchanged in this preview.','৩৪টি রিপোর্ট · মূল তথ্য, সংরক্ষিত ভিউ ও রপ্তানি। এই প্রিভিউতে সাবস্ক্রিপশনের নিয়ম অপরিবর্তিত।')}</div>
-   </aside>}
+   </WorkspaceLibrary></div>}
    <section id="report-panel" role={screen==='library'?'tabpanel':undefined} aria-labelledby={screen==='library'?'report-tab-'+definition.group:undefined} className="flex min-w-0 flex-col gap-4">
     {screen==='library'&&<div className="lg:hidden"><SearchSelect id="mobile-report-picker" noun={{en:'report',bn:'রিপোর্ট'}} ariaLabel={text('Choose report','রিপোর্ট বাছুন')} value={definition.id} options={reportCatalog.map(r=>({value:r.id,label:text(r.en,r.bn)}))} onChange={v=>selectReport(reportDefinition(v).id)}/></div>}
     {screen==='library'&&showBasis&&<div className="rounded-lg bg-ink-50 p-3 text-xs leading-relaxed text-ink-600">{text(result.basis,result.basisBn)}. {text('Draft, deleted and reversed source records are excluded. Missing cost is unknown, not zero. Open a row for supporting records. Stock and outstanding balances are current snapshots, not reconstructed historical balances.','খসড়া, মুছে দেওয়া ও বিপরীত করা রেকর্ড বাদ। খরচ অনুপস্থিত হলে শূন্য ধরা হয় না। মূল তথ্য দেখতে রেকর্ড খুলুন। স্টক ও বাকি বর্তমান অবস্থা, পুরোনো তারিখের পুনর্গঠিত জের নয়।')}</div>}
@@ -177,6 +184,7 @@ export function Reports() {
    {dialog==='saved'&&<div className="max-h-[50vh] space-y-2 overflow-y-auto">{preferences.views.length?preferences.views.map(v=><div key={v.id} className="flex items-center gap-2 rounded-lg border border-border p-2"><button type="button" className="min-w-0 flex-1 text-left text-sm font-medium text-primary hover:underline" aria-label={text('Open '+v.name,v.name+' খুলুন')} onClick={()=>{setParams(paramsForReportScreen(v.screen??'library',v.report,v.filters,v.columns),{replace:true});setDialog(null);}}>{v.name}<span className="mt-0.5 block text-xs font-normal text-ink-500">{text(reportDefinition(v.report).en,reportDefinition(v.report).bn)}</span></button><Button variant="ghost" size="icon" aria-label={text('Delete '+v.name,v.name+' মুছুন')} onClick={()=>savePreferences({...preferences,views:preferences.views.filter(s=>s.id!==v.id)})}><Trash2 className="size-4" aria-hidden="true"/></Button></div>):<p className="py-6 text-center text-sm text-ink-500">{text('No saved views yet. Set your filters, then choose Save view.','এখনো ভিউ সংরক্ষণ করা হয়নি। ফিল্টার ঠিক করে ভিউ সংরক্ষণ করুন।')}</p>}</div>}
    <DialogFooter><Button variant="outline" onClick={()=>setDialog(null)}>{dialog==='columns'?text('Done','সম্পন্ন'):text('Close','বন্ধ')}</Button>{dialog==='save'&&<Button disabled={!viewName.trim()||preferences.views.length>=20} onClick={()=>{savePreferences({...preferences,views:[...preferences.views,{id:crypto.randomUUID(),name:viewName.trim(),report:definition.id,screen,filters:{...filters},columns:[...visible]}]});setViewName('');setDialog(null);}}><Check className="size-4" aria-hidden="true"/>{text('Save this view','এই ভিউ সংরক্ষণ')}</Button>}</DialogFooter>
   </DialogContent></Dialog>
+  </>}
  </div>;
 }
 

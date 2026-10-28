@@ -273,6 +273,9 @@ export type SaleLine = {
 export type SalesInvoiceStatus = 'Paid' | 'Partial' | 'Due' | 'Part returned' | 'Returned';
 
 export type SalesInvoice = Sale & {
+  documentSnapshot?: import("../components/brand/ReceiptPreview").ReceiptPreviewProps;
+  documentHistory?: import("../components/brand/ReceiptPreview").ReceiptPreviewProps[];
+  presentationAudit?: {actor:string;at:string;fields:string[]}[];
   partyId?: string;
   phone?: string;
   guardianName?: string;

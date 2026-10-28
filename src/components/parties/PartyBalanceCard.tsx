@@ -1,3 +1,5 @@
+import {useFinancialDisplay} from '../../financial-display/useFinancialDisplay';
+import {financialContexts,type FinancialContext} from '../../financial-display/model';
 import type { ReactNode } from 'react';
 import type { PartyRole } from '../../types/erp';
 import { taka } from '../../utils/currency';
@@ -62,7 +64,8 @@ export function PartyBalanceCard({
   mobileHorizontal?: boolean;
   extra?: ReactNode;
 }) {
-  const { text, showHelper } = useUiCopy();
+  const {showHelper}=useUiCopy();
+  const {text}=useFinancialDisplay(financialContexts.includes(relationship as FinancialContext)?relationship as FinancialContext:"Customer");
   const data = copy ?? partyBalanceCopy(relationship ?? 'Customer', amount);
   const colors = data.tone === 'receivable'
     ? { background: 'bg-teal-50 dark:bg-teal-950/30', foreground: 'text-teal-800 dark:text-emerald-400' }

@@ -15,7 +15,7 @@ async function main(){
  fs.mkdirSync(dir,{recursive:true});
  const {preview}=await import('vite');
  const server=await preview({preview:{host:'127.0.0.1',port:4297,strictPort:true}});
- const browser=await chromium.launch({args:['--no-sandbox']});
+ const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
  try{
   for(const profile of profiles){
    const context=await browser.newContext({viewport:{width:profile.width,height:profile.height},reducedMotion:'reduce',acceptDownloads:true});

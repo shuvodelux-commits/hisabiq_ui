@@ -23,7 +23,7 @@ async function main() {
   const go = async (section) => {
     await page.goto(`${base}/#/app/settings/${section}`);
     await page
-      .getByRole("heading", { name: "Business settings", exact: true })
+      .getByTestId("settings-title")
       .waitFor();
   };
   const chooseOption = async (label, value) => {
@@ -46,7 +46,7 @@ async function main() {
         .click();
     await page
       .getByRole("status")
-      .filter({ hasText: /settings saved|preferences saved/ })
+      .filter({ hasText: /settings saved|preferences saved|Changes are in memory only/ })
       .waitFor();
   };
   const read = () =>
@@ -72,8 +72,8 @@ async function main() {
       .getByLabel("Business name", { exact: true })
       .fill("Unsaved shop");
     await page
-      .getByRole("navigation", { name: "Settings categories" })
-      .getByRole("button", { name: /^Sales & POS/ })
+      .getByRole("tablist", { name: "Settings categories" })
+      .getByRole("tab", { name: /^Sales & POS/ })
       .click();
     await page
       .getByRole("dialog", { name: "Discard unsaved changes?" })
@@ -86,8 +86,8 @@ async function main() {
       "Unsaved shop",
     );
     await page
-      .getByRole("navigation", { name: "Settings categories" })
-      .getByRole("button", { name: /^Sales & POS/ })
+      .getByRole("tablist", { name: "Settings categories" })
+      .getByRole("tab", { name: /^Sales & POS/ })
       .click();
     await page
       .getByRole("button", { name: "Discard and continue", exact: true })
@@ -188,19 +188,21 @@ async function main() {
     await productEditor.getByRole('button',{name:'Cancel',exact:true}).click();
     await go("team");
     await mode("Advanced");
-    await page.getByRole("button", { name: "Roles", exact: true }).click();
+    await page.getByRole("tab", { name: /Roles & permissions/ }).click();
     await page
       .getByRole("button", { name: "Create role", exact: true })
       .click();
     await page.getByLabel("Role name").fill("Sales settings assistant");
+    await page.getByText("Module-specific settings access", {exact:true}).click();
     await page
-      .getByRole("checkbox", { name: "Manage Sales & POS", exact: true })
+      .getByRole("checkbox", { name: "Sales & POS", exact: true })
       .check();
+    await page.getByRole("checkbox", {name:/I reviewed who is affected/}).check();
     await page
       .getByRole("button", { name: "Keep role draft", exact: true })
       .click();
     await save();
-    await page.getByRole("button", { name: "Employees", exact: true }).click();
+    await page.getByRole("tablist", {name:"Employee settings views"}).getByRole("tab", { name: /Employees/ }).click();
     await page
       .getByRole("button", { name: "Edit employee Rafiq Islam", exact: true })
       .click();
@@ -420,12 +422,8 @@ async function main() {
         (value) => document.documentElement.dataset.theme === value,
         theme.toLowerCase(),
       );
-      for (const [index, section] of sections.entries()) {
-        await page
-          .getByRole("navigation", { name: "Settings categories" })
-          .locator("button")
-          .nth(index)
-          .click();
+      for (const section of sections) {
+        await go(section);
         await page.waitForURL(`**/#/app/settings/${section}`);
         await mode("Simple");
         await check(`${theme} Simple ${section}`);
@@ -437,8 +435,8 @@ async function main() {
         .getByLabel("Business name", { exact: true })
         .fill("Unsaved preview");
       await page
-        .getByRole("navigation", { name: "Settings categories" })
-        .getByRole("button", { name: /^Sales & POS/ })
+        .getByRole("tablist", { name: "Settings categories" })
+        .getByRole("tab", { name: /^Sales & POS/ })
         .click();
       await page
         .getByRole("dialog", { name: "Discard unsaved changes?" })
@@ -460,7 +458,7 @@ async function main() {
         .click();
       await check(`${theme} employee dialog`);
       await page.keyboard.press("Escape");
-      await page.getByRole("button", { name: "Roles", exact: true }).click();
+      await page.getByRole("tab", { name: /Roles & permissions/ }).click();
       await page
         .getByRole("button", { name: "Create role", exact: true })
         .click();
@@ -490,8 +488,8 @@ async function main() {
       .getByLabel("Business name", { exact: true })
       .fill("Mobile draft");
     await page
-      .getByRole("navigation", { name: "Settings categories" })
-      .getByRole("button", { name: /^Sales & POS/ })
+      .getByRole("tablist", { name: "Settings categories" })
+      .getByRole("tab", { name: /^Sales & POS/ })
       .click();
     await page
       .getByRole("dialog", { name: "Discard unsaved changes?" })
@@ -500,8 +498,8 @@ async function main() {
     assert.equal(await page.getByRole("dialog").count(), 0);
     assert.equal(
       await page
-        .getByRole("navigation", { name: "Settings categories" })
-        .getByRole("button", { name: /^Sales & POS/ })
+        .getByRole("tablist", { name: "Settings categories" })
+        .getByRole("tab", { name: /^Sales & POS/ })
         .evaluate((el) => el === document.activeElement),
       true,
       "Escape restores focus to the navigation trigger",

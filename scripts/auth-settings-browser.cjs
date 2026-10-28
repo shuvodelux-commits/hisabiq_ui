@@ -13,7 +13,7 @@ async function main(){
   page.on('request',req=>{if(req.method()!=='GET')writes.push(req.url());});
   const root='http://127.0.0.1:4246/#';
   await page.goto(root+'/app/settings/business');
-  await page.getByRole('region',{name:'Settings shortcuts'}).getByRole('link',{name:/Account & Security/}).click();
+  await page.locator('[data-settings-section=security]').click();
   assert.match(page.url(),/#\/app\/settings\/security/);
   const section=page.getByTestId('account-security-settings');
   await section.waitFor();

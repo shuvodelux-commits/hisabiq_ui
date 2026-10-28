@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires -- Playwright CLI uses CommonJS. */
 // Focused visual and functional smoke for directly imported Magic Patterns Reports.
 // Screenshots are private PR artifacts; no deployment or production data is touched.
 const { chromium } = require('playwright');
@@ -16,7 +18,6 @@ const presets=[
  {width:390,theme:'light',language:'Bangla'},
  {width:390,theme:'dark',language:'Bangla'},
 ];
-const personal=(language)=>({mode:'Simple',language,density:'Compact',terminology:'simple',dateView:'transaction',searchMode:'Default'});
 async function main(){
  fs.mkdirSync(out,{recursive:true});
  const {preview}=await import('vite');
@@ -53,7 +54,7 @@ async function main(){
     }else{
      await page.locator('#report-panel').waitFor();
      assert((await page.locator('#report-panel').innerText()).length>40,'library retains tools');
-     const groupTabs=page.getByRole('tablist',{name:'Report groups'}).getByRole('tab');
+     const groupTabs=page.locator('#reports-screen-panel').getByRole('tablist',{name:p.language==='Bangla'?'রিপোর্টের বিভাগ':'Report groups',exact:true}).getByRole('tab');
      assert.equal(await groupTabs.count(),7,'all seven Library groups remain available');
      for(let group=0;group<7;group++){
       await groupTabs.nth(group).click();
@@ -68,7 +69,7 @@ async function main(){
       }
       assert.equal(await page.getByText('What needs your attention?',{exact:true}).count(),0,'no redundant question in Library group '+group);
       assert.equal(await page.locator('#report-panel h2').count(),0,'no duplicate report title in Library group '+group);
-      assert.equal(await page.getByRole('group',{name:'Report actions'}).count(),1,'retain report actions in group navigation');
+      assert.equal(await page.getByRole('group',{name:p.language==='Bangla'?'রিপোর্টের কাজ':'Report actions'}).count(),1,'retain report actions in group navigation');
      }
      await groupTabs.first().click();
     }

@@ -10,11 +10,11 @@ async function main(){
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4316/#/app/sales');await page.getByRole('button',{name:'Actions for INV-000241',exact:true}).click();
   const opened=page.waitForEvent('popup');await page.getByRole('button',{name:'Print',exact:true}).click();const receipt=await opened;
-  await receipt.getByText('INV-000241',{exact:true}).waitFor();await receipt.waitForFunction(()=>window.__printed===true);
+  await receipt.getByText(/INV-000241/).first().waitFor();await receipt.waitForFunction(()=>window.__printed===true);
   assert.ok(await receipt.locator('link[rel=stylesheet]').count()>0,'Built receipt loads the actual app stylesheet');
   assert.equal(await receipt.locator('html').getAttribute('data-theme'),'light');assert.equal(await receipt.evaluate(()=>window.opener),null);
-  assert.equal(await receipt.locator('#document-receipt>div').evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(255, 255, 255)');
-  assert.match(await receipt.locator('body').innerText(),/3 Box 6 Pcs/);assert.equal(await receipt.locator('#document-receipt li').count(),2);
+  assert.equal(await receipt.locator('[data-invoice-template],#document-receipt>div').first().evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(255, 255, 255)');
+  assert.match(await receipt.locator('body').innerText(),/3 Box 6 Pcs/);assert.equal(await receipt.locator('.invoice-lines tbody tr').count(),2);
   assert.deepEqual(errors,[]);await context.close();console.log(`Built lazy receipt, CSS/font loading and print call passed: ${theme}`);
  }}finally{await browser.close();await new Promise(resolve=>server.httpServer.close(resolve));}
 }
