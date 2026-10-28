@@ -26,6 +26,7 @@ async function main() {
       .getByTestId("settings-title")
       .waitFor();
   };
+  const sectionNav = id => page.locator(`[data-settings-sidebar] a[href$="/app/settings/${id}"]:visible, [data-settings-section="${id}"]:visible`).first();
   const chooseOption = async (label, value) => {
     await page.getByLabel(label, { exact: true }).click();
     await page.locator('[role="option"][data-value=' + JSON.stringify(value) + ']').click();
@@ -71,10 +72,7 @@ async function main() {
     await page
       .getByLabel("Business name", { exact: true })
       .fill("Unsaved shop");
-    await page
-      .getByRole("tablist", { name: "Settings categories" })
-      .getByRole("tab", { name: /^Sales & POS/ })
-      .click();
+    await sectionNav("sales").click();
     await page
       .getByRole("dialog", { name: "Discard unsaved changes?" })
       .waitFor();
@@ -85,10 +83,7 @@ async function main() {
       await page.getByLabel("Business name", { exact: true }).inputValue(),
       "Unsaved shop",
     );
-    await page
-      .getByRole("tablist", { name: "Settings categories" })
-      .getByRole("tab", { name: /^Sales & POS/ })
-      .click();
+    await sectionNav("sales").click();
     await page
       .getByRole("button", { name: "Discard and continue", exact: true })
       .click();
@@ -434,10 +429,7 @@ async function main() {
       await page
         .getByLabel("Business name", { exact: true })
         .fill("Unsaved preview");
-      await page
-        .getByRole("tablist", { name: "Settings categories" })
-        .getByRole("tab", { name: /^Sales & POS/ })
-        .click();
+      await sectionNav("sales").click();
       await page
         .getByRole("dialog", { name: "Discard unsaved changes?" })
         .waitFor();
@@ -487,10 +479,7 @@ async function main() {
     await page
       .getByLabel("Business name", { exact: true })
       .fill("Mobile draft");
-    await page
-      .getByRole("tablist", { name: "Settings categories" })
-      .getByRole("tab", { name: /^Sales & POS/ })
-      .click();
+    await sectionNav("sales").click();
     await page
       .getByRole("dialog", { name: "Discard unsaved changes?" })
       .waitFor();
