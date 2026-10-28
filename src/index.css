@@ -790,3 +790,56 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   font-weight: var(--erp-input-font-weight);
   opacity: 1;
 }
+
+/* Multi-unit quantities keep the same joined field as two units. Give each
+   number room for its stepper; narrower carts put the entire field on one row. */
+[data-cart-kind]:has([data-multi-quantity]) { --cart-quantity-width: 228px; }
+[data-cart-kind]:has([data-unit-count="4"]) { --cart-quantity-width: 304px; }
+@container pos-cart (min-width: 1000px) {
+  [data-cart-kind="sale"]:has([data-multi-quantity]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width) 88px minmax(164px, 180px) 112px 28px;
+  }
+}
+@container purchase-cart (min-width: 1080px) {
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width) 78px 105px 112px 95px 28px;
+  }
+}
+@container pos-cart (max-width: 999px) {
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-header] { display: none; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto auto;
+    gap: 6px; padding: 8px 10px;
+  }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > [data-cart-field] { display: block; min-width: 0; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > [data-cart-field]::before { content: none; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(2) { grid-column: 2 / 9; grid-row: 1; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(3) { grid-column: 1 / 13; grid-row: 2; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(4) { grid-column: 1 / 5; grid-row: 3; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(5) { grid-column: 5 / 13; grid-row: 3; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(6) { grid-column: 9 / 12; grid-row: 1; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(7) { grid-column: 12; grid-row: 1; justify-self: end; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-add] { grid-template-columns: 28px minmax(0, 1fr); }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-add] > :nth-child(n+3) { display: none; }
+}
+@container purchase-cart (max-width: 1079px) {
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-header] { display: none; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto auto;
+    gap: 6px; padding: 8px 10px;
+  }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > [data-cart-field] { display: block; min-width: 0; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(2) { grid-column: 2 / 9; grid-row: 1; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(3) { grid-column: 1 / 13; grid-row: 2; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(4) { grid-column: 1 / 4; grid-row: 3; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(5) { grid-column: 4 / 8; grid-row: 3; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(6) { grid-column: 8 / 13; grid-row: 3; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(7) { grid-column: 9 / 12; grid-row: 1; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(8) { grid-column: 12; grid-row: 1; justify-self: end; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-add] { grid-template-columns: 28px minmax(0, 1fr); }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-add] > :nth-child(n+3) { display: none; }
+}

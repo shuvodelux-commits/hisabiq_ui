@@ -18,20 +18,20 @@ const product: Product = {
 };
 
 test('formats positive compound stock', () => {
-  assert.equal(formatStock(product), '2 Box 5 Pcs');
+  assert.equal(formatStock(product), '2 Box 5 pcs');
 });
 
 test('formats negative compound stock without awkward floor division', () => {
-  assert.equal(formatStock({ ...product, stock: -5 }), '-5 Pcs');
-  assert.equal(formatStock({ ...product, stock: -25 }), '-2 Box 5 Pcs');
+  assert.equal(formatStock({ ...product, stock: -5 }), '-5 pcs');
+  assert.equal(formatStock({ ...product, stock: -25 }), '-2 Box 5 pcs');
 });
 
 
 test('respects base-unit stock view preference', () => {
-  assert.equal(formatStock({ ...product, stockViewUnit: 'Pcs' }), '25 Pcs');
+  assert.equal(formatStock({ ...product, stockViewUnit: 'Pcs' }), '25 pcs');
 });
 test('keeps compound stock when larger unit is the preferred view', () => {
-  assert.equal(formatStock({ ...product, stockViewUnit: 'Box' }), '2 Box 5 Pcs');
+  assert.equal(formatStock({ ...product, stockViewUnit: 'Box' }), '2 Box 5 pcs');
 });
 
 
@@ -49,7 +49,7 @@ test('multi-level Stock View displays Bag / Box / Pcs without mutating base stoc
   };
   assert.equal(formatStock(multi),'2 Bag 6 Box');
   assert.equal(formatStock({...multi,stockViewUnit:'Box'}),'30 Box');
-  assert.equal(formatStock({...multi,stockViewUnit:'Pcs'}),'450 Pcs');
+  assert.equal(formatStock({...multi,stockViewUnit:'Pcs'}),'450 pcs');
   assert.equal(formatStock({...multi,stock:-195}),'-1 Bag 1 Box');
   assert.equal(multi.stock,450,'formatting must never change stored base quantity');
 });

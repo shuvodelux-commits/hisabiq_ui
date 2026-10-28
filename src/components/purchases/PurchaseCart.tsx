@@ -1,3 +1,4 @@
+import {unitSymbol} from '../../data/productUnits';
 import {NumericInput} from '../NumericInput';
 import React from 'react';
 import { ChevronDown, ChevronUp, PackagePlus, Plus, ScanLine, Trash2 } from 'lucide-react';
@@ -133,20 +134,20 @@ export function PurchaseCart({
                     <div data-cart-field="Cost in · একক">{unitOptions(product).length > 1 ? (
                       unitOptions(product).length > 2 ? (
                         <AppSelect label={'Unit for ' + product.name} value={line.costUnit}
-                          options={unitOptions(product)} onChange={(unit) => onCostUnitChange(line, unit)} />
+                          options={unitOptions(product).map(value=>({value,label:unitSymbol(value)}))} onChange={(unit) => onCostUnitChange(line, unit)} />
                       ) : (
                       <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={'Unit for ' + product.name}>
                         {unitOptions(product).map((unit) => (
-                          <button key={unit} type="button" role="radio" aria-checked={line.costUnit === unit}
+                          <button key={unit} type="button" role="radio" aria-label={unit} aria-checked={line.costUnit === unit}
                             onClick={() => onCostUnitChange(line, unit)}
                             className={'flex-1 rounded px-1 text-xs font-medium transition-colors ' +
                               (line.costUnit === unit ? 'bg-card text-ink shadow-card ring-1 ring-primary' : 'text-ink-500 hover:text-ink')}>
-                            {unit}
+                            {unitSymbol(unit)}
                           </button>
                         ))}
                       </div>
                       )
-                    ) : <span className="px-2 text-sm text-ink-600">{product.unit}</span>}</div>
+                    ) : <span className="px-2 text-sm text-ink-600" title={product.unit}>{unitSymbol(product.unit)}</span>}</div>
                     <div data-cart-field="Unit cost · ক্রয়মূল্য"><div className="relative">
                       <span data-table-helper="" className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <NumericInput ref={(node) => { costRefs.current[line.id] = node; }}
@@ -166,7 +167,7 @@ export function PurchaseCart({
                         onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
                       />
-                      <span data-table-helper="" className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{line.lotSellUnit}</span>
+                      <span data-table-helper="" className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{unitSymbol(line.lotSellUnit)}</span>
                     </div></div>
                     <span data-cart-field="Total · মোট" className="text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
                     <button type="button" aria-label={'Remove ' + product.name} onClick={() => onRemove(line.id)}
@@ -184,7 +185,7 @@ export function PurchaseCart({
                         <div className="min-w-0">
                           <p data-table-helper="" className="mb-1 text-[11px] font-medium text-ink">Lot selling price unit <span className="font-bn text-ink-500">· বিক্রয় একক</span></p>
                           <FormSelect className="w-full [&>select]:text-xs"
-                            value={line.lotSellUnit} options={unitOptions(product)}
+                            value={line.lotSellUnit} options={unitOptions(product).map(value=>({value,label:unitSymbol(value)}))}
                             onChange={(event) => changeLotSellUnit(line, event.target.value)} />
                           <p data-table-helper="" className="mt-1 text-[10.5px] text-ink-500">Base {taka(lotBaseSellPrice(line))}/{product.unit} · Cost {taka(lineAmount(line))} total</p>
                         </div>

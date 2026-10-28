@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from './Input';
 import { useFormCopy } from '../hooks/useFormCopy';
 import type { Copy } from '../types/productForm';
+import {validUnitSymbol} from '../data/productUnits';
 
 type QuickAddOption = { value: string; label: string };
 
@@ -41,7 +42,12 @@ export function QuickAddDialog({ noun, initialName, placeholder, nameLabel, with
       setError(withSymbol ? t('Enter the unit name.', 'এককের নাম লিখুন।') : t(`Enter the ${noun.en} name.`, `${noun.bn}-এর নাম লিখুন।`));
       return;
     }
-    const code = withSymbol ? symbol.trim() || trimmed : trimmed;
+    if (withSymbol && !validUnitSymbol(symbol)) {
+      setError(t('Enter a unit symbol of 1–4 characters, without spaces.', 'এককের সংক্ষিপ্ত নাম ১–৪ অক্ষরে লিখুন, ফাঁকা ছাড়া।'));
+      document.getElementById('qa-symbol')?.focus();
+      return;
+    }
+    const code = withSymbol ? symbol.trim() : trimmed;
     const found = existing.find((option) => [trimmed, code].some((entry) =>
       option.value.toLowerCase() === entry.toLowerCase() || option.label.toLowerCase() === entry.toLowerCase()));
     if (found) {
@@ -84,19 +90,22 @@ export function QuickAddDialog({ noun, initialName, placeholder, nameLabel, with
           {withSymbol && (
             <div>
               <label htmlFor="qa-symbol" className="mb-1.5 block text-[length:var(--label-fs)] font-medium text-ink">
-                {t('Short name', 'সংক্ষিপ্ত নাম')}
+                {t('Short unit symbol', 'এককের সংক্ষিপ্ত নাম')} *
               </label>
               <Input
                 id="qa-symbol"
+                required
+                aria-required="true"
                 autoComplete="off"
                 value={symbol}
                 onChange={(event) => { setSymbol(event.target.value); setError(null); setMatch(null); }}
                 placeholder={t('e.g. Dz', 'যেমন Dz')}
-                aria-describedby="qa-symbol-hint"
+                aria-invalid={Boolean(error) && !validUnitSymbol(symbol)}
+                aria-describedby={error ? 'qa-symbol-hint qa-error' : 'qa-symbol-hint'}
                 className={control}
               />
               <p id="qa-symbol-hint" className="mt-1.5 text-[13px] text-ink-500">
-                {t('Shown on receipts and stock. Leave empty to use the unit name.', 'রসিদ ও স্টকে দেখাবে। খালি রাখলে এককের নাম ব্যবহার হবে।')}
+                {t('Required: 1–4 characters, without spaces. Used in quantity fields, e.g. pcs or Gg.', 'অবশ্যই ১–৪ অক্ষরে লিখুন, ফাঁকা ছাড়া। পরিমাণের ঘরে দেখাবে, যেমন pcs বা Gg।')}
               </p>
             </div>
           )}

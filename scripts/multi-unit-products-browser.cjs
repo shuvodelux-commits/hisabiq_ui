@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
 const {fillChain}=require('./product-form-browser-helpers.cjs');
 async function main(){
@@ -20,6 +22,17 @@ async function main(){
    await row.getByRole('textbox',{name:'Quantity in Carton',exact:true}).press('Enter');
    assert.equal(await row.getByRole('textbox',{name:'Quantity in Box',exact:true}).evaluate(el=>document.activeElement===el),true,'Enter follows unit order');
    await row.getByText(new RegExp(total)).waitFor();
+   const field=row.locator('[data-multi-quantity]');
+   assert.equal(await field.locator('[data-numeric-joined]').count(),0,'one outer joined shell');
+   const shell=await field.boundingBox();assert.ok(shell&&Math.abs(shell.height-36)<1,'36px quantity field');
+   const inputs=await field.locator('input').all();assert.equal(inputs.length,4);
+   let previous=shell.x;
+   for(const input of inputs){const box=await input.boundingBox();
+    assert.ok(box&&box.width>=24&&Math.abs(box.y-shell.y)<=2,'quantity inputs fit on one horizontal line');
+    assert.ok(box.x>=previous&&box.x+box.width<=shell.x+shell.width,'no overlapping or clipped inputs');previous=box.x+box.width;
+   }
+   assert.deepEqual(await field.locator('[data-table-helper]').allTextContents(),['CT','Box','pcs','Ft']);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no page overflow');
   }
   assert.deepEqual(errors,[]);await page.close();console.log('Four-unit products, custom prices, POS and Purchase totals:',width);
  }}finally{await browser.close();await server.close();}

@@ -67,8 +67,8 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                         <FormField className="pf-unit-select" id={`pf-${unitKey}`} en="1 larger unit" bn="১টি বড় একক" error={errors[unitKey]}>
                           <SearchSelect id={`pf-${unitKey}`} noun={{ en: 'larger unit', bn: 'বড় একক' }} labelledBy={`pf-${unitKey}-label`}
                             describedBy={`pf-${unitKey}-msg`} invalid={Boolean(errors[unitKey])} disabled={unitsLocked}
-                            value={level.unit} options={form.units.filter((unit) => unit.symbol === level.unit || !usedUnits.has(unit.symbol.toLowerCase()))
-                              .map((unit) => ({ value: unit.symbol, label: unit.symbol, meta: unit.name !== unit.symbol ? unit.name : undefined }))}
+                            value={level.unit} options={form.units.filter((unit) => (unit.value ?? unit.symbol) === level.unit || !usedUnits.has((unit.value ?? unit.symbol).toLowerCase()))
+                              .map((unit) => ({ value: unit.value ?? unit.symbol, label: unit.symbol, meta: unit.name !== unit.symbol ? unit.name : undefined }))}
                             onChange={(value) => form.updateUnitLevel(level.id, 'unit', value)} onCreate={form.createUnit} withSymbol />
                         </FormField>
                         <FormField className="pf-unit-ratio" id={`pf-${factorKey}`} en="Contains" bn="যার মধ্যে আছে" error={errors[factorKey]}>
