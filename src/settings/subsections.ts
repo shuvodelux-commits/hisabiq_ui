@@ -3,9 +3,12 @@ export const settingsSubsections = {
     { id: "general", label: "General", bn: "সাধারণ" },
     { id: "contact", label: "Contact & address", bn: "যোগাযোগ ও ঠিকানা" },
     { id: "branding", label: "Logo & branding", bn: "লোগো ও ব্র্যান্ডিং" },
+    { id: "regional", label: "Regional & currency", bn: "আঞ্চলিক ও মুদ্রা" },
+    { id: "tax", label: "Tax & VAT", bn: "কর ও ভ্যাট" },
   ],
   invoices: [
     { id: "invoice", label: "Invoice design", bn: "বিলের ডিজাইন" },
+    { id: "numbering", label: "Document numbering", bn: "ডকুমেন্ট নম্বর" },
     {
       id: "output",
       label: "Ledger & report designs",
@@ -16,6 +19,8 @@ export const settingsSubsections = {
 export function businessFieldGroup(key: string) {
   return key === "logo"
     ? "branding"
+    : key === "financialYear"
+      ? "regional"
     : ["phone", "email", "address", "website"].includes(key)
       ? "contact"
       : "general";
