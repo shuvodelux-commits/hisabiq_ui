@@ -72,7 +72,7 @@ export function SettingsDirectory({ items, selected, onSelect, id, panelId, lang
             document.getElementById(`${id}-${shown[next]?.id}`)?.focus();
           }}
           className={'flex min-h-10 w-full min-w-0 items-center gap-3 border-l-2 px-3 py-2.5 text-left text-[13px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ' +
-            (active?'border-teal-600 bg-teal-50/60 font-medium text-teal-800 dark:bg-teal-900/20 dark:text-teal-200':'border-transparent text-ink-700 hover:bg-ink-50')}
+            (active?'border-teal-600 bg-teal-50/60 font-medium text-ink dark:bg-teal-900/20':'border-transparent text-ink-700 hover:bg-ink-50')}
         >
           {Icon && <Icon className="size-[17px] shrink-0" aria-hidden="true"/>}
           <span className="min-w-0 flex-1 truncate">{text(item.label,item.bn)}</span>
