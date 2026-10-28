@@ -70,6 +70,22 @@ test('edit/reopen preserves all legacy and chain prices, active state and stock;
  assert.equal(loaded.unitLevels[0].price,'600');
  assert.equal(buildProduct(loaded,deriveDraft(loaded,true,[]),true,legacy).product.altUnit?.price,600);
 });
+test('edit product toggles normal price override without changing units or historical lots',()=>{
+ const created=buildProduct(chainDraft(),deriveDraft(chainDraft(),false,[]),false).product;
+ assert.equal(created.useDefaultPriceForAllLots,false);
+ const draft=initialProductDraft(config,created);
+ assert.equal(draft.useDefaultPriceForAllLots,false);
+ const edited={...draft,useDefaultPriceForAllLots:true};
+ const saved=buildProduct(edited,deriveDraft(edited,true,[]),true,created).product;
+ assert.equal(saved.useDefaultPriceForAllLots,true);
+ assert.deepEqual(saved.unitRelations,created.unitRelations);
+ assert.deepEqual(saved.unitSellPrices,created.unitSellPrices);
+ assert.equal(initialProductDraft(config,saved).useDefaultPriceForAllLots,true);
+ const restored={...initialProductDraft(config,saved),useDefaultPriceForAllLots:false};
+ const reenabledLots=buildProduct(restored,deriveDraft(restored,true,[]),true,saved).product;
+ assert.equal(reenabledLots.useDefaultPriceForAllLots,false);
+});
+
 test('opening serial and expiry checks retain metadata; services never create stock',()=>{
  const d={...initialProductDraft(config),name:'Generator',unit:'Pcs',sell:'185000',sellUnit:'Pcs',buyUnit:'Pcs',openingQty:'2',openingUnit:'Pcs',serialTracking:'Required' as const,openingSerialText:'A\nA'};
  assert.ok(validateDraft(d,false,deriveDraft(d,false,[])).openingSerials);

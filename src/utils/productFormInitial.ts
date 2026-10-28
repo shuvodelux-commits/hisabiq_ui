@@ -13,6 +13,7 @@ const blankDraft: ProductDraft = {
   buyUnit: 'Pcs',
   sell: '',
   sellUnit: 'Pcs',
+  useDefaultPriceForAllLots: false,
   openingQty: '',
   openingUnit: 'Pcs',
   minQty: '',
@@ -53,6 +54,7 @@ export function initialProductDraft(defaults: ProductSettings, product?: Product
     ...blankDraft, kind: product.kind ?? 'Stock', name: product.name, nameBn: product.nameBn ?? '',
     brand: product.brand ?? blankDraft.brand, category: product.category, unit: product.unit,
     buy: String(product.purchasePrice), sell: String(product.sellPrice), buyUnit: product.unit, sellUnit: product.unit,
+    useDefaultPriceForAllLots: product.useDefaultPriceForAllLots ?? false,
     openingQty: '', openingUnit: product.unit, minQty: String(product.minStock), minUnit: product.unit,
     multiUnit: Boolean(relations.length), unitLevels: [...relations].reverse().map((relation, index) => ({
       id: `saved-${index}`, unit: relation.leftUnit, factor: String(relation.quantity),

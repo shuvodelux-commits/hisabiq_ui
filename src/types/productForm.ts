@@ -20,6 +20,7 @@ export type ProductDraft = {
   buyUnit: string;
   sell: string;
   sellUnit: string;
+  useDefaultPriceForAllLots: boolean;
   openingQty: string;
   openingUnit: string;
   minQty: string;

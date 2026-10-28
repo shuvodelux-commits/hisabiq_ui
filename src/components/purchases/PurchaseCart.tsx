@@ -9,7 +9,7 @@ import { ProductThumb } from '../ProductThumb';
 import { ProductCombobox } from '../pos/ProductCombobox';
 import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
 import {MultiUnitQuantityInput} from '../transactions/MultiUnitQuantityInput';
-import { formatStock, unitsFor } from '../../utils/units';
+import { formatStock, unitsFor, priceFor } from '../../utils/units';
 import { taka } from '../../utils/currency';
 import { normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
@@ -54,7 +54,7 @@ export function PurchaseCart({
 
   const changeLotSellUnit = (line: PurchaseCartLine, unit: string) => {
     const inUnit = priceInUnit(lotBaseSellPrice(line), line.product, unit);
-    onUpdate(line.id, { lotSellUnit: unit, lotSellPrice: String(Math.round(inUnit * 10000) / 10000) });
+    onUpdate(line.id, { lotSellUnit: unit, lotSellPrice: line.lotSellPrice.trim() ? String(Math.round(inUnit * 10000) / 10000) : '' });
   };
 
   return (
@@ -98,7 +98,7 @@ export function PurchaseCart({
                           className="mt-1 inline-flex min-w-0 max-w-full items-center gap-1 overflow-hidden whitespace-nowrap rounded bg-ink-50 px-1.5 py-0.5 text-[10.5px] text-ink-600 hover:bg-teal-50 hover:text-teal-700">
                           {showSerials ? <ScanLine className="size-3" /> : <ChevronDown className="size-3" />}
                           {showSerials ? 'Serials ' + count + '/' + Math.max(required, Math.ceil(baseQty(line))) + ' · ' : ''}
-                          Lot sale {taka(lotBaseSellPrice(line))}/{product.unit}
+                          Lot sale {line.lotSellPrice.trim() ? taka(lotBaseSellPrice(line)) : 'Default ' + taka(lotBaseSellPrice(line))}/{product.unit}
                           <span className="sr-only"> · Lot details for {product.name}</span>
                           {line.detailsOpen ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
                         </button>
@@ -159,9 +159,10 @@ export function PurchaseCart({
                       <span data-table-helper="" className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <NumericInput stepperInset={48}
                         ref={(node) => { lotPriceRefs.current[line.id] = node; }}
-                        aria-label={'Lot selling price for ' + product.name}
+                        aria-label={'Lot selling price for ' + product.name + '. Optional: leave blank to use the product default.'}
                         inputMode="decimal"
                         value={line.lotSellPrice} readOnly={sourceLocked}
+                        placeholder={String(Math.round(priceFor(line.product, line.lotSellUnit) * 10000) / 10000)}
                         className={entryInput + ' pl-5 pr-12'}
                         onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
@@ -186,7 +187,7 @@ export function PurchaseCart({
                           <FormSelect className="w-full [&>select]:text-xs"
                             value={line.lotSellUnit} options={unitOptions(product)}
                             onChange={(event) => changeLotSellUnit(line, event.target.value)} />
-                          <p data-table-helper="" className="mt-1 text-[10.5px] text-ink-500">Base {taka(lotBaseSellPrice(line))}/{product.unit} · Cost {taka(lineAmount(line))} total</p>
+                          <p data-table-helper="" className="mt-1 text-[10.5px] text-ink-500">{line.lotSellPrice.trim() ? 'Lot override' : 'Uses product default'} · Base {taka(lotBaseSellPrice(line))}/{product.unit} · Cost {taka(lineAmount(line))} total</p>
                         </div>
                         <label className="block min-w-0 text-[11px] font-medium text-ink">
                           Batch / lot number <span className="font-bn font-normal text-ink-400">· ব্যাচ</span>
