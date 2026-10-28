@@ -516,9 +516,9 @@ export function SettingsPageContent({
       },
     }));
   const subsectionResults = [
-    {section:"business" as const, field:{key:"regional",label:"Regional & Currency",bn:"আঞ্চলিক ও মুদ্রা",hint:"BDT, symbol, digits, date and time formatting",kind:"text" as const}},
-    {section:"business" as const, field:{key:"tax",label:"Tax & VAT",bn:"কর ও ভ্যাট",hint:"VAT registration, rates, inclusive or exclusive pricing",kind:"text" as const}},
-    {section:"invoices" as const, field:{key:"numbering",label:"Document numbering",bn:"ডকুমেন্ট নম্বর",hint:"Invoice, purchase, return, quotation, prefix, sequence",kind:"text" as const}},
+    {section:"business" as const, field:{key:"regional",label:"Regional & Currency",bn:"আঞ্চলিক ও মুদ্রা",hint:"BDT, symbol, digits, date and time formatting",kind:"text" as const,advanced:false}},
+    {section:"business" as const, field:{key:"tax",label:"Tax & VAT",bn:"কর ও ভ্যাট",hint:"VAT registration, rates, inclusive or exclusive pricing",kind:"text" as const,advanced:false}},
+    {section:"invoices" as const, field:{key:"numbering",label:"Document numbering",bn:"ডকুমেন্ট নম্বর",hint:"Invoice, purchase, return, quotation, prefix, sequence",kind:"text" as const,advanced:false}},
   ].filter(({section: s,field})=>fuzzyMatch(query,[field.label,field.bn,field.hint,sectionNames[s].label]));
   const results = query.trim()
     ? Object.entries(settingsFields)
