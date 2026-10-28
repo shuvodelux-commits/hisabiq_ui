@@ -159,7 +159,7 @@ export function PurchaseCart({
                       <span data-table-helper="" className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <NumericInput stepperInset={48}
                         ref={(node) => { lotPriceRefs.current[line.id] = node; }}
-                        aria-label={'Lot selling price for ' + product.name}
+                        aria-label={'Lot selling price for ' + product.name + '. Optional: leave blank to use the product default.'}
                         inputMode="decimal"
                         value={line.lotSellPrice} readOnly={sourceLocked}
                         placeholder={String(Math.round(priceInUnit(line.product.sellPrice, line.product, line.lotSellUnit) * 10000) / 10000)}
