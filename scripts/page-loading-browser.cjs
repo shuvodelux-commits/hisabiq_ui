@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires -- Playwright CLI uses CommonJS. */
 // Test production chunks, not Vite's development modules.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
@@ -21,7 +23,8 @@ async function main() {
       for (const route of [...erp.map(p=>'/app/'+p),...saas.map(p=>'/saas/'+p),'/design-system']) {
         await page.goto(base+route);
         try {
-          await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]') && !!document.querySelector('h1,h2'));
+          // The component library intentionally demonstrates busy buttons; wait only for page download boundaries.
+          await page.waitForFunction(() => !document.querySelector('[data-page-loading="true"]') && !!document.querySelector('h1,h2'));
         } catch (err) {
           console.error('Failed production route',route,'theme',theme,'browser errors',errors);
           console.error('Document diagnostic',await page.locator('body').innerText().then(t=>t.slice(0,1800)).catch(()=>'<unreadable>'));
