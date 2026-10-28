@@ -147,7 +147,7 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "financialYear",
         "Financial year",
         "অর্থবছর",
-        "Reporting policy preview; historical records keep their dates.",
+        "Controls your financial-year reporting preference. Past records keep their original dates.",
         "select",
         { options: ["January–December", "July–June"], advanced: true },
       ),
@@ -482,14 +482,6 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "Appears on new POS receipts.",
         "textarea",
         { live: true },
-      ),
-      f(
-        "prefix",
-        "Invoice prefix",
-        "বিল নম্বরের শুরু",
-        "Numbering preview only. Existing invoice IDs are preserved.",
-        "text",
-        { advanced: true },
       ),
       f(
         "showSerial",
