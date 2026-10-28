@@ -173,7 +173,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
               className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40">{t('Apply','প্রয়োগ করুন')}</button>
           </div>
         </div>
-      </div>, document.body)}
+      </div>, anchor.current?.closest("dialog") ?? document.body)}
   </div>;
 }
 

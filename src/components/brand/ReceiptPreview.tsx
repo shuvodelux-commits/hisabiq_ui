@@ -1,3 +1,5 @@
+import {InvoiceDocument} from '../../documents/InvoiceDocument';
+import type {InvoiceDesign} from '../../documents/profile';
 import { LogoMark } from './Logo';
 import { formatNumber } from '../../utils/currency';
 import { AmountInWordsDisplay } from '../AmountInWordsDisplay';
@@ -6,13 +8,14 @@ import {bundleContentsForReceipt} from '../../bundles/bundleDocuments';
 import {uiText, type UiLanguage} from '../../i18n/uiCopy';
 import {documentLabel,documentMethod} from '../../i18n/documentCopy';
 
-export type ReceiptLine = {name: string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;bundleSnapshot?:BundleSaleSnapshot;};
-export type ReceiptBranding = { name: string; nameBn: string; address: string; phone: string; logo: string; showLogo: boolean; footer: string };
+export type ReceiptLine = {name: string;nameBn?:string;sku?:string;barcode?:string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;bundleSnapshot?:BundleSaleSnapshot;};
+export type ReceiptBranding = { name: string; nameBn: string; address: string; phone: string; logo: string; showLogo: boolean; footer: string; design?:InvoiceDesign };
 export type ReceiptPayment={id?:string;method:string;account?:string;amount:number};
 
 export type ReceiptPreviewProps = {
   /** Explicit prop works in both app and standalone server-side print markup. */
   language?: UiLanguage;
+  reconstructed?: boolean;
   invoice: string;
   customer?: string;
   customerPhone?: string;
@@ -35,6 +38,7 @@ export type ReceiptPreviewProps = {
 const n = (v: number) => formatNumber(v, v % 1 ? 2 : 0);
 
 export function ReceiptPreview(p: ReceiptPreviewProps) {
+  if(p.branding?.design)return <InvoiceDocument {...p}/>;
   const language=p.language??'English + Bangla';
   const label=(english:string)=>documentLabel(language,english);
   return (

@@ -1,13 +1,21 @@
-import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
-import { AppSelect } from '../components/AppSelect';
+import { SettingsTabs } from "./SettingsTabs";
+import { settingsSubsections, businessFieldGroup } from "./subsections";
+import { listenSettingsPop } from "./navigationGuard";
+import { InterfaceSettings } from "./InterfaceSettings";
+import type { ModuleViews } from "./moduleViews";
+import { OutputDesignSettings } from "./OutputDesignSettings";
+import { matchesSearch as fuzzyMatch } from "../utils/fuzzySearch";
+import { AppSelect } from "../components/AppSelect";
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
+  useId,
   useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   Building2,
   ShoppingCart,
@@ -19,7 +27,6 @@ import {
   Bell,
   SlidersHorizontal,
   Database,
-  Search,
   Save,
   RotateCcw,
   Settings2,
@@ -49,10 +56,14 @@ import {
 } from "./ui";
 import { TeamSettings } from "./TeamSettings";
 import { DataSettings } from "./DataSettings";
-import { TenantSettingsHub } from "./TenantSettingsHub";
+import { FinancialTerminologySettings } from "./FinancialTerminologySettings";
+import { DocumentDesignSettings } from "./DocumentDesignSettings";
+import type { FinancialDisplay } from "../financial-display/model";
 import { AccountSecuritySettings } from "./AccountSecuritySettings";
 
 const icons = {
+  interface: SlidersHorizontal,
+  financialTerminology: Wallet,
   business: Building2,
   sales: ShoppingCart,
   products: Package,
@@ -177,7 +188,7 @@ function Fields({
 }) {
   const data = value as unknown as Record<string, unknown>;
   return (
-    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+    <div className="grid gap-x-6 gap-y-5 md:[grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))]">
       {fields.map((field) => {
         const v = data[field.key];
         const update = (next: unknown) =>
@@ -188,7 +199,7 @@ function Fields({
             data-field-key={field.key}
             className={
               field.kind === "textarea" || field.kind === "logo"
-                ? "sm:col-span-2"
+                ? "md:col-span-full"
                 : ""
             }
           >
@@ -212,8 +223,15 @@ function Fields({
                   );
                 if (field.kind === "select")
                   return (
-                    <AppSelect id={id} describedBy={descriptionId} label={field.label} value={v as string}
-  onChange={update} disabled={disabled} options={field.options ?? []} />
+                    <AppSelect
+                      id={id}
+                      describedBy={descriptionId}
+                      label={field.label}
+                      value={v as string}
+                      onChange={update}
+                      disabled={disabled}
+                      options={field.options ?? []}
+                    />
                   );
                 if (field.kind === "textarea")
                   return (
@@ -271,85 +289,20 @@ function Fields({
     </div>
   );
 }
-function InvoicePreview({
-  value,
-  business,
-}: {
-  value: SettingsSections["invoices"];
-  business: SettingsSections["business"];
-}) {
-  return (
-    <SettingCard title="Invoice layout preview">
-      <div
-        className={`theme-light mx-auto rounded-lg border border-border bg-card p-4 text-sm text-ink ${value.paper === "A4" ? "max-w-xl" : "max-w-xs"}`}
-      >
-        <div className="text-center">
-          {value.showLogo && business.logo && (
-            <img
-              className="mx-auto mb-2 size-12 object-contain"
-              src={business.logo}
-              alt="Invoice business logo"
-            />
-          )}
-          <p className="text-base font-semibold">{business.name}</p>
-          {value.showBangla && business.nameBn && (
-            <p className="font-bn mt-1 text-xs text-ink-500">
-              {business.nameBn}
-            </p>
-          )}
-          <p className="mt-1 text-xs text-ink-500">
-            {business.address} · {business.phone}
-          </p>
-        </div>
-        <div className="my-4 flex justify-between border-y border-border py-2 text-xs">
-          <span>{value.prefix}-PREVIEW</span>
-          <span>{value.paper} · Customer copy</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>
-            PVC elbow · 2 Box 5 Pcs
-            {value.showBangla && (
-              <span className="font-bn block text-xs text-ink-500">
-                পিভিসি এলবো
-              </span>
-            )}
-          </span>
-          <span>৳1,250</span>
-        </div>
-        {value.showSerial && (
-          <p className="mt-3 text-xs text-ink-500">Serial: SAMPLE-001</p>
-        )}
-        {value.showWarranty && (
-          <p className="mt-1 text-xs text-ink-500">
-            Warranty: 12 months · example
-          </p>
-        )}
-        <div className="mt-4 flex justify-between border-t border-border pt-2 font-semibold">
-          <span>Total</span>
-          <span>৳1,250</span>
-        </div>
-        <p className="mt-4 text-center text-xs text-ink-500">{value.footer}</p>
-      </div>
-      {value.showPurchaseCost && (
-        <p className="rounded bg-warning-bg p-2 text-xs text-warning">
-          Staff preview only: purchase cost ৳900. This cost is excluded from the
-          customer copy above.
-        </p>
-      )}
-      <p className="text-xs text-ink-500">
-        Sample layout. Historical invoice numbers and warranty snapshots remain
-        unchanged.
-      </p>
-    </SettingCard>
-  );
-}
-function SettingsPageContent() {
+export function SettingsPageContent({
+  sectionOverride,
+  embedded = false,
+}: { sectionOverride?: SettingsSection; embedded?: boolean } = {}) {
   const { section: routeSection } = useParams();
   const navigate = useNavigate();
+  const routeState = useLocation().state as {
+    settingsTabFocus?: string;
+  } | null;
   const section: SettingsSection =
-    routeSection && routeSection in sectionNames
+    sectionOverride ??
+    (routeSection && routeSection in sectionNames
       ? (routeSection as SettingsSection)
-      : "business";
+      : "business");
   const { state, personal, actorId, setActorId, save, updatePersonal } =
     useTenantSettings();
   const { theme, setTheme } = useTheme();
@@ -357,7 +310,9 @@ function SettingsPageContent() {
   const [draft, setDraft] = useState<Draft>(() =>
     structuredClone(
       state.sections[
-        section === "personal" || section === "data" || section === "security" ? "business" : section
+        section === "personal" || section === "data" || section === "security"
+          ? "business"
+          : section
       ],
     ),
   );
@@ -374,6 +329,22 @@ function SettingsPageContent() {
     [reviewOpen, setReviewOpen] = useState(false),
     [leaveOpen, setLeaveOpen] = useState(false);
   const pending = useRef<(() => void) | null>(null);
+  const tabsId = "settings-" + useId().replace(/:/g, "");
+  const [activeSubsections, setActiveSubsections] = useState<
+    Record<string, string>
+  >({});
+  const subsections =
+    settingsSubsections[section as keyof typeof settingsSubsections] ?? [];
+  const activeSubsection =
+    activeSubsections[section] ?? subsections[0]?.id ?? "";
+  const selectSubsection = (id: string) =>
+    setActiveSubsections((previous) => ({ ...previous, [section]: id }));
+  useLayoutEffect(() => {
+    if (!embedded && routeState?.settingsTabFocus === section)
+      document
+        .getElementById(`${tabsId}-main-${section}`)
+        ?.focus({ preventScroll: true });
+  }, [section, embedded, routeState, tabsId]);
   const personalDirty =
     JSON.stringify({ ...personalDraft, mode: personal.mode }) !==
       JSON.stringify(personal) || themeDraft !== theme;
@@ -384,13 +355,22 @@ function SettingsPageContent() {
         ? false
         : JSON.stringify(draft) !== baseline;
   const editable =
-    section === "personal" || section === "security" ||
+    section === "personal" ||
+    section === "security" ||
     (section !== "data" && canManage(state, actorId, section));
-  const canView = section === "personal" || section === "security" || canManage(state, actorId, "view");
+  const canView =
+    section === "personal" ||
+    section === "security" ||
+    canManage(state, actorId, "view") ||
+    (section === "team" &&
+      (canManage(state, actorId, "user.account.view") ||
+        canManage(state, actorId, "user.role.view")));
   const load = () => {
     const next = structuredClone(
       state.sections[
-        section === "personal" || section === "data" || section === "security" ? "business" : section
+        section === "personal" || section === "data" || section === "security"
+          ? "business"
+          : section
       ],
     );
     setDraft(next);
@@ -410,7 +390,7 @@ function SettingsPageContent() {
       setLeaveOpen(true);
     } else action();
   }
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!dirty) return;
     const unload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -427,32 +407,72 @@ function SettingsPageContent() {
       pending.current = () => navigate(url.hash.slice(1));
       setLeaveOpen(true);
     };
+    const originalUrl = location.href;
+    const originalHistoryState = window.history.state;
+    let resuming = false;
+    const pop = (event: PopStateEvent) => {
+      if (resuming) {
+        resuming = false;
+        return;
+      }
+      if (location.href === originalUrl) {
+        event.stopImmediatePropagation();
+        return;
+      }
+      const target = location.hash.slice(1);
+      event.stopImmediatePropagation();
+      const fromIndex = originalHistoryState?.idx,
+        toIndex = event.state?.idx;
+      if (
+        Number.isInteger(fromIndex) &&
+        Number.isInteger(toIndex) &&
+        fromIndex !== toIndex
+      ) {
+        window.history.go(fromIndex - toIndex);
+        pending.current = () => {
+          resuming = true;
+          window.history.go(toIndex - fromIndex);
+        };
+      } else {
+        // External hash entries may have no router index. Keep the current draft visible.
+        window.history.pushState(originalHistoryState, "", originalUrl);
+        pending.current = () => navigate(target, { replace: true });
+      }
+      setLeaveOpen(true);
+    };
+    const stopPop = listenSettingsPop(pop);
     window.addEventListener("beforeunload", unload);
     document.addEventListener("click", click, true);
     return () => {
+      stopPop();
       window.removeEventListener("beforeunload", unload);
       document.removeEventListener("click", click, true);
     };
   }, [dirty, navigate]);
-  const commit = () => {
+  const commit = (): boolean => {
     setError("");
     if (section === "personal") {
       updatePersonal({ ...personalDraft, mode: personal.mode });
       setTheme(themeDraft);
       setNotice("Personal preferences saved for this device.");
-      return;
+      return true;
     }
-    if (section === "data" || section === "security") return;
+    if (section === "data" || section === "security") return false;
     const result = save(section, draft as never, revision);
     if (!result.ok) {
       setError(result.error || "Could not save settings.");
       setReviewOpen(false);
-      return;
+      return false;
     }
-    setRevision(state.revision + 1);
+    setRevision(result.revision ?? state.revision + 1);
     setBaseline(JSON.stringify(draft));
-    setNotice("Business settings saved.");
+    setNotice(
+      result.persisted === false
+        ? "Changes are in memory only. Download a backup before leaving."
+        : "Business settings saved.",
+    );
     setReviewOpen(false);
+    return true;
   };
   const changes =
     section === "personal" || section === "data" || section === "security"
@@ -473,7 +493,11 @@ function SettingsPageContent() {
   );
   const categoryResults = (Object.keys(sectionNames) as SettingsSection[])
     .filter((key) =>
-      fuzzyMatch(query,[sectionNames[key].label,sectionNames[key].bn,sectionNames[key].description]),
+      fuzzyMatch(query, [
+        sectionNames[key].label,
+        sectionNames[key].bn,
+        sectionNames[key].description,
+      ]),
     )
     .map((key) => ({
       section: key,
@@ -491,7 +515,12 @@ function SettingsPageContent() {
         .flatMap(([key, fields]) =>
           fields!
             .filter((f) =>
-              fuzzyMatch(query,[f.label,f.bn,f.hint,sectionNames[key as SettingsSection].label]),
+              fuzzyMatch(query, [
+                f.label,
+                f.bn,
+                f.hint,
+                sectionNames[key as SettingsSection].label,
+              ]),
             )
             .map((field) => ({ section: key as SettingsSection, field })),
         )
@@ -501,174 +530,196 @@ function SettingsPageContent() {
   const info = sectionNames[section],
     Icon = icons[section];
   return (
-    <div className="erp-settings min-w-0 space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">
-            Business settings
-          </h1>
-          <p className="mt-1 text-xs text-ink-500">
-            <span className="font-bn">ব্যবসার সেটিংস · </span>
-            {state.sections.business.name}
+    <div data-settings-dirty={dirty} className="erp-settings min-w-0 space-y-5">
+      <header className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <Icon aria-hidden="true" className="size-5 text-primary" />
+            <h1
+              data-testid="settings-title"
+              className="text-xl font-semibold tracking-tight text-ink"
+            >
+              {personal.language === "Bangla" ? info.bn : info.label}
+            </h1>
+            {personal.language === "English + Bangla" && (
+              <span lang="bn" className="font-bn text-xs text-helper">
+                {info.bn}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-helper">
+            Settings · {state.sections.business.name} · UI preview
           </p>
         </div>
-        <fieldset className="flex rounded-lg border border-border bg-card p-1">
-          <legend className="sr-only">Settings mode</legend>
-          {(["Simple", "Advanced"] as const).map((mode) => (
-            <label
-              key={mode}
-              className={`cursor-pointer rounded-md px-3 py-2 text-xs font-medium ${personal.mode === mode ? "bg-accent text-accent-foreground" : "text-ink-600"}`}
-            >
-              <input
-                className="mr-1.5 size-3"
-                type="radio"
-                name="settings-mode"
-                value={mode}
-                checked={personal.mode === mode}
-                onChange={() => updatePersonal({ mode })}
-              />
-              <span>{mode}</span>
-            </label>
-          ))}
-        </fieldset>
-      </div>
-      {section === "business" && <TenantSettingsHub onNavigate={(path,event)=>{
-        if(dirty){event.preventDefault();requestChange(()=>navigate(path));}
-      }}/>}
-      <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
-        <p className="max-w-xl text-xs leading-relaxed text-ink-500">
-          Demo business preferences · Shared settings apply to this business.
-          Personal display preferences stay on this device. Policy previews do
-          not enforce transaction rules or send messages.
-        </p>
-        <label className="space-y-1 text-[11px] font-medium text-ink-600">
-          Demo employee access
-          <AppSelect label="Demo employee access" value={actorId}
-  onChange={(id) => requestChange(() => setActorId(id))}
-  options={state.sections.team.employees.map((e) => ({
-    value: e.id, label: e.name + (!e.active ? ' · Disabled' : '')
-  }))} />
-        </label>
-      </div>
-      <div className="grid min-w-0 gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
-        <aside className="min-w-0 space-y-3">
-          <div className="relative">
-            <Search className="pointer-events-none absolute z-10 left-3 top-1/2 size-4 -translate-y-1/2 text-ink-500" />
-            <Input
-              aria-label="Search settings"
-              className="pl-9"
-              placeholder="Search settings…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-          {query && (
-            <div
-              className="space-y-1 rounded-lg border border-border bg-card p-2"
-              role="region"
-              aria-label="Settings search results"
-            >
-              {results.length ? (
-                results.map(({ section: s, field }) => (
-                  <button
-                    type="button"
-                    key={`${s}-${field.key}`}
-                    className="block w-full rounded-md px-2 py-2 text-left text-xs text-ink hover:bg-accent"
-                    onClick={() =>
-                      requestChange(() => {
-                        if (field.advanced)
-                          updatePersonal({ mode: "Advanced" });
-                        navigate(`/app/settings/${s}`);
-                        setQuery("");
-                        setTimeout(
-                          () =>
-                            document
-                              .querySelector(`[data-field-key="${field.key}"]`)
-                              ?.scrollIntoView({
-                                block: "center",
-                                behavior: "smooth",
-                              }),
-                          100,
-                        );
-                      })
-                    }
-                  >
-                    {field.label}
-                    <span className="mt-1 block text-[10px] text-ink-500">
-                      {sectionNames[s].label}
-                      {field.advanced ? " · Advanced" : ""}
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <p className="p-2 text-xs text-ink-500">
-                  No matching settings.
-                </p>
-              )}
-            </div>
-          )}
-          <nav
-            aria-label="Settings categories"
-            className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-card p-2 lg:block lg:space-y-1"
+        <div className="flex w-full min-w-0 flex-wrap items-end gap-3 md:w-auto">
+          <div
+            className="relative w-full md:w-64"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setQuery("");
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                setQuery("");
+                event.currentTarget.querySelector("input")?.focus();
+              }
+            }}
           >
-            {(Object.keys(sectionNames) as SettingsSection[]).map((key) => {
-              const CategoryIcon = icons[key];
-              return (
-                <button
-                  type="button"
-                  key={key}
-                  aria-current={section === key ? "page" : undefined}
-                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-xs lg:w-full ${section === key ? "bg-accent font-medium text-accent-foreground" : "text-ink-600 hover:bg-ink-50"}`}
-                  onClick={() =>
-                    requestChange(() => navigate(`/app/settings/${key}`))
-                  }
-                >
-                  <CategoryIcon className="size-4 shrink-0" />
-                  <span>
-                    {personal.language === "Bangla"
-                      ? sectionNames[key].bn
-                      : sectionNames[key].label}
-                    {personal.language !== "English" && (
-                      <span className="font-bn mt-1 hidden text-[10.5px] font-normal text-helper lg:block">
-                        {personal.language === "Bangla"
-                          ? sectionNames[key].label
-                          : sectionNames[key].bn}
+            <Input
+              type="search"
+              aria-label="Search settings"
+              placeholder={personal.language === "Bangla" ? "সেটিং খুঁজুন…" : "Search settings…"}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            {query && (
+              <div
+                className="absolute left-0 z-30 mt-2 max-h-80 w-full max-w-[calc(100vw-2rem)] space-y-1 overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-pop md:w-96"
+                role="region"
+                aria-label="Settings search results"
+              >
+                {results.length ? (
+                  results.map(({ section: s, field }) => (
+                    <button
+                      type="button"
+                      key={`${s}-${field.key}`}
+                      className="block w-full rounded-md px-2 py-2 text-left text-xs text-ink hover:bg-accent"
+                      onClick={() => {
+                        const reveal = () => {
+                          if (s === "business")
+                            setActiveSubsections((previous) => ({
+                              ...previous,
+                              business: businessFieldGroup(field.key),
+                            }));
+                          if (s === "invoices")
+                            setActiveSubsections((previous) => ({
+                              ...previous,
+                              invoices: "invoice",
+                            }));
+                          if (field.advanced)
+                            updatePersonal({ mode: "Advanced" });
+                          if (s !== section || embedded)
+                            navigate(`/app/settings/${s}`);
+                          setQuery("");
+                          setTimeout(
+                            () =>
+                              document
+                                .querySelector(`[data-field-key="${field.key}"]`)
+                                ?.querySelector<HTMLElement>(
+                                  "input,textarea,button,[role=combobox]",
+                                )
+                                ?.focus(),
+                            100,
+                          );
+                        };
+                        if (s === section && !embedded) reveal();
+                        else requestChange(reveal);
+                      }}
+                    >
+                      {field.label}
+                      <span className="mt-1 block text-[10px] text-ink-500">
+                        {sectionNames[s].label}
+                        {field.advanced ? " · Advanced" : ""}
                       </span>
-                    )}
-                  </span>
-                </button>
+                    </button>
+                  ))
+                ) : (
+                  <p className="p-2 text-xs text-ink-500">
+                    No matching settings.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+          <label className="min-w-0 space-y-1 text-[11px] font-medium text-ink-600">
+            Preview as
+            <AppSelect
+              label="Demo employee access"
+              value={actorId}
+              onChange={(id) => requestChange(() => setActorId(id))}
+              options={state.sections.team.employees.map((e) => ({
+                value: e.id,
+                label: e.name + (!e.active ? " · Disabled" : ""),
+              }))}
+            />
+          </label>
+          <fieldset className="flex rounded-lg border border-border bg-card p-1">
+            <legend className="sr-only">Settings mode</legend>
+            {(["Simple", "Advanced"] as const).map((mode) => (
+              <label
+                key={mode}
+                className={`cursor-pointer rounded-md px-3 py-2 text-xs font-medium ${personal.mode === mode ? "bg-accent text-accent-foreground" : "text-ink-600"}`}
+              >
+                <input
+                  className="mr-1.5 size-3"
+                  type="radio"
+                  name="settings-mode"
+                  value={mode}
+                  checked={personal.mode === mode}
+                  onChange={() => updatePersonal({ mode })}
+                />
+                {mode}
+              </label>
+            ))}
+          </fieldset>
+        </div>
+      </header>
+      {!embedded && (
+        <SettingsTabs
+          id={`${tabsId}-main`}
+          panelId={`${tabsId}-content`}
+          label="Settings categories"
+          value={section}
+          language={personal.language}
+          items={Object.entries(sectionNames).map(([id, item]) => ({
+            id,
+            ...item,
+          }))}
+          onChange={(value) => {
+            if (value !== section)
+              requestChange(() =>
+                navigate(`/app/settings/${value}`, {
+                  state: { settingsTabFocus: value },
+                }),
               );
-            })}
-          </nav>
-          <div className="hidden space-y-2 px-2 text-xs lg:block">
-            {state.sections.team.employees.find(e=>e.id===actorId)?.roleIds.includes("owner") && <Link
-              className="block text-teal-700 hover:underline"
-              to="/app/subscription"
-            >
-              Subscription & SMS credits
-            </Link>}
-            <Link
-              className="block text-teal-700 hover:underline"
-              to="/app/support"
-            >
-              Get support
-            </Link>
-          </div>
-        </aside>
-        <div className="min-w-0 space-y-4">
-          <div className="flex items-start gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-              <Icon className="size-5" />
-            </span>
-            <div>
-              <h2 className="text-lg font-semibold text-ink">
-                {personal.language === "Bangla" ? info.bn : info.label}
-              </h2>
-              <p className="mt-1 text-xs leading-relaxed text-ink-500">
-                {info.description}
-              </p>
-            </div>
-          </div>
+          }}
+        />
+      )}
+      <div
+        id={`${tabsId}-content`}
+        role={embedded ? undefined : "tabpanel"}
+        aria-labelledby={embedded ? undefined : `${tabsId}-main-${section}`}
+        className={
+          subsections.length
+            ? "grid min-w-0 gap-4 lg:grid-cols-[215px_minmax(0,1fr)]"
+            : "min-w-0"
+        }
+      >
+        {subsections.length > 0 && (
+          <aside className="min-w-0 self-start">
+            <SettingsTabs
+              secondary
+              id={`${tabsId}-sub`}
+              panelId={`${tabsId}-sub-content`}
+              label={`${info.label} sub-settings`}
+              libraryTitle={personal.language === "Bangla" ? info.bn : info.label}
+              libraryGroup={personal.language === "Bangla" ? "এই বিভাগের সেটিংস" : "In this section"}
+              value={activeSubsection}
+              language={personal.language}
+              items={subsections}
+              onChange={selectSubsection}
+            />
+          </aside>
+        )}
+        <div
+          data-settings-subpanel
+          id={`${tabsId}-sub-content`}
+          role={subsections.length ? "tabpanel" : undefined}
+          aria-labelledby={
+            subsections.length ? `${tabsId}-sub-${activeSubsection}` : undefined
+          }
+          className="min-w-0 space-y-4"
+        >
           {!canView ? (
             <SettingCard title="Settings access unavailable">
               <p className="text-sm text-ink-600">
@@ -682,6 +733,7 @@ function SettingsPageContent() {
             <DataSettings />
           ) : (
             <form
+              noValidate
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!dirty || !editable || readingLogo) return;
@@ -699,19 +751,32 @@ function SettingsPageContent() {
                 </p>
               )}
               {section === "team" ? (
-                <SettingCard title="Business employees & roles">
                   <TeamSettings
                     state={state}
+                    actorId={actorId}
+                    language={personal.language}
                     value={draft as SettingsSections["team"]}
                     disabled={!editable}
                     advanced={personal.mode === "Advanced"}
                     onChange={setDraft}
                   />
-                </SettingCard>
+              ) : section === "interface" ? (
+                <InterfaceSettings
+                  value={draft as ModuleViews}
+                  onChange={setDraft}
+                  disabled={!editable}
+                />
+              ) : section === "financialTerminology" ? (
+                <FinancialTerminologySettings
+                  value={draft as FinancialDisplay}
+                  disabled={!editable}
+                  language={personal.language}
+                  onChange={setDraft}
+                />
               ) : section === "personal" ? (
                 <>
                   <SettingCard title="Appearance & language">
-                    <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="grid gap-5 md:grid-cols-2">
                       <SettingsField
                         label="Appearance"
                         bn="চেহারা"
@@ -719,9 +784,19 @@ function SettingsPageContent() {
                         hint="Uses your existing Light, Dark and System theme setting."
                       >
                         {(id) => (
-                          <AppSelect id={id} label="Appearance" value={themeDraft}
-  onChange={(next) => setThemeDraft(next as typeof theme)}
-  options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'},{value:'system',label:'System'}]} />
+                          <AppSelect
+                            id={id}
+                            label="Appearance"
+                            value={themeDraft}
+                            onChange={(next) =>
+                              setThemeDraft(next as typeof theme)
+                            }
+                            options={[
+                              { value: "light", label: "Light" },
+                              { value: "dark", label: "Dark" },
+                              { value: "system", label: "System" },
+                            ]}
+                          />
                         )}
                       </SettingsField>
                       <SettingsField
@@ -731,9 +806,19 @@ function SettingsPageContent() {
                         hint="Applies to settings and navigation. Existing module content remains in its current language."
                       >
                         {(id) => (
-                          <AppSelect id={id} label="Language" value={personalDraft.language}
-  onChange={(language) => setPersonalDraft({ ...personalDraft, language: language as PersonalSettings['language'] })}
-  options={['English + Bangla', 'English', 'Bangla']} />
+                          <AppSelect
+                            id={id}
+                            label="Language"
+                            value={personalDraft.language}
+                            onChange={(language) =>
+                              setPersonalDraft({
+                                ...personalDraft,
+                                language:
+                                  language as PersonalSettings["language"],
+                              })
+                            }
+                            options={["English + Bangla", "English", "Bangla"]}
+                          />
                         )}
                       </SettingsField>
                     </div>
@@ -746,24 +831,53 @@ function SettingsPageContent() {
                       hint="Both modes tolerate spelling mistakes. Default requires all words; Advanced also finds partial words and broader text matches. Numeric references stay exact. Enter opens the first result."
                     >
                       {(id) => (
-                        <AppSelect id={id} label="Search matching" value={personalDraft.searchMode}
-                          onChange={(searchMode) => setPersonalDraft({ ...personalDraft, searchMode: searchMode as PersonalSettings['searchMode'] })}
-                          options={[{ value: 'Default', label: 'Default — focused fuzzy search' }, { value: 'Advanced', label: 'Advanced — broader fuzzy search' }]} />
+                        <AppSelect
+                          id={id}
+                          label="Search matching"
+                          value={personalDraft.searchMode}
+                          onChange={(searchMode) =>
+                            setPersonalDraft({
+                              ...personalDraft,
+                              searchMode:
+                                searchMode as PersonalSettings["searchMode"],
+                            })
+                          }
+                          options={[
+                            {
+                              value: "Default",
+                              label: "Default — focused fuzzy search",
+                            },
+                            {
+                              value: "Advanced",
+                              label: "Advanced — broader fuzzy search",
+                            },
+                          ]}
+                        />
                       )}
                     </SettingsField>
                   </SettingCard>
                   {personal.mode === "Advanced" && (
                     <SettingCard title="Advanced display preferences">
-                      <div className="grid gap-5 sm:grid-cols-2">
+                      <div className="grid gap-5 md:grid-cols-2">
                         <SettingsField
                           label="Table density"
                           bn="টেবিলের ঘনত্ব"
                           hint="Changes row spacing across this business workspace."
                         >
                           {(id) => (
-                            <AppSelect id={id} label="Table density" value={personalDraft.density}
-  onChange={(density) => setPersonalDraft({ ...personalDraft, density: density as PersonalSettings['density'] })}
-  options={['Compact', 'Comfortable']} />
+                            <AppSelect
+                              id={id}
+                              label="Table density"
+                              value={personalDraft.density}
+                              onChange={(density) =>
+                                setPersonalDraft({
+                                  ...personalDraft,
+                                  density:
+                                    density as PersonalSettings["density"],
+                                })
+                              }
+                              options={["Compact", "Comfortable"]}
+                            />
                           )}
                         </SettingsField>
                         <SettingsField
@@ -772,9 +886,25 @@ function SettingsPageContent() {
                           hint="Uses the existing finance and daybook terminology preference."
                         >
                           {(id) => (
-                            <AppSelect id={id} label="Financial terminology" value={personalDraft.terminology}
-  onChange={(terminology) => setPersonalDraft({ ...personalDraft, terminology: terminology as PersonalSettings['terminology'] })}
-  options={[{value:'simple',label:'Simple words'},{value:'accounting',label:'Accounting terms'}]} />
+                            <AppSelect
+                              id={id}
+                              label="Financial terminology"
+                              value={personalDraft.terminology}
+                              onChange={(terminology) =>
+                                setPersonalDraft({
+                                  ...personalDraft,
+                                  terminology:
+                                    terminology as PersonalSettings["terminology"],
+                                })
+                              }
+                              options={[
+                                { value: "simple", label: "Simple words" },
+                                {
+                                  value: "accounting",
+                                  label: "Accounting terms",
+                                },
+                              ]}
+                            />
                           )}
                         </SettingsField>
                         <SettingsField
@@ -783,41 +913,107 @@ function SettingsPageContent() {
                           hint="Uses the existing daybook date display preference."
                         >
                           {(id) => (
-                            <AppSelect id={id} label="Transaction date display" value={personalDraft.dateView}
-  onChange={(dateView) => setPersonalDraft({ ...personalDraft, dateView: dateView as PersonalSettings['dateView'] })}
-  options={[{value:'transaction',label:'Transaction date'},{value:'created',label:'Entry date'}]} />
+                            <AppSelect
+                              id={id}
+                              label="Transaction date display"
+                              value={personalDraft.dateView}
+                              onChange={(dateView) =>
+                                setPersonalDraft({
+                                  ...personalDraft,
+                                  dateView:
+                                    dateView as PersonalSettings["dateView"],
+                                })
+                              }
+                              options={[
+                                {
+                                  value: "transaction",
+                                  label: "Transaction date",
+                                },
+                                { value: "created", label: "Entry date" },
+                              ]}
+                            />
                           )}
                         </SettingsField>
                       </div>
                     </SettingCard>
                   )}
                 </>
+              ) : section === "business" ? (
+                <>
+                  {settingsSubsections.business.map((group) => (
+                    <div key={group.id} hidden={activeSubsection !== group.id}>
+                      <SettingCard
+                        title={
+                          personal.language === "Bangla"
+                            ? group.bn
+                            : group.label
+                        }
+                      >
+                        <Fields
+                          fields={(settingsFields.business ?? []).filter(
+                            (field) =>
+                              businessFieldGroup(field.key) === group.id &&
+                              (!field.advanced || personal.mode === "Advanced"),
+                          )}
+                          value={draft}
+                          onChange={setDraft}
+                          disabled={!editable}
+                          language={personal.language}
+                          onReading={setReadingLogo}
+                        />
+                        {group.id === "general" && (
+                          <p className="border-t border-border pt-4 text-xs text-helper">
+                            Currency: BDT · Timezone: Asia/Dhaka
+                          </p>
+                        )}
+                      </SettingCard>
+                    </div>
+                  ))}
+                </>
               ) : (
                 <>
-                  <SettingCard title="Common settings">
-                    <Fields
-                      fields={(settingsFields[section] || []).filter(
-                        (f) => !f.advanced,
-                      )}
-                      value={draft}
-                      onChange={setDraft}
-                      disabled={!editable}
-                      language={personal.language}
-                      onReading={setReadingLogo}
-                    />
-                    {section === "business" && (
-                      <div className="flex gap-3 border-t border-border pt-4 text-xs text-ink-500">
-                        <span>Currency: BDT</span>
-                        <span>Timezone: Asia/Dhaka</span>
-                      </div>
-                    )}
-                  </SettingCard>
+                  {(section !== "invoices" ||
+                    (activeSubsection === "invoice" &&
+                      (settingsFields.invoices || []).some(
+                        (f) =>
+                          !f.advanced &&
+                          ["prefix", "copies", "showPurchaseCost"].includes(
+                            f.key,
+                          ),
+                      ))) && (
+                    <SettingCard title="Common settings">
+                      <Fields
+                        fields={(settingsFields[section] || []).filter(
+                          (f) =>
+                            !f.advanced &&
+                            (section !== "invoices" ||
+                              ["prefix", "copies", "showPurchaseCost"].includes(
+                                f.key,
+                              )),
+                        )}
+                        value={draft}
+                        onChange={setDraft}
+                        disabled={!editable}
+                        language={personal.language}
+                        onReading={setReadingLogo}
+                      />
+                    </SettingCard>
+                  )}
                   {personal.mode === "Advanced" &&
+                    (section !== "invoices" ||
+                      activeSubsection === "invoice") &&
                     (settingsFields[section] || []).some((f) => f.advanced) && (
                       <SettingCard title="Advanced settings">
                         <Fields
                           fields={(settingsFields[section] || []).filter(
-                            (f) => f.advanced,
+                            (f) =>
+                              f.advanced &&
+                              (section !== "invoices" ||
+                                [
+                                  "prefix",
+                                  "copies",
+                                  "showPurchaseCost",
+                                ].includes(f.key)),
                           )}
                           value={draft}
                           onChange={setDraft}
@@ -858,10 +1054,24 @@ function SettingsPageContent() {
                     </Link>
                   )}
                   {section === "invoices" && (
-                    <InvoicePreview
-                      value={draft as SettingsSections["invoices"]}
-                      business={state.sections.business}
-                    />
+                    <>
+                      <div hidden={activeSubsection !== "invoice"}>
+                        <DocumentDesignSettings
+                          value={draft as SettingsSections["invoices"]}
+                          business={state.sections.business}
+                          disabled={!editable}
+                          onChange={setDraft}
+                        />
+                      </div>
+                      <div hidden={activeSubsection !== "output"}>
+                        <OutputDesignSettings
+                          value={draft as SettingsSections["invoices"]}
+                          business={state.sections.business}
+                          disabled={!editable}
+                          onChange={setDraft}
+                        />
+                      </div>
+                    </>
                   )}
                   {section === "notifications" && (
                     <SettingCard title="Notification preview">
@@ -878,14 +1088,21 @@ function SettingsPageContent() {
                         Asia/Dhaka. No message is sent.
                       </p>
                       <p className="text-xs text-ink-500">
-                        Configure shared sales completion, due collection and courier SMS event switches in Online Sales.
-                        SMS sending remains disconnected in this UI preview.
+                        Configure shared sales completion, due collection and
+                        courier SMS event switches in Online Sales. SMS sending
+                        remains disconnected in this UI preview.
                       </p>
                       <div className="flex flex-wrap gap-3">
-                        <Link to="/app/notifications" className="inline-block text-xs text-teal-700 hover:underline">
+                        <Link
+                          to="/app/notifications"
+                          className="inline-block text-xs text-teal-700 hover:underline"
+                        >
                           Configure ERP-wide SMS alerts →
                         </Link>
-                        <Link to="/app/subscription" className="inline-block text-xs text-teal-700 hover:underline">
+                        <Link
+                          to="/app/subscription"
+                          className="inline-block text-xs text-teal-700 hover:underline"
+                        >
                           Review SMS packages & credits →
                         </Link>
                       </div>
@@ -1004,13 +1221,36 @@ function SettingsPageContent() {
           )}
         </div>
       </div>
+      <footer className="flex flex-wrap gap-4 text-xs">
+        {state.sections.team.employees
+          .find((e) => e.id === actorId)
+          ?.roleIds.includes("owner") && (
+          <Link className="text-primary hover:underline" to="/app/subscription">
+            Subscription & SMS credits
+          </Link>
+        )}
+        <Link className="text-primary hover:underline" to="/app/support">
+          Get support
+        </Link>
+      </footer>
       <SettingsDialog
         title="Discard unsaved changes?"
         description="Your saved settings will be kept. Changes in this form will be discarded."
         open={leaveOpen}
         onClose={() => setLeaveOpen(false)}
       >
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            onClick={() => {
+              if (commit()) {
+                setLeaveOpen(false);
+                pending.current?.();
+                pending.current = null;
+              }
+            }}
+          >
+            Save and continue
+          </Button>
           <Button variant="outline" onClick={() => setLeaveOpen(false)}>
             Keep editing
           </Button>

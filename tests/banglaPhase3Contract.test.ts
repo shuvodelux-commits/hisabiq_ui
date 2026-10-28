@@ -5,7 +5,7 @@ const read=(path:string)=>readFileSync(path,'utf8');
 
 test('print path uses an explicit language instead of a React context that is absent in static markup',()=>{
  const source=read('src/components/brand/printReceipt.tsx');
- assert.match(source,/printDocumentLanguage\(props\.language/);
+ assert.match(source,/printDocumentLanguage\(design\?\.language\?\?props\.language/);
  assert.match(source,/ReceiptPreview \{\.\.\.props\}/);
  const receipt=read('src/components/brand/ReceiptPreview.tsx');
  assert.match(receipt,/language\?: UiLanguage/);

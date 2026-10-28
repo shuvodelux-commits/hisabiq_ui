@@ -12,13 +12,13 @@ async function main(){
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>localStorage.setItem('hisabiq-erp-personal-v1',JSON.stringify({mode:'Simple',language:'English',density:'Compact',terminology:'simple',dateView:'transaction'})));
   await page.goto('http://127.0.0.1:4398/#/app/reports');
-  await page.getByRole('heading',{name:'Business overview',exact:true}).waitFor();
+  await page.locator('[data-magic-patterns-reports=overview]').waitFor();
   await page.locator('#reports-screen-library').click();
   await page.getByRole('tablist',{name:'Report groups'}).getByRole('tab',{name:'Sales & profit',exact:true}).click();
-  await page.getByRole('heading',{name:'Sales register',exact:true}).waitFor();
+  await page.waitForURL(/report=sales-register/);
   await page.getByRole('button',{name:'Product performance',exact:true}).click();
-  await page.getByRole('heading',{name:'Product performance',exact:true}).waitFor();
-  await page.goBack();await page.getByRole('heading',{name:'Sales register',exact:true}).waitFor();
+  await page.waitForURL(/report=product-sales/);
+  await page.goBack();await page.waitForURL(/report=sales-register/);
   const initial=await page.locator('[data-report-row]').count();assert.ok(initial>0);
   await page.getByRole('combobox',{name:'Compare',exact:true}).click();
   await page.getByRole('option',{name:'Previous period',exact:true}).click();
@@ -43,7 +43,7 @@ async function main(){
   await page.getByRole('button',{name:'Save view',exact:true}).click();
   await page.getByRole('textbox',{name:'View name'}).fill('Owner sales');
   await page.getByRole('button',{name:'Save this view'}).click();
-  await page.reload();await page.getByRole('heading',{name:'Sales register',exact:true}).waitFor();
+  await page.reload();await page.waitForURL(/report=sales-register/);
   await page.getByRole('button',{name:'Saved views',exact:true}).click();
   await page.getByRole('button',{name:'Open Owner sales',exact:true}).click();
   const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Export CSV',exact:true}).click();
@@ -64,14 +64,16 @@ async function main(){
   const calendar=page.getByRole('dialog',{name:/Report date range.*calendar/});
   await calendar.getByRole('button',{name:'Last month',exact:true}).click();
   await calendar.getByRole('button',{name:'Apply',exact:true}).click();
-  assert.match(page.url(),/from=2026-09-01/);
+  const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' }));
+  const previousMonth = new Date(Date.UTC(today.getFullYear(), today.getMonth() - 1, 1)).toISOString().slice(0, 10);
+  assert.equal(new URLSearchParams(page.url().split('?')[1]).get('from'), previousMonth);
   assert.deepEqual(errors,[]);
   await context.close();
   for(const profile of [{width:390,height:844,theme:'dark',language:'Bangla'},{width:768,height:1024,theme:'light',language:'English + Bangla'},{width:1440,height:1000,theme:'light',language:'English'}]){
    const c=await browser.newContext({viewport:{width:profile.width,height:profile.height},reducedMotion:'reduce'}),p=await c.newPage();
    await p.addInitScript(v=>{localStorage.setItem('hisabiq-theme',v.theme);localStorage.setItem('hisabiq-erp-personal-v1',JSON.stringify({mode:'Simple',language:v.language,density:'Compact',terminology:'simple',dateView:'transaction'}));},profile);
    await p.goto('http://127.0.0.1:4398/#/app/reports');
-   await p.getByRole('heading',{name:profile.language==='Bangla'?'ব্যবসার সারাংশ':'Business overview',exact:true}).waitFor();
+   await p.locator('[data-magic-patterns-reports=overview]').waitFor();
    assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    fs.mkdirSync('.impeccable/review',{recursive:true});
    await p.screenshot({path:'.impeccable/review/'+(profile.width===390?'mobile':profile.width===768?'tablet':'desktop')+'.png',fullPage:true});

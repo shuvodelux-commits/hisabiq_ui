@@ -1,3 +1,8 @@
+import {useModuleColumns} from '../settings/useModuleColumns';
+import {InvoicePresentationEditor} from '../settings/InvoicePresentationEditor';
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {canManage} from '../settings/model';
+import {deleteSalesDraft,restoreSalesDraft} from '../data/salesPreviewStore';
 import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
 import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord, SalesMobileDisclosure } from '../components/sales/SalesMobileLayout';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -37,7 +42,7 @@ import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
-import { customerCredits as seedCredits, salesReturns as seedReturns, type SalesDraft } from '../data/sales';
+import { customerCredits as seedCredits, salesReturns as seedReturns } from '../data/sales';
 import { products } from '../data/products';
 import {availableParties} from '../data/erpDemoStore';
 import {getSalesPreviewSnapshot,subscribeSalesPreview,updateSalesPreview,saveSaleTemplate} from '../data/salesPreviewStore';
@@ -101,15 +106,6 @@ const salesColumnStorageKey = 'hisabiq-sales-visible-columns';
 const tabletSalesColumnStorageKey = 'hisabiq-sales-visible-columns-tablet';
 const tabletVisibleSalesColumns = { ...defaultVisibleSalesColumns, items: false, payment: false };
 
-function savedSalesColumns(key: string, defaults: Record<SalesColumn, boolean>) {
-  if (typeof window === 'undefined') return defaults;
-  try {
-    const stored = window.localStorage.getItem(key);
-    return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
-  } catch {
-    return defaults;
-  }
-}
 const purchasePriceByProductId = new Map(products.map((product) => [product.id, product.purchasePrice]));
 
 function isBundleReturnLine(line:SalesInvoice['lines'][number]) {
@@ -150,7 +146,7 @@ function SalesColumnPicker({
   const {language}=useUiCopy();
   const sl=(english:string)=>salesLabel(language,english);
   const [expanded,setExpanded] = useState(false);
-  return inline ? <div><Button variant="outline" size="sm" aria-expanded={expanded} className="w-full justify-between" onClick={()=>setExpanded(value=>!value)}>{sl('Columns')}<ChevronDown className="size-3.5"/></Button>{expanded && <div className="py-1">{salesColumns.map(column=><button key={column.id} type="button" role="menuitemcheckbox" aria-checked={visible[column.id]} onClick={()=>onToggle(column.id)} className="flex h-9 w-full items-center justify-between gap-4 px-3 py-1 text-left text-[13px] text-ink-700 hover:bg-ink-50"><span>{sl(column.label)}</span>{visible[column.id]&&<Check className="size-4 text-ink"/>}</button>)}</div>}</div> : (
+  return inline ? <div><Button variant="outline" size="sm" aria-expanded={expanded} className="w-full justify-between" onClick={()=>setExpanded(value=>!value)}>{sl('Columns')}<ChevronDown className="size-3.5"/></Button>{expanded && <div className="py-1">{salesColumns.map(column=><button key={column.id} type="button" role="menuitemcheckbox" disabled={["invoice","customer","total","paid","due"].includes(column.id)} aria-checked={visible[column.id]} onClick={()=>onToggle(column.id)} className="flex h-9 w-full items-center justify-between gap-4 px-3 py-1 text-left text-[13px] text-ink-700 hover:bg-ink-50"><span>{sl(column.label)}</span>{visible[column.id]&&<Check className="size-4 text-ink"/>}</button>)}</div>}</div> : (
     <FloatingPanel
       label={sl("Choose sales invoice columns")}
       width={210}
@@ -172,6 +168,7 @@ function SalesColumnPicker({
             <button
               key={column.id}
               type="button"
+              disabled={["invoice","customer","total","paid","due"].includes(column.id)}
               role="menuitemcheckbox"
               aria-checked={visible[column.id]}
               onClick={() => onToggle(column.id)}
@@ -266,8 +263,10 @@ function InvoiceDialog({
   invoice,
   onClose,
   onPayment,
-  onReturn
+  onReturn,
+  onPresentation
 }: {
+  onPresentation:(invoice:SalesInvoice)=>void;
   invoice: SalesInvoice | null;
   onClose: () => void;
   onPayment: (invoice: SalesInvoice) => void;
@@ -361,6 +360,7 @@ function InvoiceDialog({
               </div>
             </div>
 
+            <InvoicePresentationEditor key={invoice.id} invoice={invoice} onSaved={onPresentation}/>
             {invoice.note && <p className="rounded-lg bg-warning-bg px-3 py-2 text-[12.5px] text-warning">{invoice.note}</p>}
 
             <DialogFooter className="flex-wrap">
@@ -689,6 +689,7 @@ function CreditActionDialog({
 }
 
 export function Sales() {
+  const settings=useTenantSettings();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1279px)');
   const {text,language,showHelper}=useUiCopy();
@@ -709,15 +710,15 @@ export function Sales() {
   const setTemplates=(update:(items:SaleTemplate[])=>SaleTemplate[])=>updateSalesPreview('templates',update);
   const [templateEditor,setTemplateEditor]=useState<{template:SaleTemplate|null}|null>(null);
   const [returnDetail, setReturnDetail] = useState<SalesReturn | null>(null);
-  const setDrafts=(update:(items:SalesDraft[])=>SalesDraft[])=>updateSalesPreview('drafts',update);
+
   const routeQuery=searchParams.get('q') ?? '';
   const [query, setQuery] = useState(routeQuery);
   useEffect(()=>setQuery(routeQuery),[routeQuery]);
   const [customerFilter, setCustomerFilter] = useState('All customers');
   const [status, setStatus] = useState('All status');
   const [method, setMethod] = useState('All payments');
-  const [wideSalesColumns, setWideSalesColumns] = useState<Record<SalesColumn, boolean>>(() => savedSalesColumns(salesColumnStorageKey, defaultVisibleSalesColumns));
-  const [tabletSalesColumns, setTabletSalesColumns] = useState<Record<SalesColumn, boolean>>(() => savedSalesColumns(tabletSalesColumnStorageKey, tabletVisibleSalesColumns));
+  const {columns:wideSalesColumns,setColumns:setWideSalesColumns}=useModuleColumns("sales",salesColumnStorageKey,defaultVisibleSalesColumns);
+  const {columns:tabletSalesColumns,setColumns:setTabletSalesColumns}=useModuleColumns("sales",tabletSalesColumnStorageKey,tabletVisibleSalesColumns);
   const visibleSalesColumns = isTablet ? tabletSalesColumns : wideSalesColumns;
   const [detail, setDetail] = useState<SalesInvoice | null>(null);
   const [paymentTarget, setPaymentTarget] = useState<SalesInvoice | null>(null);
@@ -734,19 +735,7 @@ export function Sales() {
   const [returnRefundMethod, setReturnRefundMethod] = useState<Exclude<PaymentMethod, 'Customer Credit'>>('Cash');
   const [returnRefundAccount, setReturnRefundAccount] = useState('');
 
-  const toggleSalesColumn = (column: SalesColumn) => {
-    const setColumns = isTablet ? setTabletSalesColumns : setWideSalesColumns;
-    setColumns((current) => {
-      const next = { ...current, [column]: !current[column] };
-      try {
-        if (isTablet) window.localStorage.setItem(tabletSalesColumnStorageKey, JSON.stringify(next));
-        else window.localStorage.setItem(salesColumnStorageKey, JSON.stringify(next));
-      } catch {
-        // Keep the current-session preference when storage is unavailable.
-      }
-      return next;
-    });
-  };
+  const toggleSalesColumn = (column:SalesColumn)=>{const setColumns=isTablet?setTabletSalesColumns:setWideSalesColumns;setColumns(current=>({...current,[column]:!current[column]}));};
 
   const customerNames = useMemo(
     () => Array.from(new Set(invoices.map((invoice) => invoice.party))),
@@ -1696,8 +1685,8 @@ export function Sales() {
                             </button>
                             <button onClick={() => {
                               close();
-                              setDrafts((items) => items.filter((item) => item.id !== draft.id));
-                              toast.error(`${draft.label} ${sl('archived')}`);
+                              const ctx={tenantId:settings.state.tenantId,actorId:settings.actorId,allowed:canManage(settings.state,settings.actorId,'sales')};
+                              try{deleteSalesDraft(draft.id,ctx,new Date().toISOString());toast('Draft moved to Recycle Bin',{action:{label:'Undo',onClick:()=>{try{restoreSalesDraft(draft.id,ctx,new Date().toISOString());}catch(error){toast.error(error instanceof Error?error.message:'Could not restore.');}}}});}catch(error){toast.error(error instanceof Error?error.message:'Could not archive draft.');}
                             }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
                               <Trash2 className="size-4" /> {sl('Archive')}
                             </button>
@@ -1772,6 +1761,7 @@ export function Sales() {
       </div>
 
       <InvoiceDialog
+        onPresentation={setDetail}
         invoice={detail}
         onClose={() => setDetail(null)}
         onPayment={(invoice) => { setDetail(null); setPaymentTarget(invoice); }}

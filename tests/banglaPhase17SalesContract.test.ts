@@ -33,7 +33,7 @@ test('Sales localized presentation does not alter sales, payments, returns, cart
  const values=[
   "const salesColumnStorageKey = 'hisabiq-sales-visible-columns'",
   "onToggle(column.id)",
-  "window.localStorage.setItem(salesColumnStorageKey",
+  'useModuleColumns("sales",salesColumnStorageKey',
   "const [status, setStatus] = useState('All status')",
   "const [method, setMethod] = useState('All payments')",
   "const [returnSettlement, setReturnSettlement] = useState<SalesReturn['settlement']>('Adjust due')",

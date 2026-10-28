@@ -1,3 +1,5 @@
+import {useFinancialDisplay} from '../../financial-display/useFinancialDisplay';
+import {financialContexts,type FinancialContext} from '../../financial-display/model';
 import { PartyClosingBalance } from './PartyClosingBalance';
 import { StickyNote } from 'lucide-react';
 import { LedgerImpactAmount } from './LedgerImpactAmount';
@@ -20,6 +22,7 @@ type Props={
 };
 export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpenAttachment}:Props){
   const {text,language}=useUiCopy();
+  const financial=useFinancialDisplay(financialContexts.includes(statement.relationship as FinancialContext)?statement.relationship as FinancialContext:'Customer');
   return <div>
     <div className="flex flex-wrap justify-between gap-3 border-b border-border bg-ink-50/50 px-4 py-2 text-xs">
       <div><span className="text-ink-500">{text('Opening balance','শুরুর জের')} </span><strong>{formatMoneyNumber(Math.abs(statement.openingBalance))} {statement.openingBalance>=0?'Dr':'Cr'}</strong></div>
@@ -30,7 +33,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent">
           <TableHead className="pl-4 text-xs">{text('Date','তারিখ')}</TableHead><TableHead className="text-xs">{text('Particulars','বিবরণ')}</TableHead>
-          <TableHead className="text-right text-xs">{text('Debit','ডেবিট')}</TableHead><TableHead className="text-right text-xs">{text('Credit','ক্রেডিট')}</TableHead>
+          {financial.columns.map(side=><TableHead key={side} className="text-right text-xs">{financial.label(side)}</TableHead>)}
           <TableHead className="text-right text-xs">{text('Running','চলতি জের')}</TableHead><TableHead className="pr-4 text-right text-xs">{text('Actions','কাজ')}</TableHead>
         </TableRow></TableHeader>
         <TableBody>
@@ -58,8 +61,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
               </div>
               <p data-table-helper="" className="mt-0.5 max-w-md truncate text-xs text-ink-500" title={row.description}>{row.description}</p>
             </TableCell>
-            <TableCell className="text-right align-middle"><LedgerImpactAmount row={row} value={row.debit} language={language}/></TableCell>
-            <TableCell className="text-right align-middle"><LedgerImpactAmount row={row} value={row.credit} language={language}/></TableCell>
+            {financial.columns.map(side=><TableCell key={side} className="text-right align-middle"><LedgerImpactAmount row={row} value={row[side]} language={language}/></TableCell>)}
             <TableCell className="text-right font-medium">{formatMoneyNumber(Math.abs(row.runningBalance))} <span data-table-helper="" className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
             <TableCell className="pr-4 text-right"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></TableCell>
           </TableRow>)}
@@ -74,8 +76,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
                   label={text('Open attachment','সংযুক্ত ফাইল খুলুন')} onClick={()=>onOpenAttachment(row)}/>}</div>
         <p className="my-2 break-words text-xs text-ink-600">{row.description}</p>
         <div className="grid grid-cols-3 gap-2 text-right text-xs">
-          <div><p className="mb-1 text-ink-500">{text('Debit','ডেবিট')}</p><LedgerImpactAmount row={row} value={row.debit} language={language}/></div>
-          <div><p className="mb-1 text-ink-500">{text('Credit','ক্রেডিট')}</p><LedgerImpactAmount row={row} value={row.credit} language={language}/></div>
+          {financial.columns.map(side=><div key={side}><p className="mb-1 text-ink-500">{financial.label(side)}</p><LedgerImpactAmount row={row} value={row[side]} language={language}/></div>)}
           <div><p className="text-ink-500">{text('Balance','জের')}</p><strong>{formatMoneyNumber(Math.abs(row.runningBalance))}</strong></div>
         </div>
       </div>)}

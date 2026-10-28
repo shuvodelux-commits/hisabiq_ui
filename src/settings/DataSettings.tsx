@@ -1,7 +1,10 @@
+import { SettingsSqlBackup } from "./SettingsSqlBackup";
+import { SettingsActivity } from "./SettingsActivity";
+import {DraftRecovery} from './DraftRecovery';
 import { AppSelect } from '../components/AppSelect';
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, Upload, History } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import { canManage, parseSettings, type TenantSettings } from "./model";
 import { useTenantSettings } from "./TenantSettingsProvider";
 import {
@@ -41,6 +44,8 @@ export function DataSettings() {
     : [];
   return (
     <div className="space-y-5">
+      <DraftRecovery/>
+      <SettingsSqlBackup state={state} exportAllowed={exportAllowed} importAllowed={importAllowed} onReview={backup => { setBackup(backup); setRevision(state.revision); }} />
       <div className="grid gap-4 xl:grid-cols-2">
         <SettingCard title="Settings backup">
           <p className="text-sm text-ink-600">
@@ -219,51 +224,7 @@ export function DataSettings() {
           {notice}
         </p>
       )}
-      <SettingCard title="Settings activity">
-        <p className="flex items-center gap-2 text-xs text-ink-500">
-          <History className="size-4" />
-          Business settings changes · Asia/Dhaka
-        </p>
-        {!state.events.length ? (
-          <p className="text-sm text-ink-500">
-            No settings changes yet. Your first saved change will appear here.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table data-erp-table="" className="w-full text-left text-xs">
-              <thead className="text-ink-500">
-                <tr>
-                  <th className="px-2 py-2">When</th>
-                  <th className="px-2 py-2">Employee</th>
-                  <th className="px-2 py-2">Section</th>
-                  <th className="px-2 py-2">Changed fields</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {state.events.map((event) => (
-                  <tr key={event.id}>
-                    <td className="whitespace-nowrap px-2 py-3">
-                      {new Date(event.at).toLocaleString("en-GB", {
-                        timeZone: "Asia/Dhaka",
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </td>
-                    <td className="px-2 py-3">{event.actor}</td>
-                    <td className="px-2 py-3">
-                      {sectionNames[event.section as keyof typeof sectionNames]
-                        ?.label || event.section}
-                    </td>
-                    <td className="px-2 py-3 text-ink-500">
-                      {event.changes.join(", ")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </SettingCard>
+      {canManage(state,actorId,"audit.event.view") && <SettingsActivity events={state.events} />}
       <SettingsDialog
         title="Review settings restore"
         description="Review the affected sections before replacing their saved settings."

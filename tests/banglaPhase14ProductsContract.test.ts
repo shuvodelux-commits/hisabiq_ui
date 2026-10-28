@@ -33,7 +33,7 @@ test('Phase 14 only localizes Products catalogue presentation, never product sou
   "bundleInventoryValue(p)",
   "availableProductCategories()",
   "visible[column.id]",
-  "window.localStorage.setItem(columnStorageKey",
+  "useModuleColumns('products',columnStorageKey",
   "formatStock(p)",
   "downloadReport('hisabiq-products.csv'",
   "['Name','Bangla name','SKU','Category','Brand','Base unit','Stock (base unit)'",

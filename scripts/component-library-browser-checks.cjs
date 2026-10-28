@@ -102,7 +102,7 @@ async function verifyComponentLibrary(page, profile) {
   assert.equal(await library.locator('[data-feedback-state="empty"]').count(), 1);
   await library.getByRole('tab', { name: /^(All components|সব উপাদান)$/ }).click();
   const snapshots = await library.locator('[id^="specimen-"]').count();
-  assert.equal(snapshots, 11, 'Every registered specimen is visible');
+  assert.equal(snapshots, require('../src/data/componentCatalog.json').length, 'Every registered specimen is visible');
   await page.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
   const violations = await page.evaluate(async () => (await window.axe.run({ include: ['#component-library'] }, { runOnly: ['wcag2a', 'wcag2aa'] })).violations.map((item) => ({ id: item.id, nodes: item.nodes.map((node) => node.target) })));
   assert.deepEqual(violations, [], JSON.stringify(profile) + ' library accessibility');
