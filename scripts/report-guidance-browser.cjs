@@ -1,4 +1,6 @@
 /* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires -- Playwright CLI uses CommonJS. */
+/* global axe */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -10,20 +12,19 @@ async function main(){
    const context=await browser.newContext({viewport:{width:profile.width,height:profile.height},hasTouch:profile.width<500,reducedMotion:'reduce'}),page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));
    await page.addInitScript(v=>{localStorage.setItem('hisabiq-theme',v.theme);localStorage.setItem('hisabiq-erp-personal-v1',JSON.stringify({mode:'Simple',language:v.language,density:'Compact',terminology:'simple',dateView:'transaction'}));},profile);
-   await page.goto('http://127.0.0.1:4399/#/app/reports');
+   await page.goto('http://127.0.0.1:4399/#/app/reports?screen=library&report=sales-register&from=&to=');
    const bn=profile.language==='Bangla';
-   await page.getByRole('heading',{name:bn?'ব্যবসার সারাংশ':'Business overview',exact:true}).waitFor();
-   assert.equal(await page.locator('[data-report-summary="sales-register"]').getAttribute('data-report-tone'),'success');
-   assert.equal(await page.locator('[data-report-summary="purchases"]').getAttribute('data-report-tone'),'info');
-   assert.equal(await page.locator('button button').count(),0,'help buttons must not be nested in summary buttons');
-   const help=page.getByRole('button',{name:bn?'মোট লাভ সম্পর্কে জানুন':'About gross profit',exact:true});
-   await help.focus();await page.getByRole('tooltip').filter({hasText:bn?/বিক্রয়/:/sales/i}).waitFor();
-   assert.match(await page.getByRole('tooltip').textContent(),bn?/বিক্রয়/:/sales/i);
+   const date = page.getByRole('button', { name: bn ? /^রিপোর্টের সময়কাল:/ : /^Report date range:/ });
+   await date.waitFor();
+   assert.equal(await page.locator('button button').count(),0,'help buttons must not be nested in action buttons');
+   const help=page.getByRole('button',{name:bn?'সময়ের তুলনা সম্পর্কে জানুন':'About period comparison',exact:true});
+   await help.focus();await page.getByRole('tooltip').waitFor();
+   assert.match(await page.getByRole('tooltip').textContent(),bn?/সময়/:/period/i);
    await page.keyboard.press('Escape');assert.equal(await page.getByRole('tooltip').count(),0);
    if(profile.width<500)await help.tap();else await help.click();
    await page.getByRole('tooltip').waitFor();
    const rect=await page.getByRole('tooltip').boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=profile.width+1,'tooltip stays inside viewport');
-   await page.getByRole('heading',{name:bn?'ব্যবসার সারাংশ':'Business overview',exact:true}).click();
+   await page.getByRole('heading',{name:bn?'রিপোর্ট':'Reports',exact:true}).click();
    assert.equal(await page.getByRole('tooltip').count(),0);
    assert.equal((await page.locator('[data-bangla-helper]').count())>0,profile.language==='English + Bangla');
    await page.goto('http://127.0.0.1:4399/#/app/reports?report=sales-register&from=&to=');
@@ -44,7 +45,7 @@ async function main(){
    await page.addScriptTag({path:require.resolve('axe-core')});
    const result=await page.evaluate(async()=>await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}));
    assert.deepEqual(result.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)})),[]);
-   await page.goto('http://127.0.0.1:4399/#/app/reports');await page.getByRole('heading',{name:bn?'ব্যবসার সারাংশ':'Business overview',exact:true}).waitFor();
+   await page.goto('http://127.0.0.1:4399/#/app/reports?screen=library&report=sales-register&from=&to=');await page.getByRole('button',{name:bn?/^রিপোর্টের সময়কাল:/:/^Report date range:/}).waitFor();
    if(process.env.REPORT_GUIDANCE_CAPTURE!=='0'){fs.mkdirSync('.impeccable/review',{recursive:true});await page.screenshot({path:'.impeccable/review/guidance-'+profile.width+'-'+profile.theme+'.png',fullPage:true});}
    assert.deepEqual(errors,[]);await context.close();
   }

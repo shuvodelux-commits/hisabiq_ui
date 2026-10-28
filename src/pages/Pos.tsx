@@ -583,6 +583,8 @@ export function Pos() {
         return {
           productId: l.product.id,
           name: l.product.name,
+          nameBn:l.product.nameBn,
+          sku:l.product.sku,
           unit: l.product.unit,
           returnableQuantity: baseQty,
           soldBaseQuantity: baseQty,
@@ -604,7 +606,7 @@ export function Pos() {
       subtotal: t.subtotal,
       discount: t.discountAmt,
       rounding: t.rounding,
-      branding: { ...settingsState.sections.business, showLogo: settingsState.sections.invoices.showLogo, footer: settingsState.sections.invoices.footer },
+      branding: { ...settingsState.sections.business, showLogo: settingsState.sections.invoices.showLogo, footer: settingsState.sections.invoices.footer, design:structuredClone(settingsState.sections.invoices.design) },
       total: t.total,
       paid: Math.min(t.paidNum, t.total),
       due: t.due,

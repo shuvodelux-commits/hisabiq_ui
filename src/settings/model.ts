@@ -1,3 +1,8 @@
+import {moduleViewDefaults,validModuleViews,type ModuleViews} from './moduleViews.ts';
+import {outputProfileDefaults,validateOutputProfile,type OutputProfile} from '../documents/outputProfile.ts';
+import {invoiceDesignDefaults,validateInvoiceDesign,type InvoiceDesign} from '../documents/profile.ts';
+import {financialDefaults,validateFinancialDisplay,type FinancialDisplay} from '../financial-display/model.ts';
+import {permissionCatalogue,validateRoleChange,effectivePermissions,type RbacPermission} from './rbac.ts';
 export type SettingsMode = "Simple" | "Advanced";
 export type SettingsSection =
   | "business"
@@ -10,9 +15,11 @@ export type SettingsSection =
   | "notifications"
   | "personal"
   | "data"
-  | "security";
+  | "security"
+  | "financialTerminology"
+  | "interface";
 export type BusinessSection = Exclude<SettingsSection, "personal" | "data" | "security">;
-export type SettingsPermission = "view" | BusinessSection | "export" | "import";
+export type SettingsPermission = "view" | BusinessSection | "export" | "import" | RbacPermission;
 export interface BusinessSettings {
   name: string;
   nameBn: string;
@@ -67,6 +74,8 @@ export interface MoneySettings {
   lockDate: string;
 }
 export interface InvoiceSettings {
+  profiles?:{ledger:OutputProfile;report:OutputProfile};
+  design?: InvoiceDesign;
   paper: "A4" | "80 mm" | "58 mm";
   showLogo: boolean;
   showBangla: boolean;
@@ -97,6 +106,7 @@ export interface BusinessEmployee {
   id: string;
   name: string;
   email: string;
+  joinedDate?: string;
   roleIds: string[];
   active: boolean;
 }
@@ -105,6 +115,8 @@ export interface TeamSettings {
   employees: BusinessEmployee[];
 }
 export interface SettingsSections {
+  interface:ModuleViews;
+  financialTerminology: FinancialDisplay;
   business: BusinessSettings;
   sales: SalesSettings;
   products: ProductSettings;
@@ -120,6 +132,8 @@ export interface SettingsEvent {
   actor: string;
   section: string;
   changes: string[];
+  before?:Record<string,unknown>;
+  after?:Record<string,unknown>;
 }
 export interface TenantSettings {
   schema: 1;
@@ -152,6 +166,9 @@ export const permissions: SettingsPermission[] = [
   "notifications",
   "export",
   "import",
+  "financialTerminology",
+  "interface",
+  ...permissionCatalogue.map(p=>p.code),
 ];
 export const personalDefaults: PersonalSettings = {
   mode: "Simple",
@@ -167,6 +184,8 @@ export function defaults(tenantId = currentBusinessId): TenantSettings {
     tenantId,
     revision: 0,
     sections: {
+      financialTerminology:financialDefaults(),
+      interface:moduleViewDefaults(),
       business: {
         name: tenantId === "t1" ? "Nawabpur Hardware House" : "Demo business",
         nameBn: "নবাবপুর হার্ডওয়্যার হাউস",
@@ -221,6 +240,8 @@ export function defaults(tenantId = currentBusinessId): TenantSettings {
         lockDate: "",
       },
       invoices: {
+        design:invoiceDesignDefaults(),
+        profiles:{ledger:outputProfileDefaults("ledger"),report:outputProfileDefaults("report")},
         paper: "A4",
         showLogo: true,
         showBangla: true,
@@ -264,6 +285,8 @@ export function defaults(tenantId = currentBusinessId): TenantSettings {
             ],
           },
           { id: "cashier", name: "Cashier", permissions: ["view"] },
+          { id: "storekeeper", name: "Storekeeper", permissions: ["view"] },
+          { id: "viewer", name: "Viewer", permissions: ["view"] },
           {
             id: "accountant",
             name: "Accountant",
@@ -308,13 +331,13 @@ export function canManage(
   );
   if (permission === "import" && !employee?.roleIds.includes("owner"))
     return false;
-  return (
-    !!employee?.active &&
-    state.sections.team.roles.some(
-      (r) =>
-        employee.roleIds.includes(r.id) && r.permissions.includes(permission),
-    )
-  );
+  if(!employee?.active)return false;
+  const held=effectivePermissions(state.sections.team,employeeId);
+  if(held.includes(permission))return true;
+  if(permission==='view')return held.includes('settings.setting.view');
+  if(permission==='team')return ['user.account.create','user.account.edit','user.account.disable','user.role.manage'].some(p=>held.includes(p as SettingsPermission));
+  if(['business','sales','products','purchases','money','invoices','notifications','financialTerminology','interface'].includes(permission))return held.includes('settings.setting.edit');
+  return false;
 }
 const plain = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === "object" && !Array.isArray(v);
@@ -323,6 +346,10 @@ export function validateSection<K extends BusinessSection>(
   value: unknown,
 ): string | null {
   if (!plain(value)) return "Invalid settings section.";
+  if(section==="interface")return validModuleViews(value)?null:"Invalid module view preferences.";
+  if(section==="financialTerminology") return validateFinancialDisplay(value);
+  if(section==="invoices"&&value.profiles!==undefined&&(!plain(value.profiles)||!validateOutputProfile(value.profiles.ledger)||!validateOutputProfile(value.profiles.report)))return "Invalid ledger/report print profile.";
+  if(section==="invoices" && value.design!==undefined){const error=validateInvoiceDesign(value.design);if(error)return error;}
   if (section === "team") {
     if (
       !Array.isArray(value.roles) ||
@@ -354,8 +381,8 @@ export function validateSection<K extends BusinessSection>(
     const owner = roles.find((r) => r.id === "owner");
     if (
       !owner ||
-      owner.name !== "Business owner" ||
-      permissions.some((p) => !owner.permissions.includes(p))
+      !owner.name.trim() ||
+      permissions.some((p) => !(owner.permissions as unknown[]).includes(p))
     )
       return "The business owner role is protected.";
     if (
@@ -367,13 +394,16 @@ export function validateSection<K extends BusinessSection>(
           !e.name.trim() ||
           typeof e.email !== "string" ||
           !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.email) ||
+          (e.joinedDate !== undefined && e.joinedDate !== "" &&
+            (typeof e.joinedDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(e.joinedDate) ||
+              Number.isNaN(Date.parse(e.joinedDate)) || new Date(e.joinedDate).toISOString().slice(0, 10) !== e.joinedDate)) ||
           typeof e.active !== "boolean" ||
           !Array.isArray(e.roleIds) ||
           !e.roleIds.length ||
           e.roleIds.some((id) => !roles.some((r) => r.id === id)),
       )
     )
-      return "Each employee needs a valid email and at least one existing role.";
+      return "Each employee needs a valid email, joined date (if entered) and at least one existing role.";
     if (
       new Set(employees.map((e) => e.id)).size !== employees.length ||
       new Set(employees.map((e) => e.email.trim().toLowerCase())).size !==
@@ -489,6 +519,16 @@ export function parseSettings(
   if (!raw) return { state: defaults(tenantId), recovered: false };
   try {
     const v = JSON.parse(raw);
+    if(plain(v)&&plain(v.sections)){
+      if(plain(v.sections.team)&&Array.isArray(v.sections.team.roles)){
+        const owner=v.sections.team.roles.find((r:unknown)=>plain(r)&&r.id==='owner');
+        if(plain(owner)&&Array.isArray(owner.permissions)&&owner.permissions.every((p:unknown)=>typeof p==='string')&&['view','business','sales','products','purchases','money','invoices','team','notifications','export','import'].every(p=>(owner.permissions as unknown[]).includes(p))){owner.permissions=[...new Set([...owner.permissions,...permissions])];}
+      }
+      if(v.sections.interface===undefined)v.sections.interface=moduleViewDefaults();
+      if(v.sections.financialTerminology===undefined)v.sections.financialTerminology=financialDefaults();
+      if(plain(v.sections.invoices)&&v.sections.invoices.profiles===undefined)v.sections.invoices.profiles={ledger:outputProfileDefaults("ledger"),report:outputProfileDefaults("report")};
+      if(plain(v.sections.invoices)&&v.sections.invoices.design===undefined){const old=v.sections.invoices;v.sections.invoices.design={...invoiceDesignDefaults(),paper:old.paper,language:old.showBangla?"English + Bangla":"English",showLogo:old.showLogo,showSerial:old.showSerial,showWarranty:old.showWarranty,footer:old.footer};}
+    }
     if (
       !plain(v) ||
       v.schema !== 1 ||
@@ -562,6 +602,21 @@ export function saveSection<K extends BusinessSection>(
         error: "Only a business owner can change owner assignments.",
       };
   }
+  if(section === "team"){
+    const team=value as TeamSettings;
+    for(const role of team.roles.filter(r=>JSON.stringify(r)!==JSON.stringify(state.sections.team.roles.find(old=>old.id===r.id)))){const error=validateRoleChange(state.sections.team,role,employeeId);if(error)return {ok:false as const,error};}
+    const held=effectivePermissions(state.sections.team,employeeId);
+    for(const member of team.employees){
+      const old=state.sections.team.employees.find(e=>e.id===member.id);
+      if(!old&&!held.includes('user.account.create'))return {ok:false as const,error:'You cannot create users.'};
+      if(old&&old.active!==member.active&&!held.includes('user.account.disable'))return {ok:false as const,error:'You cannot disable or reactivate users.'};
+      if(old&&JSON.stringify({...old,active:member.active})!==JSON.stringify(member)&&!held.includes('user.account.edit'))return {ok:false as const,error:'You cannot edit users.'};
+      const owner=state.sections.team.employees.find(e=>e.id===employeeId)?.roleIds.includes('owner');
+      if(!owner&&member.roleIds.filter(id=>!old?.roleIds.includes(id)).some(id=>team.roles.find(r=>r.id===id)?.permissions.some(p=>!held.includes(p))))return {ok:false as const,error:'You cannot assign authority beyond your delegated permissions.'};
+    }
+    if(state.sections.team.employees.some(e=>!team.employees.some(next=>next.id===e.id)))return {ok:false as const,error:'Disable an employee instead of deleting their identity.'};
+    for(const role of state.sections.team.roles.filter(r=>!team.roles.some(next=>next.id===r.id))){const error=validateRoleChange(state.sections.team,null,employeeId,role.id);if(error)return {ok:false as const,error};}
+  }
   const current = state.sections[section] as unknown as Record<string, unknown>;
   const changes = Object.keys(current).filter(
     (k) =>
@@ -578,6 +633,8 @@ export function saveSection<K extends BusinessSection>(
     actor: state.sections.team.employees.find((e) => e.id === employeeId)!.name,
     section,
     changes,
+    before:Object.fromEntries(changes.map(k=>[k,structuredClone(current[k])])),
+    after:Object.fromEntries(changes.map(k=>[k,structuredClone((value as unknown as Record<string,unknown>)[k])])),
   });
   next.events = next.events.slice(0, 100);
   return { ok: true as const, state: next };

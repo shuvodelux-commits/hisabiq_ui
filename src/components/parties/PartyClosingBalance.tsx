@@ -1,4 +1,5 @@
-import { useUiCopy } from '../../i18n/useUiCopy';
+import {useFinancialDisplay} from '../../financial-display/useFinancialDisplay';
+import {financialContexts,type FinancialContext} from '../../financial-display/model';
 import { taka } from '../../utils/currency';
 import type { PartyRole } from '../../types/erp';
 
@@ -13,13 +14,14 @@ export function closingBalanceMeaning(relationship: PartyRole, balance: number):
 }
 
 export function PartyClosingBalance({
-  balance, relationship, compact = false
+  balance, relationship, compact = false, language
 }: {
   balance: number;
   relationship: PartyRole;
   compact?: boolean;
+  language?: string;
 }) {
-  const { text } = useUiCopy();
+  const {text}=useFinancialDisplay(financialContexts.includes(relationship as FinancialContext)?relationship as FinancialContext:"Customer",language);
   const meaning = closingBalanceMeaning(relationship, balance);
   const term = meaning === 'receivable' ? text('Receivable', 'পাওনা')
     : meaning === 'payable' ? text('Payable', 'দেনা')

@@ -30,7 +30,7 @@ export function PageBoundary({ children }: { children: ReactNode }) {
   return (
     <PageErrorBoundary key={pathname}>
       <Suspense fallback={
-        <div role="status" aria-live="polite" aria-busy="true" className="rounded-xl border border-border bg-card p-4">
+        <div role="status" aria-live="polite" aria-busy="true" data-page-loading="true" className="rounded-xl border border-border bg-card p-4">
           <p className="text-sm text-ink-500">Loading page… <span lang="bn">পেজ খুলছে…</span></p>
           <div aria-hidden="true" className="mt-4 space-y-3">
             <div className="h-6 w-1/3 rounded bg-muted" />
