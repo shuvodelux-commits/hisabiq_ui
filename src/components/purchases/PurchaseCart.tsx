@@ -9,7 +9,7 @@ import { ProductThumb } from '../ProductThumb';
 import { ProductCombobox } from '../pos/ProductCombobox';
 import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
 import {MultiUnitQuantityInput} from '../transactions/MultiUnitQuantityInput';
-import { formatStock, unitsFor } from '../../utils/units';
+import { formatStock, unitsFor, priceFor } from '../../utils/units';
 import { taka } from '../../utils/currency';
 import { normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
@@ -162,7 +162,7 @@ export function PurchaseCart({
                         aria-label={'Lot selling price for ' + product.name + '. Optional: leave blank to use the product default.'}
                         inputMode="decimal"
                         value={line.lotSellPrice} readOnly={sourceLocked}
-                        placeholder={String(Math.round(priceInUnit(line.product.sellPrice, line.product, line.lotSellUnit) * 10000) / 10000)}
+                        placeholder={String(Math.round(priceFor(line.product, line.lotSellUnit) * 10000) / 10000)}
                         className={entryInput + ' pl-5 pr-12'}
                         onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
