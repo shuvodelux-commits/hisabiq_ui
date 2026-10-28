@@ -1,7 +1,7 @@
 {
   "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "0b0ce1244d3dfceda2da042dc537ce5abc185a57e91774cce0fd67350de6d413",
+  "guideSha256": "03333f696aad16c940f2412a919067cd34a75537255b5a633d22c7b330cca916",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {
@@ -288,6 +288,8 @@
         "read-only through business editor",
         "Party-aligned phone/tablet/desktop navigation",
         "horizontal and vertical keyboard tabs",
+        "overflow-only tab scroll controls with disabled boundaries",
+        "header-owned global search and bounded results",
         "draft retained during resize",
         "Report Library sidebar search",
         "employee joined-date filter and columns",
@@ -4153,7 +4155,8 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/saas/components.tsx",
-      "src/settings/EmployeeDirectory.tsx"
+      "src/settings/EmployeeDirectory.tsx",
+      "src/settings/SettingsTabs.tsx"
     ],
     "ChevronRight": [
       "src/components/AppDateRangePicker.tsx",
@@ -4166,7 +4169,8 @@
       "src/features/auth/LoginPreviewPage.tsx",
       "src/pages/OnlineSales.tsx",
       "src/saas/components.tsx",
-      "src/settings/EmployeeDirectory.tsx"
+      "src/settings/EmployeeDirectory.tsx",
+      "src/settings/SettingsTabs.tsx"
     ],
     "ChevronRightIcon": [
       "src/components/products/AddProductDialog.tsx"

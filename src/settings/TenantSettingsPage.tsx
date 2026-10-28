@@ -1,4 +1,3 @@
-import { WorkspaceToolbar } from "../components/WorkspaceToolbar";
 import { SettingsTabs } from "./SettingsTabs";
 import { settingsSubsections, businessFieldGroup } from "./subsections";
 import { listenSettingsPop } from "./navigationGuard";
@@ -549,16 +548,89 @@ export function SettingsPageContent({
             )}
           </div>
           <p className="mt-1 text-xs text-helper">
-            Settings · {state.sections.business.name}
+            Settings · {state.sections.business.name} · UI preview
           </p>
         </div>
-        <div className="flex min-w-0 flex-wrap items-end gap-3">
-          <p
-            className="self-center text-xs text-helper"
-            title="Demo business preferences only. Personal display preferences stay on this device. Policies do not enforce transactions or send messages."
+        <div className="flex w-full min-w-0 flex-wrap items-end gap-3 md:w-auto">
+          <div
+            className="relative w-full md:w-64"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setQuery("");
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                setQuery("");
+                event.currentTarget.querySelector("input")?.focus();
+              }
+            }}
           >
-            UI preview · No server posting
-          </p>
+            <Input
+              type="search"
+              aria-label="Search settings"
+              placeholder={personal.language === "Bangla" ? "সেটিং খুঁজুন…" : "Search settings…"}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            {query && (
+              <div
+                className="absolute left-0 z-30 mt-2 max-h-80 w-full max-w-[calc(100vw-2rem)] space-y-1 overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-pop md:w-96"
+                role="region"
+                aria-label="Settings search results"
+              >
+                {results.length ? (
+                  results.map(({ section: s, field }) => (
+                    <button
+                      type="button"
+                      key={`${s}-${field.key}`}
+                      className="block w-full rounded-md px-2 py-2 text-left text-xs text-ink hover:bg-accent"
+                      onClick={() => {
+                        const reveal = () => {
+                          if (s === "business")
+                            setActiveSubsections((previous) => ({
+                              ...previous,
+                              business: businessFieldGroup(field.key),
+                            }));
+                          if (s === "invoices")
+                            setActiveSubsections((previous) => ({
+                              ...previous,
+                              invoices: "invoice",
+                            }));
+                          if (field.advanced)
+                            updatePersonal({ mode: "Advanced" });
+                          if (s !== section || embedded)
+                            navigate(`/app/settings/${s}`);
+                          setQuery("");
+                          setTimeout(
+                            () =>
+                              document
+                                .querySelector(`[data-field-key="${field.key}"]`)
+                                ?.querySelector<HTMLElement>(
+                                  "input,textarea,button,[role=combobox]",
+                                )
+                                ?.focus(),
+                            100,
+                          );
+                        };
+                        if (s === section && !embedded) reveal();
+                        else requestChange(reveal);
+                      }}
+                    >
+                      {field.label}
+                      <span className="mt-1 block text-[10px] text-ink-500">
+                        {sectionNames[s].label}
+                        {field.advanced ? " · Advanced" : ""}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="p-2 text-xs text-ink-500">
+                    No matching settings.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
           <label className="min-w-0 space-y-1 text-[11px] font-medium text-ink-600">
             Preview as
             <AppSelect
@@ -648,67 +720,6 @@ export function SettingsPageContent({
           }
           className="min-w-0 space-y-4"
         >
-          {section !== "team" && <WorkspaceToolbar search={
-            <Input type="search" aria-label="Search settings" placeholder="Search settings…" value={query} onChange={e => setQuery(e.target.value)} />
-          } />}
-          {query && (
-            <div
-              className="space-y-1 rounded-lg border border-border bg-card p-2"
-              role="region"
-              aria-label="Settings search results"
-            >
-              {results.length ? (
-                results.map(({ section: s, field }) => (
-                  <button
-                    type="button"
-                    key={`${s}-${field.key}`}
-                    className="block w-full rounded-md px-2 py-2 text-left text-xs text-ink hover:bg-accent"
-                    onClick={() => {
-                      const reveal = () => {
-                        if (s === "business")
-                          setActiveSubsections((previous) => ({
-                            ...previous,
-                            business: businessFieldGroup(field.key),
-                          }));
-                        if (s === "invoices")
-                          setActiveSubsections((previous) => ({
-                            ...previous,
-                            invoices: "invoice",
-                          }));
-                        if (field.advanced)
-                          updatePersonal({ mode: "Advanced" });
-                        if (s !== section || embedded)
-                          navigate(`/app/settings/${s}`);
-                        setQuery("");
-                        setTimeout(
-                          () =>
-                            document
-                              .querySelector(`[data-field-key="${field.key}"]`)
-                              ?.querySelector<HTMLElement>(
-                                "input,textarea,button,[role=combobox]",
-                              )
-                              ?.focus(),
-                          100,
-                        );
-                      };
-                      if (s === section && !embedded) reveal();
-                      else requestChange(reveal);
-                    }}
-                  >
-                    {field.label}
-                    <span className="mt-1 block text-[10px] text-ink-500">
-                      {sectionNames[s].label}
-                      {field.advanced ? " · Advanced" : ""}
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <p className="p-2 text-xs text-ink-500">
-                  No matching settings.
-                </p>
-              )}
-            </div>
-          )}
           {!canView ? (
             <SettingCard title="Settings access unavailable">
               <p className="text-sm text-ink-600">

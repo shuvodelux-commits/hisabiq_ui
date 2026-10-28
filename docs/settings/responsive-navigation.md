@@ -18,3 +18,8 @@ Main tabs retain keyboard focus after route changes, including navigation resume
 
 
 Approved library follow-up: desktop lists use the actual 215px Report Library shell with sidebar search and teal row selection; horizontal compact tabs retain their underline. WorkspaceToolbar is shared with Reports. Employee and activity filters act on their own lists; form search stays separate. No 800px breakpoint was introduced.
+
+
+Header/search follow-up: global Search settings is compact in the header before Preview as and wraps to full width below 768px. The previous full-width search/card below the category tabs is removed. Sidebar and employee searches remain local to their content. Search results retain subsection reveal and dirty guards in a bounded dropdown, with keyboard clear/result access and Escape focus return.
+
+Horizontal Settings tab rows have working ‹ / › shared icon buttons when their labels overflow the available row. Boundary buttons disable, scrolling leaves selection/drafts intact, and touch/trackpad/manual keyboard tabs continue to work. The controls disappear when the whole strip fits, and never appear in the desktop vertical library. Selected tabs are revealed after viewport/locale/selection changes.

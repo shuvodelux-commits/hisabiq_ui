@@ -61,3 +61,8 @@ Final verification results and review resolutions are recorded in the PR. Existi
 ### Approved library and detail follow-up — 28 October 2026
 
 Shared Reports library/search and toolbar shells now serve Settings. Employee list has actual search, status/role/date filtering, optional joined dates, column choices and pagination; activity has search, dates, section filter and columns. Employee dates are optional for legacy records and use the existing account-edit/save-time permission checks. Settings backup adds an authenticated encrypted SQL snapshot with a user-held HisabIQ secret key and strict parse/review/authorized restore; arbitrary SQL is never run. This is a Settings-only snapshot, not a full business/server database backup. Three invoice templates now render all three document-language styles, secondary Bangla helpers and language-correct amount words. Custom user-entered data is not auto-translated. Server database backup/recovery, key custody/rotation and production scheduling remain backend work.
+
+
+### Header search and horizontal scroll follow-up — 28 October 2026
+
+Global Settings search now sits before Preview as in the page header with attached, bounded results; the full-width search row below the tabs is removed. Sidebar and employee searches remain contextual. Horizontal Settings tab rows use real shared left/right scroll buttons only when needed, with disabled boundary states and no category/draft changes while scrolling. Selected-tab titles and Party 768/1024 responsive bands remain unchanged. See the updated verification notes for browser coverage and author-review provenance.

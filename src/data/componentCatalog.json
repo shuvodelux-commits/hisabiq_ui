@@ -283,6 +283,8 @@
       "read-only through business editor",
       "Party-aligned phone/tablet/desktop navigation",
       "horizontal and vertical keyboard tabs",
+      "overflow-only tab scroll controls with disabled boundaries",
+      "header-owned global search and bounded results",
       "draft retained during resize",
       "Report Library sidebar search",
       "employee joined-date filter and columns",

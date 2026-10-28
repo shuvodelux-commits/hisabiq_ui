@@ -37,6 +37,9 @@ async function main() {
         .count(),
       0,
     );
+    const header = page.locator(".erp-settings > header");
+    assert.equal(await header.getByRole("searchbox", { name: "Search settings", exact: true }).count(), 1, "Global Settings search is in the annotated header position");
+    assert.equal(await page.locator("[data-settings-subpanel]").getByRole("searchbox", { name: "Search settings", exact: true }).count(), 0, "Position 2 contains no duplicate global search");
     const main = page.getByRole("tablist", {
       name: "Settings categories",
       exact: true,
@@ -45,9 +48,48 @@ async function main() {
       name: "Business profile sub-settings",
       exact: true,
     });
+    const search = header.getByRole("searchbox", { name: "Search settings", exact: true });
+    await search.fill("logo");
+    const searchResults = header.getByRole("region", { name: "Settings search results" });
+    await searchResults.waitFor();
+    await page.keyboard.press("Tab");
+    assert.equal(await header.getByRole("button", { name: "Clear Search settings", exact: true }).evaluate(el => el === document.activeElement), true, "Shared quick-clear action stays keyboard accessible");
+    await page.keyboard.press("Tab");
+    assert.equal(await searchResults.getByRole("button").first().evaluate(el => el === document.activeElement), true, "Tab reaches header search results");
+    await page.keyboard.press("Escape");
+    assert.equal(await search.inputValue(), "");
+    assert.equal(await search.evaluate(el => el === document.activeElement), true, "Escape returns focus to header search");
+    await search.fill("logo");
+    await header.getByRole("combobox", { name: "Demo employee access" }).focus();
+    assert.equal(await searchResults.count(), 0, "Outside focus closes header results");
+    const scrollLeft = page.getByRole("button", { name: "Scroll Settings categories left", exact: true });
+    const scrollRight = page.getByRole("button", { name: "Scroll Settings categories right", exact: true });
+    await scrollRight.waitFor({ timeout: 5000 });
+    assert.equal(await scrollLeft.isDisabled(), true, "First tab boundary disables left control");
     await page
       .getByLabel("Business name", { exact: true })
       .fill("Responsive draft shop");
+    await scrollRight.click();
+    await page.waitForFunction(() => document.querySelector('[data-settings-navigation="sections"]').scrollLeft > 0);
+    assert.equal(await main.getByRole("tab", { name: /Business profile/ }).getAttribute("aria-selected"), "true", "Scrolling does not activate another category");
+    assert.equal(await page.getByRole("dialog", { name: "Discard unsaved changes?" }).count(), 0, "Tab scrolling does not trigger draft guard");
+    const waitForScrollControls = () => page.waitForFunction(() => {
+      const viewport = document.querySelector('[data-settings-navigation="sections"]');
+      const row = viewport.parentElement;
+      const [left, right] = row.querySelectorAll(':scope > button[aria-controls]');
+      return left.disabled === (viewport.scrollLeft <= 1) && right.disabled === (viewport.scrollLeft + viewport.clientWidth >= viewport.scrollWidth - 1);
+    });
+    await waitForScrollControls();
+    for (let i = 0; i < 20 && !(await scrollRight.isDisabled()); i++) {
+      await scrollRight.click();
+      await waitForScrollControls();
+    }
+    assert.equal(await scrollRight.isDisabled(), true, "Last tab boundary disables right control");
+    for (let i = 0; i < 20 && !(await scrollLeft.isDisabled()); i++) {
+      await scrollLeft.click();
+      await waitForScrollControls();
+    }
+    assert.equal(await scrollLeft.isDisabled(), true);
     for (const width of [320, 767, 768, 799, 800, 1023, 1024, 1280, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       await page.waitForFunction(
@@ -106,6 +148,8 @@ async function main() {
             .parentElement.getBoundingClientRect().width,
         };
       });
+      assert.equal(await header.getByRole("searchbox", { name: "Search settings", exact: true }).count(), 1, width + " keeps search in header");
+      if (width >= 1024) assert.equal(await page.getByRole("button", { name: "Scroll Business profile sub-settings right", exact: true }).count(), 0, "Vertical sidebar has no scroll arrows");
       assert.equal(geometry.overflow, false, width + " page fits");
       assert.equal(
         geometry.selectedVisible,
@@ -256,15 +300,51 @@ async function main() {
           ),
           false,
         );
+        await page.waitForFunction(() => [...document.querySelectorAll('[data-settings-navigation]')].every(viewport => {
+          const row = viewport.parentElement;
+          const horizontal = viewport.querySelector('[role=tablist]').getAttribute('aria-orientation') === 'horizontal';
+          const expected = horizontal && viewport.scrollWidth > row.clientWidth + 1;
+          return row.querySelectorAll(':scope > button[aria-controls]').length === (expected ? 2 : 0);
+        }));
         await page.screenshot({
           path: `.superpowers/sdd/final-settings/responsive/${section}-${width}.png`,
           fullPage: true,
         });
+        if (section === "business") {
+          await search.fill("logo");
+          await searchResults.waitFor();
+          assert.equal(await searchResults.evaluate(el => {
+            const result = el.getBoundingClientRect();
+            const input = el.parentElement.querySelector('input').getBoundingClientRect();
+            return result.left >= 0 && result.right <= innerWidth && result.top >= input.bottom;
+          }), true, width + " search dropdown stays below the header input and within the viewport");
+          await page.screenshot({ path: `.superpowers/sdd/final-settings/responsive/header-search-${width}.png`, fullPage: true });
+          await page.keyboard.press("Escape");
+        }
+      }
+    }
+    await main.locator('[data-settings-section="personal"]').click();
+    await chooseLanguage("Bangla");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    for (const dark of [false, true]) {
+      await page.evaluate(dark => document.documentElement.classList.toggle("dark", dark), dark);
+      for (const width of [320, 768, 1440]) {
+        await page.setViewportSize({ width, height: 1000 });
+        await page.getByRole("button", { name: "আগের সেটিং বিভাগ দেখুন", exact: true }).waitFor();
+        assert.equal(await search.getAttribute("placeholder"), "সেটিং খুঁজুন…");
+        await search.fill("logo");
+        await searchResults.waitFor();
+        assert.equal(await searchResults.evaluate(el => {
+          const box = el.getBoundingClientRect();
+          return box.left >= 0 && box.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth + 1;
+        }), true, `Bangla ${width} ${dark ? 'dark' : 'light'} header search fits`);
+        await page.screenshot({ path: `.superpowers/sdd/final-settings/responsive/header-bangla-${dark ? 'dark' : 'light'}-${width}.png`, fullPage: true });
+        await page.keyboard.press("Escape");
       }
     }
     assert.deepEqual(errors, []);
     console.log(
-      "Party-aligned Settings: 768/1024 boundaries, 799/800 parity, title/tabs, keyboard, draft/save/search and 12 responsive screens passed.",
+      "Party-aligned Settings: 768/1024 boundaries, 799/800 parity, header search/dropdown, overflow scroll controls, keyboard, draft/save/search and 22 responsive screens passed.",
     );
   } finally {
     await browser?.close();

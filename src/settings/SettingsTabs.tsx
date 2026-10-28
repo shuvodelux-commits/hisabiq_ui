@@ -1,5 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { Button } from "../components/Button";
 import { MotionTabList, MotionTabIndicator } from "../motion/MotionTabList";
 import { WorkspaceLibrary } from "../components/WorkspaceLibrary";
 import { matchesSearch } from "../utils/fuzzySearch";
@@ -20,22 +22,38 @@ export function SettingsTabs({ items, value, onChange, label, id, panelId, secon
   const text = (en: string, bn: string) => language === "Bangla" ? bn : en;
   const visible = vertical && search.trim() ? items.filter(item => matchesSearch(search, [item.label, item.bn])) : items;
   const focusId = visible.some(item => item.id === value) ? value : visible[0]?.id;
+  const container = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
+  const [scroll, setScroll] = useState({ overflow: false, left: false, right: false });
   useLayoutEffect(() => {
-    const viewport = list.current;
-    if (vertical || !viewport) return;
+    const viewport = list.current, wrapper = container.current;
+    if (vertical || !viewport || !wrapper) return;
+    const measure = () => {
+      const next = {
+        // Measure against the whole row, so controls disappear once all tabs fit.
+        overflow: viewport.scrollWidth > wrapper.clientWidth + 1,
+        left: viewport.scrollLeft > 1,
+        right: viewport.scrollLeft + viewport.clientWidth < viewport.scrollWidth - 1,
+      };
+      setScroll(previous => previous.overflow === next.overflow && previous.left === next.left && previous.right === next.right ? previous : next);
+    };
     const revealSelection = () => {
       const selected = viewport.querySelector<HTMLElement>('[aria-selected="true"]');
-      if (!selected) return;
-      const bounds = viewport.getBoundingClientRect(), tab = selected.getBoundingClientRect();
-      if (tab.left < bounds.left) viewport.scrollLeft += tab.left - bounds.left;
-      else if (tab.right > bounds.right) viewport.scrollLeft += tab.right - bounds.right;
+      if (selected) {
+        const bounds = viewport.getBoundingClientRect(), tab = selected.getBoundingClientRect();
+        if (tab.left < bounds.left) viewport.scrollLeft += tab.left - bounds.left;
+        else if (tab.right > bounds.right) viewport.scrollLeft += tab.right - bounds.right;
+      }
+      measure();
     };
     revealSelection();
     const observer = new ResizeObserver(revealSelection);
     observer.observe(viewport);
-    return () => observer.disconnect();
-  }, [value, vertical, language]);
+    observer.observe(wrapper);
+    if (viewport.firstElementChild) observer.observe(viewport.firstElementChild);
+    viewport.addEventListener("scroll", measure, { passive: true });
+    return () => { observer.disconnect(); viewport.removeEventListener("scroll", measure); };
+  }, [value, vertical, language, items]);
   if (!items.length) return null;
   const tabs = <MotionTabList id={id} aria-label={label} aria-orientation={vertical ? "vertical" : "horizontal"}
     className={vertical ? "flex min-w-0 flex-col gap-0.5" : "flex min-w-max border-b border-border"}>
@@ -62,7 +80,14 @@ export function SettingsTabs({ items, value, onChange, label, id, panelId, secon
       </button>;
     })}
   </MotionTabList>;
-  return <div ref={list} className="min-w-0 self-start overflow-x-auto scrollbar-thin" data-settings-navigation={secondary ? "subsections" : "sections"}>
+  const arrows = !vertical && scroll.overflow;
+  return <div ref={container} className="flex min-w-0 items-center gap-1 self-start">
+    {arrows && <Button type="button" variant="ghost" size="icon" className="shrink-0"
+      aria-label={text(`Scroll ${label} left`, secondary ? "আগের উপ-সেটিং ট্যাব দেখুন" : "আগের সেটিং বিভাগ দেখুন")} aria-controls={id} disabled={!scroll.left}
+      onClick={() => list.current?.scrollBy({ left: -Math.max(120, list.current.clientWidth * 0.75) })}>
+      <ChevronLeft className="size-4" aria-hidden="true" />
+    </Button>}
+    <div ref={list} className="min-w-0 flex-1 overflow-x-auto scrollbar-thin" data-settings-navigation={secondary ? "subsections" : "sections"}>
     {vertical ? <WorkspaceLibrary title={libraryTitle ?? label} search={search} onSearch={setSearch}
       searchLabel={text("Find a setting", "সেটিং খুঁজুন")} placeholder={text("Find a setting…", "সেটিং খুঁজুন…")}
       footer={libraryFooter ?? text(`${items.length} settings · Changes stay in your draft until saved.`, `${items.length}টি সেটিং · সংরক্ষণের আগে পরিবর্তন খসড়ায় থাকে।`)}>
@@ -70,5 +95,11 @@ export function SettingsTabs({ items, value, onChange, label, id, panelId, secon
       {tabs}
       {!visible.length && <p role="status" className="p-2 text-xs text-ink-500">{text("No matching settings.", "মিলে এমন সেটিং নেই।")}</p>}
     </WorkspaceLibrary> : tabs}
+    </div>
+    {arrows && <Button type="button" variant="ghost" size="icon" className="shrink-0"
+      aria-label={text(`Scroll ${label} right`, secondary ? "পরের উপ-সেটিং ট্যাব দেখুন" : "পরের সেটিং বিভাগ দেখুন")} aria-controls={id} disabled={!scroll.right}
+      onClick={() => list.current?.scrollBy({ left: Math.max(120, list.current.clientWidth * 0.75) })}>
+      <ChevronRight className="size-4" aria-hidden="true" />
+    </Button>}
   </div>;
 }
