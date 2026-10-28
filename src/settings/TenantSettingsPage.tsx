@@ -1,4 +1,5 @@
 import { SettingsTabs } from "./SettingsTabs";
+import { SettingsDirectory } from "./SettingsDirectory";
 import { settingsSubsections, businessFieldGroup } from "./subsections";
 import { listenSettingsPop } from "./navigationGuard";
 import { InterfaceSettings } from "./InterfaceSettings";
@@ -342,7 +343,7 @@ export function SettingsPageContent({
   useLayoutEffect(() => {
     if (!embedded && routeState?.settingsTabFocus === section)
       document
-        .getElementById(`${tabsId}-main-${section}`)
+        .getElementById(`${tabsId}-${window.matchMedia('(min-width: 1024px)').matches ? 'directory' : 'main'}-${section}`)
         ?.focus({ preventScroll: true });
   }, [section, embedded, routeState, tabsId]);
   const personalDirty =
@@ -665,6 +666,14 @@ export function SettingsPageContent({
           </fieldset>
         </div>
       </header>
+      <div className={embedded ? "min-w-0" : "grid min-w-0 items-start gap-4 lg:grid-cols-[280px_minmax(0,1fr)]"}>
+        {!embedded && <SettingsDirectory
+          items={Object.entries(sectionNames).map(([id, item])=>({ id, ...item }))}
+          selected={section} language={personal.language}
+          id={`${tabsId}-directory`} panelId={`${tabsId}-content`}
+          onSelect={(value)=>{ if (value !== section) requestChange(()=>navigate(`/app/settings/${value}`, { state:{settingsTabFocus:value} })); }}
+        />}
+        <div className="min-w-0 space-y-4">
       {!embedded && (
         <div className="lg:hidden"><SettingsTabs
           id={`${tabsId}-main`}
@@ -690,16 +699,11 @@ export function SettingsPageContent({
         id={`${tabsId}-content`}
         role={embedded ? undefined : "tabpanel"}
         aria-labelledby={embedded ? undefined : `${tabsId}-main-${section}`}
-        className={
-          subsections.length
-            ? "grid min-w-0 gap-4 lg:grid-cols-[215px_minmax(0,1fr)]"
-            : "min-w-0"
-        }
+        className="min-w-0 space-y-4"
       >
         {subsections.length > 0 && (
           <aside className="min-w-0 self-start">
             <SettingsTabs
-              secondary
               id={`${tabsId}-sub`}
               panelId={`${tabsId}-sub-content`}
               label={`${info.label} sub-settings`}
@@ -1223,6 +1227,8 @@ export function SettingsPageContent({
             </form>
           )}
         </div>
+      </div>
+      </div>
       </div>
       <footer className="flex flex-wrap gap-4 text-xs">
         {state.sections.team.employees
