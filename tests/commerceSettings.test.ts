@@ -9,7 +9,7 @@ import {
 
 test('new regional tax and numbering settings migrate old saved snapshots without losing records', () => {
   const original=defaults();
-  const old=structuredClone(original) as typeof original & {sections:{business:Record<string,unknown>;invoices:Record<string,unknown>}};
+  const old=JSON.parse(JSON.stringify(original));
   delete old.sections.business.regional;
   delete old.sections.business.tax;
   delete old.sections.invoices.numbering;
