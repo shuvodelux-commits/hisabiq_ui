@@ -21,7 +21,7 @@ import { availableParties, availableProducts, availableStockLots, availablePurch
 import type { Party, PaymentSplit, Product, Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../utils/productFeatures';
-import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, lotBaseSellPrice, enteredLotBaseSellPrice, makePurchaseLine, switchPurchaseUnit, type PurchaseCartLine } from '../utils/purchaseCart';
+import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, enteredLotBaseSellPrice, makePurchaseLine, switchPurchaseUnit, type PurchaseCartLine } from '../utils/purchaseCart';
 import {purchaseSupplierGuard} from '../utils/purchaseSupplierGuard';
 
 type Line = PurchaseCartLine;
