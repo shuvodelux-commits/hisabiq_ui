@@ -322,7 +322,7 @@ async function main() {
       await page.evaluate(dark => document.documentElement.classList.toggle("dark", dark), dark);
       for (const width of [320, 768, 1440]) {
         await page.setViewportSize({ width, height: 1000 });
-        if (width >= 1024) await page.locator('[data-settings-directory] a[aria-current="page"]').waitFor();
+        if (width >= 1024) await page.locator('[data-settings-directory] [role="tab"][aria-selected="true"]').waitFor();
         else await page.getByRole("button", { name: "আগের সেটিং বিভাগ দেখুন", exact: true }).waitFor();
         assert.equal(await search.getAttribute("placeholder"), "সেটিং খুঁজুন…");
         await search.fill("logo");
