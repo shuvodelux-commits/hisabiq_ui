@@ -36,8 +36,17 @@ async function main(){
    await page.locator('[data-report-status="Low stock"]').first().waitFor();
    await page.locator('[data-report-row]').first().getByRole('button').first().click();
    const details=page.getByRole('dialog',{name:bn?'রিপোর্টের বিস্তারিত':'Report details'});await details.waitFor();
-   await details.getByRole('button',{name:bn?'ব্যবহারযোগ্য স্টক সম্পর্কে জানুন':'About usable stock',exact:true}).focus();
-   await page.getByRole('tooltip').waitFor();await page.keyboard.press('Escape');
+   // Exercise the same focus transition as the dialog's initial status help.
+   const statusHelp=details.getByRole('button',{name:bn?'অবস্থা সম্পর্কে জানুন':'About status',exact:true});
+   await statusHelp.focus();
+   const previousTooltip=page.locator(`[role="tooltip"][id="${await statusHelp.getAttribute('aria-describedby')}"]`);
+   await previousTooltip.waitFor();
+   const stockHelp=details.getByRole('button',{name:bn?'ব্যবহারযোগ্য স্টক সম্পর্কে জানুন':'About usable stock',exact:true});
+   await stockHelp.focus();
+   // The previous help has a deliberate close grace period after losing focus.
+   await previousTooltip.waitFor({state:'hidden'});
+   const stockTooltip=page.locator(`[role="tooltip"][id="${await stockHelp.getAttribute('aria-describedby')}"]`);
+   await stockTooltip.waitFor();await page.keyboard.press('Escape');
    assert.equal(await details.isVisible(),true,'Escape dismisses help before the record dialog');
    assert.equal(await page.getByRole('tooltip').count(),0);
    await details.getByRole('button',{name:bn?'বিস্তারিত বন্ধ করুন':'Close details',exact:true}).click();
