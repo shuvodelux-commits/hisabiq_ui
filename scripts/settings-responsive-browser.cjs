@@ -241,7 +241,7 @@ async function main() {
     await chooseLanguage("English + Bangla");
     await page.waitForFunction(() =>
       document
-        .querySelector('[data-settings-section="personal"]')
+        .querySelector('[data-settings-navigation="sections"] [data-settings-section="personal"]')
         .textContent.includes("আমার পছন্দ"),
     );
     if (
