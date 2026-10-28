@@ -673,7 +673,7 @@ export function SettingsPageContent({
           id={`${tabsId}-directory`} panelId={`${tabsId}-content`}
           onSelect={(value)=>{ if (value !== section) requestChange(()=>navigate(`/app/settings/${value}`, { state:{settingsTabFocus:value} })); }}
         />}
-        <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-4 lg:space-y-0">
       {!embedded && (
         <div className="lg:hidden"><SettingsTabs
           id={`${tabsId}-main`}
