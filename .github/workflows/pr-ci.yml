@@ -94,6 +94,19 @@ jobs:
         if: steps.scope.outputs.browser == 'true'
         run: npx playwright install --with-deps chromium
 
+      - name: Sales & Profit hybrid experiment responsive and interaction smoke
+        if: steps.scope.outputs.reports == 'true'
+        run: npm run test:sales-hybrid
+
+      - name: Upload hybrid experiment screenshots
+        if: always() && steps.scope.outputs.reports == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sales-profit-experiment-${{ github.sha }}
+          path: test-results/sales-hybrid/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Business Review monthly/yearly, bilingual, print and responsive smoke
         if: steps.scope.outputs.reports == 'true'
         run: npm run test:business-review

@@ -3,7 +3,7 @@ import type { UnifiedTransaction } from '../types/transactions';
 import type { PurchaseSourceEvent } from '../utils/purchaseSource';
 
 export type ReportGroup = 'overview' | 'sales' | 'purchasing' | 'stock' | 'people' | 'money' | 'controls';
-export type ReportScreen = 'overview' | 'sales' | 'stock' | 'dues' | 'money' | 'advisor' | 'profit' | 'buying' | 'cashflow' | 'customers' | 'library';
+export type ReportScreen = 'overview' | 'sales' | 'sales-lab' | 'stock' | 'dues' | 'money' | 'advisor' | 'profit' | 'buying' | 'cashflow' | 'customers' | 'library';
 export type ReportKey = 'overview' | 'sales-register' | 'product-sales' | 'category-sales' | 'customer-sales' | 'sales-returns' | 'product-profit' | 'discounts' | 'purchases' | 'supplier-purchases' | 'purchase-prices' | 'stock' | 'low-stock' | 'stock-velocity' | 'stock-ageing' | 'expiry' | 'stock-movements' | 'reorder' | 'receivables' | 'payables' | 'collections' | 'cash-book' | 'expenses' | 'expense-categories' | 'finance-movements' | 'warranty' | 'data-quality' | 'profit-loss' | 'balance-sheet' | 'installments' | 'supplier-performance' | 'seasonal' | 'bundle-profit' | 'reconciliation';
 export type CellValue = string | number | null;
 export type ReportRow = {

@@ -3073,6 +3073,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/reports/SalesProfitExperiment.tsx",
+      "kind": "component",
+      "exports": [
+        "SalesProfitExperiment"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/reports/premium/AdvisorReport.tsx",
       "kind": "component",
       "exports": [
@@ -4049,6 +4057,7 @@
       "src/pages/Sales.tsx"
     ],
     "BarChart3": [
+      "src/components/reports/SalesProfitExperiment.tsx",
       "src/pages/Expenses.tsx",
       "src/saas/SaasShell.tsx"
     ],
@@ -4159,6 +4168,7 @@
       "src/components/pos/CustomerPicker.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
       "src/components/purchases/PurchaseCart.tsx",
+      "src/components/reports/SalesProfitExperiment.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Products.tsx",
@@ -4198,7 +4208,8 @@
     ],
     "ChevronUp": [
       "src/components/NumericInput.tsx",
-      "src/components/purchases/PurchaseCart.tsx"
+      "src/components/purchases/PurchaseCart.tsx",
+      "src/components/reports/SalesProfitExperiment.tsx"
     ],
     "CircleAlert": [
       "src/components/FeedbackState.tsx"
@@ -4339,6 +4350,9 @@
     ],
     "FileUp": [
       "src/pages/Reconciliation.tsx"
+    ],
+    "FlaskConical": [
+      "src/components/reports/SalesProfitExperiment.tsx"
     ],
     "GripVertical": [
       "src/components/dashboard/CustomizeDialog.tsx",

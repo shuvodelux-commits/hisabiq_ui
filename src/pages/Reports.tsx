@@ -2,6 +2,8 @@ import { WorkspaceLibrary } from '../components/WorkspaceLibrary';
 import { ReportsNav } from '../components/reports/ReportsNav';
 import { BusinessReview } from '../components/reports/BusinessReview';
 import { MagicReportsView } from '../reports/magicpatterns/MagicReportsView';
+import { SalesProfitExperiment } from '../components/reports/SalesProfitExperiment';
+import { salesExperimentReportKey, selectSalesExperimentReport } from '../reports/salesExperiment';
 import { reportScreens,reportKeyForScreen } from '../reports/screens';
 import { ColumnVisibilityEditor } from '../components/ColumnVisibilityEditor';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -70,6 +72,12 @@ export function Reports() {
   const next=reportDefinition(key),f={...(sourceFilters??filters),sort:'date',direction:'desc' as const};
   for(const dim of ['category','brand','product','party','user','account','status'] as const)if(!next.dimensions.includes(dim))f[dim]='';
   setParams(paramsForReportScreen('library',next.id,f,next.columns));setPage(1);setShowBasis(false);
+ };
+ const selectExperimentReport=(key:ReportKey)=>{
+  const selected=salesExperimentReportKey(key),next=reportDefinition(selected);
+  const scoped=selectSalesExperimentReport(selected,filters);
+  setParams(paramsForReportScreen('sales-lab',next.id,scoped,next.columns));
+  setPage(1);setDetail(null);setShowBasis(false);
  };
  const selectScreen=(nextScreen:ReportScreen)=>{const next=reportDefinition(reportScreens.find(item=>item.id===nextScreen)!.report);setParams(paramsForReportScreen(nextScreen,next.id,{...filters,search:'',category:'',brand:'',product:'',party:'',user:'',account:'',status:'',sort:'date',direction:'desc'},next.columns));setShowBasis(false);setDetail(null);};
  const result=useMemo(()=>runReport(definition.id,data,filters,assumptions),[definition,data,filters,assumptions]);
@@ -145,7 +153,12 @@ export function Reports() {
      <div className="mt-4 flex flex-wrap gap-2"><Button variant="outline" onClick={()=>selectReport('data-quality')}>{text('Review data completeness','তথ্যের পূর্ণতা দেখুন')}<ArrowRight className="size-4" aria-hidden="true"/></Button>{definition.id==='reconciliation'&&<Button onClick={()=>navigate('/app/reconciliation')}>{text('Open reconciliation','হিসাব মিলানো খুলুন')}</Button>}</div>
     </section>:<>
      {screen==='library'&&<ReportToolbar definition={definition} filters={filters} options={rawOptions} onChange={update} onColumns={()=>setDialog('columns')} onSaved={()=>setDialog('saved')} asOf={data.asOf}/>}
-     {screen!=='library'&&<MagicReportsView key={screen+':'+storageKey} screen={screen} data={data} filters={filters} onFilters={update} onDetail={setDetail} onReport={selectReport} onScreen={selectScreen} scopeKey={storageKey}/>}
+     {screen==='sales-lab'&&<SalesProfitExperiment
+      data={data} definition={definition} result={result} filters={filters} visible={visible}
+      options={rawOptions} onFilters={update} onSelectReport={selectExperimentReport}
+      onColumns={()=>setDialog('columns')} onSaved={()=>setDialog('saved')} onDetail={setDetail}
+      onOriginal={()=>selectScreen('sales')} page={page} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize}/>}
+     {screen!=='library'&&screen!=='sales-lab'&&<MagicReportsView key={screen+':'+storageKey} screen={screen} data={data} filters={filters} onFilters={update} onDetail={setDetail} onReport={selectReport} onScreen={selectScreen} scopeKey={storageKey}/>}
      {screen==='library'&&definition.id==='reorder'&&<section className="rounded-xl border border-border bg-card p-4">
       <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="text-sm font-semibold text-ink">{text('Buying assumptions','ক্রয়ের অনুমান')}</h3><p className="mt-1 text-xs text-ink-500">{text('Assumptions apply in each product’s base unit.','প্রতিটি পণ্যের মূল এককে এই অনুমান প্রযোজ্য।')}</p></div><Button variant="outline" disabled={!suggestedRows.length} onClick={downloadPurchaseList}><ArrowDownToLine className="size-4" aria-hidden="true"/>{text('Download purchase list','ক্রয়ের তালিকা নামান')}</Button></div>
       <div className="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-5">{([
@@ -155,9 +168,9 @@ export function Reports() {
       <p className="mt-1 text-xs text-ink-500">{text('Estimate only. Incoming orders, reservations and lost sales are not available in this preview. Review each quantity before ordering.','শুধু অনুমান। এই প্রিভিউতে আসন্ন পণ্য, সংরক্ষণ ও হারানো বিক্রয়ের তথ্য নেই। অর্ডারের আগে প্রতিটি পরিমাণ যাচাই করুন।')}</p>
      </section>}
      
-     {screen==='library'&&previous&&definition.id!=='overview'&&<p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">{text('Previous period','আগের সময়কাল')}: {formatRange(previousPeriod(filters))} · {previous.rows.length?text('Recorded amount: ','লেখা মোট: ')+taka(previous.totals.amount??0):text('No comparable records.','তুলনাযোগ্য রেকর্ড নেই।')}</p>}
+     {(screen==='library'||screen==='sales-lab')&&previous&&definition.id!=='overview'&&<p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">{text('Previous period','আগের সময়কাল')}: {formatRange(previousPeriod(filters))} · {previous.rows.length?text('Recorded amount: ','লেখা মোট: ')+taka(previous.totals.amount??0):text('No comparable records.','তুলনাযোগ্য রেকর্ড নেই।')}</p>}
      {screen==='library'&&definition.id==='expiry'&&<p className="text-xs text-ink-500">{text('Negative days mean the batch has expired; positive days are time remaining. Stock age is shown separately.','ঋণাত্মক দিন মানে ব্যাচের মেয়াদ পেরিয়েছে; ধনাত্মক দিন মানে মেয়াদ বাকি। স্টকের বয়স আলাদা দেখানো হয়।')}</p>}
-     {screen==='library'&&definition.id==='product-profit'&&<p className="text-xs text-ink-500">{text('Before return reversals and operating expenses. “—” means historical cost is missing; current purchase prices are never substituted.','ফেরতের বিপরীত হিসাব ও পরিচালন খরচের আগে। “—” মানে ঐতিহাসিক খরচ নেই; বর্তমান ক্রয়মূল্য ব্যবহার করা হয়নি।')}</p>}
+     {(screen==='library'||screen==='sales-lab')&&definition.id==='product-profit'&&<p className="text-xs text-ink-500">{text('Before return reversals and operating expenses. “—” means historical cost is missing; current purchase prices are never substituted.','ফেরতের বিপরীত হিসাব ও পরিচালন খরচের আগে। “—” মানে ঐতিহাসিক খরচ নেই; বর্তমান ক্রয়মূল্য ব্যবহার করা হয়নি।')}</p>}
      
      {screen==='library'&&<ReportResults definition={definition} result={result} filters={filters} onChange={update} visible={visible} onDetail={setDetail} page={page} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize}/>}
     </>}
