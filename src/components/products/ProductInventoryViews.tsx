@@ -131,6 +131,7 @@ export function StockLotsView({
                     <span>{taka(sellingPriceForStockLot(product,lot,product.unit))}/{product.unit}</span>
                     {(product.useDefaultPriceForAllLots || lot.source === 'Opening' || lot.sellingPrice === undefined) &&
                       <span data-table-helper="" className="block text-[11px] text-ink-400">{product.useDefaultPriceForAllLots ? 'Product override' : 'Product default'}</span>}
+                    {product.useDefaultPriceForAllLots && lot.sellingPrice !== undefined && <span data-table-helper="" className="block text-[11px] text-ink-400">Saved lot: {taka(lot.sellingPrice)}</span>}}
                   </TableCell>
                   <TableCell className="py-2 text-right font-medium text-ink">{taka(lotValue, lotValue % 1 ? 2 : 0)}</TableCell>
                   <TableCell className="py-2">
