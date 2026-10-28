@@ -24,7 +24,7 @@ async function main() {
     await page.locator("#erp-main").waitFor();
   };
   const select = async (label, value) => {
-    if(label==='Settings section'){await page.locator(`[data-settings-sidebar] a[href$="/app/settings/${value}"]:visible, [data-settings-section="${value}"]:visible`).first().click();return;}
+    if(label==='Settings section'){await page.locator(`[data-settings-directory] a[href$="/app/settings/${value}"]:visible, [data-settings-section="${value}"]:visible`).first().click();return;}
     await page.getByRole("combobox", { name: label, exact: true }).click();
     await page.locator(`[role=option][data-value="${value}"]`).click();
   };
