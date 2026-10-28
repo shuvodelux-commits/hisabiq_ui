@@ -16,7 +16,7 @@ async function main() {
       args: ["--no-sandbox"],
     });
     const page = await browser.newPage({
-      viewport: { width: 1440, height: 1000 },
+      viewport: { width: 800, height: 1000 },
       reducedMotion: "reduce",
     });
     const errors = [];
@@ -40,10 +40,8 @@ async function main() {
     const header = page.locator(".erp-settings > header");
     assert.equal(await header.getByRole("searchbox", { name: "Search settings", exact: true }).count(), 1, "Global Settings search is in the annotated header position");
     assert.equal(await page.locator("[data-settings-subpanel]").getByRole("searchbox", { name: "Search settings", exact: true }).count(), 0, "Position 2 contains no duplicate global search");
-    const main = page.getByRole("tablist", {
-      name: "Settings categories",
-      exact: true,
-    });
+    const main = page.locator('[aria-label="Settings categories"]');
+    const navigateSection = (section) => page.locator(`[data-settings-sidebar] a[href$="/app/settings/${section}"]:visible, [data-settings-section="${section}"]:visible`).first().click();
     const sub = page.getByRole("tablist", {
       name: "Business profile sub-settings",
       exact: true,
@@ -105,15 +103,13 @@ async function main() {
         await page.getByLabel("Business name", { exact: true }).inputValue(),
         "Responsive draft shop",
       );
-      await page.waitForFunction(() => {
-        const nav = document.querySelector(
-            '[data-settings-navigation="sections"]',
-          ),
-          tab = nav.querySelector('[aria-selected="true"]');
-        const a = nav.getBoundingClientRect(),
-          b = tab.getBoundingClientRect();
+      await page.waitForFunction(desktop => {
+        if (desktop) return !!document.querySelector('[data-settings-sidebar] a[aria-current="page"]');
+        const nav = document.querySelector('[data-settings-navigation="sections"]');
+        const tab = nav.querySelector('[aria-selected="true"]');
+        const a = nav.getBoundingClientRect(), b = tab.getBoundingClientRect();
         return b.left >= a.left - 1 && b.right <= a.right + 1;
-      });
+      }, width >= 1024);
       const geometry = await page.evaluate(() => {
         const nav = document.querySelector(
             '[data-settings-navigation="subsections"]',
@@ -135,9 +131,9 @@ async function main() {
         const mainBox = main.getBoundingClientRect(),
           selectedBox = selected.getBoundingClientRect();
         return {
-          selectedVisible:
-            selectedBox.left >= mainBox.left - 1 &&
-            selectedBox.right <= mainBox.right + 1,
+          selectedVisible: mainBox.width > 0
+            ? selectedBox.left >= mainBox.left - 1 && selectedBox.right <= mainBox.right + 1
+            : !!document.querySelector('[data-settings-sidebar] a[aria-current="page"]'),
           overflow: document.documentElement.scrollWidth > innerWidth + 1,
           left: a.right <= b.left + 1,
           above: a.bottom <= b.top + 1,
@@ -149,6 +145,7 @@ async function main() {
         };
       });
       assert.equal(await header.getByRole("searchbox", { name: "Search settings", exact: true }).count(), 1, width + " keeps search in header");
+      assert.equal(await page.locator('[data-settings-sidebar]').isVisible(), width >= 1024, width + ' uses the contextual Settings sidebar only on laptop/desktop');
       if (width >= 1024) assert.equal(await page.getByRole("button", { name: "Scroll Business profile sub-settings right", exact: true }).count(), 0, "Vertical sidebar has no scroll arrows");
       assert.equal(geometry.overflow, false, width + " page fits");
       assert.equal(
@@ -182,7 +179,7 @@ async function main() {
       await page.getByLabel("Business name", { exact: true }).inputValue(),
       "Responsive draft shop",
     );
-    await main.getByRole("tab", { name: /Sales & POS/ }).click();
+    await navigateSection('sales');
     const leave = page.getByRole("dialog", {
       name: "Discard unsaved changes?",
     });
@@ -290,7 +287,7 @@ async function main() {
       recursive: true,
     });
     for (const section of ["business", "invoices", "team"]) {
-      await main.locator(`[data-settings-section="${section}"]`).click();
+      await navigateSection(section);
       await page.getByTestId("settings-title").waitFor();
       for (const width of [390, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: 1000 });
@@ -323,14 +320,15 @@ async function main() {
         }
       }
     }
-    await main.locator('[data-settings-section="personal"]').click();
+    await navigateSection('personal');
     await chooseLanguage("Bangla");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     for (const dark of [false, true]) {
       await page.evaluate(dark => document.documentElement.classList.toggle("dark", dark), dark);
       for (const width of [320, 768, 1440]) {
         await page.setViewportSize({ width, height: 1000 });
-        await page.getByRole("button", { name: "আগের সেটিং বিভাগ দেখুন", exact: true }).waitFor();
+        if (width >= 1024) await page.locator('[data-settings-sidebar] a[aria-current="page"]').waitFor();
+        else await page.getByRole("button", { name: "আগের সেটিং বিভাগ দেখুন", exact: true }).waitFor();
         assert.equal(await search.getAttribute("placeholder"), "সেটিং খুঁজুন…");
         await search.fill("logo");
         await searchResults.waitFor();
