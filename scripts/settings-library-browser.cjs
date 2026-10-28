@@ -93,6 +93,11 @@ async function main() {
       }
     }
     await go('data');
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const directoryRect = await page.locator('[data-settings-directory]').boundingBox();
+    const contentRect = await page.locator('[data-settings-subpanel]').boundingBox();
+    assert.ok(directoryRect && contentRect && Math.abs(directoryRect.y - contentRect.y) <= 2,
+      'Desktop Settings content starts level with the in-page Party-style directory (no hidden-tab top gap)');
     const activity = page.getByRole('region', { name: 'Settings activity', exact: true });
     await activity.getByRole('searchbox', { name: 'Search settings activity', exact: true }).fill('no-such-change');
     await activity.getByText('No matching activity.', { exact: true }).waitFor();
