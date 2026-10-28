@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, CircleAlert, FileHash, BadgePercent, Globe2 } from 'lucide-react';
-import { AppSelect } from '../components/AppSelect';
+import { AppSelect, type SelectOption } from '../components/AppSelect';
 import { useUiCopy } from '../i18n/useUiCopy';
 import { businessToday } from '../utils/dateRange';
 import { Button, Input, Switch, SettingCard, SettingsField } from './ui';
@@ -15,7 +15,7 @@ type TaxProps = { value: TaxPreferences; regional: RegionalPreferences; disabled
 type NumberingProps = { value: DocumentNumberingPreferences; disabled: boolean; onChange: (value: DocumentNumberingPreferences) => void };
 
 function PolicySelect({ label, bn, hint, value, options, disabled, onChange }: {
-  label: string; bn: string; hint: string; value: string; options: string[]; disabled: boolean; onChange: (value: string) => void;
+  label: string; bn: string; hint: string; value: string; options: SelectOption[]; disabled: boolean; onChange: (value: string) => void;
 }) {
   const { language } = useUiCopy();
   return <SettingsField label={label} bn={bn} language={language} hint={hint}>
@@ -140,7 +140,7 @@ export function TaxVatSettings({ value, regional, disabled, onChange }: TaxProps
           patch({rates:[...value.rates,{id:'rate-'+index,label:'New rate '+index,percentage:0,active:true}]});
         }}><Plus className="size-4" aria-hidden="true"/>{text('Add VAT rate','ভ্যাটের হার যোগ করুন')}</Button>
         <PolicySelect label="Default VAT rate" bn="ডিফল্ট ভ্যাটের হার" hint="Choose an active rate. Product-specific assignments and server calculation are future integrations."
-          value={value.defaultRateId} options={value.rates.filter(r=>r.active).map(r=>({value:r.id,label:r.label+' · '+r.percentage+'%'})).map(r=>r.value)}
+          value={value.defaultRateId} options={value.rates.filter(r=>r.active).map(r=>({value:r.id,label:r.label+' · '+r.percentage+'%'}))}
           disabled={disabled} onChange={defaultRateId=>patch({defaultRateId})}/>
         <p className="text-xs text-helper">{value.rates.find(r=>r.id===value.defaultRateId)?.label ?? text('Choose an active rate','চালু হার বাছুন')}</p>
         {error && <p role="alert" className="flex items-center gap-2 text-xs text-danger"><CircleAlert className="size-4"/>{error}</p>}
