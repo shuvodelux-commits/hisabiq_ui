@@ -5,8 +5,8 @@ const {fillChain}=require('./product-form-browser-helpers.cjs');
 async function main(){
  const {createServer}=await import('vite');const server=await createServer({server:{host:'127.0.0.1',port:4471,strictPort:true}});await server.listen();
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
- try{for(const width of [320,390,1440]){
-  const page=await browser.newPage({viewport:{width,height:900},hasTouch:width<500,reducedMotion:'reduce'}),errors=[];
+ try{for(const width of [320,390,768,820,1024,1440]){
+  const page=await browser.newPage({viewport:{width,height:900},hasTouch:width<=1024,reducedMotion:'reduce'}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:4471/#/app/products');
   await page.getByRole('button',{name:'Add product',exact:true}).click();const editor=page.locator('[data-product-editor]');
   const name='Four unit cart QA '+width;await fillChain(page,editor,name);await editor.locator('#pf-opening').fill('10');
@@ -33,6 +33,23 @@ async function main(){
    }
    assert.deepEqual(await field.locator('[data-table-helper]').allTextContents(),['CT','Box','pcs','Ft']);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no page overflow');
+   if(width>=768){
+    for(const productRow of await page.getByTestId(testId).all()){
+     assert.equal(await productRow.evaluate(el=>getComputedStyle(el).gridTemplateRows.trim().split(/\s+/).length),1,'tablet keeps every product in one grid row');
+    }
+    const quantity=await field.boundingBox();
+    // display:contents fields do not have a box; compare their actual price/total contents instead.
+    const priceInput=row.locator('input[aria-label^="Price for"], input[aria-label^="Purchase cost for"]').first();
+    const priceBox=await priceInput.boundingBox();
+    assert.ok(quantity&&priceBox&&Math.abs(quantity.y+quantity.height/2-priceBox.y-priceBox.height/2)<2,'quantity and price share one line');
+    const scroller=await row.evaluateHandle(el=>{let parent=el.parentElement;while(parent){if(parent.scrollWidth>parent.clientWidth&&['auto','scroll'].includes(getComputedStyle(parent).overflowX))return parent;parent=parent.parentElement;}return null;});
+    if(await scroller.evaluate(el=>Boolean(el))){
+     await scroller.evaluate(el=>{el.scrollLeft=el.scrollWidth;});
+     assert.ok(await scroller.evaluate(el=>el.scrollLeft>0),'all columns reachable by cart scrolling');
+     await scroller.evaluate(el=>{el.scrollLeft=0;});
+    }
+    await scroller.dispose();
+   }
   }
   assert.deepEqual(errors,[]);await page.close();console.log('Four-unit products, custom prices, POS and Purchase totals:',width);
  }}finally{await browser.close();await server.close();}

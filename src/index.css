@@ -843,3 +843,26 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-add] { grid-template-columns: 28px minmax(0, 1fr); }
   [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-add] > :nth-child(n+3) { display: none; }
 }
+
+/* Tablets keep one product per table row. Scroll inside the cart when its
+   controls cannot fit; phone layouts continue to use compact stacked rows. */
+@media (min-width: 768px) {
+  :root [data-cart-kind="sale"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    min-width: calc(720px + var(--cart-quantity-width, 168px)) !important;
+    grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width, 168px) 88px minmax(164px, 180px) 112px 28px;
+  }
+  :root [data-cart-kind="purchase"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    min-width: calc(752px + var(--cart-quantity-width, 162px)) !important;
+    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width, 162px) 78px 105px 112px 95px 28px;
+  }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    grid-template-rows: auto; gap: 6px; align-items: center;
+  }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-header] { display: grid; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] { padding-top: 6px; padding-bottom: 6px; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] > :nth-child(n) { grid-column: auto; grid-row: auto; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] > [data-cart-field] { display: contents; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] > [data-cart-field]::before { content: none; display: none; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] :is(input, button) { min-height: 0; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-add] > :nth-child(n) { display: revert; }
+}

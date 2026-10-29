@@ -580,6 +580,11 @@ Standard, Classic and Compact invoice templates support Full English, Full Bangl
 
 ### Joined multi-unit quantities and short symbols — 28 October 2026
 
-Two, three and four units share one 36px outer quantity shell, one focus treatment and a horizontal largest-to-smallest sequence. MultiUnitQuantityInput must not stack a separate bordered field for each unit. Reuse NumericInput and its existing steppers. Let the whole joined quantity control occupy a separate row when the transaction cart is too narrow; never shrink the font or overlap price controls. The visual component library demonstrates three and four units alongside the existing two-unit specimen.
+Two, three and four units share one 36px outer quantity shell, one focus treatment and a horizontal largest-to-smallest sequence. MultiUnitQuantityInput must not stack a separate bordered field for each unit. Reuse NumericInput and its existing steppers. On phones, let the whole joined quantity control occupy a separate row when the transaction cart is too narrow; never shrink the font or overlap price controls. The visual component library demonstrates three and four units alongside the existing two-unit specimen.
 
 Unit Settings and contextual Quick Add require a short symbol of 1–4 characters without spaces; preserve its entered capitalization. src/data/productUnits.ts supplies the shared display lookup: Pieces/Pcs → pcs, Gauge → Gg, Carton → CT, Feet → Ft. Full names remain available in settings, titles and accessible labels. Symbols are display labels; preserve existing unit keys, ratios, selected-unit pricing and stored historical records. An unmapped legacy unit retains its original label rather than inventing a conversion or abbreviation. Sales returns with a frozen unit profile use that source's units/factors in the same joined control and validate the aggregate against the historical returnable quantity. Do not reconstruct historical ratios from the current product catalog.
+
+
+### Tablet transaction rows — 28 October 2026
+
+At viewport widths of 768px and above, POS and Purchase keep every product's identity, joined quantities, selected unit, price, total and remove action in one table row. Preserve the existing typography and 36px controls. When the available cart is narrower than its columns, use the existing cart's horizontal scroll region; do not create whole-page overflow or wrap the product into several grid rows. Keep headers and the add-product row aligned with the same columns. Phones below 768px retain the compact stacked product layout.
