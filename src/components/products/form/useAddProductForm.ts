@@ -161,9 +161,9 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
     return name;
   };
   const createUnit = (name: string, symbol: string) => {
-    const code = symbol.trim() || name.trim();
+    const code = symbol.trim();
     const found = units.find((unit) => unit.symbol.toLowerCase() === code.toLowerCase() || unit.name.toLowerCase() === name.trim().toLowerCase());
-    if (found) return found.symbol;
+    if (found) return found.value ?? found.symbol;
     createPreviewProductUnit(name.trim(), code);
     setUnits(availableProductUnits());
     return code;

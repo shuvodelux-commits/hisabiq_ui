@@ -1,3 +1,6 @@
+import {MultiUnitQuantityInput} from '../components/transactions/MultiUnitQuantityInput';
+import {unitQuantitiesBase, type UnitQuantityMap} from '../utils/multiUnitTransactions';
+import {unitSymbol} from '../data/productUnits';
 import {useModuleColumns} from '../settings/useModuleColumns';
 import {InvoicePresentationEditor} from '../settings/InvoicePresentationEditor';
 import {useTenantSettings} from '../settings/TenantSettingsProvider';
@@ -727,6 +730,7 @@ export function Sales() {
   const [returnCustomer, setReturnCustomer] = useState('Rahman Hardware');
   const [returnInvoiceIds, setReturnInvoiceIds] = useState<string[]>([]);
   const [returnQty, setReturnQty] = useState<Record<string, string>>({});
+  const [returnUnitQuantities, setReturnUnitQuantities] = useState<Record<string, UnitQuantityMap>>({});
   const [returnReason, setReturnReason] = useState<Record<string, string>>({});
   const [returnSerials, setReturnSerials] = useState<Record<string, string>>({});
   const [bundleReturnChoices,setBundleReturnChoices]=useState<Record<string,Record<string,BundleReturnSelection>>>({});
@@ -795,7 +799,7 @@ export function Sales() {
   const openReturn = (invoice: SalesInvoice) => {
     setReturnCustomer(invoice.party);
     setReturnInvoiceIds([invoice.id]);
-    setReturnQty({});
+    setReturnQty({}); setReturnUnitQuantities({});
     setReturnReason({});
     setReturnSerials({});
     setBundleReturnChoices({});
@@ -1000,7 +1004,7 @@ export function Sales() {
       return { ...invoice, total, due, status: fullReturn ? 'Returned' : 'Part returned' };
     }));
     setReturnInvoiceIds([]);
-    setReturnQty({});
+    setReturnQty({}); setReturnUnitQuantities({});
     setReturnReason({});
     setReturnSerials({});
     setReturnRefundMethod('Cash');
@@ -1033,7 +1037,7 @@ export function Sales() {
                             close();
                             setReturnCustomer(item.customer);
                             setReturnInvoiceIds([]);
-                            setReturnQty({});
+                            setReturnQty({}); setReturnUnitQuantities({});
                             setReturnReason({});
                             setReturnSerials({});
                             setTab('return');
@@ -1291,7 +1295,7 @@ export function Sales() {
                   onChange={(event) => {
                     setReturnCustomer(event.target.value);
                     setReturnInvoiceIds([]);
-                    setReturnQty({});
+                    setReturnQty({}); setReturnUnitQuantities({});
                     setReturnReason({});
                     setReturnSerials({});
                   }}
@@ -1312,7 +1316,7 @@ export function Sales() {
                         checked={returnInvoiceIds.includes(invoice.id)}
                         onChange={(event) => {
                           setReturnInvoiceIds((ids) => event.target.checked ? [...ids, invoice.id] : ids.filter((id) => id !== invoice.id));
-                          setReturnQty({});
+                          setReturnQty({}); setReturnUnitQuantities({});
                           setReturnReason({});
                           setReturnSerials({});
                         }}
@@ -1349,6 +1353,7 @@ export function Sales() {
                     <TableBody>
                       {selectedReturnLines.map(({ invoice, line }) => {
                         const qty = parseFloat(returnQty[line.id] ?? '') || 0;
+                        const unitSnapshot = line.unitSnapshot;
                         return (
                           <TableRow key={line.id} className="text-[12.5px]">
                             <TableCell className="py-2 pl-3">
@@ -1418,7 +1423,25 @@ export function Sales() {
                             </TableCell>
                             <TableCell data-mobile-label={sl('Sold')} className="py-2">{invoiceQty(line)}</TableCell>
                             <TableCell data-mobile-label={sl('Return qty')} className="py-2">
-                              <div className="flex items-center gap-2">
+                              {!isBundleReturnLine(line) && unitSnapshot && Object.keys(unitSnapshot.factors).length > 1 ? (
+                                <div className="min-w-[228px]" style={{minWidth:Object.keys(unitSnapshot.factors).length*76}}>
+                                  <MultiUnitQuantityInput product={{unit:unitSnapshot.baseUnit}}
+                                    label={`${sl('Return qty')} · ${line.name}`}
+                                    unitOrder={Object.keys(unitSnapshot.factors).sort((a,b)=>unitSnapshot.factors[b]-unitSnapshot.factors[a])}
+                                    quantities={returnUnitQuantities[line.id]??{[unitSnapshot.baseUnit]:returnQty[line.id]??''}}
+                                    invalid={Boolean(returnQty[line.id])&&Boolean(ordinaryReturnPlans.find(plan=>plan.lineId===line.id)?.issues.length)}
+                                    onChange={quantities=>{
+                                      setReturnUnitQuantities(current=>({...current,[line.id]:quantities}));
+                                      try {
+                                        const base=unitQuantitiesBase(unitSnapshot,quantities);
+                                        setReturnQty(current=>({...current,[line.id]:String(Number(base.toFixed(6)))}));
+                                      } catch {
+                                        // Keep the typed fields visible while the existing return validator blocks invalid totals.
+                                        setReturnQty(current=>({...current,[line.id]:'invalid'}));
+                                      }
+                                    }}/>
+                                </div>
+                              ) : <div className="flex items-center gap-2">
                                 <Input
                                   value={returnQty[line.id] ?? ''}
                                   onChange={(event) => {setReturnQty(value=>({...value,[line.id]:event.target.value}));
@@ -1429,10 +1452,10 @@ export function Sales() {
                                   className="h-9 text-right"
                                   placeholder="0"
                                 />
-                                <span data-table-helper="" className="w-10 text-[11px] text-ink-400">{line.unit}</span>
-                              </div>
+                                <span data-table-helper="" className="w-10 text-[11px] text-ink-400" title={line.unit}>{unitSymbol(line.unit)}</span>
+                              </div>}
                               <p data-table-helper="" className={`mt-1 text-[10.5px] ${qty > returnLimit(line) ? 'font-medium text-danger' : 'text-ink-400'}`}>
-                                {sl('max')} {returnLimit(line)} {line.unit}
+                                {sl('max')} {returnLimit(line)} {unitSymbol(line.unit)}
                               </p>
                             </TableCell>
                             <TableCell data-mobile-label={sl('Refund')} className="py-2 pr-3">

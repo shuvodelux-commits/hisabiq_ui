@@ -1,7 +1,7 @@
 {
   "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "03333f696aad16c940f2412a919067cd34a75537255b5a633d22c7b330cca916",
+  "guideSha256": "ed187c3b5fd8fbca70bc5954cbd23f9f4be846c08c17b781398928c40bc301be",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {
@@ -146,7 +146,9 @@
         "joined shell",
         "compound units",
         "multi-unit chain",
-        "Bangla amount words"
+        "Bangla amount words",
+        "three/four units in one row",
+        "short unit symbols"
       ]
     },
     {

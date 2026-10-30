@@ -7,12 +7,13 @@ import { ledgerEntries as seedLedgerEntries } from './parties.ts';
 import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore.ts';
 import { productCategories } from './products.ts';
 import {getProductImportPreviewSnapshot,upsertProductPreview} from './productImportPreviewStore.ts';
+import {productUnitOptions, matchesUnit, validUnitSymbol, type ProductUnitOption} from './productUnits.ts';
+export type {ProductUnitOption} from './productUnits.ts';
 
 
 /** Design-preview state only: no network posting or cross-tenant persistence. */
 const createdProductCategories: string[] = [];
 const createdProductBrands: string[] = [];
-const createdProductUnits: ProductUnitOption[] = [];
 const createdCategories: string[] = [];
 const inactiveExpenseCategories = new Set<string>();
 const renamedExpenseCategories = new Map<string, string>();
@@ -60,23 +61,15 @@ export const availableProducts = () => getProductImportPreviewSnapshot().product
   stock: product.stock + createdPurchases.reduce((sum, purchase) =>
     sum + (purchase.inventoryLines ?? []).reduce((qty, line, index) => qty + (line.productId === product.id ? line.quantity-returnedQuantity(purchase.id,index,purchaseEvents) : 0), 0), 0)
 }));
-export type ProductUnitOption = { name: string; symbol: string };
-const initialProductUnits: ProductUnitOption[] = [
-  { name: 'Piece', symbol: 'Pcs' }, { name: 'Gira', symbol: 'Gira' },
-  { name: 'Kilogram', symbol: 'Kg' }, { name: 'Feet', symbol: 'Feet' },
-  { name: 'Bag', symbol: 'Bag' }, { name: 'Coil', symbol: 'Coil' },
-  { name: 'Pair', symbol: 'Pair' }, { name: 'Litre', symbol: 'Litre' },
-  { name: 'Box', symbol: 'Box' }, { name: 'Gauge', symbol: 'Gauge' }
-];
 const seedBrands = ['Generic / No brand', 'RFL', 'Vision', 'Shah Cement'];
 const isSame = (left: string, right: string) => left.toLocaleLowerCase() === right.toLocaleLowerCase();
 export const availableProductCategories = () => [...new Set([...productCategories, ...createdProductCategories, ...getProductImportPreviewSnapshot().products.map(p=>p.category)])];
 export const availableProductBrands = () => [...new Set([...seedBrands, ...createdProductBrands, ...getProductImportPreviewSnapshot().products.map(p=>p.brand).filter((brand):brand is string=>Boolean(brand))])];
 export const availableProductUnits = (): ProductUnitOption[] => {
-  const units = [...initialProductUnits, ...createdProductUnits];
+  const units = [...productUnitOptions];
   for (const product of getProductImportPreviewSnapshot().products) {
     for (const symbol of [product.unit, product.altUnit?.unit, ...(product.unitRelations?.flatMap(row => [row.leftUnit,row.rightUnit]) ?? [])]) {
-      if (symbol && !units.some((item) => isSame(item.symbol, symbol)))
+      if (symbol && !units.some((item) => matchesUnit(item, symbol)))
         units.push({ name: symbol, symbol });
     }
   }
@@ -88,10 +81,12 @@ export function createPreviewProductBrand(name: string) {
     createdProductBrands.push(trimmed);
 }
 export function createPreviewProductUnit(name: string, symbol: string) {
-  const cleanedName = name.trim(), cleanedSymbol = (symbol.trim() || cleanedName);
-  if (cleanedName && cleanedSymbol && !availableProductUnits().some((item) =>
-    isSame(item.name, cleanedName) || isSame(item.symbol, cleanedSymbol)))
-    createdProductUnits.push({ name: cleanedName, symbol: cleanedSymbol });
+  const cleanedName = name.trim(), cleanedSymbol = symbol.trim();
+  if (!cleanedName) throw new Error('Enter the unit name.');
+  if (!validUnitSymbol(cleanedSymbol)) throw new Error('Enter a unit symbol of 1–4 characters, without spaces.');
+  if (availableProductUnits().some(item => matchesUnit(item, cleanedName) || matchesUnit(item, cleanedSymbol)))
+    throw new Error('This unit name or symbol already exists.');
+  productUnitOptions.push({ name: cleanedName, symbol: cleanedSymbol });
 }
 export const availableParties = () => getPartyPreviewSnapshot().parties.map((party) => ({
   ...party,

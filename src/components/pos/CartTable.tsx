@@ -1,3 +1,4 @@
+import {unitSymbol} from '../../data/productUnits';
 import {NumericInput} from '../NumericInput';
 import {AppSelect} from '../AppSelect';
 import {productUnitFactor} from '../../utils/unitChain';
@@ -269,26 +270,26 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                 <div data-cart-field="Price in · একক">{units.length > 1 ?
                 units.length > 2 ? (
                   <AppSelect label={text('Sale unit for '+l.product.name,'বিক্রির একক: '+l.product.name)}
-                    value={l.unit} options={units} onChange={(next)=>onUpdate(l.key,{unit:next})}/>
+                    value={l.unit} options={units.map(value=>({value,label:unitSymbol(value)}))} onChange={(next)=>onUpdate(l.key,{unit:next})}/>
                 ) :
                 <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("unit")}>
                     {units.map((u) =>
                   <button
-                    key={u}
+                    key={unitSymbol(u)}
                     type="button"
-                    role="radio"
+                    role="radio" aria-label={u}
                     aria-checked={l.unit === u}
                     onClick={() => onUpdate(l.key, { unit: u })}
                     className={`flex-1 rounded px-1 text-xs font-medium transition-colors ${
                     l.unit === u ? 'bg-card text-ink shadow-card ring-1 ring-primary' : 'text-ink-500 hover:text-ink'}`
                     }>
                     
-                        {u}
+                        {unitSymbol(u)}
                       </button>
                   )}
                   </div> :
 
-                <span className="px-2 text-sm text-ink-600">{l.unit}</span>
+                <span className="px-2 text-sm text-ink-600" title={l.unit}>{unitSymbol(l.unit)}</span>
                 }</div>
                 <div data-cart-field="Price · দাম"><div data-pos-price-field className="relative flex min-w-0 items-center gap-1">
                   <div className="relative min-w-0 flex-1">

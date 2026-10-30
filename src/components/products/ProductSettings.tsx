@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { FloatingPanel } from '../layout/FloatingPanel';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {productFormLabel} from '../../i18n/productFormsCopy';
+import {unitSymbol, validUnitSymbol} from '../../data/productUnits';
 
 type SettingsTab = 'categories' | 'units' | 'brands' | 'defaults';
 
@@ -114,9 +115,9 @@ export function ProductSettings() {
       .map((name, index) => ({ id: 'cat-preview-' + index, name, usage: 0, active: true }))
   ]);
   const [units, setUnits] = useState<UnitSetting[]>(() => [
-    ...initialUnits,
+    ...initialUnits.map(unit=>({...unit,symbol:unitSymbol(unit.name)})),
     ...availableProductUnits().filter((unit) => !initialUnits.some((item) =>
-      item.symbol.toLowerCase() === unit.symbol.toLowerCase()))
+      item.name.toLowerCase() === unit.name.toLowerCase()))
       .map((unit, index) => ({ id: 'unit-preview-' + index, name: unit.name, symbol: unit.symbol, kind: 'Compound-ready' as const, usage: 0, active: true }))
   ]);
   const [brands, setBrands] = useState<NamedSetting[]>(() => [
@@ -128,11 +129,13 @@ export function ProductSettings() {
   const [newName, setNewName] = useState('');
   const [newBn, setNewBn] = useState('');
   const [newSymbol, setNewSymbol] = useState('');
+  const [unitError, setUnitError] = useState('');
 
   const clearNew = () => {
     setNewName('');
     setNewBn('');
     setNewSymbol('');
+    setUnitError('');
   };
 
   const addNamed = () => {
@@ -156,11 +159,20 @@ export function ProductSettings() {
         active: true
       }]);
     } else if (tab === 'units') {
-      createPreviewProductUnit(newName.trim(), newSymbol.trim() || newName.trim());
+      if (!validUnitSymbol(newSymbol)) {
+        setUnitError(pl('Enter a unit symbol of 1–4 characters, without spaces.'));
+        document.getElementById('new-unit-symbol')?.focus();
+        return;
+      }
+      try { createPreviewProductUnit(newName.trim(), newSymbol.trim()); }
+      catch (cause) {
+        setUnitError(pl(cause instanceof Error ? cause.message : 'Could not create this item.'));
+        return;
+      }
       setUnits((items) => [...items, {
         id: `u-${Date.now()}`,
         name: newName.trim(),
-        symbol: newSymbol.trim() || newName.trim(),
+        symbol: newSymbol.trim(),
         kind: 'Compound-ready',
         usage: 0,
         active: true
@@ -206,8 +218,13 @@ export function ProductSettings() {
           )}
           {tab === 'units' && (
             <label className="w-full text-[12px] font-medium text-ink lg:w-36">
-              {pl('Symbol')}
-              <Input className="mt-1" value={newSymbol} onChange={(event) => setNewSymbol(event.target.value)} placeholder={pl("e.g. m")} />
+              {pl('Symbol')} *
+              <Input id="new-unit-symbol" required aria-required="true" className="mt-1" value={newSymbol}
+                aria-invalid={Boolean(unitError)} aria-describedby="new-unit-symbol-hint"
+                onChange={(event) => {setNewSymbol(event.target.value);setUnitError('');}} placeholder="pcs / Gg" />
+              <span id="new-unit-symbol-hint" role={unitError?'alert':undefined} className={'mt-1 block text-[11px] font-normal '+(unitError?'text-danger':'text-ink-500')}>
+                {unitError || pl('Required: 1–4 characters, without spaces.')}
+              </span>
             </label>
           )}
           <Button size="sm" onClick={addNamed} disabled={!newName.trim()}>
