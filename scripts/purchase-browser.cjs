@@ -73,10 +73,12 @@ async function main() {
     assert.ok(noteRect && attachmentRect && attachmentRect.x >= noteRect.x + noteRect.width - 1 &&
       Math.abs(noteRect.y - attachmentRect.y) <= 2,
       'textarea and receipt upload top edges align on desktop');
-    assert.ok(Math.abs(noteRect.height - 112) <= 1, 'notes textarea has the approved 112px height');
-    assert.ok(Math.abs(attachmentRect.height - 112) <= 1 &&
+    assert.ok(Math.abs(noteRect.height - 80) <= 1, 'notes textarea matches the standard 80px receipt tile');
+    assert.ok(Math.abs(attachmentRect.height - 80) <= 1 &&
       Math.abs(attachmentRect.width - attachmentRect.height) <= 1,
-      'receipt attachment is a 112px square matching the textarea height');
+      'receipt attachment uses the shared 80px PhotoUploader size matching Notes');
+    assert.ok(Math.abs(noteRect.height - attachmentRect.height) <= 1,
+      'textarea and receipt upload are exactly matched in height');
     assert.equal(await attachmentRow.isVisible(), true, 'notes and receipt remain visible without disclosure');
     await noteField.fill('Delivered via challan\nCheck receipt number on delivery');
     assert.equal(await noteField.inputValue(), 'Delivered via challan\nCheck receipt number on delivery',
@@ -91,11 +93,11 @@ async function main() {
     const previewImage = additional.locator('img[alt="Photo 1"]');
     const previewRect = await previewImage.boundingBox();
     const previewTileRect = await previewImage.locator('..').boundingBox();
-    assert.ok(previewTileRect && Math.abs(previewTileRect.width - 112) <= 1 &&
-      Math.abs(previewTileRect.height - 112) <= 1,
-      'receipt thumbnail tile is a 112px square including its 1px border');
+    assert.ok(previewTileRect && Math.abs(previewTileRect.width - 80) <= 1 &&
+      Math.abs(previewTileRect.height - 80) <= 1,
+      'receipt thumbnail tile is the shared 80px square including its 1px border');
     assert.ok(previewRect && Math.abs(previewRect.width - previewRect.height) <= 1 &&
-      previewRect.width >= 109 && previewRect.width <= 112,
+      previewRect.width >= 77 && previewRect.width <= 80,
       'receipt image fills the square interior with no distortion');
     await additional.getByRole('button', { name: 'Remove photo 1' }).click();
     assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 0, 'receipt can be removed');
@@ -362,7 +364,8 @@ async function main() {
     const mobileReceiptRect = await mobileReceipt.boundingBox();
     assert.ok(mobileNoteRect && mobileReceiptRect && mobileReceiptRect.y >= mobileNoteRect.y + mobileNoteRect.height,
       'Notes and square receipt stack on phones instead of squeezing together');
-    assert.ok(Math.abs(mobileReceiptRect.height - mobileReceiptRect.width) <= 1, 'phone receipt remains square');
+    assert.ok(Math.abs(mobileReceiptRect.height - mobileReceiptRect.width) <= 1 &&
+      Math.abs(mobileReceiptRect.height - 80) <= 1, 'phone receipt uses standard 80px square');
     const quickRail = page.locator('[data-purchase-quick-items-list]');
     assert.ok(await quickRail.evaluate(node => getComputedStyle(node).overflowX === 'auto'), 'touch quick items use horizontal scrolling');
     assert.equal(await quickRail.evaluate(node => getComputedStyle(node).scrollbarWidth), 'none',
