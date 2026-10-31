@@ -78,8 +78,8 @@ export function LedgerView({
 
   return (
     <div className="p-4">
-      {/* One toolbar row on laptop/desktop; the same six controls reflow at narrower widths. */}
-      <div className="mb-3 grid grid-cols-1 items-center gap-2 sm:grid-cols-2 md:grid-cols-[minmax(170px,1fr)_minmax(205px,1.15fr)_minmax(170px,1fr)] xl:grid-cols-[minmax(170px,1fr)_minmax(225px,1.25fr)_minmax(165px,1fr)_max-content_max-content_max-content]">
+      {/* Keep account, dates, search, export and print on one desktop row. */}
+      <div className="mb-3 grid grid-cols-1 items-center gap-2 sm:grid-cols-2 md:grid-cols-[minmax(170px,1fr)_minmax(205px,1.15fr)_minmax(170px,1fr)] xl:grid-cols-[minmax(170px,1fr)_minmax(225px,1.25fr)_minmax(165px,1fr)_max-content_max-content]">
         <AppSelect
           label={text('Ledger account','যে হিসাবটি দেখবেন')}
           className="w-full"
@@ -107,10 +107,6 @@ export function LedgerView({
             placeholder={text('Reference or details','রেফারেন্স বা বিবরণ')}
           />
         </div>
-        <div className="min-w-0 text-left sm:text-right xl:whitespace-nowrap" aria-live="polite">
-          <p className="text-[10px] leading-3 text-ink-400">{text(dateView === 'transaction' ? 'Transaction Date' : 'Created Date',dateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</p>
-          <p className="mt-0.5 text-[12.5px] font-semibold leading-5 text-ink">{text('Balance','জের')} {closing < 0 ? '−' : ''}{taka(Math.abs(closing))}</p>
-        </div>
         <Button variant="outline" size="sm" className="justify-self-start" onClick={() => { downloadCsv(account.name, rows); toast.success(text('Ledger exported','খাতার হিসাব ডাউনলোড হয়েছে')); }}>
           <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
         </Button>
@@ -120,9 +116,15 @@ export function LedgerView({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border">
-        <div className="border-b border-border bg-ink-50/40 px-4 py-3">
-          <p className="text-sm font-semibold text-ink">{accountingAccountLabel(account, terminologyMode)}</p>
-          <p className="font-bn text-[11px] text-ink-400">{account.helperBn}</p>
+        <div className="flex flex-col gap-2 border-b border-border bg-ink-50/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-ink">{accountingAccountLabel(account, terminologyMode)}</p>
+            <p className="font-bn text-[11px] text-ink-400">{account.helperBn}</p>
+          </div>
+          <div data-testid="ledger-closing-balance" className="shrink-0 text-left sm:text-right" aria-live="polite">
+            <p className="text-[10.5px] leading-4 text-ink-400">{text(dateView === 'transaction' ? 'Transaction Date' : 'Created Date',dateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</p>
+            <p className="text-sm font-semibold leading-5 text-ink">{text('Balance','জের')} {closing < 0 ? '−' : ''}{taka(Math.abs(closing))}</p>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <Table>
