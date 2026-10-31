@@ -22,7 +22,7 @@ async function quickAdd(page,field,noun,value){
 async function fillChain(page,editor,name){
  await editor.locator('#pf-name').fill(name);
  await pick(page,editor.locator('#pf-unit'),'Feet',true);
- await editor.locator('#pf-advanced-button').click();await editor.locator('#pf-multi-label').click();
+ await editor.locator('#pf-units-button').click();await editor.locator('#pf-multi-label').click();
  for(const [index,unit,factor]of[[0,'Pcs','120'],[1,'Box','20'],[2,'Carton','12']]){
   if(index){await editor.getByRole('button',{name:'Add another unit',exact:true}).click();}
   await editor.locator('[data-product-unit-relationship]').nth(index).waitFor();
