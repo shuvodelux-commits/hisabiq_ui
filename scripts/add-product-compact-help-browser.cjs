@@ -49,6 +49,40 @@ async function main() {
       await help.press('Escape');
       await tooltip.waitFor({ state: 'hidden' });
 
+      // Advanced help stays accessible without showing permanent explanatory paragraphs.
+      await editor.locator('#pf-advanced-button').click();
+      const multiHelp = editor.getByRole('button', {
+        name: language === 'Bangla' ? 'একাধিক একক ব্যবহার সম্পর্কে সাহায্য' : 'Help for Use multiple units',
+        exact: true
+      });
+      await multiHelp.click();
+      await page.getByRole('tooltip').waitFor({ state: 'visible' });
+      await multiHelp.press('Escape');
+      await page.getByRole('tooltip').waitFor({ state: 'hidden' });
+      assert.ok(!(await editor.innerText()).includes('Like Carton, Box, Pcs and Feet.'), 'multi-unit examples are in help only');
+
+      await editor.locator('#pf-other-button').click();
+      const warrantyHelp = editor.getByRole('button', {
+        name: language === 'Bangla' ? 'ওয়ারেন্টি সম্পর্কে সাহায্য' : 'Help for Warranty',
+        exact: true
+      });
+      await warrantyHelp.click();
+      const warrantyPopup = page.getByRole('tooltip');
+      await warrantyPopup.waitFor({ state: 'visible' });
+      assert.match(await warrantyPopup.innerText(), language === 'Bangla' ? /ওয়ারেন্টি পেজে/ : /Warranty page/);
+      await warrantyHelp.press('Escape');
+      await warrantyPopup.waitFor({ state: 'hidden' });
+      assert.ok(!(await editor.innerText()).includes('No serial numbers for this product.'), 'off-state serial explanation is removed');
+      const photoHelp = editor.getByRole('button', {
+        name: language === 'Bangla' ? 'ছবি সম্পর্কে সাহায্য' : 'Help for Photos',
+        exact: true
+      });
+      await photoHelp.click();
+      await page.getByRole('tooltip').waitFor({ state: 'visible' });
+      await photoHelp.press('Escape');
+      await page.getByRole('tooltip').waitFor({ state: 'hidden' });
+      assert.ok(!(await editor.innerText()).includes('Optional. Up to 4.'), 'photo instructions are on demand');
+
       await editor.locator('#pf-buy').fill('120');
       await editor.locator('#pf-sell').fill('180');
       assert.equal(await editor.locator('#pf-buy').inputValue(), '120');

@@ -36,8 +36,9 @@ test('static descriptions move to help; live calculations and errors remain visi
   assert.match(prices, /hint={sellEcho \|\| undefined}/);
   assert.match(prices, /hint={qtyHint\(draft\.minQty, x\.minUnit\)}/);
   assert.match(details, /hint={form\.unitsLocked \?/);
-  assert.match(advanced, /summary = draft\.multiUnit \?/);
-  assert.match(other, /parts\.length \? parts\.join/);
+  assert.match(advanced, /help={draft\.multiUnit/);
+  assert.match(other, /help={isStock/);
+  assert.doesNotMatch(other, /parts\.length \? parts\.join/);
   assert.match(disclosure, /summary &&/);
   assert.match(disclosure, /help &&/);
   assert.doesNotMatch(bar, /Only the English name and selling price are required/);
@@ -51,4 +52,32 @@ test('help tooltip is interactive and not nested inside the field label', () => 
   assert.match(tooltip, /event\.key==='Escape'/);
   assert.match(tooltip, /before:-inset-1\.5/);
   assert.ok(field.indexOf('</label>') < field.indexOf('<Tooltip'), 'help is outside label');
+});
+
+test('advanced helpers are on-demand, but live feedback and constraints remain inline', () => {
+  const advanced = source('src/components/products/form/AdvancedStockPanel.tsx');
+  const warranty = source('src/components/products/form/WarrantySettings.tsx');
+  const serial = source('src/components/products/form/SerialSettings.tsx');
+  const expiry = source('src/components/products/form/ExpirySettings.tsx');
+  const other = source('src/components/products/form/OtherOptionsPanel.tsx');
+  const toggle = source('src/components/products/fields/ToggleRow.tsx');
+  const header = source('src/components/products/AddProductDialog.tsx');
+
+  assert.match(toggle, /<Tooltip interactive compact content={help}/);
+  assert.match(warranty, /help={t\('Separate from serial numbers/);
+  assert.match(warranty, /optional[\s\S]*?help={t\('Printed on the invoice/);
+  assert.doesNotMatch(serial, /<p className="mt-2 text-\[13px\] text-ink-600">/);
+  assert.match(serial, /content={t\(mode\.hintEn, mode\.hintBn\)}/);
+  assert.match(serial, /aria-live="polite"/);
+  assert.match(expiry, /help={t\(allocation\.hintEn, allocation\.hintBn\)}/);
+  assert.match(expiry, /help={t\('Stock can’t come in without an expiry date/);
+  assert.doesNotMatch(expiry, /Batch and dates are asked when stock comes in/);
+  assert.match(advanced, /<Tooltip interactive compact/);
+  assert.match(advanced, /aria-live="polite"/);
+  assert.match(advanced, /unitsLocked &&/);
+  assert.match(advanced, /errorCount={errorCount}/);
+  assert.doesNotMatch(advanced, /hint={level\.purchasePrice \?/);
+  assert.match(other, /en="Photos"[\s\S]*?optional[\s\S]*?help=/);
+  assert.doesNotMatch(other, /summary={summary}/);
+  assert.doesNotMatch(header, /Fill the top part and save/);
 });

@@ -25,7 +25,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
         id="pf-expiry"
         en="Expiry date tracking"
         bn="মেয়াদ ট্র্যাকিং"
-        hint={t('Keep batch and expiry date for each stock lot.', 'প্রতিটি লটের ব্যাচ ও মেয়াদের তারিখ রাখুন।')}
+        help={t('Keep batch and expiry dates for each stock lot. When there is no opening stock, enter batch and dates at the next stock-in.', 'প্রতি স্টক লটে ব্যাচ ও মেয়াদের তারিখ রাখুন। শুরুর স্টক না থাকলে পরের স্টক আসার সময় তথ্য দিন।')}
         checked={draft.expiryEnabled}
         onChange={(on) => set('expiryEnabled', on)}
       />
@@ -44,7 +44,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
                   id="pf-expiryRequired"
                   en="Expiry date required"
                   bn="মেয়াদের তারিখ আবশ্যক"
-                  hint={t('Stock can’t come in without an expiry date.', 'মেয়াদের তারিখ ছাড়া স্টক ঢোকানো যাবে না।')}
+                  help={t('Stock can’t come in without an expiry date.', 'মেয়াদের তারিখ ছাড়া স্টক ঢোকানো যাবে না।')}
                   checked={draft.expiryDateRequired}
                   onChange={(on) => set('expiryDateRequired', on)}
                 />
@@ -54,7 +54,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
                   id="pf-warningDays"
                   en="Warn before expiry"
                   bn="মেয়াদের আগে সতর্কতা"
-                  hint={t('Shows a warning this many days before.', 'এত দিন আগে সতর্ক করবে।')}
+                  help={t('Shows a warning this many days before.', 'এত দিন আগে সতর্ক করবে।')}
                 >
                   <div className="flex items-center gap-2">
                     <Input
@@ -68,7 +68,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
                     <span className="text-[length:var(--ctl-fs)] text-ink-600">{t('days', 'দিন')}</span>
                   </div>
                 </FormField>
-                <FormField id="pf-allocation" labelAs="span" en="Sell which stock first" bn="কোন স্টক আগে বিক্রি" hint={t(allocation.hintEn, allocation.hintBn)}>
+                <FormField id="pf-allocation" labelAs="span" en="Sell which stock first" bn="কোন স্টক আগে বিক্রি" help={t(allocation.hintEn, allocation.hintBn)}>
                   <SegmentedControl<StockAllocationMethod>
                     labelledBy="pf-allocation-label"
                     value={draft.allocationMethod}
@@ -84,7 +84,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
                     {t(`Opening stock batch · ${fmtQty(x.openingBase)} ${draft.unit}`, `শুরুর স্টকের ব্যাচ · ${fmtQty(x.openingBase)} ${draft.unit}`)}
                   </p>
                   <div className="pf-grid-3">
-                    <FormField id="pf-batch" en="Batch no." bn="ব্যাচ নং" hint={t('Optional', 'ঐচ্ছিক')}>
+                    <FormField id="pf-batch" en="Batch no." bn="ব্যাচ নং" optional>
                       <Input
                         id="pf-batch"
                         value={draft.batchNumber}
@@ -94,7 +94,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
                         className="h-[var(--ctl-h)] text-[length:var(--ctl-fs)]"
                       />
                     </FormField>
-                    <FormField id="pf-mfg" labelAs="span" en="Manufacture date" bn="উৎপাদনের তারিখ" hint={t('Optional', 'ঐচ্ছিক')}>
+                    <FormField id="pf-mfg" labelAs="span" en="Manufacture date" bn="উৎপাদনের তারিখ" optional>
                       <div id="pf-mfg">
                         <AppDatePicker label={t('Manufacture date', 'উৎপাদনের তারিখ')} value={draft.manufactureDate} onChange={(next) => set('manufactureDate', next)} className={pickerSize} />
                       </div>
@@ -118,11 +118,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
                     </FormField>
                   </div>
                 </div>
-              ) : (
-                <p className="rounded-lg bg-ink-100 px-3 py-2.5 text-[13px] text-ink-700">
-                  {t('Batch and dates are asked when stock comes in.', 'স্টক ঢোকার সময় ব্যাচ ও তারিখ চাওয়া হবে।')}
-                </p>
-              ))}
+              ) : null)}
             </div>
           </motion.div>
         )}
