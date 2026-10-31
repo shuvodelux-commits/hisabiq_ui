@@ -314,6 +314,7 @@ export function SearchSelect({
               key={option.value}
               id={`${listId}-${index}`}
               role="option"
+              aria-label={onEdit ? [option.label, option.meta].filter(Boolean).join(' ') : undefined}
               tabIndex={onEdit ? 0 : undefined}
               data-value={option.value}
               aria-selected={isSelected}
