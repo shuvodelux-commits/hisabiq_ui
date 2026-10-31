@@ -70,11 +70,12 @@ async function main(){
    assert.equal((await read()).invoiceDue,after.invoiceDue-25);
    // An ERP-wide native-input search also clears without losing focus.
    await page.goto('http://127.0.0.1:4378/#/app/parties');
-   const partyQuery=page.locator('input[aria-label="Search parties"]');
+   if(width<1024)await page.getByRole('button',{name:'Change party',exact:true}).click();
+   const partyQuery=page.locator('input[aria-label="Search parties"]:visible');
    await partyQuery.fill('Rahman');
    await page.getByRole('button',{name:'Clear Search parties'}).click();
    assert.equal(await partyQuery.inputValue(),'','shared clear button updates React search state');
-   assert.equal(await page.locator('input[aria-label="Search parties"]').count(),1,'search input stays mounted');
+   assert.equal(await page.locator('input[aria-label="Search parties"]:visible').count(),1,'search input stays mounted');
    await page.goto('http://127.0.0.1:4378/#/app/products');
    const inventoryQuery=page.getByRole('textbox',{name:'Search products'});
    await inventoryQuery.fill('LED');
