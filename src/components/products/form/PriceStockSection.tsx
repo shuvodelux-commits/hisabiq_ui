@@ -29,10 +29,10 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
     multi && x.buyUnit !== draft.unit && x.buyBase > 0 ? `= ${taka(x.buyBase)} / ${draft.unit}` : null
   ].filter(Boolean).join('  ');
 
-  const qtyHint = (qty: string, unit: string, fallback: string) => {
+  const qtyHint = (qty: string, unit: string) => {
     const value = parseFloat(qty);
     if (multi && unit !== draft.unit && value > 0) return `= ${fmtQty(value * x.factors[unit])} ${draft.unit}`;
-    return fallback;
+    return undefined;
   };
 
   const perUnit = isStock ? ` / ${draft.unit}` : '';
@@ -48,9 +48,9 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
             en={isStock ? 'Unit cost' : 'Service cost'}
             error={errors.buy}
             bn={isStock ? 'কেনা দাম' : 'সেবা খরচ'}
-            hint={buyEcho || (isStock
-              ? t('Optional. What you pay the supplier.', 'ঐচ্ছিক। সরবরাহকারীকে যে দাম দেন।')
-              : t('Optional. Your cost to provide it.', 'ঐচ্ছিক। সেবা দিতে আপনার খরচ।'))}
+            optional
+            help={isStock ? t('What you pay the supplier.', 'সরবরাহকারীকে যে দাম দেন।') : t('Your cost to provide it.', 'সেবা দিতে আপনার খরচ।')}
+            hint={buyEcho || undefined}
           >
             <MoneyUnitInput searchableUnits
               id="pf-buy"
@@ -71,7 +71,8 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
             bn="বিক্রয় মূল্য"
             required
             error={errors.sell}
-            hint={sellEcho || t('Normal price. Offers are managed separately.', 'সাধারণ দাম। অফার আলাদাভাবে ঠিক হয়।')}
+            help={t('Normal price. Offers are managed separately.', 'সাধারণ দাম। অফার আলাদাভাবে ঠিক হয়।')}
+            hint={sellEcho || undefined}
           >
             <MoneyUnitInput searchableUnits
               id="pf-sell"
@@ -116,7 +117,9 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
                 en="Opening stock"
                 error={errors.opening}
                 bn="শুরুর স্টক"
-                hint={qtyHint(draft.openingQty, x.openingUnit, t('Optional. How many you have right now.', 'ঐচ্ছিক। এখন কতগুলো আছে।'))}
+                optional
+                help={t('How many you have right now.', 'এখন কতগুলো আছে।')}
+                hint={qtyHint(draft.openingQty, x.openingUnit)}
               >
                 <QuantityUnitInput searchableUnits
                   id="pf-opening"
@@ -137,7 +140,9 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
               en="Minimum stock"
               error={errors.min}
               bn="সর্বনিম্ন স্টক"
-              hint={qtyHint(draft.minQty, x.minUnit, t('Optional. We warn you when stock falls to this.', 'ঐচ্ছিক। স্টক এতে নামলে সতর্ক করবে।'))}
+              optional
+              help={t('We warn you when stock falls to this.', 'স্টক এতে নামলে সতর্ক করবে।')}
+              hint={qtyHint(draft.minQty, x.minUnit)}
             >
               <QuantityUnitInput searchableUnits
                 id="pf-min"
