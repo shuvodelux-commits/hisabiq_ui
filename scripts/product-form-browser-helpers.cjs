@@ -22,7 +22,8 @@ async function quickAdd(page,field,noun,value){
 async function fillChain(page,editor,name){
  await editor.locator('#pf-name').fill(name);
  await pick(page,editor.locator('#pf-unit'),'Feet',true);
- await editor.locator('#pf-units-button').click();await editor.locator('#pf-multi-label').click();
+ await editor.locator('label:has(#pf-multi-toggle)').click();
+ await editor.locator('[data-product-unit-equation]').first().waitFor({state:'visible'});
  for(const [index,unit,factor]of[[0,'Pcs','120'],[1,'Box','20'],[2,'Carton','12']]){
   if(index){await editor.getByRole('button',{name:'Add another unit',exact:true}).click();}
   await editor.locator('[data-product-unit-relationship]').nth(index).waitFor();
@@ -35,8 +36,8 @@ async function fillChain(page,editor,name){
  await pick(page,editor.locator('#pf-opening-unit'),'Carton');await editor.locator('#pf-opening').fill('1');
  await pick(page,editor.locator('#pf-min-unit'),'Box');await editor.locator('#pf-min').fill('2');
  await pick(page,editor.locator('#pf-view'),'Carton');
- assert.ok((await editor.innerText()).includes('1 Carton = 12 Box'), 'direct carton conversion shown');
- assert.ok((await editor.innerText()).includes('1 Box = 20 Pcs'), 'direct box conversion shown');
+ assert.equal(await editor.locator('[data-product-unit-relationship]').count(), 3, 'three editable relationships are visible');
+ assert.deepEqual(await editor.locator('[data-product-unit-relationship] input').allInputValues(), ['120', '20', '12'], 'conversion values stay editable');
 }
 async function discard(page,editor){
  await editor.getByRole('button',{name:'Cancel',exact:true}).click();
