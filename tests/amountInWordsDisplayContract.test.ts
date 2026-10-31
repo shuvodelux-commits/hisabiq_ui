@@ -46,7 +46,7 @@ test('Fast Counter POS and Purchase use readable light words without changing Co
  assert.doesNotMatch(words,/dark:text-teal-200/,'dark teal-200 is too dark for label text in HisabIQ');
  const purchase = readFileSync('src/components/purchases/PurchasePaymentPanel.tsx','utf8');
  assert.match(purchase, /variant="compact"/, 'Purchase total uses the shared readable compact display');
- assert.match(purchase, /data-purchase-summary-total[^>]*bg-ink-50/, 'Purchase total stays on a light, neutral surface');
+ assert.match(purchase, /bg-ink-50\/40[^>]*data-purchase-summary-total/, 'Purchase total stays on a light, neutral surface');
  assert.doesNotMatch(purchase, /bg-inverse|variant="inverse"/, 'Purchase summary must not use a black block');
  assert.match(readFileSync('src/components/brand/ReceiptPreview.tsx','utf8'),/variant="receipt"/);
 });
