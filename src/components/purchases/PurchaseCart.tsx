@@ -64,7 +64,7 @@ export function PurchaseCart({
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5">
           <div>
             <p className="text-[13px] font-semibold text-ink">Purchase cart <span data-table-helper="" className="font-bn text-[11px] font-normal text-ink-400">· ক্রয়ের পণ্য</span></p>
-            <p data-table-helper="" className="text-[11px] text-ink-500">Add products inline, same as POS · 2 Box 5 Pcs / 1 Gauge 12 Gira</p>
+            <p data-table-helper="" className="text-[11px] text-ink-500">Search and add products in the cart · F2</p>
           </div>
           <Button disabled={sourceLocked} size="sm" variant="outline" onClick={onCreate}>
             <PackagePlus className="size-4" /> New product <span data-table-helper="" className="font-bn text-[11px] font-normal">· নতুন পণ্য</span>
@@ -176,18 +176,15 @@ export function PurchaseCart({
                     </button>
                   </div>
                   {!sourceLocked && line.detailsOpen && (
-                    <div className="border-t border-border/60 bg-ink-50/50 px-3 py-3">
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <p data-table-helper="" className="text-[12px] font-semibold text-ink">Purchase lot details <span className="font-bn font-normal text-ink-400">· লটের তথ্য</span></p>
-                        <p data-table-helper="" className="text-[10.5px] text-ink-500">Lot price applies to this batch, not the product's default price</p>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div data-purchase-lot-details className="border-t border-border/60 bg-ink-50/50 px-3 py-3">
+                      <p data-table-helper="" className="mb-2 text-[12px] font-semibold text-ink">Lot details <span className="font-bn font-normal text-ink-500">· লটের তথ্য</span></p>
+                      <div className="grid max-w-[940px] gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="min-w-0">
                           <p data-table-helper="" className="mb-1 text-[11px] font-medium text-ink">Lot selling price unit <span className="font-bn text-ink-500">· বিক্রয় একক</span></p>
                           <FormSelect className="w-full [&>select]:text-xs"
                             value={line.lotSellUnit} options={unitOptions(product).map(value=>({value,label:unitSymbol(value)}))}
                             onChange={(event) => changeLotSellUnit(line, event.target.value)} />
-                          <p data-table-helper="" className="mt-1 text-[10.5px] text-ink-500">Base {taka(lotBaseSellPrice(line))}/{product.unit} · Cost {taka(lineAmount(line))} total</p>
+                          <p data-table-helper="" className="mt-1 text-[11px] text-ink-500">Base {taka(lotBaseSellPrice(line))}/{product.unit}</p>
                         </div>
                         <label className="block min-w-0 text-[11px] font-medium text-ink">
                           Batch / lot number <span className="font-bn font-normal text-ink-400">· ব্যাচ</span>
@@ -244,22 +241,22 @@ export function PurchaseCart({
         </div>
       </section>
 
-      {!sourceLocked && <section>
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[13px] font-semibold text-ink">Quick items <span className="font-bn text-[11px] font-normal text-ink-400">· দ্রুত যোগ</span></p>
-          <span className="text-[11px] text-ink-500">Tap to add · touch friendly</span>
+      {!sourceLocked && quickItems.length > 0 && <section data-purchase-quick-items aria-label="Quick add products" className="min-w-0">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-[13px] font-semibold text-ink">Quick items <span className="font-bn text-[11px] font-normal text-ink-500">· দ্রুত যোগ</span></p>
+          <span className="text-[11px] text-ink-500">Tap to add</span>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+        <div className="flex min-w-0 snap-x gap-2 overflow-x-auto pb-2" aria-label="Swipe to browse quick items">
           {quickItems.map((product) => (
             <button key={product.id} type="button" aria-label={'Quick add ' + product.name + ' ' + taka(product.purchasePrice) + '/' + product.unit}
               onClick={() => onAdd(product)}
-              className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-left shadow-xs transition-colors hover:border-teal-400 hover:bg-teal-50 active:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">
-              <ProductThumb src={product.image} size={36} />
+              className="flex min-h-12 w-[188px] max-w-[75vw] shrink-0 snap-start items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5 text-left transition-colors hover:border-teal-400 hover:bg-teal-50 active:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">
+              <ProductThumb src={product.image} size={34} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[12px] font-medium text-ink">{product.name}</span>{' '}
-                <span className="block truncate text-[11px] text-ink-500">{taka(product.purchasePrice)}/{product.unit}</span>
+                <span className="block truncate text-[12px] font-medium text-ink">{product.name}</span>
+                <span className="block truncate text-[11px] text-ink-500">{taka(product.purchasePrice)}/{unitSymbol(product.unit)}</span>
               </span>
-              <Plus className="size-4 shrink-0 text-ink-400" />
+              <Plus className="size-4 shrink-0 text-ink-500" aria-hidden="true" />
             </button>
           ))}
         </div>
