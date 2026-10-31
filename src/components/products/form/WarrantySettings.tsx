@@ -22,7 +22,7 @@ export function WarrantySettings({ form }: { form: AddProductForm }) {
         id="pf-warranty"
         en="Warranty"
         bn="ওয়ারেন্টি"
-        hint={t('Separate from serial numbers. Claims are handled on the Warranty page.', 'সিরিয়াল নম্বর থেকে আলাদা। দাবি ওয়ারেন্টি পেজে দেখা হয়।')}
+        help={t('Separate from serial numbers. Claims are handled on the Warranty page.', 'সিরিয়াল নম্বর থেকে আলাদা। দাবি ওয়ারেন্টি পেজে দেখা হয়।')}
         checked={draft.warrantyEnabled}
         onChange={(on) => set('warrantyEnabled', on)}
       />
@@ -71,7 +71,8 @@ export function WarrantySettings({ form }: { form: AddProductForm }) {
                 en="Terms"
                 bn="শর্তাবলি"
                 className="pf-span-2"
-                hint={t('Optional. Printed on the invoice for this item.', 'ঐচ্ছিক। এই পণ্যের বিলে ছাপা হবে।')}
+                optional
+                help={t('Printed on the invoice for this item.', 'এই পণ্যের বিলে ছাপা হবে।')}
               >
                 <textarea
                   id="pf-warrantyTerms"
