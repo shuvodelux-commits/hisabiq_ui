@@ -515,7 +515,7 @@
 /* Add Product uses the universal 36px field height on every device. */
 .product-form {
   --ctl-h: var(--erp-control-height);
-  --ctl-fs: 14px;
+  --ctl-fs: 13px;
   --label-fs: 13px;
   font-feature-settings: normal;
 }
@@ -555,16 +555,14 @@
 .pf-grid-2, .pf-grid-3, .pf-pair-money, .pf-pair-qty {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 12px;
 }
 @container pf (min-width: 480px) {
-  .pf-pair-money, .pf-pair-qty { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@container pf (min-width: 600px) {
-  .pf-grid-2, .pf-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pf-grid-2, .pf-pair-money, .pf-pair-qty { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pf-span-2 { grid-column: 1 / -1; }
 }
-@container pf (min-width: 780px) {
+@container pf (min-width: 600px) {
+  /* The approved screenshot keeps Brand / Category / Unit in one equal 3-up row. */
   .pf-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
