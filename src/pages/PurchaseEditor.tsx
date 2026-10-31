@@ -382,16 +382,20 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
                   <FileImage className="size-4 shrink-0 text-ink-500" aria-hidden="true" />
                   <span>Notes &amp; receipt <span className="font-bn text-[11px] font-normal text-ink-500">· অতিরিক্ত তথ্য</span></span>
                 </div>
-                <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-                  <label className="block min-w-0 text-[12px] font-medium text-ink">
+                <div className="min-w-0 space-y-1">
+                  <label htmlFor="purchase-notes" className="block text-[12px] font-medium text-ink">
                     Notes <span className="font-normal text-ink-500">· optional</span>
-                    <Input className="mt-1" value={notes} onChange={(event) => setNotes(event.target.value)}
-                      placeholder="Delivery, discount or other details" />
                   </label>
-                  <div className="min-w-0">
-                    <p className="mb-1 text-[12px] font-medium text-ink">Supplier bill / receipt <span className="font-normal text-ink-500">· optional</span></p>
-                    <PhotoUploader photos={photos} onChange={setPhotos} max={2} label="Attach" hint="Challan or payment receipt" />
+                  <div data-purchase-note-attachment-row className="flex min-w-0 items-center gap-2">
+                    <Input id="purchase-notes" className="min-w-0 flex-1" value={notes}
+                      onChange={(event) => setNotes(event.target.value)}
+                      placeholder="Delivery, discount or other details" />
+                    <div data-purchase-receipt className="shrink-0">
+                      <PhotoUploader compact photos={photos} onChange={setPhotos} max={2}
+                        label="Attach supplier bill or receipt" />
+                    </div>
                   </div>
+                  <p className="text-[11px] text-ink-500">Receipt (optional): challan or payment slip</p>
                 </div>
               </div>
             }
