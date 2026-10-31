@@ -47,7 +47,6 @@ function Row({ label, value, muted = false }: { label: React.ReactNode; value: R
 export function PurchasePaymentPanel(props: Props) {
   const { totals, payments, discountMode } = props;
   const {text,word,showHelper}=useUiCopy();
-  const quick = [500, 1000, 2000, 5000].filter((amount) => amount >= totals.total * 0.2);
   const updatePayment = (id: string, patch: Partial<PurchasePaymentRow>) => {
     props.onPayments((rows) => rows.map((row) => row.id === id ? { ...row, ...patch } : row));
   };
@@ -56,14 +55,6 @@ export function PurchasePaymentPanel(props: Props) {
       ...row, method, account: purchasePaymentAccounts[method][0]
     } : row));
   };
-  const setSinglePayment = (amount: number, method: PurchasePaymentMethod = payments[0]?.method ?? 'Cash') => {
-    props.onPayments([{
-      ...makePurchasePaymentRow(0, method),
-      account: payments[0]?.method === method ? payments[0].account : purchasePaymentAccounts[method][0],
-      amount: String(amount)
-    }]);
-  };
-
   return (
     <section data-testid="purchase-payment-panel" className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card">
       <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
@@ -115,18 +106,6 @@ export function PurchasePaymentPanel(props: Props) {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          <button type="button" onClick={() => setSinglePayment(totals.total)}
-            className="h-8 rounded-md border border-teal-200 bg-teal-50 px-2.5 text-xs font-medium text-teal-800 hover:bg-teal-100">
-            {word('exact')}
-          </button>
-          {quick.map((amount) => (
-            <button key={amount} type="button" onClick={() => setSinglePayment(amount, 'Cash')}
-              className="h-8 rounded-md border border-border px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
-              ৳{formatNumber(amount)}
-            </button>
-          ))}
-        </div>
         {props.additionalDetails && (
           <div className="border-t border-border pt-3" data-purchase-payment-additional>
             {props.additionalDetails}
