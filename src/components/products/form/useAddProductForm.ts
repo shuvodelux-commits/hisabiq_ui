@@ -2,7 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import {
   availableProductBrands, availableProductCategories, availableProductUnits,
-  createPreviewProductBrand, createPreviewProductCategory, createPreviewProductUnit
+  createPreviewProductBrand, createPreviewProductCategory, createPreviewProductUnit,
+  renamePreviewProductBrand, renamePreviewProductCategory, renamePreviewProductUnit
 } from '../../../data/erpDemoStore';
 import type { ProductKind } from '../../../types/erp';
 import type { Copy, ErrorKey, ExistingProduct, ProductDraft, SaveResult } from '../../../types/productForm';
@@ -178,6 +179,24 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
     return code;
   };
 
+  const editCategory = (previous: string, name: string) => {
+    const next = renamePreviewProductCategory(previous, name);
+    setCategories(availableProductCategories());
+    setDraft((current) => current.category === previous ? {...current, category: next} : current);
+    return next;
+  };
+  const editBrand = (previous: string, name: string) => {
+    const next = renamePreviewProductBrand(previous, name);
+    setBrands(availableProductBrands());
+    setDraft((current) => current.brand === previous ? {...current, brand: next} : current);
+    return next;
+  };
+  const editUnit = (previous: string, name: string, symbol?: string) => {
+    const stableKey = renamePreviewProductUnit(previous, name, symbol ?? '');
+    setUnits(availableProductUnits());
+    return stableKey;
+  };
+
   /** Opens the collapsed section that holds a field, then moves focus to it. */
   const revealError = (key: ErrorKey) => {
     // A single-open accordion cannot reveal several sections simultaneously.
@@ -210,7 +229,7 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
   return {
     draft, set, derived, errors, errorList, isEdit, existing, dirty, blockLeave, unitsLocked, unitNotice,
     openSetting, setOpenSetting, fieldSetting,
-    categories, brands, units, createCategory, createBrand, createUnit,
+    categories, brands, units, createCategory, createBrand, createUnit, editCategory, editBrand, editUnit,
     changeKind, changeUnit, setMultiUnit, addUnitLevel, updateUnitLevel, removeUnitLevel, changePriceUnit, changeStockUnit,
     save, revealError, saveError, discardOpen, setDiscardOpen, requestExit, confirmDiscard
   };
