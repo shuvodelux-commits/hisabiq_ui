@@ -48,7 +48,8 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
             id="pf-nameBn"
             en="Name in Bangla"
             bn="বাংলা নাম"
-            hint={t('Optional. Shown on Bangla receipts and in search.', 'ঐচ্ছিক। বাংলা রসিদ ও খোঁজে দেখাবে।')}
+            optional
+            help={t('Shown on Bangla receipts and in search.', 'বাংলা রসিদ ও খোঁজে দেখাবে।')}
           >
             <Input
               id="pf-nameBn"
@@ -65,7 +66,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
 
         <div className="pf-grid-3 mt-4">
           {isStock && (
-            <FormField id="pf-brand" en="Brand" bn="ব্র্যান্ড">
+            <FormField id="pf-brand" en="Brand" bn="ব্র্যান্ড" optional>
               <SearchSelect
                 id="pf-brand"
                 noun={{ en: 'brand', bn: 'ব্র্যান্ড' }}
@@ -77,7 +78,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
               />
             </FormField>
           )}
-          <FormField id="pf-category" en="Category" bn="ক্যাটাগরি" error={errors.category}>
+          <FormField id="pf-category" en="Category" bn="ক্যাটাগরি" optional error={errors.category}>
             <SearchSelect
               id="pf-category"
               noun={{ en: 'category', bn: 'ক্যাটাগরি' }}
@@ -96,7 +97,9 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
               en="Unit"
               bn="একক"
               error={errors.unit}
-              hint={form.unitsLocked ? t('Unit setup is locked for products with stock or history.', 'স্টক বা লেনদেন আছে বলে একক বদলানো যাবে না।') : draft.multiUnit ? t('Smallest stock unit. Turn multiple units off before changing it.', 'সবচেয়ে ছোট স্টক একক। বদলাতে আগে একাধিক একক বন্ধ করুন।') : t('The smallest unit you count, like Pcs or Kg.', 'সবচেয়ে ছোট যে এককে গোনেন, যেমন Pcs বা Kg।')}
+              optional
+              hint={form.unitsLocked ? t('Unit setup is locked for products with stock or history.', 'স্টক বা লেনদেন আছে বলে একক বদলানো যাবে না।')  : draft.multiUnit ? t('Turn multiple units off before changing the smallest unit.', 'সবচেয়ে ছোট একক বদলাতে আগে একাধিক একক বন্ধ করুন।') : undefined}
+              help={t('The smallest unit used to count stock, like Pcs or Kg.', 'স্টক গোনার সবচেয়ে ছোট একক, যেমন Pcs বা Kg।')}
             >
               <SearchSelect
                 id="pf-unit"
