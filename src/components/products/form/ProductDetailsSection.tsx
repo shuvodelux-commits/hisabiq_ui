@@ -71,7 +71,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
               />
             </FormField>
           )}
-          <FormField id="pf-category" en="Category" bn="ক্যাটাগরি" error={errors.category}>
+          <FormField id="pf-category" en="Category" bn="ক্যাটাগরি" required error={errors.category}>
             <SearchSelect
               id="pf-category"
               noun={{ en: 'category', bn: 'ক্যাটাগরি' }}
@@ -89,6 +89,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
               id="pf-unit"
               en="Unit"
               bn="একক"
+              required
               error={errors.unit}
               hint={form.unitsLocked ? t('Unit setup is locked for products with stock or history.', 'স্টক বা লেনদেন আছে বলে একক বদলানো যাবে না।')  : draft.multiUnit ? t('Turn multiple units off before changing the smallest unit.', 'সবচেয়ে ছোট একক বদলাতে আগে একাধিক একক বন্ধ করুন।') : undefined}
               help={t('The smallest unit used to count stock, like Pcs or Kg.', 'স্টক গোনার সবচেয়ে ছোট একক, যেমন Pcs বা Kg।')}
