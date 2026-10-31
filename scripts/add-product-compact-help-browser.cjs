@@ -80,10 +80,15 @@ async function main() {
       const confirmUnits = page.getByRole('dialog', { name: language === 'Bangla' ? 'একটি একক ব্যবহার করবেন?' : 'Use a single unit?' });
       await confirmUnits.waitFor({ state: 'visible' });
       assert.equal(await isSwitchOn(multiSwitch), true, 'confirmation pending preserves state');
+      await confirmUnits.getByRole('button', { name: language === 'Bangla' ? 'একাধিক একক রাখুন' : 'Keep multiple units' }).click();
+      assert.equal(await isSwitchOn(multiSwitch), true, 'cancelling preserves unit setup');
+      await editor.locator('label:has(#pf-multi-toggle)').click();
+      await confirmUnits.waitFor({ state: 'visible' });
       await confirmUnits.getByRole('button', { name: language === 'Bangla' ? 'একটি একক ব্যবহার' : 'Use single unit' }).click();
-      assert.equal(await isSwitchOn(multiSwitch), true, 'incomplete ratio does not disable');
-      assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'true');
-      assert.ok(await editor.getByRole('status').filter({ hasText: language === 'Bangla' ? /রূপান্তর/ : /conversion/ }).count(), 'blocking reason is visible');
+      assert.equal(await isSwitchOn(multiSwitch), false, 'confirmed change uses one unit');
+      await editor.locator('label:has(#pf-multi-toggle)').click();
+      assert.equal(await isSwitchOn(multiSwitch), true, 'can re-enable multi-unit without leaving the form');
+      await equation.waitFor({ state: 'visible' });
       await editor.locator('#pf-warranty-button').click();
       assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'false');
       assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'true');
