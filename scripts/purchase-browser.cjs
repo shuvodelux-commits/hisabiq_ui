@@ -226,12 +226,14 @@ async function main() {
     await saveDraftBtn.click();
     await page.locator('[data-purchase-drafts-trigger]').click();
     const draftMenu = page.locator('[data-purchase-drafts-menu]');
+    await draftMenu.getByRole('button', { name: 'Resume' }).waitFor({ state: 'visible' });
     assert.equal(await draftMenu.getByRole('button', { name: 'Resume' }).count(), 1);
     assert.match(await draftMenu.innerText(), /1 products/);
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Purchases', exact: true }).click();
     await page.getByRole('button', { name: 'New purchase' }).click();
     await page.locator('[data-purchase-drafts-trigger]').click();
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).waitFor({ state: 'visible' });
     await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).click();
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 1, 'resuming draft restores original POS cart');
     assert.equal(await page.locator('[data-purchase-save-draft]').isEnabled(), true);
