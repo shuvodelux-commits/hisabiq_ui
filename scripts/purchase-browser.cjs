@@ -1,6 +1,7 @@
 /* Purchase UI smoke test. No API/network persistence expected in this phase. */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 
 async function main() {
   const { createServer } = await import('vite');
@@ -16,6 +17,34 @@ async function main() {
     await page.getByRole('button', { name: 'New purchase' }).click();
     await page.getByRole('heading', { name: /New purchase/ }).waitFor();
     assert.equal(await page.locator('[role="dialog"]').count(), 0, 'purchase editor must not be a modal');
+    const purchaseRoot = page.locator('[data-purchase-workspace]');
+    assert.equal(await page.getByRole('combobox', { name: 'Search product to add to purchase' }).count(), 1,
+      'single POS-style search must stay inside the cart, not duplicated above it');
+    assert.ok(await purchaseRoot.evaluate(node => {
+      const supplier = node.querySelector('[data-purchase-details]');
+      const cart = node.querySelector('[data-cart-kind="purchase"]');
+      const checkout = node.querySelector('[data-purchase-checkout]');
+      const additional = node.querySelector('[data-purchase-additional]');
+      return !!supplier && !!cart && !!checkout && !!additional &&
+        Boolean(supplier.compareDocumentPosition(cart) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+        Boolean(cart.compareDocumentPosition(checkout) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }), 'hybrid layout shows supplier first, authentic cart next, checkout below');
+    const additionalToggle = page.getByRole('button', { name: /Additional details/ });
+    assert.equal(await additionalToggle.getAttribute('aria-expanded'), 'false', 'notes/attachments start collapsed');
+    await additionalToggle.click();
+    await page.getByPlaceholder('Delivery, discount or other details').fill('Delivered via challan');
+    await additionalToggle.click();
+    assert.equal(await additionalToggle.getAttribute('aria-expanded'), 'false', 'notes can be collapsed without losing data');
+    await additionalToggle.click();
+    assert.equal(await page.getByPlaceholder('Delivery, discount or other details').inputValue(), 'Delivered via challan');
+    await additionalToggle.click();
+    assert.ok(await purchaseRoot.locator('[data-purchase-payment-methods]').count() === 1);
+    assert.ok(await purchaseRoot.locator('[data-purchase-payment-summary]').count() === 1);
+    assert.ok(await purchaseRoot.locator('[data-purchase-quick-items]').count() === 1);
+    assert.equal(await page.locator('[data-testid="purchase-add-row"] select[aria-label="Search product to add to purchase"]').count(), 0,
+      'inline POS search remains an accessible combobox rather than a plain select');
+    fs.mkdirSync('test-results/purchase-hybrid', { recursive: true });
+    await page.screenshot({ path: 'test-results/purchase-hybrid/desktop.png', fullPage: true });
 
     await page.getByRole('combobox',{name:'Supplier',exact:true}).click();
     await page.getByText('Add new supplier',{exact:true}).click();
@@ -147,6 +176,10 @@ async function main() {
     await page.goto('http://127.0.0.1:4177/#/app/purchases/new');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).waitFor();
+    const quickRail = page.locator('[data-purchase-quick-items] > div').last();
+    assert.ok(await quickRail.evaluate(node => getComputedStyle(node).overflowX === 'auto'), 'touch quick items use horizontal scrolling');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'phone has no page-level horizontal overflow');
+    await page.screenshot({ path: 'test-results/purchase-hybrid/phone.png', fullPage: true });
     await page.keyboard.press('F9');
     await page.getByText('Select or quick-add a supplier.', { exact: true }).last().waitFor();
     assert.match(page.url(), /purchases\/new/, 'F9 validates instead of navigating on an incomplete purchase');
