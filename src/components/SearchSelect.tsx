@@ -184,12 +184,23 @@ export function SearchSelect({
     else if (event.key === 'ArrowUp') { event.preventDefault(); setActive((i) => Math.max(0, i - 1)); }
     else if (event.key === 'Home') { event.preventDefault(); setActive(0); }
     else if (event.key === 'End') { event.preventDefault(); setActive(Math.max(0, rowCount - 1)); }
+    else if (event.key === 'F2' && onEdit && filtered[active]) {
+      event.preventDefault();
+      startEdit(filtered[active]);
+    }
     else if (event.key === 'Enter') {
       event.preventDefault();
       if (rowCount > 0) activate(active);
       else if (onCreate) startQuickAdd(query.trim());
     } else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); hide(); }
     else if (event.key === 'Tab' && !sheet) {
+      // An editable list can be reached from the search input with Tab.
+      // The active row then exposes its pencil via focus-within.
+      if (!event.shiftKey && onEdit && active < filtered.length) {
+        event.preventDefault();
+        panelRef.current?.querySelector<HTMLElement>(`[id="${listId}-${active}"]`)?.focus();
+        return;
+      }
       const trigger = triggerRef.current;
       const controls = Array.from((trigger?.closest('form') ?? document).querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex="0"]')).filter((node) => node.getClientRects().length);
       const next = controls[(trigger ? controls.indexOf(trigger) : -1) + (event.shiftKey ? -1 : 1)];
@@ -308,7 +319,7 @@ export function SearchSelect({
               aria-selected={isSelected}
               data-active={isActive}
               onPointerDown={(event) => {
-                if (!(event.target as HTMLElement).closest('button')) event.preventDefault();
+                if (event.pointerType !== 'touch' && !(event.target as HTMLElement).closest('button')) event.preventDefault();
               }}
               onPointerMove={() => setActive(index)}
               onFocus={() => setActive(index)}
