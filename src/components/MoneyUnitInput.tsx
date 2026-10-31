@@ -2,6 +2,7 @@ import {NumericInput} from './NumericInput';
 import { useId } from 'react';
 import { SearchSelect } from './SearchSelect';
 import { AppSelect } from './AppSelect';
+import {unitSymbol} from '../data/productUnits';
 
 type MoneyUnitInputProps = {
   label: string;
@@ -51,13 +52,13 @@ export function MoneyUnitInput({
       {onUnitChange && units.length > 0 && (
         <div className={(compact ? "w-[86px] sm:w-[100px]" : "w-[108px]") + " shrink-0 border-l border-border bg-ink-50/50"}>
           {searchableUnits && units.length > 2 ? <SearchSelect id={`${id ?? generatedId}-unit`} noun={{ en: label + ' unit', bn: 'একক' }}
-            value={unit ?? ''} options={units.map((value) => ({ value, label: value }))} onChange={onUnitChange} disabled={disabled} /> : (
-            <AppSelect label={label + ' unit'} value={unit ?? ''} options={units} onChange={onUnitChange}
+            value={unit ?? ''} options={units.map((value) => ({ value, label: unitSymbol(value) }))} onChange={onUnitChange} disabled={disabled} /> : (
+            <AppSelect label={label + ' unit'} value={unit ?? ''} options={units.map(value=>({value,label:unitSymbol(value)}))} onChange={onUnitChange}
               disabled={disabled} compact className="h-full [&>button]:h-full [&>button]:rounded-none" />
           )}
         </div>
       )}
-      {(!onUnitChange || !units.length) && staticUnit && <span className="flex shrink-0 items-center whitespace-nowrap border-l border-border bg-ink-50/50 px-3 text-[13px] text-ink-500">{staticUnit}</span>}
+      {(!onUnitChange || !units.length) && staticUnit && <span title={staticUnit} className="flex shrink-0 items-center whitespace-nowrap border-l border-border bg-ink-50/50 px-3 text-[13px] text-ink-500">{unitSymbol(staticUnit)}</span>}
     </div>
   );
 }

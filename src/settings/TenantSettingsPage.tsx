@@ -1,4 +1,5 @@
 import { SettingsTabs } from "./SettingsTabs";
+import { SettingsDirectory } from "./SettingsDirectory";
 import { settingsSubsections, businessFieldGroup } from "./subsections";
 import { listenSettingsPop } from "./navigationGuard";
 import { InterfaceSettings } from "./InterfaceSettings";
@@ -342,7 +343,7 @@ export function SettingsPageContent({
   useLayoutEffect(() => {
     if (!embedded && routeState?.settingsTabFocus === section)
       document
-        .getElementById(`${tabsId}-main-${section}`)
+        .getElementById(`${tabsId}-${window.matchMedia('(min-width: 1024px)').matches ? 'directory' : 'main'}-${section}`)
         ?.focus({ preventScroll: true });
   }, [section, embedded, routeState, tabsId]);
   const personalDirty =
@@ -530,11 +531,11 @@ export function SettingsPageContent({
   const info = sectionNames[section],
     Icon = icons[section];
   return (
-    <div data-settings-dirty={dirty} className="erp-settings min-w-0 space-y-5">
+    <div data-settings-dirty={dirty} className="erp-settings min-w-0 flex-1 space-y-5">
       <header className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Icon aria-hidden="true" className="size-5 text-primary" />
+            <Icon aria-hidden="true" className="size-5 text-primary lg:hidden" />
             <h1
               data-testid="settings-title"
               className="text-xl font-semibold tracking-tight text-ink"
@@ -547,9 +548,10 @@ export function SettingsPageContent({
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs text-helper">
-            Settings · {state.sections.business.name} · UI preview
-          </p>
+          <p className="mt-1 text-[13px] text-ink-500">{section === 'team'
+            ? 'Manage who can access this business and what they can do.'
+            : info.description}</p>
+          <p className="mt-1 text-[11px] text-helper">Settings · {state.sections.business.name} · UI preview</p>
         </div>
         <div className="flex w-full min-w-0 flex-wrap items-end gap-3 md:w-auto">
           <div
@@ -664,8 +666,16 @@ export function SettingsPageContent({
           </fieldset>
         </div>
       </header>
+      <div className={embedded ? "min-w-0" : "grid min-w-0 items-start gap-4 lg:grid-cols-[280px_minmax(0,1fr)]"}>
+        {!embedded && <SettingsDirectory
+          items={Object.entries(sectionNames).map(([id, item])=>({ id, ...item }))}
+          selected={section} language={personal.language}
+          id={`${tabsId}-directory`} panelId={`${tabsId}-content`}
+          onSelect={(value)=>{ if (value !== section) requestChange(()=>navigate(`/app/settings/${value}`, { state:{settingsTabFocus:value} })); }}
+        />}
+        <div className="min-w-0 space-y-4 lg:space-y-0">
       {!embedded && (
-        <SettingsTabs
+        <div className="lg:hidden"><SettingsTabs
           id={`${tabsId}-main`}
           panelId={`${tabsId}-content`}
           label="Settings categories"
@@ -683,22 +693,18 @@ export function SettingsPageContent({
                 }),
               );
           }}
-        />
+        /></div>
       )}
       <div
         id={`${tabsId}-content`}
         role={embedded ? undefined : "tabpanel"}
         aria-labelledby={embedded ? undefined : `${tabsId}-main-${section}`}
-        className={
-          subsections.length
-            ? "grid min-w-0 gap-4 lg:grid-cols-[215px_minmax(0,1fr)]"
-            : "min-w-0"
-        }
+        className="min-w-0 space-y-4"
       >
         {subsections.length > 0 && (
           <aside className="min-w-0 self-start">
             <SettingsTabs
-              secondary
+              secondary inline
               id={`${tabsId}-sub`}
               panelId={`${tabsId}-sub-content`}
               label={`${info.label} sub-settings`}
@@ -739,7 +745,7 @@ export function SettingsPageContent({
                 if (!dirty || !editable || readingLogo) return;
                 needsReview ? setReviewOpen(true) : commit();
               }}
-              className="space-y-4"
+              className={section === 'team' && !embedded ? 'flex min-h-[calc(100vh-14rem)] flex-col gap-4' : 'space-y-4'}
             >
               {!editable && (
                 <p
@@ -1172,7 +1178,9 @@ export function SettingsPageContent({
                   {notice}
                 </p>
               )}
-              <div className="sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-pop">
+              <div className={section === 'team' && !embedded
+                ? 'sticky bottom-0 z-10 -mx-3 mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-3 py-3 sm:-mx-4 sm:px-4 lg:-mx-8 lg:px-8'
+                : 'sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-pop'}>
                 <div className="text-xs text-ink-500">
                   {dirty
                     ? "Unsaved changes"
@@ -1220,6 +1228,8 @@ export function SettingsPageContent({
             </form>
           )}
         </div>
+      </div>
+      </div>
       </div>
       <footer className="flex flex-wrap gap-4 text-xs">
         {state.sections.team.employees

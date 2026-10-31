@@ -1,7 +1,7 @@
 {
   "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "03333f696aad16c940f2412a919067cd34a75537255b5a633d22c7b330cca916",
+  "guideSha256": "2601a8fd56e52b76f08ba7656024901ff95c3f05ee8236843624b0b0e2167bb9",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {
@@ -146,7 +146,9 @@
         "joined shell",
         "compound units",
         "multi-unit chain",
-        "Bangla amount words"
+        "Bangla amount words",
+        "three/four units in one row",
+        "short unit symbols"
       ]
     },
     {
@@ -2935,6 +2937,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/products/form/UnitPricesPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "UnitPricesPanel"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/products/form/WarrantySettings.tsx",
       "kind": "component",
       "exports": [
@@ -2963,6 +2973,14 @@
       "kind": "component",
       "exports": [
         "PurchaseCart"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/purchases/PurchaseDraftsMenu.tsx",
+      "kind": "component",
+      "exports": [
+        "PurchaseDraftsMenu"
       ],
       "reexports": []
     },
@@ -3855,6 +3873,15 @@
       "reexports": []
     },
     {
+      "file": "src/settings/ModuleSettingsToolbarContext.tsx",
+      "kind": "provider-or-context",
+      "exports": [
+        "ModuleSettingsToolbarContext",
+        "useModuleSettingsAction"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/OutputDesignSettings.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -3867,6 +3894,14 @@
       "kind": "authored-ui",
       "exports": [
         "SettingsActivity"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/SettingsDirectory.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsDirectory"
       ],
       "reexports": []
     },
@@ -3997,8 +4032,7 @@
       "src/settings/ModuleSettingsEntry.tsx"
     ],
     "ArrowLeftIcon": [
-      "src/components/SearchSelect.tsx",
-      "src/components/products/AddProductDialog.tsx"
+      "src/components/SearchSelect.tsx"
     ],
     "ArrowLeftRight": [
       "src/components/finance/FinanceRecordDialogs.tsx",
@@ -4018,6 +4052,7 @@
       "src/components/reports/ReportOverview.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/pages/BrandGuide.tsx",
+      "src/pages/PurchaseEditor.tsx",
       "src/pages/Reports.tsx",
       "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
@@ -4046,6 +4081,9 @@
       "src/saas/SaasShell.tsx",
       "src/settings/TenantSettingsHub.tsx"
     ],
+    "BadgeDollarSignIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
     "Banknote": [
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/dashboard/MetricCard.tsx",
@@ -4061,8 +4099,12 @@
       "src/pages/Expenses.tsx",
       "src/saas/SaasShell.tsx"
     ],
+    "BarcodeIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
     "Bell": [
       "src/components/layout/TopBar.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4086,7 +4128,8 @@
       "src/pages/Accounts.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Sales.tsx",
-      "src/saas/SaasShell.tsx"
+      "src/saas/SaasShell.tsx",
+      "src/settings/SettingsDirectory.tsx"
     ],
     "Briefcase": [
       "src/saas/SaasShell.tsx"
@@ -4096,6 +4139,7 @@
     ],
     "Building2": [
       "src/saas/SaasShell.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4106,6 +4150,9 @@
     "CalendarClock": [
       "src/components/pos/InstallmentRescheduleDialog.tsx",
       "src/pages/Daybook.tsx"
+    ],
+    "CalendarClockIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "CalendarDays": [
       "src/components/AppDateRangePicker.tsx",
@@ -4183,6 +4230,7 @@
       "src/components/AppDateRangePicker.tsx",
       "src/components/AppMonthYearPicker.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
@@ -4195,6 +4243,7 @@
       "src/components/layout/ErpNavMenu.tsx",
       "src/components/parties/LedgerTableResponsive.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
@@ -4202,9 +4251,6 @@
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsTabs.tsx"
-    ],
-    "ChevronRightIcon": [
-      "src/components/products/AddProductDialog.tsx"
     ],
     "ChevronUp": [
       "src/components/NumericInput.tsx",
@@ -4237,6 +4283,7 @@
       "src/components/daybook/DaybookActions.tsx",
       "src/components/daybook/TransactionDetailsDialog.tsx",
       "src/components/layout/Calculator.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Sales.tsx"
@@ -4250,6 +4297,7 @@
       "src/settings/TenantSettingsHub.tsx"
     ],
     "Database": [
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4307,6 +4355,7 @@
     ],
     "FileClock": [
       "src/components/pos/DraftsMenu.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Sales.tsx"
     ],
@@ -4380,6 +4429,9 @@
       "src/components/products/PhotoUploader.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
+    "ImagesIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
     "Info": [
       "src/components/Tooltip.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
@@ -4406,6 +4458,9 @@
     ],
     "Layers": [
       "src/saas/SaasShell.tsx"
+    ],
+    "Layers3Icon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "LayersIcon": [
       "src/components/products/form/AdvancedStockPanel.tsx"
@@ -4508,6 +4563,7 @@
       "src/components/brand/BrandHero.tsx",
       "src/components/brand/PrimitivesSection.tsx",
       "src/navigation/erpNavigation.ts",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "PackageCheck": [
@@ -4557,6 +4613,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/pos/InstallmentTermsPanel.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Quotations.tsx",
@@ -4665,6 +4722,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/DocumentDesignSettings.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Receipt": [
@@ -4712,6 +4770,7 @@
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/pos/DraftsMenu.tsx",
       "src/components/reports/BusinessReview.tsx",
+      "src/pages/PurchaseEditor.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Scale": [
@@ -4725,6 +4784,9 @@
       "src/components/pos/SerialPickerDialog.tsx",
       "src/components/products/ProductInventoryDialogs.tsx",
       "src/components/purchases/PurchaseCart.tsx"
+    ],
+    "ScanLineIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "Search": [
       "src/components/accounts/ChartOfAccountsView.tsx",
@@ -4744,6 +4806,7 @@
       "src/components/parties/PartyLedgerToolbarResponsive.tsx",
       "src/components/pos/ProductCombobox.tsx",
       "src/components/products/ProductInventoryViews.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/components/vendor/VendorDirectory.tsx",
       "src/components/vendor/VendorMemoPickerDialog.tsx",
       "src/pages/Expenses.tsx",
@@ -4756,7 +4819,8 @@
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
-      "src/saas/components.tsx"
+      "src/saas/components.tsx",
+      "src/settings/SettingsDirectory.tsx"
     ],
     "SearchCheck": [
       "src/components/reports/BusinessReview.tsx"
@@ -4793,9 +4857,13 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/saas/SaasShell.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TeamSettings.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
+    ],
+    "ShieldCheckIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "ShoppingCart": [
       "src/components/brand/BrandHero.tsx",
@@ -4803,6 +4871,7 @@
       "src/components/dashboard/MetricCard.tsx",
       "src/navigation/erpNavigation.ts",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "SlidersHorizontal": [
@@ -4813,6 +4882,7 @@
       "src/pages/Dashboard.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsActivity.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Smartphone": [
@@ -4862,6 +4932,7 @@
       "src/components/products/BundleEditor.tsx",
       "src/components/purchases/BillDialog.tsx",
       "src/components/purchases/PurchaseCart.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/components/purchases/PurchasePaymentPanel.tsx",
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorGoodsEditor.tsx",
@@ -4881,7 +4952,8 @@
     ],
     "Truck": [
       "src/components/brand/PrimitivesSection.tsx",
-      "src/components/pos/StockShortageDialog.tsx"
+      "src/components/pos/StockShortageDialog.tsx",
+      "src/settings/SettingsDirectory.tsx"
     ],
     "Undo2": [
       "src/pages/Purchases.tsx",
@@ -4905,7 +4977,8 @@
     "UserRound": [
       "src/components/pos/CustomerPicker.tsx",
       "src/pages/Sales.tsx",
-      "src/pages/Warranty.tsx"
+      "src/pages/Warranty.tsx",
+      "src/settings/SettingsDirectory.tsx"
     ],
     "UserRoundCog": [
       "src/components/finance/FinanceRecordDialogs.tsx",
@@ -4917,6 +4990,7 @@
       "src/navigation/erpNavigation.ts",
       "src/saas/SaasShell.tsx",
       "src/settings/AccountSecuritySettings.tsx",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
@@ -4927,6 +5001,7 @@
       "src/components/layout/TopBar.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/navigation/erpNavigation.ts",
+      "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "WalletCards": [

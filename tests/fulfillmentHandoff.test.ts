@@ -13,7 +13,8 @@ function accepted(){
  changeQuoteStatus(q.id,'Sent');
  return changeQuoteStatus(q.id,'Accepted');
 }
-test('accepted quote locks quoted prices, units and discount in linked online order',()=>{
+test('accepted quote locks quoted prices, units and discount in linked online order',(t)=>{
+ t.mock.timers.enable({apis:['Date'],now:new Date('2026-10-10T06:00:00Z')});
  resetOnlinePreviewForTest();
  const quote=accepted();
  const draft=draftFromAcceptedQuote(quote);
@@ -34,7 +35,8 @@ test('accepted quote locks quoted prices, units and discount in linked online or
  assert.equal(getOnlineSnapshot().orders.filter(o=>o.sourceQuoteId===quote.id).length,1);
  assert.throws(()=>reviseOnlineDraft(order.id,{...valid,discount:70}),/locked/);
 });
-test('unaccepted quotations cannot be converted; POS requires confirmed order and original products',()=>{
+test('unaccepted quotations cannot be converted; POS requires confirmed order and original products',(t)=>{
+ t.mock.timers.enable({apis:['Date'],now:new Date('2026-10-10T06:00:00Z')});
  resetOnlinePreviewForTest();
  const fresh=saveQuote({date:'2026-10-09',validUntil:'2026-10-20',status:'Draft',
  customerName:'Not accepted',customerPhone:'01711482093',note:'',discount:0,

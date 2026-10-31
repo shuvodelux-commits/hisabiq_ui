@@ -103,20 +103,14 @@ export function TeamSettings({
   const impact = role ? roleImpact(value, role) : null;
   return (
     <div className="space-y-4">
-      <div
-        className={
-          tabs.length > 1
-            ? "grid min-w-0 gap-4 lg:grid-cols-[215px_minmax(0,1fr)]"
-            : "min-w-0 space-y-4"
-        }
-      >
+      <div className="min-w-0 space-y-4">
         <SettingsTabs
           id={tabsId}
           panelId={`${tabsId}-panel`}
           label="Employee settings views"
           libraryTitle={language === "Bangla" ? "কর্মীর সেটিংস" : "Employee settings"}
           libraryGroup={language === "Bangla" ? "প্রবেশাধিকার" : "Access management"}
-          secondary={tabs.length > 1}
+          secondary={false}
           language={language}
           items={tabs.map((id) => ({
             id,

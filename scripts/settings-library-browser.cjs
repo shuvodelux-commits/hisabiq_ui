@@ -18,20 +18,21 @@ async function main() {
       await page.getByTestId('settings-title').waitFor();
     };
     await go('business');
-    const sidebar = page.locator('[data-workspace-library]');
-    assert.equal(await sidebar.count(), 1, 'Settings uses Report Library sidebar');
+    const sidebar = page.locator('[data-settings-directory]');
+    assert.equal(await sidebar.isVisible(), true, 'Settings directory is embedded in normal ERP workspace');
+    assert.equal(await page.locator('[data-sidebar="sidebar"]').isVisible(), true, 'Normal ERP navigation remains visible');
+    const sub = page.getByRole('tablist',{name:'Business profile sub-settings'});
     await page.getByLabel('Business name', { exact: true }).fill('Library draft shop');
-    await sidebar.getByRole('searchbox').fill('যোগাযোগ');
-    assert.equal(await sidebar.getByRole('tab').count(), 1);
-    await sidebar.getByRole('tab', { name: /Contact & address/ }).click();
-    await page.getByLabel('Phone number', { exact: true }).fill('01711000245');
+    await sidebar.getByRole('searchbox').fill('Business');
+    assert.equal(await sidebar.getByRole('tab').count(),1);
     await sidebar.getByRole('searchbox').fill('no-such-setting');
-    await sidebar.getByText('No matching settings.', { exact: true }).waitFor();
+    await sidebar.getByText('No matching sections.', { exact: true }).waitFor();
     await sidebar.getByRole('searchbox').fill('');
-    await sidebar.getByRole('tab', { name: /General/ }).click();
+    await sub.getByRole('tab', { name: /Contact & address/ }).click();
+    await page.getByLabel('Phone number', { exact: true }).fill('01711000245');
+    await sub.getByRole('tab', { name: /General/ }).click();
     assert.equal(await page.getByLabel('Business name', { exact: true }).inputValue(), 'Library draft shop');
-    assert.equal(await sidebar.locator('[data-motion-tab-indicator]').count(), 0, 'Library selection has no tab underline');
-    assert.equal(Math.round((await sidebar.boundingBox()).width), 215);
+    assert.equal(Math.round((await sidebar.boundingBox()).width), 280);
     await page.getByRole('button', { name: 'Save changes', exact: true }).click();
     await page.getByRole('status').filter({ hasText: 'Business settings saved.' }).waitFor();
     await go('team');
@@ -78,7 +79,8 @@ async function main() {
     await table.getByRole('columnheader', { name: 'Roles', exact: true }).waitFor();
     for (const width of [390, 768, 800, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
-      await page.waitForFunction(desktop => document.querySelector('[aria-label="Employee settings views"]').getAttribute('aria-orientation') === (desktop ? 'vertical' : 'horizontal'), width >= 1024);
+      await page.waitForFunction(() => document.querySelector('[aria-label="Employee settings views"]').getAttribute('aria-orientation') === 'horizontal');
+      assert.equal(await page.locator('[data-settings-directory]').isVisible(), width >= 1024, 'Only desktop shows Settings sidebar');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'Employee page fits at ' + width);
     }
     fs.mkdirSync('.superpowers/sdd/settings-report-library/screens', { recursive: true });
@@ -91,6 +93,11 @@ async function main() {
       }
     }
     await go('data');
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const directoryRect = await page.locator('[data-settings-directory]').boundingBox();
+    const contentRect = await page.locator('[data-settings-subpanel]').boundingBox();
+    assert.ok(directoryRect && contentRect && Math.abs(directoryRect.y - contentRect.y) <= 2,
+      'Desktop Settings content starts level with the in-page Party-style directory (no hidden-tab top gap)');
     const activity = page.getByRole('region', { name: 'Settings activity', exact: true });
     await activity.getByRole('searchbox', { name: 'Search settings activity', exact: true }).fill('no-such-change');
     await activity.getByText('No matching activity.', { exact: true }).waitFor();

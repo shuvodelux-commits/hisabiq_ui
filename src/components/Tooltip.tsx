@@ -6,15 +6,20 @@ export function Tooltip({
   content,
   label = 'More information',
   align = 'center',
+  side = 'bottom',
   triggerClassName = '',
-  interactive = false
+  interactive = false,
+  compact = false
 }: {
   content: React.ReactNode;
   label?: string;
   align?: 'start' | 'center' | 'end';
+  side?: 'top' | 'bottom';
   triggerClassName?: string;
   /** Opt-in help for touch/keyboard users; portals escape clipped tables and panels. */
   interactive?: boolean;
+  /** Smaller visible help icon, with a 36px transparent pointer target. */
+  compact?: boolean;
 }) {
   const contentId = useId();
   const [open,setOpen]=useState(false);
@@ -32,12 +37,12 @@ export function Tooltip({
       if(!anchor||!panel)return;
       const width=panel.offsetWidth,height=panel.offsetHeight;
       const left=Math.max(8,Math.min(anchor.left+(anchor.width-width)/2,window.innerWidth-width-8));
-      const below=anchor.bottom+6;
-      setPosition({left,top:below+height<=window.innerHeight-8?below:Math.max(8,anchor.top-height-6)});
+      const below=anchor.bottom+6,above=anchor.top-height-6;
+      setPosition({left,top:side==='top'&&above>=8?above:below+height<=window.innerHeight-8?below:Math.max(8,above)});
     };
     place();window.addEventListener('resize',place);window.addEventListener('scroll',place,true);
     return ()=>{window.removeEventListener('resize',place);window.removeEventListener('scroll',place,true);};
-  },[interactive,open,content]);
+  },[interactive,open,content,side]);
   useEffect(()=>{
     if(!interactive||!open)return;
     const outside=(event:PointerEvent)=>{const node=event.target as Node;if(!trigger.current?.contains(node)&&!popup.current?.contains(node)){cancelClose();setOpen(false);}};
@@ -51,7 +56,7 @@ export function Tooltip({
       onClick={show} onFocus={show} onBlur={scheduleClose}
       onPointerEnter={event=>{if(event.pointerType!=='touch')show();}}
       onPointerLeave={event=>{if(event.pointerType!=='touch')scheduleClose();}}
-      className={'inline-flex size-9 items-center justify-center rounded-md text-ink-500 outline-none hover:bg-ink-50 hover:text-ink focus-visible:ring-2 focus-visible:ring-ring '+triggerClassName}>
+      className={(compact ? 'relative size-6 before:absolute before:-inset-1.5 before:content-[\'\'] ' : 'size-9 ')+'inline-flex items-center justify-center rounded-md text-ink-500 outline-none hover:bg-ink-50 hover:text-ink focus-visible:ring-2 focus-visible:ring-ring '+triggerClassName}>
       <Info className="size-3.5" aria-hidden="true"/>
     </button>
     {open&&typeof document!=='undefined'&&createPortal(<span ref={popup} id={contentId} role="tooltip"
@@ -72,7 +77,7 @@ export function Tooltip({
       <span
         id={contentId}
         role="tooltip"
-        className={`pointer-events-none absolute top-full z-[130] mt-1.5 hidden w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-inverse px-2.5 py-2 text-left text-[11px] font-normal leading-relaxed text-white shadow-pop group-hover:block group-focus-within:block ${alignClass}`}>
+        className={`pointer-events-none absolute ${side==='top'?'bottom-full mb-1.5':'top-full mt-1.5'} z-[130] hidden w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-inverse px-2.5 py-2 text-left text-[11px] font-normal leading-relaxed text-white shadow-pop group-hover:block group-focus-within:block ${alignClass}`}>
         {content}
       </span>
     </span>
