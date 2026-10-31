@@ -367,7 +367,9 @@
   [data-cart-kind="purchase"] [data-cart-header],
   [data-cart-kind="purchase"] [data-cart-row],
   [data-cart-kind="purchase"] [data-cart-add] {
-    grid-template-columns: 24px minmax(144px, 1fr) 162px 78px 105px 112px 95px 28px;
+    /* Keep the Purchase POS-style single row on tablets while reserving enough
+       width for lot price + stepper + selected-unit suffix (POS price contract). */
+    grid-template-columns: 24px minmax(130px, 1fr) 150px 70px 96px 166px 100px 28px;
     gap: 6px;
   }
   [data-cart-kind="purchase"] [data-cart-header] { display: grid; }
