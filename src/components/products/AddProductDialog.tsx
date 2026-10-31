@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { ArrowLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '../Dialog';
 import { Button } from '../Button';
+import { Tooltip } from '../Tooltip';
 import { AddProductForm } from './form/AddProductForm';
 import { DiscardDialog } from './form/DiscardDialog';
 import { ErrorSummary } from './form/ErrorSummary';
@@ -95,12 +96,15 @@ function ProductEditor({ onOpenChange, onSave, initialProduct, existingSerials =
           </Button>
           <span>{t('Products', 'পণ্য')}</span><ChevronRightIcon className="size-3.5" aria-hidden="true" /><span className="text-ink">{title}</span>
         </div>
-        <h1 id="pf-title" className="text-[22px] font-semibold tracking-tight text-ink">{title}
-          {showHelper && <span className="ml-2 font-bn text-[14px] font-normal text-ink-500">· {form.isEdit ? 'পণ্য সম্পাদনা' : 'নতুন পণ্য'}</span>}
-        </h1>
-        <p className="mt-1 text-[14px] text-ink-500">{form.isEdit
-          ? t('Update details here. Stock quantity changes stay in Adjust stock.', 'এখানে তথ্য বদলান। স্টকের পরিমাণ বদলাতে Adjust stock ব্যবহার করুন।')
-          : t('Fill the top part and save. Everything else can wait.', 'উপরের অংশ পূরণ করে সংরক্ষণ করুন। বাকিগুলো পরে দিলেও চলবে।')}</p>
+        <div className="flex items-center gap-2">
+          <h1 id="pf-title" className="text-[22px] font-semibold tracking-tight text-ink">{title}
+            {showHelper && <span className="ml-2 font-bn text-[14px] font-normal text-ink-500">· {form.isEdit ? 'পণ্য সম্পাদনা' : 'নতুন পণ্য'}</span>}
+          </h1>
+          {form.isEdit && <Tooltip interactive compact
+            label={t('Help for Edit product', 'পণ্য সম্পাদনা সম্পর্কে সাহায্য')}
+            content={t('Stock quantity changes stay in Adjust stock.', 'স্টকের পরিমাণ বদলাতে Adjust stock ব্যবহার করুন।')}
+          />}
+        </div>
       </header>
       <div className={presentation === 'context' ? 'px-4 md:px-0' : undefined}><ErrorSummary form={form} />
         {form.saveError && <p role="alert" className="mb-4 rounded-lg bg-danger-bg p-3 text-sm text-danger">{form.saveError}</p>}
