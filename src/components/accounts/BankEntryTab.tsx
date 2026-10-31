@@ -390,6 +390,7 @@ export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 
             </table>
           </div>
         </section>
+      )}
 
       <Dialog open={inCounter && review} onOpenChange={(open) => { if (!open) setReview(false); }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
@@ -420,7 +421,6 @@ export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 
           </div>
         </DialogContent>
       </Dialog>
-      )}
     </div>
   );
 }
