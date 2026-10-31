@@ -72,7 +72,7 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
     )
   };
   return (
-    <section data-product-additional-settings className="mx-4 border-t border-border pt-4 pb-3 md:mx-6">
+    <section data-product-additional-settings className="mx-4 pt-3 pb-3 md:mx-6">
       <h2 className="mb-2 text-[14px] font-semibold text-ink">{t('Additional settings', 'অতিরিক্ত সেটিংস')}</h2>
       <div className="space-y-0.5">
         {sections.map((section) => (
