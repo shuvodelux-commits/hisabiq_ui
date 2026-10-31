@@ -199,7 +199,7 @@ async function main() {
     assert.match(await purchasePaymentPanel.innerText(), /৳0(?!\d)/, 'fully paid');
 
     assert.match(await purchasePaymentPanel.innerText(), /Supplier due/);
-    await page.locator('[data-erp-workflow-action="complete"]').click();
+    await page.locator('[data-purchase-review-action]').click();
     const reviewPurchase = page.getByRole('dialog', { name: 'Review purchase', exact: true });
     await reviewPurchase.waitFor();
     assert.match(await reviewPurchase.innerText(), /টাকা মাত্র/, 'Bangla amount wording is shown before posting');
