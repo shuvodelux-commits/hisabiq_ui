@@ -174,6 +174,16 @@ async function main() {
     await page.goto('http://127.0.0.1:4177/#/app/parties');
     await page.getByText('Browser QA Supplier', { exact: true }).last().waitFor();
     await page.goto('http://127.0.0.1:4177/#/app/purchases/new');
+    await page.setViewportSize({ width: 768, height: 1024 });
+    const tabletQuick = page.locator('[data-purchase-quick-items]').getByRole('button', { name: /Quick add PVC Pipe/ }).first();
+    await tabletQuick.waitFor();
+    const tapArea = await tabletQuick.boundingBox();
+    assert.ok(tapArea && tapArea.height >= 48, 'tablet quick-add keeps a full-size touch target');
+    await tabletQuick.click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 1, 'tablet quick add inserts into original cart');
+    await page.getByTestId('purchase-cart-row').first().getByRole('button', { name: /Remove PVC Pipe/ }).click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 0, 'tablet quick-added line can be removed');
+    await page.screenshot({ path: 'test-results/purchase-hybrid/tablet.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).waitFor();
     const quickRail = page.locator('[data-purchase-quick-items] > div').last();
