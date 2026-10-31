@@ -28,11 +28,7 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
   if (draft.barcode.trim()) parts.push(t('Barcode set', 'বারকোড আছে'));
   if (draft.photos.length) parts.push(t(`${draft.photos.length} photo${draft.photos.length > 1 ? 's' : ''}`, `${draft.photos.length}টি ছবি`));
 
-  const summary = parts.length
-    ? parts.join(' · ')
-    : isStock
-      ? t('Warranty, serial numbers, expiry, barcode, photos', 'ওয়ারেন্টি, সিরিয়াল, মেয়াদ, বারকোড, ছবি')
-      : t('Warranty, barcode, photos', 'ওয়ারেন্টি, বারকোড, ছবি');
+  const summary = parts.length ? parts.join(' · ') : undefined;
 
   return (
     <Disclosure
@@ -40,6 +36,7 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
       en="Other options"
       bn="অন্যান্য অপশন"
       summary={summary}
+      help={isStock ? t('Warranty, serial numbers, expiry, barcode and photos.', 'ওয়ারেন্টি, সিরিয়াল, মেয়াদ, বারকোড ও ছবি।') : t('Warranty, barcode and photos.', 'ওয়ারেন্টি, বারকোড ও ছবি।')}
       open={form.otherOpen}
       onToggle={() => form.setOtherOpen(!form.otherOpen)}
       errorCount={errorCount}
@@ -50,7 +47,7 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
         {isStock && <div className="py-5"><ExpirySettings form={form} /></div>}
         <div className="py-5">
           <div className="max-w-[420px]">
-            <FormField id="pf-barcode" en="Barcode / SKU" bn="বারকোড / SKU" hint={t('Optional. Scan or type. Left empty, one is made for you.', 'ঐচ্ছিক। স্ক্যান করুন বা লিখুন। খালি রাখলে নিজে তৈরি হবে।')}>
+            <FormField id="pf-barcode" en="Barcode / SKU" bn="বারকোড / SKU" optional help={t('Scan or type. Left empty, one is made for you.', 'স্ক্যান করুন বা লিখুন। খালি রাখলে নিজে তৈরি হবে।')}>
               <Input
                 id="pf-barcode"
                 value={draft.barcode}
