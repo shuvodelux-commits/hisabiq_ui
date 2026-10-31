@@ -544,6 +544,20 @@
 .pf-unit-equals { grid-column: 3; grid-row: 1; padding-bottom: 7px; text-align: center; }
 .pf-unit-ratio { grid-column: 4; grid-row: 1; }
 .pf-unit-remove { grid-column: 5; grid-row: 1; }
+/* The equation itself names the two entries. Keep the descriptive field labels
+   accessible to screen readers without adding another visible text row. */
+#pf-unitChain .pf-unit-select > div:first-child,
+#pf-unitChain .pf-unit-ratio > div:first-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 @container pf (max-width: 479px) {
   .pf-unit-row { grid-template-columns: 16px minmax(0, 1fr) 36px; }
   .pf-unit-one { grid-column: 1; grid-row: 1; }
