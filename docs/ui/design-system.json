@@ -2953,14 +2953,6 @@
       "reexports": []
     },
     {
-      "file": "src/components/products/form/useAddProductForm.ts",
-      "kind": "component",
-      "exports": [
-        "useAddProductForm"
-      ],
-      "reexports": []
-    },
-    {
       "file": "src/components/purchases/BillDetailDialog.tsx",
       "kind": "component",
       "exports": [
