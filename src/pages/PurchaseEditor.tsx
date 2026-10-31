@@ -1,7 +1,7 @@
 import {businessToday} from '../utils/dateRange';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileImage, Keyboard, Save, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Keyboard, Save, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -377,25 +377,25 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             actionLabel={initialPurchase ? "Review correction" : undefined}
             hideAction
             additionalDetails={
-              <div data-purchase-additional className="space-y-2">
-                <div className="flex items-center gap-2 text-[12px] font-medium text-ink">
-                  <FileImage className="size-4 shrink-0 text-ink-500" aria-hidden="true" />
-                  <span>Notes &amp; receipt <span className="font-bn text-[11px] font-normal text-ink-500">· অতিরিক্ত তথ্য</span></span>
-                </div>
-                <div className="min-w-0 space-y-1">
-                  <label htmlFor="purchase-notes" className="block text-[12px] font-medium text-ink">
-                    Notes <span className="font-normal text-ink-500">· optional</span>
-                  </label>
-                  <div data-purchase-note-attachment-row className="flex min-w-0 items-center gap-2">
-                    <Input id="purchase-notes" className="min-w-0 flex-1" value={notes}
+              <div data-purchase-additional className="min-w-0">
+                <div data-purchase-note-attachment-row className="grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_232px]">
+                  <div className="min-w-0">
+                    <label htmlFor="purchase-notes" className="block text-[12px] font-medium leading-5 text-ink">
+                      Notes <span className="font-normal text-ink-500">· optional</span>
+                    </label>
+                    <textarea id="purchase-notes" rows={4} value={notes}
                       onChange={(event) => setNotes(event.target.value)}
-                      placeholder="Delivery, discount or other details" />
-                    <div data-purchase-receipt className="shrink-0">
-                      <PhotoUploader compact photos={photos} onChange={setPhotos} max={2}
+                      placeholder="Delivery, discount or other details"
+                      className="mt-1 block h-28 w-full min-w-0 resize-none overflow-y-auto rounded-md border border-input bg-card px-3 py-2 text-[13px] font-normal leading-5 text-ink outline-none placeholder:text-ink-400 focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    <p className="mt-1 text-[11px] text-ink-500">Receipt (optional): challan or payment slip</p>
+                  </div>
+                  <div data-purchase-receipt className="min-w-0">
+                    <p className="text-[12px] font-medium leading-5 text-ink">Add receipt <span className="font-normal text-ink-500">· optional</span></p>
+                    <div className="mt-1">
+                      <PhotoUploader square photos={photos} onChange={setPhotos} max={2}
                         label="Attach supplier bill or receipt" />
                     </div>
                   </div>
-                  <p className="text-[11px] text-ink-500">Receipt (optional): challan or payment slip</p>
                 </div>
               </div>
             }
