@@ -124,9 +124,16 @@ async function main() {
       const suffix = container.querySelector('[data-purchase-lot-sale-unit]');
       const stepper = container.querySelector('[data-number-stepper]');
       const suffixClear = !suffix || !stepper || stepper.getBoundingClientRect().right + 4 <= suffix.getBoundingClientRect().left;
+      const row = container.closest('[data-cart-row]');
+      const shell = container.querySelector('[data-numeric-input]');
       return { fit: usable >= textWidth + 3 && suffixClear, width: input.clientWidth,
         padding: [style.paddingLeft, style.paddingRight], textWidth, usable,
-        suffixClear, value: input.value };
+        suffixClear, value: input.value, viewport: innerWidth,
+        priceCellWidth: container.getBoundingClientRect().width,
+        numericShellWidth: shell?.getBoundingClientRect().width,
+        cartWidth: container.closest('[data-cart-kind]')?.getBoundingClientRect().width,
+        gridColumns: row ? getComputedStyle(row).gridTemplateColumns : null,
+        rowWidth: row?.getBoundingClientRect().width };
     });
     await lotSellInput.fill('128000');
     const priceMetrics = await lotPriceFits(page.locator('[data-purchase-lot-sale]').first());
