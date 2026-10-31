@@ -61,7 +61,7 @@ async function main(){
    const accountingNav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
    assert.equal(await accountingNav.locator('a[href="#/app/accounts"]').getAttribute('aria-current'),'page','Accounts & Vouchers opens beneath Accounts');
    assert.equal(await accountingNav.locator('a[href="#/app/daybook"]').count(),1,'Daybook remains outside Accounts as a one-click module');
-   if(width<1024)await page.getByRole('button',{name:'Close ERP navigation'}).click();
+   if(width<1024)await accountingNav.getByRole('button',{name:'Close navigation'}).click();
    await page.goto(base+'/app/settings/business');
    const settingsPaths=erpNavigation.find(g=>g.id==='settings').children.filter(c=>c.path.startsWith('/app/settings/')).map(c=>c.path.split('/').pop());
    const settingButtons=width>=1024?page.locator('[data-settings-directory] [role="tab"]'):page.locator('[data-settings-section]:visible');
