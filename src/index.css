@@ -40,6 +40,9 @@
   }
 }
 @layer utilities {
+  /* Quick Items remain swipeable; navigation arrows replace the distracting scrollbar. */
+  .erp-quick-items-rail { scrollbar-width: none; -ms-overflow-style: none; }
+  .erp-quick-items-rail::-webkit-scrollbar { display: none; }
   .font-bn {
     font-family: 'Hind Siliguri', 'Geist', system-ui, sans-serif;
   }
