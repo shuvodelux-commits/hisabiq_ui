@@ -1839,6 +1839,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/accounts/BankEntryTab.tsx",
+      "kind": "component",
+      "exports": [
+        "BankEntryTab"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/accounts/ChartOfAccountsView.tsx",
       "kind": "component",
       "exports": [
@@ -4045,6 +4053,7 @@
       "src/components/SearchSelect.tsx"
     ],
     "ArrowLeftRight": [
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/parties/PartyCreditRefundDialog.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
@@ -4129,6 +4138,7 @@
       "src/pages/Reports.tsx"
     ],
     "BookOpen": [
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/brand/CompleteDesignGuide.tsx",
       "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/brand/PrimitivesSection.tsx",
@@ -4197,6 +4207,7 @@
     ],
     "CheckCircle2": [
       "src/components/TransactionReviewDialog.tsx",
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/audit/ImpactPreview.tsx",
       "src/components/finance/CounterWorkspace.tsx",
       "src/components/import/ImportFinishStep.tsx",
@@ -4466,6 +4477,7 @@
       "src/settings/AccountSecuritySettings.tsx"
     ],
     "Landmark": [
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/parties/PartyFinanceDialog.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/navigation/erpNavigation.ts",
@@ -4766,6 +4778,7 @@
       "src/components/parties/LedgerTableResponsive.tsx"
     ],
     "RefreshCw": [
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/finance/CashSessionDetailsDialog.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/pages/Finance.tsx",
