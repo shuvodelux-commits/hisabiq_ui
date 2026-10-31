@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Input } from '../../Input';
 import { FormField } from '../fields/FormField';
-import { KindToggle } from '../fields/KindToggle';
 import { SearchSelect } from '../../SearchSelect';
 import { SectionHeading } from '../fields/SectionHeading';
 import { useFormCopy } from '../../../hooks/useFormCopy';
@@ -18,19 +17,14 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
   );
 
   return (
-    <>
-      <div className="px-4 pb-4 pt-4 md:px-6 md:pt-5">
-        <KindToggle value={draft.kind} onChange={form.changeKind} locked={isEdit} />
-      </div>
-
-      <section aria-labelledby="pf-details-heading" className="border-t border-border px-4 py-4 md:px-6 md:py-5">
+      <section aria-labelledby="pf-details-heading" className="px-4 pb-2 pt-3 md:px-6 md:pb-2 md:pt-4">
         <SectionHeading
           id="pf-details-heading"
           en={isStock ? 'Product details' : 'Service details'}
           bn={isStock ? 'পণ্যের তথ্য' : 'সেবার তথ্য'}
         />
         <div className="pf-grid-2">
-          <FormField id="pf-name" en="Name in English" bn="ইংরেজি নাম" required error={errors.name}>
+          <FormField id="pf-name" en="English name" bn="ইংরেজি নাম" required error={errors.name}>
             <Input
               id="pf-name"
               value={draft.name}
@@ -46,9 +40,8 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
           </FormField>
           <FormField
             id="pf-nameBn"
-            en="Name in Bangla"
+            en="Bangla name"
             bn="বাংলা নাম"
-            optional
             help={t('Shown on Bangla receipts and in search.', 'বাংলা রসিদ ও খোঁজে দেখাবে।')}
           >
             <Input
@@ -64,9 +57,9 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
           </FormField>
         </div>
 
-        <div className="pf-grid-3 mt-4">
+        <div className="pf-grid-3 mt-3">
           {isStock && (
-            <FormField id="pf-brand" en="Brand" bn="ব্র্যান্ড" optional>
+            <FormField id="pf-brand" en="Brand" bn="ব্র্যান্ড">
               <SearchSelect
                 id="pf-brand"
                 noun={{ en: 'brand', bn: 'ব্র্যান্ড' }}
@@ -78,7 +71,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
               />
             </FormField>
           )}
-          <FormField id="pf-category" en="Category" bn="ক্যাটাগরি" optional error={errors.category}>
+          <FormField id="pf-category" en="Category" bn="ক্যাটাগরি" error={errors.category}>
             <SearchSelect
               id="pf-category"
               noun={{ en: 'category', bn: 'ক্যাটাগরি' }}
@@ -97,7 +90,6 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
               en="Unit"
               bn="একক"
               error={errors.unit}
-              optional
               hint={form.unitsLocked ? t('Unit setup is locked for products with stock or history.', 'স্টক বা লেনদেন আছে বলে একক বদলানো যাবে না।')  : draft.multiUnit ? t('Turn multiple units off before changing the smallest unit.', 'সবচেয়ে ছোট একক বদলাতে আগে একাধিক একক বন্ধ করুন।') : undefined}
               help={t('The smallest unit used to count stock, like Pcs or Kg.', 'স্টক গোনার সবচেয়ে ছোট একক, যেমন Pcs বা Kg।')}
             >
@@ -118,6 +110,5 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
           )}
         </div>
       </section>
-    </>
   );
 }
