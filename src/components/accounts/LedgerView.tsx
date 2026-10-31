@@ -44,7 +44,7 @@ export function LedgerView({
   dateView: EntryDateView;
   terminologyMode: TerminologyMode;
 }) {
-  const {text,showHelper}=useUiCopy();
+  const {text}=useUiCopy();
   const {state}=useTenantSettings();
   const outputProfile=state.sections.invoices.profiles?.ledger??outputProfileDefaults("ledger");
   const [accountId, setAccountId] = useState('asset-cash');
@@ -78,30 +78,45 @@ export function LedgerView({
 
   return (
     <div className="p-4">
-      <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-        <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-[320px_300px_1fr]">
-          <div className="text-[13px] font-medium text-ink">
-            {text('Ledger account','যে হিসাবটি দেখবেন')} {showHelper&&<span className="font-bn text-[11px] font-normal text-ink-400">· যে হিসাবটি দেখতে চান</span>}
-            <AppSelect label={text("Ledger account","যে হিসাবটি দেখবেন")} className="mt-1.5" value={account.name} onChange={(name) => {
-              const next = accountingAccounts.find((item) => item.name === name);
-              if (next) setAccountId(next.id);
-            }} options={accountingAccounts.filter((item) => item.active).map((item) => item.name)} />
-          </div>
-          <div className="lg:col-span-2">
-            <p className="mb-1.5 text-[12px] font-medium text-ink">{text('Date range','সময়কাল')}</p>
-            <AppDateRangePicker label={text("Account ledger date range","হিসাবের খাতার তারিখ")} value={{ from, to }}
-              onChange={(range) => { setFrom(range.from); setTo(range.to); }} />
-          </div>
-          <label className="text-[12px] font-medium text-ink">
-            {text('Search','খুঁজুন')}
-            <div className="relative mt-1.5"><Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" /><Input aria-label={text("Search account ledger","হিসাবের খাতায় খুঁজুন")} clearable className="pl-8" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={text("Reference or details","রেফারেন্স বা বিবরণ")} /></div>
-          </label>
+      {/* One toolbar row on laptop/desktop; the same six controls reflow at narrower widths. */}
+      <div className="mb-3 grid grid-cols-1 items-center gap-2 sm:grid-cols-2 md:grid-cols-[minmax(170px,1fr)_minmax(205px,1.15fr)_minmax(170px,1fr)] xl:grid-cols-[minmax(170px,1fr)_minmax(225px,1.25fr)_minmax(165px,1fr)_max-content_max-content_max-content]">
+        <AppSelect
+          label={text('Ledger account','যে হিসাবটি দেখবেন')}
+          className="w-full"
+          value={account.name}
+          onChange={(name) => {
+            const next = accountingAccounts.find((item) => item.name === name);
+            if (next) setAccountId(next.id);
+          }}
+          options={accountingAccounts.filter((item) => item.active).map((item) => item.name)}
+        />
+        <AppDateRangePicker
+          label={text('Account ledger date range','হিসাবের খাতার তারিখ')}
+          className="w-full"
+          value={{ from, to }}
+          onChange={(range) => { setFrom(range.from); setTo(range.to); }}
+        />
+        <div className="relative min-w-0">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+          <Input
+            aria-label={text('Search account ledger','হিসাবের খাতায় খুঁজুন')}
+            clearable
+            className="w-full pl-8"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={text('Reference or details','রেফারেন্স বা বিবরণ')}
+          />
         </div>
-        <div className="flex flex-wrap items-end justify-between gap-2 xl:justify-end">
-          <div className="mr-2 text-right"><p className="text-[10.5px] text-ink-400">{text(dateView === 'transaction' ? 'Transaction Date' : 'Created Date',dateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</p><p className="text-sm font-semibold text-ink">{text('Balance','জের')} {closing < 0 ? '−' : ''}{taka(Math.abs(closing))}</p></div>
-          <Button variant="outline" size="sm" onClick={() => { downloadCsv(account.name, rows); toast.success(text('Ledger exported','খাতার হিসাব ডাউনলোড হয়েছে')); }}><ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}</Button>
-          <Button variant="outline" size="sm" onClick={printLedger}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
+        <div className="min-w-0 text-left sm:text-right xl:whitespace-nowrap" aria-live="polite">
+          <p className="text-[10px] leading-3 text-ink-400">{text(dateView === 'transaction' ? 'Transaction Date' : 'Created Date',dateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</p>
+          <p className="mt-0.5 text-[12.5px] font-semibold leading-5 text-ink">{text('Balance','জের')} {closing < 0 ? '−' : ''}{taka(Math.abs(closing))}</p>
         </div>
+        <Button variant="outline" size="sm" className="justify-self-start" onClick={() => { downloadCsv(account.name, rows); toast.success(text('Ledger exported','খাতার হিসাব ডাউনলোড হয়েছে')); }}>
+          <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
+        </Button>
+        <Button variant="outline" size="sm" className="justify-self-start" onClick={printLedger}>
+          <Printer className="size-4" /> {text('Print','প্রিন্ট')}
+        </Button>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border">
