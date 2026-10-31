@@ -42,18 +42,20 @@ export const erpNavigation:readonly ErpNavGroup[]=[
   {id:'owners',label:'Owners',bn:'মালিক',path:'/app/parties?role=Owner'}
  ]},
  {id:'expenses',label:'Expenses',bn:'খরচ',icon:Wallet,landingPath:'/app/expenses'},
- {id:'finance',label:'Finance & Accounts',bn:'হিসাব ও অর্থ',icon:Landmark,landingPath:'/app/finance',children:[
+ {id:'finance',label:'Finance',bn:'টাকা-পয়সা',icon:Landmark,landingPath:'/app/finance',children:[
   {id:'cash',label:'Overview',bn:'সারাংশ',path:'/app/finance'},
   {id:'money-accounts',label:'Money Accounts',bn:'টাকার হিসাব',path:'/app/finance?tab=accounts'},
   {id:'finance-counter',label:'Counter',bn:'কাউন্টার',path:'/app/finance?tab=counter'},
   {id:'finance-people',label:'Loans & Owners',bn:'ঋণ ও মালিক',path:'/app/finance?tab=transactions'},
   {id:'cheques',label:'Cheques',bn:'চেক',path:'/app/finance?tab=cheques'},
-  {id:'cash-sessions',label:'Cash Sessions',bn:'ক্যাশ সেশন',path:'/app/finance?tab=cash'},
-  {id:'accounts',label:'Accounts & Vouchers',bn:'হিসাব ও ভাউচার',path:'/app/accounts'},
-  {id:'daybook',label:'Daybook',bn:'দৈনিক লেনদেন',path:'/app/daybook'},
+  {id:'cash-sessions',label:'Cash Sessions',bn:'ক্যাশ সেশন',path:'/app/finance?tab=cash'}
+ ]},
+ {id:'accounts',label:'Accounts',bn:'হিসাব',icon:FileText,landingPath:'/app/accounts',children:[
+  {id:'accounts-overview',label:'Accounts & Vouchers',bn:'হিসাব ও ভাউচার',path:'/app/accounts'},
   {id:'reconciliation',label:'Reconciliation',bn:'হিসাব মিলানো',path:'/app/reconciliation'},
   {id:'audit',label:'Audit Ledger',bn:'অডিট খাতা',path:'/app/audit-ledger',permission:'money'}
  ]},
+ {id:'daybook',label:'Daybook',bn:'দৈনিক লেনদেন',icon:ReceiptText,landingPath:'/app/daybook'},
  {id:'warranty',label:'Warranty',bn:'ওয়ারেন্টি',icon:ShieldCheck,landingPath:'/app/warranty'},
  {id:'reports',label:'Reports',bn:'রিপোর্ট',icon:PieChart,landingPath:'/app/reports'},
  {id:'settings',label:'Settings',bn:'সেটিংস',icon:Settings,landingPath:'/app/settings/interface',children:[

@@ -45,6 +45,23 @@ async function main(){
     await page.waitForFunction(expected=>location.hash==='#'+expected,destinations[1]);
     assert.ok(page.url().endsWith(destinations[1]),`${route}: tab updates sidebar destination`);
    }
+   // Finance and Accounts expand independently, while Daybook is a direct module.
+   await page.goto(base+'/app/daybook',{waitUntil:'domcontentloaded',timeout:15000});
+   if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
+   const moduleNav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
+   const daybookLink=moduleNav.locator('a[href="#/app/daybook"]');
+   await daybookLink.waitFor();
+   assert.equal(await daybookLink.getAttribute('aria-current'),'page','Daybook is the selected top-level module');
+   assert.equal(await moduleNav.getByRole('button',{name:/Expand Finance|Collapse Finance/}).count(),1,'Finance has its own sidebar menu');
+   assert.equal(await moduleNav.getByRole('button',{name:/Expand Accounts|Collapse Accounts/}).count(),1,'Accounts has its own sidebar menu');
+   await moduleNav.getByRole('button',{name:/Expand Accounts|Collapse Accounts/}).click();
+   await moduleNav.locator('a[href="#/app/accounts"]').click();
+   await page.waitForURL('**/#/app/accounts');
+   if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
+   const accountingNav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
+   assert.equal(await accountingNav.locator('a[href="#/app/accounts"]').getAttribute('aria-current'),'page','Accounts & Vouchers opens beneath Accounts');
+   assert.equal(await accountingNav.locator('a[href="#/app/daybook"]').count(),1,'Daybook remains outside Accounts as a one-click module');
+   if(width<1024)await accountingNav.getByRole('button',{name:'Close navigation'}).click();
    await page.goto(base+'/app/settings/business');
    const settingsPaths=erpNavigation.find(g=>g.id==='settings').children.filter(c=>c.path.startsWith('/app/settings/')).map(c=>c.path.split('/').pop());
    const settingButtons=width>=1024?page.locator('[data-settings-directory] [role="tab"]'):page.locator('[data-settings-section]:visible');
