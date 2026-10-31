@@ -36,10 +36,10 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
       errorCount={errorCount}
     >
       <div className="divide-y divide-border">
-        <div className="pb-5"><WarrantySettings form={form} /></div>
-        {isStock && <div className="py-5"><SerialSettings form={form} /></div>}
-        {isStock && <div className="py-5"><ExpirySettings form={form} /></div>}
-        <div className="py-5">
+        <div className="pb-4"><WarrantySettings form={form} /></div>
+        {isStock && <div className="py-4"><SerialSettings form={form} /></div>}
+        {isStock && <div className="py-4"><ExpirySettings form={form} /></div>}
+        <div className="py-4">
           <div className="max-w-[420px]">
             <FormField id="pf-barcode" en="Barcode / SKU" bn="বারকোড / SKU" optional help={t('Scan or type. Left empty, one is made for you.', 'স্ক্যান করুন বা লিখুন। খালি রাখলে নিজে তৈরি হবে।')}>
               <Input
@@ -54,7 +54,7 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
             </FormField>
           </div>
         </div>
-        <div className="pt-5">
+        <div className="pt-4">
           <FormField id="pf-photos" labelAs="span" en="Photos" bn="ছবি" optional
             help={t('Up to 4 photos. The first photo shows in POS and lists.', 'সর্বোচ্চ ৪টি ছবি। প্রথম ছবি POS ও তালিকায় দেখাবে।')}>
             <PhotoUploader
