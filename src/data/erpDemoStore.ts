@@ -258,12 +258,12 @@ export function renamePreviewProductBrand(previous: string, proposed: string): s
     editPreviewProductSetting('brands', previous, {...getEditedProductSetting('brands', previous), name: next});
   return next;
 }
-export function renamePreviewProductUnit(previousKey: string, proposedName: string, proposedSymbol: string): string {
+export function renamePreviewProductUnit(previousKey: string, proposedName: string, proposedSymbol: string, nameBn?: string): string {
   const next = validateUnitRename(previousKey, proposedName, proposedSymbol, availableProductUnits());
   const current = availableProductUnits().find(option => matchesUnit(option, previousKey));
   if (!current) throw new Error('This unit is no longer available.');
   const stableKey = current.value ?? current.symbol;
-  if (next.name !== current.name || next.symbol !== current.symbol)
-    editPreviewProductSetting('units', previousKey, {...getEditedProductSetting('units', previousKey), ...next});
+  if (next.name !== current.name || next.symbol !== current.symbol || (nameBn !== undefined && nameBn.trim() !== (current.nameBn ?? '')))
+    editPreviewProductSetting('units', previousKey, {...getEditedProductSetting('units', previousKey), ...next, ...(nameBn !== undefined ? {nameBn: nameBn.trim()} : {})});
   return stableKey;
 }
