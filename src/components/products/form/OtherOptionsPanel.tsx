@@ -49,7 +49,9 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
   const sections = [
     ...(isStock ? [
       { id: 'units' as const, en: 'Multiple units', bn: 'একাধিক একক', icon: Layers3Icon,
-        status: draft.multiUnit ? t(`${unitCount} units`, `${unitCount}টি একক`) : undefined },
+        status: draft.multiUnit
+          ? (unitCount > 1 ? t(`${unitCount} units`, `${unitCount}টি একক`) : t('Add unit', 'একক দিন'))
+          : undefined },
       ...(draft.multiUnit ? [{ id: 'prices' as const, en: 'Unit prices', bn: 'একক অনুযায়ী দাম', icon: BadgeDollarSignIcon,
         status: customPrices ? t('Custom', 'আলাদা') : t('Auto', 'স্বয়ংক্রিয়') }] : [])
     ] : []),
