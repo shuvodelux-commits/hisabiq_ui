@@ -109,6 +109,34 @@ async function main() {
     const lotSellInput = page.getByLabel('Lot selling price for LED Bulb 12W', {exact:true});
     if (!(await lotSellInput.isVisible())) await page.getByRole('button', { name: /Lot details for LED Bulb 12W/ }).click();
     await lotSellInput.fill('185');
+    // POS-style price controls must leave room for a full amount, arrow stepper
+    // and the unit suffix. The old 112px Lot Sale column clipped values.
+    const lotPriceFits = async (locator) => locator.evaluate((container) => {
+      const input = container.querySelector('input');
+      if (!input) return false;
+      const style = getComputedStyle(input);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return false;
+      ctx.font = style.font;
+      const textWidth = ctx.measureText(input.value).width;
+      const usable = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const suffix = container.querySelector('[aria-hidden="true"]');
+      const stepper = container.querySelector('[data-number-stepper]');
+      const suffixClear = !suffix || !stepper || stepper.getBoundingClientRect().right + 4 <= suffix.getBoundingClientRect().left;
+      return usable >= textWidth + 3 && suffixClear;
+    });
+    await lotSellInput.fill('128000');
+    assert.ok(await lotPriceFits(page.locator('[data-purchase-lot-sale]').first()),
+      'Lot Sale keeps 6-digit prices visible without overlapping arrows or unit');
+    await lotSellInput.fill('185');
+    const lineTotal = page.getByTestId('purchase-cart-row').first().locator('[data-purchase-line-total]');
+    assert.equal(await lineTotal.evaluate(el => getComputedStyle(el).textAlign), 'right',
+      'purchase line total aligns to the right like the POS total');
+    assert.ok(await lineTotal.evaluate((el) => {
+      const header = document.querySelector('[data-cart-kind="purchase"] [data-cart-header] > :nth-child(7)');
+      return header && Math.abs(el.getBoundingClientRect().right - header.getBoundingClientRect().right) <= 3;
+    }), 'purchase amount ends at the same right edge as its Total heading');
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 1);
     assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
     assert.match(await page.locator('aside').last().innerText(), /3,750/);
@@ -189,6 +217,10 @@ async function main() {
     const quickRail = page.locator('[data-purchase-quick-items] > div').last();
     assert.ok(await quickRail.evaluate(node => getComputedStyle(node).overflowX === 'auto'), 'touch quick items use horizontal scrolling');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'phone has no page-level horizontal overflow');
+    const phoneQuick = page.locator('[data-purchase-quick-items]').getByRole('button', { name: /Quick add LED Bulb 12W/ });
+    await phoneQuick.click();
+    assert.ok(await lotPriceFits(page.locator('[data-purchase-lot-sale]').first()),
+      'phone Lot Sale does not clip its initial value or suffix');
     await page.screenshot({ path: 'test-results/purchase-hybrid/phone.png', fullPage: true });
     await page.keyboard.press('F9');
     await page.getByText('Select or quick-add a supplier.', { exact: true }).last().waitFor();
