@@ -157,12 +157,12 @@ export function PurchasePaymentPanel(props: Props) {
       </div>
 
 
-      <div className="mt-3 rounded-lg bg-ink-50 px-3 py-3" data-purchase-summary-total>
+      <div className="mt-3 rounded-lg bg-inverse px-3 py-3 text-white" data-purchase-summary-total>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[13px] font-medium text-ink-600">{word('totalPayable')}{showHelper && <span className="font-bn text-[11px]"> · মোট</span>}</span>
-          <span data-testid="purchase-net-total" className="text-right text-[24px] font-semibold leading-tight text-ink">{taka(totals.total)}</span>
+          <span className="text-[13px] font-medium text-white/75">{word('totalPayable')}{showHelper && <span className="font-bn text-[11px]"> · মোট</span>}</span>
+          <span data-testid="purchase-net-total" className="text-right text-[24px] font-semibold leading-tight text-white">{taka(totals.total)}</span>
         </div>
-        <AmountInWordsDisplay amount={totals.total} variant="compact" />
+        <AmountInWordsDisplay amount={totals.total} variant="inverse" />
       </div>
 
         <div className="space-y-1.5 rounded-md bg-ink-50 p-3">
