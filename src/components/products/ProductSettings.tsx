@@ -18,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { FloatingPanel } from '../layout/FloatingPanel';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {productFormLabel} from '../../i18n/productFormsCopy';
-import {unitSymbol, validUnitSymbol} from '../../data/productUnits';
+import {unitSymbol, unitBanglaName, validUnitSymbol} from '../../data/productUnits';
 
 type SettingsTab = 'categories' | 'units' | 'brands' | 'defaults';
 
@@ -124,10 +124,10 @@ export function ProductSettings() {
       .map((name, index) => ({ id: 'cat-preview-' + index, name, usage: 0, active: true,...getEditedProductSetting('categories',name) }))
   ]);
   const [units, setUnits] = useState<UnitSetting[]>(() => [
-    ...initialUnits.map(unit=>({...unit,symbol:unitSymbol(unit.name),...getEditedProductSetting('units',unit.name)})),
+    ...initialUnits.map(unit=>({...unit,symbol:unitSymbol(unit.name),nameBn:unitBanglaName(unit.name),...getEditedProductSetting('units',unit.name)})),
     ...availableProductUnits().filter((unit) => !initialUnits.some((item) =>
       (getEditedProductSetting('units',item.name)?.name??item.name).toLowerCase() === unit.name.toLowerCase()))
-      .map((unit, index) => ({ id: 'unit-preview-' + index, name: unit.name, symbol: unit.symbol, kind: 'Compound-ready' as const, usage: 0, active: true }))
+      .map((unit, index) => ({ id: 'unit-preview-' + index, name: unit.name, nameBn:unit.nameBn, symbol: unit.symbol, kind: 'Compound-ready' as const, usage: 0, active: true }))
   ]);
   const [brands, setBrands] = useState<NamedSetting[]>(() => [
     ...initialBrands.map(item=>({...item,...getEditedProductSetting('brands',item.name)})),
@@ -194,7 +194,7 @@ export function ProductSettings() {
         document.getElementById('new-unit-symbol')?.focus();
         return;
       }
-      try { createPreviewProductUnit(newName.trim(), newSymbol.trim()); }
+      try { createPreviewProductUnit(newName.trim(), newSymbol.trim(), newBn.trim()); }
       catch (cause) {
         setUnitError(pl(cause instanceof Error ? cause.message : 'Could not create this item.'));
         return;
@@ -202,6 +202,7 @@ export function ProductSettings() {
       setUnits((items) => [...items, {
         id: `u-${Date.now()}`,
         name: newName.trim(),
+        nameBn: newBn.trim() || undefined,
         symbol: newSymbol.trim(),
         kind: 'Compound-ready',
         usage: 0,
@@ -240,12 +241,10 @@ export function ProductSettings() {
             <span className="flex h-6 items-center">{pl(tab === 'categories' ? 'Category name' : tab === 'brands' ? 'Brand name' : 'Unit name')}</span>
             <Input className="mt-1" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder={pl(tab === 'units' ? 'e.g. Meter' : 'Enter name')} />
           </label>
-          {tab !== 'units' && (
-            <label className="min-w-0 flex-1 text-[12px] font-medium text-ink sm:max-w-xs">
+          <label className="min-w-0 flex-1 text-[12px] font-medium text-ink sm:max-w-xs">
               <span className="flex h-6 items-center">{pl('Bangla name')}</span>
-              <Input className="font-bn mt-1" value={newBn} onChange={(event) => setNewBn(event.target.value)} placeholder="বাংলা নাম (ঐচ্ছিক)" />
+              <Input className="font-bn mt-1" lang="bn" aria-label={pl('Bangla name')} value={newBn} onChange={(event) => setNewBn(event.target.value)} placeholder="যেমন পিস" />
             </label>
-          )}
           {tab === 'units' && (
             <div className="w-full shrink-0 text-[12px] font-medium text-ink sm:w-36">
               <div className="flex h-6 items-center gap-1">
@@ -303,6 +302,7 @@ export function ProductSettings() {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="h-9 pl-4 text-xs">{pl('Unit')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Bangla')}</TableHead>
               <TableHead className="h-9 text-xs">{pl('Symbol')}</TableHead>
               <TableHead className="h-9 text-xs">{pl('Use')}</TableHead>
               <TableHead className="h-9 text-right text-xs">{pl('Products')}</TableHead>
@@ -314,6 +314,7 @@ export function ProductSettings() {
             {units.map((item) => (
               <TableRow key={item.id} className="text-[13px]">
                 <TableCell className="py-2 pl-4 font-medium text-ink">{item.name}</TableCell>
+                <TableCell className="font-bn py-2 text-ink-600">{item.nameBn || '—'}</TableCell>
                 <TableCell className="py-2 text-ink-600">{item.symbol}</TableCell>
                 <TableCell className="py-2"><StatusBadge tone={item.kind === 'Compound-ready' ? 'teal' : 'neutral'}>{pl(item.kind)}</StatusBadge></TableCell>
                 <TableCell className="py-2 text-right">{item.usage}</TableCell>
@@ -377,10 +378,10 @@ export function ProductSettings() {
               {pl(editing?.kind==='units'?'Unit name':editing?.kind==='brands'?'Brand name':'Category name')}
               <Input autoFocus required className="mt-1.5" value={editName} onChange={event=>{setEditName(event.target.value);setEditError('');}} />
             </label>
-            {editing?.kind!=='units'&&<label className="block text-[13px] font-medium text-ink">
+            <label className="block text-[13px] font-medium text-ink">
               {pl('Bangla name')}
-              <Input className="font-bn mt-1.5" value={editBn} onChange={event=>setEditBn(event.target.value)} />
-            </label>}
+              <Input className="font-bn mt-1.5" lang="bn" aria-label={pl('Bangla name')} value={editBn} onChange={event=>{setEditBn(event.target.value);setEditError('');}} />
+            </label>
             {editing?.kind==='units'&&<div className="text-[13px] font-medium text-ink">
               <div className="flex h-6 items-center gap-1">
                 <label htmlFor="edit-unit-symbol">{pl('Symbol')} *</label>
