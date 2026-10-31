@@ -8,6 +8,7 @@ import type { PurchasePaymentRow } from '../utils/purchasePaymentMethods';
  * requires a tenant-scoped backend API; this in-memory store resets on reload.
  */
 export type PurchaseDraftInput = {
+  tenantId: string;
   supplierId: string;
   supplierName: string;
   date: string;
@@ -38,9 +39,10 @@ function publish(next: PurchaseDraft[]) {
   subscribers.forEach(callback => callback());
 }
 export function savePurchaseDraft(input: PurchaseDraftInput, currentId?: string | null): PurchaseDraft {
-  if (currentId && !drafts.some(d => d.id === currentId)) {
+  if (currentId && !drafts.some(d => d.id === currentId && d.tenantId === input.tenantId)) {
     throw new Error('This purchase draft no longer exists. Choose another draft.');
   }
+  if (!input.tenantId) throw new Error('Business is required to save purchase drafts.');
   if (input.lines.some(line => !line.id || !line.product?.id)) {
     throw new Error('A draft line is missing its product identity.');
   }
