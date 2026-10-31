@@ -18,6 +18,22 @@ async function main() {
     await page.getByRole('heading', { name: /New purchase/ }).waitFor();
     assert.equal(await page.locator('[role="dialog"]').count(), 0, 'purchase editor must not be a modal');
     const purchaseRoot = page.locator('[data-purchase-workspace]');
+    const purchaseDetails = purchaseRoot.locator('[data-purchase-details]');
+    const alignedFields = [
+      purchaseDetails.locator('[data-purchase-supplier-field]'),
+      purchaseDetails.locator('[data-purchase-date-field]'),
+      purchaseDetails.locator('[data-purchase-reference-field]'),
+    ];
+    const alignedInputs = [
+      alignedFields[0].getByRole('combobox', { name: 'Supplier', exact: true }),
+      alignedFields[1].locator('input'),
+      alignedFields[2].locator('input'),
+    ];
+    const desktopRects = await Promise.all(alignedInputs.map(field => field.boundingBox()));
+    assert.ok(desktopRects.every(Boolean), 'the three purchase fields render');
+    assert.ok(Math.max(...desktopRects.map(rect => rect.y)) - Math.min(...desktopRects.map(rect => rect.y)) <= 1,
+      'Supplier, Purchase date and Reference inputs share the same desktop baseline');
+    assert.ok(desktopRects.every(rect => Math.abs(rect.height - 36) <= 1), 'all three purchase controls use 36px height');
     assert.equal(await page.getByRole('combobox', { name: 'Search product to add to purchase' }).count(), 1,
       'single POS-style search must stay inside the cart, not duplicated above it');
     assert.ok(await purchaseRoot.evaluate(node => {
@@ -67,9 +83,11 @@ async function main() {
       assert.equal(await previous.isDisabled(), true, 'previous is disabled on the first quick item');
       await next.click();
       await page.waitForFunction(() => document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft > 2);
+      await page.waitForFunction(() => !document.querySelector('[data-purchase-quick-prev]')?.hasAttribute('disabled'));
       assert.equal(await previous.isEnabled(), true, 'previous becomes available after navigating forward');
       await previous.click();
       await page.waitForFunction(() => (document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft ?? -1) <= 2);
+      await page.waitForFunction(() => document.querySelector('[data-purchase-quick-prev]')?.hasAttribute('disabled'));
       assert.equal(await previous.isDisabled(), true, 'previous disables again when back at the start');
     }
     const reviewAction = page.locator('[data-purchase-review-action]');
@@ -302,6 +320,7 @@ async function main() {
     await phoneNext.waitFor({ state: 'visible' });
     await phoneNext.click();
     await page.waitForFunction(() => document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft > 2);
+    await page.waitForFunction(() => !document.querySelector('[data-purchase-quick-prev]')?.hasAttribute('disabled'));
     assert.equal(await page.getByRole('button', { name: 'Previous quick items' }).isEnabled(), true,
       'phone can navigate backwards after clicking next');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'phone has no page-level horizontal overflow');
