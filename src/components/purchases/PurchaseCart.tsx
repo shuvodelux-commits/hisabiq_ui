@@ -16,7 +16,7 @@ import { normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 import {
   baseQty, selectedConversion, lineAmount, lotBaseSellPrice,
-  priceInUnit, rounded, type PurchaseCartLine
+  priceInUnit, type PurchaseCartLine
 } from '../../utils/purchaseCart';
 import type { Product } from '../../types/erp';
 
