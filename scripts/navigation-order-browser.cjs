@@ -48,7 +48,7 @@ async function main(){
    }
    // The Accounts card keeps Bank Entry contextual, with a reversible way back.
    await page.goto(base+'/app/accounts?tab=money-accounts',{waitUntil:'domcontentloaded',timeout:15000});
-   await page.getByText('Dutch-Bangla Bank · 4582',{exact:true}).waitFor();
+   await page.locator('p').filter({hasText:/^Dutch-Bangla Bank · 4582$/}).first().waitFor();
    await page.getByRole('button',{name:'Bank Entry'}).first().click();
    await page.waitForURL(url => url.hash.startsWith('#/app/accounts?tab=bank-entry&accountId='));
    await page.getByRole('button',{name:'Back to Money Accounts'}).click();
