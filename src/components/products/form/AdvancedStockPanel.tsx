@@ -2,16 +2,13 @@ import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { LayersIcon, LockKeyholeIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { Button } from '../../Button';
-import { MoneyUnitInput, QuantityUnitInput } from '../../MoneyUnitInput';
+import { QuantityUnitInput } from '../../MoneyUnitInput';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../Dialog';
-import { Disclosure } from '../fields/Disclosure';
 import { FormField } from '../fields/FormField';
 import { SearchSelect } from '../../SearchSelect';
-import { Tooltip } from '../../Tooltip';
 import { ToggleRow } from '../fields/ToggleRow';
 import { useFormCopy } from '../../../hooks/useFormCopy';
-import { taka } from '../../../utils/currency';
-import { errorSection, fmtQty } from '../../../utils/productDraft';
+import { fmtQty } from '../../../utils/productDraft';
 import type { AddProductForm } from './useAddProductForm';
 
 const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
@@ -23,19 +20,10 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
   const { draft, set, errors, derived: x, unitsLocked } = form;
   const largest = x.units[x.units.length - 1];
 
-  const errorCount = form.errorList.filter((key) => errorSection(key) === 'advanced').length;
   const usedUnits = new Set([draft.unit, ...draft.unitLevels.map((level) => level.unit)].map((unit) => unit.toLowerCase()));
-  const priceErrors = form.errorList.some((key) => key.startsWith('levelPrice-') || key.startsWith('levelPurchase-') || key === 'basePrice' || key === 'basePurchasePrice');
 
   return (
-    <Disclosure id="pf-advanced" en="Advanced stock" bn="উন্নত স্টক"
-      status={draft.multiUnit ? (x.units.length > 1
-        ? t(`${x.units.length} units`, `${x.units.length}টি একক`)
-        : t('Multi-unit on', 'একাধিক একক চালু')) : undefined}
-      help={draft.multiUnit
-        ? t(`Configured units: ${[...x.units].reverse().join(' → ')}. Stock uses ${draft.unit}.`, `একক: ${[...x.units].reverse().join(' → ')}। স্টক ${draft.unit}-এ গোনা হয়।`)
-        : t(`Stock uses ${draft.unit}. Add larger units only when you need them.`, `স্টক ${draft.unit}-এ গোনা হয়। দরকার হলে বড় একক যোগ করুন।`)}
-      open={form.advancedOpen} onToggle={() => form.setAdvancedOpen(!form.advancedOpen)} errorCount={errorCount}>
+    <>
       {unitsLocked && (
         <p className="mb-4 flex items-start gap-2 rounded-lg bg-ink-100 p-3 text-[13px] text-ink-700">
           <LockKeyholeIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -95,11 +83,11 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                 {errors.unitChain && <p role="alert" className="text-[13px] text-danger">{t(errors.unitChain.en, errors.unitChain.bn)}</p>}
               </div>
               <button type="button" disabled={unitsLocked} onClick={form.addUnitLevel}
-                className="mt-3 flex min-h-9 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-teal-300 px-3 py-2.5 text-[14px] font-semibold text-primary transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50">
+                className="mt-2 flex min-h-9 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-primary hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-50">
                 <PlusIcon className="size-4" aria-hidden="true" />{t('Add another unit', 'আরেকটি একক যোগ করুন')}
               </button>
               {x.units.length > 1 && (
-                <div className="mt-3 rounded-lg border border-teal-200 bg-accent p-3" aria-live="polite">
+                <div className="mt-3 rounded-md bg-ink-50 p-3" aria-live="polite">
                   <div className="space-y-1 text-[14px] text-ink">
                     {draft.unitLevels.filter((level) => x.factors[level.unit]).map((level) => (
                       <p key={level.id}>1 {level.unit} = <strong className="font-semibold">{fmtQty(x.factors[level.unit])} {draft.unit}</strong></p>
@@ -114,43 +102,7 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                 <SearchSelect id="pf-view" noun={{ en: 'stock display unit', bn: 'স্টক দেখানোর একক' }} labelledBy="pf-view-label"
                   value={x.viewUnit} options={x.units.map((unit) => ({ value: unit, label: unit }))} onChange={(next) => set('stockViewUnit', next)} />
               </FormField>
-              {draft.unitLevels.length > 0 && (
-                <details className="relative mt-5 rounded-lg border border-border" open={priceErrors || undefined}>
-                  <summary className="cursor-pointer px-3.5 py-3 pr-12 text-[14px] font-medium text-ink">{t('Custom unit prices', 'একক অনুযায়ী আলাদা দাম')}</summary>
-                  <span className="absolute right-3 top-2">
-                    <Tooltip interactive compact
-                      label={t('Help for Custom unit prices', 'একক অনুযায়ী আলাদা দাম সম্পর্কে সাহায্য')}
-                      content={t('Leave empty to convert the regular selling price. A custom price replaces the automatic price for that unit.', 'খালি রাখলে সাধারণ বিক্রয় মূল্য থেকে হিসাব হবে। আলাদা দাম দিলে সেটিই প্রযোজ্য হবে।')}
-                    />
-                  </span>
-                  <div className="space-y-4 border-t border-border p-3.5">
-                    {[{ id: 'base', unit: draft.unit, price: draft.basePrice ?? '', purchasePrice: draft.basePurchasePrice ?? '' }, ...draft.unitLevels]
-                      .filter((level) => x.factors[level.unit]).map((level) => {
-                      const base = level.id === 'base';
-                      const priceKey = base ? 'basePrice' : `levelPrice-${level.id}` as const;
-                      const purchaseKey = base ? 'basePurchasePrice' : `levelPurchase-${level.id}` as const;
-                      const autoSell = x.sellBase * x.factors[level.unit];
-                      const autoBuy = x.buyBase * x.factors[level.unit];
-                      return <div key={level.id} className="pf-pair-money">
-                        <FormField id={`pf-${purchaseKey}`} en={`Unit cost per ${level.unit}`} bn={`প্রতি ${level.unit} কেনা দাম`} error={errors[purchaseKey]}
-                          help={level.purchasePrice ? t(`Custom cost; automatic cost is ${taka(autoBuy)} / ${level.unit}`, `আলাদা কেনা দাম। স্বয়ংক্রিয় দাম ${taka(autoBuy)} / ${level.unit}`) : t(`Automatic: ${taka(autoBuy)} / ${level.unit}`, `স্বয়ংক্রিয়: ${taka(autoBuy)} / ${level.unit}`)}>
-                          <MoneyUnitInput id={`pf-${purchaseKey}`} label={t(`Purchase price per ${level.unit}`, `প্রতি ${level.unit} কেনা দাম`)}
-                            invalid={Boolean(errors[purchaseKey])} describedBy={`pf-${purchaseKey}-msg`} value={level.purchasePrice ?? ''}
-                            onChange={(value) => base ? set('basePurchasePrice', value) : form.updateUnitLevel(level.id, 'purchasePrice', value)}
-                            placeholder={autoBuy > 0 ? String(Number(autoBuy.toFixed(4))) : '0'} staticUnit={`/ ${level.unit}`} />
-                        </FormField>
-                        <FormField id={`pf-${priceKey}`} en={`Selling price per ${level.unit}`} bn={`প্রতি ${level.unit} বিক্রয় মূল্য`} error={errors[priceKey]}
-                          help={level.price ? t(`Custom price; automatic price is ${taka(autoSell)} / ${level.unit}`, `আলাদা দাম। স্বয়ংক্রিয় দাম ${taka(autoSell)} / ${level.unit}`) : t(`Automatic: ${taka(autoSell)} / ${level.unit}`, `স্বয়ংক্রিয়: ${taka(autoSell)} / ${level.unit}`)}>
-                          <MoneyUnitInput id={`pf-${priceKey}`} label={t(`Selling price per ${level.unit}`, `প্রতি ${level.unit} বিক্রয় মূল্য`)}
-                            invalid={Boolean(errors[priceKey])} describedBy={`pf-${priceKey}-msg`} value={level.price}
-                            onChange={(value) => base ? set('basePrice', value) : form.updateUnitLevel(level.id, 'price', value)}
-                            placeholder={autoSell > 0 ? String(Number(autoSell.toFixed(4))) : '0'} staticUnit={`/ ${level.unit}`} />
-                        </FormField>
-                      </div>;
-                    })}
-                  </div>
-                </details>
-              )}
+
             </div>
           </motion.div>
         )}
@@ -167,6 +119,6 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Disclosure>
+    </>
   );
 }
