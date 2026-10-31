@@ -2977,6 +2977,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/purchases/PurchaseDraftsMenu.tsx",
+      "kind": "component",
+      "exports": [
+        "PurchaseDraftsMenu"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/purchases/PurchasePaymentPanel.tsx",
       "kind": "component",
       "exports": [
@@ -4044,6 +4052,7 @@
       "src/components/reports/ReportOverview.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/pages/BrandGuide.tsx",
+      "src/pages/PurchaseEditor.tsx",
       "src/pages/Reports.tsx",
       "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
@@ -4221,6 +4230,7 @@
       "src/components/AppDateRangePicker.tsx",
       "src/components/AppMonthYearPicker.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
@@ -4233,6 +4243,7 @@
       "src/components/layout/ErpNavMenu.tsx",
       "src/components/parties/LedgerTableResponsive.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
@@ -4272,6 +4283,7 @@
       "src/components/daybook/DaybookActions.tsx",
       "src/components/daybook/TransactionDetailsDialog.tsx",
       "src/components/layout/Calculator.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Sales.tsx"
@@ -4343,11 +4355,13 @@
     ],
     "FileClock": [
       "src/components/pos/DraftsMenu.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Sales.tsx"
     ],
     "FileImage": [
-      "src/components/purchases/BillDetailDialog.tsx"
+      "src/components/purchases/BillDetailDialog.tsx",
+      "src/pages/PurchaseEditor.tsx"
     ],
     "FileLock2": [
       "src/settings/SettingsSqlBackup.tsx"
@@ -4600,6 +4614,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/pos/InstallmentTermsPanel.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Quotations.tsx",
@@ -4756,6 +4771,7 @@
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/pos/DraftsMenu.tsx",
       "src/components/reports/BusinessReview.tsx",
+      "src/pages/PurchaseEditor.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Scale": [
@@ -4791,6 +4807,7 @@
       "src/components/parties/PartyLedgerToolbarResponsive.tsx",
       "src/components/pos/ProductCombobox.tsx",
       "src/components/products/ProductInventoryViews.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/components/vendor/VendorDirectory.tsx",
       "src/components/vendor/VendorMemoPickerDialog.tsx",
       "src/pages/Expenses.tsx",
@@ -4916,6 +4933,7 @@
       "src/components/products/BundleEditor.tsx",
       "src/components/purchases/BillDialog.tsx",
       "src/components/purchases/PurchaseCart.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/components/purchases/PurchasePaymentPanel.tsx",
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorGoodsEditor.tsx",
