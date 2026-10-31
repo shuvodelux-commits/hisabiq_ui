@@ -1,0 +1,61 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const {erpNavigation}=require('../src/navigation/erpNavigation.ts');
+async function main(){
+ const {createServer}=await import('vite');
+ const server=await createServer({server:{host:'127.0.0.1',port:4247,strictPort:true}});
+ await server.listen();
+ const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
+ const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+ page.setDefaultTimeout(10000);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const base='http://127.0.0.1:4247/#';
+ const modules=[
+  ['/app/sales',['Sales','Sales return','Return history','Customer credit','Drafts & templates']],
+  ['/app/purchases',['Purchases','Purchase return','Return history']],
+  ['/app/products',['Product list','Stock lots','Stock history','Product settings']],
+  ['/app/finance',['Overview','Money Accounts','Counter','Loans & Owners','Cheques','Cash Sessions']]
+ ];
+ try{
+  for(const width of [1440,768,390]){
+   await page.setViewportSize({width,height:1000});
+   for(const [route,labels] of modules){
+    console.log('Checking',width,route);
+    await page.goto(base+route,{waitUntil:'domcontentloaded',timeout:15000});
+    console.log('Loaded',route);
+    const tabs=page.getByRole('tablist').first().getByRole('tab');
+    await tabs.first().waitFor();
+    console.log('Tabs ready',route);
+    const actualLabels=await tabs.allTextContents();
+    labels.forEach((label,i)=>assert.ok(actualLabels[i].trim().startsWith(label),`${route}: tab ${i+1}`));
+    const destinations=erpNavigation.find(g=>g.landingPath===route).children.filter(c=>c.path.split('?')[0]===route).map(c=>c.path);
+    assert.equal(destinations.length,labels.length,`${route}: every tab has a sidebar destination`);
+    for(let i=0;i<labels.length;i++){
+     if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
+     const nav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
+     await nav.locator(`a[href="#${destinations[i]}"]`).click();
+     await tabs.nth(i).waitFor();
+     assert.equal(await tabs.nth(i).getAttribute('aria-selected'),'true',`${route}: sidebar item ${i+1} opens tab ${i+1}`);
+    }
+    // Clicking a tab must update URL and sidebar, including Finance's formerly local state.
+    await tabs.first().click();
+    assert.ok(page.url().endsWith(route),`${route}: default tab clears query`);
+    await tabs.nth(1).click();
+    assert.ok(page.url().endsWith(destinations[1]),`${route}: tab updates sidebar destination`);
+   }
+   await page.goto(base+'/app/settings/business');
+   const settingsPaths=erpNavigation.find(g=>g.id==='settings').children.filter(c=>c.path.startsWith('/app/settings/')).map(c=>c.path.split('/').pop());
+   const settingButtons=width>=1024?page.locator('[data-settings-directory] [role="tab"]'):page.locator('[data-settings-section]:visible');
+   // Compact Settings tabs and desktop directory both use sectionNames.
+   await settingButtons.first().waitFor();
+   assert.deepEqual(await settingButtons.evaluateAll(nodes=>nodes.map(n=>n.dataset.settingsSection)),settingsPaths);
+  }
+  await page.setViewportSize({width:1440,height:1000});
+  await page.goto(base+'/app/sales?tab=return');
+  await page.getByRole('tab',{name:'Sales return',exact:true}).waitFor();
+  await page.screenshot({path:'/tmp/navigation-order-sales.png',fullPage:true});
+  assert.deepEqual(errors,[]);
+  console.log('Navigation order passed: all Sales/Purchase/Product/Finance tabs and destinations at 1440, 768, 390px; Settings compact order; tab/sidebar sync.');
+ }catch(error){console.error(error);throw error;}finally{await browser.close();server.httpServer?.closeAllConnections();await server.close();}
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});

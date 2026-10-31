@@ -1,3 +1,4 @@
+import {sectionNames} from './fields.ts';
 import {erpNavigation, type ErpNavChild} from '../navigation/erpNavigation.ts';
 import {getVisibleNavigation,type NavigationContext} from '../navigation/resolveErpNavigation.ts';
 
@@ -13,5 +14,5 @@ const summaries:Record<string,string>={
 export type SettingsHubItem=ErpNavChild&{description:string};
 export function getSettingsHubItems(context:NavigationContext):SettingsHubItem[]{
  const parent=getVisibleNavigation(erpNavigation,context).find(g=>g.id==='settings');
- return (parent?.children??[]).map(c=>({...c,description:summaries[c.id]}));
+ return (parent?.children??[]).map(c=>({...c,description:sectionNames[c.path.split('/').pop() as keyof typeof sectionNames]?.description??summaries[c.id]??''}));
 }
