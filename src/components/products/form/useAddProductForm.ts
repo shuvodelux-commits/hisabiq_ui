@@ -22,9 +22,6 @@ type Options = {
 
 const DISCLOSURE_MS = 240;
 
-const hasOtherOptions = (d: ProductDraft) =>
-  d.warrantyEnabled || d.serialTracking !== 'Off' || d.expiryEnabled || Boolean(d.barcode) || d.photos.length > 0;
-
 export function useAddProductForm({ initialDraft, isEdit, existing, existingSerials, onExit, onSave }: Options) {
   const reduceMotion = useReducedMotion();
   const unitsLocked = isEdit;
@@ -32,8 +29,10 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
   const [draft, setDraft] = useState(initialDraft);
   const [baseline] = useState(() => JSON.stringify(initialDraft));
   const [submitted, setSubmitted] = useState(false);
-  const [advancedOpen, setAdvancedOpen] = useState(initialDraft.multiUnit);
-  const [otherOpen, setOtherOpen] = useState(() => hasOtherOptions(initialDraft));
+  // Progressive disclosure: configured/edit products stay compact until opened.
+  // Failed validation reveals the section and focuses the invalid control.
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [otherOpen, setOtherOpen] = useState(false);
   const [categories, setCategories] = useState(availableProductCategories);
   const [brands, setBrands] = useState(availableProductBrands);
   const [units, setUnits] = useState(availableProductUnits);
