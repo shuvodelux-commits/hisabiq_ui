@@ -30,7 +30,7 @@ test('one minimal additional settings list contains all seven direct options and
   }
   assert.match(other, /data-product-additional-settings/);
   assert.doesNotMatch(other, /border-t border-border/);
-  assert.match(disclosure, /border-b border-border\\/70/);
+  assert.ok(disclosure.includes('border-b border-border/70'));
   assert.match(disclosure, /data-product-settings-row/);
   assert.match(disclosure, /aria-expanded={open}/);
   assert.doesNotMatch(disclosure, /border-t border-border|divide-y|<hr/);
