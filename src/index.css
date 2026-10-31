@@ -828,7 +828,7 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
 }
 @container purchase-cart (min-width: 1080px) {
   [data-cart-kind="purchase"]:has([data-multi-quantity]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
-    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width) 78px 105px 112px 95px 28px;
+    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width) 76px 100px 166px 100px 28px;
   }
 }
 @container pos-cart (max-width: 999px) {
@@ -879,7 +879,7 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   }
   :root [data-cart-kind="purchase"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
     min-width: calc(752px + var(--cart-quantity-width, 162px)) !important;
-    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width, 162px) 78px 105px 112px 95px 28px;
+    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width, 162px) 76px 100px 166px 100px 28px;
   }
   :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
     grid-template-rows: auto; gap: 6px; align-items: center;
