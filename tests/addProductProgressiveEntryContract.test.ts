@@ -35,7 +35,7 @@ test('multi-unit retains editable 1 larger unit = quantity of smaller unit', () 
   assert.match(advanced, /disabled={unitsLocked}/);
 });
 
-test('screenshot layout: single divider above options, three equal brand/category/unit fields', () => {
+test('screenshot layout: thin lines between settings only, no top divider, three equal brand/category/unit fields', () => {
   const details = read('src/components/products/form/ProductDetailsSection.tsx');
   const prices = read('src/components/products/form/PriceStockSection.tsx');
   const other = read('src/components/products/form/OtherOptionsPanel.tsx');
@@ -45,10 +45,14 @@ test('screenshot layout: single divider above options, three equal brand/categor
   for (const id of ['pf-buy', 'pf-sell', 'pf-opening', 'pf-min']) assert.ok(prices.includes(id));
   for (const id of ['pf-barcode', 'pf-photos']) assert.ok(other.includes(id));
   assert.match(details, /id="pf-name"[^\n]*required/);
+  assert.match(details, /id="pf-category"[^\n]*required/);
+  assert.match(prices, /required={isStock}/);
   assert.match(prices, /Price & stock/);
   assert.doesNotMatch(details, /border-t border-border/);
   assert.doesNotMatch(prices, /border-t border-border/);
-  assert.match(other, /border-t border-border/);
+  assert.doesNotMatch(other, /border-t border-border/);
+  const disclosure = read('src/components/products/fields/Disclosure.tsx');
+  assert.match(disclosure, /border-b border-border\/70/);
   assert.match(css, /\.pf-grid-3 \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(form, /<OtherOptionsPanel form={form}/);
   assert.doesNotMatch(form, /<AdvancedStockPanel/);
