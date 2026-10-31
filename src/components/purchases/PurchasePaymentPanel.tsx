@@ -63,44 +63,10 @@ export function PurchasePaymentPanel(props: Props) {
   };
 
   return (
-    <section data-testid="purchase-payment-panel" className="bg-card">
-      <div className="space-y-2 p-4">
-        <Row label={text('Subtotal · ' + props.itemCount + ' products','পণ্যের মোট · ' + props.itemCount + 'টি')} value={taka(totals.subtotal, totals.subtotal % 1 ? 2 : 0)} />
-        {!props.hideDiscount && <div className="flex items-center justify-between gap-3 text-sm text-ink-700">
-          <span>{word('discount')} {showHelper&&<span className="font-bn text-xs text-ink-500">· ছাড়</span>}</span>
-          <div className="flex items-center gap-1">
-            <div className="flex h-8 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={text("Discount type","ছাড়ের ধরন")}>
-              {(['amount', 'percent'] as PurchaseDiscountMode[]).map((mode) => (
-                <button key={mode} type="button" role="radio" aria-label={mode === 'amount' ? '৳' : '%'}
-                  aria-checked={discountMode === mode} onClick={() => props.onDiscountMode(mode)}
-                  className={'w-7 rounded text-xs font-medium ' +
-                    (discountMode === mode ? 'bg-card text-ink shadow-card' : 'text-ink-500')}>
-                  {mode === 'amount' ? '৳' : '%'}
-                </button>
-              ))}
-            </div>
-            <NumericInput aria-label={word("discount")} value={props.discount}
-              onChange={(event) => props.onDiscount(event.target.value.replace(/[^\d.]/g, ''))}
-              placeholder="0" inputMode="decimal"
-              className="h-8 w-24 rounded-md border border-border bg-card px-2 text-right text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
-          </div>
-        </div>
-        }
-        {totals.discountAmt > 0 &&
-          <Row muted label={word("discountApplied")} value={'−' + taka(totals.discountAmt, totals.discountAmt % 1 ? 2 : 0)} />}
-        <Row muted label={text(totals.roundingLabel,"রাউন্ডিং")}
-          value={(totals.rounding >= 0 ? '+' : '−') + '৳' + formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)} />
-      </div>
+    <section data-testid="purchase-payment-panel" className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-card">
+      <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="min-w-0 space-y-3 p-3 lg:border-r lg:border-border lg:p-4" data-purchase-payment-methods>
 
-      <div className="mx-4 rounded-xl bg-inverse px-4 py-3.5 text-white">
-        <p className="text-sm text-[#B7C2CF]">{word('totalPayable')} {showHelper&&<span className="font-bn">· মোট</span>}</p>
-        <p data-testid="purchase-net-total" className="mt-0.5 text-right text-[34px] font-semibold leading-tight tracking-tight">
-          {taka(totals.total)}
-        </p>
-        <AmountInWordsDisplay amount={totals.total} variant="inverse" />
-      </div>
-
-      <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="text-sm font-medium text-ink">{word("payments")} {showHelper&&<span className="font-bn text-xs font-normal text-ink-500">· পেমেন্ট</span>}</p>
@@ -160,7 +126,46 @@ export function PurchasePaymentPanel(props: Props) {
           ))}
         </div>
 
-        <div className="space-y-1.5 rounded-lg bg-ink-50 p-3">
+        </div>
+        <div className="min-w-0 space-y-3 border-t border-border p-3 lg:border-t-0 lg:p-4" data-purchase-payment-summary>
+      <div className="space-y-2">
+        <Row label={text('Subtotal · ' + props.itemCount + ' products','পণ্যের মোট · ' + props.itemCount + 'টি')} value={taka(totals.subtotal, totals.subtotal % 1 ? 2 : 0)} />
+        {!props.hideDiscount && <div className="flex items-center justify-between gap-3 text-[13px] text-ink-700">
+          <span>{word('discount')} {showHelper&&<span className="font-bn text-xs text-ink-500">· ছাড়</span>}</span>
+          <div className="flex items-center gap-1">
+            <div className="flex h-8 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={text("Discount type","ছাড়ের ধরন")}>
+              {(['amount', 'percent'] as PurchaseDiscountMode[]).map((mode) => (
+                <button key={mode} type="button" role="radio" aria-label={mode === 'amount' ? '৳' : '%'}
+                  aria-checked={discountMode === mode} onClick={() => props.onDiscountMode(mode)}
+                  className={'w-7 rounded text-xs font-medium ' +
+                    (discountMode === mode ? 'bg-card text-ink shadow-card' : 'text-ink-500')}>
+                  {mode === 'amount' ? '৳' : '%'}
+                </button>
+              ))}
+            </div>
+            <NumericInput aria-label={word("discount")} value={props.discount}
+              onChange={(event) => props.onDiscount(event.target.value.replace(/[^\d.]/g, ''))}
+              placeholder="0" inputMode="decimal"
+              className="h-8 w-24 rounded-md border border-border bg-card px-2 text-right text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+          </div>
+        </div>
+        }
+        {totals.discountAmt > 0 &&
+          <Row muted label={word("discountApplied")} value={'−' + taka(totals.discountAmt, totals.discountAmt % 1 ? 2 : 0)} />}
+        <Row muted label={text(totals.roundingLabel,"রাউন্ডিং")}
+          value={(totals.rounding >= 0 ? '+' : '−') + '৳' + formatNumber(Math.abs(totals.rounding), totals.rounding % 1 ? 2 : 0)} />
+      </div>
+
+
+      <div className="mt-3 rounded-lg bg-ink-50 px-3 py-3" data-purchase-summary-total>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[13px] font-medium text-ink-600">{word('totalPayable')}{showHelper && <span className="font-bn text-[11px]"> · মোট</span>}</span>
+          <span data-testid="purchase-net-total" className="text-right text-[24px] font-semibold leading-tight text-ink">{taka(totals.total)}</span>
+        </div>
+        <AmountInWordsDisplay amount={totals.total} variant="compact" />
+      </div>
+
+        <div className="space-y-1.5 rounded-md bg-ink-50 p-3">
           <Row label={text("Paid","পরিশোধ")} value={<span className="font-medium">{taka(totals.paidNum)}</span>} />
           <Row label={<span>{text("Supplier due","সরবরাহকারীকে দেনা")} {showHelper&&<span className="font-bn text-xs text-ink-500">বাকি</span>}</span>}
             value={<span className={totals.due > 0 ? 'font-semibold text-danger' : ''}>{taka(totals.due)}</span>} />
@@ -172,12 +177,17 @@ export function PurchasePaymentPanel(props: Props) {
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
             {text("Purchase payments exceed the supplier bill. Reduce the amount before completing.","সরবরাহকারীর বিলের চেয়ে বেশি টাকা দেওয়া হয়েছে। সম্পন্ন করার আগে টাকা কমান।")}
           </p>}
+
+        </div>
+      </div>
+      <div className="border-t border-border px-3 py-3 lg:px-4">
         <Button type="button" data-erp-workflow-action="complete" onClick={props.onComplete}
           disabled={totals.total <= 0 || totals.excess > 0}
           className="h-12 w-full text-[15px] font-semibold">
           {props.actionLabel ? text(props.actionLabel,props.actionLabel==="Review payment"?"পেমেন্ট যাচাই করুন":props.actionLabel==="Complete purchase"?"ক্রয় সম্পন্ন করুন":props.actionLabel) : text("Complete purchase","ক্রয় সম্পন্ন করুন")} · {taka(totals.total)}
           <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
+
       </div>
     </section>
   );
