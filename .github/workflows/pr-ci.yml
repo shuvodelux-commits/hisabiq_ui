@@ -82,12 +82,6 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      - name: Diagnose generated design inventory
-        run: |
-          node scripts/sync-design-guide.cjs
-          git diff -- docs/ui/design-system.json src/data/designGuide.json src/data/designIconComponents.ts
-          exit 1 # Temporary diagnostic: stop before expensive browser smoke
-
       - name: UI design contract
         run: npm run check:ui-contract
 
