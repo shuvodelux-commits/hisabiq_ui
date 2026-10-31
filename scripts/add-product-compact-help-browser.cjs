@@ -34,7 +34,7 @@ async function main() {
       // The screenshot has one border above Additional settings and no section separators.
       assert.match(await editor.locator('#pf-name-label').innerText(), /\*/);
       assert.match(await editor.locator('#pf-sell-label').innerText(), /\*/);
-      assert.match(await editor.locator('#pf-buy-label').innerText(), language === 'Bangla' ? /ঐচ্ছিক/ : /optional/);
+      assert.ok(!(await editor.locator('#pf-buy-label').innerText()).includes('optional'), 'compact cost label');
       assert.equal(await editor.locator('[data-product-additional-settings]').count(), 1);
       assert.equal(await editor.locator('[data-product-settings-row]').count(), 6, 'six rows when multiple units are off');
       assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'false');
