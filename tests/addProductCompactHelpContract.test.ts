@@ -12,8 +12,10 @@ test('Add Product retains required field markers and help behind compact tooltip
   assert.match(field, /<Tooltip content={help}/);
   assert.match(details, /id="pf-name"[^\n]*required/);
   for (const id of ['pf-nameBn', 'pf-brand', 'pf-category', 'pf-unit']) assert.ok(details.includes(id));
+  assert.match(details, /id="pf-category"[^\n]*required/);
+  assert.match(details, /en="Unit"[\s\S]*?required[\s\S]*?error={errors\.unit}/);
   for (const id of ['pf-buy', 'pf-opening', 'pf-min']) assert.ok(prices.includes('id="'+id+'"'));
-  assert.doesNotMatch(prices, /id="pf-buy"[\\s\\S]*?optional[\\s\\S]*?<MoneyUnitInput/);
+  assert.match(prices, /required={isStock}/);
   assert.match(prices, /id="pf-sell"[\s\S]*?required[\s\S]*?help=/);
 });
 
@@ -34,7 +36,7 @@ test('one minimal additional settings list contains all seven direct options and
   assert.doesNotMatch(units, /<Disclosure|<details/);
   assert.doesNotMatch(other, /<details|Other options|Advanced stock/);
   assert.match(unitPrices, /<MoneyUnitInput/);
-  assert.match(bar, /onCancel={onCancel}/);
+  assert.match(bar, /onClick={onCancel}/);
 });
 
 test('warranty, serial and expiry keep existing conditional controls and live validation', () => {
