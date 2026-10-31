@@ -4219,7 +4219,6 @@
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Products.tsx",
-      "src/pages/PurchaseEditor.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Vendors.tsx"
     ],
@@ -4231,6 +4230,7 @@
       "src/components/AppDateRangePicker.tsx",
       "src/components/AppMonthYearPicker.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
@@ -4243,6 +4243,7 @@
       "src/components/layout/ErpNavMenu.tsx",
       "src/components/parties/LedgerTableResponsive.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
@@ -4254,8 +4255,7 @@
     "ChevronUp": [
       "src/components/NumericInput.tsx",
       "src/components/purchases/PurchaseCart.tsx",
-      "src/components/reports/SalesProfitExperiment.tsx",
-      "src/pages/PurchaseEditor.tsx"
+      "src/components/reports/SalesProfitExperiment.tsx"
     ],
     "CircleAlert": [
       "src/components/FeedbackState.tsx"
