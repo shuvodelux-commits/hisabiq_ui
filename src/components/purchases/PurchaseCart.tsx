@@ -36,7 +36,8 @@ type Props = {
   onCostUnitChange: (line: PurchaseCartLine, unit: string) => void;
 };
 
-const grid = 'grid min-w-0 grid-cols-[24px_minmax(165px,1fr)_166px_84px_105px_120px_100px_28px] items-center gap-1.5';
+// Match POS price-cell legibility: the lot price must fit amount, numeric stepper and unit symbol.
+const grid = 'grid min-w-0 grid-cols-[24px_minmax(165px,1fr)_156px_76px_100px_166px_102px_28px] items-center gap-1.5';
 const entryInput = 'h-9 w-full min-w-0 rounded-md border border-input bg-card px-2 text-right text-[13px] text-ink outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20';
 const unitOptions = unitsFor;
 
@@ -156,20 +157,20 @@ export function PurchaseCart({
                         onChange={(event) => onUpdate(line.id, { cost: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); lotPriceRefs.current[line.id]?.focus(); lotPriceRefs.current[line.id]?.select(); } }} />
                     </div></div>
-                    <div data-cart-field="Lot sale · বিক্রয়মূল্য"><div className="relative">
+                    <div data-cart-field="Lot sale · বিক্রয়মূল্য"><div data-purchase-lot-sale className="relative min-w-0">
                       <span data-table-helper="" className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-400">৳</span>
                       <NumericInput stepperInset={48}
                         ref={(node) => { lotPriceRefs.current[line.id] = node; }}
                         aria-label={'Lot selling price for ' + product.name}
                         inputMode="decimal"
                         value={line.lotSellPrice} readOnly={sourceLocked}
-                        className={entryInput + ' pl-5 pr-12'}
+                        className={entryInput + ' pl-5'}
                         onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
                       />
-                      <span data-table-helper="" className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-400">{unitSymbol(line.lotSellUnit)}</span>
+                      <span data-table-helper="" aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 max-w-10 -translate-y-1/2 truncate text-[10px] text-ink-500">{unitSymbol(line.lotSellUnit)}</span>
                     </div></div>
-                    <span data-cart-field="Total · মোট" className="text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
+                    <span data-cart-field="Total · মোট" data-purchase-line-total className="block w-full min-w-0 justify-self-end whitespace-nowrap text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
                     <button type="button" aria-label={'Remove ' + product.name} onClick={() => onRemove(line.id)}
                       className="flex size-8 items-center justify-center rounded-md text-ink-400 hover:bg-danger-bg hover:text-danger">
                       <Trash2 className="size-4" />
