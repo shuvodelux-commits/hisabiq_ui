@@ -17,14 +17,15 @@ import { LedgerView } from '../components/accounts/LedgerView';
 import { TrialBalanceView } from '../components/accounts/TrialBalanceView';
 import { StatementsView } from '../components/accounts/StatementsView';
 import { ChartOfAccountsView } from '../components/accounts/ChartOfAccountsView';
+import { BankEntryTab } from '../components/accounts/BankEntryTab';
 import { useUserPreferences } from '../contexts/UserPreferencesContext';
 import { accountingAccounts, accountingSources as seedSources } from '../data/accounting';
 import type { AccountingSourceTransaction, Posting, VoucherType } from '../types/accounting';
 import { balanceSheet, postingForTransaction, profitAndLoss, trialBalance } from '../utils/accountingProjection';
 import { taka } from '../utils/currency';
 
-type Tab = 'overview' | 'vouchers' | 'ledger' | 'trial' | 'statements' | 'chart';
-const validTabs:Tab[] = ['overview','vouchers','ledger','trial','statements','chart'];
+type Tab = 'overview' | 'vouchers' | 'ledger' | 'trial' | 'statements' | 'chart' | 'bank-entry';
+const validTabs:Tab[] = ['overview','vouchers','ledger','trial','statements','chart','bank-entry'];
 
 function sourceLabel(source: AccountingSourceTransaction['source']) {
   if (source === 'receipt-voucher') return 'Receipt Voucher';
@@ -130,7 +131,8 @@ export function Accounts() {
     ['ledger', text('Ledger','খাতা'), 'এই হিসাবের সব লেনদেন'],
     ['trial', text('Trial Balance','ট্রায়াল ব্যালেন্স'), 'সব হিসাব ঠিকমতো মিলছে কি না'],
     ['statements', text('Statements','হিসাবের প্রতিবেদন'), 'লাভ-ক্ষতি ও ব্যালেন্স শিট'],
-    ['chart', text('Chart of Accounts','সব হিসাবের তালিকা'), 'ব্যবসার সব হিসাবের খাত']
+    ['chart', text('Chart of Accounts','সব হিসাবের তালিকা'), 'ব্যবসার সব হিসাবের খাত'],
+    ['bank-entry', text('Bank Entry','ব্যাংক এন্ট্রি'), 'ব্যাংকের টাকা জমা, খরচ ও সংশোধন']
   ];
 
   return (
@@ -308,6 +310,7 @@ export function Accounts() {
         {tab === 'trial' && <TrialBalanceView postings={postings} terminologyMode={terminologyMode} />}
         {tab === 'statements' && <StatementsView postings={postings} />}
         {tab === 'chart' && <ChartOfAccountsView terminologyMode={terminologyMode} onOpeningBalance={() => setOpeningOpen(true)} />}
+        {tab === 'bank-entry' && <BankEntryTab /> }
       </div>
 
       <VoucherActionDialog
