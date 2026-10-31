@@ -349,7 +349,7 @@ export function SearchSelect({
                   title={t(`Edit ${noun.en}`, `${noun.bn} সম্পাদনা`)}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={(event) => { event.preventDefault(); event.stopPropagation(); startEdit(option); }}
-                  className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 opacity-0 transition-opacity hover:bg-ink-100 hover:text-primary focus:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary group-hover:opacity-100 group-focus-within:opacity-100"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 opacity-0 hover:bg-ink-100 hover:text-primary focus:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary group-hover:opacity-100 group-focus-within:opacity-100"
                 >
                   <PencilIcon className="size-4" aria-hidden="true" />
                 </button>
