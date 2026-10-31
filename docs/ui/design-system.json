@@ -3857,6 +3857,15 @@
       "reexports": []
     },
     {
+      "file": "src/settings/ModuleSettingsToolbarContext.tsx",
+      "kind": "provider-or-context",
+      "exports": [
+        "ModuleSettingsToolbarContext",
+        "useModuleSettingsAction"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/OutputDesignSettings.tsx",
       "kind": "authored-ui",
       "exports": [
