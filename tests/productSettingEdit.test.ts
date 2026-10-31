@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {availableProductCategories,availableProductBrands,availableProductUnits,availableProducts,editPreviewProductSetting,getEditedProductSetting} from '../src/data/erpDemoStore.ts';
+import {availableProductCategories,availableProductBrands,availableProductUnits,availableProducts,editPreviewProductSetting,getEditedProductSetting,renamePreviewProductBrand,renamePreviewProductUnit} from '../src/data/erpDemoStore.ts';
 import {getProductImportPreviewSnapshot} from '../src/data/productImportPreviewStore.ts';
 import {unitSymbol} from '../src/data/productUnits.ts';
 
@@ -35,4 +35,13 @@ test('invalid and duplicate edits leave preview state unchanged',()=>{
  for(const draft of [{name:'New unit',symbol:''},{name:'New unit',symbol:'longer'},{name:'New unit',symbol:'Kg'},{name:'Kilogram',symbol:'xx'}])assert.throws(()=>editPreviewProductSetting('units','Feet',draft));
  assert.equal(getProductImportPreviewSnapshot(),before);
  assert.equal(unitSymbol('Feet'),'Ft');
+});
+
+test('inline master edits and Settings share metadata and stable unit keys',()=>{
+ renamePreviewProductBrand('RFL Group','RFL Industries');
+ assert.equal(getEditedProductSetting('brands','RFL')?.name,'RFL Industries');
+ assert.equal(getEditedProductSetting('brands','RFL')?.nameBn,'আরএফএল');
+ assert.equal(renamePreviewProductUnit('Feet','Foot length','ft'),'Feet');
+ assert.equal(getEditedProductSetting('units','Feet')?.name,'Foot length');
+ assert.equal(unitSymbol('Feet'),'ft');
 });

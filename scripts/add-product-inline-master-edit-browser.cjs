@@ -23,6 +23,7 @@ async function main(){
       if(width>=640){
         assert.equal(await pencil.evaluate(node=>getComputedStyle(node).opacity),'0','pencil hidden by default');
         await plumbing.hover();
+        await page.waitForFunction(()=>{const b=document.querySelector('[data-value="Plumbing"] button');return b&&getComputedStyle(b).opacity==='1';},{},{timeout:3000});
         assert.equal(await pencil.evaluate(node=>getComputedStyle(node).opacity),'1','pencil appears on hover');
         await pencil.click();
       }else{
