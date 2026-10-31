@@ -29,7 +29,8 @@ test('one minimal additional settings list contains all seven direct options and
     assert.ok(other.includes(name), name + ' visible as a direct setting');
   }
   assert.match(other, /data-product-additional-settings/);
-  assert.match(other, /border-t border-border/);
+  assert.doesNotMatch(other, /border-t border-border/);
+  assert.match(disclosure, /border-b border-border\\/70/);
   assert.match(disclosure, /data-product-settings-row/);
   assert.match(disclosure, /aria-expanded={open}/);
   assert.doesNotMatch(disclosure, /border-t border-border|divide-y|<hr/);
