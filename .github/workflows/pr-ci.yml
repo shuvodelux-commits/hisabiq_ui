@@ -82,6 +82,11 @@ jobs:
       - name: ESLint
         run: npm run lint
 
+      - name: Diagnose generated design inventory
+        run: |
+          node scripts/sync-design-guide.cjs
+          git diff -- docs/ui/design-system.json src/data/designGuide.json src/data/designIconComponents.ts
+
       - name: UI design contract
         run: npm run check:ui-contract
 
