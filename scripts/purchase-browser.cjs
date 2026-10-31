@@ -40,6 +40,12 @@ async function main() {
     await additionalToggle.click();
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-methods]').count() === 1);
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-summary]').count() === 1);
+    const lightTotal = purchaseRoot.locator('[data-purchase-summary-total]');
+    assert.equal(await lightTotal.count(), 1);
+    assert.ok(!((await lightTotal.getAttribute('class')) || '').includes('bg-inverse'),
+      'Purchase total keeps a light card, not a black block');
+    assert.equal(await lightTotal.locator('[data-amount-words-variant]').getAttribute('data-amount-words-variant'), 'compact',
+      'readable Bangla words remain in compact light mode');
     assert.ok(await purchaseRoot.locator('[data-purchase-quick-items]').count() === 1);
     assert.equal(await page.locator('[data-testid="purchase-add-row"] select[aria-label="Search product to add to purchase"]').count(), 0,
       'inline POS search remains an accessible combobox rather than a plain select');
