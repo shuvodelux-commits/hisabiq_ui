@@ -38,7 +38,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
             transition={{ duration: reduce ? 0 : 0.2, ease: EASE }}
             className="overflow-hidden"
           >
-            <div className="space-y-5 pt-4">
+            <div className="space-y-4 pt-4">
               <div className="rounded-lg border border-border px-3 py-3">
                 <ToggleRow
                   id="pf-expiryRequired"
@@ -79,7 +79,7 @@ export function ExpirySettings({ form }: { form: AddProductForm }) {
               </div>
 
               {!isEdit && (x.openingBase > 0 ? (
-                <div className="border-t border-border pt-5">
+                <div className="border-t border-border pt-4">
                   <p className="mb-3 text-[length:var(--label-fs)] font-medium text-ink">
                     {t(`Opening stock batch · ${fmtQty(x.openingBase)} ${draft.unit}`, `শুরুর স্টকের ব্যাচ · ${fmtQty(x.openingBase)} ${draft.unit}`)}
                   </p>
