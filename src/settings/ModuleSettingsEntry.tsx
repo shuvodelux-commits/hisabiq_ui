@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ModuleSettingsToolbarContext } from './ModuleSettingsToolbarContext';
 import { useLocation } from "react-router-dom";
 import { Settings2, ArrowLeft } from "lucide-react";
 import { Button } from "../components/Button";
@@ -28,16 +29,6 @@ const modules: Record<
   quotations: { label: "Quotations", section: "invoices" },
   "online-sales": { label: "Online sales", section: "sales" },
 };
-
-/**
- * Each module provides one shared action that the page header can render
- * alongside Export / Import / Add actions, without creating a second row.
- */
-const ModuleSettingsToolbarContext = createContext<ReactNode>(null);
-
-export function useModuleSettingsAction(): ReactNode {
-  return useContext(ModuleSettingsToolbarContext);
-}
 
 export function ModuleSettingsEntry({ children }: { children: ReactNode }) {
   const location = useLocation();
