@@ -1,18 +1,15 @@
 import type { ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon, type LucideIcon } from 'lucide-react';
 import { useFormCopy } from '../../../hooks/useFormCopy';
-import { LabelText } from './LabelText';
-import { Tooltip } from '../../Tooltip';
 
+/** Single unbordered row in the Add Product settings list. */
 type DisclosureProps = {
   id: string;
   en: string;
   bn: string;
-  summary?: ReactNode;
-  /** Short, configured-state feedback beside the heading; no second paragraph. */
+  icon: LucideIcon;
   status?: ReactNode;
-  help?: ReactNode;
   open: boolean;
   onToggle: () => void;
   errorCount?: number;
@@ -21,57 +18,39 @@ type DisclosureProps = {
 
 const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
-/** Collapsed section that still tells you what's inside and what's switched on. */
-export function Disclosure({ id, en, bn, summary, status, help, open, onToggle, errorCount = 0, children }: DisclosureProps) {
-  const { t } = useFormCopy();
+export function Disclosure({ id, en, bn, icon: Icon, status, open, onToggle, errorCount = 0, children }: DisclosureProps) {
+  const { t, isBangla } = useFormCopy();
   const reduce = useReducedMotion();
   return (
-    <section className="border-t border-border" aria-labelledby={`${id}-button`}>
-      <div className="flex items-center transition-colors duration-150 ease-out hover:bg-ink-50">
-        <h2 className="min-w-0 flex-1">
-          <button
-            id={`${id}-button`}
-            type="button"
-            aria-expanded={open}
-            aria-controls={`${id}-panel`}
-            onClick={onToggle}
-            className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-left md:pl-6 md:pr-2"
-          >
-            <span className="min-w-0 flex-1">
-              <span className="flex flex-wrap items-center gap-2 text-[15px] font-semibold leading-tight text-ink">
-                <LabelText en={en} bn={bn} />
-                {status && <span data-product-option-status className="rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-medium leading-4 text-ink-600">{status}</span>}
-              </span>
-              {summary && <span className="mt-1 line-clamp-2 block text-[13px] font-normal leading-snug text-ink-500">{summary}</span>}
-            </span>
-            {errorCount > 0 && (
-              <span className="shrink-0 whitespace-nowrap rounded-full bg-danger-bg px-2 py-0.5 text-[12px] font-semibold text-danger">
-                {t(`${errorCount} to fix`, `${errorCount}টি ঠিক করুন`)}
-              </span>
-            )}
-            <ChevronDownIcon
-              className={'size-5 shrink-0 text-ink-500 transition-transform duration-200 ease-out ' + (open ? 'rotate-180' : '')}
-              aria-hidden="true"
-            />
-          </button>
-        </h2>
-        {help && <span className="mr-3 shrink-0 md:mr-5">
-          <Tooltip interactive compact content={help} label={t(`Help for ${en}`, `${bn} সম্পর্কে সাহায্য`)} />
-        </span>}
-      </div>
+    <section data-product-settings-row={id} aria-labelledby={`${id}-button`} className="min-w-0">
+      <h3 className="m-0">
+        <button
+          id={`${id}-button`}
+          type="button"
+          aria-expanded={open}
+          aria-controls={`${id}-panel`}
+          onClick={onToggle}
+          className="group flex min-h-[52px] w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors duration-150 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+        >
+          <Icon className="size-[18px] shrink-0 text-ink-500" strokeWidth={1.8} aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            <span className={`block text-[13px] font-medium leading-[19px] text-ink ${isBangla ? 'font-bn' : ''}`}>{t(en, bn)}</span>
+            {!isBangla && <span className="block font-bn text-[11px] leading-4 text-ink-500">{bn}</span>}
+          </span>
+          {errorCount > 0 && (
+            <span className="shrink-0 text-[11px] font-semibold text-danger">{t(`${errorCount} to fix`, `${errorCount}টি ঠিক করুন`)}</span>
+          )}
+          {status && <span data-product-option-status className="max-w-28 shrink-0 truncate text-right text-[11px] font-normal text-ink-500">{status}</span>}
+          <ChevronDownIcon className={`size-4 shrink-0 text-ink-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
+      </h3>
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
-            id={`${id}-panel`}
-            role="region"
-            aria-labelledby={`${id}-button`}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: reduce ? 0 : 0.22, ease: EASE }}
-            className="overflow-hidden"
+          <motion.div id={`${id}-panel`} role="region" aria-labelledby={`${id}-button`}
+            initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.18, ease: EASE }} className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-1 md:px-6">{children}</div>
+            <div className="min-w-0 px-2 pb-3 pt-2">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
