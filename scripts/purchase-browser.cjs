@@ -78,8 +78,8 @@ async function main() {
       Math.abs(attachmentRect.width - attachmentRect.height) <= 1,
       'receipt attachment is a 112px square matching the textarea height');
     assert.equal(await attachmentRow.isVisible(), true, 'notes and receipt remain visible without disclosure');
-    await noteField.fill('Delivered via challan\\nCheck receipt number on delivery');
-    assert.equal(await noteField.inputValue(), 'Delivered via challan\\nCheck receipt number on delivery',
+    await noteField.fill('Delivered via challan\nCheck receipt number on delivery');
+    assert.equal(await noteField.inputValue(), 'Delivered via challan\nCheck receipt number on delivery',
       'notes textarea preserves multiple lines');
     const receiptInput = additional.locator('[data-purchase-receipt] input[type="file"]');
     await receiptInput.setInputFiles({
@@ -93,7 +93,7 @@ async function main() {
       Math.abs(previewRect.height - 112) <= 1, 'attached receipt thumbnail is a 112px square');
     await additional.getByRole('button', { name: 'Remove photo 1' }).click();
     assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 0, 'receipt can be removed');
-    assert.equal(await noteField.inputValue(), 'Delivered via challan\\nCheck receipt number on delivery',
+    assert.equal(await noteField.inputValue(), 'Delivered via challan\nCheck receipt number on delivery',
       'editing receipt does not clear multiline Notes');
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-methods]').count() === 1);
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-summary]').count() === 1);
