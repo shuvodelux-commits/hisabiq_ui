@@ -4360,8 +4360,7 @@
       "src/pages/Sales.tsx"
     ],
     "FileImage": [
-      "src/components/purchases/BillDetailDialog.tsx",
-      "src/pages/PurchaseEditor.tsx"
+      "src/components/purchases/BillDetailDialog.tsx"
     ],
     "FileLock2": [
       "src/settings/SettingsSqlBackup.tsx"
