@@ -13,6 +13,8 @@ type DisclosureProps = {
   summary?: ReactNode;
   help?: ReactNode;
   status?: ReactNode;
+  /** Optional independent control beside the accordion title (never nested in a button). */
+  action?: ReactNode;
   open: boolean;
   onToggle: () => void;
   errorCount?: number;
@@ -21,12 +23,13 @@ type DisclosureProps = {
 
 const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
-export function Disclosure({ id, en, bn, icon: Icon, summary, help, status, open, onToggle, errorCount = 0, children }: DisclosureProps) {
+export function Disclosure({ id, en, bn, icon: Icon, summary, help, status, action, open, onToggle, errorCount = 0, children }: DisclosureProps) {
   const { t, isBangla, showHelper } = useFormCopy();
   const reduce = useReducedMotion();
   return (
     <section data-product-settings-row={id} aria-labelledby={`${id}-button`} className={`min-w-0 ${Icon ? 'border-b border-border/70' : ''}`}>
-      <h3 className="m-0">
+      <div className="flex min-w-0 items-center">
+        <h3 className="m-0 min-w-0 flex-1">
         <button
           id={`${id}-button`}
           type="button"
@@ -45,9 +48,18 @@ export function Disclosure({ id, en, bn, icon: Icon, summary, help, status, open
             <span className="shrink-0 text-[11px] font-semibold text-danger">{t(`${errorCount} to fix`, `${errorCount}টি ঠিক করুন`)}</span>
           )}
           {status && <span data-product-option-status className="max-w-28 shrink-0 truncate text-right text-[11px] font-normal text-ink-500">{status}</span>}
-          <ChevronDownIcon className={`size-4 shrink-0 text-ink-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+          {!action && <ChevronDownIcon className={`size-4 shrink-0 text-ink-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />}
         </button>
-      </h3>
+        </h3>
+        {action && <>
+          <div className="flex shrink-0 items-center px-1">{action}</div>
+          <button type="button" aria-label={t(`Expand ${en} settings`, `${bn} সেটিংস খুলুন`)}
+            aria-expanded={open} aria-controls={`${id}-panel`} onClick={onToggle}
+            className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
+            <ChevronDownIcon className={`size-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+          </button>
+        </>}
+      </div>
       {help && <div className="px-2"><Tooltip interactive compact content={help} label={t(`Help for ${en}`, `${bn} সম্পর্কে সাহায্য`)} /></div>}
       <AnimatePresence initial={false}>
         {open && (
