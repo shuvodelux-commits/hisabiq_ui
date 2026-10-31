@@ -47,7 +47,6 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
             en={isStock ? 'Unit cost' : 'Service cost'}
             error={errors.buy}
             bn={isStock ? 'কেনা দাম' : 'সেবা খরচ'}
-            optional
             help={isStock ? t('What you pay the supplier.', 'সরবরাহকারীকে যে দাম দেন।') : t('Your cost to provide it.', 'সেবা দিতে আপনার খরচ।')}
             hint={buyEcho || undefined}
           >
@@ -113,7 +112,6 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
                 en="Opening stock"
                 error={errors.opening}
                 bn="শুরুর স্টক"
-                optional
                 help={t('How many you have right now.', 'এখন কতগুলো আছে।')}
                 hint={qtyHint(draft.openingQty, x.openingUnit)}
               >
@@ -136,7 +134,6 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
               en="Minimum stock"
               error={errors.min}
               bn="সর্বনিম্ন স্টক"
-              optional
               help={t('We warn you when stock falls to this.', 'স্টক এতে নামলে সতর্ক করবে।')}
               hint={qtyHint(draft.minQty, x.minUnit)}
             >
