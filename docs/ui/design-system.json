@@ -2937,10 +2937,26 @@
       "reexports": []
     },
     {
+      "file": "src/components/products/form/UnitPricesPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "UnitPricesPanel"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/products/form/WarrantySettings.tsx",
       "kind": "component",
       "exports": [
         "WarrantySettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/products/form/useAddProductForm.ts",
+      "kind": "component",
+      "exports": [
+        "useAddProductForm"
       ],
       "reexports": []
     },
@@ -4016,8 +4032,7 @@
       "src/settings/ModuleSettingsEntry.tsx"
     ],
     "ArrowLeftIcon": [
-      "src/components/SearchSelect.tsx",
-      "src/components/products/AddProductDialog.tsx"
+      "src/components/SearchSelect.tsx"
     ],
     "ArrowLeftRight": [
       "src/components/finance/FinanceRecordDialogs.tsx",
@@ -4065,6 +4080,9 @@
       "src/saas/SaasShell.tsx",
       "src/settings/TenantSettingsHub.tsx"
     ],
+    "BadgeDollarSignIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
     "Banknote": [
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/dashboard/MetricCard.tsx",
@@ -4079,6 +4097,9 @@
       "src/components/reports/SalesProfitExperiment.tsx",
       "src/pages/Expenses.tsx",
       "src/saas/SaasShell.tsx"
+    ],
+    "BarcodeIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "Bell": [
       "src/components/layout/TopBar.tsx",
@@ -4128,6 +4149,9 @@
     "CalendarClock": [
       "src/components/pos/InstallmentRescheduleDialog.tsx",
       "src/pages/Daybook.tsx"
+    ],
+    "CalendarClockIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "CalendarDays": [
       "src/components/AppDateRangePicker.tsx",
@@ -4224,9 +4248,6 @@
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsTabs.tsx"
-    ],
-    "ChevronRightIcon": [
-      "src/components/products/AddProductDialog.tsx"
     ],
     "ChevronUp": [
       "src/components/NumericInput.tsx",
@@ -4403,6 +4424,9 @@
       "src/components/products/PhotoUploader.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
+    "ImagesIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
     "Info": [
       "src/components/Tooltip.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
@@ -4429,6 +4453,9 @@
     ],
     "Layers": [
       "src/saas/SaasShell.tsx"
+    ],
+    "Layers3Icon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "LayersIcon": [
       "src/components/products/form/AdvancedStockPanel.tsx"
@@ -4751,6 +4778,9 @@
       "src/components/products/ProductInventoryDialogs.tsx",
       "src/components/purchases/PurchaseCart.tsx"
     ],
+    "ScanLineIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
     "Search": [
       "src/components/accounts/ChartOfAccountsView.tsx",
       "src/components/accounts/LedgerView.tsx",
@@ -4823,6 +4853,9 @@
       "src/settings/TeamSettings.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
+    ],
+    "ShieldCheckIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "ShoppingCart": [
       "src/components/brand/BrandHero.tsx",
