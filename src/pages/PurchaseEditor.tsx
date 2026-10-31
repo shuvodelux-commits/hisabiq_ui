@@ -1,7 +1,7 @@
 import {businessToday} from '../utils/dateRange';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Keyboard } from 'lucide-react';
+import { ArrowLeft, Keyboard, Save, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -10,6 +10,9 @@ import { QuickAddSelect } from '../components/QuickAddSelect';
 import { PhotoUploader } from '../components/products/PhotoUploader';
 import { AddProductDialog, type ProductOpeningMeta } from '../components/products/AddProductDialog';
 import { PurchaseCart } from '../components/purchases/PurchaseCart';
+import { PurchaseDraftsMenu } from '../components/purchases/PurchaseDraftsMenu';
+import { getPurchaseDrafts, subscribePurchaseDrafts, savePurchaseDraft, deletePurchaseDraft, type PurchaseDraft, type PurchaseDraftInput } from '../data/purchaseDraftsPreviewStore';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
 import { TransactionReviewDialog } from '../components/TransactionReviewDialog';
 import { PurchasePaymentPanel, makePurchasePaymentRow, type PurchasePaymentRow } from '../components/purchases/PurchasePaymentPanel';
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
@@ -47,6 +50,13 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [error, setError] = useState('');
   const [reviewPurchaseOpen, setReviewPurchaseOpen] = useState(false);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [pendingDraft, setPendingDraft] = useState<PurchaseDraft | null>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const savedSignature = useRef('');
+  const allDrafts = useSyncExternalStore(subscribePurchaseDrafts, getPurchaseDrafts, getPurchaseDrafts);
+  const draftEnabled = !embedded && !initialPurchase && !lockedSupplierId && !onSaveSource;
+  const drafts = allDrafts.filter(d => d.tenantId === settingsState.tenantId);
   const [lastAdded, setLastAdded] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -61,6 +71,72 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   const totals = calculatePurchaseCheckout(subtotal, discount, discountMode, initialPurchase?.roundingRule??settingsState.sections.sales.rounding, payments);
   const { total, due, excess } = totals;
   const paid = totals.paidNum;
+
+  const draftValues: PurchaseDraftInput = {
+    tenantId: settingsState.tenantId,
+    supplierId, supplierName: supplier?.name ?? '', date, backdateReason,
+    referenceNo, notes, lines, payments, discount, discountMode, photos, total,
+  };
+  const draftSignature = JSON.stringify(draftValues);
+  const hasDraftContent = Boolean(supplierId || lines.length || referenceNo.trim() || notes.trim() || photos.length ||
+    payments.some(payment => Number(payment.amount) > 0));
+  const unsavedDraft = draftEnabled && hasDraftContent && draftSignature !== savedSignature.current;
+
+  const saveDraft = (): boolean => {
+    if (!draftEnabled || !hasDraftContent) return false;
+    try {
+      const draft = savePurchaseDraft(draftValues, activeDraftId);
+      setActiveDraftId(draft.id);
+      savedSignature.current = draftSignature;
+      toast.success('Purchase draft saved', { description: 'No stock, supplier due or cash was posted.' });
+      return true;
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Unable to save draft.');
+      return false;
+    }
+  };
+  const applyDraft = (draft: PurchaseDraft) => {
+    if (draft.tenantId !== settingsState.tenantId) return;
+    setSupplierId(draft.supplierId);
+    setDate(draft.date);
+    setBackdateReason(draft.backdateReason);
+    setReferenceNo(draft.referenceNo);
+    setNotes(draft.notes);
+    setLines(structuredClone(draft.lines));
+    setPayments(structuredClone(draft.payments));
+    setDiscount(draft.discount);
+    setDiscountMode(draft.discountMode);
+    setPhotos(structuredClone(draft.photos));
+    setActiveDraftId(draft.id);
+    savedSignature.current = JSON.stringify({
+      tenantId: draft.tenantId, supplierId: draft.supplierId, supplierName: draft.supplierName,
+      date: draft.date, backdateReason: draft.backdateReason, referenceNo: draft.referenceNo,
+      notes: draft.notes, lines: draft.lines, payments: draft.payments, discount: draft.discount,
+      discountMode: draft.discountMode, photos: draft.photos, total: draft.total,
+    });
+    setLastAdded('');
+    setError('');
+    setReviewPurchaseOpen(false);
+    toast.success('Purchase draft resumed');
+  };
+  const resumeDraft = (draft: PurchaseDraft) => {
+    if (unsavedDraft && activeDraftId !== draft.id) setPendingDraft(draft);
+    else applyDraft(draft);
+  };
+  const exitEditor = () => {
+    if (onCancel) onCancel();
+    else navigate('/app/purchases');
+  };
+  const requestExit = () => {
+    if (unsavedDraft) setLeaveOpen(true);
+    else exitEditor();
+  };
+  useEffect(() => {
+    if (!unsavedDraft) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [unsavedDraft]);
 
   useEffect(() => {
     if (!lastAdded) return;
@@ -169,6 +245,8 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
     };
     if(onSaveSource){onSaveSource(purchase);return;}
     try{createPreviewPurchase(purchase);}catch(e){setError(e instanceof Error?e.message:"Invalid purchase.");return;}
+    if (activeDraftId) deletePurchaseDraft(activeDraftId);
+    savedSignature.current = draftSignature;
     toast.success(purchase.ref + ' saved', { description: due > 0 ? taka(due) + ' payable to ' + supplier.name : 'Fully paid' });
     if(onCompleted)onCompleted(purchase);
     else navigate('/app/purchases');
@@ -204,78 +282,88 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   });
 
   return (
-    <div data-purchase-workspace className="purchase-workspace mx-auto max-w-[1440px] min-w-0 space-y-4 pb-8">
-      {!embedded&&<PageHeader
+    <div data-purchase-workspace className="purchase-workspace mx-auto max-w-[1440px] min-w-0 space-y-3 pb-8">
+      {!embedded && <PageHeader
+        compact
         title="New purchase" titleBn="নতুন ক্রয়"
-        description={purchaseRef + ' · Add products like a POS cart, then choose payment sources.'}
         actions={<>
-          <div className="hidden items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] text-ink-500 md:flex">
+          <div className="hidden items-center gap-2 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-ink-500 lg:flex"
+            aria-label="Purchase keyboard shortcuts">
             <Keyboard className="size-3.5" aria-hidden="true" />
-            {([['F2', 'Search'], ['Enter', 'Next'], ['F8', 'Paid'], ['F9', 'Complete']] as const).map(([key, label]) => (
+            {([['F2', 'Search'], ['Enter', 'Next'], ['F8', 'Paid'], ['F9', 'Review']] as const).map(([key, label]) => (
               <span key={key} className="flex items-center gap-1"><kbd className="rounded border border-ink-200 bg-ink-50 px-1 text-[10px]">{key}</kbd> {label}</span>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/app/purchases')}><ArrowLeft className="size-4" /> Purchases</Button>
+          {draftEnabled && <PurchaseDraftsMenu drafts={drafts} onResume={resumeDraft}
+            onDelete={id => { deletePurchaseDraft(id); if (activeDraftId === id) { setActiveDraftId(null); savedSignature.current = ''; } }} />}
+          <Button type="button" variant="outline" size="sm" onClick={requestExit}>
+            <ArrowLeft className="size-4" /> Purchases
+          </Button>
         </>}
       />}
 
-      <div data-purchase-layout className="grid min-w-0 grid-cols-1 items-start gap-4">
-        <div className="min-w-0 space-y-4">
-          <PurchaseCart
-            lines={lines}
-            products={products}
-            searchRef={searchRef}
-            qtyRefs={qtyRefs}
-            smallRefs={smallRefs}
-            costRefs={costRefs}
-            lotPriceRefs={lotPriceRefs}
-            onAdd={addProduct}
-            onCreate={() => setProductDialogOpen(true)}
-            onUpdate={updateLine}
-            onRemove={(id) => setLines((current) => current.filter((line) => line.id !== id))}
-            onCostUnitChange={selectCostUnit}
-          />
-          <section className="rounded-xl border border-border bg-card p-4 shadow-card">
-            <p className="mb-3 text-[13px] font-semibold text-ink">Supplier memo & notes <span className="font-bn text-[11px] font-normal text-ink-400">· রসিদের ছবি</span></p>
-            <label className="mb-3 block text-[12px] font-medium text-ink">Notes
-              <Input className="mt-1" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Delivery, discount or other details (optional)" />
-            </label>
-            <PhotoUploader photos={photos} onChange={setPhotos} max={2} label="Attach" hint="Supplier memo, delivery challan or payment receipt · images for the UI preview" />
-          </section>
-        </div>
-
-        <aside data-purchase-checkout className="min-w-0 space-y-3">
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-      <section className="border-b border-border p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div><p className="text-[13px] font-semibold text-ink">Purchase details</p><p className="font-bn text-[11px] text-ink-400">সরবরাহকারী ও ক্রয়ের তথ্য</p></div>
-          <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="block min-w-0 text-[12px] font-medium text-ink sm:col-span-2">
-            Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
-            <div className="mt-1">
-              {(lockedSupplierId||initialPurchase)?<div className="rounded-md border border-border bg-ink-50 px-3 py-2 text-sm text-ink">
-                {supplier?.name??'Selected supplier'} <span className="text-xs text-ink-500">· Original supplier</span>
-               </div>:<QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
-                onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
-                onCreate={addSupplier} showContact placeholder="Supplier or business name" />}
-            </div>
+      <div data-purchase-layout className="min-w-0 space-y-3">
+        <section data-purchase-details aria-labelledby="purchase-details-title"
+          className="rounded-xl border border-border bg-card px-3 py-3 shadow-card md:px-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 id="purchase-details-title" className="text-[13px] font-semibold text-ink">
+              Supplier & purchase <span className="font-bn text-[11px] font-normal text-ink-500">· সরবরাহকারী ও ক্রয়</span>
+            </h2>
+            <span className="shrink-0 rounded-md bg-ink-50 px-2 py-1 text-[11px] text-ink-600">{purchaseRef}</span>
           </div>
-          <label className="block text-[12px] font-medium text-ink">Purchase date <span className="text-danger">*</span>
-            <Input className="mt-1" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
-          </label>
-          <label className="block text-[12px] font-medium text-ink">Supplier memo no. <span className="font-normal text-ink-400">· optional</span>
-            <Input className="mt-1" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder="Supplier bill / challan" />
-          </label>
-          {date && date < todayISO() && (
-            <label className="block text-[12px] font-medium text-ink sm:col-span-2">Backdate reason <span className="text-danger">*</span>
-              <Input className="mt-1" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder="Reason for entering an earlier purchase" />
+          <div className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+            <div data-purchase-supplier-field className="flex min-w-0 flex-col gap-1 sm:col-span-2 lg:col-span-1">
+              <label className="block min-h-5 text-[12px] font-medium leading-5 text-ink" id="purchase-supplier-label">
+                Supplier <span className="font-bn font-normal text-ink-500">· সরবরাহকারী</span> <span className="text-danger">*</span>
+              </label>
+              <div className="min-w-0">
+                {(lockedSupplierId || initialPurchase) ?
+                  <div className="flex h-9 min-w-0 items-center rounded-md border border-border bg-ink-50 px-3 text-[13px] text-ink">
+                    <span className="min-w-0 truncate">{supplier?.name ?? 'Selected supplier'}</span>
+                    <span className="ml-2 shrink-0 text-[11px] text-ink-500">· Original supplier</span>
+                  </div> :
+                  <QuickAddSelect label="Supplier" value={supplier?.name ?? ''}
+                    options={['Select supplier', ...suppliers.map((party) => party.name)]}
+                    onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
+                    onCreate={addSupplier} showContact placeholder="Supplier or business name" />
+                }
+              </div>
+            </div>
+            <label data-purchase-date-field className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-ink">
+              <span className="block min-h-5 leading-5">Purchase date <span className="text-danger">*</span></span>
+              <Input className="h-9 w-full min-w-0" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
-          )}
-        </div>
-      </section>
+            <label data-purchase-reference-field className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-ink">
+              <span className="block min-h-5 leading-5">Reference <span className="font-normal text-ink-500">· optional</span></span>
+              <Input className="h-9 w-full min-w-0" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)}
+                placeholder="Bill / challan no." />
+            </label>
+            {date && date < todayISO() && (
+              <label className="block min-w-0 text-[12px] font-medium text-ink sm:col-span-2 lg:col-span-3">
+                Backdate reason <span className="text-danger">*</span>
+                <Input className="mt-1" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)}
+                  placeholder="Reason for entering an earlier purchase" />
+              </label>
+            )}
+          </div>
+        </section>
 
+        <PurchaseCart
+          lines={lines}
+          products={products}
+          searchRef={searchRef}
+          qtyRefs={qtyRefs}
+          smallRefs={smallRefs}
+          costRefs={costRefs}
+          lotPriceRefs={lotPriceRefs}
+          onAdd={addProduct}
+          onCreate={() => setProductDialogOpen(true)}
+          onUpdate={updateLine}
+          onRemove={(id) => setLines((current) => current.filter((line) => line.id !== id))}
+          onCostUnitChange={selectCostUnit}
+        />
+
+        <aside data-purchase-checkout className="min-w-0 space-y-2">
           <PurchasePaymentPanel
             totals={totals}
             itemCount={lines.length}
@@ -286,18 +374,81 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             payments={payments}
             onPayments={setPayments}
             paidRef={paymentAmountRef}
-            actionLabel={initialPurchase?"Review correction":undefined}
+            actionLabel={initialPurchase ? "Review correction" : undefined}
+            hideAction
+            additionalDetails={
+              <div data-purchase-additional className="min-w-0">
+                <div data-purchase-note-attachment-row className="grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_176px]">
+                  <div className="min-w-0">
+                    <label htmlFor="purchase-notes" className="block text-[12px] font-medium leading-5 text-ink">
+                      Notes <span className="font-normal text-ink-500">· optional</span>
+                    </label>
+                    <textarea id="purchase-notes" rows={3} value={notes}
+                      onChange={(event) => setNotes(event.target.value)}
+                      placeholder="Delivery, discount or other details"
+                      className="mt-1 block h-20 w-full min-w-0 resize-none overflow-y-auto rounded-md border border-input bg-card px-3 py-2 text-[13px] font-normal leading-5 text-ink outline-none placeholder:text-ink-400 focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                  </div>
+                  <div data-purchase-receipt className="min-w-0">
+                    <p className="text-[12px] font-medium leading-5 text-ink">Add receipt <span className="font-normal text-ink-500">· optional</span></p>
+                    <div className="mt-1">
+                      <PhotoUploader photos={photos} onChange={setPhotos} max={2}
+                        label="Attach supplier bill or receipt" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
             onComplete={requestReview}
           />
-          </div>
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
-          <div className="flex gap-2">
-            <Button className="flex-1" variant="outline" onClick={() => onCancel?onCancel():navigate('/app/purchases')}>Cancel</Button>
+          <div data-purchase-review-actions className="flex flex-wrap items-center justify-end gap-2 border-t border-border py-3">
+            <Button type="button" variant="ghost" size="sm" onClick={requestExit}
+              className="mr-auto h-10 text-[12px] text-ink-500">
+              Cancel
+            </Button>
+            {draftEnabled && <Button type="button" data-purchase-save-draft variant="outline"
+              disabled={!hasDraftContent} onClick={saveDraft}
+              className="h-10 rounded-full px-4 text-[13px] font-medium">
+              <Save className="size-4" aria-hidden="true"/> Save draft
+            </Button>}
+            <Button type="button" data-purchase-review-action
+              disabled={total <= 0 || excess > 0} onClick={requestReview}
+              className="h-10 rounded-full bg-ink px-4 text-[13px] font-medium text-white hover:bg-ink/90">
+              {initialPurchase ? 'Review correction' : 'Review purchase'}
+              <ArrowRight className="size-4" aria-hidden="true"/>
+            </Button>
           </div>
-          <p className="text-center text-[11px] text-ink-400">UI preview: entries and quick-add records remain in memory until refresh; backend posting is not connected.</p>
+          <p className="text-right text-[11px] text-ink-500">
+            Preview only · Drafts remain in this session until refresh.
+          </p>
         </aside>
       </div>
 
+      <Dialog open={!!pendingDraft} onOpenChange={value => { if (!value) setPendingDraft(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Resume another draft?</DialogTitle>
+            <DialogDescription>Unsaved changes in this Purchase will be replaced. Save this draft first to keep them.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setPendingDraft(null)}>Stay here</Button>
+            <Button type="button" onClick={() => { if (pendingDraft) applyDraft(pendingDraft); setPendingDraft(null); }}>Discard changes & resume</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Leave this purchase?</DialogTitle>
+            <DialogDescription>Save an unfinished purchase as a draft, or discard your changes.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setLeaveOpen(false)}>Stay here</Button>
+            <Button type="button" variant="outline" onClick={() => { setLeaveOpen(false); exitEditor(); }}>Discard</Button>
+            <Button type="button" onClick={() => { if (saveDraft()) { setLeaveOpen(false); exitEditor(); } }}>Save draft & leave</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <TransactionReviewDialog open={reviewPurchaseOpen} onClose={() => setReviewPurchaseOpen(false)}
         onConfirm={() => {setReviewPurchaseOpen(false);save();}}
         title={initialPurchase ? 'Review purchase correction' : 'Review purchase'} amount={total}
