@@ -892,3 +892,14 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] :is(input, button) { min-height: 0; }
   :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-add] > :nth-child(n) { display: revert; }
 }
+
+/* The line total is text, not a nested form control. The generic cart
+   display:contents flattening must not discard its right-aligned grid cell. */
+:root [data-cart-kind="purchase"] [data-cart-row="purchase"] > [data-purchase-line-total] {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  text-align: right;
+  white-space: nowrap;
+}
