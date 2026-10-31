@@ -47,6 +47,15 @@ async function main() {
     assert.equal(await lightTotal.locator('[data-amount-words-variant]').getAttribute('data-amount-words-variant'), 'compact',
       'readable Bangla words remain in compact light mode');
     assert.ok(await purchaseRoot.locator('[data-purchase-quick-items]').count() === 1);
+    const reviewAction = page.locator('[data-purchase-review-action]');
+    const draftAction = page.locator('[data-purchase-save-draft]');
+    await reviewAction.waitFor({ state: 'visible' });
+    const reviewRect = await reviewAction.boundingBox();
+    const draftRect = await draftAction.boundingBox();
+    assert.ok(reviewRect && draftRect && reviewRect.width < 240 && draftRect.width < 180,
+      'Save draft and Review purchase must be compact, not full-width');
+    assert.ok(reviewRect.height <= 48 && draftRect.height <= 48, 'footer actions must not be oversized');
+    assert.ok(Math.abs(reviewRect.y - draftRect.y) <= 2, 'footer buttons align on one row on desktop');
     assert.equal(await page.locator('[data-testid="purchase-add-row"] select[aria-label="Search product to add to purchase"]').count(), 0,
       'inline POS search remains an accessible combobox rather than a plain select');
     fs.mkdirSync('test-results/purchase-hybrid', { recursive: true });
