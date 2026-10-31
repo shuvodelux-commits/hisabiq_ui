@@ -24,6 +24,12 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
   const { draft, set, errors, derived: x, openSetting, setOpenSetting } = form;
   const isStock = draft.kind === 'Stock';
   const [confirmExpiryOff, setConfirmExpiryOff] = useState(false);
+  const [confirmSingle, setConfirmSingle] = useState(false);
+  const turnMultiUnit = (on: boolean) => {
+    if (form.unitsLocked) return;
+    if (!on) { setConfirmSingle(true); return; }
+    if (form.setMultiUnit(true)) setOpenSetting('units');
+  };
   const turnExpiry = (on: boolean) => {
     if (!on && form.isEdit && draft.expiryEnabled) { setConfirmExpiryOff(true); return; }
     set('expiryEnabled', on);
@@ -43,7 +49,7 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
   const sections = [
     ...(isStock ? [
       { id: 'units' as const, en: 'Multiple units', bn: 'একাধিক একক', icon: Layers3Icon,
-        status: draft.multiUnit ? t(`${unitCount} units`, `${unitCount}টি একক`) : t('Off', 'বন্ধ') },
+        status: draft.multiUnit ? t(`${unitCount} units`, `${unitCount}টি একক`) : undefined },
       ...(draft.multiUnit ? [{ id: 'prices' as const, en: 'Unit prices', bn: 'একক অনুযায়ী দাম', icon: BadgeDollarSignIcon,
         status: customPrices ? t('Custom', 'আলাদা') : t('Auto', 'স্বয়ংক্রিয়') }] : [])
     ] : []),
@@ -93,7 +99,11 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
           <Disclosure key={section.id} id={`pf-${section.id}`} icon={section.icon} en={section.en} bn={section.bn}
             status={section.status} open={openSetting === section.id}
             onToggle={() => setOpenSetting(openSetting === section.id ? null : section.id)}
-            action={section.id === 'expiry' ? (
+            action={section.id === 'units' ? (
+              <Switch id="pf-multi-toggle" checked={draft.multiUnit} disabled={form.unitsLocked}
+                onCheckedChange={turnMultiUnit}
+                aria-label={t('Enable multiple units', 'একাধিক একক চালু করুন')} />
+            ) : section.id === 'expiry' ? (
               <Switch id="pf-expiry-toggle" checked={draft.expiryEnabled} onCheckedChange={turnExpiry}
                 aria-label={t('Enable expiry tracking', 'মেয়াদ ট্র্যাকিং চালু করুন')} />
             ) : section.id === 'warranty' ? (
@@ -108,6 +118,25 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
         ))}
       </div>
       {errors.unitChain && !draft.multiUnit && <p role="alert" className="text-danger text-[13px]">{t(errors.unitChain.en, errors.unitChain.bn)}</p>}
+      <Dialog open={confirmSingle} onOpenChange={setConfirmSingle}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('Use a single unit?', 'একটি একক ব্যবহার করবেন?')}</DialogTitle>
+            <DialogDescription>{t(
+              `Prices and quantities will be converted to ${draft.unit}. Larger units and their custom prices will be removed. Review all amounts before changing the smallest unit.`,
+              `দাম ও পরিমাণ ${draft.unit}-এ রূপান্তর হবে। বড় একক ও তাদের আলাদা দাম মুছে যাবে। সবচেয়ে ছোট একক বদলানোর আগে সব পরিমাণ যাচাই করুন।`
+            )}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setConfirmSingle(false)}>{t('Keep multiple units', 'একাধিক একক রাখুন')}</Button>
+            <Button type="button" onClick={() => {
+              const safe = form.setMultiUnit(false);
+              setConfirmSingle(false);
+              setOpenSetting(safe ? null : 'units');
+            }}>{t('Use single unit', 'একটি একক ব্যবহার')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={confirmExpiryOff} onOpenChange={setConfirmExpiryOff}>
         <DialogContent className="max-w-md">
           <DialogHeader>
