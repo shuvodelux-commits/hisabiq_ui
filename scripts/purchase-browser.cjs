@@ -54,6 +54,24 @@ async function main() {
     assert.equal(await lightTotal.locator('[data-amount-words-variant]').getAttribute('data-amount-words-variant'), 'compact',
       'readable Bangla words remain in compact light mode');
     assert.ok(await purchaseRoot.locator('[data-purchase-quick-items]').count() === 1);
+    const quickRailDesktop = purchaseRoot.locator('[data-purchase-quick-items-list]');
+    assert.equal(await quickRailDesktop.evaluate(node => getComputedStyle(node).scrollbarWidth), 'none',
+      'Quick Items hide the large scrollbar while preserving native scrolling');
+    assert.ok(await quickRailDesktop.locator('[data-purchase-quick-item]').count() >= 6,
+      'Quick Items preserve the full touch-to-add product list');
+    const desktopScrollable = await quickRailDesktop.evaluate(node => node.scrollWidth > node.clientWidth + 2);
+    if (desktopScrollable) {
+      const next = purchaseRoot.getByRole('button', { name: 'Next quick items' });
+      const previous = purchaseRoot.getByRole('button', { name: 'Previous quick items' });
+      await next.waitFor({ state: 'visible' });
+      assert.equal(await previous.isDisabled(), true, 'previous is disabled on the first quick item');
+      await next.click();
+      await page.waitForFunction(() => document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft > 2);
+      assert.equal(await previous.isEnabled(), true, 'previous becomes available after navigating forward');
+      await previous.click();
+      await page.waitForFunction(() => (document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft ?? -1) <= 2);
+      assert.equal(await previous.isDisabled(), true, 'previous disables again when back at the start');
+    }
     const reviewAction = page.locator('[data-purchase-review-action]');
     const draftAction = page.locator('[data-purchase-save-draft]');
     await reviewAction.waitFor({ state: 'visible' });
@@ -276,8 +294,16 @@ async function main() {
     await page.screenshot({ path: 'test-results/purchase-hybrid/tablet.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).waitFor();
-    const quickRail = page.locator('[data-purchase-quick-items] > div').last();
+    const quickRail = page.locator('[data-purchase-quick-items-list]');
     assert.ok(await quickRail.evaluate(node => getComputedStyle(node).overflowX === 'auto'), 'touch quick items use horizontal scrolling');
+    assert.equal(await quickRail.evaluate(node => getComputedStyle(node).scrollbarWidth), 'none',
+      'phone quick item scrollbar is visually hidden');
+    const phoneNext = page.getByRole('button', { name: 'Next quick items' });
+    await phoneNext.waitFor({ state: 'visible' });
+    await phoneNext.click();
+    await page.waitForFunction(() => document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft > 2);
+    assert.equal(await page.getByRole('button', { name: 'Previous quick items' }).isEnabled(), true,
+      'phone can navigate backwards after clicking next');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'phone has no page-level horizontal overflow');
     const phoneQuick = page.locator('[data-purchase-quick-items]').getByRole('button', { name: /Quick add LED Bulb 12W/ });
     await phoneQuick.click();
