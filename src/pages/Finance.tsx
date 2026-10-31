@@ -1,7 +1,7 @@
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownLeft,
   ArrowLeftRight,
@@ -514,7 +514,15 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
-  const [financeTab, setTab] = useState<Tab>('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const routeTab = searchParams.get('tab');
+  const financeTabs: Tab[] = ['overview','accounts','counter','transactions','cheques','cash'];
+  const financeTab: Tab = financeTabs.includes(routeTab as Tab) ? routeTab as Tab : 'overview';
+  const setTab = (nextTab: Tab) => setSearchParams(current => {
+    const next = new URLSearchParams(current);
+    if (nextTab === 'overview') next.delete('tab'); else next.set('tab', nextTab);
+    return next;
+  }, {replace: true});
   const tab: Tab = counterOnly ? 'counter' : financeTab;
   const { accounts, transactions, people } = useSyncExternalStore(subscribeFinancePreview, getFinancePreviewSnapshot);
   const relationshipSummary = financePreviewRelationshipSummary(transactions);

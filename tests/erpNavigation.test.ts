@@ -2,6 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {erpNavigation} from '../src/navigation/erpNavigation.ts';
 import {getVisibleNavigation,resolveNavLocation, type NavigationContext} from '../src/navigation/resolveErpNavigation.ts';
+import {sectionNames} from '../src/settings/fields.ts';
+
+test('sidebar destinations match the complete module tab sequence',()=>{
+ const paths=(id:string)=>erpNavigation.find(g=>g.id===id)!.children!.map(c=>c.path);
+ assert.deepEqual(paths('sales').slice(0,5),['/app/sales','/app/sales?tab=return','/app/sales?tab=returns','/app/sales?tab=credits','/app/sales?tab=drafts']);
+ assert.deepEqual(paths('purchases'),['/app/purchases','/app/purchases?tab=return','/app/purchases?tab=return-history']);
+ assert.deepEqual(paths('products'),['/app/products','/app/products?view=lots','/app/products?view=history','/app/products?view=settings']);
+ assert.deepEqual(paths('finance').slice(0,6),['/app/finance','/app/finance?tab=accounts','/app/finance?tab=counter','/app/finance?tab=transactions','/app/finance?tab=cheques','/app/finance?tab=cash']);
+ assert.deepEqual(paths('settings').filter(p=>p.startsWith('/app/settings/')),Object.keys(sectionNames).map(id=>`/app/settings/${id}`));
+ assert.deepEqual(paths('parties'),['/app/parties',...['Customer','Supplier','Vendor','Lender','Borrower','Payee','Owner'].map(role=>`/app/parties?role=${role}`)]);
+});
 
 const allPaths=new Set(erpNavigation.flatMap(g=>[g.landingPath,...(g.children??[]).map(c=>c.path)].filter(Boolean) as string[]));
 const allowAll:NavigationContext={availablePaths:allPaths,enabledFeatures:new Set(['quotations','online-sales','notifications']),canAccess:()=>true};

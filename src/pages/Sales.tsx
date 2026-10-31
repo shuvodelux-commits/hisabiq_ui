@@ -804,7 +804,7 @@ export function Sales() {
     setReturnSerials({});
     setBundleReturnChoices({});
     setDetail(null);
-    setTab('return');
+    chooseTab('return');
   };
 
   const savePayment = (invoice: SalesInvoice, rows: PaymentDraft[]) => {
@@ -1009,7 +1009,7 @@ export function Sales() {
     setReturnSerials({});
     setReturnRefundMethod('Cash');
     setReturnRefundAccount('');
-    setTab('returns');
+    chooseTab('returns');
     toast.success(text('Return saved in this preview session','এই প্রিভিউ সেশনে ফেরত রাখা হয়েছে'), { description: `${taka(returnAmount)} · ${returnSettlement}` });
   };
 
@@ -1040,7 +1040,7 @@ export function Sales() {
                             setReturnQty({}); setReturnUnitQuantities({});
                             setReturnReason({});
                             setReturnSerials({});
-                            setTab('return');
+                            chooseTab('return');
                           }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
                             <CornerUpLeft className="size-4 text-ink-400" /> {sl('Start another return')}
                           </button>
