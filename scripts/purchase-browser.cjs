@@ -88,9 +88,15 @@ async function main() {
       buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==', 'base64'),
     });
     assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 1, 'receipt upload persists a preview');
-    const previewRect = await additional.locator('img[alt="Photo 1"]').boundingBox();
+    const previewImage = additional.locator('img[alt="Photo 1"]');
+    const previewRect = await previewImage.boundingBox();
+    const previewTileRect = await previewImage.locator('..').boundingBox();
+    assert.ok(previewTileRect && Math.abs(previewTileRect.width - 112) <= 1 &&
+      Math.abs(previewTileRect.height - 112) <= 1,
+      'receipt thumbnail tile is a 112px square including its 1px border');
     assert.ok(previewRect && Math.abs(previewRect.width - previewRect.height) <= 1 &&
-      Math.abs(previewRect.height - 112) <= 1, 'attached receipt thumbnail is a 112px square');
+      previewRect.width >= 109 && previewRect.width <= 112,
+      'receipt image fills the square interior with no distortion');
     await additional.getByRole('button', { name: 'Remove photo 1' }).click();
     assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 0, 'receipt can be removed');
     assert.equal(await noteField.inputValue(), 'Delivered via challan\nCheck receipt number on delivery',
