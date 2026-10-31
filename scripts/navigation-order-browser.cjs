@@ -14,7 +14,8 @@ async function main(){
   ['/app/sales',['Sales','Sales return','Return history','Customer credit','Drafts & templates']],
   ['/app/purchases',['Purchases','Purchase return','Return history']],
   ['/app/products',['Product list','Stock lots','Stock history','Product settings']],
-  ['/app/finance',['Overview','Money Accounts','Counter','Loans & Owners','Cheques','Cash Sessions']]
+  ['/app/finance',['Overview','Loans & Owners','Cheques','Cash Sessions']],
+  ['/app/accounts',['Overview','Money Accounts','Vouchers','Ledger','Trial Balance','Statements','Chart of Accounts']]
  ];
  try{
   for(const width of [1440,768,390]){
@@ -59,7 +60,7 @@ async function main(){
    await page.waitForURL('**/#/app/accounts');
    if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
    const accountingNav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
-   assert.equal(await accountingNav.locator('a[href="#/app/accounts"]').getAttribute('aria-current'),'page','Accounts & Vouchers opens beneath Accounts');
+   assert.equal(await accountingNav.locator('a[href="#/app/accounts"]').getAttribute('aria-current'),'page','Accounts Overview opens beneath Accounts');
    assert.equal(await accountingNav.locator('a[href="#/app/daybook"]').count(),1,'Daybook remains outside Accounts as a one-click module');
    if(width<1024)await accountingNav.getByRole('button',{name:'Close navigation'}).click();
    await page.goto(base+'/app/settings/business');
