@@ -4210,6 +4210,7 @@
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Products.tsx",
+      "src/pages/PurchaseEditor.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Vendors.tsx"
     ],
@@ -4244,7 +4245,8 @@
     "ChevronUp": [
       "src/components/NumericInput.tsx",
       "src/components/purchases/PurchaseCart.tsx",
-      "src/components/reports/SalesProfitExperiment.tsx"
+      "src/components/reports/SalesProfitExperiment.tsx",
+      "src/pages/PurchaseEditor.tsx"
     ],
     "CircleAlert": [
       "src/components/FeedbackState.tsx"
@@ -4347,7 +4349,8 @@
       "src/pages/Sales.tsx"
     ],
     "FileImage": [
-      "src/components/purchases/BillDetailDialog.tsx"
+      "src/components/purchases/BillDetailDialog.tsx",
+      "src/pages/PurchaseEditor.tsx"
     ],
     "FileLock2": [
       "src/settings/SettingsSqlBackup.tsx"
