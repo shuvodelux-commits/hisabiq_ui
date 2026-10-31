@@ -1,5 +1,6 @@
 import { MoneyUnitInput, QuantityUnitInput } from '../../MoneyUnitInput';
 import { FormField } from '../fields/FormField';
+import { Tooltip } from '../../Tooltip';
 import { SectionHeading } from '../fields/SectionHeading';
 import { useFormCopy } from '../../../hooks/useFormCopy';
 import { taka } from '../../../utils/currency';
@@ -40,7 +41,12 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
 
   return (
     <section aria-labelledby="pf-price-heading" className="px-4 pb-4 pt-3 md:px-6 md:pb-4 md:pt-4">
-      <SectionHeading id="pf-price-heading" en="Price & stock" bn="দাম ও স্টক" />
+      <SectionHeading id="pf-price-heading" en="Price & stock" bn="দাম ও স্টক"
+        aside={x.profit !== null && x.profit >= 0 && x.margin !== null
+          ? <Tooltip interactive compact label={t('Profit estimate', 'আনুমানিক লাভ')}
+              content={t(`Profit ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}% margin`,
+                `লাভ ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}%`)} />
+          : undefined} />
         <div className="pf-pair-money">
           <FormField
             id="pf-buy"
@@ -87,11 +93,9 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
             />
           </FormField>
         </div>
-        {x.profit !== null && x.margin !== null && (
-          <p className={'mt-2 text-[13px] font-medium ' + (x.profit < 0 ? 'text-danger' : 'text-ink-600')}>
-            {x.profit < 0
-              ? t(`Below cost: you lose ${taka(-x.profit)}${perUnit}.`, `কেনা দামের নিচে: ${taka(-x.profit)}${perUnit} লোকসান।`)
-              : t(`Profit ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}% margin`, `লাভ ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}%`)}
+        {x.profit !== null && x.profit < 0 && (
+          <p role="alert" className="mt-2 text-[13px] font-medium text-danger">
+            {t(`Below cost: you lose ${taka(-x.profit)}${perUnit}.`, `কেনা দামের নিচে: ${taka(-x.profit)}${perUnit} লোকসান।`)}
           </p>
         )}
       {isStock && (
