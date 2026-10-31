@@ -53,18 +53,38 @@ async function main() {
       'the separate Additional details accordion is removed');
     const noteField = additional.getByPlaceholder('Delivery, discount or other details');
     assert.equal(await noteField.isVisible(), true, 'notes are visible without expanding a disclosure');
-    assert.equal(await additional.getByRole('button', { name: 'Attach' }).isVisible(), true,
-      'supplier receipt action is visible without expanding a disclosure');
-    const exactRect = await paymentMethods.getByRole('button', { name: 'Exact', exact: true }).boundingBox();
-    const additionalRect = await additional.boundingBox();
-    assert.ok(exactRect && additionalRect && additionalRect.y > exactRect.y + exactRect.height - 1,
-      'notes and receipt appear below quick payment shortcuts at annotation 4');
+    const attachmentRow = additional.locator('[data-purchase-note-attachment-row]');
+    const receiptButton = additional.getByRole('button', { name: 'Attach supplier bill or receipt' });
+    assert.equal(await receiptButton.isVisible(), true, 'receipt attachment stays visible next to Notes');
+    assert.equal(await paymentMethods.getByRole('button', { name: 'Exact', exact: true }).count(), 0,
+      'the Exact and preset money amount shortcut row is removed');
+    for (const preset of ['৳500', '৳1,000', '৳2,000', '৳5,000']) {
+      assert.equal(await paymentMethods.getByRole('button', { name: preset, exact: true }).count(), 0,
+        'preset cash amount button is removed: ' + preset);
+    }
+    const noteRect = await noteField.boundingBox();
+    const attachmentRect = await receiptButton.boundingBox();
+    assert.ok(noteRect && attachmentRect && attachmentRect.x > noteRect.x + noteRect.width - 1 &&
+      Math.abs((noteRect.y + noteRect.height / 2) - (attachmentRect.y + attachmentRect.height / 2)) < 2,
+      'receipt upload is aligned on the Notes input row at annotation 4');
+    assert.equal(await attachmentRow.isVisible(), true, 'notes and receipt remain visible without disclosure');
+    assert.ok((await receiptButton.boundingBox()).height <= 40, 'receipt upload uses a compact control');
     await noteField.fill('Delivered via challan');
     assert.equal(await noteField.inputValue(), 'Delivered via challan');
+    const receiptInput = additional.locator('[data-purchase-receipt] input[type="file"]');
+    await receiptInput.setInputFiles({
+      name: 'supplier-challan.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==', 'base64'),
+    });
+    assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 1, 'receipt upload persists a preview');
+    await additional.getByRole('button', { name: 'Remove photo 1' }).click();
+    assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 0, 'receipt can be removed');
+    assert.equal(await noteField.inputValue(), 'Delivered via challan', 'editing receipt does not clear Notes');
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-methods]').count() === 1);
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-summary]').count() === 1);
-    assert.equal(await purchaseRoot.locator('[data-cart-kind="purchase"]').getByText(/product lines?/).count(), 0,
-      'Purchase cart no longer duplicates the product count and subtotal amount');
+    assert.equal(await purchaseRoot.locator('[data-cart-kind="purchase"]').getByText(/product lines?/).count(), 1,
+      'Purchase cart retains its original line-count footer');
     assert.equal(await purchaseRoot.locator('[data-purchase-payment-summary]').getByText(/Subtotal/).count(), 1,
       'financial summary remains the single visible subtotal source');
     const lightTotal = purchaseRoot.locator('[data-purchase-summary-total]');
@@ -250,7 +270,7 @@ async function main() {
     assert.match(await purchasePaymentPanel.innerText(), /Discount applied/);
     const discountedTotal = (await purchasePaymentPanel.getByTestId('purchase-net-total').innerText()).trim();
     assert.notEqual(discountedTotal, '', 'discount and total should update live');
-    await page.getByRole('button', { name: 'Exact', exact: true }).click();
+    await page.getByRole('button', { name: 'Fill remaining payment 1' }).click();
     assert.match(await purchasePaymentPanel.innerText(), /Supplier due/);
     assert.match(await purchasePaymentPanel.innerText(), /৳0(?!\d)/, 'fully paid');
 
