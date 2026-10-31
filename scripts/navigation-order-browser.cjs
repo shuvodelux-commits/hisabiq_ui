@@ -46,6 +46,18 @@ async function main(){
     await page.waitForFunction(expected=>location.hash==='#'+expected,destinations[1]);
     assert.ok(page.url().endsWith(destinations[1]),`${route}: tab updates sidebar destination`);
    }
+   // The Accounts card keeps Bank Entry contextual, with a reversible way back.
+   await page.goto(base+'/app/accounts?tab=money-accounts',{waitUntil:'domcontentloaded',timeout:15000});
+   await page.getByText('Dutch-Bangla Bank · 4582',{exact:true}).waitFor();
+   await page.getByRole('button',{name:'Bank Entry'}).first().click();
+   await page.waitForURL(/#\\/app\\/accounts\\?tab=bank-entry&accountId=/);
+   await page.getByRole('button',{name:'Back to Money Accounts'}).click();
+   await page.waitForURL('**/#/app/accounts?tab=money-accounts');
+   // Legacy bookmarks navigate to the new canonical module instead of disappearing.
+   await page.goto(base+'/app/finance?tab=accounts',{waitUntil:'domcontentloaded',timeout:15000});
+   await page.waitForURL('**/#/app/accounts?tab=money-accounts');
+   await page.goto(base+'/app/finance?tab=counter',{waitUntil:'domcontentloaded',timeout:15000});
+   await page.waitForURL('**/#/app/counter');
    // Finance and Accounts expand independently, while Daybook is a direct module.
    await page.goto(base+'/app/daybook',{waitUntil:'domcontentloaded',timeout:15000});
    if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
