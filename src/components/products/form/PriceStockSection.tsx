@@ -53,11 +53,13 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
             en={isStock ? 'Unit cost' : 'Service cost'}
             error={errors.buy}
             bn={isStock ? 'কেনা দাম' : 'সেবা খরচ'}
+            required={isStock}
             help={isStock ? t('What you pay the supplier.', 'সরবরাহকারীকে যে দাম দেন।') : t('Your cost to provide it.', 'সেবা দিতে আপনার খরচ।')}
             hint={buyEcho || undefined}
           >
             <MoneyUnitInput searchableUnits
               id="pf-buy"
+              required={isStock}
               invalid={Boolean(errors.buy)}
               label={isStock ? t('Unit cost', 'কেনা দাম') : t('Service cost', 'সেবা খরচ')}
               describedBy="pf-buy-msg"
