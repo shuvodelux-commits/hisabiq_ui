@@ -1,5 +1,5 @@
 import React from 'react';
-import { useModuleSettingsAction } from '../settings/ModuleSettingsEntry';
+import { useModuleSettingsAction } from '../settings/ModuleSettingsToolbarContext';
 import { useUiCopy } from '../i18n/useUiCopy';
 
 type PageHeaderProps = {
