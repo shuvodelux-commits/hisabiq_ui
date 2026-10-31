@@ -40,7 +40,7 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
 
   return (
     <>
-      <section aria-labelledby="pf-price-heading" className="border-t border-border px-4 py-5 md:px-6 md:py-6">
+      <section aria-labelledby="pf-price-heading" className="border-t border-border px-4 py-4 md:px-6 md:py-5">
         <SectionHeading id="pf-price-heading" en="Price" bn="দাম" />
         <div className="pf-pair-money">
           <FormField
@@ -99,7 +99,7 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
       </section>
 
       {isStock && (
-        <section aria-labelledby="pf-stock-heading" className="border-t border-border px-4 py-5 md:px-6 md:py-6">
+        <section aria-labelledby="pf-stock-heading" className="border-t border-border px-4 py-4 md:px-6 md:py-5">
           <SectionHeading id="pf-stock-heading" en="Stock" bn="স্টক" />
           {isEdit && (
             <p className="mb-4 rounded-lg bg-ink-100 px-3 py-2.5 text-[14px] text-ink-700">

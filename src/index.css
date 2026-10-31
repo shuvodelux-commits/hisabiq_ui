@@ -531,14 +531,26 @@
 .product-form [data-numeric-joined] button[role="combobox"] { font-size: var(--ctl-fs); }
 /* Columns follow the form's real width (sidebar, rail, rotation), not the device. */
 .pf-container { container: pf / inline-size; }
-.pf-unit-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 12px; align-items: end; }
-.pf-unit-select { grid-column: 1; }
-.pf-unit-ratio { grid-column: 1 / -1; grid-row: 2; }
-.pf-unit-remove { grid-column: 2; grid-row: 1; }
-@container pf (min-width: 600px) {
-  .pf-unit-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px; }
-  .pf-unit-ratio { grid-column: 2; grid-row: 1; }
-  .pf-unit-remove { grid-column: 3; }
+/* Visually express the unit relation: 1 [Box] = [20 Pcs].
+   At narrow form widths it becomes two equation lines without shrinking inputs. */
+.pf-unit-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 16px minmax(0, 1fr) 36px;
+  gap: 8px;
+  align-items: end;
+}
+.pf-unit-one { grid-column: 1; grid-row: 1; padding-bottom: 8px; text-align: center; }
+.pf-unit-select { grid-column: 2; grid-row: 1; }
+.pf-unit-equals { grid-column: 3; grid-row: 1; padding-bottom: 7px; text-align: center; }
+.pf-unit-ratio { grid-column: 4; grid-row: 1; }
+.pf-unit-remove { grid-column: 5; grid-row: 1; }
+@container pf (max-width: 479px) {
+  .pf-unit-row { grid-template-columns: 16px minmax(0, 1fr) 36px; }
+  .pf-unit-one { grid-column: 1; grid-row: 1; }
+  .pf-unit-select { grid-column: 2; grid-row: 1; }
+  .pf-unit-equals { grid-column: 1; grid-row: 2; }
+  .pf-unit-ratio { grid-column: 2; grid-row: 2; }
+  .pf-unit-remove { grid-column: 3; grid-row: 1; }
 }
 .pf-grid-2, .pf-grid-3, .pf-pair-money, .pf-pair-qty {
   display: grid;
