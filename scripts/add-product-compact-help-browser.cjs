@@ -105,7 +105,7 @@ async function main() {
       assert.equal(await editor.locator('#pf-advanced-button').getAttribute('aria-expanded'), 'false');
       assert.ok((await editor.locator('#pf-advanced-button [data-product-option-status]').innerText()).length > 0);
       await page.screenshot({
-        path: `test-results/add-product-help/${width}-${language.replace(/\\W/g, '-')}-${scheme}-collapsed.png`,
+        path: `test-results/add-product-help/${width}-${language.replace(/\W/g, '-')}-${scheme}-collapsed.png`,
         fullPage: true
       });
 
