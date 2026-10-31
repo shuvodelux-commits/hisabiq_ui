@@ -4640,6 +4640,9 @@
       "src/pages/Sales.tsx",
       "src/settings/EmployeeDirectory.tsx"
     ],
+    "PencilIcon": [
+      "src/components/SearchSelect.tsx"
+    ],
     "Percent": [
       "src/components/dashboard/MetricCard.tsx"
     ],
@@ -5057,6 +5060,9 @@
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/saas/components.tsx",
       "src/settings/ui.tsx"
+    ],
+    "XIcon": [
+      "src/components/SearchSelect.tsx"
     ]
   }
 }

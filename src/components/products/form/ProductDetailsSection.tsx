@@ -68,6 +68,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
                 options={form.brands.map((brand) => ({ value: brand, label: brand }))}
                 onChange={(next) => set('brand', next)}
                 onCreate={form.createBrand}
+                onEdit={form.editBrand}
               />
             </FormField>
           )}
@@ -82,6 +83,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
               options={form.categories.filter((c) => c !== 'All').map((c) => ({ value: c, label: c }))}
               onChange={(next) => set('category', next)}
               onCreate={form.createCategory}
+              onEdit={form.editCategory}
             />
           </FormField>
           {isStock && (
@@ -105,6 +107,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
                 options={form.units.map((u) => ({ value: u.value ?? u.symbol, label: u.symbol, meta: u.name !== u.symbol ? u.name : undefined }))}
                 onChange={form.changeUnit}
                 onCreate={form.createUnit}
+                onEdit={form.editUnit}
                 withSymbol
               />
             </FormField>

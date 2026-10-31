@@ -8,6 +8,7 @@ import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewSto
 import { productCategories } from './products.ts';
 import {getProductImportPreviewSnapshot,upsertProductPreview,renameProductClassificationPreview} from './productImportPreviewStore.ts';
 import {productUnitOptions, matchesUnit, validUnitSymbol, type ProductUnitOption} from './productUnits.ts';
+import {validateMasterRename,validateUnitRename} from '../utils/productMasterEdit.ts';
 export type {ProductUnitOption} from './productUnits.ts';
 
 
@@ -238,4 +239,31 @@ export function editPreviewProductSetting(kind:ProductSettingKind,previous:strin
  for(const [key,value] of productSettingEdits)if(key.startsWith(kind+':')&&value.name===previous)productSettingEdits.set(key,next);
  productSettingEdits.set(kind+':'+previous,next);
  productSettingEdits.set(kind+':'+next.name,next);
+}
+
+/**
+ * Inline Add Product pickers reuse the same settings mutation as Product Settings.
+ * Preserve localized names and immutable product unit keys throughout the ERP.
+ */
+export function renamePreviewProductCategory(previous: string, proposed: string): string {
+  if (isSame(previous, 'Service')) throw new Error('Service is a built-in category and cannot be renamed.');
+  const next = validateMasterRename(previous, proposed, availableProductCategories(), 'category');
+  if (!isSame(next, previous) || next !== previous)
+    editPreviewProductSetting('categories', previous, {...getEditedProductSetting('categories', previous), name: next});
+  return next;
+}
+export function renamePreviewProductBrand(previous: string, proposed: string): string {
+  const next = validateMasterRename(previous, proposed, availableProductBrands(), 'brand');
+  if (!isSame(next, previous) || next !== previous)
+    editPreviewProductSetting('brands', previous, {...getEditedProductSetting('brands', previous), name: next});
+  return next;
+}
+export function renamePreviewProductUnit(previousKey: string, proposedName: string, proposedSymbol: string): string {
+  const next = validateUnitRename(previousKey, proposedName, proposedSymbol, availableProductUnits());
+  const current = availableProductUnits().find(option => matchesUnit(option, previousKey));
+  if (!current) throw new Error('This unit is no longer available.');
+  const stableKey = current.value ?? current.symbol;
+  if (next.name !== current.name || next.symbol !== current.symbol)
+    editPreviewProductSetting('units', previousKey, {...getEditedProductSetting('units', previousKey), ...next});
+  return stableKey;
 }
