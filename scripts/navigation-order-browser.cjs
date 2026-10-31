@@ -34,13 +34,15 @@ async function main(){
      if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
      const nav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
      await nav.locator(`a[href="#${destinations[i]}"]`).click();
-     await tabs.nth(i).waitFor();
+     await tabs.nth(i).and(page.locator('[aria-selected="true"]')).waitFor();
      assert.equal(await tabs.nth(i).getAttribute('aria-selected'),'true',`${route}: sidebar item ${i+1} opens tab ${i+1}`);
     }
     // Clicking a tab must update URL and sidebar, including Finance's formerly local state.
     await tabs.first().click();
+    await page.waitForFunction(expected=>location.hash==='#'+expected,route);
     assert.ok(page.url().endsWith(route),`${route}: default tab clears query`);
     await tabs.nth(1).click();
+    await page.waitForFunction(expected=>location.hash==='#'+expected,destinations[1]);
     assert.ok(page.url().endsWith(destinations[1]),`${route}: tab updates sidebar destination`);
    }
    await page.goto(base+'/app/settings/business');
