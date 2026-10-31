@@ -13,6 +13,18 @@ async function main(){
    page.on('pageerror',err=>errors.push(err.message));
    await page.goto('http://127.0.0.1:4378/#/app/counter');
    await page.getByRole('heading',{name:'Transaction summary'}).waitFor();
+   // The quick Bank Entry action reuses Accounts' existing form, not a second Counter ledger.
+   const actions=page.getByRole('group',{name:'Counter actions'});
+   const bankAction=actions.getByRole('button',{name:/Bank Entry/});
+   await bankAction.click();
+   assert.equal(await bankAction.getAttribute('aria-pressed'),'true','Bank Entry is the selected Counter action');
+   const bankRegion=page.getByRole('region',{name:'Bank Entry'});
+   await bankRegion.getByText('Record a Bank Entry').waitFor();
+   assert.equal(await page.getByRole('heading',{name:'Transaction summary'}).count(),0,'Counter payment form is hidden while using Bank Entry');
+   await actions.getByRole('button',{name:/Customer Receive/}).click();
+   await page.getByRole('heading',{name:'Transaction summary'}).waitFor();
+   assert.equal(await bankRegion.count(),0,'Bank Entry unmounts when returning to regular Counter');
+   assert.equal(await actions.getByRole('button',{name:/Customer Receive/}).getAttribute('aria-pressed'),'true');
    const query=page.locator('input[aria-label="Search customer"]');
    await query.fill('Rahman');
    const rahman=page.getByRole('option',{name:/Rahman Hardware/});
