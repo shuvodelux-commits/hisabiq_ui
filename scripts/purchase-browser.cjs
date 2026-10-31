@@ -199,7 +199,7 @@ async function main() {
     assert.match(await purchasePaymentPanel.innerText(), /৳0(?!\d)/, 'fully paid');
 
     assert.match(await purchasePaymentPanel.innerText(), /Supplier due/);
-    await page.getByRole('button', { name: 'Complete purchase' }).click();
+    await page.locator('[data-erp-workflow-action="complete"]').click();
     const reviewPurchase = page.getByRole('dialog', { name: 'Review purchase', exact: true });
     await reviewPurchase.waitFor();
     assert.match(await reviewPurchase.innerText(), /টাকা মাত্র/, 'Bangla amount wording is shown before posting');
@@ -218,6 +218,34 @@ async function main() {
     await page.goto('http://127.0.0.1:4177/#/app/parties');
     await page.getByText('Browser QA Supplier', { exact: true }).last().waitFor();
     await page.goto('http://127.0.0.1:4177/#/app/purchases/new');
+    // A draft can be saved before supplier, price validation or full posting.
+    const saveDraftBtn = page.locator('[data-purchase-save-draft]');
+    assert.equal(await saveDraftBtn.isDisabled(), true, 'blank purchase is not stored');
+    await page.getByRole('button', { name: /Quick add PVC Pipe/ }).first().click();
+    assert.equal(await saveDraftBtn.isEnabled(), true);
+    await saveDraftBtn.click();
+    await page.locator('[data-purchase-drafts-trigger]').click();
+    const draftMenu = page.locator('[data-purchase-drafts-menu]');
+    assert.equal(await draftMenu.getByRole('button', { name: 'Resume' }).count(), 1);
+    assert.match(await draftMenu.innerText(), /1 products/);
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Purchases', exact: true }).click();
+    await page.getByRole('button', { name: 'New purchase' }).click();
+    await page.locator('[data-purchase-drafts-trigger]').click();
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 1, 'resuming draft restores original POS cart');
+    assert.equal(await page.locator('[data-purchase-save-draft]').isEnabled(), true);
+    await page.locator('[data-purchase-save-draft]').click();
+    await page.locator('[data-purchase-drafts-trigger]').click();
+    assert.equal(await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).count(), 1,
+      'saving resumed draft updates it rather than duplicating');
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Delete' }).click();
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Delete', exact: true }).last().click();
+    assert.match(await page.locator('[data-purchase-drafts-menu]').innerText(), /No saved purchase drafts/);
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Leave this purchase?' }).getByRole('button', { name: 'Discard' }).click();
+    await page.getByRole('button', { name: 'New purchase' }).click();
     await page.setViewportSize({ width: 768, height: 1024 });
     const tabletQuick = page.locator('[data-purchase-quick-items]').getByRole('button', { name: /Quick add PVC Pipe/ }).first();
     await tabletQuick.waitFor();
