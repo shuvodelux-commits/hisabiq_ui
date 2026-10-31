@@ -1,3 +1,4 @@
+import {unitSymbol} from '../data/productUnits.ts';
 import type { Product } from '../types/erp';
 import { productUnits, productUnitFactor, resolveUnitChain } from './unitChain.ts';
 
@@ -17,18 +18,18 @@ export function formatStock(product: Product): string {
       const amount = factor === 1 ? Number(remainder.toPrecision(12)) :
         Math.floor((remainder + 1e-9) / factor);
       if (amount > 0 || (!parts.length && factor === 1))
-        parts.push(amount.toLocaleString('en-IN') + ' ' + name);
+        parts.push(amount.toLocaleString('en-IN') + ' ' + unitSymbol(name));
       remainder = Number((remainder - amount * factor).toPrecision(12));
     }
-    return sign + (parts.join(' ') || '0 ' + unit);
+    return sign + (parts.join(' ') || '0 ' + unitSymbol(unit));
   }
-  if (!altUnit || product.stockViewUnit === unit) return `${sign}${absolute.toLocaleString('en-IN')} ${unit}`;
+  if (!altUnit || product.stockViewUnit === unit) return `${sign}${absolute.toLocaleString('en-IN')} ${unitSymbol(unit)}`;
   const big = Math.floor(absolute / altUnit.factor);
   const rest = absolute % altUnit.factor;
-  if (big === 0) return `${sign}${rest} ${unit}`;
+  if (big === 0) return `${sign}${rest} ${unitSymbol(unit)}`;
   return rest === 0
-    ? `${sign}${big} ${altUnit.unit}`
-    : `${sign}${big} ${altUnit.unit} ${rest} ${unit}`;
+    ? `${sign}${big} ${unitSymbol(altUnit.unit)}`
+    : `${sign}${big} ${unitSymbol(altUnit.unit)} ${rest} ${unitSymbol(unit)}`;
 }
 
 export function unitsFor(product: Product): string[] {

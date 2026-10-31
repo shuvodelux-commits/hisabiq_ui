@@ -1,42 +1,24 @@
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { AppSelect } from '../../AppSelect';
 import { Input } from '../../Input';
 import { FormField } from '../fields/FormField';
-import { ToggleRow } from '../fields/ToggleRow';
 import { useFormCopy } from '../../../hooks/useFormCopy';
 import { warrantyTypeOptions, warrantyUnitOptions } from '../../../data/productFormOptions';
 import type { WarrantyDurationUnit, WarrantyType } from '../../../types/erp';
 import type { AddProductForm } from './useAddProductForm';
 
-const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 const selectSize = '[&>button]:h-[var(--ctl-h)] [&>button]:text-[length:var(--ctl-fs)]';
 
 export function WarrantySettings({ form }: { form: AddProductForm }) {
   const { t } = useFormCopy();
-  const reduce = useReducedMotion();
   const { draft, set, errors } = form;
 
+  if (!draft.warrantyEnabled) return <p className="text-[12px] text-ink-500">{t('Turn on Warranty to set its duration and provider.', 'সময়কাল ও ধরন ঠিক করতে ওয়ারেন্টি চালু করুন।')}</p>;
+
   return (
-    <div>
-      <ToggleRow
-        id="pf-warranty"
-        en="Warranty"
-        bn="ওয়ারেন্টি"
-        hint={t('Separate from serial numbers. Claims are handled on the Warranty page.', 'সিরিয়াল নম্বর থেকে আলাদা। দাবি ওয়ারেন্টি পেজে দেখা হয়।')}
-        checked={draft.warrantyEnabled}
-        onChange={(on) => set('warrantyEnabled', on)}
-      />
-      <AnimatePresence initial={false}>
-        {draft.warrantyEnabled && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: reduce ? 0 : 0.2, ease: EASE }}
-            className="overflow-hidden"
-          >
-            <div className="pf-grid-2 pt-4">
-              <FormField id="pf-warrantyDuration" en="How long" bn="সময়কাল" error={errors.warrantyDuration}>
+    <div className="max-w-[680px]">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <FormField id="pf-warrantyDuration" en="How long" bn="সময়কাল" error={errors.warrantyDuration}
+                help={t('Warranty is separate from serial tracking. Claims are handled on the Warranty page.', 'ওয়ারেন্টি সিরিয়াল ট্র্যাকিং থেকে আলাদা। দাবি ওয়ারেন্টি পেজে দেখা হয়।')}>
                 <div className="flex gap-2">
                   <Input
                     id="pf-warrantyDuration"
@@ -70,8 +52,9 @@ export function WarrantySettings({ form }: { form: AddProductForm }) {
                 id="pf-warrantyTerms"
                 en="Terms"
                 bn="শর্তাবলি"
-                className="pf-span-2"
-                hint={t('Optional. Printed on the invoice for this item.', 'ঐচ্ছিক। এই পণ্যের বিলে ছাপা হবে।')}
+                className="sm:col-span-2"
+                optional
+                help={t('Printed on the invoice for this item.', 'এই পণ্যের বিলে ছাপা হবে।')}
               >
                 <textarea
                   id="pf-warrantyTerms"
@@ -84,9 +67,6 @@ export function WarrantySettings({ form }: { form: AddProductForm }) {
                 />
               </FormField>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

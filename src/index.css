@@ -40,6 +40,9 @@
   }
 }
 @layer utilities {
+  /* Quick Items remain swipeable; navigation arrows replace the distracting scrollbar. */
+  .erp-quick-items-rail { scrollbar-width: none; -ms-overflow-style: none; }
+  .erp-quick-items-rail::-webkit-scrollbar { display: none; }
   .font-bn {
     font-family: 'Hind Siliguri', 'Geist', system-ui, sans-serif;
   }
@@ -367,7 +370,9 @@
   [data-cart-kind="purchase"] [data-cart-header],
   [data-cart-kind="purchase"] [data-cart-row],
   [data-cart-kind="purchase"] [data-cart-add] {
-    grid-template-columns: 24px minmax(144px, 1fr) 162px 78px 105px 112px 95px 28px;
+    /* Keep the Purchase POS-style single row on tablets while reserving enough
+       width for lot price + stepper + selected-unit suffix (POS price contract). */
+    grid-template-columns: 24px minmax(130px, 1fr) 150px 70px 96px 166px 100px 28px;
     gap: 6px;
   }
   [data-cart-kind="purchase"] [data-cart-header] { display: grid; }
@@ -515,7 +520,7 @@
 /* Add Product uses the universal 36px field height on every device. */
 .product-form {
   --ctl-h: var(--erp-control-height);
-  --ctl-fs: 14px;
+  --ctl-fs: 13px;
   --label-fs: 13px;
   font-feature-settings: normal;
 }
@@ -531,28 +536,52 @@
 .product-form [data-numeric-joined] button[role="combobox"] { font-size: var(--ctl-fs); }
 /* Columns follow the form's real width (sidebar, rail, rotation), not the device. */
 .pf-container { container: pf / inline-size; }
-.pf-unit-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 12px; align-items: end; }
-.pf-unit-select { grid-column: 1; }
-.pf-unit-ratio { grid-column: 1 / -1; grid-row: 2; }
-.pf-unit-remove { grid-column: 2; grid-row: 1; }
-@container pf (min-width: 600px) {
-  .pf-unit-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px; }
-  .pf-unit-ratio { grid-column: 2; grid-row: 1; }
-  .pf-unit-remove { grid-column: 3; }
+/* Visually express the unit relation: 1 [Box] = [20 Pcs].
+   At narrow form widths it becomes two equation lines without shrinking inputs. */
+.pf-unit-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 16px minmax(0, 1fr) 36px;
+  gap: 8px;
+  align-items: end;
+}
+.pf-unit-one { grid-column: 1; grid-row: 1; padding-bottom: 8px; text-align: center; }
+.pf-unit-select { grid-column: 2; grid-row: 1; }
+.pf-unit-equals { grid-column: 3; grid-row: 1; padding-bottom: 7px; text-align: center; }
+.pf-unit-ratio { grid-column: 4; grid-row: 1; }
+.pf-unit-remove { grid-column: 5; grid-row: 1; }
+/* The equation itself names the two entries. Keep the descriptive field labels
+   accessible to screen readers without adding another visible text row. */
+#pf-unitChain .pf-unit-select > div:first-child,
+#pf-unitChain .pf-unit-ratio > div:first-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@container pf (max-width: 479px) {
+  .pf-unit-row { grid-template-columns: 16px minmax(0, 1fr) 36px; }
+  .pf-unit-one { grid-column: 1; grid-row: 1; }
+  .pf-unit-select { grid-column: 2; grid-row: 1; }
+  .pf-unit-equals { grid-column: 1; grid-row: 2; }
+  .pf-unit-ratio { grid-column: 2; grid-row: 2; }
+  .pf-unit-remove { grid-column: 3; grid-row: 1; }
 }
 .pf-grid-2, .pf-grid-3, .pf-pair-money, .pf-pair-qty {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 12px;
 }
 @container pf (min-width: 480px) {
-  .pf-pair-money, .pf-pair-qty { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@container pf (min-width: 600px) {
-  .pf-grid-2, .pf-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pf-grid-2, .pf-pair-money, .pf-pair-qty { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pf-span-2 { grid-column: 1 / -1; }
 }
-@container pf (min-width: 780px) {
+@container pf (min-width: 600px) {
+  /* The approved screenshot keeps Brand / Category / Unit in one equal 3-up row. */
   .pf-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
@@ -562,16 +591,33 @@
 :root {
   --erp-control-height: 36px;
   --erp-workflow-action-height: 48px;
+  --erp-control-radius: 0.375rem;
   --erp-input-font-size: 13px;
   --erp-input-line-height: 20px;
   --erp-input-font-weight: 400;
+}
+/* One inherited token, one button rule and one field rule, including portals
+   and legacy controls. Internal joined editors keep their square seams. */
+:root :is(button, [role="button"], .hisabiq-button, input[type="button"], input[type="submit"], input[type="reset"]):not(:where([role="switch"], [role="checkbox"], [role="radio"], [data-numeric-joined] [data-hisabiq-select])) {
+  border-radius: var(--erp-control-radius) !important;
+}
+:root :is(
+  input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not(:where([data-numeric-joined] input, [data-numeric-input] input, [data-slot="input-group"] input)),
+  textarea,
+  select:not(:where([data-numeric-joined] select)),
+  [role="combobox"]:not(:where([data-numeric-joined] [role="combobox"])),
+  [data-hisabiq-numeric]:not(:where([data-numeric-joined] [data-hisabiq-numeric])),
+  [data-hisabiq-field-shell],
+  [data-numeric-joined],
+  [data-slot="input-group"]
+) {
+  border-radius: var(--erp-control-radius) !important;
 }
 :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button {
   height: var(--erp-control-height) !important;
   min-height: var(--erp-control-height) !important;
   max-height: var(--erp-control-height);
-  border-radius: 0.625rem;
   padding-inline: max(0.75rem, 10px);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
@@ -654,7 +700,6 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea
 ) {
   border-color: var(--border);
-  border-radius: 0.5rem;
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 /* Real text input: focus on click and keyboard, with just one mint halo. */
@@ -789,4 +834,91 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   color: rgb(var(--color-muted-foreground));
   font-weight: var(--erp-input-font-weight);
   opacity: 1;
+}
+
+/* Multi-unit quantities keep the same joined field as two units. Give each
+   number room for its stepper; narrower carts put the entire field on one row. */
+[data-cart-kind]:has([data-multi-quantity]) { --cart-quantity-width: 228px; }
+[data-cart-kind]:has([data-unit-count="4"]) { --cart-quantity-width: 304px; }
+@container pos-cart (min-width: 1000px) {
+  [data-cart-kind="sale"]:has([data-multi-quantity]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width) 88px minmax(164px, 180px) 112px 28px;
+  }
+}
+@container purchase-cart (min-width: 1080px) {
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width) 76px 100px 166px 100px 28px;
+  }
+}
+@container pos-cart (max-width: 999px) {
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-header] { display: none; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto auto;
+    gap: 6px; padding: 8px 10px;
+  }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > [data-cart-field] { display: block; min-width: 0; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > [data-cart-field]::before { content: none; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(2) { grid-column: 2 / 9; grid-row: 1; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(3) { grid-column: 1 / 13; grid-row: 2; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(4) { grid-column: 1 / 5; grid-row: 3; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(5) { grid-column: 5 / 13; grid-row: 3; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(6) { grid-column: 9 / 12; grid-row: 1; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(7) { grid-column: 12; grid-row: 1; justify-self: end; }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-add] { grid-template-columns: 28px minmax(0, 1fr); }
+  [data-cart-kind="sale"]:has([data-multi-quantity]) [data-cart-add] > :nth-child(n+3) { display: none; }
+}
+@container purchase-cart (max-width: 1079px) {
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-header] { display: none; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto auto;
+    gap: 6px; padding: 8px 10px;
+  }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > [data-cart-field] { display: block; min-width: 0; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(2) { grid-column: 2 / 9; grid-row: 1; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(3) { grid-column: 1 / 13; grid-row: 2; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(4) { grid-column: 1 / 4; grid-row: 3; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(5) { grid-column: 4 / 8; grid-row: 3; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(6) { grid-column: 8 / 13; grid-row: 3; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(7) { grid-column: 9 / 12; grid-row: 1; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-row] > :nth-child(8) { grid-column: 12; grid-row: 1; justify-self: end; }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-add] { grid-template-columns: 28px minmax(0, 1fr); }
+  [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-add] > :nth-child(n+3) { display: none; }
+}
+
+/* Tablets keep one product per table row. Scroll inside the cart when its
+   controls cannot fit; phone layouts continue to use compact stacked rows. */
+@media (min-width: 768px) {
+  :root [data-cart-kind="sale"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    min-width: calc(720px + var(--cart-quantity-width, 168px)) !important;
+    grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width, 168px) 88px minmax(164px, 180px) 112px 28px;
+  }
+  :root [data-cart-kind="purchase"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    min-width: calc(752px + var(--cart-quantity-width, 162px)) !important;
+    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width, 162px) 76px 100px 166px 100px 28px;
+  }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+    grid-template-rows: auto; gap: 6px; align-items: center;
+  }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-header] { display: grid; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] { padding-top: 6px; padding-bottom: 6px; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] > :nth-child(n) { grid-column: auto; grid-row: auto; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] > [data-cart-field] { display: contents; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] > [data-cart-field]::before { content: none; display: none; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] :is(input, button) { min-height: 0; }
+  :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-add] > :nth-child(n) { display: revert; }
+}
+
+/* The line total is text, not a nested form control. The generic cart
+   display:contents flattening must not discard its right-aligned grid cell. */
+:root [data-cart-kind="purchase"] [data-cart-row="purchase"] > [data-purchase-line-total] {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  text-align: right;
+  white-space: nowrap;
 }

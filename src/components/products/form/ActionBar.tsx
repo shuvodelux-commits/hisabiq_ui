@@ -13,22 +13,16 @@ export function ActionBar({ isEdit, errorCount, onCancel }: ActionBarProps) {
       data-docked={docked}
       className={
         (docked ? 'sticky bottom-0 ' : 'relative ') +
-        'z-30 border-t border-border bg-card px-4 pt-3 md:rounded-b-xl md:px-6'
+        'z-30 bg-card px-4 pt-3 md:rounded-b-xl md:px-6'
       }
       style={{ paddingBottom: docked ? 'max(0.75rem, env(safe-area-inset-bottom))' : '0.75rem' }}
     >
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
-        <p
-          aria-live="polite"
-          className={
-            'text-[13px] md:flex-1 ' +
-            (errorCount ? 'font-medium text-danger' : 'hidden text-ink-500 md:block')
-          }
-        >
-          {errorCount
-            ? t(`${errorCount} ${errorCount === 1 ? 'thing needs' : 'things need'} fixing before saving.`, `সংরক্ষণের আগে ${errorCount}টি ঠিক করুন।`)
-            : t('Only the English name and selling price are required.', 'শুধু ইংরেজি নাম ও বিক্রয় মূল্য আবশ্যক।')}
-        </p>
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-end md:gap-4">
+        {errorCount > 0 && (
+          <p aria-live="polite" className="text-[13px] font-medium text-danger md:flex-1">
+            {t(`${errorCount} ${errorCount === 1 ? 'thing needs' : 'things need'} fixing before saving.`, `সংরক্ষণের আগে ${errorCount}টি ঠিক করুন।`)}
+          </p>
+        )}
         <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2 md:flex md:shrink-0">
           <Button type="button" variant="outline" onClick={onCancel} className="h-9 whitespace-nowrap px-4 text-[14px] md:h-[var(--ctl-h)] md:px-5 md:text-sm">
             {t('Cancel', 'বাতিল')}

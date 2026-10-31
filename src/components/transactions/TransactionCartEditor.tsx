@@ -1,3 +1,4 @@
+import {unitSymbol} from '../../data/productUnits';
 import {NumericInput} from '../NumericInput';
 import React, {useEffect,useRef} from 'react';
 import {ArrowDown,ArrowUp,X} from 'lucide-react';
@@ -90,7 +91,7 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
        searchRef.current?.focus();
       }}/></div>
      <div data-cart-field="Price in · একক">{product?.altUnit ? <div className="flex h-9 min-w-0 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={inputPrefix+'Unit row '+(i+1)}>
-       {[product.altUnit.unit,product.unit].map(unit=><button key={unit} type="button" role="radio"
+       {[product.altUnit.unit,product.unit].map(unit=><button key={unit} type="button" role="radio" aria-label={unit}
         aria-checked={line.unit===unit} disabled={!canChange} onClick={()=>{
          if(unit===line.unit)return;
          const oldFactor=line.unit===product.altUnit!.unit?product.altUnit!.factor:1;
@@ -101,9 +102,9 @@ export function TransactionCartEditor<L extends EditableTransactionLine>({mode,p
          onUpdate(line.id,{unit,quantity:line.quantity,secondaryQuantity:0,unitFactor:nextFactor,
           price:Number(nextPrice.toFixed(4))} as Partial<L>);
         }} className={'min-w-0 flex-1 rounded px-1 text-[12px] font-medium transition-colors '+(line.unit===unit?'bg-card text-ink shadow-card ring-1 ring-primary':'text-ink-500 hover:text-ink')}>
-         {unit}
+         {unitSymbol(unit)}
        </button>)}
-      </div> : <span className="px-2 text-sm text-ink-600">{line.unit}</span>}</div>
+      </div> : <span className="px-2 text-sm text-ink-600" title={line.unit}>{unitSymbol(line.unit)}</span>}</div>
      <div data-cart-field="Price · দাম"><div className="relative"><span data-table-helper="" className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">৳</span>
       <NumericInput aria-label={inputPrefix+'Price row '+(i+1)} type="number" min="0" step="any" inputMode="decimal"
        disabled={!canChange} value={line.price} onChange={event=>onUpdate(line.id,{price:Number(event.target.value)} as Partial<L>)}

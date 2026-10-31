@@ -62,6 +62,7 @@ jobs:
           }
 
           flag browser '^(src/|scripts/.*browser\.cjs$|\.github/workflows/pr-ci\.yml$)'
+          flag product_form '^(src/components/(Tooltip\.tsx|products/(fields|form)/)|scripts/add-product-compact-help-browser\.cjs$)'
           flag pos '^(src/(pages/Pos\.tsx|components/pos/|hooks/usePosCart\.ts|bundles/|installments/)|scripts/(pos-|bundle-).*browser\.cjs$)'
           flag purchases '^(src/(pages/(Purchases|PurchaseEditor)\.tsx|components/purchases/|utils/purchaseSource\.ts)|scripts/(purchase-|product-quick-add).*browser\.cjs$)'
           flag parties '^(src/(pages/(Parties|Party|Vendor|Vendors)\.tsx|components/(parties|vendor)/)|scripts/(party-|vendor-).*browser\.cjs$)'
@@ -93,6 +94,23 @@ jobs:
       - name: Install Chromium only when necessary
         if: steps.scope.outputs.browser == 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Add Product compact field help on phone and desktop
+        if: steps.scope.outputs.product_form == 'true'
+        run: npm run test:add-product-help
+
+      - name: Multi-unit products, POS and Purchase quantity regression
+        if: steps.scope.outputs.product_form == 'true'
+        run: npm run test:multi-unit-products
+
+      - name: Upload Add Product interaction screenshots
+        if: always() && steps.scope.outputs.product_form == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: add-product-help-${{ github.sha }}
+          path: test-results/add-product-help/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Sales & Profit hybrid experiment responsive and interaction smoke
         if: steps.scope.outputs.reports == 'true'

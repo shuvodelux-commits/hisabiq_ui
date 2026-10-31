@@ -6,13 +6,20 @@ import { purchases as seedPurchases, expenseCategories } from './purchases.ts';
 import { ledgerEntries as seedLedgerEntries } from './parties.ts';
 import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore.ts';
 import { productCategories } from './products.ts';
-import {getProductImportPreviewSnapshot,upsertProductPreview} from './productImportPreviewStore.ts';
+import {getProductImportPreviewSnapshot,upsertProductPreview,renameProductClassificationPreview} from './productImportPreviewStore.ts';
+import {productUnitOptions, matchesUnit, validUnitSymbol, type ProductUnitOption} from './productUnits.ts';
+export type {ProductUnitOption} from './productUnits.ts';
 
 
 /** Design-preview state only: no network posting or cross-tenant persistence. */
+const renamedProductCategories=new Map<string,string>();
+const renamedProductBrands=new Map<string,string>();
+const productSettingEdits=new Map<string,ProductSettingEdit>();
+export type ProductSettingKind='categories'|'units'|'brands';
+export type ProductSettingEdit={name:string;nameBn?:string;symbol?:string};
+export const getEditedProductSetting=(kind:ProductSettingKind,name:string)=>productSettingEdits.get(kind+':'+name);
 const createdProductCategories: string[] = [];
 const createdProductBrands: string[] = [];
-const createdProductUnits: ProductUnitOption[] = [];
 const createdCategories: string[] = [];
 const inactiveExpenseCategories = new Set<string>();
 const renamedExpenseCategories = new Map<string, string>();
@@ -60,23 +67,15 @@ export const availableProducts = () => getProductImportPreviewSnapshot().product
   stock: product.stock + createdPurchases.reduce((sum, purchase) =>
     sum + (purchase.inventoryLines ?? []).reduce((qty, line, index) => qty + (line.productId === product.id ? line.quantity-returnedQuantity(purchase.id,index,purchaseEvents) : 0), 0), 0)
 }));
-export type ProductUnitOption = { name: string; symbol: string };
-const initialProductUnits: ProductUnitOption[] = [
-  { name: 'Piece', symbol: 'Pcs' }, { name: 'Gira', symbol: 'Gira' },
-  { name: 'Kilogram', symbol: 'Kg' }, { name: 'Feet', symbol: 'Feet' },
-  { name: 'Bag', symbol: 'Bag' }, { name: 'Coil', symbol: 'Coil' },
-  { name: 'Pair', symbol: 'Pair' }, { name: 'Litre', symbol: 'Litre' },
-  { name: 'Box', symbol: 'Box' }, { name: 'Gauge', symbol: 'Gauge' }
-];
 const seedBrands = ['Generic / No brand', 'RFL', 'Vision', 'Shah Cement'];
 const isSame = (left: string, right: string) => left.toLocaleLowerCase() === right.toLocaleLowerCase();
-export const availableProductCategories = () => [...new Set([...productCategories, ...createdProductCategories, ...getProductImportPreviewSnapshot().products.map(p=>p.category)])];
-export const availableProductBrands = () => [...new Set([...seedBrands, ...createdProductBrands, ...getProductImportPreviewSnapshot().products.map(p=>p.brand).filter((brand):brand is string=>Boolean(brand))])];
+export const availableProductCategories = () => [...new Set([...productCategories, ...createdProductCategories, ...getProductImportPreviewSnapshot().products.map(p=>p.category)].map(name=>renamedProductCategories.get(name)??name))];
+export const availableProductBrands = () => [...new Set([...seedBrands, ...createdProductBrands, ...getProductImportPreviewSnapshot().products.map(p=>p.brand).filter((brand):brand is string=>Boolean(brand))].map(name=>renamedProductBrands.get(name)??name))];
 export const availableProductUnits = (): ProductUnitOption[] => {
-  const units = [...initialProductUnits, ...createdProductUnits];
+  const units = [...productUnitOptions];
   for (const product of getProductImportPreviewSnapshot().products) {
     for (const symbol of [product.unit, product.altUnit?.unit, ...(product.unitRelations?.flatMap(row => [row.leftUnit,row.rightUnit]) ?? [])]) {
-      if (symbol && !units.some((item) => isSame(item.symbol, symbol)))
+      if (symbol && !units.some((item) => matchesUnit(item, symbol)))
         units.push({ name: symbol, symbol });
     }
   }
@@ -88,10 +87,12 @@ export function createPreviewProductBrand(name: string) {
     createdProductBrands.push(trimmed);
 }
 export function createPreviewProductUnit(name: string, symbol: string) {
-  const cleanedName = name.trim(), cleanedSymbol = (symbol.trim() || cleanedName);
-  if (cleanedName && cleanedSymbol && !availableProductUnits().some((item) =>
-    isSame(item.name, cleanedName) || isSame(item.symbol, cleanedSymbol)))
-    createdProductUnits.push({ name: cleanedName, symbol: cleanedSymbol });
+  const cleanedName = name.trim(), cleanedSymbol = symbol.trim();
+  if (!cleanedName) throw new Error('Enter the unit name.');
+  if (!validUnitSymbol(cleanedSymbol)) throw new Error('Enter a unit symbol of 1–4 characters, without spaces.');
+  if (availableProductUnits().some(item => matchesUnit(item, cleanedName) || matchesUnit(item, cleanedSymbol)))
+    throw new Error('This unit name or symbol already exists.');
+  productUnitOptions.push({ name: cleanedName, symbol: cleanedSymbol });
 }
 export const availableParties = () => getPartyPreviewSnapshot().parties.map((party) => ({
   ...party,
@@ -208,4 +209,33 @@ export function renamePreviewExpenseCategory(previous: string, next: string) {
 }
 export function createPreviewPurchase(purchase: Purchase) {
   if (!availablePurchases().some((item) => item.id === purchase.id)) { if(purchase.cartSnapshot)validatePurchaseSource(purchase); createdPurchases.unshift(structuredClone(purchase)); publishPurchases(); }
+}
+
+/** Session-only master edits, shared with pickers; never rewrites historical unit keys. */
+export function editPreviewProductSetting(kind:ProductSettingKind,previous:string,draft:ProductSettingEdit):void {
+ const next={name:draft.name.trim(),nameBn:draft.nameBn?.trim()||undefined,symbol:draft.symbol?.trim()};
+ if(!next.name)throw new Error('Enter name');
+ if(kind==='units'){
+  const symbol=next.symbol??'';
+  if(!validUnitSymbol(symbol))throw new Error('Enter a unit symbol of 1–4 characters, without spaces.');
+  const options=availableProductUnits(),current=options.find(option=>matchesUnit(option,previous));
+  if(!current)throw new Error('This item is no longer available.');
+  if(options.some(option=>option!==current&&(matchesUnit(option,next.name)||matchesUnit(option,symbol))))
+   throw new Error('This unit name or symbol already exists.');
+  const updated={...current,name:next.name,symbol,value:current.value??current.symbol,
+   aliases:[...new Set([...(current.aliases??[]),current.name,current.symbol])]};
+  const index=productUnitOptions.indexOf(current);
+  if(index<0)productUnitOptions.push(updated);else productUnitOptions[index]=updated;
+ }else{
+  const names=kind==='categories'?availableProductCategories():availableProductBrands();
+  if(!names.includes(previous))throw new Error('This item is no longer available.');
+  if(names.some(name=>!isSame(name,previous)&&isSame(name,next.name)))throw new Error('This name already exists.');
+  const renames=kind==='categories'?renamedProductCategories:renamedProductBrands;
+  for(const [key,value] of renames)if(value===previous)renames.set(key,next.name);
+  renames.set(previous,next.name);
+  renameProductClassificationPreview(kind==='categories'?'category':'brand',previous,next.name);
+ }
+ for(const [key,value] of productSettingEdits)if(key.startsWith(kind+':')&&value.name===previous)productSettingEdits.set(key,next);
+ productSettingEdits.set(kind+':'+previous,next);
+ productSettingEdits.set(kind+':'+next.name,next);
 }

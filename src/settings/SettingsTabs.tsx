@@ -10,14 +10,14 @@ export type SettingsTab = { id: string; label: string; bn: string };
 
 /** Party's desktop boundary; compact screens retain underline tabs. */
 export function SettingsTabs({ items, value, onChange, label, id, panelId, secondary = false,
-  language = "English + Bangla", libraryTitle, libraryGroup, libraryFooter,
+  language = "English + Bangla", libraryTitle, libraryGroup, libraryFooter, inline = false,
 }: {
   items: readonly SettingsTab[]; value: string; onChange: (value: string) => void;
-  label: string; id: string; panelId: string; secondary?: boolean; language?: string;
+  label: string; id: string; panelId: string; secondary?: boolean; inline?: boolean; language?: string;
   libraryTitle?: string; libraryGroup?: string; libraryFooter?: string;
 }) {
   const desktop = useMediaQuery("(min-width: 1024px)");
-  const vertical = secondary && desktop;
+  const vertical = secondary && desktop && !inline;
   const [search, setSearch] = useState("");
   const text = (en: string, bn: string) => language === "Bangla" ? bn : en;
   const visible = vertical && search.trim() ? items.filter(item => matchesSearch(search, [item.label, item.bn])) : items;

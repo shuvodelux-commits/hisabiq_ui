@@ -1,4 +1,5 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
+import { useModuleSettingsAction } from '../settings/ModuleSettingsToolbarContext';
 import { uiText } from '../i18n/uiCopy';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
@@ -162,6 +163,7 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
 }
 
 export function Pos() {
+  const moduleSettingsAction = useModuleSettingsAction();
   const { state: settingsState, personal } = useTenantSettings();
   const cart = usePosCart();
   const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot,getPartyPreviewSnapshot);
@@ -759,7 +761,8 @@ export function Pos() {
           <h1 className="text-xl font-semibold tracking-tight">{pageTitle}</h1>
           <span className="font-bn text-sm text-ink-500">{pageTitleBn}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {moduleSettingsAction}
           <div className="hidden items-center gap-3 rounded-lg border border-border bg-card px-3 py-1.5 text-[11.5px] text-ink-500 md:flex">
             <Keyboard className="size-3.5" aria-hidden="true" />
             {[

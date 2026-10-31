@@ -234,3 +234,9 @@ export function updateProductInventoryPreview(product:Product,lots:readonly Stoc
  publish({revision:snapshot.revision+1,appliedSessionIds:snapshot.appliedSessionIds,
   products,lots:[...lots],movements:[...movements],bundleVersions:snapshot.bundleVersions,bundleSaleReferences:snapshot.bundleSaleReferences});
 }
+
+/** Rename current product classification only; inventory and historical documents stay intact. */
+export function renameProductClassificationPreview(field:'category'|'brand',previous:string,next:string):void {
+ const products=snapshot.products.map(product=>product[field]===previous?{...product,[field]:next}:product);
+ publish({...snapshot,revision:snapshot.revision+1,products});
+}

@@ -43,7 +43,10 @@ test('Product Add/Discard and cash-session form use 36px, retaining actions',()=
  const add=read('src/components/products/AddProductDialog.tsx');
  const discard=read('src/components/products/form/DiscardDialog.tsx');
  const session=read('src/components/layout/CashSessionDialog.tsx');
- assert.match(add,/className="-ml-2 h-9 gap-1/);
+ assert.match(add,/<AddProductForm form={form} \/>/);
+ const action=read('src/components/products/form/ActionBar.tsx');
+ assert.match(action, /onClick={onCancel}/);
+ assert.match(action, /className="h-9 whitespace-nowrap/);
  assert.match(discard,/onDiscard/);
  assert.doesNotMatch(discard,/h-11|sm:h-10/);
  assert.match(session,/className="mt-2 h-9 text-right text-lg"/);
