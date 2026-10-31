@@ -122,7 +122,7 @@ STANDARD scale: 4, 8, 12, 16, 20, 24, 32, 40 and 48px. Use 2px for optical adjus
 | Modal content padding | Existing default 16px; STANDARD roomy editor 24px |
 | Popup offset | 4px from trigger, at least 8px viewport margin |
 
-EXISTING radii: standalone field focus contract 8px; ordinary button 10px; Panel/card 12px; default modal 12px from shared design-system; large identity board 16px; badge 6px; pill only for actual pill/avatar/dot. The shared primitive owns the final shape. Borders are 1px. Use shadow-card only where the existing panel/card calls for it; shadow-pop for floating layers. The token definitions are card: 0 1px 2px rgba(11,26,44,.04), 0 1px 1px rgba(11,26,44,.03); pop: 0 12px 32px -8px rgba(11,26,44,.18), 0 2px 6px rgba(11,26,44,.06).
+EXISTING radii: every button and standalone field 6px (0.375rem), from the inherited --erp-control-radius token and one shared rule per family in src/index.css; Panel/card 12px; default modal 12px from shared design-system; large identity board 16px; badge 6px; pill only for actual pill/avatar/dot. The shared primitive owns the final shape. Borders are 1px. Use shadow-card only where the existing panel/card calls for it; shadow-pop for floating layers. The token definitions are card: 0 1px 2px rgba(11,26,44,.04), 0 1px 1px rgba(11,26,44,.03); pop: 0 12px 32px -8px rgba(11,26,44,.18), 0 2px 6px rgba(11,26,44,.06).
 
 Comfortable density changes cell padding through the existing preference. It does not change fonts, field heights or financial emphasis. There is no universal 44px row minimum. Rows grow with content and controls; they must not clip or overlap.
 
@@ -165,7 +165,7 @@ Use sentence-case verbs: New sale, Receive payment, Review purchase, Save draft,
 
 ## 09. Text, search and multiline inputs
 
-EXISTING: src/components/Input.tsx routes actual quantities to NumericInput and gives controlled search/find/filter fields the shared X clear action. Ordinary fields are 36px high, full available width, card surface, 8px radius. The bundled Input uses 10px horizontal padding; existing numeric/joined assemblies own their insets. Use the default Button variant size for new ordinary actions, keeping one 14px action-label baseline; inherited sm/xs text sizes are legacy differences, not new layout choices. Label above the control, required marker where genuinely required; placeholder is an example, never the only label.
+EXISTING: src/components/Input.tsx routes actual quantities to NumericInput and gives controlled search/find/filter fields the shared X clear action. Ordinary fields are 36px high, full available width, card surface, shared 6px (0.375rem) radius. The bundled Input uses 10px horizontal padding; existing numeric/joined assemblies own their insets. Use the default Button variant size for new ordinary actions, keeping one 14px action-label baseline; inherited sm/xs text sizes are legacy differences, not new layout choices. Label above the control, required marker where genuinely required; placeholder is an example, never the only label.
 
 Input values are deliberately quieter than headings and totals: 13px / 20px, weight 400, normal letter spacing, existing Geist/Hind Siliguri and proportional digits in every viewport and language. Use Ink 600 for entered, read-only and numeric values; use muted foreground for placeholders at regular weight. A surrounding medium-weight label must not make its input or textarea bold. The shared --erp-input-* tokens and src/index.css own this typography, including numeric/joined editors and native text entry inside the app. Do not restore the bundled 16px/14px input sizes or add page-local semibold/black input values. Labels keep their separate 13px medium role; totals and headings keep their existing emphasis. Disabled opacity, error messages/borders, alignment and edit behavior stay unchanged. Calculator scratchpad text retains its own specific contract.
 
@@ -588,3 +588,8 @@ Unit Settings and contextual Quick Add require a short symbol of 1–4 character
 ### Tablet transaction rows — 28 October 2026
 
 At viewport widths of 768px and above, POS and Purchase keep every product's identity, joined quantities, selected unit, price, total and remove action in one table row. Preserve the existing typography and 36px controls. When the available cart is narrower than its columns, use the existing cart's horizontal scroll region; do not create whole-page overflow or wrap the product into several grid rows. Keep headers and the add-product row aligned with the same columns. Phones below 768px retain the compact stacked product layout.
+
+
+### Universal control radius — 31 October 2026
+
+User-approved: all button variants, icon/native actions and standalone text, search, date, numeric, select, combobox and textarea fields use `--erp-control-radius: 0.375rem`. One button rule and one field rule in `src/index.css` consume the inherited token, covering legacy utilities and portals without page-local overrides. Joined money/multi-unit fields have one rounded outer shell and retain square inner seams. Switches, checkboxes and radios keep their intrinsic shape. Cards, dialogs and avatars retain their own radii. This supersedes older 8px field and 10px button descriptions.

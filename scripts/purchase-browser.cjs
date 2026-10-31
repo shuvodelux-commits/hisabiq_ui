@@ -1,6 +1,7 @@
 /* Purchase UI smoke test. No API/network persistence expected in this phase. */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 
 async function main() {
   const { createServer } = await import('vite');
@@ -16,6 +17,138 @@ async function main() {
     await page.getByRole('button', { name: 'New purchase' }).click();
     await page.getByRole('heading', { name: /New purchase/ }).waitFor();
     assert.equal(await page.locator('[role="dialog"]').count(), 0, 'purchase editor must not be a modal');
+    const purchaseRoot = page.locator('[data-purchase-workspace]');
+    const purchaseDetails = purchaseRoot.locator('[data-purchase-details]');
+    const alignedFields = [
+      purchaseDetails.locator('[data-purchase-supplier-field]'),
+      purchaseDetails.locator('[data-purchase-date-field]'),
+      purchaseDetails.locator('[data-purchase-reference-field]'),
+    ];
+    const alignedInputs = [
+      alignedFields[0].getByRole('combobox', { name: 'Supplier', exact: true }),
+      alignedFields[1].locator('input'),
+      alignedFields[2].locator('input'),
+    ];
+    const desktopRects = await Promise.all(alignedInputs.map(field => field.boundingBox()));
+    assert.ok(desktopRects.every(Boolean), 'the three purchase fields render');
+    assert.ok(Math.max(...desktopRects.map(rect => rect.y)) - Math.min(...desktopRects.map(rect => rect.y)) <= 1,
+      'Supplier, Purchase date and Reference inputs share the same desktop baseline');
+    assert.ok(desktopRects.every(rect => Math.abs(rect.height - 36) <= 1), 'all three purchase controls use 36px height');
+    assert.equal(await page.getByRole('combobox', { name: 'Search product to add to purchase' }).count(), 1,
+      'single POS-style search must stay inside the cart, not duplicated above it');
+    assert.ok(await purchaseRoot.evaluate(node => {
+      const supplier = node.querySelector('[data-purchase-details]');
+      const cart = node.querySelector('[data-cart-kind="purchase"]');
+      const checkout = node.querySelector('[data-purchase-checkout]');
+      const additional = node.querySelector('[data-purchase-additional]');
+      return !!supplier && !!cart && !!checkout && !!additional &&
+        Boolean(supplier.compareDocumentPosition(cart) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+        Boolean(cart.compareDocumentPosition(checkout) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }), 'hybrid layout shows supplier first, authentic cart next, checkout below');
+    const additional = purchaseRoot.locator('[data-purchase-additional]');
+    const paymentMethods = purchaseRoot.locator('[data-purchase-payment-methods]');
+    assert.equal(await paymentMethods.locator('[data-purchase-additional]').count(), 1,
+      'notes and receipt are permanently visible in the left Payments panel');
+    assert.equal(await purchaseRoot.getByRole('button', { name: /Additional details/ }).count(), 0,
+      'the separate Additional details accordion is removed');
+    const noteField = additional.getByPlaceholder('Delivery, discount or other details');
+    assert.equal(await noteField.isVisible(), true, 'notes are visible without expanding a disclosure');
+    const attachmentRow = additional.locator('[data-purchase-note-attachment-row]');
+    const receiptButton = additional.getByRole('button', { name: 'Attach supplier bill or receipt' });
+    assert.equal(await receiptButton.isVisible(), true, 'receipt attachment stays visible next to Notes');
+    assert.equal(await paymentMethods.getByRole('button', { name: 'Exact', exact: true }).count(), 0,
+      'the Exact and preset money amount shortcut row is removed');
+    for (const preset of ['৳500', '৳1,000', '৳2,000', '৳5,000']) {
+      assert.equal(await paymentMethods.getByRole('button', { name: preset, exact: true }).count(), 0,
+        'preset cash amount button is removed: ' + preset);
+    }
+    assert.equal(await noteField.evaluate(node => node.tagName), 'TEXTAREA',
+      'Notes is an accessible multiline textarea, not a single-line input');
+    assert.equal(await additional.getByText('Add receipt', { exact: false }).count(), 1,
+      'receipt section uses its own optional label without a duplicate group heading');
+    assert.equal(await additional.getByText(/Notes & receipt/).count(), 0,
+      'unnecessary Notes & receipt heading remains removed');
+    const noteRect = await noteField.boundingBox();
+    const attachmentRect = await receiptButton.boundingBox();
+    assert.ok(noteRect && attachmentRect && attachmentRect.x >= noteRect.x + noteRect.width - 1 &&
+      Math.abs(noteRect.y - attachmentRect.y) <= 2,
+      'textarea and receipt upload top edges align on desktop');
+    assert.ok(Math.abs(noteRect.height - 80) <= 1, 'notes textarea matches the standard 80px receipt tile');
+    assert.ok(Math.abs(attachmentRect.height - 80) <= 1 &&
+      Math.abs(attachmentRect.width - attachmentRect.height) <= 1,
+      'receipt attachment uses the shared 80px PhotoUploader size matching Notes');
+    assert.ok(Math.abs(noteRect.height - attachmentRect.height) <= 1,
+      'textarea and receipt upload are exactly matched in height');
+    assert.equal(await attachmentRow.isVisible(), true, 'notes and receipt remain visible without disclosure');
+    await noteField.fill('Delivered via challan\nCheck receipt number on delivery');
+    assert.equal(await noteField.inputValue(), 'Delivered via challan\nCheck receipt number on delivery',
+      'notes textarea preserves multiple lines');
+    const receiptInput = additional.locator('[data-purchase-receipt] input[type="file"]');
+    await receiptInput.setInputFiles({
+      name: 'supplier-challan.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==', 'base64'),
+    });
+    assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 1, 'receipt upload persists a preview');
+    const previewImage = additional.locator('img[alt="Photo 1"]');
+    const previewRect = await previewImage.boundingBox();
+    const previewTileRect = await previewImage.locator('..').boundingBox();
+    assert.ok(previewTileRect && Math.abs(previewTileRect.width - 80) <= 1 &&
+      Math.abs(previewTileRect.height - 80) <= 1,
+      'receipt thumbnail tile is the shared 80px square including its 1px border');
+    assert.ok(previewRect && Math.abs(previewRect.width - previewRect.height) <= 1 &&
+      previewRect.width >= 77 && previewRect.width <= 80,
+      'receipt image fills the square interior with no distortion');
+    await additional.getByRole('button', { name: 'Remove photo 1' }).click();
+    assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 0, 'receipt can be removed');
+    assert.equal(await noteField.inputValue(), 'Delivered via challan\nCheck receipt number on delivery',
+      'editing receipt does not clear multiline Notes');
+    assert.ok(await purchaseRoot.locator('[data-purchase-payment-methods]').count() === 1);
+    assert.ok(await purchaseRoot.locator('[data-purchase-payment-summary]').count() === 1);
+    assert.equal(await purchaseRoot.locator('[data-cart-kind="purchase"]').getByText(/product lines?/).count(), 1,
+      'Purchase cart retains its original line-count footer');
+    assert.equal(await purchaseRoot.locator('[data-purchase-payment-summary]').getByText(/Subtotal/).count(), 1,
+      'financial summary remains the single visible subtotal source');
+    const lightTotal = purchaseRoot.locator('[data-purchase-summary-total]');
+    assert.equal(await lightTotal.count(), 1);
+    assert.ok(!((await lightTotal.getAttribute('class')) || '').includes('bg-inverse'),
+      'Purchase total keeps a light card, not a black block');
+    assert.equal(await lightTotal.locator('[data-amount-words-variant]').getAttribute('data-amount-words-variant'), 'compact',
+      'readable Bangla words remain in compact light mode');
+    assert.ok(await purchaseRoot.locator('[data-purchase-quick-items]').count() === 1);
+    const quickRailDesktop = purchaseRoot.locator('[data-purchase-quick-items-list]');
+    assert.equal(await quickRailDesktop.evaluate(node => getComputedStyle(node).scrollbarWidth), 'none',
+      'Quick Items hide the large scrollbar while preserving native scrolling');
+    assert.ok(await quickRailDesktop.locator('[data-purchase-quick-item]').count() >= 6,
+      'Quick Items preserve the full touch-to-add product list');
+    const desktopScrollable = await quickRailDesktop.evaluate(node => node.scrollWidth > node.clientWidth + 2);
+    if (desktopScrollable) {
+      const next = purchaseRoot.getByRole('button', { name: 'Next quick items' });
+      const previous = purchaseRoot.getByRole('button', { name: 'Previous quick items' });
+      await next.waitFor({ state: 'visible' });
+      assert.equal(await previous.isDisabled(), true, 'previous is disabled on the first quick item');
+      await next.click();
+      await page.waitForFunction(() => document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft > 2);
+      await page.waitForFunction(() => !document.querySelector('[data-purchase-quick-prev]')?.hasAttribute('disabled'));
+      assert.equal(await previous.isEnabled(), true, 'previous becomes available after navigating forward');
+      await previous.click();
+      await page.waitForFunction(() => (document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft ?? -1) <= 2);
+      await page.waitForFunction(() => document.querySelector('[data-purchase-quick-prev]')?.hasAttribute('disabled'));
+      assert.equal(await previous.isDisabled(), true, 'previous disables again when back at the start');
+    }
+    const reviewAction = page.locator('[data-purchase-review-action]');
+    const draftAction = page.locator('[data-purchase-save-draft]');
+    await reviewAction.waitFor({ state: 'visible' });
+    const reviewRect = await reviewAction.boundingBox();
+    const draftRect = await draftAction.boundingBox();
+    assert.ok(reviewRect && draftRect && reviewRect.width < 240 && draftRect.width < 180,
+      'Save draft and Review purchase must be compact, not full-width');
+    assert.ok(reviewRect.height <= 48 && draftRect.height <= 48, 'footer actions must not be oversized');
+    assert.ok(Math.abs(reviewRect.y - draftRect.y) <= 2, 'footer buttons align on one row on desktop');
+    assert.equal(await page.locator('[data-testid="purchase-add-row"] select[aria-label="Search product to add to purchase"]').count(), 0,
+      'inline POS search remains an accessible combobox rather than a plain select');
+    fs.mkdirSync('test-results/purchase-hybrid', { recursive: true });
+    await page.screenshot({ path: 'test-results/purchase-hybrid/desktop.png', fullPage: true });
 
     await page.getByRole('combobox',{name:'Supplier',exact:true}).click();
     await page.getByText('Add new supplier',{exact:true}).click();
@@ -80,6 +213,44 @@ async function main() {
     const lotSellInput = page.getByLabel('Lot selling price for LED Bulb 12W', {exact:true});
     if (!(await lotSellInput.isVisible())) await page.getByRole('button', { name: /Lot details for LED Bulb 12W/ }).click();
     await lotSellInput.fill('185');
+    // POS-style price controls must leave room for a full amount, arrow stepper
+    // and the unit suffix. The old 112px Lot Sale column clipped values.
+    const lotPriceFits = async (locator) => locator.evaluate((container) => {
+      const input = container.querySelector('input');
+      if (!input) return false;
+      const style = getComputedStyle(input);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return false;
+      ctx.font = style.font;
+      const textWidth = ctx.measureText(input.value).width;
+      const usable = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const suffix = container.querySelector('[data-purchase-lot-sale-unit]');
+      const stepper = container.querySelector('[data-number-stepper]');
+      const suffixClear = !suffix || !stepper || stepper.getBoundingClientRect().right + 4 <= suffix.getBoundingClientRect().left;
+      const row = container.closest('[data-cart-row]');
+      const shell = container.querySelector('[data-numeric-input]');
+      return { fit: usable >= textWidth + 3 && suffixClear, width: input.clientWidth,
+        padding: [style.paddingLeft, style.paddingRight], textWidth, usable,
+        suffixClear, value: input.value, viewport: innerWidth,
+        priceCellWidth: container.getBoundingClientRect().width,
+        numericShellWidth: shell?.getBoundingClientRect().width,
+        cartWidth: container.closest('[data-cart-kind]')?.getBoundingClientRect().width,
+        gridColumns: row ? getComputedStyle(row).gridTemplateColumns : null,
+        rowWidth: row?.getBoundingClientRect().width };
+    });
+    await lotSellInput.fill('128000');
+    const priceMetrics = await lotPriceFits(page.locator('[data-purchase-lot-sale]').first());
+    assert.ok(priceMetrics.fit,
+      'Lot Sale keeps 6-digit prices visible without overlapping arrows or unit: ' + JSON.stringify(priceMetrics));
+    await lotSellInput.fill('185');
+    const lineTotal = page.getByTestId('purchase-cart-row').first().locator('[data-purchase-line-total]');
+    assert.equal(await lineTotal.evaluate(el => getComputedStyle(el).textAlign), 'right',
+      'purchase line total aligns to the right like the POS total');
+    assert.ok(await lineTotal.evaluate((el) => {
+      const header = document.querySelector('[data-cart-kind="purchase"] [data-cart-header] > :nth-child(7)');
+      return header && Math.abs(el.getBoundingClientRect().right - header.getBoundingClientRect().right) <= 3;
+    }), 'purchase amount ends at the same right edge as its Total heading');
     assert.equal(await page.getByTestId('purchase-cart-row').count(), 1);
     assert.equal(await page.getByTestId('purchase-cart').locator(':scope > *').last().getAttribute('data-testid'), 'purchase-add-row');
     assert.match(await page.locator('aside').last().innerText(), /3,750/);
@@ -121,12 +292,12 @@ async function main() {
     assert.match(await purchasePaymentPanel.innerText(), /Discount applied/);
     const discountedTotal = (await purchasePaymentPanel.getByTestId('purchase-net-total').innerText()).trim();
     assert.notEqual(discountedTotal, '', 'discount and total should update live');
-    await page.getByRole('button', { name: 'Exact', exact: true }).click();
+    await page.getByRole('button', { name: 'Fill remaining payment 1' }).click();
     assert.match(await purchasePaymentPanel.innerText(), /Supplier due/);
     assert.match(await purchasePaymentPanel.innerText(), /৳0(?!\d)/, 'fully paid');
 
     assert.match(await purchasePaymentPanel.innerText(), /Supplier due/);
-    await page.getByRole('button', { name: 'Complete purchase' }).click();
+    await page.locator('[data-purchase-review-action]').click();
     const reviewPurchase = page.getByRole('dialog', { name: 'Review purchase', exact: true });
     await reviewPurchase.waitFor();
     assert.match(await reviewPurchase.innerText(), /টাকা মাত্র/, 'Bangla amount wording is shown before posting');
@@ -145,8 +316,74 @@ async function main() {
     await page.goto('http://127.0.0.1:4177/#/app/parties');
     await page.getByText('Browser QA Supplier', { exact: true }).last().waitFor();
     await page.goto('http://127.0.0.1:4177/#/app/purchases/new');
+    // A draft can be saved before supplier, price validation or full posting.
+    const saveDraftBtn = page.locator('[data-purchase-save-draft]');
+    assert.equal(await saveDraftBtn.isDisabled(), true, 'blank purchase is not stored');
+    await page.getByRole('button', { name: /Quick add PVC Pipe/ }).first().click();
+    assert.equal(await saveDraftBtn.isEnabled(), true);
+    await saveDraftBtn.click();
+    await page.locator('[data-purchase-drafts-trigger]').click();
+    const draftMenu = page.locator('[data-purchase-drafts-menu]');
+    await draftMenu.getByRole('button', { name: 'Resume' }).waitFor({ state: 'visible' });
+    assert.equal(await draftMenu.getByRole('button', { name: 'Resume' }).count(), 1);
+    assert.match(await draftMenu.innerText(), /1 products/);
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Purchases', exact: true }).click();
+    await page.getByRole('button', { name: 'New purchase' }).click();
+    await page.locator('[data-purchase-drafts-trigger]').click();
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).waitFor({ state: 'visible' });
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 1, 'resuming draft restores original POS cart');
+    assert.equal(await page.locator('[data-purchase-save-draft]').isEnabled(), true);
+    await page.locator('[data-purchase-save-draft]').click();
+    await page.locator('[data-purchase-drafts-trigger]').click();
+    assert.equal(await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).count(), 1,
+      'saving resumed draft updates it rather than duplicating');
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Delete' }).click();
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Delete', exact: true }).last().click();
+    assert.match(await page.locator('[data-purchase-drafts-menu]').innerText(), /No saved purchase drafts/);
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Leave this purchase?' }).getByRole('button', { name: 'Discard' }).click();
+    await page.getByRole('button', { name: 'New purchase' }).click();
+    await page.setViewportSize({ width: 768, height: 1024 });
+    const tabletQuick = page.locator('[data-purchase-quick-items]').getByRole('button', { name: /Quick add PVC Pipe/ }).first();
+    await tabletQuick.waitFor();
+    const tapArea = await tabletQuick.boundingBox();
+    assert.ok(tapArea && tapArea.height >= 48, 'tablet quick-add keeps a full-size touch target');
+    await tabletQuick.click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 1, 'tablet quick add inserts into original cart');
+    await page.getByTestId('purchase-cart-row').first().getByRole('button', { name: /Remove PVC Pipe/ }).click();
+    assert.equal(await page.getByTestId('purchase-cart-row').count(), 0, 'tablet quick-added line can be removed');
+    await page.screenshot({ path: 'test-results/purchase-hybrid/tablet.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).waitFor();
+    const mobileNotes = page.locator('#purchase-notes');
+    const mobileReceipt = page.getByRole('button', { name: 'Attach supplier bill or receipt' });
+    const mobileNoteRect = await mobileNotes.boundingBox();
+    const mobileReceiptRect = await mobileReceipt.boundingBox();
+    assert.ok(mobileNoteRect && mobileReceiptRect && mobileReceiptRect.y >= mobileNoteRect.y + mobileNoteRect.height,
+      'Notes and square receipt stack on phones instead of squeezing together');
+    assert.ok(Math.abs(mobileReceiptRect.height - mobileReceiptRect.width) <= 1 &&
+      Math.abs(mobileReceiptRect.height - 80) <= 1, 'phone receipt uses standard 80px square');
+    const quickRail = page.locator('[data-purchase-quick-items-list]');
+    assert.ok(await quickRail.evaluate(node => getComputedStyle(node).overflowX === 'auto'), 'touch quick items use horizontal scrolling');
+    assert.equal(await quickRail.evaluate(node => getComputedStyle(node).scrollbarWidth), 'none',
+      'phone quick item scrollbar is visually hidden');
+    const phoneNext = page.getByRole('button', { name: 'Next quick items' });
+    await phoneNext.waitFor({ state: 'visible' });
+    await phoneNext.click();
+    await page.waitForFunction(() => document.querySelector('[data-purchase-quick-items-list]')?.scrollLeft > 2);
+    await page.waitForFunction(() => !document.querySelector('[data-purchase-quick-prev]')?.hasAttribute('disabled'));
+    assert.equal(await page.getByRole('button', { name: 'Previous quick items' }).isEnabled(), true,
+      'phone can navigate backwards after clicking next');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'phone has no page-level horizontal overflow');
+    const phoneQuick = page.locator('[data-purchase-quick-items]').getByRole('button', { name: /Quick add LED Bulb 12W/ });
+    await phoneQuick.click();
+    const phonePriceMetrics = await lotPriceFits(page.locator('[data-purchase-lot-sale]').first());
+    assert.ok(phonePriceMetrics.fit,
+      'phone Lot Sale does not clip its initial value or suffix: ' + JSON.stringify(phonePriceMetrics));
+    await page.screenshot({ path: 'test-results/purchase-hybrid/phone.png', fullPage: true });
     await page.keyboard.press('F9');
     await page.getByText('Select or quick-add a supplier.', { exact: true }).last().waitFor();
     assert.match(page.url(), /purchases\/new/, 'F9 validates instead of navigating on an incomplete purchase');

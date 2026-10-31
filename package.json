@@ -124,7 +124,8 @@
     "test:design-guide": "node scripts/design-guide-browser.cjs",
     "export:component-library": "node scripts/export-component-library.cjs",
     "test:reports-analysis": "node scripts/reports-analysis-browser.cjs",
-    "test:add-product-help": "node scripts/add-product-compact-help-browser.cjs"
+    "test:add-product-help": "node scripts/add-product-compact-help-browser.cjs",
+    "test:control-radius": "node scripts/control-radius-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

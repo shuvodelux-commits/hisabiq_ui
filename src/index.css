@@ -40,6 +40,9 @@
   }
 }
 @layer utilities {
+  /* Quick Items remain swipeable; navigation arrows replace the distracting scrollbar. */
+  .erp-quick-items-rail { scrollbar-width: none; -ms-overflow-style: none; }
+  .erp-quick-items-rail::-webkit-scrollbar { display: none; }
   .font-bn {
     font-family: 'Hind Siliguri', 'Geist', system-ui, sans-serif;
   }
@@ -367,7 +370,9 @@
   [data-cart-kind="purchase"] [data-cart-header],
   [data-cart-kind="purchase"] [data-cart-row],
   [data-cart-kind="purchase"] [data-cart-add] {
-    grid-template-columns: 24px minmax(144px, 1fr) 162px 78px 105px 112px 95px 28px;
+    /* Keep the Purchase POS-style single row on tablets while reserving enough
+       width for lot price + stepper + selected-unit suffix (POS price contract). */
+    grid-template-columns: 24px minmax(130px, 1fr) 150px 70px 96px 166px 100px 28px;
     gap: 6px;
   }
   [data-cart-kind="purchase"] [data-cart-header] { display: grid; }
@@ -586,16 +591,33 @@
 :root {
   --erp-control-height: 36px;
   --erp-workflow-action-height: 48px;
+  --erp-control-radius: 0.375rem;
   --erp-input-font-size: 13px;
   --erp-input-line-height: 20px;
   --erp-input-font-weight: 400;
+}
+/* One inherited token, one button rule and one field rule, including portals
+   and legacy controls. Internal joined editors keep their square seams. */
+:root :is(button, [role="button"], .hisabiq-button, input[type="button"], input[type="submit"], input[type="reset"]):not(:where([role="switch"], [role="checkbox"], [role="radio"], [data-numeric-joined] [data-hisabiq-select])) {
+  border-radius: var(--erp-control-radius) !important;
+}
+:root :is(
+  input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not(:where([data-numeric-joined] input, [data-numeric-input] input, [data-slot="input-group"] input)),
+  textarea,
+  select:not(:where([data-numeric-joined] select)),
+  [role="combobox"]:not(:where([data-numeric-joined] [role="combobox"])),
+  [data-hisabiq-numeric]:not(:where([data-numeric-joined] [data-hisabiq-numeric])),
+  [data-hisabiq-field-shell],
+  [data-numeric-joined],
+  [data-slot="input-group"]
+) {
+  border-radius: var(--erp-control-radius) !important;
 }
 :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button {
   height: var(--erp-control-height) !important;
   min-height: var(--erp-control-height) !important;
   max-height: var(--erp-control-height);
-  border-radius: 0.625rem;
   padding-inline: max(0.75rem, 10px);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
@@ -678,7 +700,6 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea
 ) {
   border-color: var(--border);
-  border-radius: 0.5rem;
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 /* Real text input: focus on click and keyboard, with just one mint halo. */
@@ -826,7 +847,7 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
 }
 @container purchase-cart (min-width: 1080px) {
   [data-cart-kind="purchase"]:has([data-multi-quantity]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
-    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width) 78px 105px 112px 95px 28px;
+    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width) 76px 100px 166px 100px 28px;
   }
 }
 @container pos-cart (max-width: 999px) {
@@ -877,7 +898,7 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   }
   :root [data-cart-kind="purchase"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
     min-width: calc(752px + var(--cart-quantity-width, 162px)) !important;
-    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width, 162px) 78px 105px 112px 95px 28px;
+    grid-template-columns: 24px minmax(144px, 1fr) var(--cart-quantity-width, 162px) 76px 100px 166px 100px 28px;
   }
   :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
     grid-template-rows: auto; gap: 6px; align-items: center;
@@ -889,4 +910,15 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] > [data-cart-field]::before { content: none; display: none; }
   :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-row] :is(input, button) { min-height: 0; }
   :root :is([data-cart-kind="sale"], [data-cart-kind="purchase"]) [data-cart-add] > :nth-child(n) { display: revert; }
+}
+
+/* The line total is text, not a nested form control. The generic cart
+   display:contents flattening must not discard its right-aligned grid cell. */
+:root [data-cart-kind="purchase"] [data-cart-row="purchase"] > [data-purchase-line-total] {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  text-align: right;
+  white-space: nowrap;
 }
