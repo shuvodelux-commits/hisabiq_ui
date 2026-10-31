@@ -74,7 +74,7 @@ function rowBalance(postings: Posting[], accountId: string) {
 }
 
 export function Accounts() {
-  const {text,showHelper}=useUiCopy();
+  const {text}=useUiCopy();
   const navigate = useNavigate();
   const { terminologyMode, setTerminologyMode, entryDateView } = useUserPreferences();
   const [params,setParams] = useSearchParams();
@@ -125,14 +125,15 @@ export function Accounts() {
     navigate(`${route}?open=${encodeURIComponent(source.id)}`);
   };
 
-  const tabs: Array<[Tab, string, string]> = [
-    ['overview', text('Overview','সারাংশ'), 'হিসাবের সারাংশ'],
-    ['vouchers', text('Vouchers','ভাউচার'), 'টাকা পাওয়া, দেওয়া ও হিসাব ঠিক করার এন্ট্রি'],
-    ['ledger', text('Ledger','খাতা'), 'এই হিসাবের সব লেনদেন'],
-    ['trial', text('Trial Balance','ট্রায়াল ব্যালেন্স'), 'সব হিসাব ঠিকমতো মিলছে কি না'],
-    ['statements', text('Statements','হিসাবের প্রতিবেদন'), 'লাভ-ক্ষতি ও ব্যালেন্স শিট'],
-    ['chart', text('Chart of Accounts','সব হিসাবের তালিকা'), 'ব্যবসার সব হিসাবের খাত'],
-    ['bank-entry', text('Bank Entry','ব্যাংক এন্ট্রি'), 'ব্যাংকের টাকা জমা, খরচ ও সংশোধন']
+  // Compact English-only tab labels; Bangla guidance remains inside each panel.
+  const tabs: Array<[Tab, string]> = [
+    ['overview', 'Overview'],
+    ['vouchers', 'Vouchers'],
+    ['ledger', 'Ledger'],
+    ['trial', 'Trial Balance'],
+    ['statements', 'Statements'],
+    ['chart', 'Chart of Accounts'],
+    ['bank-entry', 'Bank Entry']
   ];
 
   return (
@@ -190,16 +191,16 @@ export function Accounts() {
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
         <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
-          {tabs.map(([id, label, helper]) => (
+          {tabs.map(([id, label]) => (
             <button
               key={id}
               role="tab"
               aria-selected={tab === id}
               onClick={() => chooseTab(id)}
-              className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
+              className={`flex shrink-0 items-center px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
-              {showHelper&&<span className="font-bn text-[10.5px] font-normal text-ink-400">{helper}</span>}
-            <MotionTabIndicator active={tab === id} /></button>
+              <MotionTabIndicator active={tab === id} />
+            </button>
           ))}
         </MotionTabList>
 

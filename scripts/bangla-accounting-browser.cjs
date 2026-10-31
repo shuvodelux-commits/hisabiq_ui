@@ -21,7 +21,12 @@ async function main(){
     await page.getByRole('columnheader',{name:bn?'টাকা':'Amount',exact:true}).waitFor();
     await page.goto('http://127.0.0.1:4389/#/app/accounts');
     await page.getByRole('heading',{name:bn?'হিসাব':'Accounts',exact:true}).waitFor();
-    const tab=page.getByRole('tab',{name:bn?/হিসাবের প্রতিবেদন/:/Statements/});
+    // Accounts navigation tabs are English-only for every UI language mode.
+    const tabs=page.getByRole('tab');
+    assert.deepEqual(await tabs.allTextContents().then(items=>items.map(s=>s.trim())),[
+      'Overview','Vouchers','Ledger','Trial Balance','Statements','Chart of Accounts','Bank Entry'
+    ]);
+    const tab=page.getByRole('tab',{name:'Statements',exact:true});
     await tab.click();
     await page.getByText(bn?'লাভ-ক্ষতি':'Profit & Loss',{exact:true}).first().waitFor();
     await page.goto('http://127.0.0.1:4389/#/app/parties');
