@@ -48,10 +48,15 @@ test('warranty, serial and expiry keep existing conditional controls and live va
   const other = source('src/components/products/form/OtherOptionsPanel.tsx');
   const unitPrice = source('src/components/products/form/UnitPricesPanel.tsx');
   assert.match(toggle, /<Tooltip interactive compact content={help}/);
-  assert.match(warranty, /help={t\('Separate from serial numbers/);
+  assert.match(warranty, /Warranty is separate from serial tracking/);
   assert.match(warranty, /draft\.warrantyEnabled/);
   assert.match(serial, /aria-live="polite"/);
   assert.match(expiry, /draft\.expiryEnabled/);
+  assert.doesNotMatch(expiry, /<ToggleRow/);
+  assert.doesNotMatch(warranty, /<ToggleRow/);
+  assert.match(other, /id="pf-expiry-toggle"/);
+  assert.match(other, /id="pf-warranty-toggle"/);
+  assert.match(other, /confirmExpiryOff/);
   assert.match(expiry, /help={t\(allocation\.hintEn, allocation\.hintBn\)}/);
   assert.match(other, /draft\.multiUnit \? \[/);
   assert.match(unitPrice, /basePrice|basePurchasePrice/);
