@@ -22,7 +22,7 @@ async function main() {
     const base = 'http://127.0.0.1:4241/#';
 
     await page.goto(base + '/app/products');
-    const settings = page.getByRole('button', { name: 'Products settings' });
+    const settings = page.getByRole('button', { name: 'Settings', exact: true });
     const exportButton = page.getByRole('button', { name: 'Export', exact: true });
     await settings.waitFor();
     await exportButton.waitFor();
@@ -41,9 +41,9 @@ async function main() {
     await exportButton.waitFor();
 
     await page.goto(base + '/app/pos');
-    await page.getByRole('button', { name: 'POS settings' }).waitFor();
+    await page.getByRole('button', { name: 'Settings', exact: true }).waitFor();
     await page.setViewportSize({ width: 390, height: 844 });
-    const posSettings = page.getByRole('button', { name: 'POS settings' });
+    const posSettings = page.getByRole('button', { name: 'Settings', exact: true });
     assert.ok(await posSettings.isVisible(), 'POS Settings remains visible on mobile');
 
     await posSettings.click();
