@@ -32,7 +32,7 @@ test('shared amount-in-words component has full-width readable wrapped Bangla in
  assert.match(source,/variant = 'default'/);
  assert.ok(source.includes("variant?: 'default' | 'compact' | 'inverse' | 'receipt'"));
 });
-test('Fast Counter POS uses a smaller mint words variant without changing Counter, purchase or receipt',()=>{
+test('Fast Counter POS and Purchase use readable light words without changing Counter or receipt',()=>{
  const pos=readFileSync('src/components/pos/CheckoutPanel.tsx','utf8');
  const words=readFileSync('src/components/AmountInWordsDisplay.tsx','utf8');
  assert.match(pos,/data-pos-payable/);
@@ -44,7 +44,10 @@ test('Fast Counter POS uses a smaller mint words variant without changing Counte
  assert.match(words,/compact:[\s\S]*bg-card\/75/,'compact surface uses the shared theme card color');
  assert.match(words,/compact:[\s\S]*text-teal-800/,'compact words label uses a readable semantic teal tone');
  assert.doesNotMatch(words,/dark:text-teal-200/,'dark teal-200 is too dark for label text in HisabIQ');
- assert.match(readFileSync('src/components/purchases/PurchasePaymentPanel.tsx','utf8'),/variant="inverse"/);
+ const purchase = readFileSync('src/components/purchases/PurchasePaymentPanel.tsx','utf8');
+ assert.match(purchase, /variant="compact"/, 'Purchase total uses the shared readable compact display');
+ assert.match(purchase, /data-purchase-summary-total[^>]*bg-ink-50/, 'Purchase total stays on a light, neutral surface');
+ assert.doesNotMatch(purchase, /bg-inverse|variant="inverse"/, 'Purchase summary must not use a black block');
  assert.match(readFileSync('src/components/brand/ReceiptPreview.tsx','utf8'),/variant="receipt"/);
 });
 
