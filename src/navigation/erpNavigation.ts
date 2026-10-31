@@ -1,6 +1,6 @@
 import {sectionNames} from '../settings/fields.ts';
 import type {LucideIcon} from 'lucide-react';
-import {LayoutDashboard,ShoppingCart,HandCoins,FileText,ReceiptText,Store,Package,Users,Wallet,Landmark,ShieldCheck,PieChart,Settings} from 'lucide-react';
+import {LayoutDashboard,ShoppingCart,HandCoins,FileText,ReceiptText,Store,Package,Users,Wallet,Landmark,BookOpen,ShieldCheck,PieChart,Settings} from 'lucide-react';
 
 export type ErpNavChild={id:string;label:string;bn?:string;path:string;feature?:string;permission?:string};
 export type ErpNavGroup={id:string;label:string;bn?:string;icon:LucideIcon;landingPath:string;children?:readonly ErpNavChild[];permission?:string};
@@ -42,14 +42,16 @@ export const erpNavigation:readonly ErpNavGroup[]=[
   {id:'owners',label:'Owners',bn:'মালিক',path:'/app/parties?role=Owner'}
  ]},
  {id:'expenses',label:'Expenses',bn:'খরচ',icon:Wallet,landingPath:'/app/expenses'},
- {id:'finance',label:'Finance & Accounts',bn:'হিসাব ও অর্থ',icon:Landmark,landingPath:'/app/finance',children:[
+ {id:'finance',label:'Finance',bn:'টাকা-পয়সা',icon:Landmark,landingPath:'/app/finance',children:[
   {id:'cash',label:'Overview',bn:'সারাংশ',path:'/app/finance'},
   {id:'money-accounts',label:'Money Accounts',bn:'টাকার হিসাব',path:'/app/finance?tab=accounts'},
   {id:'finance-counter',label:'Counter',bn:'কাউন্টার',path:'/app/finance?tab=counter'},
   {id:'finance-people',label:'Loans & Owners',bn:'ঋণ ও মালিক',path:'/app/finance?tab=transactions'},
   {id:'cheques',label:'Cheques',bn:'চেক',path:'/app/finance?tab=cheques'},
-  {id:'cash-sessions',label:'Cash Sessions',bn:'ক্যাশ সেশন',path:'/app/finance?tab=cash'},
-  {id:'accounts',label:'Accounts & Vouchers',bn:'হিসাব ও ভাউচার',path:'/app/accounts'},
+  {id:'cash-sessions',label:'Cash Sessions',bn:'ক্যাশ সেশন',path:'/app/finance?tab=cash'}
+ ]},
+ {id:'accounts',label:'Accounts',bn:'হিসাব',icon:BookOpen,landingPath:'/app/accounts',children:[
+  {id:'accounts-overview',label:'Accounts & Vouchers',bn:'হিসাব ও ভাউচার',path:'/app/accounts'},
   {id:'daybook',label:'Daybook',bn:'দৈনিক লেনদেন',path:'/app/daybook'},
   {id:'reconciliation',label:'Reconciliation',bn:'হিসাব মিলানো',path:'/app/reconciliation'},
   {id:'audit',label:'Audit Ledger',bn:'অডিট খাতা',path:'/app/audit-ledger',permission:'money'}
