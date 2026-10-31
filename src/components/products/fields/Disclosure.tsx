@@ -10,6 +10,8 @@ type DisclosureProps = {
   en: string;
   bn: string;
   summary?: ReactNode;
+  /** Short, configured-state feedback beside the heading; no second paragraph. */
+  status?: ReactNode;
   help?: ReactNode;
   open: boolean;
   onToggle: () => void;
@@ -20,7 +22,7 @@ type DisclosureProps = {
 const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
 /** Collapsed section that still tells you what's inside and what's switched on. */
-export function Disclosure({ id, en, bn, summary, help, open, onToggle, errorCount = 0, children }: DisclosureProps) {
+export function Disclosure({ id, en, bn, summary, status, help, open, onToggle, errorCount = 0, children }: DisclosureProps) {
   const { t } = useFormCopy();
   const reduce = useReducedMotion();
   return (
@@ -33,10 +35,13 @@ export function Disclosure({ id, en, bn, summary, help, open, onToggle, errorCou
             aria-expanded={open}
             aria-controls={`${id}-panel`}
             onClick={onToggle}
-            className="flex min-h-[52px] w-full items-center gap-3 px-4 py-3 text-left md:pl-6 md:pr-2"
+            className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-left md:pl-6 md:pr-2"
           >
             <span className="min-w-0 flex-1">
-              <span className="block text-[15px] font-semibold leading-tight text-ink"><LabelText en={en} bn={bn} /></span>
+              <span className="flex flex-wrap items-center gap-2 text-[15px] font-semibold leading-tight text-ink">
+                <LabelText en={en} bn={bn} />
+                {status && <span data-product-option-status className="rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-medium leading-4 text-ink-600">{status}</span>}
+              </span>
               {summary && <span className="mt-1 line-clamp-2 block text-[13px] font-normal leading-snug text-ink-500">{summary}</span>}
             </span>
             {errorCount > 0 && (
@@ -66,7 +71,7 @@ export function Disclosure({ id, en, bn, summary, help, open, onToggle, errorCou
             transition={{ duration: reduce ? 0 : 0.22, ease: EASE }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-6 pt-1 md:px-6">{children}</div>
+            <div className="px-4 pb-4 pt-1 md:px-6">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
