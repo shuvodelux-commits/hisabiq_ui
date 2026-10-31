@@ -10,7 +10,7 @@ async function main(){
   page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:4471/#/app/products');
   await page.getByRole('button',{name:'Add product',exact:true}).click();const editor=page.locator('[data-product-editor]');
   const name='Four unit cart QA '+width;await fillChain(page,editor,name);await editor.locator('#pf-opening').fill('10');
-  await editor.locator('details summary').click();
+  await editor.locator('#pf-prices-button').click();
   await editor.getByRole('textbox',{name:'Selling price per Box',exact:true}).fill('4500');
   await editor.getByRole('textbox',{name:'Purchase price per Box',exact:true}).fill('3000');
   await editor.getByRole('button',{name:'Save product',exact:true}).click();await editor.waitFor({state:'hidden'});
