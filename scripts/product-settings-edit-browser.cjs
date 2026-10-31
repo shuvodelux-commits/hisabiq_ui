@@ -27,18 +27,23 @@ async function main(){
   await page.keyboard.press('Escape');
   assert.equal(await page.getByRole('tooltip').count(),0,'guidance takes no space when closed');
   if(width>=768){
-    const boxes=await Promise.all([page.getByLabel('Unit name',{exact:true}),page.locator('#new-unit-symbol'),page.getByRole('button',{name:'Add',exact:true})].map(field=>field.boundingBox()));
+    const boxes=await Promise.all([page.getByLabel('Unit name',{exact:true}),page.getByLabel('Bangla name',{exact:true}),page.locator('#new-unit-symbol'),page.getByRole('button',{name:'Add',exact:true})].map(field=>field.boundingBox()));
     assert.ok(Math.max(...boxes.map(b=>b.y))-Math.min(...boxes.map(b=>b.y))<2,'name, symbol and Add align');
     assert.ok(boxes.every(b=>Math.abs(b.height-36)<2),'standard 36px controls');
   }
   await page.getByLabel('Unit name',{exact:true}).fill('Tooltip test unit');
   await page.locator('#new-unit-symbol').fill('invalid symbol');
   await page.getByRole('button',{name:'Add',exact:true}).click();await page.getByRole('alert').waitFor();
+  await page.getByLabel('Bangla name',{exact:true}).fill('নতুন একক');
+  await page.locator('#new-unit-symbol').fill('Ttu');
+  await page.getByRole('button',{name:'Add',exact:true}).click();
+  assert.ok((await page.getByRole('row').filter({hasText:'Tooltip test unit'}).textContent()).includes('নতুন একক'),'new Bangla name appears in Unit table');
   await openEdit('Piece');
   await dialog.getByRole('textbox',{name:/^Symbol/}).fill('too long');await dialog.getByRole('button',{name:'Save changes',exact:true}).click();await dialog.getByRole('alert').waitFor();
-  await dialog.getByLabel('Unit name',{exact:true}).fill('Single piece');await dialog.getByRole('textbox',{name:/^Symbol/}).fill('pc');
+  await dialog.getByLabel('Unit name',{exact:true}).fill('Single piece');await dialog.getByLabel('Bangla name',{exact:true}).fill('পিস সংশোধিত');await dialog.getByRole('textbox',{name:/^Symbol/}).fill('pc');
   await dialog.getByRole('button',{name:'Save changes',exact:true}).click();await dialog.waitFor({state:'hidden'});
-  assert.ok((await page.getByRole('row').filter({hasText:'Single piece'}).textContent()).includes('pc'));
+  const editedUnit=await page.getByRole('row').filter({hasText:'Single piece'}).textContent();
+  assert.ok(editedUnit.includes('pc')&&editedUnit.includes('পিস সংশোধিত'),'updated Bangla name and symbol visible');
   await page.getByRole('tab',{name:'Brands',exact:true}).click();await openEdit('RFL');
   await dialog.getByLabel('Brand name',{exact:true}).fill('RFL Group');await dialog.getByRole('button',{name:'Save changes',exact:true}).click();await dialog.waitFor({state:'hidden'});
   await openEdit('RFL Group');await dialog.getByLabel('Brand name',{exact:true}).fill('Cancelled name');await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});
