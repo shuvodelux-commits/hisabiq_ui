@@ -312,14 +312,15 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             <span className="shrink-0 rounded-md bg-ink-50 px-2 py-1 text-[11px] text-ink-600">{purchaseRef}</span>
           </div>
           <div className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
-            <div className="min-w-0 sm:col-span-2 lg:col-span-1">
-              <label className="text-[12px] font-medium text-ink" id="purchase-supplier-label">
+            <div data-purchase-supplier-field className="flex min-w-0 flex-col gap-1 sm:col-span-2 lg:col-span-1">
+              <label className="block min-h-5 text-[12px] font-medium leading-5 text-ink" id="purchase-supplier-label">
                 Supplier <span className="font-bn font-normal text-ink-500">· সরবরাহকারী</span> <span className="text-danger">*</span>
               </label>
-              <div className="mt-1">
+              <div className="min-w-0">
                 {(lockedSupplierId || initialPurchase) ?
-                  <div className="flex min-h-9 items-center rounded-md border border-border bg-ink-50 px-3 text-[13px] text-ink">
-                    {supplier?.name ?? 'Selected supplier'} <span className="ml-2 text-[11px] text-ink-500">· Original supplier</span>
+                  <div className="flex h-9 min-w-0 items-center rounded-md border border-border bg-ink-50 px-3 text-[13px] text-ink">
+                    <span className="min-w-0 truncate">{supplier?.name ?? 'Selected supplier'}</span>
+                    <span className="ml-2 shrink-0 text-[11px] text-ink-500">· Original supplier</span>
                   </div> :
                   <QuickAddSelect label="Supplier" value={supplier?.name ?? ''}
                     options={['Select supplier', ...suppliers.map((party) => party.name)]}
@@ -328,13 +329,13 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
                 }
               </div>
             </div>
-            <label className="block min-w-0 text-[12px] font-medium text-ink">
-              Purchase date <span className="text-danger">*</span>
-              <Input className="mt-1" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            <label data-purchase-date-field className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-ink">
+              <span className="block min-h-5 leading-5">Purchase date <span className="text-danger">*</span></span>
+              <Input className="h-9 w-full min-w-0" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
-            <label className="block min-w-0 text-[12px] font-medium text-ink">
-              Reference <span className="font-normal text-ink-500">· optional</span>
-              <Input className="mt-1" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)}
+            <label data-purchase-reference-field className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-ink">
+              <span className="block min-h-5 leading-5">Reference <span className="font-normal text-ink-500">· optional</span></span>
+              <Input className="h-9 w-full min-w-0" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)}
                 placeholder="Bill / challan no." />
             </label>
             {date && date < todayISO() && (
