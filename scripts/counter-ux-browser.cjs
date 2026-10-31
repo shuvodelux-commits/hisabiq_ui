@@ -18,7 +18,7 @@ async function main(){
    const bankAction=actions.getByRole('button',{name:/Bank Entry/});
    await bankAction.click();
    assert.equal(await bankAction.getAttribute('aria-pressed'),'true','Bank Entry is the selected Counter action');
-   const bankRegion=page.getByRole('region',{name:'Bank Entry'});
+   const bankRegion=page.getByRole('region',{name:'Bank Entry',exact:true});
    await bankRegion.getByRole('heading',{name:'Transaction summary'}).waitFor();
    await bankRegion.locator('input[placeholder="0.00"]').fill('175');
    assert.match(await bankRegion.innerText(),/৳175/,'Counter bank summary updates with the amount');
