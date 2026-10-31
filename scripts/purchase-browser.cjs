@@ -121,14 +121,17 @@ async function main() {
       ctx.font = style.font;
       const textWidth = ctx.measureText(input.value).width;
       const usable = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-      const suffix = container.querySelector('[aria-hidden="true"]');
+      const suffix = container.querySelector('[data-purchase-lot-sale-unit]');
       const stepper = container.querySelector('[data-number-stepper]');
       const suffixClear = !suffix || !stepper || stepper.getBoundingClientRect().right + 4 <= suffix.getBoundingClientRect().left;
-      return usable >= textWidth + 3 && suffixClear;
+      return { fit: usable >= textWidth + 3 && suffixClear, width: input.clientWidth,
+        padding: [style.paddingLeft, style.paddingRight], textWidth, usable,
+        suffixClear, value: input.value };
     });
     await lotSellInput.fill('128000');
-    assert.ok(await lotPriceFits(page.locator('[data-purchase-lot-sale]').first()),
-      'Lot Sale keeps 6-digit prices visible without overlapping arrows or unit');
+    const priceMetrics = await lotPriceFits(page.locator('[data-purchase-lot-sale]').first());
+    assert.ok(priceMetrics.fit,
+      'Lot Sale keeps 6-digit prices visible without overlapping arrows or unit: ' + JSON.stringify(priceMetrics));
     await lotSellInput.fill('185');
     const lineTotal = page.getByTestId('purchase-cart-row').first().locator('[data-purchase-line-total]');
     assert.equal(await lineTotal.evaluate(el => getComputedStyle(el).textAlign), 'right',
@@ -219,8 +222,9 @@ async function main() {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'phone has no page-level horizontal overflow');
     const phoneQuick = page.locator('[data-purchase-quick-items]').getByRole('button', { name: /Quick add LED Bulb 12W/ });
     await phoneQuick.click();
-    assert.ok(await lotPriceFits(page.locator('[data-purchase-lot-sale]').first()),
-      'phone Lot Sale does not clip its initial value or suffix');
+    const phonePriceMetrics = await lotPriceFits(page.locator('[data-purchase-lot-sale]').first());
+    assert.ok(phonePriceMetrics.fit,
+      'phone Lot Sale does not clip its initial value or suffix: ' + JSON.stringify(phonePriceMetrics));
     await page.screenshot({ path: 'test-results/purchase-hybrid/phone.png', fullPage: true });
     await page.keyboard.press('F9');
     await page.getByText('Select or quick-add a supplier.', { exact: true }).last().waitFor();
