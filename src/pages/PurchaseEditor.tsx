@@ -378,21 +378,20 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             hideAction
             additionalDetails={
               <div data-purchase-additional className="min-w-0">
-                <div data-purchase-note-attachment-row className="grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_232px]">
+                <div data-purchase-note-attachment-row className="grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_176px]">
                   <div className="min-w-0">
                     <label htmlFor="purchase-notes" className="block text-[12px] font-medium leading-5 text-ink">
                       Notes <span className="font-normal text-ink-500">· optional</span>
                     </label>
-                    <textarea id="purchase-notes" rows={4} value={notes}
+                    <textarea id="purchase-notes" rows={3} value={notes}
                       onChange={(event) => setNotes(event.target.value)}
                       placeholder="Delivery, discount or other details"
-                      className="mt-1 block h-28 w-full min-w-0 resize-none overflow-y-auto rounded-md border border-input bg-card px-3 py-2 text-[13px] font-normal leading-5 text-ink outline-none placeholder:text-ink-400 focus:border-primary focus:ring-2 focus:ring-primary/20" />
-                    <p className="mt-1 text-[11px] text-ink-500">Receipt (optional): challan or payment slip</p>
+                      className="mt-1 block h-20 w-full min-w-0 resize-none overflow-y-auto rounded-md border border-input bg-card px-3 py-2 text-[13px] font-normal leading-5 text-ink outline-none placeholder:text-ink-400 focus:border-primary focus:ring-2 focus:ring-primary/20" />
                   </div>
                   <div data-purchase-receipt className="min-w-0">
                     <p className="text-[12px] font-medium leading-5 text-ink">Add receipt <span className="font-normal text-ink-500">· optional</span></p>
                     <div className="mt-1">
-                      <PhotoUploader square photos={photos} onChange={setPhotos} max={2}
+                      <PhotoUploader photos={photos} onChange={setPhotos} max={2}
                         label="Attach supplier bill or receipt" />
                     </div>
                   </div>
