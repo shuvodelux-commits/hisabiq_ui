@@ -4,6 +4,7 @@ import { invoiceDesignDefaults } from "./profile";
 import { documentLabel, documentMethod } from "../i18n/documentCopy";
 import { formatNumber } from "../utils/currency";
 import { AmountInWordsDisplay } from "../components/AmountInWordsDisplay";
+import { formatPrintQuantity } from "../utils/printUnitQuantity";
 export function InvoiceDocument(p: ReceiptPreviewProps) {
   const d = { ...invoiceDesignDefaults(), ...p.branding?.design };
   const language = d.language;
@@ -137,7 +138,13 @@ export function InvoiceDocument(p: ReceiptPreviewProps) {
                 {d.showBarcode && (
                   <td className="p-2">{line.barcode || "—"}</td>
                 )}
-                <td className="p-2 text-right align-top">{line.qty}</td>
+                <td className="p-2 text-right align-top">
+                  <span lang={bn ? 'bn' : undefined}>{formatPrintQuantity(line.qty,language,line.unitNamesBn)}</span>
+                  {language === 'English + Bangla' && !thermal && formatPrintQuantity(line.qty,'Bangla',line.unitNamesBn)!==line.qty &&
+                    <span data-document-helper="" lang="bn" className="font-bn mt-0.5 block text-[11px] text-ink-600">
+                      {formatPrintQuantity(line.qty,'Bangla',line.unitNamesBn)}
+                    </span>}
+                </td>
                 <td className="p-2 text-right align-top">{n(line.price)}</td>
                 <td className="p-2 text-right align-top">{n(line.total)}</td>
               </tr>
