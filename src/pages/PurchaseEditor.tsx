@@ -1,7 +1,7 @@
 import {businessToday} from '../utils/dateRange';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Keyboard } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, FileImage, Keyboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -45,6 +45,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   const [discountMode, setDiscountMode] = useState<PurchaseDiscountMode>('amount');
   const [photos, setPhotos] = useState<string[]>(()=>initialPurchase?.receipt?[initialPurchase.receipt]:[]);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
+  const [additionalOpen, setAdditionalOpen] = useState(Boolean(initialPurchase?.notes || initialPurchase?.receipt));
   const [error, setError] = useState('');
   const [reviewPurchaseOpen, setReviewPurchaseOpen] = useState(false);
   const [lastAdded, setLastAdded] = useState('');
@@ -204,78 +205,111 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   });
 
   return (
-    <div data-purchase-workspace className="purchase-workspace mx-auto max-w-[1440px] min-w-0 space-y-4 pb-8">
-      {!embedded&&<PageHeader
+    <div data-purchase-workspace className="purchase-workspace mx-auto max-w-[1440px] min-w-0 space-y-3 pb-8">
+      {!embedded && <PageHeader
+        compact
         title="New purchase" titleBn="নতুন ক্রয়"
-        description={purchaseRef + ' · Add products like a POS cart, then choose payment sources.'}
         actions={<>
-          <div className="hidden items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] text-ink-500 md:flex">
+          <div className="hidden items-center gap-2 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-ink-500 lg:flex"
+            aria-label="Purchase keyboard shortcuts">
             <Keyboard className="size-3.5" aria-hidden="true" />
-            {([['F2', 'Search'], ['Enter', 'Next'], ['F8', 'Paid'], ['F9', 'Complete']] as const).map(([key, label]) => (
+            {([['F2', 'Search'], ['Enter', 'Next'], ['F8', 'Paid'], ['F9', 'Review']] as const).map(([key, label]) => (
               <span key={key} className="flex items-center gap-1"><kbd className="rounded border border-ink-200 bg-ink-50 px-1 text-[10px]">{key}</kbd> {label}</span>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/app/purchases')}><ArrowLeft className="size-4" /> Purchases</Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => navigate('/app/purchases')}>
+            <ArrowLeft className="size-4" /> Purchases
+          </Button>
         </>}
       />}
 
-      <div data-purchase-layout className="grid min-w-0 grid-cols-1 items-start gap-4">
-        <div className="min-w-0 space-y-4">
-          <PurchaseCart
-            lines={lines}
-            products={products}
-            searchRef={searchRef}
-            qtyRefs={qtyRefs}
-            smallRefs={smallRefs}
-            costRefs={costRefs}
-            lotPriceRefs={lotPriceRefs}
-            onAdd={addProduct}
-            onCreate={() => setProductDialogOpen(true)}
-            onUpdate={updateLine}
-            onRemove={(id) => setLines((current) => current.filter((line) => line.id !== id))}
-            onCostUnitChange={selectCostUnit}
-          />
-          <section className="rounded-xl border border-border bg-card p-4 shadow-card">
-            <p className="mb-3 text-[13px] font-semibold text-ink">Supplier memo & notes <span className="font-bn text-[11px] font-normal text-ink-400">· রসিদের ছবি</span></p>
-            <label className="mb-3 block text-[12px] font-medium text-ink">Notes
-              <Input className="mt-1" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Delivery, discount or other details (optional)" />
-            </label>
-            <PhotoUploader photos={photos} onChange={setPhotos} max={2} label="Attach" hint="Supplier memo, delivery challan or payment receipt · images for the UI preview" />
-          </section>
-        </div>
-
-        <aside data-purchase-checkout className="min-w-0 space-y-3">
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-      <section className="border-b border-border p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div><p className="text-[13px] font-semibold text-ink">Purchase details</p><p className="font-bn text-[11px] text-ink-400">সরবরাহকারী ও ক্রয়ের তথ্য</p></div>
-          <span className="rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-600">{purchaseRef}</span>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="block min-w-0 text-[12px] font-medium text-ink sm:col-span-2">
-            Supplier <span className="font-bn font-normal text-ink-400">· সরবরাহকারী</span> <span className="text-danger">*</span>
-            <div className="mt-1">
-              {(lockedSupplierId||initialPurchase)?<div className="rounded-md border border-border bg-ink-50 px-3 py-2 text-sm text-ink">
-                {supplier?.name??'Selected supplier'} <span className="text-xs text-ink-500">· Original supplier</span>
-               </div>:<QuickAddSelect label="Supplier" value={supplier?.name ?? ''} options={['Select supplier', ...suppliers.map((party) => party.name)]}
-                onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
-                onCreate={addSupplier} showContact placeholder="Supplier or business name" />}
-            </div>
+      <div data-purchase-layout className="min-w-0 space-y-3">
+        <section data-purchase-details aria-labelledby="purchase-details-title"
+          className="rounded-xl border border-border bg-card px-3 py-3 shadow-card md:px-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 id="purchase-details-title" className="text-[13px] font-semibold text-ink">
+              Supplier & purchase <span className="font-bn text-[11px] font-normal text-ink-500">· সরবরাহকারী ও ক্রয়</span>
+            </h2>
+            <span className="shrink-0 rounded-md bg-ink-50 px-2 py-1 text-[11px] text-ink-600">{purchaseRef}</span>
           </div>
-          <label className="block text-[12px] font-medium text-ink">Purchase date <span className="text-danger">*</span>
-            <Input className="mt-1" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
-          </label>
-          <label className="block text-[12px] font-medium text-ink">Supplier memo no. <span className="font-normal text-ink-400">· optional</span>
-            <Input className="mt-1" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)} placeholder="Supplier bill / challan" />
-          </label>
-          {date && date < todayISO() && (
-            <label className="block text-[12px] font-medium text-ink sm:col-span-2">Backdate reason <span className="text-danger">*</span>
-              <Input className="mt-1" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)} placeholder="Reason for entering an earlier purchase" />
+          <div className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+              <label className="text-[12px] font-medium text-ink" id="purchase-supplier-label">
+                Supplier <span className="font-bn font-normal text-ink-500">· সরবরাহকারী</span> <span className="text-danger">*</span>
+              </label>
+              <div className="mt-1">
+                {(lockedSupplierId || initialPurchase) ?
+                  <div className="flex min-h-9 items-center rounded-md border border-border bg-ink-50 px-3 text-[13px] text-ink">
+                    {supplier?.name ?? 'Selected supplier'} <span className="ml-2 text-[11px] text-ink-500">· Original supplier</span>
+                  </div> :
+                  <QuickAddSelect label="Supplier" value={supplier?.name ?? ''}
+                    options={['Select supplier', ...suppliers.map((party) => party.name)]}
+                    onChange={(value) => setSupplierId(suppliers.find((party) => party.name === value)?.id ?? '')}
+                    onCreate={addSupplier} showContact placeholder="Supplier or business name" />
+                }
+              </div>
+            </div>
+            <label className="block min-w-0 text-[12px] font-medium text-ink">
+              Purchase date <span className="text-danger">*</span>
+              <Input className="mt-1" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
-          )}
-        </div>
-      </section>
+            <label className="block min-w-0 text-[12px] font-medium text-ink">
+              Reference <span className="font-normal text-ink-500">· optional</span>
+              <Input className="mt-1" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)}
+                placeholder="Bill / challan no." />
+            </label>
+            {date && date < todayISO() && (
+              <label className="block min-w-0 text-[12px] font-medium text-ink sm:col-span-2 lg:col-span-3">
+                Backdate reason <span className="text-danger">*</span>
+                <Input className="mt-1" value={backdateReason} onChange={(event) => setBackdateReason(event.target.value)}
+                  placeholder="Reason for entering an earlier purchase" />
+              </label>
+            )}
+          </div>
+        </section>
 
+        <PurchaseCart
+          lines={lines}
+          products={products}
+          searchRef={searchRef}
+          qtyRefs={qtyRefs}
+          smallRefs={smallRefs}
+          costRefs={costRefs}
+          lotPriceRefs={lotPriceRefs}
+          onAdd={addProduct}
+          onCreate={() => setProductDialogOpen(true)}
+          onUpdate={updateLine}
+          onRemove={(id) => setLines((current) => current.filter((line) => line.id !== id))}
+          onCostUnitChange={selectCostUnit}
+        />
+
+        <section data-purchase-additional className="rounded-xl border border-border bg-card shadow-card">
+          <button type="button" onClick={() => setAdditionalOpen((current) => !current)}
+            aria-expanded={additionalOpen} aria-controls="purchase-additional-content"
+            className="flex min-h-12 w-full items-center gap-2 rounded-xl px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 md:px-4">
+            <FileImage className="size-4 shrink-0 text-ink-500" aria-hidden="true" />
+            <span className="min-w-0 flex-1 text-[13px] font-medium text-ink">
+              Additional details <span className="font-bn text-[11px] font-normal text-ink-500">· অতিরিক্ত তথ্য</span>
+            </span>
+            {(notes.trim() || photos.length > 0) && <span className="text-[11px] text-ink-500">
+              {notes.trim() ? 'Notes' : ''}{notes.trim() && photos.length ? ' · ' : ''}{photos.length ? photos.length + ' image' + (photos.length === 1 ? '' : 's') : ''}
+            </span>}
+            {additionalOpen ? <ChevronUp className="size-4 text-ink-500" /> : <ChevronDown className="size-4 text-ink-500" />}
+          </button>
+          {additionalOpen && <div id="purchase-additional-content" className="grid gap-3 border-t border-border px-3 py-3 md:grid-cols-2 md:px-4">
+            <label className="block min-w-0 text-[12px] font-medium text-ink">
+              Notes <span className="font-normal text-ink-500">· optional</span>
+              <Input className="mt-1" value={notes} onChange={(event) => setNotes(event.target.value)}
+                placeholder="Delivery, discount or other details" />
+            </label>
+            <div className="min-w-0">
+              <p className="mb-1 text-[12px] font-medium text-ink">Supplier bill / receipt <span className="font-normal text-ink-500">· optional</span></p>
+              <PhotoUploader photos={photos} onChange={setPhotos} max={2} label="Attach" hint="Challan or payment receipt" />
+            </div>
+          </div>}
+        </section>
+
+        <aside data-purchase-checkout className="min-w-0 space-y-2">
           <PurchasePaymentPanel
             totals={totals}
             itemCount={lines.length}
@@ -286,15 +320,18 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             payments={payments}
             onPayments={setPayments}
             paidRef={paymentAmountRef}
-            actionLabel={initialPurchase?"Review correction":undefined}
+            actionLabel={initialPurchase ? "Review correction" : undefined}
             onComplete={requestReview}
           />
-          </div>
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
-          <div className="flex gap-2">
-            <Button className="flex-1" variant="outline" onClick={() => onCancel?onCancel():navigate('/app/purchases')}>Cancel</Button>
+          <div className="flex items-center justify-between gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => onCancel ? onCancel() : navigate('/app/purchases')}>
+              Cancel
+            </Button>
+            <p className="text-right text-[11px] text-ink-500">
+              Preview only — purchases are kept in this browser session.
+            </p>
           </div>
-          <p className="text-center text-[11px] text-ink-400">UI preview: entries and quick-add records remain in memory until refresh; backend posting is not connected.</p>
         </aside>
       </div>
 
