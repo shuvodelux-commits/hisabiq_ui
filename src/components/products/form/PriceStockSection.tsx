@@ -39,9 +39,8 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
   const stockNow = existing ? existing.stock : 0;
 
   return (
-    <>
-      <section aria-labelledby="pf-price-heading" className="border-t border-border px-4 py-4 md:px-6 md:py-5">
-        <SectionHeading id="pf-price-heading" en="Price" bn="দাম" />
+    <section aria-labelledby="pf-price-heading" className="px-4 pb-4 pt-3 md:px-6 md:pb-4 md:pt-4">
+      <SectionHeading id="pf-price-heading" en="Price & stock" bn="দাম ও স্টক" />
         <div className="pf-pair-money">
           <FormField
             id="pf-buy"
@@ -90,17 +89,14 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
           </FormField>
         </div>
         {x.profit !== null && x.margin !== null && (
-          <p className={'mt-4 text-[13px] font-medium ' + (x.profit < 0 ? 'text-danger' : 'text-ink-600')}>
+          <p className={'mt-2 text-[13px] font-medium ' + (x.profit < 0 ? 'text-danger' : 'text-ink-600')}>
             {x.profit < 0
               ? t(`Below cost: you lose ${taka(-x.profit)}${perUnit}.`, `কেনা দামের নিচে: ${taka(-x.profit)}${perUnit} লোকসান।`)
               : t(`Profit ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}% margin`, `লাভ ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}%`)}
           </p>
         )}
-      </section>
-
       {isStock && (
-        <section aria-labelledby="pf-stock-heading" className="border-t border-border px-4 py-4 md:px-6 md:py-5">
-          <SectionHeading id="pf-stock-heading" en="Stock" bn="স্টক" />
+        <div className="mt-3">
           {isEdit && (
             <p className="mb-4 rounded-lg bg-ink-100 px-3 py-2.5 text-[14px] text-ink-700">
               {t('In stock now:', 'এখন স্টকে:')}{' '}
@@ -158,8 +154,8 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
               />
             </FormField>
           </div>
-        </section>
+        </div>
       )}
-    </>
+    </section>
   );
 }
