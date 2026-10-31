@@ -90,6 +90,7 @@ async function main() {
 
       await page.screenshot({ path: `test-results/add-product-help/${width}-${language.replace(/\W/g, '-')}-${scheme}-compact.png`, fullPage: true });
       await editor.locator('#pf-name').fill('Screenshot layout regression');
+      await editor.locator('#pf-buy').fill('0'); // Explicitly free stock: new required-cost rule.
       await editor.locator('#pf-sell').fill('180');
       await editor.getByRole('button', { name: language === 'Bangla' ? 'পণ্য সংরক্ষণ' : 'Save product', exact: true }).click();
       await page.waitForFunction(() => document.querySelector('#pf-units-button')?.getAttribute('aria-expanded') === 'true');
