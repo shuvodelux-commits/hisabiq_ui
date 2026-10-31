@@ -62,15 +62,25 @@ async function main() {
       assert.equal(await paymentMethods.getByRole('button', { name: preset, exact: true }).count(), 0,
         'preset cash amount button is removed: ' + preset);
     }
+    assert.equal(await noteField.evaluate(node => node.tagName), 'TEXTAREA',
+      'Notes is an accessible multiline textarea, not a single-line input');
+    assert.equal(await additional.getByText('Add receipt', { exact: false }).count(), 1,
+      'receipt section uses its own optional label without a duplicate group heading');
+    assert.equal(await additional.getByText(/Notes & receipt/).count(), 0,
+      'unnecessary Notes & receipt heading remains removed');
     const noteRect = await noteField.boundingBox();
     const attachmentRect = await receiptButton.boundingBox();
-    assert.ok(noteRect && attachmentRect && attachmentRect.x > noteRect.x + noteRect.width - 1 &&
-      Math.abs((noteRect.y + noteRect.height / 2) - (attachmentRect.y + attachmentRect.height / 2)) < 2,
-      'receipt upload is aligned on the Notes input row at annotation 4');
+    assert.ok(noteRect && attachmentRect && attachmentRect.x >= noteRect.x + noteRect.width - 1 &&
+      Math.abs(noteRect.y - attachmentRect.y) <= 2,
+      'textarea and receipt upload top edges align on desktop');
+    assert.ok(Math.abs(noteRect.height - 112) <= 1, 'notes textarea has the approved 112px height');
+    assert.ok(Math.abs(attachmentRect.height - 112) <= 1 &&
+      Math.abs(attachmentRect.width - attachmentRect.height) <= 1,
+      'receipt attachment is a 112px square matching the textarea height');
     assert.equal(await attachmentRow.isVisible(), true, 'notes and receipt remain visible without disclosure');
-    assert.ok((await receiptButton.boundingBox()).height <= 40, 'receipt upload uses a compact control');
-    await noteField.fill('Delivered via challan');
-    assert.equal(await noteField.inputValue(), 'Delivered via challan');
+    await noteField.fill('Delivered via challan\\nCheck receipt number on delivery');
+    assert.equal(await noteField.inputValue(), 'Delivered via challan\\nCheck receipt number on delivery',
+      'notes textarea preserves multiple lines');
     const receiptInput = additional.locator('[data-purchase-receipt] input[type="file"]');
     await receiptInput.setInputFiles({
       name: 'supplier-challan.png',
@@ -78,9 +88,13 @@ async function main() {
       buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==', 'base64'),
     });
     assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 1, 'receipt upload persists a preview');
+    const previewRect = await additional.locator('img[alt="Photo 1"]').boundingBox();
+    assert.ok(previewRect && Math.abs(previewRect.width - previewRect.height) <= 1 &&
+      Math.abs(previewRect.height - 112) <= 1, 'attached receipt thumbnail is a 112px square');
     await additional.getByRole('button', { name: 'Remove photo 1' }).click();
     assert.equal(await additional.locator('img[alt="Photo 1"]').count(), 0, 'receipt can be removed');
-    assert.equal(await noteField.inputValue(), 'Delivered via challan', 'editing receipt does not clear Notes');
+    assert.equal(await noteField.inputValue(), 'Delivered via challan\\nCheck receipt number on delivery',
+      'editing receipt does not clear multiline Notes');
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-methods]').count() === 1);
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-summary]').count() === 1);
     assert.equal(await purchaseRoot.locator('[data-cart-kind="purchase"]').getByText(/product lines?/).count(), 1,
@@ -336,6 +350,13 @@ async function main() {
     await page.screenshot({ path: 'test-results/purchase-hybrid/tablet.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('combobox', { name: 'Search product to add to purchase' }).waitFor();
+    const mobileNotes = page.locator('#purchase-notes');
+    const mobileReceipt = page.getByRole('button', { name: 'Attach supplier bill or receipt' });
+    const mobileNoteRect = await mobileNotes.boundingBox();
+    const mobileReceiptRect = await mobileReceipt.boundingBox();
+    assert.ok(mobileNoteRect && mobileReceiptRect && mobileReceiptRect.y >= mobileNoteRect.y + mobileNoteRect.height,
+      'Notes and square receipt stack on phones instead of squeezing together');
+    assert.ok(Math.abs(mobileReceiptRect.height - mobileReceiptRect.width) <= 1, 'phone receipt remains square');
     const quickRail = page.locator('[data-purchase-quick-items-list]');
     assert.ok(await quickRail.evaluate(node => getComputedStyle(node).overflowX === 'auto'), 'touch quick items use horizontal scrolling');
     assert.equal(await quickRail.evaluate(node => getComputedStyle(node).scrollbarWidth), 'none',
