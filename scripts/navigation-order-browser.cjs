@@ -50,7 +50,7 @@ async function main(){
    await page.goto(base+'/app/accounts?tab=money-accounts',{waitUntil:'domcontentloaded',timeout:15000});
    await page.getByText('Dutch-Bangla Bank · 4582',{exact:true}).waitFor();
    await page.getByRole('button',{name:'Bank Entry'}).first().click();
-   await page.waitForURL(/#\\/app\\/accounts\\?tab=bank-entry&accountId=/);
+   await page.waitForURL(url => url.hash.startsWith('#/app/accounts?tab=bank-entry&accountId='));
    await page.getByRole('button',{name:'Back to Money Accounts'}).click();
    await page.waitForURL('**/#/app/accounts?tab=money-accounts');
    // Legacy bookmarks navigate to the new canonical module instead of disappearing.
