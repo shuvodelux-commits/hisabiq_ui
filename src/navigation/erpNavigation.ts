@@ -44,14 +44,18 @@ export const erpNavigation:readonly ErpNavGroup[]=[
  {id:'expenses',label:'Expenses',bn:'খরচ',icon:Wallet,landingPath:'/app/expenses'},
  {id:'finance',label:'Finance',bn:'টাকা-পয়সা',icon:Landmark,landingPath:'/app/finance',children:[
   {id:'cash',label:'Overview',bn:'সারাংশ',path:'/app/finance'},
-  {id:'money-accounts',label:'Money Accounts',bn:'টাকার হিসাব',path:'/app/finance?tab=accounts'},
-  {id:'finance-counter',label:'Counter',bn:'কাউন্টার',path:'/app/finance?tab=counter'},
   {id:'finance-people',label:'Loans & Owners',bn:'ঋণ ও মালিক',path:'/app/finance?tab=transactions'},
   {id:'cheques',label:'Cheques',bn:'চেক',path:'/app/finance?tab=cheques'},
   {id:'cash-sessions',label:'Cash Sessions',bn:'ক্যাশ সেশন',path:'/app/finance?tab=cash'}
  ]},
  {id:'accounts',label:'Accounts',bn:'হিসাব',icon:FileText,landingPath:'/app/accounts',children:[
-  {id:'accounts-overview',label:'Accounts & Vouchers',bn:'হিসাব ও ভাউচার',path:'/app/accounts'},
+  {id:'accounts-overview',label:'Overview',bn:'সারাংশ',path:'/app/accounts'},
+  {id:'money-accounts',label:'Money Accounts',bn:'টাকার হিসাব',path:'/app/accounts?tab=money-accounts'},
+  {id:'accounts-vouchers',label:'Vouchers',bn:'ভাউচার',path:'/app/accounts?tab=vouchers'},
+  {id:'accounts-ledger',label:'Ledger',bn:'খাতা',path:'/app/accounts?tab=ledger'},
+  {id:'accounts-trial',label:'Trial Balance',bn:'হিসাবের মিল',path:'/app/accounts?tab=trial'},
+  {id:'accounts-statements',label:'Statements',bn:'আর্থিক প্রতিবেদন',path:'/app/accounts?tab=statements'},
+  {id:'accounts-chart',label:'Chart of Accounts',bn:'হিসাবের খাত',path:'/app/accounts?tab=chart'},
   {id:'reconciliation',label:'Reconciliation',bn:'হিসাব মিলানো',path:'/app/reconciliation'},
   {id:'audit',label:'Audit Ledger',bn:'অডিট খাতা',path:'/app/audit-ledger',permission:'money'}
  ]},

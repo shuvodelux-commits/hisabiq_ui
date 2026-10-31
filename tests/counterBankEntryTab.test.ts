@@ -9,7 +9,8 @@ const bank = readFileSync('src/components/accounts/BankEntryTab.tsx', 'utf8');
 test('Counter uses the Accounts BankEntryTab with a Counter-only presentation variant', () => {
   assert.match(counter, /import \{BankEntryTab\} from '\.\.\/accounts\/BankEntryTab';/);
   assert.ok(counter.includes('<BankEntryTab variant="counter" />'));
-  assert.ok(accounts.includes("tab === 'bank-entry' && <BankEntryTab />"));
+  assert.ok(accounts.includes("tab === 'bank-entry' && <div>"));
+  assert.ok(accounts.includes('<BankEntryTab initialAccountId={params.get(\'accountId\') || undefined} />'));
   assert.ok(bank.includes("variant = 'accounts'"));
   assert.ok(bank.includes("const inCounter = variant === 'counter'"));
   assert.ok(bank.includes('recordBankEntry(toBankEntryPayload(draft))'));

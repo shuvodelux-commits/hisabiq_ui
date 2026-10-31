@@ -45,7 +45,7 @@ const demoAccounts: BankAccountOption[] = financeAccounts
 
 const fieldClass = 'block text-[12.5px] font-medium text-ink';
 
-export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 'counter' } = {}) {
+export function BankEntryTab({ variant = 'accounts', initialAccountId }: { variant?: 'accounts' | 'counter'; initialAccountId?: string } = {}) {
   const navigate = useNavigate();
   const inCounter = variant === 'counter';
   const { text, showHelper } = useUiCopy();
@@ -56,7 +56,7 @@ export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [formError, setFormError] = useState('');
-  const [draft, setDraft] = useState<BankEntryDraft>(() => emptyDraft());
+  const [draft, setDraft] = useState<BankEntryDraft>(() => emptyDraft(initialAccountId));
   const [review, setReview] = useState(false);
   const [ledger, setLedger] = useState<BankLedgerEntry[]>([]);
   const [ledgerError, setLedgerError] = useState('');
@@ -97,6 +97,11 @@ export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 
   };
 
   useEffect(() => { void loadBootstrap(); }, []);
+  // Honor an account selected from its Money Accounts card, even after bootstrap.
+  useEffect(() => {
+    if (!initialAccountId || !accounts.some(account => account.id === initialAccountId)) return;
+    setDraft(current => current.bankAccountId === initialAccountId ? current : { ...current, bankAccountId: initialAccountId });
+  }, [initialAccountId, accounts]);
 
   useEffect(() => {
     if (!connected || !draft.bankAccountId) { setLedger([]); return; }

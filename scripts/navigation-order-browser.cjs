@@ -14,7 +14,8 @@ async function main(){
   ['/app/sales',['Sales','Sales return','Return history','Customer credit','Drafts & templates']],
   ['/app/purchases',['Purchases','Purchase return','Return history']],
   ['/app/products',['Product list','Stock lots','Stock history','Product settings']],
-  ['/app/finance',['Overview','Money Accounts','Counter','Loans & Owners','Cheques','Cash Sessions']]
+  ['/app/finance',['Overview','Loans & Owners','Cheques','Cash Sessions']],
+  ['/app/accounts',['Overview','Money Accounts','Vouchers','Ledger','Trial Balance','Statements','Chart of Accounts']]
  ];
  try{
   for(const width of [1440,768,390]){
@@ -45,6 +46,18 @@ async function main(){
     await page.waitForFunction(expected=>location.hash==='#'+expected,destinations[1]);
     assert.ok(page.url().endsWith(destinations[1]),`${route}: tab updates sidebar destination`);
    }
+   // The Accounts card keeps Bank Entry contextual, with a reversible way back.
+   await page.goto(base+'/app/accounts?tab=money-accounts',{waitUntil:'domcontentloaded',timeout:15000});
+   await page.locator('p').filter({hasText:/^Dutch-Bangla Bank · 4582$/}).first().waitFor();
+   await page.getByRole('button',{name:'Bank Entry'}).first().click();
+   await page.waitForURL(url => url.hash.startsWith('#/app/accounts?tab=bank-entry&accountId='));
+   await page.getByRole('button',{name:'Back to Money Accounts'}).click();
+   await page.waitForURL('**/#/app/accounts?tab=money-accounts');
+   // Legacy bookmarks navigate to the new canonical module instead of disappearing.
+   await page.goto(base+'/app/finance?tab=accounts',{waitUntil:'domcontentloaded',timeout:15000});
+   await page.waitForURL('**/#/app/accounts?tab=money-accounts');
+   await page.goto(base+'/app/finance?tab=counter',{waitUntil:'domcontentloaded',timeout:15000});
+   await page.waitForURL('**/#/app/counter');
    // Finance and Accounts expand independently, while Daybook is a direct module.
    await page.goto(base+'/app/daybook',{waitUntil:'domcontentloaded',timeout:15000});
    if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
@@ -59,7 +72,7 @@ async function main(){
    await page.waitForURL('**/#/app/accounts');
    if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
    const accountingNav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
-   assert.equal(await accountingNav.locator('a[href="#/app/accounts"]').getAttribute('aria-current'),'page','Accounts & Vouchers opens beneath Accounts');
+   assert.equal(await accountingNav.locator('a[href="#/app/accounts"]').getAttribute('aria-current'),'page','Accounts Overview opens beneath Accounts');
    assert.equal(await accountingNav.locator('a[href="#/app/daybook"]').count(),1,'Daybook remains outside Accounts as a one-click module');
    if(width<1024)await accountingNav.getByRole('button',{name:'Close navigation'}).click();
    await page.goto(base+'/app/settings/business');

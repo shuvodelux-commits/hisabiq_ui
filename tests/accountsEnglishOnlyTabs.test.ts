@@ -10,17 +10,17 @@ const stripStart = source.indexOf('<MotionTabList');
 const stripEnd = source.indexOf('</MotionTabList>', stripStart);
 const tabStrip = source.slice(stripStart, stripEnd);
 
-test('Accounts & Vouchers tabs have seven English-only labels in their original order', () => {
+test('Accounts tabs have seven English-only labels, with Money Accounts second and Bank Entry contextual', () => {
   assert.ok(navStart >= 0 && stripStart >= 0 && stripEnd > stripStart);
   const labels = [...tabDeclaration.matchAll(/\['([^']+)', '([^']+)'\]/g)].map((match) => [match[1], match[2]]);
   assert.deepEqual(labels, [
     ['overview', 'Overview'],
+    ['money-accounts', 'Money Accounts'],
     ['vouchers', 'Vouchers'],
     ['ledger', 'Ledger'],
     ['trial', 'Trial Balance'],
     ['statements', 'Statements'],
-    ['chart', 'Chart of Accounts'],
-    ['bank-entry', 'Bank Entry']
+    ['chart', 'Chart of Accounts']
   ]);
   assert.doesNotMatch(tabDeclaration, /text\(|[\u0980-\u09FF]/u);
 });
@@ -28,9 +28,9 @@ test('Accounts & Vouchers tabs have seven English-only labels in their original 
 test('only the navigation helper labels are removed, while the existing underline and selection remain', () => {
   assert.match(tabStrip, /tabs\.map\(\(\[id, label\]\) =>/);
   assert.match(tabStrip, /role="tab"/);
-  assert.match(tabStrip, /aria-selected=\{tab === id\}/);
+  assert.match(tabStrip, /aria-selected=\{tab === id \|\| \(tab === 'bank-entry' && id === 'money-accounts'\)\}/);
   assert.match(tabStrip, /onClick=\{\(\) => chooseTab\(id\)\}/);
-  assert.match(tabStrip, /<MotionTabIndicator active=\{tab === id\}/);
+  assert.match(tabStrip, /<MotionTabIndicator active=\{tab === id \|\| \(tab === 'bank-entry' && id === 'money-accounts'\)\}/);
   assert.doesNotMatch(tabStrip, /showHelper|font-bn|\{helper\}|text\(/);
 });
 
