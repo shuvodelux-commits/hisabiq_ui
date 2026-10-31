@@ -31,7 +31,7 @@ export function formatPrintQuantity(
   return raw.replace(tokenPattern, (_original, number: string, unit: string) => {
     const translated = frozenUnitNames === undefined
       ? unitBanglaName(unit)
-      : Object.hasOwn(frozenUnitNames,unit) ? frozenUnitNames[unit] : undefined;
+      : Object.prototype.hasOwnProperty.call(frozenUnitNames, unit) ? frozenUnitNames[unit] : undefined;
     const n = number.replace(/\d/g, digit => banglaDigits[Number(digit)]);
     return n + ' ' + (translated?.trim() || unit);
   });
