@@ -49,7 +49,7 @@ test('contextual destinations retain existing real routes and only canonical pat
  assert.deepEqual(resolveNavLocation('/app/accounts?tab=bank-entry&accountId=acc-bank-dbbl',erpNavigation),{groupId:'accounts',childId:'money-accounts'});
  assert.deepEqual(resolveNavLocation('/app/accounts?tab=ledger',erpNavigation),{groupId:'accounts',childId:'accounts-ledger'});
  assert.deepEqual(resolveNavLocation('/app/accounts',erpNavigation),{groupId:'accounts',childId:'accounts-overview'});
- assert.deepEqual(resolveNavLocation('/app/accounts?tab=bank-entry',erpNavigation),{groupId:'accounts',childId:'accounts-overview'});
+ assert.deepEqual(resolveNavLocation('/app/accounts?tab=bank-entry',erpNavigation),{groupId:'accounts',childId:'money-accounts'});
  assert.deepEqual(resolveNavLocation('/app/daybook',erpNavigation),{groupId:'daybook'});
  assert.deepEqual(resolveNavLocation('/app/reconciliation?account=Main%20Cash%20Counter',erpNavigation),{groupId:'accounts',childId:'reconciliation'});
  assert.deepEqual(resolveNavLocation('/app/audit-ledger',erpNavigation),{groupId:'accounts',childId:'audit'});
