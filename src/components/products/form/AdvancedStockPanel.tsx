@@ -53,8 +53,8 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
         {draft.multiUnit && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
             transition={{ duration: reduce ? 0 : 0.2, ease: EASE }} className="overflow-hidden">
-            <div className="pt-5">
-              <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-600">
+            <div className="pt-4">
+              <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-600">
                 <LayersIcon className="size-4 text-primary" aria-hidden="true" />
                 <span>{t('Smallest stock unit', 'সবচেয়ে ছোট স্টক একক')}</span>
                 <strong className="rounded-md border border-teal-200 bg-accent px-2.5 py-1 font-semibold text-primary">{draft.unit}</strong>
@@ -66,24 +66,26 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                   const unitKey = `levelUnit-${level.id}` as const;
                   const factorKey = `levelFactor-${level.id}` as const;
                   return (
-                    <fieldset data-product-unit-relationship key={level.id} disabled={unitsLocked} className="min-w-0 rounded-xl border border-border bg-card p-3.5 disabled:opacity-75">
+                    <fieldset data-product-unit-relationship key={level.id} disabled={unitsLocked} className="min-w-0 rounded-lg border border-border bg-card p-3 disabled:opacity-75">
                       <legend className="sr-only">{t(`Conversion for ${level.unit || 'larger unit'}`, `${level.unit || 'বড় একক'}-এর রূপান্তর`)}</legend>
-                      <div className="pf-unit-row">
-                        <FormField className="pf-unit-select" id={`pf-${unitKey}`} en="1 larger unit" bn="১টি বড় একক" error={errors[unitKey]}>
+                      <div className="pf-unit-row" data-product-unit-equation>
+                        <span className="pf-unit-one text-[14px] font-semibold text-ink" aria-hidden="true">1</span>
+                        <FormField className="pf-unit-select" id={`pf-${unitKey}`} en="Larger unit" bn="বড় একক" error={errors[unitKey]}>
                           <SearchSelect id={`pf-${unitKey}`} noun={{ en: 'larger unit', bn: 'বড় একক' }} labelledBy={`pf-${unitKey}-label`}
                             describedBy={`pf-${unitKey}-msg`} invalid={Boolean(errors[unitKey])} disabled={unitsLocked}
                             value={level.unit} options={form.units.filter((unit) => (unit.value ?? unit.symbol) === level.unit || !usedUnits.has((unit.value ?? unit.symbol).toLowerCase()))
                               .map((unit) => ({ value: unit.value ?? unit.symbol, label: unit.symbol, meta: unit.name !== unit.symbol ? unit.name : undefined }))}
                             onChange={(value) => form.updateUnitLevel(level.id, 'unit', value)} onCreate={form.createUnit} withSymbol />
                         </FormField>
-                        <FormField className="pf-unit-ratio" id={`pf-${factorKey}`} en="Contains" bn="যার মধ্যে আছে" error={errors[factorKey]}>
+                        <span className="pf-unit-equals text-[17px] font-semibold text-ink-500" aria-hidden="true">=</span>
+                        <FormField className="pf-unit-ratio" id={`pf-${factorKey}`} en="Quantity" bn="পরিমাণ" error={errors[factorKey]}>
                           <QuantityUnitInput id={`pf-${factorKey}`} label={t(`Number of ${smaller || 'smaller units'} in 1 ${level.unit || 'larger unit'}`, `১ ${level.unit || 'বড় একক'}-এ কত ${smaller || 'ছোট একক'}`)}
                             describedBy={`pf-${factorKey}-msg`} invalid={Boolean(errors[factorKey])} value={level.factor}
                             onChange={(value) => form.updateUnitLevel(level.id, 'factor', value)} staticUnit={smaller || '—'} disabled={unitsLocked} />
                         </FormField>
                         <button type="button" disabled={unitsLocked} onClick={() => form.removeUnitLevel(level.id)}
                           aria-label={t(`Remove ${level.unit || 'unit'} level`, `${level.unit || 'একক'} ধাপ মুছুন`)}
-                          title={t('Remove this unit', 'এই একক মুছুন')} className="pf-unit-remove flex size-11 items-center justify-center rounded-md border border-border text-ink-500 transition-colors hover:border-danger/30 hover:bg-danger-bg hover:text-danger disabled:cursor-not-allowed">
+                          title={t('Remove this unit', 'এই একক মুছুন')} className="pf-unit-remove flex size-9 items-center justify-center rounded-md border border-border text-ink-500 transition-colors hover:border-danger/30 hover:bg-danger-bg hover:text-danger disabled:cursor-not-allowed">
                           <Trash2Icon className="size-[18px]" aria-hidden="true" />
                         </button>
                       </div>
@@ -93,11 +95,11 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                 {errors.unitChain && <p role="alert" className="text-[13px] text-danger">{t(errors.unitChain.en, errors.unitChain.bn)}</p>}
               </div>
               <button type="button" disabled={unitsLocked} onClick={form.addUnitLevel}
-                className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-teal-300 px-3 py-2.5 text-[14px] font-semibold text-primary transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50">
+                className="mt-3 flex min-h-9 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-teal-300 px-3 py-2.5 text-[14px] font-semibold text-primary transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50">
                 <PlusIcon className="size-4" aria-hidden="true" />{t('Add another unit', 'আরেকটি একক যোগ করুন')}
               </button>
               {x.units.length > 1 && (
-                <div className="mt-4 rounded-xl border border-teal-200 bg-accent p-4" aria-live="polite">
+                <div className="mt-3 rounded-lg border border-teal-200 bg-accent p-3" aria-live="polite">
                   <div className="space-y-1 text-[14px] text-ink">
                     {draft.unitLevels.filter((level) => x.factors[level.unit]).map((level) => (
                       <p key={level.id}>1 {level.unit} = <strong className="font-semibold">{fmtQty(x.factors[level.unit])} {draft.unit}</strong></p>
@@ -107,7 +109,7 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
 
                 </div>
               )}
-              <FormField id="pf-view" en="Preferred stock unit" bn="স্টক দেখানোর একক" className="mt-5"
+              <FormField id="pf-view" en="Preferred stock unit" bn="স্টক দেখানোর একক" className="mt-4"
                 help={t('Used for stock display and the default unit in POS.', 'স্টক দেখাতে ও POS-এর ডিফল্ট একক।')}>
                 <SearchSelect id="pf-view" noun={{ en: 'stock display unit', bn: 'স্টক দেখানোর একক' }} labelledBy="pf-view-label"
                   value={x.viewUnit} options={x.units.map((unit) => ({ value: unit, label: unit }))} onChange={(next) => set('stockViewUnit', next)} />
