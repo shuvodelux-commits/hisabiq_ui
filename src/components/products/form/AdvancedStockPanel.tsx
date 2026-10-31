@@ -21,15 +21,14 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
   const [confirmSingle, setConfirmSingle] = useState(false);
   const { draft, set, errors, derived: x, unitsLocked } = form;
   const largest = x.units[x.units.length - 1];
-  const summary = draft.multiUnit
-    ? [...x.units].reverse().join(' → ')
-    : t(`Single unit (${draft.unit}). Add larger units only when you need them.`, `একটি একক (${draft.unit})। দরকার হলে বড় একক যোগ করুন।`);
+  const summary = draft.multiUnit ? [...x.units].reverse().join(' → ') : undefined;
   const errorCount = form.errorList.filter((key) => errorSection(key) === 'advanced').length;
   const usedUnits = new Set([draft.unit, ...draft.unitLevels.map((level) => level.unit)].map((unit) => unit.toLowerCase()));
   const priceErrors = form.errorList.some((key) => key.startsWith('levelPrice-') || key.startsWith('levelPurchase-') || key === 'basePrice' || key === 'basePurchasePrice');
 
   return (
     <Disclosure id="pf-advanced" en="Advanced stock" bn="উন্নত স্টক" summary={summary}
+      help={t(`Stock uses ${draft.unit}. Add larger units only when you need them.`, `স্টক ${draft.unit}-এ গোনা হয়। দরকার হলে বড় একক যোগ করুন।`)}
       open={form.advancedOpen} onToggle={() => form.setAdvancedOpen(!form.advancedOpen)} errorCount={errorCount}>
       {unitsLocked && (
         <p className="mb-4 flex items-start gap-2 rounded-lg bg-ink-100 p-3 text-[13px] text-ink-700">
