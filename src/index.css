@@ -586,16 +586,33 @@
 :root {
   --erp-control-height: 36px;
   --erp-workflow-action-height: 48px;
+  --erp-control-radius: 0.375rem;
   --erp-input-font-size: 13px;
   --erp-input-line-height: 20px;
   --erp-input-font-weight: 400;
+}
+/* One inherited token, one button rule and one field rule, including portals
+   and legacy controls. Internal joined editors keep their square seams. */
+:root :is(button, [role="button"], .hisabiq-button, input[type="button"], input[type="submit"], input[type="reset"]):not(:where([role="switch"], [role="checkbox"], [role="radio"], [data-numeric-joined] [data-hisabiq-select])) {
+  border-radius: var(--erp-control-radius) !important;
+}
+:root :is(
+  input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not(.numeric-input-control):not(:where([data-numeric-joined] input, [data-numeric-input] input, [data-slot="input-group"] input)),
+  textarea,
+  select:not(:where([data-numeric-joined] select)),
+  [role="combobox"]:not(:where([data-numeric-joined] [role="combobox"])),
+  [data-hisabiq-numeric]:not(:where([data-numeric-joined] [data-hisabiq-numeric])),
+  [data-hisabiq-field-shell],
+  [data-numeric-joined],
+  [data-slot="input-group"]
+) {
+  border-radius: var(--erp-control-radius) !important;
 }
 :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"])
 .hisabiq-button {
   height: var(--erp-control-height) !important;
   min-height: var(--erp-control-height) !important;
   max-height: var(--erp-control-height);
-  border-radius: 0.625rem;
   padding-inline: max(0.75rem, 10px);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
@@ -678,7 +695,6 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   :where(.erp-workspace, [data-dialog-root], .erp-settings, .hisabiq-app, [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [role="dialog"]) textarea
 ) {
   border-color: var(--border);
-  border-radius: 0.5rem;
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 /* Real text input: focus on click and keyboard, with just one mint halo. */
