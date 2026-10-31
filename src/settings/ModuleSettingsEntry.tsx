@@ -82,7 +82,7 @@ export function ModuleSettingsEntry({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ModuleSettingsToolbarContext.Provider value={settingsAction}>
+    <ModuleSettingsToolbarContext.Provider value={moduleOpen ? null : settingsAction}>
       <div hidden={moduleOpen}>{children}</div>
       {moduleOpen && (
         <section id="module-settings-content" aria-label={`${mod.label} settings`}>
