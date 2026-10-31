@@ -13,12 +13,23 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
   const { draft, set, errors } = form;
   const isStock = draft.kind === 'Stock';
   const errorCount = ['warrantyDuration', 'openingSerials', 'expiryDate'].filter((key) => errors[key as keyof typeof errors]).length;
+  const configured = [
+    draft.warrantyEnabled ? t('Warranty on', 'ওয়ারেন্টি চালু') : null,
+    isStock && draft.serialTracking !== 'Off' ? t('Serial on', 'সিরিয়াল চালু') : null,
+    isStock && draft.expiryEnabled ? t('Expiry on', 'মেয়াদ চালু') : null,
+    draft.barcode.trim() ? t('Barcode', 'বারকোড') : null,
+    draft.photos.length ? t('Photos', 'ছবি') : null
+  ].filter(Boolean);
+  const status = configured.length === 1
+    ? configured[0]
+    : configured.length > 1 ? t(`${configured.length} active`, `${configured.length}টি চালু`) : undefined;
 
   return (
     <Disclosure
       id="pf-other"
       en="Other options"
       bn="অন্যান্য অপশন"
+      status={status}
       help={isStock ? t('Warranty, serial numbers, expiry, barcode and photos.', 'ওয়ারেন্টি, সিরিয়াল, মেয়াদ, বারকোড ও ছবি।') : t('Warranty, barcode and photos.', 'ওয়ারেন্টি, বারকোড ও ছবি।')}
       open={form.otherOpen}
       onToggle={() => form.setOtherOpen(!form.otherOpen)}
