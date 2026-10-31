@@ -25,7 +25,7 @@ export function Disclosure({ id, en, bn, icon: Icon, summary, help, status, open
   const { t, isBangla, showHelper } = useFormCopy();
   const reduce = useReducedMotion();
   return (
-    <section data-product-settings-row={id} aria-labelledby={`${id}-button`} className="min-w-0">
+    <section data-product-settings-row={id} aria-labelledby={`${id}-button`} className={`min-w-0 ${Icon ? 'border-b border-border/70' : ''}`}>
       <h3 className="m-0">
         <button
           id={`${id}-button`}
