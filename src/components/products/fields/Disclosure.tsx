@@ -22,7 +22,7 @@ type DisclosureProps = {
 const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
 export function Disclosure({ id, en, bn, icon: Icon, summary, help, status, open, onToggle, errorCount = 0, children }: DisclosureProps) {
-  const { t, isBangla } = useFormCopy();
+  const { t, isBangla, showHelper } = useFormCopy();
   const reduce = useReducedMotion();
   return (
     <section data-product-settings-row={id} aria-labelledby={`${id}-button`} className="min-w-0">
@@ -38,7 +38,7 @@ export function Disclosure({ id, en, bn, icon: Icon, summary, help, status, open
           {Icon && <Icon className="size-[18px] shrink-0 text-ink-500" strokeWidth={1.8} aria-hidden="true" />}
           <span className="min-w-0 flex-1">
             <span className={`block text-[13px] font-medium leading-[19px] text-ink ${isBangla ? 'font-bn' : ''}`}>{t(en, bn)}</span>
-            {!isBangla && <span className="block font-bn text-[11px] leading-4 text-ink-500">{bn}</span>}
+            {showHelper && !isBangla && <span className="block font-bn text-[11px] leading-4 text-ink-500">{bn}</span>}
             {summary && <span className="mt-1 block text-[12px] font-normal text-ink-500">{summary}</span>}
           </span>
           {errorCount > 0 && (
