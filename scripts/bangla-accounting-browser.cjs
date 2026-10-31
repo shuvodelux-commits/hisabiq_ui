@@ -28,7 +28,7 @@ async function main(){
     ]);
     await page.getByRole('tab',{name:'Money Accounts',exact:true}).click();
     await page.getByText('Main Cash Counter',{exact:true}).waitFor();
-    await page.getByText('Dutch-Bangla Bank · 4582',{exact:true}).waitFor();
+    await page.locator('p').filter({hasText:/^Dutch-Bangla Bank · 4582$/}).first().waitFor();
     const tab=page.getByRole('tab',{name:'Statements',exact:true});
     await tab.click();
     await page.getByText(bn?'লাভ-ক্ষতি':'Profit & Loss',{exact:true}).first().waitFor();
