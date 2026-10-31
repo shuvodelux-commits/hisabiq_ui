@@ -168,7 +168,7 @@ export function PurchaseCart({
                         onChange={(event) => onUpdate(line.id, { lotSellPrice: event.target.value.replace(/[^\d.]/g, '') })}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); searchRef.current?.focus(); } }}
                       />
-                      <span data-table-helper="" aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 max-w-10 -translate-y-1/2 truncate text-[10px] text-ink-500">{unitSymbol(line.lotSellUnit)}</span>
+                      <span data-table-helper="" data-purchase-lot-sale-unit aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 max-w-10 -translate-y-1/2 truncate text-[10px] text-ink-500">{unitSymbol(line.lotSellUnit)}</span>
                     </div></div>
                     <span data-cart-field="Total · মোট" data-purchase-line-total className="block w-full min-w-0 justify-self-end whitespace-nowrap text-right text-[13px] font-semibold text-ink">{taka(lineAmount(line))}</span>
                     <button type="button" aria-label={'Remove ' + product.name} onClick={() => onRemove(line.id)}
