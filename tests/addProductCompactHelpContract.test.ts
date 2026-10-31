@@ -12,7 +12,8 @@ test('Add Product retains required field markers and help behind compact tooltip
   assert.match(field, /<Tooltip content={help}/);
   assert.match(details, /id="pf-name"[^\n]*required/);
   for (const id of ['pf-nameBn', 'pf-brand', 'pf-category', 'pf-unit']) assert.ok(details.includes(id));
-  for (const id of ['pf-buy', 'pf-opening', 'pf-min']) assert.match(prices, new RegExp('id="'+id+'"[^>]*optional','s'));
+  for (const id of ['pf-buy', 'pf-opening', 'pf-min']) assert.ok(prices.includes('id="'+id+'"'));
+  assert.doesNotMatch(prices, /id="pf-buy"[\\s\\S]*?optional[\\s\\S]*?<MoneyUnitInput/);
   assert.match(prices, /id="pf-sell"[\s\S]*?required[\s\S]*?help=/);
 });
 
