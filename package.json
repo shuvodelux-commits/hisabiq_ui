@@ -19,6 +19,7 @@
     "test:sidebar-target-size": "node scripts/deep-sidebar-target-size-browser.cjs",
     "test:saas": "node scripts/saas-browser.cjs",
     "test:settings": "node scripts/settings-browser.cjs",
+    "test:module-settings-toolbar": "node scripts/module-settings-toolbar-browser.cjs",
     "test:settings-redesign": "node scripts/settings-redesign-browser.cjs",
     "test:settings-library": "node scripts/settings-library-browser.cjs",
     "test:settings-responsive": "node scripts/settings-responsive-browser.cjs",

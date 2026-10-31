@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ModuleSettingsToolbarContext } from './ModuleSettingsToolbarContext';
 import { useLocation } from "react-router-dom";
 import { Settings2, ArrowLeft } from "lucide-react";
 import { Button } from "../components/Button";
@@ -28,56 +29,60 @@ const modules: Record<
   quotations: { label: "Quotations", section: "invoices" },
   "online-sales": { label: "Online sales", section: "sales" },
 };
-export function ModuleSettingsEntry({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+
+export function ModuleSettingsEntry({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { text } = useUiCopy();
   const [moduleOpen, setOpen] = useState(false);
+  const backButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => setOpen(false), [location.pathname]);
+  useEffect(() => {
+    if (moduleOpen) backButtonRef.current?.focus();
+  }, [moduleOpen]);
+
   const mod = modules[location.pathname.split("/")[2]];
   if (!mod) return <>{children}</>;
+
+  const closeModuleSettings = () => {
+    const blocked = document.querySelector("[data-settings-dirty=true]");
+    if (
+      blocked &&
+      !window.confirm(
+        text(
+          "Discard unsaved module settings?",
+          "সেটিংসের পরিবর্তন বাদ দেবেন?",
+        ),
+      )
+    ) return;
+    setOpen(false);
+  };
+
+  const settingsAction = (
+    <Button
+      variant="outline"
+      size="sm"
+      aria-label={text("Settings", "সেটিংস")}
+      aria-expanded={moduleOpen}
+      aria-controls="module-settings-content"
+      onClick={() => setOpen(true)}
+    >
+      <Settings2 className="size-4" aria-hidden="true" />
+      <span className="hidden sm:inline">{text("Settings", "সেটিংস")}</span>
+    </Button>
+  );
+
   return (
-    <>
-      <div className="mb-3 flex items-center justify-end gap-2">
-        {moduleOpen && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              const blocked = document.querySelector(
-                "[data-settings-dirty=true]",
-              );
-              if (
-                blocked &&
-                !window.confirm(
-                  text(
-                    "Discard unsaved module settings?",
-                    "সেটিংসের পরিবর্তন বাদ দেবেন?",
-                  ),
-                )
-              )
-                return;
-              setOpen(false);
-            }}
-          >
-            <ArrowLeft className="size-4" />
-            {text("Back to", "ফিরুন")} {mod.label}
-          </Button>
-        )}
-        <Button
-          variant="ghost"
-          aria-expanded={moduleOpen}
-          onClick={() => setOpen(true)}
-        >
-          <Settings2 className="size-4" />
-          {text("Settings", "সেটিংস")}
-        </Button>
-      </div>
+    <ModuleSettingsToolbarContext.Provider value={moduleOpen ? null : settingsAction}>
       <div hidden={moduleOpen}>{children}</div>
       {moduleOpen && (
-        <section aria-label={`${mod.label} settings`}>
+        <section id="module-settings-content" aria-label={`${mod.label} settings`}>
+          <div className="mb-3 flex items-center">
+            <Button ref={backButtonRef} variant="outline" size="sm" onClick={closeModuleSettings}>
+              <ArrowLeft className="size-4" aria-hidden="true" />
+              {text("Back to", "ফিরুন")} {mod.label}
+            </Button>
+          </div>
           <SettingsPageContent
             key={location.pathname}
             sectionOverride={mod.section}
@@ -85,6 +90,6 @@ export function ModuleSettingsEntry({
           />
         </section>
       )}
-    </>
+    </ModuleSettingsToolbarContext.Provider>
   );
 }
