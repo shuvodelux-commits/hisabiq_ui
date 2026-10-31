@@ -1,7 +1,7 @@
 import {businessToday} from '../utils/dateRange';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronUp, FileImage, Keyboard } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, FileImage, Keyboard, Save, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -10,6 +10,9 @@ import { QuickAddSelect } from '../components/QuickAddSelect';
 import { PhotoUploader } from '../components/products/PhotoUploader';
 import { AddProductDialog, type ProductOpeningMeta } from '../components/products/AddProductDialog';
 import { PurchaseCart } from '../components/purchases/PurchaseCart';
+import { PurchaseDraftsMenu } from '../components/purchases/PurchaseDraftsMenu';
+import { getPurchaseDrafts, subscribePurchaseDrafts, savePurchaseDraft, deletePurchaseDraft, type PurchaseDraft, type PurchaseDraftInput } from '../data/purchaseDraftsPreviewStore';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
 import { TransactionReviewDialog } from '../components/TransactionReviewDialog';
 import { PurchasePaymentPanel, makePurchasePaymentRow, type PurchasePaymentRow } from '../components/purchases/PurchasePaymentPanel';
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
@@ -48,6 +51,13 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   const [additionalOpen, setAdditionalOpen] = useState(Boolean(initialPurchase?.notes || initialPurchase?.receipt));
   const [error, setError] = useState('');
   const [reviewPurchaseOpen, setReviewPurchaseOpen] = useState(false);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [pendingDraft, setPendingDraft] = useState<PurchaseDraft | null>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const savedSignature = useRef('');
+  const allDrafts = useSyncExternalStore(subscribePurchaseDrafts, getPurchaseDrafts, getPurchaseDrafts);
+  const draftEnabled = !embedded && !initialPurchase && !lockedSupplierId && !onSaveSource;
+  const drafts = allDrafts.filter(d => d.tenantId === settingsState.tenantId);
   const [lastAdded, setLastAdded] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -62,6 +72,73 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   const totals = calculatePurchaseCheckout(subtotal, discount, discountMode, initialPurchase?.roundingRule??settingsState.sections.sales.rounding, payments);
   const { total, due, excess } = totals;
   const paid = totals.paidNum;
+
+  const draftValues: PurchaseDraftInput = {
+    tenantId: settingsState.tenantId,
+    supplierId, supplierName: supplier?.name ?? '', date, backdateReason,
+    referenceNo, notes, lines, payments, discount, discountMode, photos, total,
+  };
+  const draftSignature = JSON.stringify(draftValues);
+  const hasDraftContent = Boolean(supplierId || lines.length || referenceNo.trim() || notes.trim() || photos.length ||
+    payments.some(payment => Number(payment.amount) > 0));
+  const unsavedDraft = draftEnabled && hasDraftContent && draftSignature !== savedSignature.current;
+
+  const saveDraft = (): boolean => {
+    if (!draftEnabled || !hasDraftContent) return false;
+    try {
+      const draft = savePurchaseDraft(draftValues, activeDraftId);
+      setActiveDraftId(draft.id);
+      savedSignature.current = draftSignature;
+      toast.success('Purchase draft saved', { description: 'No stock, supplier due or cash was posted.' });
+      return true;
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Unable to save draft.');
+      return false;
+    }
+  };
+  const applyDraft = (draft: PurchaseDraft) => {
+    if (draft.tenantId !== settingsState.tenantId) return;
+    setSupplierId(draft.supplierId);
+    setDate(draft.date);
+    setBackdateReason(draft.backdateReason);
+    setReferenceNo(draft.referenceNo);
+    setNotes(draft.notes);
+    setLines(structuredClone(draft.lines));
+    setPayments(structuredClone(draft.payments));
+    setDiscount(draft.discount);
+    setDiscountMode(draft.discountMode);
+    setPhotos(structuredClone(draft.photos));
+    setAdditionalOpen(Boolean(draft.notes || draft.photos.length));
+    setActiveDraftId(draft.id);
+    savedSignature.current = JSON.stringify({
+      tenantId: draft.tenantId, supplierId: draft.supplierId, supplierName: draft.supplierName,
+      date: draft.date, backdateReason: draft.backdateReason, referenceNo: draft.referenceNo,
+      notes: draft.notes, lines: draft.lines, payments: draft.payments, discount: draft.discount,
+      discountMode: draft.discountMode, photos: draft.photos, total: draft.total,
+    });
+    setLastAdded('');
+    setError('');
+    setReviewPurchaseOpen(false);
+    toast.success('Purchase draft resumed');
+  };
+  const resumeDraft = (draft: PurchaseDraft) => {
+    if (unsavedDraft && activeDraftId !== draft.id) setPendingDraft(draft);
+    else applyDraft(draft);
+  };
+  const exitEditor = () => {
+    if (onCancel) onCancel();
+    else navigate('/app/purchases');
+  };
+  const requestExit = () => {
+    if (unsavedDraft) setLeaveOpen(true);
+    else exitEditor();
+  };
+  useEffect(() => {
+    if (!unsavedDraft) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [unsavedDraft]);
 
   useEffect(() => {
     if (!lastAdded) return;
@@ -170,6 +247,8 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
     };
     if(onSaveSource){onSaveSource(purchase);return;}
     try{createPreviewPurchase(purchase);}catch(e){setError(e instanceof Error?e.message:"Invalid purchase.");return;}
+    if (activeDraftId) deletePurchaseDraft(activeDraftId);
+    savedSignature.current = draftSignature;
     toast.success(purchase.ref + ' saved', { description: due > 0 ? taka(due) + ' payable to ' + supplier.name : 'Fully paid' });
     if(onCompleted)onCompleted(purchase);
     else navigate('/app/purchases');
@@ -217,7 +296,9 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
               <span key={key} className="flex items-center gap-1"><kbd className="rounded border border-ink-200 bg-ink-50 px-1 text-[10px]">{key}</kbd> {label}</span>
             ))}
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={() => navigate('/app/purchases')}>
+          {draftEnabled && <PurchaseDraftsMenu drafts={drafts} onResume={resumeDraft}
+            onDelete={id => { deletePurchaseDraft(id); if (activeDraftId === id) { setActiveDraftId(null); savedSignature.current = ''; } }} />}
+          <Button type="button" variant="outline" size="sm" onClick={requestExit}>
             <ArrowLeft className="size-4" /> Purchases
           </Button>
         </>}
@@ -321,20 +402,58 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             onPayments={setPayments}
             paidRef={paymentAmountRef}
             actionLabel={initialPurchase ? "Review correction" : undefined}
+            hideAction
             onComplete={requestReview}
           />
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
-          <div className="flex items-center justify-between gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => onCancel ? onCancel() : navigate('/app/purchases')}>
+          <div data-purchase-review-actions className="flex flex-wrap items-center justify-end gap-2 border-t border-border py-3">
+            <Button type="button" variant="ghost" size="sm" onClick={requestExit}
+              className="mr-auto h-10 text-[12px] text-ink-500">
               Cancel
             </Button>
-            <p className="text-right text-[11px] text-ink-500">
-              Preview only — purchases are kept in this browser session.
-            </p>
+            {draftEnabled && <Button type="button" data-purchase-save-draft variant="outline"
+              disabled={!hasDraftContent} onClick={saveDraft}
+              className="h-10 rounded-full px-4 text-[13px] font-medium">
+              <Save className="size-4" aria-hidden="true"/> Save draft
+            </Button>}
+            <Button type="button" data-erp-workflow-action="complete"
+              disabled={total <= 0 || excess > 0} onClick={requestReview}
+              className="h-10 rounded-full bg-ink px-4 text-[13px] font-medium text-white hover:bg-ink/90">
+              {initialPurchase ? 'Review correction' : 'Review purchase'}
+              <ArrowRight className="size-4" aria-hidden="true"/>
+            </Button>
           </div>
+          <p className="text-right text-[11px] text-ink-500">
+            Preview only · Drafts remain in this session until refresh.
+          </p>
         </aside>
       </div>
 
+      <Dialog open={!!pendingDraft} onOpenChange={value => { if (!value) setPendingDraft(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Resume another draft?</DialogTitle>
+            <DialogDescription>Unsaved changes in this Purchase will be replaced. Save this draft first to keep them.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setPendingDraft(null)}>Stay here</Button>
+            <Button type="button" onClick={() => { if (pendingDraft) applyDraft(pendingDraft); setPendingDraft(null); }}>Discard changes & resume</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Leave this purchase?</DialogTitle>
+            <DialogDescription>Save an unfinished purchase as a draft, or discard your changes.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setLeaveOpen(false)}>Stay here</Button>
+            <Button type="button" variant="outline" onClick={() => { setLeaveOpen(false); exitEditor(); }}>Discard</Button>
+            <Button type="button" onClick={() => { if (saveDraft()) { setLeaveOpen(false); exitEditor(); } }}>Save draft & leave</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <TransactionReviewDialog open={reviewPurchaseOpen} onClose={() => setReviewPurchaseOpen(false)}
         onConfirm={() => {setReviewPurchaseOpen(false);save();}}
         title={initialPurchase ? 'Review purchase correction' : 'Review purchase'} amount={total}
