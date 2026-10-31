@@ -14,6 +14,7 @@ import {businessToday} from '../../utils/dateRange';
 import {counterOpenInvoices,counterAllocateOldest} from '../../utils/counterAllocation';
 import {counterExpensePayment} from '../../utils/counterExpensePayment';
 import {AmountInWordsDisplay} from '../AmountInWordsDisplay';
+import {BankEntryTab} from '../accounts/BankEntryTab';
 import {taka} from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeAccountOptionLabel, type FinanceAccount} from '../../data/financeAccounts';
@@ -35,6 +36,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
  const {text,word}=useUiCopy();
  const state=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
  const [type,setType]=useState<Action>('Customer Receive');
+ const [bankEntrySelected,setBankEntrySelected]=useState(false);
  const [partyId,setPartyId]=useState('');
  const [search,setSearch]=useState('');
  const [searching,setSearching]=useState(false);
@@ -92,7 +94,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
   setRows([]);setAmount('');setDiscountInput('');setDiscountReason('');
   setNote('');setError('');setReview(false);setSubmitted(false);
  };
- const changeType=(next:Action)=>{setType(next);reset();};
+ const changeType=(next:Action)=>{setBankEntrySelected(false);setType(next);reset();};
  const clearParty=()=>{setPartyId('');setSearch('');setAllocation('');setRows([]);
   setDiscountInput('');setDiscountReason('');setError('');setReview(false);setSubmitted(false);setSearching(true);};
  const selectParty=(p:Party,preserveDraft=false)=>{if(p.id!==partyId&&!preserveDraft){setRows([]);setDiscountInput('');setDiscountReason('');}
@@ -186,20 +188,28 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
  };
  const highlight=(value:number)=>value===0?'text-ink':payerRole==='Supplier'?(value<0?'text-danger':'text-success'):(value>0?'text-danger':'text-success');
  return <section className="space-y-4 p-3 sm:p-4">
-  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" role="group" aria-label="Counter actions">
-   {kinds.map(item=><button type="button" key={item} aria-pressed={type===item} onClick={()=>changeType(item)}
+  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6" role="group" aria-label="Counter actions">
+   {kinds.map(item=><button type="button" key={item} aria-pressed={!bankEntrySelected&&type===item} onClick={()=>changeType(item)}
     className={'min-h-14 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
-     (type===item?'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground':'border-border bg-card text-ink hover:bg-ink-50')}>
+     (!bankEntrySelected&&type===item?'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground':'border-border bg-card text-ink hover:bg-ink-50')}>
     <span className="block text-[13px] font-semibold">{text(item,banglaActions[item])}</span>
     <span className="text-[11px] text-ink-500">{item==='Customer Receive'?word('customerMoney'):item==='Supplier Pay'?word('supplierPayment'):item==='Expense'?word('quickExpense'):word('betweenAccounts')}</span>
    </button>)}
-   <button type="button" aria-haspopup="dialog" onClick={onNewFinanceTransaction}
-    className="col-span-2 min-h-14 rounded-xl border border-border bg-card px-3 py-2 text-left text-ink transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring sm:col-span-1">
+   <button type="button" aria-pressed={bankEntrySelected} onClick={()=>{setBankEntrySelected(true);setReview(false);setQuickAddOpen(false);}}
+     className={'min-h-14 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
+      (bankEntrySelected?'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground':'border-border bg-card text-ink hover:bg-ink-50')}>
+     <span className="block text-[13px] font-semibold">{text('Bank Entry','ব্যাংক এন্ট্রি')}</span>
+     <span className="text-[11px] text-ink-500">{text('Charges · interest · adjustments','চার্জ · সুদ · সংশোধন')}</span>
+    </button>
+    <button type="button" aria-haspopup="dialog" onClick={onNewFinanceTransaction}
+    className="min-h-14 rounded-xl border border-border bg-card px-3 py-2 text-left text-ink transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
     <span className="block text-[13px] font-semibold">{text('Finance transaction','মালিক ও ঋণের টাকা')}</span>
     <span className="text-[11px] text-ink-500">{text('Owner · Lender · Borrower','মালিক · ঋণদাতা · ঋণগ্রহীতা')}</span>
    </button>
   </div>
-  <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
+  {bankEntrySelected
+    ? <div role="region" aria-label={text('Bank Entry','ব্যাংক এন্ট্রি')}><BankEntryTab /></div>
+    : <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
    <div className="min-w-0 space-y-4">
     {(type==='Customer Receive'||type==='Supplier Pay')&&<div className="rounded-xl border border-border bg-card p-4"
      onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setSearching(false);}}
@@ -334,7 +344,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
     {error&&<p role="alert" className="mt-3 rounded-lg border border-danger/30 bg-danger-bg p-3 text-xs text-danger">{error}</p>}
     <Button className="mt-4 w-full" onClick={beginReview} disabled={type==='Bank Transfer'||type==='Expense'?total<=0:dueReduction<=0}>{text('Review '+names[type].toLowerCase(), 'যাচাই করুন: '+banglaActions[type])}</Button>
    </aside>
-  </div>
+  </div>}
   <Dialog open={review} onOpenChange={setReview}>
    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
     <DialogHeader><DialogTitle>{text('Confirm '+names[type].toLowerCase(),'নিশ্চিত করুন: '+banglaActions[type])}</DialogTitle>
