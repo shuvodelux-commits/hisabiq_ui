@@ -1,5 +1,5 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
-import { useModuleSettingsAction } from '../settings/ModuleSettingsEntry';
+import { useModuleSettingsAction } from '../settings/ModuleSettingsToolbarContext';
 import { uiText } from '../i18n/uiCopy';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
