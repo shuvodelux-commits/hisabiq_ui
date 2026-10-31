@@ -24,7 +24,7 @@ import { availableParties, availableProducts, availableStockLots, availablePurch
 import type { Party, PaymentSplit, Product, Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { duplicateSerials, normalizeSerials, requiredSerialCount } from '../utils/productFeatures';
-import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, lotBaseSellPrice, makePurchaseLine, switchPurchaseUnit, type PurchaseCartLine } from '../utils/purchaseCart';
+import { amountOf, rounded, baseQty, baseCost, lineAmount, describeQty, enteredLotBaseSellPrice, makePurchaseLine, switchPurchaseUnit, type PurchaseCartLine } from '../utils/purchaseCart';
 import {purchaseSupplierGuard} from '../utils/purchaseSupplierGuard';
 
 type Line = PurchaseCartLine;
@@ -189,7 +189,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
     if (lines.length === 0) return 'Add at least one product to the cart.';
     if (lines.some((line) => baseQty(line) <= 0)) return 'All purchase products need a quantity greater than zero.';
     if (lines.some((line) => !Number.isFinite(Number(line.cost)) || Number(line.cost) <= 0)) return 'Enter a valid purchase cost for every product.';
-    if (lines.some((line) => !(lotBaseSellPrice(line) > 0))) return 'Enter a valid lot selling price for every product.';
+    if (lines.some((line) => line.lotSellPrice.trim() && !(enteredLotBaseSellPrice(line)! > 0))) return 'Enter a valid positive lot selling price, or leave it blank to use the product price.';
     if (excess > 0) return 'Payments exceed the purchase total by ' + taka(excess) + '.';
 
     const existingSerials = [
@@ -236,7 +236,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
       inventoryLines: lines.map((line) => ({
         productId: line.product.id, quantity: baseQty(line),
         unitCost: baseCost(line),
-        lotSellingPrice: lotBaseSellPrice(line),
+        lotSellingPrice: enteredLotBaseSellPrice(line),
         serials: normalizeSerials(line.serialText).length ? normalizeSerials(line.serialText) : undefined,
         batchNumber: line.batchNumber.trim() || undefined,
         manufactureDate: line.manufactureDate || undefined,

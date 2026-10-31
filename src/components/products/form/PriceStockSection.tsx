@@ -1,5 +1,6 @@
 import { MoneyUnitInput, QuantityUnitInput } from '../../MoneyUnitInput';
 import { FormField } from '../fields/FormField';
+import { ToggleRow } from '../fields/ToggleRow';
 import { Tooltip } from '../../Tooltip';
 import { SectionHeading } from '../fields/SectionHeading';
 import { useFormCopy } from '../../../hooks/useFormCopy';
@@ -95,9 +96,25 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
             />
           </FormField>
         </div>
+        {isEdit && isStock && (
+          <div className="mt-4 rounded-lg border border-border bg-ink-50/50 p-3">
+            <ToggleRow
+              id="pf-default-price-all-lots"
+              en="Use product selling price for all lots"
+              bn="সব লটে পণ্যের বিক্রয়মূল্য ব্যবহার"
+              hint={t(
+                'When enabled, the selling price above overrides purchase-lot selling prices at POS. Lot prices are kept for later; opening stock always uses the product price. Existing sales stay unchanged.',
+                'চালু থাকলে POS-এ সব লটে উপরের বিক্রয়মূল্য প্রযোজ্য হবে। আগের লটের দাম সংরক্ষিত থাকবে; শুরুর স্টকে সব সময় পণ্যের দাম ব্যবহৃত হবে। পুরোনো বিক্রি বদলাবে না।'
+              )}
+              checked={draft.useDefaultPriceForAllLots}
+              onChange={(checked) => set('useDefaultPriceForAllLots', checked)}
+            />
+          </div>
+        )}
         {x.profit !== null && x.profit < 0 && (
           <p role="alert" className="mt-2 text-[13px] font-medium text-danger">
             {t(`Below cost: you lose ${taka(-x.profit)}${perUnit}.`, `কেনা দামের নিচে: ${taka(-x.profit)}${perUnit} লোকসান।`)}
+
           </p>
         )}
       {isStock && (

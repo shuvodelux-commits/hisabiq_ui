@@ -235,6 +235,7 @@ export function buildProduct(d: ProductDraft, x: DraftDerived, isEdit: boolean, 
     stockViewUnit: isStock ? x.viewUnit : undefined,
     minStock: x.minBase,
     sellPrice: x.sellBase,
+    useDefaultPriceForAllLots: isStock ? d.useDefaultPriceForAllLots : false,
     purchasePrice: x.buyBase,
     warranty: {
       enabled: d.warrantyEnabled,

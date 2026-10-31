@@ -30,6 +30,7 @@ import { getBundleProjection } from '../../bundles/bundleProjection';
 import { priceBundleComponents } from '../../bundles/bundlePricing';
 import { expandCartStockDemand } from '../../bundles/bundleCart';
 import {planComponentFulfillment,maxAffordableBundleSets,componentSourceKey} from '../../bundles/bundleFulfillment';
+import {resolveLotSalePrice} from '../../utils/lotSellingPrice';
 
 type CartTableProps = {
   lines: CartLine[];
@@ -163,6 +164,9 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const factor = productUnitFactor(l.product,l.unit)||1;
             const baseQty = saleLineBaseQty(l);
             const lineTotal = saleLineTotal(l);
+            const lotPrice = l.product.kind !== 'Service' && l.product.kind !== 'Bundle'
+              ? resolveLotSalePrice(l.product, l.unit, saleLineBaseQty(l), availableStockLots())
+              : null;
             const recipe=l.product.kind==='Bundle'&&l.bundleRevision?getBundleVersion(l.product.id,l.bundleRevision):undefined;
             const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
             const bundleCostPending=l.product.kind==='Bundle'&&Object.values(l.bundleSources??{}).some(source=>
@@ -200,6 +204,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                         </button>
                       )}
                       {l.product.kind==='Bundle'&&<span data-table-helper="" role="status" className="rounded bg-teal-50 px-1.5 py-0.5 text-[10px] text-teal-800">{text('Package','প্যাকেজ')} · {recipe?.components.length??0} {text('products','পণ্য')} · {text('Version','সংস্করণ')} {l.bundleRevision??'?'}</span>}
+                      {lotPrice?.mixed && <span data-table-helper="" role="status" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Different lot prices — review or split line','লটের দাম আলাদা — যাচাই করুন বা আলাদা লাইনে দিন')}</span>}
                       {invalidSets&&<span data-table-helper="" role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Whole Sets only','শুধু পূর্ণ সেট')}</span>}
                       {staleRecipe&&<span data-table-helper="" role="alert" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle recipe changed — add again','প্যাকেজের পণ্য বদলেছে — আবার যোগ করুন')}</span>}
                       {relatedShortages.length>0&&<span data-table-helper="" role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Shared component shortage','প্যাকেজের পণ্য কম')} · {relatedShortages.map(s=>`${catalog.find(p=>p.id===s.componentProductId)?.name??s.componentProductId}: ${s.shortageBaseQty}`).join(', ')}</span>}

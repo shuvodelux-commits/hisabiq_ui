@@ -202,7 +202,7 @@ async function main() {
     const purchaseCostInput = page.getByLabel('Purchase cost for LED Bulb 12W', {exact:true});
     assert.equal(await purchaseCostInput.evaluate((node) => document.activeElement === node), true, 'Enter moves to cost');
     await purchaseCostInput.press('Enter');
-    const salePriceInput = page.getByLabel('Lot selling price for LED Bulb 12W', {exact:true});
+    const salePriceInput = page.getByLabel('Lot selling price for LED Bulb 12W. Optional: leave blank to use the product default.', {exact:true});
     assert.equal(await salePriceInput.evaluate((node) => document.activeElement === node), true, 'Enter moves to lot sale price');
     await salePriceInput.press('Enter');
     assert.equal(await purchaseSearch.evaluate((node) => document.activeElement === node), true, 'Enter returns to new product');
@@ -210,7 +210,7 @@ async function main() {
     await boxQty.fill('2');
     await pcsQty.fill('5');
     await purchaseCostInput.fill('1500');
-    const lotSellInput = page.getByLabel('Lot selling price for LED Bulb 12W', {exact:true});
+    const lotSellInput = page.getByLabel('Lot selling price for LED Bulb 12W. Optional: leave blank to use the product default.', {exact:true});
     if (!(await lotSellInput.isVisible())) await page.getByRole('button', { name: /Lot details for LED Bulb 12W/ }).click();
     await lotSellInput.fill('185');
     // POS-style price controls must leave room for a full amount, arrow stepper
@@ -326,6 +326,7 @@ async function main() {
     const draftMenu = page.locator('[data-purchase-drafts-menu]');
     await draftMenu.getByRole('button', { name: 'Resume' }).waitFor({ state: 'visible' });
     assert.equal(await draftMenu.getByRole('button', { name: 'Resume' }).count(), 1);
+    await draftMenu.getByText(/1 products/).waitFor({state:'visible'});
     assert.match(await draftMenu.innerText(), /1 products/);
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Purchases', exact: true }).click();
@@ -337,6 +338,7 @@ async function main() {
     assert.equal(await page.locator('[data-purchase-save-draft]').isEnabled(), true);
     await page.locator('[data-purchase-save-draft]').click();
     await page.locator('[data-purchase-drafts-trigger]').click();
+    await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).waitFor({state:'visible'});
     assert.equal(await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Resume' }).count(), 1,
       'saving resumed draft updates it rather than duplicating');
     await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Delete' }).click();
