@@ -7,7 +7,7 @@ import {
 import type { ProductKind } from '../../../types/erp';
 import type { Copy, ErrorKey, ExistingProduct, ProductDraft, SaveResult } from '../../../types/productForm';
 import {
-  buildProduct, convertPrice, convertQty, deriveDraft, errorSection, fieldOrder, factorsOf, pickUnit, removeDraftLevel, validateDraft
+  buildProduct, convertPrice, convertQty, deriveDraft, fieldOrder, factorsOf, pickUnit, removeDraftLevel, validateDraft
 } from '../../../utils/productDraft';
 import { focusField } from '../../../utils/focusField';
 
@@ -21,6 +21,17 @@ type Options = {
 };
 
 const DISCLOSURE_MS = 240;
+export type ProductSettingKey = 'units' | 'prices' | 'warranty' | 'serial' | 'expiry' | 'barcode' | 'photos';
+
+/** An invalid field always maps to the one row containing its actual editable control. */
+const fieldSetting = (key: ErrorKey): ProductSettingKey | null => {
+  if (key === 'unitChain' || key.startsWith('levelUnit-') || key.startsWith('levelFactor-')) return 'units';
+  if (key === 'basePrice' || key === 'basePurchasePrice' || key.startsWith('levelPrice-') || key.startsWith('levelPurchase-')) return 'prices';
+  if (key === 'warrantyDuration') return 'warranty';
+  if (key === 'openingSerials') return 'serial';
+  if (key === 'expiryDate') return 'expiry';
+  return null;
+};
 
 export function useAddProductForm({ initialDraft, isEdit, existing, existingSerials, onExit, onSave }: Options) {
   const reduceMotion = useReducedMotion();
@@ -29,10 +40,8 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
   const [draft, setDraft] = useState(initialDraft);
   const [baseline] = useState(() => JSON.stringify(initialDraft));
   const [submitted, setSubmitted] = useState(false);
-  // Progressive disclosure: configured/edit products stay compact until opened.
-  // Failed validation reveals the section and focuses the invalid control.
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [otherOpen, setOtherOpen] = useState(false);
+  // One visible settings row at a time, including on edit; never discard draft values.
+  const [openSetting, setOpenSetting] = useState<ProductSettingKey | null>(null);
   const [categories, setCategories] = useState(availableProductCategories);
   const [brands, setBrands] = useState(availableProductBrands);
   const [units, setUnits] = useState(availableProductUnits);
@@ -169,12 +178,12 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
   };
 
   /** Opens the collapsed section that holds a field, then moves focus to it. */
-  const revealError = (key: ErrorKey, openAlso: ErrorKey[] = []) => {
-    const sections = new Set([key, ...openAlso].map(errorSection));
-    let wait = 0;
-    if (sections.has('advanced') && !advancedOpen) { setAdvancedOpen(true); wait = DISCLOSURE_MS; }
-    if (sections.has('other') && !otherOpen) { setOtherOpen(true); wait = DISCLOSURE_MS; }
-    window.setTimeout(() => focusField(`pf-${key}`), reduceMotion ? 0 : wait);
+  const revealError = (key: ErrorKey) => {
+    // A single-open accordion cannot reveal several sections simultaneously.
+    // Each entry in ErrorSummary remains clickable to reveal and focus its own field.
+    const target = fieldSetting(key);
+    if (target) setOpenSetting(target);
+    window.setTimeout(() => focusField(`pf-${key}`), reduceMotion || !target ? 0 : DISCLOSURE_MS);
   };
 
   const save = () => {
@@ -182,7 +191,7 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
     const found = validateDraft(draft, isEdit, derived);
     const keys = fieldOrder(draft).filter((key) => found[key]);
     if (keys.length) {
-      revealError(keys[0], keys);
+      revealError(keys[0]);
       return;
     }
     setSaveError(null);
@@ -199,7 +208,7 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
 
   return {
     draft, set, derived, errors, errorList, isEdit, existing, dirty, blockLeave, unitsLocked, unitNotice,
-    advancedOpen, setAdvancedOpen, otherOpen, setOtherOpen,
+    openSetting, setOpenSetting, fieldSetting,
     categories, brands, units, createCategory, createBrand, createUnit,
     changeKind, changeUnit, setMultiUnit, addUnitLevel, updateUnitLevel, removeUnitLevel, changePriceUnit, changeStockUnit,
     save, revealError, saveError, discardOpen, setDiscardOpen, requestExit, confirmDiscard
