@@ -32,6 +32,7 @@ type Props = {
   onPayments: React.Dispatch<React.SetStateAction<PurchasePaymentRow[]>>;
   paidRef: React.RefObject<HTMLInputElement>;
   onComplete: () => void;
+  additionalDetails?: React.ReactNode;
 };
 
 function Row({ label, value, muted = false }: { label: React.ReactNode; value: React.ReactNode; muted?: boolean }) {
@@ -126,6 +127,11 @@ export function PurchasePaymentPanel(props: Props) {
             </button>
           ))}
         </div>
+        {props.additionalDetails && (
+          <div className="border-t border-border pt-3" data-purchase-payment-additional>
+            {props.additionalDetails}
+          </div>
+        )}
 
         </div>
         <div className="min-w-0 space-y-3 border-t border-border p-3 lg:border-t-0 lg:p-4" data-purchase-payment-summary>
