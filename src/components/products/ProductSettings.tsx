@@ -12,6 +12,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../Dialog';
 import { Button } from '../Button';
 import { Input } from '../Input';
+import { Tooltip } from '../Tooltip';
 import { StatusBadge } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { FloatingPanel } from '../layout/FloatingPanel';
@@ -234,33 +235,35 @@ export function ProductSettings() {
       </MotionTabList>
 
       {tab !== 'defaults' && (
-        <div className="flex flex-col gap-2 border-b border-border bg-ink-50/40 p-3 lg:flex-row lg:items-end">
-          <label className="min-w-0 flex-1 text-[12px] font-medium text-ink lg:max-w-xs">
-            {pl(tab === 'categories' ? 'Category name' : tab === 'brands' ? 'Brand name' : 'Unit name')}
+        <div className="flex flex-col gap-2 border-b border-border bg-ink-50/40 p-3 sm:flex-row sm:items-end">
+          <label className="min-w-0 flex-1 text-[12px] font-medium text-ink sm:max-w-xs">
+            <span className="flex h-6 items-center">{pl(tab === 'categories' ? 'Category name' : tab === 'brands' ? 'Brand name' : 'Unit name')}</span>
             <Input className="mt-1" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder={pl(tab === 'units' ? 'e.g. Meter' : 'Enter name')} />
           </label>
           {tab !== 'units' && (
-            <label className="min-w-0 flex-1 text-[12px] font-medium text-ink lg:max-w-xs">
-              {pl('Bangla name')}
+            <label className="min-w-0 flex-1 text-[12px] font-medium text-ink sm:max-w-xs">
+              <span className="flex h-6 items-center">{pl('Bangla name')}</span>
               <Input className="font-bn mt-1" value={newBn} onChange={(event) => setNewBn(event.target.value)} placeholder="বাংলা নাম (ঐচ্ছিক)" />
             </label>
           )}
           {tab === 'units' && (
-            <label className="w-full text-[12px] font-medium text-ink lg:w-36">
-              {pl('Symbol')} *
+            <div className="w-full shrink-0 text-[12px] font-medium text-ink sm:w-36">
+              <div className="flex h-6 items-center gap-1">
+                <label htmlFor="new-unit-symbol">{pl('Symbol')} *</label>
+                <Tooltip interactive compact side="top" label={pl('Help for Symbol')} content={pl('Required: 1–4 characters, without spaces.')} />
+              </div>
               <Input id="new-unit-symbol" required aria-required="true" className="mt-1" value={newSymbol}
-                aria-invalid={Boolean(unitError)} aria-describedby="new-unit-symbol-hint"
+                aria-invalid={Boolean(unitError)} aria-describedby={unitError?'new-unit-symbol-error':undefined}
                 onChange={(event) => {setNewSymbol(event.target.value);setUnitError('');}} placeholder="pcs / Gg" />
-              <span id="new-unit-symbol-hint" role={unitError?'alert':undefined} className={'mt-1 block text-[11px] font-normal '+(unitError?'text-danger':'text-ink-500')}>
-                {unitError || pl('Required: 1–4 characters, without spaces.')}
-              </span>
-            </label>
+            </div>
           )}
           <Button size="sm" onClick={addNamed} disabled={!newName.trim()}>
             <Plus className="size-4" /> {pl("Add")}
           </Button>
         </div>
       )}
+
+      {tab==='units'&&unitError&&<p id="new-unit-symbol-error" role="alert" className="px-3 pb-2 text-[11px] text-danger">{unitError}</p>}
 
       {tab === 'categories' && (
         <Table>
@@ -378,11 +381,13 @@ export function ProductSettings() {
               {pl('Bangla name')}
               <Input className="font-bn mt-1.5" value={editBn} onChange={event=>setEditBn(event.target.value)} />
             </label>}
-            {editing?.kind==='units'&&<label className="block text-[13px] font-medium text-ink">
-              {pl('Symbol')} *
-              <Input required className="mt-1.5" value={editSymbol} aria-describedby="edit-unit-hint" onChange={event=>{setEditSymbol(event.target.value);setEditError('');}} />
-              <span id="edit-unit-hint" className="mt-1 block text-[11px] font-normal text-helper">{pl('Required: 1–4 characters, without spaces.')}</span>
-            </label>}
+            {editing?.kind==='units'&&<div className="text-[13px] font-medium text-ink">
+              <div className="flex h-6 items-center gap-1">
+                <label htmlFor="edit-unit-symbol">{pl('Symbol')} *</label>
+                <Tooltip interactive compact side="top" label={pl('Help for Symbol')} content={pl('Required: 1–4 characters, without spaces.')} />
+              </div>
+              <Input id="edit-unit-symbol" required className="mt-1.5" value={editSymbol} onChange={event=>{setEditSymbol(event.target.value);setEditError('');}} />
+            </div>}
             {editError&&<p role="alert" className="text-sm text-danger">{editError}</p>}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={()=>setEditing(null)}>{pl('Cancel')}</Button>

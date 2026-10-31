@@ -18,6 +18,7 @@ const bangla:Record<string,string>={
  "Brand name": "ব্র্যান্ডের নাম",
  "Unit name": "এককের নাম",
  "Bangla name": "বাংলা নাম",
+ "Help for Symbol": "এককের সংক্ষিপ্ত নাম সম্পর্কে সাহায্য",
  "Symbol": "সংক্ষিপ্ত নাম",
  "Required: 1–4 characters, without spaces.": "অবশ্যই ১–৪ অক্ষরে লিখুন, ফাঁকা ছাড়া।",
  "Enter a unit symbol of 1–4 characters, without spaces.": "এককের সংক্ষিপ্ত নাম ১–৪ অক্ষরে লিখুন, ফাঁকা ছাড়া।",
