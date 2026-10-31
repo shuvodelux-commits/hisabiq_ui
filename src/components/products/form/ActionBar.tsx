@@ -13,7 +13,7 @@ export function ActionBar({ isEdit, errorCount, onCancel }: ActionBarProps) {
       data-docked={docked}
       className={
         (docked ? 'sticky bottom-0 ' : 'relative ') +
-        'z-30 border-t border-border bg-card px-4 pt-3 md:rounded-b-xl md:px-6'
+        'z-30 bg-card px-4 pt-3 md:rounded-b-xl md:px-6'
       }
       style={{ paddingBottom: docked ? 'max(0.75rem, env(safe-area-inset-bottom))' : '0.75rem' }}
     >
