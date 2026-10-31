@@ -1,7 +1,7 @@
 import {unitSymbol} from '../../data/productUnits';
 import {NumericInput} from '../NumericInput';
 import React from 'react';
-import { ChevronDown, ChevronUp, PackagePlus, Plus, ScanLine, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, PackagePlus, Plus, ScanLine, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
 import { AppSelect } from '../AppSelect';
@@ -45,6 +45,48 @@ export function PurchaseCart({
   sourceLocked=false, lines, products, searchRef, qtyRefs, smallRefs, costRefs, lotPriceRefs, onAdd, onCreate, onUpdate, onRemove, onCostUnitChange
 }: Props) {
   const quickItems = products.filter((p) => p.active && p.kind !== 'Service').slice(0, 8);
+  const quickRailRef = React.useRef<HTMLDivElement>(null);
+  const quickRailId = React.useId();
+  const [quickScroll, setQuickScroll] = React.useState({ overflow: false, left: false, right: false });
+
+  React.useEffect(() => {
+    const rail = quickRailRef.current;
+    if (!rail) return;
+    const updateArrows = () => {
+      const maxScroll = Math.max(0, rail.scrollWidth - rail.clientWidth);
+      const next = {
+        overflow: maxScroll > 2,
+        left: rail.scrollLeft > 2,
+        right: rail.scrollLeft < maxScroll - 2,
+      };
+      setQuickScroll((current) =>
+        current.overflow === next.overflow && current.left === next.left && current.right === next.right ? current : next);
+    };
+    updateArrows();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateArrows);
+    observer?.observe(rail);
+    rail.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    return () => {
+      observer?.disconnect();
+      rail.removeEventListener('scroll', updateArrows);
+      window.removeEventListener('resize', updateArrows);
+    };
+  }, [quickItems.length]);
+
+  const moveQuickItems = (direction: -1 | 1) => {
+    const rail = quickRailRef.current;
+    if (!rail) return;
+    const card = rail.querySelector<HTMLElement>('[data-purchase-quick-item]');
+    const gap = parseFloat(getComputedStyle(rail).columnGap) || 8;
+    const cardStep = (card?.offsetWidth ?? 210) + gap;
+    const visibleCards = Math.max(1, Math.floor((rail.clientWidth + gap) / cardStep));
+    const step = cardStep * Math.max(1, visibleCards - 1);
+    rail.scrollBy({
+      left: direction * step,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+    });
+  };
 
   const normalizeQty = (line: PurchaseCartLine, moveToSearch: boolean) => {
     if (selectedConversion(line) > 1) {
@@ -245,13 +287,31 @@ export function PurchaseCart({
       {!sourceLocked && quickItems.length > 0 && <section data-purchase-quick-items aria-label="Quick add products" className="min-w-0">
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-[13px] font-semibold text-ink">Quick items <span className="font-bn text-[11px] font-normal text-ink-500">· দ্রুত যোগ</span></p>
-          <span className="text-[11px] text-ink-500">Tap to add</span>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span className="mr-1 text-[11px] text-ink-500">Tap to add</span>
+            {quickScroll.overflow && <>
+              <button type="button" data-purchase-quick-prev aria-label="Previous quick items"
+                aria-controls={quickRailId} disabled={!quickScroll.left} onClick={() => moveQuickItems(-1)}
+                className="flex size-9 items-center justify-center rounded-md border border-border bg-card text-ink-700 transition-colors hover:bg-ink-50 active:bg-ink-50 disabled:cursor-default disabled:opacity-35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
+                <ChevronLeft className="size-4" aria-hidden="true" />
+              </button>
+              <button type="button" data-purchase-quick-next aria-label="Next quick items"
+                aria-controls={quickRailId} disabled={!quickScroll.right} onClick={() => moveQuickItems(1)}
+                className="flex size-9 items-center justify-center rounded-md border border-border bg-card text-ink-700 transition-colors hover:bg-ink-50 active:bg-ink-50 disabled:cursor-default disabled:opacity-35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">
+                <ChevronRight className="size-4" aria-hidden="true" />
+              </button>
+            </>}
+          </div>
         </div>
-        <div className="flex min-w-0 snap-x gap-2 overflow-x-auto pb-2" aria-label="Swipe to browse quick items">
+        <div id={quickRailId} ref={quickRailRef} data-purchase-quick-items-list
+          className="erp-quick-items-rail flex min-w-0 snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain pb-1"
+          aria-label="Swipe or use previous and next buttons to browse quick items" tabIndex={0}>
           {quickItems.map((product) => (
-            <button key={product.id} type="button" aria-label={'Quick add ' + product.name + ' ' + taka(product.purchasePrice) + '/' + product.unit}
+            <button key={product.id} type="button" data-purchase-quick-item
+              title={product.name}
+              aria-label={'Quick add ' + product.name + ' ' + taka(product.purchasePrice) + '/' + product.unit}
               onClick={() => onAdd(product)}
-              className="flex min-h-12 w-[188px] max-w-[75vw] shrink-0 snap-start items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5 text-left transition-colors hover:border-teal-400 hover:bg-teal-50 active:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">
+              className="flex min-h-14 w-[210px] max-w-[75vw] shrink-0 snap-start items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5 text-left transition-colors hover:border-teal-400 hover:bg-teal-50 active:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500 sm:w-[220px]">
               <ProductThumb src={product.image} size={34} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[12px] font-medium text-ink">{product.name}</span>
