@@ -3,7 +3,6 @@ import { PhotoUploader } from '../PhotoUploader';
 import { Disclosure } from '../fields/Disclosure';
 import { FormField } from '../fields/FormField';
 import { useFormCopy } from '../../../hooks/useFormCopy';
-import { serialModeOptions, warrantyUnitOptions } from '../../../data/productFormOptions';
 import { ExpirySettings } from './ExpirySettings';
 import { SerialSettings } from './SerialSettings';
 import { WarrantySettings } from './WarrantySettings';
@@ -15,27 +14,11 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
   const isStock = draft.kind === 'Stock';
   const errorCount = ['warrantyDuration', 'openingSerials', 'expiryDate'].filter((key) => errors[key as keyof typeof errors]).length;
 
-  const parts: string[] = [];
-  if (draft.warrantyEnabled) {
-    const unit = warrantyUnitOptions.find((o) => o.value === draft.warrantyDurationUnit);
-    parts.push(t(`Warranty ${draft.warrantyDuration || '?'} ${unit?.en.toLowerCase() ?? ''}`, `ওয়ারেন্টি ${draft.warrantyDuration || '?'} ${unit?.bn ?? ''}`));
-  }
-  if (isStock && draft.serialTracking !== 'Off') {
-    const mode = serialModeOptions.find((o) => o.value === draft.serialTracking);
-    parts.push(t(`Serial ${mode?.en.toLowerCase()}`, `সিরিয়াল ${mode?.bn}`));
-  }
-  if (isStock && draft.expiryEnabled) parts.push(t(`Expiry · ${draft.allocationMethod}`, `মেয়াদ · ${draft.allocationMethod}`));
-  if (draft.barcode.trim()) parts.push(t('Barcode set', 'বারকোড আছে'));
-  if (draft.photos.length) parts.push(t(`${draft.photos.length} photo${draft.photos.length > 1 ? 's' : ''}`, `${draft.photos.length}টি ছবি`));
-
-  const summary = parts.length ? parts.join(' · ') : undefined;
-
   return (
     <Disclosure
       id="pf-other"
       en="Other options"
       bn="অন্যান্য অপশন"
-      summary={summary}
       help={isStock ? t('Warranty, serial numbers, expiry, barcode and photos.', 'ওয়ারেন্টি, সিরিয়াল, মেয়াদ, বারকোড ও ছবি।') : t('Warranty, barcode and photos.', 'ওয়ারেন্টি, বারকোড ও ছবি।')}
       open={form.otherOpen}
       onToggle={() => form.setOtherOpen(!form.otherOpen)}
@@ -61,12 +44,13 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
           </div>
         </div>
         <div className="pt-5">
-          <FormField id="pf-photos" labelAs="span" en="Photos" bn="ছবি">
+          <FormField id="pf-photos" labelAs="span" en="Photos" bn="ছবি" optional
+            help={t('Up to 4 photos. The first photo shows in POS and lists.', 'সর্বোচ্চ ৪টি ছবি। প্রথম ছবি POS ও তালিকায় দেখাবে।')}>
             <PhotoUploader
               photos={draft.photos}
               onChange={(photos) => set('photos', photos)}
               label={t('Add photo', 'ছবি দিন')}
-              hint={t('Optional. Up to 4. The first photo shows in POS and lists.', 'ঐচ্ছিক। সর্বোচ্চ ৪টি। প্রথম ছবি POS ও তালিকায় দেখাবে।')}
+
             />
           </FormField>
         </div>
