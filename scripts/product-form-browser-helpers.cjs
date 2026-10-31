@@ -35,7 +35,8 @@ async function fillChain(page,editor,name){
  await pick(page,editor.locator('#pf-opening-unit'),'Carton');await editor.locator('#pf-opening').fill('1');
  await pick(page,editor.locator('#pf-min-unit'),'Box');await editor.locator('#pf-min').fill('2');
  await pick(page,editor.locator('#pf-view'),'Carton');
- assert.ok((await editor.innerText()).includes('28,800 Feet'));
+ assert.ok((await editor.innerText()).includes('1 Carton = 12 Box'), 'direct carton conversion shown');
+ assert.ok((await editor.innerText()).includes('1 Box = 20 Pcs'), 'direct box conversion shown');
 }
 async function discard(page,editor){
  await editor.getByRole('button',{name:'Cancel',exact:true}).click();
