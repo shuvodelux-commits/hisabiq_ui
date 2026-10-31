@@ -191,8 +191,8 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
     setDraft((current) => current.brand === previous ? {...current, brand: next} : current);
     return next;
   };
-  const editUnit = (previous: string, name: string, symbol?: string) => {
-    const stableKey = renamePreviewProductUnit(previous, name, symbol ?? '');
+  const editUnit = (previous: string, name: string, symbol?: string, nameBn?: string) => {
+    const stableKey = renamePreviewProductUnit(previous, name, symbol ?? '', nameBn);
     setUnits(availableProductUnits());
     return stableKey;
   };
