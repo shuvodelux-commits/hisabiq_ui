@@ -20,6 +20,7 @@ type Totals = {
 };
 type Props = {
   actionLabel?: string;
+  hideAction?: boolean;
   hideDiscount?: boolean;
   totals: Totals;
   itemCount: number;
@@ -180,7 +181,7 @@ export function PurchasePaymentPanel(props: Props) {
 
         </div>
       </div>
-      <div className="border-t border-border px-3 py-3 lg:px-4">
+      {!props.hideAction && <div className="border-t border-border px-3 py-3 lg:px-4">
         <Button type="button" data-erp-workflow-action="complete" onClick={props.onComplete}
           disabled={totals.total <= 0 || totals.excess > 0}
           className="h-12 w-full text-[15px] font-semibold">
@@ -188,7 +189,7 @@ export function PurchasePaymentPanel(props: Props) {
           <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
 
-      </div>
+      </div>}
     </section>
   );
 }
