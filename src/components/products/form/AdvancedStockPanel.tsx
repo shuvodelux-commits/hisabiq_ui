@@ -18,7 +18,6 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
   const reduce = useReducedMotion();
   const [confirmSingle, setConfirmSingle] = useState(false);
   const { draft, set, errors, derived: x, unitsLocked } = form;
-  const largest = x.units[x.units.length - 1];
 
   const usedUnits = new Set([draft.unit, ...draft.unitLevels.map((level) => level.unit)].map((unit) => unit.toLowerCase()));
 
@@ -54,7 +53,7 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                   const unitKey = `levelUnit-${level.id}` as const;
                   const factorKey = `levelFactor-${level.id}` as const;
                   return (
-                    <fieldset data-product-unit-relationship key={level.id} disabled={unitsLocked} className="min-w-0 rounded-lg border border-border bg-card p-3 disabled:opacity-75">
+                    <fieldset data-product-unit-relationship key={level.id} disabled={unitsLocked} className="min-w-0 py-1.5 disabled:opacity-75">
                       <legend className="sr-only">{t(`Conversion for ${level.unit || 'larger unit'}`, `${level.unit || 'বড় একক'}-এর রূপান্তর`)}</legend>
                       <div className="pf-unit-row" data-product-unit-equation>
                         <span className="pf-unit-one text-[14px] font-semibold text-ink" aria-hidden="true">1</span>
@@ -87,14 +86,12 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                 <PlusIcon className="size-4" aria-hidden="true" />{t('Add another unit', 'আরেকটি একক যোগ করুন')}
               </button>
               {x.units.length > 1 && (
-                <div className="mt-3 rounded-md bg-ink-50 p-3" aria-live="polite">
-                  <div className="space-y-1 text-[14px] text-ink">
-                    {draft.unitLevels.filter((level) => x.factors[level.unit]).map((level) => (
-                      <p key={level.id}>1 {level.unit} = <strong className="font-semibold">{fmtQty(x.factors[level.unit])} {draft.unit}</strong></p>
-                    ))}
-                  </div>
-                  {x.units.length > 2 && <p className="mt-2 border-t border-teal-200 pt-2 text-[13px] text-ink-600">1 {largest} = {fmtQty(x.factors[largest] / x.factors[x.units[1]])} {x.units[1]}</p>}
-
+                <div className="mt-3 space-y-1 text-center text-[13px] text-ink" aria-live="polite">
+                  {draft.unitLevels.map((level, index) => x.factors[level.unit] && (
+                    <p key={level.id}>
+                      1 {level.unit} = <strong className="font-semibold">{fmtQty(Number(level.factor))} {index ? draft.unitLevels[index - 1].unit : draft.unit}</strong>
+                    </p>
+                  ))}
                 </div>
               )}
               <FormField id="pf-view" en="Preferred stock unit" bn="স্টক দেখানোর একক" className="mt-4"
