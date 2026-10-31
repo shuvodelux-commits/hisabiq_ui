@@ -3,6 +3,8 @@ import { ArrowLeftRight, BookOpen, CheckCircle2, Landmark, RefreshCw } from 'luc
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '../Button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../Dialog';
+import { AmountInWordsDisplay } from '../AmountInWordsDisplay';
 import { FormSelect } from '../FormSelect';
 import { Input } from '../Input';
 import { financeAccounts } from '../../data/financeAccounts';
@@ -43,8 +45,9 @@ const demoAccounts: BankAccountOption[] = financeAccounts
 
 const fieldClass = 'block text-[12.5px] font-medium text-ink';
 
-export function BankEntryTab() {
+export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 'counter' } = {}) {
   const navigate = useNavigate();
+  const inCounter = variant === 'counter';
   const { text, showHelper } = useUiCopy();
   const [accounts, setAccounts] = useState<BankAccountOption[]>(demoAccounts);
   const [connected, setConnected] = useState(false);
@@ -151,7 +154,8 @@ export function BankEntryTab() {
   };
 
   return (
-    <div className="space-y-3 p-3 sm:p-4" aria-label="Bank Entry workspace">
+    <div className={inCounter ? 'space-y-4' : 'space-y-3 p-3 sm:p-4'} aria-label="Bank Entry workspace">
+      {!inCounter && (
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[13px] font-semibold text-ink">{text('Record a Bank Entry','ব্যাংকের এন্ট্রি করুন')}</p>
@@ -163,6 +167,7 @@ export function BankEntryTab() {
           <RefreshCw className="size-3.5" /> {text('Refresh','রিফ্রেশ')}
         </Button>
       </div>
+      )}
 
       {!connected && (
         <div role="status" className="rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-[12px] text-ink-700">
@@ -177,10 +182,12 @@ export function BankEntryTab() {
         </div>
       )}
 
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.65fr)_minmax(255px,0.9fr)]">
-        <section className="rounded-lg border border-border p-3 sm:p-4" aria-label="Bank entry form">
+      <div className={inCounter
+        ? 'grid gap-4 xl:grid-cols-[minmax(0,1fr)_310px]'
+        : 'grid gap-3 xl:grid-cols-[minmax(0,1.65fr)_minmax(255px,0.9fr)]'}>
+        <section className={inCounter ? 'min-w-0' : 'rounded-lg border border-border p-3 sm:p-4'} aria-label="Bank entry form">
           {formError && <p role="alert" className="mb-3 rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-[12px] text-danger">{formError}</p>}
-          {review ? (
+          {review && !inCounter ? (
             <div className="space-y-3" aria-label="Review bank entry">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-teal-700" />
@@ -211,7 +218,10 @@ export function BankEntryTab() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className={inCounter ? 'space-y-4' : 'grid gap-3 sm:grid-cols-2'}>
+                <div className={inCounter
+                  ? 'grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2'
+                  : 'contents'}>
                 <label className={fieldClass}>
                   {text('Bank account','ব্যাংক হিসাব')} *
                   <FormSelect className="mt-1.5" value={draft.bankAccountId} disabled={loading}
@@ -247,6 +257,10 @@ export function BankEntryTab() {
                       onChange={(event) => update('direction', event.target.value as 'credit' | 'debit')} />
                   </label>
                 )}
+                </div>
+                <div className={inCounter ? 'rounded-xl border border-border bg-card p-4' : 'contents'}>
+                  {inCounter && <h3 className="mb-3 text-sm font-semibold">{text('Reference / details (optional)','রেফারেন্স / বিবরণ')}</h3>}
+                  <div className={inCounter ? 'grid gap-3 sm:grid-cols-2' : 'contents'}>
                 <label className={fieldClass}>
                   {text('Reference','রেফারেন্স')}
                   <Input className="mt-1.5" value={draft.reference}
@@ -271,6 +285,8 @@ export function BankEntryTab() {
                       onChange={(event) => update('backdatedReason', event.target.value)} />
                   </label>
                 )}
+                  </div>
+                </div>
               </div>
 
               {bouncedCheque && (
@@ -290,41 +306,69 @@ export function BankEntryTab() {
                   <span className="ml-auto text-[11px] text-ink-400">{text('Linked cash entry','ক্যাশের মিলিত এন্ট্রি')}</span>
                 </div>
               )}
-              <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-3">
+              <div className={inCounter ? 'flex justify-end gap-2' : 'flex flex-wrap justify-end gap-2 border-t border-border pt-3'}>
                 <Button variant="outline" size="sm" onClick={() => { setDraft(emptyDraft(draft.bankAccountId)); setFormError(''); }}>
                   {text('Clear','মুছুন')}
                 </Button>
-                <Button size="sm" disabled={saving || loading || !accounts.length || bouncedCheque} onClick={reviewEntry}>
-                  {text('Review entry','এন্ট্রি যাচাই করুন')}
-                </Button>
+                {!inCounter && (
+                  <Button size="sm" disabled={saving || loading || !accounts.length || bouncedCheque} onClick={reviewEntry}>
+                    {text('Review entry','এন্ট্রি যাচাই করুন')}
+                  </Button>
+                )}
               </div>
             </div>
           )}
         </section>
 
-        <aside className="rounded-lg border border-border bg-ink-50/40 p-3 sm:p-4">
-          <div className="flex items-center gap-2 text-[12.5px] font-semibold text-ink">
-            <Landmark className="size-4 text-teal-700" /> {text('Balance preview','জেরের নমুনা')}
-          </div>
-          <p className="mt-1 text-[11px] text-ink-400">{selectedAccount?.name || text('Select bank account','ব্যাংক বাছুন')}</p>
-          <p className={`mt-3 text-2xl font-semibold ${impact.bankDelta >= 0 ? 'text-success' : 'text-danger'}`}>
-            {impact.bankDelta >= 0 ? '+' : '−'}{taka(Math.abs(impact.bankDelta))}
-          </p>
-          <div className="mt-3 divide-y divide-border border-t border-border">
-            <div className="flex justify-between gap-3 py-2 text-[12px]"><span className="text-ink-500">{text('Current bank balance','বর্তমান ব্যাংক জের')}</span><strong>{taka(bankBalance)}</strong></div>
-            <div className="flex justify-between gap-3 py-2 text-[12px]"><span className="text-ink-500">{text('After entry','এন্ট্রির পরে')}</span><strong>{taka(bankBalance + impact.bankDelta)}</strong></div>
-            {meta.cashMovement && <div className="flex justify-between gap-3 py-2 text-[12px]"><span className="text-ink-500">{text('Cash movement','ক্যাশ পরিবর্তন')}</span><strong>{impact.cashDelta >= 0 ? '+' : '−'}{taka(Math.abs(impact.cashDelta))}</strong></div>}
-            <div className="flex justify-between gap-3 py-2 text-[12px]"><span className="text-ink-500">{text('Entry category','এন্ট্রির ধরন')}</span><strong className="text-right">{meta.label}</strong></div>
-          </div>
-          <p className="mt-3 text-[11px] leading-relaxed text-ink-400">
-            {connected
-              ? text('Amounts are previews until Confirm & Record. Check bank ledger after posting.','নিশ্চিত করার আগে জের বদলাবে না।')
-              : text('These are sample account balances; no real ERP transaction is created.','নমুনা হিসাব দেখানো হচ্ছে; আসল লেনদেন হবে না।')}
-          </p>
+        <aside className={inCounter
+          ? 'h-fit rounded-xl border border-border bg-card p-4 xl:sticky xl:top-4'
+          : 'rounded-lg border border-border bg-ink-50/40 p-3 sm:p-4'}>
+          {inCounter ? (
+            <>
+              <h3 className="mb-3 text-sm font-semibold text-ink">{text('Transaction summary','লেনদেনের সারাংশ')}</h3>
+              <p className="text-xs text-ink-500">{text('Total amount','মোট টাকা')}</p>
+              <p className="text-2xl font-semibold text-ink" aria-live="polite">{taka(amount)}</p>
+              <AmountInWordsDisplay amount={Math.max(0, amount)} />
+              <div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
+                <div className="flex justify-between gap-2"><span className="text-ink-500">{text('Bank account','ব্যাংক হিসাব')}</span><strong className="max-w-[60%] text-right">{selectedAccount?.name ?? '—'}</strong></div>
+                <div className="flex justify-between gap-2"><span className="text-ink-500">{text('Entry type','এন্ট্রির ধরন')}</span><strong className="max-w-[60%] text-right">{meta.label}</strong></div>
+                <div className="flex justify-between gap-2"><span className="text-ink-500">{text('Current balance','বর্তমান জের')}</span><strong>{taka(bankBalance)}</strong></div>
+                <div className="flex justify-between gap-2 border-t border-border pt-2"><span className="text-ink-500">{text('Balance after','পরে জের')}</span><strong className={impact.bankDelta < 0 ? 'text-danger' : 'text-success'}>{taka(bankBalance + impact.bankDelta)}</strong></div>
+                {meta.cashMovement && (
+                  <div className="flex justify-between gap-2"><span className="text-ink-500">{text('Cash change','ক্যাশ পরিবর্তন')}</span><strong>{impact.cashDelta < 0 ? '−' : '+'}{taka(Math.abs(impact.cashDelta))}</strong></div>
+                )}
+              </div>
+              {!connected && <p className="mt-3 text-xs text-ink-500">{text('Preview only; no real bank entry can be posted.','শুধু নমুনা; আসল ব্যাংক এন্ট্রি করা যাবে না।')}</p>}
+              <Button className="mt-4 w-full" disabled={loading || saving || amount <= 0 || bouncedCheque || !accounts.length} onClick={reviewEntry}>
+                {text('Review bank entry','ব্যাংক এন্ট্রি যাচাই করুন')}
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 text-[12.5px] font-semibold text-ink">
+                <Landmark className="size-4 text-teal-700" /> {text('Balance preview','জেরের নমুনা')}
+              </div>
+              <p className="mt-1 text-[11px] text-ink-400">{selectedAccount?.name || text('Select bank account','ব্যাংক বাছুন')}</p>
+              <p className={`mt-3 text-2xl font-semibold ${impact.bankDelta >= 0 ? 'text-success' : 'text-danger'}`}>
+                {impact.bankDelta >= 0 ? '+' : '−'}{taka(Math.abs(impact.bankDelta))}
+              </p>
+              <div className="mt-3 divide-y divide-border border-t border-border">
+                <div className="flex justify-between gap-3 py-2 text-[12px]"><span className="text-ink-500">{text('Current bank balance','বর্তমান ব্যাংক জের')}</span><strong>{taka(bankBalance)}</strong></div>
+                <div className="flex justify-between gap-3 py-2 text-[12px]"><span className="text-ink-500">{text('After entry','এন্ট্রির পরে')}</span><strong>{taka(bankBalance + impact.bankDelta)}</strong></div>
+                {meta.cashMovement && <div className="flex justify-between gap-3 py-2 text-[12px]"><span className="text-ink-500">{text('Cash movement','ক্যাশ পরিবর্তন')}</span><strong>{impact.cashDelta >= 0 ? '+' : '−'}{taka(Math.abs(impact.cashDelta))}</strong></div>}
+                <div className="flex justify-between gap-3 py-2 text-[12px]"><span className="text-ink-500">{text('Entry category','এন্ট্রির ধরন')}</span><strong className="text-right">{meta.label}</strong></div>
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-ink-400">
+                {connected
+                  ? text('Amounts are previews until Confirm & Record. Check bank ledger after posting.','নিশ্চিত করার আগে জের বদলাবে না।')
+                  : text('These are sample account balances; no real ERP transaction is created.','নমুনা হিসাব দেখানো হচ্ছে; আসল লেনদেন হবে না।')}
+              </p>
+            </>
+          )}
         </aside>
       </div>
 
-      {connected && !!selectedAccount && (
+      {!inCounter && connected && !!selectedAccount && (
         <section className="overflow-hidden rounded-lg border border-border" aria-label="Recent bank ledger">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5">
             <div className="flex items-center gap-2 text-[12.5px] font-semibold text-ink">
@@ -354,6 +398,36 @@ export function BankEntryTab() {
           </div>
         </section>
       )}
+
+      <Dialog open={inCounter && review} onOpenChange={(open) => { if (!open) setReview(false); }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{text('Confirm bank entry','ব্যাংক এন্ট্রি নিশ্চিত করুন')}</DialogTitle>
+            <DialogDescription>{text('Review the bank, amount and balance before recording.','সংরক্ষণের আগে ব্যাংক, টাকা ও জের মিলিয়ে নিন।')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div className="rounded-xl border border-border bg-ink-50 p-4">
+              <p className="text-xs text-ink-500">{text('Total amount','মোট টাকা')}</p>
+              <p className="text-2xl font-semibold text-ink">{taka(amount)}</p>
+              <AmountInWordsDisplay amount={Math.max(0, amount)} />
+            </div>
+            <div className="space-y-2 rounded-lg border border-border p-3">
+              <div className="flex justify-between gap-2"><span>{text('Bank account','ব্যাংক হিসাব')}</span><strong className="text-right">{selectedAccount?.name ?? '—'}</strong></div>
+              <div className="flex justify-between gap-2"><span>{text('Entry type','এন্ট্রির ধরন')}</span><strong className="text-right">{meta.label}</strong></div>
+              <div className="flex justify-between gap-2"><span>{text('Date','তারিখ')}</span><strong>{draft.date}</strong></div>
+              <div className="flex justify-between gap-2"><span>{text('Reference','রেফারেন্স')}</span><strong>{draft.reference || '—'}</strong></div>
+              <div className="flex justify-between gap-2 border-t border-border pt-2"><span>{text('Balance after','পরে জের')}</span><strong>{taka(bankBalance + impact.bankDelta)}</strong></div>
+            </div>
+            {!connected && <p role="status" className="text-xs text-ink-500">{text('Read-only preview. Connect the authenticated bank API to record a transaction.','শুধু নমুনা। আসল লেনদেনের জন্য ব্যাংক API সংযুক্ত করুন।')}</p>}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setReview(false)}>{text('Edit details','সংশোধন করুন')}</Button>
+              <Button disabled={!connected || saving || bouncedCheque} onClick={() => { void submitEntry(); }}>
+                <CheckCircle2 className="size-4" /> {saving ? text('Recording…','সংরক্ষণ হচ্ছে…') : text('Confirm & record','নিশ্চিত করে লিখুন')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
