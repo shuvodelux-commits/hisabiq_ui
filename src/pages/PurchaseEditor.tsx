@@ -1,7 +1,7 @@
 import {businessToday} from '../utils/dateRange';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronUp, FileImage, Keyboard, Save, ArrowRight } from 'lucide-react';
+import { ArrowLeft, FileImage, Keyboard, Save, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -48,7 +48,6 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
   const [discountMode, setDiscountMode] = useState<PurchaseDiscountMode>('amount');
   const [photos, setPhotos] = useState<string[]>(()=>initialPurchase?.receipt?[initialPurchase.receipt]:[]);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
-  const [additionalOpen, setAdditionalOpen] = useState(Boolean(initialPurchase?.notes || initialPurchase?.receipt));
   const [error, setError] = useState('');
   const [reviewPurchaseOpen, setReviewPurchaseOpen] = useState(false);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
@@ -108,7 +107,6 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
     setDiscount(draft.discount);
     setDiscountMode(draft.discountMode);
     setPhotos(structuredClone(draft.photos));
-    setAdditionalOpen(Boolean(draft.notes || draft.photos.length));
     setActiveDraftId(draft.id);
     savedSignature.current = JSON.stringify({
       tenantId: draft.tenantId, supplierId: draft.supplierId, supplierName: draft.supplierName,
@@ -364,32 +362,6 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
           onCostUnitChange={selectCostUnit}
         />
 
-        <section data-purchase-additional className="rounded-xl border border-border bg-card shadow-card">
-          <button type="button" onClick={() => setAdditionalOpen((current) => !current)}
-            aria-expanded={additionalOpen} aria-controls="purchase-additional-content"
-            className="flex min-h-12 w-full items-center gap-2 rounded-xl px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 md:px-4">
-            <FileImage className="size-4 shrink-0 text-ink-500" aria-hidden="true" />
-            <span className="min-w-0 flex-1 text-[13px] font-medium text-ink">
-              Additional details <span className="font-bn text-[11px] font-normal text-ink-500">· অতিরিক্ত তথ্য</span>
-            </span>
-            {(notes.trim() || photos.length > 0) && <span className="text-[11px] text-ink-500">
-              {notes.trim() ? 'Notes' : ''}{notes.trim() && photos.length ? ' · ' : ''}{photos.length ? photos.length + ' image' + (photos.length === 1 ? '' : 's') : ''}
-            </span>}
-            {additionalOpen ? <ChevronUp className="size-4 text-ink-500" /> : <ChevronDown className="size-4 text-ink-500" />}
-          </button>
-          {additionalOpen && <div id="purchase-additional-content" className="grid gap-3 border-t border-border px-3 py-3 md:grid-cols-2 md:px-4">
-            <label className="block min-w-0 text-[12px] font-medium text-ink">
-              Notes <span className="font-normal text-ink-500">· optional</span>
-              <Input className="mt-1" value={notes} onChange={(event) => setNotes(event.target.value)}
-                placeholder="Delivery, discount or other details" />
-            </label>
-            <div className="min-w-0">
-              <p className="mb-1 text-[12px] font-medium text-ink">Supplier bill / receipt <span className="font-normal text-ink-500">· optional</span></p>
-              <PhotoUploader photos={photos} onChange={setPhotos} max={2} label="Attach" hint="Challan or payment receipt" />
-            </div>
-          </div>}
-        </section>
-
         <aside data-purchase-checkout className="min-w-0 space-y-2">
           <PurchasePaymentPanel
             totals={totals}
@@ -403,6 +375,25 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             paidRef={paymentAmountRef}
             actionLabel={initialPurchase ? "Review correction" : undefined}
             hideAction
+            additionalDetails={
+              <div data-purchase-additional className="space-y-2">
+                <div className="flex items-center gap-2 text-[12px] font-medium text-ink">
+                  <FileImage className="size-4 shrink-0 text-ink-500" aria-hidden="true" />
+                  <span>Notes &amp; receipt <span className="font-bn text-[11px] font-normal text-ink-500">· অতিরিক্ত তথ্য</span></span>
+                </div>
+                <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+                  <label className="block min-w-0 text-[12px] font-medium text-ink">
+                    Notes <span className="font-normal text-ink-500">· optional</span>
+                    <Input className="mt-1" value={notes} onChange={(event) => setNotes(event.target.value)}
+                      placeholder="Delivery, discount or other details" />
+                  </label>
+                  <div className="min-w-0">
+                    <p className="mb-1 text-[12px] font-medium text-ink">Supplier bill / receipt <span className="font-normal text-ink-500">· optional</span></p>
+                    <PhotoUploader photos={photos} onChange={setPhotos} max={2} label="Attach" hint="Challan or payment receipt" />
+                  </div>
+                </div>
+              </div>
+            }
             onComplete={requestReview}
           />
           {error && <div role="alert" className="rounded-md border border-danger/20 bg-danger-bg p-3 text-[12px] text-danger">{error}</div>}
