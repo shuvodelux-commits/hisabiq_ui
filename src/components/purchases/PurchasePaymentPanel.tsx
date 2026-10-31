@@ -157,15 +157,15 @@ export function PurchasePaymentPanel(props: Props) {
       </div>
 
 
-      <div className="mt-3 rounded-lg bg-inverse px-3 py-3 text-white" data-purchase-summary-total>
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-[13px] font-medium text-white/75">{word('totalPayable')}{showHelper && <span className="font-bn text-[11px]"> · মোট</span>}</span>
-          <span data-testid="purchase-net-total" className="text-right text-[24px] font-semibold leading-tight text-white">{taka(totals.total)}</span>
+      <div className="rounded-md border border-border bg-ink-50/40 px-3 py-2.5 text-ink" data-purchase-summary-total>
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[13px] font-medium text-ink-600">{word('totalPayable')}{showHelper && <span className="font-bn text-[11px]"> · মোট</span>}</span>
+          <span data-testid="purchase-net-total" className="min-w-0 text-right text-[23px] font-semibold leading-tight text-ink">{taka(totals.total)}</span>
         </div>
-        <AmountInWordsDisplay amount={totals.total} variant="inverse" />
+        <AmountInWordsDisplay amount={totals.total} variant="compact" className="!mt-1 !rounded-none !border-0 !bg-transparent !p-0" />
       </div>
 
-        <div className="space-y-1.5 rounded-md bg-ink-50 p-3">
+        <div className="space-y-1.5 border-t border-border pt-2.5">
           <Row label={text("Paid","পরিশোধ")} value={<span className="font-medium">{taka(totals.paidNum)}</span>} />
           <Row label={<span>{text("Supplier due","সরবরাহকারীকে দেনা")} {showHelper&&<span className="font-bn text-xs text-ink-500">বাকি</span>}</span>}
             value={<span className={totals.due > 0 ? 'font-semibold text-danger' : ''}>{taka(totals.due)}</span>} />
