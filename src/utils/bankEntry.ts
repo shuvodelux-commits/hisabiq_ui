@@ -61,7 +61,7 @@ export function bankEntryImpact(type: BankEntryType, amount: number, adjustmentD
   return {
     direction,
     bankDelta: direction === 'credit' ? validAmount : -validAmount,
-    cashDelta: type === 'Cash Deposit' ? -validAmount : type === 'Cash Withdrawal' ? validAmount : 0
+    cashDelta: validAmount === 0 ? 0 : type === 'Cash Deposit' ? -validAmount : type === 'Cash Withdrawal' ? validAmount : 0
   };
 }
 
