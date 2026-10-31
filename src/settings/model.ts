@@ -1,3 +1,5 @@
+import { regionalDefaults, taxDefaults, numberingDefaults, validateRegional, validateTax, validateNumbering,
+  type RegionalPreferences, type TaxPreferences, type DocumentNumberingPreferences } from './commercePolicies.ts';
 import {moduleViewDefaults,validModuleViews,type ModuleViews} from './moduleViews.ts';
 import {outputProfileDefaults,validateOutputProfile,type OutputProfile} from '../documents/outputProfile.ts';
 import {invoiceDesignDefaults,validateInvoiceDesign,type InvoiceDesign} from '../documents/profile.ts';
@@ -30,6 +32,8 @@ export interface BusinessSettings {
   website: string;
   financialYear: string;
   registration: string;
+  regional: RegionalPreferences;
+  tax: TaxPreferences;
 }
 export interface SalesSettings {
   barcode: boolean;
@@ -81,6 +85,7 @@ export interface InvoiceSettings {
   showBangla: boolean;
   footer: string;
   prefix: string;
+  numbering: DocumentNumberingPreferences;
   showSerial: boolean;
   showWarranty: boolean;
   showPurchaseCost: boolean;
@@ -196,6 +201,8 @@ export function defaults(tenantId = currentBusinessId): TenantSettings {
         website: "",
         financialYear: "January–December",
         registration: "",
+        regional: regionalDefaults(),
+        tax: taxDefaults(),
       },
       sales: {
         barcode: true,
@@ -247,6 +254,7 @@ export function defaults(tenantId = currentBusinessId): TenantSettings {
         showBangla: true,
         footer: "Thank you for your business.",
         prefix: "INV",
+        numbering: numberingDefaults(),
         showSerial: true,
         showWarranty: true,
         showPurchaseCost: false,
@@ -348,6 +356,17 @@ export function validateSection<K extends BusinessSection>(
   if (!plain(value)) return "Invalid settings section.";
   if(section==="interface")return validModuleViews(value)?null:"Invalid module view preferences.";
   if(section==="financialTerminology") return validateFinancialDisplay(value);
+  if(section==="business") {
+    const regionalError = validateRegional(value.regional);
+    if (regionalError) return regionalError;
+    const taxError = validateTax(value.tax);
+    if (taxError) return taxError;
+  }
+  if(section==="invoices") {
+    const numberingError = validateNumbering(value.numbering);
+    if (numberingError) return numberingError;
+    if ((value.numbering as DocumentNumberingPreferences).sale.prefix !== value.prefix) return "Invoice prefix and sales numbering must match.";
+  }
   if(section==="invoices"&&value.profiles!==undefined&&(!plain(value.profiles)||!validateOutputProfile(value.profiles.ledger)||!validateOutputProfile(value.profiles.report)))return "Invalid ledger/report print profile.";
   if(section==="invoices" && value.design!==undefined){const error=validateInvoiceDesign(value.design);if(error)return error;}
   if (section === "team") {
@@ -524,6 +543,11 @@ export function parseSettings(
         const owner=v.sections.team.roles.find((r:unknown)=>plain(r)&&r.id==='owner');
         if(plain(owner)&&Array.isArray(owner.permissions)&&owner.permissions.every((p:unknown)=>typeof p==='string')&&['view','business','sales','products','purchases','money','invoices','team','notifications','export','import'].every(p=>(owner.permissions as unknown[]).includes(p))){owner.permissions=[...new Set([...owner.permissions,...permissions])];}
       }
+      if(plain(v.sections.business)){
+        if(v.sections.business.regional===undefined)v.sections.business.regional=regionalDefaults();
+        if(v.sections.business.tax===undefined)v.sections.business.tax=taxDefaults();
+      }
+      if(plain(v.sections.invoices)&&v.sections.invoices.numbering===undefined)v.sections.invoices.numbering=numberingDefaults(typeof v.sections.invoices.prefix==='string'?v.sections.invoices.prefix:'INV');
       if(v.sections.interface===undefined)v.sections.interface=moduleViewDefaults();
       if(v.sections.financialTerminology===undefined)v.sections.financialTerminology=financialDefaults();
       if(plain(v.sections.invoices)&&v.sections.invoices.profiles===undefined)v.sections.invoices.profiles={ledger:outputProfileDefaults("ledger"),report:outputProfileDefaults("report")};

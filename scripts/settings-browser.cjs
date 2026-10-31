@@ -178,7 +178,7 @@ async function main() {
       .click();
     const productEditor=page.locator('[data-product-editor]');await productEditor.waitFor();
     assert.equal(await productEditor.locator('#pf-unit').getAttribute('data-value'),'Pcs','saved tenant default unit');
-    if(await productEditor.locator('#pf-other-button').getAttribute('aria-expanded')==='false')await productEditor.locator('#pf-other-button').click();
+    if(await productEditor.locator('#pf-serial-button').getAttribute('aria-expanded')==='false')await productEditor.locator('#pf-serial-button').click();
     assert.equal(await productEditor.getByRole('radio',{name:'Required',exact:true}).getAttribute('aria-checked'),'true');
     await productEditor.getByRole('button',{name:'Cancel',exact:true}).click();
     await go("team");

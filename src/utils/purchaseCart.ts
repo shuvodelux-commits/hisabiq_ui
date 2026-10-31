@@ -40,8 +40,17 @@ export function baseCost(line: PurchaseCartLine): number {
   return amountOf(line.cost) / selectedConversion(line);
 }
 
+/** Only an explicitly typed lot price is persisted; an empty field inherits the product price. */
+export function enteredLotBaseSellPrice(line: PurchaseCartLine): number | undefined {
+  if (!line.lotSellPrice.trim()) return undefined;
+  if (!/^(?:\d+(?:\.\d{1,4})?|\.\d{1,4})$/.test(line.lotSellPrice.trim())) return NaN;
+  const entered = Number(line.lotSellPrice);
+  const factor = productUnitFactor(line.product, line.lotSellUnit);
+  return Number.isFinite(entered) && entered > 0 && factor > 0 ? entered / factor : NaN;
+}
+
 export function lotBaseSellPrice(line: PurchaseCartLine): number {
-  return amountOf(line.lotSellPrice) / (productUnitFactor(line.product, line.lotSellUnit) || 1);
+  return enteredLotBaseSellPrice(line) ?? line.product.sellPrice;
 }
 
 export function lineAmount(line: PurchaseCartLine): number {
@@ -73,7 +82,7 @@ export function makePurchaseLine(product: Product): PurchaseCartLine {
     product, bigQty: useLarge ? '1' : '0', smallQty: useLarge ? '0' : '1',
     unitQuantities:product.unitRelations&&product.unitRelations.length>1?{[unit]:'1'}:undefined,
     costUnit: unit, cost: String(rounded(product.unitPurchasePrices?.[unit] ?? priceInUnit(product.purchasePrice, product, unit))),
-    lotSellUnit: unit, lotSellPrice: String(rounded(priceInUnit(product.sellPrice, product, unit))),
+    lotSellUnit: unit, lotSellPrice: '',
     detailsOpen: (product.serialTracking !== undefined && product.serialTracking !== 'Off') ||
       Boolean(product.expiry?.enabled),
     serialText: '', batchNumber: '', manufactureDate: '', expiryDate: ''
