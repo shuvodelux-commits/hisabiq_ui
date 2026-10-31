@@ -34,7 +34,10 @@ test('one minimal additional settings list contains all seven direct options and
   assert.match(disclosure, /data-product-settings-row/);
   assert.match(disclosure, /aria-expanded={open}/);
   assert.doesNotMatch(disclosure, /border-t border-border|divide-y|<hr/);
-  assert.doesNotMatch(units, /<Disclosure|<details/);
+  assert.doesNotMatch(units, /<Disclosure|<details|<ToggleRow/);
+  assert.match(other, /id="pf-multi-toggle"/);
+  assert.match(other, /confirmSingle/);
+  assert.match(units, /data-product-multi-unit-compact/);
   assert.doesNotMatch(other, /<details|Other options|Advanced stock/);
   assert.match(unitPrices, /<MoneyUnitInput/);
   assert.match(bar, /onClick={onCancel}/);
