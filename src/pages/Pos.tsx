@@ -46,6 +46,7 @@ import { taka } from '../utils/currency';
 import { compoundLineTotal, parseCompoundQuantity } from '../utils/posQuantity';
 import {productUnitFactor, productUnits} from '../utils/unitChain';
 import {saleLineBaseQty,saleLineTotal,saleLineDescription,freezeSaleLineProfile} from '../utils/posMultiUnit';
+import {freezeInvoiceUnitNames} from '../utils/printUnitQuantity';
 import { activeOfferFor, allocateLotQuantity, duplicateSerials, effectivePriceForUnit, productStockBreakdown, requiredSerialCount, warrantySnapshot } from '../utils/productFeatures';
 import { blendedVendorUnitCost } from '../utils/posStock';
 import {allocatePosStock} from '../vendor/vendorStock';
@@ -593,6 +594,7 @@ export function Pos() {
           unitSnapshot:freezeSaleLineProfile(l),
           unitQuantities:l.unitQuantities?structuredClone(l.unitQuantities):undefined,
           qty: saleLineDescription(l),
+          unitNamesBn: freezeInvoiceUnitNames(saleLineDescription(l)),
           price: parseFloat(l.price) || 0,
           total: saleLineTotal(l),
           unitCost: l.product.kind==='Bundle'?undefined:l.stockSource?.mode==='Vendor' && l.stockSource.unitCost===null
