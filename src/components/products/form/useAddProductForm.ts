@@ -83,17 +83,17 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
     };
   });
 
-  const setMultiUnit = (on: boolean) => {
-    if (unitsLocked) return;
+  const setMultiUnit = (on: boolean): boolean => {
+    if (unitsLocked) return false;
     setUnitNotice(null);
     if (on) {
       setDraft((d) => ({ ...d, multiUnit: true, unitLevels: d.unitLevels.length ? d.unitLevels : [{ id: `u${Date.now()}`, unit: '', factor: '', price: '' }] }));
-      return;
+      return true;
     }
     const factors = factorsOf(draft);
     if ([draft.sellUnit, draft.buyUnit, draft.openingUnit, draft.minUnit].some((unit) => !factors[unit])) {
       setUnitNotice({ en: 'Complete the conversion before turning multiple units off, so entered amounts can be kept.', bn: 'দেওয়া দাম ও স্টক ঠিক রাখতে আগে রূপান্তর সম্পূর্ণ করুন।' });
-      return;
+      return false;
     }
     setDraft((d) => ({
       ...d, multiUnit: false, unitLevels: [], basePrice: '', basePurchasePrice: '',
@@ -104,6 +104,7 @@ export function useAddProductForm({ initialDraft, isEdit, existing, existingSeri
       stockViewUnit: d.unit
     }));
     setUnitNotice({ en: 'Multiple units turned off. Entered prices and quantities were converted to the smallest unit.', bn: 'একাধিক একক বন্ধ। দেওয়া দাম ও পরিমাণ সবচেয়ে ছোট এককে রূপান্তর হয়েছে।' });
+    return true;
   };
 
   const addUnitLevel = () => {
