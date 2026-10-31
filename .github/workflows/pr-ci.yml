@@ -99,6 +99,10 @@ jobs:
         if: steps.scope.outputs.product_form == 'true'
         run: npm run test:add-product-help
 
+      - name: Multi-unit products, POS and Purchase quantity regression
+        if: steps.scope.outputs.product_form == 'true'
+        run: npm run test:multi-unit-products
+
       - name: Upload Add Product interaction screenshots
         if: always() && steps.scope.outputs.product_form == 'true'
         uses: actions/upload-artifact@v4
