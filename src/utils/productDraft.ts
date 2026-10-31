@@ -128,7 +128,8 @@ export function validateDraft(d: ProductDraft, isEdit: boolean, x: DraftDerived)
   if (isStock && !d.unit.trim()) e.unit = { en: 'Choose a unit.', bn: 'একটি একক বাছুন।' };
   if (!(x.sellBase > 0) || !Number.isFinite(x.sellBase)) e.sell = { en: 'Enter a selling price.', bn: 'বিক্রয় মূল্য লিখুন।' };
 
-  if (d.buy.trim() && (!Number.isFinite(Number(d.buy)) || !Number.isFinite(x.buyBase) || x.buyBase < 0)) e.buy = { en: 'Enter a valid cost.', bn: 'সঠিক কেনা দাম লিখুন।' };
+  if (isStock && !d.buy.trim()) e.buy = { en: 'Enter unit cost (enter 0 if this product is free).', bn: 'কেনা দাম লিখুন (বিনামূল্যের পণ্যের জন্য ০ দিন)।' };
+  else if (d.buy.trim() && (!Number.isFinite(Number(d.buy)) || !Number.isFinite(x.buyBase) || x.buyBase < 0)) e.buy = { en: 'Enter a valid nonnegative cost.', bn: 'শূন্য বা তার বেশি সঠিক কেনা দাম লিখুন।' };
   if (!isEdit && isStock && (!Number.isFinite(Number(d.openingQty)) || !Number.isFinite(x.openingBase) || x.openingBase < 0)) e.opening = { en: 'Enter a valid opening quantity.', bn: 'সঠিক শুরুর স্টক লিখুন।' };
   if (isStock && (!Number.isFinite(Number(d.minQty)) || !Number.isFinite(x.minBase) || x.minBase < 0)) e.min = { en: 'Enter a valid minimum quantity.', bn: 'সঠিক সর্বনিম্ন স্টক লিখুন।' };
   if (isStock && d.multiUnit) {

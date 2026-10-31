@@ -1,5 +1,6 @@
 import { MoneyUnitInput, QuantityUnitInput } from '../../MoneyUnitInput';
 import { FormField } from '../fields/FormField';
+import { Tooltip } from '../../Tooltip';
 import { SectionHeading } from '../fields/SectionHeading';
 import { useFormCopy } from '../../../hooks/useFormCopy';
 import { taka } from '../../../utils/currency';
@@ -39,21 +40,26 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
   const stockNow = existing ? existing.stock : 0;
 
   return (
-    <>
-      <section aria-labelledby="pf-price-heading" className="border-t border-border px-4 py-4 md:px-6 md:py-5">
-        <SectionHeading id="pf-price-heading" en="Price" bn="দাম" />
+    <section aria-labelledby="pf-price-heading" className="px-4 pb-4 pt-3 md:px-6 md:pb-4 md:pt-4">
+      <SectionHeading id="pf-price-heading" en="Price & stock" bn="দাম ও স্টক"
+        aside={x.profit !== null && x.profit >= 0 && x.margin !== null
+          ? <Tooltip interactive compact label={t('Profit estimate', 'আনুমানিক লাভ')}
+              content={t(`Profit ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}% margin`,
+                `লাভ ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}%`)} />
+          : undefined} />
         <div className="pf-pair-money">
           <FormField
             id="pf-buy"
             en={isStock ? 'Unit cost' : 'Service cost'}
             error={errors.buy}
             bn={isStock ? 'কেনা দাম' : 'সেবা খরচ'}
-            optional
+            required={isStock}
             help={isStock ? t('What you pay the supplier.', 'সরবরাহকারীকে যে দাম দেন।') : t('Your cost to provide it.', 'সেবা দিতে আপনার খরচ।')}
             hint={buyEcho || undefined}
           >
             <MoneyUnitInput searchableUnits
               id="pf-buy"
+              required={isStock}
               invalid={Boolean(errors.buy)}
               label={isStock ? t('Unit cost', 'কেনা দাম') : t('Service cost', 'সেবা খরচ')}
               describedBy="pf-buy-msg"
@@ -89,18 +95,13 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
             />
           </FormField>
         </div>
-        {x.profit !== null && x.margin !== null && (
-          <p className={'mt-4 text-[13px] font-medium ' + (x.profit < 0 ? 'text-danger' : 'text-ink-600')}>
-            {x.profit < 0
-              ? t(`Below cost: you lose ${taka(-x.profit)}${perUnit}.`, `কেনা দামের নিচে: ${taka(-x.profit)}${perUnit} লোকসান।`)
-              : t(`Profit ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}% margin`, `লাভ ${taka(x.profit)}${perUnit} · ${x.margin.toFixed(1)}%`)}
+        {x.profit !== null && x.profit < 0 && (
+          <p role="alert" className="mt-2 text-[13px] font-medium text-danger">
+            {t(`Below cost: you lose ${taka(-x.profit)}${perUnit}.`, `কেনা দামের নিচে: ${taka(-x.profit)}${perUnit} লোকসান।`)}
           </p>
         )}
-      </section>
-
       {isStock && (
-        <section aria-labelledby="pf-stock-heading" className="border-t border-border px-4 py-4 md:px-6 md:py-5">
-          <SectionHeading id="pf-stock-heading" en="Stock" bn="স্টক" />
+        <div className="mt-3">
           {isEdit && (
             <p className="mb-4 rounded-lg bg-ink-100 px-3 py-2.5 text-[14px] text-ink-700">
               {t('In stock now:', 'এখন স্টকে:')}{' '}
@@ -117,7 +118,6 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
                 en="Opening stock"
                 error={errors.opening}
                 bn="শুরুর স্টক"
-                optional
                 help={t('How many you have right now.', 'এখন কতগুলো আছে।')}
                 hint={qtyHint(draft.openingQty, x.openingUnit)}
               >
@@ -140,7 +140,6 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
               en="Minimum stock"
               error={errors.min}
               bn="সর্বনিম্ন স্টক"
-              optional
               help={t('We warn you when stock falls to this.', 'স্টক এতে নামলে সতর্ক করবে।')}
               hint={qtyHint(draft.minQty, x.minUnit)}
             >
@@ -158,8 +157,8 @@ export function PriceStockSection({ form }: { form: AddProductForm }) {
               />
             </FormField>
           </div>
-        </section>
+        </div>
       )}
-    </>
+    </section>
   );
 }

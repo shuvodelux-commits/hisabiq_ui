@@ -71,7 +71,7 @@ test('edit/reopen preserves all legacy and chain prices, active state and stock;
  assert.equal(buildProduct(loaded,deriveDraft(loaded,true,[]),true,legacy).product.altUnit?.price,600);
 });
 test('opening serial and expiry checks retain metadata; services never create stock',()=>{
- const d={...initialProductDraft(config),name:'Generator',unit:'Pcs',sell:'185000',sellUnit:'Pcs',buyUnit:'Pcs',openingQty:'2',openingUnit:'Pcs',serialTracking:'Required' as const,openingSerialText:'A\nA'};
+ const d={...initialProductDraft(config),name:'Generator',unit:'Pcs',sell:'185000',buy:'150000',sellUnit:'Pcs',buyUnit:'Pcs',openingQty:'2',openingUnit:'Pcs',serialTracking:'Required' as const,openingSerialText:'A\nA'};
  assert.ok(validateDraft(d,false,deriveDraft(d,false,[])).openingSerials);
  d.openingSerialText='A\nB';d.expiryEnabled=true;d.expiryDateRequired=true;
  assert.ok(validateDraft(d,false,deriveDraft(d,false,[])).expiryDate);
@@ -100,4 +100,16 @@ test('save and reopen keeps the whole photo gallery and supports legacy cover-on
  assert.equal(product.image,'blob:cover');assert.deepEqual(product.images,d.photos);
  assert.deepEqual(initialProductDraft(config,product).photos,d.photos);
  assert.deepEqual(initialProductDraft(config,{...product,images:undefined}).photos,['blob:cover']);
+});
+
+test('stock needs unit, category and explicitly entered cost, but zero-cost freebies and blank service cost are allowed', () => {
+  const draft = {...initialProductDraft(config),name:'Cable',category:'Hardware',unit:'Pcs',buy:'',sell:'120'};
+  const validate = (d: ProductDraft) => validateDraft(d,false,deriveDraft(d,false,[]));
+  assert.ok(validate(draft).buy, 'blank stock cost must be rejected');
+  assert.ok(validate({...draft,unit:''}).unit, 'missing stock unit rejected');
+  assert.ok(validate({...draft,category:''}).category, 'missing category rejected');
+  assert.deepEqual(validate({...draft,buy:'0'}), {}, 'explicit zero is allowed for free stock');
+  assert.deepEqual(validate({...draft,buy:'35'}), {}, 'normal stock purchase cost allowed');
+  assert.ok(validate({...draft,buy:'-1'}).buy, 'negative unit cost rejected');
+  assert.deepEqual(validate({...draft,kind:'Service',unit:'Service',category:'Service'}), {}, 'service cost remains optional');
 });

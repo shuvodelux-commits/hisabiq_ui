@@ -1,72 +1,44 @@
-import { useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { LayersIcon, LockKeyholeIcon, PlusIcon, Trash2Icon } from 'lucide-react';
-import { Button } from '../../Button';
-import { MoneyUnitInput, QuantityUnitInput } from '../../MoneyUnitInput';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../Dialog';
-import { Disclosure } from '../fields/Disclosure';
+import { QuantityUnitInput } from '../../MoneyUnitInput';
 import { FormField } from '../fields/FormField';
 import { SearchSelect } from '../../SearchSelect';
-import { Tooltip } from '../../Tooltip';
-import { ToggleRow } from '../fields/ToggleRow';
 import { useFormCopy } from '../../../hooks/useFormCopy';
-import { taka } from '../../../utils/currency';
-import { errorSection, fmtQty } from '../../../utils/productDraft';
 import type { AddProductForm } from './useAddProductForm';
 
-const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
-
+/** Compact single-open unit editor. Header switch and safe disable dialog live in OtherOptionsPanel. */
 export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
   const { t } = useFormCopy();
-  const reduce = useReducedMotion();
-  const [confirmSingle, setConfirmSingle] = useState(false);
   const { draft, set, errors, derived: x, unitsLocked } = form;
-  const largest = x.units[x.units.length - 1];
-
-  const errorCount = form.errorList.filter((key) => errorSection(key) === 'advanced').length;
   const usedUnits = new Set([draft.unit, ...draft.unitLevels.map((level) => level.unit)].map((unit) => unit.toLowerCase()));
-  const priceErrors = form.errorList.some((key) => key.startsWith('levelPrice-') || key.startsWith('levelPurchase-') || key === 'basePrice' || key === 'basePurchasePrice');
 
   return (
-    <Disclosure id="pf-advanced" en="Advanced stock" bn="উন্নত স্টক"
-      status={draft.multiUnit ? (x.units.length > 1
-        ? t(`${x.units.length} units`, `${x.units.length}টি একক`)
-        : t('Multi-unit on', 'একাধিক একক চালু')) : undefined}
-      help={draft.multiUnit
-        ? t(`Configured units: ${[...x.units].reverse().join(' → ')}. Stock uses ${draft.unit}.`, `একক: ${[...x.units].reverse().join(' → ')}। স্টক ${draft.unit}-এ গোনা হয়।`)
-        : t(`Stock uses ${draft.unit}. Add larger units only when you need them.`, `স্টক ${draft.unit}-এ গোনা হয়। দরকার হলে বড় একক যোগ করুন।`)}
-      open={form.advancedOpen} onToggle={() => form.setAdvancedOpen(!form.advancedOpen)} errorCount={errorCount}>
+    <div className="w-full max-w-[620px] space-y-2.5" data-product-multi-unit-compact>
       {unitsLocked && (
-        <p className="mb-4 flex items-start gap-2 rounded-lg bg-ink-100 p-3 text-[13px] text-ink-700">
+        <p className="flex items-start gap-2 rounded-md bg-ink-100 px-3 py-2 text-[12px] text-ink-700">
           <LockKeyholeIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          {t('Unit setup is locked because this product has stock or transaction history. Prices and the preferred display unit can still change.',
-            'এই পণ্যে স্টক বা লেনদেন আছে, তাই এককের সম্পর্ক বদলানো যাবে না। দাম ও দেখানোর একক বদলাতে পারবেন।')}
+          {t('Unit conversion is locked for this product. Prices and display unit remain editable.',
+            'এই পণ্যের একক রূপান্তর পরিবর্তন করা যাবে না। দাম ও দেখানোর একক বদলাতে পারবেন।')}
         </p>
       )}
-      <fieldset disabled={unitsLocked} className="min-w-0 disabled:opacity-70">
-        <ToggleRow id="pf-multi" en="Use multiple units" bn="একাধিক একক ব্যবহার"
-          help={t('Like Carton, Box, Pcs and Feet. Add only the units this product needs.', 'যেমন Carton, Box, Pcs ও Feet। এই পণ্যের দরকারি এককগুলো দিন।')}
-          checked={draft.multiUnit} onChange={(on) => on ? form.setMultiUnit(true) : setConfirmSingle(true)} />
-      </fieldset>
-      {form.unitNotice && <p role="status" className="mt-3 rounded-lg bg-info-bg px-3 py-2.5 text-[13px] text-info">{t(form.unitNotice.en, form.unitNotice.bn)}</p>}
-      <AnimatePresence initial={false}>
-        {draft.multiUnit && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: reduce ? 0 : 0.2, ease: EASE }} className="overflow-hidden">
-            <div className="pt-4">
-              <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-600">
-                <LayersIcon className="size-4 text-primary" aria-hidden="true" />
-                <span>{t('Smallest stock unit', 'সবচেয়ে ছোট স্টক একক')}</span>
-                <strong className="rounded-md border border-teal-200 bg-accent px-2.5 py-1 font-semibold text-primary">{draft.unit}</strong>
-
-              </div>
-              <div id="pf-unitChain" className="space-y-3" aria-label={t('Unit conversions', 'এককের রূপান্তর')}>
+      {form.unitNotice && (
+        <p role="status" className="rounded-md bg-info-bg px-3 py-2 text-[12px] text-info">
+          {t(form.unitNotice.en, form.unitNotice.bn)}
+        </p>
+      )}
+      {draft.multiUnit ? (
+        <>
+          <div className="flex flex-wrap items-center gap-2 text-[12px] text-ink-500" data-product-unit-base>
+            <LayersIcon className="size-4 shrink-0" aria-hidden="true" />
+            <span>{t('Stock unit', 'স্টক একক')}</span>
+            <span className="font-semibold text-ink">{draft.unit}</span>
+          </div>
+              <div id="pf-unitChain" className="space-y-1.5" aria-label={t('Unit conversions', 'এককের রূপান্তর')}>
                 {draft.unitLevels.map((level, index) => {
                   const smaller = index ? draft.unitLevels[index - 1].unit : draft.unit;
                   const unitKey = `levelUnit-${level.id}` as const;
                   const factorKey = `levelFactor-${level.id}` as const;
                   return (
-                    <fieldset data-product-unit-relationship key={level.id} disabled={unitsLocked} className="min-w-0 rounded-lg border border-border bg-card p-3 disabled:opacity-75">
+                    <fieldset data-product-unit-relationship key={level.id} disabled={unitsLocked} className="min-w-0 py-1 disabled:opacity-75">
                       <legend className="sr-only">{t(`Conversion for ${level.unit || 'larger unit'}`, `${level.unit || 'বড় একক'}-এর রূপান্তর`)}</legend>
                       <div className="pf-unit-row" data-product-unit-equation>
                         <span className="pf-unit-one text-[14px] font-semibold text-ink" aria-hidden="true">1</span>
@@ -85,7 +57,7 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                         </FormField>
                         <button type="button" disabled={unitsLocked} onClick={() => form.removeUnitLevel(level.id)}
                           aria-label={t(`Remove ${level.unit || 'unit'} level`, `${level.unit || 'একক'} ধাপ মুছুন`)}
-                          title={t('Remove this unit', 'এই একক মুছুন')} className="pf-unit-remove flex size-9 items-center justify-center rounded-md border border-border text-ink-500 transition-colors hover:border-danger/30 hover:bg-danger-bg hover:text-danger disabled:cursor-not-allowed">
+                          title={t('Remove this unit', 'এই একক মুছুন')} className="pf-unit-remove flex size-9 items-center justify-center rounded-md text-ink-500 transition-colors hover:bg-danger-bg hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed">
                           <Trash2Icon className="size-[18px]" aria-hidden="true" />
                         </button>
                       </div>
@@ -95,78 +67,21 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
                 {errors.unitChain && <p role="alert" className="text-[13px] text-danger">{t(errors.unitChain.en, errors.unitChain.bn)}</p>}
               </div>
               <button type="button" disabled={unitsLocked} onClick={form.addUnitLevel}
-                className="mt-3 flex min-h-9 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-teal-300 px-3 py-2.5 text-[14px] font-semibold text-primary transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50">
+                className="mt-1 flex min-h-9 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-primary hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-50">
                 <PlusIcon className="size-4" aria-hidden="true" />{t('Add another unit', 'আরেকটি একক যোগ করুন')}
               </button>
-              {x.units.length > 1 && (
-                <div className="mt-3 rounded-lg border border-teal-200 bg-accent p-3" aria-live="polite">
-                  <div className="space-y-1 text-[14px] text-ink">
-                    {draft.unitLevels.filter((level) => x.factors[level.unit]).map((level) => (
-                      <p key={level.id}>1 {level.unit} = <strong className="font-semibold">{fmtQty(x.factors[level.unit])} {draft.unit}</strong></p>
-                    ))}
-                  </div>
-                  {x.units.length > 2 && <p className="mt-2 border-t border-teal-200 pt-2 text-[13px] text-ink-600">1 {largest} = {fmtQty(x.factors[largest] / x.factors[x.units[1]])} {x.units[1]}</p>}
-
-                </div>
-              )}
-              <FormField id="pf-view" en="Preferred stock unit" bn="স্টক দেখানোর একক" className="mt-4"
+              <FormField id="pf-view" en="Preferred stock unit" bn="স্টক দেখানোর একক" className="mt-2 max-w-[300px]"
                 help={t('Used for stock display and the default unit in POS.', 'স্টক দেখাতে ও POS-এর ডিফল্ট একক।')}>
                 <SearchSelect id="pf-view" noun={{ en: 'stock display unit', bn: 'স্টক দেখানোর একক' }} labelledBy="pf-view-label"
                   value={x.viewUnit} options={x.units.map((unit) => ({ value: unit, label: unit }))} onChange={(next) => set('stockViewUnit', next)} />
               </FormField>
-              {draft.unitLevels.length > 0 && (
-                <details className="relative mt-5 rounded-lg border border-border" open={priceErrors || undefined}>
-                  <summary className="cursor-pointer px-3.5 py-3 pr-12 text-[14px] font-medium text-ink">{t('Custom unit prices', 'একক অনুযায়ী আলাদা দাম')}</summary>
-                  <span className="absolute right-3 top-2">
-                    <Tooltip interactive compact
-                      label={t('Help for Custom unit prices', 'একক অনুযায়ী আলাদা দাম সম্পর্কে সাহায্য')}
-                      content={t('Leave empty to convert the regular selling price. A custom price replaces the automatic price for that unit.', 'খালি রাখলে সাধারণ বিক্রয় মূল্য থেকে হিসাব হবে। আলাদা দাম দিলে সেটিই প্রযোজ্য হবে।')}
-                    />
-                  </span>
-                  <div className="space-y-4 border-t border-border p-3.5">
-                    {[{ id: 'base', unit: draft.unit, price: draft.basePrice ?? '', purchasePrice: draft.basePurchasePrice ?? '' }, ...draft.unitLevels]
-                      .filter((level) => x.factors[level.unit]).map((level) => {
-                      const base = level.id === 'base';
-                      const priceKey = base ? 'basePrice' : `levelPrice-${level.id}` as const;
-                      const purchaseKey = base ? 'basePurchasePrice' : `levelPurchase-${level.id}` as const;
-                      const autoSell = x.sellBase * x.factors[level.unit];
-                      const autoBuy = x.buyBase * x.factors[level.unit];
-                      return <div key={level.id} className="pf-pair-money">
-                        <FormField id={`pf-${purchaseKey}`} en={`Unit cost per ${level.unit}`} bn={`প্রতি ${level.unit} কেনা দাম`} error={errors[purchaseKey]}
-                          help={level.purchasePrice ? t(`Custom cost; automatic cost is ${taka(autoBuy)} / ${level.unit}`, `আলাদা কেনা দাম। স্বয়ংক্রিয় দাম ${taka(autoBuy)} / ${level.unit}`) : t(`Automatic: ${taka(autoBuy)} / ${level.unit}`, `স্বয়ংক্রিয়: ${taka(autoBuy)} / ${level.unit}`)}>
-                          <MoneyUnitInput id={`pf-${purchaseKey}`} label={t(`Purchase price per ${level.unit}`, `প্রতি ${level.unit} কেনা দাম`)}
-                            invalid={Boolean(errors[purchaseKey])} describedBy={`pf-${purchaseKey}-msg`} value={level.purchasePrice ?? ''}
-                            onChange={(value) => base ? set('basePurchasePrice', value) : form.updateUnitLevel(level.id, 'purchasePrice', value)}
-                            placeholder={autoBuy > 0 ? String(Number(autoBuy.toFixed(4))) : '0'} staticUnit={`/ ${level.unit}`} />
-                        </FormField>
-                        <FormField id={`pf-${priceKey}`} en={`Selling price per ${level.unit}`} bn={`প্রতি ${level.unit} বিক্রয় মূল্য`} error={errors[priceKey]}
-                          help={level.price ? t(`Custom price; automatic price is ${taka(autoSell)} / ${level.unit}`, `আলাদা দাম। স্বয়ংক্রিয় দাম ${taka(autoSell)} / ${level.unit}`) : t(`Automatic: ${taka(autoSell)} / ${level.unit}`, `স্বয়ংক্রিয়: ${taka(autoSell)} / ${level.unit}`)}>
-                          <MoneyUnitInput id={`pf-${priceKey}`} label={t(`Selling price per ${level.unit}`, `প্রতি ${level.unit} বিক্রয় মূল্য`)}
-                            invalid={Boolean(errors[priceKey])} describedBy={`pf-${priceKey}-msg`} value={level.price}
-                            onChange={(value) => base ? set('basePrice', value) : form.updateUnitLevel(level.id, 'price', value)}
-                            placeholder={autoSell > 0 ? String(Number(autoSell.toFixed(4))) : '0'} staticUnit={`/ ${level.unit}`} />
-                        </FormField>
-                      </div>;
-                    })}
-                  </div>
-                </details>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <Dialog open={confirmSingle} onOpenChange={setConfirmSingle}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('Use a single unit?', 'একটি একক ব্যবহার করবেন?')}</DialogTitle>
-            <DialogDescription>{t(`Prices and quantities will be converted to ${draft.unit}. Larger units and their custom prices will be removed. Review all amounts before changing the smallest unit.`, `দাম ও পরিমাণ ${draft.unit}-এ রূপান্তর হবে। বড় একক ও তাদের আলাদা দাম মুছে যাবে। সবচেয়ে ছোট একক বদলানোর আগে সব পরিমাণ যাচাই করুন।`)}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmSingle(false)}>{t('Keep multiple units', 'একাধিক একক রাখুন')}</Button>
-            <Button onClick={() => { form.setMultiUnit(false); setConfirmSingle(false); }}>{t('Use single unit', 'একটি একক ব্যবহার')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Disclosure>
+        </>
+      ) : (
+        <p className="text-[12px] text-ink-500">
+          {t('Turn on Multiple units to add Box, Carton or other units.',
+             'Box, Carton বা অন্য একক যোগ করতে একাধিক একক চালু করুন।')}
+        </p>
+      )}
+    </div>
   );
 }

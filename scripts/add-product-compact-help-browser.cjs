@@ -1,4 +1,4 @@
-/* Add Product compact labels: touch/keyboard help, required state and mobile layout. */
+/* Screenshot-faithful Add Product layout: English/Bangla, phone/tablet/desktop and keyboard. */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -19,8 +19,7 @@ async function main() {
       { width: 1280, height: 900, language: 'English + Bangla', scheme: 'light' }
     ]) {
       const context = await browser.newContext({ viewport: { width, height }, colorScheme: scheme, hasTouch: width < 768, reducedMotion: 'reduce' });
-      const errors = [];
-      const page = await context.newPage();
+      const errors = [], page = await context.newPage();
       page.on('pageerror', error => errors.push(error.message));
       await page.addInitScript(({ language, scheme }) => {
         localStorage.setItem('hisabiq-erp-personal-v1', JSON.stringify({ mode: 'Simple', language, density: 'Compact', terminology: 'simple', dateView: 'transaction' }));
@@ -32,104 +31,120 @@ async function main() {
       await editor.waitFor();
       await editor.locator('#pf-sell').waitFor();
 
+      // The screenshot has one border above Additional settings and no section separators.
       assert.match(await editor.locator('#pf-name-label').innerText(), /\*/);
       assert.match(await editor.locator('#pf-sell-label').innerText(), /\*/);
-      assert.match(await editor.locator('#pf-buy-label').innerText(), language === 'Bangla' ? /ঐচ্ছিক/ : /optional/);
-      assert.match(await editor.locator('#pf-min-label').innerText(), language === 'Bangla' ? /ঐচ্ছিক/ : /optional/);
-      assert.ok(!(await editor.innerText()).includes('Optional. We warn you when stock falls to this.'), 'explanation does not take a permanent row');
-      assert.equal(await editor.locator('#pf-advanced-button').getAttribute('aria-expanded'), 'false');
-      assert.equal(await editor.locator('#pf-other-button').getAttribute('aria-expanded'), 'false');
+      assert.ok(!(await editor.locator('#pf-buy-label').innerText()).includes('optional'), 'compact cost label');
+      assert.equal(await editor.locator('[data-product-additional-settings]').count(), 1);
+      assert.equal(await editor.locator('[data-product-settings-row]').count(), 6, 'six rows when multiple units are off');
+      assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'false');
+      assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'false');
+      if (width >= 768) {
+        const boxes = await Promise.all(['brand','category','unit'].map(id => editor.locator('#pf-'+id+'-label').boundingBox()));
+        assert.ok(boxes.every(Boolean), 'all three labels visible');
+        assert.ok(Math.abs(boxes[0].y-boxes[1].y)<2 && Math.abs(boxes[1].y-boxes[2].y)<2, 'brand category unit share one row');
+      }
 
       const helpName = language === 'Bangla' ? 'বিক্রয় মূল্য সম্পর্কে সাহায্য' : 'Help for Selling price';
       const help = editor.getByRole('button', { name: helpName, exact: true });
       if (width < 768) await help.tap(); else await help.click();
-      const tooltip = page.getByRole('tooltip');
-      await tooltip.waitFor({ state: 'visible' });
-      assert.match(await tooltip.innerText(), language === 'Bangla' ? /সাধারণ দাম/ : /Normal price/);
-      const bounds = await tooltip.boundingBox();
-      assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= width + 1, 'tooltip stays inside viewport');
-      assert.equal(await editor.locator('#pf-advanced-button').getAttribute('aria-expanded'), 'false', 'tooltip does not expand advanced stock');
-      await help.press('Escape');
-      await tooltip.waitFor({ state: 'hidden' });
+      const popup = page.getByRole('tooltip');
+      await popup.waitFor({ state: 'visible' });
+      const bounds = await popup.boundingBox();
+      assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= width + 1);
+      await help.press('Escape'); await popup.waitFor({ state: 'hidden' });
 
-      // Advanced help stays accessible without showing permanent explanatory paragraphs.
-      await editor.locator('#pf-advanced-button').click();
-      const multiHelp = editor.getByRole('button', {
-        name: language === 'Bangla' ? 'একাধিক একক ব্যবহার সম্পর্কে সাহায্য' : 'Help for Use multiple units',
-        exact: true
-      });
-      await multiHelp.click();
-      await page.getByRole('tooltip').waitFor({ state: 'visible' });
-      await multiHelp.press('Escape');
-      await page.getByRole('tooltip').waitFor({ state: 'hidden' });
-      assert.ok(!(await editor.innerText()).includes('Like Carton, Box, Pcs and Feet.'), 'multi-unit examples are in help only');
-
-      await editor.locator('#pf-other-button').click();
-      const warrantyHelp = editor.getByRole('button', {
-        name: language === 'Bangla' ? 'ওয়ারেন্টি সম্পর্কে সাহায্য' : 'Help for Warranty',
-        exact: true
-      });
-      await warrantyHelp.click();
-      const warrantyPopup = page.getByRole('tooltip');
-      await warrantyPopup.waitFor({ state: 'visible' });
-      assert.match(await warrantyPopup.innerText(), language === 'Bangla' ? /ওয়ারেন্টি পেজে/ : /Warranty page/);
-      await warrantyHelp.press('Escape');
-      await warrantyPopup.waitFor({ state: 'hidden' });
-      assert.ok(!(await editor.innerText()).includes('No serial numbers for this product.'), 'off-state serial explanation is removed');
-      const photoHelp = editor.getByRole('button', {
-        name: language === 'Bangla' ? 'ছবি সম্পর্কে সাহায্য' : 'Help for Photos',
-        exact: true
-      });
-      await photoHelp.click();
-      await page.getByRole('tooltip').waitFor({ state: 'visible' });
-      await photoHelp.press('Escape');
-      await page.getByRole('tooltip').waitFor({ state: 'hidden' });
-      assert.ok(!(await editor.innerText()).includes('Optional. Up to 4.'), 'photo instructions are on demand');
-
-      // Keep rare settings conditional: no fields before the multi-unit switch is enabled.
+      // Opening a row is non-destructive; its independent header switch activates units.
+      const isSwitchOn = async (control) => control.evaluate((node) =>
+        node.getAttribute('aria-checked') === 'true' ||
+        node.getAttribute('data-state') === 'checked' ||
+        (node instanceof HTMLInputElement && node.checked));
+      const multiSwitch = editor.locator('#pf-multi-toggle');
+      assert.equal(await isSwitchOn(multiSwitch), false);
+      await editor.locator('#pf-units-button').click();
       assert.equal(await editor.locator('[data-product-unit-equation]').count(), 0);
-      await editor.locator('#pf-multi-label').click();
+      await editor.locator('label:has(#pf-multi-toggle)').click();
+      assert.equal(await isSwitchOn(multiSwitch), true);
+      assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'true');
       const equation = editor.locator('[data-product-unit-equation]').first();
       await equation.waitFor({ state: 'visible' });
       assert.equal((await equation.locator('.pf-unit-one').innerText()).trim(), '1');
       assert.equal((await equation.locator('.pf-unit-equals').innerText()).trim(), '=');
-      assert.equal(await equation.locator('input').count(), 1, 'existing quantity input reused');
       const unitBox = await equation.locator('.pf-unit-select').boundingBox();
-      const quantityBox = await equation.locator('.pf-unit-ratio').boundingBox();
-      assert.ok(unitBox && quantityBox && unitBox.width >= 95 && quantityBox.width >= 95, 'multi-unit controls remain readable');
-      if (width <= 390) assert.ok(quantityBox.y > unitBox.y, 'mobile keeps the equation as two lines');
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'equation does not overflow page');
+      const qtyBox = await equation.locator('.pf-unit-ratio').boundingBox();
+      assert.ok(unitBox && qtyBox && unitBox.width >= 90 && qtyBox.width >= 90, 'conversion fields readable');
+      if (width <= 390) assert.ok(qtyBox.y > unitBox.y, 'phone wraps equation');
 
-      // Configured state is a short badge on the header, even when the panel closes.
-      await editor.locator('#pf-advanced-button').click();
-      assert.equal(await editor.locator('#pf-advanced-button').getAttribute('aria-expanded'), 'false');
-      assert.ok((await editor.locator('#pf-advanced-button [data-product-option-status]').innerText()).length > 0);
-      await page.screenshot({
-        path: `test-results/add-product-help/${width}-${language.replace(/\W/g, '-')}-${scheme}-collapsed.png`,
-        fullPage: true
+      // Turning off cannot silently discard an incomplete unit conversion.
+      await editor.locator('label:has(#pf-multi-toggle)').click();
+      const confirmUnits = page.getByRole('dialog', { name: language === 'Bangla' ? 'একটি একক ব্যবহার করবেন?' : 'Use a single unit?' });
+      await confirmUnits.waitFor({ state: 'visible' });
+      assert.equal(await isSwitchOn(multiSwitch), true, 'confirmation pending preserves state');
+      await confirmUnits.getByRole('button', { name: language === 'Bangla' ? 'একাধিক একক রাখুন' : 'Keep multiple units' }).click();
+      assert.equal(await isSwitchOn(multiSwitch), true, 'cancelling preserves unit setup');
+      await editor.locator('label:has(#pf-multi-toggle)').click();
+      await confirmUnits.waitFor({ state: 'visible' });
+      await confirmUnits.getByRole('button', { name: language === 'Bangla' ? 'একটি একক ব্যবহার' : 'Use single unit' }).click();
+      assert.equal(await isSwitchOn(multiSwitch), false, 'confirmed change uses one unit');
+      await editor.locator('label:has(#pf-multi-toggle)').click();
+      assert.equal(await isSwitchOn(multiSwitch), true, 'can re-enable multi-unit without leaving the form');
+      await equation.waitFor({ state: 'visible' });
+      await editor.locator('#pf-warranty-button').click();
+      assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'false');
+      assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'true');
+      assert.ok((await editor.locator('#pf-units-button [data-product-option-status]').innerText()).length > 0);
+      // Activating a feature in its header opens the real controls in one action.
+      const warrantySwitch = editor.locator('#pf-warranty-toggle');
+      assert.equal(await isSwitchOn(warrantySwitch), false);
+      await editor.locator('label:has(#pf-warranty-toggle)').click();
+      assert.equal(await isSwitchOn(warrantySwitch), true);
+      await editor.locator('#pf-warrantyDuration').waitFor({ state: 'visible' });
+      const warrantyHelp = editor.getByRole('button', {
+        name: language === 'Bangla' ? 'সময়কাল সম্পর্কে সাহায্য' : 'Help for How long', exact: true
       });
+      await warrantyHelp.click(); await popup.waitFor({ state: 'visible' });
+      await warrantyHelp.press('Escape'); await popup.waitFor({ state: 'hidden' });
 
-      // Submitting incomplete unit ratios must reveal advanced again, never trap a hidden error.
-      await editor.locator('#pf-name').fill('Progressive UX verification');
+      const expirySwitch = editor.locator('#pf-expiry-toggle');
+      assert.equal(await isSwitchOn(expirySwitch), false);
+      await editor.locator('label:has(#pf-expiry-toggle)').click();
+      assert.equal(await isSwitchOn(expirySwitch), true);
+      assert.equal(await editor.locator('#pf-expiry-button').getAttribute('aria-expanded'), 'true');
+      await editor.locator('#pf-warningDays').waitFor({ state: 'visible' });
+      assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'false');
+      await editor.locator('#pf-warningDays').fill('21');
+      await editor.locator('#pf-expiryRequired [role="radio"]').last().click();
+      assert.equal(await editor.locator('#pf-expiryRequired [role="radio"]').last().getAttribute('aria-checked'), 'true');
+      await editor.locator('[aria-labelledby="pf-allocation-label"] [role="radio"]').last().click();
+      await editor.locator('#pf-expiry-button').click();
+      assert.ok((await editor.locator('#pf-expiry-button [data-product-option-status]').innerText()).includes('21'));
+      await editor.locator('label:has(#pf-expiry-toggle)').click();
+      assert.equal(await isSwitchOn(expirySwitch), false);
+      await editor.locator('label:has(#pf-expiry-toggle)').click();
+      assert.equal(await isSwitchOn(expirySwitch), true);
+      assert.equal(await editor.locator('#pf-warningDays').inputValue(), '21', 'values survive disable / re-enable');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'compact expiry must not overflow viewport');
+      await page.screenshot({ path: `test-results/add-product-help/${width}-${language.replace(/\\W/g, '-')}-${scheme}-expiry.png`, fullPage: true });
+
+      await editor.locator('#pf-photos-button').click();
+      assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'false');
+      const photoHelp = editor.getByRole('button', {
+        name: language === 'Bangla' ? 'ছবি সম্পর্কে সাহায্য' : 'Help for Photos', exact: true
+      });
+      await photoHelp.click(); await popup.waitFor({ state: 'visible' });
+      await photoHelp.press('Escape'); await popup.waitFor({ state: 'hidden' });
+
+      await page.screenshot({ path: `test-results/add-product-help/${width}-${language.replace(/\W/g, '-')}-${scheme}-compact.png`, fullPage: true });
+      await editor.locator('#pf-name').fill('Screenshot layout regression');
+      await editor.locator('#pf-buy').fill('0'); // Explicitly free stock: new required-cost rule.
       await editor.locator('#pf-sell').fill('180');
-      await editor.getByRole('button', {
-        name: language === 'Bangla' ? 'পণ্য সংরক্ষণ' : 'Save product',
-        exact: true
-      }).click();
-      await page.waitForFunction(() => document.querySelector('#pf-advanced-button')?.getAttribute('aria-expanded') === 'true');
-      assert.ok(await editor.locator('[data-product-unit-equation]').first().isVisible(), 'invalid ratio revealed');
-      assert.ok(await editor.locator('#pf-advanced-button').getAttribute('aria-expanded') === 'true', 'advanced reopened for error');
-
-      await editor.locator('#pf-buy').fill('120');
-      await editor.locator('#pf-sell').fill('180');
-      assert.equal(await editor.locator('#pf-buy').inputValue(), '120');
-      assert.equal(await editor.locator('#pf-sell').inputValue(), '180');
-
-      await page.screenshot({ path: `test-results/add-product-help/${width}-${language.replace(/\W/g, '-')}-${scheme}.png`, fullPage: true });
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'no horizontal page overflow');
+      await editor.getByRole('button', { name: language === 'Bangla' ? 'পণ্য সংরক্ষণ' : 'Save product', exact: true }).click();
+      await page.waitForFunction(() => document.querySelector('#pf-units-button')?.getAttribute('aria-expanded') === 'true');
+      assert.ok(await editor.locator('[data-product-unit-equation]').first().isVisible(), 'invalid unit conversion automatically revealed');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'no horizontal overflow');
       assert.deepEqual(errors, [], language + ' ' + width + ' page errors');
       await context.close();
-      console.log('Compact Add Product help: ' + language + ' @ ' + width + 'px (' + scheme + ') passed');
+      console.log('Screenshot Add Product layout: ' + language + ' @ ' + width + 'px (' + scheme + ') passed');
     }
   } finally {
     await browser.close();

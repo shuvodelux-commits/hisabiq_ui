@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { ArrowLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '../Dialog';
-import { Button } from '../Button';
-import { Tooltip } from '../Tooltip';
 import { AddProductForm } from './form/AddProductForm';
 import { DiscardDialog } from './form/DiscardDialog';
 import { ErrorSummary } from './form/ErrorSummary';
@@ -30,7 +27,7 @@ export function AddProductDialog(props: Props) {
 }
 
 function ProductEditor({ onOpenChange, onSave, initialProduct, existingSerials = [], presentation = 'context' }: Props) {
-  const { t, showHelper } = useFormCopy();
+  const { t } = useFormCopy();
   const { state } = useTenantSettings();
   const initialDraft = useRef(initialProductDraft(state.sections.products, initialProduct));
   const pendingLeave = useRef<(() => void) | null>(null);
@@ -88,24 +85,8 @@ function ProductEditor({ onOpenChange, onSave, initialProduct, existingSerials =
 
   const title = form.isEdit ? t('Edit product', 'পণ্য সম্পাদনা') : t('Add product', 'নতুন পণ্য');
   const content = (
-    <div data-product-editor data-presentation={presentation} className={`product-form mx-auto w-full pb-5 ${presentation === 'page' ? 'max-w-[1440px]' : 'max-w-[920px] md:py-6'}`}>
-      <header className={presentation === 'page' ? 'pb-4' : 'px-4 pb-4 pt-3 md:px-0 md:pt-0'}>
-        <div className="mb-3 flex items-center gap-1.5 text-[13px] text-ink-500">
-          <Button type="button" variant="ghost" onClick={form.requestExit} className="-ml-2 h-9 gap-1 px-2 text-ink-600">
-            <ArrowLeftIcon className="size-4" aria-hidden="true" />{t('Back', 'ফিরুন')}
-          </Button>
-          <span>{t('Products', 'পণ্য')}</span><ChevronRightIcon className="size-3.5" aria-hidden="true" /><span className="text-ink">{title}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <h1 id="pf-title" className="text-[22px] font-semibold tracking-tight text-ink">{title}
-            {showHelper && <span className="ml-2 font-bn text-[14px] font-normal text-ink-500">· {form.isEdit ? 'পণ্য সম্পাদনা' : 'নতুন পণ্য'}</span>}
-          </h1>
-          {form.isEdit && <Tooltip interactive compact
-            label={t('Help for Edit product', 'পণ্য সম্পাদনা সম্পর্কে সাহায্য')}
-            content={t('Stock quantity changes stay in Adjust stock.', 'স্টকের পরিমাণ বদলাতে Adjust stock ব্যবহার করুন।')}
-          />}
-        </div>
-      </header>
+    <div data-product-editor data-presentation={presentation} className={`product-form mx-auto w-full pb-3 ${presentation === 'page' ? 'max-w-[1440px]' : 'max-w-[920px] md:py-4'}`}>
+
       <div className={presentation === 'context' ? 'px-4 md:px-0' : undefined}><ErrorSummary form={form} />
         {form.saveError && <p role="alert" className="mb-4 rounded-lg bg-danger-bg p-3 text-sm text-danger">{form.saveError}</p>}
       </div>
