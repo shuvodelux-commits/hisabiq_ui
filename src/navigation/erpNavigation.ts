@@ -1,6 +1,6 @@
 import {sectionNames} from '../settings/fields.ts';
 import type {LucideIcon} from 'lucide-react';
-import {LayoutDashboard,ShoppingCart,HandCoins,FileText,ReceiptText,Store,Package,Users,Wallet,Landmark,BookOpen,ShieldCheck,PieChart,Settings} from 'lucide-react';
+import {LayoutDashboard,ShoppingCart,HandCoins,FileText,ReceiptText,Store,Package,Users,Wallet,Landmark,BookOpen,CalendarDays,ShieldCheck,PieChart,Settings} from 'lucide-react';
 
 export type ErpNavChild={id:string;label:string;bn?:string;path:string;feature?:string;permission?:string};
 export type ErpNavGroup={id:string;label:string;bn?:string;icon:LucideIcon;landingPath:string;children?:readonly ErpNavChild[];permission?:string};
@@ -52,10 +52,10 @@ export const erpNavigation:readonly ErpNavGroup[]=[
  ]},
  {id:'accounts',label:'Accounts',bn:'হিসাব',icon:BookOpen,landingPath:'/app/accounts',children:[
   {id:'accounts-overview',label:'Accounts & Vouchers',bn:'হিসাব ও ভাউচার',path:'/app/accounts'},
-  {id:'daybook',label:'Daybook',bn:'দৈনিক লেনদেন',path:'/app/daybook'},
   {id:'reconciliation',label:'Reconciliation',bn:'হিসাব মিলানো',path:'/app/reconciliation'},
   {id:'audit',label:'Audit Ledger',bn:'অডিট খাতা',path:'/app/audit-ledger',permission:'money'}
  ]},
+ {id:'daybook',label:'Daybook',bn:'দৈনিক লেনদেন',icon:CalendarDays,landingPath:'/app/daybook'},
  {id:'warranty',label:'Warranty',bn:'ওয়ারেন্টি',icon:ShieldCheck,landingPath:'/app/warranty'},
  {id:'reports',label:'Reports',bn:'রিপোর্ট',icon:PieChart,landingPath:'/app/reports'},
  {id:'settings',label:'Settings',bn:'সেটিংস',icon:Settings,landingPath:'/app/settings/interface',children:[
