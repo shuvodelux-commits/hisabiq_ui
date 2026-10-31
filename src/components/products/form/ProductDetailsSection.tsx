@@ -19,11 +19,11 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
 
   return (
     <>
-      <div className="px-4 pb-5 pt-5 md:px-6 md:pt-6">
+      <div className="px-4 pb-4 pt-4 md:px-6 md:pt-5">
         <KindToggle value={draft.kind} onChange={form.changeKind} locked={isEdit} />
       </div>
 
-      <section aria-labelledby="pf-details-heading" className="border-t border-border px-4 py-5 md:px-6 md:py-6">
+      <section aria-labelledby="pf-details-heading" className="border-t border-border px-4 py-4 md:px-6 md:py-5">
         <SectionHeading
           id="pf-details-heading"
           en={isStock ? 'Product details' : 'Service details'}
