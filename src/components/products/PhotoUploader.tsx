@@ -8,9 +8,10 @@ type PhotoUploaderProps = {
   label?: string;
   hint?: string;
   compact?: boolean;
+  square?: boolean;
 };
 
-export function PhotoUploader({ photos, onChange, max = 4, label = 'Add photo', hint, compact = false }: PhotoUploaderProps) {
+export function PhotoUploader({ photos, onChange, max = 4, label = 'Add photo', hint, compact = false, square = false }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const onFiles = (files: FileList | null) => {
@@ -26,7 +27,7 @@ export function PhotoUploader({ photos, onChange, max = 4, label = 'Add photo', 
     <div>
       <div className="flex flex-wrap items-center gap-2">
         {photos.map((src, i) =>
-        <div key={src} className={'group relative overflow-hidden rounded-lg border border-border ' + (compact ? 'size-9' : 'size-20')}>
+        <div key={src} className={'group relative overflow-hidden rounded-lg border border-border ' + (compact ? 'size-9' : square ? 'size-28' : 'size-20')}>
             <img src={src} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
             {i === 0 && !compact &&
           <span className="absolute bottom-1 left-1 rounded bg-inverse/80 px-1 text-[10px] font-medium text-white">Cover</span>
@@ -35,7 +36,7 @@ export function PhotoUploader({ photos, onChange, max = 4, label = 'Add photo', 
             type="button"
             onClick={() => onChange(photos.filter((p) => p !== src))}
             aria-label={`Remove photo ${i + 1}`}
-            className={'absolute right-0 top-0 flex size-5 items-center justify-center rounded-full bg-card/90 text-ink shadow transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ' + (compact ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100')}>
+            className={'absolute right-0 top-0 flex size-5 items-center justify-center rounded-full bg-card/90 text-ink shadow transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ' + (compact || square ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100')}>
             
               <X className="size-3" />
             </button>
@@ -52,10 +53,10 @@ export function PhotoUploader({ photos, onChange, max = 4, label = 'Add photo', 
             e.preventDefault();
             onFiles(e.dataTransfer.files);
           }}
-          className={'flex shrink-0 items-center justify-center rounded-lg border border-dashed border-ink-200 bg-ink-50/60 text-ink-500 transition-colors hover:border-teal-400 hover:bg-teal-50 hover:text-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ' + (compact ? 'size-9' : 'size-20 flex-col gap-1 text-[11px]')}>
+          className={'flex shrink-0 items-center justify-center rounded-lg border border-dashed border-ink-200 bg-ink-50/60 text-ink-500 transition-colors hover:border-teal-400 hover:bg-teal-50 hover:text-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ' + (compact ? 'size-9' : square ? 'size-28 flex-col gap-1 text-[11px]' : 'size-20 flex-col gap-1 text-[11px]')}>
           
             <ImagePlus className={compact ? 'size-4' : 'size-5'} />
-            {!compact && label}
+            {!compact && (square ? 'Attach' : label)}
           </button>
         }
       </div>
