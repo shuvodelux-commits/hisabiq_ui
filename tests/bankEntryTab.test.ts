@@ -68,10 +68,15 @@ test('adjustment requires a reason and payload trims input', () => {
   });
 });
 
-test('bank entry is the final existing Accounts tab and overview markup remains free of new shortcut', () => {
+test('bank entry stays contextual to Money Accounts without changing the voucher overview', () => {
   const code = readFileSync('src/pages/Accounts.tsx', 'utf8');
-  assert.match(code, /\['chart',[^\n]+\n\s*\['bank-entry',/);
-  assert.match(code, /tab === 'bank-entry' && <BankEntryTab/);
+  const tabsStart = code.indexOf('// Compact English-only tab labels');
+  const tabsEnd = code.indexOf('  ];', tabsStart);
+  const tabs = code.slice(tabsStart, tabsEnd);
+  assert.match(tabs, /\['money-accounts', 'Money Accounts'\]/);
+  assert.doesNotMatch(tabs, /\['bank-entry'/);
+  assert.match(code, /tab === 'bank-entry' && <div>/);
+  assert.match(code, /<BankEntryTab initialAccountId=/);
   const overviewStart = code.indexOf("{tab === 'overview' && (");
   const overviewEnd = code.indexOf("{tab === 'vouchers' && (");
   assert.ok(overviewStart > 0 && overviewEnd > overviewStart);
