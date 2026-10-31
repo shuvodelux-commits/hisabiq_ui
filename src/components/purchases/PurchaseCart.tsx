@@ -15,7 +15,7 @@ import { taka } from '../../utils/currency';
 import { normalizeCompoundQuantity } from '../../utils/posQuantity';
 import { normalizeSerials, requiredSerialCount } from '../../utils/productFeatures';
 import {
-  baseQty, selectedConversion, describeQty, lineAmount, lotBaseSellPrice,
+  baseQty, selectedConversion, lineAmount, lotBaseSellPrice,
   priceInUnit, rounded, type PurchaseCartLine
 } from '../../utils/purchaseCart';
 import type { Product } from '../../types/erp';
@@ -278,10 +278,7 @@ export function PurchaseCart({
           </div>
         </div>
         {lines.length === 0 && <p data-table-helper="" className="border-t border-border p-5 text-center text-[12px] text-ink-500">Search above or tap a quick item below. <span className="font-bn">পণ্য যোগ করুন।</span></p>}
-        <div className="flex items-center justify-between gap-2 border-t border-border bg-ink-50/50 px-3 py-2.5 text-xs text-ink-500">
-          <span>{lines.length} product line{lines.length === 1 ? '' : 's'}</span>
-          <span className="font-medium text-ink">{lines.length ? describeQty(lines[lines.length - 1]) + ' · ' : ''}Subtotal {taka(rounded(lines.reduce((sum, line) => sum + lineAmount(line), 0)))}</span>
-        </div>
+
       </section>
 
       {!sourceLocked && quickItems.length > 0 && <section data-purchase-quick-items aria-label="Quick add products" className="min-w-0">
