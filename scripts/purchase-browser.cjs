@@ -63,6 +63,10 @@ async function main() {
     assert.equal(await noteField.inputValue(), 'Delivered via challan');
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-methods]').count() === 1);
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-summary]').count() === 1);
+    assert.equal(await purchaseRoot.locator('[data-cart-kind="purchase"]').getByText(/product lines?/).count(), 0,
+      'Purchase cart no longer duplicates the product count and subtotal amount');
+    assert.equal(await purchaseRoot.locator('[data-purchase-payment-summary]').getByText(/Subtotal/).count(), 1,
+      'financial summary remains the single visible subtotal source');
     const lightTotal = purchaseRoot.locator('[data-purchase-summary-total]');
     assert.equal(await lightTotal.count(), 1);
     assert.ok(!((await lightTotal.getAttribute('class')) || '').includes('bg-inverse'),
