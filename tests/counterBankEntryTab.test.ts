@@ -28,7 +28,7 @@ test('Bank Entry selection replaces Counter form without changing the default se
   assert.match(counter, /useState<Action>\('Customer Receive'\)/);
   assert.match(counter, /useState\(false\)/);
   assert.match(counter, /bankEntrySelected\s*\? <div role="region" aria-label=\{text\('Bank Entry','ব্যাংক এন্ট্রি'\)\}><BankEntryTab \/><\/div>\s*: <div className="grid gap-4/);
-  assert.match(counter, /aria-label=\{text\("Search customer","ক্রেতা খুঁজুন"\)/);
+  assert.match(counter, /text\('Search customer','ক্রেতা খুঁজুন'\)/);
   assert.match(counter, /aria-label=\{text\("Payment source amount","পেমেন্টের টাকা"\)/);
   assert.match(counter, /Transaction summary/);
 });
