@@ -213,6 +213,15 @@ export function upsertBundlePreview(
   bundleVersions:Object.freeze(versions)});
  return version;
 }
+/** Rename a product-master label without touching posted invoice or stock unit identities. */
+export function renameProductMasterInPreview(field: 'brand' | 'category', previous: string, next: string): void {
+ const changed = snapshot.products.map(product => product[field] === previous
+  ? {...product, [field]: next}
+  : product);
+ if(!changed.some((product, index) => product !== snapshot.products[index]))return;
+ publish({...snapshot, revision: snapshot.revision + 1, products: changed});
+}
+
 /** The manual Add/Edit screen shares the same Product projection as bulk imports. */
 export function upsertProductPreview(product:Product,lot?:StockLot,movement?:StockMovement):void {
  if(product.kind==='Bundle'||snapshot.products.some(item=>item.id===product.id&&item.kind==='Bundle'))
