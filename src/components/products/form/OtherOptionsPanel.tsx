@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   BarcodeIcon, CalendarClockIcon, ImagesIcon, Layers3Icon,
   ScanLineIcon, ShieldCheckIcon, BadgeDollarSignIcon
@@ -47,7 +48,7 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
       status: t(`${draft.photos.length} photos`, `${draft.photos.length}টি ছবি`) }
   ];
 
-  const contents: Record<ProductSettingKey, React.ReactNode> = {
+  const contents: Record<ProductSettingKey, ReactNode> = {
     units: <AdvancedStockPanel form={form} />,
     prices: <UnitPricesPanel form={form} />,
     warranty: <WarrantySettings form={form} />,
