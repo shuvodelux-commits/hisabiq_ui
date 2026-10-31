@@ -1,7 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeftIcon, CheckIcon, ChevronDownIcon, PlusIcon, SearchIcon } from 'lucide-react';
+import { ArrowLeftIcon, CheckIcon, ChevronDownIcon, PencilIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useFormCopy } from '../hooks/useFormCopy';
 import type { Copy } from '../types/productForm';
@@ -18,6 +18,8 @@ type SearchSelectProps = {
   onChange: (value: string) => void;
   /** Returns the value to select once created. */
   onCreate?: (name: string, symbol: string, phone?: string, area?: string) => string;
+  /** Rename a master option inline; returns its selected value (stable for units). */
+  onEdit?: (previousValue: string, name: string, symbol?: string) => string;
   withSymbol?: boolean;
   showContact?: boolean;
   autoSelectCreated?: boolean;
@@ -39,7 +41,7 @@ const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
  * Phones: full-height sheet with a large search field and thumb-reachable Add button.
  */
 export function SearchSelect({
-  id, noun, value, options, onChange, onCreate, withSymbol = false, showContact = false, autoSelectCreated = true, createPlaceholder, nameLabel, ariaLabel, labelledBy, describedBy, invalid = false, disabled = false
+  id, noun, value, options, onChange, onCreate, onEdit, withSymbol = false, showContact = false, autoSelectCreated = true, createPlaceholder, nameLabel, ariaLabel, labelledBy, describedBy, invalid = false, disabled = false
 }: SearchSelectProps) {
   const { t } = useFormCopy();
   const reduce = useReducedMotion();
@@ -48,6 +50,9 @@ export function SearchSelect({
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const [quickName, setQuickName] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ value: string; name: string; symbol: string } | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const editNameRef = useRef<HTMLInputElement>(null);
   const [rect, setRect] = useState<PopoverRect | null>(null);
   const groupRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -69,18 +74,50 @@ export function SearchSelect({
     : t(`Add new ${noun.en}`, `নতুন ${noun.bn} যোগ করুন`);
 
   const show = () => {
+    setEditing(null);
+    setEditError(null);
     setQuery('');
     setActive(Math.max(0, options.findIndex((o) => o.value === value)));
     setOpen(true);
   };
   const hide = (restoreFocus = true) => {
     setOpen(false);
+    setEditing(null);
+    setEditError(null);
     if (restoreFocus) window.requestAnimationFrame(() => triggerRef.current?.focus());
   };
   const choose = (next: string) => {
     onChange(next);
     hide();
   };
+  const startEdit = (option: SearchOption) => {
+    if (!onEdit) return;
+    setEditError(null);
+    setEditing({
+      value: option.value,
+      name: withSymbol ? (option.meta ?? option.label) : option.label,
+      symbol: withSymbol ? option.label : ''
+    });
+  };
+  const cancelEdit = () => { setEditing(null); setEditError(null); };
+  const saveEdit = () => {
+    if (!onEdit || !editing) return;
+    try {
+      const nextValue = onEdit(editing.value, editing.name, withSymbol ? editing.symbol : undefined);
+      if (value === editing.value && nextValue !== editing.value) onChange(nextValue);
+      setEditing(null);
+      setEditError(null);
+      setQuery('');
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : t('Could not save changes.', 'পরিবর্তন সংরক্ষণ করা যায়নি।'));
+    }
+  };
+  useEffect(() => {
+    if (!editing || !open) return;
+    const frame = window.requestAnimationFrame(() => editNameRef.current?.focus({preventScroll: true}));
+    return () => window.cancelAnimationFrame(frame);
+  }, [editing?.value, open]);
+
   const startQuickAdd = (name: string) => {
     setOpen(false);
     setQuickName(name);
@@ -210,25 +247,101 @@ export function SearchSelect({
         {filtered.map((option, index) => {
           const isSelected = option.value === value;
           const isActive = index === active;
-          return (
+          const rowEditing = editing?.value === option.value;
+          return rowEditing ? (
             <div
               key={option.value}
               id={`${listId}-${index}`}
               role="option"
+              aria-selected={isSelected}
+              data-active={isActive}
+              className="rounded-md bg-accent px-2 py-2"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex min-w-0 items-center gap-1.5">
+                <Input
+                  ref={editNameRef}
+                  value={editing.name}
+                  onChange={(event) => { setEditing({...editing, name: event.target.value}); setEditError(null); }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); saveEdit(); }
+                    else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelEdit(); }
+                  }}
+                  aria-label={t(`Edit ${noun.en} name`, `${noun.bn} নাম সম্পাদনা`)}
+                  className="h-9 min-w-0 flex-1 text-[14px]"
+                />
+                {withSymbol && (
+                  <Input
+                    value={editing.symbol}
+                    maxLength={4}
+                    onChange={(event) => { setEditing({...editing, symbol: event.target.value}); setEditError(null); }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); saveEdit(); }
+                      else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelEdit(); }
+                    }}
+                    aria-label={t('Edit unit short symbol', 'এককের সংক্ষিপ্ত চিহ্ন সম্পাদনা')}
+                    placeholder={t('Symbol', 'চিহ্ন')}
+                    className="h-9 w-16 shrink-0 px-1.5 text-center text-[14px]"
+                  />
+                )}
+                <button type="button" onClick={saveEdit}
+                  aria-label={t(`Save ${noun.en}`, `${noun.bn} সংরক্ষণ করুন`)}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-md text-primary hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                  <CheckIcon className="size-4" aria-hidden="true" />
+                </button>
+                <button type="button" onClick={cancelEdit}
+                  aria-label={t('Cancel edit', 'সম্পাদনা বাতিল')}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 hover:bg-ink-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                  <XIcon className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+              {editError && <p role="alert" className="px-1 pt-1 text-[12px] text-danger">{editError}</p>}
+            </div>
+          ) : (
+            <div
+              key={option.value}
+              id={`${listId}-${index}`}
+              role="option"
+              tabIndex={onEdit ? 0 : undefined}
               data-value={option.value}
               aria-selected={isSelected}
               data-active={isActive}
-              onPointerDown={(event) => event.preventDefault()}
+              onPointerDown={(event) => {
+                if (!(event.target as HTMLElement).closest('button')) event.preventDefault();
+              }}
               onPointerMove={() => setActive(index)}
+              onFocus={() => setActive(index)}
+              onContextMenu={onEdit ? (event) => { event.preventDefault(); startEdit(option); } : undefined}
+              onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault(); choose(option.value);
+                } else if (event.key === 'F2' && onEdit) {
+                  event.preventDefault(); startEdit(option);
+                }
+              }}
               onClick={() => choose(option.value)}
               className={
-                'flex cursor-pointer items-center gap-3 rounded-md px-3 ' +
+                'group flex cursor-pointer items-center gap-2 rounded-md px-3 outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ' +
                 (big ? 'min-h-12 text-[16px] ' : 'min-h-9 text-[14px] ') +
                 (isActive ? 'bg-accent text-accent-foreground' : 'text-ink')
               }
             >
               <span className="min-w-0 flex-1 truncate">{option.label}</span>
               {option.meta && <span className="shrink-0 text-[12px] text-ink-500">{option.meta}</span>}
+              {onEdit && (
+                <button
+                  type="button"
+                  aria-label={t(`Edit ${option.label}`, `${option.label} সম্পাদনা`)}
+                  title={t(`Edit ${noun.en}`, `${noun.bn} সম্পাদনা`)}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={(event) => { event.preventDefault(); event.stopPropagation(); startEdit(option); }}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 opacity-0 transition-opacity hover:bg-ink-100 hover:text-primary focus:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  <PencilIcon className="size-4" aria-hidden="true" />
+                </button>
+              )}
               {isSelected && <CheckIcon className="size-4 shrink-0 text-primary" aria-hidden="true" />}
             </div>
           );
