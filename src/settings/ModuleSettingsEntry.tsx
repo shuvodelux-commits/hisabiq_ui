@@ -62,7 +62,7 @@ export function ModuleSettingsEntry({ children }: { children: ReactNode }) {
     <Button
       variant="outline"
       size="sm"
-      aria-label={text(`${mod.label} settings`, `${mod.label} সেটিংস`)}
+      aria-label={text("Settings", "সেটিংস")}
       aria-expanded={moduleOpen}
       aria-controls="module-settings-content"
       onClick={() => setOpen(true)}
