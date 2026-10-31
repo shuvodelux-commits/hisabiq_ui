@@ -28,9 +28,9 @@ test('Accounts tabs have seven English-only labels, with Money Accounts second a
 test('only the navigation helper labels are removed, while the existing underline and selection remain', () => {
   assert.match(tabStrip, /tabs\.map\(\(\[id, label\]\) =>/);
   assert.match(tabStrip, /role="tab"/);
-  assert.match(tabStrip, /aria-selected=\{tab === id\}/);
+  assert.match(tabStrip, /aria-selected=\{tab === id \|\| \(tab === 'bank-entry' && id === 'money-accounts'\)\}/);
   assert.match(tabStrip, /onClick=\{\(\) => chooseTab\(id\)\}/);
-  assert.match(tabStrip, /<MotionTabIndicator active=\{tab === id\}/);
+  assert.match(tabStrip, /<MotionTabIndicator active=\{tab === id \|\| \(tab === 'bank-entry' && id === 'money-accounts'\)\}/);
   assert.doesNotMatch(tabStrip, /showHelper|font-bn|\{helper\}|text\(/);
 });
 
