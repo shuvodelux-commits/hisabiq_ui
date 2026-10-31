@@ -1,9 +1,12 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   BarcodeIcon, CalendarClockIcon, ImagesIcon, Layers3Icon,
   ScanLineIcon, ShieldCheckIcon, BadgeDollarSignIcon
 } from 'lucide-react';
 import { Input } from '../../Input';
+import { Switch } from '../../Switch';
+import { Button } from '../../Button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../Dialog';
 import { PhotoUploader } from '../PhotoUploader';
 import { Disclosure } from '../fields/Disclosure';
 import { FormField } from '../fields/FormField';
@@ -20,6 +23,16 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
   const { t } = useFormCopy();
   const { draft, set, errors, derived: x, openSetting, setOpenSetting } = form;
   const isStock = draft.kind === 'Stock';
+  const [confirmExpiryOff, setConfirmExpiryOff] = useState(false);
+  const turnExpiry = (on: boolean) => {
+    if (!on && form.isEdit && draft.expiryEnabled) { setConfirmExpiryOff(true); return; }
+    set('expiryEnabled', on);
+    setOpenSetting(on ? 'expiry' : (openSetting === 'expiry' ? null : openSetting));
+  };
+  const turnWarranty = (on: boolean) => {
+    set('warrantyEnabled', on);
+    setOpenSetting(on ? 'warranty' : (openSetting === 'warranty' ? null : openSetting));
+  };
   const customPrices = Boolean(draft.basePrice?.trim() || draft.basePurchasePrice?.trim() ||
     draft.unitLevels.some((level) => level.price?.trim() || level.purchasePrice?.trim()));
   const priceError = form.errorList.filter((key) => form.fieldSetting(key) === 'prices').length;
@@ -35,12 +48,13 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
         status: customPrices ? t('Custom', 'আলাদা') : t('Auto', 'স্বয়ংক্রিয়') }] : [])
     ] : []),
     { id: 'warranty' as const, en: 'Warranty', bn: 'ওয়ারেন্টি', icon: ShieldCheckIcon,
-      status: draft.warrantyEnabled ? duration : t('Off', 'বন্ধ') },
+      status: draft.warrantyEnabled ? duration : undefined },
     ...(isStock ? [
       { id: 'serial' as const, en: 'Serial numbers', bn: 'সিরিয়াল নম্বর', icon: ScanLineIcon,
         status: draft.serialTracking === 'Off' ? t('Off', 'বন্ধ') : t(draft.serialTracking, draft.serialTracking === 'Required' ? 'আবশ্যক' : 'ঐচ্ছিক') },
       { id: 'expiry' as const, en: 'Expiry & batch', bn: 'মেয়াদ ও ব্যাচ', icon: CalendarClockIcon,
-        status: draft.expiryEnabled ? t('On', 'চালু') : t('Off', 'বন্ধ') }
+        status: draft.expiryEnabled && openSetting !== 'expiry'
+          ? t(`${draft.expiryWarningDays || '0'}d warning`, `${draft.expiryWarningDays || '০'} দিন সতর্কতা`) : undefined }
     ] : []),
     { id: 'barcode' as const, en: 'Barcode / SKU', bn: 'বারকোড', icon: BarcodeIcon,
       status: draft.barcode.trim() ? t('Set', 'আছে') : t('Not set', 'দেওয়া নেই') },
@@ -79,6 +93,13 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
           <Disclosure key={section.id} id={`pf-${section.id}`} icon={section.icon} en={section.en} bn={section.bn}
             status={section.status} open={openSetting === section.id}
             onToggle={() => setOpenSetting(openSetting === section.id ? null : section.id)}
+            action={section.id === 'expiry' ? (
+              <Switch id="pf-expiry-toggle" checked={draft.expiryEnabled} onCheckedChange={turnExpiry}
+                aria-label={t('Enable expiry tracking', 'মেয়াদ ট্র্যাকিং চালু করুন')} />
+            ) : section.id === 'warranty' ? (
+              <Switch id="pf-warranty-toggle" checked={draft.warrantyEnabled} onCheckedChange={turnWarranty}
+                aria-label={t('Enable warranty', 'ওয়ারেন্টি চালু করুন')} />
+            ) : undefined}
             errorCount={section.id === 'prices' ? priceError
               : form.errorList.filter((key) => form.fieldSetting(key) === section.id).length}
           >
@@ -87,6 +108,23 @@ export function OtherOptionsPanel({ form }: { form: AddProductForm }) {
         ))}
       </div>
       {errors.unitChain && !draft.multiUnit && <p role="alert" className="text-danger text-[13px]">{t(errors.unitChain.en, errors.unitChain.bn)}</p>}
+      <Dialog open={confirmExpiryOff} onOpenChange={setConfirmExpiryOff}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('Turn expiry tracking off?', 'মেয়াদ ট্র্যাকিং বন্ধ করবেন?')}</DialogTitle>
+            <DialogDescription>{t(
+              'This changes future expiry tracking for the product. Existing stock-lot dates and transaction history remain recorded.',
+              'এতে পণ্যের পরবর্তী মেয়াদ ট্র্যাকিং বদলাবে। পুরোনো স্টক লটের তারিখ ও লেনদেনের তথ্য সংরক্ষিত থাকবে।'
+            )}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setConfirmExpiryOff(false)}>{t('Keep on', 'চালু রাখুন')}</Button>
+            <Button type="button" onClick={() => { set('expiryEnabled', false); setConfirmExpiryOff(false); if (openSetting === 'expiry') setOpenSetting(null); }}>
+              {t('Turn off', 'বন্ধ করুন')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
