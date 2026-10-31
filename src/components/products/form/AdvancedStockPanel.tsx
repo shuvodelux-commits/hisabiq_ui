@@ -29,6 +29,9 @@ export function AdvancedStockPanel({ form }: { form: AddProductForm }) {
 
   return (
     <Disclosure id="pf-advanced" en="Advanced stock" bn="উন্নত স্টক"
+      status={draft.multiUnit ? (x.units.length > 1
+        ? t(`${x.units.length} units`, `${x.units.length}টি একক`)
+        : t('Multi-unit on', 'একাধিক একক চালু')) : undefined}
       help={draft.multiUnit
         ? t(`Configured units: ${[...x.units].reverse().join(' → ')}. Stock uses ${draft.unit}.`, `একক: ${[...x.units].reverse().join(' → ')}। স্টক ${draft.unit}-এ গোনা হয়।`)
         : t(`Stock uses ${draft.unit}. Add larger units only when you need them.`, `স্টক ${draft.unit}-এ গোনা হয়। দরকার হলে বড় একক যোগ করুন।`)}
