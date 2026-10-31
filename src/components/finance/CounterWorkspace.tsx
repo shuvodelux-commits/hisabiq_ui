@@ -208,7 +208,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
    </button>
   </div>
   {bankEntrySelected
-    ? <div role="region" aria-label={text('Bank Entry','ব্যাংক এন্ট্রি')}><BankEntryTab /></div>
+    ? <div role="region" aria-label={text('Bank Entry','ব্যাংক এন্ট্রি')}><BankEntryTab variant="counter" /></div>
     : <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
    <div className="min-w-0 space-y-4">
     {(type==='Customer Receive'||type==='Supplier Pay')&&<div className="rounded-xl border border-border bg-card p-4"
