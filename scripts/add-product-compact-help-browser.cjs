@@ -54,15 +54,18 @@ async function main() {
       assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= width + 1);
       await help.press('Escape'); await popup.waitFor({ state: 'hidden' });
 
-      // Independent icon rows, one expanded at a time.
+      // Opening a row is non-destructive; its independent header switch activates units.
+      const isSwitchOn = async (control) => control.evaluate((node) =>
+        node.getAttribute('aria-checked') === 'true' ||
+        node.getAttribute('data-state') === 'checked' ||
+        (node instanceof HTMLInputElement && node.checked));
+      const multiSwitch = editor.locator('#pf-multi-toggle');
+      assert.equal(await isSwitchOn(multiSwitch), false);
       await editor.locator('#pf-units-button').click();
-      const multiHelp = editor.getByRole('button', {
-        name: language === 'Bangla' ? 'একাধিক একক ব্যবহার সম্পর্কে সাহায্য' : 'Help for Use multiple units', exact: true
-      });
-      await multiHelp.click(); await popup.waitFor({ state: 'visible' });
-      await multiHelp.press('Escape'); await popup.waitFor({ state: 'hidden' });
       assert.equal(await editor.locator('[data-product-unit-equation]').count(), 0);
-      await editor.locator('#pf-multi-label').click();
+      await editor.locator('label:has(#pf-multi-toggle)').click();
+      assert.equal(await isSwitchOn(multiSwitch), true);
+      assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'true');
       const equation = editor.locator('[data-product-unit-equation]').first();
       await equation.waitFor({ state: 'visible' });
       assert.equal((await equation.locator('.pf-unit-one').innerText()).trim(), '1');
@@ -71,15 +74,21 @@ async function main() {
       const qtyBox = await equation.locator('.pf-unit-ratio').boundingBox();
       assert.ok(unitBox && qtyBox && unitBox.width >= 90 && qtyBox.width >= 90, 'conversion fields readable');
       if (width <= 390) assert.ok(qtyBox.y > unitBox.y, 'phone wraps equation');
+
+      // Turning off cannot silently discard an incomplete unit conversion.
+      await editor.locator('label:has(#pf-multi-toggle)').click();
+      const confirmUnits = page.getByRole('dialog', { name: language === 'Bangla' ? 'একটি একক ব্যবহার করবেন?' : 'Use a single unit?' });
+      await confirmUnits.waitFor({ state: 'visible' });
+      assert.equal(await isSwitchOn(multiSwitch), true, 'confirmation pending preserves state');
+      await confirmUnits.getByRole('button', { name: language === 'Bangla' ? 'একটি একক ব্যবহার' : 'Use single unit' }).click();
+      assert.equal(await isSwitchOn(multiSwitch), true, 'incomplete ratio does not disable');
+      assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'true');
+      assert.ok(await editor.getByRole('status').filter({ hasText: language === 'Bangla' ? /রূপান্তর/ : /conversion/ }).count(), 'blocking reason is visible');
       await editor.locator('#pf-warranty-button').click();
       assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'false');
       assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'true');
       assert.ok((await editor.locator('#pf-units-button [data-product-option-status]').innerText()).length > 0);
       // Activating a feature in its header opens the real controls in one action.
-      const isSwitchOn = async (control) => control.evaluate((node) =>
-        node.getAttribute('aria-checked') === 'true' ||
-        node.getAttribute('data-state') === 'checked' ||
-        (node instanceof HTMLInputElement && node.checked));
       const warrantySwitch = editor.locator('#pf-warranty-toggle');
       assert.equal(await isSwitchOn(warrantySwitch), false);
       await editor.locator('label:has(#pf-warranty-toggle)').click();
