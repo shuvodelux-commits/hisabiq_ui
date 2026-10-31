@@ -29,15 +29,22 @@ async function main() {
         Boolean(supplier.compareDocumentPosition(cart) & Node.DOCUMENT_POSITION_FOLLOWING) &&
         Boolean(cart.compareDocumentPosition(checkout) & Node.DOCUMENT_POSITION_FOLLOWING);
     }), 'hybrid layout shows supplier first, authentic cart next, checkout below');
-    const additionalToggle = page.getByRole('button', { name: /Additional details/ });
-    assert.equal(await additionalToggle.getAttribute('aria-expanded'), 'false', 'notes/attachments start collapsed');
-    await additionalToggle.click();
-    await page.getByPlaceholder('Delivery, discount or other details').fill('Delivered via challan');
-    await additionalToggle.click();
-    assert.equal(await additionalToggle.getAttribute('aria-expanded'), 'false', 'notes can be collapsed without losing data');
-    await additionalToggle.click();
-    assert.equal(await page.getByPlaceholder('Delivery, discount or other details').inputValue(), 'Delivered via challan');
-    await additionalToggle.click();
+    const additional = purchaseRoot.locator('[data-purchase-additional]');
+    const paymentMethods = purchaseRoot.locator('[data-purchase-payment-methods]');
+    assert.equal(await paymentMethods.locator('[data-purchase-additional]').count(), 1,
+      'notes and receipt are permanently visible in the left Payments panel');
+    assert.equal(await purchaseRoot.getByRole('button', { name: /Additional details/ }).count(), 0,
+      'the separate Additional details accordion is removed');
+    const noteField = additional.getByPlaceholder('Delivery, discount or other details');
+    assert.equal(await noteField.isVisible(), true, 'notes are visible without expanding a disclosure');
+    assert.equal(await additional.getByRole('button', { name: 'Attach' }).isVisible(), true,
+      'supplier receipt action is visible without expanding a disclosure');
+    const exactRect = await paymentMethods.getByRole('button', { name: 'Exact', exact: true }).boundingBox();
+    const additionalRect = await additional.boundingBox();
+    assert.ok(exactRect && additionalRect && additionalRect.y > exactRect.y + exactRect.height - 1,
+      'notes and receipt appear below quick payment shortcuts at annotation 4');
+    await noteField.fill('Delivered via challan');
+    assert.equal(await noteField.inputValue(), 'Delivered via challan');
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-methods]').count() === 1);
     assert.ok(await purchaseRoot.locator('[data-purchase-payment-summary]').count() === 1);
     const lightTotal = purchaseRoot.locator('[data-purchase-summary-total]');
