@@ -1,4 +1,5 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
+import { useModuleSettingsAction } from '../settings/ModuleSettingsEntry';
 import { uiText } from '../i18n/uiCopy';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
@@ -162,6 +163,7 @@ function cartFromInvoice(invoice: SalesInvoice, preserveHistorical = false): Car
 }
 
 export function Pos() {
+  const moduleSettingsAction = useModuleSettingsAction();
   const { state: settingsState, personal } = useTenantSettings();
   const cart = usePosCart();
   const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot,getPartyPreviewSnapshot);
@@ -773,6 +775,7 @@ export function Pos() {
               </span>
             )}
           </div>
+          {moduleSettingsAction}
           <SaleTemplatesMenu templates={templates}
             onUse={selectSaleTemplate}
             onCreate={()=>setTemplateEditorOpen(true)} />
