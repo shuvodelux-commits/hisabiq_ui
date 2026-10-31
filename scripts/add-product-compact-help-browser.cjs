@@ -75,11 +75,39 @@ async function main() {
       assert.equal(await editor.locator('#pf-units-button').getAttribute('aria-expanded'), 'false');
       assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'true');
       assert.ok((await editor.locator('#pf-units-button [data-product-option-status]').innerText()).length > 0);
+      // Activating a feature in its header opens the real controls in one action.
+      const warrantySwitch = editor.locator('#pf-warranty-toggle');
+      assert.equal(await warrantySwitch.getAttribute('aria-checked'), 'false');
+      await warrantySwitch.click();
+      assert.equal(await warrantySwitch.getAttribute('aria-checked'), 'true');
+      await editor.locator('#pf-warrantyDuration').waitFor({ state: 'visible' });
       const warrantyHelp = editor.getByRole('button', {
-        name: language === 'Bangla' ? 'ওয়ারেন্টি সম্পর্কে সাহায্য' : 'Help for Warranty', exact: true
+        name: language === 'Bangla' ? 'সময়কাল সম্পর্কে সাহায্য' : 'Help for How long', exact: true
       });
       await warrantyHelp.click(); await popup.waitFor({ state: 'visible' });
       await warrantyHelp.press('Escape'); await popup.waitFor({ state: 'hidden' });
+
+      const expirySwitch = editor.locator('#pf-expiry-toggle');
+      assert.equal(await expirySwitch.getAttribute('aria-checked'), 'false');
+      await expirySwitch.click();
+      assert.equal(await expirySwitch.getAttribute('aria-checked'), 'true');
+      assert.equal(await editor.locator('#pf-expiry-button').getAttribute('aria-expanded'), 'true');
+      await editor.locator('#pf-warningDays').waitFor({ state: 'visible' });
+      assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'false');
+      await editor.locator('#pf-warningDays').fill('21');
+      await editor.locator('#pf-expiryRequired [role="radio"]').last().click();
+      assert.equal(await editor.locator('#pf-expiryRequired [role="radio"]').last().getAttribute('aria-checked'), 'true');
+      await editor.locator('[aria-labelledby="pf-allocation-label"] [role="radio"]').last().click();
+      await editor.locator('#pf-expiry-button').click();
+      assert.ok((await editor.locator('#pf-expiry-button [data-product-option-status]').innerText()).includes('21'));
+      await editor.locator('#pf-expiry-toggle').click();
+      assert.equal(await expirySwitch.getAttribute('aria-checked'), 'false');
+      await editor.locator('#pf-expiry-toggle').click();
+      assert.equal(await expirySwitch.getAttribute('aria-checked'), 'true');
+      assert.equal(await editor.locator('#pf-warningDays').inputValue(), '21', 'values survive disable / re-enable');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'compact expiry must not overflow viewport');
+      await page.screenshot({ path: `test-results/add-product-help/${width}-${language.replace(/\\W/g, '-')}-${scheme}-expiry.png`, fullPage: true });
+
       await editor.locator('#pf-photos-button').click();
       assert.equal(await editor.locator('#pf-warranty-button').getAttribute('aria-expanded'), 'false');
       const photoHelp = editor.getByRole('button', {
