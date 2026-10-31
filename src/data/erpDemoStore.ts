@@ -6,17 +6,21 @@ import { purchases as seedPurchases, expenseCategories } from './purchases.ts';
 import { ledgerEntries as seedLedgerEntries } from './parties.ts';
 import { dispatchPartyPreview, getPartyPreviewSnapshot } from './partyPreviewStore.ts';
 import { productCategories } from './products.ts';
-import {getProductImportPreviewSnapshot,upsertProductPreview,renameProductMasterInPreview} from './productImportPreviewStore.ts';
-import {productUnitKey,validateMasterRename,validateUnitRename} from '../utils/productMasterEdit.ts';
+import {getProductImportPreviewSnapshot,upsertProductPreview,renameProductClassificationPreview} from './productImportPreviewStore.ts';
 import {productUnitOptions, matchesUnit, validUnitSymbol, type ProductUnitOption} from './productUnits.ts';
+import {validateMasterRename,validateUnitRename} from '../utils/productMasterEdit.ts';
 export type {ProductUnitOption} from './productUnits.ts';
 
 
 /** Design-preview state only: no network posting or cross-tenant persistence. */
+const renamedProductCategories=new Map<string,string>();
+const renamedProductBrands=new Map<string,string>();
+const productSettingEdits=new Map<string,ProductSettingEdit>();
+export type ProductSettingKind='categories'|'units'|'brands';
+export type ProductSettingEdit={name:string;nameBn?:string;symbol?:string};
+export const getEditedProductSetting=(kind:ProductSettingKind,name:string)=>productSettingEdits.get(kind+':'+name);
 const createdProductCategories: string[] = [];
 const createdProductBrands: string[] = [];
-const renamedProductCategories = new Map<string,string>();
-const renamedProductBrands = new Map<string,string>();
 const createdCategories: string[] = [];
 const inactiveExpenseCategories = new Set<string>();
 const renamedExpenseCategories = new Map<string, string>();
@@ -66,9 +70,8 @@ export const availableProducts = () => getProductImportPreviewSnapshot().product
 }));
 const seedBrands = ['Generic / No brand', 'RFL', 'Vision', 'Shah Cement'];
 const isSame = (left: string, right: string) => left.toLocaleLowerCase() === right.toLocaleLowerCase();
-const remapMasterName = (name: string, renamed: Map<string,string>) => renamed.get(name) ?? name;
-export const availableProductCategories = () => [...new Set([...productCategories, ...createdProductCategories, ...getProductImportPreviewSnapshot().products.map(p=>p.category)].map(name => remapMasterName(name,renamedProductCategories)))];
-export const availableProductBrands = () => [...new Set([...seedBrands, ...createdProductBrands, ...getProductImportPreviewSnapshot().products.map(p=>p.brand).filter((brand):brand is string=>Boolean(brand))].map(name => remapMasterName(name,renamedProductBrands)))];
+export const availableProductCategories = () => [...new Set([...productCategories, ...createdProductCategories, ...getProductImportPreviewSnapshot().products.map(p=>p.category)].map(name=>renamedProductCategories.get(name)??name))];
+export const availableProductBrands = () => [...new Set([...seedBrands, ...createdProductBrands, ...getProductImportPreviewSnapshot().products.map(p=>p.brand).filter((brand):brand is string=>Boolean(brand))].map(name=>renamedProductBrands.get(name)??name))];
 export const availableProductUnits = (): ProductUnitOption[] => {
   const units = [...productUnitOptions];
   for (const product of getProductImportPreviewSnapshot().products) {
@@ -91,43 +94,6 @@ export function createPreviewProductUnit(name: string, symbol: string) {
   if (availableProductUnits().some(item => matchesUnit(item, cleanedName) || matchesUnit(item, cleanedSymbol)))
     throw new Error('This unit name or symbol already exists.');
   productUnitOptions.push({ name: cleanedName, symbol: cleanedSymbol });
-}
-/** Edit preview labels by identity; existing product references follow without touching invoices. */
-function rememberMasterRename(map: Map<string,string>, previous: string, next: string) {
-  for (const [key, value] of map) if (isSame(value, previous)) map.set(key, next);
-  map.set(previous, next);
-}
-export function renamePreviewProductCategory(previous: string, proposed: string) {
-  if (isSame(previous, 'Service')) throw new Error('Service is a built-in category and cannot be renamed.');
-  const next = validateMasterRename(previous, proposed, availableProductCategories(), 'category');
-  if (previous === next) return next;
-  rememberMasterRename(renamedProductCategories, previous, next);
-  renameProductMasterInPreview('category', previous, next);
-  return next;
-}
-export function renamePreviewProductBrand(previous: string, proposed: string) {
-  const next = validateMasterRename(previous, proposed, availableProductBrands(), 'brand');
-  if (previous === next) return next;
-  rememberMasterRename(renamedProductBrands, previous, next);
-  renameProductMasterInPreview('brand', previous, next);
-  return next;
-}
-/** Short display symbols are editable. The old value remains the permanent stock/invoice key. */
-export function renamePreviewProductUnit(previousKey: string, proposedName: string, proposedSymbol: string) {
-  const {name,symbol} = validateUnitRename(previousKey, proposedName, proposedSymbol, availableProductUnits());
-  const existing = productUnitOptions.find(item => isSame(productUnitKey(item), previousKey));
-  if (existing) {
-    const key = productUnitKey(existing);
-    const oldNames = [existing.name, existing.symbol].filter(entry => !isSame(entry, name) && !isSame(entry, symbol));
-    existing.aliases = [...new Set([...(existing.aliases ?? []), ...oldNames])];
-    existing.value = key;
-    existing.name = name;
-    existing.symbol = symbol;
-  } else {
-    // A unit discovered from an existing product becomes an editable catalog entry.
-    productUnitOptions.push({value: previousKey, name, symbol, aliases: [previousKey]});
-  }
-  return previousKey;
 }
 export const availableParties = () => getPartyPreviewSnapshot().parties.map((party) => ({
   ...party,
@@ -244,4 +210,60 @@ export function renamePreviewExpenseCategory(previous: string, next: string) {
 }
 export function createPreviewPurchase(purchase: Purchase) {
   if (!availablePurchases().some((item) => item.id === purchase.id)) { if(purchase.cartSnapshot)validatePurchaseSource(purchase); createdPurchases.unshift(structuredClone(purchase)); publishPurchases(); }
+}
+
+/** Session-only master edits, shared with pickers; never rewrites historical unit keys. */
+export function editPreviewProductSetting(kind:ProductSettingKind,previous:string,draft:ProductSettingEdit):void {
+ const next={name:draft.name.trim(),nameBn:draft.nameBn?.trim()||undefined,symbol:draft.symbol?.trim()};
+ if(!next.name)throw new Error('Enter name');
+ if(kind==='units'){
+  const symbol=next.symbol??'';
+  if(!validUnitSymbol(symbol))throw new Error('Enter a unit symbol of 1–4 characters, without spaces.');
+  const options=availableProductUnits(),current=options.find(option=>matchesUnit(option,previous));
+  if(!current)throw new Error('This item is no longer available.');
+  if(options.some(option=>option!==current&&(matchesUnit(option,next.name)||matchesUnit(option,symbol))))
+   throw new Error('This unit name or symbol already exists.');
+  const updated={...current,name:next.name,symbol,value:current.value??current.symbol,
+   aliases:[...new Set([...(current.aliases??[]),current.name,current.symbol])]};
+  const index=productUnitOptions.indexOf(current);
+  if(index<0)productUnitOptions.push(updated);else productUnitOptions[index]=updated;
+ }else{
+  const names=kind==='categories'?availableProductCategories():availableProductBrands();
+  if(!names.includes(previous))throw new Error('This item is no longer available.');
+  if(names.some(name=>!isSame(name,previous)&&isSame(name,next.name)))throw new Error('This name already exists.');
+  const renames=kind==='categories'?renamedProductCategories:renamedProductBrands;
+  for(const [key,value] of renames)if(value===previous)renames.set(key,next.name);
+  renames.set(previous,next.name);
+  renameProductClassificationPreview(kind==='categories'?'category':'brand',previous,next.name);
+ }
+ for(const [key,value] of productSettingEdits)if(key.startsWith(kind+':')&&value.name===previous)productSettingEdits.set(key,next);
+ productSettingEdits.set(kind+':'+previous,next);
+ productSettingEdits.set(kind+':'+next.name,next);
+}
+
+/**
+ * Inline Add Product pickers reuse the same settings mutation as Product Settings.
+ * Preserve localized names and immutable product unit keys throughout the ERP.
+ */
+export function renamePreviewProductCategory(previous: string, proposed: string): string {
+  if (isSame(previous, 'Service')) throw new Error('Service is a built-in category and cannot be renamed.');
+  const next = validateMasterRename(previous, proposed, availableProductCategories(), 'category');
+  if (!isSame(next, previous) || next !== previous)
+    editPreviewProductSetting('categories', previous, {...getEditedProductSetting('categories', previous), name: next});
+  return next;
+}
+export function renamePreviewProductBrand(previous: string, proposed: string): string {
+  const next = validateMasterRename(previous, proposed, availableProductBrands(), 'brand');
+  if (!isSame(next, previous) || next !== previous)
+    editPreviewProductSetting('brands', previous, {...getEditedProductSetting('brands', previous), name: next});
+  return next;
+}
+export function renamePreviewProductUnit(previousKey: string, proposedName: string, proposedSymbol: string): string {
+  const next = validateUnitRename(previousKey, proposedName, proposedSymbol, availableProductUnits());
+  const current = availableProductUnits().find(option => matchesUnit(option, previousKey));
+  if (!current) throw new Error('This unit is no longer available.');
+  const stableKey = current.value ?? current.symbol;
+  if (next.name !== current.name || next.symbol !== current.symbol)
+    editPreviewProductSetting('units', previousKey, {...getEditedProductSetting('units', previousKey), ...next});
+  return stableKey;
 }

@@ -213,15 +213,6 @@ export function upsertBundlePreview(
   bundleVersions:Object.freeze(versions)});
  return version;
 }
-/** Rename a product-master label without touching posted invoice or stock unit identities. */
-export function renameProductMasterInPreview(field: 'brand' | 'category', previous: string, next: string): void {
- const changed = snapshot.products.map(product => product[field] === previous
-  ? {...product, [field]: next}
-  : product);
- if(!changed.some((product, index) => product !== snapshot.products[index]))return;
- publish({...snapshot, revision: snapshot.revision + 1, products: changed});
-}
-
 /** The manual Add/Edit screen shares the same Product projection as bulk imports. */
 export function upsertProductPreview(product:Product,lot?:StockLot,movement?:StockMovement):void {
  if(product.kind==='Bundle'||snapshot.products.some(item=>item.id===product.id&&item.kind==='Bundle'))
@@ -242,4 +233,10 @@ export function updateProductInventoryPreview(product:Product,lots:readonly Stoc
  if(!products.some(p=>p.id===product.id))throw new Error('Product does not exist.');
  publish({revision:snapshot.revision+1,appliedSessionIds:snapshot.appliedSessionIds,
   products,lots:[...lots],movements:[...movements],bundleVersions:snapshot.bundleVersions,bundleSaleReferences:snapshot.bundleSaleReferences});
+}
+
+/** Rename current product classification only; inventory and historical documents stay intact. */
+export function renameProductClassificationPreview(field:'category'|'brand',previous:string,next:string):void {
+ const products=snapshot.products.map(product=>product[field]===previous?{...product,[field]:next}:product);
+ publish({...snapshot,revision:snapshot.revision+1,products});
 }
