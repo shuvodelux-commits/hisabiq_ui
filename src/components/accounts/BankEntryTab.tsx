@@ -218,9 +218,10 @@ export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 
             </div>
           ) : (
             <div className="space-y-3">
-              <div className={inCounter
-                ? 'grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2'
-                : 'grid gap-3 sm:grid-cols-2'}>
+              <div className={inCounter ? 'space-y-4' : 'grid gap-3 sm:grid-cols-2'}>
+                <div className={inCounter
+                  ? 'grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2'
+                  : 'contents'}>
                 <label className={fieldClass}>
                   {text('Bank account','ব্যাংক হিসাব')} *
                   <FormSelect className="mt-1.5" value={draft.bankAccountId} disabled={loading}
@@ -256,6 +257,10 @@ export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 
                       onChange={(event) => update('direction', event.target.value as 'credit' | 'debit')} />
                   </label>
                 )}
+                </div>
+                <div className={inCounter ? 'rounded-xl border border-border bg-card p-4' : 'contents'}>
+                  {inCounter && <h3 className="mb-3 text-sm font-semibold">{text('Reference / details (optional)','রেফারেন্স / বিবরণ')}</h3>}
+                  <div className={inCounter ? 'grid gap-3 sm:grid-cols-2' : 'contents'}>
                 <label className={fieldClass}>
                   {text('Reference','রেফারেন্স')}
                   <Input className="mt-1.5" value={draft.reference}
@@ -280,6 +285,8 @@ export function BankEntryTab({ variant = 'accounts' }: { variant?: 'accounts' | 
                       onChange={(event) => update('backdatedReason', event.target.value)} />
                   </label>
                 )}
+                  </div>
+                </div>
               </div>
 
               {bouncedCheque && (
