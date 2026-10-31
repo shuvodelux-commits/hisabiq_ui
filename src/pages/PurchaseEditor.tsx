@@ -416,7 +416,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
               className="h-10 rounded-full px-4 text-[13px] font-medium">
               <Save className="size-4" aria-hidden="true"/> Save draft
             </Button>}
-            <Button type="button" data-erp-workflow-action="complete"
+            <Button type="button" data-purchase-review-action
               disabled={total <= 0 || excess > 0} onClick={requestReview}
               className="h-10 rounded-full bg-ink px-4 text-[13px] font-medium text-white hover:bg-ink/90">
               {initialPurchase ? 'Review correction' : 'Review purchase'}
