@@ -8,7 +8,7 @@ import type { Copy } from '../types/productForm';
 import { Input } from './Input';
 import { QuickAddDialog } from './QuickAddDialog';
 
-export type SearchOption = { value: string; label: string; meta?: string };
+export type SearchOption = { value: string; label: string; meta?: string; nameBn?: string };
 
 type SearchSelectProps = {
   id: string;
@@ -19,7 +19,7 @@ type SearchSelectProps = {
   /** Returns the value to select once created. */
   onCreate?: (name: string, symbol: string, phone?: string, area?: string) => string;
   /** Rename a master option inline; returns its selected value (stable for units). */
-  onEdit?: (previousValue: string, name: string, symbol?: string) => string;
+  onEdit?: (previousValue: string, name: string, symbol?: string, nameBn?: string) => string;
   withSymbol?: boolean;
   showContact?: boolean;
   autoSelectCreated?: boolean;
@@ -50,7 +50,7 @@ export function SearchSelect({
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const [quickName, setQuickName] = useState<string | null>(null);
-  const [editing, setEditing] = useState<{ value: string; name: string; symbol: string } | null>(null);
+  const [editing, setEditing] = useState<{ value: string; name: string; symbol: string; nameBn: string } | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const editNameRef = useRef<HTMLInputElement>(null);
   const [rect, setRect] = useState<PopoverRect | null>(null);
@@ -96,14 +96,15 @@ export function SearchSelect({
     setEditing({
       value: option.value,
       name: withSymbol ? (option.meta ?? option.label) : option.label,
-      symbol: withSymbol ? option.label : ''
+      symbol: withSymbol ? option.label : '',
+      nameBn: withSymbol ? option.nameBn ?? '' : ''
     });
   };
   const cancelEdit = () => { setEditing(null); setEditError(null); };
   const saveEdit = () => {
     if (!onEdit || !editing) return;
     try {
-      const nextValue = onEdit(editing.value, editing.name, withSymbol ? editing.symbol : undefined);
+      const nextValue = onEdit(editing.value, editing.name, withSymbol ? editing.symbol : undefined, withSymbol ? editing.nameBn : undefined);
       if (value === editing.value && nextValue !== editing.value) onChange(nextValue);
       setEditing(null);
       setEditError(null);
@@ -307,6 +308,18 @@ export function SearchSelect({
                   <XIcon className="size-4" aria-hidden="true" />
                 </button>
               </div>
+              {withSymbol && <Input
+                lang="bn"
+                value={editing.nameBn}
+                onChange={event => { setEditing({...editing, nameBn: event.target.value}); setEditError(null); }}
+                onKeyDown={event => {
+                  if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); saveEdit(); }
+                  else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelEdit(); }
+                }}
+                aria-label={t('Edit unit Bangla name', 'এককের বাংলা নাম সম্পাদনা')}
+                placeholder={t('Bangla name (optional)', 'বাংলা নাম (ঐচ্ছিক)')}
+                className="mt-1.5 h-9 w-full font-bn text-[14px]"
+              />}
               {editError && <p role="alert" className="px-1 pt-1 text-[12px] text-danger">{editError}</p>}
             </div>
           ) : (

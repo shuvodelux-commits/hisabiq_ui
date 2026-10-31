@@ -104,7 +104,7 @@ export function ProductDetailsSection({ form }: { form: AddProductForm }) {
                 describedBy="pf-unit-msg"
                 invalid={Boolean(errors.unit)}
                 value={draft.unit}
-                options={form.units.map((u) => ({ value: u.value ?? u.symbol, label: u.symbol, meta: u.name !== u.symbol ? u.name : undefined }))}
+                options={form.units.map((u) => ({ value: u.value ?? u.symbol, label: u.symbol, meta: u.name !== u.symbol ? u.name : undefined, nameBn: u.nameBn }))}
                 onChange={form.changeUnit}
                 onCreate={form.createUnit}
                 onEdit={form.editUnit}

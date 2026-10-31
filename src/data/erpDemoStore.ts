@@ -87,13 +87,13 @@ export function createPreviewProductBrand(name: string) {
   if (trimmed && !availableProductBrands().some((item) => isSame(item, trimmed)))
     createdProductBrands.push(trimmed);
 }
-export function createPreviewProductUnit(name: string, symbol: string) {
+export function createPreviewProductUnit(name: string, symbol: string, nameBn = '') {
   const cleanedName = name.trim(), cleanedSymbol = symbol.trim();
   if (!cleanedName) throw new Error('Enter the unit name.');
   if (!validUnitSymbol(cleanedSymbol)) throw new Error('Enter a unit symbol of 1–4 characters, without spaces.');
   if (availableProductUnits().some(item => matchesUnit(item, cleanedName) || matchesUnit(item, cleanedSymbol)))
     throw new Error('This unit name or symbol already exists.');
-  productUnitOptions.push({ name: cleanedName, symbol: cleanedSymbol });
+  productUnitOptions.push({ name: cleanedName, nameBn: nameBn.trim() || undefined, symbol: cleanedSymbol });
 }
 export const availableParties = () => getPartyPreviewSnapshot().parties.map((party) => ({
   ...party,
@@ -223,7 +223,7 @@ export function editPreviewProductSetting(kind:ProductSettingKind,previous:strin
   if(!current)throw new Error('This item is no longer available.');
   if(options.some(option=>option!==current&&(matchesUnit(option,next.name)||matchesUnit(option,symbol))))
    throw new Error('This unit name or symbol already exists.');
-  const updated={...current,name:next.name,symbol,value:current.value??current.symbol,
+  const updated={...current,name:next.name,nameBn:next.nameBn,symbol,value:current.value??current.symbol,
    aliases:[...new Set([...(current.aliases??[]),current.name,current.symbol])]};
   const index=productUnitOptions.indexOf(current);
   if(index<0)productUnitOptions.push(updated);else productUnitOptions[index]=updated;
@@ -258,12 +258,12 @@ export function renamePreviewProductBrand(previous: string, proposed: string): s
     editPreviewProductSetting('brands', previous, {...getEditedProductSetting('brands', previous), name: next});
   return next;
 }
-export function renamePreviewProductUnit(previousKey: string, proposedName: string, proposedSymbol: string): string {
+export function renamePreviewProductUnit(previousKey: string, proposedName: string, proposedSymbol: string, nameBn?: string): string {
   const next = validateUnitRename(previousKey, proposedName, proposedSymbol, availableProductUnits());
   const current = availableProductUnits().find(option => matchesUnit(option, previousKey));
   if (!current) throw new Error('This unit is no longer available.');
   const stableKey = current.value ?? current.symbol;
-  if (next.name !== current.name || next.symbol !== current.symbol)
-    editPreviewProductSetting('units', previousKey, {...getEditedProductSetting('units', previousKey), ...next});
+  if (next.name !== current.name || next.symbol !== current.symbol || (nameBn !== undefined && nameBn.trim() !== (current.nameBn ?? '')))
+    editPreviewProductSetting('units', previousKey, {...getEditedProductSetting('units', previousKey), ...next, ...(nameBn !== undefined ? {nameBn: nameBn.trim()} : {})});
   return stableKey;
 }
