@@ -3,12 +3,14 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ChevronDownIcon } from 'lucide-react';
 import { useFormCopy } from '../../../hooks/useFormCopy';
 import { LabelText } from './LabelText';
+import { Tooltip } from '../../Tooltip';
 
 type DisclosureProps = {
   id: string;
   en: string;
   bn: string;
-  summary: ReactNode;
+  summary?: ReactNode;
+  help?: ReactNode;
   open: boolean;
   onToggle: () => void;
   errorCount?: number;
@@ -18,35 +20,40 @@ type DisclosureProps = {
 const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
 /** Collapsed section that still tells you what's inside and what's switched on. */
-export function Disclosure({ id, en, bn, summary, open, onToggle, errorCount = 0, children }: DisclosureProps) {
+export function Disclosure({ id, en, bn, summary, help, open, onToggle, errorCount = 0, children }: DisclosureProps) {
   const { t } = useFormCopy();
   const reduce = useReducedMotion();
   return (
     <section className="border-t border-border" aria-labelledby={`${id}-button`}>
-      <h2>
-        <button
-          id={`${id}-button`}
-          type="button"
-          aria-expanded={open}
-          aria-controls={`${id}-panel`}
-          onClick={onToggle}
-          className="flex min-h-[60px] w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 ease-out hover:bg-ink-50 md:px-6"
-        >
-          <span className="min-w-0 flex-1">
-            <span className="block text-[15px] font-semibold leading-tight text-ink"><LabelText en={en} bn={bn} /></span>
-            <span className="mt-1 line-clamp-2 block text-[13px] font-normal leading-snug text-ink-500">{summary}</span>
-          </span>
-          {errorCount > 0 && (
-            <span className="shrink-0 whitespace-nowrap rounded-full bg-danger-bg px-2 py-0.5 text-[12px] font-semibold text-danger">
-              {t(`${errorCount} to fix`, `${errorCount}টি ঠিক করুন`)}
+      <div className="flex items-center transition-colors duration-150 ease-out hover:bg-ink-50">
+        <h2 className="min-w-0 flex-1">
+          <button
+            id={`${id}-button`}
+            type="button"
+            aria-expanded={open}
+            aria-controls={`${id}-panel`}
+            onClick={onToggle}
+            className="flex min-h-[52px] w-full items-center gap-3 px-4 py-3 text-left md:pl-6 md:pr-2"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-semibold leading-tight text-ink"><LabelText en={en} bn={bn} /></span>
+              {summary && <span className="mt-1 line-clamp-2 block text-[13px] font-normal leading-snug text-ink-500">{summary}</span>}
             </span>
-          )}
-          <ChevronDownIcon
-            className={'size-5 shrink-0 text-ink-500 transition-transform duration-200 ease-out ' + (open ? 'rotate-180' : '')}
-            aria-hidden="true"
-          />
-        </button>
-      </h2>
+            {errorCount > 0 && (
+              <span className="shrink-0 whitespace-nowrap rounded-full bg-danger-bg px-2 py-0.5 text-[12px] font-semibold text-danger">
+                {t(`${errorCount} to fix`, `${errorCount}টি ঠিক করুন`)}
+              </span>
+            )}
+            <ChevronDownIcon
+              className={'size-5 shrink-0 text-ink-500 transition-transform duration-200 ease-out ' + (open ? 'rotate-180' : '')}
+              aria-hidden="true"
+            />
+          </button>
+        </h2>
+        {help && <span className="mr-3 shrink-0 md:mr-5">
+          <Tooltip interactive compact content={help} label={t(`Help for ${en}`, `${bn} সম্পর্কে সাহায্য`)} />
+        </span>}
+      </div>
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
