@@ -82,7 +82,7 @@ async function main() {
         (node instanceof HTMLInputElement && node.checked));
       const warrantySwitch = editor.locator('#pf-warranty-toggle');
       assert.equal(await isSwitchOn(warrantySwitch), false);
-      await warrantySwitch.click();
+      await editor.locator('label:has(#pf-warranty-toggle)').click();
       assert.equal(await isSwitchOn(warrantySwitch), true);
       await editor.locator('#pf-warrantyDuration').waitFor({ state: 'visible' });
       const warrantyHelp = editor.getByRole('button', {
@@ -93,7 +93,7 @@ async function main() {
 
       const expirySwitch = editor.locator('#pf-expiry-toggle');
       assert.equal(await isSwitchOn(expirySwitch), false);
-      await expirySwitch.click();
+      await editor.locator('label:has(#pf-expiry-toggle)').click();
       assert.equal(await isSwitchOn(expirySwitch), true);
       assert.equal(await editor.locator('#pf-expiry-button').getAttribute('aria-expanded'), 'true');
       await editor.locator('#pf-warningDays').waitFor({ state: 'visible' });
@@ -104,9 +104,9 @@ async function main() {
       await editor.locator('[aria-labelledby="pf-allocation-label"] [role="radio"]').last().click();
       await editor.locator('#pf-expiry-button').click();
       assert.ok((await editor.locator('#pf-expiry-button [data-product-option-status]').innerText()).includes('21'));
-      await editor.locator('#pf-expiry-toggle').click();
+      await editor.locator('label:has(#pf-expiry-toggle)').click();
       assert.equal(await isSwitchOn(expirySwitch), false);
-      await editor.locator('#pf-expiry-toggle').click();
+      await editor.locator('label:has(#pf-expiry-toggle)').click();
       assert.equal(await isSwitchOn(expirySwitch), true);
       assert.equal(await editor.locator('#pf-warningDays').inputValue(), '21', 'values survive disable / re-enable');
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'compact expiry must not overflow viewport');
