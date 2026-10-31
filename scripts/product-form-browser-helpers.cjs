@@ -37,7 +37,7 @@ async function fillChain(page,editor,name){
  await pick(page,editor.locator('#pf-min-unit'),'Box');await editor.locator('#pf-min').fill('2');
  await pick(page,editor.locator('#pf-view'),'Carton');
  assert.equal(await editor.locator('[data-product-unit-relationship]').count(), 3, 'three editable relationships are visible');
- assert.deepEqual(await editor.locator('[data-product-unit-relationship] input').allInputValues(), ['120', '20', '12'], 'conversion values stay editable');
+ assert.deepEqual(await editor.locator('[data-product-unit-relationship] input').evaluateAll(els=>els.map(el=>el.value)), ['120', '20', '12'], 'conversion values stay editable');
 }
 async function discard(page,editor){
  await editor.getByRole('button',{name:'Cancel',exact:true}).click();
