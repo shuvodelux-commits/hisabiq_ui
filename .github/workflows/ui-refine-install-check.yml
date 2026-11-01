@@ -12,8 +12,6 @@ on:
       - '.agents/skills/impeccable'
       - 'vendor/impeccable'
       - '.github/workflows/ui-refine-install-check.yml'
-      - '.github/workflows/ui-refine-chatgpt.yml'
-      - 'scripts/ui-refine-chatgpt-shots.cjs'
   workflow_dispatch:
 
 jobs:
@@ -43,9 +41,6 @@ jobs:
           node --check .claude/skills/ui-refine-loop/scripts/shoot.mjs
           node --check scripts/ui-refine-cloud.mjs
           node --check scripts/expense-refine-matrix.cjs
-          node --check scripts/ui-refine-chatgpt-shots.cjs
-          node scripts/ui-refine-chatgpt-shots.cjs --self-test
-          test -s .github/workflows/ui-refine-chatgpt.yml
           test -s .github/actions/ui-refine-round/action.yml
           test -s .github/workflows/ui-refine-cloud.yml
           # This is Workflow-runner JavaScript, not a standalone Node module:
