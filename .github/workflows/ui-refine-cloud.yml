@@ -1,0 +1,285 @@
+name: HisabIQ UI Refine Loop (GitHub cloud)
+
+# Manual only. Merging this setup does NOT start AI spending or deployment.
+on:
+  workflow_dispatch:
+    inputs:
+      run_mode:
+        description: "verify = free preflight only; refine = 3-round Impeccable AI loop + draft PR"
+        type: choice
+        required: true
+        default: verify
+        options: [verify, refine]
+
+concurrency:
+  group: ui-refine-expenses-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Pinned Impeccable, baseline, regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: GitHub source checkout with pinned submodules
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install locked app dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Initialize and verify pinned Impeccable
+        run: |
+          set -euo pipefail
+          node scripts/ui-refine-cloud.mjs setup
+          sh .agents/skills/impeccable/scripts/impeccable engine-probe
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Vite test server
+        run: |
+          set -euo pipefail
+          mkdir -p .refine-cloud
+          npm run dev -- --port 4308 --host 127.0.0.1 > .refine-cloud/vite.log 2>&1 &
+          echo $! > .refine-cloud/vite.pid
+          for n in $(seq 1 90); do
+            curl -fsS http://127.0.0.1:4308/ >/dev/null && exit 0
+            sleep 2
+          done
+          cat .refine-cloud/vite.log
+          exit 1
+
+      - name: Confirm untouched frontend checks are green
+        run: node scripts/ui-refine-cloud.mjs check baseline
+
+      - name: Baseline Impeccable screenshots (1440/390, both themes)
+        run: |
+          node .claude/skills/ui-refine-loop/scripts/shoot.mjs \
+            --base http://127.0.0.1:4308 --route '/#/app/expenses' \
+            --out .refine-cloud/shots --label round-0
+          node scripts/expense-refine-matrix.cjs round-0
+
+      - name: Preserve baseline and preflight evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-refine-baseline-${{ github.run_id }}
+          path: |
+            .refine-cloud/shots/
+            .refine-cloud/detect.json
+            .refine-cloud/reports/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error
+
+  refine:
+    name: Three fresh-agent Impeccable rounds
+    if: inputs.run_mode == 'refine'
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - name: Require owner-configured API key
+        env:
+          REFINE_SECRET_PRESENT: "${{ secrets.OPENAI_API_KEY != '' }}"
+        run: |
+          test "$REFINE_SECRET_PRESENT" = "true" || {
+            echo "::error::Set repository Actions secret OPENAI_API_KEY before running refine mode."
+            exit 1
+          }
+
+      - name: Checkout exact approved main source, no GitHub write token
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Restore baseline evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: ui-refine-baseline-${{ github.run_id }}
+          path: .
+
+      - name: Install dependency tree and verify Impeccable
+        run: |
+          npm ci --no-audit --no-fund
+          node scripts/ui-refine-cloud.mjs setup
+          sh .agents/skills/impeccable/scripts/impeccable engine-probe
+
+      - name: Chromium for round validation
+        run: npx playwright install --with-deps chromium
+
+      - name: Run source server
+        run: |
+          set -euo pipefail
+          npm run dev -- --port 4308 --host 127.0.0.1 > .refine-cloud/vite.log 2>&1 &
+          echo $! > .refine-cloud/vite.pid
+          for n in $(seq 1 90); do
+            curl -fsS http://127.0.0.1:4308/ >/dev/null && exit 0
+            sleep 2
+          done
+          cat .refine-cloud/vite.log
+          exit 1
+
+      - name: Impeccable round 1
+        uses: ./.github/actions/ui-refine-round
+        with:
+          round: "1"
+          fix: "true"
+          api-key: "${{ secrets.OPENAI_API_KEY }}"
+
+      - name: Impeccable round 2
+        uses: ./.github/actions/ui-refine-round
+        with:
+          round: "2"
+          fix: "true"
+          api-key: "${{ secrets.OPENAI_API_KEY }}"
+
+      - name: Impeccable round 3
+        uses: ./.github/actions/ui-refine-round
+        with:
+          round: "3"
+          fix: "true"
+          api-key: "${{ secrets.OPENAI_API_KEY }}"
+
+      - name: Closing check, no edits
+        uses: ./.github/actions/ui-refine-round
+        with:
+          round: "4"
+          fix: "false"
+          api-key: "${{ secrets.OPENAI_API_KEY }}"
+
+      - name: Prepare fresh finish review
+        run: node scripts/ui-refine-cloud.mjs prompt 4 finish
+
+      - name: Independent Impeccable finish reviewer
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: "${{ secrets.OPENAI_API_KEY }}"
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          prompt-file: ".refine-cloud/prompts/round-4-finish.md"
+          output-schema-file: ".refine-cloud/finish-schema.json"
+          output-file: ".refine-cloud/reports/round-4-finish.json"
+          codex-args: '["--ephemeral","--image",".refine-cloud/shots/round-0-main-desktop-light.png,.refine-cloud/shots/round-0-main-desktop-dark.png,.refine-cloud/shots/round-0-main-mobile-light.png,.refine-cloud/shots/round-0-main-mobile-dark.png","--image",".refine-cloud/shots/round-3-main-desktop-light.png,.refine-cloud/shots/round-3-main-desktop-dark.png,.refine-cloud/shots/round-3-main-mobile-light.png,.refine-cloud/shots/round-3-main-mobile-dark.png"]'
+
+      - name: Validate complete 3-round ledger and review
+        run: node scripts/ui-refine-cloud.mjs finalize
+
+      - name: Save code and proof for separated PR publisher
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-refine-result-${{ github.run_id }}
+          path: |
+            src/pages/Expenses.tsx
+            .refine-cloud/shots/
+            .refine-cloud/reports/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error
+
+  publish:
+    name: Push isolated branch and create DRAFT PR only
+    if: inputs.run_mode == 'refine'
+    needs: refine
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout main without stored credentials
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Fetch reviewed outputs without AI secret
+        uses: actions/download-artifact@v4
+        with:
+          name: ui-refine-result-${{ github.run_id }}
+          path: .refine-published
+
+      - name: Publish only verified Expenses code and before/after
+        env:
+          GH_TOKEN: "${{ github.token }}"
+          REPO: "${{ github.repository }}"
+          RUN_ID: "${{ github.run_id }}"
+          ATTEMPT: "${{ github.run_attempt }}"
+        run: |
+          set -euo pipefail
+          BRANCH="refine/expenses-${RUN_ID}-${ATTEMPT}"
+          BASE_SHA="$(git rev-parse HEAD)"
+          git switch -c "$BRANCH"
+          SOURCE=".refine-published/src/pages/Expenses.tsx"
+          test -s "$SOURCE"
+          test -s .refine-published/.refine-cloud/reports/pr-body.md
+          test -s .refine-published/.refine-cloud/reports/checks-round-3.txt
+          cmp -s src/pages/Expenses.tsx "$SOURCE" && {
+            echo "No UI changes landed; no empty draft PR is created."
+            exit 0
+          }
+          cp "$SOURCE" src/pages/Expenses.tsx
+          mkdir -p docs/ui-refine/expenses
+          for width in desktop mobile; do
+            for theme in light dark; do
+              for side in before after; do
+                label=round-0
+                [ "$side" = after ] && label=round-3
+                src=".refine-published/.refine-cloud/shots/${label}-main-${width}-${theme}.png"
+                test -s "$src"
+                cp "$src" "docs/ui-refine/expenses/${side}-${width}-${theme}.png"
+              done
+            done
+          done
+          cp .refine-published/.refine-cloud/reports/pr-body.md docs/ui-refine/expenses/ledger.md
+          git config user.name "HisabIQ UI Refine"
+          git config user.email "actions@users.noreply.github.com"
+          git add -- src/pages/Expenses.tsx docs/ui-refine/expenses/
+          git diff --cached --check
+          git diff --cached --quiet && { echo "No changes"; exit 0; }
+          git commit -m "💄 [ui] expenses: Impeccable three-round compact polish"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" push origin "$BRANCH"
+          SHA="$(git rev-parse HEAD)"
+          BODY=".refine-published/.refine-cloud/reports/pr-body.md"
+          cp "$BODY" /tmp/ui-refine-pr.md
+          {
+            echo ""
+            echo "### Before | After (pinned commit $SHA)"
+            echo "| View | Before | After |"
+            echo "|---|---|---|"
+            for width in desktop mobile; do
+              for theme in light dark; do
+                echo "| $width $theme | ![](https://github.com/$REPO/raw/$SHA/docs/ui-refine/expenses/before-$width-$theme.png) | ![](https://github.com/$REPO/raw/$SHA/docs/ui-refine/expenses/after-$width-$theme.png) |"
+              done
+            done
+            echo ""
+            echo "Baseline: $BASE_SHA · Refinement: $SHA · Automated tests passed in GitHub Actions."
+            echo "Do not merge without explicit owner approval."
+          } >> /tmp/ui-refine-pr.md
+          gh pr create --repo "$REPO" --draft --base main --head "$BRANCH" \
+            --title "💄 [ui] expenses: refine compact touch usability with Impeccable" \
+            --body-file /tmp/ui-refine-pr.md
