@@ -110,6 +110,13 @@ function indexHtml(route,baseSha,prSha){
 }
 async function main(){
   if(process.argv.includes('--self-test'))return test();
+  if(process.argv.includes('--print-route') || process.argv.includes('--print-scope')) {
+    const root = path.resolve(process.env.UI_REFINE_CANDIDATE || '.');
+    const route = routeFromBody(process.env.UI_REFINE_PR_BODY || '', path.join(root,'src/App.tsx'));
+    if(process.argv.includes('--print-route')) console.log(route);
+    else console.log(scopeFromBody(process.env.UI_REFINE_PR_BODY || '',root,route));
+    return;
+  }
   const candidate=path.resolve(process.env.UI_REFINE_CANDIDATE||'.');
   const baseline=path.resolve(process.env.UI_REFINE_BASELINE||'../baseline');
   const route=routeFromBody(process.env.UI_REFINE_PR_BODY,path.join(candidate,'src/App.tsx'));
@@ -137,6 +144,21 @@ main().catch(e=>{console.error(e);process.exitCode=1;});
   if (!valid) throw Error('Not a declared HisabIQ React route: ' + route);
   return route;
 }
+function scopeFromBody(body, root, route) {
+  const scope = (body || '').match(/^[ \t]*UI-REFINE-SCOPE:[ \t]*(src\/[A-Za-z0-9_/-]+\.(?:tsx|jsx|css))[ \t]*$/m);
+  if (scope) {
+    const file = scope[1];
+    if (file.includes('..') || !fs.existsSync(path.resolve(root, file))) {
+      throw Error('UI-REFINE-SCOPE is not a file within the checked-out project: ' + file);
+    }
+    return file;
+  }
+  // Fallback always includes every relevant module in the requested area,
+  // rather than silently assuming the Expenses source file.
+  if (route.startsWith('#/saas/')) return 'src/saas';
+  if (route.startsWith('#/app/')) return 'src/pages';
+  return 'src/features/auth';
+}
 function test() {
   const file = path.resolve(__dirname, '../src/App.tsx');
   const good = [
@@ -156,6 +178,12 @@ function test() {
     '#/saas', '#/missing', '#/app/EXPENSES'
   ]) assert.throws(() => routeFromBody('UI-REFINE-ROUTE: ' + bad, file), bad);
   assert.throws(() => routeFromBody('Refine Expenses please', file));
+  const root = path.resolve(__dirname, '..');
+  assert.equal(scopeFromBody('UI-REFINE-SCOPE: src/pages/Pos.tsx',root,'#/app/pos'),'src/pages/Pos.tsx');
+  assert.equal(scopeFromBody('UI-REFINE-SCOPE: src/pages/Expenses.tsx',root,'#/app/expenses'),'src/pages/Expenses.tsx');
+  assert.equal(scopeFromBody('',root,'#/app/products'),'src/pages');
+  assert.equal(scopeFromBody('',root,'#/saas/overview'),'src/saas');
+  assert.throws(() => scopeFromBody('UI-REFINE-SCOPE: src/pages/does-not-exist.tsx',root,'#/app/pos'));
   console.log('All-module GitHub screenshot route validation: ' + good.length + ' declared routes OK');
 }
 async function capture(browser,name,url,route,out){
