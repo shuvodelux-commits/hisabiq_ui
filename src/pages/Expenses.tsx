@@ -174,15 +174,28 @@ export function Expenses() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3" role="tablist">
+        <MotionTabList className="flex flex-nowrap gap-0 overflow-x-auto border-b border-border px-1 sm:gap-1 sm:px-3" role="tablist" aria-label={text('Expense sections','খরচের বিভাগ')}>
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
               role="tab"
               aria-selected={tab === id}
+              tabIndex={tab === id ? 0 : -1}
               onClick={() => setTab(id)}
+              onKeyDown={event => {
+                const current = tabs.findIndex(([value]) => value === id);
+                const index = event.key === 'Home' ? 0
+                  : event.key === 'End' ? tabs.length - 1
+                  : event.key === 'ArrowRight' ? (current + 1) % tabs.length
+                  : event.key === 'ArrowLeft' ? (current - 1 + tabs.length) % tabs.length
+                  : -1;
+                if (index < 0) return;
+                event.preventDefault();
+                setTab(tabs[index][0]);
+                event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[index]?.focus();
+              }}
               title={helper}
-              className={`relative flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-2.5 text-[13px] font-medium ${
+              className={`relative flex shrink-0 items-center gap-1 whitespace-nowrap px-1 py-2.5 text-[13px] font-medium sm:gap-1.5 sm:px-2.5 ${
                 tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
