@@ -3,10 +3,13 @@
 'use strict';
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
 
 async function main() {
   const browser = await chromium.launch({ args: ['--no-sandbox'] });
   const origin = process.env.UI_REFINE_PR_URL || 'http://127.0.0.1:4311';
+  const shotsDir = 'test-results/expenses-ui-refine';
+  await fs.mkdir(shotsDir, { recursive: true });
   let checked = 0;
   try {
     for (const width of [320, 390, 768, 1024, 1440]) {
@@ -26,6 +29,7 @@ async function main() {
           const errors = [];
           page.on('pageerror', error => errors.push(error.message));
           await page.goto(origin + '/#/app/expenses', { waitUntil: 'networkidle' });
+          await page.screenshot({ path: shotsDir + '/final-' + width + '-' + theme + '.png', fullPage: true, animations: 'disabled' });
           const tablist = page.getByRole('tablist', { name: 'Expense sections' });
           const tabs = tablist.getByRole('tab');
           assert.equal(await tabs.count(), 4, 'Expected all four original Expenses tabs');
