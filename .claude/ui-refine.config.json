@@ -16,6 +16,7 @@
       }
     ],
     "rounds": 3,
-    "taste_file": "docs/design/taste.md"
+    "taste_file": "docs/design/taste.md",
+    "impeccable": ".agents/skills/impeccable"
   }
 }

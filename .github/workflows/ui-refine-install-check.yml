@@ -7,6 +7,10 @@ on:
       - 'docs/design/taste.md'
       - 'docs/ui/ui-refine-loop.md'
       - 'AGENTS.md'
+      - 'DESIGN.md'
+      - '.gitmodules'
+      - '.agents/skills/impeccable'
+      - 'vendor/impeccable'
       - '.github/workflows/ui-refine-install-check.yml'
   workflow_dispatch:
 
@@ -17,6 +21,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -41,6 +47,7 @@ jobs:
           grep -Fq 'return {' .claude/workflows/ui-refine-loop.js
           test -s docs/ui/ui-refine-loop.md
           test -s docs/design/taste.md
+          test -s DESIGN.md
       - name: Verify HisabIQ guardrails and resolved configuration
         shell: bash
         run: |
@@ -55,6 +62,25 @@ jobs:
           if (a.rounds !== 3 || a.tasteFile !== 'docs/design/taste.md') throw Error('Wrong direction or round limit');
           if (!a.devCommand.includes('--port $PORT')) throw Error('Vite dev port not configured');
           if (a.authScript) throw Error('Do not invent or bundle login credentials');
-          if (!['impeccable', 'rubric'].includes(a.critic)) throw Error('Unrecognized critic mode');
+          if (a.critic !== 'impeccable' || !a.impeccable?.detect || !a.impeccable?.context) throw Error('Impeccable not detected; do not silently use rubric');
+          if (!a.impeccable.skillDir.endsWith('impeccable')) throw Error('Unexpected skill location');
           console.log('UI refine files, check commands, non-auth fixture and project taste: OK');
           NODE
+      - name: Verify pinned Impeccable submodule and engine
+        shell: bash
+        env:
+          IMPECCABLE_HOME: ${{ runner.temp }}/impeccable-cache
+        run: |
+          set -euo pipefail
+          expected=e89e3ada3e875a89ac2c5d33d11e65ebef6fe285
+          actual="$(git -C vendor/impeccable rev-parse HEAD)"
+          test "$actual" = "$expected" || { echo "Unpinned upstream Impeccable: $actual"; exit 1; }
+          test -L .agents/skills/impeccable
+          test -L .claude/skills/impeccable
+          test -s .agents/skills/impeccable/SKILL.md
+          test -s .claude/skills/impeccable/SKILL.md
+          test -s .agents/skills/impeccable/scripts/engine-checksums.txt
+          bash -n .agents/skills/impeccable/scripts/impeccable
+          sh .agents/skills/impeccable/scripts/impeccable engine-probe > "$RUNNER_TEMP/impeccable-engine.txt"
+          grep -q '^impeccable-engine ' "$RUNNER_TEMP/impeccable-engine.txt"
+          cat "$RUNNER_TEMP/impeccable-engine.txt"
