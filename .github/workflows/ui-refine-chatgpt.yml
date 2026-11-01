@@ -96,6 +96,35 @@ jobs:
           UI_REFINE_OUT: "${{ runner.temp }}/ui-refine-shots"
         run: node scripts/ui-refine-chatgpt-shots.cjs
 
+      - name: Independent official Impeccable source detector (no AI API)
+        working-directory: candidate
+        shell: bash
+        env:
+          UI_REFINE_PR_BODY: "${{ github.event.pull_request.body }}"
+          UI_REFINE_CANDIDATE: "${{ github.workspace }}/candidate"
+          OUTPUT: "${{ runner.temp }}/ui-refine-shots"
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUTPUT"
+          SCOPE="$(node scripts/ui-refine-chatgpt-shots.cjs --print-scope)"
+          printf '%s\n' "$SCOPE" > "$OUTPUT/impeccable-scope.txt"
+          # The official pinned launcher is supplied by the existing git submodule.
+          # Exit 0 = clean, 2 = findings, 1 = scanner failed.
+          sh .agents/skills/impeccable/scripts/impeccable engine-probe > "$OUTPUT/impeccable-engine.txt"
+          set +e
+          sh .agents/skills/impeccable/scripts/impeccable detect --json "$SCOPE" \
+            > "$OUTPUT/impeccable-detector.json" 2> "$OUTPUT/impeccable-detector.log"
+          rc=$?
+          set -e
+          printf '%s\n' "$rc" > "$OUTPUT/impeccable-exit-code.txt"
+          if [[ "$rc" == "1" || ( "$rc" != "0" && "$rc" != "2" ) ]]; then
+            echo "::error::Official Impeccable detector could not scan $SCOPE (status $rc)"
+            cat "$OUTPUT/impeccable-detector.log"
+            exit 1
+          fi
+          test -s "$OUTPUT/impeccable-detector.json" || { echo "::error::No official detector result"; exit 1; }
+          echo "Official Impeccable scan completed for $SCOPE (exit $rc). Findings are advisory, not a substitute for actual screenshot review."
+
       - name: Publish visual evidence for ChatGPT GitHub connector
         if: always()
         uses: actions/upload-artifact@v4
@@ -119,7 +148,7 @@ jobs:
             echo "Automatically captured from PR #$PR using real Playwright."
             echo "Main vs PR: 320, 390, 768, 1024, 1440px; light and dark."
             echo
-            echo "Images, a manifest, and compare.html are stored under the artifact on [this run](https://github.com/$REPO/actions/runs/$RUN_ID)."
+            echo "Images, manifest, compare.html, and the official Impeccable source detector result are stored under the artifact on [this run](https://github.com/$REPO/actions/runs/$RUN_ID)."
             echo
             echo "ChatGPT may read the artifact through GitHub tools when supported. If the connector cannot render the images, attach the ZIP in chat. No AI refinement or Impeccable agent is executed by this screenshot job."
           } >> "$GITHUB_STEP_SUMMARY"
