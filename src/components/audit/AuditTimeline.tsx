@@ -1,5 +1,6 @@
 import { Clock3 } from 'lucide-react';
 import type { AuditEvent } from '../../types/audit';
+import { auditFieldLabel, formatAuditValue } from '../../utils/auditDisplay';
 
 export function AuditTimeline({ events }: { events: readonly AuditEvent[] }) {
   if (!events.length) {
@@ -20,9 +21,14 @@ export function AuditTimeline({ events }: { events: readonly AuditEvent[] }) {
               {!!event.changes.length && (
                 <div className="mt-2 space-y-1">
                   {event.changes.map((change) => (
-                    <p key={change.field} className="text-[10.5px] text-ink-500">
-                      <span className="font-medium text-ink-600">{change.field}</span>: {String(change.before ?? '—')} → {String(change.after ?? '—')}
-                    </p>
+                    <div key={change.field} className="grid min-w-0 gap-0.5 text-[11px] sm:grid-cols-[125px_minmax(0,1fr)]">
+                      <span className="font-medium text-ink-600">{auditFieldLabel(change.field)}</span>
+                      <span className="min-w-0 break-words text-ink-500">
+                        <span className="text-ink-400">Before:</span> {formatAuditValue(change.field, change.before)}
+                        <span className="px-1 text-helper" aria-hidden="true">→</span>
+                        <span className="text-ink-400">After:</span> {formatAuditValue(change.field, change.after)}
+                      </span>
+                    </div>
                   ))}
                 </div>
               )}
