@@ -203,7 +203,7 @@ export function Expenses() {
               }`}>
               {label}
               {id === 'expenses' && (
-                <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{expenses.length}</span>
+                <span className="hidden rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500 sm:inline-flex">{expenses.length}</span>
               )}
             <MotionTabIndicator active={tab === id} /></button>
           ))}
