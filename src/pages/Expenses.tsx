@@ -209,10 +209,12 @@ export function Expenses() {
               <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
               <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
               <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="w-full lg:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
-              <Button variant="ghost" size="sm" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
-              <Button variant="outline" size="sm" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
-                <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
-              </Button>
+              <div className="flex items-center gap-2 lg:shrink-0">
+                <Button variant="ghost" size="sm" className="min-w-0 flex-1 lg:flex-none" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
+                <Button variant="outline" size="sm" className="min-w-0 flex-1 lg:flex-none" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
+                  <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
+                </Button>
+              </div>
             </div>
 
             <Table>
