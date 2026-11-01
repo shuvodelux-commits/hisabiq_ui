@@ -1,0 +1,125 @@
+name: UI refine screenshots for ChatGPT (automatic)
+
+# PRs are the trigger. No Actions button, OpenAI API key, or machine needed.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    paths:
+      - 'src/**'
+      - 'docs/ui-refine/**'
+      - '.claude/skills/ui-refine-loop/**'
+      - 'scripts/ui-refine-chatgpt-shots.cjs'
+      - '.github/workflows/ui-refine-chatgpt.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chatgpt-refine-shots-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  screenshots:
+    # Only same-repo, explicitly marked refinement PRs. No untrusted fork code execution.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.body, 'UI-REFINE-ROUTE:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout PR head for screenshot comparison
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.pull_request.head.sha }}"
+          path: candidate
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Checkout base commit for baseline screenshots
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.pull_request.base.sha }}"
+          path: baseline
+          persist-credentials: false
+
+      - name: Node 24 and npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            baseline/package-lock.json
+            candidate/package-lock.json
+
+      - name: Validate requested route against actual React routing
+        working-directory: candidate
+        run: node scripts/ui-refine-chatgpt-shots.cjs --self-test
+
+      - name: Install baseline and PR dependencies (lockfile exact)
+        run: |
+          set -euo pipefail
+          (cd baseline && npm ci --no-audit --no-fund)
+          (cd candidate && npm ci --no-audit --no-fund)
+
+      - name: Install Playwright Chromium
+        working-directory: candidate
+        run: npx playwright install --with-deps chromium
+
+      - name: Start local baseline and PR servers
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd baseline && npm run dev -- --port 4310 --host 127.0.0.1) > "$RUNNER_TEMP/ui-refine-base.log" 2>&1 &
+          (cd candidate && npm run dev -- --port 4311 --host 127.0.0.1) > "$RUNNER_TEMP/ui-refine-pr.log" 2>&1 &
+          for port in 4310 4311; do
+            success=false
+            for n in $(seq 1 90); do
+              if curl -fsS --max-time 3 "http://127.0.0.1:$port/" >/dev/null 2>&1; then
+                success=true
+                break
+              fi
+              sleep 2
+            done
+            if [[ "$success" != true ]]; then
+              echo "::error::Vite server port $port did not become ready"
+              cat "$RUNNER_TEMP/ui-refine-base.log" "$RUNNER_TEMP/ui-refine-pr.log"
+              exit 1
+            fi
+          done
+
+      - name: Capture BEFORE and AFTER in both themes and five viewports
+        working-directory: candidate
+        env:
+          UI_REFINE_PR_BODY: "${{ github.event.pull_request.body }}"
+          UI_REFINE_CANDIDATE: "${{ github.workspace }}/candidate"
+          UI_REFINE_BASELINE: "${{ github.workspace }}/baseline"
+          UI_REFINE_OUT: "${{ runner.temp }}/ui-refine-shots"
+        run: node scripts/ui-refine-chatgpt-shots.cjs
+
+      - name: Publish visual evidence for ChatGPT GitHub connector
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-refine-chatgpt-shots-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          path: "${{ runner.temp }}/ui-refine-shots/"
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Show artifact location in run summary
+        if: success()
+        env:
+          PR: "${{ github.event.pull_request.number }}"
+          RUN_ID: "${{ github.run_id }}"
+          REPO: "${{ github.repository }}"
+        shell: bash
+        run: |
+          {
+            echo "## HisabIQ UI Refine · Screenshot evidence"
+            echo
+            echo "Automatically captured from PR #$PR using real Playwright."
+            echo "Main vs PR: 320, 390, 768, 1024, 1440px; light and dark."
+            echo
+            echo "Images, a manifest, and compare.html are stored under the artifact on [this run](https://github.com/$REPO/actions/runs/$RUN_ID)."
+            echo
+            echo "ChatGPT may read the artifact through GitHub tools when supported. If the connector cannot render the images, attach the ZIP in chat. No AI refinement or Impeccable agent is executed by this screenshot job."
+          } >> "$GITHUB_STEP_SUMMARY"
