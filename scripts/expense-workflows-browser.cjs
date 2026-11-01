@@ -16,6 +16,7 @@ async function main() {
       const root='http://127.0.0.1:4302/#/app/';
       const choose=async(label,value)=>{await page.getByRole('combobox',{name:label,exact:true}).click();await page.getByRole('option',{name:value,exact:true}).click();};
       await page.goto(root+'expenses');
+      if (width < 1280) await page.getByRole('button',{name:'Filters',exact:true}).click();
       await choose('Expense category filter','Salary');
       assert.equal(await page.locator('tbody tr').count(),1);
       await choose('Expense payment filter','Bank');
@@ -84,11 +85,11 @@ async function main() {
       await page.locator('tbody tr').first().click();await detail.waitFor();assert.match(await detail.innerText(),/Duplicate delivery/);assert.equal(await detail.getByRole('button',{name:'Correct expense',exact:true}).count(),0);await detail.getByRole('button',{name:'Close',exact:true}).first().click();
       await page.getByRole('tab',{name:'Categories',exact:true}).click();
       const categoryRow=page.locator('tbody tr').filter({hasText:'Delivery expense'});
-      await categoryRow.getByRole('button',{name:'Edit',exact:true}).click();const category=page.getByRole('dialog',{name:'Expense category editor'});
+      await categoryRow.getByRole('button',{name:'Actions for category Delivery expense'}).click();await page.getByRole('button',{name:'Edit',exact:true}).click();const category=page.getByRole('dialog',{name:'Expense category editor'});
       await category.getByRole('textbox',{name:'Category name'}).fill('Delivery charges');await category.getByRole('button',{name:'Save category'}).click();
-      const renamed=page.locator('tbody tr').filter({hasText:'Delivery charges'});await renamed.getByRole('button',{name:'Deactivate',exact:true}).click();assert.match(await renamed.innerText(),/Inactive/);await renamed.getByRole('button',{name:'Activate',exact:true}).click();
-      await page.getByRole('tab',{name:'Payees',exact:true}).click();const payee=page.locator('tbody tr').filter({hasText:'Counter delivery'});assert.ok(await payee.getByRole('button',{name:'Deactivate'}).isDisabled());
-      await payee.getByRole('button',{name:'Edit',exact:true}).click();const party=page.getByRole('dialog',{name:'Edit party'});await party.getByRole('textbox',{name:'Area',exact:true}).fill('Dhaka counter');await party.getByRole('button',{name:'Save party'}).click();await party.waitFor({state:'hidden'});
+      const renamed=page.locator('tbody tr').filter({hasText:'Delivery charges'});await renamed.getByRole('button',{name:'Actions for category Delivery charges'}).click();await page.getByRole('button',{name:'Deactivate',exact:true}).click();assert.match(await renamed.innerText(),/Inactive/);await renamed.getByRole('button',{name:'Actions for category Delivery charges'}).click();await page.getByRole('button',{name:'Activate',exact:true}).click();
+      await page.getByRole('tab',{name:'Payees',exact:true}).click();const payee=page.locator('tbody tr').filter({hasText:'Counter delivery'});await payee.getByRole('button',{name:'Actions for payee Counter delivery'}).click();assert.ok(await page.getByRole('button',{name:'Deactivate',exact:true}).isDisabled());
+      await page.getByRole('button',{name:'Edit',exact:true}).click();const party=page.getByRole('dialog',{name:'Edit party'});await party.getByRole('textbox',{name:'Area',exact:true}).fill('Dhaka counter');await party.getByRole('button',{name:'Save party'}).click();await party.waitFor({state:'hidden'});
       await page.getByRole('tab',{name:'Reports',exact:true}).click();const reportPopup=page.waitForEvent('popup');await page.getByRole('button',{name:'Print',exact:true}).click();const report=await reportPopup;await report.waitForLoadState();assert.doesNotMatch(await report.locator('body').innerText(),/EXP-000062/);assert.match(await report.locator('body').innerText(),/EXP-000058/);await report.close();
       await page.goto(root+'purchases');await page.getByText('PUR-000118',{exact:true}).click();await detail.waitFor();assert.ok(await detail.getByRole('button',{name:/^Pay /}).isDisabled());assert.match(await detail.innerText(),/requires integration/);
       assert.deepEqual(errors,[]);
