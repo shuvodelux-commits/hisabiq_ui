@@ -35,6 +35,10 @@ export function getVisibleNavigation(groups:readonly ErpNavGroup[],context:Navig
 /** Choose a query-specific child before the parent's landing page; never prefix-match sales-old. */
 export function resolveNavLocation(path:string,groups:readonly ErpNavGroup[]):NavLocation|null{
  const current=locationParts(path);
+ // Bank Entry is a contextual action within Money Accounts, not a separate top-level tab.
+ if (current.pathname === '/app/accounts' && current.search.get('tab') === 'bank-entry' &&
+     groups.some(group => group.id === 'accounts' && group.children?.some(child => child.id === 'money-accounts')))
+   return {groupId:'accounts',childId:'money-accounts'};
  let best:{location:NavLocation;score:number}|null=null;
  for(const group of groups){
   for(const child of group.children??[]){

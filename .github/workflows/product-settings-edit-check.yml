@@ -1,0 +1,23 @@
+name: Product settings editing
+on:
+  pull_request:
+    paths:
+      - 'src/components/products/ProductSettings.tsx'
+      - 'src/data/erpDemoStore.ts'
+      - 'src/data/productImportPreviewStore.ts'
+      - 'src/i18n/productFormsCopy.ts'
+      - 'scripts/product-settings-edit-browser.cjs'
+      - '.github/workflows/product-settings-edit-check.yml'
+jobs:
+  edit-workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/product-settings-edit-browser.cjs

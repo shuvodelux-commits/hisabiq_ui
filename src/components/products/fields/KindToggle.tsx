@@ -4,8 +4,19 @@ import { useFormCopy } from '../../../hooks/useFormCopy';
 import { LabelText } from './LabelText';
 import { SegmentedControl } from './SegmentedControl';
 
-export function KindToggle({ value, onChange, locked }: { value: ProductKind; onChange: (kind: ProductKind) => void; locked: boolean }) {
+export function KindToggle({ value, onChange, locked, compact = false }: { value: ProductKind; onChange: (kind: ProductKind) => void; locked: boolean; compact?: boolean }) {
   const { t } = useFormCopy();
+  if (compact) return (
+    <div className="w-[172px] max-w-[50%]">
+      <SegmentedControl<ProductKind>
+        ariaLabel={t('Product type', 'পণ্যের ধরন')}
+        value={value}
+        onChange={onChange}
+        disabled={locked}
+        options={[{ value: 'Stock', label: t('Product', 'পণ্য') }, { value: 'Service', label: t('Service', 'সেবা') }]}
+      />
+    </div>
+  );
   return (
     <div className="max-w-[440px]">
       <p id="pf-kind-label" className="mb-2 text-[length:var(--label-fs)] font-medium text-ink">

@@ -1,3 +1,4 @@
+import {unitSymbol} from '../../data/productUnits';
 import {rankSearch} from '../../utils/fuzzySearch';
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -253,7 +254,7 @@ ref)
                   <p className="text-[13px] font-medium text-ink">
                     {mode !== 'purchase' && activeOffer && <span className="mr-1 text-[10px] font-normal text-ink-400 line-through">{taka(normalPrice)}</span>}
                     {taka(effectivePrice, effectivePrice % 1 ? 2 : 0)}
-                    <span className="font-normal text-ink-400">/{displayUnit}</span>
+                    <span className="font-normal text-ink-400">/{unitSymbol(displayUnit)}</span>
                   </p>
                   <p className={`text-[11px] ${sellableStatus === 'low' || sellableStatus === 'out' ? 'text-danger' : 'text-ink-500'}`}>
                     {p.kind === 'Bundle'

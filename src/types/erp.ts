@@ -81,6 +81,8 @@ export type Product = {
   stockViewUnit?: string;
   minStock: number;
   sellPrice: number;
+  /** Use the product's normal selling price even when purchased lots have their own prices. */
+  useDefaultPriceForAllLots?: boolean;
   purchasePrice: number;
   warranty?: ProductWarranty;
   serialTracking?: SerialTrackingMode;

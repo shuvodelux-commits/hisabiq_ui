@@ -1,7 +1,7 @@
 {
   "version": "2.2",
   "date": "2026-10-26",
-  "guideSha256": "03333f696aad16c940f2412a919067cd34a75537255b5a633d22c7b330cca916",
+  "guideSha256": "2601a8fd56e52b76f08ba7656024901ff95c3f05ee8236843624b0b0e2167bb9",
   "source": "docs/ui/HISABIQ-DESIGN-GUIDE.md",
   "visualSpecimens": [
     {
@@ -146,7 +146,9 @@
         "joined shell",
         "compound units",
         "multi-unit chain",
-        "Bangla amount words"
+        "Bangla amount words",
+        "three/four units in one row",
+        "short unit symbols"
       ]
     },
     {
@@ -1837,6 +1839,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/accounts/BankEntryTab.tsx",
+      "kind": "component",
+      "exports": [
+        "BankEntryTab"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/accounts/ChartOfAccountsView.tsx",
       "kind": "component",
       "exports": [
@@ -2935,6 +2945,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/products/form/UnitPricesPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "UnitPricesPanel"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/products/form/WarrantySettings.tsx",
       "kind": "component",
       "exports": [
@@ -2963,6 +2981,14 @@
       "kind": "component",
       "exports": [
         "PurchaseCart"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/purchases/PurchaseDraftsMenu.tsx",
+      "kind": "component",
+      "exports": [
+        "PurchaseDraftsMenu"
       ],
       "reexports": []
     },
@@ -3791,6 +3817,16 @@
       "reexports": []
     },
     {
+      "file": "src/settings/CommerceSettingsPanels.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "RegionalCurrencySettings",
+        "TaxVatSettings",
+        "DocumentNumberingSettings"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/DataSettings.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -3851,6 +3887,15 @@
       "kind": "authored-ui",
       "exports": [
         "ModuleSettingsEntry"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/ModuleSettingsToolbarContext.tsx",
+      "kind": "provider-or-context",
+      "exports": [
+        "ModuleSettingsToolbarContext",
+        "useModuleSettingsAction"
       ],
       "reexports": []
     },
@@ -4005,10 +4050,10 @@
       "src/settings/ModuleSettingsEntry.tsx"
     ],
     "ArrowLeftIcon": [
-      "src/components/SearchSelect.tsx",
-      "src/components/products/AddProductDialog.tsx"
+      "src/components/SearchSelect.tsx"
     ],
     "ArrowLeftRight": [
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/parties/PartyCreditRefundDialog.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
@@ -4026,6 +4071,7 @@
       "src/components/reports/ReportOverview.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/pages/BrandGuide.tsx",
+      "src/pages/PurchaseEditor.tsx",
       "src/pages/Reports.tsx",
       "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
@@ -4054,6 +4100,12 @@
       "src/saas/SaasShell.tsx",
       "src/settings/TenantSettingsHub.tsx"
     ],
+    "BadgeDollarSignIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
+    "BadgePercent": [
+      "src/settings/CommerceSettingsPanels.tsx"
+    ],
     "Banknote": [
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/dashboard/MetricCard.tsx",
@@ -4069,6 +4121,9 @@
       "src/pages/Expenses.tsx",
       "src/saas/SaasShell.tsx"
     ],
+    "BarcodeIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
     "Bell": [
       "src/components/layout/TopBar.tsx",
       "src/settings/SettingsDirectory.tsx",
@@ -4083,6 +4138,7 @@
       "src/pages/Reports.tsx"
     ],
     "BookOpen": [
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/brand/CompleteDesignGuide.tsx",
       "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/brand/PrimitivesSection.tsx",
@@ -4118,6 +4174,9 @@
       "src/components/pos/InstallmentRescheduleDialog.tsx",
       "src/pages/Daybook.tsx"
     ],
+    "CalendarClockIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
+    ],
     "CalendarDays": [
       "src/components/AppDateRangePicker.tsx",
       "src/components/AppMonthYearPicker.tsx",
@@ -4148,6 +4207,7 @@
     ],
     "CheckCircle2": [
       "src/components/TransactionReviewDialog.tsx",
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/audit/ImpactPreview.tsx",
       "src/components/finance/CounterWorkspace.tsx",
       "src/components/import/ImportFinishStep.tsx",
@@ -4194,6 +4254,7 @@
       "src/components/AppDateRangePicker.tsx",
       "src/components/AppMonthYearPicker.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
@@ -4206,6 +4267,7 @@
       "src/components/layout/ErpNavMenu.tsx",
       "src/components/parties/LedgerTableResponsive.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
       "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
@@ -4214,16 +4276,14 @@
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsTabs.tsx"
     ],
-    "ChevronRightIcon": [
-      "src/components/products/AddProductDialog.tsx"
-    ],
     "ChevronUp": [
       "src/components/NumericInput.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/SalesProfitExperiment.tsx"
     ],
     "CircleAlert": [
-      "src/components/FeedbackState.tsx"
+      "src/components/FeedbackState.tsx",
+      "src/settings/CommerceSettingsPanels.tsx"
     ],
     "CircleDollarSign": [
       "src/pages/Finance.tsx"
@@ -4248,6 +4308,7 @@
       "src/components/daybook/DaybookActions.tsx",
       "src/components/daybook/TransactionDetailsDialog.tsx",
       "src/components/layout/Calculator.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Sales.tsx"
@@ -4319,6 +4380,7 @@
     ],
     "FileClock": [
       "src/components/pos/DraftsMenu.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Sales.tsx"
     ],
@@ -4366,6 +4428,9 @@
     "FlaskConical": [
       "src/components/reports/SalesProfitExperiment.tsx"
     ],
+    "Globe2": [
+      "src/settings/CommerceSettingsPanels.tsx"
+    ],
     "GripVertical": [
       "src/components/dashboard/CustomizeDialog.tsx",
       "src/components/pos/CartTable.tsx"
@@ -4384,6 +4449,9 @@
       "src/components/purchases/BillDetailDialog.tsx",
       "src/navigation/erpNavigation.ts"
     ],
+    "Hash": [
+      "src/settings/CommerceSettingsPanels.tsx"
+    ],
     "History": [
       "src/components/parties/VendorCorrectionDialog.tsx",
       "src/saas/SaasShell.tsx"
@@ -4391,6 +4459,9 @@
     "ImagePlus": [
       "src/components/products/PhotoUploader.tsx",
       "src/settings/TenantSettingsPage.tsx"
+    ],
+    "ImagesIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "Info": [
       "src/components/Tooltip.tsx",
@@ -4406,6 +4477,7 @@
       "src/settings/AccountSecuritySettings.tsx"
     ],
     "Landmark": [
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/parties/PartyFinanceDialog.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/navigation/erpNavigation.ts",
@@ -4418,6 +4490,9 @@
     ],
     "Layers": [
       "src/saas/SaasShell.tsx"
+    ],
+    "Layers3Icon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "LayersIcon": [
       "src/components/products/form/AdvancedStockPanel.tsx"
@@ -4570,11 +4645,15 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/pos/InstallmentTermsPanel.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Sales.tsx",
       "src/settings/EmployeeDirectory.tsx"
+    ],
+    "PencilIcon": [
+      "src/components/SearchSelect.tsx"
     ],
     "Percent": [
       "src/components/dashboard/MetricCard.tsx"
@@ -4634,6 +4713,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Vendors.tsx",
       "src/pages/Warranty.tsx",
+      "src/settings/CommerceSettingsPanels.tsx",
       "src/settings/TeamSettings.tsx"
     ],
     "PlusCircle": [
@@ -4698,6 +4778,7 @@
       "src/components/parties/LedgerTableResponsive.tsx"
     ],
     "RefreshCw": [
+      "src/components/accounts/BankEntryTab.tsx",
       "src/components/finance/CashSessionDetailsDialog.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/pages/Finance.tsx",
@@ -4726,6 +4807,7 @@
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/pos/DraftsMenu.tsx",
       "src/components/reports/BusinessReview.tsx",
+      "src/pages/PurchaseEditor.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
     "Scale": [
@@ -4739,6 +4821,9 @@
       "src/components/pos/SerialPickerDialog.tsx",
       "src/components/products/ProductInventoryDialogs.tsx",
       "src/components/purchases/PurchaseCart.tsx"
+    ],
+    "ScanLineIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "Search": [
       "src/components/accounts/ChartOfAccountsView.tsx",
@@ -4758,6 +4843,7 @@
       "src/components/parties/PartyLedgerToolbarResponsive.tsx",
       "src/components/pos/ProductCombobox.tsx",
       "src/components/products/ProductInventoryViews.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/components/vendor/VendorDirectory.tsx",
       "src/components/vendor/VendorMemoPickerDialog.tsx",
       "src/pages/Expenses.tsx",
@@ -4812,6 +4898,9 @@
       "src/settings/TeamSettings.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx"
+    ],
+    "ShieldCheckIcon": [
+      "src/components/products/form/OtherOptionsPanel.tsx"
     ],
     "ShoppingCart": [
       "src/components/brand/BrandHero.tsx",
@@ -4880,13 +4969,15 @@
       "src/components/products/BundleEditor.tsx",
       "src/components/purchases/BillDialog.tsx",
       "src/components/purchases/PurchaseCart.tsx",
+      "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/components/purchases/PurchasePaymentPanel.tsx",
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorGoodsEditor.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reports.tsx",
-      "src/pages/Sales.tsx"
+      "src/pages/Sales.tsx",
+      "src/settings/CommerceSettingsPanels.tsx"
     ],
     "Trash2Icon": [
       "src/components/products/form/AdvancedStockPanel.tsx"
@@ -4982,6 +5073,9 @@
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/saas/components.tsx",
       "src/settings/ui.tsx"
+    ],
+    "XIcon": [
+      "src/components/SearchSelect.tsx"
     ]
   }
 }

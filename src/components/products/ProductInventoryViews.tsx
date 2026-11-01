@@ -8,6 +8,7 @@ import type { Product, StockLot, StockMovement, StockMovementType } from '../../
 import { taka } from '../../utils/currency';
 import { formatStock } from '../../utils/units';
 import { lotExpiryState } from '../../utils/productFeatures';
+import { sellingPriceForStockLot } from '../../utils/lotSellingPrice';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {productInventoryLabel} from '../../i18n/productInventoryCopy';
 
@@ -126,7 +127,12 @@ export function StockLotsView({
                   <TableCell className="py-2 text-right text-ink-600">{formatStock({ ...product, stock: lot.quantity })}</TableCell>
                   <TableCell className="py-2 text-right font-medium text-ink">{formatStock({ ...product, stock: lot.available })}</TableCell>
                   <TableCell className="py-2 text-right text-ink-600">{taka(lot.unitCost, lot.unitCost % 1 ? 2 : 0)}/{product.unit}</TableCell>
-                  <TableCell className="py-2 text-right text-ink-600">{lot.sellingPrice !== undefined ? `${taka(lot.sellingPrice, lot.sellingPrice % 1 ? 2 : 0)}/${product.unit}` : pl("Default")}</TableCell>
+                  <TableCell className="py-2 text-right text-ink-600">
+                    <span>{taka(sellingPriceForStockLot(product,lot,product.unit))}/{product.unit}</span>
+                    {(product.useDefaultPriceForAllLots || lot.source === 'Opening' || lot.sellingPrice === undefined) &&
+                      <span data-table-helper="" className="block text-[11px] text-ink-400">{product.useDefaultPriceForAllLots ? 'Product override' : 'Product default'}</span>}
+                    {product.useDefaultPriceForAllLots && lot.sellingPrice !== undefined && <span data-table-helper="" className="block text-[11px] text-ink-400">Saved lot: {taka(lot.sellingPrice)}</span>}
+                  </TableCell>
                   <TableCell className="py-2 text-right font-medium text-ink">{taka(lotValue, lotValue % 1 ? 2 : 0)}</TableCell>
                   <TableCell className="py-2">
                     <p className="text-ink-600">{lot.batchNumber ? `${pl('Batch')} ${lot.batchNumber}` : pl('No batch')}</p>

@@ -17,14 +17,16 @@ import { LedgerView } from '../components/accounts/LedgerView';
 import { TrialBalanceView } from '../components/accounts/TrialBalanceView';
 import { StatementsView } from '../components/accounts/StatementsView';
 import { ChartOfAccountsView } from '../components/accounts/ChartOfAccountsView';
+import { BankEntryTab } from '../components/accounts/BankEntryTab';
+import { Finance } from './Finance';
 import { useUserPreferences } from '../contexts/UserPreferencesContext';
 import { accountingAccounts, accountingSources as seedSources } from '../data/accounting';
 import type { AccountingSourceTransaction, Posting, VoucherType } from '../types/accounting';
 import { balanceSheet, postingForTransaction, profitAndLoss, trialBalance } from '../utils/accountingProjection';
 import { taka } from '../utils/currency';
 
-type Tab = 'overview' | 'vouchers' | 'ledger' | 'trial' | 'statements' | 'chart';
-const validTabs:Tab[] = ['overview','vouchers','ledger','trial','statements','chart'];
+type Tab = 'overview' | 'money-accounts' | 'vouchers' | 'ledger' | 'trial' | 'statements' | 'chart' | 'bank-entry';
+const validTabs:Tab[] = ['overview','money-accounts','vouchers','ledger','trial','statements','chart','bank-entry'];
 
 function sourceLabel(source: AccountingSourceTransaction['source']) {
   if (source === 'receipt-voucher') return 'Receipt Voucher';
@@ -73,14 +75,14 @@ function rowBalance(postings: Posting[], accountId: string) {
 }
 
 export function Accounts() {
-  const {text,showHelper}=useUiCopy();
+  const {text}=useUiCopy();
   const navigate = useNavigate();
   const { terminologyMode, setTerminologyMode, entryDateView } = useUserPreferences();
   const [params,setParams] = useSearchParams();
   const requestedTab = params.get('tab');
   const [tab, setTab] = useState<Tab>(() => validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview');
   useEffect(() => { setTab(validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview'); }, [requestedTab]);
-  const chooseTab = (nextTab: Tab) => { setTab(nextTab); setParams(current => { const next = new URLSearchParams(current); if (nextTab === 'overview') next.delete('tab'); else next.set('tab',nextTab); return next; }, {replace:true}); };
+  const chooseTab = (nextTab: Tab) => { setTab(nextTab); setParams(current => { const next = new URLSearchParams(current); if (nextTab === 'overview') next.delete('tab'); else next.set('tab',nextTab); if(nextTab!=='bank-entry')next.delete('accountId'); return next; }, {replace:true}); };
   const [sources, setSources] = useState<AccountingSourceTransaction[]>(seedSources);
   const [voucherOpen, setVoucherOpen] = useState(false);
   const [voucherType, setVoucherType] = useState<VoucherType>('receipt');
@@ -124,13 +126,15 @@ export function Accounts() {
     navigate(`${route}?open=${encodeURIComponent(source.id)}`);
   };
 
-  const tabs: Array<[Tab, string, string]> = [
-    ['overview', text('Overview','সারাংশ'), 'হিসাবের সারাংশ'],
-    ['vouchers', text('Vouchers','ভাউচার'), 'টাকা পাওয়া, দেওয়া ও হিসাব ঠিক করার এন্ট্রি'],
-    ['ledger', text('Ledger','খাতা'), 'এই হিসাবের সব লেনদেন'],
-    ['trial', text('Trial Balance','ট্রায়াল ব্যালেন্স'), 'সব হিসাব ঠিকমতো মিলছে কি না'],
-    ['statements', text('Statements','হিসাবের প্রতিবেদন'), 'লাভ-ক্ষতি ও ব্যালেন্স শিট'],
-    ['chart', text('Chart of Accounts','সব হিসাবের তালিকা'), 'ব্যবসার সব হিসাবের খাত']
+  // Compact English-only tab labels; Bangla guidance remains inside each panel.
+  const tabs: Array<[Tab, string]> = [
+    ['overview', 'Overview'],
+    ['money-accounts', 'Money Accounts'],
+    ['vouchers', 'Vouchers'],
+    ['ledger', 'Ledger'],
+    ['trial', 'Trial Balance'],
+    ['statements', 'Statements'],
+    ['chart', 'Chart of Accounts']
   ];
 
   return (
@@ -167,7 +171,7 @@ export function Accounts() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5">
+      {tab === 'overview' && <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5">
         {[
           { label: text('Net Profit','নিট লাভ'), helper: 'সব খরচের পর লাভ', value: pnl.netProfit, icon: WalletCards, tone: pnl.netProfit < 0 ? 'text-danger' : 'text-success' },
           { label: text(terminologyMode === 'simple' ? 'Customer Due' : 'Accounts Receivable','ক্রেতার কাছে পাওনা'), helper: 'গ্রাহকের কাছ থেকে পাবো', value: customerDue, icon: BookOpen, tone: 'text-teal-700' },
@@ -184,22 +188,24 @@ export function Accounts() {
             <p className="font-bn text-[10.5px] text-ink-400">{helper}</p>
           </div>
         ))}
-      </div>
+      </div>}
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
         <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
-          {tabs.map(([id, label, helper]) => (
+          {tabs.map(([id, label]) => (
             <button
               key={id}
               role="tab"
-              aria-selected={tab === id}
+              aria-selected={tab === id || (tab === 'bank-entry' && id === 'money-accounts')}
               onClick={() => chooseTab(id)}
-              className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
+              className={`flex shrink-0 items-center px-2.5 py-2.5 text-[13px] font-medium ${tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
-              {showHelper&&<span className="font-bn text-[10.5px] font-normal text-ink-400">{helper}</span>}
-            <MotionTabIndicator active={tab === id} /></button>
+              <MotionTabIndicator active={tab === id || (tab === 'bank-entry' && id === 'money-accounts')} />
+            </button>
           ))}
         </MotionTabList>
+
+        {tab === 'money-accounts' && <Finance moneyAccountsOnly />}
 
         {tab === 'overview' && (
           <div className="grid gap-4 p-4 xl:grid-cols-[1.2fr_1fr]">
@@ -308,6 +314,14 @@ export function Accounts() {
         {tab === 'trial' && <TrialBalanceView postings={postings} terminologyMode={terminologyMode} />}
         {tab === 'statements' && <StatementsView postings={postings} />}
         {tab === 'chart' && <ChartOfAccountsView terminologyMode={terminologyMode} onOpeningBalance={() => setOpeningOpen(true)} />}
+        {tab === 'bank-entry' && <div>
+          <div className="border-b border-border px-3 py-2">
+            <Button variant="outline" size="sm" onClick={() => chooseTab('money-accounts')}>
+              {text('Back to Money Accounts','টাকার হিসাবে ফিরে যান')}
+            </Button>
+          </div>
+          <BankEntryTab initialAccountId={params.get('accountId') || undefined} />
+        </div>}
       </div>
 
       <VoucherActionDialog

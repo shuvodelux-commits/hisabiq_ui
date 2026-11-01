@@ -55,7 +55,7 @@ async function main(){
   await nav.getByRole('link',{name:'Vendors'}).waitFor();
   assert.equal(await nav.getByRole('link',{name:'Vendors'}).getAttribute('aria-current'),'page');
   await page.goto(base+'/app/products?view=lots');
-  assert.equal(await nav.getByRole('link',{name:/Stock, Lots & Adjustments/}).getAttribute('aria-current'),'page');
+  assert.equal(await nav.getByRole('link',{name:/Stock lots/}).getAttribute('aria-current'),'page');
   await page.goto(base+'/app/notifications');
   assert.equal(await nav.getByRole('link',{name:/Notifications & SMS/}).getAttribute('aria-current'),'page');
   await page.getByRole('button',{name:'Collapse sidebar'}).click();
@@ -120,7 +120,7 @@ async function main(){
   await page.getByRole('button',{name:'Open ERP navigation'}).click();
   const mobile=page.getByRole('dialog',{name:'ERP navigation'});
   await mobile.getByRole('button',{name:'Expand Settings'}).click({position:{x:90,y:20}});
-  await mobile.getByRole('link',{name:/Business & General/}).waitFor();
+  await mobile.getByRole('link',{name:/Business profile/}).waitFor();
   assert.equal(await mobile.getByRole('button',{name:'Collapse Settings'}).getAttribute('aria-expanded'),'true');
   assert.deepEqual(errors,[]);
   console.log('ERP navigation: routes, nested active links, tab deep links, collapsed sidebar and mobile drawer passed');
