@@ -82,7 +82,7 @@ async function main() {
       await cancel.getByRole('textbox',{name:'Expense cancellation reason'}).fill('Duplicate delivery');await cancel.getByRole('button',{name:'Confirm cancellation',exact:true}).click();
       assert.equal(await page.getByRole('button',{name:'Actions for EXP-000062',exact:true}).count(),0);
       await choose('Expense status filter','Cancelled');assert.match(await page.locator('tbody').innerText(),/EXP-000062/);
-      await page.locator('tbody tr').first().click();await detail.waitFor();assert.match(await detail.innerText(),/Duplicate delivery/);assert.equal(await detail.getByRole('button',{name:'Correct expense',exact:true}).count(),0);await detail.getByRole('button',{name:'Close',exact:true}).first().click();
+      await page.locator('tbody tr').first().locator('td').first().click();await detail.waitFor();assert.match(await detail.innerText(),/Duplicate delivery/);assert.equal(await detail.getByRole('button',{name:'Correct expense',exact:true}).count(),0);await detail.getByRole('button',{name:'Close',exact:true}).first().click();
       await page.getByRole('tab',{name:'Categories',exact:true}).click();
       const categoryRow=page.locator('tbody tr').filter({hasText:'Delivery expense'});
       await categoryRow.getByRole('button',{name:'Actions for category Delivery expense'}).click();await page.getByRole('button',{name:'Edit',exact:true}).click();const category=page.getByRole('dialog',{name:'Expense category editor'});
