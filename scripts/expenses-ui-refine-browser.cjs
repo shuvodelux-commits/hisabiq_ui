@@ -66,11 +66,43 @@ async function main() {
             && searchRect.y < categoryRect.y + categoryRect.height
             && searchRect.y + searchRect.height > categoryRect.y;
           assert.equal(overlaps, false, width + 'px: search input blocks category filter');
+          if (width < 1280) {
+            const filters = page.getByRole('button', { name: 'Filters', exact: true });
+            assert.equal(await filters.getAttribute('aria-expanded'), 'false', 'Extra filters must start collapsed on phones/tablets');
+            await filters.click();
+            assert.equal(await filters.getAttribute('aria-expanded'), 'true');
+          }
           await page.getByRole('combobox', { name: 'Expense category filter', exact: true }).click();
           await page.getByRole('option', { name: 'Salary', exact: true }).click();
           assert.equal(await page.locator('tbody tr').count(), 1, 'Category filter should narrow the existing expense list');
           await page.getByRole('button', { name: 'Reset', exact: true }).click();
           assert.ok((await page.locator('tbody tr').count()) >= 6, 'Reset should restore the original expenses');
+
+          // Verify horizontal scrolling leaves the row action reachable,
+          // including in Categories and Payees, as in the Audit Ledger.
+          async function verifySticky(tabName, triggerName) {
+            if (tabName) await page.getByRole('tab', { name: tabName, exact: true }).click();
+            const table = page.locator('table').first();
+            const scroll = table.locator('xpath=ancestor::div[contains(@class,"overflow-x-auto")][1]');
+            const action = page.getByRole('columnheader', { name: 'Action', exact: true });
+            const trigger = page.getByRole('button', { name: triggerName }).first();
+            const start = await action.boundingBox();
+            assert.ok(start && start.x >= 0 && start.x + start.width <= width + 1, 'Pinned Action header clipped');
+            const overflow = await scroll.evaluate(el => ({ total: el.scrollWidth, visible: el.clientWidth }));
+            if (width < 1280) assert.ok(overflow.total > overflow.visible, tabName + ': table must scroll sideways');
+            await scroll.evaluate(el => { el.scrollLeft = el.scrollWidth; el.dispatchEvent(new Event('scroll')); });
+            const end = await action.boundingBox();
+            assert.ok(end && Math.abs(start.x - end.x) < 3, 'Action header must stay fixed on sideways scroll');
+            const button = await trigger.boundingBox();
+            assert.ok(button && button.x >= 0 && button.x + button.width <= width + 1, 'Action menu not reachable');
+            await trigger.click();
+            await page.getByRole('dialog', { name: /Actions for/ }).last().waitFor({ state: 'visible' });
+            await page.keyboard.press('Escape');
+          }
+          await verifySticky(null, 'Actions for EXP-000061');
+          await verifySticky('Categories', 'Actions for category');
+          await verifySticky('Payees', 'Actions for payee');
+          await page.getByRole('tab', { name: 'Expense list' }).click();
 
           await page.getByRole('button', { name: 'Add expense', exact: true }).click();
           await page.getByRole('dialog', { name: 'Add expense', exact: true }).waitFor({ state: 'visible' });
