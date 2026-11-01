@@ -2,7 +2,7 @@
 
 > **Reusable installation guide · ChatGPT + GitHub + Playwright · no local PC, manual Actions launch, or extra OpenAI API key**
 >
-> This document describes the **separate GitHub-only workflow**, not the original local `/ui-refine-loop` engine. Use its companion skill `.github/skills/github-only-ui-refine/SKILL.md`.
+> This document describes the **separate GitHub-only workflow**, not the original local `/ui-refine-loop` engine. **All declared HisabIQ modules** are supported as targets, including ERP `#/app/*`, SaaS Control Center `#/saas/*`, and auth routes. It follows the original **three-round check → fix → recheck** method, with a closing check and a result ledger. A pinned official Impeccable *source detector* runs automatically in Actions; the AI review remains in ChatGPT, not parallel subagents. Use its companion skill `.github/skills/github-only-ui-refine/SKILL.md`.
 
 ## 1. Purpose and separation
 
@@ -32,6 +32,7 @@ There are **two independent paths**. Do **not** overwrite one with the other.
 The **GitHub-only files** are intentionally elsewhere:
 
 - `.github/skills/github-only-ui-refine/SKILL.md` — self-contained GitHub-only agent instructions
+- `.github/skills/github-only-ui-refine/THREE-ROUND-PROTOCOL.md` — C0 baseline, C1/C2/C3 reviews/fixes, C4 closing check, original routing, score and stop rules
 - `.github/workflows/ui-refine-chatgpt.yml` — automatic PR-triggered baseline/PR screenshot job
 - `scripts/ui-refine-chatgpt-shots.cjs` — Playwright screenshot utility and route self-test
 - `GitHub only UI refine skill.md` — this portable installation guide
@@ -60,10 +61,11 @@ Future access depends on the available GitHub connector and artifact permissions
 
 ### Step A — Copy these three files
 
-Copy from the **approved source commit** of `shuvodelux-commits/hisabiq_ui` into the new repository (preserve paths):
+Copy from the **approved source commit** of `shuvodelux-commits/hisabiq_ui` into the new repository (preserve paths). There are **four** files, not just three:
 
 ```text
 .github/skills/github-only-ui-refine/SKILL.md
+.github/skills/github-only-ui-refine/THREE-ROUND-PROTOCOL.md
 .github/workflows/ui-refine-chatgpt.yml
 scripts/ui-refine-chatgpt-shots.cjs
 ```
@@ -78,14 +80,16 @@ Edit `scripts/ui-refine-chatgpt-shots.cjs` deliberately:
 
 | In the HisabIQ reference | Change for another project |
 |---|---|
-| `routeFromBody` reads `src/App.tsx` | Verify your actual router file and route format (React Router, Next.js, etc.) |
-| `#/app/expenses` hash route | Use the new app's verified route, e.g. `#/app/orders` or `/orders`; do not guess |
+| `routeFromBody` reads `src/App.tsx` and accepts declared `#/app/*`, `#/saas/*`, and top-level routes | Verify your actual router file and route format (React Router, Next.js, etc.) |
+| `#/app/expenses` marker is an **example only** | Use any verified route, e.g. `#/app/pos`, `#/app/purchases/new`, `#/saas/overview`; do not guess |
 | `location.hash` route assertion | For history routers validate `location.pathname` instead |
 | `localStorage.setItem('hisabiq-theme', ...)` | Use the new app's real theme mechanism; keep light and dark comparable |
 | `page.locator('main')` | Use the actual page-content container, and ensure it isn't the login page |
 | Port 4310 (baseline), 4311 (PR) | Use ports supported by the new dev command |
 | Responsive widths `320,390,768,1024,1440` | Keep these defaults unless the device matrix is expressly different |
 | 10 screenshots per source | Keep five widths × two themes for traceable comparison |
+
+Use a source-scope marker for **any module** if available: `UI-REFINE-SCOPE: src/pages/Pos.tsx`, or its actual source file. The script validates the scope exists in the checked-out source. Without a scope marker the official detector scans the relevant source family (`src/pages`, `src/saas`, `src/features/auth`), not Expenses. A real screenshot may still show a login screen on protected routes.
 
 If the app uses an authenticated UI, design a **safe, explicit test-only authentication method** and never add credentials to PR text, screenshots, source, or generic shell logs. Prefer isolated demo data. Do not claim server-side posting from a frontend preview.
 
@@ -99,7 +103,8 @@ In `.github/workflows/ui-refine-chatgpt.yml`, confirm:
 4. Use `contents: read` and `persist-credentials: false`. The job must **not** have an AI API secret or repository write permission.
 5. Adapt the package-manager commands, lockfiles, start commands, dependency cache, and browser installation to your project.
 6. Run `node scripts/ui-refine-chatgpt-shots.cjs --self-test` after customizing its route parser. Test the route with Playwright.
-7. Upload screenshots, `manifest.json`, and `compare.html` via `actions/upload-artifact@v4` with a useful retention policy.
+7. Run the **pinned official Impeccable CLI source detector** on the declared `UI-REFINE-SCOPE` or area fallback, with `impeccable detect --json <scope>`, and upload its JSON result alongside the screenshots. Its exit `0` means clean; `2` means findings; `1` means failed scan. **Fail the job for code 1, not for ordinary findings.** A source scan is not the same as a rendered accessibility audit.
+8. Upload screenshots, `manifest.json`, `compare.html`, and the real detector evidence via `actions/upload-artifact@v4` with a useful retention policy.
 
 **Important:** GitHub workflow settings, Actions quota, and hosted runner costs depend on the repository and account. The screenshot flow itself makes no AI model/API calls.
 
@@ -147,6 +152,20 @@ ChatGPT then follows the companion skill:
 
 The assistant cannot keep working in the background while the chat is idle. A GitHub workflow finishing does **not** automatically send a new assistant message or screenshot into the ChatGPT window; a live or follow-up user turn is still required. In a supported session, the assistant can fetch the artifact itself. If artifact bytes cannot be inspected through connected tools, attach the ZIP to the conversation.
 
+## 4A. Preserve the original three-round quality process for **every module**
+
+Read `.github/skills/github-only-ui-refine/THREE-ROUND-PROTOCOL.md` before each run. The **project default is three fix rounds**, never an unstructured single-pass style cleanup.
+
+- **C0**: source/taste research, verified route + scope, baseline Playwright images in light/dark, initial issue ledger.
+- **C1**: visual design assessment (/20), separately executed official Impeccable machine source detector, evidence-backed audit (/20), merged checker (at most 8 ranked P0–P3 issues), scoped fixer using Impeccable command chain with `polish` last, PR CI and refreshed screenshots.
+- **C2**: fresh comparison to original baseline and C1, repeat checker → fixer and CI, retain stable issue IDs.
+- **C3**: third bounded check/fix, test, screenshot and genuine regression review.
+- **C4**: closing check, then finish-grade every claimed fix `fixed/partial/not-fixed`, record up to three regressions, update the draft PR with a source and screenshot ledger.
+
+Use the original skill's **stop rules**: three rounds, two consecutive no-P0/P1 checks, two reverted rounds, or a failed essential runner. Document if stopped early. Do not claim C1/C2/C3 happened just because GitHub generated screenshots. Each fix round must have its **own commit, CI result and screenshot artifact**. When the official source scan detects issues, they become independent mechanical input for ChatGPT's checker; it does not create a fresh second AI agent.
+
+For a PR targeting a different module, change the route and source scope markers accordingly. The screenshot workflow is **not hard-coded to Expenses**. For POS, Products, Purchases, Reports, Audit Ledger, Party, Finance or SaaS, use the actual React route. For modal, cart, Bangla, hover, error, empty/dense states or dialogs, use the module's actual Playwright interaction suites in addition to the default-page captures. A generic screenshot alone is not enough.
+
 ## 5. What GitHub-only mode does not do
 
 - Does **not** use ChatGPT Plus as an API key or charge the separate OpenAI API.
@@ -181,4 +200,4 @@ HisabIQ source repository: `shuvodelux-commits/hisabiq_ui`.
 - Existing PR tests: `.github/workflows/pr-ci.yml`
 - Original separate GitHub API-billed experimental adapter: `.github/workflows/ui-refine-cloud.yml` (**unused in this method**)
 
-For another project, carry the GitHub-only three-file bundle and **adapt routing, theme, fixtures, build commands and tests**. Do not copy HisabIQ design/business rules to an unrelated application.
+For another project, carry the **four-file** GitHub-only bundle (skill, three-round protocol, screenshot script, automatic Action) and **adapt routing, theme, fixtures, build commands, pinned detector and tests**. Do not copy HisabIQ design/business rules to an unrelated application.
