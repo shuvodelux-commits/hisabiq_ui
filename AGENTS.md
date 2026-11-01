@@ -46,3 +46,7 @@ Read [ERP Context-Complete Workflow Contract](docs/superpowers/specs/2026-10-09-
 ## UI refinement with /ui-refine-loop (GitHub-only)
 
 For targeted visual polish, use the standalone skill at `.claude/skills/ui-refine-loop/SKILL.md`, with the approved design direction in `docs/design/taste.md` and the instructions in `docs/ui/ui-refine-loop.md`. The skill must inspect existing React components and preserve the original HisabIQ_UI layouts, compact workflows, bilingual helpers, tokens, and accessibility. No design reinvention, backend/accounting edits, or fake posting effects. Its agent may use a temporary worktree for screenshots and tests, but **GitHub is the only code source of truth**: push only a feature branch, create a draft PR with before/after evidence, wait for explicit owner approval, and never auto-merge or deploy. Missing runtime tools, Impeccable or test evidence must be disclosed rather than silently assumed.
+
+## Impeccable integration (pinned GitHub dependency)
+
+The `ui-refine-loop` may use `vendor/impeccable` through `.agents/skills/impeccable` or `.claude/skills/impeccable` after `git submodule update --init --recursive`. Always follow this file, the current HisabIQ design guide, `docs/design/taste.md`, and existing React components over generic visual suggestions. Do not change accounting or source data during UI polishing. Produce only a reviewed draft PR; never merge or deploy automatically. Read `docs/ui/ui-refine-loop.md` for the verification commands and the agent-runner limitation.

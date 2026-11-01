@@ -26,10 +26,27 @@ HisabIQ_UI uses hash navigation. Validate the actual route and rendering before 
 
 - Source: `.claude/skills/ui-refine-loop/SKILL.md`, its `references/` and `scripts/`, and `.claude/workflows/ui-refine-loop.js`. The project config is `.claude/ui-refine.config.json`; `docs/design/taste.md` sets explicit HisabIQ design taste.
 - A suitable agent runner needs Git, GitHub auth, Node 24, npm, Playwright Chromium, screenshots and fresh reviewer/fixer agents. The source Workflow file expects an agent Workflow runtime, **not ordinary Node or GitHub Actions alone**.
-- The official tool recommends Impeccable. If it is installed in the runner's `.claude/skills/impeccable` or `.agents/skills/impeccable`, the official setup detects it; if absent, it must prominently warn and fall back to the built-in rubric. Do not label its output an Impeccable audit. The `humanizer` integration is optional; otherwise use short, plain, respectful words.
+- **Impeccable is pinned** as the official upstream Git submodule at `vendor/impeccable`; `.agents/skills/impeccable` (Codex) and `.claude/skills/impeccable` (Claude) are Git symlinks to its provider-specific builds. Before using a new checkout, run `git submodule update --init --recursive`; the CI installation check uses recursive checkout. If the submodule is absent, the detector reports a warning/fallback; do not call that an Impeccable assessment.
+- The pinned Impeccable launcher downloads its release engine on first use into the user's cache after comparing the published SHA-256 against the committed manifest. A runner without network or a writable cache must provision a matching engine explicitly and report the limitation. The `humanizer` integration remains optional; otherwise use short, plain, respectful words.
 - `bash .claude/skills/ui-refine-loop/scripts/refine-setup.sh detect` inspects the project-specific config and prints resolved commands/warnings without running a refinement. `bash .../refine-setup.sh up --slug <slug>` creates an isolated local worktree for an actual authorized run.
 - Generated worktrees, temporary auth state, console logs and intermediate screenshots are ignored. Only reviewed before/after evidence is intentionally included under `docs/ui-refine/<slug>/` on the draft PR branch.
 - The installation CI check verifies structure, script syntax and configuration detection. **It does not claim to run the interactive refinement loop or prove visual improvement.**
+
+## Impeccable setup and verification
+
+This integration follows the [official version-pinned submodule installation](https://impeccable.style/tutorials/getting-started/) from `pbakaus/impeccable` at `e89e3ada3e875a89ac2c5d33d11e65ebef6fe285` (skill 4.8.0, Apache-2.0). To use it after cloning or switching to the GitHub branch:
+
+```bash
+git submodule update --init --recursive
+bash .claude/skills/ui-refine-loop/scripts/refine-setup.sh detect
+sh .agents/skills/impeccable/scripts/impeccable engine-probe
+```
+
+The detect result must show `"critic": "impeccable"` and a non-null `impeccable` object, **not** the rubric fallback. The engine probe validates the separately pinned runtime. GitHub Actions runs both checks on the PR.
+
+Use `/ui-refine-loop #/app/<route> "<specific polish request>" --rounds 3` in a compatible agent runner; it reads `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `docs/design/taste.md`, and the approved React components. Treat `Impeccable` as a review/refinement aid under HisabIQ's binding component/design contracts, not permission to redesign pages.
+
+This pins the source and validates runtime capability, **not** the multi-agent Workflow runtime, automatic humanized writing, automatic deployment, or quality of any actual page. GitHub-only means all deliverable code changes travel through branches and draft PRs; a temporary runner checkout is allowed for tests.
 
 ## Draft PR format
 
