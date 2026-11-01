@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { AppSelect } from '../AppSelect';
 import { AppDateRangePicker } from '../AppDateRangePicker';
@@ -66,7 +66,6 @@ export function AuditFilters({
         <AppSelect label={text("Source","লেনদেনের উৎস")} className="min-w-[128px] flex-1 sm:w-44 sm:flex-none" value={value.source} onChange={(next) => patch({ source: next })} options={[{value:'All sources',label:text('All sources','সব উৎস')},...sources.map(s=>({value:s,label:text(s,sourceBn[s]??s)}))]} />
         <AppSelect label={text("Status","অবস্থা")} className="min-w-[116px] flex-1 sm:w-36 sm:flex-none" value={value.status} onChange={(next) => patch({ status: next })} options={['All status', 'Posted', 'Deleted'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Posted'?'লেখা হয়েছে':'মুছে ফেলা')}))} />
         <Button type="button" variant="outline" size="sm" aria-expanded={showMore} aria-controls="audit-more-filters" onClick={() => setShowMore((current) => !current)} className="gap-1.5">
-          <SlidersHorizontal className="size-3.5" aria-hidden="true" />
           {text(showMore?'Fewer filters':'More filters',showMore?'কম ফিল্টার':'আরও ফিল্টার')}
           {!!additionalCount && <span className="rounded-md bg-accent px-1.5 text-[11px] text-accent-foreground">{additionalCount}</span>}
         </Button>
