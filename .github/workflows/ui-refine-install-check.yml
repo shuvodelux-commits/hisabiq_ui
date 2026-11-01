@@ -1,0 +1,60 @@
+name: UI refine skill installation
+
+on:
+  pull_request:
+    paths:
+      - '.claude/**'
+      - 'docs/design/taste.md'
+      - 'docs/ui/ui-refine-loop.md'
+      - 'AGENTS.md'
+      - '.github/workflows/ui-refine-install-check.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-install:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate skill structure and syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s .claude/skills/ui-refine-loop/SKILL.md
+          test -s .claude/skills/ui-refine-loop/README.md
+          test -s .claude/skills/ui-refine-loop/LICENSE
+          for file in checker-brief config finish-reviewer-brief fixer-brief grill ledger routing rubric taste; do
+            test -s ".claude/skills/ui-refine-loop/references/$file.md"
+          done
+          bash -n .claude/skills/ui-refine-loop/scripts/refine-setup.sh
+          bash -n .claude/skills/ui-refine-loop/scripts/pr-shots.sh
+          node --check .claude/skills/ui-refine-loop/scripts/shoot.mjs
+          # This is Workflow-runner JavaScript, not a standalone Node module:
+          # it contains host-specific phase()/agent() functions and a top-level return.
+          grep -Fq 'export const meta' .claude/workflows/ui-refine-loop.js
+          grep -Fq "phase('Check')" .claude/workflows/ui-refine-loop.js
+          grep -Fq 'agent(' .claude/workflows/ui-refine-loop.js
+          grep -Fq 'return {' .claude/workflows/ui-refine-loop.js
+          test -s docs/ui/ui-refine-loop.md
+          test -s docs/design/taste.md
+      - name: Verify HisabIQ guardrails and resolved configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash .claude/skills/ui-refine-loop/scripts/refine-setup.sh detect > "$RUNNER_TEMP/ui-refine-detect.json"
+          node - "$RUNNER_TEMP/ui-refine-detect.json" <<'NODE'
+          const fs = require('node:fs');
+          const a = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const expected = ['npx tsc --noEmit', 'npm run lint', 'npm run check:ui-contract', 'CI=1 npm test', 'npm run build'];
+          if (a.config !== '.claude/ui-refine.config.json') throw Error('HisabIQ project refine config was not loaded');
+          for (const cmd of expected) if (!a.checks.includes(cmd)) throw Error('Missing required check: ' + cmd);
+          if (a.rounds !== 3 || a.tasteFile !== 'docs/design/taste.md') throw Error('Wrong direction or round limit');
+          if (!a.devCommand.includes('--port $PORT')) throw Error('Vite dev port not configured');
+          if (a.authScript) throw Error('Do not invent or bundle login credentials');
+          if (!['impeccable', 'rubric'].includes(a.critic)) throw Error('Unrecognized critic mode');
+          console.log('UI refine files, check commands, non-auth fixture and project taste: OK');
+          NODE
