@@ -1,4 +1,5 @@
 import React from 'react';
+import { useModuleSettingsAction } from '../settings/ModuleSettingsToolbarContext';
 import { useUiCopy } from '../i18n/useUiCopy';
 
 type PageHeaderProps = {
@@ -15,6 +16,7 @@ type PageHeaderProps = {
 
 export function PageHeader({ title, titleBn, description, descriptionContent, descriptionBn, actions, compact = false }: PageHeaderProps) {
   const { language, text, showHelper } = useUiCopy();
+  const moduleSettingsAction = useModuleSettingsAction();
   return (
     <div className={compact ? "flex min-w-0 flex-nowrap items-start justify-between gap-2" : "flex flex-wrap items-end justify-between gap-3"}>
       <div className="min-w-0">
@@ -24,7 +26,7 @@ export function PageHeader({ title, titleBn, description, descriptionContent, de
         </div>
         {(descriptionContent ?? description) && <p className={compact ? "mt-0.5 text-xs text-ink-500 xl:text-sm" : "mt-0.5 text-sm text-ink-500"}>{descriptionContent ?? (descriptionBn && language === "Bangla" ? descriptionBn : description)}</p>}
       </div>
-      {actions && <div className={compact ? "flex shrink-0 flex-nowrap items-center justify-end gap-1.5 xl:gap-2" : "flex flex-wrap items-center gap-2"}>{actions}</div>}
+      {(actions || moduleSettingsAction) && <div className={compact ? "flex shrink-0 flex-nowrap items-center justify-end gap-1.5 xl:gap-2" : "flex flex-wrap items-center gap-2"}>{moduleSettingsAction}{actions}</div>}
     </div>);
 
 }

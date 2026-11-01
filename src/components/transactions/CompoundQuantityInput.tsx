@@ -2,6 +2,7 @@ import {NumericInput} from '../NumericInput';
 import React,{useEffect,useRef,useState} from 'react';
 import type {Product} from '../../types/erp';
 import {productUnitFactor} from '../../utils/unitChain';
+import {unitSymbol} from '../../data/productUnits';
 
 /** A single POS V2 quantity control reused by Sales, Purchases, Quotations and Online Orders.
  * Large-unit entry is ONE bordered control with two equal flexible inputs and fixed-width unit labels.
@@ -58,19 +59,19 @@ export function CompoundQuantityInput({product,unit,primary,secondary='',onPrima
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter??(()=>secondaryInput.current?.focus()))}
    className="h-full w-0 min-w-0 flex-1 bg-transparent px-1.5 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
-  <span data-table-helper="" className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{unit}</span>
+  <span data-table-helper="" title={unit} className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{unitSymbol(unit)}</span>
   <NumericInput stepperCompact ref={node=>refTo(node,'secondary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={secondaryLabel??product.unit+' quantity'} disabled={disabled} placeholder="0" value={secondaryText}
    onChange={event=>updateSecondary(event.target.value)}
    onBlur={onSecondaryBlur} onKeyDown={event=>onEnter(event,onSecondaryEnter)}
    className="h-full w-0 min-w-0 flex-1 border-l border-border bg-transparent px-1.5 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
-  <span data-table-helper="" className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{product.unit}</span>
+  <span data-table-helper="" title={product.unit} className="flex shrink-0 items-center border-l border-border px-1 text-[10px] text-ink-500">{unitSymbol(product.unit)}</span>
  </div>;
  return <div data-numeric-joined data-testid="single-quantity" className="flex h-9 w-full min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
   <NumericInput ref={node=>refTo(node,'primary')} type="text" inputMode="decimal" autoComplete="off"
    aria-label={primaryLabel} disabled={disabled} value={primaryText}
    onChange={event=>updatePrimary(event.target.value)} onKeyDown={event=>onEnter(event,onPrimaryEnter)}
    className="h-full w-0 min-w-0 flex-1 bg-transparent px-2 text-right text-sm font-medium text-ink outline-none disabled:opacity-60"/>
-  <span data-table-helper="" className="flex shrink-0 items-center px-2 text-[10.5px] text-ink-500">{unit}</span>
+  <span data-table-helper="" title={unit} className="flex shrink-0 items-center px-2 text-[10.5px] text-ink-500">{unitSymbol(unit)}</span>
  </div>;
 }

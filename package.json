@@ -19,6 +19,7 @@
     "test:sidebar-target-size": "node scripts/deep-sidebar-target-size-browser.cjs",
     "test:saas": "node scripts/saas-browser.cjs",
     "test:settings": "node scripts/settings-browser.cjs",
+    "test:module-settings-toolbar": "node scripts/module-settings-toolbar-browser.cjs",
     "test:settings-redesign": "node scripts/settings-redesign-browser.cjs",
     "test:settings-library": "node scripts/settings-library-browser.cjs",
     "test:settings-responsive": "node scripts/settings-responsive-browser.cjs",
@@ -122,7 +123,10 @@
     "check:design-guide": "node scripts/sync-design-guide.cjs --check",
     "test:design-guide": "node scripts/design-guide-browser.cjs",
     "export:component-library": "node scripts/export-component-library.cjs",
-    "test:reports-analysis": "node scripts/reports-analysis-browser.cjs"
+    "test:reports-analysis": "node scripts/reports-analysis-browser.cjs",
+    "test:add-product-help": "node scripts/add-product-compact-help-browser.cjs",
+    "test:add-product-inline-edit": "node scripts/add-product-inline-master-edit-browser.cjs",
+    "test:control-radius": "node scripts/control-radius-browser.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

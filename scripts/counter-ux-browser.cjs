@@ -13,6 +13,27 @@ async function main(){
    page.on('pageerror',err=>errors.push(err.message));
    await page.goto('http://127.0.0.1:4378/#/app/counter');
    await page.getByRole('heading',{name:'Transaction summary'}).waitFor();
+   // The quick Bank Entry action reuses Accounts' existing form, not a second Counter ledger.
+   const actions=page.getByRole('group',{name:'Counter actions'});
+   const bankAction=actions.getByRole('button',{name:/Bank Entry/});
+   await bankAction.click();
+   assert.equal(await bankAction.getAttribute('aria-pressed'),'true','Bank Entry is the selected Counter action');
+   const bankRegion=page.getByRole('region',{name:'Bank Entry',exact:true});
+   await bankRegion.getByRole('heading',{name:'Transaction summary'}).waitFor();
+   await bankRegion.locator('input[placeholder="0.00"]').fill('175');
+   assert.match(await bankRegion.innerText(),/৳175/,'Counter bank summary updates with the amount');
+   assert.equal(await bankRegion.locator('[data-testid="amount-in-words"]').count(),1,'Bank Entry amount in words is visible in Counter');
+   await bankRegion.getByRole('button',{name:'Review bank entry'}).click();
+   const bankReview=page.getByRole('dialog',{name:'Confirm bank entry'});
+   await bankReview.waitFor();
+   assert.equal(await bankReview.getByRole('button',{name:'Confirm & record'}).isDisabled(),true,'preview cannot post real bank transactions');
+   await bankReview.getByRole('button',{name:'Edit details'}).click();
+   assert.equal(await bankReview.count(),0,'edit closes bank review dialog');
+   assert.equal(await page.getByRole('heading',{name:'Transaction summary'}).count(),1,'Counter bank summary is visible instead of the old payment summary');
+   await actions.getByRole('button',{name:/Customer Receive/}).click();
+   await page.getByRole('heading',{name:'Transaction summary'}).waitFor();
+   assert.equal(await bankRegion.count(),0,'Bank Entry unmounts when returning to regular Counter');
+   assert.equal(await actions.getByRole('button',{name:/Customer Receive/}).getAttribute('aria-pressed'),'true');
    const query=page.locator('input[aria-label="Search customer"]');
    await query.fill('Rahman');
    const rahman=page.getByRole('option',{name:/Rahman Hardware/});
@@ -70,11 +91,12 @@ async function main(){
    assert.equal((await read()).invoiceDue,after.invoiceDue-25);
    // An ERP-wide native-input search also clears without losing focus.
    await page.goto('http://127.0.0.1:4378/#/app/parties');
-   const partyQuery=page.locator('input[aria-label="Search parties"]');
+   if(width<1024)await page.getByRole('button',{name:'Change party',exact:true}).click();
+   const partyQuery=page.locator('input[aria-label="Search parties"]:visible');
    await partyQuery.fill('Rahman');
    await page.getByRole('button',{name:'Clear Search parties'}).click();
    assert.equal(await partyQuery.inputValue(),'','shared clear button updates React search state');
-   assert.equal(await page.locator('input[aria-label="Search parties"]').count(),1,'search input stays mounted');
+   assert.equal(await page.locator('input[aria-label="Search parties"]:visible').count(),1,'search input stays mounted');
    await page.goto('http://127.0.0.1:4378/#/app/products');
    const inventoryQuery=page.getByRole('textbox',{name:'Search products'});
    await inventoryQuery.fill('LED');

@@ -2,6 +2,7 @@ import { Button } from '../../Button';
 import { CheckIcon } from 'lucide-react';
 import { FormField } from '../fields/FormField';
 import { LabelText } from '../fields/LabelText';
+import { Tooltip } from '../../Tooltip';
 import { SegmentedControl } from '../fields/SegmentedControl';
 import { useFormCopy } from '../../../hooks/useFormCopy';
 import { serialModeOptions } from '../../../data/productFormOptions';
@@ -30,10 +31,15 @@ export function SerialSettings({ form }: { form: AddProductForm }) {
 
   return (
     <div>
-      <p id="pf-serial-label" className="text-[length:var(--label-fs)] font-medium leading-tight text-ink">
-        <LabelText en="Serial numbers" bn="সিরিয়াল নম্বর" />
-      </p>
-      <p className="mt-1 text-[13px] text-ink-500">{t('Choose this separately from warranty.', 'ওয়ারেন্টি থেকে আলাদা ভাবে বাছুন।')}</p>
+      <div className="flex items-center gap-2">
+        <p id="pf-serial-label" className="text-[length:var(--label-fs)] font-medium leading-tight text-ink">
+          <LabelText en="Serial numbers" bn="সিরিয়াল নম্বর" />
+        </p>
+        <Tooltip interactive compact
+          content={t(mode.hintEn, mode.hintBn)}
+          label={t('Help for Serial numbers', 'সিরিয়াল নম্বর সম্পর্কে সাহায্য')}
+        />
+      </div>
       <div className="mt-3 max-w-[420px]">
         <SegmentedControl<SerialTrackingMode>
           labelledBy="pf-serial-label"
@@ -42,7 +48,7 @@ export function SerialSettings({ form }: { form: AddProductForm }) {
           onChange={(next) => set('serialTracking', next)}
         />
       </div>
-      <p className="mt-2 text-[13px] text-ink-600">{t(mode.hintEn, mode.hintBn)}</p>
+
 
       {!isEdit && draft.serialTracking !== 'Off' && (x.openingBase > 0 ? (
         <FormField
@@ -51,7 +57,7 @@ export function SerialSettings({ form }: { form: AddProductForm }) {
           bn="শুরুর স্টকের সিরিয়াল"
           className="mt-4"
           error={error}
-          hint={t('Type, scan or paste. One per line, or separate with commas.', 'লিখুন, স্ক্যান বা পেস্ট করুন। প্রতি লাইনে একটি, বা কমা দিয়ে আলাদা করুন।')}
+          help={t('Type, scan or paste. One per line, or separate with commas.', 'লিখুন, স্ক্যান বা পেস্ট করুন। প্রতি লাইনে একটি, বা কমা দিয়ে আলাদা করুন।')}
         >
           <textarea
             id="pf-openingSerials"
@@ -89,8 +95,7 @@ export function SerialSettings({ form }: { form: AddProductForm }) {
         </FormField>
       ) : (
         <p className="mt-4 rounded-lg bg-ink-100 px-3 py-2.5 text-[13px] text-ink-700">
-          {t('Add opening stock above to enter serials now. Otherwise, add them when you buy stock.',
-            'এখনই সিরিয়াল দিতে উপরে শুরুর স্টক দিন। নইলে মাল কেনার সময় দেবেন।')}
+          {t('Add opening stock to enter serials now.', 'এখন সিরিয়াল দিতে শুরুর স্টক যোগ করুন।')}
         </p>
       ))}
     </div>

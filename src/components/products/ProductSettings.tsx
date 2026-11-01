@@ -6,15 +6,19 @@ import { MoreHorizontal, Plus, Ruler, Settings2, Tags } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   availableProductCategories, availableProductBrands, availableProductUnits,
-  createPreviewProductCategory, createPreviewProductBrand, createPreviewProductUnit
+  createPreviewProductCategory, createPreviewProductBrand, createPreviewProductUnit,
+  editPreviewProductSetting, getEditedProductSetting, type ProductSettingKind
 } from '../../data/erpDemoStore';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../Dialog';
 import { Button } from '../Button';
 import { Input } from '../Input';
+import { Tooltip } from '../Tooltip';
 import { StatusBadge } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {productFormLabel} from '../../i18n/productFormsCopy';
+import {unitSymbol, unitBanglaName, validUnitSymbol} from '../../data/productUnits';
 
 type SettingsTab = 'categories' | 'units' | 'brands' | 'defaults';
 
@@ -61,11 +65,13 @@ function SettingActions({
   label,
   active,
   onToggle,
+  onEdit,
   onDelete
 }: {
   label: string;
   active: boolean;
   onToggle: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   const {language}=useUiCopy();
@@ -85,6 +91,10 @@ function SettingActions({
       )}>
       {(close) => (
         <div className="py-1">
+          <button onClick={() => { close(); onEdit(); }}
+            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+            {pl('Edit')}
+          </button>
           <button
             onClick={() => { close(); onToggle(); }}
             className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
@@ -108,31 +118,54 @@ export function ProductSettings() {
   const { state } = useTenantSettings();
   const [tab, setTab] = useState<SettingsTab>(() => ['categories','units','brands'].includes(searchParams.get('tab') || '') ? searchParams.get('tab') as SettingsTab : 'categories');
   const [categories, setCategories] = useState<NamedSetting[]>(() => [
-    ...initialCategories,
+    ...initialCategories.map(item=>({...item,...getEditedProductSetting('categories',item.name)})),
     ...availableProductCategories().filter((name) =>
-      name !== 'All' && !initialCategories.some((item) => item.name.toLowerCase() === name.toLowerCase()))
-      .map((name, index) => ({ id: 'cat-preview-' + index, name, usage: 0, active: true }))
+      name !== 'All' && !initialCategories.some((item) => (getEditedProductSetting('categories',item.name)?.name??item.name).toLowerCase() === name.toLowerCase()))
+      .map((name, index) => ({ id: 'cat-preview-' + index, name, usage: 0, active: true,...getEditedProductSetting('categories',name) }))
   ]);
   const [units, setUnits] = useState<UnitSetting[]>(() => [
-    ...initialUnits,
+    ...initialUnits.map(unit=>({...unit,symbol:unitSymbol(unit.name),nameBn:unitBanglaName(unit.name),...getEditedProductSetting('units',unit.name)})),
     ...availableProductUnits().filter((unit) => !initialUnits.some((item) =>
-      item.symbol.toLowerCase() === unit.symbol.toLowerCase()))
-      .map((unit, index) => ({ id: 'unit-preview-' + index, name: unit.name, symbol: unit.symbol, kind: 'Compound-ready' as const, usage: 0, active: true }))
+      (getEditedProductSetting('units',item.name)?.name??item.name).toLowerCase() === unit.name.toLowerCase()))
+      .map((unit, index) => ({ id: 'unit-preview-' + index, name: unit.name, nameBn:unit.nameBn, symbol: unit.symbol, kind: 'Compound-ready' as const, usage: 0, active: true }))
   ]);
   const [brands, setBrands] = useState<NamedSetting[]>(() => [
-    ...initialBrands,
+    ...initialBrands.map(item=>({...item,...getEditedProductSetting('brands',item.name)})),
     ...availableProductBrands().filter((name) => !initialBrands.some((item) =>
-      item.name.toLowerCase() === name.toLowerCase()))
-      .map((name, index) => ({ id: 'brand-preview-' + index, name, usage: 0, active: true }))
+      (getEditedProductSetting('brands',item.name)?.name??item.name).toLowerCase() === name.toLowerCase()))
+      .map((name, index) => ({ id: 'brand-preview-' + index, name, usage: 0, active: true,...getEditedProductSetting('brands',name) }))
   ]);
+  const [editing,setEditing]=useState<{kind:ProductSettingKind;item:NamedSetting}|null>(null);
+  const [editName,setEditName]=useState(''),[editBn,setEditBn]=useState(''),[editSymbol,setEditSymbol]=useState(''),[editError,setEditError]=useState('');
+  const openEdit=(kind:ProductSettingKind,item:NamedSetting)=>{
+    setEditing({kind,item});setEditName(item.name);setEditBn(item.nameBn??'');
+    setEditSymbol('symbol' in item?String(item.symbol):'');setEditError('');
+  };
+  const saveEdit=(event:React.FormEvent)=>{
+    event.preventDefault();if(!editing)return;
+    try{
+      const changes={name:editName,nameBn:editBn,...(editing.kind==='units'?{symbol:editSymbol}:{})};
+      const items=editing.kind==='categories'?categories:editing.kind==='brands'?brands:units;
+      if(items.some(item=>item.id!==editing.item.id&&item.name.toLowerCase()===editName.trim().toLowerCase()))throw new Error('This name already exists.');
+      editPreviewProductSetting(editing.kind,editing.item.name,changes);
+      const saved=getEditedProductSetting(editing.kind,editing.item.name);
+      if(!saved)throw new Error('Could not save changes.');
+      if(editing.kind==='categories')setCategories(items=>items.map(item=>item.id===editing.item.id?{...item,...saved}:item));
+      else if(editing.kind==='brands')setBrands(items=>items.map(item=>item.id===editing.item.id?{...item,...saved}:item));
+      else setUnits(items=>items.map(item=>item.id===editing.item.id?{...item,...saved,symbol:saved.symbol??item.symbol}:item));
+      setEditing(null);
+    }catch(error){setEditError(pl(error instanceof Error?error.message:'Could not save changes.'));}
+  };
   const [newName, setNewName] = useState('');
   const [newBn, setNewBn] = useState('');
   const [newSymbol, setNewSymbol] = useState('');
+  const [unitError, setUnitError] = useState('');
 
   const clearNew = () => {
     setNewName('');
     setNewBn('');
     setNewSymbol('');
+    setUnitError('');
   };
 
   const addNamed = () => {
@@ -156,11 +189,21 @@ export function ProductSettings() {
         active: true
       }]);
     } else if (tab === 'units') {
-      createPreviewProductUnit(newName.trim(), newSymbol.trim() || newName.trim());
+      if (!validUnitSymbol(newSymbol)) {
+        setUnitError(pl('Enter a unit symbol of 1–4 characters, without spaces.'));
+        document.getElementById('new-unit-symbol')?.focus();
+        return;
+      }
+      try { createPreviewProductUnit(newName.trim(), newSymbol.trim(), newBn.trim()); }
+      catch (cause) {
+        setUnitError(pl(cause instanceof Error ? cause.message : 'Could not create this item.'));
+        return;
+      }
       setUnits((items) => [...items, {
         id: `u-${Date.now()}`,
         name: newName.trim(),
-        symbol: newSymbol.trim() || newName.trim(),
+        nameBn: newBn.trim() || undefined,
+        symbol: newSymbol.trim(),
         kind: 'Compound-ready',
         usage: 0,
         active: true
@@ -193,28 +236,33 @@ export function ProductSettings() {
       </MotionTabList>
 
       {tab !== 'defaults' && (
-        <div className="flex flex-col gap-2 border-b border-border bg-ink-50/40 p-3 lg:flex-row lg:items-end">
-          <label className="min-w-0 flex-1 text-[12px] font-medium text-ink lg:max-w-xs">
-            {pl(tab === 'categories' ? 'Category name' : tab === 'brands' ? 'Brand name' : 'Unit name')}
+        <div className="flex flex-col gap-2 border-b border-border bg-ink-50/40 p-3 sm:flex-row sm:items-end">
+          <label className="min-w-0 flex-1 text-[12px] font-medium text-ink sm:max-w-xs">
+            <span className="flex h-6 items-center">{pl(tab === 'categories' ? 'Category name' : tab === 'brands' ? 'Brand name' : 'Unit name')}</span>
             <Input className="mt-1" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder={pl(tab === 'units' ? 'e.g. Meter' : 'Enter name')} />
           </label>
-          {tab !== 'units' && (
-            <label className="min-w-0 flex-1 text-[12px] font-medium text-ink lg:max-w-xs">
-              {pl('Bangla name')}
-              <Input className="font-bn mt-1" value={newBn} onChange={(event) => setNewBn(event.target.value)} placeholder="বাংলা নাম (ঐচ্ছিক)" />
+          <label className="min-w-0 flex-1 text-[12px] font-medium text-ink sm:max-w-xs">
+              <span className="flex h-6 items-center">{pl('Bangla name')}</span>
+              <Input className="font-bn mt-1" lang="bn" aria-label={pl('Bangla name')} value={newBn} onChange={(event) => setNewBn(event.target.value)} placeholder="যেমন পিস" />
             </label>
-          )}
           {tab === 'units' && (
-            <label className="w-full text-[12px] font-medium text-ink lg:w-36">
-              {pl('Symbol')}
-              <Input className="mt-1" value={newSymbol} onChange={(event) => setNewSymbol(event.target.value)} placeholder={pl("e.g. m")} />
-            </label>
+            <div className="w-full shrink-0 text-[12px] font-medium text-ink sm:w-36">
+              <div className="flex h-6 items-center gap-1">
+                <label htmlFor="new-unit-symbol">{pl('Symbol')} *</label>
+                <Tooltip interactive compact side="top" label={pl('Help for Symbol')} content={pl('Required: 1–4 characters, without spaces.')} />
+              </div>
+              <Input id="new-unit-symbol" required aria-required="true" className="mt-1" value={newSymbol}
+                aria-invalid={Boolean(unitError)} aria-describedby={unitError?'new-unit-symbol-error':undefined}
+                onChange={(event) => {setNewSymbol(event.target.value);setUnitError('');}} placeholder="pcs / Gg" />
+            </div>
           )}
           <Button size="sm" onClick={addNamed} disabled={!newName.trim()}>
             <Plus className="size-4" /> {pl("Add")}
           </Button>
         </div>
       )}
+
+      {tab==='units'&&unitError&&<p id="new-unit-symbol-error" role="alert" className="px-3 pb-2 text-[11px] text-danger">{unitError}</p>}
 
       {tab === 'categories' && (
         <Table>
@@ -238,6 +286,7 @@ export function ProductSettings() {
                   <SettingActions
                     label={item.name}
                     active={item.active}
+                    onEdit={() => openEdit('categories',item)}
                     onToggle={() => setCategories((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
                     onDelete={() => item.usage > 0 ? toast.error(pl('Category is used by products')) : setCategories((items) => items.filter((value) => value.id !== item.id))}
                   />
@@ -253,6 +302,7 @@ export function ProductSettings() {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="h-9 pl-4 text-xs">{pl('Unit')}</TableHead>
+              <TableHead className="h-9 text-xs">{pl('Bangla')}</TableHead>
               <TableHead className="h-9 text-xs">{pl('Symbol')}</TableHead>
               <TableHead className="h-9 text-xs">{pl('Use')}</TableHead>
               <TableHead className="h-9 text-right text-xs">{pl('Products')}</TableHead>
@@ -264,6 +314,7 @@ export function ProductSettings() {
             {units.map((item) => (
               <TableRow key={item.id} className="text-[13px]">
                 <TableCell className="py-2 pl-4 font-medium text-ink">{item.name}</TableCell>
+                <TableCell className="font-bn py-2 text-ink-600">{item.nameBn || '—'}</TableCell>
                 <TableCell className="py-2 text-ink-600">{item.symbol}</TableCell>
                 <TableCell className="py-2"><StatusBadge tone={item.kind === 'Compound-ready' ? 'teal' : 'neutral'}>{pl(item.kind)}</StatusBadge></TableCell>
                 <TableCell className="py-2 text-right">{item.usage}</TableCell>
@@ -272,6 +323,7 @@ export function ProductSettings() {
                   <SettingActions
                     label={item.name}
                     active={item.active}
+                    onEdit={() => openEdit('units',item)}
                     onToggle={() => setUnits((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
                     onDelete={() => item.usage > 0 ? toast.error(pl('Unit is used by products')) : setUnits((items) => items.filter((value) => value.id !== item.id))}
                   />
@@ -304,6 +356,7 @@ export function ProductSettings() {
                   <SettingActions
                     label={item.name}
                     active={item.active}
+                    onEdit={() => openEdit('brands',item)}
                     onToggle={() => setBrands((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
                     onDelete={() => item.usage > 0 ? toast.error(pl('Brand is used by products')) : setBrands((items) => items.filter((value) => value.id !== item.id))}
                   />
@@ -313,6 +366,37 @@ export function ProductSettings() {
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={Boolean(editing)} onOpenChange={open=>{if(!open)setEditing(null);}}>
+        <DialogContent className="max-w-md">
+          <form onSubmit={saveEdit} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>{pl(editing?.kind==='units'?'Edit unit':editing?.kind==='brands'?'Edit brand':'Edit category')}</DialogTitle>
+              <DialogDescription>{editing?.item.name}</DialogDescription>
+            </DialogHeader>
+            <label className="block text-[13px] font-medium text-ink">
+              {pl(editing?.kind==='units'?'Unit name':editing?.kind==='brands'?'Brand name':'Category name')}
+              <Input autoFocus required className="mt-1.5" value={editName} onChange={event=>{setEditName(event.target.value);setEditError('');}} />
+            </label>
+            <label className="block text-[13px] font-medium text-ink">
+              {pl('Bangla name')}
+              <Input className="font-bn mt-1.5" lang="bn" aria-label={pl('Bangla name')} value={editBn} onChange={event=>{setEditBn(event.target.value);setEditError('');}} />
+            </label>
+            {editing?.kind==='units'&&<div className="text-[13px] font-medium text-ink">
+              <div className="flex h-6 items-center gap-1">
+                <label htmlFor="edit-unit-symbol">{pl('Symbol')} *</label>
+                <Tooltip interactive compact side="top" label={pl('Help for Symbol')} content={pl('Required: 1–4 characters, without spaces.')} />
+              </div>
+              <Input id="edit-unit-symbol" required className="mt-1.5" value={editSymbol} onChange={event=>{setEditSymbol(event.target.value);setEditError('');}} />
+            </div>}
+            {editError&&<p role="alert" className="text-sm text-danger">{editError}</p>}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={()=>setEditing(null)}>{pl('Cancel')}</Button>
+              <Button type="submit" disabled={!editName.trim()}>{pl('Save changes')}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {tab === 'defaults' && <div className="space-y-3 p-4"><h3 className="text-sm font-semibold text-ink">{pl("Business product defaults")}</h3><p className="text-sm text-ink-600"> {pl("Base unit:")} {state.sections.products.defaultUnit} · {pl("Serial tracking:")} {state.sections.products.serial} · {pl("Lot allocation:")} {state.sections.products.allocation}</p><p className="text-xs text-ink-500">{pl("Product defaults are shared with Business settings. Existing products keep their own units and conversions.")}</p><Link className="inline-flex rounded-md border border-input bg-card px-3 py-2 text-sm text-ink" to="/app/settings/products">{pl("Configure product defaults →")}</Link></div>}
     </div>

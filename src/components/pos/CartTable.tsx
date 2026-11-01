@@ -1,3 +1,4 @@
+import {unitSymbol} from '../../data/productUnits';
 import {NumericInput} from '../NumericInput';
 import {AppSelect} from '../AppSelect';
 import {productUnitFactor} from '../../utils/unitChain';
@@ -29,6 +30,7 @@ import { getBundleProjection } from '../../bundles/bundleProjection';
 import { priceBundleComponents } from '../../bundles/bundlePricing';
 import { expandCartStockDemand } from '../../bundles/bundleCart';
 import {planComponentFulfillment,maxAffordableBundleSets,componentSourceKey} from '../../bundles/bundleFulfillment';
+import {resolveLotSalePrice} from '../../utils/lotSellingPrice';
 
 type CartTableProps = {
   lines: CartLine[];
@@ -162,6 +164,9 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
             const factor = productUnitFactor(l.product,l.unit)||1;
             const baseQty = saleLineBaseQty(l);
             const lineTotal = saleLineTotal(l);
+            const lotPrice = l.product.kind !== 'Service' && l.product.kind !== 'Bundle'
+              ? resolveLotSalePrice(l.product, l.unit, saleLineBaseQty(l), availableStockLots())
+              : null;
             const recipe=l.product.kind==='Bundle'&&l.bundleRevision?getBundleVersion(l.product.id,l.bundleRevision):undefined;
             const bundleCost=recipe?priceBundleComponents(recipe.components,catalog,availableStockLots(),l.product.sellPrice):null;
             const bundleCostPending=l.product.kind==='Bundle'&&Object.values(l.bundleSources??{}).some(source=>
@@ -199,6 +204,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                         </button>
                       )}
                       {l.product.kind==='Bundle'&&<span data-table-helper="" role="status" className="rounded bg-teal-50 px-1.5 py-0.5 text-[10px] text-teal-800">{text('Package','প্যাকেজ')} · {recipe?.components.length??0} {text('products','পণ্য')} · {text('Version','সংস্করণ')} {l.bundleRevision??'?'}</span>}
+                      {lotPrice?.mixed && <span data-table-helper="" role="status" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Different lot prices — review or split line','লটের দাম আলাদা — যাচাই করুন বা আলাদা লাইনে দিন')}</span>}
                       {invalidSets&&<span data-table-helper="" role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Whole Sets only','শুধু পূর্ণ সেট')}</span>}
                       {staleRecipe&&<span data-table-helper="" role="alert" className="rounded bg-warning-bg px-1.5 py-0.5 text-[10px] text-warning">{text('Bundle recipe changed — add again','প্যাকেজের পণ্য বদলেছে — আবার যোগ করুন')}</span>}
                       {relatedShortages.length>0&&<span data-table-helper="" role="alert" className="rounded bg-danger-bg px-1.5 py-0.5 text-[10px] text-danger">{text('Shared component shortage','প্যাকেজের পণ্য কম')} · {relatedShortages.map(s=>`${catalog.find(p=>p.id===s.componentProductId)?.name??s.componentProductId}: ${s.shortageBaseQty}`).join(', ')}</span>}
@@ -269,26 +275,26 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                 <div data-cart-field="Price in · একক">{units.length > 1 ?
                 units.length > 2 ? (
                   <AppSelect label={text('Sale unit for '+l.product.name,'বিক্রির একক: '+l.product.name)}
-                    value={l.unit} options={units} onChange={(next)=>onUpdate(l.key,{unit:next})}/>
+                    value={l.unit} options={units.map(value=>({value,label:unitSymbol(value)}))} onChange={(next)=>onUpdate(l.key,{unit:next})}/>
                 ) :
                 <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("unit")}>
                     {units.map((u) =>
                   <button
-                    key={u}
+                    key={unitSymbol(u)}
                     type="button"
-                    role="radio"
+                    role="radio" aria-label={u}
                     aria-checked={l.unit === u}
                     onClick={() => onUpdate(l.key, { unit: u })}
                     className={`flex-1 rounded px-1 text-xs font-medium transition-colors ${
                     l.unit === u ? 'bg-card text-ink shadow-card ring-1 ring-primary' : 'text-ink-500 hover:text-ink'}`
                     }>
                     
-                        {u}
+                        {unitSymbol(u)}
                       </button>
                   )}
                   </div> :
 
-                <span className="px-2 text-sm text-ink-600">{l.unit}</span>
+                <span className="px-2 text-sm text-ink-600" title={l.unit}>{unitSymbol(l.unit)}</span>
                 }</div>
                 <div data-cart-field="Price · দাম"><div data-pos-price-field className="relative flex min-w-0 items-center gap-1">
                   <div className="relative min-w-0 flex-1">

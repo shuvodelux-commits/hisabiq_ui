@@ -7,8 +7,9 @@ import type { WarrantySnapshot, BundleSaleSnapshot } from '../../types/erp';
 import {bundleContentsForReceipt} from '../../bundles/bundleDocuments';
 import {uiText, type UiLanguage} from '../../i18n/uiCopy';
 import {documentLabel,documentMethod} from '../../i18n/documentCopy';
+import {formatPrintQuantity} from '../../utils/printUnitQuantity';
 
-export type ReceiptLine = {name: string;nameBn?:string;sku?:string;barcode?:string;qty: string;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;bundleSnapshot?:BundleSaleSnapshot;};
+export type ReceiptLine = {name: string;nameBn?:string;sku?:string;barcode?:string;qty: string;unitNamesBn?: Record<string,string>;price: number;total: number;serials?: string[];warranty?: WarrantySnapshot;bundleSnapshot?:BundleSaleSnapshot;};
 export type ReceiptBranding = { name: string; nameBn: string; address: string; phone: string; logo: string; showLogo: boolean; footer: string; design?:InvoiceDesign };
 export type ReceiptPayment={id?:string;method:string;account?:string;amount:number};
 
@@ -63,7 +64,7 @@ export function ReceiptPreview(p: ReceiptPreviewProps) {
               <span className="truncate">{i + 1}. {l.name}</span>
               <span className="">{n(l.total)}</span>
             </div>
-            <div className="pl-3.5 text-[10.5px] text-ink-500">{l.qty} × {n(l.price)}</div>
+            <div className="pl-3.5 text-[10.5px] text-ink-500">{formatPrintQuantity(l.qty,language,l.unitNamesBn)} × {n(l.price)}</div>
             {bundleContentsForReceipt(l).length>0&&<div className="pl-3.5 pt-0.5 text-[9.5px] text-ink-500" aria-label="Included package products">
               {bundleContentsForReceipt(l).map((component,i)=><p key={i}>· {component.name} — {component.quantityLabel}</p>)}
             </div>}

@@ -1,7 +1,7 @@
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownLeft,
   ArrowLeftRight,
@@ -510,12 +510,26 @@ function TransferDialog({
   );
 }
 
-export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {}) {
+export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { counterOnly?: boolean; moneyAccountsOnly?: boolean } = {}) {
   const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
   const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
-  const [financeTab, setTab] = useState<Tab>('overview');
-  const tab: Tab = counterOnly ? 'counter' : financeTab;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const routeTab = searchParams.get('tab');
+  const financeTabs: Tab[] = ['overview','transactions','cheques','cash'];
+  const financeTab: Tab = financeTabs.includes(routeTab as Tab) ? routeTab as Tab : 'overview';
+  const setTab = (nextTab: Tab) => setSearchParams(current => {
+    const next = new URLSearchParams(current);
+    if (nextTab === 'overview') next.delete('tab'); else next.set('tab', nextTab);
+    return next;
+  }, {replace: true});
+  const tab: Tab = counterOnly ? 'counter' : moneyAccountsOnly ? 'accounts' : financeTab;
+  // Existing saved Finance links remain usable after moving those destinations.
+  useEffect(() => {
+    if (counterOnly || moneyAccountsOnly) return;
+    if (routeTab === 'accounts') navigate('/app/accounts?tab=money-accounts', { replace: true });
+    else if (routeTab === 'counter') navigate('/app/counter', { replace: true });
+  }, [routeTab, counterOnly, moneyAccountsOnly, navigate]);
   const { accounts, transactions, people } = useSyncExternalStore(subscribeFinancePreview, getFinancePreviewSnapshot);
   const relationshipSummary = financePreviewRelationshipSummary(transactions);
   const setAccounts: React.Dispatch<React.SetStateAction<FinanceAccount[]>> = (change) => updateFinancePreview('accounts', change);
@@ -684,8 +698,6 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
 
   const tabs: Array<[Tab, string, string]> = [
     ['overview', text('Overview','সারাংশ'), text('Money position and relationship balances','টাকা ও দেনা-পাওনার হিসাব')],
-    ['accounts', text('Money Accounts','টাকার হিসাব'), text('Cash, bank, mobile banking and petty cash','ক্যাশ, ব্যাংক ও মোবাইল')],
-    ['counter', text('Counter','কাউন্টার'), text('Fast receive, pay, expense and transfer','টাকা নেওয়া-দেওয়া ও খরচ')],
     ['transactions', text('Loans & Owners','ঋণ ও মালিক'), text('Owner, lender and borrower money','মালিক ও ঋণের হিসাব')],
     ['cheques', text('Cheques','চেক'), text('Received, issued and post-dated cheques','পাওয়া, দেওয়া ও ভবিষ্যৎ তারিখের চেক')],
     ['cash', text('Cash Sessions','ক্যাশ সেশন'), text('Open, close and reconcile cash drawer','ক্যাশ খোলা, বন্ধ ও মেলানো')]
@@ -710,8 +722,8 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
   ];
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
-      <PageHeader
+    <div className={moneyAccountsOnly ? 'space-y-0' : 'mx-auto max-w-[1440px] space-y-4'}>
+      {!moneyAccountsOnly && <PageHeader
         title={counterOnly ? 'Counter' : 'Finance'}
         titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
         description={counterOnly ? 'Receive, pay, record expenses, transfer money and manage owner or loan transactions.' : 'Cash, bank, mobile banking, loans, cheques and everyday money movement.'}
@@ -729,9 +741,9 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
             </Button>
           </>
         )}
-      />
+      />}
 
-      {!counterOnly && <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
+      {!counterOnly && !moneyAccountsOnly && <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
         {summaryCards.map(({ label, value, sub, icon: Icon, tone }) => (
           <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
             <div className="flex items-start justify-between gap-2">
@@ -744,7 +756,7 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         ))}
       </div>}
 
-      {!counterOnly && (pdcCount > 0 || bouncedCount > 0 || varianceSessions > 0) && (
+      {!counterOnly && !moneyAccountsOnly && (pdcCount > 0 || bouncedCount > 0 || varianceSessions > 0) && (
         <div className="flex flex-wrap gap-2 rounded-xl border border-warning/20 bg-warning/5 p-3">
           <button onClick={() => setTab('cheques')} className="rounded-lg border border-warning/20 bg-card px-3 py-2 text-left hover:bg-warning/5">
             <p className="text-[12px] font-medium text-ink">{pdcCount} post-dated cheque{pdcCount === 1 ? '' : 's'}</p>
@@ -755,8 +767,8 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
         </div>
       )}
 
-      <div className="rounded-xl border border-border bg-card shadow-card">
-        {!counterOnly && <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+      <div className={moneyAccountsOnly ? '' : 'rounded-xl border border-border bg-card shadow-card'}>
+        {!counterOnly && !moneyAccountsOnly && <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -1007,6 +1019,11 @@ export function Finance({ counterOnly = false }: { counterOnly?: boolean } = {})
                     {account.type !== 'Cash' && (
                       <Button variant="outline" size="sm" onClick={() => navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`)}>
                         <CheckCircle2 className="size-4" /> {text('Reconcile','মিলিয়ে দেখুন')}
+                      </Button>
+                    )}
+                    {(account.type === 'Bank' || account.type === 'Mobile Banking') && (
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/app/accounts?tab=bank-entry&accountId=${encodeURIComponent(account.id)}`)}>
+                        <Landmark className="size-4" /> {text('Bank Entry','ব্যাংক এন্ট্রি')}
                       </Button>
                     )}
                     <button

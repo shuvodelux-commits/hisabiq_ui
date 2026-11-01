@@ -13,10 +13,13 @@ test("business fields stay in a reachable sub-page, including Advanced and brand
   assert.equal(businessFieldGroup("phone"), "contact");
   assert.equal(businessFieldGroup("website"), "contact");
   assert.equal(businessFieldGroup("registration"), "general");
+  assert.equal(businessFieldGroup("financialYear"), "regional");
+  assert.ok(settingsSubsections.business.some(group=>group.id==="regional"));
+  assert.ok(settingsSubsections.business.some(group=>group.id==="tax"));
 });
 test("invoice design and output profiles stay separate within one saved section", () => {
   assert.deepEqual(
     settingsSubsections.invoices.map((group) => group.id),
-    ["invoice", "output"],
+    ["invoice", "numbering", "output"],
   );
 });
