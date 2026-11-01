@@ -58,6 +58,12 @@ async function main() {
             assert.ok(Math.abs(reset.y - exportButton.y) < 2, 'Reset and Export are no longer on one row');
           }
 
+          if (width < 1280) {
+            const filters = page.getByRole('button', { name: 'Filters', exact: true });
+            assert.equal(await filters.getAttribute('aria-expanded'), 'false', 'Extra filters must start collapsed on phones/tablets');
+            await filters.click();
+            assert.equal(await filters.getAttribute('aria-expanded'), 'true');
+          }
           const searchRect = await page.getByPlaceholder('Search expense, payee, category or reference').boundingBox();
           const categoryRect = await page.getByRole('combobox', { name: 'Expense category filter', exact: true }).boundingBox();
           assert.ok(searchRect && categoryRect, 'Search and category filter must exist');
@@ -66,12 +72,6 @@ async function main() {
             && searchRect.y < categoryRect.y + categoryRect.height
             && searchRect.y + searchRect.height > categoryRect.y;
           assert.equal(overlaps, false, width + 'px: search input blocks category filter');
-          if (width < 1280) {
-            const filters = page.getByRole('button', { name: 'Filters', exact: true });
-            assert.equal(await filters.getAttribute('aria-expanded'), 'false', 'Extra filters must start collapsed on phones/tablets');
-            await filters.click();
-            assert.equal(await filters.getAttribute('aria-expanded'), 'true');
-          }
           await page.getByRole('combobox', { name: 'Expense category filter', exact: true }).click();
           await page.getByRole('option', { name: 'Salary', exact: true }).click();
           assert.equal(await page.locator('tbody tr').count(), 1, 'Category filter should narrow the existing expense list');
