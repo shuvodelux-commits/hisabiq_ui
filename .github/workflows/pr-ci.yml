@@ -100,6 +100,10 @@ jobs:
         if: steps.scope.outputs.audit == 'true'
         run: node scripts/audit-correction-mobile-browser.cjs
 
+      - name: Audit Ledger compact filters and touch actions
+        if: steps.scope.outputs.audit == 'true'
+        run: node scripts/audit-refine-browser.cjs
+
       - name: Add Product compact field help on phone and desktop
         if: steps.scope.outputs.product_form == 'true'
         run: npm run test:add-product-help

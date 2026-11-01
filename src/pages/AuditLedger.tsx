@@ -181,11 +181,11 @@ export function AuditLedger() {
   const printAudit=()=>{if(!printReport({title:documentLabel(language,'Audit Ledger'),language,subtitle:`${filters.from||documentLabel(language,'All dates')} — ${filters.to||documentLabel(language,'All dates')} · ${documentLabel(language,entryDateView==='created'?'Created date':'Transaction date')}`,headers:reportHeaders.map(h=>documentLabel(language,h)),rows:reportRows.map(row=>row.map((value,index)=>index===5||index===10?documentLabel(language,String(value)):value))}))toast.error(text('Allow the print preview window, then try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।'));};
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
+    <div className="mx-auto max-w-[1440px] space-y-3 sm:space-y-4">
       <PageHeader
         title="Audit Ledger"
         titleBn="হিসাব যাচাই"
-        description="Review source records and changes · মূল লেনদেন যাচাই. UI preview only; no live ledger posting."
+        description="Review transactions and their changes. Preview only; no live ledger posting."
         descriptionBn="মূল লেনদেন ও পরিবর্তন যাচাই করুন। শুধু প্রিভিউ, আসল খাতায় লেখা হবে না।"
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -199,15 +199,15 @@ export function AuditLedger() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {[
           [text('Posted records','লেখা লেনদেন'), String(postedCount), 'বর্তমানে চালু লেনদেন'],
           [text('Changed records','সংশোধিত লেনদেন'), String(changedCount), 'যেসব লেনদেন ঠিক করা হয়েছে'],
           [text('Deleted records','মুছে ফেলা লেনদেন'), String(deletedCount), 'ইতিহাস রেখে মুছে দেওয়া'],
           [text('Audit events','পরিবর্তনের ইতিহাস'), String(state.auditEvents.length), 'সব পরিবর্তনের ইতিহাস']
         ].map(([label, value, helper]) => (
-          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
-            <p className="text-[12.5px] text-ink-500">{label}</p>
+          <div key={label} className="rounded-xl border border-border bg-card px-3 py-2.5 shadow-card">
+            <p className="text-[12px] text-ink-500">{label}</p>
             <p className="mt-0.5 text-lg font-semibold text-ink">{value}</p>
             <p className="font-bn text-[10.5px] text-ink-400">{helper}</p>
           </div>
@@ -216,6 +216,11 @@ export function AuditLedger() {
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
         <AuditFilters value={filters} onChange={setFilters} records={state.sources} changedByOptions={changedByOptions} dateView={entryDateView} />
+
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+          <span role="status" aria-live="polite">{text(`Showing ${filtered.length} of ${state.sources.length} records`, `মোট ${state.sources.length}টির মধ্যে ${filtered.length}টি লেনদেন`)}</span>
+          <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+        </div>
 
         <div className="overflow-x-auto">
           <Table scrollRegionLabel={text('Audit transactions, scroll for more details','অডিট লেনদেন, আরও দেখতে পাশে সরান')}>
