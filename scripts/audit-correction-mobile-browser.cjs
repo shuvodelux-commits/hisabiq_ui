@@ -8,7 +8,7 @@ async function main() {
   });
   await server.listen();
   const browser = await chromium.launch({
-    executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || '/usr/bin/chromium',
+    executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined,
     args: ['--no-sandbox']
   });
 

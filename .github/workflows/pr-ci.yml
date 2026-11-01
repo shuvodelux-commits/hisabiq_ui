@@ -62,6 +62,7 @@ jobs:
           }
 
           flag browser '^(src/|scripts/.*browser\.cjs$|\.github/workflows/pr-ci\.yml$)'
+          flag audit '^(src/components/audit/|scripts/audit-correction-mobile-browser\.cjs$)'
           flag pos '^(src/(pages/Pos\.tsx|components/pos/|hooks/usePosCart\.ts|bundles/|installments/)|scripts/(pos-|bundle-).*browser\.cjs$)'
           flag purchases '^(src/(pages/(Purchases|PurchaseEditor)\.tsx|components/purchases/|utils/purchaseSource\.ts)|scripts/(purchase-|product-quick-add).*browser\.cjs$)'
           flag parties '^(src/(pages/(Parties|Party|Vendor|Vendors)\.tsx|components/(parties|vendor)/)|scripts/(party-|vendor-).*browser\.cjs$)'
@@ -93,6 +94,10 @@ jobs:
       - name: Install Chromium only when necessary
         if: steps.scope.outputs.browser == 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Audit Ledger correction dialog mobile regression
+        if: steps.scope.outputs.audit == 'true'
+        run: node scripts/audit-correction-mobile-browser.cjs
 
       - name: Sales & Profit hybrid experiment responsive and interaction smoke
         if: steps.scope.outputs.reports == 'true'
