@@ -39,6 +39,10 @@ jobs:
           bash -n .claude/skills/ui-refine-loop/scripts/refine-setup.sh
           bash -n .claude/skills/ui-refine-loop/scripts/pr-shots.sh
           node --check .claude/skills/ui-refine-loop/scripts/shoot.mjs
+          node --check scripts/ui-refine-cloud.mjs
+          node --check scripts/expense-refine-matrix.cjs
+          test -s .github/actions/ui-refine-round/action.yml
+          test -s .github/workflows/ui-refine-cloud.yml
           # This is Workflow-runner JavaScript, not a standalone Node module:
           # it contains host-specific phase()/agent() functions and a top-level return.
           grep -Fq 'export const meta' .claude/workflows/ui-refine-loop.js
