@@ -17,6 +17,15 @@
     ],
     "rounds": 3,
     "taste_file": "docs/design/taste.md",
-    "impeccable": ".agents/skills/impeccable"
+    "impeccable": ".agents/skills/impeccable",
+    "chatgpt_github": {
+      "default_for_connected_chat": true,
+      "pr_screenshot_workflow": ".github/workflows/ui-refine-chatgpt.yml",
+      "route_marker": "UI-REFINE-ROUTE:",
+      "requires_manual_dispatch": false,
+      "requires_openai_api_key": false,
+      "rounds": 3,
+      "artifact_prefix": "ui-refine-chatgpt-shots-pr-"
+    }
   }
 }
