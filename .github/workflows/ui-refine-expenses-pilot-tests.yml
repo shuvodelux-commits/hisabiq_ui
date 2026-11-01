@@ -63,6 +63,15 @@ jobs:
       - name: Verify refined tabs, touch, keyboard, filters and Add expense
         run: node scripts/expenses-ui-refine-browser.cjs
 
+      - name: Preserve C4 actual phone tablet and desktop screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: expenses-refine-final-pngs-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          path: test-results/expenses-ui-refine/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Expense full UI-preview workflows regression
         run: node scripts/expense-workflows-browser.cjs
 
