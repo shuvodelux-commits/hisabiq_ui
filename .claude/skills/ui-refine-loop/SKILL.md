@@ -18,27 +18,6 @@ Rounds default to **5**. Impeccable advises bounded passes; asking for more than
 
 It is **standalone**: only a person starts it, with `/ui-refine-loop <where>`. The super-board lanes never run it. It works on its own `refine/<slug>` branch from `HEAD` and ends with finish grades and a **draft PR** for human review. It never merges.
 
-## HisabIQ ChatGPT + GitHub mode (preferred when this chat has the GitHub connector)
-
-**Choose this mode when the user says to refine a HisabIQ page inside ChatGPT with GitHub, without a separate AI API key, a manual Actions button, a CachyOS PC, or a dedicated Workflow/Agent runtime.** This section is an adaptation for the present environment. The full unattended, parallel-subagent implementation in section 4 is available only if a real compatible Workflow/Agent host exists; do not pretend it executed.
-
-**User experience:** the user says `/ui-refine-loop #/app/expenses "compact, touch-friendly" --rounds 3` or simply "refine Expenses". The assistant handles the GitHub branch, screenshot evidence and draft PR directly. **Do not direct the owner to manually select 'Run workflow'.**
-
-1. **Plan the scope.** Read this SKILL, `AGENTS.md`, `DESIGN.md`, `docs/design/taste.md`, the Design Guide, transaction cart contract, target React page, imported shared components and relevant existing Playwright tests. Verify the actual `#/app/...` route from `src/App.tsx`. Respect every HisabIQ design and accounting guardrail, plus the 3-round project default.
-2. **Start an isolated GitHub PR without making premature visual claims.** Using the connected GitHub tool, create `refine/<slug>-chatgpt` from `main` (or a unique equivalent). Commit a brief under `docs/ui-refine/<slug>/brief.md` stating the target, unchanged contracts, issues to investigate and the route; open a **draft PR**. Put this line **alone in its PR body**:
-   ```text
-   UI-REFINE-ROUTE: #/app/expenses
-   ```
-   Replace Expenses with the verified target. An explicitly marked same-repository PR triggers `.github/workflows/ui-refine-chatgpt.yml` **automatically** on opening/updating, which checks out both main and PR, renders Playwright screenshots at 320/390/768/1024/1440 in light/dark, and uploads `compare.html`, real PNGs and `manifest.json` as an Actions artifact. The bot has **read-only GitHub permissions** and **does not call paid AI APIs**.
-3. **Inspect actual images in ChatGPT.** With connected GitHub, locate the new PR commit's Actions run; find the artifact named `ui-refine-chatgpt-shots-pr-...`, retrieve it and inspect all readable before/after images. If the connector returns only a ZIP reference and images cannot be opened in this chat, **say so**; ask for the actual artifact ZIP or image attachment. Never claim that a textual log, screenshot filename or manifest equals visual inspection. Never invent images or visual scores. Do not initiate a manual `workflow_dispatch`; screenshots run automatically via PR events.
-4. **Impeccable-guided critique.** Read the pinned `.agents/skills/impeccable` craft, critique, audit and type-to-command playbooks when exposed through GitHub. Check specific pixels, spacing, hierarchy, typography, light/dark, responsive touch, accessibility, tooltips and real UI behavior against the approved UI. If there is no local Impeccable detector/engine or independent subagent runner, report the unavailable capability and label the assessment **ChatGPT-assisted, Impeccable-guided**, not an official detector pass or independent-agent /40 score. Use source review for issues whose visual evidence is unavailable.
-5. **Fix + compare.** Make the smallest source edits to the **same isolated GitHub branch** through the GitHub connector; do not change accounting, posting, backend, auth or original flows. Pushing to that branch automatically reruns the existing PR Fast CI and screenshot workflow. Inspect the refreshed before/after images and check real test results. Repeat up to three targeted review/fix passes (or the user's requested count) only while supported by actual evidence; never invent a round or a green test.
-6. **Finish.** Update the same draft PR with specific before/after findings, changed files, actual check results, unresolved issues and available screenshot artifact links. Explicitly distinguish visually examined images from merely generated artifacts. **Never merge, deploy, force-push main, or start an API-billed Actions refinement.** Wait for explicit owner approval before merging. If a connector cannot execute a required step, report the limitation and stop that step instead of asking the user to run a manual workflow.
-
-This ChatGPT GitHub handoff makes **Playwright automation automatic**, not AI turns autonomous. It cannot send screenshots into an idle conversation: reviewing and making changes happens while the user and ChatGPT are actively conversing. GitHub's screenshot artifact handoff is best effort; no automatic ChatGPT image attachment is guaranteed. For the original fully isolated parallel-agent three-round skill, use a compatible agent runtime rather than describing this interactive version as identical.
-
----
-
 ## 1. Read the target's code first
 
 The prompt names where: a route, a component path or a description. Turn it into a **route** to screenshot and the **scope** paths the fixer may edit:
