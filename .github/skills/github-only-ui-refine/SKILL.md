@@ -13,7 +13,7 @@ argument-hint: "<verified GitHub route> [specific polish request] [--rounds 3]"
 **Never replace, modify or redirect** the upstream `.claude/skills/ui-refine-loop/SKILL.md`, `.claude/workflows/ui-refine-loop.js`, `.claude/ui-refine.config.json`, `AGENTS.md` or Remote Desktop Commander / local Codex instructions. Local Codex, desktop agents and a compatible Workflow/Agent runner continue to use the **original** `/ui-refine-loop`. This GitHub-only skill is a distinct alternative.
 
 Reference implementation: `.github/workflows/ui-refine-chatgpt.yml` and `scripts/ui-refine-chatgpt-shots.cjs`.
-Cross-project setup and required adaptations: `docs/ui/GitHub only UI refine skill.md`.
+Cross-project setup and required adaptations: `GitHub only UI refine skill.md`.
 
 ## One-line user trigger
 
@@ -44,4 +44,4 @@ User may name the page in ordinary language instead. The default is 3 review/fix
 - Follow-up user messages continue the same draft PR unless the owner requests a different target.
 - Never automatically merge/deploy. Never use `pull_request_target` for untrusted code; keep Actions permissions `contents: read` for screenshot CI.
 - This mode does not take over the local Codex skill discovery or the Remote Desktop Commander runtime. Original skills and local commands stay intact.
-- When moving the setup to another project, use the exact `docs/ui/GitHub only UI refine skill.md` install/adaptation guide rather than copying HisabIQ-specific selectors and routes blindly.
+- When moving the setup to another project, use the exact `GitHub only UI refine skill.md` install/adaptation guide rather than copying HisabIQ-specific selectors and routes blindly.
