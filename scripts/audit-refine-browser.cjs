@@ -77,6 +77,7 @@ async function main() {
       assert.equal(await menu.getByRole('button').count(), 3,
         'Open, Correct and Delete remain available in the action menu');
       await page.keyboard.press('Escape');
+      await menu.waitFor({ state: 'detached' });
       assert.equal(await menu.count(), 0, 'Escape closes the menu');
       assert.deepEqual(errors, [], 'No runtime errors during audit interactions');
       await context.close();
