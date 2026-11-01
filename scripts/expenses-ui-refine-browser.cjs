@@ -9,7 +9,7 @@ async function main() {
   const origin = process.env.UI_REFINE_PR_URL || 'http://127.0.0.1:4311';
   let checked = 0;
   try {
-    for (const width of [320, 390, 768, 1440]) {
+    for (const width of [320, 390, 768, 1024, 1440]) {
       for (const theme of ['light', 'dark']) {
         const context = await browser.newContext({
           viewport: { width, height: 900 },
@@ -47,13 +47,21 @@ async function main() {
           await page.keyboard.press('Home');
           assert.equal(await tabs.nth(0).getAttribute('aria-selected'), 'true', 'Home did not restore Expenses');
 
-          if (width <= 768) {
+          if (width <= 1024) {
             const reset = await page.getByRole('button', { name: 'Reset', exact: true }).boundingBox();
             const exportButton = await page.getByRole('button', { name: 'Export', exact: true }).boundingBox();
             assert.ok(reset && exportButton, 'Reset and Export must remain available');
             assert.ok(Math.abs(reset.y - exportButton.y) < 2, 'Reset and Export are no longer on one row');
           }
 
+          const searchRect = await page.getByPlaceholder('Search expense, payee, category or reference').boundingBox();
+          const categoryRect = await page.getByRole('combobox', { name: 'Expense category filter', exact: true }).boundingBox();
+          assert.ok(searchRect && categoryRect, 'Search and category filter must exist');
+          const overlaps = searchRect.x < categoryRect.x + categoryRect.width
+            && searchRect.x + searchRect.width > categoryRect.x
+            && searchRect.y < categoryRect.y + categoryRect.height
+            && searchRect.y + searchRect.height > categoryRect.y;
+          assert.equal(overlaps, false, width + 'px: search input blocks category filter');
           await page.getByRole('combobox', { name: 'Expense category filter', exact: true }).click();
           await page.getByRole('option', { name: 'Salary', exact: true }).click();
           assert.equal(await page.locator('tbody tr').count(), 1, 'Category filter should narrow the existing expense list');
