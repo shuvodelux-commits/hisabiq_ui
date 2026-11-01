@@ -1,0 +1,32 @@
+name: Portable GitHub-only UI refine skill self-test
+
+on:
+  pull_request:
+    paths:
+      - 'portable/github-only-ui-refine/**'
+      - '.github/workflows/github-only-ui-refine-portable-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-portable-skill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate portable package structure, config and script
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=portable/github-only-ui-refine
+          for f in SKILL.md THREE-ROUND-PROTOCOL.md README.md ui-refine-github.example.json scripts/capture.cjs templates/ui-refine.yml; do
+            test -s "$root/$f"
+          done
+          node --check "$root/scripts/capture.cjs"
+          node "$root/scripts/capture.cjs" --self-test
+          node -e "const c=require('./portable/github-only-ui-refine/ui-refine-github.example.json'); if(c.version!==1||!c.contentSelector||!c.allowedRoutePrefixes?.length||c.viewports?.length<3) process.exit(1); console.log('Portable skill config: OK')"

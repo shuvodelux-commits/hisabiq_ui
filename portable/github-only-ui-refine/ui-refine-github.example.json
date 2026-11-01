@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "allowedRoutePrefixes": ["#/app/", "#/saas/", "/"],
+  "contentSelector": "main",
+  "theme": {
+    "storageKey": "theme",
+    "lightValue": "light",
+    "darkValue": "dark"
+  },
+  "viewports": [320, 390, 768, 1024, 1440],
+  "captureHeight": 900,
+  "baseUrl": "http://127.0.0.1:4310",
+  "headUrl": "http://127.0.0.1:4311"
+}
