@@ -15,6 +15,16 @@ This is the HisabIQ-specific taste file consumed by `/ui-refine-loop`. It extend
 
 ### Target-specific direction
 
+### #/app/audit-ledger — compact and touch-friendly refinement (2026-11-01)
+
+- **Goal:** Make audit records, their source, status and actions easier to find on phones without extra scrolling or accidental taps.
+- **Direction:** Same existing HisabIQ layout; remove filter clutter, tighten spacing and make row actions reachable.
+- **Keep:** All 7 filter controls and Reset, date switching, export, print, counts, table columns, read/correct/delete and audit history; original theme tokens and bilingual terms.
+- **Avoid:** Deleting data fields, changing the posted/changed/deleted semantics, inventing transaction posting, adding a new design system or hiding essential records.
+- **Users:** Shop owners reviewing a transaction quickly on a phone or at the counter.
+- **Reference:** The existing Audit Ledger and approved Products/Party Ledger action controls.
+
+
 For each request, add a separate `### <route or component>` block with the user's actual goal, acceptable scope, and protected interactions. Explicit user decisions take precedence over the defaults above.
 
 ## Taste rules
