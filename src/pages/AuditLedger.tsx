@@ -46,6 +46,23 @@ function sourceLabel(source: AuditSourceRecord) {
   return labels[source.source] ?? source.source;
 }
 
+function sourceLabelBn(source: AuditSourceRecord) {
+  const labels: Record<AuditSourceRecord['source'], string> = {
+    sale: 'বিক্রি',
+    'customer-payment': 'বিক্রি / ক্রেতা',
+    purchase: 'ক্রয়',
+    'supplier-payment': 'ক্রয় / সরবরাহকারী',
+    expense: 'খরচ',
+    transfer: 'টাকার লেনদেন',
+    finance: 'টাকার লেনদেন',
+    'receipt-voucher': 'হিসাব',
+    'payment-voucher': 'হিসাব',
+    adjustment: 'হিসাব',
+    'opening-balance': 'প্রারম্ভিক জের'
+  };
+  return labels[source.source];
+}
+
 function sourceRoute(source: AuditSourceRecord) {
   if (source.source === 'sale' || source.source === 'customer-payment') return '/app/sales';
   if (source.source === 'purchase' || source.source === 'supplier-payment') return '/app/purchases';
@@ -255,7 +272,7 @@ export function AuditLedger() {
                       <p data-table-helper="" className="text-[10.5px] text-ink-400">{source.source === 'adjustment' ? 'Adjustment Entry' : source.source.replaceAll('-', ' ')}</p>
                     </TableCell>
                     <TableCell className="py-2 text-ink-600">{source.party || '—'}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{text(sourceLabel(source),sourceLabel(source)==='Sales'?'বিক্রি':sourceLabel(source)==='Purchase'?'ক্রয়':sourceLabel(source)==='Expense'?'খরচ':sourceLabel(source)==='Transfer'?'হিসাবে টাকা সরানো':sourceLabel(source))}</TableCell>
+                    <TableCell className="py-2 text-ink-500">{text(sourceLabel(source), sourceLabelBn(source))}</TableCell>
                     <TableCell className="max-w-[220px] py-2"><p className="truncate text-ink-500">{accountLabel(source)}</p></TableCell>
                     <TableCell className="py-2 text-right font-semibold text-ink">{taka(source.amount)}</TableCell>
                     <TableCell className="py-2"><p className="font-medium text-ink">{source.postedBy}</p><p data-table-helper="" className="text-[10.5px] text-ink-400">{source.createdAt.slice(11, 16)}</p></TableCell>

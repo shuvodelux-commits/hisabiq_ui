@@ -59,6 +59,20 @@ async function main() {
       await search.fill('');
       assert.equal(await page.locator('main table tbody tr').count(), 6);
 
+      if (language === 'Bangla') {
+        const sourceColumn = async (reference) => (
+          await page.locator('main table tbody tr').filter({ hasText: reference }).locator('td').nth(4).innerText()
+        ).trim();
+        assert.equal(await sourceColumn('CP-000091'), 'বিক্রি / ক্রেতা',
+          'Customer payment source must be localized');
+        assert.equal(await sourceColumn('EXP-000062'), 'খরচ',
+          'Expense source must be localized');
+        assert.equal(await sourceColumn('TRF-000041'), 'টাকার লেনদেন',
+          'Finance/transfer source must be localized');
+        assert.equal(await sourceColumn('ADJ-000019'), 'হিসাব',
+          'Account adjustment source must be localized');
+      }
+
       const rowAction = page.getByRole('button', { name: 'Actions for INV-000239' });
       const table = page.locator('main table');
       const region = table.locator('xpath=..');
