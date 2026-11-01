@@ -174,7 +174,7 @@ export function Expenses() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <MotionTabList className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
+        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3" role="tablist">
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
@@ -182,7 +182,7 @@ export function Expenses() {
               aria-selected={tab === id}
               onClick={() => setTab(id)}
               title={helper}
-              className={`flex items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${
+              className={`relative flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-2.5 text-[13px] font-medium ${
                 tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
