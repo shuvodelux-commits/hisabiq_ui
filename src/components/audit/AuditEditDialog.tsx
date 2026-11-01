@@ -123,12 +123,13 @@ export function AuditEditDialog({
 
   return (
     <Dialog open={!!source} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent role="dialog" aria-label={text("Correct transaction","লেনদেন সংশোধন")} className="max-h-[92dvh] overflow-y-auto sm:max-w-4xl">
-        <DialogHeader>
+      <DialogContent role="dialog" aria-label={text("Correct transaction","লেনদেন সংশোধন")} className="max-h-[92dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-4xl">
+        <DialogHeader className="shrink-0 pr-6">
           <DialogTitle>{review ? text('Review changes','সংশোধন যাচাই') : text('Correct transaction','লেনদেন সংশোধন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-400">· হিসাব ঠিক করুন</span>}</DialogTitle>
         </DialogHeader>
 
-        {!review && source && (
+        <div className="min-h-0 min-w-0 overflow-y-auto overscroll-contain pr-1">
+          {!review && source && (
           <div className="space-y-4">
             <div className="rounded-lg border border-border bg-ink-50/50 px-3 py-2">
               <p className="text-[12px] font-medium text-ink">{source.reference} · {source.source.replaceAll('-', ' ')}</p>
@@ -238,10 +239,30 @@ export function AuditEditDialog({
                 </div>
                 <div className="space-y-2 p-3">
                   {payments.map((payment, index) => (
-                    <div key={index} className="grid grid-cols-[1fr_130px_32px] gap-2">
-                      <FormSelect value={payment.account} onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, account: event.target.value } : item))} options={moneyAccountNames} />
-                      <Input className="text-right" inputMode="decimal" value={payment.amount} onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))} placeholder="0" />
-                      <button type="button" onClick={() => setPayments((current) => current.filter((_, i) => i !== index))} className="flex size-9 items-center justify-center rounded-md text-ink-400 hover:bg-danger/5 hover:text-danger" aria-label={text("Remove payment","পেমেন্ট সরান")}><Trash2 className="size-3.5" /></button>
+                    <div key={index} className="grid min-w-0 grid-cols-[minmax(0,1fr)_36px] gap-2 sm:grid-cols-[minmax(0,1fr)_130px_36px]">
+                      <FormSelect
+                        aria-label={text('Payment account','পেমেন্টের হিসাব') + ' ' + (index + 1)}
+                        className="col-span-2 min-w-0 sm:col-span-1"
+                        value={payment.account}
+                        onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, account: event.target.value } : item))}
+                        options={moneyAccountNames}
+                      />
+                      <Input
+                        aria-label={text('Payment amount','পেমেন্টের পরিমাণ') + ' ' + (index + 1)}
+                        className="col-start-1 row-start-2 min-w-0 text-right sm:col-start-2 sm:row-start-1"
+                        inputMode="decimal"
+                        value={payment.amount}
+                        onChange={(event) => setPayments((current) => current.map((item, i) => i === index ? { ...item, amount: event.target.value.replace(/[^\d.]/g, '') } : item))}
+                        placeholder="0"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        className="size-9 items-center justify-center col-start-2 row-start-2 text-ink-400 hover:text-danger sm:col-start-3 sm:row-start-1"
+                        onClick={() => setPayments((current) => current.filter((_, i) => i !== index))}
+                        aria-label={text('Remove payment','পেমেন্ট সরান') + ' ' + (index + 1)}
+                      ><Trash2 className="size-4" /></Button>
                     </div>
                   ))}
                   <div className="flex justify-between border-t border-border pt-2 text-[11px] text-ink-500">
@@ -261,9 +282,10 @@ export function AuditEditDialog({
           </div>
         )}
 
-        {review && <ImpactPreview preview={preview} />}
+          {review && <ImpactPreview preview={preview} />}
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0 border-t border-border pt-3">
           {review ? (
             <>
               <Button variant="outline" onClick={() => setReview(false)}>{text('Back','ফিরুন')}</Button>
