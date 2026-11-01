@@ -181,11 +181,11 @@ export function AuditLedger() {
   const printAudit=()=>{if(!printReport({title:documentLabel(language,'Audit Ledger'),language,subtitle:`${filters.from||documentLabel(language,'All dates')} — ${filters.to||documentLabel(language,'All dates')} · ${documentLabel(language,entryDateView==='created'?'Created date':'Transaction date')}`,headers:reportHeaders.map(h=>documentLabel(language,h)),rows:reportRows.map(row=>row.map((value,index)=>index===5||index===10?documentLabel(language,String(value)):value))}))toast.error(text('Allow the print preview window, then try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।'));};
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
+    <div className="mx-auto max-w-[1440px] space-y-3 sm:space-y-4">
       <PageHeader
         title="Audit Ledger"
         titleBn="হিসাব যাচাই"
-        description="Review source records and changes · মূল লেনদেন যাচাই. UI preview only; no live ledger posting."
+        description="Review transactions and their changes. Preview only; no live ledger posting."
         descriptionBn="মূল লেনদেন ও পরিবর্তন যাচাই করুন। শুধু প্রিভিউ, আসল খাতায় লেখা হবে না।"
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -199,15 +199,15 @@ export function AuditLedger() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {[
           [text('Posted records','লেখা লেনদেন'), String(postedCount), 'বর্তমানে চালু লেনদেন'],
           [text('Changed records','সংশোধিত লেনদেন'), String(changedCount), 'যেসব লেনদেন ঠিক করা হয়েছে'],
           [text('Deleted records','মুছে ফেলা লেনদেন'), String(deletedCount), 'ইতিহাস রেখে মুছে দেওয়া'],
           [text('Audit events','পরিবর্তনের ইতিহাস'), String(state.auditEvents.length), 'সব পরিবর্তনের ইতিহাস']
         ].map(([label, value, helper]) => (
-          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
-            <p className="text-[12.5px] text-ink-500">{label}</p>
+          <div key={label} className="rounded-xl border border-border bg-card px-3 py-2.5 shadow-card">
+            <p className="text-[12px] text-ink-500">{label}</p>
             <p className="mt-0.5 text-lg font-semibold text-ink">{value}</p>
             <p className="font-bn text-[10.5px] text-ink-400">{helper}</p>
           </div>
@@ -217,8 +217,13 @@ export function AuditLedger() {
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
         <AuditFilters value={filters} onChange={setFilters} records={state.sources} changedByOptions={changedByOptions} dateView={entryDateView} />
 
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+          <span role="status" aria-live="polite">{text(`Showing ${filtered.length} of ${state.sources.length} records`, `মোট ${state.sources.length}টির মধ্যে ${filtered.length}টি লেনদেন`)}</span>
+          <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+        </div>
+
         <div className="overflow-x-auto">
-          <Table>
+          <Table scrollRegionLabel={text('Audit transactions, scroll for more details','অডিট লেনদেন, আরও দেখতে পাশে সরান')}>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-9 pl-4 text-xs">{text(entryDateView === 'transaction' ? 'Transaction Date' : 'Created Date',entryDateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</TableHead>
@@ -231,7 +236,7 @@ export function AuditLedger() {
                 <TableHead className="h-9 text-xs">{text('Posted by','যিনি লিখেছেন')}</TableHead>
                 <TableHead className="h-9 text-xs">{text('Last changed by','শেষ সংশোধনকারী')}</TableHead>
                 <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                <TableHead className="sticky right-0 z-10 h-9 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -256,20 +261,20 @@ export function AuditLedger() {
                     <TableCell className="py-2"><p className="font-medium text-ink">{source.postedBy}</p><p data-table-helper="" className="text-[10.5px] text-ink-400">{source.createdAt.slice(11, 16)}</p></TableCell>
                     <TableCell className="py-2 text-ink-500">{lastChange?.user || '—'}</TableCell>
                     <TableCell className="py-2"><StatusBadge tone={source.status === 'Posted' ? 'success' : 'neutral'} dot>{text(source.status,source.status==='Posted'?'লেখা হয়েছে':'মুছে ফেলা')}</StatusBadge></TableCell>
-                    <TableCell className="py-2 pr-4 text-right">
+                    <TableCell className="sticky right-0 z-10 border-l border-border bg-card py-1.5 pr-2 text-right">
                       <FloatingPanel
                         label={'Audit actions for ' + source.reference}
                         width={190}
                         trigger={({ toggle }) => (
-                          <button onClick={toggle} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + source.reference}>
-                            <MoreHorizontal className="size-4" />
-                          </button>
+                          <Button type="button" variant="ghost" size="icon" onClick={toggle} className="size-9 text-ink-500 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + source.reference}>
+                            <MoreHorizontal className="size-4" aria-hidden="true" />
+                          </Button>
                         )}>
                         {(close) => (
                           <div className="py-1">
-                            {availability.view && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); setDetailId(source.id); }}><Eye className="size-3.5" /> {text('Open','খুলুন')}</button>}
-                            {source.status === 'Posted' && availability.correct && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); requestEdit(source); }}><Pencil className="size-3.5" /> {text('Correct','সংশোধন')}</button>}
-                            {source.status === 'Posted' && availability.delete && <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-danger hover:bg-danger/5" onClick={() => { close(); requestDelete(source); }}><Trash2 className="size-3.5" /> {text('Delete','মুছুন')}</button>}
+                            {availability.view && <button className="flex min-h-9 w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); setDetailId(source.id); }}><Eye className="size-3.5" /> {text('Open','খুলুন')}</button>}
+                            {source.status === 'Posted' && availability.correct && <button className="flex min-h-9 w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); requestEdit(source); }}><Pencil className="size-3.5" /> {text('Correct','সংশোধন')}</button>}
+                            {source.status === 'Posted' && availability.delete && <button className="flex min-h-9 w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-danger hover:bg-danger/5" onClick={() => { close(); requestDelete(source); }}><Trash2 className="size-3.5" /> {text('Delete','মুছুন')}</button>}
                           </div>
                         )}
                       </FloatingPanel>
