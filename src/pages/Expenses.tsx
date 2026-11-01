@@ -240,6 +240,10 @@ export function Expenses() {
               </div>
             </div>
 
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span role="status" aria-live="polite">{text(`Showing ${filteredExpenses.length} of ${expenses.length} expenses`, `মোট ${expenses.length}টির মধ্যে ${filteredExpenses.length}টি খরচ`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+            </div>
             <div className="overflow-x-auto">
               <Table className="min-w-[940px]" scrollRegionLabel={text("Expense records, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
@@ -323,6 +327,10 @@ export function Expenses() {
                 <Plus className="size-4" /> {text("Add category","ধরন যোগ করুন")}
               </Button>
             </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span>{text(`${categories.length} categories`, `${categories.length}টি ধরন`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+            </div>
             <div className="overflow-x-auto">
               <Table className="min-w-[680px]" scrollRegionLabel={text("Expense categories, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
@@ -371,6 +379,10 @@ export function Expenses() {
               <Button size="sm" onClick={() => setPayeeEditor({})}>
                 <Plus className="size-4" /> {text("Add payee","প্রাপক যোগ করুন")}
               </Button>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span>{text(`${payees.length} payees`, `${payees.length}জন প্রাপক`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
             </div>
             <div className="overflow-x-auto">
               <Table className="min-w-[760px]" scrollRegionLabel={text("Expense payees, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
