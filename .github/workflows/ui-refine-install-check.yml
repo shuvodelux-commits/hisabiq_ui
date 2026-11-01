@@ -48,6 +48,12 @@ jobs:
           test -s docs/ui/ui-refine-loop.md
           test -s docs/design/taste.md
           test -s DESIGN.md
+      - name: Test full UI refine workflow and helper behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash .claude/skills/ui-refine-loop/tests/test-ui-refine-loop-workflow.sh
+          bash .claude/skills/ui-refine-loop/tests/test-ui-refine-loop-setup.sh
       - name: Verify HisabIQ guardrails and resolved configuration
         shell: bash
         run: |
