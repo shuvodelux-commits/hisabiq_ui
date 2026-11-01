@@ -4917,6 +4917,7 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/components/sales/SalesWideToolbar.tsx",
       "src/pages/Dashboard.tsx",
+      "src/pages/Expenses.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsActivity.tsx",
       "src/settings/SettingsDirectory.tsx",

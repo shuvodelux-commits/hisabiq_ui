@@ -96,6 +96,16 @@ jobs:
           UI_REFINE_OUT: "${{ runner.temp }}/ui-refine-shots"
         run: node scripts/ui-refine-chatgpt-shots.cjs
 
+      - name: Expenses pilot interaction and posting-preview regression matrix
+        if: contains(github.event.pull_request.body, 'UI-REFINE-ROUTE: #/app/expenses')
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/expenses-ui-refine-browser.cjs
+          node scripts/expense-workflows-browser.cjs
+          node scripts/bangla-expenses-browser.cjs
+
       - name: Independent official Impeccable source detector (no AI API)
         working-directory: candidate
         shell: bash
