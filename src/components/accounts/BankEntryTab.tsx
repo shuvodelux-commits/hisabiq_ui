@@ -383,7 +383,7 @@ export function BankEntryTab({ variant = 'accounts', initialAccountId }: { varia
           </div>
           {ledgerError && <p role="alert" className="px-3 py-2 text-xs text-danger">{ledgerError}</p>}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[530px] text-left text-[12px]">
+            <table data-erp-table className="w-full min-w-[530px] text-left text-[12px]">
               <thead className="bg-ink-50 text-[11px] text-ink-500">
                 <tr><th className="p-2.5">Date</th><th className="p-2.5">Type / Reference</th><th className="p-2.5 text-right">Money Out</th><th className="p-2.5 text-right">Money In</th><th className="p-2.5 text-right">Balance</th></tr>
               </thead>
