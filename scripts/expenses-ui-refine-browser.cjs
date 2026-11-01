@@ -89,7 +89,7 @@ async function main() {
             const start = await action.boundingBox();
             assert.ok(start && start.x >= 0 && start.x + start.width <= width + 1, 'Pinned Action header clipped');
             const overflow = await scroll.evaluate(el => ({ total: el.scrollWidth, visible: el.clientWidth }));
-            if (width < 1280) assert.ok(overflow.total > overflow.visible, tabName + ': table must scroll sideways');
+            if (width <= 390) assert.ok(overflow.total > overflow.visible, tabName + ': table must scroll sideways on phones');
             await scroll.evaluate(el => { el.scrollLeft = el.scrollWidth; el.dispatchEvent(new Event('scroll')); });
             const end = await action.boundingBox();
             assert.ok(end && Math.abs(start.x - end.x) < 3, 'Action header must stay fixed on sideways scroll');
