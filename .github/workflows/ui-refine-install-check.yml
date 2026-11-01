@@ -33,8 +33,12 @@ jobs:
           bash -n .claude/skills/ui-refine-loop/scripts/refine-setup.sh
           bash -n .claude/skills/ui-refine-loop/scripts/pr-shots.sh
           node --check .claude/skills/ui-refine-loop/scripts/shoot.mjs
-          node --check .claude/workflows/ui-refine-loop.js
-          node --check .claude/skills/ui-refine-loop/scripts/shoot.mjs
+          # This is Workflow-runner JavaScript, not a standalone Node module:
+          # it contains host-specific phase()/agent() functions and a top-level return.
+          grep -Fq 'export const meta' .claude/workflows/ui-refine-loop.js
+          grep -Fq "phase('Check')" .claude/workflows/ui-refine-loop.js
+          grep -Fq 'agent(' .claude/workflows/ui-refine-loop.js
+          grep -Fq 'return {' .claude/workflows/ui-refine-loop.js
           test -s docs/ui/ui-refine-loop.md
           test -s docs/design/taste.md
       - name: Verify HisabIQ guardrails and resolved configuration
