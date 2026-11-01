@@ -173,7 +173,7 @@ async function main() {
             storageState: auth && fs.existsSync(authFile) ? authFile : undefined,
           });
           await ctx.addInitScript((t) => {
-            try { localStorage.setItem('theme', t); } catch {}
+            try { localStorage.setItem('theme', t); localStorage.setItem('hisabiq-theme', t); } catch {}
           }, theme);
           const page = await ctx.newPage();
           await page.goto(url, { waitUntil: 'networkidle', timeout: 120_000 });

@@ -1,0 +1,84 @@
+name: Independent Impeccable refine round
+description: Fresh isolated design, detector, checker and optional fixer invocations
+inputs:
+  round:
+    required: true
+    description: Check number (1-4); round 4 is closing review
+  fix:
+    required: true
+    description: Whether this is a fix round
+  api-key:
+    required: true
+    description: OpenAI API key (only forwarded to the secure Codex Action proxy)
+runs:
+  using: composite
+  steps:
+    - name: Prepare independent design prompt
+      shell: bash
+      run: node scripts/ui-refine-cloud.mjs prompt "${{ inputs.round }}" design
+    - name: Independent Impeccable visual review
+      uses: openai/codex-action@v1
+      with:
+        openai-api-key: "${{ inputs.api-key }}"
+        permission-profile: ":read-only"
+        safety-strategy: drop-sudo
+        prompt-file: ".refine-cloud/prompts/round-${{ inputs.round }}-design.md"
+        output-schema-file: ".refine-cloud/design-schema.json"
+        output-file: ".refine-cloud/reports/round-${{ inputs.round }}-design.json"
+        codex-args: '["--ephemeral","--image",".refine-cloud/shots/round-0-main-desktop-light.png,.refine-cloud/shots/round-0-main-desktop-dark.png,.refine-cloud/shots/round-0-main-mobile-light.png,.refine-cloud/shots/round-0-main-mobile-dark.png","--image",".refine-cloud/shots/round-${{ inputs.round == '1' && '0' || inputs.round == '2' && '1' || inputs.round == '3' && '2' || '3' }}-main-desktop-light.png,.refine-cloud/shots/round-${{ inputs.round == '1' && '0' || inputs.round == '2' && '1' || inputs.round == '3' && '2' || '3' }}-main-desktop-dark.png,.refine-cloud/shots/round-${{ inputs.round == '1' && '0' || inputs.round == '2' && '1' || inputs.round == '3' && '2' || '3' }}-main-mobile-light.png,.refine-cloud/shots/round-${{ inputs.round == '1' && '0' || inputs.round == '2' && '1' || inputs.round == '3' && '2' || '3' }}-main-mobile-dark.png"]'
+    - name: Check isolated design score
+      shell: bash
+      run: node scripts/ui-refine-cloud.mjs assert "${{ inputs.round }}" design
+
+    - name: Prepare independent detector prompt
+      shell: bash
+      run: node scripts/ui-refine-cloud.mjs prompt "${{ inputs.round }}" detector
+    - name: Independent Impeccable detector and audit
+      uses: openai/codex-action@v1
+      with:
+        openai-api-key: "${{ inputs.api-key }}"
+        permission-profile: ":read-only"
+        safety-strategy: drop-sudo
+        prompt-file: ".refine-cloud/prompts/round-${{ inputs.round }}-detector.md"
+        output-schema-file: ".refine-cloud/detector-schema.json"
+        output-file: ".refine-cloud/reports/round-${{ inputs.round }}-detector.json"
+        codex-args: '["--ephemeral"]'
+    - name: Confirm Impeccable detector actually ran
+      shell: bash
+      run: node scripts/ui-refine-cloud.mjs assert "${{ inputs.round }}" detector
+
+    - name: Prepare merged issue checker
+      shell: bash
+      run: node scripts/ui-refine-cloud.mjs prompt "${{ inputs.round }}" checker
+    - name: Fresh independent findings checker
+      uses: openai/codex-action@v1
+      with:
+        openai-api-key: "${{ inputs.api-key }}"
+        permission-profile: ":read-only"
+        safety-strategy: drop-sudo
+        prompt-file: ".refine-cloud/prompts/round-${{ inputs.round }}-checker.md"
+        output-schema-file: ".refine-cloud/checker-schema.json"
+        output-file: ".refine-cloud/reports/round-${{ inputs.round }}-checker.json"
+        codex-args: '["--ephemeral"]'
+    - name: Validate merged issue ledger
+      shell: bash
+      run: node scripts/ui-refine-cloud.mjs assert "${{ inputs.round }}" checker
+
+    - name: Prepare limited scope fixer
+      if: inputs.fix == 'true'
+      shell: bash
+      run: node scripts/ui-refine-cloud.mjs prompt "${{ inputs.round }}" fixer
+    - name: Fresh Impeccable fixer
+      if: inputs.fix == 'true'
+      uses: openai/codex-action@v1
+      with:
+        openai-api-key: "${{ inputs.api-key }}"
+        permission-profile: ":workspace"
+        safety-strategy: drop-sudo
+        prompt-file: ".refine-cloud/prompts/round-${{ inputs.round }}-fixer.md"
+        output-file: ".refine-cloud/reports/round-${{ inputs.round }}-fixer.md"
+        codex-args: '["--ephemeral"]'
+    - name: Validate fix and capture light/dark after shots
+      if: inputs.fix == 'true'
+      shell: bash
+      run: node scripts/ui-refine-cloud.mjs after "${{ inputs.round }}"
