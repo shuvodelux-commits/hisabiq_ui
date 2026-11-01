@@ -204,6 +204,10 @@ function check(label) {
 function after(n) {
   const protectedPaths = execFileSync('git',['diff','--name-only'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
   if(protectedPaths.some(p=>p!==TARGET)) fail('Out-of-scope tracked changes: '+protectedPaths.join(', '));
+  const untracked = execFileSync('git',['ls-files','--others','--exclude-standard'],{encoding:'utf8'})
+    .trim().split('\\n').filter(Boolean);
+  const untrackedCode = untracked.filter(p => /^(src|scripts|tests|docs|\\.github|\\.claude)\\//.test(p));
+  if (untrackedCode.length) fail('Untracked source outside expense scope: '+untrackedCode.join(', '));
   // Fail closed on regression. No screenshot or draft PR is published from a broken round.
   check(`round-${n}`);
   exec('node',[`${SKILL}/scripts/shoot.mjs`,'--base','http://127.0.0.1:4308','--route',ROUTE,'--out',rel(SHOTS),'--label',`round-${n}`,'--compare','round-0']);
