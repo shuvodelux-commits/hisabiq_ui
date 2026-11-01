@@ -10,7 +10,8 @@ import {
   Plus,
   Printer,
   Search,
-  Settings2
+  Settings2,
+  SlidersHorizontal
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -97,12 +98,14 @@ export function Expenses() {
   const [payeeFilter, setPayeeFilter] = useState('All payees');
   const [methodFilter, setMethodFilter] = useState('All payment methods');
   const [statusFilter, setStatusFilter] = useState('Active');
+  const [showFilters, setShowFilters] = useState(false);
   const [categoryEditor, setCategoryEditor] = useState<{ previous?: string; name: string } | null>(null);
   const [payeeEditor, setPayeeEditor] = useState<{ party?: Party } | null>(null);
   const [cancelling, setCancelling] = useState<Expense | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [actionError, setActionError] = useState('');
   const activeExpenses = expenses.filter(item => item.recordStatus !== 'Deleted');
+  const activeFilterCount = [categoryFilter !== 'All categories', payeeFilter !== 'All payees', methodFilter !== 'All payment methods', statusFilter !== 'Active'].filter(Boolean).length;
   const resetFilters = () => { setQuery(''); setCategoryFilter('All categories'); setPayeeFilter('All payees'); setMethodFilter('All payment methods'); setStatusFilter('Active'); };
   const reportFor = (items: Expense[], title = 'Expense list') => ({ title, subtitle: 'Expense source preview', headers: ['Reference', 'Date', 'Category', 'Payee', 'Details', 'Amount', 'Paid', 'Due', 'Status'], rows: items.map(e => [e.ref, e.date, e.category, e.payee, e.note, e.amount, e.paid, e.amount - e.paid, e.recordStatus === 'Deleted' ? 'Cancelled' : 'Active']) });
   const printExpenses = (items: Expense[], title?: string) => { const report=reportFor(items,title); if (!printReport({...report,language,subtitle:documentLabel(language,report.subtitle),headers:report.headers.map(h=>documentLabel(language,h)),rows:report.rows.map(row=>row.map((value,index)=>index===8?documentLabel(language,String(value)):value))})) toast.error(text('Allow the print popup and try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।')); };
@@ -208,29 +211,37 @@ export function Expenses() {
 
         {tab === 'expenses' && (
           <>
-            <div className="grid grid-cols-1 gap-2 border-b border-border p-3 sm:grid-cols-2 xl:flex xl:flex-row xl:items-center">
-              <div className="relative col-span-full min-w-0 xl:max-w-md xl:flex-1">
+            <div className="space-y-2 border-b border-border p-3 xl:flex xl:items-center xl:gap-2 xl:space-y-0">
+              <div className="relative min-w-0 xl:max-w-md xl:flex-1">
                 <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="pl-8"
-                  placeholder={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
-                />
+                <Input value={query} onChange={(e) => setQuery(e.target.value)} className="pl-8"
+                  placeholder={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")} />
               </div>
-              <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="w-full xl:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
-              <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full xl:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
-              <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full xl:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
-              <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="w-full xl:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
-              <div className="col-span-full flex items-center gap-2 xl:shrink-0">
-                <Button variant="ghost" size="sm" className="min-w-0 flex-1 xl:flex-none" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
-                <Button variant="outline" size="sm" className="min-w-0 flex-1 xl:flex-none" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
-                  <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
+              <div className="flex flex-wrap items-center gap-2 xl:contents">
+                <Button type="button" variant="outline" size="sm" className="gap-1.5 xl:hidden"
+                  aria-expanded={showFilters} aria-controls="expenses-more-filters"
+                  onClick={() => setShowFilters(current => !current)}>
+                  <SlidersHorizontal className="size-4" aria-hidden="true" />
+                  {text('Filters','ফিল্টার')}
+                  {activeFilterCount > 0 && <span className="rounded bg-accent px-1.5 text-[11px] text-accent-foreground">{activeFilterCount}</span>}
                 </Button>
+                <div id="expenses-more-filters" className={(showFilters ? 'grid' : 'hidden') + ' order-last w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:contents'}>
+                  <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="w-full xl:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
+                  <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full xl:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
+                  <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full xl:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
+                  <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="w-full xl:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
+                </div>
+                <div className="ml-auto flex items-center gap-1.5 xl:ml-0 xl:shrink-0">
+                  <Button variant="ghost" size="sm" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
+                  <Button variant="outline" size="sm" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
+                    <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
+                  </Button>
+                </div>
               </div>
             </div>
 
-            <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[940px]" scrollRegionLabel={text("Expense records, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">{text('Expense','খরচ')}</TableHead>
@@ -241,7 +252,7 @@ export function Expenses() {
                   <TableHead className="h-9 text-xs">{text('Reference','রেফারেন্স')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -279,9 +290,9 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">—</TableCell>
                       <TableCell className="py-2 text-right font-medium">{taka(expense.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={expense.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{expense.recordStatus === 'Deleted' ? text('Cancelled','বাতিল') : text('Active','চালু')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
                         <div onClick={event => event.stopPropagation()}>
-                          <FloatingPanel label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`}><MoreHorizontal className="size-4" /></button>}>
+                          <FloatingPanel label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} width={190} trigger={({toggle}) => <Button type="button" variant="ghost" size="icon" onClick={toggle} className="size-9 text-ink-500 hover:bg-ink-50 hover:text-ink" aria-label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`}><MoreHorizontal className="size-4" aria-hidden="true" /></Button>}>
                             {close => <div className="p-1 text-left text-xs">
                               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); open(); }}>{text('View','দেখুন')}</Button>
                               <Button variant="ghost" size="sm" className="w-full justify-start" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); openCorrection(expense); }}>{text('Correct','সংশোধন')}</Button>
@@ -297,6 +308,7 @@ export function Expenses() {
                 {!filteredExpenses.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">{text('No expenses match these filters.','কোনো খরচ মেলেনি।')} <button className="text-teal-700 underline" onClick={resetFilters}>{text('Reset filters','ফিল্টার মুছুন')}</button></TableCell></TableRow>}
               </TableBody>
             </Table>
+            </div>
           </>
         )}
 
@@ -311,14 +323,15 @@ export function Expenses() {
                 <Plus className="size-4" /> {text("Add category","ধরন যোগ করুন")}
               </Button>
             </div>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[680px]" scrollRegionLabel={text("Expense categories, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs" >{text('Category','ধরন')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Description','বিবরণ')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Active total','চালু খরচের মোট')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -330,17 +343,21 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">{text("Operating expense category","দোকানের খরচের ধরন")}</TableCell>
                       <TableCell className="py-2 text-right">{amount ? taka(amount) : '—'}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={active ? 'success' : 'neutral'} dot>{text(active ? 'Active' : 'Inactive',active ? 'চালু' : 'বন্ধ')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <div className="flex flex-wrap justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => { setCategoryEditor({previous: category, name: category}); setActionError(''); }}>{text("Edit","সম্পাদনা")}</Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</Button>
-                        </div>
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
+                        <FloatingPanel label={text('Actions for category','খরচের ধরন পরিচালনা:') + ' ' + category} width={190}
+                          trigger={({toggle}) => <Button type="button" variant="ghost" size="icon" className="size-9 text-ink-500 hover:bg-ink-50 hover:text-ink" onClick={toggle} aria-label={text('Actions for category','খরচের ধরন পরিচালনা:') + ' ' + category}><MoreHorizontal className="size-4" aria-hidden="true" /></Button>}>
+                          {close => <div className="p-1 text-left text-xs">
+                            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); setCategoryEditor({previous: category, name: category}); setActionError(''); }}>{text("Edit","সম্পাদনা")}</Button>
+                            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</Button>
+                          </div>}
+                        </FloatingPanel>
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
+            </div>
           </div>
         )}
 
@@ -355,7 +372,8 @@ export function Expenses() {
                 <Plus className="size-4" /> {text("Add payee","প্রাপক যোগ করুন")}
               </Button>
             </div>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[760px]" scrollRegionLabel={text("Expense payees, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs" >{text('Payee','প্রাপক')}</TableHead>
@@ -363,7 +381,7 @@ export function Expenses() {
                   <TableHead className="h-9 text-xs">{text('Last used','শেষ ব্যবহার')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Total paid','মোট দেওয়া')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -378,17 +396,21 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">{payee.lastUsed}</TableCell>
                       <TableCell className="py-2 text-right">{paid ? taka(paid) : '—'}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={payee.active ? 'success' : 'neutral'} dot>{text(payee.active ? 'Active' : 'Inactive',payee.active ? 'চালু' : 'বন্ধ')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <div className="flex flex-wrap justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => setPayeeEditor({party: availableParties().find(p => p.id === payee.id)})}>{text("Edit","সম্পাদনা")}</Button>
-                          <Button variant="ghost" size="sm" disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')} title={text("Linked transaction history is retained; linked payees cannot be deactivated.","আগের লেনদেন থাকবে। লেনদেন থাকা প্রাপককে বন্ধ করা যাবে না।")} onClick={() => { try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</Button>
-                        </div>
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
+                        <FloatingPanel label={text('Actions for payee','প্রাপকের কাজের তালিকা:') + ' ' + payee.name} width={190}
+                          trigger={({toggle}) => <Button type="button" variant="ghost" size="icon" className="size-9 text-ink-500 hover:bg-ink-50 hover:text-ink" onClick={toggle} aria-label={text('Actions for payee','প্রাপকের কাজের তালিকা:') + ' ' + payee.name}><MoreHorizontal className="size-4" aria-hidden="true" /></Button>}>
+                          {close => <div className="p-1 text-left text-xs">
+                            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); setPayeeEditor({party: availableParties().find(p => p.id === payee.id)}); }}>{text("Edit","সম্পাদনা")}</Button>
+                            <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')} title={text("Linked transaction history is retained; linked payees cannot be deactivated.","আগের লেনদেন থাকবে। লেনদেন থাকা প্রাপককে বন্ধ করা যাবে না।")} onClick={() => { close(); try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</Button>
+                          </div>}
+                        </FloatingPanel>
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
+            </div>
           </div>
         )}
 
