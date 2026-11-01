@@ -1,0 +1,70 @@
+name: Expenses GitHub-only UI refine interaction proof
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/pages/Expenses.tsx'
+      - 'scripts/expenses-ui-refine-browser.cjs'
+      - '.github/workflows/ui-refine-expenses-pilot-tests.yml'
+      - 'docs/ui-refine/expenses/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: expenses-refine-interactions-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  expenses-ui-interactions:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.body, 'UI-REFINE-ROUTE: #/app/expenses')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout exact pilot PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start app in GitHub runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run dev -- --host 127.0.0.1 --port 4311 > "$RUNNER_TEMP/expenses-vite.log" 2>&1 &
+          ready=false
+          for n in $(seq 1 90); do
+            if curl -fsS --max-time 3 http://127.0.0.1:4311/ >/dev/null 2>&1; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [[ "$ready" != true ]]; then
+            cat "$RUNNER_TEMP/expenses-vite.log"
+            exit 1
+          fi
+
+      - name: Verify refined tabs, touch, keyboard, filters and Add expense
+        run: node scripts/expenses-ui-refine-browser.cjs
+
+      - name: Expense full UI-preview workflows regression
+        run: node scripts/expense-workflows-browser.cjs
+
+      - name: Bangla expense workflow regression
+        run: node scripts/bangla-expenses-browser.cjs
