@@ -78,10 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ui-refine-baseline-${{ github.run_id }}
-          path: |
-            .refine-cloud/shots/
-            .refine-cloud/detect.json
-            .refine-cloud/reports/
+          path: .refine-cloud/
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: error
@@ -121,7 +118,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ui-refine-baseline-${{ github.run_id }}
-          path: .
+          path: .refine-cloud
 
       - name: Install dependency tree and verify Impeccable
         run: |
