@@ -35,7 +35,8 @@ async function main(){
     await page.getByRole('columnheader',{name:bn?'শেষ ব্যবহার':'Last used',exact:true}).waitFor();
     await page.getByRole('columnheader',{name:bn?'মোট দেওয়া':'Total paid',exact:true}).waitFor();
     await page.getByRole('tab',{name:bn?'খরচের তালিকা':'Expense list'}).click();
-    const filter=page.getByRole('combobox',{name:bn?'খরচের ধরন বাছুন':'Expense category filter'});
+    if(width < 1280) await page.getByRole('button',{name:bn?'ফিল্টার':'Filters',exact:true}).click();
+     const filter=page.getByRole('combobox',{name:bn?'খরচের ধরন বাছুন':'Expense category filter'});
     await filter.waitFor();
     assert.equal(await filter.getAttribute('data-value'),'All categories','category filter machine value');
     await page.getByRole('combobox',{name:bn?'খরচের অবস্থা বাছুন':'Expense status filter'}).waitFor();
