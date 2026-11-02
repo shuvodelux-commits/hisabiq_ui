@@ -32,6 +32,15 @@ async function main(){
   }
   const actionRect=await actions.first().boundingBox();assert.equal(actionRect.width,36,'row action is a square 36px control');
   const total=await table.locator('tbody tr').count();
+  if(width<=390){
+   const summaryGrid=page.locator('.grid.grid-cols-2').first();
+   const summaryCard=summaryGrid.locator('> div').first();
+   const toolbar=page.getByRole('textbox',{name:bn?'পণ্য খুঁজুন':'Search products'}).locator('xpath=../../..');
+   assert.equal(await summaryGrid.evaluate(el=>getComputedStyle(el).rowGap),'8px','mobile summary cards use compact gaps');
+   assert.equal(await summaryCard.evaluate(el=>getComputedStyle(el).paddingTop),'8px','mobile summary cards use compact padding');
+   assert.equal(await toolbar.evaluate(el=>getComputedStyle(el).paddingTop),'8px','mobile filter toolbar uses compact padding');
+   assert.ok(await summaryCard.evaluate(el=>el.scrollHeight<=el.clientHeight+1),'summary text does not clip');
+  }
   await category.tap();assert.equal(await category.getAttribute('aria-pressed'),'true');
   assert.ok(await table.locator('tbody tr').count()<total,'category actually filters');
   await page.getByRole('button',{name:bn?'সব':'All',exact:true}).tap();

@@ -497,9 +497,9 @@ export function Products() {
 
       {view === 'list' && (
         <>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {summary.map((s) =>
-        <div key={s.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+        <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-2 sm:px-4 sm:py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{pl(s.label)}</p>
             <p className={`mt-0.5 text-lg font-semibold ${s.tone ?? 'text-ink'}`}>{s.value}</p>
             <p className="text-[11px] text-ink-400">{pl(s.sub)}</p>
@@ -508,7 +508,7 @@ export function Products() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border p-2 sm:p-3">
           <div className="relative w-full max-w-xs xl:min-w-40 xl:flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
             <Input
