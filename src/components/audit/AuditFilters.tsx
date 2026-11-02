@@ -38,7 +38,7 @@ export function AuditFilters({
   const {text}=useUiCopy();
   const [showMore, setShowMore] = useState(false);
   const additionalCount = [value.party !== 'All parties', value.account !== 'All accounts', value.postedBy !== 'All posters', value.changedBy !== 'All changers', value.changed !== 'Changed or not'].filter(Boolean).length;
-  const sourceBn:Record<string,string>={sale:'বিক্রি',purchase:'ক্রয়',expense:'খরচ',transfer:'হিসাবে টাকা সরানো',finance:'টাকার লেনদেন','customer-payment':'ক্রেতার টাকা','supplier-payment':'সরবরাহকারীকে টাকা'};
+  const sourceBn:Record<string,string>={sale:'বিক্রি',purchase:'ক্রয়',expense:'খরচ',transfer:'হিসাবে টাকা সরানো',finance:'টাকার লেনদেন','customer-payment':'ক্রেতার টাকা','supplier-payment':'সরবরাহকারীকে টাকা','receipt-voucher':'টাকা জমার ভাউচার','payment-voucher':'টাকা দেওয়ার ভাউচার',adjustment:'সমন্বয়','opening-balance':'প্রারম্ভিক জের'};
   const sources = Array.from(new Set(records.map((item) => item.source))).sort();
   const parties = Array.from(new Set(records.map((item) => item.party).filter(Boolean) as string[])).sort();
   const accounts = Array.from(new Set(records.flatMap((item) => [
