@@ -4,7 +4,7 @@
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const base=process.env.PRODUCTS_REFINE_BASE||'http://127.0.0.1:32821';
-const widths=process.env.PRODUCTS_REFINE_WIDTHS?.split(',').map(Number)||[320,390,768,1024,1440];
+const widths=process.env.PRODUCTS_REFINE_WIDTHS?.split(',').map(Number)||[320,390,768,1024,1280,1440];
 async function main(){
  const browser=await chromium.launch({args:['--no-sandbox']});
  try{for(const language of ['English','English + Bangla','Bangla'])for(const theme of ['light','dark'])for(const width of widths){
@@ -22,10 +22,15 @@ async function main(){
   const actions=page.getByRole('button',{name:new RegExp(bn?'পণ্যের কাজ:':'Actions for')});
   const category=page.getByRole('button',{name:'Plumbing',exact:true});
   const stock=page.getByRole('radio');
-  if(width===1440){
+  if(width>=1280){
    const searchBox=await page.getByRole('textbox',{name:bn?'পণ্য খুঁজুন':'Search products'}).boundingBox();
    const columnBox=await columns.boundingBox();
-   assert.ok(Math.abs(searchBox.y+searchBox.height/2-columnBox.y-columnBox.height/2)<3,'wide toolbar remains one compact row');
+   const serviceBox=await page.getByRole('button',{name:'Service',exact:true}).boundingBox();
+   const stockBox=await stock.first().boundingBox();
+   const middle=(rect)=>rect.y+rect.height/2;
+   for(const [label,box] of [['category',serviceBox],['stock',stockBox],['columns',columnBox]]){
+    assert.ok(Math.abs(middle(searchBox)-middle(box))<3,'wide toolbar keeps '+label+' on one row');
+   }
   }
   for(const control of [columns,category,stock.nth(0),stock.nth(1),stock.nth(2),actions.first()]){
    const rect=await control.boundingBox();assert.equal(rect.height,36,'ordinary control height '+await control.getAttribute('aria-label'));
@@ -60,14 +65,16 @@ async function main(){
   await page.keyboard.press('ArrowDown');
   assert.ok(await chooser.getByRole('menuitemcheckbox',{name:bn?'ধরন':'Category',exact:true}).evaluate(el=>el===document.activeElement),'ArrowDown skips protected columns in chooser');
   await page.keyboard.press('Escape');assert.equal(await columns.evaluate(el=>el===document.activeElement),true,'column panel restores focus');
+  assert.equal(await page.locator('[data-product-scroll-action]').count(),0,'no extra Stock/Selling/Actions helper row');
+  const header=table.locator('thead th').last();
+  assert.equal((await header.innerText()).trim(),bn?'কাজ':'Actions','Actions is visible in table header');
+  assert.ok(await header.evaluate(el=>getComputedStyle(el).visibility==='visible'&&el.querySelector('.sr-only')===null),'Actions is not screen-reader-only');
   const overflow=await region.evaluate(el=>el.scrollWidth>el.clientWidth+1);
-  const scrollAction=page.locator('[data-product-scroll-action]');
-  assert.equal(await scrollAction.count(),overflow?1:0,'scroll affordance follows actual overflow');
   if(overflow){
    assert.equal(await region.getAttribute('role'),'region');assert.ok(await region.getAttribute('aria-label'),'overflow region is named');
    await region.scrollIntoViewIfNeeded();await region.focus();await page.keyboard.press('ArrowRight');
    assert.ok(await region.evaluate(el=>el.scrollLeft)>0,'keyboard scroll moves table');
-   await scrollAction.tap();
+   await region.evaluate(el=>{el.scrollLeft=el.scrollWidth;});
    await page.waitForFunction(()=>{const table=document.querySelector('table'),el=table.parentElement;return el.scrollLeft+el.clientWidth>=el.scrollWidth-2;});
    const box=await actions.first().boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width,'row action is reachable after scroll action');
    // Synthesized Chromium touch swipe, not just a resized viewport.
@@ -79,7 +86,7 @@ async function main(){
     for(let step=1;step<=6;step++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-step*30,y}]});
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     await page.waitForFunction(()=>document.querySelector('table').parentElement.scrollLeft>0);
-    await cdp.detach();await scrollAction.tap();
+    await cdp.detach();await region.evaluate(el=>{el.scrollLeft=el.scrollWidth;});
    }
   }
   await actions.first().tap();await page.getByRole('button',{name:bn?'বিস্তারিত দেখুন':'View details',exact:true}).waitFor();

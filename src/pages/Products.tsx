@@ -2,7 +2,7 @@ import {useModuleColumns} from '../settings/useModuleColumns';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useSearchParams } from 'react-router-dom';
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -240,19 +240,6 @@ export function Products() {
   const [movements, setMovements] = useState<StockMovement[]>(availableStockMovements);
   const [offers, setOffers] = useState<ProductOffer[]>(seedOffers);
   const [inventoryProductFilter, setInventoryProductFilter] = useState('');
-  const productTableRef = useRef<HTMLTableElement>(null);
-  const [tableOverflows, setTableOverflows] = useState(false);
-  useEffect(() => {
-    const table = productTableRef.current;
-    const region = table?.parentElement;
-    if (!table || !region) return;
-    const update = () => setTableOverflows(region.scrollWidth > region.clientWidth + 1);
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(table);
-    observer.observe(region);
-    return () => observer.disconnect();
-  }, [view, dialogOpen, creatingBundle, bundleEditorProduct]);
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
   const knownSerials = useMemo(() => [...lots.flatMap((lot) => lot.serials ?? []), ...soldSerials], [lots, soldSerials]);
   const {columns:visibleColumns,setColumns:setVisibleColumns}=useModuleColumns('products',columnStorageKey,defaultVisibleColumns);
@@ -508,8 +495,8 @@ export function Products() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-wrap items-center gap-2 border-b border-border p-2 sm:p-3">
-          <div className="relative w-full max-w-xs xl:min-w-40 xl:flex-1">
+        <div data-products-filter-toolbar="" className="flex flex-wrap items-center gap-2 border-b border-border p-2 sm:p-3 xl:flex-nowrap xl:gap-2">
+          <div className="relative w-full max-w-xs xl:w-[200px] xl:max-w-none xl:shrink-0 min-[1400px]:w-[245px] 2xl:w-[260px]">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
             <Input
               value={query}
@@ -519,7 +506,7 @@ export function Products() {
               className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
             
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 xl:min-w-0 xl:flex-1 xl:flex-nowrap xl:overflow-x-auto xl:whitespace-nowrap scrollbar-thin">
             {availableProductCategories().map((c) =>
             <Button
               key={c}
@@ -528,7 +515,7 @@ export function Products() {
               size="sm"
               aria-pressed={category === c}
               onClick={() => setCategory(c)}
-              className={`text-xs ${
+              className={`shrink-0 px-2 text-xs ${
               category === c ? 'bg-inverse text-white hover:bg-inverse hover:text-white' : 'text-ink-600 hover:bg-ink-50'}`
               }>
               
@@ -536,7 +523,7 @@ export function Products() {
               </Button>
             )}
           </div>
-          <div className="ml-auto flex flex-wrap items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center gap-2 xl:shrink-0 xl:flex-nowrap">
             <div className="flex rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={pl("Stock filter")}>
               {(
               [
@@ -575,18 +562,7 @@ export function Products() {
           </div>
         </div>
 
-        {tableOverflows && <div className="flex justify-end border-b border-border px-3 py-1">
-          <Button variant="ghost" size="sm" data-product-scroll-action=""
-            onClick={() => {
-              const region = productTableRef.current?.parentElement;
-              region?.scrollTo({ left: region.scrollWidth });
-            }}
-            className="gap-1.5 text-xs text-ink-500">
-            {pl('Stock')} · {pl('Selling')} · {pl('Actions')}
-            <ChevronDown className="size-3.5 -rotate-90" aria-hidden="true" />
-          </Button>
-        </div>}
-        <Table ref={productTableRef} scrollRegionLabel={pl('Product list')}>
+        <Table scrollRegionLabel={pl('Product list')}>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {visibleColumns.index && <TableHead className="h-9 w-10 pl-4 text-xs">#</TableHead>}
@@ -598,7 +574,7 @@ export function Products() {
               {visibleColumns.purchase && <TableHead className="h-9 text-right text-xs">{pl('Purchase')}</TableHead>}
               {visibleColumns.selling && <TableHead className="h-9 text-right text-xs">{pl('Selling')}</TableHead>}
               {visibleColumns.status && <TableHead className="h-9 text-xs">{pl('Status')}</TableHead>}
-              <TableHead className="h-9 w-10 pr-4"><span className="sr-only">{pl("Actions")}</span></TableHead>
+              <TableHead className="h-9 min-w-[80px] whitespace-nowrap pr-4 text-right text-xs">{pl('Actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -665,7 +641,7 @@ export function Products() {
                   <TableCell className="py-2">
                     <StatusBadge tone={statusMeta[s].tone} dot>{pl(statusMeta[s].label)}</StatusBadge>
                   </TableCell>}
-                  <TableCell className="py-2 pr-4">
+                  <TableCell className="py-2 pr-4 text-right">
                     <ProductActions
                       product={p}
                       onView={() => setDetailsProduct(p)}
