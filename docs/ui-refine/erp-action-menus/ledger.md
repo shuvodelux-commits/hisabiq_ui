@@ -20,3 +20,6 @@ Sales invoice, return, customer-credit, draft and template menus; Party/Vendor d
 
 ### Limitations
 The official saved Workflow runner and fresh independent checkers are unavailable in this tool environment. These are three **implementation/validation passes**, not three independently scored Impeccable critic/fixer rounds. Screen readers, physical old Android devices, live accounting posting and every secondary menu were not independently certified. GitHub-only: draft PR, no merge or deploy.
+
+### Final browser evidence count
+The four-mode matrix completed successfully: **24 interactive menu profiles passed** (Products, Expenses, Audit Ledger, Purchases, Sales, Parties × 1440/390 × light/dark). The standalone Vendor route supplied **4 page-only captures** because no row dropdown was exposed; those four are excluded from interactive-pass counts. Before/after evidence includes **56 PNG files** total (28 baseline, 28 refined). Browser checks opened the real menus and tested icon presence, sectioning, red destructive actions where present, arrow/Home focus and Escape restoration. Independent browser-side ratings are not claimed.
