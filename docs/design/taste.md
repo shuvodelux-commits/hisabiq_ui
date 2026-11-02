@@ -58,3 +58,12 @@ For each request, add a separate `### <route or component>` block with the user'
 ## Score and acceptance
 
 Use the upstream design /20 + audit /20 score and problem ledger when the executor supports it; mark rubric-only scores honestly if Impeccable is missing. Never declare a visual change successful without the required tests and proof. Owner signs off on visual direction and merges.
+
+### /#/app/products — compact, clear and touch-friendly refinement (2026-11-02)
+
+- **Goal:** Improve compactness, clarity, touch usability and visual polish for shopkeepers while preserving the existing Products UI and functionality.
+- **Direction:** Same UI, cleaner and more compact; make comparative table scrolling and routine actions reachable on small phones. Keep the existing data table and desktop hierarchy.
+- **Scope:** `src/pages/Products.tsx`; existing product-specific components only with a stated need and compatible defaults; focused tests. No global contracts or business/data changes.
+- **Keep:** Search, category/stock filters, column preferences, every row action, all tabs and editors, Bangla/English, light/dark, shared Button/Input/Table/FloatingPanel, 13/12/11 table roles, 36px ordinary controls and 0.375rem control radius.
+- **Avoid:** Replacing the table, hiding essential data/actions, decorative content, stock/pricing/accounting/persistence/auth/backend changes. No push, PR, merge or deployment during this execution; the coordinator handles publication after evidence review.
+- **Evidence:** Real round-0 desktop/phone captures in both themes; fresh independent Impeccable assessments and browser validation at 320/390/768/1024/1440px guide bounded changes.

@@ -83,17 +83,31 @@ function ProductColumnPicker({
       label={pl('Choose product table columns')}
       width={210}
       trigger={({ toggle, open }) => (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={toggle}
           aria-expanded={open}
-          className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+          className="gap-2 text-xs">
           {pl('Columns')}
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-        </button>
+        </Button>
       )}>
       {() => (
-        <div className="py-1">
+        <div
+          role="menu"
+          aria-label={pl('Choose product table columns')}
+          className="py-1"
+          onKeyDown={(event) => {
+            if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+            const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+            const current = items.indexOf(document.activeElement as HTMLButtonElement);
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1
+              : (current + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+            event.preventDefault();
+            items[next]?.focus();
+          }}>
           {productColumns.map((column) => (
             <button
               key={column.id}
@@ -147,14 +161,16 @@ function ProductActions({
       label={`${pl('Actions for')} ${product.name}`}
       width={210}
       trigger={({ toggle, open }) => (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={toggle}
           aria-expanded={open}
           aria-label={`${pl('Actions for')} ${product.name}`}
-          className="rounded-md p-1 text-ink-400 hover:bg-ink-50 hover:text-ink">
-          <MoreHorizontal className="size-4" />
-        </button>
+          className="text-ink-500 hover:bg-ink-50 hover:text-ink">
+          <MoreHorizontal className="size-4" aria-hidden="true" />
+        </Button>
       )}>
       {(close) => (
         <div className="py-1">
@@ -448,6 +464,17 @@ export function Products() {
             key={id}
             role="tab"
             aria-selected={view === id}
+            tabIndex={view === id ? 0 : -1}
+            onKeyDown={(event) => {
+              if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+              const tabs = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []);
+              const current = tabs.indexOf(event.currentTarget);
+              const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+                : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+              event.preventDefault();
+              tabs[next]?.focus();
+              chooseView((['list', 'lots', 'history', 'settings'] as ProductView[])[next]);
+            }}
             onClick={() => chooseView(id)}
             className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
             {pl(label)} {showHelper&&<span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>}
@@ -457,9 +484,9 @@ export function Products() {
 
       {view === 'list' && (
         <>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {summary.map((s) =>
-        <div key={s.label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+        <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-2 sm:px-4 sm:py-3 shadow-card">
             <p className="text-[12.5px] text-ink-500">{pl(s.label)}</p>
             <p className={`mt-0.5 text-lg font-semibold ${s.tone ?? 'text-ink'}`}>{s.value}</p>
             <p className="text-[11px] text-ink-400">{pl(s.sub)}</p>
@@ -468,8 +495,8 @@ export function Products() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-          <div className="relative w-full max-w-xs">
+        <div data-products-filter-toolbar="" className="flex flex-wrap items-center gap-2 border-b border-border p-2 sm:p-3 xl:flex-nowrap xl:gap-2">
+          <div className="relative w-full max-w-xs xl:w-[200px] xl:max-w-none xl:shrink-0 min-[1400px]:w-[245px] 2xl:w-[260px]">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
             <Input
               value={query}
@@ -479,20 +506,24 @@ export function Products() {
               className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
             
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 xl:min-w-0 xl:flex-1 xl:flex-nowrap xl:overflow-x-auto xl:whitespace-nowrap scrollbar-thin">
             {availableProductCategories().map((c) =>
-            <button
+            <Button
               key={c}
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-pressed={category === c}
               onClick={() => setCategory(c)}
-              className={`h-8 rounded-md px-2.5 text-xs font-medium transition-colors ${
-              category === c ? 'bg-inverse text-white' : 'text-ink-600 hover:bg-ink-50'}`
+              className={`shrink-0 px-2 text-xs ${
+              category === c ? 'bg-inverse text-white hover:bg-inverse hover:text-white' : 'text-ink-600 hover:bg-ink-50'}`
               }>
               
                 {c==='All'?pl(c):c}
-              </button>
+              </Button>
             )}
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center gap-2 xl:shrink-0 xl:flex-nowrap">
             <div className="flex rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={pl("Stock filter")}>
               {(
               [
@@ -501,23 +532,37 @@ export function Products() {
               ['out', `Out (${outCount})`]] as
               [StockFilter, string][]).
               map(([id, label]) =>
-              <button
+              <Button
                 key={id}
                 type="button"
+                variant="ghost"
+                size="sm"
                 role="radio"
                 aria-checked={stockFilter === id}
+                tabIndex={stockFilter === id ? 0 : -1}
+                onKeyDown={(event) => {
+                  if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+                  const options: StockFilter[] = ['all', 'low', 'out'];
+                  const current = options.indexOf(id);
+                  const direction = ['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : -1;
+                  const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1
+                    : (current + direction + options.length) % options.length;
+                  event.preventDefault();
+                  setStockFilter(options[next]);
+                  event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next]?.focus();
+                }}
                 onClick={() => setStockFilter(id)}
-                className={`h-7 rounded px-2.5 text-xs font-medium ${stockFilter === id ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
+                className={`text-xs ${stockFilter === id ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
                 
                   {id==='all'?pl(label):`${pl(id==='low'?'Low':'Out')} (${id==='low'?lowCount:outCount})`}
-                </button>
+                </Button>
               )}
             </div>
             <ProductColumnPicker visible={visibleColumns} onToggle={toggleColumn} />
           </div>
         </div>
 
-        <Table>
+        <Table scrollRegionLabel={pl('Product list')}>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {visibleColumns.index && <TableHead className="h-9 w-10 pl-4 text-xs">#</TableHead>}
@@ -529,7 +574,7 @@ export function Products() {
               {visibleColumns.purchase && <TableHead className="h-9 text-right text-xs">{pl('Purchase')}</TableHead>}
               {visibleColumns.selling && <TableHead className="h-9 text-right text-xs">{pl('Selling')}</TableHead>}
               {visibleColumns.status && <TableHead className="h-9 text-xs">{pl('Status')}</TableHead>}
-              <TableHead className="h-9 w-10 pr-4"><span className="sr-only">{pl("Actions")}</span></TableHead>
+              <TableHead data-products-actions-heading="" className="sticky right-0 z-10 h-9 min-w-[80px] border-l border-border bg-card pr-2 text-right text-xs">{pl('Actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -596,7 +641,7 @@ export function Products() {
                   <TableCell className="py-2">
                     <StatusBadge tone={statusMeta[s].tone} dot>{pl(statusMeta[s].label)}</StatusBadge>
                   </TableCell>}
-                  <TableCell className="py-2 pr-4">
+                  <TableCell data-products-actions-cell="" className="sticky right-0 z-10 border-l border-border bg-card py-1.5 pr-2 text-right">
                     <ProductActions
                       product={p}
                       onView={() => setDetailsProduct(p)}
