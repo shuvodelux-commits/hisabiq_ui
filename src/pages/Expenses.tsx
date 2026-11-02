@@ -29,6 +29,8 @@ import { expensePaymentMethods, getExpensePreviewSnapshot, subscribeExpensePrevi
 import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
+import { Eye, Pencil, Ban } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/Dialog';
 import { printReport, downloadReport } from '../utils/reportOutput';
 import { availableParties, expenseCategoryRecords, createPreviewExpenseCategory, renamePreviewExpenseCategory, setPreviewExpenseCategoryActive } from '../data/erpDemoStore';
@@ -267,12 +269,13 @@ export function Expenses() {
                       <TableCell className="py-2 pr-4 text-right">
                         <div onClick={event => event.stopPropagation()}>
                           <FloatingPanel label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`}><MoreHorizontal className="size-4" /></button>}>
-                            {close => <div className="p-1 text-left text-xs">
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); open(); }}>{text('View','দেখুন')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); openCorrection(expense); }}>{text('Correct','সংশোধন')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { close(); printExpenses([expense], expense.ref); }}>{text('Print','প্রিন্ট')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start text-danger" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); setCancelling(expense); setCancelReason(''); setActionError(''); }}>{text('Cancel expense','খরচ বাতিল')}</Button>
-                            </div>}
+                            {close => <ActionMenuList>
+                              <ActionMenuItem icon={Eye} onClick={() => { close(); open(); }}>{text('View','দেখুন')}</ActionMenuItem>
+                              <ActionMenuItem icon={Pencil} disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); openCorrection(expense); }}>{text('Correct','সংশোধন')}</ActionMenuItem>
+                              <ActionMenuItem icon={Printer} onClick={() => { close(); printExpenses([expense], expense.ref); }}>{text('Print','প্রিন্ট')}</ActionMenuItem>
+                              <ActionMenuDivider />
+                              <ActionMenuItem icon={Ban} tone="destructive" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); setCancelling(expense); setCancelReason(''); setActionError(''); }}>{text('Cancel expense','খরচ বাতিল')}</ActionMenuItem>
+                            </ActionMenuList>}
                           </FloatingPanel>
                         </div>
                       </TableCell>

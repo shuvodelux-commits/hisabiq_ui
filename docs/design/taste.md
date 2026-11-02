@@ -67,3 +67,13 @@ Use the upstream design /20 + audit /20 score and problem ledger when the execut
 - **Keep:** Search, category/stock filters, column preferences, every row action, all tabs and editors, Bangla/English, light/dark, shared Button/Input/Table/FloatingPanel, 13/12/11 table roles, 36px ordinary controls and 0.375rem control radius.
 - **Avoid:** Replacing the table, hiding essential data/actions, decorative content, stock/pricing/accounting/persistence/auth/backend changes. No push, PR, merge or deployment during this execution; the coordinator handles publication after evidence review.
 - **Evidence:** Real round-0 desktop/phone captures in both themes; fresh independent Impeccable assessments and browser validation at 320/390/768/1024/1440px guide bounded changes.
+
+
+### /#/app — ERP row/action dropdown menus (2026-11-02)
+
+- **Visual reference:** User-supplied action menu screenshot, used only for the icon-first rows, quiet dividers, and red destructive items. Do not imitate external app chrome.
+- **Direction:** Keep the original HisabIQ FloatingPanel, theme tokens, bilingual labels, and permissions; style its row actions through one shared, opt-in ActionMenu primitive rather than changing all selectors or dialogs.
+- **Group order:** View/open/edit; work/transaction/history/print; state operations; destructive delete/cancel/reverse/reject at the end behind a divider. Do not show an empty group divider.
+- **Appearance:** One left Lucide icon per action, 13px menu text, at least 40px touch rows, 0.375rem item radius, neutral text for ordinary actions and theme-aware danger red only for destructive actions.
+- **Interactions:** Maintain original callbacks, disabled reasons, pointer positioning, Escape focus return, ArrowUp/ArrowDown and Home/End movement, and mobile scrollability. Do not modify finance or inventory posting logic.
+- **Review:** Three bounded source/visual passes, real before/after light/dark screenshots, tests, and GitHub draft PR only. Distinguish independent Impeccable scoring from a manual pass if agent tooling is unavailable.
