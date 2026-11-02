@@ -1,0 +1,108 @@
+name: GitHub-only UI refine screenshots
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    paths:
+      - 'src/**'
+      - 'app/**'
+      - 'pages/**'
+      - 'docs/ui-refine/**'
+      - 'ui-refine-github.json'
+      - 'scripts/ui-refine-github/capture.cjs'
+      - '.github/workflows/ui-refine.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-ui-refine-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.body, 'UI-REFINE-ROUTE:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout PR source without credentials
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.pull_request.head.sha }}"
+          path: candidate
+          persist-credentials: false
+
+      - name: Checkout PR base without credentials
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.pull_request.base.sha }}"
+          path: baseline
+          persist-credentials: false
+
+      - name: Node 24 and npm lock cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            candidate/package-lock.json
+            baseline/package-lock.json
+
+      - name: Verify route parser and dependency locks
+        working-directory: candidate
+        run: node scripts/ui-refine-github/capture.cjs --self-test
+
+      - name: Install locked dependencies in both revisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd candidate && npm ci --no-audit --no-fund)
+          (cd baseline && npm ci --no-audit --no-fund)
+
+      - name: Install Playwright Chromium
+        working-directory: candidate
+        run: npx playwright install --with-deps chromium
+
+      # The starter below supports Vite/npm. Change the commands to your real
+      # server/framework, keeping 4310=baseline, 4311=PR candidate.
+      - name: Start baseline and candidate UI servers
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd baseline && npm run dev -- --host 127.0.0.1 --port 4310) > "$RUNNER_TEMP/ui-base.log" 2>&1 &
+          (cd candidate && npm run dev -- --host 127.0.0.1 --port 4311) > "$RUNNER_TEMP/ui-head.log" 2>&1 &
+          for port in 4310 4311; do
+            ready=false
+            for n in $(seq 1 90); do
+              if curl -fsS --max-time 3 "http://127.0.0.1:$port/" >/dev/null 2>&1; then
+                ready=true
+                break
+              fi
+              sleep 2
+            done
+            if [[ "$ready" != true ]]; then
+              cat "$RUNNER_TEMP/ui-base.log" "$RUNNER_TEMP/ui-head.log"
+              exit 1
+            fi
+          done
+
+      - name: Capture genuine before and after screenshots
+        working-directory: candidate
+        env:
+          UI_REFINE_PR_BODY: "${{ github.event.pull_request.body }}"
+          UI_REFINE_CONFIG: "${{ github.workspace }}/candidate/ui-refine-github.json"
+          UI_REFINE_CANDIDATE: "${{ github.workspace }}/candidate"
+          UI_REFINE_BASELINE: "${{ github.workspace }}/baseline"
+          UI_REFINE_OUT: "${{ runner.temp }}/ui-refine-evidence"
+        run: node scripts/ui-refine-github/capture.cjs
+
+      - name: Preserve screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-only-ui-refine-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          path: "${{ runner.temp }}/ui-refine-evidence/"
+          retention-days: 14
+          if-no-files-found: warn
