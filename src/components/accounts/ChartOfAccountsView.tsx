@@ -9,6 +9,7 @@ import { Input } from '../Input';
 import { StatusBadge } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { FloatingPanel } from '../layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../layout/ActionMenu';
 import { accountingAccounts } from '../../data/accounting';
 import type { AccountingAccount, AccountingGroup } from '../../types/accounting';
 import type { TerminologyMode } from '../../types/transactions';
@@ -139,10 +140,11 @@ export function ChartOfAccountsView({
                     label={'Account actions for ' + account.name}
                     width={190}
                     trigger={({ toggle }) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + account.name}><MoreHorizontal className="size-4" /></button>}>
-                    {(close) => <div className="py-1">
-                      <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); openEdit(account); }}><Pencil className="size-3.5" /> Edit</button>
-                      <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); toggleStatus(account); }}><Power className="size-3.5" /> {account.active ? 'Deactivate' : 'Activate'}</button>
-                    </div>}
+                    {(close) => <ActionMenuList>
+                      <ActionMenuItem icon={Pencil} onClick={() => { close(); openEdit(account); }}>Edit</ActionMenuItem>
+                      <ActionMenuDivider />
+                      <ActionMenuItem icon={Power} onClick={() => { close(); toggleStatus(account); }}>{account.active ? 'Deactivate' : 'Activate'}</ActionMenuItem>
+                    </ActionMenuList>}
                   </FloatingPanel>
                 </TableCell>
               </TableRow>

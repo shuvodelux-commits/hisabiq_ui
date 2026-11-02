@@ -13,6 +13,8 @@ import { VoucherDialog } from '../components/accounts/VoucherDialog';
 import { VoucherActionDialog } from '../components/accounts/VoucherActionDialog';
 import { OpeningBalanceDialog } from '../components/accounts/OpeningBalanceDialog';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem } from '../components/layout/ActionMenu';
+import { Eye } from 'lucide-react';
 import { LedgerView } from '../components/accounts/LedgerView';
 import { TrialBalanceView } from '../components/accounts/TrialBalanceView';
 import { StatementsView } from '../components/accounts/StatementsView';
@@ -299,7 +301,7 @@ export function Accounts() {
                           label={`Actions for ${source.reference}`}
                           width={180}
                           trigger={({ toggle }) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`Actions for ${source.reference}`}><MoreHorizontal className="size-4" /></button>}>
-                          {(close) => <div className="py-1"><button className="flex w-full items-center px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); setEntryActionId(source.id); }}>{text('Open details','বিস্তারিত খুলুন')}</button></div>}
+                          {(close) => <ActionMenuList><ActionMenuItem icon={Eye} onClick={() => { close(); setEntryActionId(source.id); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem></ActionMenuList>}
                         </FloatingPanel>
                       </TableCell>
                     </TableRow>

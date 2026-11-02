@@ -2,6 +2,7 @@ import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { PartyActionSheet } from './PartyActionSheet';
 import { motion, useReducedMotion } from 'framer-motion';
 import { FloatingPanel } from '../layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../layout/ActionMenu';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useEffect, useState } from 'react';
 import { FilePlus2, FileText, HandCoins, MapPin, MessageSquare, MoreHorizontal, Banknote, ArrowLeftRight, Clock, ChevronLeft, ChevronRight, Printer, Paperclip, Phone, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen, type LucideIcon } from 'lucide-react';
@@ -212,7 +213,9 @@ export function PartyDetailResponsive({
   const menuItem = (item: typeof menuActions[number], close: () => void, variant: 'menu' | 'sheet') => {
     const Icon = item.icon;
     const disabled = Boolean(item.disabledReason);
-    return <button key={item.id} type="button" role={variant === 'menu' ? 'menuitem' : undefined}
+    if (variant === 'menu') return <ActionMenuItem key={item.id} icon={Icon} disabled={disabled} title={item.disabledReason}
+      onClick={() => {close();item.run();}}>{item.label}</ActionMenuItem>;
+    return <button key={item.id} type="button"
       disabled={disabled} title={item.disabledReason}
       onClick={() => { close(); item.run(); }}
       className="flex min-h-14 w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left transition-colors hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-teal-500 disabled:cursor-not-allowed disabled:opacity-50">
@@ -375,9 +378,11 @@ export function PartyDetailResponsive({
           trigger={({toggle,open}) => <Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
             <MoreHorizontal className="size-4" />{text('More', 'আরও')}
           </Button>}>
-          {close => <div className="p-1" role="menu" aria-label={text('More actions', 'আরও কাজ')}>
-            {menuActions.filter(item=>item.id!=='note' && item.id!=='refund').map(item => menuItem(item,close,'menu'))}
-          </div>}
+          {close => <ActionMenuList aria-label={text('More actions', 'আরও কাজ')}>
+            {menuActions.filter(item=>item.id!=='note' && item.id!=='refund').map(item => (
+              <div key={item.id}>{item.id === 'print' && <ActionMenuDivider />}{menuItem(item,close,'menu')}</div>
+            ))}
+          </ActionMenuList>}
         </FloatingPanel>
       </div>
 

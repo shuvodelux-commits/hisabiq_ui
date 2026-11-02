@@ -1,5 +1,6 @@
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { FloatingPanel } from '../layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../layout/ActionMenu';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useState } from 'react';
 import { FilePlus2, FileText, HandCoins, Banknote, MoreHorizontal, MapPin, MessageSquare, Paperclip, Phone, Receipt, Send, StickyNote, Pencil, Trash2, BookOpen } from 'lucide-react';
@@ -189,16 +190,15 @@ export function PartyDetail({
           trigger={({toggle,open})=><Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
             <MoreHorizontal className="size-4"/>{text('More','আরও')}
           </Button>}>
-          {close=><div role="menu" aria-label={text('More actions','আরও কাজ')} className="p-1">
-            <button type="button" role="menuitem" onClick={()=>{close();onEditParty();}}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-ink-50">
-              <Pencil className="size-4"/>{text('Edit party','পার্টির তথ্য বদলান')}
-            </button>
-            <button type="button" role="menuitem" onClick={()=>{close();onOpenVendorWork?.('ledger');}}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-ink-50">
-              <BookOpen className="size-4"/>{text('Opening balance','শুরুর জের')}
-            </button>
-          </div>}
+          {close=><ActionMenuList aria-label={text('More actions','আরও কাজ')}>
+            <ActionMenuItem icon={Pencil} onClick={()=>{close();onEditParty();}}>
+              {text('Edit party','পার্টির তথ্য বদলান')}
+            </ActionMenuItem>
+            <ActionMenuDivider />
+            <ActionMenuItem icon={BookOpen} onClick={()=>{close();onOpenVendorWork?.('ledger');}}>
+              {text('Opening balance','শুরুর জের')}
+            </ActionMenuItem>
+          </ActionMenuList>}
         </FloatingPanel>
        </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
@@ -230,21 +230,18 @@ export function PartyDetail({
           trigger={({toggle,open})=><Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
             <MoreHorizontal className="size-4"/>{text('More','আরও')}
           </Button>}>
-          {close=><div role="menu" aria-label={text('More actions','আরও কাজ')} className="p-1">
-            <button type="button" role="menuitem" onClick={()=>{close();onEditParty();}}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-ink-50">
-              <Pencil className="size-4"/>{text('Edit party','পার্টির তথ্য বদলান')}
-            </button>
-            <button type="button" role="menuitem" onClick={()=>{close();setOpeningOpen(true);}}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-ink-50">
-              <BookOpen className="size-4"/>{existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
-            </button>
-            <button type="button" role="menuitem" disabled
-              title={text('SMS service is not connected to the UI preview','এই প্রিভিউতে SMS চালু নেই')}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink-400 opacity-60">
-              <Send className="size-4"/>{text('Send statement','হিসাব পাঠান')}
-            </button>
-          </div>}
+          {close=><ActionMenuList aria-label={text('More actions','আরও কাজ')}>
+            <ActionMenuItem icon={Pencil} onClick={()=>{close();onEditParty();}}>
+              {text('Edit party','পার্টির তথ্য বদলান')}
+            </ActionMenuItem>
+            <ActionMenuDivider />
+            <ActionMenuItem icon={BookOpen} onClick={()=>{close();setOpeningOpen(true);}}>
+              {existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
+            </ActionMenuItem>
+            <ActionMenuItem icon={Send} disabled title={text('SMS service is not connected to the UI preview','এই প্রিভিউতে SMS চালু নেই')}>
+              {text('Send statement','হিসাব পাঠান')}
+            </ActionMenuItem>
+          </ActionMenuList>}
         </FloatingPanel>
       </div>
        </>}
