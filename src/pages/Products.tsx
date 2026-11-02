@@ -574,7 +574,7 @@ export function Products() {
               {visibleColumns.purchase && <TableHead className="h-9 text-right text-xs">{pl('Purchase')}</TableHead>}
               {visibleColumns.selling && <TableHead className="h-9 text-right text-xs">{pl('Selling')}</TableHead>}
               {visibleColumns.status && <TableHead className="h-9 text-xs">{pl('Status')}</TableHead>}
-              <TableHead className="h-9 min-w-[80px] whitespace-nowrap pr-4 text-right text-xs">{pl('Actions')}</TableHead>
+              <TableHead data-products-actions-heading="" className="sticky right-0 z-10 h-9 min-w-[80px] border-l border-border bg-card pr-2 text-right text-xs">{pl('Actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -641,7 +641,7 @@ export function Products() {
                   <TableCell className="py-2">
                     <StatusBadge tone={statusMeta[s].tone} dot>{pl(statusMeta[s].label)}</StatusBadge>
                   </TableCell>}
-                  <TableCell className="py-2 pr-4 text-right">
+                  <TableCell data-products-actions-cell="" className="sticky right-0 z-10 border-l border-border bg-card py-1.5 pr-2 text-right">
                     <ProductActions
                       product={p}
                       onView={() => setDetailsProduct(p)}

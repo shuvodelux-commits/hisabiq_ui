@@ -71,6 +71,15 @@ async function main(){
   assert.ok(await header.evaluate(el=>getComputedStyle(el).visibility==='visible'&&el.querySelector('.sr-only')===null),'Actions is not screen-reader-only');
   const overflow=await region.evaluate(el=>el.scrollWidth>el.clientWidth+1);
   if(overflow){
+   // Same as Audit Ledger: the Action heading and each row menu stay on-screen while the table scrolls.
+   const position=await header.evaluate(el=>getComputedStyle(el).position);
+   assert.equal(position,'sticky','Actions header uses Audit Ledger sticky treatment');
+   assert.equal(await actions.first().locator('xpath=ancestor::td[1]').evaluate(el=>getComputedStyle(el).position),'sticky','Actions cell remains sticky');
+   const rightEdge=await region.evaluate(el=>el.getBoundingClientRect().right);
+   const startAction=await actions.first().boundingBox();
+   const startHeader=await header.boundingBox();
+   assert.ok(startAction.x>=0 && startAction.x+startAction.width<=rightEdge+1,'row actions visible before horizontal swipe');
+   assert.ok(startHeader.x>=0 && startHeader.x+startHeader.width<=rightEdge+1,'Actions header visible before horizontal swipe');
    assert.equal(await region.getAttribute('role'),'region');assert.ok(await region.getAttribute('aria-label'),'overflow region is named');
    await region.scrollIntoViewIfNeeded();await region.focus();await page.keyboard.press('ArrowRight');
    assert.ok(await region.evaluate(el=>el.scrollLeft)>0,'keyboard scroll moves table');
