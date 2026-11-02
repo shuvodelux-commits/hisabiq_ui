@@ -2,7 +2,7 @@ import {useModuleColumns} from '../settings/useModuleColumns';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useSearchParams } from 'react-router-dom';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
@@ -83,14 +83,16 @@ function ProductColumnPicker({
       label={pl('Choose product table columns')}
       width={210}
       trigger={({ toggle, open }) => (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={toggle}
           aria-expanded={open}
-          className="flex h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-ink-700 hover:bg-ink-50">
+          className="gap-2 text-xs">
           {pl('Columns')}
           <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-        </button>
+        </Button>
       )}>
       {() => (
         <div className="py-1">
@@ -147,14 +149,16 @@ function ProductActions({
       label={`${pl('Actions for')} ${product.name}`}
       width={210}
       trigger={({ toggle, open }) => (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={toggle}
           aria-expanded={open}
           aria-label={`${pl('Actions for')} ${product.name}`}
-          className="rounded-md p-1 text-ink-400 hover:bg-ink-50 hover:text-ink">
-          <MoreHorizontal className="size-4" />
-        </button>
+          className="text-ink-500 hover:bg-ink-50 hover:text-ink">
+          <MoreHorizontal className="size-4" aria-hidden="true" />
+        </Button>
       )}>
       {(close) => (
         <div className="py-1">
@@ -224,6 +228,19 @@ export function Products() {
   const [movements, setMovements] = useState<StockMovement[]>(availableStockMovements);
   const [offers, setOffers] = useState<ProductOffer[]>(seedOffers);
   const [inventoryProductFilter, setInventoryProductFilter] = useState('');
+  const productTableRef = useRef<HTMLTableElement>(null);
+  const [tableOverflows, setTableOverflows] = useState(false);
+  useEffect(() => {
+    const table = productTableRef.current;
+    const region = table?.parentElement;
+    if (!table || !region) return;
+    const update = () => setTableOverflows(region.scrollWidth > region.clientWidth + 1);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(table);
+    observer.observe(region);
+    return () => observer.disconnect();
+  }, [view, dialogOpen, creatingBundle, bundleEditorProduct]);
   const soldSerials = useMemo(() => salesInvoices.flatMap((invoice) => invoice.lines.flatMap((line) => line.serials ?? [])), []);
   const knownSerials = useMemo(() => [...lots.flatMap((lot) => lot.serials ?? []), ...soldSerials], [lots, soldSerials]);
   const {columns:visibleColumns,setColumns:setVisibleColumns}=useModuleColumns('products',columnStorageKey,defaultVisibleColumns);
@@ -469,7 +486,7 @@ export function Products() {
 
       <div className="rounded-xl border border-border bg-card shadow-card">
         <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-          <div className="relative w-full max-w-xs">
+          <div className="relative w-full max-w-xs xl:min-w-40 xl:flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
             <Input
               value={query}
@@ -481,18 +498,22 @@ export function Products() {
           </div>
           <div className="flex flex-wrap gap-1">
             {availableProductCategories().map((c) =>
-            <button
+            <Button
               key={c}
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-pressed={category === c}
               onClick={() => setCategory(c)}
-              className={`h-8 rounded-md px-2.5 text-xs font-medium transition-colors ${
-              category === c ? 'bg-inverse text-white' : 'text-ink-600 hover:bg-ink-50'}`
+              className={`text-xs ${
+              category === c ? 'bg-inverse text-white hover:bg-inverse hover:text-white' : 'text-ink-600 hover:bg-ink-50'}`
               }>
               
                 {c==='All'?pl(c):c}
-              </button>
+              </Button>
             )}
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center gap-2">
             <div className="flex rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={pl("Stock filter")}>
               {(
               [
@@ -501,23 +522,36 @@ export function Products() {
               ['out', `Out (${outCount})`]] as
               [StockFilter, string][]).
               map(([id, label]) =>
-              <button
+              <Button
                 key={id}
                 type="button"
+                variant="ghost"
+                size="sm"
                 role="radio"
                 aria-checked={stockFilter === id}
                 onClick={() => setStockFilter(id)}
-                className={`h-7 rounded px-2.5 text-xs font-medium ${stockFilter === id ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
+                className={`text-xs ${stockFilter === id ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
                 
                   {id==='all'?pl(label):`${pl(id==='low'?'Low':'Out')} (${id==='low'?lowCount:outCount})`}
-                </button>
+                </Button>
               )}
             </div>
             <ProductColumnPicker visible={visibleColumns} onToggle={toggleColumn} />
           </div>
         </div>
 
-        <Table>
+        {tableOverflows && <div className="flex justify-end border-b border-border px-3 py-1">
+          <Button variant="ghost" size="sm" data-product-scroll-action=""
+            onClick={() => {
+              const region = productTableRef.current?.parentElement;
+              region?.scrollTo({ left: region.scrollWidth });
+            }}
+            className="gap-1.5 text-xs text-ink-500">
+            {pl('Stock')} · {pl('Selling')} · {pl('Actions')}
+            <ChevronDown className="size-3.5 -rotate-90" aria-hidden="true" />
+          </Button>
+        </div>}
+        <Table ref={productTableRef} scrollRegionLabel={pl('Product list')}>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {visibleColumns.index && <TableHead className="h-9 w-10 pl-4 text-xs">#</TableHead>}
