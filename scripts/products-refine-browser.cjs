@@ -39,8 +39,17 @@ async function main(){
   await stock.nth(1).tap();assert.equal(await stock.nth(1).getAttribute('aria-checked'),'true');
   assert.ok(await table.locator('tbody tr').count()<total,'stock filter actually filters');
   await stock.first().tap();assert.equal(await table.locator('tbody tr').count(),total);
+  await stock.first().focus();await page.keyboard.press('ArrowRight');
+  assert.equal(await stock.nth(1).getAttribute('aria-checked'),'true','ArrowRight selects next stock option');
+  assert.ok(await stock.nth(1).evaluate(el=>el===document.activeElement),'selected stock option retains keyboard focus');
+  await page.keyboard.press('End');assert.equal(await stock.last().getAttribute('aria-checked'),'true','End selects last stock option');
+  await page.keyboard.press('Home');assert.equal(await stock.first().getAttribute('aria-checked'),'true','Home selects first stock option');
   await columns.focus();await page.keyboard.press('Enter');
   await page.getByRole('menuitemcheckbox',{name:bn?'স্টকের দাম':'Stock value',exact:true}).waitFor();
+  const chooser=page.getByRole('menu',{name:bn?'পণ্যের তালিকায় কোন কলাম দেখাবেন':'Choose product table columns'});
+  await chooser.getByRole('menuitemcheckbox',{name:'#',exact:true}).focus();
+  await page.keyboard.press('ArrowDown');
+  assert.ok(await chooser.getByRole('menuitemcheckbox',{name:bn?'ধরন':'Category',exact:true}).evaluate(el=>el===document.activeElement),'ArrowDown skips protected columns in chooser');
   await page.keyboard.press('Escape');assert.equal(await columns.evaluate(el=>el===document.activeElement),true,'column panel restores focus');
   const overflow=await region.evaluate(el=>el.scrollWidth>el.clientWidth+1);
   const scrollAction=page.locator('[data-product-scroll-action]');
@@ -71,6 +80,13 @@ async function main(){
   await page.getByRole('button',{name:bn?'ফিল্টার মুছুন':'Clear filters',exact:true}).tap();assert.equal(await table.locator('tbody tr').count(),total);
   const sizes=await table.evaluate(el=>({data:getComputedStyle(el.querySelector('tbody td')).fontSize,heading:getComputedStyle(el.querySelector('th')).fontSize,helper:getComputedStyle(el.querySelector('[data-table-helper]')).fontSize}));
   assert.deepEqual(sizes,{data:'13px',heading:'12px',helper:'11px'});
+  const tabs=page.getByRole('tablist').first().getByRole('tab');
+  await tabs.first().focus();await page.keyboard.press('ArrowRight');
+  assert.equal(await tabs.nth(1).getAttribute('aria-selected'),'true','ArrowRight selects Stock lots tab');
+  assert.ok(await tabs.nth(1).evaluate(el=>el===document.activeElement),'next tab receives keyboard focus');
+  await page.keyboard.press('End');assert.equal(await tabs.last().getAttribute('aria-selected'),'true','End selects Product settings');
+  await page.keyboard.press('Home');assert.equal(await tabs.first().getAttribute('aria-selected'),'true','Home returns to Product list');
+  assert.ok(await tabs.first().evaluate(el=>el===document.activeElement),'Home retains focus on selected tab');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no whole-page horizontal overflow');
   assert.deepEqual(errors,[]);await context.close();console.log('Products refinement:',language,theme,width,'passed; touch '+(width<=390?'swipe':'tap')+', keyboard scroll/focus');
  }}finally{await browser.close();}

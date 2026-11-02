@@ -95,7 +95,19 @@ function ProductColumnPicker({
         </Button>
       )}>
       {() => (
-        <div className="py-1">
+        <div
+          role="menu"
+          aria-label={pl('Choose product table columns')}
+          className="py-1"
+          onKeyDown={(event) => {
+            if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+            const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+            const current = items.indexOf(document.activeElement as HTMLButtonElement);
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1
+              : (current + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+            event.preventDefault();
+            items[next]?.focus();
+          }}>
           {productColumns.map((column) => (
             <button
               key={column.id}
@@ -465,6 +477,17 @@ export function Products() {
             key={id}
             role="tab"
             aria-selected={view === id}
+            tabIndex={view === id ? 0 : -1}
+            onKeyDown={(event) => {
+              if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+              const tabs = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []);
+              const current = tabs.indexOf(event.currentTarget);
+              const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+                : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+              event.preventDefault();
+              tabs[next]?.focus();
+              chooseView((['list', 'lots', 'history', 'settings'] as ProductView[])[next]);
+            }}
             onClick={() => chooseView(id)}
             className={`flex shrink-0 items-baseline gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${view === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
             {pl(label)} {showHelper&&<span className="font-bn text-[10.5px] font-normal text-ink-400">· {bn}</span>}
@@ -529,6 +552,18 @@ export function Products() {
                 size="sm"
                 role="radio"
                 aria-checked={stockFilter === id}
+                tabIndex={stockFilter === id ? 0 : -1}
+                onKeyDown={(event) => {
+                  if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+                  const options: StockFilter[] = ['all', 'low', 'out'];
+                  const current = options.indexOf(id);
+                  const direction = ['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : -1;
+                  const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1
+                    : (current + direction + options.length) % options.length;
+                  event.preventDefault();
+                  setStockFilter(options[next]);
+                  event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next]?.focus();
+                }}
                 onClick={() => setStockFilter(id)}
                 className={`text-xs ${stockFilter === id ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
                 
