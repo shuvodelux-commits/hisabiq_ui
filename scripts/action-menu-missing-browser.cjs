@@ -4,8 +4,8 @@ const path=require('path');
 const fs=require('fs');
 async function main(){
  const { createServer }=await import('vite');
- const server=await createServer({server:{host:'127.0.0.1',port:4199,strictPort:true},cacheDir:'.superpowers/action-menu-missing-cache'});
- await server.listen();
+ const server=process.env.ACTION_MENU_TEST_EXTERNAL==='1' ? null : await createServer({server:{host:'127.0.0.1',port:4199,strictPort:true},cacheDir:'.superpowers/action-menu-missing-cache'});
+ if(server) await server.listen();
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  const shots='docs/ui-refine/erp-action-menus';
  const tested=[];
@@ -75,7 +75,7 @@ async function main(){
   }
   await ctx.close();
  }
- }finally{await browser.close();await server.close();}
+ }finally{await browser.close();if(server)await server.close();}
  console.log('PASSED',tested.length,tested);
 }
 main().catch(e=>{console.error(e);process.exitCode=1});
