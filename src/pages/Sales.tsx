@@ -1095,7 +1095,7 @@ export function Sales() {
         descriptionBn="বিক্রির বিল, বাকি টাকা ও ফেরত পণ্য দেখুন।"
         actions={
           <>
-            {isMobile ? <SalesMobileMore outlined label={text('Sales actions','বিক্রির অন্যান্য কাজ')}>{close => <Button variant="outline" size="sm" onClick={() => { close(); navigate('/app/parties'); }}><BookOpen className="size-4" />{text('Customer ledger','ক্রেতার খাতা')}</Button>}</SalesMobileMore> : (<Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
+            {isMobile ? <SalesMobileMore outlined label={text('Sales actions','বিক্রির অন্যান্য কাজ')}>{close => <ActionMenuItem icon={BookOpen} onClick={() => { close(); navigate('/app/parties'); }}>{text('Customer ledger','ক্রেতার খাতা')}</ActionMenuItem>}</SalesMobileMore> : (<Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
               <BookOpen className="size-4" /> {text('Customer ledger','ক্রেতার খাতা')}
             </Button>)}
             <Button size="sm" data-sales-header-new="" onClick={() => navigate('/app/pos')}>

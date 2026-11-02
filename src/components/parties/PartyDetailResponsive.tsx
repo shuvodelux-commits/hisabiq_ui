@@ -213,7 +213,7 @@ export function PartyDetailResponsive({
   const menuItem = (item: typeof menuActions[number], close: () => void, variant: 'menu' | 'sheet') => {
     const Icon = item.icon;
     const disabled = Boolean(item.disabledReason);
-    if (variant === 'menu') return <ActionMenuItem key={item.id} icon={Icon} disabled={disabled} title={item.disabledReason}
+    if (variant === 'menu') return <ActionMenuItem role="menuitem" key={item.id} icon={Icon} disabled={disabled} title={item.disabledReason}
       onClick={() => {close();item.run();}}>{item.label}</ActionMenuItem>;
     return <button key={item.id} type="button"
       disabled={disabled} title={item.disabledReason}
@@ -378,7 +378,7 @@ export function PartyDetailResponsive({
           trigger={({toggle,open}) => <Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
             <MoreHorizontal className="size-4" />{text('More', 'আরও')}
           </Button>}>
-          {close => <ActionMenuList aria-label={text('More actions', 'আরও কাজ')}>
+          {close => <ActionMenuList role="menu" aria-label={text('More actions', 'আরও কাজ')}>
             {menuActions.filter(item=>item.id!=='note' && item.id!=='refund').map(item => (
               <div key={item.id}>{item.id === 'print' && <ActionMenuDivider />}{menuItem(item,close,'menu')}</div>
             ))}

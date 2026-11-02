@@ -188,7 +188,7 @@ function ProductActions({
           }}>{pl('Copy SKU / barcode')}</ActionMenuItem>
           <ActionMenuItem icon={Files} onClick={() => { close(); onDuplicate(); }}>{pl('Duplicate')}</ActionMenuItem>
           <ActionMenuDivider />
-          <ActionMenuItem icon={Power} onClick={() => { close(); onToggle(); }}>
+          <ActionMenuItem icon={Power} tone={product.active ? 'destructive' : 'neutral'} onClick={() => { close(); onToggle(); }}>
             {pl(product.active ? 'Deactivate' : 'Activate')}
           </ActionMenuItem>
           {product.kind === 'Bundle' && onDelete && <>

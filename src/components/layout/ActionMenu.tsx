@@ -13,7 +13,7 @@ export function ActionMenuList({ children, className = '', ...props }: HTMLAttri
     event.preventDefault();
     enabled[next]?.focus();
   };
-  return <div {...props} role="menu" data-action-menu="" className={'p-1 ' + className} onKeyDown={onKeyDown}>{children}</div>;
+  return <div {...props} role={props.role ?? 'group'} data-action-menu="" className={'p-1 ' + className} onKeyDown={onKeyDown}>{children}</div>;
 }
 
 export function ActionMenuDivider() {
@@ -31,7 +31,6 @@ export function ActionMenuItem({ icon: Icon, tone = 'neutral', className = '', c
   return <button
     {...props}
     type="button"
-    role="menuitem"
     data-action-menu-item=""
     data-tone={tone}
     className={'flex min-h-10 w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:cursor-not-allowed disabled:opacity-40 ' +

@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown, MoreHorizontal, SlidersHorizontal } from 'lucide-react';
 import { Button } from '../Button';
 import { FloatingPanel } from '../layout/FloatingPanel';
+import { ActionMenuList } from '../layout/ActionMenu';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import './sales-mobile.css';
@@ -36,7 +37,7 @@ export function SalesMobileMore({ label, children, outlined = false }: { label: 
   return <FloatingPanel label={label} width={240} trigger={({ toggle, open }) => <Button data-compact-control variant={outlined ? 'outline' : 'ghost'} size="sm" aria-label={label} aria-expanded={open} onClick={toggle} className="size-9 shrink-0 p-0">
     <MoreHorizontal className="size-4" aria-hidden="true" />
   </Button>}>
-    {close => <div className="sales-mobile-tools space-y-1 p-2">{children(close)}</div>}
+    {close => <ActionMenuList className="sales-mobile-tools space-y-1">{children(close)}</ActionMenuList>}
   </FloatingPanel>;
 }
 

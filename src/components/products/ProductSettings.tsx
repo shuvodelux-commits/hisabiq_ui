@@ -2,7 +2,7 @@ import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import React, { useState } from 'react';
-import { MoreHorizontal, Plus, Ruler, Settings2, Tags } from 'lucide-react';
+import { MoreHorizontal, Plus, Ruler, Settings2, Tags, Pencil, Power, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   availableProductCategories, availableProductBrands, availableProductUnits,
@@ -16,6 +16,7 @@ import { Tooltip } from '../Tooltip';
 import { StatusBadge } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { FloatingPanel } from '../layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../layout/ActionMenu';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {productFormLabel} from '../../i18n/productFormsCopy';
 import {unitSymbol, unitBanglaName, validUnitSymbol} from '../../data/productUnits';
@@ -90,22 +91,15 @@ function SettingActions({
         </button>
       )}>
       {(close) => (
-        <div className="py-1">
-          <button onClick={() => { close(); onEdit(); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-            {pl('Edit')}
-          </button>
-          <button
-            onClick={() => { close(); onToggle(); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
+        <ActionMenuList>
+          <ActionMenuItem icon={Pencil} onClick={() => { close(); onEdit(); }}>{pl('Edit')}</ActionMenuItem>
+          <ActionMenuDivider />
+          <ActionMenuItem icon={Power} tone={active ? 'destructive' : 'neutral'} onClick={() => { close(); onToggle(); }}>
             {pl(active ? 'Deactivate' : 'Activate')}
-          </button>
-          <button
-            onClick={() => { close(); onDelete(); }}
-            className="w-full px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
-            {pl('Delete')}
-          </button>
-        </div>
+          </ActionMenuItem>
+          <ActionMenuDivider />
+          <ActionMenuItem icon={Trash2} tone="destructive" onClick={() => { close(); onDelete(); }}>{pl('Delete')}</ActionMenuItem>
+        </ActionMenuList>
       )}
     </FloatingPanel>
   );

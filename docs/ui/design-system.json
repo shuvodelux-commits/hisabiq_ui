@@ -4390,6 +4390,7 @@
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Expenses.tsx",
+      "src/pages/OnlineSales.tsx",
       "src/pages/Products.tsx",
       "src/pages/Purchases.tsx",
       "src/settings/AccountSecuritySettings.tsx",
@@ -4674,6 +4675,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/pos/InstallmentTermsPanel.tsx",
+      "src/components/products/ProductSettings.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Expenses.tsx",
@@ -4759,6 +4761,7 @@
     "Power": [
       "src/components/accounts/ChartOfAccountsView.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
+      "src/components/products/ProductSettings.tsx",
       "src/pages/Products.tsx"
     ],
     "Printer": [
@@ -5003,6 +5006,7 @@
       "src/components/pos/DraftsMenu.tsx",
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/products/BundleEditor.tsx",
+      "src/components/products/ProductSettings.tsx",
       "src/components/purchases/BillDialog.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",

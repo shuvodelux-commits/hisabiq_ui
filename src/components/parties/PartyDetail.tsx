@@ -190,12 +190,12 @@ export function PartyDetail({
           trigger={({toggle,open})=><Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
             <MoreHorizontal className="size-4"/>{text('More','আরও')}
           </Button>}>
-          {close=><ActionMenuList aria-label={text('More actions','আরও কাজ')}>
-            <ActionMenuItem icon={Pencil} onClick={()=>{close();onEditParty();}}>
+          {close=><ActionMenuList role="menu" aria-label={text('More actions','আরও কাজ')}>
+            <ActionMenuItem role="menuitem" icon={Pencil} onClick={()=>{close();onEditParty();}}>
               {text('Edit party','পার্টির তথ্য বদলান')}
             </ActionMenuItem>
             <ActionMenuDivider />
-            <ActionMenuItem icon={BookOpen} onClick={()=>{close();onOpenVendorWork?.('ledger');}}>
+            <ActionMenuItem role="menuitem" icon={BookOpen} onClick={()=>{close();onOpenVendorWork?.('ledger');}}>
               {text('Opening balance','শুরুর জের')}
             </ActionMenuItem>
           </ActionMenuList>}
@@ -230,15 +230,15 @@ export function PartyDetail({
           trigger={({toggle,open})=><Button size="sm" variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
             <MoreHorizontal className="size-4"/>{text('More','আরও')}
           </Button>}>
-          {close=><ActionMenuList aria-label={text('More actions','আরও কাজ')}>
-            <ActionMenuItem icon={Pencil} onClick={()=>{close();onEditParty();}}>
+          {close=><ActionMenuList role="menu" aria-label={text('More actions','আরও কাজ')}>
+            <ActionMenuItem role="menuitem" icon={Pencil} onClick={()=>{close();onEditParty();}}>
               {text('Edit party','পার্টির তথ্য বদলান')}
             </ActionMenuItem>
             <ActionMenuDivider />
-            <ActionMenuItem icon={BookOpen} onClick={()=>{close();setOpeningOpen(true);}}>
+            <ActionMenuItem role="menuitem" icon={BookOpen} onClick={()=>{close();setOpeningOpen(true);}}>
               {existingOpening?text('Edit opening balance','শুরুর জের বদলান'):text('Opening balance','শুরুর জের')}
             </ActionMenuItem>
-            <ActionMenuItem icon={Send} disabled title={text('SMS service is not connected to the UI preview','এই প্রিভিউতে SMS চালু নেই')}>
+            <ActionMenuItem role="menuitem" icon={Send} disabled title={text('SMS service is not connected to the UI preview','এই প্রিভিউতে SMS চালু নেই')}>
               {text('Send statement','হিসাব পাঠান')}
             </ActionMenuItem>
           </ActionMenuList>}
