@@ -8,6 +8,7 @@ import {Copy,FileText,Plus,Printer,Search,Trash2,Pencil,Check,Send, X} from 'luc
 import {toast} from 'sonner';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
+import {ActionMenuItem} from '../components/layout/ActionMenu';
 import {Input} from '../components/Input';
 import {AppSelect} from '../components/AppSelect';
 import {AppDateRangePicker} from '../components/AppDateRangePicker';
@@ -240,7 +241,7 @@ export function Quotations(){
    {isMobile ? <div className="sales-mobile-quote-records" aria-label={ql('Quotations')}>{filtered.map(q=><SalesMobileRecord key={q.id} reference={q.number} name={q.customerName} date={q.date}
      status={<StatusBadge tone={statusTone[quoteDisplayStatus(q)]}>{ql(quoteDisplayStatus(q))}</StatusBadge>}
      meta={<>{ql('Valid:')} {q.validUntil} · {q.lines.length} {ql('Items')}</>} amount={<>{ql('Total')} <strong className="text-ink">{taka(quoteTotal(q))}</strong></>} onOpen={()=>setDetailId(q.id)}
-     actions={<SalesMobileMore label={ql('Actions')+' '+q.number}>{close=><><Button variant="outline" size="sm" onClick={()=>{close();setDetailId(q.id);}}><FileText className="size-3.5"/>{ql('View')}</Button><Button variant="outline" size="sm" onClick={()=>{close();duplicate(q);}}><Copy className="size-3.5"/>{ql('Duplicate')}</Button></>}</SalesMobileMore>} />)}</div> : (<div className="overflow-x-auto">
+     actions={<SalesMobileMore label={ql('Actions')+' '+q.number}>{close=><><ActionMenuItem icon={FileText} onClick={()=>{close();setDetailId(q.id);}}>{ql('View')}</ActionMenuItem><ActionMenuItem icon={Copy} onClick={()=>{close();duplicate(q);}}>{ql('Duplicate')}</ActionMenuItem></>}</SalesMobileMore>} />)}</div> : (<div className="overflow-x-auto">
     <Table><TableHeader><TableRow>
      <TableHead>{ql('Quote')}</TableHead><TableHead>{ql('Customer')}</TableHead><TableHead>{ql('Date / expiry')}</TableHead>
      <TableHead className="text-right">{ql("Items")}</TableHead><TableHead className="text-right">{ql("Total")}</TableHead>

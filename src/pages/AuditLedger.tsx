@@ -13,6 +13,7 @@ import {documentLabel} from '../i18n/documentCopy';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { AuditDetailsDialog } from '../components/audit/AuditDetailsDialog';
 import { AuditEditDialog } from '../components/audit/AuditEditDialog';
 import { AuditFilters, type AuditFilterState } from '../components/audit/AuditFilters';
@@ -288,11 +289,14 @@ export function AuditLedger() {
                           </Button>
                         )}>
                         {(close) => (
-                          <div className="py-1">
-                            {availability.view && <button className="flex min-h-9 w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); setDetailId(source.id); }}><Eye className="size-3.5" /> {text('Open','খুলুন')}</button>}
-                            {source.status === 'Posted' && availability.correct && <button className="flex min-h-9 w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-700 hover:bg-ink-50" onClick={() => { close(); requestEdit(source); }}><Pencil className="size-3.5" /> {text('Correct','সংশোধন')}</button>}
-                            {source.status === 'Posted' && availability.delete && <button className="flex min-h-9 w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] text-danger hover:bg-danger/5" onClick={() => { close(); requestDelete(source); }}><Trash2 className="size-3.5" /> {text('Delete','মুছুন')}</button>}
-                          </div>
+                          <ActionMenuList>
+                            {availability.view && <ActionMenuItem icon={Eye} onClick={() => { close(); setDetailId(source.id); }}>{text('Open','খুলুন')}</ActionMenuItem>}
+                            {source.status === 'Posted' && availability.correct && <ActionMenuItem icon={Pencil} onClick={() => { close(); requestEdit(source); }}>{text('Correct','সংশোধন')}</ActionMenuItem>}
+                            {source.status === 'Posted' && availability.delete && <>
+                              <ActionMenuDivider />
+                              <ActionMenuItem icon={Trash2} tone="destructive" onClick={() => { close(); requestDelete(source); }}>{text('Delete','মুছুন')}</ActionMenuItem>
+                            </>}
+                          </ActionMenuList>
                         )}
                       </FloatingPanel>
                     </TableCell>

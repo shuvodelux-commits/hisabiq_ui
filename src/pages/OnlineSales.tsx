@@ -8,9 +8,10 @@ import {useEffect,useMemo,useState,useSyncExternalStore} from 'react';
 import {Link,useNavigate,useSearchParams} from 'react-router-dom';
 import {toast} from 'sonner';
 import {ErpNotificationsWorkbench} from './ErpNotifications';
-import {Check,ChevronRight,FileText,Plus} from 'lucide-react';
+import {Check,ChevronRight,FileText,Plus,Eye} from 'lucide-react';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
+import {ActionMenuItem} from '../components/layout/ActionMenu';
 import {Input} from '../components/Input';
 import {AppSelect} from '../components/AppSelect';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter} from '../components/Dialog';
@@ -347,7 +348,7 @@ export function OnlineSales(){
  return <div className="sales-mobile-page mx-auto max-w-[1440px] space-y-4">
   <div className="sales-mobile-header"><PageHeader title="Online Sales" titleBn="অনলাইন বিক্রি" description="Social commerce orders, courier COD and follow-ups · manual UI preview only."
    descriptionBn="ফেসবুকসহ অনলাইন অর্ডার, কুরিয়ারের টাকা ও ক্রেতার খোঁজখবর দেখুন · শুধু নমুনা।"
-   actions={<>{isMobile ? <SalesMobileMore label={ol('Online sales actions')}>{close=><Button size="sm" variant="outline" onClick={()=>{close();navigate('/app/quotations');}}><FileText className="size-4"/>{ol('Quotations')}</Button>}</SalesMobileMore> : (<Link to="/app/quotations"><Button size="sm" variant="outline"><FileText className="size-4"/> {ol("Quotations")}</Button></Link>)}
+   actions={<>{isMobile ? <SalesMobileMore label={ol('Online sales actions')}>{close=><ActionMenuItem icon={FileText} onClick={()=>{close();navigate('/app/quotations');}}>{ol('Quotations')}</ActionMenuItem>}</SalesMobileMore> : (<Link to="/app/quotations"><Button size="sm" variant="outline"><FileText className="size-4"/> {ol("Quotations")}</Button></Link>)}
     <Button size="sm" onClick={()=>{setEditing(null);setQuoteDraft(null);setEditorOpen(true);}}><Plus className="size-4"/> {ol("New online order")}</Button></>}/></div>
   {isMobile ? <SalesMobileSummary items={onlineSummary.map(([label,value,helper])=>({label:ol(label),value,helper:ol(helper)}))} /> : (<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
    {onlineSummary
@@ -374,7 +375,7 @@ export function OnlineSales(){
        status={<StatusBadge tone={stageTone(o.stage)}>{ol(o.stage)}</StatusBadge>}
        meta={<>{o.channel} · {o.phone}{tab==='Courier & COD'&&<><br/>{o.courier??ol('Not assigned')} · {o.tracking??ol('No tracking')} · {ol('Clearing')} {taka(clearing.pending)}</>}</>}
        amount={<>{ol('Grand total')} <strong className="text-ink">{taka(totals.grand)}</strong></>} balance={<>{ol('COD')} <strong className="text-teal-700">{taka(totals.cod)}</strong></>}
-       onOpen={()=>setSelectedId(o.id)} actions={<SalesMobileMore label={ol('Order actions')+' '+o.number}>{close=><Button variant="outline" size="sm" onClick={()=>{close();setSelectedId(o.id);}}>{ol('Open')}<ChevronRight className="size-3.5"/></Button>}</SalesMobileMore>} /> : <div key={o.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
+       onOpen={()=>setSelectedId(o.id)} actions={<SalesMobileMore label={ol('Order actions')+' '+o.number}>{close=><ActionMenuItem icon={Eye} onClick={()=>{close();setSelectedId(o.id);}}>{ol('Open')}</ActionMenuItem>}</SalesMobileMore>} /> : <div key={o.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
        <div className="min-w-[135px] flex-1"><button onClick={()=>setSelectedId(o.id)} className="text-left text-sm font-semibold text-teal-700 hover:underline dark:text-teal-400">{o.number}</button><p className="text-[11px] text-ink-500">{o.channel} · {o.customerName}</p></div>
        <div className="w-[110px] text-xs"><p className="font-semibold text-ink">{taka(totals.grand)}</p><p className="text-ink-500">{ol('COD')} {taka(totals.cod)}</p></div>
        {tab==='Courier & COD'&&<div className="w-36 text-xs"><p>{o.courier??ol('Not assigned')}</p><p className="truncate text-ink-500">{o.tracking??ol('No tracking')}</p><p className="text-teal-700 dark:text-teal-400">{ol('Clearing')} {taka(clearing.pending)}</p></div>}

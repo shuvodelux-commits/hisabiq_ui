@@ -2261,6 +2261,16 @@
       "reexports": []
     },
     {
+      "file": "src/components/layout/ActionMenu.tsx",
+      "kind": "component",
+      "exports": [
+        "ActionMenuList",
+        "ActionMenuDivider",
+        "ActionMenuItem"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/layout/AppShell.tsx",
       "kind": "component",
       "exports": [
@@ -4106,6 +4116,9 @@
     "BadgePercent": [
       "src/settings/CommerceSettingsPanels.tsx"
     ],
+    "Ban": [
+      "src/pages/Expenses.tsx"
+    ],
     "Banknote": [
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/dashboard/MetricCard.tsx",
@@ -4114,6 +4127,7 @@
       "src/components/parties/VendorQuickSettlementDialog.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/pages/Finance.tsx",
+      "src/pages/Purchases.tsx",
       "src/pages/Sales.tsx"
     ],
     "BarChart3": [
@@ -4153,6 +4167,9 @@
       "src/pages/Sales.tsx",
       "src/saas/SaasShell.tsx",
       "src/settings/SettingsDirectory.tsx"
+    ],
+    "Boxes": [
+      "src/pages/Products.tsx"
     ],
     "Briefcase": [
       "src/saas/SaasShell.tsx"
@@ -4310,11 +4327,13 @@
       "src/components/layout/Calculator.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/Pos.tsx",
+      "src/pages/Products.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Sales.tsx"
     ],
     "CornerUpLeft": [
       "src/components/parties/PartyLedgerRowActions.tsx",
+      "src/pages/Purchases.tsx",
       "src/pages/Sales.tsx"
     ],
     "CreditCard": [
@@ -4368,7 +4387,12 @@
       "src/components/products/BundleEditor.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
+      "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
+      "src/pages/Expenses.tsx",
+      "src/pages/OnlineSales.tsx",
+      "src/pages/Products.tsx",
+      "src/pages/Purchases.tsx",
       "src/settings/AccountSecuritySettings.tsx",
       "src/settings/EmployeeDirectory.tsx"
     ],
@@ -4394,6 +4418,9 @@
       "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx"
+    ],
+    "Files": [
+      "src/pages/Products.tsx"
     ],
     "FileSearch": [
       "src/components/reports/ReportResults.tsx"
@@ -4454,6 +4481,8 @@
     ],
     "History": [
       "src/components/parties/VendorCorrectionDialog.tsx",
+      "src/pages/Products.tsx",
+      "src/pages/Purchases.tsx",
       "src/saas/SaasShell.tsx"
     ],
     "ImagePlus": [
@@ -4609,7 +4638,8 @@
       "src/components/dashboard/MetricCard.tsx"
     ],
     "PackagePlus": [
-      "src/components/purchases/PurchaseCart.tsx"
+      "src/components/purchases/PurchaseCart.tsx",
+      "src/pages/Products.tsx"
     ],
     "PackageSearch": [
       "src/components/FeedbackState.tsx"
@@ -4645,9 +4675,13 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/pos/InstallmentTermsPanel.tsx",
+      "src/components/products/ProductSettings.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/AuditLedger.tsx",
+      "src/pages/Expenses.tsx",
       "src/pages/Pos.tsx",
+      "src/pages/Products.tsx",
+      "src/pages/Purchases.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Sales.tsx",
       "src/settings/EmployeeDirectory.tsx"
@@ -4726,7 +4760,9 @@
     ],
     "Power": [
       "src/components/accounts/ChartOfAccountsView.tsx",
-      "src/components/finance/FinanceRecordDialogs.tsx"
+      "src/components/finance/FinanceRecordDialogs.tsx",
+      "src/components/products/ProductSettings.tsx",
+      "src/pages/Products.tsx"
     ],
     "Printer": [
       "src/components/accounts/LedgerView.tsx",
@@ -4753,6 +4789,7 @@
       "src/pages/Daybook.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Pos.tsx",
+      "src/pages/Purchases.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
@@ -4917,6 +4954,7 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/components/sales/SalesWideToolbar.tsx",
       "src/pages/Dashboard.tsx",
+      "src/pages/Products.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsActivity.tsx",
       "src/settings/SettingsDirectory.tsx",
@@ -4949,7 +4987,8 @@
       "src/components/products/ProductInventoryDialogs.tsx"
     ],
     "Tags": [
-      "src/components/products/ProductSettings.tsx"
+      "src/components/products/ProductSettings.tsx",
+      "src/pages/Products.tsx"
     ],
     "Trash2": [
       "src/components/accounts/VoucherActionDialog.tsx",
@@ -4967,6 +5006,7 @@
       "src/components/pos/DraftsMenu.tsx",
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/products/BundleEditor.tsx",
+      "src/components/products/ProductSettings.tsx",
       "src/components/purchases/BillDialog.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",
@@ -4974,6 +5014,7 @@
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorGoodsEditor.tsx",
       "src/pages/AuditLedger.tsx",
+      "src/pages/Products.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",

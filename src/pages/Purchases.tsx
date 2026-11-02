@@ -29,6 +29,8 @@ import { availablePurchases, availablePurchaseEvents } from '../data/erpDemoStor
 import type { Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
+import { Eye, Printer, Pencil, Banknote, CornerUpLeft, History } from 'lucide-react';
 import { printReport, downloadReport } from '../utils/reportOutput';
 import { availableProducts } from '../data/erpDemoStore';
 
@@ -249,14 +251,15 @@ export function Purchases() {
                       <TableCell className="py-2 pr-4 text-right">
                         <div onClick={e => e.stopPropagation()}>
                           <FloatingPanel label={`${pl("Actions for")} ${p.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`${pl("Actions for")} ${p.ref}`}><MoreHorizontal className="size-4" /></button>}>
-                            {close => <div className="p-1 text-left text-xs">
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();openBill(p);}}>{text('View bill','বিল দেখুন')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();printPurchase(p);}}>{text('Print bill','বিল প্রিন্ট')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||events.some(e=>e.purchaseId===p.id&&e.kind!=='correction')} title={pl('Complete original snapshots and no later allocations required')} onClick={()=>{close();setSourceAction({purchase:p,mode:'correction'});}}>{text('Correct purchase','ক্রয় সংশোধন')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" disabled={!sourceEditable(p)||position(p).due<=0} title={pl('Payment needs a complete source bill with supplier due')} onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>{text('Pay due','বাকি দিন')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => {close();reviewReturn(p);}}>{text('Review return','ফেরত যাচাই')}</Button>
-                              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={()=>{close();setHistorySource(p);}}>{text('Source history','পরিবর্তনের ইতিহাস')}</Button>
-                            </div>}
+                            {close => <ActionMenuList>
+                              <ActionMenuItem icon={Eye} onClick={() => {close();openBill(p);}}>{text('View bill','বিল দেখুন')}</ActionMenuItem>
+                              <ActionMenuItem icon={Printer} onClick={() => {close();printPurchase(p);}}>{text('Print bill','বিল প্রিন্ট')}</ActionMenuItem>
+                              <ActionMenuItem icon={Pencil} disabled={!sourceEditable(p)||events.some(e=>e.purchaseId===p.id&&e.kind!=='correction')} title={pl('Complete original snapshots and no later allocations required')} onClick={()=>{close();setSourceAction({purchase:p,mode:'correction'});}}>{text('Correct purchase','ক্রয় সংশোধন')}</ActionMenuItem>
+                              <ActionMenuDivider />
+                              <ActionMenuItem icon={Banknote} disabled={!sourceEditable(p)||position(p).due<=0} title={pl('Payment needs a complete source bill with supplier due')} onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>{text('Pay due','বাকি দিন')}</ActionMenuItem>
+                              <ActionMenuItem icon={CornerUpLeft} onClick={() => {close();reviewReturn(p);}}>{text('Review return','ফেরত যাচাই')}</ActionMenuItem>
+                              <ActionMenuItem icon={History} onClick={()=>{close();setHistorySource(p);}}>{text('Source history','পরিবর্তনের ইতিহাস')}</ActionMenuItem>
+                            </ActionMenuList>}
                           </FloatingPanel>
                         </div>
                       </TableCell>

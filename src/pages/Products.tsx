@@ -3,7 +3,7 @@ import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search } from 'lucide-react';
+import { Check, ChevronDown, Download, Upload, MoreHorizontal, Plus, Search, Eye, Pencil, SlidersHorizontal, PackagePlus, Tags, Boxes, History, Copy, Files, Power, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/Dialog';
@@ -18,6 +18,7 @@ import { ImportWizard } from '../components/import/ImportWizard';
 import { ManageOffersDialog, ProductDetailsDialog, StockAdjustmentDialog, StockLotDialog, type StockAdjustmentResult } from '../components/products/ProductInventoryDialogs';
 import { StockHistoryView, StockLotsView } from '../components/products/ProductInventoryViews';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { ProductSettings } from '../components/products/ProductSettings';
 import { availableProducts, availableProductCategories, availableStockLots, availableStockMovements } from '../data/erpDemoStore';
 import {planProductImport,resolveProductDecisions} from '../import/productImport.ts';
@@ -154,7 +155,6 @@ function ProductActions({
 }) {
   const {language}=useUiCopy();
   const pl=(english:string)=>productLabel(language,english);
-  const itemClass = 'w-full px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
 
   return (
     <FloatingPanel
@@ -173,33 +173,29 @@ function ProductActions({
         </Button>
       )}>
       {(close) => (
-        <div className="py-1">
-          <button type="button" onClick={() => { close(); onView(); }} className={itemClass}>{pl('View details')}</button>
-          <button type="button" onClick={() => { close(); onEdit(); }} className={itemClass}>{pl('Edit product')}</button>
-          {product.kind !== 'Service' && product.kind !== 'Bundle' && <button type="button" onClick={() => { close(); onAdjust(); }} className={itemClass}>{pl('Adjust stock')}</button>}
-          {product.kind !== 'Service' && product.kind !== 'Bundle' && <button type="button" onClick={() => { close(); onAddLot(); }} className={itemClass}>{pl('Add stock lot')}</button>}
-          <button type="button" onClick={() => { close(); onOffers(); }} className={itemClass}>{pl('Manage offers')}</button>
-          <div className="my-1 border-t border-border" />
-          {product.kind !== 'Service' && product.kind !== 'Bundle' && <button type="button" onClick={() => { close(); onLots(); }} className={itemClass}>{pl('Stock lots & serials')}</button>}
-          <button type="button" onClick={() => { close(); onHistory(); }} className={itemClass}>{pl('Product history')}</button>
-          <button
-            type="button"
-            onClick={() => {
-              close();
-              void navigator.clipboard?.writeText(product.sku);
-              toast.success(pl('SKU copied'), { description: product.sku });
-            }}
-            className={itemClass}>
-            {pl('Copy SKU / barcode')}
-          </button>
-          <div className="my-1 border-t border-border" />
-          <button type="button" onClick={() => { close(); onDuplicate(); }} className={itemClass}>{pl('Duplicate')}</button>
-          {product.kind==='Bundle' && onDelete && <button type="button" onClick={() => {close();onDelete();}}
-            className={itemClass+' text-danger'}>{pl('Delete package')}</button>}
-          <button type="button" onClick={() => { close(); onToggle(); }} className={itemClass}>
+        <ActionMenuList>
+          <ActionMenuItem icon={Eye} onClick={() => { close(); onView(); }}>{pl('View details')}</ActionMenuItem>
+          <ActionMenuItem icon={Pencil} onClick={() => { close(); onEdit(); }}>{pl('Edit product')}</ActionMenuItem>
+          <ActionMenuDivider />
+          {product.kind !== 'Service' && product.kind !== 'Bundle' && <ActionMenuItem icon={SlidersHorizontal} onClick={() => { close(); onAdjust(); }}>{pl('Adjust stock')}</ActionMenuItem>}
+          {product.kind !== 'Service' && product.kind !== 'Bundle' && <ActionMenuItem icon={PackagePlus} onClick={() => { close(); onAddLot(); }}>{pl('Add stock lot')}</ActionMenuItem>}
+          <ActionMenuItem icon={Tags} onClick={() => { close(); onOffers(); }}>{pl('Manage offers')}</ActionMenuItem>
+          {product.kind !== 'Service' && product.kind !== 'Bundle' && <ActionMenuItem icon={Boxes} onClick={() => { close(); onLots(); }}>{pl('Stock lots & serials')}</ActionMenuItem>}
+          <ActionMenuItem icon={History} onClick={() => { close(); onHistory(); }}>{pl('Product history')}</ActionMenuItem>
+          <ActionMenuItem icon={Copy} onClick={() => {
+            close(); void navigator.clipboard?.writeText(product.sku);
+            toast.success(pl('SKU copied'), { description: product.sku });
+          }}>{pl('Copy SKU / barcode')}</ActionMenuItem>
+          <ActionMenuItem icon={Files} onClick={() => { close(); onDuplicate(); }}>{pl('Duplicate')}</ActionMenuItem>
+          <ActionMenuDivider />
+          <ActionMenuItem icon={Power} tone={product.active ? 'destructive' : 'neutral'} onClick={() => { close(); onToggle(); }}>
             {pl(product.active ? 'Deactivate' : 'Activate')}
-          </button>
-        </div>
+          </ActionMenuItem>
+          {product.kind === 'Bundle' && onDelete && <>
+            <ActionMenuDivider />
+            <ActionMenuItem icon={Trash2} tone="destructive" onClick={() => { close(); onDelete(); }}>{pl('Delete package')}</ActionMenuItem>
+          </>}
+        </ActionMenuList>
       )}
     </FloatingPanel>
   );

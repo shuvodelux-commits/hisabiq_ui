@@ -43,6 +43,7 @@ import {salesLabel,salesOptions} from '../i18n/salesCopy';
 import type {UiLanguage} from '../i18n/uiCopy';
 import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { customerCredits as seedCredits, salesReturns as seedReturns } from '../data/sales';
@@ -208,7 +209,6 @@ function InvoiceActions({
   const navigate = useNavigate();
   const {language}=useUiCopy();
   const sl=(english:string)=>salesLabel(language,english);
-  const itemClass = 'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
 
   return (
     <FloatingPanel
@@ -227,36 +227,18 @@ function InvoiceActions({
         </button>
       )}>
       {(close) => (
-        <div className="py-1" onClick={(event) => event.stopPropagation()}>
-          <button className={itemClass} onClick={() => { close(); onView(); }}>
-            <FileText className="size-4 text-ink-400" /> {sl('View invoice')}
-          </button>
-          <button className={itemClass} onClick={() => { close(); navigate(`/app/pos?mode=edit&invoice=${invoice.invoice}`); }}>
-            <Pencil className="size-4 text-ink-400" /> {sl('Edit sale')}
-          </button>
-          <button className={itemClass} onClick={() => { close(); navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`); }}>
-            <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
-          </button>
-          {invoice.due > 0 && (
-            <button className={itemClass} onClick={() => { close(); onPayment(); }}>
-              <Banknote className="size-4 text-ink-400" /> {sl('Take payment')}
-            </button>
-          )}
-          <button className={itemClass} onClick={() => { close(); onReturn(); }}>
-            <CornerUpLeft className="size-4 text-ink-400" /> {sl('Return items')}
-          </button>
-          <button className={itemClass} onClick={() => { close(); navigate(`/app/warranty?invoice=${invoice.invoice}`); }}>
-            <ShieldCheck className="size-4 text-ink-400" /> {sl('Receive warranty')}
-          </button>
-          {invoice.partyId && (
-            <button className={itemClass} onClick={() => { close(); navigate(`/app/parties?id=${invoice.partyId}`); }}>
-              <UserRound className="size-4 text-ink-400" /> {sl('Customer ledger')}
-            </button>
-          )}
-          <button className={itemClass} onClick={() => { close(); printInvoice(invoice,language); }}>
-            <Printer className="size-4 text-ink-400" /> {sl('Print')}
-          </button>
-        </div>
+        <ActionMenuList onClick={(event) => event.stopPropagation()}>
+          <ActionMenuItem icon={FileText} onClick={() => { close(); onView(); }}>{sl('View invoice')}</ActionMenuItem>
+          <ActionMenuItem icon={Pencil} onClick={() => { close(); navigate(`/app/pos?mode=edit&invoice=${invoice.invoice}`); }}>{sl('Edit sale')}</ActionMenuItem>
+          <ActionMenuDivider />
+          <ActionMenuItem icon={Copy} onClick={() => { close(); navigate(`/app/pos?mode=duplicate&invoice=${invoice.invoice}`); }}>{sl('Duplicate')}</ActionMenuItem>
+          {invoice.due > 0 && <ActionMenuItem icon={Banknote} onClick={() => { close(); onPayment(); }}>{sl('Take payment')}</ActionMenuItem>}
+          <ActionMenuItem icon={CornerUpLeft} onClick={() => { close(); onReturn(); }}>{sl('Return items')}</ActionMenuItem>
+          <ActionMenuItem icon={ShieldCheck} onClick={() => { close(); navigate(`/app/warranty?invoice=${invoice.invoice}`); }}>{sl('Receive warranty')}</ActionMenuItem>
+          {invoice.partyId && <ActionMenuItem icon={UserRound} onClick={() => { close(); navigate(`/app/parties?id=${invoice.partyId}`); }}>{sl('Customer ledger')}</ActionMenuItem>}
+          <ActionMenuDivider />
+          <ActionMenuItem icon={Printer} onClick={() => { close(); printInvoice(invoice,language); }}>{sl('Print')}</ActionMenuItem>
+        </ActionMenuList>
       )}
     </FloatingPanel>
   );
@@ -1023,28 +1005,19 @@ export function Sales() {
                         </button>
                       )}>
                       {(close) => (
-                        <div className="py-1">
-                          <button onClick={() => { close(); setReturnDetail(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <FileText className="size-4 text-ink-400" /> {sl('View return')}
-                          </button>
-                          <button onClick={() => { close(); printReturn(item,language); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <Printer className="size-4 text-ink-400" /> {sl('Print')}
-                          </button>
-                          <button disabled={!salesReturnCustomerId(item,invoices,availableParties())} title={!salesReturnCustomerId(item,invoices,availableParties())?text('No linked customer account','ক্রেতার কোনো যুক্ত হিসাব নেই'):undefined} onClick={() => { close(); const id=salesReturnCustomerId(item,invoices,availableParties()); if(id)navigate(`/app/parties?id=${encodeURIComponent(id)}&role=Customer`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
-                          </button>
-                          <button onClick={() => {
-                            close();
-                            setReturnCustomer(item.customer);
-                            setReturnInvoiceIds([]);
-                            setReturnQty({}); setReturnUnitQuantities({});
-                            setReturnReason({});
-                            setReturnSerials({});
+                        <ActionMenuList>
+                          <ActionMenuItem icon={FileText} onClick={() => { close(); setReturnDetail(item); }}>{sl('View return')}</ActionMenuItem>
+                          <ActionMenuItem icon={Printer} onClick={() => { close(); printReturn(item,language); }}>{sl('Print')}</ActionMenuItem>
+                          <ActionMenuDivider />
+                          <ActionMenuItem icon={BookOpen} disabled={!salesReturnCustomerId(item,invoices,availableParties())}
+                            title={!salesReturnCustomerId(item,invoices,availableParties())?text('No linked customer account','ক্রেতার কোনো যুক্ত হিসাব নেই'):undefined}
+                            onClick={() => { close(); const id=salesReturnCustomerId(item,invoices,availableParties()); if(id)navigate(`/app/parties?id=${encodeURIComponent(id)}&role=Customer`); }}>{sl('Customer ledger')}</ActionMenuItem>
+                          <ActionMenuItem icon={CornerUpLeft} onClick={() => {
+                            close();setReturnCustomer(item.customer);setReturnInvoiceIds([]);
+                            setReturnQty({});setReturnUnitQuantities({});setReturnReason({});setReturnSerials({});
                             chooseTab('return');
-                          }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                            <CornerUpLeft className="size-4 text-ink-400" /> {sl('Start another return')}
-                          </button>
-                        </div>
+                          }}>{sl('Start another return')}</ActionMenuItem>
+                        </ActionMenuList>
                       )}
                     </FloatingPanel>
   );
@@ -1063,25 +1036,14 @@ export function Sales() {
                           </button>
                         )}>
                         {(close) => (
-                          <div className="py-1">
-                            <button
-                              disabled={credit.balance <= 0}
-                              onClick={() => { close(); setCreditAction({ credit, mode: 'apply' }); }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
-                              <FileText className="size-4 text-ink-400" /> {sl('Apply to invoice')}
-                            </button>
-                            <button
-                              disabled={credit.balance <= 0}
-                              onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50 disabled:cursor-not-allowed disabled:text-helper">
-                              <Banknote className="size-4 text-ink-400" /> {sl('Refund credit')}
-                            </button>
-                            <button
-                              onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <BookOpen className="size-4 text-ink-400" /> {sl('Customer ledger')}
-                            </button>
-                          </div>
+                          <ActionMenuList>
+                            <ActionMenuItem icon={FileText} disabled={credit.balance <= 0}
+                              onClick={() => { close(); setCreditAction({ credit, mode: 'apply' }); }}>{sl('Apply to invoice')}</ActionMenuItem>
+                            <ActionMenuItem icon={Banknote} disabled={credit.balance <= 0}
+                              onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}>{sl('Refund credit')}</ActionMenuItem>
+                            <ActionMenuDivider />
+                            <ActionMenuItem icon={BookOpen} onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}>{sl('Customer ledger')}</ActionMenuItem>
+                          </ActionMenuList>
                         )}
                       </FloatingPanel>
   );
@@ -1133,7 +1095,7 @@ export function Sales() {
         descriptionBn="বিক্রির বিল, বাকি টাকা ও ফেরত পণ্য দেখুন।"
         actions={
           <>
-            {isMobile ? <SalesMobileMore outlined label={text('Sales actions','বিক্রির অন্যান্য কাজ')}>{close => <Button variant="outline" size="sm" onClick={() => { close(); navigate('/app/parties'); }}><BookOpen className="size-4" />{text('Customer ledger','ক্রেতার খাতা')}</Button>}</SalesMobileMore> : (<Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
+            {isMobile ? <SalesMobileMore outlined label={text('Sales actions','বিক্রির অন্যান্য কাজ')}>{close => <ActionMenuItem icon={BookOpen} onClick={() => { close(); navigate('/app/parties'); }}>{text('Customer ledger','ক্রেতার খাতা')}</ActionMenuItem>}</SalesMobileMore> : (<Button variant="outline" size="sm" onClick={() => navigate('/app/parties')}>
               <BookOpen className="size-4" /> {text('Customer ledger','ক্রেতার খাতা')}
             </Button>)}
             <Button size="sm" data-sales-header-new="" onClick={() => navigate('/app/pos')}>
@@ -1699,21 +1661,15 @@ export function Sales() {
                           <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
                         )}>
                         {(close) => (
-                          <div className="py-1">
-                            <button onClick={() => { close(); toast(`${draft.label} ${sl('opened for editing')}`); navigate(`/app/pos?mode=edit-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Pencil className="size-4 text-ink-400" /> {sl('Edit')}
-                            </button>
-                            <button onClick={() => { close(); toast(`${draft.label} ${sl('duplicated')}`); navigate(`/app/pos?mode=duplicate-draft&draft=${draft.id}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
-                            </button>
-                            <button onClick={() => {
+                          <ActionMenuList>
+                            <ActionMenuItem icon={Pencil} onClick={() => { close(); toast(`${draft.label} ${sl('opened for editing')}`); navigate(`/app/pos?mode=edit-draft&draft=${draft.id}`); }}>{sl('Edit')}</ActionMenuItem>
+                            <ActionMenuItem icon={Copy} onClick={() => { close(); toast(`${draft.label} ${sl('duplicated')}`); navigate(`/app/pos?mode=duplicate-draft&draft=${draft.id}`); }}>{sl('Duplicate')}</ActionMenuItem>
+                            <ActionMenuDivider /><ActionMenuItem icon={Trash2} tone="destructive" onClick={() => {
                               close();
                               const ctx={tenantId:settings.state.tenantId,actorId:settings.actorId,allowed:canManage(settings.state,settings.actorId,'sales')};
                               try{deleteSalesDraft(draft.id,ctx,new Date().toISOString());toast('Draft moved to Recycle Bin',{action:{label:'Undo',onClick:()=>{try{restoreSalesDraft(draft.id,ctx,new Date().toISOString());}catch(error){toast.error(error instanceof Error?error.message:'Could not restore.');}}}});}catch(error){toast.error(error instanceof Error?error.message:'Could not archive draft.');}
-                            }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
-                              <Trash2 className="size-4" /> {sl('Archive')}
-                            </button>
-                          </div>
+                            }}>{sl('Archive')}</ActionMenuItem>
+                          </ActionMenuList>
                         )}
                       </FloatingPanel>
                     </div>
@@ -1749,11 +1705,9 @@ export function Sales() {
                           <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
                         )}>
                         {(close) => (
-                          <div className="py-1">
-                            <button onClick={() => { close(); setTemplateEditor({template}); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Pencil className="size-4 text-ink-400" /> {sl('Edit template')}
-                            </button>
-                            <button onClick={() => {
+                          <ActionMenuList>
+                            <ActionMenuItem icon={Pencil} onClick={() => { close(); setTemplateEditor({template}); }}>{sl('Edit template')}</ActionMenuItem>
+                            <ActionMenuItem icon={Copy} onClick={() => {
                               close();
                               try {
                                 saveSaleTemplate({...template,name:`${template.name} copy`});
@@ -1761,17 +1715,13 @@ export function Sales() {
                               } catch {
                                 toast.error(text('Could not duplicate this template. Open Edit template to check its products.','এই নমুনা নকল করা যায়নি। পণ্য যাচাই করতে নমুনা বদলান।'));
                               }
-                            }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50">
-                              <Copy className="size-4 text-ink-400" /> {sl('Duplicate')}
-                            </button>
-                            <button onClick={() => {
+                            }}>{sl('Duplicate')}</ActionMenuItem>
+                            <ActionMenuDivider /><ActionMenuItem icon={Trash2} tone="destructive" onClick={() => {
                               close();
                               setTemplates((items) => items.filter((item) => item.id !== template.id));
                               toast.error(`${template.name} ${sl('deleted')}`);
-                            }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg">
-                              <Trash2 className="size-4" /> {sl('Delete')}
-                            </button>
-                          </div>
+                            }}>{sl('Delete')}</ActionMenuItem>
+                          </ActionMenuList>
                         )}
                       </FloatingPanel>
                     </div>
