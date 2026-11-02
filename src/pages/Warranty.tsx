@@ -26,6 +26,7 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { parties } from '../data/parties';
@@ -139,7 +140,6 @@ function WarrantyActions({
   const {language}=useUiCopy();
   const wl=(label:string)=>warrantyLabel(language,label);
   const action = nextAction(item);
-  const itemClass = 'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-ink-700 hover:bg-ink-50';
 
   return (
     <FloatingPanel
@@ -155,36 +155,19 @@ function WarrantyActions({
         </button>
       )}>
       {(close) => (
-        <div className="py-1" onClick={(event) => event.stopPropagation()}>
-          <button className={itemClass} onClick={() => { close(); onView(); }}>
-            <FileText className="size-4 text-ink-400" /> {wl("View case")}
-          </button>
-          {action && (
-            <button className={itemClass} onClick={() => { close(); onAdvance(item); }}>
-              <action.icon className="size-4 text-ink-400" /> {wl(action.label)}
-            </button>
-          )}
+        <ActionMenuList onClick={(event) => event.stopPropagation()}>
+          <ActionMenuItem icon={FileText} onClick={() => { close(); onView(); }}>{wl("View case")}</ActionMenuItem>
+          {action && <ActionMenuItem icon={action.icon} onClick={() => { close(); onAdvance(item); }}>{wl(action.label)}</ActionMenuItem>}
           {openStatuses.includes(item.status) && !item.replacement && (
-            <button className={itemClass} onClick={() => { close(); onTemporaryReplacement(item); }}>
-              <RotateCcw className="size-4 text-ink-400" /> {wl("Temporary replacement")}
-            </button>
+            <ActionMenuItem icon={RotateCcw} onClick={() => { close(); onTemporaryReplacement(item); }}>{wl("Temporary replacement")}</ActionMenuItem>
           )}
-          {item.customerId && (
-            <button className={itemClass} onClick={() => { close(); navigate(`/app/parties?id=${item.customerId}`); }}>
-              <UserRound className="size-4 text-ink-400" /> {wl("Customer ledger")}
-            </button>
-          )}
-          <button className={itemClass} onClick={() => { close(); printWarranty(item,language); }}>
-            <Printer className="size-4 text-ink-400" /> {wl("Print receipt")}
-          </button>
-          {openStatuses.includes(item.status) && (
-            <button
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-danger hover:bg-danger-bg"
-              onClick={() => { close(); onReject(item); }}>
-              <ShieldCheck className="size-4" /> {wl("Reject warranty")}
-            </button>
-          )}
-        </div>
+          {item.customerId && <ActionMenuItem icon={UserRound} onClick={() => { close(); navigate(`/app/parties?id=${item.customerId}`); }}>{wl("Customer ledger")}</ActionMenuItem>}
+          <ActionMenuItem icon={Printer} onClick={() => { close(); printWarranty(item,language); }}>{wl("Print receipt")}</ActionMenuItem>
+          {openStatuses.includes(item.status) && <>
+            <ActionMenuDivider />
+            <ActionMenuItem icon={ShieldCheck} tone="destructive" onClick={() => { close(); onReject(item); }}>{wl("Reject warranty")}</ActionMenuItem>
+          </>}
+        </ActionMenuList>
       )}
     </FloatingPanel>
   );
