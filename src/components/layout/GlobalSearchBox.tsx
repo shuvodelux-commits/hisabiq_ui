@@ -51,7 +51,7 @@ export function GlobalSearchBox(){
   return()=>document.removeEventListener('pointerdown',outside);
  },[open]);
  const clear=()=>{setQuery('');setOpen(false);setActive(0);field.current?.focus();};
- return <div ref={root} role="search" className="relative order-none min-w-[48px] flex-1 sm:max-w-md">
+ return <div ref={root} role="search" className="relative order-none min-w-[48px] flex-1 max-[374px]:order-last max-[374px]:w-full max-[374px]:basis-full sm:max-w-md">
   <Search className="pointer-events-none absolute left-3 top-[10px] z-10 size-4 text-ink-400" aria-hidden="true"/>
   <input ref={field} type="search" aria-label={text("Global search","সবখানে খুঁজুন")} role="combobox"
    aria-autocomplete="list" aria-haspopup="listbox" aria-expanded={visible}
