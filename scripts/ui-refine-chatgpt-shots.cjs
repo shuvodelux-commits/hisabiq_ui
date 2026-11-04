@@ -69,7 +69,7 @@ function test(){
   assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: src/pages/not-real.tsx',root,'#/app/pos'));
   console.log('All-module route and Impeccable scope parser OK: '+good.length+' routes');
 }
-async function capture(browser,name,url,route,out){
+async function capture(browser,name,url,route,out,showSababNav=false){
   const shots=[];
   for(const width of widths)for(const theme of themes){
     const height=width===1024?768:width===768?1024:width===1440?900:844;
@@ -112,18 +112,49 @@ async function capture(browser,name,url,route,out){
       if(longest>height)await page.setViewportSize({width,height:longest});
       const filename=name+'-'+width+'-'+theme+'.png';
       await page.screenshot({path:path.join(out,filename),fullPage:true,animations:'disabled'});
-      shots.push({filename,width,theme,...details});
+      shots.push({filename,width,theme,state:'default',...details});
+      if(showSababNav && width<1024){
+        // Preserve viewport-sized mobile menu screenshots, not huge page captures.
+        await page.setViewportSize({width,height});
+        const strip=page.locator('[data-sabab-nav-strip]');
+        if(await strip.count()){
+          const sales=strip.locator('li[data-module-id="sales"]');
+          await sales.scrollIntoViewIfNeeded();
+          await sales.getByRole('button',{name:'Sales tabs'}).click();
+          await page.getByRole('menu',{name:'Sales tabs'}).waitFor({state:'visible'});
+        }
+        const menuFilename=name+'-sabab-menu-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,menuFilename),animations:'disabled'});
+        shots.push({filename:menuFilename,width,theme,state:'sabab-module-menu',...details});
+        if(await strip.count())await page.keyboard.press('Escape');
+        const openButton=page.locator('button[aria-controls="erp-mobile-drawer"]');
+        await openButton.click();
+        const drawer=page.locator('#erp-mobile-drawer');
+        await drawer.waitFor({state:'visible'});
+        await page.waitForTimeout(350);
+        const drawerFilename=name+'-sabab-drawer-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,drawerFilename),animations:'disabled'});
+        shots.push({filename:drawerFilename,width,theme,state:'sabab-mobile-drawer',...details});
+        await page.keyboard.press('Escape');
+        await drawer.waitFor({state:'hidden'});
+        assert.equal(await openButton.evaluate(el=>el===document.activeElement),true,
+          'Escape returns focus to HisabIQ mobile navigation trigger');
+      }
     }finally{await ctx.close();}
   }
   return shots;
 }
-function indexHtml(route,baseSha,prSha){
+function indexHtml(route,baseSha,prSha,showSababNav=false){
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const rows=widths.flatMap(width=>themes.map(theme=>{
-    const before='before-'+width+'-'+theme+'.png';
-    const after='after-'+width+'-'+theme+'.png';
-    return '<section><h2>'+width+'px / '+theme+'</h2><div class="pair"><figure><figcaption>Main (before)</figcaption><img src="'+before+'"></figure><figure><figcaption>PR (after)</figcaption><img src="'+after+'"></figure></div></section>';
-  })).join('\n');
+  const configs=widths.flatMap(width=>themes.map(theme=>({width,theme,mode:'default'})));
+  if(showSababNav)for(const width of widths.filter(w=>w<1024))for(const theme of themes)
+    for(const mode of ['sabab-menu','sabab-drawer'])configs.push({width,theme,mode});
+  const rows=configs.map(({width,theme,mode})=>{
+    const suffix=(mode==='default'?'':mode+'-')+width+'-'+theme+'.png';
+    const before='before-'+suffix;
+    const after='after-'+suffix;
+    return '<section><h2>'+width+'px / '+theme+' / '+mode+'</h2><div class="pair"><figure><figcaption>Main (before)</figcaption><img src="'+before+'"></figure><figure><figcaption>PR (after)</figcaption><img src="'+after+'"></figure></div></section>';
+  }).join('\n');
   return '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>HisabIQ screenshots</title><style>body{font:14px system-ui;max-width:1200px;margin:20px auto;color:#16283d;padding:10px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}figure{margin:0;padding:8px;border:1px solid #bbb}img{display:block;width:100%;height:auto}figcaption{padding:6px}@media(max-width:700px){.pair{grid-template-columns:1fr}}</style><h1>'+esc(route)+'</h1><p>Main '+baseSha.slice(0,8)+' vs PR '+prSha.slice(0,8)+'; visual preview only, not proof of backend posting.</p>'+rows+'</html>';
 }
 async function main(){
@@ -141,10 +172,11 @@ async function main(){
   await fsp.mkdir(out,{recursive:true});
   const {chromium}=require('playwright');
   const browser=await chromium.launch({args:['--no-sandbox']});
+  const showSababNav=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sabab-navigation[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   let before,after;
   try{
-    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out);
-    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out);
+    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav);
+    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav);
   }finally{await browser.close();}
   const sha=cwd=>execFileSync('git',['rev-parse','HEAD'],{cwd,encoding:'utf8'}).trim();
   const baseSha=sha(baseline),prSha=sha(candidate);
@@ -152,7 +184,7 @@ async function main(){
     route,baseSha,prSha,before,after,
     warning:'Screenshots must be visually inspected in ChatGPT; do not claim automated Impeccable reviews ran.'
   },null,2));
-  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha));
+  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav));
   console.log('Captured '+before.length+' baseline and '+after.length+' PR images: '+route);
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
