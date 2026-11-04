@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -28,6 +29,7 @@ import { notifications } from '../../data/dashboard';
 import { taka } from '../../utils/currency';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { lockBodyScroll } from '../../utils/bodyScrollLock';
+import { MOTION_EASE, MOTION_MS } from '../../motion/tokens';
 
 /** Presentation copy for static, preview-only notification fixtures. */
 const notificationBangla: Record<string, { title: string; body: string; time: string }> = {
@@ -72,6 +74,7 @@ export function TopBar() {
   }, []);
 
   const [navOpen,setNavOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
   const navTrigger = useRef<HTMLButtonElement>(null);
   const navDialog = useRef<HTMLDivElement>(null);
   const closeMobileNav = () => {
@@ -267,25 +270,64 @@ export function TopBar() {
       </div>
 
     </header>
-    {navOpen && createPortal(
-      <div data-print-hide className="fixed inset-0 z-[80] lg:hidden" aria-label={text("Mobile navigation overlay","মোবাইল মেনু")}>
-        <button type="button" className="fixed inset-0 bg-inverse/50" aria-label={text("Close ERP navigation","ERP মেনু বন্ধ করুন")}
-          onClick={closeMobileNav}/>
-        <div ref={navDialog} id="erp-mobile-drawer" role="dialog" aria-modal="true" aria-label={text("ERP navigation","ERP মেনু")}
-          className="fixed inset-y-0 left-0 flex h-[100dvh] w-[min(87vw,320px)] max-w-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-xl"
-          style={{backgroundColor:'var(--sidebar)'}}>
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4">
-            <span className="text-sm font-semibold text-sidebar-foreground">HisabIQ · {text("Modules","মডিউল")}</span>
-            <button type="button" autoFocus aria-label={text("Close navigation","মেনু বন্ধ করুন")} onClick={closeMobileNav}
-              className="flex size-9 items-center justify-center rounded-lg text-sidebar-foreground hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring">
-              <X className="size-5"/>
-            </button>
-          </div>
-          <ErpNavMenu mode="mobile" onNavigate={()=>setNavOpen(false)}/>
-          <Link to="/app/support" onClick={()=>setNavOpen(false)}
-            className="border-t border-sidebar-border px-5 py-3 text-sm text-sidebar-foreground">{text("Help & Support","সাহায্য ও সাপোর্ট")}</Link>
-        </div>
-      </div>,
+    {createPortal(
+      <AnimatePresence initial={false}>
+        {navOpen && (
+          <motion.div
+            data-print-hide
+            data-mobile-navigation
+            aria-label={text("Mobile navigation overlay","মোবাইল মেনু")}
+            aria-hidden={!navOpen}
+            className="fixed inset-0 z-[80] lg:hidden"
+            initial={reducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reducedMotion ? 0 : MOTION_MS.sidebar / 1000, ease: MOTION_EASE }}
+          >
+            <button
+              type="button"
+              className="fixed inset-0 bg-inverse/50"
+              aria-label={text("Close ERP navigation","ERP মেনু বন্ধ করুন")}
+              onClick={closeMobileNav}
+            />
+            <motion.div
+              ref={navDialog}
+              id="erp-mobile-drawer"
+              data-mobile-drawer-motion={reducedMotion ? 'reduced' : 'enabled'}
+              role="dialog"
+              aria-modal="true"
+              aria-label={text("ERP navigation","ERP মেনু")}
+              className="fixed inset-y-0 left-0 flex h-[100dvh] w-[min(87vw,320px)] max-w-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-xl"
+              style={{ backgroundColor: 'var(--sidebar)' }}
+              initial={reducedMotion ? false : { x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: reducedMotion ? 0 : '-100%' }}
+              transition={{ duration: reducedMotion ? 0 : MOTION_MS.sidebar / 1000, ease: MOTION_EASE }}
+            >
+              <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4">
+                <span className="text-sm font-semibold text-sidebar-foreground">HisabIQ · {text("Modules","মডিউল")}</span>
+                <button
+                  type="button"
+                  autoFocus
+                  aria-label={text("Close navigation","মেনু বন্ধ করুন")}
+                  onClick={closeMobileNav}
+                  className="flex size-9 items-center justify-center rounded-lg text-sidebar-foreground hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+              <ErpNavMenu mode="mobile" onNavigate={() => setNavOpen(false)} />
+              <Link
+                to="/app/support"
+                onClick={() => setNavOpen(false)}
+                className="border-t border-sidebar-border px-5 py-3 text-sm text-sidebar-foreground"
+              >
+                {text("Help & Support","সাহায্য ও সাপোর্ট")}
+              </Link>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>,
       document.body
     )}
     </>);
