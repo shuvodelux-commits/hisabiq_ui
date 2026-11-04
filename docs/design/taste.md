@@ -77,3 +77,12 @@ Use the upstream design /20 + audit /20 score and problem ledger when the execut
 - **Appearance:** One left Lucide icon per action, 13px menu text, at least 40px touch rows, 0.375rem item radius, neutral text for ordinary actions and theme-aware danger red only for destructive actions.
 - **Interactions:** Maintain original callbacks, disabled reasons, pointer positioning, Escape focus return, ArrowUp/ArrowDown and Home/End movement, and mobile scrollability. Do not modify finance or inventory posting logic.
 - **Review:** Three bounded source/visual passes, real before/after light/dark screenshots, tests, and GitHub draft PR only. Distinguish independent Impeccable scoring from a manual pass if agent tooling is unavailable.
+
+
+### #/app/* navigation shell — direct Sabab source port (2026-11-05)
+
+- **Reference:** Magic Patterns Sabab SIS `kecprgln6zfkctsc37g2to`, actual `NavTree`, `TopNavStrip`, `MobileDrawer`, `TopBar`, `Sidebar`, `utils/motion.ts`.
+- **Owner direction:** Copy Sabab's sidebar and mobile/tablet top module strip, active-only sublinks, popover, drawer spring **380/40/0.9** and overlay fade **0.22s**; then wire HisabIQ's navigation and settings. Do not guess motion values.
+- **Protect:** HisabIQ logo, brands/tokens, 36px action controls, RTL-safe Bangla text, `erpNavigation` routing permissions, POS/Counter/Finance accounting, global search, Ctrl+B/Ctrl+K, keyboard and touch accessibility.
+- **Verification:** `docs/ui/UI-REFINEMENT-RULES.md`; real Playwright screenshots including the **opened** drawer and top submenu at 320/390/768/1024/1440, both themes; Impeccable audit and honest C0-C4 ledger.
+- **Scope:** Navigation only. Remaining modules preserve their approved layouts until individually requested.
