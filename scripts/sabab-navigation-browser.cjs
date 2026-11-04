@@ -29,6 +29,12 @@ async function main() {
       page.on('pageerror',error=>errors.push(error.message));
       await page.goto(url+'/#/app/dashboard',{waitUntil:'networkidle'});
       await expect(page.locator('main')).toBeVisible();
+      if(width<=390){
+        const topRow=page.locator('header.sticky > div').first();
+        const box=await topRow.boundingBox();
+        assert.ok(box && box.height <= (width===390?65:112),
+          'Sabab top bar must remain compact before the module strip: '+width+'px, '+box?.height+'px');
+      }
       if(width>=1024){
         const desktop=page.locator('aside[data-sidebar="sidebar"]');
         const nav=desktop.locator('[data-sabab-nav-tree]');
