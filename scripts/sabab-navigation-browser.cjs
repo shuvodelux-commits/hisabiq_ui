@@ -29,6 +29,11 @@ async function main() {
       page.on('pageerror',error=>errors.push(error.message));
       await page.goto(url+'/#/app/dashboard',{waitUntil:'networkidle'});
       await expect(page.locator('main')).toBeVisible();
+      if(width===320){
+        const calculator=await page.getByRole('button',{name:'Calculator',exact:true}).boundingBox();
+        assert.ok(calculator && calculator.y<44,
+          'Calculator must remain in the first header row on short 320px phones');
+      }
       if(width<=390){
         const topRow=page.locator('header.sticky > div').first();
         const box=await topRow.boundingBox();
