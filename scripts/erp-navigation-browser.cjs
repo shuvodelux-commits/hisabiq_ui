@@ -12,7 +12,7 @@ async function main(){
   await page.goto(base+'/app/quotations');
   const nav=page.getByRole('navigation',{name:'Main'});
   await nav.getByRole('link',{name:/Dashboard/}).waitFor();
-  const firstThree=await nav.locator(':scope > div > div > a, :scope > div > div > button').evaluateAll(nodes=>nodes.slice(0,3).map(node=>node.getAttribute('href')?.split('#')[1]));
+  const firstThree=await nav.locator('a[data-nav-module]').evaluateAll(nodes=>nodes.slice(0,3).map(node=>node.getAttribute('href')?.split('#')[1]));
   assert.deepEqual(firstThree,['/app/dashboard','/app/pos','/app/counter'],'most-used modules come first');
   await nav.getByRole('link',{name:/Counter/}).click();
   assert.ok(page.url().includes('/app/counter'),'Counter has its own top-level route');
@@ -21,27 +21,12 @@ async function main(){
   await page.goto(base+'/app/quotations');
   await nav.getByRole('link',{name:/Quotations & Estimates/}).waitFor();
   assert.equal(await nav.getByRole('link',{name:/Quotations & Estimates/}).getAttribute('aria-current'),'page');
-  assert.equal(await nav.getByRole('button',{name:'Collapse Sales'}).getAttribute('aria-expanded'),'true');
-  const before=page.url();
-  await nav.getByRole('button',{name:'Expand Purchases'}).click();
-  assert.equal(page.url(),before,'opening a group must not navigate away');
-  assert.equal(await nav.getByRole('button',{name:'Collapse Purchases'}).getAttribute('aria-expanded'),'true');
-  await page.keyboard.press('Enter');
-  assert.equal(page.url(),before);
-  assert.equal(await nav.getByRole('button',{name:'Expand Purchases'}).getAttribute('aria-expanded'),'false',
-    'Enter on a focused group trigger toggles its expanded state');
-  await nav.getByRole('button',{name:'Expand Purchases'}).click();
-
-  // Clicking the text or chevron on a parent row must have identical behavior.
-  const purchasesTrigger=nav.getByRole('button',{name:'Expand Purchases'});
-  await nav.getByRole('button',{name:'Collapse Purchases'}).click({position:{x:82,y:20}});
-  assert.equal(page.url(),before,'parent label must only collapse its group');
-  assert.equal(await purchasesTrigger.getAttribute('aria-expanded'),'false');
-  await purchasesTrigger.locator('svg:last-child').click();
-  assert.equal(page.url(),before,'parent chevron must only expand its group');
-  assert.equal(await nav.getByRole('button',{name:'Collapse Purchases'}).getAttribute('aria-expanded'),'true');
-  await nav.getByRole('link',{name:/Purchase Bills/}).click();
-  assert.ok(page.url().includes('/app/purchases'),'child link must navigate to its module');
+  // Sabab pattern: a module is a link, and its children only show while active.
+  await nav.getByRole('link',{name:'Purchases',exact:true}).click();
+  assert.ok(page.url().includes('/app/purchases'),'module link opens its first child');
+  await nav.getByRole('link',{name:'Purchase Bills',exact:true}).waitFor();
+  await nav.getByRole('link',{name:'Sales',exact:true}).click();
+  await nav.getByRole('link',{name:'Sales History',exact:true}).waitFor();
   await page.goto(base+'/app/sales?tab=return');
   await page.getByRole('tab',{name:'Sales return'}).waitFor();
   assert.equal(await page.getByRole('tab',{name:'Sales return'}).getAttribute('aria-selected'),'true');
@@ -62,10 +47,11 @@ async function main(){
   const sidebar=page.locator('aside[data-sidebar="sidebar"]');
   assert.equal(await sidebar.getAttribute('data-collapsible'),'icon');
   assert.ok(await nav.getByRole('link',{name:'Dashboard'}).isVisible(),'icon-only leaf links remain usable');
-  assert.ok(await nav.getByRole('button',{name:/Expand sidebar to open Sales/}).isVisible());
-  await nav.getByRole('button',{name:/Expand sidebar to open Sales/}).click();
+  await nav.getByRole('link',{name:'Sales',exact:true}).click();
+  assert.ok(page.url().includes('/app/sales'),'collapsed module routes to its primary page');
+  assert.equal(await sidebar.getAttribute('data-collapsible'),'icon','Sabab icon mode does not expand on a module click');
+  await page.getByRole('button',{name:'Expand sidebar',exact:true}).click();
   assert.equal(await sidebar.getAttribute('data-collapsible'),'none');
-  assert.equal(await nav.getByRole('button',{name:'Collapse Sales'}).getAttribute('aria-expanded'),'true');
   await nav.getByRole('link',{name:/Sales History/}).waitFor();
 
   await page.keyboard.press('Control+b');
@@ -87,7 +73,7 @@ async function main(){
     await page.waitForFunction(({width,height})=>{
       const sheet=document.getElementById('erp-mobile-drawer');
       const bounds=sheet?.getBoundingClientRect();
-      return innerWidth===width&&innerHeight===height&&bounds&&Math.abs(bounds.y)<2&&bounds.height>=height-2;
+      return innerWidth===width&&innerHeight===height&&bounds&&Math.abs(bounds.y)<2&&bounds.height>=height-2&&Math.abs(bounds.x)<2;
     },{width,height});
     const bounds=await drawer.boundingBox();
     assert.ok(bounds && Math.abs(bounds.y)<2 && bounds.height>=height-2,
@@ -119,9 +105,10 @@ async function main(){
   await page.setViewportSize({width:768,height:1024});
   await page.getByRole('button',{name:'Open ERP navigation'}).click();
   const mobile=page.getByRole('dialog',{name:'ERP navigation'});
-  await mobile.getByRole('button',{name:'Expand Settings'}).click({position:{x:90,y:20}});
-  await mobile.getByRole('link',{name:/Business profile/}).waitFor();
-  assert.equal(await mobile.getByRole('button',{name:'Collapse Settings'}).getAttribute('aria-expanded'),'true');
+  await mobile.getByRole('link',{name:'Settings',exact:true}).click();
+  await page.waitForURL(/\/app\/settings\//);
+  await page.getByRole('button',{name:'Open ERP navigation'}).click();
+  await page.getByRole('dialog',{name:'ERP navigation'}).getByRole('link',{name:/Business profile/}).waitFor();
   assert.deepEqual(errors,[]);
   console.log('ERP navigation: routes, nested active links, tab deep links, collapsed sidebar and mobile drawer passed');
  }finally{await browser.close();await server.close();}
