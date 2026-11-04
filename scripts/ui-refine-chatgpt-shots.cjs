@@ -37,6 +37,9 @@ function routeFromBody(body, appFile) {
   if(!valid)throw Error('Not a declared HisabIQ route: '+route);
   return route;
 }
+function drawerStateFromBody(body){
+  return /^[ \t]*UI-REFINE-STATE:[ \t]*mobile-drawer[ \t]*$/m.test(body||'');
+}
 function scopeFromBody(body,root,route){
   const m=(body||'').match(/^[ \t]*UI-REFINE-SCOPE:[ \t]*(src\/[A-Za-z0-9_/-]+\.(?:tsx|jsx|css))[ \t]*$/m);
   if(m){
@@ -72,7 +75,7 @@ function test(){
   assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: src/pages/not-real.tsx',root,'#/app/pos'));
   console.log('All-module route and Impeccable scope parser OK: '+good.length+' routes');
 }
-async function capture(browser,name,url,route,out){
+async function capture(browser,name,url,route,out,openDrawer=false){
   const shots=[];
   for(const width of widths)for(const theme of themes){
     const height=width===1024?768:width===768?1024:width===1440?900:844;
@@ -115,18 +118,38 @@ async function capture(browser,name,url,route,out){
       if(longest>height)await page.setViewportSize({width,height:longest});
       const filename=name+'-'+width+'-'+theme+'.png';
       await page.screenshot({path:path.join(out,filename),fullPage:true,animations:'disabled'});
-      shots.push({filename,width,theme,...details});
+      shots.push({filename,width,theme,state:'default',...details});
+      // Optional interaction evidence: static dashboard captures cannot verify the open drawer.
+      if(openDrawer && width<1024){
+        const trigger=page.locator('button[aria-controls="erp-mobile-drawer"]');
+        await trigger.waitFor({state:'visible'});
+        await trigger.click();
+        const drawer=page.locator('#erp-mobile-drawer');
+        await drawer.waitFor({state:'visible'});
+        await page.waitForTimeout(350);
+        const drawerFilename=name+'-drawer-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,drawerFilename),fullPage:true,animations:'disabled'});
+        shots.push({filename:drawerFilename,width,theme,state:'mobile-drawer-open',...details});
+        await page.keyboard.press('Escape');
+        await drawer.waitFor({state:'hidden'});
+        assert.ok(await trigger.evaluate(el=>document.activeElement===el),
+          'Closing navigation restores focus to the menu trigger');
+      }
     }finally{await ctx.close();}
   }
   return shots;
 }
-function indexHtml(route,baseSha,prSha){
+function indexHtml(route,baseSha,prSha,openDrawer=false){
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const rows=widths.flatMap(width=>themes.map(theme=>{
-    const before='before-'+width+'-'+theme+'.png';
-    const after='after-'+width+'-'+theme+'.png';
-    return '<section><h2>'+width+'px / '+theme+'</h2><div class="pair"><figure><figcaption>Main (before)</figcaption><img src="'+before+'"></figure><figure><figcaption>PR (after)</figcaption><img src="'+after+'"></figure></div></section>';
-  })).join('\n');
+  const configs=widths.flatMap(width=>themes.map(theme=>({width,theme,drawer:false})));
+  if(openDrawer)for(const width of widths.filter(w=>w<1024))
+    for(const theme of themes)configs.push({width,theme,drawer:true});
+  const rows=configs.map(({width,theme,drawer})=>{
+    const suffix=(drawer?'drawer-':'')+width+'-'+theme+'.png';
+    const before='before-'+suffix;
+    const after='after-'+suffix;
+    return '<section><h2>'+width+'px / '+theme+(drawer?' / mobile drawer open':'')+'</h2><div class="pair"><figure><figcaption>Main (before)</figcaption><img src="'+before+'"></figure><figure><figcaption>PR (after)</figcaption><img src="'+after+'"></figure></div></section>';
+  }).join('\n');
   return '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>HisabIQ screenshots</title><style>body{font:14px system-ui;max-width:1200px;margin:20px auto;color:#16283d;padding:10px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}figure{margin:0;padding:8px;border:1px solid #bbb}img{display:block;width:100%;height:auto}figcaption{padding:6px}@media(max-width:700px){.pair{grid-template-columns:1fr}}</style><h1>'+esc(route)+'</h1><p>Main '+baseSha.slice(0,8)+' vs PR '+prSha.slice(0,8)+'; visual preview only, not proof of backend posting.</p>'+rows+'</html>';
 }
 async function main(){
@@ -144,10 +167,11 @@ async function main(){
   await fsp.mkdir(out,{recursive:true});
   const {chromium}=require('playwright');
   const browser=await chromium.launch({args:['--no-sandbox']});
+  const openDrawer=drawerStateFromBody(process.env.UI_REFINE_PR_BODY);
   let before,after;
   try{
-    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out);
-    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out);
+    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,openDrawer);
+    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,openDrawer);
   }finally{await browser.close();}
   const sha=cwd=>execFileSync('git',['rev-parse','HEAD'],{cwd,encoding:'utf8'}).trim();
   const baseSha=sha(baseline),prSha=sha(candidate);
@@ -155,7 +179,7 @@ async function main(){
     route,baseSha,prSha,before,after,
     warning:'Screenshots must be visually inspected in ChatGPT; do not claim automated Impeccable reviews ran.'
   },null,2));
-  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha));
+  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,openDrawer));
   console.log('Captured '+before.length+' baseline and '+after.length+' PR images: '+route);
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
