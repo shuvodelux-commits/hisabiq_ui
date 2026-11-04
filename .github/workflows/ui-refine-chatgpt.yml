@@ -96,6 +96,13 @@ jobs:
           UI_REFINE_OUT: "${{ runner.temp }}/ui-refine-shots"
         run: node scripts/ui-refine-chatgpt-shots.cjs
 
+      - name: Verify Sabab navigation interactions (opt-in)
+        if: contains(github.event.pull_request.body, 'UI-REFINE-STATE: sabab-navigation')
+        working-directory: candidate
+        env:
+          SABAB_NAV_URL: http://127.0.0.1:4311
+        run: node scripts/sabab-navigation-browser.cjs
+
       - name: Independent official Impeccable source detector (no AI API)
         working-directory: candidate
         shell: bash
