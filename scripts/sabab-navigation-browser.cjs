@@ -1,0 +1,69 @@
+/* Exact Magic Patterns Sabab navigation port: behavior and responsive acceptance. */
+const assert = require('node:assert/strict');
+const { chromium } = require('playwright');
+const { expect } = require('playwright/test');
+
+async function main() {
+  const browser = await chromium.launch({ args: ['--no-sandbox'] });
+  const errors = [];
+  const url = process.env.SABAB_NAV_URL || 'http://127.0.0.1:4311';
+  try {
+    for (const {width, reducedMotion, theme} of [
+      {width:320,reducedMotion:'reduce',theme:'light'},
+      {width:390,reducedMotion:'no-preference',theme:'light'},
+      {width:390,reducedMotion:'reduce',theme:'dark'},
+      {width:768,reducedMotion:'no-preference',theme:'dark'},
+      {width:1024,reducedMotion:'no-preference',theme:'light'},
+      {width:1440,reducedMotion:'no-preference',theme:'light'}
+    ]) {
+      const context=await browser.newContext({viewport:{width,height:900},colorScheme:theme,
+        reducedMotion,hasTouch:width<1024});
+      await context.addInitScript(t=>localStorage.setItem('hisabiq-theme',t),theme);
+      const page=await context.newPage();
+      page.on('pageerror',error=>errors.push(error.message));
+      await page.goto(url+'/#/app/dashboard',{waitUntil:'networkidle'});
+      await expect(page.locator('main')).toBeVisible();
+      if(width>=1024){
+        const desktop=page.locator('aside[data-sidebar="sidebar"]');
+        const nav=desktop.locator('[data-sabab-nav-tree]');
+        await expect(nav).toBeVisible();
+        await expect(page.locator('[data-sabab-nav-strip]')).toBeHidden();
+        await nav.getByRole('link',{name:/Sales/i}).first().click();
+        await expect(page).toHaveURL(/\/app\/sales/);
+        await expect(nav.getByRole('link',{name:'Sales History',exact:true})).toBeVisible();
+        await page.keyboard.press('Control+b');
+        await expect(desktop).toHaveCSS('width','64px');
+        await page.keyboard.press('Control+b');
+        await expect(desktop).toHaveCSS('width','256px');
+      } else {
+        const strip=page.locator('[data-sabab-nav-strip]');
+        await expect(strip).toBeVisible();
+        const sales=strip.locator('li[data-module-id="sales"]');
+        await sales.scrollIntoViewIfNeeded();
+        await sales.getByRole('button',{name:/Sales tabs/i}).click();
+        const menu=page.getByRole('menu',{name:/Sales tabs/i});
+        await expect(menu).toBeVisible();
+        await expect(menu.getByRole('menuitem',{name:'Sales Returns',exact:true})).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(menu).toBeHidden();
+        const trigger=page.getByRole('button',{name:/Open ERP navigation/i});
+        await trigger.click();
+        const drawer=page.getByRole('dialog',{name:/ERP navigation/i});
+        await expect(drawer).toHaveAttribute('data-sabab-drawer','');
+        await expect(drawer).toBeVisible();
+        const rect=await drawer.boundingBox();
+        assert.ok(rect && rect.width<=301,'Sabab drawer width is 300px max');
+        await page.keyboard.press('Escape');
+        await expect(drawer).toBeHidden();
+        await expect(trigger).toBeFocused();
+        assert.equal(await page.evaluate(()=>document.body.style.overflow),'','body scroll restored');
+      }
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),
+        'navigation cannot overflow horizontal viewport '+width);
+      await context.close();
+      console.log('Sabab navigation contract:',width,theme,reducedMotion);
+    }
+    assert.deepEqual(errors,[],'No browser exceptions');
+  } finally { await browser.close(); }
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});
