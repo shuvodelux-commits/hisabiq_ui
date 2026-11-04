@@ -51,7 +51,7 @@ async function main() {
           'Mobile global search results must be wide enough to read: '+bounds?.width);
         await search.press('Escape');
         await search.fill('');
-        await search.blur();
+        await search.evaluate(element=>element.blur());
       }
       if(width>=1024){
         const desktop=page.locator('aside[data-sidebar="sidebar"]');
