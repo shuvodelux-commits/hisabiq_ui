@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -20,6 +21,7 @@ import { Button } from '../Button';
 import { FloatingPanel } from './FloatingPanel';
 import { Calculator } from './Calculator';
 import { ErpNavMenu } from './ErpNavMenu';
+import { SababTopNavStrip } from './SababTopNavStrip';
 import { GlobalSearchBox } from './GlobalSearchBox';
 import { LogoMark } from '../brand/Logo';
 import { useTenantSettings } from '../../settings/TenantSettingsProvider';
@@ -72,6 +74,7 @@ export function TopBar() {
   }, []);
 
   const [navOpen,setNavOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
   const navTrigger = useRef<HTMLButtonElement>(null);
   const navDialog = useRef<HTMLDivElement>(null);
   const closeMobileNav = () => {
@@ -136,11 +139,13 @@ export function TopBar() {
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <ThemePicker language={language} />
-          {pathname !== '/app/pos' &&
-          <Button size="sm" className="hidden md:inline-flex" onClick={() => navigate('/app/pos')}>
-              <Plus className="size-4" /> {text("New sale","নতুন বিক্রি")}
+          {pathname !== '/app/pos' && (
+            <Button size="sm" className="inline-flex shrink-0 items-center gap-1.5" onClick={() => navigate('/app/pos')}
+              aria-label={text("New sale","নতুন বিক্রি")} title={text("New sale","নতুন বিক্রি")}>
+              <Plus className="size-4" aria-hidden="true" />
+              <span className="hidden md:inline">{text("New sale","নতুন বিক্রি")}</span>
             </Button>
-          }
+          )}
 
           {state.sections.money.cashSession && <button
             onClick={() => setOpen(true)}
@@ -266,26 +271,56 @@ export function TopBar() {
         </div>
       </div>
 
+      <SababTopNavStrip />
     </header>
-    {navOpen && createPortal(
-      <div data-print-hide className="fixed inset-0 z-[80] lg:hidden" aria-label={text("Mobile navigation overlay","মোবাইল মেনু")}>
-        <button type="button" className="fixed inset-0 bg-inverse/50" aria-label={text("Close ERP navigation","ERP মেনু বন্ধ করুন")}
-          onClick={closeMobileNav}/>
-        <div ref={navDialog} id="erp-mobile-drawer" role="dialog" aria-modal="true" aria-label={text("ERP navigation","ERP মেনু")}
-          className="fixed inset-y-0 left-0 flex h-[100dvh] w-[min(87vw,320px)] max-w-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-xl"
-          style={{backgroundColor:'var(--sidebar)'}}>
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4">
-            <span className="text-sm font-semibold text-sidebar-foreground">HisabIQ · {text("Modules","মডিউল")}</span>
-            <button type="button" autoFocus aria-label={text("Close navigation","মেনু বন্ধ করুন")} onClick={closeMobileNav}
-              className="flex size-9 items-center justify-center rounded-lg text-sidebar-foreground hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring">
-              <X className="size-5"/>
-            </button>
+    {createPortal(
+      <AnimatePresence>
+        {navOpen && (
+          <div data-print-hide className="fixed inset-0 z-[80] lg:hidden" aria-label={text("Mobile navigation overlay","মোবাইল মেনু")}>
+            <motion.div aria-hidden="true" className="absolute inset-0 bg-inverse/45 backdrop-blur-[1px]"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.22, ease: 'easeOut' }}
+              onClick={closeMobileNav} />
+            <motion.aside
+              ref={navDialog}
+              id="erp-mobile-drawer"
+              data-sabab-drawer=""
+              role="dialog"
+              aria-modal="true"
+              aria-label={text("ERP navigation","ERP মেনু")}
+              className="absolute inset-y-0 left-0 flex w-[min(86vw,300px)] max-w-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-2xl will-change-transform"
+              style={{ backgroundColor: 'var(--sidebar)' }}
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={reducedMotion ? { duration: 0 } :
+                { type: 'spring', stiffness: 380, damping: 40, mass: 0.9 }}
+              drag={reducedMotion ? false : 'x'}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={{ left: 0.4, right: 0 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -80 || info.velocity.x < -400) closeMobileNav();
+              }}
+            >
+              <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-3.5">
+                <Link to="/app/dashboard" onClick={() => setNavOpen(false)} aria-label="HisabIQ dashboard">
+                  <LogoMark size={28} />
+                </Link>
+                <button type="button" autoFocus aria-label={text("Close navigation","মেনু বন্ধ করুন")}
+                  onClick={closeMobileNav}
+                  className="inline-flex size-8 items-center justify-center rounded-md text-ink-500 hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring">
+                  <X className="size-4" />
+                </button>
+              </div>
+              <ErpNavMenu mode="mobile" onNavigate={() => setNavOpen(false)} />
+              <Link to="/app/support" onClick={() => setNavOpen(false)}
+                className="shrink-0 border-t border-sidebar-border px-3.5 py-2.5 text-[12px] text-sidebar-foreground">
+                {text("Help & Support","সাহায্য ও সাপোর্ট")}
+              </Link>
+            </motion.aside>
           </div>
-          <ErpNavMenu mode="mobile" onNavigate={()=>setNavOpen(false)}/>
-          <Link to="/app/support" onClick={()=>setNavOpen(false)}
-            className="border-t border-sidebar-border px-5 py-3 text-sm text-sidebar-foreground">{text("Help & Support","সাহায্য ও সাপোর্ট")}</Link>
-        </div>
-      </div>,
+        )}
+      </AnimatePresence>,
       document.body
     )}
     </>);
