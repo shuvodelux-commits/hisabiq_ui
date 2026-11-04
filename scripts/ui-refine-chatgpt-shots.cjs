@@ -62,6 +62,9 @@ function test(){
     assert.throws(()=>routeFromBody('UI-REFINE-ROUTE: '+x,file),x);
   }
   assert.throws(()=>routeFromBody('refine POS',file));
+  assert.equal(drawerStateFromBody('UI-REFINE-STATE: mobile-drawer'),true);
+  assert.equal(drawerStateFromBody('UI-REFINE-STATE: none'),false);
+  assert.equal(drawerStateFromBody(''),false);
   const root=path.resolve(__dirname,'..');
   assert.equal(scopeFromBody('',root,'#/app/pos'),'src/pages');
   assert.equal(scopeFromBody('',root,'#/saas/plans'),'src/saas');
