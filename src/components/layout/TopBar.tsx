@@ -137,7 +137,7 @@ export function TopBar() {
 
         <GlobalSearchBox />
 
-        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
           <ThemePicker language={language} />
           {pathname !== '/app/pos' && (
             <Button size="sm" className="inline-flex shrink-0 items-center gap-1.5" onClick={() => navigate('/app/pos')}
@@ -236,7 +236,7 @@ export function TopBar() {
                   <span className="block text-[13px] font-medium text-ink">{userName}</span>{' '}
                   <span className="block text-[11px] text-ink-500">{roleName}</span>
                 </span>
-                <ChevronDown className="size-3.5 text-ink-400" aria-hidden="true" />
+                <ChevronDown className="hidden size-3.5 text-ink-400 sm:block" aria-hidden="true" />
               </button>
             }>
             
