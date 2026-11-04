@@ -34,7 +34,7 @@ async function main(){
     for(let i=0;i<labels.length;i++){
      if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
      const nav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
-     await nav.locator(`a[href="#${destinations[i]}"]`).click();
+     await nav.locator(`a[href="#${destinations[i]}"]`).last().click();
      await tabs.nth(i).and(page.locator('[aria-selected="true"]')).waitFor();
      assert.equal(await tabs.nth(i).getAttribute('aria-selected'),'true',`${route}: sidebar item ${i+1} opens tab ${i+1}`);
     }
@@ -65,14 +65,13 @@ async function main(){
    const daybookLink=moduleNav.locator('a[href="#/app/daybook"]');
    await daybookLink.waitFor();
    assert.equal(await daybookLink.getAttribute('aria-current'),'page','Daybook is the selected top-level module');
-   assert.equal(await moduleNav.getByRole('button',{name:/Expand Finance|Collapse Finance/}).count(),1,'Finance has its own sidebar menu');
-   assert.equal(await moduleNav.getByRole('button',{name:/Expand Accounts|Collapse Accounts/}).count(),1,'Accounts has its own sidebar menu');
-   await moduleNav.getByRole('button',{name:/Expand Accounts|Collapse Accounts/}).click();
-   await moduleNav.locator('a[href="#/app/accounts"]').click();
+   assert.equal(await moduleNav.locator('a[data-nav-module="finance"]').count(),1,'Finance remains a direct module link');
+   assert.equal(await moduleNav.locator('a[data-nav-module="accounts"]').count(),1,'Accounts remains a separate module link');
+   await moduleNav.locator('a[data-nav-module="accounts"]').click();
    await page.waitForURL('**/#/app/accounts');
    if(width<1024)await page.getByRole('button',{name:'Open ERP navigation'}).click();
    const accountingNav=width<1024?page.getByRole('dialog',{name:'ERP navigation'}):page.getByRole('navigation',{name:'Main'});
-   assert.equal(await accountingNav.locator('a[href="#/app/accounts"]').getAttribute('aria-current'),'page','Accounts Overview opens beneath Accounts');
+   assert.equal(await accountingNav.locator('a[data-nav-module="accounts"]').getAttribute('aria-current'),'page','Accounts Overview opens beneath Accounts');
    assert.equal(await accountingNav.locator('a[href="#/app/daybook"]').count(),1,'Daybook remains outside Accounts as a one-click module');
    if(width<1024)await accountingNav.getByRole('button',{name:'Close navigation'}).click();
    await page.goto(base+'/app/settings/business');
