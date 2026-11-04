@@ -41,7 +41,7 @@ async function main() {
         assert.ok(box && box.height <= (width===390?65:112),
           'Sabab top bar must remain compact before the module strip: '+width+'px, '+box?.height+'px');
       }
-      if(width===390 && theme==='light'){
+      if((width===390 || width===320) && theme==='light' && height===900){
         const search=page.getByRole('combobox',{name:'Global search'});
         await search.fill('valve');
         const results=page.getByRole('listbox',{name:'Global search suggestions'});
@@ -49,6 +49,9 @@ async function main() {
         const bounds=await results.boundingBox();
         assert.ok(bounds && bounds.width>=Math.min(300,width-24),
           'Mobile global search results must be wide enough to read: '+bounds?.width);
+        const inputBounds=await search.boundingBox();
+        assert.ok(bounds && inputBounds && bounds.y>=inputBounds.y+inputBounds.height+2,
+          'Mobile global search results must not cover the active search input');
         await search.press('Escape');
         await search.fill('');
         await search.evaluate(element=>element.blur());
