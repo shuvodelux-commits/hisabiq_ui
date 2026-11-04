@@ -212,7 +212,7 @@ export function SababTopNavStrip() {
               animate="show"
               exit="exit"
               style={{ position: 'fixed', top: pos.top, left: pos.left,
-                width: PANEL_W, transformOrigin: 'top left' }}
+                width: PANEL_W, maxHeight: `calc(100dvh - ${pos.top + EDGE}px)`, transformOrigin: 'top left' }}
               className="z-[100] rounded-lg border border-border bg-popover p-1.5 text-popover-foreground shadow-pop"
             >
               <p className="flex items-center gap-2 px-2 pb-1.5 pt-1 text-[13px] font-semibold">
