@@ -177,6 +177,14 @@ async function main(){
   try{
     before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav);
     after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav);
+    if(showSababNav){
+      // Opt-in targeted Playwright interaction gate; preserves the original workflow YAML.
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/sabab-navigation-browser.cjs')],{
+        cwd:candidate,env:{...process.env,SABAB_NAV_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'sabab-navigation-playwright.log'),log);
+    }
   }finally{await browser.close();}
   const sha=cwd=>execFileSync('git',['rev-parse','HEAD'],{cwd,encoding:'utf8'}).trim();
   const baseSha=sha(baseline),prSha=sha(candidate);
