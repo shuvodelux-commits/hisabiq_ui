@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -190,10 +190,10 @@ export function SababTopNavStrip() {
       )}
       <ul ref={stripRef} className="flex scroll-px-12 items-center gap-0.5 overflow-x-auto px-2 py-1.5 [scrollbar-width:none] sm:px-3 [&::-webkit-scrollbar]:hidden">
         {sections.map((section, i) => (
-          <li key={section.label} className="contents">
-            {i > 0 && <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-border"/>}
+          <Fragment key={section.label}>
+            {i > 0 && <li aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-border"/>}
             {section.groups.map(renderModule)}
-          </li>
+          </Fragment>
         ))}
       </ul>
       {createPortal(
