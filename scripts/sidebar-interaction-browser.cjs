@@ -14,6 +14,7 @@ async function main() {
     cases.push({ width, theme, reducedMotion, hasTouch: false });
   for (const width of [390, 768, 1024]) for (const theme of ['light', 'dark'])
     cases.push({ width, theme, reducedMotion: 'no-preference', hasTouch: true });
+  cases.push({ width: 390, theme: 'light', reducedMotion: 'reduce', hasTouch: true });
   try {
     for (const config of cases) {
       const context = await browser.newContext({ viewport: { width: config.width, height: 900 }, reducedMotion: config.reducedMotion, hasTouch: config.hasTouch });
@@ -29,6 +30,17 @@ async function main() {
       const root = drawer ? page.getByRole('dialog', { name: 'ERP navigation', exact: true }) : page.locator('aside[data-sidebar="sidebar"]');
       const nav = root.getByRole('navigation');
       await nav.waitFor();
+      if (drawer) {
+        // The drawer must transition without changing Escape, focus return, or navigation.
+        const trigger = page.getByRole('button', { name: 'Open ERP navigation', exact: true });
+        await expect(root).toHaveAttribute('data-mobile-drawer-motion', config.reducedMotion === 'reduce' ? 'reduced' : 'enabled');
+        await expect(page.locator('[data-mobile-navigation]')).toHaveCount(1);
+        await page.keyboard.press('Escape');
+        await expect(page.locator('[data-mobile-navigation]')).toHaveCount(0);
+        await expect(trigger).toBeFocused();
+        await trigger.tap();
+        await expect(root).toBeVisible();
+      }
       const sales = nav.locator('button[aria-controls$="-erp-sales"]');
       const panel = nav.locator('[id$="-erp-sales"]');
       const counter = nav.getByRole('link', { name: 'Counter', exact: true });
