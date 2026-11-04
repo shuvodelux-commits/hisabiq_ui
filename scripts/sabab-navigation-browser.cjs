@@ -18,7 +18,13 @@ async function main() {
     ]) {
       const context=await browser.newContext({viewport:{width,height:900},colorScheme:theme,
         reducedMotion,hasTouch:width<1024});
-      await context.addInitScript(t=>localStorage.setItem('hisabiq-theme',t),theme);
+      await context.addInitScript(t=>{
+        localStorage.setItem('hisabiq-theme',t);
+        // Test the exact module labels in English; separate bilingual suites cover mixed display.
+        localStorage.setItem('hisabiq-erp-personal-v1',JSON.stringify({
+          mode:'Simple',language:'English',density:'Compact',terminology:'simple',dateView:'transaction'
+        }));
+      },theme);
       const page=await context.newPage();
       page.on('pageerror',error=>errors.push(error.message));
       await page.goto(url+'/#/app/dashboard',{waitUntil:'networkidle'});
@@ -30,7 +36,7 @@ async function main() {
         await expect(page.locator('[data-sabab-nav-strip]')).toBeHidden();
         await nav.getByRole('link',{name:/Sales/i}).first().click();
         await expect(page).toHaveURL(/\/app\/sales/);
-        await expect(nav.getByRole('link',{name:'Sales History',exact:true})).toBeVisible();
+        await expect(nav.getByRole('link',{name:/^Sales History/})).toBeVisible();
         await page.keyboard.press('Control+b');
         await expect(desktop).toHaveCSS('width','64px');
         await page.keyboard.press('Control+b');
@@ -43,7 +49,7 @@ async function main() {
         await sales.getByRole('button',{name:/Sales tabs/i}).click();
         const menu=page.getByRole('menu',{name:/Sales tabs/i});
         await expect(menu).toBeVisible();
-        await expect(menu.getByRole('menuitem',{name:'Sales Returns',exact:true})).toBeVisible();
+        await expect(menu.getByRole('menuitem',{name:/^Sales Returns/})).toBeVisible();
         await page.keyboard.press('Escape');
         await expect(menu).toBeHidden();
         const trigger=page.getByRole('button',{name:/Open ERP navigation/i});
