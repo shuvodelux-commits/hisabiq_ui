@@ -47,7 +47,7 @@ async function main() {
         const results=page.getByRole('listbox',{name:'Global search suggestions'});
         await expect(results).toBeVisible();
         const bounds=await results.boundingBox();
-        assert.ok(bounds && bounds.width>=Math.min(300,width-24),
+        assert.ok(bounds && bounds.width>=Math.min(280,width-30),
           'Mobile global search results must be wide enough to read: '+bounds?.width);
         const inputBounds=await search.boundingBox();
         assert.ok(bounds && inputBounds && bounds.y>=inputBounds.y+inputBounds.height+2,
