@@ -142,8 +142,8 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
       if(showPosV2){
         await page.setViewportSize({width,height});
         const checkout=page.locator('[data-pos-checkout]');
-        const details=checkout.getByTestId('pos-invoice-details-toggle');
-        await details.click();
+        const invoiceDetailsToggle=checkout.getByTestId('pos-invoice-details-toggle');
+        await invoiceDetailsToggle.click();
         await page.waitForTimeout(120);
         const customerFile=name+'-pos-v2-customer-'+width+'-'+theme+'.png';
         await page.screenshot({path:path.join(out,customerFile),fullPage:true,animations:'disabled'});
