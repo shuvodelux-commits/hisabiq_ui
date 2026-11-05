@@ -945,7 +945,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                   <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -965,7 +965,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       {item.direction === 'in' ? '+' : item.direction === 'out' ? '−' : ''}{taka(item.amount)}
                     </TableCell>
                     <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
-                    <TableCell className="py-2 pr-4 text-right">
+                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                       <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
                         {close => <>
                           <ActionMenuItem icon={Eye} onClick={() => { close(); openTransactionActions(item, 'view'); }}>{text('View transaction','লেনদেন দেখুন')}</ActionMenuItem>
@@ -1086,7 +1086,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     <TableHead className="h-9 text-xs">{text('To','যে হিসাবে')}</TableHead>
                     <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                    <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1100,7 +1100,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       <TableCell className="py-2">{transferAccountLabel(item, 'to', accounts)}</TableCell>
                       <TableCell className="py-2 text-right font-semibold">{taka(item.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                         <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
                           {close => <>
                             <ActionMenuItem icon={Eye} onClick={() => { close(); openTransferActions(item, 'view'); }}>{text('View transfer','ট্রান্সফার দেখুন')}</ActionMenuItem>
@@ -1141,7 +1141,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     <TableHead className="h-9 text-xs">{text('Money account','টাকার হিসাব')}</TableHead>
                     <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                    <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1162,7 +1162,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <TableCell className="py-2 text-ink-500">{cheque.depositAccount || '—'}</TableCell>
                         <TableCell className="py-2 text-right font-semibold">{taka(cheque.amount)}</TableCell>
                         <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{financeLabel(language,cheque.status)}</StatusBadge></TableCell>
-                        <TableCell className="py-2 pr-4 text-right">
+                        <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                           <RowActionMenu label={text('Actions for','কাজ') + ' ' + cheque.id}>
                             {close => <>
                               <ActionMenuItem icon={Eye} onClick={() => { close(); openChequeActions(cheque, 'view'); }}>{text('View cheque','চেক দেখুন')}</ActionMenuItem>
@@ -1232,7 +1232,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     <TableHead className="h-9 text-right text-xs">{text('Counted','গুনে পাওয়া')}</TableHead>
                     <TableHead className="h-9 text-right text-xs">{text('Variance','পার্থক্য')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                    <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1254,7 +1254,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       <TableCell className="py-2">
                         <StatusBadge tone={session.status === 'Open' ? 'success' : session.variance ? 'warning' : 'neutral'} dot>{financeLabel(language,session.status)}</StatusBadge>
                       </TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                         <RowActionMenu label={text('Actions for','কাজ') + ' ' + session.id}>
                           {close => <>
                             <ActionMenuItem icon={Eye} onClick={() => { close(); setCashSessionAction(session); }}>{text('View cash session','ক্যাশ সেশন দেখুন')}</ActionMenuItem>
