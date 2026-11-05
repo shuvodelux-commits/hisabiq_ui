@@ -173,42 +173,49 @@ export function Daybook() {
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
         <DaybookFilters value={filters} onChange={updateFilters} transactions={transactions} dateView={entryDateView} />
 
-        <div className="overflow-x-auto">
-          <Table>
+        <div data-daybook-table-scroll="" className="overflow-x-auto">
+          <Table className="w-full table-fixed lg:table-auto"
+            scrollRegionLabel={text('Daybook transactions, scroll for extra columns','দৈনিক খাতার আরও কলাম দেখতে পাশে সরান')}>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 pl-4 text-xs">{text('Date','তারিখ')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Type','ধরন')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('No. / Reference','নম্বর / রেফারেন্স')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Details','বিবরণ')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
-                <TableHead className="h-9 text-right text-xs">{text('Money In','টাকা এসেছে')}</TableHead>
-                <TableHead className="h-9 text-right text-xs">{text('Money Out','টাকা গেছে')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Posted by','যিনি লিখেছেন')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                <TableHead className="h-9 w-[76px] px-1 pl-2 text-[11px] lg:w-auto lg:pl-4 lg:text-xs">{text('Date','তারিখ')}</TableHead>
+                <TableHead className="h-9 w-[88px] px-1 text-[11px] lg:w-auto lg:text-xs">{text('Type','ধরন')}</TableHead>
+                <TableHead className="h-9 px-1 text-[11px] lg:text-xs">{text('No. / Reference','নম্বর / রেফারেন্স')}</TableHead>
+                <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Party','পক্ষ')}</TableHead>
+                <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Details','বিবরণ')}</TableHead>
+                <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Account','হিসাব')}</TableHead>
+                <TableHead className="hidden h-9 lg:table-cell text-right text-xs">{text('Money In','টাকা এসেছে')}</TableHead>
+                <TableHead className="hidden h-9 lg:table-cell text-right text-xs">{text('Money Out','টাকা গেছে')}</TableHead>
+                <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Posted by','যিনি লিখেছেন')}</TableHead>
+                <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Status','অবস্থা')}</TableHead>
+                <TableHead className="sticky right-0 z-10 h-9 w-[44px] bg-card px-1 text-right text-xs lg:w-auto lg:pr-4">
+                  <span className="sr-only lg:not-sr-only">{text('Action','কাজ')}</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((transaction) => (
                 <TableRow key={transaction.id} className="text-[13px]">
-                  <TableCell className="py-2 pl-4">
+                  <TableCell className="py-2 pl-2 pr-1 text-[11px] lg:pl-4 lg:text-[13px]">
                     <p className="font-medium text-ink">{dateForView(transaction, entryDateView)}</p>
                     {entryDateView === 'transaction' && transaction.createdAt.slice(0, 10) !== transaction.transactionDate && (
-                      <p data-table-helper="" className="text-[10.5px] text-ink-400">Entered {transaction.createdAt.slice(0, 10)}</p>
+                      <p data-table-helper="" className="hidden text-[10.5px] text-ink-400 lg:block">Entered {transaction.createdAt.slice(0, 10)}</p>
                     )}
                   </TableCell>
-                  <TableCell className="py-2"><span className="font-medium text-ink">{text(transaction.type,transaction.type==='Sale'?'বিক্রি':transaction.type==='Purchase'?'ক্রয়':transaction.type==='Expense'?'খরচ':transaction.type==='Receipt'?'টাকা পাওয়া':transaction.type==='Payment'?'টাকা দেওয়া':transaction.type)}</span>{!transaction.countsTowardCashflow && <span data-table-helper="" className="block font-bn text-[10.5px] text-ink-400">নিজের অ্যাকাউন্টে টাকা সরানো</span>}</TableCell>
-                  <TableCell className="py-2 font-medium text-teal-700">{transaction.reference}</TableCell>
-                  <TableCell className="py-2 text-ink-600">{transaction.party || '—'}</TableCell>
-                  <TableCell className="max-w-[230px] py-2"><p className="truncate text-ink-500">{transaction.details || (transaction.due ? `${taka(transaction.due)} ${text('due','বাকি')}` : '—')}</p>{!!transaction.due && <p data-table-helper="" className="font-bn text-[10.5px] text-warning">বাকি আছে {taka(transaction.due)}</p>}</TableCell>
-                  <TableCell className="max-w-[210px] py-2"><p className="truncate text-ink-500">{transaction.accounts.length > 1 ? transaction.accounts.join(' + ') : transaction.accounts[0] || '—'}</p></TableCell>
-                  <TableCell className="py-2 text-right font-medium text-success">{transaction.moneyIn ? taka(transaction.moneyIn) : '—'}</TableCell>
-                  <TableCell className="py-2 text-right font-medium text-ink">{transaction.moneyOut ? taka(transaction.moneyOut) : '—'}</TableCell>
-                  <TableCell className="py-2"><p className="font-medium text-ink">{transaction.postedBy}</p><p data-table-helper="" className="text-[10.5px] text-ink-400">{transaction.createdAt.slice(11, 16)}</p></TableCell>
-                  <TableCell className="py-2"><StatusBadge tone={statusTone(transaction.status)} dot>{text(transaction.status,transaction.status==='Posted'?'লেখা হয়েছে':transaction.status==='Draft'?'খসড়া':transaction.status==='Deleted'?'মুছে ফেলা':'উল্টো হিসাব')}</StatusBadge></TableCell>
-                  <TableCell className="py-2 pr-4 text-right">
+                  <TableCell className="px-1 py-2 text-[11px] leading-4 lg:text-[13px]"><span className="break-words font-medium text-ink">{text(transaction.type,transaction.type==='Sale'?'বিক্রি':transaction.type==='Purchase'?'ক্রয়':transaction.type==='Expense'?'খরচ':transaction.type==='Receipt'?'টাকা পাওয়া':transaction.type==='Payment'?'টাকা দেওয়া':transaction.type)}</span>{!transaction.countsTowardCashflow && <span data-table-helper="" className="hidden font-bn text-[10.5px] text-ink-400 lg:block">নিজের অ্যাকাউন্টে টাকা সরানো</span>}</TableCell>
+                  <TableCell className="min-w-0 px-1 py-2 font-medium text-teal-700">
+                    <span className="block truncate text-[11px] tracking-tight sm:text-[12px] lg:text-[13px]">{transaction.reference}</span>
+                    <span className="block truncate text-[10.5px] font-normal text-ink-500 lg:hidden">{transaction.party || '—'}</span>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell py-2 text-ink-600">{transaction.party || '—'}</TableCell>
+                  <TableCell className="hidden lg:table-cell max-w-[230px] py-2"><p className="truncate text-ink-500">{transaction.details || (transaction.due ? `${taka(transaction.due)} ${text('due','বাকি')}` : '—')}</p>{!!transaction.due && <p data-table-helper="" className="font-bn text-[10.5px] text-warning">বাকি আছে {taka(transaction.due)}</p>}</TableCell>
+                  <TableCell className="hidden lg:table-cell max-w-[210px] py-2"><p className="truncate text-ink-500">{transaction.accounts.length > 1 ? transaction.accounts.join(' + ') : transaction.accounts[0] || '—'}</p></TableCell>
+                  <TableCell className="hidden lg:table-cell py-2 text-right font-medium text-success">{transaction.moneyIn ? taka(transaction.moneyIn) : '—'}</TableCell>
+                  <TableCell className="hidden lg:table-cell py-2 text-right font-medium text-ink">{transaction.moneyOut ? taka(transaction.moneyOut) : '—'}</TableCell>
+                  <TableCell className="hidden lg:table-cell py-2"><p className="font-medium text-ink">{transaction.postedBy}</p><p data-table-helper="" className="text-[10.5px] text-ink-400">{transaction.createdAt.slice(11, 16)}</p></TableCell>
+                  <TableCell className="hidden lg:table-cell py-2"><StatusBadge tone={statusTone(transaction.status)} dot>{text(transaction.status,transaction.status==='Posted'?'লেখা হয়েছে':transaction.status==='Draft'?'খসড়া':transaction.status==='Deleted'?'মুছে ফেলা':'উল্টো হিসাব')}</StatusBadge></TableCell>
+                  <TableCell data-daybook-action-cell="" className="sticky right-0 z-10 w-[44px] bg-card px-1 py-1 text-right lg:w-auto lg:py-2 lg:pr-4">
+                    <div className="flex justify-end">
                     <DaybookActions
                       transaction={transaction}
                       onOpen={setDetail}
@@ -218,12 +225,17 @@ export function Daybook() {
                       onPrint={printTransaction}
                       onDuplicate={duplicateTransaction}
                     />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
               {!filtered.length && (
                 <TableRow>
-                  <TableCell colSpan={11} className="py-14 text-center">
+                  <TableCell colSpan={4} className="py-14 text-center lg:hidden">
+                    <p className="text-sm font-medium text-ink">{text('No transactions found','কোনো লেনদেন নেই')}</p>
+                    <p data-table-helper="" className="mt-1 font-bn text-xs text-ink-400">এই তারিখ বা ফিল্টারে কোনো লেনদেন নেই</p>
+                  </TableCell>
+                  <TableCell colSpan={11} className="hidden py-14 text-center lg:table-cell">
                     <p className="text-sm font-medium text-ink">{text('No transactions found','কোনো লেনদেন নেই')}</p>
                     <p data-table-helper="" className="mt-1 font-bn text-xs text-ink-400">এই তারিখ বা ফিল্টারে কোনো লেনদেন নেই</p>
                   </TableCell>
