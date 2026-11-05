@@ -76,8 +76,9 @@ async function main(){
           assert.ok(supplierBox&&nearby(searchBox.y,supplierBox.y)&&nearby(searchBox.y,statusBox.y),
             'desktop Search, Supplier, Status and Reset share one compact toolbar');
         }
-        await status.selectOption('Due');
-        await expect(status).toHaveValue('Due');
+        await status.click();
+        await page.getByRole('option',{name:/^Due$|^বাকি$/}).click();
+        await expect(status).toHaveAttribute('data-value','Due');
         if(width<1024){
           await toggle.click();
           await expect(advanced).toBeHidden();
@@ -85,10 +86,10 @@ async function main(){
           assert.equal(await toggle.getAttribute('data-active-filters'),'true',
             'hidden active filters remain indicated');
           await toggle.click();
-          await expect(status).toHaveValue('Due');
+          await expect(status).toHaveAttribute('data-value','Due');
         }
         await reset.click();
-        await expect(status).toHaveValue('All status');
+        await expect(status).toHaveAttribute('data-value','All status');
         await expect(search).toHaveValue('');
 
         const table=page.locator('[data-purchases-table]');
