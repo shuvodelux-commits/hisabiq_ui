@@ -106,18 +106,20 @@ test('Vendor quick settlement embeds existing source-linked form and validates m
   assert.ok(vendor.includes("paidPaisa!>duePaisa"),'Overpaying remains forbidden');
 });
 
-test('Shared ERP Dialog adopts Magic Patterns Framer Motion entrance without changing existing form logic', () => {
+test('Shared ERP Dialog adopts precise Sabab 180ms entrance without changing existing form logic', () => {
   const dialog=read('src/components/Dialog.tsx');
   for(const source of ["import {animate,useReducedMotion} from 'framer-motion'",
     'useLayoutEffect(()=>{', 'if(!modal?.open||!ref.current||reduceMotion)return',
-    'opacity:[0,1],marginTop:[24,0]', 'duration:0.22,ease:easing',
+    "scale:'0.96',translate:'0px 8px'", "scale:'1',translate:'0px 0px'",
+    "duration:180,easing:'cubic-bezier(0.22, 1, 0.36, 1)'",
     'animate(backdrop,{opacity:[0,1]},{duration:0.18})',
-    "data-modal-motion={reduceMotion?'reduced':'magic-patterns'}",
+    "data-modal-motion={reduceMotion?'reduced':'magic-patterns'}", 'data-dialog-entry="sabab"',
     'DesignContent {...props}', 'lockBodyScroll()', 'previous.focus({preventScroll:true})',
     "event.key==='Escape'", "event.key!=='Tab'"]) {
     assert.ok(dialog.includes(source), 'Dialog preserves semantics and motion: '+source);
   }
-  assert.ok(dialog.includes('[0.32,0.72,0,1]'), 'Original Magic Patterns bezier is matched');
+  assert.ok(dialog.includes('cubic-bezier(0.22, 1, 0.36, 1)'), 'Exact Sabab dialog easing is matched');
+  assert.ok(dialog.includes("if(!modal?.open||!ref.current||reduceMotion)return"), 'Reduced-motion entry remains immediate');
   const sheet=read('src/components/parties/PartyActionSheet.tsx');
   assert.ok(sheet.includes('AnimatePresence'), 'Mobile More action sheet retains its existing exit animation');
 });
