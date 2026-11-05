@@ -69,7 +69,7 @@ function test(){
   assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: src/pages/not-real.tsx',root,'#/app/pos'));
   console.log('All-module route and Impeccable scope parser OK: '+good.length+' routes');
 }
-async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false,showSababMotion=false,showPurchasesDaybook=false,showPosCombobox=false){
+async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false,showSababMotion=false,showPurchasesDaybook=false,showPartyLedger=false,showPosCombobox=false){
   const shots=[];
   for(const width of widths)for(const theme of themes){
     const height=width===1024?768:width===768?1024:width===1440?900:844;
@@ -85,7 +85,7 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
       const page=await ctx.newPage();
       const errors=[];
       page.on('pageerror',e=>errors.push(e.message));
-      await page.goto(url+'/'+route,{waitUntil:'networkidle',timeout:120000});
+      await page.goto(showPartyLedger ? url+'/#/app/parties?id=c1&role=Customer' : url+'/'+route,{waitUntil:'networkidle',timeout:120000});
       const main = page.locator('main:visible').first();
       if(await main.count())await main.waitFor({state:'visible',timeout:20000});
       else await page.locator('#root:visible').first().waitFor({state:'visible',timeout:20000});
@@ -186,6 +186,27 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
         const target=name+'-erp-action-menu-'+width+'-'+theme+'.png';
         await page.screenshot({path:path.join(out,target),animations:'disabled'});
         shots.push({filename:target,width,theme,state:'erp-action-menu',...details});
+      }
+      if(showPartyLedger){
+        // Explicit selected Customer statement on BOTH before/after; no invented fixtures.
+        const toolbar=page.locator('[data-party-ledger-toolbar], [data-hisabiq-field-group="party-ledger"]').first();
+        const toggle=toolbar.getByRole('button',{name:/Advanced filters|Filters|আরও ফিল্টার|ফিল্টার/}).first();
+        if(width<1024 && await toggle.count() && await toggle.isVisible())await toggle.click();
+        await page.waitForTimeout(100);
+        const expandedName=name+'-party-ledger-filters-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,expandedName),fullPage:true,animations:'disabled'});
+        shots.push({filename:expandedName,width,theme,state:'party-ledger-filters',...details});
+        const trigger=page.getByRole('button',{name:/^Actions for |^কাজ /}).first();
+        await trigger.scrollIntoViewIfNeeded();
+        await trigger.click();
+        const dialog=page.getByRole('dialog',{name:/Transaction actions for|লেনদেনের কাজ/}).first();
+        await dialog.waitFor({state:'visible'});
+        await page.waitForTimeout(100);
+        const actionName=name+'-party-ledger-actions-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,actionName),animations:'disabled'});
+        shots.push({filename:actionName,width,theme,state:'party-ledger-actions',...details});
+        await page.keyboard.press('Escape');
+        await dialog.waitFor({state:'hidden'});
       }
       if(showPurchasesDaybook){
         const toggle=page.getByRole('button',{name:/Advanced filters|আরও ফিল্টার/}).first();
@@ -298,7 +319,7 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
   }
   return shots;
 }
-function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false,showSababMotion=false,showPurchasesDaybook=false,showPosCombobox=false){
+function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false,showSababMotion=false,showPurchasesDaybook=false,showPartyLedger=false,showPosCombobox=false){
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const configs=widths.flatMap(width=>themes.map(theme=>({width,theme,mode:'default'})));
   if(showSababNav)for(const width of widths.filter(w=>w<1024))for(const theme of themes)
@@ -321,6 +342,8 @@ function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=fals
     configs.push({width,theme,mode:'pos-product-suggestions'});
   if(showSababMotion)for(const width of widths)for(const theme of themes)
     for(const mode of ['daybook-motion-filter','daybook-motion-dropdown','daybook-motion-date-switch'])configs.push({width,theme,mode});
+  if(showPartyLedger)for(const width of widths)for(const theme of themes)
+    for(const mode of ['party-ledger-filters','party-ledger-actions'])configs.push({width,theme,mode});
   const rows=configs.map(({width,theme,mode})=>{
     const suffix=(mode==='default'?'':mode+'-')+width+'-'+theme+'.png';
     const before='before-'+suffix;
@@ -349,14 +372,15 @@ async function main(){
   const showExpenseDialog=/^[ \\t]*UI-REFINE-STATE:[ \\t]*expense-dialog[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showErpActions=/^[ \\t]*UI-REFINE-STATE:[ \\t]*erp-action-menus[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showSalesFilter=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sales-invoice-filter[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
+  const showPartyLedger=/^[ \\t]*UI-REFINE-STATE:[ \\t]*party-ledger-daybook[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showDaybookActionMenu=/^[ \\t]*UI-REFINE-STATE:[ \\t]*daybook-row-menu[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showPurchasesDaybook=/^[ \\t]*UI-REFINE-STATE:[ \\t]*purchases-daybook[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showPosCombobox=/^[ \\t]*UI-REFINE-STATE:[ \\t]*pos-product-suggestion-motion[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showSababMotion=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sabab-motion-daybook[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   let before,after;
   try{
-    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPosCombobox);
-    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPosCombobox);
+    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showPosCombobox);
+    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showPosCombobox);
     if(showExpenseDialog){
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/dialog-motion-browser.cjs')],{
         cwd:candidate,env:{...process.env,DIALOG_MOTION_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
@@ -401,7 +425,14 @@ async function main(){
       });
       await fsp.writeFile(path.join(out,'sabab-navigation-playwright.log'),log);
     }
-    if(showPurchasesDaybook){
+    if(showPartyLedger){
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/party-ledger-daybook-refine-browser.cjs')],{
+        cwd:candidate,env:{...process.env,PARTY_LEDGER_DAYBOOK_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:240000
+      });
+      await fsp.writeFile(path.join(out,'party-ledger-daybook-playwright.log'),log);
+    }
+      if(showPurchasesDaybook){
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/purchases-daybook-refine-browser.cjs')],{
         cwd:candidate,env:{...process.env,PURCHASES_DAYBOOK_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
         encoding:'utf8',timeout:240000
@@ -448,7 +479,7 @@ async function main(){
     route,baseSha,prSha,before,after,
     warning:'Screenshots must be visually inspected in ChatGPT; do not claim automated Impeccable reviews ran.'
   },null,2));
-  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPosCombobox));
+  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showPosCombobox));
   console.log('Captured '+before.length+' baseline and '+after.length+' PR images: '+route);
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
