@@ -38,17 +38,25 @@ async function main() {
       const rowCount = await page.locator('main table tbody tr').count();
       assert.equal(rowCount, 6, 'The existing October audit records remain visible');
 
-      const more = page.getByRole('button', { name: language === 'Bangla' ? 'আরও ফিল্টার' : 'More filters' });
-      assert.equal(await page.locator('main [role="combobox"]:visible').count(), 2,
-        'Only source and status filters stay in the first view');
-      assert.equal(await more.getAttribute('aria-expanded'), 'false');
-      await more.click();
-      assert.equal(await page.locator('main [role="combobox"]:visible').count(), 7,
-        'All original seven filters can be revealed');
-      const less = page.getByRole('button', { name: language === 'Bangla' ? 'কম ফিল্টার' : 'Fewer filters' });
-      assert.equal(await less.getAttribute('aria-expanded'), 'true');
-      await less.click();
-      assert.equal(await page.locator('main [role="combobox"]:visible').count(), 2);
+      const filterToggle = page.locator('[data-audit-filter-toggle]:visible');
+      const visibleSecondary = page.locator('#audit-more-filters [role="combobox"]:visible');
+      if (width < 1024) {
+        assert.equal(await filterToggle.count(), 1, 'One compact funnel Filter button on phone/tablet');
+        assert.equal(await visibleSecondary.count(), 0, 'Secondary filters collapse by default');
+        assert.equal(await filterToggle.getAttribute('aria-expanded'), 'false');
+        await filterToggle.click();
+        assert.equal(await visibleSecondary.count(), 7, 'All original seven filters can be revealed');
+        assert.equal(await page.getByRole('button', { name: language === 'Bangla' ? 'ফিল্টার মুছুন' : 'Reset filters' }).count(), 1,
+          'Existing full-reset action remains available beside Status');
+        assert.equal(await filterToggle.getAttribute('aria-expanded'), 'true');
+        await filterToggle.click();
+        assert.equal(await visibleSecondary.count(), 0, 'Closing Filter retains a compact primary bar');
+      } else {
+        assert.equal(await filterToggle.count(), 0, 'Desktop does not need Filter toggle');
+        assert.equal(await visibleSecondary.count(), 7, 'Desktop shows all seven original filters');
+      assert.equal(await page.getByRole('button', { name: language === 'Bangla' ? 'ফিল্টার মুছুন' : 'Reset filters' }).count(), 1,
+        'Existing full-reset action remains available beside Status');
+      }
 
       const search = page.getByRole('textbox', { name: language === 'Bangla' ? 'অডিট লেনদেন খুঁজুন' : 'Search audit transactions' });
       await search.fill('INV-000239');
@@ -61,7 +69,7 @@ async function main() {
 
       if (language === 'Bangla') {
         const sourceColumn = async (reference) => (
-          await page.locator('main table tbody tr').filter({ hasText: reference }).locator('td').nth(4).innerText()
+          await page.locator('main table tbody tr').filter({ hasText: reference }).locator('td').nth(4).textContent()
         ).trim();
         assert.equal(await sourceColumn('CP-000091'), 'বিক্রি / ক্রেতা',
           'Customer payment source must be localized');
