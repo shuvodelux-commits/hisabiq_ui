@@ -1,7 +1,39 @@
-export default {content: [
-  './index.html',
-  './src/**/*.{js,ts,jsx,tsx}'
-],
+import { readdirSync, readFileSync } from 'node:fs';
+import { extname, join } from 'node:path';
+
+// Tailwind 3 reads every content glob match in one Promise.all. In Cloudflare's
+// constrained build environment, the resulting parallel fs.open calls can hit
+// EMFILE. Read the SAME files sequentially and pass one raw content item.
+// Ordinary local development retains the original globs for file watching.
+const SOURCE_EXTENSIONS = new Set(['.js', '.ts', '.jsx', '.tsx']);
+
+function readSourceTextSequentially(dir) {
+  const chunks = [];
+  function walk(current) {
+    const entries = readdirSync(current, { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name));
+    for (const entry of entries) {
+      // Tailwind's original src/**/* glob does not include hidden paths.
+      if (entry.name.startsWith('.')) continue;
+      const file = join(current, entry.name);
+      if (entry.isDirectory()) walk(file);
+      else if (entry.isFile() && SOURCE_EXTENSIONS.has(extname(entry.name))) {
+        chunks.push(readFileSync(file, 'utf8'));
+      }
+    }
+  }
+  walk(dir);
+  return chunks.join('\n');
+}
+
+const content = process.env.CF_PAGES === '1'
+  ? [{
+      raw: readFileSync('./index.html', 'utf8') + '\n' + readSourceTextSequentially('./src'),
+      extension: 'html',
+    }]
+  : ['./index.html', './src/**/*.{js,ts,jsx,tsx}'];
+
+export default {content,
   darkMode: 'selector',
   theme: {
     container: {
