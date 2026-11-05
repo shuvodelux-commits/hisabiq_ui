@@ -35,8 +35,11 @@ async function checkProductPicker(page, width, reduced, kind) {
   const name = kind === 'purchase' ? 'Search product to add to purchase' : 'Add product';
   const input = page.getByRole('combobox', { name, exact: true }).first();
   await expect(input).toBeVisible();
+  // POS may auto-focus its Add Product input on mount; start with a known closed state.
+  await input.press('Escape');
+  await expect(page.locator('#pos-product-list:visible')).toBeHidden();
   await captureFramesBeforeOpening(page);
-  await input.focus();
+  await input.click();
   const popup = page.locator('#pos-product-list:visible');
   await expect(popup).toBeVisible();
   await expect(input).toHaveAttribute('aria-expanded', 'true');
