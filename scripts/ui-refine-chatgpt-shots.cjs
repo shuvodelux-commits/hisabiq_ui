@@ -413,26 +413,12 @@ async function main(){
       await fsp.writeFile(path.join(out,'sabab-navigation-playwright.log'),log);
     }
     if(showPartyLedger){
-        // Explicit selected Customer statement on BOTH before/after; no invented fixtures.
-        const toolbar=page.locator('[data-party-ledger-toolbar], [data-hisabiq-field-group="party-ledger"]').first();
-        const toggle=toolbar.getByRole('button',{name:/Advanced filters|Filters|আরও ফিল্টার|ফিল্টার/}).first();
-        if(width<1024 && await toggle.count() && await toggle.isVisible())await toggle.click();
-        await page.waitForTimeout(100);
-        const expandedName=name+'-party-ledger-filters-'+width+'-'+theme+'.png';
-        await page.screenshot({path:path.join(out,expandedName),fullPage:true,animations:'disabled'});
-        shots.push({filename:expandedName,width,theme,state:'party-ledger-filters',...details});
-        const trigger=page.getByRole('button',{name:/^Actions for |^কাজ /}).first();
-        await trigger.scrollIntoViewIfNeeded();
-        await trigger.click();
-        const dialog=page.getByRole('dialog',{name:/Transaction actions for|লেনদেনের কাজ/}).first();
-        await dialog.waitFor({state:'visible'});
-        await page.waitForTimeout(100);
-        const actionName=name+'-party-ledger-actions-'+width+'-'+theme+'.png';
-        await page.screenshot({path:path.join(out,actionName),animations:'disabled'});
-        shots.push({filename:actionName,width,theme,state:'party-ledger-actions',...details});
-        await page.keyboard.press('Escape');
-        await dialog.waitFor({state:'hidden'});
-      }
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/party-ledger-daybook-refine-browser.cjs')],{
+        cwd:candidate,env:{...process.env,PARTY_LEDGER_DAYBOOK_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:240000
+      });
+      await fsp.writeFile(path.join(out,'party-ledger-daybook-playwright.log'),log);
+    }
       if(showPurchasesDaybook){
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/purchases-daybook-refine-browser.cjs')],{
         cwd:candidate,env:{...process.env,PURCHASES_DAYBOOK_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
