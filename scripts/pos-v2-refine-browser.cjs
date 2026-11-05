@@ -29,7 +29,19 @@ async function main(){
          while(walk.nextNode()){const n=walk.currentNode;if(!n.textContent?.trim())continue;const r=document.createRange();r.selectNodeContents(n);nodes.push(r.getBoundingClientRect().right);}
          return Math.max(0,...nodes);
       });
-      assert.ok(clippedText<=cartBox.right+1,width+' '+theme+': numeric total glyphs clipped');
+      if(width===768||width===1440){
+        const geometry=await cart.evaluate(el=>{
+          const row=el.querySelector('[data-cart-row="sale"]');
+          const total=row.children[5],rect=x=>{const b=x.getBoundingClientRect();return {x:b.x,right:b.right,width:b.width};};
+          const r=document.createRange();r.selectNodeContents(total);
+          return {cart:rect(el),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,
+            row:rect(row),rowGrid:getComputedStyle(row).gridTemplateColumns,
+            rowScroll:row.scrollWidth,headerDisplay:getComputedStyle(el.querySelector('[data-cart-header]')).display,
+            children:[...row.children].map((ch,i)=>({i,...rect(ch)})),totalText:total.textContent?.trim(),textRight:r.getBoundingClientRect().right};
+        });
+        console.log('POS CART GEOMETRY '+width+' '+theme+' '+JSON.stringify(geometry));
+      }
+      assert.ok(clippedText<=cartBox.right+1,width+' '+theme+': numeric total glyphs clipped ('+Math.round(clippedText)+' > '+Math.round(cartBox.right)+')');
       const quick=page.getByRole('region',{name:/Quick add products/});
       assert.ok(await quick.isVisible(),'Quick products list accessible');
       assert.equal(await quick.getByRole('button').count(),8,'All 8 one-tap quick products retained');
