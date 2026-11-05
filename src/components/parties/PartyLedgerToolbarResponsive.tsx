@@ -66,13 +66,13 @@ export function PartyLedgerToolbarResponsive({range,onRange,kind,onKind,query,on
         <AppSelect menuStyle="rows" className="min-w-0 flex-1" label={text('Rows per page','প্রতি পাতায়')}
           value={String(pageSize)} options={['5','10','25','50','100']}
           onChange={value=>onPageSize(Number(value))}/>
-        <Button type="button" size="icon" variant="outline" onClick={onReset}
+        <Button type="button" size="icon" variant="outline" data-ledger-filter-action="" onClick={onReset}
           aria-label={text('Clear filters','ফিল্টার মুছুন')} title={text('Clear filters','ফিল্টার মুছুন')}
           className="size-9 shrink-0 rounded-md text-ink-500">
           <RotateCcw className="size-4" aria-hidden="true"/>
         </Button>
       </div>
-      <Button type="button" size="sm" variant="outline" onClick={onStatement}
+      <Button type="button" size="sm" variant="outline" data-ledger-filter-action="" onClick={onStatement}
         className="min-[360px]:col-span-2 md:col-span-1 md:justify-self-end">
         <Printer className="size-4" aria-hidden="true"/>{text('Print statement','হিসাব প্রিন্ট')}
       </Button>
