@@ -23,11 +23,11 @@ import {
   CornerUpLeft,
   FileClock,
   FileText,
-  MoreHorizontal,
   Pencil,
   Plus,
   Printer,
   Search,
+  RotateCcw,
   ShieldCheck,
   Trash2,
   UserRound
@@ -43,7 +43,7 @@ import {salesLabel,salesOptions} from '../i18n/salesCopy';
 import type {UiLanguage} from '../i18n/uiCopy';
 import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } from '../components/layout/ActionMenu';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { customerCredits as seedCredits, salesReturns as seedReturns } from '../data/sales';
@@ -215,16 +215,12 @@ function InvoiceActions({
       label={`${sl('Actions for')} ${invoice.invoice}`}
       width={210}
       trigger={({ toggle, open }) => (
-        <button
-          onClick={(event) => {
-            event.stopPropagation();
-            toggle();
-          }}
-          aria-expanded={open}
-          aria-label={`${sl('Actions for')} ${invoice.invoice}`}
-          className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-          <MoreHorizontal className="size-4" />
-        </button>
+        <ActionMenuTrigger
+          label={`${sl('Actions for')} ${invoice.invoice}`}
+          expanded={open}
+          onClick={(event) => { event.stopPropagation(); toggle(); }}
+          className="border border-border bg-card lg:border-transparent"
+        />
       )}>
       {(close) => (
         <ActionMenuList onClick={(event) => event.stopPropagation()}>
@@ -1000,9 +996,12 @@ export function Sales() {
                       label={`${sl('Actions for')} ${item.id}`}
                       width={210}
                       trigger={({ toggle, open }) => (
-                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`${sl('Actions for')} ${item.id}`}>
-                          <MoreHorizontal className="size-4" />
-                        </button>
+                        <ActionMenuTrigger
+                          label={`${sl('Actions for')} ${item.id}`}
+                          expanded={open}
+                          onClick={(event) => { event.stopPropagation(); toggle(); }}
+                          className="border border-border bg-card lg:border-transparent"
+                        />
                       )}>
                       {(close) => (
                         <ActionMenuList>
@@ -1027,13 +1026,12 @@ export function Sales() {
                         label={`${sl('Credit actions for')} ${credit.customer}`}
                         width={220}
                         trigger={({ toggle, open }) => (
-                          <button
-                            onClick={toggle}
-                            aria-expanded={open}
-                            aria-label={`${sl('Actions for')} ${credit.customer} ${sl('Customer credit')}`}
-                            className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                            <MoreHorizontal className="size-4" />
-                          </button>
+                          <ActionMenuTrigger
+                            label={`${sl('Actions for')} ${credit.customer} ${sl('Customer credit')}`}
+                            expanded={open}
+                            onClick={(event) => { event.stopPropagation(); toggle(); }}
+                            className="border border-border bg-card lg:border-transparent"
+                          />
                         )}>
                         {(close) => (
                           <ActionMenuList>
@@ -1058,24 +1056,40 @@ export function Sales() {
                   aria-label={sl("Search sales")}
                 />
               </div>);
-  const invoiceFilters = (<><FormSelect
-                className="w-full lg:w-44"
-                value={customerFilter}
-                onChange={(event) => setCustomerFilter(event.target.value)}
-                options={[{value:'All customers',label:text('All customers','সব ক্রেতা')},...customerNames]}
-              />
-              <FormSelect
-                className="w-full lg:w-36"
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':v==='Due'?'বাকি':v==='Part returned'?'আংশিক ফেরত':'ফেরত')}))}
-              />
-              <FormSelect
-                className="w-full lg:w-40"
-                value={method}
-                onChange={(event) => setMethod(event.target.value)}
-                options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
-              /></>);
+  const resetInvoiceFilters = () => {
+    setQuery('');
+    setCustomerFilter('All customers');
+    setStatus('All status');
+    setMethod('All payments');
+  };
+  const invoiceFilters = (<>
+    <FormSelect
+      className="min-w-0 w-full lg:w-44"
+      value={customerFilter}
+      onChange={(event) => setCustomerFilter(event.target.value)}
+      options={[{value:'All customers',label:text('All customers','সব ক্রেতা')},...customerNames]}
+    />
+    <FormSelect
+      className="min-w-0 w-full lg:w-40"
+      value={method}
+      onChange={(event) => setMethod(event.target.value)}
+      options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
+    />
+    <div data-sales-status-reset="" className="flex min-w-0 w-full items-center gap-2 min-[360px]:col-span-2 md:col-span-1 lg:w-auto">
+      <FormSelect
+        className="min-w-0 flex-1 lg:w-36"
+        value={status}
+        onChange={(event) => setStatus(event.target.value)}
+        options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':v==='Due'?'বাকি':v==='Part returned'?'আংশিক ফেরত':'ফেরত')}))}
+      />
+      <Button type="button" variant="outline" size="icon" className="size-9 shrink-0 rounded-md text-ink-500"
+        aria-label={text('Reset sales filters', 'বিক্রির ফিল্টার মুছুন')}
+        title={text('Reset all sales filters', 'বিক্রির সব ফিল্টার মুছুন')}
+        onClick={resetInvoiceFilters}>
+        <RotateCcw className="size-4" aria-hidden="true" />
+      </Button>
+    </div>
+  </>);
   const exportSales = () => downloadReport('hisabiq-sales.csv', ['Invoice','Date','Customer','Phone','Items','Total','Paid','Due','Payment','Status'], filtered.map(invoice => [invoice.invoice,invoice.date,invoice.party,invoice.phone ?? '',invoice.lines.map(line => line.name+' · '+invoiceQty(line)).join('; '),invoice.total,invoice.paid,invoice.due,invoice.payments.map(p => p.method).join(' + ') || invoice.method,invoice.status]));
 
   const tabs: Array<[Tab, string, string]> = [
@@ -1138,9 +1152,9 @@ export function Sales() {
           <>
             {isMobile ? <SalesMobileToolbar search={invoiceSearch} filters={invoiceFilters}
               activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
-              onClear={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}
+              onClear={resetInvoiceFilters} compactDaybook
               result={text(`Showing ${filtered.length} of ${invoices.length} invoices`, `মোট ${invoices.length}টি বিলের মধ্যে ${filtered.length}টি দেখাচ্ছে`)}
-              actions={close => <><SalesColumnPicker inline visible={visibleSalesColumns} onToggle={toggleSalesColumn} /><Button variant="outline" size="sm" onClick={() => { close(); exportSales(); }}><ArrowDownToLine className="size-4" />{text('Export','ডাউনলোড')}</Button></>} /> : (<SalesWideToolbar search={invoiceSearch} filters={invoiceFilters}
+              actions={close => <><SalesColumnPicker inline visible={visibleSalesColumns} onToggle={toggleSalesColumn} /><Button variant="outline" size="sm" onClick={() => { close(); exportSales(); }}><ArrowDownToLine className="size-4" />{text('Export','ডাউনলোড')}</Button></>} /> : (<SalesWideToolbar compactDaybook search={invoiceSearch} filters={invoiceFilters}
               activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
               actions={<>
               <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
@@ -1163,7 +1177,7 @@ export function Sales() {
                   {visibleSalesColumns.invoice && <p>{text('Date','তারিখ')}: {invoice.date} · {invoice.time}</p>}
                 </>}
                 actions={<InvoiceActions invoice={invoice} onView={() => setDetail(invoice)} onPayment={() => setPaymentTarget(invoice)} onReturn={() => openReturn(invoice)} />} />)}
-            </div> : (<Table>
+            </div> : (<Table scrollRegionLabel={text('Sales invoice table','বিক্রির বিলের তালিকা')}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">{text('Invoice','বিল')}</TableHead>}
@@ -1175,7 +1189,7 @@ export function Sales() {
                   {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">{text('Due','বাকি')}</TableHead>}
                   {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">{text('Payment','মাধ্যম')}</TableHead>}
                   {visibleSalesColumns.status && <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>}
-                  <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 bg-card pr-4 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1210,7 +1224,7 @@ export function Sales() {
                     {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-helper'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
                     {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? text('Multiple','একাধিক মাধ্যম') : text(invoice.method,invoice.method==='Cash'?'ক্যাশ':invoice.method==='Bank'?'ব্যাংক':invoice.method)}</TableCell>}
                     {visibleSalesColumns.status && <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>}
-                    <TableCell className="py-2 pr-4 text-right">
+                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 bg-card py-2 pr-4 text-right">
                       <InvoiceActions
                         invoice={invoice}
                         onView={() => setDetail(invoice)}
@@ -1227,7 +1241,7 @@ export function Sales() {
               <div className="px-4 py-10 text-center">
                 <p className="font-medium text-ink">{text('No sales match','কোনো বিক্রি মেলেনি')}</p>
                 <p className="mt-1 text-sm text-ink-500">{text('Try another invoice, customer, phone or filter.','অন্য বিল, নাম, ফোন বা ফিল্টার দিয়ে খুঁজুন।')}</p>
-                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
+                <Button variant="outline" size="sm" className="mt-3" onClick={resetInvoiceFilters}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
               </div>
             )}
 
@@ -1540,7 +1554,7 @@ export function Sales() {
           isMobile ? <div aria-label={sl('Return history')}>{returns.map(item => <SalesMobileRecord key={item.id} reference={item.id} name={item.customer} date={item.date}
             status={<StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{sl(item.settlement)}</StatusBadge>}
             meta={<>{item.invoices.join(', ')} · {item.items}{item.refundMethod && <> · {item.refundMethod} {item.refundAccount}</>}</>}
-            amount={<>{sl('Amount')} <strong className="text-ink">{taka(item.amount)}</strong></>} onOpen={() => setReturnDetail(item)} actions={renderReturnActions(item)} />)}</div> : (<Table>
+            amount={<>{sl('Amount')} <strong className="text-ink">{taka(item.amount)}</strong></>} onOpen={() => setReturnDetail(item)} actions={renderReturnActions(item)} />)}</div> : (<Table scrollRegionLabel={text('Sales return history','বিক্রির ফেরতের ইতিহাস')}>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-9 pl-4 text-xs">{sl('Return')}</TableHead>
@@ -1549,7 +1563,7 @@ export function Sales() {
                 <TableHead className="h-9 text-xs">{sl('Items')}</TableHead>
                 <TableHead className="h-9 text-right text-xs">{sl('Amount')}</TableHead>
                 <TableHead className="h-9 text-xs">{sl('Settlement')}</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
+                <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{sl('Action')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1567,7 +1581,7 @@ export function Sales() {
                     <StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{sl(item.settlement)}</StatusBadge>
                     {item.refundMethod && <p data-table-helper="" className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
                   </TableCell>
-                  <TableCell className="py-2 pr-4 text-right">
+                  <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                     {renderReturnActions(item)}
                   </TableCell>
                 </TableRow>
@@ -1591,7 +1605,7 @@ export function Sales() {
 
             {isMobile ? <div aria-label={sl('Customer credit')}>{credits.map(credit => <SalesMobileRecord key={credit.id} reference={credit.id} name={credit.customer} date={credit.updatedAt}
               meta={credit.source} status={<StatusBadge tone={credit.balance > 0 ? 'teal' : 'neutral'}>{sl(credit.balance > 0 ? 'Available' : 'Settled')}</StatusBadge>}
-              amount={<>{sl('Credit balance')} <strong className="text-teal-700">{taka(credit.balance)}</strong></>} actions={renderCreditActions(credit)} />)}</div> : (<Table>
+              amount={<>{sl('Credit balance')} <strong className="text-teal-700">{taka(credit.balance)}</strong></>} actions={renderCreditActions(credit)} />)}</div> : (<Table scrollRegionLabel={text('Customer credit history','ক্রেতার জমার ইতিহাস')}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">{sl('Customer')}</TableHead>
@@ -1599,7 +1613,7 @@ export function Sales() {
                   <TableHead className="h-9 text-xs">{sl('Updated')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{sl('Credit balance')}</TableHead>
                   <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1617,7 +1631,7 @@ export function Sales() {
                         {sl(credit.balance > 0 ? 'Available' : 'Settled')}
                       </StatusBadge>
                     </TableCell>
-                    <TableCell className="py-2 pr-4 text-right">
+                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                       {renderCreditActions(credit)}
                     </TableCell>
                   </TableRow>
@@ -1658,7 +1672,12 @@ export function Sales() {
                         label={`Actions for ${draft.label}`}
                         width={190}
                         trigger={({ toggle, open }) => (
-                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
+                          <ActionMenuTrigger
+                            label={`${sl('Actions for')} ${draft.label}`}
+                            expanded={open}
+                            onClick={toggle}
+                            className="border border-border bg-card"
+                          />
                         )}>
                         {(close) => (
                           <ActionMenuList>
@@ -1702,7 +1721,12 @@ export function Sales() {
                         label={`Actions for ${template.name}`}
                         width={190}
                         trigger={({ toggle, open }) => (
-                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
+                          <ActionMenuTrigger
+                            label={`${sl('Actions for')} ${template.name}`}
+                            expanded={open}
+                            onClick={toggle}
+                            className="border border-border bg-card"
+                          />
                         )}>
                         {(close) => (
                           <ActionMenuList>

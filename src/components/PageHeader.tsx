@@ -10,13 +10,16 @@ type PageHeaderProps = {
   descriptionContent?: React.ReactNode;
   descriptionBn?: string;
   actions?: React.ReactNode;
+  /** When a module places its existing Settings button directly in its action group. */
+  showModuleSettings?: boolean;
   /** Keep the title and action buttons on one row; used by the Party workspace on tablets. */
   compact?: boolean;
 };
 
-export function PageHeader({ title, titleBn, description, descriptionContent, descriptionBn, actions, compact = false }: PageHeaderProps) {
+export function PageHeader({ title, titleBn, description, descriptionContent, descriptionBn, actions, compact = false, showModuleSettings = true }: PageHeaderProps) {
   const { language, text, showHelper } = useUiCopy();
   const moduleSettingsAction = useModuleSettingsAction();
+  const headerSettingsAction = showModuleSettings ? moduleSettingsAction : null;
   return (
     <div className={compact ? "flex min-w-0 flex-nowrap items-start justify-between gap-2" : "flex flex-wrap items-end justify-between gap-3"}>
       <div className="min-w-0">
@@ -26,7 +29,7 @@ export function PageHeader({ title, titleBn, description, descriptionContent, de
         </div>
         {(descriptionContent ?? description) && <p className={compact ? "mt-0.5 text-xs text-ink-500 xl:text-sm" : "mt-0.5 text-sm text-ink-500"}>{descriptionContent ?? (descriptionBn && language === "Bangla" ? descriptionBn : description)}</p>}
       </div>
-      {(actions || moduleSettingsAction) && <div className={compact ? "flex shrink-0 flex-nowrap items-center justify-end gap-1.5 xl:gap-2" : "flex flex-wrap items-center gap-2"}>{moduleSettingsAction}{actions}</div>}
+      {(actions || headerSettingsAction) && <div className={compact ? "flex shrink-0 flex-nowrap items-center justify-end gap-1.5 xl:gap-2" : "flex flex-wrap items-center gap-2"}>{headerSettingsAction}{actions}</div>}
     </div>);
 
 }

@@ -47,11 +47,37 @@ test('Cloudflare Tailwind content keeps the complete scan without concurrent sou
 test('Local development retains its file-scanning glob for HMR', () => {
   const output = execFileSync(process.execPath, ['--input-type=module','--eval',inspect], {
     cwd: process.cwd(),
-    env: {...process.env, CF_PAGES:''},
+    env: {...process.env, CF_PAGES:'', npm_lifecycle_event:'test', NODE_ENV:'development'},
     encoding:'utf8',
     maxBuffer: 256 * 1024,
     timeout: 30000,
   });
   const result = JSON.parse(output);
   assert.equal(result.retainsBroadSourceGlob, true);
+});
+
+test('Production NODE_ENV uses bounded scanning without CF_PAGES', () => {
+  const output = execFileSync(process.execPath, ['--input-type=module','--eval',inspect], {
+    cwd: process.cwd(),
+    env: {...process.env, CF_PAGES:'', npm_lifecycle_event:'', NODE_ENV:'production'},
+    encoding:'utf8',
+    maxBuffer: 256 * 1024,
+    timeout: 30000,
+  });
+  const result = JSON.parse(output);
+  assert.equal(result.numberOfRawEntries, 1);
+  assert.equal(result.retainsBroadSourceGlob, false);
+});
+
+test('npm build lifecycle uses bounded scanning without CF_PAGES', () => {
+  const output = execFileSync(process.execPath, ['--input-type=module','--eval',inspect], {
+    cwd: process.cwd(),
+    env: {...process.env, CF_PAGES:'', npm_lifecycle_event:'build', NODE_ENV:'development'},
+    encoding:'utf8',
+    maxBuffer: 256 * 1024,
+    timeout: 30000,
+  });
+  const result = JSON.parse(output);
+  assert.equal(result.numberOfRawEntries, 1);
+  assert.equal(result.retainsBroadSourceGlob, false);
 });

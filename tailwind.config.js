@@ -27,14 +27,22 @@ function readSourceTextSequentially(dir) {
   return chunks.join('\n');
 }
 
-const content = process.env.CF_PAGES === '1'
+// Use bounded content reads for every production build, not only Pages.
+// This also protects preview builders that omit or override CF_PAGES.
+// `npm run dev` keeps file globs for Tailwind's HMR/watch behavior.
+const isBuild = process.env.CF_PAGES === '1'
+  || process.env.npm_lifecycle_event === 'build'
+  || process.env.NODE_ENV === 'production';
+
+const content = isBuild
   ? [{
       raw: readFileSync('./index.html', 'utf8') + '\n' + readSourceTextSequentially('./src'),
       extension: 'html',
     }]
   : ['./index.html', './src/**/*.{js,ts,jsx,tsx}'];
 
-export default {content,
+export default {
+  content,
   darkMode: 'selector',
   theme: {
     container: {

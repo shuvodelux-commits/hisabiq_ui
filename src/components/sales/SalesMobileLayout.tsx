@@ -1,6 +1,6 @@
 import { useId, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ChevronDown, MoreHorizontal, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, Filter, MoreHorizontal, SlidersHorizontal } from 'lucide-react';
 import { Button } from '../Button';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import { ActionMenuList } from '../layout/ActionMenu';
@@ -41,28 +41,45 @@ export function SalesMobileMore({ label, children, outlined = false }: { label: 
   </FloatingPanel>;
 }
 
-export function SalesMobileToolbar({ search, filters, actions, activeCount, onClear, result }: {
+export function SalesMobileToolbar({ search, filters, actions, activeCount, onClear, result, compactDaybook = false }: {
   search: ReactNode; filters: ReactNode; actions?: (close: () => void) => ReactNode;
-  activeCount: number; onClear: () => void; result: ReactNode;
+  activeCount: number; onClear: () => void; result: ReactNode; compactDaybook?: boolean;
 }) {
   const { text } = useUiCopy();
   const [expanded, setExpanded] = useState(false);
   const id = useId();
   const reduceMotion = useReducedMotion();
+  const filterLabel = text('Advanced filters', 'আরও ফিল্টার');
+  const listActions = actions && <SalesMobileMore outlined label={text('List actions', 'তালিকার অন্যান্য কাজ')}>{actions}</SalesMobileMore>;
+
   return <div className="sales-mobile-toolbar border-b border-border p-3">
-    <div className="flex min-w-0 items-center gap-1.5">
+    <div className={compactDaybook ? '-mr-2 flex min-w-0 items-center gap-2' : 'flex min-w-0 items-center gap-1.5'}>
       <div className="min-w-0 flex-1">{search}</div>
-      <Button variant="outline" size="sm" className="h-9 gap-1 px-2" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)}>
-        <SlidersHorizontal className="size-3.5" aria-hidden="true" />{text('Filters', 'ফিল্টার')}{activeCount > 0 && <span className="text-teal-700">{activeCount}</span>}
+      {compactDaybook && listActions}
+      <Button type="button" variant="outline" size={compactDaybook ? 'icon' : 'sm'}
+        data-sales-filter-toggle=""
+        className={compactDaybook
+          ? 'relative size-9 shrink-0 rounded-md text-ink-500'
+          : 'h-9 shrink-0 gap-1 px-2'}
+        aria-label={filterLabel + (activeCount ? ' (' + activeCount + ')' : '')}
+        title={filterLabel}
+        aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)}>
+        {compactDaybook ? <Filter className="size-4" aria-hidden="true" /> : <SlidersHorizontal className="size-3.5" aria-hidden="true" />}
+        {!compactDaybook && text('Filters', 'ফিল্টার')}
+        {activeCount > 0 && (compactDaybook
+          ? <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />
+          : <span className="text-teal-700">{activeCount}</span>)}
       </Button>
-      {actions && <SalesMobileMore outlined label={text('List actions', 'তালিকার অন্যান্য কাজ')}>{actions}</SalesMobileMore>}
+      {!compactDaybook && listActions}
     </div>
-    <AnimatePresence initial={false}>{expanded && <motion.div id={id} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.16 }} className="overflow-hidden">
-      <div className="sales-mobile-filter-fields mt-2 grid grid-cols-1 gap-2 border-t border-border pt-2">{filters}</div>
+    <AnimatePresence initial={false}>{expanded && <motion.div id={id}
+      initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: reduceMotion ? 0 : 0.16 }} className="overflow-hidden">
+      <div className={'sales-mobile-filter-fields mt-2 grid grid-cols-1 gap-2 border-t border-border pt-2 ' + (compactDaybook ? 'min-[360px]:grid-cols-2' : '')}>{filters}</div>
     </motion.div>}</AnimatePresence>
     <div className="mt-1 flex min-h-5 flex-wrap items-center justify-between gap-1 text-xs text-ink-500">
       <span aria-live="polite">{result}</span>
-      {activeCount > 0 && <Button variant="ghost" size="sm" className="h-9 px-1 text-xs text-teal-700" onClick={onClear}>{text('Clear filters', 'ফিল্টার মুছুন')}</Button>}
+      {!compactDaybook && activeCount > 0 && <Button variant="ghost" size="sm" className="h-9 px-1 text-xs text-teal-700" onClick={onClear}>{text('Clear filters', 'ফিল্টার মুছুন')}</Button>}
     </div>
   </div>;
 }

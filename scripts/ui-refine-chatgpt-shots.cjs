@@ -69,7 +69,7 @@ function test(){
   assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: src/pages/not-real.tsx',root,'#/app/pos'));
   console.log('All-module route and Impeccable scope parser OK: '+good.length+' routes');
 }
-async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false,showErpActions=false){
+async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false){
   const shots=[];
   for(const width of widths)for(const theme of themes){
     const height=width===1024?768:width===768?1024:width===1440?900:844;
@@ -113,6 +113,33 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
       const filename=name+'-'+width+'-'+theme+'.png';
       await page.screenshot({path:path.join(out,filename),fullPage:true,animations:'disabled'});
       shots.push({filename,width,theme,state:'default',...details});
+      if(showSalesFilter){
+        // Baseline and candidate: show the real expanded filters, plus an opened invoice action.
+        // No invented mock data; the current Sales preview records are used.
+        const salesToggle=page.locator('[data-sales-filter-toggle]').first();
+        if(await salesToggle.count() && await salesToggle.isVisible()){
+          await salesToggle.click();
+        }else{
+          const originalToggle=page.getByRole('button',{name:'Filters',exact:true}).first();
+          if(await originalToggle.count() && await originalToggle.isVisible())await originalToggle.click();
+        }
+        await page.waitForTimeout(200);
+        const expandedName=name+'-sales-filters-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,expandedName),fullPage:true,animations:'disabled'});
+        shots.push({filename:expandedName,width,theme,state:'sales-filters',...details});
+        const invoiceActions=page.getByRole('button',{name:/^Actions for /}).first();
+        if(await invoiceActions.count()){
+          await invoiceActions.click();
+          // Wait for the actual portal and viewport placement, not just trigger click.
+          await page.locator('[data-floating-panel-motion="sabab"]:visible [data-action-menu]:visible').first()
+            .waitFor({state:'visible',timeout:5000});
+          await page.waitForTimeout(120);
+          const actionName=name+'-sales-actions-'+width+'-'+theme+'.png';
+          await page.screenshot({path:path.join(out,actionName),fullPage:true,animations:'disabled'});
+          shots.push({filename:actionName,width,theme,state:'sales-actions',...details});
+          await page.keyboard.press('Escape');
+        }
+      }
       if(showErpActions){
         // True opened-state comparison: main opens legacy Finance action modal;
         // candidate opens Daybook-style compact menu on the same transaction.
@@ -174,17 +201,66 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
         await page.keyboard.press('Escape');
         await calculatorPanel.waitFor({state:'hidden'});
       }
+      if(showDaybookActionMenu && width < 1024){
+        // Both baseline and candidate: capture the expanded advanced-filter state.
+        // Legacy main already shows all dropdowns; refined UI opens with the square icon.
+        await page.setViewportSize({width,height});
+        const toggle=page.getByRole('button',{name:/Advanced filters|আরও ফিল্টার/}).first();
+        if(await toggle.count() && await toggle.isVisible()) await toggle.click();
+        const expandedFilename=name+'-daybook-filter-expanded-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,expandedFilename),animations:'disabled'});
+        shots.push({filename:expandedFilename,width,theme,state:'daybook-filter-expanded',...details});
+        if(await toggle.count() && await toggle.isVisible())await toggle.click();
+      }
+      if(showDaybookActionMenu){
+        // Opt-in open state: ordinary Daybook page screenshots do not expose the action menu.
+        await page.setViewportSize({width,height});
+        const trigger=page.getByRole('button',{name:/^Actions for /}).first();
+        await trigger.scrollIntoViewIfNeeded();
+        await trigger.click();
+        const menu=page.getByRole('dialog',{name:/^Actions for /}).first();
+        await menu.waitFor({state:'visible'});
+        await page.waitForTimeout(200);
+        const menuFilename=name+'-daybook-action-menu-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,menuFilename),animations:'disabled'});
+        shots.push({filename:menuFilename,width,theme,state:'daybook-action-menu-open',...details});
+        await page.keyboard.press('Escape');
+        await menu.waitFor({state:'hidden'});
+      }
+      if(showExpenseDialog){
+        await page.setViewportSize({width,height});
+        const trigger=page.getByRole('button',{name:/Add expense/i}).first();
+        await trigger.click();
+        const modal=page.getByRole('dialog',{name:/Add expense/i}).first();
+        await modal.waitFor({state:'visible'});
+        await page.waitForTimeout(250);
+        const nameOpen=name+'-expense-dialog-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,nameOpen),animations:'disabled'});
+        shots.push({filename:nameOpen,width,theme,state:'expense-dialog-open',...details});
+        await page.keyboard.press('Escape');
+        await modal.waitFor({state:'hidden'});
+        assert.equal(await trigger.evaluate(el=>el===document.activeElement),true,
+          'Escape returns focus to Add expense');
+      }
     }finally{await ctx.close();}
   }
   return shots;
 }
-function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false,showErpActions=false){
+function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false){
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const configs=widths.flatMap(width=>themes.map(theme=>({width,theme,mode:'default'})));
   if(showSababNav)for(const width of widths.filter(w=>w<1024))for(const theme of themes)
     for(const mode of ['sabab-menu','sabab-drawer'])configs.push({width,theme,mode});
   if(showFloatingPanel)for(const width of widths)for(const theme of themes)
     for(const mode of ['floating-appearance','floating-calculator'])configs.push({width,theme,mode});
+  if(showDaybookActionMenu)for(const width of widths)for(const theme of themes)
+    configs.push({width,theme,mode:'daybook-action-menu'});
+  if(showDaybookActionMenu)for(const width of widths.filter(w=>w<1024))for(const theme of themes)
+    configs.push({width,theme,mode:'daybook-filter-expanded'});
+  if(showExpenseDialog)for(const width of widths)for(const theme of themes)
+    configs.push({width,theme,mode:'expense-dialog'});
+  if(showSalesFilter)for(const width of widths)for(const theme of themes)
+    for(const mode of ['sales-filters','sales-actions'])configs.push({width,theme,mode});
   if(showErpActions)for(const width of widths)for(const theme of themes)
     configs.push({width,theme,mode:'erp-action-menu'});
   const rows=configs.map(({width,theme,mode})=>{
@@ -212,11 +288,35 @@ async function main(){
   const browser=await chromium.launch({args:['--no-sandbox']});
   const showSababNav=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sabab-navigation[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showFloatingPanel=/^[ \\t]*UI-REFINE-STATE:[ \\t]*floating-panel[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
+  const showExpenseDialog=/^[ \\t]*UI-REFINE-STATE:[ \\t]*expense-dialog[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showErpActions=/^[ \\t]*UI-REFINE-STATE:[ \\t]*erp-action-menus[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
+  const showSalesFilter=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sales-invoice-filter[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
+  const showDaybookActionMenu=/^[ \\t]*UI-REFINE-STATE:[ \\t]*daybook-row-menu[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   let before,after;
   try{
-    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel,showErpActions);
-    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel,showErpActions);
+    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions);
+    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions);
+    if(showExpenseDialog){
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/dialog-motion-browser.cjs')],{
+        cwd:candidate,env:{...process.env,DIALOG_MOTION_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'dialog-motion-playwright.log'),log);
+    }
+    if(showDaybookActionMenu){
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/daybook-action-menu-refine-browser.cjs')],{
+        cwd:candidate,
+        env:{...process.env,DAYBOOK_ACTION_MENU_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:240000
+      });
+      await fsp.writeFile(path.join(out,'daybook-action-menu-playwright.log'),log);
+      const mobileLog=execFileSync(process.execPath,[path.join(candidate,'scripts/daybook-mobile-layout-browser.cjs')],{
+        cwd:candidate,
+        env:{...process.env,DAYBOOK_MOBILE_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:240000
+      });
+      await fsp.writeFile(path.join(out,'daybook-mobile-layout-playwright.log'),mobileLog);
+    }
     if(showFloatingPanel){
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/floating-panels-browser.cjs')],{
         cwd:candidate,
@@ -240,6 +340,19 @@ async function main(){
       });
       await fsp.writeFile(path.join(out,'sabab-navigation-playwright.log'),log);
     }
+    if(showSalesFilter){
+      // Target-specific responsive and keyboard gate; no unrelated modules are changed.
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/sales-daybook-refine-browser.cjs')],{
+        cwd:candidate,env:{...process.env,SALES_DAYBOOK_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'sales-daybook-playwright.log'),log);
+      const menuLog=execFileSync(process.execPath,[path.join(candidate,'scripts/sales-action-menu-browser.cjs')],{
+        cwd:candidate,env:{...process.env,SALES_ACTION_MENU_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'sales-action-menu-playwright.log'),menuLog);
+    }
   }finally{await browser.close();}
   const sha=cwd=>execFileSync('git',['rev-parse','HEAD'],{cwd,encoding:'utf8'}).trim();
   const baseSha=sha(baseline),prSha=sha(candidate);
@@ -247,7 +360,7 @@ async function main(){
     route,baseSha,prSha,before,after,
     warning:'Screenshots must be visually inspected in ChatGPT; do not claim automated Impeccable reviews ran.'
   },null,2));
-  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel,showErpActions));
+  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions));
   console.log('Captured '+before.length+' baseline and '+after.length+' PR images: '+route);
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

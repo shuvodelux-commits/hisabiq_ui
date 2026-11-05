@@ -29,22 +29,27 @@ export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivEleme
  const modal=useContext(ModalContext);
  const ref=useRef<HTMLDivElement|null>(null);
  const reduceMotion=useReducedMotion();
- // Magic Patterns dialog easing and timing, without replacing the design-system
- // content element (whose centering transform and close button must be preserved).
- // marginTop animates independently of its Tailwind -translate(-50%, -50%) transform.
+ // Sabab source: dialogVariants hidden (opacity 0, scale .96, y 8)
+ // -> show (opacity 1, scale 1, y 0) over 180ms with ease [0.22,1,0.36,1].
+ // CSS individual scale/translate properties compose with the design-system's
+ // translate(-50%, -50%) transform, so the dialog remains centered.
  useLayoutEffect(()=>{
   if(!modal?.open||!ref.current||reduceMotion)return;
   const panel=ref.current;
-  const easing:[number,number,number,number]=[0.32,0.72,0,1];
-  const entrance=animate(panel,{opacity:[0,1],marginTop:[24,0]},
-   {duration:0.22,ease:easing});
+  const entrance=panel.animate(
+   [
+    {opacity:0,scale:'0.96',translate:'0px 8px'},
+    {opacity:1,scale:'1',translate:'0px 0px'},
+   ],
+   {duration:180,easing:'cubic-bezier(0.22, 1, 0.36, 1)',fill:'both'}
+  );
   // The upstream design system creates the backdrop immediately before its content.
   // Animate only that dialog-owned sibling; do not affect stacked overlays.
   const sibling=panel.previousElementSibling;
   const backdrop=sibling instanceof HTMLElement&&sibling.classList.contains('fixed')
     &&sibling.classList.contains('inset-0')&&!sibling.hasAttribute('role') ? sibling : null;
   const veil=backdrop?animate(backdrop,{opacity:[0,1]},{duration:0.18}):null;
-  return ()=>{entrance.stop();veil?.stop();};
+  return ()=>{entrance.cancel();veil?.stop();};
  },[modal?.open,modal?.id,reduceMotion]);
  const closeRef=useRef(modal?.close);closeRef.current=modal?.close;
  useEffect(()=>{
@@ -86,7 +91,9 @@ export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivEleme
  return createPortal(<DesignContent {...props} ref={(node:HTMLDivElement|null)=>{ref.current=node;if(typeof forwarded==='function')forwarded(node);else if(forwarded)forwarded.current=node;}}
   role="dialog" aria-modal="true" aria-labelledby={props['aria-label']?undefined:modal.id+'-title'}
   data-dialog-root={modal.id} data-dialog-id={modal.id}
-  data-modal-motion={reduceMotion?'reduced':'magic-patterns'} tabIndex={-1}>{children}</DesignContent>,document.body);
+  data-modal-motion={reduceMotion?'reduced':'magic-patterns'}
+  data-dialog-entry="sabab" data-dialog-entry-duration={reduceMotion?'0':'180'}
+  tabIndex={-1}>{children}</DesignContent>,document.body);
 });
 export const DialogTitle=forwardRef<HTMLHeadingElement,HTMLAttributes<HTMLHeadingElement>>(function DialogTitle(props,ref){const modal=useContext(ModalContext);return <DesignTitle {...props} id={props.id??modal?.id+'-title'} ref={ref}/>;});
 export const DialogDescription=forwardRef<HTMLParagraphElement,HTMLAttributes<HTMLParagraphElement>>(function DialogDescription(props,ref){const modal=useContext(ModalContext);return <DesignDescription {...props} id={props.id??modal?.id+'-description'} ref={ref}/>;});
