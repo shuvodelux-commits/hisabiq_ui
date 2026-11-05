@@ -47,6 +47,10 @@ async function main() {
         const bounds=await action.boundingBox();
         assert.ok(bounds && bounds.x>=0 && bounds.x+bounds.width<=width+1,
           'row action remains inside mobile viewport');
+        // On 320px phones the full reference is business-critical; it must not ellipsize.
+        const refText=page.locator('main tbody tr').first().locator('td:visible').nth(2).locator('span').first();
+        assert.ok(await refText.evaluate(el => el.scrollWidth <= el.clientWidth + 1),
+          'full transaction reference must fit the compact mobile column');
         const pane=page.locator('[data-daybook-table-scroll]').first();
         assert.ok(await pane.evaluate(el=>el.scrollWidth<=el.clientWidth+2),
           'mobile Daybook rows must not require horizontal scrolling to reach actions');
