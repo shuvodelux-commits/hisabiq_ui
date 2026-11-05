@@ -21,8 +21,7 @@ export type DaybookFilterState = {
 export function DaybookFilters({
   value,
   onChange,
-  transactions,
-  dateView
+  transactions
 }: {
   value: DaybookFilterState;
   onChange: (next: DaybookFilterState) => void;
@@ -43,32 +42,35 @@ export function DaybookFilters({
     value.status !== 'All status'
   ].filter(Boolean).length;
 
+  // Two breakpoint-specific instances keep keyboard tab order identical to visual order:
+  // phone Search → Filter → Date; tablet Search → Date → Filter.
+  // Exactly one filter button is visible at any viewport; both share one state.
+  const filterToggle = (visibility: string) => (
+    <Button type="button" variant="outline" size="icon"
+      aria-label={text('Advanced filters','আরও ফিল্টার') + (activeAdvancedCount ? ' (' + activeAdvancedCount + ')' : '')}
+      aria-expanded={mobileFiltersOpen} aria-controls="daybook-advanced-filters"
+      onClick={() => setMobileFiltersOpen(open => !open)}
+      className={'relative size-9 shrink-0 rounded-md ' + visibility + ' ' +
+        (activeAdvancedCount ? 'border-teal-500 text-teal-700' : 'text-ink-500')}>
+      <Filter className="size-4" aria-hidden="true" />
+      {activeAdvancedCount > 0 && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />}
+    </Button>
+  );
+
   return (
     <div className="space-y-2 border-b border-border p-3">
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-        <div className="flex min-w-0 items-center gap-2 lg:flex-1">
-          <div className="relative min-w-0 flex-1 lg:max-w-md">
-            <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-            <Input aria-label={text('Search transaction, party, reference or amount','লেনদেন, নাম, নম্বর বা টাকা খুঁজুন')}
-              value={value.search} onChange={(event) => set('search', event.target.value)}
-              className="pl-8" placeholder={text('Search transaction, party, reference or amount','লেনদেন, নাম, নম্বর বা টাকা খুঁজুন')} />
-          </div>
-          <Button type="button" variant="outline" size="icon"
-            aria-label={text('Advanced filters','আরও ফিল্টার') + (activeAdvancedCount ? ' (' + activeAdvancedCount + ')' : '')}
-            aria-expanded={mobileFiltersOpen} aria-controls="daybook-advanced-filters"
-            onClick={() => setMobileFiltersOpen(open => !open)}
-            className={'relative size-9 shrink-0 rounded-md lg:hidden ' +
-              (activeAdvancedCount ? 'border-teal-500 text-teal-700' : 'text-ink-500')}>
-            <Filter className="size-4" aria-hidden="true" />
-            {activeAdvancedCount > 0 && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />}
-          </Button>
+      <div data-daybook-filter-bar="" className="grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,265px)_36px] lg:grid-cols-[minmax(0,1fr)_265px]">
+        <div className="relative min-w-0 lg:max-w-md">
+          <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+          <Input aria-label={text('Search transaction, party, reference or amount','লেনদেন, নাম, নম্বর বা টাকা খুঁজুন')}
+            value={value.search} onChange={(event) => set('search', event.target.value)}
+            className="pl-8" placeholder={text('Search transaction, party, reference or amount','লেনদেন, নাম, নম্বর বা টাকা খুঁজুন')} />
         </div>
-        <AppDateRangePicker label={text('Daybook date range','দৈনিক খাতার তারিখ')} className="w-full lg:w-[265px]"
+        {filterToggle('md:hidden')}
+        <AppDateRangePicker label={text('Daybook date range','দৈনিক খাতার তারিখ')} className="col-span-2 w-full md:col-span-1"
           value={{ from: value.from, to: value.to }}
           onChange={({ from, to }) => onChange({ ...value, from, to })} />
-        <span className="hidden whitespace-nowrap text-[10.5px] text-ink-400 lg:block">
-          {dateView === 'transaction' ? text('Transaction Date · যে তারিখের লেনদেন','লেনদেনের তারিখ') : text('Created Date · যেদিন এন্ট্রি হয়েছে','লেখার তারিখ')}
-        </span>
+        {filterToggle('hidden md:inline-flex lg:hidden')}
       </div>
       <div id="daybook-advanced-filters" className={(mobileFiltersOpen ? 'flex ' : 'hidden ') + 'flex-wrap items-center gap-2 lg:flex'}>
         <AppSelect label={text('Transaction type','লেনদেনের ধরন')} className="min-w-[128px] flex-1 sm:w-40 lg:flex-none" value={value.type} onChange={(type) => set('type', type)} options={[{value:'All types',label:text('All types','সব ধরন')},...types.map(v=>({value:v,label:text(v,typeBn[v]??v)}))]} />
