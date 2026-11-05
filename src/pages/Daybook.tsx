@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import {downloadReport,printReport} from '../utils/reportOutput';
 import { PageHeader } from '../components/PageHeader';
 import {useUiCopy} from '../i18n/useUiCopy';
+import { useModuleSettingsAction } from '../settings/ModuleSettingsToolbarContext';
 import {documentLabel} from '../i18n/documentCopy';
 import { StatusBadge } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
@@ -74,6 +75,7 @@ function paramsFromFilters(current: URLSearchParams, filters: DaybookFilterState
 
 export function Daybook() {
   const {text,language,showHelper}=useUiCopy();
+  const moduleSettingsAction = useModuleSettingsAction();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { entryDateView, setEntryDateView } = useUserPreferences();
@@ -121,6 +123,7 @@ export function Daybook() {
     <div className="mx-auto max-w-[1440px] space-y-4">
       <PageHeader
         title="Daybook"
+        showModuleSettings={false}
         titleBn="দৈনিক লেনদেন"
         description="Money in and money out · টাকা আসা–যাওয়া. UI preview; review changes at the source."
         descriptionBn="টাকা আসা-যাওয়ার হিসাব। শুধু প্রিভিউ; সংশোধনের জন্য মূল লেনদেনে যান।"
@@ -140,6 +143,7 @@ export function Daybook() {
             </div>
             <Button variant="outline" size="sm" onClick={exportDaybook}><ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}</Button>
             <Button variant="outline" size="sm" onClick={() => print(filtered)}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
+            {moduleSettingsAction}
           </div>
         }
       />
