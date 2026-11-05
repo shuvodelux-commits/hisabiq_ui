@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
+import process from 'node:process';
 
 // Tailwind 3 reads every content glob match in one Promise.all. In Cloudflare's
 // constrained build environment, the resulting parallel fs.open calls can hit
