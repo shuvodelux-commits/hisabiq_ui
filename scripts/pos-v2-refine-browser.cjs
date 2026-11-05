@@ -38,7 +38,7 @@ async function main(){
         assert.ok(cartBox.scrollWidth<=cartBox.clientWidth+2,
           width+' '+theme+': ordinary cart overflows horizontally');
         const gridRows=await cart.locator('[data-cart-row="sale"]').first().evaluate(
-          el=>getComputedStyle(el).gridTemplateRows.trim().split(/\\s+/).filter(Boolean).length);
+          el=>getComputedStyle(el).gridTemplateRows.trim().split(/ +/).filter(Boolean).length);
         assert.equal(gridRows,1,width+' '+theme+': tablet POS cart product must stay on one row');
       }
       assert.ok(clippedText<=cartBox.right+1,width+' '+theme+': numeric total glyphs clipped ('+Math.round(clippedText)+' > '+Math.round(cartBox.right)+')');
