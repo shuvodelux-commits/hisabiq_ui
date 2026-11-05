@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Filter, Search } from 'lucide-react';
+import { Filter, RotateCcw, Search } from 'lucide-react';
 import { AppSelect } from '../AppSelect';
 import { AppDateRangePicker } from '../AppDateRangePicker';
 import { Button } from '../Button';
@@ -59,7 +59,7 @@ export function DaybookFilters({
 
   return (
     <div className="space-y-2 border-b border-border p-3">
-      <div data-daybook-filter-bar="" className="grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,265px)_36px] lg:grid-cols-[minmax(0,1fr)_265px]">
+      <div data-daybook-filter-bar="" className="-mr-2 grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,265px)_36px] lg:mr-0 lg:grid-cols-[minmax(0,1fr)_265px]">
         <div className="relative min-w-0 lg:max-w-md">
           <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
           <Input aria-label={text('Search transaction, party, reference or amount','লেনদেন, নাম, নম্বর বা টাকা খুঁজুন')}
@@ -72,13 +72,20 @@ export function DaybookFilters({
           onChange={({ from, to }) => onChange({ ...value, from, to })} />
         {filterToggle('hidden md:inline-flex lg:hidden')}
       </div>
-      <div id="daybook-advanced-filters" className={(mobileFiltersOpen ? 'flex ' : 'hidden ') + 'flex-wrap items-center gap-2 lg:flex'}>
-        <AppSelect label={text('Transaction type','লেনদেনের ধরন')} className="min-w-[128px] flex-1 sm:w-40 lg:flex-none" value={value.type} onChange={(type) => set('type', type)} options={[{value:'All types',label:text('All types','সব ধরন')},...types.map(v=>({value:v,label:text(v,typeBn[v]??v)}))]} />
-        <AppSelect label={text('Account','হিসাব')} className="min-w-[128px] flex-1 sm:w-44 lg:flex-none" value={value.account} onChange={(account) => set('account', account)} options={[{value:'All accounts',label:text('All accounts','সব হিসাব')},...accounts]} />
-        <AppSelect label={text('Posted by','যিনি লিখেছেন')} className="min-w-[128px] flex-1 sm:w-36 lg:flex-none" value={value.user} onChange={(user) => set('user', user)} options={[{value:'All users',label:text('All users','সব ব্যবহারকারী')},...users]} />
-        <AppSelect label={text('Status','অবস্থা')} className="min-w-[128px] flex-1 sm:w-36 lg:flex-none" value={value.status} onChange={(status) => set('status', status)} options={['All status', 'Posted', 'Draft', 'Deleted', 'Reversed'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Posted'?'লেখা হয়েছে':v==='Draft'?'খসড়া':v==='Deleted'?'মুছে ফেলা':'উল্টো হিসাব')}))} />
-        <button type="button" onClick={() => onChange({ search: '', ...datePreset('Today'), type: 'All types', account: 'All accounts', user: 'All users', status: 'All status' })}
-          className="min-h-9 rounded-md px-2 text-[11px] font-medium text-ink-400 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">{text('Reset','ফিল্টার মুছুন')}</button>
+      <div id="daybook-advanced-filters" className={(mobileFiltersOpen ? 'grid ' : 'hidden ') + 'grid-cols-1 gap-2 min-[360px]:grid-cols-2 md:grid-cols-4 lg:grid'}>
+        <AppSelect label={text('Transaction type','লেনদেনের ধরন')} className="min-w-0" value={value.type} onChange={(type) => set('type', type)} options={[{value:'All types',label:text('All types','সব ধরন')},...types.map(v=>({value:v,label:text(v,typeBn[v]??v)}))]} />
+        <AppSelect label={text('Account','হিসাব')} className="min-w-0" value={value.account} onChange={(account) => set('account', account)} options={[{value:'All accounts',label:text('All accounts','সব হিসাব')},...accounts]} />
+        <AppSelect label={text('Posted by','যিনি লিখেছেন')} className="min-w-0" value={value.user} onChange={(user) => set('user', user)} options={[{value:'All users',label:text('All users','সব ব্যবহারকারী')},...users]} />
+        <div className="flex min-w-0 items-center gap-2">
+          <AppSelect label={text('Status','অবস্থা')} className="min-w-0 flex-1" value={value.status} onChange={(status) => set('status', status)} options={['All status', 'Posted', 'Draft', 'Deleted', 'Reversed'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Posted'?'লেখা হয়েছে':v==='Draft'?'খসড়া':v==='Deleted'?'মুছে ফেলা':'উল্টো হিসাব')}))} />
+          <Button type="button" variant="outline" size="icon"
+            aria-label={text('Reset filters','ফিল্টার মুছুন')}
+            title={text('Reset all filters','সব ফিল্টার মুছুন')}
+            onClick={() => onChange({ search: '', ...datePreset('Today'), type: 'All types', account: 'All accounts', user: 'All users', status: 'All status' })}
+            className="size-9 shrink-0 rounded-md text-ink-500">
+            <RotateCcw className="size-4" aria-hidden="true" />
+          </Button>
+        </div>
       </div>
     </div>
   );
