@@ -106,6 +106,16 @@ async function main(){
           'first Purchase row action is visible without horizontal scrolling');
         assert.ok(actionBox.width>=35&&actionBox.width<=38,
           'row action uses the same 36px control as Daybook');
+        if(width<768){
+          const amount=table.locator('tbody tr').first().locator('td').nth(4).locator('span.whitespace-nowrap').first();
+          const amountBox=await amount.boundingBox();
+          assert.ok(amountBox&&amountBox.x+amountBox.width<=actionBox.x-2,
+            'full mobile purchase total must not be clipped behind the pinned Action cell');
+          const due=table.locator('tbody tr').first().locator('td').nth(4).locator('[data-table-helper]').first();
+          const dueBox=await due.boundingBox();
+          assert.ok(dueBox&&dueBox.x+dueBox.width<=actionBox.x-2,
+            'full mobile supplier due must fit before the Action cell');
+        }
         if(width<1024){
           const filterBox=await toggle.boundingBox();
           assert.ok(filterBox&&Math.abs(filterBox.x+filterBox.width-actionBox.x-actionBox.width)<=6,
