@@ -966,12 +966,16 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     </TableCell>
                     <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
                     <TableCell className="py-2 pr-4 text-right">
-                      <button
-                        onClick={() => setTransactionAction(item)}
-                        aria-label={text('Actions for','কাজ') + ' ' + item.id}
-                        className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                        <MoreHorizontal className="size-4" />
-                      </button>
+                      <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
+                        {close => <>
+                          <ActionMenuItem icon={Eye} onClick={() => { close(); openTransactionActions(item, 'view'); }}>{text('View transaction','লেনদেন দেখুন')}</ActionMenuItem>
+                          {item.status === 'Active' && <>
+                            <ActionMenuItem icon={Pencil} onClick={() => { close(); openTransactionActions(item, 'edit'); }}>{text('Edit','সংশোধন')}</ActionMenuItem>
+                            <ActionMenuDivider />
+                            <ActionMenuItem icon={RotateCcw} tone="destructive" onClick={() => { close(); openTransactionActions(item, 'reverse'); }}>{text('Review reversal','উল্টো করা যাচাই')}</ActionMenuItem>
+                          </>}
+                        </>}
+                      </RowActionMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1035,7 +1039,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
-                    <Button variant="outline" size="sm" onClick={() => setAccountAction(account)}>
+                    <Button variant="outline" size="sm" onClick={() => openAccountActions(account, 'ledger')}>
                       <BookOpen className="size-4" /> {text('Ledger','খাতা')}
                     </Button>
                     {account.type !== 'Cash' && (
@@ -1048,12 +1052,17 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <Landmark className="size-4" /> {text('Bank Entry','ব্যাংক এন্ট্রি')}
                       </Button>
                     )}
-                    <button
-                      onClick={() => setAccountAction(account)}
-                      aria-label={text('Actions for','কাজ') + ' ' + account.name}
-                      className="ml-auto rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                      <MoreHorizontal className="size-4" />
-                    </button>
+                    <RowActionMenu label={text('Actions for','কাজ') + ' ' + account.name} className="ml-auto inline-block" width={230}>
+                      {close => <>
+                        <ActionMenuItem icon={BookOpen} onClick={() => { close(); openAccountActions(account, 'ledger'); }}>{text('View ledger','খাতা দেখুন')}</ActionMenuItem>
+                        <ActionMenuItem icon={Pencil} onClick={() => { close(); openAccountActions(account, 'edit'); }}>{text('Edit account','হিসাব সংশোধন')}</ActionMenuItem>
+                        <ActionMenuItem icon={Banknote} onClick={() => { close(); openAccountActions(account, 'manual'); }}>{text('Money in / out','টাকা আসা / যাওয়া')}</ActionMenuItem>
+                        <ActionMenuItem icon={ArrowLeftRight} onClick={() => { close(); openTransfer(account); }}>{text('Transfer','টাকা স্থানান্তর')}</ActionMenuItem>
+                        {account.type !== 'Cash' && <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>}
+                        <ActionMenuDivider />
+                        <ActionMenuItem icon={Power} tone={account.status === 'Active' ? 'destructive' : 'neutral'} onClick={() => { close(); openAccountActions(account, 'status'); }}>{text(account.status === 'Active' ? 'Deactivate' : 'Activate', account.status === 'Active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন')}</ActionMenuItem>
+                      </>}
+                    </RowActionMenu>
                   </div>
                 </div>
               ))}
@@ -1092,9 +1101,15 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       <TableCell className="py-2 text-right font-semibold">{taka(item.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
                       <TableCell className="py-2 pr-4 text-right">
-                        <button onClick={() => setTransferAction({ ...item, from: transferAccountLabel(item, 'from', accounts), to: transferAccountLabel(item, 'to', accounts) })} aria-label={text('Actions for','কাজ') + ' ' + item.id} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                          <MoreHorizontal className="size-4" />
-                        </button>
+                        <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
+                          {close => <>
+                            <ActionMenuItem icon={Eye} onClick={() => { close(); openTransferActions(item, 'view'); }}>{text('View transfer','ট্রান্সফার দেখুন')}</ActionMenuItem>
+                            {item.status === 'Completed' && <>
+                              <ActionMenuDivider />
+                              <ActionMenuItem icon={RotateCcw} tone="destructive" onClick={() => { close(); openTransferActions(item, 'reverse'); }}>{text('Review reversal','উল্টো করা যাচাই')}</ActionMenuItem>
+                            </>}
+                          </>}
+                        </RowActionMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1148,9 +1163,12 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <TableCell className="py-2 text-right font-semibold">{taka(cheque.amount)}</TableCell>
                         <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{financeLabel(language,cheque.status)}</StatusBadge></TableCell>
                         <TableCell className="py-2 pr-4 text-right">
-                          <button onClick={() => setChequeAction(cheque)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + cheque.id}>
-                            <MoreHorizontal className="size-4" />
-                          </button>
+                          <RowActionMenu label={text('Actions for','কাজ') + ' ' + cheque.id}>
+                            {close => <>
+                              <ActionMenuItem icon={Eye} onClick={() => { close(); openChequeActions(cheque, 'view'); }}>{text('View cheque','চেক দেখুন')}</ActionMenuItem>
+                              {chequeLifecycleActions(cheque).length > 0 && <ActionMenuItem icon={Pencil} onClick={() => { close(); openChequeActions(cheque, 'edit'); }}>{text('Edit cheque','চেক সংশোধন')}</ActionMenuItem>}
+                            </>}
+                          </RowActionMenu>
                         </TableCell>
                       </TableRow>
                     );
@@ -1236,7 +1254,14 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       <TableCell className="py-2">
                         <StatusBadge tone={session.status === 'Open' ? 'success' : session.variance ? 'warning' : 'neutral'} dot>{financeLabel(language,session.status)}</StatusBadge>
                       </TableCell>
-                      <TableCell className="py-2 pr-4 text-right"><button onClick={() => setCashSessionAction(session)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + session.id}><MoreHorizontal className="size-4" /></button></TableCell>
+                      <TableCell className="py-2 pr-4 text-right">
+                        <RowActionMenu label={text('Actions for','কাজ') + ' ' + session.id}>
+                          {close => <>
+                            <ActionMenuItem icon={Eye} onClick={() => { close(); setCashSessionAction(session); }}>{text('View cash session','ক্যাশ সেশন দেখুন')}</ActionMenuItem>
+                            <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>
+                          </>}
+                        </RowActionMenu>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
