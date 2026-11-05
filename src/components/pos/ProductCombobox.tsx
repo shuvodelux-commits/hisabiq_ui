@@ -2,6 +2,8 @@ import {unitSymbol} from '../../data/productUnits';
 import {rankSearch} from '../../utils/fuzzySearch';
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { sababEase } from '../../motion/sababMotion';
 import { Plus, Search, X } from 'lucide-react';
 import { ProductThumb } from '../ProductThumb';
 import { products as seedProducts } from '../../data/products';
@@ -43,6 +45,7 @@ export const ProductCombobox = forwardRef<HTMLInputElement, ProductComboboxProps
 ref)
 {
   const {text} = useUiCopy();
+  const reducedMotion = useReducedMotion();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -120,10 +123,8 @@ ref)
   }, [open]);
 
   useLayoutEffect(() => {
-    if (!open) {
-      setPosition(null);
-      return;
-    }
+    // Keep the last measured position during the short exit fade, then clear it.
+    if (!open) return;
     updatePosition();
     const frame = window.requestAnimationFrame(updatePosition);
     return () => window.cancelAnimationFrame(frame);
@@ -197,11 +198,18 @@ ref)
     }
   };
 
-  const listbox = typeof document !== 'undefined' && open && !disabled
+  const listbox = typeof document !== 'undefined' && !disabled
     ? createPortal(
-        <ul
+        <AnimatePresence initial={false} onExitComplete={() => { if (!open) setPosition(null); }}>
+          {open && <motion.ul
           ref={listRef}
           id="pos-product-list"
+          data-sabab-pos-suggestions=""
+          data-reduced-motion={reducedMotion ? 'true' : 'false'}
+          initial={reducedMotion ? false : { opacity: 0, scale: 0.97, y: position?.opensUp ? 4 : -4 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.98, y: position?.opensUp ? 2 : -2, pointerEvents: 'none' }}
+          transition={{ duration: reducedMotion ? 0 : 0.14, ease: sababEase.out }}
           role="listbox"
           aria-label={mode === 'purchase' ? 'Purchase product suggestions' : (ariaLabel ? ariaLabel + ' options' : 'POS product suggestions')}
           className="fixed z-[110] overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-pop scrollbar-thin"
@@ -210,7 +218,8 @@ ref)
             left: position?.left ?? 0,
             width: position?.width ?? Math.min(DESIRED_WIDTH, window.innerWidth - VIEWPORT_PADDING * 2),
             maxHeight: position?.maxHeight ?? `calc(100vh - ${VIEWPORT_PADDING * 2}px)`,
-            visibility: position ? 'visible' : 'hidden'
+            visibility: position ? 'visible' : 'hidden',
+            transformOrigin: position?.opensUp ? 'bottom center' : 'top center'
           }}>
           {results.map((p, i) => {
             const status = stockStatus(p);
@@ -273,7 +282,8 @@ ref)
           })}
           {results.length === 0 && <li className="px-3 py-3 text-xs text-ink-500">{text('No matching products.','কোনো পণ্য পাওয়া যায়নি।')} {onCreate ? text('Use Create new product below.','নিচ থেকে নতুন পণ্য যোগ করুন।') : text('Try another search.','অন্য নামে খুঁজুন।')}</li>}
           {onCreate && <li><button type="button" onMouseDown={event => event.preventDefault()} onClick={() => {setOpen(false);onCreate(query.trim());}} className="mt-1 flex w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm font-medium text-teal-700 hover:bg-teal-50"><Plus className="size-4"/>{text('Create new product','নতুন পণ্য যোগ করুন')} {query.trim() ? '· '+query.trim() : ''}</button></li>}
-        </ul>,
+        </motion.ul>}
+        </AnimatePresence>,
         document.body
       )
     : null;
