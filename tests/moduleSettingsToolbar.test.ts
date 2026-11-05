@@ -13,10 +13,12 @@ test('module Settings is provided through the shared toolbar rather than a stand
   assert.match(source, /sectionOverride=\{mod\.section\}/);
 });
 
-test('regular module headers include Settings before existing actions', () => {
+test('regular module headers default to Settings before existing actions', () => {
   const source = file('src/components/PageHeader.tsx');
   assert.match(source, /const moduleSettingsAction = useModuleSettingsAction\(\)/);
-  assert.match(source, /\{moduleSettingsAction\}\{actions\}/);
+  assert.match(source, /showModuleSettings = true/);
+  assert.match(source, /const headerSettingsAction = showModuleSettings \? moduleSettingsAction : null/);
+  assert.match(source, /\{headerSettingsAction\}\{actions\}/);
 
   const modules = [
     'Dashboard', 'Sales', 'Products', 'Purchases', 'Parties', 'Vendors',
@@ -26,6 +28,16 @@ test('regular module headers include Settings before existing actions', () => {
   for (const moduleName of modules) {
     assert.match(file('src/pages/' + moduleName + '.tsx'), /<PageHeader\b/, moduleName + ' must use the shared header');
   }
+});
+
+
+test('Daybook places existing module Settings after Print in the compact action row', () => {
+  const source = file('src/pages/Daybook.tsx');
+  assert.match(source, /const moduleSettingsAction = useModuleSettingsAction\(\)/);
+  assert.match(source, /<PageHeader\s+title="Daybook"\s+showModuleSettings=\{false\}/);
+  assert.match(source, /onClick=\{\(\) => print\(filtered\)\}[\s\S]*?<\/Button>\s*\{moduleSettingsAction\}/);
+  assert.equal(source.match(/\{moduleSettingsAction\}/g)?.length, 1,
+    'module Settings is inserted just once in Daybook actions');
 });
 
 test('POS keeps its original custom header and displays the same Settings control inline', () => {
