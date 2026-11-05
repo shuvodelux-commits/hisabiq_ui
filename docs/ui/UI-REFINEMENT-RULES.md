@@ -2,6 +2,8 @@
 
 Effective 2026-11-05. Owner-approved workflow for **navigation and future module-by-module UI refinement**. Read together with `AGENTS.md`, `HISABIQ-DESIGN-GUIDE.md`, `docs/design/taste.md` and the current business/transaction contracts.
 
+**Mandatory first-pass audit:** Before any UI change, follow [`ERP-UI-AUDIT-FIRST-REFINEMENT.md`](ERP-UI-AUDIT-FIRST-REFINEMENT.md) to rank functionality/accounting, Action reachability, Filter/Reset state, responsive density, keyboard access and Bangla readability. Use merged Daybook #252 and Sales #253 as the reference for real filter/action controls; do not mass-convert unrelated Settings icons.
+
 ## Rule 1 — Source before guesses
 
 When the owner specifies a reference design, **read its exact current code first** (including components, motion tokens, theme and interactions). Do not approximate timing, layout or behavior from screenshots. For the navigation project, source is [Sabab SIS in Magic Patterns](https://www.magicpatterns.com/c/kecprgln6zfkctsc37g2to), artifact `0fdd761a-0c9e-4e22-9d6b-4fb248e73b14`, specifically `NavTree.tsx`, `Sidebar.tsx`, `TopBar.tsx`, `TopNavStrip.tsx`, `MobileDrawer.tsx`, `AppShell.tsx`, and `utils/motion.ts`.
