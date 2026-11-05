@@ -188,7 +188,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
  };
  const highlight=(value:number)=>value===0?'text-ink':payerRole==='Supplier'?(value<0?'text-danger':'text-success'):(value>0?'text-danger':'text-success');
  return <section className="space-y-3 p-3 sm:space-y-4 sm:p-4">
-  <div className="grid grid-cols-2 gap-1.5 min-[390px]:grid-cols-3 lg:grid-cols-6" role="group" aria-label="Counter actions">
+  <div className="grid grid-cols-2 gap-1.5 min-[390px]:grid-cols-3 xl:grid-cols-6" role="group" aria-label="Counter actions">
    {kinds.map(item=><button type="button" key={item} aria-pressed={!bankEntrySelected&&type===item} onClick={()=>changeType(item)}
     className={'flex min-h-12 flex-col justify-center rounded-md border px-2.5 py-1.5 text-left transition-colors sm:min-h-14 sm:px-3 sm:py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
      (!bankEntrySelected&&type===item?'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground':'border-border bg-card text-ink hover:bg-ink-50')}>
