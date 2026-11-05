@@ -116,6 +116,15 @@ async function main(){
           assert.ok(dueBox&&dueBox.x+dueBox.width<=actionBox.x-2,
             'full mobile supplier due must fit before the Action cell');
         }
+        if(width===1024){
+          const dueHeading=table.locator('thead th').nth(6);
+          const statusHeading=table.locator('thead th').nth(7);
+          const dueBox=await dueHeading.boundingBox();
+          const statusBox=await statusHeading.boundingBox();
+          assert.ok(dueBox&&statusBox&&dueBox.x>=0&&
+            statusBox.x+statusBox.width<=actionBox.x-2,
+            '1024px Purchases must show supplier Due and Status before the sticky Action without horizontal scrolling');
+        }
         if(width<1024){
           const filterBox=await toggle.boundingBox();
           assert.ok(filterBox&&Math.abs(filterBox.x+filterBox.width-actionBox.x-actionBox.width)<=6,
