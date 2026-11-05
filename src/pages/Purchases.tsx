@@ -230,18 +230,18 @@ export function Purchases() {
               </div>
             </div>
 
-            <Table data-purchases-table="" scrollRegionLabel={text('Purchases table','ক্রয়ের তালিকা')}>
+            <Table data-purchases-table="" className="table-fixed md:table-auto" scrollRegionLabel={text('Purchases table','ক্রয়ের তালিকা')}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-3 text-xs md:pl-4" >{text('Purchase','ক্রয়')}</TableHead>
+                  <TableHead className="h-9 w-[136px] pl-3 pr-1 text-xs md:w-auto md:px-4" >{text('Purchase','ক্রয়')}</TableHead>
                   <TableHead className="hidden h-9 text-xs md:table-cell" >{text('Supplier','সরবরাহকারী')}</TableHead>
                   <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Items','পণ্য')}</TableHead>
                   <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Memo','রসিদ')}</TableHead>
-                  <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>
+                  <TableHead className="h-9 w-[110px] px-1 text-right text-xs md:w-auto md:px-4">{text('Total','মোট')}</TableHead>
                   <TableHead className="hidden h-9 text-right text-xs lg:table-cell">{text('Paid','পরিশোধ')}</TableHead>
                   <TableHead className="hidden h-9 text-right text-xs md:table-cell">{text('Due','দেনা')}</TableHead>
                   <TableHead className="hidden h-9 text-xs md:table-cell">{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="sticky right-0 z-10 h-9 w-12 bg-card pr-3 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-12 bg-card pl-0 pr-3 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -249,7 +249,7 @@ export function Purchases() {
                   const open = () => openBill(p);
                   return (
                     <TableRow key={p.id} className="cursor-pointer text-[13px]" onClick={open}>
-                      <TableCell className="min-w-[128px] py-2 pl-3 md:pl-4">
+                      <TableCell className="w-[136px] min-w-0 py-2 pl-3 pr-1 md:w-auto md:px-4">
                         <span className="whitespace-nowrap font-medium text-ink">{p.ref}</span>
                         <span data-table-helper="" className="block text-[11px] text-ink-400">{p.date}</span>
                         <Link to={`/app/parties?id=${p.supplierId}`} onClick={(e)=>e.stopPropagation()}
@@ -267,7 +267,7 @@ export function Purchases() {
                       </TableCell>
                       <TableCell className="hidden max-w-[260px] truncate py-2 text-ink-600 lg:table-cell">{p.items}</TableCell>
                       <TableCell className="hidden py-2 lg:table-cell"><ReceiptThumb src={p.receipt} onClick={open} /></TableCell>
-                      <TableCell className="min-w-[100px] py-2 text-right font-medium">
+                      <TableCell className="w-[110px] min-w-0 py-2 pl-1 pr-1 text-right font-medium md:w-auto md:px-4">
                         <span className="whitespace-nowrap">{taka(position(p).total)}</span>
                         <span data-table-helper="" className="block text-[11px] font-normal text-ink-500 md:hidden">
                           {text('Due','দেনা')} {position(p).due > 0 ? taka(position(p).due) : '—'}
@@ -279,7 +279,7 @@ export function Purchases() {
                         {position(p).due > 0 ? taka(position(p).due) : '—'}
                       </TableCell>
                       <TableCell className="hidden py-2 md:table-cell"><PayStatus total={position(p).total} paid={position(p).paid} /></TableCell>
-                      <TableCell className="sticky right-0 z-10 w-12 bg-card py-2 pr-3 text-right">
+                      <TableCell className="sticky right-0 z-10 w-12 bg-card py-2 pl-0 pr-3 text-right">
                         <div onClick={e=>e.stopPropagation()}>
                           <FloatingPanel label={`${pl("Actions for")} ${p.ref}`} width={190}
                             trigger={({open,toggle})=><ActionMenuTrigger onClick={toggle}
