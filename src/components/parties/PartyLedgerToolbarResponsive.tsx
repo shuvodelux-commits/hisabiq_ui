@@ -45,7 +45,7 @@ export function PartyLedgerToolbarResponsive({range,onRange,kind,onKind,query,on
 
   return <div data-party-ledger-toolbar="" data-hisabiq-field-group="party-ledger"
     className="min-w-0 space-y-2 border-b border-border px-3 py-2">
-    <div data-party-ledger-primary="" className="-mr-2 grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,245px)_36px]">
+    <div data-party-ledger-primary="" className="mr-1 grid grid-cols-[minmax(0,1fr)_36px] md:-mr-2 items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,245px)_36px]">
       <div className="relative min-w-0">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true"/>
         <Input aria-label={text('Search ledger transactions','খাতার লেনদেন খুঁজুন')} value={query}
