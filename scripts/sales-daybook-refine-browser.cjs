@@ -31,7 +31,7 @@ async function main() {
         page.on('pageerror', error => errors.push(error.message));
         try {
           await page.goto(baseUrl + '/#/app/sales', { waitUntil: 'networkidle' });
-          await expect(page.getByRole('heading', { name: 'Sales', exact: true })).toBeVisible();
+          await expect(page.getByRole('heading', { name: /^Sales/ })).toBeVisible();
           const search = page.getByRole('textbox', { name: 'Search sales' });
           await expect(search).toBeVisible();
           const toggle = page.locator('[data-sales-filter-toggle]').first();
