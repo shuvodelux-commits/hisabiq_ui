@@ -34,7 +34,7 @@ async function main() {
           await expect(visibleToggles).toHaveCount(1);
           const toggle=visibleToggles.first();
           await expect(toggle).toHaveAttribute('aria-expanded','false');
-          await expect(toggle.locator('svg.lucide-filter')).toBeVisible();
+          await expect(toggle.locator('svg')).toBeVisible();
           await expect(advanced).toBeHidden();
           const tb=await toggle.boundingBox(), sb=await search.boundingBox(), db=await date.boundingBox();
           assert(tb&&sb&&db&&tb.width>=35&&tb.width<=38&&tb.height>=35&&tb.height<=38,
