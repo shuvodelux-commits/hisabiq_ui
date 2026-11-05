@@ -245,7 +245,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           <span className="text-[13px] text-ink-600">
             {word("totalPayable")} {showHelper && <span className="font-bn">· মোট</span>}
           </span>
-          <p className="ml-auto text-right text-[26px] font-semibold leading-tight tracking-tight sm:text-[28px]">{taka(totals.total)}</p>
+          <p className="ml-auto text-right text-[28px] font-semibold leading-tight tracking-tight sm:text-[29px]">{taka(totals.total)}</p>
         </div>
         <AmountInWordsDisplay amount={totals.total} variant="compact" />
       </div>
