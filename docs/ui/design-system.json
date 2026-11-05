@@ -4476,7 +4476,8 @@
     "Filter": [
       "src/components/daybook/DaybookFilters.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
-      "src/components/sales/SalesWideToolbar.tsx"
+      "src/components/sales/SalesWideToolbar.tsx",
+      "src/pages/Purchases.tsx"
     ],
     "FlaskConical": [
       "src/components/reports/SalesProfitExperiment.tsx"
@@ -4640,7 +4641,6 @@
       "src/pages/AuditLedger.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Products.tsx",
-      "src/pages/Purchases.tsx",
       "src/pages/Warranty.tsx"
     ],
     "Package": [
@@ -4860,6 +4860,7 @@
       "src/components/pos/InstallmentReceiptReversalDialog.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/pages/Finance.tsx",
+      "src/pages/Purchases.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
