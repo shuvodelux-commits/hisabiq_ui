@@ -69,7 +69,7 @@ function test(){
   assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: src/pages/not-real.tsx',root,'#/app/pos'));
   console.log('All-module route and Impeccable scope parser OK: '+good.length+' routes');
 }
-async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false,showSababMotion=false,showPurchasesDaybook=false,showPartyLedger=false,showPosCombobox=false){
+async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false,showSababMotion=false,showPurchasesDaybook=false,showPartyLedger=false,showAuditFilters=false,showPosCombobox=false){
   const shots=[];
   for(const width of widths)for(const theme of themes){
     const height=width===1024?768:width===768?1024:width===1440?900:844;
@@ -148,6 +148,18 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
         const file = name+'-pos-product-suggestions-'+width+'-'+theme+'.png';
         await page.screenshot({path:path.join(out,file),animations:'disabled'});
         shots.push({filename:file,width,theme,state:'pos-product-suggestions',...details});
+      }
+      if(showAuditFilters){
+        const newToggle=page.locator('[data-audit-filter-toggle]:visible').first();
+        if(await newToggle.count())await newToggle.click();
+        else{
+          const oldToggle=page.getByRole('button',{name:/More filters/i}).first();
+          if(await oldToggle.count()&&await oldToggle.isVisible())await oldToggle.click();
+        }
+        await page.waitForTimeout(120);
+        const file=name+'-audit-advanced-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,file),fullPage:true,animations:'disabled'});
+        shots.push({filename:file,width,theme,state:'audit-advanced',...details});
       }
       if(showSalesFilter){
         // Baseline and candidate: show the real expanded filters, plus an opened invoice action.
@@ -319,7 +331,7 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
   }
   return shots;
 }
-function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false,showSababMotion=false,showPurchasesDaybook=false,showPartyLedger=false,showPosCombobox=false){
+function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false,showDaybookActionMenu=false,showExpenseDialog=false,showSalesFilter=false,showErpActions=false,showSababMotion=false,showPurchasesDaybook=false,showPartyLedger=false,showAuditFilters=false,showPosCombobox=false){
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const configs=widths.flatMap(width=>themes.map(theme=>({width,theme,mode:'default'})));
   if(showSababNav)for(const width of widths.filter(w=>w<1024))for(const theme of themes)
@@ -338,12 +350,14 @@ function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=fals
     configs.push({width,theme,mode:'erp-action-menu'});
   if(showPurchasesDaybook)for(const width of widths)for(const theme of themes)
     for(const mode of ['purchases-filters','purchases-actions'])configs.push({width,theme,mode});
-  if(showPosCombobox)for(const width of widths)for(const theme of themes)
-    configs.push({width,theme,mode:'pos-product-suggestions'});
   if(showSababMotion)for(const width of widths)for(const theme of themes)
     for(const mode of ['daybook-motion-filter','daybook-motion-dropdown','daybook-motion-date-switch'])configs.push({width,theme,mode});
   if(showPartyLedger)for(const width of widths)for(const theme of themes)
     for(const mode of ['party-ledger-filters','party-ledger-actions'])configs.push({width,theme,mode});
+  if(showPosCombobox)for(const width of widths)for(const theme of themes)
+    configs.push({width,theme,mode:'pos-product-suggestions'});
+  if(showAuditFilters)for(const width of widths)for(const theme of themes)
+    configs.push({width,theme,mode:'audit-advanced'});
   const rows=configs.map(({width,theme,mode})=>{
     const suffix=(mode==='default'?'':mode+'-')+width+'-'+theme+'.png';
     const before='before-'+suffix;
@@ -376,11 +390,12 @@ async function main(){
   const showDaybookActionMenu=/^[ \\t]*UI-REFINE-STATE:[ \\t]*daybook-row-menu[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showPurchasesDaybook=/^[ \\t]*UI-REFINE-STATE:[ \\t]*purchases-daybook[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showPosCombobox=/^[ \\t]*UI-REFINE-STATE:[ \\t]*pos-product-suggestion-motion[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
+  const showAuditFilters=/^[ \\t]*UI-REFINE-STATE:[ \\t]*audit-compact-filters[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showSababMotion=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sabab-motion-daybook[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   let before,after;
   try{
-    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showPosCombobox);
-    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showPosCombobox);
+    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showAuditFilters,showPosCombobox);
+    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showAuditFilters,showPosCombobox);
     if(showExpenseDialog){
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/dialog-motion-browser.cjs')],{
         cwd:candidate,env:{...process.env,DIALOG_MOTION_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
@@ -439,14 +454,6 @@ async function main(){
       });
       await fsp.writeFile(path.join(out,'purchases-daybook-playwright.log'),log);
     }
-    if(showPosCombobox){
-      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/pos-product-combobox-motion-browser.cjs')],{
-        cwd:candidate,
-        env:{...process.env,POS_COMBOBOX_MOTION_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
-        encoding:'utf8',timeout:210000
-      });
-      await fsp.writeFile(path.join(out,'pos-product-combobox-motion-playwright.log'),log);
-    }
     if(showSababMotion){
       const motionLog=execFileSync(process.execPath,[path.join(candidate,'scripts/sabab-motion-daybook-browser.cjs')],{
         cwd:candidate,env:{...process.env,SABAB_MOTION_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
@@ -458,6 +465,21 @@ async function main(){
         encoding:'utf8',timeout:180000
       });
       await fsp.writeFile(path.join(out,'sabab-shared-controls-playwright.log'),controlsLog);
+    }
+    if(showPosCombobox){
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/pos-product-combobox-motion-browser.cjs')],{
+        cwd:candidate,
+        env:{...process.env,POS_COMBOBOX_MOTION_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:210000
+      });
+      await fsp.writeFile(path.join(out,'pos-product-combobox-motion-playwright.log'),log);
+    }
+    if(showAuditFilters){
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/audit-compact-filters-browser.cjs')],{
+        cwd:candidate,env:{...process.env,AUDIT_FILTER_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'audit-compact-filters-playwright.log'),log);
     }
     if(showSalesFilter){
       // Target-specific responsive and keyboard gate; no unrelated modules are changed.
@@ -479,7 +501,7 @@ async function main(){
     route,baseSha,prSha,before,after,
     warning:'Screenshots must be visually inspected in ChatGPT; do not claim automated Impeccable reviews ran.'
   },null,2));
-  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showPosCombobox));
+  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showAuditFilters,showPosCombobox));
   console.log('Captured '+before.length+' baseline and '+after.length+' PR images: '+route);
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
