@@ -35,7 +35,7 @@ export function DaybookActions({
       label={label}
       width={190}
       trigger={({ toggle, open }) => (
-        <ActionMenuTrigger label={label} expanded={open} onClick={toggle} />
+        <ActionMenuTrigger label={label} expanded={open} onClick={toggle} className="border border-border bg-card lg:border-transparent" />
       )}>
       {(close) => (
         <ActionMenuList>
