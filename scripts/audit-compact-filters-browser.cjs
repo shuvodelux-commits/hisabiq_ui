@@ -47,6 +47,20 @@ async function main() {
           const ab=await action.boundingBox();
           assert(ab && ab.x>=0 && ab.x+ab.width<=width+1,'Audit Action stays inside viewport');
           assert(Math.abs((tb.x+tb.width)-(ab.x+ab.width))<=14,'Filter and Action right edges align');
+          if(width<768){
+            // Screenshot audit found primary references clipped by legacy 11-column phone table.
+            const fullRef=page.locator('[data-audit-full-reference]').first();
+            await expect(fullRef).toBeVisible();
+            const refText=await fullRef.innerText();
+            assert(/^[A-Z]+-\d{6}$/.test(refText.trim()),'full audit reference must remain legible');
+            const refBox=await fullRef.boundingBox();
+            const stickyAction=await fullRef.locator('xpath=ancestor::tr/td[last()]').boundingBox();
+            assert(refBox&&stickyAction&&refBox.x>=0&&refBox.x+refBox.width+2<=stickyAction.x,
+              'phone audit reference must not be obscured by sticky Action');
+            const overflow=await fullRef.evaluate(el=>el.scrollWidth>el.clientWidth+1);
+            assert(!overflow,'phone audit reference text must not be truncated');
+          }
+
           await toggle.click();
           await expect(toggle).toHaveAttribute('aria-expanded','true');
         }else{
