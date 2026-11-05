@@ -5,15 +5,18 @@ import { Link } from 'react-router-dom';
 import {
   ArrowDownToLine,
   BarChart3,
-  MoreHorizontal,
+  CheckCircle2,
   Paperclip,
   Plus,
   Printer,
   Search,
+  Filter,
+  RotateCcw,
   Settings2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
+import { AnimatedAdvancedFilters } from '../components/layout/AnimatedAdvancedFilters';
 import { FormSelect } from '../components/FormSelect';
 import { AppDateRangePicker } from '../components/AppDateRangePicker';
 import { expenseDateIso, formatRange, type IsoRange } from '../utils/dateRange';
@@ -29,7 +32,7 @@ import { expensePaymentMethods, getExpensePreviewSnapshot, subscribeExpensePrevi
 import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } from '../components/layout/ActionMenu';
 import { Eye, Pencil, Ban } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/Dialog';
 import { printReport, downloadReport } from '../utils/reportOutput';
@@ -99,12 +102,14 @@ export function Expenses() {
   const [payeeFilter, setPayeeFilter] = useState('All payees');
   const [methodFilter, setMethodFilter] = useState('All payment methods');
   const [statusFilter, setStatusFilter] = useState('Active');
+  const [showFilters, setShowFilters] = useState(false);
   const [categoryEditor, setCategoryEditor] = useState<{ previous?: string; name: string } | null>(null);
   const [payeeEditor, setPayeeEditor] = useState<{ party?: Party } | null>(null);
   const [cancelling, setCancelling] = useState<Expense | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [actionError, setActionError] = useState('');
   const activeExpenses = expenses.filter(item => item.recordStatus !== 'Deleted');
+  const activeFilterCount = [categoryFilter !== 'All categories', payeeFilter !== 'All payees', methodFilter !== 'All payment methods', statusFilter !== 'Active'].filter(Boolean).length;
   const resetFilters = () => { setQuery(''); setCategoryFilter('All categories'); setPayeeFilter('All payees'); setMethodFilter('All payment methods'); setStatusFilter('Active'); };
   const reportFor = (items: Expense[], title = 'Expense list') => ({ title, subtitle: 'Expense source preview', headers: ['Reference', 'Date', 'Category', 'Payee', 'Details', 'Amount', 'Paid', 'Due', 'Status'], rows: items.map(e => [e.ref, e.date, e.category, e.payee, e.note, e.amount, e.paid, e.amount - e.paid, e.recordStatus === 'Deleted' ? 'Cancelled' : 'Active']) });
   const printExpenses = (items: Expense[], title?: string) => { const report=reportFor(items,title); if (!printReport({...report,language,subtitle:documentLabel(language,report.subtitle),headers:report.headers.map(h=>documentLabel(language,h)),rows:report.rows.map(row=>row.map((value,index)=>index===8?documentLabel(language,String(value)):value))})) toast.error(text('Allow the print popup and try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।')); };
@@ -176,20 +181,33 @@ export function Expenses() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card">
-        <MotionTabList className="flex flex-wrap gap-1 border-b border-border px-3" role="tablist">
+        <MotionTabList className="flex flex-nowrap gap-0 overflow-x-auto border-b border-border px-1 sm:gap-1 sm:px-3" role="tablist" aria-label={text('Expense sections','খরচের বিভাগ')}>
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
               role="tab"
               aria-selected={tab === id}
+              tabIndex={tab === id ? 0 : -1}
               onClick={() => setTab(id)}
+              onKeyDown={event => {
+                const current = tabs.findIndex(([value]) => value === id);
+                const index = event.key === 'Home' ? 0
+                  : event.key === 'End' ? tabs.length - 1
+                  : event.key === 'ArrowRight' ? (current + 1) % tabs.length
+                  : event.key === 'ArrowLeft' ? (current - 1 + tabs.length) % tabs.length
+                  : -1;
+                if (index < 0) return;
+                event.preventDefault();
+                setTab(tabs[index][0]);
+                event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[index]?.focus();
+              }}
               title={helper}
-              className={`flex items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium ${
+              className={`relative flex shrink-0 items-center gap-1 whitespace-nowrap px-1 py-2.5 text-[13px] font-medium sm:gap-1.5 sm:px-2.5 ${
                 tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
               {id === 'expenses' && (
-                <span className="rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500">{expenses.length}</span>
+                <span className="hidden rounded bg-ink-50 px-1.5 text-[10.5px] text-ink-500 sm:inline-flex">{expenses.length}</span>
               )}
             <MotionTabIndicator active={tab === id} /></button>
           ))}
@@ -197,27 +215,53 @@ export function Expenses() {
 
         {tab === 'expenses' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1 lg:max-w-md">
-                <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="pl-8"
-                  placeholder={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
-                />
+            <div data-expenses-filter-toolbar="" className="space-y-2 border-b border-border p-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 lg:flex lg:items-center">
+                <div className="relative min-w-0 flex-1 lg:max-w-md">
+                  <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                  <Input
+                    aria-label={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    className="pl-8"
+                    placeholder={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
+                  />
+                </div>
+                <Button type="button" variant="outline" size="icon"
+                  aria-label={text('Advanced filters','আরও ফিল্টার') + (activeFilterCount ? ' (' + activeFilterCount + ')' : '')}
+                  aria-controls="expenses-advanced-filters" aria-expanded={showFilters}
+                  onClick={() => setShowFilters(open => !open)}
+                  className={'relative size-9 shrink-0 rounded-md lg:hidden ' + (activeFilterCount ? 'border-teal-500 text-teal-700' : 'text-ink-500')}>
+                  <Filter className="size-4" aria-hidden="true" />
+                  {activeFilterCount > 0 && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />}
+                </Button>
+                <Button variant="outline" size="sm" className="col-span-2 justify-self-end lg:ml-auto" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
+                  <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
+                </Button>
               </div>
-              <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="w-full lg:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
-              <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
-              <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
-              <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="w-full lg:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
-              <Button variant="ghost" size="sm" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
-              <Button variant="outline" size="sm" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
-                <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
-              </Button>
+              <AnimatedAdvancedFilters id="expenses-advanced-filters" open={showFilters}
+                className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,1fr)]">
+                <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="min-w-0 w-full" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
+                <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="min-w-0 w-full" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
+                <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="min-w-0 w-full" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
+                <div className="flex min-w-0 items-center gap-2">
+                  <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="min-w-0 flex-1" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
+                  <Button type="button" variant="outline" size="icon" className="size-9 shrink-0 rounded-md text-ink-500"
+                    aria-label={text('Reset filters','ফিল্টার মুছুন')}
+                    title={text('Reset all filters','সব ফিল্টার মুছুন')}
+                    onClick={resetFilters}>
+                    <RotateCcw className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              </AnimatedAdvancedFilters>
             </div>
 
-            <Table>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span role="status">{text(`Showing ${filteredExpenses.length} of ${expenses.length} expenses`, `মোট ${expenses.length}টির মধ্যে ${filteredExpenses.length}টি খরচ`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[940px]" scrollRegionLabel={text("Expense records, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">{text('Expense','খরচ')}</TableHead>
@@ -228,7 +272,7 @@ export function Expenses() {
                   <TableHead className="h-9 text-xs">{text('Reference','রেফারেন্স')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -266,9 +310,9 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">—</TableCell>
                       <TableCell className="py-2 text-right font-medium">{taka(expense.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={expense.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{expense.recordStatus === 'Deleted' ? text('Cancelled','বাতিল') : text('Active','চালু')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
                         <div onClick={event => event.stopPropagation()}>
-                          <FloatingPanel label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`}><MoreHorizontal className="size-4" /></button>}>
+                          <FloatingPanel label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} width={190} trigger={({toggle,open:expanded}) => <ActionMenuTrigger onClick={toggle} expanded={expanded} label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} />}>
                             {close => <ActionMenuList>
                               <ActionMenuItem icon={Eye} onClick={() => { close(); open(); }}>{text('View','দেখুন')}</ActionMenuItem>
                               <ActionMenuItem icon={Pencil} disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); openCorrection(expense); }}>{text('Correct','সংশোধন')}</ActionMenuItem>
@@ -284,7 +328,8 @@ export function Expenses() {
                 })}
                 {!filteredExpenses.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">{text('No expenses match these filters.','কোনো খরচ মেলেনি।')} <button className="text-teal-700 underline" onClick={resetFilters}>{text('Reset filters','ফিল্টার মুছুন')}</button></TableCell></TableRow>}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </>
         )}
 
@@ -299,14 +344,19 @@ export function Expenses() {
                 <Plus className="size-4" /> {text("Add category","ধরন যোগ করুন")}
               </Button>
             </div>
-            <Table>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span role="status">{text(`${categories.length} categories`, `${categories.length}টি ধরন`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[680px]" scrollRegionLabel={text("Expense categories, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs" >{text('Category','ধরন')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Description','বিবরণ')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Active total','চালু খরচের মোট')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -318,17 +368,22 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">{text("Operating expense category","দোকানের খরচের ধরন")}</TableCell>
                       <TableCell className="py-2 text-right">{amount ? taka(amount) : '—'}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={active ? 'success' : 'neutral'} dot>{text(active ? 'Active' : 'Inactive',active ? 'চালু' : 'বন্ধ')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <div className="flex flex-wrap justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => { setCategoryEditor({previous: category, name: category}); setActionError(''); }}>{text("Edit","সম্পাদনা")}</Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</Button>
-                        </div>
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
+                        <FloatingPanel label={text('Actions for category','খরচের ধরন পরিচালনা:') + ' ' + category} width={190}
+                          trigger={({toggle,open:expanded}) => <ActionMenuTrigger expanded={expanded} onClick={toggle} label={text('Actions for category','খরচের ধরন পরিচালনা:') + ' ' + category} />}>
+                          {close => <ActionMenuList>
+                            <ActionMenuItem icon={Pencil} onClick={() => { close(); setCategoryEditor({previous: category, name: category}); setActionError(''); }}>{text("Edit","সম্পাদনা")}</ActionMenuItem>
+                            <ActionMenuDivider />
+                            <ActionMenuItem icon={active ? Ban : CheckCircle2} tone={active ? 'destructive' : 'neutral'} onClick={() => { close(); setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</ActionMenuItem>
+                          </ActionMenuList>}
+                        </FloatingPanel>
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </div>
         )}
 
@@ -343,7 +398,12 @@ export function Expenses() {
                 <Plus className="size-4" /> {text("Add payee","প্রাপক যোগ করুন")}
               </Button>
             </div>
-            <Table>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span role="status">{text(`${payees.length} payees`, `${payees.length}জন প্রাপক`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[760px]" scrollRegionLabel={text("Expense payees, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs" >{text('Payee','প্রাপক')}</TableHead>
@@ -351,7 +411,7 @@ export function Expenses() {
                   <TableHead className="h-9 text-xs">{text('Last used','শেষ ব্যবহার')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Total paid','মোট দেওয়া')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -366,17 +426,25 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">{payee.lastUsed}</TableCell>
                       <TableCell className="py-2 text-right">{paid ? taka(paid) : '—'}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={payee.active ? 'success' : 'neutral'} dot>{text(payee.active ? 'Active' : 'Inactive',payee.active ? 'চালু' : 'বন্ধ')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <div className="flex flex-wrap justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => setPayeeEditor({party: availableParties().find(p => p.id === payee.id)})}>{text("Edit","সম্পাদনা")}</Button>
-                          <Button variant="ghost" size="sm" disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')} title={text("Linked transaction history is retained; linked payees cannot be deactivated.","আগের লেনদেন থাকবে। লেনদেন থাকা প্রাপককে বন্ধ করা যাবে না।")} onClick={() => { try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</Button>
-                        </div>
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
+                        <FloatingPanel label={text('Actions for payee','প্রাপকের কাজের তালিকা:') + ' ' + payee.name} width={190}
+                          trigger={({toggle,open:expanded}) => <ActionMenuTrigger expanded={expanded} onClick={toggle} label={text('Actions for payee','প্রাপকের কাজের তালিকা:') + ' ' + payee.name} />}>
+                          {close => <ActionMenuList>
+                            <ActionMenuItem icon={Pencil} onClick={() => { close(); setPayeeEditor({party: availableParties().find(p => p.id === payee.id)}); }}>{text("Edit","সম্পাদনা")}</ActionMenuItem>
+                            <ActionMenuDivider />
+                            <ActionMenuItem icon={Ban} tone="destructive"
+                              disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')}
+                              title={text("Linked transaction history is retained; linked payees cannot be deactivated.","আগের লেনদেন থাকবে। লেনদেন থাকা প্রাপককে বন্ধ করা যাবে না।")}
+                              onClick={() => { close(); try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</ActionMenuItem>
+                          </ActionMenuList>}
+                        </FloatingPanel>
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </div>
         )}
 

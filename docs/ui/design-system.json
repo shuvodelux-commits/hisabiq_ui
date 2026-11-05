@@ -4266,6 +4266,7 @@
       "src/components/vendor/VendorPaymentsWorkspace.tsx",
       "src/components/vendor/VendorSourceWorkspace.tsx",
       "src/features/auth/AuthFlowPage.tsx",
+      "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Reconciliation.tsx",
@@ -4495,6 +4496,7 @@
       "src/components/parties/PartyLedgerToolbarResponsive.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
       "src/components/sales/SalesWideToolbar.tsx",
+      "src/pages/Expenses.tsx",
       "src/pages/Purchases.tsx"
     ],
     "FlaskConical": [
@@ -4656,7 +4658,6 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
-      "src/pages/Expenses.tsx",
       "src/pages/Products.tsx",
       "src/pages/Warranty.tsx"
     ],
@@ -4877,6 +4878,7 @@
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/pos/InstallmentReceiptReversalDialog.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
+      "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Purchases.tsx",
       "src/pages/Sales.tsx",
