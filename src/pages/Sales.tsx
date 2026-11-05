@@ -1554,7 +1554,7 @@ export function Sales() {
           isMobile ? <div aria-label={sl('Return history')}>{returns.map(item => <SalesMobileRecord key={item.id} reference={item.id} name={item.customer} date={item.date}
             status={<StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{sl(item.settlement)}</StatusBadge>}
             meta={<>{item.invoices.join(', ')} · {item.items}{item.refundMethod && <> · {item.refundMethod} {item.refundAccount}</>}</>}
-            amount={<>{sl('Amount')} <strong className="text-ink">{taka(item.amount)}</strong></>} onOpen={() => setReturnDetail(item)} actions={renderReturnActions(item)} />)}</div> : (<Table>
+            amount={<>{sl('Amount')} <strong className="text-ink">{taka(item.amount)}</strong></>} onOpen={() => setReturnDetail(item)} actions={renderReturnActions(item)} />)}</div> : (<Table scrollRegionLabel={text('Sales return history','বিক্রির ফেরতের ইতিহাস')}>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-9 pl-4 text-xs">{sl('Return')}</TableHead>
@@ -1563,7 +1563,7 @@ export function Sales() {
                 <TableHead className="h-9 text-xs">{sl('Items')}</TableHead>
                 <TableHead className="h-9 text-right text-xs">{sl('Amount')}</TableHead>
                 <TableHead className="h-9 text-xs">{sl('Settlement')}</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
+                <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{sl('Action')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1581,7 +1581,7 @@ export function Sales() {
                     <StatusBadge tone={item.settlement === 'Cash refund' ? 'warning' : 'info'}>{sl(item.settlement)}</StatusBadge>
                     {item.refundMethod && <p data-table-helper="" className="mt-1 text-[10.5px] text-ink-400">{item.refundMethod}{item.refundAccount ? ` · ${item.refundAccount}` : ''}</p>}
                   </TableCell>
-                  <TableCell className="py-2 pr-4 text-right">
+                  <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                     {renderReturnActions(item)}
                   </TableCell>
                 </TableRow>
@@ -1605,7 +1605,7 @@ export function Sales() {
 
             {isMobile ? <div aria-label={sl('Customer credit')}>{credits.map(credit => <SalesMobileRecord key={credit.id} reference={credit.id} name={credit.customer} date={credit.updatedAt}
               meta={credit.source} status={<StatusBadge tone={credit.balance > 0 ? 'teal' : 'neutral'}>{sl(credit.balance > 0 ? 'Available' : 'Settled')}</StatusBadge>}
-              amount={<>{sl('Credit balance')} <strong className="text-teal-700">{taka(credit.balance)}</strong></>} actions={renderCreditActions(credit)} />)}</div> : (<Table>
+              amount={<>{sl('Credit balance')} <strong className="text-teal-700">{taka(credit.balance)}</strong></>} actions={renderCreditActions(credit)} />)}</div> : (<Table scrollRegionLabel={text('Customer credit history','ক্রেতার জমার ইতিহাস')}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">{sl('Customer')}</TableHead>
@@ -1613,7 +1613,7 @@ export function Sales() {
                   <TableHead className="h-9 text-xs">{sl('Updated')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{sl('Credit balance')}</TableHead>
                   <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1631,7 +1631,7 @@ export function Sales() {
                         {sl(credit.balance > 0 ? 'Available' : 'Settled')}
                       </StatusBadge>
                     </TableCell>
-                    <TableCell className="py-2 pr-4 text-right">
+                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                       {renderCreditActions(credit)}
                     </TableCell>
                   </TableRow>
