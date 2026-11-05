@@ -16,7 +16,6 @@ import {
   RotateCcw,
   CircleDollarSign,
   Landmark,
-  MoreHorizontal,
   Plus,
   RefreshCw,
   Search,
@@ -645,6 +644,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     };
     setTransactions((current) => [transaction, ...current]);
     setAccounts((current) => applyTransactionMovement(current, transaction, 1));
+    setAccountActionMode('ledger');
     setAccountAction((current) => current && current.id === account.id
       ? { ...current, balance: current.balance + (direction === 'in' ? amount : -amount), lastActivity: 'Just now' }
       : current);
