@@ -51,3 +51,26 @@
 
 ## Protected behavior
 Sales invoice details, payments, returns, drafts/templates, product quantities, customer ledgers, exports/print, columns, search, language and authentication unchanged. Draft PR only; no merge, deploy or backend edits.
+
+
+## C5 — Owner-directed Sales row Action parity with Daybook/Audit (2026-11-05)
+
+**Owner feedback:** Finance's menu refinement did not address the Sales screenshot; Sales needs the same visible Daybook/Audit row action popup at all sizes. Work continued **on the existing Sales draft PR #253**, not the Finance PR.
+
+### Changes
+- `src/components/layout/ActionMenu.tsx`: used Daybook PR #252's exact opt-in 36px `ActionMenuTrigger` (vertical ellipsis, accessible label, expanded state, focus-visible ring); its keyboard handling supports Home/End/Up/Down. Existing `FloatingPanel` portal/viewport behavior remains.
+- `src/pages/Sales.tsx`: invoice, return history, customer credit, draft and template Action triggers now all use that same control. Their existing `FloatingPanel`, `ActionMenuList`, menu commands, guards, callbacks and order remain unchanged. Invoice triggers stop row-click propagation.
+- Sales return and customer credit tables have right-pinned Action columns and labeled keyboard-scrollable regions, matching invoice list reachability.
+- Generated design/source inventory updated for the shared trigger and moved MoreHorizontal icon import.
+- `scripts/sales-action-menu-browser.cjs`: 12/12 browser configurations (320/390/768/820/1024/1440px, both themes), each exercising invoice, return history, customer credit and draft popups. The template popup is additionally inspected at 390/1024. Assertions include trigger size, aria, item labels, arrow/Home/End navigation, Escape + focus return, and popup viewport bounds. All existing menu work operations were left unclicked to avoid financial side effects.
+
+### Verified head and evidence
+- **Application code head `b029bf6442113dec5e69c6f958dd5fa5e8be4590`**.
+- [PR Fast CI 41983996603](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/41983996603) **SUCCESS** (TypeScript, lint, generated UI contract, unit suite, build and relevant browser smoke).
+- [Screenshot + focused Playwright run 41983996587](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/41983996587) **SUCCESS**, action test **12/12**, existing Sales filter test **12/12**, all responsive screenshot artifacts captured. Actual 320 and 1440 light open-state screenshots were inspected: compact vertical ellipsis, icon-first menu, 36px trigger, and no popup overflow. The 768 open-state screenshot was taken before portal placement completed; a subsequent screenshot-script-only commit now explicitly waits for the visible popup before capturing tablet evidence.
+- Source detector is a mechanical Impeccable scan only, not independent human/agent scoring.
+
+### Completion scope
+**Fixed:** Sales Action trigger/menu presentation parity on all five action surfaces; visible right-hand Action in Return History and Customer Credit. **Protected:** invoice detail, edit/duplicate via POS V2, payments, return, warranty, ledger, print, draft archive, template edit/duplicate/delete. **Remaining limitation:** intermediate-width long Status badge may still need table scrolling to see all text (previous C4 F05). No Finance/backend changes, merge or deployment.
+
+Final screenshot-only/evidence commits may rerun CI; no claims about those reruns until verified.
