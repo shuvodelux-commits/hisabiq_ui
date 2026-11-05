@@ -1,7 +1,7 @@
 import React from 'react';
-import { Eye, MoreHorizontal, Pencil, Printer, RotateCcw, Trash2, ExternalLink, CornerUpLeft } from 'lucide-react';
+import { Eye, Pencil, Printer, RotateCcw, Trash2, ExternalLink, CornerUpLeft } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } from '../layout/ActionMenu';
 import type { PartyAction, PartyLedgerRow } from '../../types/partyLedger';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {partyLedgerActionLabel} from '../../i18n/partyLedgerCopy';
@@ -14,11 +14,9 @@ const icons:Record<PartyAction,React.ComponentType<{className?:string}>>={
 export function PartyLedgerRowActions({row,actions,onAction}:Props){
   const {text,language}=useUiCopy();
   return <FloatingPanel label={text('Transaction actions for','লেনদেনের কাজ')+' '+(row.reference??row.id)} width={220}
-    trigger={({toggle,open})=><button type="button" aria-label={text('Actions for','কাজ')+' '+(row.reference??row.id)}
-      aria-expanded={open} onClick={toggle}
-      className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50 focus-visible:ring-2 focus-visible:ring-teal-500">
-      <MoreHorizontal className="size-4"/>
-    </button>}
+    trigger={({toggle,open})=><ActionMenuTrigger
+      label={text('Actions for','কাজ')+' '+(row.reference??row.id)}
+      expanded={open} onClick={toggle} />}
     >{close=><ActionMenuList aria-label={text('Transaction row actions','লেনদেনের সারির কাজ')}>
       {actions.map(({action,enabled,reason},index)=>{
         const Icon=icons[action];
