@@ -318,21 +318,21 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
        </div>
        {discount>0&&<p className="mt-2 text-xs text-ink-500">{text('Cash','ক্যাশ')} {taka(total)} + {text('settlement','সমন্বয়')} {taka(discount)} = {text('total due reduction','মোট বাকি কমবে')} {taka(dueReduction)}</p>}
       </section>}
-      <div className="space-y-1 border-t border-border pt-3">
-       <div className="flex items-center justify-between gap-3"><span className="text-sm text-ink-500">{text('Automatically calculated cash total','হিসাব করা মোট টাকা')}</span>
+      <div className="space-y-1 border-t border-border pt-2">
+       <div className="flex items-center justify-between gap-3"><span className="text-sm text-ink-500">{text('Total payment','মোট টাকা')}</span>
         <strong className="text-xl text-ink" aria-live="polite">{taka(total)}</strong></div>
        {discount>0&&<div className="flex justify-between gap-3 text-xs text-ink-500"><span>{text('Including settlement, due reduces by','সমন্বয়সহ বাকি কমবে')}</span><strong>{taka(dueReduction)}</strong></div>}
       </div>
      </div>
     </div>}
-    <label className="block rounded-xl border border-border bg-card p-4 text-sm font-semibold">{text('Reference / note (optional)','রেফারেন্স / মন্তব্য (ঐচ্ছিক)')}
-     <Input className="mt-2" value={note} onChange={e=>{setNote(e.target.value);setReview(false);}} placeholder={text("Transaction details","লেনদেনের বিবরণ")}/>
+    <label className="block rounded-xl border border-border bg-card p-3 text-sm font-semibold sm:p-4">{text('Reference / note (optional)','রেফারেন্স / মন্তব্য (ঐচ্ছিক)')}
+     <Input className="mt-1.5" value={note} onChange={e=>{setNote(e.target.value);setReview(false);}} placeholder={text("Transaction details","লেনদেনের বিবরণ")}/>
     </label>
    </div>
-   <aside className="h-fit rounded-xl border border-border bg-card p-4 xl:sticky xl:top-4">
-    <h3 className="mb-3 text-sm font-semibold">{text("Transaction summary","লেনদেনের সারাংশ")}</h3>
+   <aside className="h-fit rounded-xl border border-border bg-card p-3 sm:p-4 xl:sticky xl:top-4">
+    <h3 className="mb-2 text-sm font-semibold">{text("Transaction summary","লেনদেনের সারাংশ")}</h3>
     <p className="text-xs text-ink-500">{type==='Customer Receive'?text('Money received','টাকা পাওয়া'):type==='Supplier Pay'?text('Money paid','টাকা দেওয়া'):text('Total amount','মোট টাকা')}</p>
-    <p className="text-2xl font-semibold text-ink" aria-live="polite">{taka(total)}</p>
+    <p className="text-xl font-semibold text-ink sm:text-2xl" aria-live="polite">{taka(total)}</p>
     <AmountInWordsDisplay amount={total} />
     {settlement&&<div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
      <div className="flex justify-between gap-2"><span>{text('Before payment','টাকা দেওয়া/নেওয়ার আগে')}</span><strong>{taka(settlement.netBalance)}</strong></div>
@@ -342,7 +342,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
     </div>}
     {submitted&&<div role="status" className="mt-3 rounded-lg border border-success/20 bg-success/5 p-3 text-xs text-success"><CheckCircle2 className="mb-1 size-4"/> {text('Recorded in preview. Ledger balance is updated.','প্রিভিউতে লেখা হয়েছে। হিসাবের জের বদলেছে।')}</div>}
     {error&&<p role="alert" className="mt-3 rounded-lg border border-danger/30 bg-danger-bg p-3 text-xs text-danger">{error}</p>}
-    <Button className="mt-4 w-full" onClick={beginReview} disabled={type==='Bank Transfer'||type==='Expense'?total<=0:dueReduction<=0}>{text('Review '+names[type].toLowerCase(), 'যাচাই করুন: '+banglaActions[type])}</Button>
+    <Button className="mt-3 w-full" onClick={beginReview} disabled={type==='Bank Transfer'||type==='Expense'?total<=0:dueReduction<=0}>{text('Review '+names[type].toLowerCase(), 'যাচাই করুন: '+banglaActions[type])}</Button>
    </aside>
   </div>}
   <Dialog open={review} onOpenChange={setReview}>
