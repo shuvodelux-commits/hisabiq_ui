@@ -1,4 +1,5 @@
 import {NumericInput} from '../NumericInput';
+import {businessToday,formatDay} from '../../utils/dateRange';
 import {posMoney} from '../../utils/posCheckoutValidation';
 import React from 'react';
 import { AlertTriangle, ChevronDown, Plus, Trash2 } from 'lucide-react';
@@ -117,9 +118,9 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-ink">{props.invoice}</p>
-            <p className="text-[11px] text-ink-500">06 Oct 2026 · Counter 1</p>
+            <p className="text-[11px] text-ink-500">{formatDay(businessToday())} · {text("Counter 1","কাউন্টার ১")}</p>
           </div>
-          <button onClick={props.onClear} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-ink-500 hover:bg-danger-bg hover:text-danger">
+          <button type="button" onClick={props.onClear} className="flex h-9 items-center gap-1 rounded-md px-2 text-xs text-ink-500 hover:bg-danger-bg hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
             <Trash2 className="size-3.5" /> {word("clear")}
           </button>
         </div>
@@ -130,7 +131,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           </div>
           {props.onQuickAddCustomer && (
             <Button type="button" size="sm" variant="outline" onClick={props.onQuickAddCustomer}
-              className="size-10 shrink-0 px-0 text-teal-700"
+              className="size-9 shrink-0 px-0 text-teal-700"
               aria-label={text('Quick add customer', 'নতুন ক্রেতা যোগ করুন')}
               title={text('Quick add customer', 'নতুন ক্রেতা যোগ করুন')}>
               <Plus className="size-4" />
@@ -244,7 +245,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           <span className="text-[13px] text-ink-600">
             {word("totalPayable")} {showHelper && <span className="font-bn">· মোট</span>}
           </span>
-          <p className="ml-auto text-right text-[29px] font-semibold leading-tight tracking-tight sm:text-[30px]">{taka(totals.total)}</p>
+          <p className="ml-auto text-right text-[26px] font-semibold leading-tight tracking-tight sm:text-[28px]">{taka(totals.total)}</p>
         </div>
         <AmountInWordsDisplay amount={totals.total} variant="compact" />
       </div>
