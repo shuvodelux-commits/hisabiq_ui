@@ -199,6 +199,7 @@ async function main(){
   const browser=await chromium.launch({args:['--no-sandbox']});
   const showSababNav=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sabab-navigation[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   const showFloatingPanel=/^[ \\t]*UI-REFINE-STATE:[ \\t]*floating-panel[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
+  const showSalesFilter=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sales-invoice-filter[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   let before,after;
   try{
     before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel);
@@ -218,6 +219,14 @@ async function main(){
         encoding:'utf8',timeout:180000
       });
       await fsp.writeFile(path.join(out,'sabab-navigation-playwright.log'),log);
+    }
+    if(showSalesFilter){
+      // Target-specific responsive and keyboard gate; no unrelated modules are changed.
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/sales-daybook-refine-browser.cjs')],{
+        cwd:candidate,env:{...process.env,SALES_DAYBOOK_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'sales-daybook-playwright.log'),log);
     }
   }finally{await browser.close();}
   const sha=cwd=>execFileSync('git',['rev-parse','HEAD'],{cwd,encoding:'utf8'}).trim();
