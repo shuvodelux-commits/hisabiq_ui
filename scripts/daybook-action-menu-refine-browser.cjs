@@ -75,8 +75,10 @@ const { expect } = require('playwright/test');
       await first.click();
       await expect(dialog).toBeVisible();
       const second=triggers.nth(1);
-      await second.scrollIntoViewIfNeeded();
-      await second.click();
+      // Opening another row from the keyboard must close the previous popup.
+      // A pointer cannot click through the first popup when it covers this row.
+      await second.focus();
+      await second.press('Enter');
       await expect(second).toHaveAttribute('aria-expanded','true');
       await expect(first).toHaveAttribute('aria-expanded','false');
       await expect(page.getByRole('dialog',{name:/^Actions for /})).toHaveCount(1);
