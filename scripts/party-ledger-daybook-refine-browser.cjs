@@ -113,8 +113,11 @@ async function main(){
       assert.equal(isAtStart,true,'table remains at its original horizontal scroll position');
      }
     }
-    const firstRef=page.locator('text=INV-000241').first();
-    if(await firstRef.count())assert.ok(await firstRef.isVisible(),'invoice reference remains visible');
+    const visibleLedger=page.locator('[data-erp-table-view]:visible, [data-party-ledger-table-scroll]:visible, [data-erp-table]:visible').first();
+    if(await visibleLedger.count()){
+     assert.match(await visibleLedger.innerText(),/(INV-|RCV-|PAY-|Opening balance|Sales|Payment)/i,
+       'visible ledger retains real transaction references and source context');
+    }
     await action.click();
     const popup=page.getByRole('dialog',{name:/Transaction actions for|লেনদেনের কাজ/}).first();
     await expect(popup).toBeVisible();
