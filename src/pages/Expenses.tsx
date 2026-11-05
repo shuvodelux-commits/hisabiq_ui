@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import {
   ArrowDownToLine,
   BarChart3,
-  MoreHorizontal,
+  CheckCircle2,
   Paperclip,
   Plus,
   Printer,
@@ -32,7 +32,7 @@ import { expensePaymentMethods, getExpensePreviewSnapshot, subscribeExpensePrevi
 import { getPartyPreviewSnapshot, subscribePartyPreview, dispatchPartyPreview } from '../data/partyPreviewStore';
 import { PartyEditorDialog } from '../components/parties/PartyEditorDialog';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } from '../components/layout/ActionMenu';
 import { Eye, Pencil, Ban } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/Dialog';
 import { printReport, downloadReport } from '../utils/reportOutput';
@@ -256,7 +256,12 @@ export function Expenses() {
               </AnimatedAdvancedFilters>
             </div>
 
-            <Table>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span role="status">{text(`Showing ${filteredExpenses.length} of ${expenses.length} expenses`, `মোট ${expenses.length}টির মধ্যে ${filteredExpenses.length}টি খরচ`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[940px]" scrollRegionLabel={text("Expense records, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs">{text('Expense','খরচ')}</TableHead>
@@ -267,7 +272,7 @@ export function Expenses() {
                   <TableHead className="h-9 text-xs">{text('Reference','রেফারেন্স')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -305,9 +310,9 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">—</TableCell>
                       <TableCell className="py-2 text-right font-medium">{taka(expense.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={expense.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{expense.recordStatus === 'Deleted' ? text('Cancelled','বাতিল') : text('Active','চালু')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
                         <div onClick={event => event.stopPropagation()}>
-                          <FloatingPanel label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`}><MoreHorizontal className="size-4" /></button>}>
+                          <FloatingPanel label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} width={190} trigger={({toggle,open:expanded}) => <ActionMenuTrigger onClick={toggle} expanded={expanded} label={`${text('Actions for','কাজের তালিকা:')} ${expense.ref}`} />}>
                             {close => <ActionMenuList>
                               <ActionMenuItem icon={Eye} onClick={() => { close(); open(); }}>{text('View','দেখুন')}</ActionMenuItem>
                               <ActionMenuItem icon={Pencil} disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); openCorrection(expense); }}>{text('Correct','সংশোধন')}</ActionMenuItem>
@@ -323,7 +328,8 @@ export function Expenses() {
                 })}
                 {!filteredExpenses.length && <TableRow><TableCell colSpan={9} className="py-8 text-center text-sm text-ink-500">{text('No expenses match these filters.','কোনো খরচ মেলেনি।')} <button className="text-teal-700 underline" onClick={resetFilters}>{text('Reset filters','ফিল্টার মুছুন')}</button></TableCell></TableRow>}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </>
         )}
 
@@ -338,14 +344,19 @@ export function Expenses() {
                 <Plus className="size-4" /> {text("Add category","ধরন যোগ করুন")}
               </Button>
             </div>
-            <Table>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span role="status">{text(`${categories.length} categories`, `${categories.length}টি ধরন`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[680px]" scrollRegionLabel={text("Expense categories, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs" >{text('Category','ধরন')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Description','বিবরণ')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Active total','চালু খরচের মোট')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -357,17 +368,22 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">{text("Operating expense category","দোকানের খরচের ধরন")}</TableCell>
                       <TableCell className="py-2 text-right">{amount ? taka(amount) : '—'}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={active ? 'success' : 'neutral'} dot>{text(active ? 'Active' : 'Inactive',active ? 'চালু' : 'বন্ধ')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <div className="flex flex-wrap justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => { setCategoryEditor({previous: category, name: category}); setActionError(''); }}>{text("Edit","সম্পাদনা")}</Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</Button>
-                        </div>
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
+                        <FloatingPanel label={text('Actions for category','খরচের ধরন পরিচালনা:') + ' ' + category} width={190}
+                          trigger={({toggle,open:expanded}) => <ActionMenuTrigger expanded={expanded} onClick={toggle} label={text('Actions for category','খরচের ধরন পরিচালনা:') + ' ' + category} />}>
+                          {close => <ActionMenuList>
+                            <ActionMenuItem icon={Pencil} onClick={() => { close(); setCategoryEditor({previous: category, name: category}); setActionError(''); }}>{text("Edit","সম্পাদনা")}</ActionMenuItem>
+                            <ActionMenuDivider />
+                            <ActionMenuItem icon={active ? Ban : CheckCircle2} tone={active ? 'destructive' : 'neutral'} onClick={() => { close(); setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</ActionMenuItem>
+                          </ActionMenuList>}
+                        </FloatingPanel>
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </div>
         )}
 
@@ -382,7 +398,12 @@ export function Expenses() {
                 <Plus className="size-4" /> {text("Add payee","প্রাপক যোগ করুন")}
               </Button>
             </div>
-            <Table>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 text-[11px] text-ink-500">
+              <span role="status">{text(`${payees.length} payees`, `${payees.length}জন প্রাপক`)}</span>
+              <span className="sm:hidden">{text('Swipe sideways for details','বিস্তারিত দেখতে পাশে সরান')}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[760px]" scrollRegionLabel={text("Expense payees, swipe for more details","বিস্তারিত দেখতে পাশে সরান")}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 pl-4 text-xs" >{text('Payee','প্রাপক')}</TableHead>
@@ -390,7 +411,7 @@ export function Expenses() {
                   <TableHead className="h-9 text-xs">{text('Last used','শেষ ব্যবহার')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Total paid','মোট দেওয়া')}</TableHead>
                   <TableHead className="h-9 text-xs" >{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs" >{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card px-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -405,17 +426,25 @@ export function Expenses() {
                       <TableCell className="py-2 text-ink-500">{payee.lastUsed}</TableCell>
                       <TableCell className="py-2 text-right">{paid ? taka(paid) : '—'}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={payee.active ? 'success' : 'neutral'} dot>{text(payee.active ? 'Active' : 'Inactive',payee.active ? 'চালু' : 'বন্ধ')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <div className="flex flex-wrap justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => setPayeeEditor({party: availableParties().find(p => p.id === payee.id)})}>{text("Edit","সম্পাদনা")}</Button>
-                          <Button variant="ghost" size="sm" disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')} title={text("Linked transaction history is retained; linked payees cannot be deactivated.","আগের লেনদেন থাকবে। লেনদেন থাকা প্রাপককে বন্ধ করা যাবে না।")} onClick={() => { try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</Button>
-                        </div>
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card px-2 py-1.5 text-right">
+                        <FloatingPanel label={text('Actions for payee','প্রাপকের কাজের তালিকা:') + ' ' + payee.name} width={190}
+                          trigger={({toggle,open:expanded}) => <ActionMenuTrigger expanded={expanded} onClick={toggle} label={text('Actions for payee','প্রাপকের কাজের তালিকা:') + ' ' + payee.name} />}>
+                          {close => <ActionMenuList>
+                            <ActionMenuItem icon={Pencil} onClick={() => { close(); setPayeeEditor({party: availableParties().find(p => p.id === payee.id)}); }}>{text("Edit","সম্পাদনা")}</ActionMenuItem>
+                            <ActionMenuDivider />
+                            <ActionMenuItem icon={Ban} tone="destructive"
+                              disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')}
+                              title={text("Linked transaction history is retained; linked payees cannot be deactivated.","আগের লেনদেন থাকবে। লেনদেন থাকা প্রাপককে বন্ধ করা যাবে না।")}
+                              onClick={() => { close(); try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</ActionMenuItem>
+                          </ActionMenuList>}
+                        </FloatingPanel>
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </div>
         )}
 
