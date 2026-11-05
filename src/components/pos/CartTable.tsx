@@ -43,7 +43,7 @@ type CartTableProps = {
   searchRef: React.RefObject<HTMLInputElement>;
 };
 
-const grid = 'grid min-w-0 grid-cols-[36px_minmax(130px,1fr)_160px_88px_168px_112px_28px] items-center gap-1.5';
+const grid = 'grid min-w-0 grid-cols-[28px_minmax(105px,1fr)_168px_88px_164px_102px_28px] items-center gap-1';
 
 const cellInput =
 'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
@@ -183,7 +183,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                 <div className="flex min-w-0 items-center gap-2.5">
                   <ProductThumb src={l.product.image} size={32} />
                   <div className="min-w-0">
-                    <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
+                    <p title={[l.product.name,l.product.nameBn].filter(Boolean).join(" · ")} className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
                     <p data-table-helper="" className="truncate text-[11px] text-ink-500">
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
                       {l.product.category}{l.product.kind==='Bundle'?` · Package · ${bundleAvailable} Set available`:l.product.kind === 'Service' ? ` · ${word('service')}` : l.product.expiry?.enabled ? ` · ${word('sellable')} ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · ${word('stock')} ${formatStock(l.product)}`}
