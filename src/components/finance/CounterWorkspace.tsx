@@ -187,7 +187,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
   finally{busy.current=false;}
  };
  const highlight=(value:number)=>value===0?'text-ink':payerRole==='Supplier'?(value<0?'text-danger':'text-success'):(value>0?'text-danger':'text-success');
- return <section className="space-y-4 p-3 sm:p-4">
+ return <section className="space-y-3 p-3 sm:space-y-4 sm:p-4">
   <div className="grid grid-cols-2 gap-1.5 min-[390px]:grid-cols-3 lg:grid-cols-6" role="group" aria-label="Counter actions">
    {kinds.map(item=><button type="button" key={item} aria-pressed={!bankEntrySelected&&type===item} onClick={()=>changeType(item)}
     className={'flex min-h-12 flex-col justify-center rounded-md border px-2.5 py-1.5 text-left transition-colors sm:min-h-14 sm:px-3 sm:py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
@@ -209,9 +209,9 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
   </div>
   {bankEntrySelected
     ? <div role="region" aria-label={text('Bank Entry','ব্যাংক এন্ট্রি')}><BankEntryTab variant="counter" /></div>
-    : <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
-   <div className="min-w-0 space-y-4">
-    {(type==='Customer Receive'||type==='Supplier Pay')&&<div className="rounded-xl border border-border bg-card p-4"
+    : <div className="grid gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
+   <div className="min-w-0 space-y-3 sm:space-y-4">
+    {(type==='Customer Receive'||type==='Supplier Pay')&&<div className="rounded-xl border border-border bg-card p-3 sm:p-4"
      onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setSearching(false);}}
      onKeyDown={event=>{if(event.key==='Escape'&&searching){event.preventDefault();event.stopPropagation();event.currentTarget.querySelector('input')?.focus();setSearching(false);}}}>
      <label className="mb-1.5 block text-sm font-semibold text-ink">{type==='Customer Receive'?word('findCustomer'):word('findSupplier')}</label>
@@ -251,7 +251,7 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
       </div>
      </div>}
     </div>}
-    {(type==='Customer Receive'||type==='Supplier Pay')&&selected&&settlement&&<div className="rounded-xl border border-border bg-card p-4">
+    {(type==='Customer Receive'||type==='Supplier Pay')&&selected&&settlement&&<div className="rounded-xl border border-border bg-card p-3 sm:p-4">
      <label className="mb-2 block text-sm font-semibold">{text("Apply payment to","কোন বিলে টাকা জমা হবে")}</label>
      <AppSelect label={text("Invoice allocation","বিল বাছুন")} value={allocation} onChange={v=>{setAllocation(v);setReview(false);setError('');}}
       options={[{value:'',label:text('Oldest outstanding due first','আগের বাকি আগে মেটান')},...openInvoices.filter(r=>!r.opening).map(r=>({value:r.id,label:r.reference+' · '+taka(r.due)}))]}/>
@@ -280,24 +280,24 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
      </label>
     </div>}
     {type!=='Bank Transfer'&&<div className="rounded-xl border border-border bg-card">
-     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-      <div><h3 className="text-sm font-semibold">{text("Payment sources","টাকার মাধ্যম")}</h3><p className="text-xs text-ink-500">{text("Add cash, bank and mobile banking payments. Total updates automatically.","ক্যাশ, ব্যাংক বা মোবাইল ব্যাংকিংয়ে টাকা নিন বা দিন। মোট টাকা নিজে হিসাব হবে।")}</p></div>
+     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2 sm:px-4 sm:py-3">
+      <div><h3 className="text-sm font-semibold">{text("Payment sources","টাকার মাধ্যম")}</h3><p className="sr-only text-xs text-ink-500 sm:not-sr-only sm:block">{text("Add cash, bank and mobile banking payments. Total updates automatically.","ক্যাশ, ব্যাংক বা মোবাইল ব্যাংকিংয়ে টাকা নিন বা দিন। মোট টাকা নিজে হিসাব হবে।")}</p></div>
       <div className="flex gap-2">
        {(type==='Customer Receive'||type==='Supplier Pay')&&maxDue>0&&<Button variant="outline" size="sm" onClick={fillDue}>{text("Full due","পুরো বাকি")}</Button>}
        <Button variant="outline" size="sm" onClick={addRow}><Plus className="size-4"/> {text("Add payment","আরও মাধ্যম")}</Button>
       </div>
      </div>
-     <div className="space-y-2 p-3 sm:p-4">
+     <div className="space-y-2 p-3">
       {effectiveRows.map(row=>{
        const available=accountOptions(row.method);
-       return <div key={row.id} className="grid grid-cols-[1fr_1fr_34px] gap-2 sm:grid-cols-[130px_1fr_140px_34px]">
+       return <div key={row.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_36px] gap-2 sm:grid-cols-[130px_minmax(0,1fr)_140px_36px]">
         <AppSelect label={text("Payment method","টাকার মাধ্যম")} value={row.method} onChange={method=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,method:method as Row['method'],accountId:accountOptions(method as Row['method'])[0]?.id??''}:x))} options={methods.map(method=>({value:method,label:text(method,method==='Cash'?'ক্যাশ':method==='Bank'?'ব্যাংক':'মোবাইল ব্যাংকিং')}))}/>
         <AppSelect label={text("Payment account","টাকার হিসাব")} value={row.accountId} onChange={accountId=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,accountId}:x))}
          options={available.map(x=>({value:x.id,label:financeAccountOptionLabel(x,available)}))}/>
         <Input className="col-span-2 text-right sm:col-span-1" aria-label={text("Payment source amount","পেমেন্টের টাকা")} inputMode="decimal"
          value={row.amount} onChange={e=>editRows(effectiveRows.map(x=>x.id===row.id?{...x,amount:e.target.value}:x))} placeholder="0.00"/>
         <button type="button" aria-label={text("Remove payment","পেমেন্টের মাধ্যম সরান")} disabled={effectiveRows.length===1} onClick={()=>editRows(effectiveRows.filter(x=>x.id!==row.id))}
-         className="row-start-1 col-start-3 flex size-9 items-center justify-center text-ink-500 hover:text-danger disabled:opacity-30 sm:row-auto sm:col-auto"><Trash2 className="size-4"/></button>
+         className="row-start-1 col-start-3 flex size-9 items-center justify-center rounded-md text-ink-500 transition-colors hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring disabled:opacity-30 sm:row-auto sm:col-auto"><Trash2 className="size-4"/></button>
        </div>;
       })}
       {(type==='Customer Receive'||type==='Supplier Pay')&&selected&&
