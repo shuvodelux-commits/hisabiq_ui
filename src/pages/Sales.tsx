@@ -1078,7 +1078,7 @@ export function Sales() {
       onChange={(event) => setMethod(event.target.value)}
       options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
     />
-    <div data-sales-status-reset="" className="flex min-w-0 w-full items-center gap-2 min-[360px]:col-span-2 lg:w-auto">
+    <div data-sales-status-reset="" className="flex min-w-0 w-full items-center gap-2 min-[360px]:col-span-2 md:col-span-1 lg:w-auto">
       <FormSelect
         className="min-w-0 flex-1 lg:w-36"
         value={status}
@@ -1157,7 +1157,7 @@ export function Sales() {
               activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
               onClear={resetInvoiceFilters} compactDaybook
               result={text(`Showing ${filtered.length} of ${invoices.length} invoices`, `মোট ${invoices.length}টি বিলের মধ্যে ${filtered.length}টি দেখাচ্ছে`)}
-              actions={close => <><SalesColumnPicker inline visible={visibleSalesColumns} onToggle={toggleSalesColumn} /><Button variant="outline" size="sm" onClick={() => { close(); exportSales(); }}><ArrowDownToLine className="size-4" />{text('Export','ডাউনলোড')}</Button></>} /> : (<SalesWideToolbar search={invoiceSearch} filters={invoiceFilters}
+              actions={close => <><SalesColumnPicker inline visible={visibleSalesColumns} onToggle={toggleSalesColumn} /><Button variant="outline" size="sm" onClick={() => { close(); exportSales(); }}><ArrowDownToLine className="size-4" />{text('Export','ডাউনলোড')}</Button></>} /> : (<SalesWideToolbar compactDaybook search={invoiceSearch} filters={invoiceFilters}
               activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
               actions={<>
               <SalesColumnPicker visible={visibleSalesColumns} onToggle={toggleSalesColumn} />
