@@ -106,6 +106,11 @@ async function main(){
     assert.ok(ab&&ab.x>=0&&ab.x+ab.width<=width+1,
       'Party Ledger first ⋮ is reachable without horizontal scrolling: '+JSON.stringify({width,theme,rect:ab}));
     assert.ok(ab.width>=35&&ab.width<=38&&ab.height>=35,'Daybook 36px row action');
+    if(width<1024){
+     const filterRect=await bounds(toggle);
+     assert.ok(filterRect&&Math.abs((filterRect.x+filterRect.width)-(ab.x+ab.width))<=8,
+       'Filter and rightmost row ⋮ align: '+JSON.stringify({width,theme,filterRight:filterRect?.x+filterRect?.width,actionRight:ab.x+ab.width}));
+    }
     if(width>=768&&width<1024){
      const outer=page.locator('[data-party-ledger-table-scroll]').first();
      if(await outer.count()){
