@@ -98,13 +98,13 @@ async function main(){
 
     const action=page.getByRole('button',{name:/^Actions for |^কাজ /}).first();
     await expect(action).toBeVisible();
-    const desktopTable=page.locator('[data-party-ledger-table-scroll]').first();
-    if(width>=768&&width<1024&&await desktopTable.count()){
+    const desktopTable=page.locator('[data-party-ledger-table-scroll]:visible, [data-party-ledger-desktop-scroll]:visible').first();
+    if(width>=768&&await desktopTable.count()){
      await desktopTable.evaluate(node=>node.scrollLeft=0);
     }
     const ab=await bounds(action);
     assert.ok(ab&&ab.x>=0&&ab.x+ab.width<=width+1,
-      'Party Ledger first ⋮ is reachable without horizontal scrolling');
+      'Party Ledger first ⋮ is reachable without horizontal scrolling: '+JSON.stringify({width,theme,rect:ab}));
     assert.ok(ab.width>=35&&ab.width<=38&&ab.height>=35,'Daybook 36px row action');
     if(width>=768&&width<1024){
      const outer=page.locator('[data-party-ledger-table-scroll]').first();
