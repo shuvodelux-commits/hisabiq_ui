@@ -28,8 +28,26 @@
 - Synchronized generated `docs/ui/design-system.json`, `src/data/designGuide.json`, `src/data/designIconComponents.ts` for new actual Lucide imports. No design-guide rules changed.
 - Latest quality checks and screenshots must be read from the final PR head; passing status is not assumed.
 
-## C4 — closing verification
-**Open at time of this ledger entry.** Verify Fast CI, official Impeccable output, actual before/after opened-state screenshots and focused browser test, then give `fixed/partial/not-fixed` grades. Never invent independence, scores, tests, visual proof or production deployment.
+## C4 — closing verification (2026-11-05)
+
+**Verified implementation head:** `e62aa19abbaf6cdc16b44803b7ee068978c188c5`.
+
+- [Fast CI run 41976768724](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/41976768724): **SUCCESS**. TypeScript, ESLint, design-inventory/UI contract, unit tests, production build and repository browser smoke gates passed.
+- [Screenshots + targeted Playwright run 41976762630](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/41976762630): **SUCCESS**. 60 actual PNGs (30 before, 30 after) cover default Sales, expanded filters and opened invoice actions at 320/390/768/1024/1440px in light/dark. 820px also covered in targeted Playwright. Focused responsive checks passed **12/12**. The preceding run 41976339683 failed because its test selected an intentionally hidden responsive duplicate; the next commit corrected the test selector, not application logic.
+- Pinned official Impeccable **source detector** exit **0**, findings `[]`. This is a mechanical source scan, not independent design critique or an accessibility certificate.
+- Real 320/390 phone, 768 tablet and 1024 desktop open-state screenshots inspected: Status + Reset share one line, Filter is compact, Action remains reachable. A long `Part returned` status badge can be partly obscured by sticky Action on intermediate widths until table scroll; remaining **P2** visual limitation.
+
+### Finish grades
+
+| Finding | Grade | Evidence |
+|---|---|---|
+| F01 compact 36px Filter and accessible active indicator | **fixed** | 12/12 browser cases and responsive screenshots |
+| F02 36px Reset directly beside Status, preserves original reset semantics | **fixed** | Keyboard Reset and same-line geometry checks |
+| F03 invoice Action stays viewport-reachable | **fixed** | Browser bounds, sticky column and opened action screenshots |
+| F04 no redundant mobile Clear filters row | **fixed** | Source and phone screenshots |
+| F05 long Status badge fully visible without scrolling at 768/1024 | **partial** | Screenshot shows occasional clipping beside sticky Action |
+
+**Mode/stop:** C0 source baseline → bounded C1–C3 implementation/test fixes → C4 closing review. GitHub-only ChatGPT-led Impeccable review, **not** the native independent-agent runner, so no unsupported /40 scoring. Verified checks were on the code head above; this final evidence-only ledger commit may retrigger GitHub checks. PR remains **draft and unmerged**, no backend, accounting, payment, inventory or deployment changes.
 
 ## Protected behavior
 Sales invoice details, payments, returns, drafts/templates, product quantities, customer ledgers, exports/print, columns, search, language and authentication unchanged. Draft PR only; no merge, deploy or backend edits.
