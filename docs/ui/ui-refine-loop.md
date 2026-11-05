@@ -55,3 +55,8 @@ This pins the source and validates runtime capability, **not** the multi-agent W
 **Body:** explain the chosen target; approved design reference; changes and preserved behaviors; before/after light/dark screenshots at 1440/390; review score (or explicit rubric fallback); issues fixed and still open; touched files; keyboard/mobile/Bangla and smoke checks with results; preview-only versus real posting distinction; risks and approval needed.
 
 Keep a single primary intent and use practical English/Bangla familiar to Bangladeshi shopkeepers. Do not add "delight" by decorative gradients, vague microcopy or invented success indicators.
+
+
+## Owner-approved direct reference-copy workflow (2026-11-05)
+
+**Mandatory rules:** [UI-REFINEMENT-RULES.md](UI-REFINEMENT-RULES.md). For approved external reference designs, inspect **current real source code** first; copy the specific navigation/animation behavior exactly, then adapt its wiring to the existing HisabIQ components and business routes. No guessing, duplicate systems or unrelated UI changes. For GitHub-only ChatGPT execution use `.github/skills/github-only-ui-refine/THREE-ROUND-PROTOCOL.md` and the automatic Playwright screenshot workflow, capturing explicitly opened menus/drawers as well as default pages. Keep the original local slash-command skill separate. Do not claim an unperformed Impeccable round or missing visual proof. Draft PR only; owner approves the merge.

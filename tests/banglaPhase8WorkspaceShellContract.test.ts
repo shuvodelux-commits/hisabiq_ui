@@ -7,6 +7,7 @@ const file = (path: string) => readFileSync(path, 'utf8');
 test('Shared shell uses existing language preference and preserves global search and navigation actions', () => {
   const top = file('src/components/layout/TopBar.tsx');
   const nav = file('src/components/layout/ErpNavMenu.tsx');
+  const permittedNav = file('src/navigation/useVisibleErpNavigation.ts');
   const search = file('src/components/layout/GlobalSearchBox.tsx');
   const sidebar = file('src/components/layout/Sidebar.tsx');
   assert.ok(top.includes('const { text, language } = useUiCopy()'));
@@ -16,10 +17,10 @@ test('Shared shell uses existing language preference and preserves global search
   assert.ok(search.includes('aria-autocomplete="list"'));
   assert.ok(search.includes("event.ctrlKey||event.metaKey"));
   assert.ok(top.includes("navigate(route)"));
-  assert.ok(nav.includes('getVisibleNavigation(erpNavigation'));
-  assert.ok(nav.includes('resolveNavLocation(current, nav)'));
+  assert.ok(permittedNav.includes('getVisibleNavigation(erpNavigation'));
+  assert.ok(permittedNav.includes('resolveNavLocation(location.pathname + location.search, nav)'));
   assert.ok(nav.includes('to={child.path}'));
-  assert.ok(nav.includes('personal.language === \'English + Bangla\' && bangla'));
+  assert.ok(nav.includes("const both = personal.language === 'English + Bangla'"));
   assert.ok(sidebar.includes("localStorage.setItem(COLLAPSED_KEY, String(collapsed))"));
 });
 

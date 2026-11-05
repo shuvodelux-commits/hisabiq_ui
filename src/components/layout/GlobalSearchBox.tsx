@@ -51,7 +51,7 @@ export function GlobalSearchBox(){
   return()=>document.removeEventListener('pointerdown',outside);
  },[open]);
  const clear=()=>{setQuery('');setOpen(false);setActive(0);field.current?.focus();};
- return <div ref={root} role="search" className="relative order-last w-full min-w-0 basis-full sm:order-none sm:max-w-md sm:basis-auto sm:flex-1">
+ return <div ref={root} role="search" className="relative order-none min-w-[48px] flex-1 max-[374px]:order-last max-[374px]:w-full max-[374px]:basis-full sm:max-w-md">
   <Search className="pointer-events-none absolute left-3 top-[10px] z-10 size-4 text-ink-400" aria-hidden="true"/>
   <input ref={field} type="search" aria-label={text("Global search","সবখানে খুঁজুন")} role="combobox"
    aria-autocomplete="list" aria-haspopup="listbox" aria-expanded={visible}
@@ -78,7 +78,7 @@ export function GlobalSearchBox(){
     className="absolute right-1.5 top-[4px] flex size-7 items-center justify-center rounded-md text-ink-400 hover:bg-ink-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30">
     <X className="size-4" aria-hidden="true"/>
    </button>:<kbd className="pointer-events-none absolute right-2 top-[8px] hidden rounded border border-ink-200 bg-card px-1.5 py-0.5 text-[10px] text-ink-500 sm:block">Ctrl K</kbd>}
-  {visible&&<div className="absolute inset-x-0 top-full z-[80] mt-2 overflow-hidden rounded-xl border border-border bg-popover text-ink shadow-xl">
+  {visible&&<div className="fixed inset-x-3 top-14 z-[100] mt-0 max-[374px]:top-[104px] overflow-hidden rounded-xl border border-border bg-popover text-ink shadow-xl sm:absolute sm:inset-x-0 sm:top-full sm:z-[80] sm:mt-2">
    <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-[11px] text-ink-500">
     <span>{personal.searchMode==='Advanced'?text('Advanced fuzzy search','উন্নত খোঁজা'):text('Instant search','সরাসরি খোঁজা')} · {results.length} {text(results.length===1?'match':'matches','টি ফল')}{results.length===8?text(' shown',' দেখাচ্ছে'):''}</span>
     <span className="hidden sm:inline">{text('↑↓ Navigate · Enter Open · Esc Close','↑↓ বাছুন · Enter খুলুন · Esc বন্ধ')}</span>

@@ -2327,6 +2327,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/layout/SababTopNavStrip.tsx",
+      "kind": "component",
+      "exports": [
+        "SababTopNavStrip"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/layout/Sidebar.tsx",
       "kind": "component",
       "exports": [
@@ -4251,6 +4259,7 @@
       "src/components/AppSelect.tsx",
       "src/components/NumericInput.tsx",
       "src/components/brand/CompleteDesignGuide.tsx",
+      "src/components/layout/SababTopNavStrip.tsx",
       "src/components/layout/TopBar.tsx",
       "src/components/pos/CheckoutPanel.tsx",
       "src/components/pos/CustomerPicker.tsx",
@@ -4270,6 +4279,7 @@
     "ChevronLeft": [
       "src/components/AppDateRangePicker.tsx",
       "src/components/AppMonthYearPicker.tsx",
+      "src/components/layout/SababTopNavStrip.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
@@ -4282,6 +4292,7 @@
       "src/components/AppMonthYearPicker.tsx",
       "src/components/dashboard/DuesList.tsx",
       "src/components/layout/ErpNavMenu.tsx",
+      "src/components/layout/SababTopNavStrip.tsx",
       "src/components/parties/LedgerTableResponsive.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/purchases/PurchaseCart.tsx",
