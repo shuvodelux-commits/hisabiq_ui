@@ -46,15 +46,17 @@ async function main() {
         assert.equal(await filterToggle.getAttribute('aria-expanded'), 'false');
         await filterToggle.click();
         assert.equal(await visibleSecondary.count(), 7, 'All original seven filters can be revealed');
+        assert.equal(await page.getByRole('button', { name: language === 'Bangla' ? 'ফিল্টার মুছুন' : 'Reset filters' }).count(), 1,
+          'Existing full-reset action remains available beside Status');
         assert.equal(await filterToggle.getAttribute('aria-expanded'), 'true');
         await filterToggle.click();
         assert.equal(await visibleSecondary.count(), 0, 'Closing Filter retains a compact primary bar');
       } else {
         assert.equal(await filterToggle.count(), 0, 'Desktop does not need Filter toggle');
         assert.equal(await visibleSecondary.count(), 7, 'Desktop shows all seven original filters');
-      }
       assert.equal(await page.getByRole('button', { name: language === 'Bangla' ? 'ফিল্টার মুছুন' : 'Reset filters' }).count(), 1,
         'Existing full-reset action remains available beside Status');
+      }
 
       const search = page.getByRole('textbox', { name: language === 'Bangla' ? 'অডিট লেনদেন খুঁজুন' : 'Search audit transactions' });
       await search.fill('INV-000239');
