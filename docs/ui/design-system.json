@@ -4475,6 +4475,7 @@
     ],
     "Filter": [
       "src/components/daybook/DaybookFilters.tsx",
+      "src/components/parties/PartyLedgerToolbarResponsive.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
       "src/components/sales/SalesWideToolbar.tsx",
       "src/pages/Purchases.tsx"
@@ -4634,7 +4635,6 @@
       "src/components/layout/RowActionMenu.tsx",
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
-      "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/products/ProductSettings.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Accounts.tsx",
@@ -4979,7 +4979,6 @@
       "src/settings/TenantSettingsPage.tsx"
     ],
     "SlidersHorizontal": [
-      "src/components/parties/PartyLedgerToolbarResponsive.tsx",
       "src/components/reports/ReportToolbar.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
       "src/components/sales/SalesWideToolbar.tsx",
