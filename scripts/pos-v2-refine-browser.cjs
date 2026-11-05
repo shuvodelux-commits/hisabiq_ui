@@ -32,46 +32,14 @@ async function main(){
          while(walk.nextNode()){const n=walk.currentNode;if(!n.textContent?.trim())continue;const r=document.createRange();r.selectNodeContents(n);nodes.push(r.getBoundingClientRect().right);}
          return Math.max(0,...nodes);
       });
-      if(width===768||width===1440){
-        const geometry=await cart.evaluate(el=>{
-          const row=el.querySelector('[data-cart-row="sale"]');
-          const total=row.children[5],rect=x=>{const b=x.getBoundingClientRect();return {x:b.x,right:b.right,width:b.width};};
-          const r=document.createRange();r.selectNodeContents(total);
-          const ancestors=[];
-          for(let p=row;p&&ancestors.length<8;p=p.parentElement){
-             const c=getComputedStyle(p),b=p.getBoundingClientRect();
-             ancestors.push({tag:p.tagName,id:p.id,classes:p.className,role:p.getAttribute('data-testid')||p.getAttribute('data-cart-kind'),x:b.x,width:b.width,
-                scroll:p.scrollWidth,display:c.display,position:c.position,overflowX:c.overflowX,
-                cssWidth:c.width,minWidth:c.minWidth,maxWidth:c.maxWidth,boxSizing:c.boxSizing,
-                containerName:c.containerName,containerType:c.containerType,inlineStyle:p.getAttribute('style')});
-          }
-          const probe=document.createElement('div');
-          probe.style.cssText='position:absolute;width:100cqw;height:0;pointer-events:none';
-          el.appendChild(probe);const cqwWidth=probe.getBoundingClientRect().width;probe.remove();
-          const matchingWidthRules=[];
-          function inspectRules(rules,source){
-            for(const rule of rules){
-              if(rule.selectorText&&rule.style){
-                const min=rule.style.getPropertyValue('min-width');
-                const width=rule.style.getPropertyValue('width');
-                const max=rule.style.getPropertyValue('max-width');
-                if(!min&&!width&&!max)continue;
-                try{if(!row.matches(rule.selectorText))continue;}catch{continue;}
-                matchingWidthRules.push({selector:rule.selectorText.slice(0,190),
-                   min:min||null,minImportant:rule.style.getPropertyPriority('min-width'),
-                   width:width||null,widthImportant:rule.style.getPropertyPriority('width'),
-                   max:max||null,maxImportant:rule.style.getPropertyPriority('max-width'),
-                   source:source.slice(-120)});
-              }else if(rule.cssRules){try{inspectRules(rule.cssRules,source+' > '+(rule.conditionText||rule.name||rule.constructor?.name||'nested'));}catch{}}
-            }
-          }
-          for(const sheet of document.styleSheets){try{inspectRules(sheet.cssRules,sheet.href||'inline');}catch{}}
-          return {cart:rect(el),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,cqwWidth,ancestors,matchingWidthRules:matchingWidthRules.slice(-45),
-            row:rect(row),rowGrid:getComputedStyle(row).gridTemplateColumns,
-            rowScroll:row.scrollWidth,headerDisplay:getComputedStyle(el.querySelector('[data-cart-header]')).display,
-            children:[...row.children].map((ch,i)=>({i,...rect(ch)})),totalText:total.textContent?.trim(),textRight:r.getBoundingClientRect().right};
-        });
-        console.log('POS CART GEOMETRY '+width+' '+theme+' '+JSON.stringify(geometry));
+      // Ordinary POS rows must keep the whole Total column inside the available
+      // cart width. Wider 3–4-unit editors may still scroll as one tablet row.
+      if(width>=768 && !(await cart.locator('[data-multi-quantity]').count())){
+        assert.ok(cartBox.scrollWidth<=cartBox.clientWidth+2,
+          width+' '+theme+': ordinary cart overflows horizontally');
+        const gridRows=await cart.locator('[data-cart-row="sale"]').first().evaluate(
+          el=>getComputedStyle(el).gridTemplateRows.trim().split(/\\s+/).filter(Boolean).length);
+        assert.equal(gridRows,1,width+' '+theme+': tablet POS cart product must stay on one row');
       }
       assert.ok(clippedText<=cartBox.right+1,width+' '+theme+': numeric total glyphs clipped ('+Math.round(clippedText)+' > '+Math.round(cartBox.right)+')');
       const quick=page.getByRole('region',{name:/Quick add products/});
