@@ -188,23 +188,23 @@ export function CounterWorkspace({accounts,setAccounts,onTransfer,onNewFinanceTr
  };
  const highlight=(value:number)=>value===0?'text-ink':payerRole==='Supplier'?(value<0?'text-danger':'text-success'):(value>0?'text-danger':'text-success');
  return <section className="space-y-4 p-3 sm:p-4">
-  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6" role="group" aria-label="Counter actions">
+  <div className="grid grid-cols-2 gap-1.5 min-[390px]:grid-cols-3 lg:grid-cols-6" role="group" aria-label="Counter actions">
    {kinds.map(item=><button type="button" key={item} aria-pressed={!bankEntrySelected&&type===item} onClick={()=>changeType(item)}
-    className={'min-h-14 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
+    className={'flex min-h-12 flex-col justify-center rounded-md border px-2.5 py-1.5 text-left transition-colors sm:min-h-14 sm:px-3 sm:py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
      (!bankEntrySelected&&type===item?'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground':'border-border bg-card text-ink hover:bg-ink-50')}>
-    <span className="block text-[13px] font-semibold">{text(item,banglaActions[item])}</span>
-    <span className="text-[11px] text-ink-500">{item==='Customer Receive'?word('customerMoney'):item==='Supplier Pay'?word('supplierPayment'):item==='Expense'?word('quickExpense'):word('betweenAccounts')}</span>
+    <span className="block text-[13px] font-semibold leading-tight">{text(item,banglaActions[item])}</span>
+    <span className="sr-only text-[11px] text-ink-500 sm:not-sr-only sm:block">{item==='Customer Receive'?word('customerMoney'):item==='Supplier Pay'?word('supplierPayment'):item==='Expense'?word('quickExpense'):word('betweenAccounts')}</span>
    </button>)}
    <button type="button" aria-pressed={bankEntrySelected} onClick={()=>{setBankEntrySelected(true);setReview(false);setQuickAddOpen(false);}}
-     className={'min-h-14 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
+     className={'flex min-h-12 flex-col justify-center rounded-md border px-2.5 py-1.5 text-left transition-colors sm:min-h-14 sm:px-3 sm:py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring '+
       (bankEntrySelected?'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground':'border-border bg-card text-ink hover:bg-ink-50')}>
-     <span className="block text-[13px] font-semibold">{text('Bank Entry','ব্যাংক এন্ট্রি')}</span>
-     <span className="text-[11px] text-ink-500">{text('Charges · interest · adjustments','চার্জ · সুদ · সংশোধন')}</span>
+     <span className="block text-[13px] font-semibold leading-tight">{text('Bank Entry','ব্যাংক এন্ট্রি')}</span>
+     <span className="sr-only text-[11px] text-ink-500 sm:not-sr-only sm:block">{text('Charges · interest · adjustments','চার্জ · সুদ · সংশোধন')}</span>
     </button>
     <button type="button" aria-haspopup="dialog" onClick={onNewFinanceTransaction}
-    className="min-h-14 rounded-xl border border-border bg-card px-3 py-2 text-left text-ink transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
-    <span className="block text-[13px] font-semibold">{text('Finance transaction','মালিক ও ঋণের টাকা')}</span>
-    <span className="text-[11px] text-ink-500">{text('Owner · Lender · Borrower','মালিক · ঋণদাতা · ঋণগ্রহীতা')}</span>
+    className="flex min-h-12 flex-col justify-center rounded-md border border-border bg-card px-2.5 py-1.5 text-left sm:min-h-14 sm:px-3 sm:py-2 text-ink transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
+    <span className="block text-[13px] font-semibold leading-tight">{text('Finance transaction','মালিক ও ঋণের টাকা')}</span>
+    <span className="sr-only text-[11px] text-ink-500 sm:not-sr-only sm:block">{text('Owner · Lender · Borrower','মালিক · ঋণদাতা · ঋণগ্রহীতা')}</span>
    </button>
   </div>
   {bankEntrySelected
