@@ -96,6 +96,11 @@ async function main() {
         const bounds=await action.boundingBox();
         assert.ok(bounds && bounds.x>=0 && bounds.x+bounds.width<=width+1,
           'row action remains inside mobile viewport');
+        // Filter control must share the same right-edge alignment as sticky row actions.
+        const filterEdge=filterBox.x+filterBox.width;
+        const actionEdge=bounds.x+bounds.width;
+        assert.ok(Math.abs(filterEdge-actionEdge)<=4,
+          'Filter and row-action button right edges align on phone/tablet');
         // On 320px phones the full reference is business-critical; it must not ellipsize.
         const refText=page.locator('main tbody tr').first().locator('td:visible').nth(2).locator('span').first();
         assert.ok(await refText.evaluate(el => el.scrollWidth <= el.clientWidth + 1),
@@ -116,6 +121,15 @@ async function main() {
         await expect(advanced.getByRole('combobox',{name:/Account|হিসাব/})).toBeVisible();
         await expect(advanced.getByRole('combobox',{name:/Posted by|যিনি লিখেছেন/})).toBeVisible();
         await expect(advanced.getByRole('combobox',{name:/Status|অবস্থা/})).toBeVisible();
+        const status=advanced.getByRole('combobox',{name:/Status|অবস্থা/});
+        const reset=advanced.getByRole('button',{name:/Reset filters|ফিল্টার মুছুন/});
+        await expect(reset).toBeVisible();
+        const statusBox=await status.boundingBox();
+        const resetBox=await reset.boundingBox();
+        assert.ok(statusBox && resetBox &&
+          Math.abs(statusBox.y-resetBox.y)<=6 && resetBox.x>=statusBox.x+statusBox.width,
+          'Reset icon belongs immediately beside All status, not on a separate row');
+        assert.ok(resetBox.width<=44 && resetBox.height<=44,'Reset stays a compact square icon');
         await toggle.click();
         await expect(advanced).toBeHidden();
         await expect(search).toBeVisible();
@@ -126,6 +140,15 @@ async function main() {
         await page.keyboard.press('Tab');
         await expect(date).toBeFocused();
         await expect(advanced).toBeVisible();
+        const status=advanced.getByRole('combobox',{name:/Status|অবস্থা/});
+        const reset=advanced.getByRole('button',{name:/Reset filters|ফিল্টার মুছুন/});
+        await expect(reset).toBeVisible();
+        const statusBox=await status.boundingBox(), resetBox=await reset.boundingBox();
+        assert.ok(statusBox && resetBox &&
+          Math.abs(statusBox.y-resetBox.y)<=6 &&
+          resetBox.x>=statusBox.x+statusBox.width &&
+          resetBox.width<=44 && resetBox.height<=44,
+          'desktop Reset is a compact icon beside All status on the same row');
         await expect(page.getByRole('columnheader',{name:/Money In|টাকা এসেছে/}).first()).toBeVisible();
       }
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),
