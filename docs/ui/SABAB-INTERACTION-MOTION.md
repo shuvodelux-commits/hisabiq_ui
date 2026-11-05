@@ -4,6 +4,7 @@ Source reference: Sabab SIS Magic Patterns artifact `0fdd761a-0c9e-4e22-9d6b-4fb
 
 ## When to animate
 - **Every shared theme-aware dropdown:** `AppSelect` and its `FormSelect` adapter use opacity + 0.97-to-1 scale + 4px rise (140ms). `SearchSelect`, `QuickAddSelect`, and `FloatingPanel` already animate; avoid animating them twice.
+- **POS-style product suggestions:** `ProductCombobox` retains its original portal-mounted `ul[role=listbox]`, responsive viewport positioning, keyboard loop and stock/unit/offer details. Animate only the existing listbox with the same 140ms Sabab fade/scale/small rise (plus exit) and respect reduced motion; never animate its product rows or block fast product entry. Verified in POS and Purchase via PR #262.
 - **Date dropdown/calendar popups:** `AppDateRangePicker`, `AppDatePicker`, `AppMonthYearPicker` use the same popup motion and retain viewport fitting, keyboard date control and original selected values.
 - **Shared on/off switches:** `src/components/Switch.tsx` retains a real focusable checkbox, checked/onCheckedChange/onChange, defaultChecked, disabled, labelling, and both 32px/24px track sizes. Thumb glides with Sabab-derived spring stiffness 520, damping 38, mass .7; controlled and uncontrolled switches should behave identically to existing implementation.
 - **Segmented switches:** Daybook Transaction/Created Date switch and shared Products SegmentedControl use the Sabab selected-thumb `layoutId` spring with arrow/Home/End navigation where supported. Preserve existing typography and modules' real choices.
