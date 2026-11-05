@@ -4615,7 +4615,6 @@
       "src/components/accounts/ChartOfAccountsView.tsx",
       "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/brand/VisualComponentLibrary.tsx",
-      "src/components/daybook/DaybookActions.tsx",
       "src/components/layout/ActionMenu.tsx",
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
