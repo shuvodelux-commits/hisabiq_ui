@@ -1,5 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { sababEase } from '../motion/sababMotion';
 import {useUiCopy} from '../i18n/useUiCopy';
 import type {UiLanguage} from '../i18n/uiCopy';
 import {datePresetBn,weekdaysBn,datePickerDayLabel,datePickerMonthLabel,datePickerRangeLabel,datePickerWord} from '../i18n/datePickerCopy';
@@ -68,6 +70,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
   const {language}=useUiCopy();
   const t=(en:string,bn:string)=>datePickerWord(language,en,bn);
   const [open, setOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
   const [draft, setDraft] = useState<IsoRange>(value);
   const [first, setFirst] = useState(isoDay(utcDate(value.from || businessToday()).getUTCFullYear(), utcDate(value.from || businessToday()).getUTCMonth(), 1));
   const [position, setPosition] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
@@ -80,6 +83,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
   const show = () => {
     const date = utcDate(value.from || today);
     setDraft(value);
+    setPosition(null);
     setFirst(isoDay(date.getUTCFullYear(), date.getUTCMonth(), 1));
     setOpen(true);
   };
@@ -96,7 +100,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
     } else popup.current?.querySelector<HTMLButtonElement>(`[data-calendar-date="${day}"]`)?.focus();
   };
   useLayoutEffect(() => {
-    if (!open) { setPosition(null); return; }
+    if (!open) return;
     const place = () => {
       const rect = anchor.current?.getBoundingClientRect();
       if (!rect) return;
@@ -135,11 +139,16 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
       <CalendarDays className="size-4 shrink-0 text-teal-600" aria-hidden="true" />
       <span className="min-w-0 flex-1 truncate">{shownDate}</span>
     </button>
-    {open && typeof document !== 'undefined' && createPortal(
-      <div ref={popup} id={id} role="dialog" aria-label={label + t(' calendar',' ক্যালেন্ডার')}
+    {typeof document !== 'undefined' && createPortal(
+      <AnimatePresence initial={false}>{open && <motion.div ref={popup} id={id} role="dialog" aria-label={label + t(' calendar',' ক্যালেন্ডার')}
+        data-sabab-select-motion="calendar"
+        initial={reducedMotion ? false : {opacity:0,scale:0.97,y:-4}}
+        animate={{opacity:1,scale:1,y:0}}
+        exit={{opacity:0,scale:0.98,y:-2}}
+        transition={{duration:reducedMotion ? 0 : 0.14,ease:sababEase.out}}
         className="fixed z-[155] overflow-y-auto rounded-xl border border-border bg-popover p-3 text-ink shadow-xl scrollbar-thin"
         style={{ top: position?.top ?? 0, left: position?.left ?? 0, width: position?.width ?? 350,
-          maxHeight: position?.maxHeight ?? 480, visibility: position ? 'visible' : 'hidden' }}
+          maxHeight: position?.maxHeight ?? 480, visibility: position ? 'visible' : 'hidden', transformOrigin:'top center' }}
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           <span className="text-[13px] font-semibold">{single ? t('Select date','তারিখ বাছুন') : t('Select date range','তারিখের সময় বাছুন')}</span>
@@ -173,7 +182,7 @@ export function AppDateRangePicker({ value, onChange, label = 'Date range', clas
               className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40">{t('Apply','প্রয়োগ করুন')}</button>
           </div>
         </div>
-      </div>, anchor.current?.closest("dialog") ?? document.body)}
+      </motion.div>}</AnimatePresence>, anchor.current?.closest("dialog") ?? document.body)}
   </div>;
 }
 
