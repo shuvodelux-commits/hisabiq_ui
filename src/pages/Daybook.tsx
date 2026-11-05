@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Tooltip } from '../components/Tooltip';
 import { DaybookActions } from '../components/daybook/DaybookActions';
 import { DaybookFilters, type DaybookFilterState } from '../components/daybook/DaybookFilters';
+import { AnimatedSegmentedSwitch } from '../components/layout/AnimatedSegmentedSwitch';
 import { TransactionDetailsDialog } from '../components/daybook/TransactionDetailsDialog';
 import { useUserPreferences } from '../contexts/UserPreferencesContext';
 import { daybookTransactions } from '../data/daybook';
@@ -129,18 +130,15 @@ export function Daybook() {
         descriptionBn="টাকা আসা-যাওয়ার হিসাব। শুধু প্রিভিউ; সংশোধনের জন্য মূল লেনদেনে যান।"
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
-            <button
-              onClick={() => setEntryDateView('transaction')}
-              className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'transaction' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
-              {text('Transaction Date','লেনদেনের তারিখ')}
-            </button>
-            <button
-              onClick={() => setEntryDateView('created')}
-              className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${entryDateView === 'created' ? 'bg-inverse text-white' : 'text-ink-500 hover:bg-ink-50'}`}>
-              {text('Created Date','লেখার তারিখ')}
-            </button>
-            </div>
+            <AnimatedSegmentedSwitch
+              label={text('Date basis','তারিখের ধরন')}
+              value={entryDateView}
+              onChange={setEntryDateView}
+              options={[
+                {value:'transaction',label:text('Transaction Date','লেনদেনের তারিখ')},
+                {value:'created',label:text('Created Date','লেখার তারিখ')}
+              ]}
+            />
             <Button variant="outline" size="sm" onClick={exportDaybook}><ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}</Button>
             <Button variant="outline" size="sm" onClick={() => print(filtered)}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
             {moduleSettingsAction}

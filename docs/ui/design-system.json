@@ -1793,10 +1793,10 @@
     {
       "file": "src/components/Switch.tsx",
       "kind": "component",
-      "exports": [],
-      "reexports": [
-        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
-      ]
+      "exports": [
+        "Switch"
+      ],
+      "reexports": []
     },
     {
       "file": "src/components/Table.tsx",
@@ -2268,6 +2268,22 @@
         "ActionMenuDivider",
         "ActionMenuItem",
         "ActionMenuTrigger"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/layout/AnimatedAdvancedFilters.tsx",
+      "kind": "component",
+      "exports": [
+        "AnimatedAdvancedFilters"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/layout/AnimatedSegmentedSwitch.tsx",
+      "kind": "component",
+      "exports": [
+        "AnimatedSegmentedSwitch"
       ],
       "reexports": []
     },
