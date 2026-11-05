@@ -178,9 +178,9 @@ export function Daybook() {
             scrollRegionLabel={text('Daybook transactions, scroll for extra columns','দৈনিক খাতার আরও কলাম দেখতে পাশে সরান')}>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 w-[76px] px-1 pl-2 text-[11px] lg:w-auto lg:pl-4 lg:text-xs">{text('Date','তারিখ')}</TableHead>
-                <TableHead className="h-9 w-[88px] px-1 text-[11px] lg:w-auto lg:text-xs">{text('Type','ধরন')}</TableHead>
-                <TableHead className="h-9 px-1 text-[11px] lg:text-xs">{text('No. / Reference','নম্বর / রেফারেন্স')}</TableHead>
+                <TableHead className="h-9 w-[86px] min-[360px]:w-[96px] px-1 pl-2 text-[11px] lg:w-auto lg:pl-4 lg:text-xs">{text('Date','তারিখ')}</TableHead>
+                <TableHead className="h-9 w-[80px] min-[360px]:w-[104px] px-1 text-[11px] lg:w-auto lg:text-xs">{text('Type','ধরন')}</TableHead>
+                <TableHead className="h-9 px-1 text-[11px] lg:text-xs"><span className="min-[360px]:hidden">{text('No. / Ref.','নং / রেফ.')}</span><span className="hidden min-[360px]:inline">{text('No. / Reference','নম্বর / রেফারেন্স')}</span></TableHead>
                 <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Party','পক্ষ')}</TableHead>
                 <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Details','বিবরণ')}</TableHead>
                 <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Account','হিসাব')}</TableHead>
@@ -197,14 +197,14 @@ export function Daybook() {
               {filtered.map((transaction) => (
                 <TableRow key={transaction.id} className="text-[13px]">
                   <TableCell className="py-2 pl-2 pr-1 text-[11px] lg:pl-4 lg:text-[13px]">
-                    <p className="font-medium text-ink">{dateForView(transaction, entryDateView)}</p>
+                    <p className="whitespace-nowrap text-[10.5px] font-medium tracking-tight text-ink lg:text-[13px]">{dateForView(transaction, entryDateView)}</p>
                     {entryDateView === 'transaction' && transaction.createdAt.slice(0, 10) !== transaction.transactionDate && (
                       <p data-table-helper="" className="hidden text-[10.5px] text-ink-400 lg:block">Entered {transaction.createdAt.slice(0, 10)}</p>
                     )}
                   </TableCell>
-                  <TableCell className="px-1 py-2 text-[11px] leading-4 lg:text-[13px]"><span className="break-words font-medium text-ink">{text(transaction.type,transaction.type==='Sale'?'বিক্রি':transaction.type==='Purchase'?'ক্রয়':transaction.type==='Expense'?'খরচ':transaction.type==='Receipt'?'টাকা পাওয়া':transaction.type==='Payment'?'টাকা দেওয়া':transaction.type)}</span>{!transaction.countsTowardCashflow && <span data-table-helper="" className="hidden font-bn text-[10.5px] text-ink-400 lg:block">নিজের অ্যাকাউন্টে টাকা সরানো</span>}</TableCell>
+                  <TableCell className="min-w-0 px-1 py-2 text-[11px] leading-4 lg:text-[13px]"><span className="block max-w-full whitespace-normal break-words font-medium text-ink">{text(transaction.type,transaction.type==='Sale'?'বিক্রি':transaction.type==='Purchase'?'ক্রয়':transaction.type==='Expense'?'খরচ':transaction.type==='Receipt'?'টাকা পাওয়া':transaction.type==='Payment'?'টাকা দেওয়া':transaction.type)}</span>{!transaction.countsTowardCashflow && <span data-table-helper="" className="hidden font-bn text-[10.5px] text-ink-400 lg:block">নিজের অ্যাকাউন্টে টাকা সরানো</span>}</TableCell>
                   <TableCell className="min-w-0 px-1 py-2 font-medium text-teal-700">
-                    <span className="block truncate text-[11px] tracking-tight sm:text-[12px] lg:text-[13px]">{transaction.reference}</span>
+                    <span className="block truncate text-[10px] tracking-tight min-[360px]:text-[11px] sm:text-[12px] lg:text-[13px]">{transaction.reference}</span>
                     <span className="block truncate text-[10.5px] font-normal text-ink-500 lg:hidden">{transaction.party || '—'}</span>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell py-2 text-ink-600">{transaction.party || '—'}</TableCell>
