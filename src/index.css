@@ -243,8 +243,8 @@
   [data-cart-kind="sale"] [data-cart-header],
   [data-cart-kind="sale"] [data-cart-row],
   [data-cart-kind="sale"] [data-cart-add] {
-    grid-template-columns: 28px minmax(105px, 1fr) 168px 88px 164px 102px 28px;
-    gap: 4px;
+    grid-template-columns: 36px minmax(90px, 1fr) 160px 78px 164px 98px 28px !important;
+    gap: 4px !important;
   }
   [data-cart-kind="sale"] [data-cart-header] { display: grid; }
   [data-cart-kind="sale"] [data-cart-row] { padding-top: 6px; padding-bottom: 6px; }
