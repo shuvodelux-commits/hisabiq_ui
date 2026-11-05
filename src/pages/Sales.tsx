@@ -190,7 +190,18 @@ function SalesColumnPicker({
 function PaymentStatus({ invoice }: { invoice: SalesInvoice }) {
   const {text}=useUiCopy();
   const bn:Record<SalesInvoiceStatus,string>={Paid:'পরিশোধ',Partial:'আংশিক',Due:'বাকি',Returned:'ফেরত','Part returned':'আংশিক ফেরত'};
-  return <StatusBadge tone={statusTone[invoice.status]} dot>{text(invoice.status,bn[invoice.status]??invoice.status)}</StatusBadge>;
+  const label = text(invoice.status,bn[invoice.status]??invoice.status);
+  const partReturned = invoice.status === 'Part returned';
+  return <span data-sales-part-returned-badge={partReturned ? '' : undefined}
+    className={partReturned ? 'inline-flex min-w-0 max-w-full align-middle md:max-lg:max-w-[62px]' : 'inline-flex min-w-0 max-w-full align-middle'}
+    title={partReturned ? label : undefined}>
+    <StatusBadge tone={statusTone[invoice.status]} dot
+      className={partReturned
+        ? 'md:max-lg:h-auto md:max-lg:min-h-5 md:max-lg:w-[62px] md:max-lg:max-w-full md:max-lg:gap-0.5 md:max-lg:px-1 md:max-lg:py-0.5 md:max-lg:text-[10px] md:max-lg:leading-[11px] md:max-lg:whitespace-normal'
+        : ''}>
+      <span className={partReturned ? 'min-w-0 md:max-lg:whitespace-normal md:max-lg:break-normal' : ''}>{label}</span>
+    </StatusBadge>
+  </span>;
 }
 
 const invoiceQty = invoiceQuantity;

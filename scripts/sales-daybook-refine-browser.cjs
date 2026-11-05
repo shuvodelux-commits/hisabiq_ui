@@ -63,6 +63,19 @@ async function main() {
           } else {
             await expect(toggle).toBeHidden();
           }
+          // Regression: long tablet status must never be covered by sticky Action.
+          if (width >= 768 && width < 1024) {
+            const row = page.locator('tr').filter({ hasText: 'INV-000238' }).first();
+            await expect(row).toBeVisible();
+            const badge = row.locator('[data-sales-part-returned-badge]');
+            await expect(badge).toContainText('Part returned');
+            const stickyCell = row.locator('td').last();
+            const rect = await badge.boundingBox(), actionRect = await stickyCell.boundingBox();
+            assert(rect && actionRect && rect.x + rect.width + 2 <= actionRect.x,
+              'Part returned must remain fully left of sticky Action column at tablet widths');
+            const overflow = await badge.evaluate(el => el.scrollWidth > el.clientWidth + 1);
+            assert(!overflow, 'Part returned badge text must not overflow its own box');
+          }
           await expect(group).toBeVisible();
           const status = group.getByRole('combobox').first();
           const reset = group.getByRole('button', { name: 'Reset sales filters' });
