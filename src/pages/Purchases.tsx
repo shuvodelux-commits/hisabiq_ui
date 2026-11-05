@@ -235,10 +235,10 @@ export function Purchases() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-9 w-[136px] pl-3 pr-1 text-xs md:w-auto md:px-4" >{text('Purchase','ক্রয়')}</TableHead>
                   <TableHead className="hidden h-9 text-xs md:table-cell" >{text('Supplier','সরবরাহকারী')}</TableHead>
-                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Items','পণ্য')}</TableHead>
-                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Memo','রসিদ')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs xl:table-cell">{text('Items','পণ্য')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs xl:table-cell">{text('Memo','রসিদ')}</TableHead>
                   <TableHead className="h-9 w-[110px] px-1 text-right text-xs md:w-auto md:px-4">{text('Total','মোট')}</TableHead>
-                  <TableHead className="hidden h-9 text-right text-xs lg:table-cell">{text('Paid','পরিশোধ')}</TableHead>
+                  <TableHead className="hidden h-9 text-right text-xs xl:table-cell">{text('Paid','পরিশোধ')}</TableHead>
                   <TableHead className="hidden h-9 text-right text-xs md:table-cell">{text('Due','দেনা')}</TableHead>
                   <TableHead className="hidden h-9 text-xs md:table-cell">{text('Status','অবস্থা')}</TableHead>
                   <TableHead className="sticky right-0 z-10 h-9 w-12 bg-card pl-0 pr-3 text-right text-xs">{text('Action','কাজ')}</TableHead>
@@ -265,8 +265,8 @@ export function Purchases() {
                           {p.supplier}
                         </Link>
                       </TableCell>
-                      <TableCell className="hidden max-w-[260px] truncate py-2 text-ink-600 lg:table-cell">{p.items}</TableCell>
-                      <TableCell className="hidden py-2 lg:table-cell"><ReceiptThumb src={p.receipt} onClick={open} /></TableCell>
+                      <TableCell className="hidden max-w-[260px] truncate py-2 text-ink-600 xl:table-cell">{p.items}</TableCell>
+                      <TableCell className="hidden py-2 xl:table-cell"><ReceiptThumb src={p.receipt} onClick={open} /></TableCell>
                       <TableCell className="w-[110px] min-w-0 py-2 pl-1 pr-1 text-right font-medium md:w-auto md:px-4">
                         <span className="whitespace-nowrap">{taka(position(p).total)}</span>
                         <span data-table-helper="" className="block text-[11px] font-normal text-ink-500 md:hidden">
@@ -274,7 +274,7 @@ export function Purchases() {
                         </span>
                         <span className="mt-0.5 flex justify-end md:hidden"><PayStatus total={position(p).total} paid={position(p).paid} /></span>
                       </TableCell>
-                      <TableCell className="hidden py-2 text-right text-ink-600 lg:table-cell">{taka(position(p).paid)}</TableCell>
+                      <TableCell className="hidden py-2 text-right text-ink-600 xl:table-cell">{taka(position(p).paid)}</TableCell>
                       <TableCell className={`hidden py-2 text-right md:table-cell ${position(p).due > 0 ? 'font-medium text-danger' : 'text-ink-400'}`}>
                         {position(p).due > 0 ? taka(position(p).due) : '—'}
                       </TableCell>
