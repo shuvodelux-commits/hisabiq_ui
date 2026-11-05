@@ -61,8 +61,9 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
 }
 
 export function FinanceTransactionActionDialog({
-  transaction, accounts, people, onClose, onUpdate, onReverse
+  transaction, accounts, people, onClose, onUpdate, onReverse, initialMode = 'view'
 }: {
+  initialMode?: 'view' | 'edit' | 'reverse';
   transaction: FinanceTransaction | null;
   accounts: FinanceAccount[];
   people: FinancePerson[];
@@ -82,8 +83,8 @@ export function FinanceTransactionActionDialog({
 
   useEffect(() => {
     if (!transaction) return;
-    setEditing(false);
-    setConfirmReverse(false);
+    setEditing(initialMode === 'edit' && transaction.status === 'Active');
+    setConfirmReverse(initialMode === 'reverse' && transaction.status === 'Active');
     setType(transaction.type);
     setPartyId(transaction.partyId || '');
     const splits = transaction.paymentAccounts?.length
@@ -95,7 +96,7 @@ export function FinanceTransactionActionDialog({
     setAmount(String(transaction.amount));
     setReference(transaction.reference || '');
     setNote(transaction.note || '');
-  }, [transaction]);
+  }, [transaction, initialMode]);
 
   if (!transaction) return null;
 
@@ -242,8 +243,9 @@ export function FinanceTransactionActionDialog({
 }
 
 export function FinanceAccountActionDialog({
-  account, accounts, transactions, transfers, onClose, onUpdate, onToggleStatus, onManualEntry, onTransfer, onReconcile
+  account, accounts, transactions, transfers, onClose, onUpdate, onToggleStatus, onManualEntry, onTransfer, onReconcile, initialMode = 'ledger'
 }: {
+  initialMode?: 'ledger' | 'edit' | 'manual' | 'status';
   account: FinanceAccount | null;
   accounts: FinanceAccount[];
   transactions: FinanceTransaction[];
@@ -269,8 +271,8 @@ export function FinanceAccountActionDialog({
 
   useEffect(() => {
     if (!account) return;
-    setMode('ledger');
-    setConfirmStatus(false);
+    setMode(initialMode === 'status' ? 'ledger' : initialMode);
+    setConfirmStatus(initialMode === 'status');
     setName(account.name);
     setType(account.type);
     setInstitution(account.institution || '');
@@ -279,7 +281,7 @@ export function FinanceAccountActionDialog({
     setManualAmount('');
     setManualReference('');
     setManualNote('');
-  }, [account]);
+  }, [account, initialMode]);
 
   const ledgerRows = useMemo(() => {
     if (!account) return [];
@@ -462,15 +464,16 @@ export function FinanceAccountActionDialog({
 }
 
 export function FinanceTransferActionDialog({
-  transfer, onClose, onReverse
+  transfer, onClose, onReverse, initialMode = 'view'
 }: {
+  initialMode?: 'view' | 'reverse';
   transfer: AccountTransfer | null;
   onClose: () => void;
   onReverse: (transfer: AccountTransfer) => void;
 }) {
   const {text,language}=useUiCopy();
   const [confirmReverse, setConfirmReverse] = useState(false);
-  useEffect(() => setConfirmReverse(false), [transfer]);
+  useEffect(() => setConfirmReverse(initialMode === 'reverse' && transfer?.status === 'Completed'), [transfer, initialMode]);
   if (!transfer) return null;
 
   const printTransfer=()=>{
