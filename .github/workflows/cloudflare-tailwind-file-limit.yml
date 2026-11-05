@@ -1,0 +1,39 @@
+name: Cloudflare Tailwind low-file-descriptor regression
+
+on:
+  pull_request:
+    paths:
+      - 'tailwind.config.js'
+      - 'tests/cloudflareTailwindFileLimit.test.ts'
+      - '.github/workflows/cloudflare-tailwind-file-limit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  low-fd-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install exact lockfile dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build ordinary Tailwind output
+        run: |
+          npm run build
+          find dist -type f -name '*.css' -print0 | xargs -0 -r sha256sum | awk '{print $1}' | sort > "$RUNNER_TEMP/normal-css-sha256.txt"
+          test -s "$RUNNER_TEMP/normal-css-sha256.txt"
+
+      - name: Simulate Cloudflare's limited open-file budget and compare CSS
+        shell: bash
+        run: |
+          ulimit -Sn 256
+          printf 'Open-file soft limit: %s\n' "$(ulimit -Sn)"
+          CF_PAGES=1 npm run build
+          find dist -type f -name '*.css' -print0 | xargs -0 -r sha256sum | awk '{print $1}' | sort > "$RUNNER_TEMP/cloudflare-css-sha256.txt"
+          diff -u "$RUNNER_TEMP/normal-css-sha256.txt" "$RUNNER_TEMP/cloudflare-css-sha256.txt"
