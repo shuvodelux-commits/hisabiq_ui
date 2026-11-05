@@ -130,6 +130,10 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
         const invoiceActions=page.getByRole('button',{name:/^Actions for /}).first();
         if(await invoiceActions.count()){
           await invoiceActions.click();
+          // Wait for the actual portal and viewport placement, not just trigger click.
+          await page.locator('[data-floating-panel-motion="sabab"]:visible [data-action-menu]:visible').first()
+            .waitFor({state:'visible',timeout:5000});
+          await page.waitForTimeout(120);
           const actionName=name+'-sales-actions-'+width+'-'+theme+'.png';
           await page.screenshot({path:path.join(out,actionName),fullPage:true,animations:'disabled'});
           shots.push({filename:actionName,width,theme,state:'sales-actions',...details});
