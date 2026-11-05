@@ -86,3 +86,14 @@ Use the upstream design /20 + audit /20 score and problem ledger when the execut
 - **Protect:** HisabIQ logo, brands/tokens, 36px action controls, RTL-safe Bangla text, `erpNavigation` routing permissions, POS/Counter/Finance accounting, global search, Ctrl+B/Ctrl+K, keyboard and touch accessibility.
 - **Verification:** `docs/ui/UI-REFINEMENT-RULES.md`; real Playwright screenshots including the **opened** drawer and top submenu at 320/390/768/1024/1440, both themes; Impeccable audit and honest C0-C4 ledger.
 - **Scope:** Navigation only. Remaining modules preserve their approved layouts until individually requested.
+
+### Project-wide mobile filter and table action rule (approved 2026-11-05)
+
+- **Compact responsive filter layout:** **Phone <768px:** Search + 36px square Filter icon on row 1; Date on row 2. **Tablet 768–1023px:** Search → Date → Filter on **one horizontal row**, without clipping or excessive gaps. **Desktop ≥1024px:** Search → Date inline, advanced dropdown filters visible below (Filter icon hidden). Below 1024px advanced dropdowns start collapsed; keep applied values, Reset, and an active-filter indicator. Keyboard focus follows the visible order.
+- **Remove redundant date help text:** Do not repeat "Transaction Date · ..." beside the picker when date-mode tabs already communicate it; retain meaningful accessibility labels and mode-switch functionality.
+- **Always-visible row actions:** At 320px and wider, the per-row `⋮` button must stay in the viewport without any horizontal scrolling. Use compact visible mobile columns and/or a sticky-right action column; details remain available through the source row menu. Audit Ledger and the owner's approved compact Daybook mockup are the reference.
+- **Proof in every future UI refinement:** Capture mobile filters collapsed/expanded, table action at scrollLeft=0, open menu, dark/light, 320/390/768, focus/keyboard/touch and menu placement. Preserve all columns on desktop and never remove real filter or accounting behavior.
+
+See `docs/ui/RESPONSIVE-FILTER-ACTION-PATTERN.md` for the module-by-module implementation checklist, including Playwright evidence at each breakpoint.
+
+- **Final filter-row polish (approved 2026-11-05):** Align the phone/tablet square Filter button's right edge with the table's always-visible rightmost `⋮` action. Put a small outlined `RotateCcw` Reset icon **beside All status**, not on its own row; keep its existing full reset behavior, bilingual tooltip/ARIA label and keyboard/touch accessibility. Validate with Playwright at all responsive widths. Apply to other modules in individually reviewed PRs, not a mass rewrite.

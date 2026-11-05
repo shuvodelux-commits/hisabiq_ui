@@ -23,6 +23,10 @@ async function main() {
     const sale = page.locator('main tbody tr').filter({ hasText: '2 items' }).first();
     await sale.waitFor();
     assert.equal(await page.locator('main tbody tr').count(), 3, 'date and search filters narrow the Daybook rows');
+    // Approved compact mobile UI: advanced filters start collapsed.
+    const advancedToggle = page.getByRole('button', { name: /Advanced filters/ });
+    await advancedToggle.click();
+    await page.locator('#daybook-advanced-filters').waitFor({state:'visible'});
     await page.getByRole('combobox', { name: /Transaction type/ }).click();
     await page.getByRole('option', { name: 'Sale', exact: true }).click();
     assert.equal(await page.locator('main tbody tr').count(), 1, 'type filter narrows to the selected sale');
