@@ -8,7 +8,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
   FileText,
-  MoreHorizontal,
+  Filter,
+  RotateCcw,
   Paperclip,
   Plus,
   Search,
@@ -29,7 +30,7 @@ import { availablePurchases, availablePurchaseEvents } from '../data/erpDemoStor
 import type { Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } from '../components/layout/ActionMenu';
 import { Eye, Printer, Pencil, Banknote, CornerUpLeft, History } from 'lucide-react';
 import { printReport, downloadReport } from '../utils/reportOutput';
 import { availableProducts } from '../data/erpDemoStore';
@@ -94,6 +95,8 @@ export function Purchases() {
   const [returnPurchase, setReturnPurchase] = useState<Purchase | null>(null);
   const [supplierFilter, setSupplierFilter] = useState('All suppliers');
   const [statusFilter, setStatusFilter] = useState('All status');
+  const [advancedFiltersOpen,setAdvancedFiltersOpen] = useState(false);
+  const activeAdvancedCount = Number(supplierFilter !== 'All suppliers') + Number(statusFilter !== 'All status');
   const [returnError, setReturnError] = useState('');
   const openBill = (p: Purchase) => setDetail({ref: p.ref, date: p.date, party: p.supplier, partyId: p.supplierId, description: p.items, total: position(p).total, paid: position(p).paid, payments: p.payments, receipt: p.receipt});
   const resetFilters = () => { setQuery(''); setSupplierFilter('All suppliers'); setStatusFilter('All status'); };
@@ -191,22 +194,40 @@ export function Purchases() {
 
         {tab === 'purchases' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1 sm:max-w-md">
-                <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                <Input
-                  aria-label={pl('Search purchases')}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="pl-8"
-                  placeholder={text("Search purchase ID, supplier or product","ক্রয় নম্বর, সরবরাহকারী বা পণ্য খুঁজুন")}
-                />
+            <div data-purchases-filterbar="" className="border-b border-border p-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 lg:grid-cols-[minmax(0,1fr)_160px_194px]">
+                <div className="relative min-w-0">
+                  <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                  <Input aria-label={pl('Search purchases')} value={query} onChange={(e)=>setQuery(e.target.value)}
+                    className="pl-8" placeholder={text('Search purchase ID, supplier or product','ক্রয় নম্বর, সরবরাহকারী বা পণ্য খুঁজুন')} />
+                </div>
+                <Button type="button" variant="outline" size="icon"
+                  aria-label={text('Advanced filters','আরও ফিল্টার') + (activeAdvancedCount ? ' (' + activeAdvancedCount + ')' : '')}
+                  aria-expanded={advancedFiltersOpen} aria-controls="purchase-list-advanced-filters"
+                  data-active-filters={activeAdvancedCount>0?'true':'false'}
+                  onClick={()=>setAdvancedFiltersOpen(open=>!open)}
+                  className={'relative size-9 shrink-0 rounded-md lg:hidden ' +
+                    (activeAdvancedCount?'border-teal-500 text-teal-700':'text-ink-500')}>
+                  <Filter className="size-4" aria-hidden="true" />
+                  {activeAdvancedCount>0 && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />}
+                </Button>
+                <div id="purchase-list-advanced-filters"
+                  className={(advancedFiltersOpen?'grid ':'hidden ')+'col-span-2 grid-cols-1 gap-2 min-[360px]:grid-cols-2 lg:contents'}>
+                  <FormSelect aria-label={pl('Purchase supplier filter')} className="min-w-0 w-full"
+                    value={supplierFilter} onChange={e=>setSupplierFilter(e.target.value)}
+                    options={[{value:'All suppliers',label:text('All suppliers','সব সরবরাহকারী')},...Array.from(new Set(purchases.map(p=>p.supplier)))]} />
+                  <div className="flex min-w-0 items-center gap-2">
+                    <FormSelect aria-label={pl('Purchase status filter')} className="min-w-0 flex-1"
+                      value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}
+                      options={['All status','Paid','Partial','Due'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':'বাকি')}))} />
+                    <Button type="button" variant="outline" size="icon" onClick={resetFilters}
+                      aria-label={pl('Reset filters')} title={text('Reset all filters','সব ফিল্টার মুছুন')}
+                      className="size-9 shrink-0 rounded-md text-ink-500">
+                      <RotateCcw className="size-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <FormSelect aria-label={pl('Purchase supplier filter')} className="w-full sm:w-40" value={supplierFilter} onChange={e => setSupplierFilter(e.target.value)} options={[{value:'All suppliers',label:text('All suppliers','সব সরবরাহকারী')},...Array.from(new Set(purchases.map(p => p.supplier)))]} />
-              <FormSelect aria-label={pl('Purchase status filter')} className="w-full sm:w-36" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Paid', 'Partial', 'Due'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':'বাকি')}))} />
-              <Button variant="outline" size="sm" onClick={resetFilters}>
-                {pl("Reset filters")}
-              </Button>
             </div>
 
             <Table>
