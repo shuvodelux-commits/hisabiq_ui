@@ -163,6 +163,17 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
         await page.keyboard.press('Escape');
         await calculatorPanel.waitFor({state:'hidden'});
       }
+      if(showDaybookActionMenu && width < 1024){
+        // Both baseline and candidate: capture the expanded advanced-filter state.
+        // Legacy main already shows all dropdowns; refined UI opens with the square icon.
+        await page.setViewportSize({width,height});
+        const toggle=page.getByRole('button',{name:/Advanced filters|আরও ফিল্টার/}).first();
+        if(await toggle.count() && await toggle.isVisible()) await toggle.click();
+        const expandedFilename=name+'-daybook-filter-expanded-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,expandedFilename),animations:'disabled'});
+        shots.push({filename:expandedFilename,width,theme,state:'daybook-filter-expanded',...details});
+        if(await toggle.count() && await toggle.isVisible())await toggle.click();
+      }
       if(showDaybookActionMenu){
         // Opt-in open state: ordinary Daybook page screenshots do not expose the action menu.
         await page.setViewportSize({width,height});
@@ -191,6 +202,8 @@ function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=fals
     for(const mode of ['floating-appearance','floating-calculator'])configs.push({width,theme,mode});
   if(showDaybookActionMenu)for(const width of widths)for(const theme of themes)
     configs.push({width,theme,mode:'daybook-action-menu'});
+  if(showDaybookActionMenu)for(const width of widths.filter(w=>w<1024))for(const theme of themes)
+    configs.push({width,theme,mode:'daybook-filter-expanded'});
   const rows=configs.map(({width,theme,mode})=>{
     const suffix=(mode==='default'?'':mode+'-')+width+'-'+theme+'.png';
     const before='before-'+suffix;
@@ -228,6 +241,12 @@ async function main(){
         encoding:'utf8',timeout:240000
       });
       await fsp.writeFile(path.join(out,'daybook-action-menu-playwright.log'),log);
+      const mobileLog=execFileSync(process.execPath,[path.join(candidate,'scripts/daybook-mobile-layout-browser.cjs')],{
+        cwd:candidate,
+        env:{...process.env,DAYBOOK_MOBILE_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:240000
+      });
+      await fsp.writeFile(path.join(out,'daybook-mobile-layout-playwright.log'),mobileLog);
     }
     if(showFloatingPanel){
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/floating-panels-browser.cjs')],{
