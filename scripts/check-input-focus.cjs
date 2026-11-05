@@ -37,7 +37,11 @@ assert.ok(css.includes('[aria-invalid="true"]'),'Invalid input treatment stays v
 assert.ok(numeric.includes('data-numeric-input'),'Preserve numeric stepper');
 assert.ok(joined.includes('data-numeric-joined'),'Preserve joined input');
 assert.equal((party.match(/data-ledger-filter-action=""/g)||[]).length,2,'Party toolbar actions');
-assert.equal((party.match(/h-9 min-h-9 flex-1 md:flex-none/g)||[]).length,2,'Party action sizing');
+assert.ok(party.includes('data-party-ledger-toolbar=""'),'Party toolbar retains the shared responsive identity');
+assert.ok(party.includes('size="icon" variant="outline" data-ledger-filter-action="" onClick={onReset}'),
+  'Party reset is the 36px icon action beside Rows');
+assert.ok(party.includes("filterToggle('md:hidden')")&&party.includes("filterToggle('hidden md:inline-flex')"),
+  'Party filter retains phone/tablet keyboard order');
 assert.ok(sales.includes('data-sales-header-new=""'),'Sales header new-sale marker');
 assert.ok(salesMobile.includes('size-9 shrink-0 p-0'),'Sales overflow 36px square');
 assert.ok(!/(?:min-)?height:\s*(?:40|44|48)px;/.test(salesCss),'No enlarged Sales mobile controls');
