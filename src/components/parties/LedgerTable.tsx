@@ -29,12 +29,12 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
       <div><span className="text-ink-500">{text('Period debit','এই সময়ের ডেবিট')} </span><strong>{formatMoneyNumber(statement.periodDebit)}</strong></div>
       <div><span className="text-ink-500">{text('Period credit','এই সময়ের ক্রেডিট')} </span><strong>{formatMoneyNumber(statement.periodCredit)}</strong></div>
     </div>
-    <div className="hidden w-full overflow-x-auto sm:block">
+    <div data-party-ledger-desktop-scroll="" className="hidden w-full overflow-x-auto sm:block">
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent">
           <TableHead className="pl-4 text-xs">{text('Date','তারিখ')}</TableHead><TableHead className="text-xs">{text('Particulars','বিবরণ')}</TableHead>
           {financial.columns.map(side=><TableHead key={side} className="text-right text-xs">{financial.label(side)}</TableHead>)}
-          <TableHead className="text-right text-xs">{text('Running','চলতি জের')}</TableHead><TableHead className="pr-4 text-right text-xs">{text('Actions','কাজ')}</TableHead>
+          <TableHead className="text-right text-xs">{text('Running','চলতি জের')}</TableHead><TableHead className="sticky right-0 z-10 bg-card pr-2 text-right text-xs">{text('Actions','কাজ')}</TableHead>
         </TableRow></TableHeader>
         <TableBody>
           {visibleRows.map(row=><TableRow key={row.id} className="cursor-pointer text-[13px] hover:bg-ink-50/60"
@@ -63,7 +63,7 @@ export function LedgerTable({statement,visibleRows,actionsForRow,onAction,onOpen
             </TableCell>
             {financial.columns.map(side=><TableCell key={side} className="text-right align-middle"><LedgerImpactAmount row={row} value={row[side]} language={language}/></TableCell>)}
             <TableCell className="text-right font-medium">{formatMoneyNumber(Math.abs(row.runningBalance))} <span data-table-helper="" className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
-            <TableCell className="pr-4 text-right"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></TableCell>
+            <TableCell className="sticky right-0 z-10 bg-card pr-2 text-right"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction}/></TableCell>
           </TableRow>)}
           {!visibleRows.length&&<TableRow><TableCell colSpan={6} className="p-8 text-center text-xs text-ink-500">{text('No transactions match these filters.','এই ফিল্টারে কোনো লেনদেন নেই।')}</TableCell></TableRow>}
         </TableBody>
