@@ -95,3 +95,5 @@ Use the upstream design /20 + audit /20 score and problem ledger when the execut
 - **Proof in every future UI refinement:** Capture mobile filters collapsed/expanded, table action at scrollLeft=0, open menu, dark/light, 320/390/768, focus/keyboard/touch and menu placement. Preserve all columns on desktop and never remove real filter or accounting behavior.
 
 See `docs/ui/RESPONSIVE-FILTER-ACTION-PATTERN.md` for the module-by-module implementation checklist, including Playwright evidence at each breakpoint.
+
+- **Final filter-row polish (approved 2026-11-05):** Align the phone/tablet square Filter button's right edge with the table's always-visible rightmost `⋮` action. Put a small outlined `RotateCcw` Reset icon **beside All status**, not on its own row; keep its existing full reset behavior, bilingual tooltip/ARIA label and keyboard/touch accessibility. Validate with Playwright at all responsive widths. Apply to other modules in individually reviewed PRs, not a mass rewrite.
