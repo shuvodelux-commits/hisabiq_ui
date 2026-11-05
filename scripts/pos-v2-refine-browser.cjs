@@ -7,6 +7,9 @@ const themes=['light','dark'];
 const origin=process.env.POS_V2_REFINE_URL||'http://127.0.0.1:4311';
 const bounds=async locator=>locator.evaluate(el=>{const b=el.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height,right:b.right,bottom:b.bottom,scrollWidth:el.scrollWidth,clientWidth:el.clientWidth};});
 async function main(){
+ const standalone=!process.env.POS_V2_REFINE_URL;
+ const server=standalone?await (await import('vite')).createServer({server:{host:'127.0.0.1',port:4311,strictPort:true}}):null;
+ if(server)await server.listen();
  const browser=await chromium.launch({args:['--no-sandbox']});
  let passed=0;
  try{
@@ -92,7 +95,7 @@ async function main(){
       passed++;
     }finally{await ctx.close();}
   }
- }finally{await browser.close();}
+ }finally{await browser.close();if(server)await server.close();}
  console.log('POS V2 UI-refine matrix '+passed+'/12');
 }
 main().catch(err=>{console.error(err);process.exitCode=1;});
