@@ -23,7 +23,6 @@ import {
   CornerUpLeft,
   FileClock,
   FileText,
-  MoreHorizontal,
   Pencil,
   Plus,
   Printer,
@@ -44,7 +43,7 @@ import {salesLabel,salesOptions} from '../i18n/salesCopy';
 import type {UiLanguage} from '../i18n/uiCopy';
 import { ReceiptPreview } from '../components/brand/ReceiptPreview';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } from '../components/layout/ActionMenu';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { customerCredits as seedCredits, salesReturns as seedReturns } from '../data/sales';
@@ -216,16 +215,12 @@ function InvoiceActions({
       label={`${sl('Actions for')} ${invoice.invoice}`}
       width={210}
       trigger={({ toggle, open }) => (
-        <button
-          onClick={(event) => {
-            event.stopPropagation();
-            toggle();
-          }}
-          aria-expanded={open}
-          aria-label={`${sl('Actions for')} ${invoice.invoice}`}
-          className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-          <MoreHorizontal className="size-4" />
-        </button>
+        <ActionMenuTrigger
+          label={`${sl('Actions for')} ${invoice.invoice}`}
+          expanded={open}
+          onClick={(event) => { event.stopPropagation(); toggle(); }}
+          className="border border-border bg-card lg:border-transparent"
+        />
       )}>
       {(close) => (
         <ActionMenuList onClick={(event) => event.stopPropagation()}>
@@ -1001,9 +996,12 @@ export function Sales() {
                       label={`${sl('Actions for')} ${item.id}`}
                       width={210}
                       trigger={({ toggle, open }) => (
-                        <button onClick={toggle} aria-expanded={open} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`${sl('Actions for')} ${item.id}`}>
-                          <MoreHorizontal className="size-4" />
-                        </button>
+                        <ActionMenuTrigger
+                          label={`${sl('Actions for')} ${item.id}`}
+                          expanded={open}
+                          onClick={(event) => { event.stopPropagation(); toggle(); }}
+                          className="border border-border bg-card lg:border-transparent"
+                        />
                       )}>
                       {(close) => (
                         <ActionMenuList>
@@ -1028,13 +1026,12 @@ export function Sales() {
                         label={`${sl('Credit actions for')} ${credit.customer}`}
                         width={220}
                         trigger={({ toggle, open }) => (
-                          <button
-                            onClick={toggle}
-                            aria-expanded={open}
-                            aria-label={`${sl('Actions for')} ${credit.customer} ${sl('Customer credit')}`}
-                            className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                            <MoreHorizontal className="size-4" />
-                          </button>
+                          <ActionMenuTrigger
+                            label={`${sl('Actions for')} ${credit.customer} ${sl('Customer credit')}`}
+                            expanded={open}
+                            onClick={(event) => { event.stopPropagation(); toggle(); }}
+                            className="border border-border bg-card lg:border-transparent"
+                          />
                         )}>
                         {(close) => (
                           <ActionMenuList>
@@ -1675,7 +1672,12 @@ export function Sales() {
                         label={`Actions for ${draft.label}`}
                         width={190}
                         trigger={({ toggle, open }) => (
-                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
+                          <ActionMenuTrigger
+                            label={`${sl('Actions for')} ${draft.label}`}
+                            expanded={open}
+                            onClick={toggle}
+                            className="border border-border bg-card"
+                          />
                         )}>
                         {(close) => (
                           <ActionMenuList>
@@ -1719,7 +1721,12 @@ export function Sales() {
                         label={`Actions for ${template.name}`}
                         width={190}
                         trigger={({ toggle, open }) => (
-                          <Button size="sm" variant="outline" onClick={toggle} aria-expanded={open}><MoreHorizontal className="size-4" /> {sl('Actions')}</Button>
+                          <ActionMenuTrigger
+                            label={`${sl('Actions for')} ${template.name}`}
+                            expanded={open}
+                            onClick={toggle}
+                            className="border border-border bg-card"
+                          />
                         )}>
                         {(close) => (
                           <ActionMenuList>
