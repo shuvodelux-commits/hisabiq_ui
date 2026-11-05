@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 type FloatingPanelProps = {
   trigger: (state: {open: boolean;toggle: () => void;}) => React.ReactNode;
@@ -25,9 +26,23 @@ const GAP = 8;
 
 export function FloatingPanel({ trigger, children, align = 'right', width = 320, label, className = 'inline-block', panelClassName = '' }: FloatingPanelProps) {
   const [open, setOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const location = useLocation();
   const [position, setPosition] = useState<PanelPosition | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  // Route-level headers persist between pages: their popovers must not.
+  useEffect(() => { setOpen(false); }, [location.pathname, location.search]);
+
+  // Direct Sabab Popover behavior: keyboard opening a second panel closes the first.
+  useEffect(() => {
+    if (!open) return;
+    const onOther = (event: Event) => {
+      if ((event as CustomEvent<HTMLElement>).detail !== triggerRef.current) setOpen(false);
+    };
+    document.addEventListener('hisabiq:floating-panel-open', onOther);
+    return () => document.removeEventListener('hisabiq:floating-panel-open', onOther);
+  }, [open]);
 
   const updatePosition = useCallback(() => {
     if (!open || !triggerRef.current) return;
@@ -88,7 +103,7 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
   useEffect(() => {
     if (!open) return;
 
-    const onDown = (event: MouseEvent) => {
+    const onDown = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node;
       const insideTrigger = triggerRef.current?.contains(target);
       const insidePanel = panelRef.current?.contains(target);
@@ -97,6 +112,7 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        event.preventDefault();
         setOpen(false);
         triggerRef.current?.querySelector<HTMLElement>('button, a')?.focus();
       }
@@ -105,17 +121,28 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
     const onViewportChange = () => updatePosition();
 
     document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown);
     document.addEventListener('keydown', onKey);
     window.addEventListener('resize', onViewportChange);
     window.addEventListener('scroll', onViewportChange, true);
 
     return () => {
       document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('resize', onViewportChange);
       window.removeEventListener('scroll', onViewportChange, true);
     };
   }, [open, updatePosition]);
+
+  // Exact Sabab menuUpVariants/menuVariants; retain HisabIQ panel geometry.
+  const menuVariants = {
+    hidden: { opacity: 0, scale: 0.97, y: position?.opensUp ? 4 : -4 },
+    show: { opacity: 1, scale: 1, y: 0,
+      transition: { duration: reducedMotion ? 0 : 0.14, ease: [0.22, 1, 0.36, 1] as const } },
+    exit: { opacity: 0, scale: 0.98,
+      transition: { duration: reducedMotion ? 0 : 0.09, ease: [0.4, 0, 1, 1] as const } }
+  };
 
   const panel = typeof document !== 'undefined'
     ? createPortal(
@@ -126,10 +153,12 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
               role="dialog"
               data-dialog-owner={triggerRef.current?.closest<HTMLElement>('[data-dialog-id]')?.dataset.dialogId}
               aria-label={label}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.14, ease: 'easeOut' }}
+              data-floating-panel-motion="sabab"
+              data-reduced-motion={reducedMotion ? 'true' : 'false'}
+              variants={menuVariants}
+              initial={reducedMotion ? false : 'hidden'}
+              animate="show"
+              exit="exit"
               className={'fixed z-[100] overflow-y-auto rounded-xl border border-border bg-card shadow-pop scrollbar-thin ' + panelClassName}
               style={{
                 top: position?.top ?? 0,
@@ -154,7 +183,12 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
 
   return (
     <div ref={triggerRef} className={'relative '+className}>
-      {trigger({ open, toggle: () => setOpen((value) => !value) })}
+      {trigger({ open, toggle: () => {
+        if (!open) document.dispatchEvent(
+          new CustomEvent('hisabiq:floating-panel-open', { detail: triggerRef.current })
+        );
+        setOpen((value) => !value);
+      } })}
       {panel}
     </div>
   );
