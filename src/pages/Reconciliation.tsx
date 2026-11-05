@@ -545,7 +545,7 @@ export function Reconciliation() {
                 <TableHead className="h-9 text-right text-xs">{text('ERP closing','ERP-র শেষ জের')}</TableHead>
                 <TableHead className="h-9 text-right text-xs">{text('Difference','পার্থক্য')}</TableHead>
                 <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -565,7 +565,7 @@ export function Reconciliation() {
                     <TableCell className="py-2">
                       <StatusBadge tone={item.status === 'Completed' ? 'success' : 'warning'} dot>{financeLabel(language,item.status)}</StatusBadge>
                     </TableCell>
-                    <TableCell className="py-2 pr-4 text-right">
+                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                       <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
                         {close => <ActionMenuItem icon={FileText} onClick={() => { close(); setHistoryItem(item); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem>}
                       </RowActionMenu>
