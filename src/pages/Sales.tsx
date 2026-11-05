@@ -1180,7 +1180,7 @@ export function Sales() {
                   {visibleSalesColumns.invoice && <p>{text('Date','তারিখ')}: {invoice.date} · {invoice.time}</p>}
                 </>}
                 actions={<InvoiceActions invoice={invoice} onView={() => setDetail(invoice)} onPayment={() => setPaymentTarget(invoice)} onReturn={() => openReturn(invoice)} />} />)}
-            </div> : (<Table>
+            </div> : (<Table scrollRegionLabel={text('Sales invoice table','বিক্রির বিলের তালিকা')}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   {visibleSalesColumns.invoice && <TableHead className="h-9 pl-4 text-xs">{text('Invoice','বিল')}</TableHead>}
@@ -1192,7 +1192,7 @@ export function Sales() {
                   {visibleSalesColumns.due && <TableHead className="h-9 text-right text-xs">{text('Due','বাকি')}</TableHead>}
                   {visibleSalesColumns.payment && <TableHead className="h-9 text-xs">{text('Payment','মাধ্যম')}</TableHead>}
                   {visibleSalesColumns.status && <TableHead className="h-9 text-xs">{sl('Status')}</TableHead>}
-                  <TableHead className="h-9 pr-4 text-right text-xs">{sl('Action')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 bg-card pr-4 text-right text-xs">{sl('Action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1227,7 +1227,7 @@ export function Sales() {
                     {visibleSalesColumns.due && <TableCell className={`py-2 text-right ${invoice.due > 0 ? 'font-medium text-danger' : 'text-helper'}`}>{invoice.due > 0 ? taka(invoice.due) : '—'}</TableCell>}
                     {visibleSalesColumns.payment && <TableCell className="py-2 text-ink-600">{invoice.payments.length > 1 ? text('Multiple','একাধিক মাধ্যম') : text(invoice.method,invoice.method==='Cash'?'ক্যাশ':invoice.method==='Bank'?'ব্যাংক':invoice.method)}</TableCell>}
                     {visibleSalesColumns.status && <TableCell className="py-2"><PaymentStatus invoice={invoice} /></TableCell>}
-                    <TableCell className="py-2 pr-4 text-right">
+                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 bg-card py-2 pr-4 text-right">
                       <InvoiceActions
                         invoice={invoice}
                         onView={() => setDetail(invoice)}
