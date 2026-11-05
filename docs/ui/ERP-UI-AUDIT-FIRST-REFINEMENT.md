@@ -61,8 +61,9 @@ A genuine Settings action still uses the original Settings glyph; a stock-adjust
 | **Next** | `src/pages/Products.tsx` | Category chip strip + stock segmented filters can dominate narrow toolbar | Audit first; keep fast stock selection and category semantics, potentially use a compact funnel |
 | **Next** | `src/pages/Reconciliation.tsx` | Reconciliation-specific search/status and text Clear in empty state | Audit selected transaction and status filter UX; preserve matching workflow |
 | **Next** | `src/pages/Finance.tsx` | One transaction-type filter, other submodule flows | Add collapse/Reset only if it improves this tab; preserve finance logic |
-| **Special** | `src/pages/Reports.tsx` + report toolbar | Dedicated report filter system | Research its own responsive tab/report/period controls first |
-| **Review on visit** | Parties, Accounts, POS, Warranty, Counter and other ERP modules | Different page types; not all have a comparable filter bar | Do not invent controls; audit relevant table and action surfaces when that module is targeted |
+| **Next** | `src/components/reports/ReportToolbar.tsx` | Actual Filter toggle uses `SlidersHorizontal` with a text Clear filters action | Replace true Filter-toggle glyph with funnel and audit compact Reset while keeping report-specific saved views, date/columns and selections |
+| **Next** | `src/components/parties/PartyLedgerToolbarResponsive.tsx` | Real mobile Filter button uses `SlidersHorizontal` plus text; Reset is a text button. `PartyLedgerToolbar.tsx` also uses Reset text | Use Daybook funnel/36px toggle and inline icon Reset while preserving Party Ledger's existing range, kind, pagination, Print and balance operations |
+| **Review on visit** | Accounts, POS, Warranty, Counter and other ERP modules | Different page types; not all have a comparable filter bar | Do not invent controls; audit relevant table and action surfaces when that module is targeted |
 
 **This matrix is a code audit, not a statement that every screen has been visually tested.** One module/PR at a time, including its own actual screenshots and keyboard/touch checks.
 
@@ -81,8 +82,9 @@ A genuine Settings action still uses the original Settings glyph; a stock-adjust
 1. Complete Sales tablet status [#257](https://github.com/shuvodelux-commits/hisabiq_ui/pull/257).
 2. Audit Ledger Filter/Reset — nearest mismatch to the approved Daybook system.
 3. Purchases list filters and Reset, then Expenses.
-4. Products (category and stock quick filters need specific design judgment).
-5. Reconciliation, Finance and Reports individually, after comparing actual page states.
-6. Repeat only for modules that have comparable table-filter interfaces. Refine global shared primitives only when multiple real consumers require the same behavior, with backwards-compatible opt-in and an inventory/regression check.
+4. Party Ledger (confirmed slider-style Filter glyph), then Reports toolbar (confirmed slider-style Filter glyph), with each module in a separate PR.
+5. Products (category and stock quick filters need specific design judgment).
+6. Reconciliation and Finance individually, after comparing actual page states.
+7. Repeat only for modules that have comparable table-filter interfaces. Refine global shared primitives only when multiple real consumers require the same behavior, with backwards-compatible opt-in and an inventory/regression check.
 
 **Important:** The approved Daybook/Sales changes **are implemented** in those modules. The remaining rows above are a **fix plan**, not claims of code changes already made.
