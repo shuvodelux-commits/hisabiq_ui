@@ -69,7 +69,7 @@ function test(){
   assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: src/pages/not-real.tsx',root,'#/app/pos'));
   console.log('All-module route and Impeccable scope parser OK: '+good.length+' routes');
 }
-async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false){
+async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false,showSalesFilter=false){
   const shots=[];
   for(const width of widths)for(const theme of themes){
     const height=width===1024?768:width===768?1024:width===1440?900:844;
@@ -113,6 +113,29 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
       const filename=name+'-'+width+'-'+theme+'.png';
       await page.screenshot({path:path.join(out,filename),fullPage:true,animations:'disabled'});
       shots.push({filename,width,theme,state:'default',...details});
+      if(showSalesFilter){
+        // Baseline and candidate: show the real expanded filters, plus an opened invoice action.
+        // No invented mock data; the current Sales preview records are used.
+        const salesToggle=page.locator('[data-sales-filter-toggle]').first();
+        if(await salesToggle.count() && await salesToggle.isVisible()){
+          await salesToggle.click();
+        }else{
+          const originalToggle=page.getByRole('button',{name:'Filters',exact:true}).first();
+          if(await originalToggle.count() && await originalToggle.isVisible())await originalToggle.click();
+        }
+        await page.waitForTimeout(200);
+        const expandedName=name+'-sales-filters-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,expandedName),fullPage:true,animations:'disabled'});
+        shots.push({filename:expandedName,width,theme,state:'sales-filters',...details});
+        const invoiceActions=page.getByRole('button',{name:/^Actions for /}).first();
+        if(await invoiceActions.count()){
+          await invoiceActions.click();
+          const actionName=name+'-sales-actions-'+width+'-'+theme+'.png';
+          await page.screenshot({path:path.join(out,actionName),fullPage:true,animations:'disabled'});
+          shots.push({filename:actionName,width,theme,state:'sales-actions',...details});
+          await page.keyboard.press('Escape');
+        }
+      }
       if(showSababNav && width<1024){
         // Preserve viewport-sized mobile menu screenshots, not huge page captures.
         await page.setViewportSize({width,height});
@@ -167,13 +190,15 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
   }
   return shots;
 }
-function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false){
+function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false,showSalesFilter=false){
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const configs=widths.flatMap(width=>themes.map(theme=>({width,theme,mode:'default'})));
   if(showSababNav)for(const width of widths.filter(w=>w<1024))for(const theme of themes)
     for(const mode of ['sabab-menu','sabab-drawer'])configs.push({width,theme,mode});
   if(showFloatingPanel)for(const width of widths)for(const theme of themes)
     for(const mode of ['floating-appearance','floating-calculator'])configs.push({width,theme,mode});
+  if(showSalesFilter)for(const width of widths)for(const theme of themes)
+    for(const mode of ['sales-filters','sales-actions'])configs.push({width,theme,mode});
   const rows=configs.map(({width,theme,mode})=>{
     const suffix=(mode==='default'?'':mode+'-')+width+'-'+theme+'.png';
     const before='before-'+suffix;
@@ -202,8 +227,8 @@ async function main(){
   const showSalesFilter=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sales-invoice-filter[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   let before,after;
   try{
-    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel);
-    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel);
+    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel,showSalesFilter);
+    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel,showSalesFilter);
     if(showFloatingPanel){
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/floating-panels-browser.cjs')],{
         cwd:candidate,
@@ -235,7 +260,7 @@ async function main(){
     route,baseSha,prSha,before,after,
     warning:'Screenshots must be visually inspected in ChatGPT; do not claim automated Impeccable reviews ran.'
   },null,2));
-  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel));
+  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel,showSalesFilter));
   console.log('Captured '+before.length+' baseline and '+after.length+' PR images: '+route);
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
