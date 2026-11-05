@@ -178,8 +178,8 @@ export function Daybook() {
             scrollRegionLabel={text('Daybook transactions, scroll for extra columns','দৈনিক খাতার আরও কলাম দেখতে পাশে সরান')}>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 w-[86px] min-[360px]:w-[96px] px-1 pl-2 text-[11px] lg:w-auto lg:pl-4 lg:text-xs">{text('Date','তারিখ')}</TableHead>
-                <TableHead className="h-9 w-[80px] min-[360px]:w-[104px] px-1 text-[11px] lg:w-auto lg:text-xs">{text('Type','ধরন')}</TableHead>
+                <TableHead className="h-9 w-[78px] min-[360px]:w-[96px] px-1 pl-2 text-[11px] lg:w-auto lg:pl-4 lg:text-xs">{text('Date','তারিখ')}</TableHead>
+                <TableHead className="h-9 w-[76px] min-[360px]:w-[104px] px-1 text-[11px] lg:w-auto lg:text-xs">{text('Type','ধরন')}</TableHead>
                 <TableHead className="h-9 px-1 text-[11px] lg:text-xs"><span className="min-[360px]:hidden">{text('No. / Ref.','নং / রেফ.')}</span><span className="hidden min-[360px]:inline">{text('No. / Reference','নম্বর / রেফারেন্স')}</span></TableHead>
                 <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Party','পক্ষ')}</TableHead>
                 <TableHead className="hidden h-9 lg:table-cell text-xs">{text('Details','বিবরণ')}</TableHead>
@@ -197,7 +197,7 @@ export function Daybook() {
               {filtered.map((transaction) => (
                 <TableRow key={transaction.id} className="text-[13px]">
                   <TableCell className="py-2 pl-2 pr-1 text-[11px] lg:pl-4 lg:text-[13px]">
-                    <p className="whitespace-nowrap text-[10.5px] font-medium tracking-tight text-ink lg:text-[13px]">{dateForView(transaction, entryDateView)}</p>
+                    <p className="whitespace-nowrap text-[10px] font-medium tracking-tight text-ink min-[360px]:text-[10.5px] lg:text-[13px]">{dateForView(transaction, entryDateView)}</p>
                     {entryDateView === 'transaction' && transaction.createdAt.slice(0, 10) !== transaction.transactionDate && (
                       <p data-table-helper="" className="hidden text-[10.5px] text-ink-400 lg:block">Entered {transaction.createdAt.slice(0, 10)}</p>
                     )}
