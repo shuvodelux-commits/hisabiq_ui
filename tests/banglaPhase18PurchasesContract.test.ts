@@ -43,7 +43,8 @@ test('Purchase UI localization does not mutate domain filters, source guards or 
   ]) assert.ok(page.includes(contract),'source contract missing: '+contract);
   assert.ok(page.includes("purchaseReturnMethod(language,item.method)"),'localize history only at display');
   assert.ok(page.includes(">{pl(returnError)}</p>"),'store original error; localize only rendering');
-  assert.ok(page.includes('aria-label={`${pl("Actions for")} ${p.ref}`}'),'accessible action menu localized');
+  assert.ok(page.includes('ActionMenuTrigger') && page.includes('label={`${pl("Actions for")} ${p.ref}`}'),
+    'shared accessible action trigger retains the localized purchase reference label');
   assert.ok(!page.includes("setSupplierFilter(pl("),'filter identifier cannot change');
   assert.ok(!page.includes("setStatusFilter(pl("),'status identifier cannot change');
   assert.ok(!page.includes("downloadReport(pl("),'CSV machine schema cannot change');

@@ -8,7 +8,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownToLine,
   FileText,
-  MoreHorizontal,
+  Filter,
+  RotateCcw,
   Paperclip,
   Plus,
   Search,
@@ -29,7 +30,7 @@ import { availablePurchases, availablePurchaseEvents } from '../data/erpDemoStor
 import type { Purchase } from '../types/erp';
 import { taka } from '../utils/currency';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } from '../components/layout/ActionMenu';
 import { Eye, Printer, Pencil, Banknote, CornerUpLeft, History } from 'lucide-react';
 import { printReport, downloadReport } from '../utils/reportOutput';
 import { availableProducts } from '../data/erpDemoStore';
@@ -94,6 +95,8 @@ export function Purchases() {
   const [returnPurchase, setReturnPurchase] = useState<Purchase | null>(null);
   const [supplierFilter, setSupplierFilter] = useState('All suppliers');
   const [statusFilter, setStatusFilter] = useState('All status');
+  const [advancedFiltersOpen,setAdvancedFiltersOpen] = useState(false);
+  const activeAdvancedCount = Number(supplierFilter !== 'All suppliers') + Number(statusFilter !== 'All status');
   const [returnError, setReturnError] = useState('');
   const openBill = (p: Purchase) => setDetail({ref: p.ref, date: p.date, party: p.supplier, partyId: p.supplierId, description: p.items, total: position(p).total, paid: position(p).paid, payments: p.payments, receipt: p.receipt});
   const resetFilters = () => { setQuery(''); setSupplierFilter('All suppliers'); setStatusFilter('All status'); };
@@ -191,36 +194,54 @@ export function Purchases() {
 
         {tab === 'purchases' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1 sm:max-w-md">
-                <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                <Input
-                  aria-label={pl('Search purchases')}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="pl-8"
-                  placeholder={text("Search purchase ID, supplier or product","ক্রয় নম্বর, সরবরাহকারী বা পণ্য খুঁজুন")}
-                />
+            <div data-purchases-filterbar="" className="border-b border-border p-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 lg:grid-cols-[minmax(0,1fr)_160px_194px]">
+                <div className="relative min-w-0">
+                  <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                  <Input aria-label={pl('Search purchases')} value={query} onChange={(e)=>setQuery(e.target.value)}
+                    className="pl-8" placeholder={text('Search purchase ID, supplier or product','ক্রয় নম্বর, সরবরাহকারী বা পণ্য খুঁজুন')} />
+                </div>
+                <Button type="button" variant="outline" size="icon"
+                  aria-label={text('Advanced filters','আরও ফিল্টার') + (activeAdvancedCount ? ' (' + activeAdvancedCount + ')' : '')}
+                  aria-expanded={advancedFiltersOpen} aria-controls="purchase-list-advanced-filters"
+                  data-active-filters={activeAdvancedCount>0?'true':'false'}
+                  onClick={()=>setAdvancedFiltersOpen(open=>!open)}
+                  className={'relative size-9 shrink-0 rounded-md lg:hidden ' +
+                    (activeAdvancedCount?'border-teal-500 text-teal-700':'text-ink-500')}>
+                  <Filter className="size-4" aria-hidden="true" />
+                  {activeAdvancedCount>0 && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />}
+                </Button>
+                <div id="purchase-list-advanced-filters"
+                  className={(advancedFiltersOpen?'grid ':'hidden ')+'col-span-2 grid-cols-1 gap-2 min-[360px]:grid-cols-2 lg:contents'}>
+                  <FormSelect aria-label={pl('Purchase supplier filter')} className="min-w-0 w-full"
+                    value={supplierFilter} onChange={e=>setSupplierFilter(e.target.value)}
+                    options={[{value:'All suppliers',label:text('All suppliers','সব সরবরাহকারী')},...Array.from(new Set(purchases.map(p=>p.supplier)))]} />
+                  <div className="flex min-w-0 items-center gap-2">
+                    <FormSelect aria-label={pl('Purchase status filter')} className="min-w-0 flex-1"
+                      value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}
+                      options={['All status','Paid','Partial','Due'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':'বাকি')}))} />
+                    <Button type="button" variant="outline" size="icon" onClick={resetFilters}
+                      aria-label={pl('Reset filters')} title={text('Reset all filters','সব ফিল্টার মুছুন')}
+                      className="size-9 shrink-0 rounded-md text-ink-500">
+                      <RotateCcw className="size-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <FormSelect aria-label={pl('Purchase supplier filter')} className="w-full sm:w-40" value={supplierFilter} onChange={e => setSupplierFilter(e.target.value)} options={[{value:'All suppliers',label:text('All suppliers','সব সরবরাহকারী')},...Array.from(new Set(purchases.map(p => p.supplier)))]} />
-              <FormSelect aria-label={pl('Purchase status filter')} className="w-full sm:w-36" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Paid', 'Partial', 'Due'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':'বাকি')}))} />
-              <Button variant="outline" size="sm" onClick={resetFilters}>
-                {pl("Reset filters")}
-              </Button>
             </div>
 
-            <Table>
+            <Table data-purchases-table="" className="table-fixed md:table-auto" scrollRegionLabel={text('Purchases table','ক্রয়ের তালিকা')}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs" >{text('Purchase','ক্রয়')}</TableHead>
-                  <TableHead className="h-9 text-xs" >{text('Supplier','সরবরাহকারী')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Items','পণ্য')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Memo','রসিদ')}</TableHead>
-                  <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>
-                  <TableHead className="h-9 text-right text-xs">{text('Paid','পরিশোধ')}</TableHead>
-                  <TableHead className="h-9 text-right text-xs">{text('Due','দেনা')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                  <TableHead className="h-9 w-[136px] pl-3 pr-1 text-xs md:w-auto md:px-4" >{text('Purchase','ক্রয়')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs md:table-cell" >{text('Supplier','সরবরাহকারী')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs xl:table-cell">{text('Items','পণ্য')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs xl:table-cell">{text('Memo','রসিদ')}</TableHead>
+                  <TableHead className="h-9 w-[110px] px-1 text-right text-xs md:w-auto md:px-4">{text('Total','মোট')}</TableHead>
+                  <TableHead className="hidden h-9 text-right text-xs xl:table-cell">{text('Paid','পরিশোধ')}</TableHead>
+                  <TableHead className="hidden h-9 text-right text-xs md:table-cell">{text('Due','দেনা')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs md:table-cell">{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-12 bg-card pl-0 pr-3 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -228,11 +249,15 @@ export function Purchases() {
                   const open = () => openBill(p);
                   return (
                     <TableRow key={p.id} className="cursor-pointer text-[13px]" onClick={open}>
-                      <TableCell className="py-2 pl-4">
-                        <span className="font-medium text-ink">{p.ref}</span>
+                      <TableCell className="w-[136px] min-w-0 py-2 pl-3 pr-1 md:w-auto md:px-4">
+                        <span className="whitespace-nowrap font-medium text-ink">{p.ref}</span>
                         <span data-table-helper="" className="block text-[11px] text-ink-400">{p.date}</span>
+                        <Link to={`/app/parties?id=${p.supplierId}`} onClick={(e)=>e.stopPropagation()}
+                          className="mt-1 block max-w-[152px] break-words text-xs font-medium text-teal-700 hover:underline md:hidden">
+                          {p.supplier}
+                        </Link>
                       </TableCell>
-                      <TableCell className="py-2">
+                      <TableCell className="hidden py-2 md:table-cell">
                         <Link
                           to={`/app/parties?id=${p.supplierId}`}
                           onClick={(e) => e.stopPropagation()}
@@ -240,17 +265,25 @@ export function Purchases() {
                           {p.supplier}
                         </Link>
                       </TableCell>
-                      <TableCell className="max-w-[260px] truncate py-2 text-ink-600">{p.items}</TableCell>
-                      <TableCell className="py-2"><ReceiptThumb src={p.receipt} onClick={open} /></TableCell>
-                      <TableCell className="py-2 text-right font-medium">{taka(position(p).total)}</TableCell>
-                      <TableCell className="py-2 text-right text-ink-600">{taka(position(p).paid)}</TableCell>
-                      <TableCell className={`py-2 text-right ${position(p).due > 0 ? 'font-medium text-danger' : 'text-ink-400'}`}>
+                      <TableCell className="hidden max-w-[260px] truncate py-2 text-ink-600 xl:table-cell">{p.items}</TableCell>
+                      <TableCell className="hidden py-2 xl:table-cell"><ReceiptThumb src={p.receipt} onClick={open} /></TableCell>
+                      <TableCell className="w-[110px] min-w-0 py-2 pl-1 pr-1 text-right font-medium md:w-auto md:px-4">
+                        <span className="whitespace-nowrap">{taka(position(p).total)}</span>
+                        <span data-table-helper="" className="block text-[11px] font-normal text-ink-500 md:hidden">
+                          {text('Due','দেনা')} {position(p).due > 0 ? taka(position(p).due) : '—'}
+                        </span>
+                        <span className="mt-0.5 flex justify-end md:hidden"><PayStatus total={position(p).total} paid={position(p).paid} /></span>
+                      </TableCell>
+                      <TableCell className="hidden py-2 text-right text-ink-600 xl:table-cell">{taka(position(p).paid)}</TableCell>
+                      <TableCell className={`hidden py-2 text-right md:table-cell ${position(p).due > 0 ? 'font-medium text-danger' : 'text-ink-400'}`}>
                         {position(p).due > 0 ? taka(position(p).due) : '—'}
                       </TableCell>
-                      <TableCell className="py-2"><PayStatus total={position(p).total} paid={position(p).paid} /></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <div onClick={e => e.stopPropagation()}>
-                          <FloatingPanel label={`${pl("Actions for")} ${p.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`${pl("Actions for")} ${p.ref}`}><MoreHorizontal className="size-4" /></button>}>
+                      <TableCell className="hidden py-2 md:table-cell"><PayStatus total={position(p).total} paid={position(p).paid} /></TableCell>
+                      <TableCell className="sticky right-0 z-10 w-12 bg-card py-2 pl-0 pr-3 text-right">
+                        <div onClick={e=>e.stopPropagation()}>
+                          <FloatingPanel label={`${pl("Actions for")} ${p.ref}`} width={190}
+                            trigger={({open,toggle})=><ActionMenuTrigger onClick={toggle}
+                              label={`${pl("Actions for")} ${p.ref}`} expanded={open} />}>
                             {close => <ActionMenuList>
                               <ActionMenuItem icon={Eye} onClick={() => {close();openBill(p);}}>{text('View bill','বিল দেখুন')}</ActionMenuItem>
                               <ActionMenuItem icon={Printer} onClick={() => {close();printPurchase(p);}}>{text('Print bill','বিল প্রিন্ট')}</ActionMenuItem>
