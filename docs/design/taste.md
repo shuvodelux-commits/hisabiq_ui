@@ -86,3 +86,9 @@ Use the upstream design /20 + audit /20 score and problem ledger when the execut
 - **Protect:** HisabIQ logo, brands/tokens, 36px action controls, RTL-safe Bangla text, `erpNavigation` routing permissions, POS/Counter/Finance accounting, global search, Ctrl+B/Ctrl+K, keyboard and touch accessibility.
 - **Verification:** `docs/ui/UI-REFINEMENT-RULES.md`; real Playwright screenshots including the **opened** drawer and top submenu at 320/390/768/1024/1440, both themes; Impeccable audit and honest C0-C4 ledger.
 - **Scope:** Navigation only. Remaining modules preserve their approved layouts until individually requested.
+
+### Project-wide mobile filter and table action rule (approved 2026-11-05)
+
+- **Compact filters:** At widths below 1024px, show search and date first; hide secondary dropdowns under a small square 36px Filter icon by default. Tap opens/closes the existing filter controls; keep active filters applied and provide a subtle active indicator. Desktop retains its filter layout.
+- **Always-visible row actions:** At 320px and wider, the per-row `⋮` button must stay in the viewport without any horizontal scrolling. Use compact visible mobile columns and/or a sticky-right action column; details remain available through the source row menu. Audit Ledger and the owner's approved compact Daybook mockup are the reference.
+- **Proof in every future UI refinement:** Capture mobile filters collapsed/expanded, table action at scrollLeft=0, open menu, dark/light, 320/390/768, focus/keyboard/touch and menu placement. Preserve all columns on desktop and never remove real filter or accounting behavior.
