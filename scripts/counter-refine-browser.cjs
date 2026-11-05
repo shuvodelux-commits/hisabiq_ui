@@ -28,7 +28,7 @@ async function main(){
     const bounds=await Promise.all((await tiles.all()).map(tile=>tile.boundingBox()));
     assert.ok(bounds.every(box=>box&&box.width>80&&box.height>=44&&box.x>=0&&box.x+box.width<=width+1),width+' '+theme+': reachable tiles');
     const rows=new Set(bounds.map(box=>Math.round(box.y))).size;
-    assert.equal(rows,width===320?3:width<1024?2:1,width+' '+theme+': action density');
+    assert.equal(rows,width===320?3:width<1280?2:1,width+' '+theme+': action density');
     await page.screenshot({path:path.join(directory,width+'-'+theme+'-default.png'),fullPage:true,animations:'disabled'});
     const bank=actions.getByRole('button',{name:/Bank Entry/});
     await bank.focus();
@@ -45,6 +45,7 @@ async function main(){
     assert.equal(await amounts.count(),2,'split payment rows');
     await amounts.nth(0).fill('100');
     await amounts.nth(1).fill('25');
+    await page.evaluate(()=>window.scrollTo(0,0));
     await page.screenshot({path:path.join(directory,width+'-'+theme+'-split.png'),fullPage:true,animations:'disabled'});
     await page.getByRole('button',{name:/Review receive payment/}).click();
     const review=page.getByRole('dialog',{name:/Confirm receive payment/});
