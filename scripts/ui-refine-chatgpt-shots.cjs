@@ -69,7 +69,7 @@ function test(){
   assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: src/pages/not-real.tsx',root,'#/app/pos'));
   console.log('All-module route and Impeccable scope parser OK: '+good.length+' routes');
 }
-async function capture(browser,name,url,route,out,showSababNav=false){
+async function capture(browser,name,url,route,out,showSababNav=false,showFloatingPanel=false){
   const shots=[];
   for(const width of widths)for(const theme of themes){
     const height=width===1024?768:width===768?1024:width===1440?900:844;
@@ -140,15 +140,40 @@ async function capture(browser,name,url,route,out,showSababNav=false){
         assert.equal(await openButton.evaluate(el=>el===document.activeElement),true,
           'Escape returns focus to HisabIQ mobile navigation trigger');
       }
+      if(showFloatingPanel){
+        await page.setViewportSize({width,height});
+        const appearance=page.getByRole('button',{name:/^Appearance:/});
+        await appearance.click();
+        const appearancePanel=page.getByRole('dialog',{name:'Appearance',exact:true});
+        await appearancePanel.waitFor({state:'visible'});
+        await page.waitForTimeout(200);
+        const appearanceName=name+'-floating-appearance-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,appearanceName),animations:'disabled'});
+        shots.push({filename:appearanceName,width,theme,state:'floating-appearance',...details});
+        await page.keyboard.press('Escape');
+        await appearancePanel.waitFor({state:'hidden'});
+        const calculator=page.getByRole('button',{name:'Calculator',exact:true});
+        await calculator.click();
+        const calculatorPanel=page.getByRole('dialog',{name:'Calculator',exact:true});
+        await calculatorPanel.waitFor({state:'visible'});
+        await page.waitForTimeout(200);
+        const calculatorName=name+'-floating-calculator-'+width+'-'+theme+'.png';
+        await page.screenshot({path:path.join(out,calculatorName),animations:'disabled'});
+        shots.push({filename:calculatorName,width,theme,state:'floating-calculator',...details});
+        await page.keyboard.press('Escape');
+        await calculatorPanel.waitFor({state:'hidden'});
+      }
     }finally{await ctx.close();}
   }
   return shots;
 }
-function indexHtml(route,baseSha,prSha,showSababNav=false){
+function indexHtml(route,baseSha,prSha,showSababNav=false,showFloatingPanel=false){
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const configs=widths.flatMap(width=>themes.map(theme=>({width,theme,mode:'default'})));
   if(showSababNav)for(const width of widths.filter(w=>w<1024))for(const theme of themes)
     for(const mode of ['sabab-menu','sabab-drawer'])configs.push({width,theme,mode});
+  if(showFloatingPanel)for(const width of widths)for(const theme of themes)
+    for(const mode of ['floating-appearance','floating-calculator'])configs.push({width,theme,mode});
   const rows=configs.map(({width,theme,mode})=>{
     const suffix=(mode==='default'?'':mode+'-')+width+'-'+theme+'.png';
     const before='before-'+suffix;
@@ -173,10 +198,19 @@ async function main(){
   const {chromium}=require('playwright');
   const browser=await chromium.launch({args:['--no-sandbox']});
   const showSababNav=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sabab-navigation[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
+  const showFloatingPanel=/^[ \\t]*UI-REFINE-STATE:[ \\t]*floating-panel[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   let before,after;
   try{
-    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav);
-    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav);
+    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel);
+    after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel);
+    if(showFloatingPanel){
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/floating-panels-browser.cjs')],{
+        cwd:candidate,
+        env:{...process.env,FLOATING_PANEL_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'floating-panels-playwright.log'),log);
+    }
     if(showSababNav){
       // Opt-in targeted Playwright interaction gate; preserves the original workflow YAML.
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/sabab-navigation-browser.cjs')],{
@@ -192,7 +226,7 @@ async function main(){
     route,baseSha,prSha,before,after,
     warning:'Screenshots must be visually inspected in ChatGPT; do not claim automated Impeccable reviews ran.'
   },null,2));
-  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav));
+  await fsp.writeFile(path.join(out,'compare.html'),indexHtml(route,baseSha,prSha,showSababNav,showFloatingPanel));
   console.log('Captured '+before.length+' baseline and '+after.length+' PR images: '+route);
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
