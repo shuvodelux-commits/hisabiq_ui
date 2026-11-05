@@ -34,3 +34,15 @@ Save `docs/ui-refine/<slug>/ledger.md`, link screenshot workflow runs/artifacts 
 Keep HisabIQ's compact blue/teal brand, control-height/radius and table typography contracts, proportional digits, POS V2, purchases, finance postings, customer/vendor permissions and bilingual labels. Never introduce fake posting or notifications. Adapt only what the approved scope requires; avoid excess animation or extra libraries.
 
 **No automatic merge, deployment or direct push to main.** The owner reviews the draft PR and approves it before moving to the next module.
+
+## Rule 6 — Mandatory compact mobile filtering and reachable row actions (owner approved 2026-11-05)
+
+Use the **approved Daybook compact mobile layout** as the ERP-wide default for future table/ledger UI refinement, along with existing Audit Ledger behavior.
+
+- On phones and narrow tablets (below the 1024px `lg` breakpoint), **search and the primary date/date-range remain visible**; move secondary/advanced dropdown filters behind **one compact square 36px Filter-icon button** next to search. The advanced area is **collapsed by default** and expands only on tap/click. On desktop, keep the original full filters visible.
+- Preserve all filter choices, `Reset`, URL/search-state, and active filters even when their controls are collapsed. The button must expose `aria-expanded` and `aria-controls`; show a subtle active-filter indicator only when filters are applied. Never hide active filter effects or reset silently.
+- On small screens, **every row's three-dot action must be visible without horizontal scrolling**. Prefer a compact table with Date / Type / Reference (plus party as subordinate text) / sticky Action; show all detail columns on desktop and retain source detail access via existing row actions. If a full-width table still scrolls, pin the action cell to the right (as in Audit Ledger). No clipped controls or pointer targets outside the viewport.
+- Reuse existing `ActionMenu`, `FloatingPanel`, table and button primitives. Ordinary square/icon controls are 36px with the universal radius token. Ensure touch, keyboard, Escape, focus return, menu clamping and Bangla rendering. Never change transaction handlers, permissions, posting, print, returns or accounting logic to achieve layout.
+- New refinement PRs must include **collapsed and expanded filter** screenshots plus actual open-row-action screenshots at 320/390/768px in light/dark, and a Playwright check that the action is in viewport at scrollLeft=0. Treat these as **universal acceptance rules** for every future ERP module; apply one module per PR, not a sweeping rewrite.
+
+**Approved visual reference:** Daybook mobile design confirmed by owner 2026-11-05: search + square funnel icon, date below, four-column compact rows with always-visible `⋮`.
