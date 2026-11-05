@@ -23,17 +23,33 @@ jobs:
       - name: Install exact lockfile dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Verify installed Framer Motion dependencies
+        run: |
+          npm ls framer-motion motion-dom motion-utils --all
+          node --input-type=module -e "import.meta.resolve('motion-dom'); import.meta.resolve('motion-utils')"
+
+      - name: Run bounded Tailwind content regression
+        run: node --experimental-strip-types --test tests/cloudflareTailwindFileLimit.test.ts
+
       - name: Build ordinary Tailwind output
         run: |
           npm run build
           find dist -type f -name '*.css' -print0 | xargs -0 -r sha256sum | awk '{print $1}' | sort > "$RUNNER_TEMP/normal-css-sha256.txt"
           test -s "$RUNNER_TEMP/normal-css-sha256.txt"
 
-      - name: Simulate Cloudflare's limited open-file budget and compare CSS
+      - name: Simulate low-file limit without CF_PAGES and compare CSS
         shell: bash
         run: |
           ulimit -Sn 256
           printf 'Open-file soft limit: %s\n' "$(ulimit -Sn)"
+          env -u CF_PAGES npm run build
+          find dist -type f -name '*.css' -print0 | xargs -0 -r sha256sum | awk '{print $1}' | sort > "$RUNNER_TEMP/cloudflare-css-sha256.txt"
+          diff -u "$RUNNER_TEMP/normal-css-sha256.txt" "$RUNNER_TEMP/cloudflare-css-sha256.txt"
+
+      - name: Simulate low-file limit with CF_PAGES and compare CSS
+        shell: bash
+        run: |
+          ulimit -Sn 256
           CF_PAGES=1 npm run build
           find dist -type f -name '*.css' -print0 | xargs -0 -r sha256sum | awk '{print $1}' | sort > "$RUNNER_TEMP/cloudflare-css-sha256.txt"
           diff -u "$RUNNER_TEMP/normal-css-sha256.txt" "$RUNNER_TEMP/cloudflare-css-sha256.txt"
