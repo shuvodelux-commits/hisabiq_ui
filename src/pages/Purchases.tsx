@@ -230,18 +230,18 @@ export function Purchases() {
               </div>
             </div>
 
-            <Table>
+            <Table data-purchases-table="" scrollRegionLabel={text('Purchases table','ক্রয়ের তালিকা')}>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs" >{text('Purchase','ক্রয়')}</TableHead>
-                  <TableHead className="h-9 text-xs" >{text('Supplier','সরবরাহকারী')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Items','পণ্য')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Memo','রসিদ')}</TableHead>
+                  <TableHead className="h-9 pl-3 text-xs md:pl-4" >{text('Purchase','ক্রয়')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs md:table-cell" >{text('Supplier','সরবরাহকারী')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Items','পণ্য')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Memo','রসিদ')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Total','মোট')}</TableHead>
-                  <TableHead className="h-9 text-right text-xs">{text('Paid','পরিশোধ')}</TableHead>
-                  <TableHead className="h-9 text-right text-xs">{text('Due','দেনা')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                  <TableHead className="hidden h-9 text-right text-xs lg:table-cell">{text('Paid','পরিশোধ')}</TableHead>
+                  <TableHead className="hidden h-9 text-right text-xs md:table-cell">{text('Due','দেনা')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs md:table-cell">{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-12 bg-card pr-3 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -249,11 +249,15 @@ export function Purchases() {
                   const open = () => openBill(p);
                   return (
                     <TableRow key={p.id} className="cursor-pointer text-[13px]" onClick={open}>
-                      <TableCell className="py-2 pl-4">
-                        <span className="font-medium text-ink">{p.ref}</span>
+                      <TableCell className="min-w-[128px] py-2 pl-3 md:pl-4">
+                        <span className="whitespace-nowrap font-medium text-ink">{p.ref}</span>
                         <span data-table-helper="" className="block text-[11px] text-ink-400">{p.date}</span>
+                        <Link to={`/app/parties?id=${p.supplierId}`} onClick={(e)=>e.stopPropagation()}
+                          className="mt-1 block max-w-[152px] break-words text-xs font-medium text-teal-700 hover:underline md:hidden">
+                          {p.supplier}
+                        </Link>
                       </TableCell>
-                      <TableCell className="py-2">
+                      <TableCell className="hidden py-2 md:table-cell">
                         <Link
                           to={`/app/parties?id=${p.supplierId}`}
                           onClick={(e) => e.stopPropagation()}
@@ -261,17 +265,25 @@ export function Purchases() {
                           {p.supplier}
                         </Link>
                       </TableCell>
-                      <TableCell className="max-w-[260px] truncate py-2 text-ink-600">{p.items}</TableCell>
-                      <TableCell className="py-2"><ReceiptThumb src={p.receipt} onClick={open} /></TableCell>
-                      <TableCell className="py-2 text-right font-medium">{taka(position(p).total)}</TableCell>
-                      <TableCell className="py-2 text-right text-ink-600">{taka(position(p).paid)}</TableCell>
-                      <TableCell className={`py-2 text-right ${position(p).due > 0 ? 'font-medium text-danger' : 'text-ink-400'}`}>
+                      <TableCell className="hidden max-w-[260px] truncate py-2 text-ink-600 lg:table-cell">{p.items}</TableCell>
+                      <TableCell className="hidden py-2 lg:table-cell"><ReceiptThumb src={p.receipt} onClick={open} /></TableCell>
+                      <TableCell className="min-w-[100px] py-2 text-right font-medium">
+                        <span className="whitespace-nowrap">{taka(position(p).total)}</span>
+                        <span data-table-helper="" className="block text-[11px] font-normal text-ink-500 md:hidden">
+                          {text('Due','দেনা')} {position(p).due > 0 ? taka(position(p).due) : '—'}
+                        </span>
+                        <span className="mt-0.5 flex justify-end md:hidden"><PayStatus total={position(p).total} paid={position(p).paid} /></span>
+                      </TableCell>
+                      <TableCell className="hidden py-2 text-right text-ink-600 lg:table-cell">{taka(position(p).paid)}</TableCell>
+                      <TableCell className={`hidden py-2 text-right md:table-cell ${position(p).due > 0 ? 'font-medium text-danger' : 'text-ink-400'}`}>
                         {position(p).due > 0 ? taka(position(p).due) : '—'}
                       </TableCell>
-                      <TableCell className="py-2"><PayStatus total={position(p).total} paid={position(p).paid} /></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <div onClick={e => e.stopPropagation()}>
-                          <FloatingPanel label={`${pl("Actions for")} ${p.ref}`} width={190} trigger={({toggle}) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50" aria-label={`${pl("Actions for")} ${p.ref}`}><MoreHorizontal className="size-4" /></button>}>
+                      <TableCell className="hidden py-2 md:table-cell"><PayStatus total={position(p).total} paid={position(p).paid} /></TableCell>
+                      <TableCell className="sticky right-0 z-10 w-12 bg-card py-2 pr-3 text-right">
+                        <div onClick={e=>e.stopPropagation()}>
+                          <FloatingPanel label={`${pl("Actions for")} ${p.ref}`} width={190}
+                            trigger={({open,toggle})=><ActionMenuTrigger onClick={toggle}
+                              label={`${pl("Actions for")} ${p.ref}`} expanded={open} />}>
                             {close => <ActionMenuList>
                               <ActionMenuItem icon={Eye} onClick={() => {close();openBill(p);}}>{text('View bill','বিল দেখুন')}</ActionMenuItem>
                               <ActionMenuItem icon={Printer} onClick={() => {close();printPurchase(p);}}>{text('Print bill','বিল প্রিন্ট')}</ActionMenuItem>
