@@ -1,6 +1,7 @@
 import {ModuleSettingsEntry} from '../../settings/ModuleSettingsEntry';
 import { useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { motion, useReducedMotion } from 'framer-motion';
+import { Outlet, useLocation } from "react-router-dom";
 import { PageBoundary } from './PageBoundary';
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
@@ -12,10 +13,15 @@ import {
 } from "../../settings/TenantSettingsProvider";
 import { UserPreferencesProvider } from "../../contexts/UserPreferencesContext";
 import { useUiCopy } from '../../i18n/useUiCopy';
+import { sababModuleEntry } from '../../motion/sababMotion';
 
 function Workspace() {
   const { personal, warning } = useTenantSettings();
   const { text, language } = useUiCopy();
+  const { pathname } = useLocation();
+  const reducedMotion = useReducedMotion();
+  // Match Sabab SIS: one entrance on module changes, not on tab/query changes.
+  const moduleKey = pathname.split('/').filter(Boolean)[1] ?? 'dashboard';
   // Screen readers need the actual document language, not just translated labels.
   // The ERP owns this while mounted; the SaaS shell retains English on exit.
   useEffect(() => {
@@ -42,7 +48,18 @@ function Workspace() {
                   {warning}
                 </p>
               )}
-              <ModuleSettingsEntry><PageBoundary><Outlet /></PageBoundary></ModuleSettingsEntry>
+              <ModuleSettingsEntry>
+                <motion.div
+                  key={moduleKey}
+                  data-erp-module-motion=""
+                  data-motion-module={moduleKey}
+                  initial={reducedMotion ? false : sababModuleEntry.initial}
+                  animate={sababModuleEntry.animate}
+                  transition={reducedMotion ? { duration: 0 } : sababModuleEntry.transition}
+                >
+                  <PageBoundary><Outlet /></PageBoundary>
+                </motion.div>
+              </ModuleSettingsEntry>
             </main>
           </div>
         </div>
