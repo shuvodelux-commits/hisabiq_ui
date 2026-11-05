@@ -227,21 +227,6 @@
 [data-cart-kind="sale"] [data-cart-row],
 [data-cart-kind="sale"] [data-cart-header],
 [data-cart-kind="sale"] [data-cart-add] { min-width: 0 !important; }
-/* Framer Reorder.Group and its grid children must use the visible cart width,
-   never an intrinsic min-content width that makes totals inaccessible on tablets. */
-[data-cart-kind="sale"] [data-testid="pos-cart"],
-[data-cart-kind="sale"] [data-testid="pos-cart"] > div,
-[data-cart-kind="sale"] [data-cart-row],
-[data-cart-kind="sale"] [data-cart-header],
-[data-cart-kind="sale"] [data-cart-add] {
-  box-sizing: border-box;
-  /* Use the named POS cart query container, not a min-content-expanded
-     reorder wrapper: 100% resolves against that wrapper on 768px tablets. */
-  width: 100cqw !important;
-  max-width: 100cqw !important;
-  min-width: 0 !important;
-}
-
 /* Two columns only when there is enough room for a real table beside checkout. */
 @container pos-screen (min-width: 1056px) {
   [data-pos-layout] {
@@ -257,8 +242,8 @@
   [data-cart-kind="sale"] [data-cart-header],
   [data-cart-kind="sale"] [data-cart-row],
   [data-cart-kind="sale"] [data-cart-add] {
-    grid-template-columns: 36px minmax(90px, 1fr) 160px 78px 164px 98px 28px !important;
-    gap: 4px !important;
+    grid-template-columns: 36px minmax(90px, 1fr) 160px 78px 164px 98px 28px;
+    gap: 4px;
   }
   [data-cart-kind="sale"] [data-cart-header] { display: grid; }
   [data-cart-kind="sale"] [data-cart-row] { padding-top: 6px; padding-bottom: 6px; }
@@ -903,10 +888,12 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   [data-cart-kind="purchase"]:has([data-multi-quantity]) [data-cart-add] > :nth-child(n+3) { display: none; }
 }
 
-/* Tablets keep one product per table row. Scroll inside the cart when its
-   controls cannot fit; phone layouts continue to use compact stacked rows. */
+/* Tablets keep one product per row. The legacy minimum track width is
+   required only when a 3–4 unit editor needs a wider quantity field.
+   For ordinary POS rows, the container-aware 710px layout fits without
+   hiding Total beyond the tablet's initial viewport. Purchase unchanged. */
 @media (min-width: 768px) {
-  :root [data-cart-kind="sale"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
+  :root [data-cart-kind="sale"]:has([data-multi-quantity]) :is([data-cart-header], [data-cart-row], [data-cart-add]) {
     min-width: calc(720px + var(--cart-quantity-width, 168px)) !important;
     grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width, 168px) 88px minmax(164px, 180px) 112px 28px;
   }
