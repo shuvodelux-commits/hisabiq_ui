@@ -13,7 +13,6 @@ import {
   FileUp,
   Landmark,
   Link2,
-  MoreHorizontal,
   Plus,
   Search,
   Undo2,
