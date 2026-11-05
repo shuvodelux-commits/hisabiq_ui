@@ -25,8 +25,10 @@ export function ChequeActionDialog({
   cheque, accounts,
   onClose,
   onUpdate,
-  onStatus
+  onStatus,
+  initialMode = 'view'
 }: {
+  initialMode?: 'view' | 'edit';
   cheque: ChequeRecord | null;
   accounts: FinanceAccount[];
   onClose: () => void;
@@ -56,8 +58,8 @@ export function ChequeActionDialog({
     setNote(cheque.note ?? '');
   };
   useEffect(() => {
-    setEditing(false); setPendingAction(null); setReason(''); resetDraft();
-  }, [cheque]);
+    setEditing(initialMode === 'edit'); setPendingAction(null); setReason(''); resetDraft();
+  }, [cheque, initialMode]);
 
   if (!cheque) return null;
   const existingAccountId = cheque.depositAccountId ?? resolveChequeAccount(accounts, cheque)?.id;
