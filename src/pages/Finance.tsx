@@ -10,6 +10,10 @@ import {
   BookOpen,
   BriefcaseBusiness,
   CheckCircle2,
+  Eye,
+  Pencil,
+  Power,
+  RotateCcw,
   CircleDollarSign,
   Landmark,
   MoreHorizontal,
@@ -36,6 +40,8 @@ import { FinancePaymentSplitEditor, type FinancePaymentDraft } from '../componen
 import { financeAccountIdentityLabel, transferAccountId, transferAccountLabel } from '../utils/accountTransferIdentity';
 import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid, financePaymentDraftTotal } from '../utils/financePaymentDrafts';
 import { StatusBadge } from '../components/StatusBadge';
+import { RowActionMenu } from '../components/layout/RowActionMenu';
+import { ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
 import {
@@ -547,11 +553,20 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const [peopleOpen, setPeopleOpen] = useState(false);
   const [chequeOpen, setChequeOpen] = useState(false);
   const [chequeAction, setChequeAction] = useState<ChequeRecord | null>(null);
+  const [chequeActionMode, setChequeActionMode] = useState<'view' | 'edit'>('view');
   const [cashSessionAction, setCashSessionAction] = useState<CashSessionRecord | null>(null);
   const [transferFrom, setTransferFrom] = useState<string | undefined>(undefined);
   const [transactionAction, setTransactionAction] = useState<FinanceTransaction | null>(null);
+  const [transactionActionMode, setTransactionActionMode] = useState<'view' | 'edit' | 'reverse'>('view');
   const [accountAction, setAccountAction] = useState<FinanceAccount | null>(null);
+  const [accountActionMode, setAccountActionMode] = useState<'ledger' | 'edit' | 'manual' | 'status'>('ledger');
   const [transferAction, setTransferAction] = useState<AccountTransfer | null>(null);
+  const [transferActionMode, setTransferActionMode] = useState<'view' | 'reverse'>('view');
+
+  const openTransactionActions = (item: FinanceTransaction, mode: 'view' | 'edit' | 'reverse') => { setTransactionActionMode(mode); setTransactionAction(item); };
+  const openAccountActions = (item: FinanceAccount, mode: 'ledger' | 'edit' | 'manual' | 'status') => { setAccountActionMode(mode); setAccountAction(item); };
+  const openTransferActions = (item: AccountTransfer, mode: 'view' | 'reverse') => { setTransferActionMode(mode); setTransferAction({ ...item, from: transferAccountLabel(item, 'from', accounts), to: transferAccountLabel(item, 'to', accounts) }); };
+  const openChequeActions = (item: ChequeRecord, mode: 'view' | 'edit') => { setChequeActionMode(mode); setChequeAction(item); };
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All transaction types');
   const applyTransactionMovement = (list: FinanceAccount[], transaction: FinanceTransaction, factor = 1) => {
@@ -574,6 +589,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     if (!previous) return;
     setAccounts((current) => applyTransactionMovement(applyTransactionMovement(current, previous, -1), updated, 1));
     setTransactions((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setTransactionActionMode('view');
     setTransactionAction(updated);
     toast.success('Finance transaction updated', { description: updated.id });
   };
@@ -583,6 +599,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     const reversed = { ...transaction, status: 'Reversed' as const };
     setAccounts((current) => applyTransactionMovement(current, transaction, -1));
     setTransactions((current) => current.map((item) => item.id === transaction.id ? reversed : item));
+    setTransactionActionMode('view');
     setTransactionAction(reversed);
     toast.success('Transaction reversed', { description: transaction.id + ' remains in the audit history' });
   };
@@ -598,6 +615,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
       })));
       setChequeRecords((current) => renameChequeAccountReferences(current, accounts, updated, previous.name));
     }
+    setAccountActionMode('ledger');
     setAccountAction(updated);
     toast.success('Account updated', { description: updated.name });
   };
@@ -605,6 +623,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const toggleFinanceAccount = (account: FinanceAccount) => {
     const updated = { ...account, status: account.status === 'Active' ? 'Inactive' as const : 'Active' as const };
     setAccounts((current) => current.map((item) => item.id === account.id ? updated : item));
+    setAccountActionMode('ledger');
     setAccountAction(updated);
     toast.success(updated.status === 'Active' ? 'Account activated' : 'Account deactivated', { description: updated.name });
   };
@@ -639,6 +658,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
   const updateCheque = (updated: ChequeRecord) => {
     setChequeRecords((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setChequeActionMode('view');
     setChequeAction(updated);
     toast.success('Cheque updated', { description: updated.id });
   };
@@ -665,6 +685,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
         ? { ...account, balance: account.balance + (cheque.direction === 'Received' ? cheque.amount : -cheque.amount), lastActivity: 'Just now' }
         : account));
     }
+    setChequeActionMode('view');
     setChequeAction(updated);
     toast.success('Cheque status updated', { description: cheque.id + ' · ' + nextStatus });
     return true;
@@ -679,6 +700,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
       if (account.id === transferAccountId(transfer, 'to', accounts)) return { ...account, balance: account.balance - transfer.amount, lastActivity: 'Just now' };
       return account;
     }));
+    setTransferActionMode('view');
     setTransferAction(reversed);
     toast.success('Transfer reversed', { description: transfer.id });
   };
@@ -1292,6 +1314,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <ChequeActionDialog
         cheque={chequeAction}
+        initialMode={chequeActionMode}
         accounts={accounts}
         onClose={() => setChequeAction(null)}
         onUpdate={updateCheque}
@@ -1306,6 +1329,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <FinanceTransactionActionDialog
         transaction={transactionAction}
+        initialMode={transactionActionMode}
         accounts={accounts}
         people={people}
         onClose={() => setTransactionAction(null)}
@@ -1315,6 +1339,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <FinanceAccountActionDialog
         account={accountAction}
+        initialMode={accountActionMode}
         accounts={accounts}
         transactions={transactions}
         transfers={transfers}
@@ -1328,6 +1353,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <FinanceTransferActionDialog
         transfer={transferAction}
+        initialMode={transferActionMode}
         onClose={() => setTransferAction(null)}
         onReverse={reverseAccountTransfer}
       />
