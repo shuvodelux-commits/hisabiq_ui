@@ -58,6 +58,6 @@ export function ActionMenuTrigger({ label, expanded, className = '', ...props }:
     aria-expanded={expanded}
     className={'grid size-9 shrink-0 place-items-center rounded-md text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ' + className}
   >
-    <MoreHorizontal className="size-4" aria-hidden="true" />
+    <MoreHorizontal className="size-4 rotate-90" aria-hidden="true" />
   </button>;
 }
