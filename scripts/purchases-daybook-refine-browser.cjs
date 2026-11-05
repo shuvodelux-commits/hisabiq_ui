@@ -55,7 +55,7 @@ async function main(){
           await expect(advanced).toBeVisible();
         }else{
           await expect(toggle).toBeHidden();
-          await expect(advanced).toBeVisible();
+          await expect(advanced).toHaveCSS('display','contents');
         }
 
         const supplier=advanced.getByRole('combobox',{name:/Purchase supplier filter|সরবরাহকারী/}).first();
