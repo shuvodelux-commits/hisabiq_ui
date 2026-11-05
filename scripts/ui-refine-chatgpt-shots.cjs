@@ -252,6 +252,11 @@ async function main(){
         encoding:'utf8',timeout:180000
       });
       await fsp.writeFile(path.join(out,'sales-daybook-playwright.log'),log);
+      const menuLog=execFileSync(process.execPath,[path.join(candidate,'scripts/sales-action-menu-browser.cjs')],{
+        cwd:candidate,env:{...process.env,SALES_ACTION_MENU_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'sales-action-menu-playwright.log'),menuLog);
     }
   }finally{await browser.close();}
   const sha=cwd=>execFileSync('git',['rev-parse','HEAD'],{cwd,encoding:'utf8'}).trim();
