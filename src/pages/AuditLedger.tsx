@@ -244,17 +244,19 @@ export function AuditLedger() {
           <Table scrollRegionLabel={text('Audit transactions, scroll for more details','অডিট লেনদেন, আরও দেখতে পাশে সরান')}>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 pl-4 text-xs">{text(entryDateView === 'transaction' ? 'Transaction Date' : 'Created Date',entryDateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</TableHead>
-                <TableHead className="h-9 text-xs">{text(entryDateView === 'transaction' ? 'Created Date' : 'Transaction Date',entryDateView === 'transaction'?'লেখার তারিখ':'লেনদেনের তারিখ')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Type / Reference','ধরন / নম্বর')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Party / Person','পক্ষ / ব্যক্তি')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Source','উৎস')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Account / Payment','হিসাব / পেমেন্ট')}</TableHead>
-                <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Posted by','যিনি লিখেছেন')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Last changed by','শেষ সংশোধনকারী')}</TableHead>
-                <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                <TableHead className="sticky right-0 z-10 h-9 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                <TableHead className="h-9 w-[78px] min-w-[78px] pl-2 pr-1 text-[11px] md:w-auto md:min-w-0 md:pl-4 md:pr-4 md:text-xs">
+                  <span className="md:hidden">{text('Date','তারিখ')}</span><span className="hidden md:inline">{text(entryDateView === 'transaction' ? 'Transaction Date' : 'Created Date',entryDateView === 'transaction'?'লেনদেনের তারিখ':'লেখার তারিখ')}</span>
+                </TableHead>
+                <TableHead className="hidden h-9 text-xs md:table-cell">{text(entryDateView === 'transaction' ? 'Created Date' : 'Transaction Date',entryDateView === 'transaction'?'লেখার তারিখ':'লেনদেনের তারিখ')}</TableHead>
+                <TableHead className="h-9 w-[99px] min-w-[99px] px-1 text-[11px] md:w-auto md:min-w-0 md:px-4 md:text-xs"><span className="md:hidden">{text('Reference','নম্বর')}</span><span className="hidden md:inline">{text('Type / Reference','ধরন / নম্বর')}</span></TableHead>
+                <TableHead className="hidden h-9 text-xs md:table-cell">{text('Party / Person','পক্ষ / ব্যক্তি')}</TableHead>
+                <TableHead className="hidden h-9 text-xs md:table-cell">{text('Source','উৎস')}</TableHead>
+                <TableHead className="hidden h-9 text-xs md:table-cell">{text('Account / Payment','হিসাব / পেমেন্ট')}</TableHead>
+                <TableHead className="h-9 w-[64px] min-w-[64px] px-1 text-right text-[11px] md:w-auto md:min-w-0 md:px-4 md:text-xs">{text('Amount','টাকা')}</TableHead>
+                <TableHead className="hidden h-9 text-xs md:table-cell">{text('Posted by','যিনি লিখেছেন')}</TableHead>
+                <TableHead className="hidden h-9 text-xs md:table-cell">{text('Last changed by','শেষ সংশোধনকারী')}</TableHead>
+                <TableHead className="hidden h-9 text-xs md:table-cell">{text('Status','অবস্থা')}</TableHead>
+                <TableHead className="sticky right-0 z-10 h-9 w-[44px] min-w-[44px] border-l border-border bg-card px-1 text-right text-[11px] md:w-auto md:min-w-0 md:pr-2 md:text-xs">{text('Action','কাজ')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -266,20 +268,27 @@ export function AuditLedger() {
                 const secondaryDate = entryDateView === 'transaction' ? source.createdAt.slice(0, 10) : source.transactionDate;
                 return (
                   <TableRow key={source.id} className="text-[13px]">
-                    <TableCell className="py-2 pl-4 font-medium text-ink">{primaryDate}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{secondaryDate}</TableCell>
-                    <TableCell className="py-2">
-                      <p className="font-medium text-ink">{source.reference}</p>
-                      <p data-table-helper="" className="text-[10.5px] text-ink-400">{source.source === 'adjustment' ? 'Adjustment Entry' : source.source.replaceAll('-', ' ')}</p>
+                    <TableCell className="w-[78px] min-w-[78px] py-2 pl-2 pr-1 text-[11px] font-medium text-ink md:w-auto md:min-w-0 md:pl-4 md:pr-4 md:text-[13px]">
+                      <span className="block whitespace-nowrap">{primaryDate}</span>
+                      <span data-table-helper="" className="block whitespace-nowrap text-[10px] font-normal text-ink-400 md:hidden">{secondaryDate}</span>
                     </TableCell>
-                    <TableCell className="py-2 text-ink-600">{source.party || '—'}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{text(sourceLabel(source), sourceLabelBn(source))}</TableCell>
-                    <TableCell className="max-w-[220px] py-2"><p className="truncate text-ink-500">{accountLabel(source)}</p></TableCell>
-                    <TableCell className="py-2 text-right font-semibold text-ink">{taka(source.amount)}</TableCell>
-                    <TableCell className="py-2"><p className="font-medium text-ink">{source.postedBy}</p><p data-table-helper="" className="text-[10.5px] text-ink-400">{source.createdAt.slice(11, 16)}</p></TableCell>
-                    <TableCell className="py-2 text-ink-500">{lastChange?.user || '—'}</TableCell>
-                    <TableCell className="py-2"><StatusBadge tone={source.status === 'Posted' ? 'success' : 'neutral'} dot>{text(source.status,source.status==='Posted'?'লেখা হয়েছে':'মুছে ফেলা')}</StatusBadge></TableCell>
-                    <TableCell className="sticky right-0 z-10 border-l border-border bg-card py-1.5 pr-2 text-right">
+                    <TableCell className="hidden py-2 text-ink-500 md:table-cell">{secondaryDate}</TableCell>
+                    <TableCell className="w-[99px] min-w-[99px] px-1 py-2 md:w-auto md:min-w-0 md:px-4">
+                      <p data-audit-full-reference="" className="block whitespace-nowrap text-[12px] font-medium text-ink md:text-[13px]">{source.reference}</p>
+                      <p data-table-helper="" className="text-[10px] text-ink-400 md:text-[10.5px]">{source.source === 'adjustment' ? 'Adjustment Entry' : source.source.replaceAll('-', ' ')}</p>
+                      {source.party && <p data-table-helper="" className="truncate text-[10px] text-ink-500 md:hidden">{source.party}</p>}
+                    </TableCell>
+                    <TableCell className="hidden py-2 text-ink-600 md:table-cell">{source.party || '—'}</TableCell>
+                    <TableCell className="hidden py-2 text-ink-500 md:table-cell">{text(sourceLabel(source), sourceLabelBn(source))}</TableCell>
+                    <TableCell className="hidden max-w-[220px] py-2 md:table-cell"><p className="truncate text-ink-500">{accountLabel(source)}</p></TableCell>
+                    <TableCell className="w-[64px] min-w-[64px] px-1 py-2 text-right text-[11px] font-semibold text-ink md:w-auto md:min-w-0 md:px-4 md:text-[13px]">
+                      <span className="block whitespace-nowrap">{taka(source.amount)}</span>
+                      <span data-table-helper="" className={'block text-[10px] font-normal md:hidden ' + (source.status === 'Posted' ? 'text-success' : 'text-ink-500')}>{text(source.status, source.status === 'Posted' ? 'লেখা হয়েছে' : 'মুছে ফেলা')}</span>
+                    </TableCell>
+                    <TableCell className="hidden py-2 md:table-cell"><p className="font-medium text-ink">{source.postedBy}</p><p data-table-helper="" className="text-[10.5px] text-ink-400">{source.createdAt.slice(11, 16)}</p></TableCell>
+                    <TableCell className="hidden py-2 text-ink-500 md:table-cell">{lastChange?.user || '—'}</TableCell>
+                    <TableCell className="hidden py-2 md:table-cell"><StatusBadge tone={source.status === 'Posted' ? 'success' : 'neutral'} dot>{text(source.status,source.status==='Posted'?'লেখা হয়েছে':'মুছে ফেলা')}</StatusBadge></TableCell>
+                    <TableCell className="sticky right-0 z-10 w-[44px] min-w-[44px] border-l border-border bg-card px-1 py-1.5 text-right md:w-auto md:min-w-0 md:pr-2">
                       <FloatingPanel
                         label={'Audit actions for ' + source.reference}
                         width={190}
