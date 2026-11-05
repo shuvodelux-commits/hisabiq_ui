@@ -3,6 +3,7 @@ import { Filter, RotateCcw, Search } from 'lucide-react';
 import { AppSelect } from '../AppSelect';
 import { AppDateRangePicker } from '../AppDateRangePicker';
 import { Button } from '../Button';
+import { AnimatedAdvancedFilters } from '../layout/AnimatedAdvancedFilters';
 import { datePreset } from '../../utils/dateRange';
 import { Input } from '../Input';
 import {useUiCopy} from '../../i18n/useUiCopy';
@@ -72,7 +73,10 @@ export function DaybookFilters({
           onChange={({ from, to }) => onChange({ ...value, from, to })} />
         {filterToggle('hidden md:inline-flex lg:hidden')}
       </div>
-      <div id="daybook-advanced-filters" className={(mobileFiltersOpen ? 'grid ' : 'hidden ') + 'grid-cols-1 gap-2 min-[360px]:grid-cols-2 md:grid-cols-4 lg:grid'}>
+      <AnimatedAdvancedFilters
+        id="daybook-advanced-filters"
+        open={mobileFiltersOpen}
+        className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 md:grid-cols-4">
         <AppSelect label={text('Transaction type','লেনদেনের ধরন')} className="min-w-0" value={value.type} onChange={(type) => set('type', type)} options={[{value:'All types',label:text('All types','সব ধরন')},...types.map(v=>({value:v,label:text(v,typeBn[v]??v)}))]} />
         <AppSelect label={text('Account','হিসাব')} className="min-w-0" value={value.account} onChange={(account) => set('account', account)} options={[{value:'All accounts',label:text('All accounts','সব হিসাব')},...accounts]} />
         <AppSelect label={text('Posted by','যিনি লিখেছেন')} className="min-w-0" value={value.user} onChange={(user) => set('user', user)} options={[{value:'All users',label:text('All users','সব ব্যবহারকারী')},...users]} />
@@ -86,7 +90,7 @@ export function DaybookFilters({
             <RotateCcw className="size-4" aria-hidden="true" />
           </Button>
         </div>
-      </div>
+      </AnimatedAdvancedFilters>
     </div>
   );
 }

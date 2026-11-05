@@ -1,5 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { sababEase } from '../motion/sababMotion';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUiCopy } from '../i18n/useUiCopy';
 import { datePickerMonthLabel } from '../i18n/datePickerCopy';
@@ -23,6 +25,7 @@ export function AppMonthYearPicker({mode,value,maxDate,label,onChange,className=
  const t=(en:string,bn:string)=>text(en,bn);
  const initialYear=Number(value.slice(0,4))||Number(maxDate.slice(0,4));
  const [open,setOpen]=useState(false);
+ const reducedMotion=useReducedMotion();
  const [visibleYear,setVisibleYear]=useState(initialYear);
  const [position,setPosition]=useState<{top:number;left:number;width:number;maxHeight:number}|null>(null);
  const anchor=useRef<HTMLButtonElement>(null);
@@ -37,7 +40,7 @@ export function AppMonthYearPicker({mode,value,maxDate,label,onChange,className=
   ?new Intl.NumberFormat(language==='Bangla'?'bn-BD':'en-GB',{useGrouping:false}).format(Number(value))
   :t('Select period','সময়কাল বাছুন');
  const close=()=>{setOpen(false);anchor.current?.focus();};
- const show=()=>{setVisibleYear(initialYear);setOpen(true);};
+ const show=()=>{setVisibleYear(initialYear);setPosition(null);setOpen(true);};
  const choose=(selection:string)=>{onChange(selection);close();};
  const previous=()=>setVisibleYear(year=>Math.max(2000,year-(mode==='year'?12:1)));
  const next=()=>setVisibleYear(year=>Math.min(maxYear,year+(mode==='year'?12:1)));
@@ -45,7 +48,7 @@ export function AppMonthYearPicker({mode,value,maxDate,label,onChange,className=
  const canGoNext=mode==='month'?visibleYear<maxYear:pageStart+12<=maxYear;
 
  useLayoutEffect(()=>{
-  if(!open){setPosition(null);return;}
+  if(!open)return;
   const place=()=>{
    const rect=anchor.current?.getBoundingClientRect();
    if(!rect)return;
@@ -92,10 +95,15 @@ export function AppMonthYearPicker({mode,value,maxDate,label,onChange,className=
    <CalendarDays className="size-4 shrink-0 text-teal-600" aria-hidden="true"/>
    <span className="min-w-0 flex-1 truncate">{visibleLabel}</span>
   </button>
-  {open&&typeof document!=='undefined'&&createPortal(
-   <div ref={popup} id={popupId} role="dialog" aria-label={label+' '+t('calendar','ক্যালেন্ডার')}
+  {typeof document!=='undefined'&&createPortal(
+   <AnimatePresence initial={false}>{open&&<motion.div ref={popup} id={popupId} role="dialog" aria-label={label+' '+t('calendar','ক্যালেন্ডার')}
+    data-sabab-select-motion="period"
+    initial={reducedMotion ? false : {opacity:0,scale:0.97,y:-4}}
+    animate={{opacity:1,scale:1,y:0}}
+    exit={{opacity:0,scale:0.98,y:-2}}
+    transition={{duration:reducedMotion?0:0.14,ease:sababEase.out}}
     className="fixed z-[155] overflow-y-auto rounded-xl border border-border bg-popover p-3 text-ink shadow-xl scrollbar-thin"
-    style={{top:position?.top??0,left:position?.left??0,width:position?.width??316,maxHeight:position?.maxHeight??348,visibility:position?'visible':'hidden'}}>
+    style={{top:position?.top??0,left:position?.left??0,width:position?.width??316,maxHeight:position?.maxHeight??348,visibility:position?'visible':'hidden',transformOrigin:'top center'}}>
     <div className="mb-3 flex items-center justify-between gap-2">
      <span className="text-[13px] font-semibold">{mode==='month'?t('Choose month','মাস বাছুন'):t('Choose year','বছর বাছুন')}</span>
      <div className="flex items-center gap-1">
@@ -137,6 +145,6 @@ export function AppMonthYearPicker({mode,value,maxDate,label,onChange,className=
     <div className="mt-3 flex justify-end border-t border-border pt-3">
      <button type="button" className="rounded-md border border-border px-3 py-1.5 text-xs text-ink hover:bg-ink-50" onClick={close}>{t('Close','বন্ধ করুন')}</button>
     </div>
-   </div>,document.body)}
+   </motion.div>}</AnimatePresence>,document.body)}
  </div>;
 }

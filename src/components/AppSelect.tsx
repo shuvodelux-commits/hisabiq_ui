@@ -1,6 +1,8 @@
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { sababEase } from '../motion/sababMotion';
 
 export type SelectOption = string | { value: string; label: string };
 const optionValue = (item: SelectOption) => typeof item === 'string' ? item : item.value;
@@ -26,6 +28,7 @@ export function AppSelect({
   label, value, options, onChange, className = '', disabled = false, placeholder = 'Select…', compact = false, menuStyle = 'default', id: triggerId, describedBy
 }: Props) {
   const [open, setOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
   const rowsStyle = menuStyle === 'rows';
   const [active, setActiveState] = useState(0);
   const activeRef = useRef(0);
@@ -131,15 +134,20 @@ export function AppSelect({
             : 'rounded-md ' + (compact ? 'border-0 bg-transparent px-2 shadow-none ' : ''))}
       >
         <span className="truncate">{currentLabel ? optionLabel(currentLabel) : value || placeholder}</span>
-        <ChevronDown className={'size-4 shrink-0 text-ink-400 transition-transform ' + (rowsStyle && open ? 'rotate-180' : '')} aria-hidden="true" />
+        <ChevronDown className={'size-4 shrink-0 text-ink-400 motion-safe:transition-transform motion-safe:duration-150 ' + (open ? 'rotate-180' : '')} aria-hidden="true" />
       </button>
-      {open && typeof document !== 'undefined' && createPortal(
-        <div ref={menu} id={id} role="listbox" aria-label={label + ' options'}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence initial={false}>{open && <motion.div ref={menu} id={id} role="listbox" aria-label={label + ' options'}
+          data-sabab-select-motion="menu"
+          initial={reducedMotion ? false : {opacity:0,scale:0.97,y:-4}}
+          animate={{opacity:1,scale:1,y:0}}
+          exit={{opacity:0,scale:0.98,y:-2}}
+          transition={{duration:reducedMotion ? 0 : 0.14,ease:sababEase.out}}
           data-menu-style={menuStyle}
           className={'fixed z-[160] overflow-auto border border-border bg-popover text-ink shadow-xl scrollbar-thin ' +
             (rowsStyle ? 'rounded-2xl p-1.5 shadow-[0_12px_28px_rgba(14,31,51,0.15)]' : 'rounded-lg p-1')}
           style={{ top: rect?.top ?? 0, left: rect?.left ?? 0, width: rect?.width ?? 160,
-            maxHeight: rect?.maxHeight ?? 260, visibility: rect ? 'visible' : 'hidden' }}
+            maxHeight: rect?.maxHeight ?? 260, visibility: rect ? 'visible' : 'hidden', transformOrigin:'top center' }}
         >
           {options.map((option, index) => (
             <button key={optionValue(option) + index} type="button" role="option" id={id + '-opt-' + index}
@@ -160,7 +168,7 @@ export function AppSelect({
             </button>
           ))}
           {options.length === 0 && <div className="p-2 text-xs text-ink-400">No options</div>}
-        </div>, document.body
+        </motion.div>}</AnimatePresence>, document.body
       )}
     </div>
   );

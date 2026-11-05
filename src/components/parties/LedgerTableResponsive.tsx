@@ -55,7 +55,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
   return <div className="min-w-0">
     <div className="hidden md:block">{summary}</div>
 
-    <div className="hidden min-w-0 overflow-x-auto md:block">
+    <div data-party-ledger-table-scroll="" className="hidden min-w-0 overflow-x-auto md:block">
       <Table scrollRegionLabel={text('Party ledger transactions', 'পার্টির খাতার লেনদেন')} className="w-full min-w-[655px]">
         <TableHeader>
           <TableRow className="h-8 bg-ink-50/30 hover:bg-transparent">
@@ -63,7 +63,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
             <TableHead className="min-w-[178px] text-[11px]">{text('Particulars', 'বিবরণ')}</TableHead>
             {financial.columns.map(side=><TableHead key={side} className="w-[96px] text-right text-[11px]">{financial.label(side)}</TableHead>)}
             <TableHead className="w-[116px] text-right text-[11px]">{text('Balance', 'জের')}</TableHead>
-            <TableHead className="w-[40px] pr-2 text-right text-[11px]"><span className="sr-only">{text('Actions', 'কাজ')}</span></TableHead>
+            <TableHead className="sticky right-0 z-10 w-12 bg-card pl-0 pr-2 text-right text-[11px]"><span className="sr-only">{text('Actions', 'কাজ')}</span></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -89,7 +89,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
             </TableCell>
             {financial.columns.map(side=><TableCell key={side} className="py-1.5 text-right"><LedgerImpactAmount row={row} value={row[side]} language={language} currency /></TableCell>)}
             <TableCell className="whitespace-nowrap py-1.5 text-right font-semibold text-ink">{taka(Math.abs(row.runningBalance))} <span data-table-helper="" className="text-[10px] text-ink-500">{row.runningBalance>=0?'Dr':'Cr'}</span></TableCell>
-            <TableCell className="py-1 pr-1.5 text-right">
+            <TableCell className="sticky right-0 z-10 w-12 bg-card py-1 pl-0 pr-1.5 text-right">
               <div className="flex items-center justify-end gap-1"><PartyLedgerRowActions row={row} actions={actionsForRow(row)} onAction={onAction} /></div>
             </TableCell>
           </TableRow>)}
