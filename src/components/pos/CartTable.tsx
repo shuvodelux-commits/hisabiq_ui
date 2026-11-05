@@ -43,7 +43,7 @@ type CartTableProps = {
   searchRef: React.RefObject<HTMLInputElement>;
 };
 
-const grid = 'grid min-w-0 grid-cols-[28px_minmax(105px,1fr)_168px_88px_164px_102px_28px] items-center gap-1';
+const grid = 'grid min-w-0 grid-cols-[36px_minmax(90px,1fr)_160px_78px_164px_98px_28px] items-center gap-1';
 
 const cellInput =
 'h-9 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-ink hover:border-border focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20';
