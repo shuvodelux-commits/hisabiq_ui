@@ -48,7 +48,25 @@ async function main(){
           const probe=document.createElement('div');
           probe.style.cssText='position:absolute;width:100cqw;height:0;pointer-events:none';
           el.appendChild(probe);const cqwWidth=probe.getBoundingClientRect().width;probe.remove();
-          return {cart:rect(el),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,cqwWidth,ancestors,
+          const matchingWidthRules=[];
+          function inspectRules(rules,source){
+            for(const rule of rules){
+              if(rule.selectorText&&rule.style){
+                const min=rule.style.getPropertyValue('min-width');
+                const width=rule.style.getPropertyValue('width');
+                const max=rule.style.getPropertyValue('max-width');
+                if(!min&&!width&&!max)continue;
+                try{if(!row.matches(rule.selectorText))continue;}catch{continue;}
+                matchingWidthRules.push({selector:rule.selectorText.slice(0,190),
+                   min:min||null,minImportant:rule.style.getPropertyPriority('min-width'),
+                   width:width||null,widthImportant:rule.style.getPropertyPriority('width'),
+                   max:max||null,maxImportant:rule.style.getPropertyPriority('max-width'),
+                   source:source.slice(-120)});
+              }else if(rule.cssRules){try{inspectRules(rule.cssRules,source+' > '+(rule.conditionText||rule.name||rule.constructor?.name||'nested'));}catch{}}
+            }
+          }
+          for(const sheet of document.styleSheets){try{inspectRules(sheet.cssRules,sheet.href||'inline');}catch{}}
+          return {cart:rect(el),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,cqwWidth,ancestors,matchingWidthRules:matchingWidthRules.slice(-45),
             row:rect(row),rowGrid:getComputedStyle(row).gridTemplateColumns,
             rowScroll:row.scrollWidth,headerDisplay:getComputedStyle(el.querySelector('[data-cart-header]')).display,
             children:[...row.children].map((ch,i)=>({i,...rect(ch)})),totalText:total.textContent?.trim(),textRight:r.getBoundingClientRect().right};
