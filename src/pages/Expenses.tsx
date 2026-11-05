@@ -10,10 +10,13 @@ import {
   Plus,
   Printer,
   Search,
+  Filter,
+  RotateCcw,
   Settings2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
+import { AnimatedAdvancedFilters } from '../components/layout/AnimatedAdvancedFilters';
 import { FormSelect } from '../components/FormSelect';
 import { AppDateRangePicker } from '../components/AppDateRangePicker';
 import { expenseDateIso, formatRange, type IsoRange } from '../utils/dateRange';
@@ -99,12 +102,14 @@ export function Expenses() {
   const [payeeFilter, setPayeeFilter] = useState('All payees');
   const [methodFilter, setMethodFilter] = useState('All payment methods');
   const [statusFilter, setStatusFilter] = useState('Active');
+  const [showFilters, setShowFilters] = useState(false);
   const [categoryEditor, setCategoryEditor] = useState<{ previous?: string; name: string } | null>(null);
   const [payeeEditor, setPayeeEditor] = useState<{ party?: Party } | null>(null);
   const [cancelling, setCancelling] = useState<Expense | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [actionError, setActionError] = useState('');
   const activeExpenses = expenses.filter(item => item.recordStatus !== 'Deleted');
+  const activeFilterCount = [categoryFilter !== 'All categories', payeeFilter !== 'All payees', methodFilter !== 'All payment methods', statusFilter !== 'Active'].filter(Boolean).length;
   const resetFilters = () => { setQuery(''); setCategoryFilter('All categories'); setPayeeFilter('All payees'); setMethodFilter('All payment methods'); setStatusFilter('Active'); };
   const reportFor = (items: Expense[], title = 'Expense list') => ({ title, subtitle: 'Expense source preview', headers: ['Reference', 'Date', 'Category', 'Payee', 'Details', 'Amount', 'Paid', 'Due', 'Status'], rows: items.map(e => [e.ref, e.date, e.category, e.payee, e.note, e.amount, e.paid, e.amount - e.paid, e.recordStatus === 'Deleted' ? 'Cancelled' : 'Active']) });
   const printExpenses = (items: Expense[], title?: string) => { const report=reportFor(items,title); if (!printReport({...report,language,subtitle:documentLabel(language,report.subtitle),headers:report.headers.map(h=>documentLabel(language,h)),rows:report.rows.map(row=>row.map((value,index)=>index===8?documentLabel(language,String(value)):value))})) toast.error(text('Allow the print popup and try again.','প্রিন্টের উইন্ডো খুলতে দিন, তারপর আবার চেষ্টা করুন।')); };
@@ -210,24 +215,45 @@ export function Expenses() {
 
         {tab === 'expenses' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1 lg:max-w-md">
-                <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="pl-8"
-                  placeholder={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
-                />
+            <div data-expenses-filter-toolbar="" className="space-y-2 border-b border-border p-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 lg:flex lg:items-center">
+                <div className="relative min-w-0 flex-1 lg:max-w-md">
+                  <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                  <Input
+                    aria-label={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    className="pl-8"
+                    placeholder={text("Search expense, payee, category or reference","খরচ, প্রাপক, ধরন বা রেফারেন্স খুঁজুন")}
+                  />
+                </div>
+                <Button type="button" variant="outline" size="icon"
+                  aria-label={text('Advanced filters','আরও ফিল্টার') + (activeFilterCount ? ' (' + activeFilterCount + ')' : '')}
+                  aria-controls="expenses-advanced-filters" aria-expanded={showFilters}
+                  onClick={() => setShowFilters(open => !open)}
+                  className={'relative size-9 shrink-0 rounded-md lg:hidden ' + (activeFilterCount ? 'border-teal-500 text-teal-700' : 'text-ink-500')}>
+                  <Filter className="size-4" aria-hidden="true" />
+                  {activeFilterCount > 0 && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />}
+                </Button>
+                <Button variant="outline" size="sm" className="col-span-2 justify-self-end lg:ml-auto" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
+                  <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
+                </Button>
               </div>
-              <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="w-full lg:w-40" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
-              <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="w-full lg:w-40" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
-              <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="w-full lg:w-40" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
-              <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="w-full lg:w-32" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
-              <Button variant="ghost" size="sm" onClick={resetFilters}>{text('Reset','রিসেট')}</Button>
-              <Button variant="outline" size="sm" onClick={() => exportExpenses(filteredExpenses, 'hisabiq-expenses.csv')}>
-                <ArrowDownToLine className="size-4" /> {text('Export','ডাউনলোড')}
-              </Button>
+              <AnimatedAdvancedFilters id="expenses-advanced-filters" open={showFilters}
+                className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,1fr)]">
+                <FormSelect aria-label={text("Expense category filter","খরচের ধরন বাছুন")} className="min-w-0 w-full" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={[{value:'All categories',label:text('All categories','সব ধরন')},...new Set([...categories.map(c => c.name), ...expenses.map(e => e.category)])]} />
+                <FormSelect aria-label={text("Expense payee filter","টাকা প্রাপক বাছুন")} className="min-w-0 w-full" value={payeeFilter} onChange={e => setPayeeFilter(e.target.value)} options={[{value:'All payees',label:text('All payees','সব প্রাপক')},...new Set([...payees.map(p => p.name), ...expenses.map(e => e.payee)])]} />
+                <FormSelect aria-label={text("Expense payment filter","খরচের মাধ্যম বাছুন")} className="min-w-0 w-full" value={methodFilter} onChange={e => setMethodFilter(e.target.value)} options={['All payment methods', ...expensePaymentMethods].map(v=>({value:v,label:text(v,v==='All payment methods'?'সব মাধ্যম':v==='Cash'?'ক্যাশ':v==='Bank'?'ব্যাংক':v==='Card'?'কার্ড':v==='Mobile Banking'?'মোবাইল ব্যাংকিং':v)}))} />
+                <div className="flex min-w-0 items-center gap-2">
+                  <FormSelect aria-label={text("Expense status filter","খরচের অবস্থা বাছুন")} className="min-w-0 flex-1" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={['All status', 'Active', 'Cancelled'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Active'?'চালু':'বাতিল')}))} />
+                  <Button type="button" variant="outline" size="icon" className="size-9 shrink-0 rounded-md text-ink-500"
+                    aria-label={text('Reset filters','ফিল্টার মুছুন')}
+                    title={text('Reset all filters','সব ফিল্টার মুছুন')}
+                    onClick={resetFilters}>
+                    <RotateCcw className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              </AnimatedAdvancedFilters>
             </div>
 
             <Table>
