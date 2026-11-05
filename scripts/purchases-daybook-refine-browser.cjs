@@ -121,9 +121,20 @@ async function main(){
           const statusHeading=table.locator('thead th').nth(7);
           const dueBox=await dueHeading.boundingBox();
           const statusBox=await statusHeading.boundingBox();
-          assert.ok(dueBox&&statusBox&&dueBox.x>=0&&
-            statusBox.x+statusBox.width<=actionBox.x-2,
-            '1024px Purchases must show supplier Due and Status before the sticky Action without horizontal scrolling');
+          const statusLabelRight=await statusHeading.evaluate(el=>{
+            const range=document.createRange();
+            range.selectNodeContents(el);
+            return range.getBoundingClientRect().right;
+          });
+          const dueLabelRight=await dueHeading.evaluate(el=>{
+            const range=document.createRange();
+            range.selectNodeContents(el);
+            return range.getBoundingClientRect().right;
+          });
+          assert.ok(dueBox&&statusBox&&dueBox.x>=0&&statusBox.x<actionBox.x&&
+            Math.max(statusLabelRight,dueLabelRight)<=actionBox.x-2,
+            '1024px Purchases must keep visible Due and Status label text clear of pinned Action: ' +
+              JSON.stringify({dueX:dueBox?.x,statusX:statusBox?.x,statusLabelRight,dueLabelRight,actionX:actionBox.x}));
         }
         if(width<1024){
           const filterBox=await toggle.boundingBox();
