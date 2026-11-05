@@ -10,9 +10,12 @@ import {
   BookOpen,
   BriefcaseBusiness,
   CheckCircle2,
+  Eye,
+  Pencil,
+  Power,
+  RotateCcw,
   CircleDollarSign,
   Landmark,
-  MoreHorizontal,
   Plus,
   RefreshCw,
   Search,
@@ -36,6 +39,8 @@ import { FinancePaymentSplitEditor, type FinancePaymentDraft } from '../componen
 import { financeAccountIdentityLabel, transferAccountId, transferAccountLabel } from '../utils/accountTransferIdentity';
 import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid, financePaymentDraftTotal } from '../utils/financePaymentDrafts';
 import { StatusBadge } from '../components/StatusBadge';
+import { RowActionMenu } from '../components/layout/RowActionMenu';
+import { ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
 import {
@@ -547,11 +552,20 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const [peopleOpen, setPeopleOpen] = useState(false);
   const [chequeOpen, setChequeOpen] = useState(false);
   const [chequeAction, setChequeAction] = useState<ChequeRecord | null>(null);
+  const [chequeActionMode, setChequeActionMode] = useState<'view' | 'edit'>('view');
   const [cashSessionAction, setCashSessionAction] = useState<CashSessionRecord | null>(null);
   const [transferFrom, setTransferFrom] = useState<string | undefined>(undefined);
   const [transactionAction, setTransactionAction] = useState<FinanceTransaction | null>(null);
+  const [transactionActionMode, setTransactionActionMode] = useState<'view' | 'edit' | 'reverse'>('view');
   const [accountAction, setAccountAction] = useState<FinanceAccount | null>(null);
+  const [accountActionMode, setAccountActionMode] = useState<'ledger' | 'edit' | 'manual' | 'status'>('ledger');
   const [transferAction, setTransferAction] = useState<AccountTransfer | null>(null);
+  const [transferActionMode, setTransferActionMode] = useState<'view' | 'reverse'>('view');
+
+  const openTransactionActions = (item: FinanceTransaction, mode: 'view' | 'edit' | 'reverse') => { setTransactionActionMode(mode); setTransactionAction(item); };
+  const openAccountActions = (item: FinanceAccount, mode: 'ledger' | 'edit' | 'manual' | 'status') => { setAccountActionMode(mode); setAccountAction(item); };
+  const openTransferActions = (item: AccountTransfer, mode: 'view' | 'reverse') => { setTransferActionMode(mode); setTransferAction({ ...item, from: transferAccountLabel(item, 'from', accounts), to: transferAccountLabel(item, 'to', accounts) }); };
+  const openChequeActions = (item: ChequeRecord, mode: 'view' | 'edit') => { setChequeActionMode(mode); setChequeAction(item); };
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All transaction types');
   const applyTransactionMovement = (list: FinanceAccount[], transaction: FinanceTransaction, factor = 1) => {
@@ -574,6 +588,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     if (!previous) return;
     setAccounts((current) => applyTransactionMovement(applyTransactionMovement(current, previous, -1), updated, 1));
     setTransactions((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setTransactionActionMode('view');
     setTransactionAction(updated);
     toast.success('Finance transaction updated', { description: updated.id });
   };
@@ -583,6 +598,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     const reversed = { ...transaction, status: 'Reversed' as const };
     setAccounts((current) => applyTransactionMovement(current, transaction, -1));
     setTransactions((current) => current.map((item) => item.id === transaction.id ? reversed : item));
+    setTransactionActionMode('view');
     setTransactionAction(reversed);
     toast.success('Transaction reversed', { description: transaction.id + ' remains in the audit history' });
   };
@@ -598,6 +614,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
       })));
       setChequeRecords((current) => renameChequeAccountReferences(current, accounts, updated, previous.name));
     }
+    setAccountActionMode('ledger');
     setAccountAction(updated);
     toast.success('Account updated', { description: updated.name });
   };
@@ -605,6 +622,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const toggleFinanceAccount = (account: FinanceAccount) => {
     const updated = { ...account, status: account.status === 'Active' ? 'Inactive' as const : 'Active' as const };
     setAccounts((current) => current.map((item) => item.id === account.id ? updated : item));
+    setAccountActionMode('ledger');
     setAccountAction(updated);
     toast.success(updated.status === 'Active' ? 'Account activated' : 'Account deactivated', { description: updated.name });
   };
@@ -626,6 +644,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     };
     setTransactions((current) => [transaction, ...current]);
     setAccounts((current) => applyTransactionMovement(current, transaction, 1));
+    setAccountActionMode('ledger');
     setAccountAction((current) => current && current.id === account.id
       ? { ...current, balance: current.balance + (direction === 'in' ? amount : -amount), lastActivity: 'Just now' }
       : current);
@@ -639,6 +658,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
   const updateCheque = (updated: ChequeRecord) => {
     setChequeRecords((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setChequeActionMode('view');
     setChequeAction(updated);
     toast.success('Cheque updated', { description: updated.id });
   };
@@ -665,6 +685,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
         ? { ...account, balance: account.balance + (cheque.direction === 'Received' ? cheque.amount : -cheque.amount), lastActivity: 'Just now' }
         : account));
     }
+    setChequeActionMode('view');
     setChequeAction(updated);
     toast.success('Cheque status updated', { description: cheque.id + ' · ' + nextStatus });
     return true;
@@ -679,6 +700,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
       if (account.id === transferAccountId(transfer, 'to', accounts)) return { ...account, balance: account.balance - transfer.amount, lastActivity: 'Just now' };
       return account;
     }));
+    setTransferActionMode('view');
     setTransferAction(reversed);
     toast.success('Transfer reversed', { description: transfer.id });
   };
@@ -923,7 +945,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                   <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
                   <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                   <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -943,13 +965,17 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       {item.direction === 'in' ? '+' : item.direction === 'out' ? '−' : ''}{taka(item.amount)}
                     </TableCell>
                     <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
-                    <TableCell className="py-2 pr-4 text-right">
-                      <button
-                        onClick={() => setTransactionAction(item)}
-                        aria-label={text('Actions for','কাজ') + ' ' + item.id}
-                        className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                        <MoreHorizontal className="size-4" />
-                      </button>
+                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
+                      <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
+                        {close => <>
+                          <ActionMenuItem icon={Eye} onClick={() => { close(); openTransactionActions(item, 'view'); }}>{text('View transaction','লেনদেন দেখুন')}</ActionMenuItem>
+                          {item.status === 'Active' && <>
+                            <ActionMenuItem icon={Pencil} onClick={() => { close(); openTransactionActions(item, 'edit'); }}>{text('Edit','সংশোধন')}</ActionMenuItem>
+                            <ActionMenuDivider />
+                            <ActionMenuItem icon={RotateCcw} tone="destructive" onClick={() => { close(); openTransactionActions(item, 'reverse'); }}>{text('Review reversal','উল্টো করা যাচাই')}</ActionMenuItem>
+                          </>}
+                        </>}
+                      </RowActionMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1013,7 +1039,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
-                    <Button variant="outline" size="sm" onClick={() => setAccountAction(account)}>
+                    <Button variant="outline" size="sm" onClick={() => openAccountActions(account, 'ledger')}>
                       <BookOpen className="size-4" /> {text('Ledger','খাতা')}
                     </Button>
                     {account.type !== 'Cash' && (
@@ -1026,12 +1052,17 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <Landmark className="size-4" /> {text('Bank Entry','ব্যাংক এন্ট্রি')}
                       </Button>
                     )}
-                    <button
-                      onClick={() => setAccountAction(account)}
-                      aria-label={text('Actions for','কাজ') + ' ' + account.name}
-                      className="ml-auto rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                      <MoreHorizontal className="size-4" />
-                    </button>
+                    <RowActionMenu label={text('Actions for','কাজ') + ' ' + account.name} className="ml-auto inline-block" width={230}>
+                      {close => <>
+                        <ActionMenuItem icon={BookOpen} onClick={() => { close(); openAccountActions(account, 'ledger'); }}>{text('View ledger','খাতা দেখুন')}</ActionMenuItem>
+                        <ActionMenuItem icon={Pencil} onClick={() => { close(); openAccountActions(account, 'edit'); }}>{text('Edit account','হিসাব সংশোধন')}</ActionMenuItem>
+                        <ActionMenuItem icon={Banknote} onClick={() => { close(); openAccountActions(account, 'manual'); }}>{text('Money in / out','টাকা আসা / যাওয়া')}</ActionMenuItem>
+                        <ActionMenuItem icon={ArrowLeftRight} onClick={() => { close(); openTransfer(account); }}>{text('Transfer','টাকা স্থানান্তর')}</ActionMenuItem>
+                        {account.type !== 'Cash' && <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>}
+                        <ActionMenuDivider />
+                        <ActionMenuItem icon={Power} tone={account.status === 'Active' ? 'destructive' : 'neutral'} onClick={() => { close(); openAccountActions(account, 'status'); }}>{text(account.status === 'Active' ? 'Deactivate' : 'Activate', account.status === 'Active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন')}</ActionMenuItem>
+                      </>}
+                    </RowActionMenu>
                   </div>
                 </div>
               ))}
@@ -1055,7 +1086,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     <TableHead className="h-9 text-xs">{text('To','যে হিসাবে')}</TableHead>
                     <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                    <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1069,10 +1100,16 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       <TableCell className="py-2">{transferAccountLabel(item, 'to', accounts)}</TableCell>
                       <TableCell className="py-2 text-right font-semibold">{taka(item.amount)}</TableCell>
                       <TableCell className="py-2"><StatusBadge tone={item.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
-                        <button onClick={() => setTransferAction({ ...item, from: transferAccountLabel(item, 'from', accounts), to: transferAccountLabel(item, 'to', accounts) })} aria-label={text('Actions for','কাজ') + ' ' + item.id} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink">
-                          <MoreHorizontal className="size-4" />
-                        </button>
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
+                        <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
+                          {close => <>
+                            <ActionMenuItem icon={Eye} onClick={() => { close(); openTransferActions(item, 'view'); }}>{text('View transfer','ট্রান্সফার দেখুন')}</ActionMenuItem>
+                            {item.status === 'Completed' && <>
+                              <ActionMenuDivider />
+                              <ActionMenuItem icon={RotateCcw} tone="destructive" onClick={() => { close(); openTransferActions(item, 'reverse'); }}>{text('Review reversal','উল্টো করা যাচাই')}</ActionMenuItem>
+                            </>}
+                          </>}
+                        </RowActionMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1104,7 +1141,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     <TableHead className="h-9 text-xs">{text('Money account','টাকার হিসাব')}</TableHead>
                     <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                    <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1125,10 +1162,13 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <TableCell className="py-2 text-ink-500">{cheque.depositAccount || '—'}</TableCell>
                         <TableCell className="py-2 text-right font-semibold">{taka(cheque.amount)}</TableCell>
                         <TableCell className="py-2"><StatusBadge tone={cheque.status === 'Cleared' ? 'success' : cheque.status === 'Bounced' ? 'danger' : pdc ? 'warning' : 'neutral'} dot>{financeLabel(language,cheque.status)}</StatusBadge></TableCell>
-                        <TableCell className="py-2 pr-4 text-right">
-                          <button onClick={() => setChequeAction(cheque)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + cheque.id}>
-                            <MoreHorizontal className="size-4" />
-                          </button>
+                        <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
+                          <RowActionMenu label={text('Actions for','কাজ') + ' ' + cheque.id}>
+                            {close => <>
+                              <ActionMenuItem icon={Eye} onClick={() => { close(); openChequeActions(cheque, 'view'); }}>{text('View cheque','চেক দেখুন')}</ActionMenuItem>
+                              {chequeLifecycleActions(cheque).length > 0 && <ActionMenuItem icon={Pencil} onClick={() => { close(); openChequeActions(cheque, 'edit'); }}>{text('Edit cheque','চেক সংশোধন')}</ActionMenuItem>}
+                            </>}
+                          </RowActionMenu>
                         </TableCell>
                       </TableRow>
                     );
@@ -1192,7 +1232,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     <TableHead className="h-9 text-right text-xs">{text('Counted','গুনে পাওয়া')}</TableHead>
                     <TableHead className="h-9 text-right text-xs">{text('Variance','পার্থক্য')}</TableHead>
                     <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                    <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1214,7 +1254,14 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       <TableCell className="py-2">
                         <StatusBadge tone={session.status === 'Open' ? 'success' : session.variance ? 'warning' : 'neutral'} dot>{financeLabel(language,session.status)}</StatusBadge>
                       </TableCell>
-                      <TableCell className="py-2 pr-4 text-right"><button onClick={() => setCashSessionAction(session)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={'Actions for ' + session.id}><MoreHorizontal className="size-4" /></button></TableCell>
+                      <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
+                        <RowActionMenu label={text('Actions for','কাজ') + ' ' + session.id}>
+                          {close => <>
+                            <ActionMenuItem icon={Eye} onClick={() => { close(); setCashSessionAction(session); }}>{text('View cash session','ক্যাশ সেশন দেখুন')}</ActionMenuItem>
+                            <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>
+                          </>}
+                        </RowActionMenu>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -1292,6 +1339,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <ChequeActionDialog
         cheque={chequeAction}
+        initialMode={chequeActionMode}
         accounts={accounts}
         onClose={() => setChequeAction(null)}
         onUpdate={updateCheque}
@@ -1306,6 +1354,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <FinanceTransactionActionDialog
         transaction={transactionAction}
+        initialMode={transactionActionMode}
         accounts={accounts}
         people={people}
         onClose={() => setTransactionAction(null)}
@@ -1315,6 +1364,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <FinanceAccountActionDialog
         account={accountAction}
+        initialMode={accountActionMode}
         accounts={accounts}
         transactions={transactions}
         transfers={transfers}
@@ -1328,6 +1378,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <FinanceTransferActionDialog
         transfer={transferAction}
+        initialMode={transferActionMode}
         onClose={() => setTransferAction(null)}
         onReverse={reverseAccountTransfer}
       />

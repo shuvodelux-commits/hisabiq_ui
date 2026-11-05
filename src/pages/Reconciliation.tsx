@@ -13,7 +13,6 @@ import {
   FileUp,
   Landmark,
   Link2,
-  MoreHorizontal,
   Plus,
   Search,
   Undo2,
@@ -27,6 +26,8 @@ import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { StatusBadge, type StatusTone } from '../components/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
+import { RowActionMenu } from '../components/layout/RowActionMenu';
+import { ActionMenuItem } from '../components/layout/ActionMenu';
 import { parties } from '../data/parties';
 import {
   erpReconciliationTransactions as seedErp,
@@ -544,7 +545,7 @@ export function Reconciliation() {
                 <TableHead className="h-9 text-right text-xs">{text('ERP closing','ERP-র শেষ জের')}</TableHead>
                 <TableHead className="h-9 text-right text-xs">{text('Difference','পার্থক্য')}</TableHead>
                 <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -564,13 +565,10 @@ export function Reconciliation() {
                     <TableCell className="py-2">
                       <StatusBadge tone={item.status === 'Completed' ? 'success' : 'warning'} dot>{financeLabel(language,item.status)}</StatusBadge>
                     </TableCell>
-                    <TableCell className="py-2 pr-4 text-right">
-                      <button
-                        onClick={() => setHistoryItem(item)}
-                        className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink"
-                        aria-label={`Open ${item.id}`}>
-                        <MoreHorizontal className="size-4" />
-                      </button>
+                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
+                      <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
+                        {close => <ActionMenuItem icon={FileText} onClick={() => { close(); setHistoryItem(item); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem>}
+                      </RowActionMenu>
                     </TableCell>
                   </TableRow>
                 );

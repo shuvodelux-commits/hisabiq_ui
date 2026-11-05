@@ -2328,6 +2328,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/layout/RowActionMenu.tsx",
+      "kind": "component",
+      "exports": [
+        "RowActionMenu"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/layout/SababTopNavStrip.tsx",
       "kind": "component",
       "exports": [
@@ -4402,6 +4410,7 @@
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Expenses.tsx",
+      "src/pages/Finance.tsx",
       "src/pages/OnlineSales.tsx",
       "src/pages/Products.tsx",
       "src/pages/Purchases.tsx",
@@ -4621,6 +4630,7 @@
       "src/components/brand/PartyRoleSpecimen.tsx",
       "src/components/brand/VisualComponentLibrary.tsx",
       "src/components/layout/ActionMenu.tsx",
+      "src/components/layout/RowActionMenu.tsx",
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartyLedgerRowActions.tsx",
@@ -4629,10 +4639,8 @@
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Expenses.tsx",
-      "src/pages/Finance.tsx",
       "src/pages/Products.tsx",
       "src/pages/Purchases.tsx",
-      "src/pages/Reconciliation.tsx",
       "src/pages/Warranty.tsx"
     ],
     "Package": [
@@ -4695,6 +4703,7 @@
       "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Expenses.tsx",
+      "src/pages/Finance.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Products.tsx",
       "src/pages/Purchases.tsx",
@@ -4778,6 +4787,7 @@
       "src/components/accounts/ChartOfAccountsView.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/products/ProductSettings.tsx",
+      "src/pages/Finance.tsx",
       "src/pages/Products.tsx"
     ],
     "Printer": [
@@ -4849,6 +4859,7 @@
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/pos/InstallmentReceiptReversalDialog.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
+      "src/pages/Finance.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
