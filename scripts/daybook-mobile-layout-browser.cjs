@@ -77,6 +77,15 @@ async function main() {
           assert.ok(sameLine(searchBox,filterBox) && dateBox.y>searchBox.y+searchBox.height,
             'phone: Search + Filter first row, Date second row');
         }
+        // Visual and keyboard focus order must agree at both responsive tiers.
+        await expect(page.getByRole('button',{name:/Advanced filters|আরও ফিল্টার/})).toHaveCount(1);
+        await search.focus();
+        await page.keyboard.press('Tab');
+        if(width>=768) await expect(date).toBeFocused();
+        else await expect(toggle).toBeFocused();
+        await page.keyboard.press('Tab');
+        if(width>=768) await expect(toggle).toBeFocused();
+        else await expect(date).toBeFocused();
         const size=await toggle.boundingBox();
         assert.ok(size && size.width>=35 && size.width<=45 && size.height>=35 && size.height<=45,
           'advanced filter trigger is a small square 36px control');
@@ -113,6 +122,9 @@ async function main() {
         await expect(date).toBeVisible();
       } else {
         await expect(toggle).toBeHidden();
+        await search.focus();
+        await page.keyboard.press('Tab');
+        await expect(date).toBeFocused();
         await expect(advanced).toBeVisible();
         await expect(page.getByRole('columnheader',{name:/Money In|টাকা এসেছে/}).first()).toBeVisible();
       }
