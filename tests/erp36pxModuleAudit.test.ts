@@ -17,7 +17,10 @@ test('Party responsive buttons use the same 36px height as ledger filters',()=>{
  assert.doesNotMatch(party,/min-h-1[01]/);
  assert.doesNotMatch(toolbar,/min-h-1[01]/);
  assert.equal((toolbar.match(/data-ledger-filter-action=""/g)||[]).length,2);
- assert.match(toolbar,/h-9 min-h-9/);
+ assert.match(toolbar,/data-party-ledger-filter-toggle/);
+ assert.match(toolbar,/size-9 shrink-0 rounded-md/);
+ assert.match(toolbar,/aria-expanded=\{filtersOpen\}/);
+ assert.match(toolbar,/aria-controls="party-ledger-filters"/);
  assert.match(party,/onChangeParty/);
 });
 test('Sales row filters, receipt actions and return editors use 36px',()=>{
