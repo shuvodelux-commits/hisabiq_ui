@@ -47,3 +47,9 @@ For each future module with search/date/filter/table elements:
 - PR: [#252](https://github.com/shuvodelux-commits/hisabiq_ui/pull/252) (draft until separately approved).
 
 This is a UI contract for future refinements, **not authorization** to rewrite every module or to change posting and accounting behavior.
+
+### Alignment and no-wasted-row refinements
+
+- **Align the square Filter control with the rightmost table row-action button:** on phone/tablet compare their bounding-box **right edges**, not just their icon shapes. The edges should line up within a few pixels; avoid independent per-component padding that makes the toolbar and row action appear staggered.
+- **Compact Reset icon directly after Status:** Place a 36×36px, outlined `RotateCcw` reset control in the **same horizontal group** as the final `All status` dropdown, even when the advanced filter section wraps onto more than one row. It must not consume an entire standalone Reset row at desktop/tablet widths. Preserve the existing reset's full semantics (search/date/type/account/user/status), use an English/Bangla accessible label and title, and show the icon without redundant adjacent text.
+- In future module reviews, test Filter/row-action edge alignment and the Reset/status one-row position at **320, 390, 768, 820, 1024 and 1440px**, both themes; ensure controls remain usable and dropdown labels do not overlap.
