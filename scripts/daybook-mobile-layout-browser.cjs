@@ -25,6 +25,22 @@ async function main() {
       await page.goto(baseUrl+'/#/app/daybook',{waitUntil:'networkidle'});
       await expect(page.getByRole('heading',{name:'Daybook'})).toBeVisible();
 
+      // Owner screenshot: the module Settings icon belongs after Print, not in
+      // a separate leading row above the date/export/print controls.
+      const printHeader=page.getByRole('button',{name:'Print',exact:true}).first();
+      const moduleSettings=page.getByRole('button',{name:'Settings',exact:true});
+      await expect(printHeader).toBeVisible();
+      await expect(moduleSettings).toHaveCount(1);
+      const settingPosition=await moduleSettings.boundingBox();
+      const printPosition=await printHeader.boundingBox();
+      assert.ok(settingPosition && printPosition &&
+        settingPosition.x > printPosition.x + printPosition.width &&
+        Math.abs(settingPosition.y-printPosition.y)<10,
+        'module Settings must appear immediately after Print in the same action row');
+      assert.ok(await printHeader.evaluate((el)=>
+        el.parentElement?.contains(document.querySelector('button[aria-label="Settings"]')) ?? false),
+        'Print and module Settings must share the same compact wrapping group');
+
       const search=page.getByRole('textbox',{name:/Search transaction|লেনদেন/}).first();
       const date=page.getByRole('button',{name:/Daybook date range|দৈনিক খাতার তারিখ/}).first();
       await expect(search).toBeVisible();
