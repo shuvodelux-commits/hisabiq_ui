@@ -50,3 +50,4 @@ Use the **approved Daybook compact mobile layout** as the ERP-wide default for f
 
 **Reusable implementation checklist:** `docs/ui/RESPONSIVE-FILTER-ACTION-PATTERN.md` (phone, tablet, desktop, accessible focus order, screenshots, and future per-module rollout).
 
+- **Polished alignment and reset controls:** The square Filter button should align its right edge with the sticky row `⋮` action at small widths. When advanced filters are expanded or visible on desktop, place a labeled 36px **icon-only Reset** immediately beside the final status/type filter instead of wasting a separate row on Reset. Keep all original reset effects, accessible English/Bangla labels and keyboard use. Test both elements' bounding rectangles and row geometry in light/dark at 320/390/768/820/1024/1440px. See `docs/ui/RESPONSIVE-FILTER-ACTION-PATTERN.md`.
