@@ -35,7 +35,7 @@ async function main() {
           const search = page.getByRole('textbox', { name: 'Search sales' });
           await expect(search).toBeVisible();
           const toggle = page.locator('[data-sales-filter-toggle]').first();
-          const group = page.locator('[data-sales-status-reset]').first();
+          const group = page.locator('[data-sales-status-reset]:visible').first();
           if (width < 1024) {
             await expect(toggle).toBeVisible();
             await expect(toggle).toHaveAttribute('aria-expanded', 'false');
