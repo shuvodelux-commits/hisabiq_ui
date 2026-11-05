@@ -103,7 +103,7 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
   useEffect(() => {
     if (!open) return;
 
-    const onDown = (event: MouseEvent) => {
+    const onDown = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node;
       const insideTrigger = triggerRef.current?.contains(target);
       const insidePanel = panelRef.current?.contains(target);
