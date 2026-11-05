@@ -28,6 +28,7 @@ import {
   Plus,
   Printer,
   Search,
+  RotateCcw,
   ShieldCheck,
   Trash2,
   UserRound
@@ -1058,24 +1059,40 @@ export function Sales() {
                   aria-label={sl("Search sales")}
                 />
               </div>);
-  const invoiceFilters = (<><FormSelect
-                className="w-full lg:w-44"
-                value={customerFilter}
-                onChange={(event) => setCustomerFilter(event.target.value)}
-                options={[{value:'All customers',label:text('All customers','সব ক্রেতা')},...customerNames]}
-              />
-              <FormSelect
-                className="w-full lg:w-36"
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':v==='Due'?'বাকি':v==='Part returned'?'আংশিক ফেরত':'ফেরত')}))}
-              />
-              <FormSelect
-                className="w-full lg:w-40"
-                value={method}
-                onChange={(event) => setMethod(event.target.value)}
-                options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
-              /></>);
+  const resetInvoiceFilters = () => {
+    setQuery('');
+    setCustomerFilter('All customers');
+    setStatus('All status');
+    setMethod('All payments');
+  };
+  const invoiceFilters = (<>
+    <FormSelect
+      className="min-w-0 w-full lg:w-44"
+      value={customerFilter}
+      onChange={(event) => setCustomerFilter(event.target.value)}
+      options={[{value:'All customers',label:text('All customers','সব ক্রেতা')},...customerNames]}
+    />
+    <FormSelect
+      className="min-w-0 w-full lg:w-40"
+      value={method}
+      onChange={(event) => setMethod(event.target.value)}
+      options={[{value:'All payments',label:text('All payments','সব মাধ্যম')},...paymentMethods.map(m=>({value:m,label:text(m,m==='Cash'?'ক্যাশ':m==='Bank'?'ব্যাংক':m==='Card'?'কার্ড':m)}))]}
+    />
+    <div data-sales-status-reset="" className="flex min-w-0 w-full items-center gap-2 min-[360px]:col-span-2 lg:w-auto">
+      <FormSelect
+        className="min-w-0 flex-1 lg:w-36"
+        value={status}
+        onChange={(event) => setStatus(event.target.value)}
+        options={['All status', 'Paid', 'Partial', 'Due', 'Part returned', 'Returned'].map(v=>({value:v,label:text(v,v==='All status'?'সব অবস্থা':v==='Paid'?'পরিশোধ':v==='Partial'?'আংশিক':v==='Due'?'বাকি':v==='Part returned'?'আংশিক ফেরত':'ফেরত')}))}
+      />
+      <Button type="button" variant="outline" size="icon" className="size-9 shrink-0 rounded-md text-ink-500"
+        aria-label={text('Reset sales filters', 'বিক্রির ফিল্টার মুছুন')}
+        title={text('Reset all sales filters', 'বিক্রির সব ফিল্টার মুছুন')}
+        onClick={resetInvoiceFilters}>
+        <RotateCcw className="size-4" aria-hidden="true" />
+      </Button>
+    </div>
+  </>);
   const exportSales = () => downloadReport('hisabiq-sales.csv', ['Invoice','Date','Customer','Phone','Items','Total','Paid','Due','Payment','Status'], filtered.map(invoice => [invoice.invoice,invoice.date,invoice.party,invoice.phone ?? '',invoice.lines.map(line => line.name+' · '+invoiceQty(line)).join('; '),invoice.total,invoice.paid,invoice.due,invoice.payments.map(p => p.method).join(' + ') || invoice.method,invoice.status]));
 
   const tabs: Array<[Tab, string, string]> = [
@@ -1138,7 +1155,7 @@ export function Sales() {
           <>
             {isMobile ? <SalesMobileToolbar search={invoiceSearch} filters={invoiceFilters}
               activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
-              onClear={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}
+              onClear={resetInvoiceFilters} compactDaybook
               result={text(`Showing ${filtered.length} of ${invoices.length} invoices`, `মোট ${invoices.length}টি বিলের মধ্যে ${filtered.length}টি দেখাচ্ছে`)}
               actions={close => <><SalesColumnPicker inline visible={visibleSalesColumns} onToggle={toggleSalesColumn} /><Button variant="outline" size="sm" onClick={() => { close(); exportSales(); }}><ArrowDownToLine className="size-4" />{text('Export','ডাউনলোড')}</Button></>} /> : (<SalesWideToolbar search={invoiceSearch} filters={invoiceFilters}
               activeCount={Number(customerFilter !== 'All customers') + Number(status !== 'All status') + Number(method !== 'All payments')}
@@ -1227,7 +1244,7 @@ export function Sales() {
               <div className="px-4 py-10 text-center">
                 <p className="font-medium text-ink">{text('No sales match','কোনো বিক্রি মেলেনি')}</p>
                 <p className="mt-1 text-sm text-ink-500">{text('Try another invoice, customer, phone or filter.','অন্য বিল, নাম, ফোন বা ফিল্টার দিয়ে খুঁজুন।')}</p>
-                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setQuery(''); setCustomerFilter('All customers'); setStatus('All status'); setMethod('All payments'); }}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
+                <Button variant="outline" size="sm" className="mt-3" onClick={resetInvoiceFilters}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
               </div>
             )}
 
