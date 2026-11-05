@@ -4838,6 +4838,7 @@
     ],
     "RotateCcw": [
       "src/components/dashboard/CustomizeDialog.tsx",
+      "src/components/daybook/DaybookFilters.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/parties/PartyLedgerToolbar.tsx",
