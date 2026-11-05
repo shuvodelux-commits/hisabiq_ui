@@ -34,7 +34,18 @@ async function main(){
           const row=el.querySelector('[data-cart-row="sale"]');
           const total=row.children[5],rect=x=>{const b=x.getBoundingClientRect();return {x:b.x,right:b.right,width:b.width};};
           const r=document.createRange();r.selectNodeContents(total);
-          return {cart:rect(el),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,
+          const ancestors=[];
+          for(let p=row;p&&ancestors.length<8;p=p.parentElement){
+             const c=getComputedStyle(p),b=p.getBoundingClientRect();
+             ancestors.push({tag:p.tagName,id:p.id,classes:p.className,role:p.getAttribute('data-testid')||p.getAttribute('data-cart-kind'),x:b.x,width:b.width,
+                scroll:p.scrollWidth,display:c.display,position:c.position,overflowX:c.overflowX,
+                cssWidth:c.width,minWidth:c.minWidth,maxWidth:c.maxWidth,boxSizing:c.boxSizing,
+                containerName:c.containerName,containerType:c.containerType,inlineStyle:p.getAttribute('style')});
+          }
+          const probe=document.createElement('div');
+          probe.style.cssText='position:absolute;width:100cqw;height:0;pointer-events:none';
+          el.appendChild(probe);const cqwWidth=probe.getBoundingClientRect().width;probe.remove();
+          return {cart:rect(el),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,cqwWidth,ancestors,
             row:rect(row),rowGrid:getComputedStyle(row).gridTemplateColumns,
             rowScroll:row.scrollWidth,headerDisplay:getComputedStyle(el.querySelector('[data-cart-header]')).display,
             children:[...row.children].map((ch,i)=>({i,...rect(ch)})),totalText:total.textContent?.trim(),textRight:r.getBoundingClientRect().right};
