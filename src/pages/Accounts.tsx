@@ -140,7 +140,7 @@ export function Accounts() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
+    <div className="mx-auto max-w-[1440px] space-y-3 sm:space-y-4">
       <PageHeader
         title="Accounts"
         titleBn="হিসাব"
@@ -173,7 +173,7 @@ export function Accounts() {
         }
       />
 
-      {tab === 'overview' && <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5">
+      {tab === 'overview' && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
         {[
           { label: text('Net Profit','নিট লাভ'), helper: 'সব খরচের পর লাভ', value: pnl.netProfit, icon: WalletCards, tone: pnl.netProfit < 0 ? 'text-danger' : 'text-success' },
           { label: text(terminologyMode === 'simple' ? 'Customer Due' : 'Accounts Receivable','ক্রেতার কাছে পাওনা'), helper: 'গ্রাহকের কাছ থেকে পাবো', value: customerDue, icon: BookOpen, tone: 'text-teal-700' },
@@ -181,12 +181,12 @@ export function Accounts() {
           { label: text('Assets','সম্পদ'), helper: 'ব্যবসার মোট সম্পদ', value: sheet.assets, icon: Landmark, tone: 'text-ink' },
           { label: text('Liabilities','দেনা'), helper: 'ব্যবসার মোট দেনা', value: sheet.liabilities, icon: Scale, tone: 'text-ink' }
         ].map(({ label, helper, value, icon: Icon, tone }) => (
-          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+          <div key={label} className="rounded-lg border border-border bg-card px-3 py-2.5 shadow-card">
             <div className="flex items-start justify-between gap-2">
               <p className="text-[12.5px] text-ink-500">{label}</p>
               <Icon className="size-4 text-helper" />
             </div>
-            <p className={`mt-0.5 text-lg font-semibold ${tone}`}>{value < 0 ? '−' : ''}{taka(Math.abs(value))}</p>
+            <p className={`mt-0.5 break-words text-base font-semibold sm:text-lg ${tone}`}>{value < 0 ? '−' : ''}{taka(Math.abs(value))}</p>
             <p className="font-bn text-[10.5px] text-ink-400">{helper}</p>
           </div>
         ))}
@@ -210,9 +210,9 @@ export function Accounts() {
         {tab === 'money-accounts' && <Finance moneyAccountsOnly />}
 
         {tab === 'overview' && (
-          <div className="grid gap-4 p-4 xl:grid-cols-[1.2fr_1fr]">
+          <div className="grid gap-3 p-3 sm:p-4 xl:grid-cols-[1.2fr_1fr]">
             <section className="rounded-xl border border-border">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5 sm:px-4 sm:py-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">{text('Recent accounting entries','সাম্প্রতিক হিসাবের এন্ট্রি')}</p>
                   <p className="font-bn text-[11px] text-ink-400">Sales, Purchase, Expense ও Finance থেকে নিজে থেকেই হিসাব তৈরি হয়</p>
@@ -221,22 +221,22 @@ export function Accounts() {
               </div>
               <div className="divide-y divide-border">
                 {sources.slice().reverse().slice(0, 6).map((source) => (
-                  <div key={source.id} className="flex items-center gap-3 px-4 py-3">
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                  <button type="button" key={source.id} onClick={() => setEntryActionId(source.id)} aria-label={`Open details for ${source.reference}`} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 sm:px-4">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-teal-50 text-teal-700">
                       <FileText className="size-4" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[12.5px] font-medium text-ink">{sourceLabel(source.source)} · {source.reference}</p>
                       <p className="truncate text-[10.5px] text-ink-400">{source.transactionDate} · {source.description || sourceHelper(source.source)} · {source.postedBy}</p>
                     </div>
-                    <span className="text-[12.5px] font-semibold text-ink">{taka(source.amount)}</span>
-                  </div>
+                    <span className="shrink-0 whitespace-nowrap text-[12.5px] font-semibold text-ink">{taka(source.amount)}</span>
+                  </button>
                 ))}
               </div>
             </section>
 
             <section className="space-y-3">
-              <div className="rounded-xl border border-border p-4">
+              <div className="rounded-lg border border-border p-3 sm:p-4">
                 <p className="text-sm font-semibold text-ink">{text('Books status','হিসাবের অবস্থা')}</p>
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2"><span className="text-[12px] text-ink-600">{text('Trial Balance','ট্রায়াল ব্যালেন্স')}</span><StatusBadge tone={Math.abs(trial.totalDebit - trial.totalCredit) < 0.01 ? 'success' : 'danger'} dot>{Math.abs(trial.totalDebit - trial.totalCredit) < 0.01 ? text('Balanced','হিসাব মিলেছে') : text('Needs review','মিলিয়ে দেখুন')}</StatusBadge></div>
@@ -245,7 +245,7 @@ export function Accounts() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border p-4">
+              <div className="rounded-lg border border-border p-3 sm:p-4">
                 <div className="flex items-center gap-2">
                   <Settings2 className="size-4 text-teal-700" />
                   <p className="text-sm font-semibold text-ink">{text('Quick accounting','দ্রুত হিসাব')}</p>
@@ -253,7 +253,7 @@ export function Accounts() {
                 <p className="mt-1 font-bn text-[11px] text-ink-400">সাধারণ কাজ সহজ রাখুন, হিসাব নিজে থেকেই দুই পাশে মিলবে</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {([['Receipt Voucher', 'receipt'], ['Payment Voucher', 'payment'], ['Account Transfer', 'transfer'], ['Adjustment Entry', 'adjustment']] as Array<[string, VoucherType]>).map(([label, type]) => (
-                    <button key={label} onClick={() => openVoucher(type)} className="rounded-lg border border-border p-3 text-left text-[12px] font-medium text-ink hover:bg-ink-50">
+                    <button key={label} onClick={() => openVoucher(type)} className="min-h-12 rounded-md border border-border px-2.5 py-2 text-left text-[12px] font-medium text-ink transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                       {text(label,label==='Receipt Voucher'?'টাকা পাওয়ার ভাউচার':label==='Payment Voucher'?'টাকা দেওয়ার ভাউচার':label==='Account Transfer'?'হিসাবে টাকা সরান':'সমন্বয় এন্ট্রি')}
                     </button>
                   ))}
@@ -265,12 +265,12 @@ export function Accounts() {
 
         {tab === 'vouchers' && (
           <div>
-            <div className="flex items-center justify-between border-b border-border p-3">
+            <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border p-3">
               <div>
                 <p className="text-[13px] font-medium text-ink">{text('Vouchers & postings','ভাউচার ও হিসাব এন্ট্রি')}</p>
                 <p className="font-bn text-[11px] text-ink-400">কোথা থেকে হিসাব এসেছে এবং কে এন্ট্রি করেছেন</p>
               </div>
-              <div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => setOpeningOpen(true)}>{text('Opening balance','শুরুর জের')}</Button><Button size="sm" onClick={() => openVoucher('receipt')}><Plus className="size-4" /> {text('New voucher','নতুন ভাউচার')}</Button></div>
+              <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => setOpeningOpen(true)}>{text('Opening balance','শুরুর জের')}</Button><Button size="sm" onClick={() => openVoucher('receipt')}><Plus className="size-4" /> {text('New voucher','নতুন ভাউচার')}</Button></div>
             </div>
             <div className="overflow-x-auto">
               <Table>
