@@ -935,37 +935,44 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
               </Button>
             </div>
 
-            <Table>
+            <Table data-finance-loans-table="" scrollRegionLabel={text('Finance loans and owner transactions','ঋণ ও মালিকের লেনদেন')} className="w-full table-fixed lg:table-auto">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">{text('Finance transaction','টাকার লেনদেন')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Relationship','সম্পর্ক')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Payment','পেমেন্ট')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
-                  <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                  <TableHead className="h-9 min-w-0 pl-3 pr-1 text-xs lg:hidden">{text('Transaction','লেনদেন')}</TableHead>
+                  <TableHead className="hidden h-9 pl-4 text-xs lg:table-cell">{text('Finance transaction','টাকার লেনদেন')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Relationship','সম্পর্ক')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Party','পক্ষ')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Payment','পেমেন্ট')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Account','হিসাব')}</TableHead>
+                  <TableHead className="h-9 w-[112px] pr-1 text-right text-xs sm:w-[128px] lg:w-auto lg:pr-2">{text('Amount','টাকা')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-[44px] border-l border-border bg-card px-1 text-right text-xs lg:w-14 lg:pr-2"><span className="sr-only lg:not-sr-only">{text('Action','কাজ')}</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTransactions.map((item) => (
                   <TableRow key={item.id} className="text-[13px]">
-                    <TableCell className="py-2 pl-4">
+                    <TableCell data-finance-loans-identity="" className="min-w-0 py-2 pl-3 pr-1 lg:hidden">
+                      <span data-finance-loans-ref="" className="block break-all text-[12px] font-semibold leading-tight text-teal-700">{item.id}</span>
+                      <span className="mt-0.5 block text-[11px] font-medium leading-tight text-ink">{financeLabel(language,item.type)}</span>
+                      <span className="mt-0.5 block truncate text-[10.5px] text-ink-500">{item.date} · {item.party ?? '—'}</span>
+                    </TableCell>
+                    <TableCell className="hidden py-2 pl-4 lg:table-cell">
                       <p className="font-medium text-ink">{item.type}</p>
                       <p data-table-helper="" className="text-[10.5px] text-ink-400">{item.date} · {item.id}{item.reference ? ` · ${item.reference}` : ''}</p>
                     </TableCell>
-                    <TableCell className="py-2 text-ink-600">{item.relationship ?? '—'}</TableCell>
-                    <TableCell className="py-2 font-medium text-ink">{item.party ?? '—'}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{item.paymentAccounts && item.paymentAccounts.length > 1 ? 'Multiple' : item.method ?? 'No money movement'}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{item.paymentAccounts && item.paymentAccounts.length > 1 ? item.paymentAccounts.map((split) => split.account).join(' + ') : item.account ?? '—'}</TableCell>
-                    <TableCell className={`py-2 text-right font-semibold ${
+                    <TableCell className="hidden py-2 text-ink-600 lg:table-cell">{item.relationship ?? '—'}</TableCell>
+                    <TableCell className="hidden py-2 font-medium text-ink lg:table-cell">{item.party ?? '—'}</TableCell>
+                    <TableCell className="hidden py-2 text-ink-500 lg:table-cell">{item.paymentAccounts && item.paymentAccounts.length > 1 ? 'Multiple' : item.method ?? 'No money movement'}</TableCell>
+                    <TableCell className="hidden py-2 text-ink-500 lg:table-cell">{item.paymentAccounts && item.paymentAccounts.length > 1 ? item.paymentAccounts.map((split) => split.account).join(' + ') : item.account ?? '—'}</TableCell>
+                    <TableCell data-finance-loans-amount="" className={`w-[112px] py-2 pr-1 text-right font-semibold sm:w-[128px] lg:w-auto lg:pr-2 ${
                       item.direction === 'in' ? 'text-success' : item.direction === 'out' ? 'text-ink' : 'text-info'
                     }`}>
-                      {item.direction === 'in' ? '+' : item.direction === 'out' ? '−' : ''}{taka(item.amount)}
+                      <span className="whitespace-nowrap text-[12px] lg:text-[13px]">{item.direction === 'in' ? '+' : item.direction === 'out' ? '−' : ''}{taka(item.amount)}</span>
+                      <span data-finance-loans-status="" className="mt-0.5 block text-[10.5px] font-normal text-ink-500 lg:hidden">{financeLabel(language,item.status)}</span>
                     </TableCell>
-                    <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
-                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
+                    <TableCell className="hidden py-2 lg:table-cell"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
+                    <TableCell className="sticky right-0 z-10 w-[44px] border-l border-border bg-card px-1 py-1 text-right lg:w-14 lg:py-1.5 lg:pr-2">
                       <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
                         {close => <>
                           <ActionMenuItem icon={Eye} onClick={() => { close(); openTransactionActions(item, 'view'); }}>{text('View transaction','লেনদেন দেখুন')}</ActionMenuItem>
