@@ -747,7 +747,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   ];
 
   return (
-    <div className={moneyAccountsOnly ? 'space-y-0' : 'mx-auto max-w-[1440px] space-y-4'}>
+    <div className={moneyAccountsOnly ? 'space-y-0' : 'mx-auto max-w-[1440px] space-y-3 sm:space-y-4'}>
       {!moneyAccountsOnly && <PageHeader
         title={counterOnly ? 'Counter' : 'Finance'}
         titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
@@ -768,14 +768,14 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
         )}
       />}
 
-      {!counterOnly && !moneyAccountsOnly && <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
+      {!counterOnly && !moneyAccountsOnly && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         {summaryCards.map(({ label, value, sub, icon: Icon, tone }) => (
-          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+          <div key={label} data-finance-kpi="" className="rounded-lg border border-border bg-card px-3 py-2.5 shadow-card">
             <div className="flex items-start justify-between gap-2">
               <p className="text-[12.5px] text-ink-500">{label}</p>
               <Icon className="size-4 text-helper" />
             </div>
-            <p className={`mt-0.5 text-lg font-semibold ${tone ?? 'text-ink'}`}>{value}</p>
+            <p className={`mt-0.5 break-words text-base font-semibold sm:text-lg ${tone ?? 'text-ink'}`}>{value}</p>
             <p className="mt-0.5 text-[10.5px] text-ink-400">{sub}</p>
           </div>
         ))}
@@ -793,15 +793,27 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
       )}
 
       <div className={moneyAccountsOnly ? '' : 'rounded-xl border border-border bg-card shadow-card'}>
-        {!counterOnly && !moneyAccountsOnly && <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+        {!counterOnly && !moneyAccountsOnly && <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label="Finance sections"
+          onKeyDown={(event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+            const current = buttons.findIndex((button) => document.activeElement === button);
+            if (current < 0) return;
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
+              : (current + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
+            event.preventDefault();
+            buttons[next]?.focus();
+            setTab(tabs[next][0]);
+          }}>
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
               role="tab"
               aria-selected={tab === id}
+              tabIndex={tab === id ? 0 : -1}
               title={helper}
               onClick={() => setTab(id)}
-              className={`min-h-11 shrink-0 px-2.5 py-2.5 text-[13px] font-medium ${
+              className={`relative min-h-11 shrink-0 rounded-sm px-2.5 py-2.5 text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 ${
                 tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
@@ -810,10 +822,10 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
         </MotionTabList>}
 
         {tab === 'overview' && (
-          <div className="grid gap-4 p-4 xl:grid-cols-[1.25fr_1fr]">
-            <section className="min-w-0 space-y-4">
+          <div className="grid gap-3 p-3 sm:p-4 xl:grid-cols-[1.25fr_1fr]">
+            <section className="min-w-0 space-y-3">
               <div className="rounded-xl border border-border">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5 sm:px-4 sm:py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Business relationship balances</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower balances never cross-net.</p>
@@ -841,7 +853,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
               </div>
 
               <div className="rounded-xl border border-border">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5 sm:px-4 sm:py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Recent loans & owner money</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower money stays separate.</p>
@@ -878,8 +890,8 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
               </div>
             </section>
 
-            <section className="min-w-0 space-y-4">
-              <div className="rounded-xl border border-border p-4">
+            <section className="min-w-0 space-y-3">
+              <div className="rounded-lg border border-border p-3 sm:p-4">
                 <p className="text-sm font-semibold text-ink">Money Accounts</p>
                 <p className="mb-3 text-[11px] text-ink-500">Live balances by money account.</p>
                 <div className="space-y-2">
@@ -887,7 +899,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     <button
                       key={account.id}
                       onClick={() => setTab('accounts')}
-                      className="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2.5 text-left hover:bg-ink-50">
+                      className="flex w-full items-center gap-2.5 rounded-md border border-border px-2.5 py-2 text-left transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                       <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                         {account.type === 'Cash' ? <Banknote className="size-4" /> : account.type === 'Bank' ? <Landmark className="size-4" /> : <WalletCards className="size-4" />}
                       </span>
@@ -895,13 +907,13 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <span className="block truncate text-[12.5px] font-medium text-ink">{account.name}</span>
                         <span className="block text-[10.5px] text-ink-400">{account.type} · {account.lastActivity}</span>
                       </span>
-                      <span className="text-[13px] font-semibold text-ink">{taka(account.balance)}</span>
+                      <span className="shrink-0 whitespace-nowrap text-[13px] font-semibold text-ink">{taka(account.balance)}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border p-4">
+              <div className="rounded-lg border border-border p-3 sm:p-4">
                 <p className="text-sm font-semibold text-ink">Quick tools</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[
@@ -910,7 +922,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     { label: 'Reconcile', helper: 'Bank statement', icon: CheckCircle2, action: () => navigate('/app/reconciliation') },
                     { label: 'Daybook', helper: 'All transactions', icon: BookOpen, action: () => navigate('/app/daybook') }
                   ].map(({ label, helper, icon: Icon, action }) => (
-                    <button key={label} onClick={action} className="rounded-lg border border-border p-3 text-left hover:bg-ink-50">
+                    <button key={label} onClick={action} className="min-h-12 rounded-md border border-border px-2.5 py-2 text-left transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                       <Icon className="size-4 text-teal-700" />
                       <p className="mt-2 text-[12.5px] font-medium text-ink">{label}</p>
                       <p className="text-[10.5px] text-ink-400">{helper}</p>
