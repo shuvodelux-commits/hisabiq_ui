@@ -12,6 +12,7 @@ import {businessToday} from '../../utils/dateRange';
 import {productUnits,productUnitFactor} from '../../utils/unitChain';
 import {freezeUnitProfile,unitQuantitiesBase,type UnitQuantityMap} from '../../utils/multiUnitTransactions';
 import {unitSymbol} from '../../data/productUnits';
+import {convertVendorV2UnitPrice} from '../../vendor/vendorV2Pricing';
 import {dispatchVendorPreview,getVendorPreviewSnapshot} from '../../vendor/vendorPreviewStore';
 import {taka} from '../../utils/currency';
 import type {Product} from '../../types/erp';
@@ -122,7 +123,8 @@ export function VendorV2Cart({partyId,partyName,mode,onCancel,onSaved,onDirtyCha
         onLastEnter={()=>searchRef.current?.focus()}
         label={'Multi-unit quantity for '+r.product.name}/></td>
        <td className="order-3 block min-w-0 sm:table-cell sm:px-2 sm:py-2"><AppSelect label={'Price unit for '+r.product.name} value={r.priceUnit}
-        onChange={priceUnit=>change(r.id,{priceUnit,price:''})} options={[...productUnits(r.product)]}/></td>
+        onChange={priceUnit=>change(r.id,{priceUnit,price:convertVendorV2UnitPrice(r.price,
+         productUnitFactor(r.product,r.priceUnit),productUnitFactor(r.product,priceUnit))})} options={[...productUnits(r.product)]}/></td>
        <td className="order-4 block min-w-0 sm:table-cell sm:px-2 sm:py-2"><Input aria-label={'Unit price for '+r.product.name} inputMode="decimal"
         className="w-full text-right" placeholder="Pending" value={r.price}
         onChange={e=>change(r.id,{price:e.target.value.replace(/[^\d.]/g,'')})}/></td>
