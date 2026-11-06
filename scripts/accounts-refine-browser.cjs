@@ -31,6 +31,10 @@ async function main(){
     await recentDetail.waitFor({state:'visible'});
     await page.keyboard.press('Escape');
     await recentDetail.waitFor({state:'hidden'});
+    // The shared Dialog asynchronously restores focus to its opener on close.
+    // Wait for that real restoration before moving focus to the Accounts tablist.
+    await page.waitForFunction(label=>document.activeElement?.getAttribute('aria-label')===label,
+      `Open details for ${recentRef}`,{timeout:5000});
     const tabs=page.getByRole('tablist',{name:/Account sections|হিসাবের বিভাগ/}).getByRole('tab');
     assert.equal(await tabs.count(),7,'all seven visible Accounts tabs retained (Bank Entry is contextual)');
     const voucherTab=page.getByRole('tab',{name:'Vouchers',exact:true});
