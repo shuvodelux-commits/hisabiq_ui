@@ -101,8 +101,8 @@ export function VendorV2Cart({partyId,partyName,mode,onCancel,onSaved,onDirtyCha
      ariaLabel="Search products to add to Vendor V2 cart"/>
    </div>
    <div className="min-w-0 overflow-x-auto">
-    <table data-erp-table className="w-full min-w-[740px] border-collapse text-[13px]">
-     <thead><tr className="bg-ink-50 text-[12px] text-ink-500">
+    <table data-erp-table className="w-full min-w-0 border-collapse text-[13px] sm:min-w-[740px]">
+     <thead className="hidden sm:table-header-group"><tr className="bg-ink-50 text-[12px] text-ink-500">
       <th className="w-9 px-2 py-2 text-right font-medium">#</th>
       <th className="px-2 py-2 text-left font-medium">Product</th>
       <th className="w-[236px] px-2 py-2 text-right font-medium">Quantity · পরিমাণ</th>
@@ -111,24 +111,24 @@ export function VendorV2Cart({partyId,partyName,mode,onCancel,onSaved,onDirtyCha
       <th className="w-[112px] px-2 py-2 text-right font-medium">Amount</th>
       <th className="w-9 px-2 py-2"><span className="sr-only">Remove</span></th>
      </tr></thead>
-     <tbody className="divide-y divide-border">
-      {rows.map((r,index)=><tr key={r.id} data-vendor-v2-line>
-       <td className="px-2 py-2 text-right text-ink-400">{index+1}.</td>
-       <td className="px-2 py-2"><p className="font-medium text-ink">{r.product.name}</p>
+     <tbody className="block divide-y divide-border sm:table-row-group">
+      {rows.map((r,index)=><tr key={r.id} data-vendor-v2-line className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 px-2 py-2 sm:table-row sm:p-0">
+       <td className="hidden px-2 py-2 text-right text-ink-400 sm:table-cell">{index+1}.</td>
+       <td className="col-span-2 block min-w-0 py-1 sm:table-cell sm:px-2 sm:py-2"><p className="truncate font-medium text-ink" title={r.product.name}>{r.product.name}</p>
         <p data-table-helper="" className="text-[11px] text-ink-500">{r.product.nameBn||r.product.category} · Stock {r.product.stock} {unitSymbol(r.product.unit)}</p></td>
-       <td className="px-2 py-2"><MultiUnitQuantityInput product={r.product} quantities={r.quantities}
+       <td className="order-2 col-span-3 block min-w-0 sm:table-cell sm:px-2 sm:py-2"><MultiUnitQuantityInput product={r.product} quantities={r.quantities}
         primaryRef={index===rows.length-1?node=>{lastQuantityRef.current=node;}:undefined}
         onChange={quantities=>change(r.id,{quantities})}
         onLastEnter={()=>searchRef.current?.focus()}
         label={'Multi-unit quantity for '+r.product.name}/></td>
-       <td className="px-2 py-2"><AppSelect label={'Price unit for '+r.product.name} value={r.priceUnit}
+       <td className="order-3 block min-w-0 sm:table-cell sm:px-2 sm:py-2"><AppSelect label={'Price unit for '+r.product.name} value={r.priceUnit}
         onChange={priceUnit=>change(r.id,{priceUnit,price:''})} options={[...productUnits(r.product)]}/></td>
-       <td className="px-2 py-2"><Input aria-label={'Unit price for '+r.product.name} inputMode="decimal"
+       <td className="order-4 block min-w-0 sm:table-cell sm:px-2 sm:py-2"><Input aria-label={'Unit price for '+r.product.name} inputMode="decimal"
         className="w-full text-right" placeholder="Pending" value={r.price}
         onChange={e=>change(r.id,{price:e.target.value.replace(/[^\d.]/g,'')})}/></td>
-       <td className="px-2 py-2 text-right font-medium whitespace-nowrap">{r.price.trim()?taka(knownAmount(r)):
+       <td className="order-5 block min-w-0 whitespace-nowrap py-1 text-right font-medium sm:table-cell sm:px-2 sm:py-2">{r.price.trim()?taka(knownAmount(r)):
         <span className="text-[11px] text-warning">Price pending</span>}</td>
-       <td className="px-2 py-2"><Button type="button" size="sm" variant="ghost" aria-label={'Remove '+r.product.name}
+       <td className="order-1 block text-right sm:table-cell sm:px-2 sm:py-2"><Button type="button" size="sm" variant="ghost" aria-label={'Remove '+r.product.name}
         onClick={()=>{setRows(items=>items.filter(x=>x.id!==r.id));dirty();}}><Trash2 className="size-4"/></Button></td>
       </tr>)}
       {!rows.length&&<tr><td colSpan={7} className="px-3 py-10 text-center text-sm text-ink-500">Search and add a product to start this memo.</td></tr>}
