@@ -193,14 +193,26 @@ export function Accounts() {
       </div>}
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label={text('Account sections','হিসাবের বিভাগ')}
+          onKeyDown={(event) => {
+            if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
+            const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+            const index = buttons.findIndex((button) => button === document.activeElement);
+            if (index < 0) return;
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+              : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+            event.preventDefault();
+            chooseTab(tabs[next][0]);
+            buttons[next]?.focus();
+          }}>
           {tabs.map(([id, label]) => (
             <button
               key={id}
               role="tab"
               aria-selected={tab === id || (tab === 'bank-entry' && id === 'money-accounts')}
+              tabIndex={tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 0 : -1}
               onClick={() => chooseTab(id)}
-              className={`flex shrink-0 items-center px-2.5 py-2.5 text-[13px] font-medium ${tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
+              className={`flex shrink-0 items-center rounded-sm px-2.5 py-2.5 text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 ${tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
               <MotionTabIndicator active={tab === id || (tab === 'bank-entry' && id === 'money-accounts')} />
             </button>
