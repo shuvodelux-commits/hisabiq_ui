@@ -202,12 +202,8 @@ export function Accounts() {
             const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
               : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
             event.preventDefault();
-            const target = tabs[next][0];
             buttons[next]?.focus();
-            chooseTab(target);
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-              document.querySelector<HTMLButtonElement>(`[data-accounts-tab="${target}"]`)?.focus();
-            }));
+            chooseTab(tabs[next][0]);
           }}>
           {tabs.map(([id, label]) => (
             <button
