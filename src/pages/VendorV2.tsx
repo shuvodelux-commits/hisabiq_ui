@@ -145,12 +145,22 @@ export function VendorV2(){
      onSaved={()=>{setEditor(null);setDirty(false);setTab(editor==='given'?'given':'taken');toast.success('Vendor goods memo saved in UI preview');}}/>
    }
   </>:<>
-  <PageHeader compact title="Vendor V2" titleBn="ভেন্ডর লেনদেন"
-   description="Goods taken, given and settled · UI preview only"
-   actions={<div className="flex items-center gap-2">
-    <Button type="button" variant="outline" size="sm" onClick={()=>navigate('/app/vendors'+(party?'?partyId='+encodeURIComponent(party.id):''))}>Vendor V1</Button>
-    <Button type="button" size="sm" onClick={()=>setEditingParty(null)}><Plus className="size-4"/> Add Vendor</Button>
-   </div>}/>
+  <div className="hidden sm:block">
+   <PageHeader compact title="Vendor V2" titleBn="ভেন্ডর লেনদেন"
+    description="Goods taken, given and settled · UI preview only"
+    actions={<div className="flex items-center gap-2">
+     <Button type="button" variant="outline" size="sm" onClick={()=>navigate('/app/vendors'+(party?'?partyId='+encodeURIComponent(party.id):''))}>Vendor V1</Button>
+     <Button type="button" size="sm" onClick={()=>setEditingParty(null)}><Plus className="size-4"/> Add Vendor</Button>
+    </div>}/>
+  </div>
+  <div className="flex flex-wrap items-start justify-between gap-2 sm:hidden" aria-label="Vendor V2 mobile page heading">
+   <div className="min-w-0"><h1 className="text-lg font-semibold text-ink">Vendor V2</h1>
+    <p className="font-bn text-xs text-ink-500">ভেন্ডর লেনদেন</p></div>
+   <div className="flex items-center gap-1.5">
+    <Button size="sm" variant="outline" onClick={()=>navigate('/app/vendors'+(party?'?partyId='+encodeURIComponent(party.id):''))}>V1</Button>
+    <Button size="sm" onClick={()=>setEditingParty(null)}><Plus className="size-4"/> Vendor</Button>
+   </div>
+  </div>
   <div className="grid min-w-0 gap-3 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[330px_minmax(0,1fr)]">
    <div className="hidden min-w-0 lg:block">
     <VendorDirectory rows={rows} shown={shown} selectedId={party?.id??''} query={search}
@@ -184,20 +194,20 @@ export function VendorV2(){
       <div className="rounded-md bg-ink-50 p-2"><p className="text-[11px] text-ink-500">You owe · দিতে হবে</p>
        <strong className="text-base text-danger">{taka((balance?.knownPayablePaisa??0)/100)}</strong></div>
       <div className="rounded-md bg-ink-50 p-2"><p className="text-[11px] text-ink-500">They owe · পাবেন</p>
-       <strong className="text-base text-teal-700 dark:text-teal-300">{taka((balance?.knownReceivablePaisa??0)/100)}</strong></div>
+       <strong className="text-base text-success">{taka((balance?.knownReceivablePaisa??0)/100)}</strong></div>
       <div className="rounded-md bg-ink-50 p-2"><p className="text-[11px] text-ink-500">Goods pending</p><strong className="text-base text-ink">{pendingGoods}</strong></div>
       <div className="rounded-md bg-ink-50 p-2"><p className="text-[11px] text-ink-500">Price pending</p><strong className="text-base text-warning">{pendingPrice}</strong></div>
      </div>
      <div className="flex gap-4 border-b border-border px-3" role="tablist" aria-label="Vendor V2 tabs">
       {(['ledger','taken','given'] as const).map(k=><button key={k} role="tab" type="button" aria-selected={tab===k}
-       className={'h-10 border-b-2 px-1 text-[13px] font-medium capitalize '+(tab===k?'border-teal-600 text-ink':'border-transparent text-ink-500 hover:text-ink')}
+       className={'h-10 border-b-2 px-1 text-[13px] font-medium capitalize '+(tab===k?'border-primary text-ink':'border-transparent text-ink-500 hover:text-ink')}
        onClick={()=>changeTab(k)}>{k==='ledger'?'Ledger':k==='taken'?'Taken':'Given'}</button>)}
      </div>
      <div className="min-w-0 space-y-3 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
        <h3 className="text-[13px] font-semibold text-ink">{tab==='ledger'?'All activity':tab==='taken'?'Goods collected':'Goods supplied'}</h3>
-       <div className="flex flex-wrap items-center gap-2">
-        <Input aria-label="Search Vendor V2 activity" className="w-[130px] sm:w-[175px]" placeholder="Search memo..." value={query} onChange={e=>setQuery(e.target.value)}/>
+       <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+        <Input aria-label="Search Vendor V2 activity" className="w-full sm:w-[175px]" placeholder="Search memo..." value={query} onChange={e=>setQuery(e.target.value)}/>
         <div className="flex items-center gap-1" role="group" aria-label="Date filter">
          {(['today','week','all'] as const).map(k=><Button type="button" key={k} size="sm" variant={dateFilter===k?'default':'outline'}
           onClick={()=>setDateFilter(k)}>{k==='week'?'7 days':k==='today'?'Today':'All'}</Button>)}
@@ -209,7 +219,7 @@ export function VendorV2(){
         <div className="flex min-w-0 items-start justify-between gap-2">
          <div className="min-w-0"><p className="break-words text-[13px] font-medium text-ink">{g.type} · {g.title}</p>
           <p className="mt-1 text-[11px] text-ink-500">{g.date} · {g.sub}</p></div>
-         <span className={'shrink-0 text-[11px] font-medium '+(g.pricePending?'text-warning':g.open?'text-danger':'text-teal-700 dark:text-teal-300')}>
+         <span className={'shrink-0 text-[11px] font-medium '+(g.pricePending?'text-warning':g.open?'text-danger':'text-success')}>
           {g.pricePending?'Price pending':g.open?'To settle':'Settled'}
          </span>
         </div>
@@ -235,10 +245,10 @@ export function VendorV2(){
          <td className="p-2"><span className="font-medium text-ink">{g.type} · {g.title}</span>
           <span data-table-helper="" className="block text-[11px] text-ink-500">{g.sub}</span></td>
          <td className="whitespace-nowrap p-2 text-right font-medium text-ink">{g.pricePending?'Price pending'+(g.amount?' + '+taka(g.amount/100):''):taka(g.amount/100)}</td>
-         <td className={'whitespace-nowrap p-2 text-[11px] '+(g.pricePending?'text-warning':g.open?'text-danger':'text-teal-700 dark:text-teal-300')}>
+         <td className={'whitespace-nowrap p-2 text-[11px] '+(g.pricePending?'text-warning':g.open?'text-danger':'text-success')}>
           {g.pricePending?'Price pending':g.open?'To settle':'Settled'}</td>
          <td className="p-2 text-right">
-          {g.first?<button type="button" className="min-h-9 text-xs font-semibold text-teal-700 hover:underline dark:text-teal-300"
+          {g.first?<button type="button" className="min-h-9 text-xs font-semibold text-primary hover:underline"
            onClick={()=>review(g.first,g.kind==='taken'?'taken':'given')}>{g.open?'Review / Settle':'View'}</button>:
            <Button size="sm" variant="outline" onClick={()=>navigate(g.kind==='purchase'?'/app/purchases':'/app/sales')}>View</Button>}
          </td></tr>)}
