@@ -69,7 +69,7 @@ export function VendorDirectory({rows,shown,selectedId,query,onQuery,filter,onFi
             <span className="min-w-0 max-w-[46%] shrink-0 text-right">
               {balance.unpricedSourceCount>0&&<span className="block text-[11px] font-medium text-warning">Price pending ({balance.unpricedSourceCount})</span>}
               {balance.knownPayablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-danger">{taka(balance.knownPayablePaisa/100)} <span className="text-[10px] font-normal">Pay</span></span>}
-              {balance.knownReceivablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-teal-700 dark:text-teal-300">{taka(balance.knownReceivablePaisa/100)} <span className="text-[10px] font-normal">Receive</span></span>}
+              {balance.knownReceivablePaisa>0&&<span className="block whitespace-nowrap text-xs font-semibold text-success">{taka(balance.knownReceivablePaisa/100)} <span className="text-[10px] font-normal">Receive</span></span>}
               {!balance.unpricedSourceCount&&!balance.knownPayablePaisa&&!balance.knownReceivablePaisa&&
                 <><span className="block text-xs font-semibold text-ink-400">৳0</span><span className="block text-[10px] text-ink-400">Settled</span></>}
             </span>
