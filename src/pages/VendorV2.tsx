@@ -142,7 +142,7 @@ export function VendorV2(){
      <PurchaseEditor key={party.id} initialSupplierId={party.id} lockedSupplierId={party.id} embedded onCompleted={()=>{setPurchaseRevision(n=>n+1);openEditor(null);}} onCancel={()=>openEditor(null)}/></div>:
     <VendorV2Cart key={party.id+editor} partyId={party.id} partyName={party.name} mode={editor}
      onDirtyChange={setDirty} onCancel={()=>openEditor(null)}
-     onSaved={()=>{setEditor(null);setDirty(false);setTab(editor);toast.success('Vendor goods memo saved in UI preview');}}/>
+     onSaved={()=>{setEditor(null);setDirty(false);setTab(editor==='given'?'given':'taken');toast.success('Vendor goods memo saved in UI preview');}}/>
    }
   </>:<>
   <PageHeader compact title="Vendor V2" titleBn="ভেন্ডর লেনদেন"
