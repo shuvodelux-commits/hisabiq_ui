@@ -4497,6 +4497,7 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/components/sales/SalesWideToolbar.tsx",
       "src/pages/Expenses.tsx",
+      "src/pages/Finance.tsx",
       "src/pages/Purchases.tsx"
     ],
     "FlaskConical": [
