@@ -31,7 +31,7 @@ test('Counter entry matches the native form and right-side Transaction summary a
 
 test('Existing Counter actions, defaults, and payment transaction flows are preserved', () => {
   assert.ok(counter.includes("const kinds:Action[]=['Customer Receive','Supplier Pay','Expense','Bank Transfer']"));
-  assert.ok(counter.includes('lg:grid-cols-6" role="group" aria-label="Counter actions"'));
+  assert.ok(counter.includes('min-[390px]:grid-cols-3 xl:grid-cols-6" role="group" aria-label="Counter actions"'));
   assert.ok(counter.includes("changeType=(next:Action)=>{setBankEntrySelected(false);setType(next);reset();}"));
   assert.ok(counter.includes("useState<Action>('Customer Receive')"));
   assert.ok(counter.includes('aria-pressed={bankEntrySelected}'));
