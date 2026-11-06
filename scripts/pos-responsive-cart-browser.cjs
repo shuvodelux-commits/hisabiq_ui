@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires -- This is a Node Playwright script. */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const {capturePos,assertPosHeader}=require('./pos-browser-capture.cjs');
 
 const sizes = [
   [320, 760, 'small phone'],
@@ -59,19 +60,21 @@ async function main() {
           };
         });
 
-        const desktopCart = before.cart.width >= 760;
+        const desktopCart = width >= 768;
         const sideBySide = before.root.width >= 1056;
         assert.equal(before.headerVisible, desktopCart, name + ' (' + theme + '): desktop header must follow available cart width');
-        assert.ok(before.scrollWidth <= before.clientWidth + 2, name + ': cart must not scroll sideways');
+        assert.ok(desktopCart || before.scrollWidth <= before.clientWidth + 2, name + ': phone cart must fit');
         assert.ok(before.documentWidth <= width + 2, name + ': screen must not overflow horizontally');
         for (const row of before.rows) {
-          assert.ok(row.frame.width <= before.cart.width + 1, name + ': row must fit its cart');
+          assert.ok(row.frame.width <= before.scrollWidth + 1, name + ': row must fit the internal scroll surface');
           for (const control of row.controls) {
             if (control.display === 'none' || control.display === 'contents') continue;
-            assert.ok(control.frame.left >= before.cart.left - 1 && control.frame.right <= before.cart.right + 1,
+            assert.ok(control.frame.left >= before.cart.left - 1 && control.frame.right <= before.cart.left + before.scrollWidth + 1,
               name + ': cart control must stay within the cart frame');
           }
-          if (!desktopCart) {
+          if (desktopCart) {
+            assert.ok(row.controls.every(control=>control.row==='auto'),name+': all fields remain in one tablet row');
+          } else {
             assert.equal(row.controls[1].row, '1', name + ': product first row');
             assert.equal(row.controls[5].row, '1', name + ': total beside product');
             assert.equal(row.controls[2].row, '2', name + ': quantity below product');
@@ -84,6 +87,20 @@ async function main() {
         } else {
           assert.ok(before.checkout.top > before.cart.bottom, name + ': checkout follows the cart on small workspaces');
         }
+
+        const cartRegion=page.getByRole('region',{name:/Sale products|বিক্রির পণ্য/});
+        if(before.scrollWidth>before.clientWidth+2){
+          assert.equal(await cartRegion.getAttribute('tabindex'),'0',name+': overflowing cart is keyboard reachable');
+          await cartRegion.focus();for(let step=0;step<20;step++)await cartRegion.press('ArrowRight',{delay:20});
+          await page.waitForFunction(()=>document.querySelector('[data-cart-kind="sale"]').scrollLeft>0);
+          const remove=page.getByTestId('pos-cart-row').first().getByRole('button',{name:/Remove|সরান/}).last();
+          await remove.focus();
+          await page.waitForFunction(el=>{const a=el.getBoundingClientRect(),b=el.closest('[data-cart-kind]').getBoundingClientRect();return a.left>=b.left-1&&a.right<=b.right+1;},await remove.elementHandle());
+          const removeBox=await remove.boundingBox(),cartBox=await cartRegion.boundingBox();
+          assert.ok(removeBox.x>=cartBox.x-1&&removeBox.x+removeBox.width<=cartBox.x+cartBox.width+1,name+': rightmost action is reachable '+JSON.stringify({removeBox,cartBox,scroll:await cartRegion.evaluate(el=>({left:el.scrollLeft,max:el.scrollWidth-el.clientWidth}))}));
+          await cartRegion.evaluate(el=>{el.scrollLeft=0;});
+        }
+        await assertPosHeader(page);
 
         // Focus and change a genuine compound quantity, not a static mock.
         const quantity = page.locator('[data-cart-kind="sale"] [data-testid="compound-quantity"] input').first();
@@ -98,8 +115,8 @@ async function main() {
           assert.notEqual(await quantity.inputValue(), original, name + ': stepping remains functional');
         }
         // Sidebar collapse changes available space without changing viewport orientation.
-        if (width === 1180 && theme === 'light') {
-          await page.getByRole('button', { name: 'Collapse sidebar' }).first().click();
+        if (width === 1280 && theme === 'light') {
+          await page.getByRole('button', { name: 'Toggle sidebar width' }).first().click();
           await page.waitForFunction(() => document.querySelector('.pos-screen').getBoundingClientRect().width >= 1056);
           const expandedRoom = await page.evaluate(() => {
             const cart = document.querySelector('[data-cart-kind="sale"]').getBoundingClientRect();
@@ -107,7 +124,7 @@ async function main() {
             return { beside: payment.left >= cart.right - 2 };
           });
           assert.ok(expandedRoom.beside, 'Collapsing sidebar should allow side-by-side checkout in landscape');
-          await page.getByRole('button', { name: 'Expand sidebar' }).first().click();
+          await page.getByRole('button', { name: 'Toggle sidebar width' }).first().click();
           await page.waitForFunction(() => document.querySelector('.pos-screen').getBoundingClientRect().width < 1056);
           const smallRoom = await page.evaluate(() => {
             const cart = document.querySelector('[data-cart-kind="sale"]').getBoundingClientRect();
@@ -119,7 +136,7 @@ async function main() {
         assert.deepEqual(errors, [], name + ': no browser exceptions');
         if (process.env.POS_RESPONSIVE_SCREENSHOTS && theme === 'light') {
           const filename = name.replace(/[^a-z0-9]+/g, '-');
-          await page.screenshot({ path: process.env.POS_RESPONSIVE_SCREENSHOTS + '/pos-' + filename + '.png', fullPage: true });
+          await capturePos(page,{ path: process.env.POS_RESPONSIVE_SCREENSHOTS + '/pos-' + filename + '.png', fullPage: true });
         }
         await context.close();
         console.log(name + ' ' + width + 'x' + height + ' ' + theme + ': ' +

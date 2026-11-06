@@ -104,6 +104,18 @@ function SortableCartRow({
 export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReorder, onMove, searchRef }: CartTableProps) {
   const { word, text } = useUiCopy();
   const catalog=usePreviewCatalog();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [cartOverflows, setCartOverflows] = useState(false);
+  useEffect(() => {
+    const cart = scrollRef.current;
+    if (!cart) return;
+    const measure = () => setCartOverflows(cart.scrollWidth > cart.clientWidth + 1);
+    const observer = new ResizeObserver(measure);
+    observer.observe(cart);
+    for (const child of cart.children) observer.observe(child);
+    measure();
+    return () => observer.disconnect();
+  }, [lines]);
   const qtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const secondaryQtyRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [revealedPurchase, setRevealedPurchase] = useState<string | null>(null);
@@ -145,7 +157,9 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
   };
 
   return (
-    <div data-cart-kind="sale" className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
+    <div ref={scrollRef} data-cart-kind="sale" role="region" aria-label={text('Sale products', 'বিক্রির পণ্য')}
+      tabIndex={cartOverflows ? 0 : undefined}
+      className="overflow-x-auto rounded-xl border border-border bg-card shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
       <div data-cart-header className={`${grid} border-b border-border px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-400`}>
         <span className="text-right">#</span>
         <span>{word('product')}</span>
@@ -184,7 +198,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   <ProductThumb src={l.product.image} size={32} />
                   <div className="min-w-0">
                     <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
-                    <p data-table-helper="" className="truncate text-[11px] text-ink-500">
+                    <p data-table-helper="" title={`${l.product.nameBn ?? ''} · ${l.product.category} · ${formatStock(l.product)}`} className="truncate text-[11px] text-ink-500">
                       {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
                       {l.product.category}{l.product.kind==='Bundle'?` · Package · ${bundleAvailable} Set available`:l.product.kind === 'Service' ? ` · ${word('service')}` : l.product.expiry?.enabled ? ` · ${word('sellable')} ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · ${word('stock')} ${formatStock(l.product)}`}
                     </p>
@@ -259,7 +273,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   </div>
                 </div>
                 <div data-cart-field="Quantity · পরিমাণ">{l.product.unitRelations && l.product.unitRelations.length>1 ?
-                  <MultiUnitQuantityInput product={l.product} quantities={saleLineQuantities(l)}
+                  <MultiUnitQuantityInput readableValues product={l.product} quantities={saleLineQuantities(l)}
                     primaryRef={el=>{qtyRefs.current[l.key]=el;}}
                     onChange={unitQuantities=>onUpdate(l.key,{unitQuantities})}
                     onLastEnter={()=>searchRef.current?.focus()}/>

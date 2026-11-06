@@ -896,7 +896,7 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
     /* Routine two-unit rows fit the desktop cart. Wider 3/4-unit chains
        retain their larger quantity budget and scroll inside the cart. */
     min-width: calc(616px + var(--cart-quantity-width, 144px)) !important;
-    grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width, 144px) 64px 126px 72px 28px;
+    grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width, 144px) 64px 160px minmax(72px, max-content) 28px;
   }
   :root [data-cart-kind="purchase"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
     min-width: calc(752px + var(--cart-quantity-width, 162px)) !important;
@@ -933,3 +933,23 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   text-align: right;
   white-space: nowrap;
 }
+
+/* Keep the original phone's three-row editor and readable exact totals.
+   The thumbnail yields to complete names; stock context retains its compact line. */
+@media (max-width: 767px) {
+  :root [data-cart-kind="sale"] [data-cart-row] > :nth-child(2) { grid-column: 3 / 7; grid-row: 1; }
+  :root [data-cart-kind="sale"] [data-cart-row] > :nth-child(2) > :first-child { display: none; }
+  :root [data-cart-kind="sale"] [data-cart-row] > :nth-child(2) p:first-child {
+    overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere;
+  }
+  :root [data-cart-kind="sale"] [data-cart-row] > :nth-child(6) { grid-column: 7 / 12; grid-row: 1; width: calc(100% - 12px); }
+  :root [data-cart-kind="sale"] [data-cart-row] > :nth-child(4) { grid-column: 1 / 5; grid-row: 3; }
+  :root [data-cart-kind="sale"] [data-cart-row] > :nth-child(5) { grid-column: 5 / -1; grid-row: 3; }
+}
+/* Opt-in for POS only: wide symbols must not steal the number's editing room.
+   Very long entries scroll inside this single joined field, never the page. */
+[data-multi-quantity][data-readable-values] { overflow-x: auto; }
+[data-multi-quantity][data-readable-values] > div { flex: 1 0 0; min-width: max-content; }
+[data-multi-quantity][data-readable-values] [data-numeric-input][data-stepper-size="compact"] { --numeric-step-space: 18px; }
+[data-multi-quantity][data-readable-values] [data-number-stepper] { width: 14px; }
+[data-multi-quantity][data-readable-values] > div > [data-table-helper] { padding-inline: 2px; }

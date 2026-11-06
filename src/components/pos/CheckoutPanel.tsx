@@ -368,9 +368,12 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           ref={props.completeRef}
           onClick={props.onComplete}
           disabled={totals.total === 0 || dueWithoutCustomer || Boolean(props.validationError) || (props.installment?.mode==='Installment' && !customer)}
-          className="h-12 w-full text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
-          {props.completeLabel ?? word('completeSale')} · {taka(totals.total)}
-          <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
+          className="h-12 w-full gap-2 px-3 text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
+          <span data-pos-complete-copy className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-1.5 leading-5">
+            <span>{props.completeLabel ?? word('completeSale')}</span>
+            <span className="whitespace-nowrap">{taka(totals.total)}</span>
+          </span>
+          <kbd className="shrink-0 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
       </div>
     </aside>
