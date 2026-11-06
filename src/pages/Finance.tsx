@@ -11,6 +11,7 @@ import {
   BriefcaseBusiness,
   CheckCircle2,
   Eye,
+  Filter,
   Pencil,
   Power,
   RotateCcw,
@@ -40,6 +41,7 @@ import { financeAccountIdentityLabel, transferAccountId, transferAccountLabel } 
 import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid, financePaymentDraftTotal } from '../utils/financePaymentDrafts';
 import { StatusBadge } from '../components/StatusBadge';
 import { RowActionMenu } from '../components/layout/RowActionMenu';
+import { AnimatedAdvancedFilters } from '../components/layout/AnimatedAdvancedFilters';
 import { ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -568,6 +570,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const openChequeActions = (item: ChequeRecord, mode: 'view' | 'edit') => { setChequeActionMode(mode); setChequeAction(item); };
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All transaction types');
+  const [loansFiltersOpen, setLoansFiltersOpen] = useState(false);
   const applyTransactionMovement = (list: FinanceAccount[], transaction: FinanceTransaction, factor = 1) => {
     if (transaction.direction === 'none' || transaction.status === 'Reversed') return list;
     const splits = transaction.paymentAccounts?.length
@@ -921,18 +924,34 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
         {tab === 'transactions' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1 lg:max-w-md">
+            <div data-finance-loans-toolbar="" className="-mr-2 grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 border-b border-border p-3 lg:mr-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,270px)]">
+              <div className="relative min-w-0 lg:max-w-md">
                 <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" placeholder="Search finance transaction, party or reference" />
+                <Input aria-label={text('Search finance transaction, party or reference','টাকার লেনদেন, নাম বা নম্বর খুঁজুন')}
+                  value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8"
+                  placeholder={text('Search finance transaction, party or reference','লেনদেন, নাম বা নম্বর খুঁজুন')} />
               </div>
-              <FormSelect className="w-full lg:w-48" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} options={['All transaction types', ...financeTypeOptions]} />
-              <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
-                <UserRoundCog className="size-4" /> {text('Finance people','হিসাবের ব্যক্তি')}
+              <Button type="button" variant="outline" size="icon"
+                aria-label={text('Advanced filters','আরও ফিল্টার') + (typeFilter !== 'All transaction types' ? ' (1)' : '')}
+                aria-controls="finance-loans-advanced-filters" aria-expanded={loansFiltersOpen}
+                onClick={() => setLoansFiltersOpen((open) => !open)}
+                className={`relative size-9 shrink-0 rounded-md lg:hidden ${typeFilter === 'All transaction types' ? 'text-ink-500' : 'border-teal-500 text-teal-700'}`}>
+                <Filter className="size-4" aria-hidden="true" />
+                {typeFilter !== 'All transaction types' && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />}
               </Button>
-              <Button size="sm" onClick={() => setTransactionOpen(true)}>
-                <Plus className="size-4" /> {text('New transaction','নতুন লেনদেন')}
-              </Button>
+              <div className="col-span-2 min-w-0 lg:col-span-1">
+                <AnimatedAdvancedFilters id="finance-loans-advanced-filters" open={loansFiltersOpen} className="flex min-w-0 items-center gap-2">
+                  <FormSelect aria-label={text('Finance transaction type','টাকার লেনদেনের ধরন')}
+                    className="min-w-0 flex-1" value={typeFilter}
+                    onChange={(event) => setTypeFilter(event.target.value)} options={['All transaction types', ...financeTypeOptions]} />
+                  <Button type="button" variant="outline" size="icon"
+                    aria-label={text('Reset filters','ফিল্টার মুছুন')} title={text('Reset all Finance filters','টাকার হিসাবের সব ফিল্টার মুছুন')}
+                    onClick={() => {setQuery('');setTypeFilter('All transaction types');}}
+                    className="size-9 shrink-0 rounded-md text-ink-500">
+                    <RotateCcw className="size-4" aria-hidden="true" />
+                  </Button>
+                </AnimatedAdvancedFilters>
+              </div>
             </div>
 
             <Table data-finance-loans-table="" scrollRegionLabel={text('Finance loans and owner transactions','ঋণ ও মালিকের লেনদেন')} className="w-full table-fixed lg:table-auto">
@@ -988,6 +1007,12 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                 ))}
               </TableBody>
             </Table>
+            {filteredTransactions.length === 0 && (
+              <div data-finance-loans-empty="" className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-4">
+                <p className="text-[12px] text-ink-500">{text('No matching finance transactions.','এই ফিল্টারে কোনো লেনদেন পাওয়া যায়নি।')}</p>
+                <Button variant="outline" size="sm" onClick={() => {setQuery('');setTypeFilter('All transaction types');}}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
+              </div>
+            )}
           </>
         )}
 
