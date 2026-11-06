@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {applyVendorCommand,sourceOutstanding,vendorBalances} from '../src/vendor/vendorModel.ts';
 import {freezeUnitProfile,unitQuantitiesBase} from '../src/utils/multiUnitTransactions.ts';
 import {productUnits,productUnitFactor} from '../src/utils/unitChain.ts';
+import {convertVendorV2UnitPrice} from '../src/vendor/vendorV2Pricing.ts';
 import type {VendorPreviewState} from '../src/vendor/vendorTypes.ts';
 import type {Product} from '../src/types/erp.ts';
 
@@ -66,4 +67,20 @@ test('multiple taken lines with pending price do not become cash liabilities',()
  assert.equal(state.sources.length,2);
  assert.equal(vendorBalances(state,'nearby').knownPayablePaisa,5000);
  assert.equal(sourceOutstanding(state,'a').unpricedBaseQty,215);
+});
+
+test('switching price unit preserves a multi-unit cart line total',()=>{
+ const boxFactor=productUnitFactor(p,'Box');
+ const bagFactor=productUnitFactor(p,'Bag');
+ const pcsFactor=productUnitFactor(p,'Pcs');
+ const originalBox='150';
+ const asPcs=convertVendorV2UnitPrice(originalBox,boxFactor,pcsFactor);
+ const asBag=convertVendorV2UnitPrice(originalBox,boxFactor,bagFactor);
+ assert.equal(asPcs,'10');
+ assert.equal(asBag,'1800');
+ const qty=unitQuantitiesBase(freezeUnitProfile(p),{Bag:'1',Box:'2',Pcs:'5'});
+ assert.equal(qty*Number(originalBox)/boxFactor,qty*Number(asPcs)/pcsFactor);
+ assert.equal(qty*Number(originalBox)/boxFactor,qty*Number(asBag)/bagFactor);
+ assert.equal(convertVendorV2UnitPrice('',bagFactor,boxFactor),'','Pending remains pending');
+ assert.throws(()=>convertVendorV2UnitPrice('100',0,pcsFactor),/factor/i);
 });
