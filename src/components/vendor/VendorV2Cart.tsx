@@ -70,7 +70,7 @@ export function VendorV2Cart({partyId,partyName,mode,onCancel,onSaved,onDirtyCha
    const operationId='vendor-v2-'+mode+'-'+partyId+'-'+snapshot.revision+'-'+unique();
    dispatchVendorPreview({
     type:mode==='taken'?'record-sourcing-memo':'issue-goods-memo',
-    operationId,vendorPartyId:partyId,memoId:operationId,date,
+    operationId,vendorPartyId:partyId,memoId:operationId,date,allowUnpriced:mode==='given',
     reference:reference.trim()||((mode==='taken'?'V-TK-':'V-GV-')+String(snapshot.revision+1).padStart(4,'0')),
     sources:sources.map(s=>({id:operationId+':'+s.index,productId:s.productId,baseQty:s.baseQty,date:s.date,unitCostBasePaisa:s.unitCostBasePaisa}))
    });
