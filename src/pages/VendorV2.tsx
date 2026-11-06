@@ -157,7 +157,7 @@ export function VendorV2(){
    <div className="min-w-0"><h1 className="text-lg font-semibold text-ink">Vendor V2</h1>
     <p className="font-bn text-xs text-ink-500">ভেন্ডর লেনদেন</p></div>
    <div className="flex items-center gap-1.5">
-    <Button size="sm" variant="outline" onClick={()=>navigate('/app/vendors'+(party?'?partyId='+encodeURIComponent(party.id):''))}>V1</Button>
+    <Button size="sm" variant="outline" aria-label="Vendor V1" onClick={()=>navigate('/app/vendors'+(party?'?partyId='+encodeURIComponent(party.id):''))}>V1</Button>
     <Button size="sm" onClick={()=>setEditingParty(null)}><Plus className="size-4"/> Vendor</Button>
    </div>
   </div>
