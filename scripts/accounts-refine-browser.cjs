@@ -69,9 +69,13 @@ async function main(){
     assert.ok(a&&a.width>=35&&a.height>=35&&a.x>=-1&&a.x+a.width<=width+1,'36px voucher action reachable without horizontal scroll: '+width);
     const amount=first.locator('[data-accounts-amount]');
     assert.ok(await amount.count(),'amount preserved');
+    // Compact layouts must show money and Actions together without scrolling.
+    // Rich desktop tables keep all columns; amount can require native table scroll.
+    if(width>=1024 && await region.count())await region.evaluate(el=>{el.scrollLeft=el.scrollWidth;el.dispatchEvent(new Event('scroll'));});
     const amountRect=await amount.boundingBox();
-    assert.ok(amountRect&&amountRect.x+amountRect.width<=a.x+2,
-      'amount not hidden behind action: '+width+' / amount='+JSON.stringify(amountRect)+' / action='+JSON.stringify(a));
+    const actionRect=await action.boundingBox();
+    assert.ok(amountRect&&actionRect&&amountRect.x>=-1&&amountRect.x+amountRect.width<=actionRect.x+2,
+      'amount must fit before sticky Action '+(width>=1024?'after desktop scroll':'without scroll')+': '+width+' / amount='+JSON.stringify(amountRect)+' / action='+JSON.stringify(actionRect));
     await page.screenshot({path:filename('vouchers'),animations:'disabled',fullPage:true});
     await action.click();
     const menu=page.getByRole('dialog',{name:/^Actions for /}).last();
