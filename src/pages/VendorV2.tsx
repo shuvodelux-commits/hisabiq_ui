@@ -93,7 +93,7 @@ export function VendorV2(){
   ...(tab==='ledger'?sales.map(s=>({id:s.id,date:s.date,type:'Sale',title:s.items,sub:s.invoice,
    amount:Math.max(0,s.due)*100,pricePending:0,open:s.due>0,first:'',kind:'sale' as const})):[])
  ].filter(g=>(tab==='ledger'||g.kind===tab)&&dateWithin(g.date,dateFilter)&&
-  [g.title,g.sub,g.type].some(text=>text.toLowerCase().includes(query.toLowerCase()))).sort((a,b)=>b.date.localeCompare(a.date));
+  [g.title,g.sub,g.type].some(text=>String(text).toLowerCase().includes(query.toLowerCase()))).sort((a,b)=>b.date.localeCompare(a.date));
  const selectParty=(id:string)=>{
   if(dirty&&!window.confirm('Discard unfinished goods cart?'))return;
   setDirty(false);setEditor(null);setSelectedSource(null);setTab('ledger');setPicker(false);setMore(false);setQuery('');
@@ -109,17 +109,17 @@ export function VendorV2(){
  };
  const saveParty=(draft:PartyDraft,openings:Omit<PartyOpeningPayload,'partyId'>[])=>{
   if(editingParty){
-   dispatchPartyPreview({type:'update-party',id:editingParty.id,patch:{...draft,roles:[...new Set([...draft.roles,'Vendor'])]},openings});
+   dispatchPartyPreview({type:'update-party',id:editingParty.id,patch:{...draft,roles:[...new Set<Party['roles'][number]>([...draft.roles,'Vendor'])]},openings});
    toast.success('Vendor updated in preview');return;
   }
   const existing=availableParties().find(p=>(draft.phone&&p.phone.replace(/\D/g,'')===draft.phone.replace(/\D/g,''))
    ||p.name.trim().toLowerCase()===draft.name.trim().toLowerCase());
   if(existing){
-   if(!existing.roles.includes('Vendor'))dispatchPartyPreview({type:'update-party',id:existing.id,patch:{roles:[...existing.roles,'Vendor']},openings});
+   if(!existing.roles.includes('Vendor'))dispatchPartyPreview({type:'update-party',id:existing.id,patch:{roles:[...existing.roles,'Vendor' as const]},openings});
    selectParty(existing.id);toast.info('Existing Party selected as Vendor');return;
   }
   const before=new Set(availableParties().map(p=>p.id));
-  const next=dispatchPartyPreview({type:'create-party',party:{...draft,roles:[...new Set([...draft.roles,'Vendor'])],name:draft.name.trim()},openings});
+  const next=dispatchPartyPreview({type:'create-party',party:{...draft,roles:[...new Set<Party['roles'][number]>([...draft.roles,'Vendor'])],name:draft.name.trim()},openings});
   const created=next.parties.find(p=>!before.has(p.id));
   if(created)selectParty(created.id);
   toast.success('Vendor added in preview');
@@ -128,7 +128,7 @@ export function VendorV2(){
   if(!party)return;
   if(!party.roles.includes('Customer')){
    if(!window.confirm('Add Customer role to '+party.name+' to sell through POS?'))return;
-   dispatchPartyPreview({type:'update-party',id:party.id,patch:{roles:[...party.roles,'Customer']},openings:[]});
+   dispatchPartyPreview({type:'update-party',id:party.id,patch:{roles:[...party.roles,'Customer' as const]},openings:[]});
   }
   navigate('/app/pos?partyId='+encodeURIComponent(party.id));
  };
