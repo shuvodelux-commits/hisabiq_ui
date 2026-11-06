@@ -747,7 +747,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   ];
 
   return (
-    <div className={moneyAccountsOnly ? 'space-y-0' : 'mx-auto max-w-[1440px] space-y-3 sm:space-y-4'}>
+    <div className={moneyAccountsOnly ? 'space-y-0' : counterOnly ? 'mx-auto max-w-[1440px] space-y-4' : 'mx-auto max-w-[1440px] space-y-3 sm:space-y-4'}>
       {!moneyAccountsOnly && <PageHeader
         title={counterOnly ? 'Counter' : 'Finance'}
         titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
