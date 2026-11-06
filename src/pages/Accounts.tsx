@@ -2,7 +2,7 @@ import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import '../utils/accountingLabels'; // Keep existing module initialization.
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowDownToLine, BookOpen, FileText, Landmark, MoreHorizontal, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
+import { ArrowDownToLine, BookOpen, FileText, Landmark, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../components/Button';
 import { PageHeader } from '../components/PageHeader';
@@ -13,7 +13,7 @@ import { VoucherDialog } from '../components/accounts/VoucherDialog';
 import { VoucherActionDialog } from '../components/accounts/VoucherActionDialog';
 import { OpeningBalanceDialog } from '../components/accounts/OpeningBalanceDialog';
 import { FloatingPanel } from '../components/layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem } from '../components/layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuTrigger } from '../components/layout/ActionMenu';
 import { Eye } from 'lucide-react';
 import { LedgerView } from '../components/accounts/LedgerView';
 import { TrialBalanceView } from '../components/accounts/TrialBalanceView';
@@ -276,31 +276,39 @@ export function Accounts() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 pl-4 text-xs">{text('Date','তারিখ')}</TableHead>
-                    <TableHead className="h-9 text-xs">{text('Type','ধরন')}</TableHead>
-                    <TableHead className="h-9 text-xs">{text('Reference','নম্বর')}</TableHead>
-                    <TableHead className="h-9 text-xs">{text('Description','বিবরণ')}</TableHead>
-                    <TableHead className="h-9 text-xs">{text('Posted by','যিনি লিখেছেন')}</TableHead>
+                    <TableHead className="h-9 pl-3 text-xs lg:hidden">{text('Entry','এন্ট্রি')}</TableHead>
+                    <TableHead className="hidden h-9 pl-4 text-xs lg:table-cell">{text('Date','তারিখ')}</TableHead>
+                    <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Type','ধরন')}</TableHead>
+                    <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Reference','নম্বর')}</TableHead>
+                    <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Description','বিবরণ')}</TableHead>
+                    <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Posted by','যিনি লিখেছেন')}</TableHead>
                     <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
-                    <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                    <TableHead className="h-9 pr-4 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                    <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Status','অবস্থা')}</TableHead>
+                    <TableHead className="sticky right-0 z-10 h-9 w-12 min-w-12 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sources.slice().reverse().map((source) => (
                     <TableRow key={source.id} className="text-[13px]">
-                      <TableCell className="py-2 pl-4">{source.transactionDate}</TableCell>
-                      <TableCell className="py-2"><p className="font-medium text-ink">{sourceLabel(source.source)}</p><p data-table-helper="" className="font-bn text-[10.5px] text-ink-400">{sourceHelper(source.source)}</p></TableCell>
-                      <TableCell className="py-2 font-medium text-teal-700">{source.reference}</TableCell>
-                      <TableCell className="max-w-[360px] py-2"><p className="truncate text-ink-600">{source.description || '—'}</p></TableCell>
-                      <TableCell className="py-2 text-ink-600">{source.postedBy}</TableCell>
-                      <TableCell className="py-2 text-right font-semibold">{taka(source.amount)}</TableCell>
-                      <TableCell className="py-2"><StatusBadge tone={source.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{text(source.recordStatus ?? 'Posted',source.recordStatus==='Deleted'?'মুছে ফেলা':'লেখা হয়েছে')}</StatusBadge></TableCell>
-                      <TableCell className="py-2 pr-4 text-right">
+                      <TableCell data-accounts-mobile-summary="" className="min-w-0 py-2 pl-3 pr-1 lg:hidden">
+                        <span data-accounts-mobile-ref="" className="block break-all text-[12px] font-semibold leading-tight text-teal-700">{source.reference}</span>
+                        <span className="mt-1 block text-[11px] leading-tight text-ink-600">{source.transactionDate} · {sourceLabel(source.source)}</span>
+                        <span className="mt-0.5 block truncate text-[10.5px] text-ink-400">{source.description || sourceHelper(source.source)}</span>
+                      </TableCell>
+                      <TableCell className="hidden py-2 pl-4 lg:table-cell">{source.transactionDate}</TableCell>
+                      <TableCell className="hidden py-2 lg:table-cell"><p className="font-medium text-ink">{sourceLabel(source.source)}</p><p data-table-helper="" className="font-bn text-[10.5px] text-ink-400">{sourceHelper(source.source)}</p></TableCell>
+                      <TableCell className="hidden py-2 font-medium text-teal-700 lg:table-cell">{source.reference}</TableCell>
+                      <TableCell className="hidden max-w-[360px] py-2 lg:table-cell"><p className="truncate text-ink-600">{source.description || '—'}</p></TableCell>
+                      <TableCell className="hidden py-2 text-ink-600 lg:table-cell">{source.postedBy}</TableCell>
+                      <TableCell data-accounts-amount="" className="py-2 pr-2 text-right font-semibold"><span className="whitespace-nowrap text-[12px] lg:text-[13px]">{taka(source.amount)}</span>
+                        <span data-accounts-mobile-status="" className="mt-0.5 block text-[10px] font-normal text-ink-500 lg:hidden">{text(source.recordStatus ?? 'Posted',source.recordStatus==='Deleted'?'মুছে ফেলা':'লেখা হয়েছে')}</span>
+                      </TableCell>
+                      <TableCell className="hidden py-2 lg:table-cell"><StatusBadge tone={source.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{text(source.recordStatus ?? 'Posted',source.recordStatus==='Deleted'?'মুছে ফেলা':'লেখা হয়েছে')}</StatusBadge></TableCell>
+                      <TableCell className="sticky right-0 z-10 w-12 min-w-12 border-l border-border bg-card py-1 pr-2 text-right">
                         <FloatingPanel
                           label={`Actions for ${source.reference}`}
                           width={180}
-                          trigger={({ toggle }) => <button onClick={toggle} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink" aria-label={`Actions for ${source.reference}`}><MoreHorizontal className="size-4" /></button>}>
+                          trigger={({ toggle, open }) => <ActionMenuTrigger label={`Actions for ${source.reference}`} expanded={open} onClick={toggle} />}>
                           {(close) => <ActionMenuList><ActionMenuItem icon={Eye} onClick={() => { close(); setEntryActionId(source.id); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem></ActionMenuList>}
                         </FloatingPanel>
                       </TableCell>
