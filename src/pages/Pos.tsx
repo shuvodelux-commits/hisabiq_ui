@@ -893,19 +893,21 @@ export function Pos() {
             searchRef={searchRef} />
           
 
-          <section aria-labelledby="quick-items">
+          <section aria-labelledby="quick-items" className="min-w-0">
             <div className="mb-2 flex items-center justify-between">
               <h2 id="quick-items" className="text-sm font-semibold text-ink">
                 Quick items <span className="font-bn font-normal text-ink-500">· দ্রুত যোগ</span>
               </h2>
-              <span className="text-xs text-ink-500">Tap to add · touch friendly</span>
+              <span className="text-[11px] text-ink-500">{text('Swipe for more · tap to add','পাশে সরান · চাপ দিয়ে যোগ করুন')}</span>
             </div>
-            <div className="grid grid-cols-1 gap-2 min-[375px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            <div data-pos-quick-items="" role="region" tabIndex={0}
+              aria-label={text('Quick add products','দ্রুত পণ্য যোগ')}
+              className="flex min-w-0 gap-2 overflow-x-auto overscroll-x-contain rounded-md pb-2 scrollbar-thin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
               {quickItems.map((p) =>
               <button
                 key={p.id}
                 onClick={() => cart.addProduct(p)}
-                className="group flex items-center gap-2.5 rounded-xl border border-border bg-card p-2.5 text-left shadow-card transition-colors hover:border-teal-300 hover:bg-teal-50/40 active:scale-[0.99]">
+                className="group flex min-h-16 w-[min(220px,70vw)] shrink-0 items-center gap-2.5 rounded-xl border border-border bg-card p-2.5 text-left shadow-card transition-colors hover:border-teal-300 hover:bg-teal-50/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                 
                   <ProductThumb src={p.image} size={40} />
                   <span className="min-w-0 flex-1">
