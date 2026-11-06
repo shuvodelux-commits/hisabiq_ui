@@ -204,7 +204,25 @@ export function VendorV2(){
         </div>
        </div>
       </div>
-      <div className="min-w-0 overflow-x-auto rounded-md border border-border">
+      <div className="space-y-2 sm:hidden" aria-label="Vendor V2 mobile activity">
+       {entries.map(g=><article key={g.id} className="min-w-0 rounded-md border border-border bg-card p-3">
+        <div className="flex min-w-0 items-start justify-between gap-2">
+         <div className="min-w-0"><p className="break-words text-[13px] font-medium text-ink">{g.type} · {g.title}</p>
+          <p className="mt-1 text-[11px] text-ink-500">{g.date} · {g.sub}</p></div>
+         <span className={'shrink-0 text-[11px] font-medium '+(g.pricePending?'text-warning':g.open?'text-danger':'text-teal-700 dark:text-teal-300')}>
+          {g.pricePending?'Price pending':g.open?'To settle':'Settled'}
+         </span>
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-3 border-t border-border pt-2">
+         <span className="text-xs font-semibold text-ink">{g.pricePending?(g.amount?'Known due: '+taka(g.amount/100):'Amount not set'):taka(g.amount/100)}</span>
+         {g.first?<Button type="button" size="sm" variant="outline"
+          onClick={()=>review(g.first,g.kind==='taken'?'taken':'given')}>{g.open?'Review / Settle':'View'}</Button>:
+          <Button type="button" size="sm" variant="outline" onClick={()=>navigate(g.kind==='purchase'?'/app/purchases':'/app/sales')}>View</Button>}
+        </div>
+       </article>)}
+       {!entries.length&&<p className="rounded-md border border-border p-6 text-center text-sm text-ink-500">No matching activity.</p>}
+      </div>
+      <div className="hidden min-w-0 overflow-x-auto rounded-md border border-border sm:block">
        <table data-erp-table className="w-full min-w-[590px] text-[13px]">
         <thead className="bg-ink-50 text-[12px] text-ink-500"><tr>
          <th className="p-2 text-left font-medium">Date</th><th className="p-2 text-left font-medium">Transaction / Products</th>
