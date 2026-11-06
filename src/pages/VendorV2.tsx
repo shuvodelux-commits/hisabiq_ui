@@ -207,7 +207,7 @@ export function VendorV2(){
       <div className="flex flex-wrap items-center justify-between gap-2">
        <h3 className="text-[13px] font-semibold text-ink">{tab==='ledger'?'All activity':tab==='taken'?'Goods collected':'Goods supplied'}</h3>
        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-        <Input aria-label="Search Vendor V2 activity" className="w-full sm:w-[175px]" placeholder="Search memo..." value={query} onChange={e=>setQuery(e.target.value)}/>
+        <Input aria-label="Search Vendor V2 activity" className="w-full shrink-0 basis-full sm:w-[175px] sm:basis-auto" placeholder="Search memo..." value={query} onChange={e=>setQuery(e.target.value)}/>
         <div className="flex items-center gap-1" role="group" aria-label="Date filter">
          {(['today','week','all'] as const).map(k=><Button type="button" key={k} size="sm" variant={dateFilter===k?'default':'outline'}
           onClick={()=>setDateFilter(k)}>{k==='week'?'7 days':k==='today'?'Today':'All'}</Button>)}
