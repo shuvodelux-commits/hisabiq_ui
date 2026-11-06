@@ -211,6 +211,7 @@ jobs:
         run: |
           node scripts/vendor-module-browser.cjs
           node scripts/vendor-party-layout-browser.cjs
+          node scripts/vendor-refine-browser.cjs
 
       - name: Finance counter smoke
         if: steps.scope.outputs.finance == 'true'
