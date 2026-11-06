@@ -36,7 +36,8 @@ async function main(){
     const voucherTab=page.getByRole('tab',{name:'Vouchers',exact:true});
     await page.getByRole('tab',{name:'Overview',exact:true}).focus();
     await page.keyboard.press('ArrowRight');
-    assert.ok(await voucherTab.evaluate(el=>el===document.activeElement),'ArrowRight moves tab focus');
+    await page.waitForFunction(() => document.activeElement?.getAttribute('data-accounts-tab') === 'vouchers');
+    assert.ok(await voucherTab.evaluate(el=>el===document.activeElement),'ArrowRight keeps focus after tab route update');
     assert.equal(await voucherTab.getAttribute('aria-selected'),'true','Voucher tab selected');
     assert.match(page.url(),/tab=vouchers/,'tab selection survives URL state');
     const table=page.locator('table').first();
