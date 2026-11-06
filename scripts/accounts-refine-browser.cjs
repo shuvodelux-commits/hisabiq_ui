@@ -40,9 +40,10 @@ async function main(){
     const voucherTab=page.getByRole('tab',{name:'Vouchers',exact:true});
     await page.getByRole('tab',{name:'Overview',exact:true}).focus();
     await page.keyboard.press('ArrowRight');
-    const keyboardState=await page.evaluate(()=>({active:document.activeElement?.getAttribute('data-accounts-tab'), selected:[...document.querySelectorAll('[data-accounts-tab]')].filter(el=>el.getAttribute('aria-selected')==='true').map(el=>el.getAttribute('data-accounts-tab')), hash:location.hash}));
-    console.log('Accounts keyboard state',width,theme,JSON.stringify(keyboardState));
-    await page.waitForFunction(() => document.activeElement?.getAttribute('data-accounts-tab') === 'vouchers',null,{timeout:6000});
+    await page.waitForFunction(() => document.activeElement?.getAttribute('data-accounts-tab') === 'money-accounts' && location.hash.includes('tab=money-accounts'),null,{timeout:6000});
+    assert.equal(await page.getByRole('tab',{name:'Money Accounts'}).getAttribute('aria-selected'),'true','first ArrowRight selects the actual next tab');
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => document.activeElement?.getAttribute('data-accounts-tab') === 'vouchers' && location.hash.includes('tab=vouchers'),null,{timeout:6000});
     assert.ok(await voucherTab.evaluate(el=>el===document.activeElement),'ArrowRight keeps focus after tab route update');
     assert.equal(await voucherTab.getAttribute('aria-selected'),'true','Voucher tab selected');
     assert.match(page.url(),/tab=vouchers/,'tab selection survives URL state');
