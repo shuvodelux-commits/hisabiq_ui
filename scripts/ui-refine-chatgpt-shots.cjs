@@ -331,7 +331,16 @@ async function capture(browser,name,url,route,out,showSababNav=false,showFloatin
         await page.keyboard.press('Escape');
         await menu.waitFor({state:'hidden'});
       }
-      if(showExpenseDialog){
+      if(route==='#/app/vendors-v2'){
+      // Verify live cart and opened interaction states on the new opt-in route.
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/vendor-v2-browser.cjs')],{
+        cwd:candidate,
+        env:{...process.env,VENDOR_V2_SHOTS_DIR:out},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'vendor-v2-playwright.log'),log);
+    }
+    if(showExpenseDialog){
         await page.setViewportSize({width,height});
         const trigger=page.getByRole('button',{name:/Add expense/i}).first();
         await trigger.click();
