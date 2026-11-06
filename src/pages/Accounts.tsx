@@ -1,6 +1,6 @@
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import '../utils/accountingLabels'; // Keep existing module initialization.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowDownToLine, BookOpen, FileText, Landmark, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
@@ -83,7 +83,17 @@ export function Accounts() {
   const [params,setParams] = useSearchParams();
   const requestedTab = params.get('tab');
   const [tab, setTab] = useState<Tab>(() => validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview');
+  const pendingKeyboardFocus = useRef<Tab | null>(null);
   useEffect(() => { setTab(validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview'); }, [requestedTab]);
+  useEffect(() => {
+    if (!pendingKeyboardFocus.current) return;
+    const target = pendingKeyboardFocus.current;
+    const frame = requestAnimationFrame(() => {
+      document.querySelector<HTMLButtonElement>(`[data-accounts-tab="${target}"]`)?.focus();
+      pendingKeyboardFocus.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [tab]);
   const chooseTab = (nextTab: Tab) => { setTab(nextTab); setParams(current => { const next = new URLSearchParams(current); if (nextTab === 'overview') next.delete('tab'); else next.set('tab',nextTab); if(nextTab!=='bank-entry')next.delete('accountId'); return next; }, {replace:true}); };
   const [sources, setSources] = useState<AccountingSourceTransaction[]>(seedSources);
   const [voucherOpen, setVoucherOpen] = useState(false);
@@ -202,12 +212,14 @@ export function Accounts() {
             const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
               : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
             event.preventDefault();
-            chooseTab(tabs[next][0]);
+            pendingKeyboardFocus.current = tabs[next][0];
             buttons[next]?.focus();
+            chooseTab(tabs[next][0]);
           }}>
           {tabs.map(([id, label]) => (
             <button
               key={id}
+              data-accounts-tab={id}
               role="tab"
               aria-selected={tab === id || (tab === 'bank-entry' && id === 'money-accounts')}
               tabIndex={tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 0 : -1}
