@@ -193,7 +193,7 @@ export function Accounts() {
       </div>}
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label={text('Account sections','হিসাবের বিভাগ')}
+        <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label="Account sections"
           onKeyDown={(event) => {
             if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
             const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
@@ -237,10 +237,10 @@ export function Accounts() {
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-teal-50 text-teal-700">
                       <FileText className="size-4" />
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[12.5px] font-medium text-ink">{sourceLabel(source.source)} · {source.reference}</p>
-                      <p className="truncate text-[10.5px] text-ink-400">{source.transactionDate} · {source.description || sourceHelper(source.source)} · {source.postedBy}</p>
-                    </div>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[12.5px] font-medium text-ink">{sourceLabel(source.source)} · {source.reference}</span>
+                      <span className="block truncate text-[10.5px] text-ink-400">{source.transactionDate} · {source.description || sourceHelper(source.source)} · {source.postedBy}</span>
+                    </span>
                     <span className="shrink-0 whitespace-nowrap text-[12.5px] font-semibold text-ink">{taka(source.amount)}</span>
                   </button>
                 ))}
