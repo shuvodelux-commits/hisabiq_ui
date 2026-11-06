@@ -73,7 +73,7 @@ export function VendorV2(){
  const pendingGoods=sources.filter(s=>stillOpen(snapshot,s)).length;
  const groups=useMemo(()=>{
   const groups=new Map<string,VendorSource[]>();
-  sources.forEach(s=>{let key=memoKey(s);groups.set(key,[...(groups.get(key)||[]),s]);});
+  sources.forEach(s=>{const key=memoKey(s);groups.set(key,[...(groups.get(key)||[]),s]);});
   return [...groups].map(([key,lines])=>({
    key,lines,kind:lines[0].sourceKind==='sourcing'?'taken' as const:'given' as const,
    date:lines[0].date,reference:lines[0].reference??key,
