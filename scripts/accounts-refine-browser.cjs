@@ -70,7 +70,8 @@ async function main(){
     const amount=first.locator('[data-accounts-amount]');
     assert.ok(await amount.count(),'amount preserved');
     const amountRect=await amount.boundingBox();
-    assert.ok(amountRect&&amountRect.x+amountRect.width<=a.x+2,'amount not hidden behind action: '+width);
+    assert.ok(amountRect&&amountRect.x+amountRect.width<=a.x+2,
+      'amount not hidden behind action: '+width+' / amount='+JSON.stringify(amountRect)+' / action='+JSON.stringify(a));
     await page.screenshot({path:filename('vouchers'),animations:'disabled',fullPage:true});
     await action.click();
     const menu=page.getByRole('dialog',{name:/^Actions for /}).last();
