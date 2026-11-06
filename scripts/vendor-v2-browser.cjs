@@ -21,6 +21,13 @@ async function main(){
    await page.goto('http://127.0.0.1:4298/#/app/vendors-v2?partyId=v1',{waitUntil:'networkidle'});
    await page.locator('[data-vendor-v2]').waitFor();
    assert.equal(await page.locator('[role=tab][aria-selected]').count(),3,'Exactly Ledger, Taken, Given tabs');
+   if(width===390){
+    const cards=page.locator('[aria-label="Vendor V2 mobile activity"]');
+    assert(await cards.isVisible(),'Phone uses readable transaction cards');
+    const settle=cards.getByRole('button',{name:/Review \/ Settle/}).first();
+    const bounds=await settle.boundingBox();
+    assert(bounds&&bounds.x>=0&&bounds.x+bounds.width<=width+2,'Settle action must be inside phone viewport');
+   }
    if(out)await page.screenshot({path:path.join(out,'vendor-v2-'+width+'-'+theme+'-ledger.png'),fullPage:true,animations:'disabled'});
    await page.getByRole('button',{name:/Take Goods/}).first().click();
    const cart=page.getByRole('form',{name:'Vendor V2 take goods cart'});
@@ -30,6 +37,12 @@ async function main(){
    assert.equal(await cart.locator('[data-vendor-v2-line]').count(),1,'Product search adds an inline cart row');
    assert.equal(await cart.locator('[data-multi-quantity]').count(),1,'Use shared compound/multi-unit input');
    await cart.getByRole('textbox',{name:/Unit price for/}).fill('');
+   if(width===390){
+    const extent=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth}));
+    assert(extent.scroll<=extent.width+2,'Taking goods must not enlarge the phone page horizontally');
+    const qty=await cart.locator('[data-multi-quantity]').first().boundingBox();
+    assert(qty&&qty.x>=0&&qty.x+qty.width<=width+2,'Full multi-unit field must remain visible');
+   }
    if(out)await page.screenshot({path:path.join(out,'vendor-v2-'+width+'-'+theme+'-take-cart.png'),fullPage:true,animations:'disabled'});
    await cart.getByRole('button',{name:/Save Taken Goods/}).click();
    await page.locator('[data-vendor-v2]').waitFor();
