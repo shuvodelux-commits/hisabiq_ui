@@ -1,3 +1,6 @@
 [submodule "vendor/impeccable"]
 	path = vendor/impeccable
 	url = https://github.com/pbakaus/impeccable.git
+[submodule "vendor/super-board"]
+	path = vendor/super-board
+	url = https://github.com/EricTechPro/super-board.git
