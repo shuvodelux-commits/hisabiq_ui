@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { ChevronDown, UserRound, X } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import { Input } from '../Input';
@@ -14,10 +14,13 @@ type CustomerPickerProps = {
   onChange: (p: Party | null) => void;
   /** Customer-only ledger balance before this unposted sale, not the current invoice due. */
   previousBalance?: number | null;
+  /** Opt-in for POS checkout without changing template-picker defaults. */
+  guardComposition?: boolean;
 };
 
-export function CustomerPicker({ value, onChange, previousBalance }: CustomerPickerProps) {
+export function CustomerPicker({ value, onChange, previousBalance, guardComposition = false }: CustomerPickerProps) {
   const [q, setQ] = useState('');
+  const composingRef = useRef(false);
   const { word,text } = useUiCopy();
   const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
   // Only active Customer relationships are valid at checkout; Borrower is a separate ledger role.
@@ -86,7 +89,16 @@ export function CustomerPicker({ value, onChange, previousBalance }: CustomerPic
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            onKeyDown={e=>{if(e.key==='Enter'&&q.trim()&&customers[0]){e.preventDefault();onChange(customers[0]);close();}}}
+            onCompositionStart={() => { composingRef.current = true; }}
+            onCompositionEnd={() => { composingRef.current = false; }}
+            onKeyDown={(event) => {
+              if (guardComposition && (composingRef.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229)) return;
+              if (event.key === 'Enter' && q.trim() && customers[0]) {
+                event.preventDefault();
+                onChange(customers[0]);
+                close();
+              }
+            }}
             aria-label={word("searchCustomer")}
             placeholder={word("searchCustomer")}
             className="h-9 w-full rounded-md border border-border px-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />

@@ -893,8 +893,10 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
    controls cannot fit; phone layouts continue to use compact stacked rows. */
 @media (min-width: 768px) {
   :root [data-cart-kind="sale"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
-    min-width: calc(720px + var(--cart-quantity-width, 168px)) !important;
-    grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width, 168px) 88px minmax(164px, 180px) 112px 28px;
+    /* Routine two-unit rows fit the desktop cart. Wider 3/4-unit chains
+       retain their larger quantity budget and scroll inside the cart. */
+    min-width: calc(616px + var(--cart-quantity-width, 144px)) !important;
+    grid-template-columns: 36px minmax(130px, 1fr) var(--cart-quantity-width, 144px) 64px 126px 72px 28px;
   }
   :root [data-cart-kind="purchase"] :is([data-cart-header], [data-cart-row], [data-cart-add]) {
     min-width: calc(752px + var(--cart-quantity-width, 162px)) !important;
@@ -919,6 +921,15 @@ input:not([data-slot="input"]):not(.numeric-input-control):not([data-calculator-
   width: 100%;
   min-width: 0;
   justify-self: stretch;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Preserve the sale total's grid cell when generic cart fields are flattened. */
+:root [data-cart-kind="sale"] [data-cart-row="sale"] > [data-pos-line-total] {
+  display: block;
+  width: 100%;
+  min-width: 0;
   text-align: right;
   white-space: nowrap;
 }

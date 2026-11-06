@@ -26,6 +26,8 @@ type ProductComboboxProps = {
   onCreate?: (query: string) => void;
   ariaLabel?: string;
   disabled?: boolean;
+  /** POS opts into active-result scrolling and IME-safe keyboard selection. */
+  posKeyboardSafety?: boolean;
 };
 
 type ListPosition = {
@@ -41,7 +43,7 @@ const GAP = 6;
 const DESIRED_WIDTH = 560;
 
 export const ProductCombobox = forwardRef<HTMLInputElement, ProductComboboxProps>(function ProductCombobox(
-{ onSelect, products: suppliedProducts, mode = 'sale', onCreate, ariaLabel, disabled = false },
+{ onSelect, products: suppliedProducts, mode = 'sale', onCreate, ariaLabel, disabled = false, posKeyboardSafety = false },
 ref)
 {
   const {text} = useUiCopy();
@@ -53,6 +55,7 @@ ref)
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const composingRef = useRef(false);
 
   const setInputRef = useCallback((node: HTMLInputElement | null) => {
     inputRef.current = node;
@@ -130,6 +133,19 @@ ref)
     return () => window.cancelAnimationFrame(frame);
   }, [open, results.length, updatePosition]);
 
+  useLayoutEffect(() => {
+    if (!posKeyboardSafety || !open || !position) return;
+    const list = listRef.current;
+    const option = list?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!list || !option) return;
+    // Scroll only the popup, never its page/ancestor scroll containers.
+    // Layout offsets stay stable while the existing popup scale animation runs.
+    const top = option.offsetTop;
+    const bottom = top + option.offsetHeight;
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
+  }, [active, open, position, results, posKeyboardSafety]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -140,6 +156,7 @@ ref)
     };
 
     const onKey = (event: KeyboardEvent) => {
+      if (posKeyboardSafety && (composingRef.current || event.isComposing || event.keyCode === 229)) return;
       if (event.key === 'Escape' && !event.defaultPrevented) {
         const dialogs = document.querySelectorAll('[data-dialog-root]');
         if (dialogs.length && dialogs[dialogs.length - 1] !== rootRef.current?.closest('[data-dialog-root]')) return;
@@ -166,7 +183,7 @@ ref)
       window.removeEventListener('resize', onViewportChange);
       window.removeEventListener('scroll', onViewportChange, true);
     };
-  }, [open, updatePosition]);
+  }, [open, updatePosition, posKeyboardSafety]);
 
   const choose = (p: Product) => {
     if (disabled) return;
@@ -177,6 +194,7 @@ ref)
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (posKeyboardSafety && (composingRef.current || e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229)) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setOpen(true);
@@ -308,6 +326,8 @@ ref)
         }}
         onFocus={() => setOpen(true)}
         onClick={() => setOpen(true)}
+        onCompositionStart={() => { composingRef.current = true; }}
+        onCompositionEnd={() => { composingRef.current = false; }}
         onKeyDown={onKeyDown}
         placeholder={text("Add product… name, SKU or বাংলা","পণ্য খুঁজুন বা যোগ করুন… নাম, SKU বা বাংলা")}
         className={`h-9 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${query ? 'pr-20' : 'pr-12'}`} />

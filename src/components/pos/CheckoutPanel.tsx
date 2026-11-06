@@ -126,7 +126,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
         <div className="flex min-w-0 items-center gap-2">
           <div className="min-w-0 flex-1">
-            <CustomerPicker value={customer} onChange={props.onCustomer} previousBalance={props.previousCustomerBalance} />
+            <CustomerPicker guardComposition value={customer} onChange={props.onCustomer} previousBalance={props.previousCustomerBalance} />
           </div>
           {props.onQuickAddCustomer && (
             <Button type="button" size="sm" variant="outline" onClick={props.onQuickAddCustomer}
@@ -214,11 +214,20 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           <span>{word("discount")}</span>
           <div className="flex items-center gap-1">
             <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("discount")}>
-              {(['amount', 'percent'] as DiscountMode[]).map((mode) => (
+              {(['amount', 'percent'] as DiscountMode[]).map((mode, modeIndex, modes) => (
                 <button
                   key={mode}
                   role="radio"
                   aria-checked={discountMode === mode}
+                  tabIndex={discountMode === mode ? 0 : -1}
+                  onKeyDown={(event) => {
+                    const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+                    if (!step && event.key !== 'Home' && event.key !== 'End') return;
+                    event.preventDefault();
+                    const next = event.key === 'Home' ? 0 : event.key === 'End' ? modes.length - 1 : (modeIndex + step + modes.length) % modes.length;
+                    props.onDiscountMode(modes[next]);
+                    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next]?.focus();
+                  }}
                   onClick={() => props.onDiscountMode(mode)}
                   className={`w-7 rounded text-xs font-medium ${discountMode === mode ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
                   {mode === 'amount' ? '৳' : '%'}

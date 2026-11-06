@@ -278,12 +278,21 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     value={l.unit} options={units.map(value=>({value,label:unitSymbol(value)}))} onChange={(next)=>onUpdate(l.key,{unit:next})}/>
                 ) :
                 <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("unit")}>
-                    {units.map((u) =>
+                    {units.map((u, unitIndex) =>
                   <button
                     key={unitSymbol(u)}
                     type="button"
                     role="radio" aria-label={u}
                     aria-checked={l.unit === u}
+                    tabIndex={l.unit === u ? 0 : -1}
+                    onKeyDown={(event) => {
+                      const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+                      if (!step && event.key !== 'Home' && event.key !== 'End') return;
+                      event.preventDefault();
+                      const next = event.key === 'Home' ? 0 : event.key === 'End' ? units.length - 1 : (unitIndex + step + units.length) % units.length;
+                      onUpdate(l.key, { unit: units[next] });
+                      event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next]?.focus();
+                    }}
                     onClick={() => onUpdate(l.key, { unit: u })}
                     className={`flex-1 rounded px-1 text-xs font-medium transition-colors ${
                     l.unit === u ? 'bg-card text-ink shadow-card ring-1 ring-primary' : 'text-ink-500 hover:text-ink'}`
@@ -327,7 +336,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     </div>
                   }
                 </div></div>
-                <span data-cart-field="Total · মোট" className="text-right text-sm font-semibold text-ink">
+                <span data-pos-line-total data-cart-field="Total · মোট" className="text-right text-sm font-semibold text-ink">
                   ৳{formatNumber(lineTotal, lineTotal % 1 ? 2 : 0)}
                 </span>
                 <button
@@ -345,7 +354,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
         </Reorder.Group>
         <div data-testid="pos-add-row" data-cart-add className={`${grid} border-t border-border bg-teal-50/35 px-3 py-2`}>
           <span className="pr-3 text-right text-sm text-teal-600">{lines.length + 1}.</span>
-          <ProductCombobox ref={searchRef} products={catalog} onSelect={onAdd} />
+          <ProductCombobox posKeyboardSafety ref={searchRef} products={catalog} onSelect={onAdd} />
           <span className="pr-2 text-right text-sm text-helper">{word("qty")}</span>
           <span className="px-2 text-sm text-helper">{word("unit")}</span>
           <span className="pr-2 text-right text-sm text-helper">{word("price")}</span>
