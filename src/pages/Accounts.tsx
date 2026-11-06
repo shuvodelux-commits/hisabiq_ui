@@ -286,16 +286,16 @@ export function Accounts() {
               <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => setOpeningOpen(true)}>{text('Opening balance','শুরুর জের')}</Button><Button size="sm" onClick={() => openVoucher('receipt')}><Plus className="size-4" /> {text('New voucher','নতুন ভাউচার')}</Button></div>
             </div>
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="w-full table-fixed lg:table-auto">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 pl-3 text-xs lg:hidden">{text('Entry','এন্ট্রি')}</TableHead>
+                    <TableHead className="h-9 min-w-0 pl-3 pr-1 text-xs lg:hidden">{text('Entry','এন্ট্রি')}</TableHead>
                     <TableHead className="hidden h-9 pl-4 text-xs lg:table-cell">{text('Date','তারিখ')}</TableHead>
                     <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Type','ধরন')}</TableHead>
                     <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Reference','নম্বর')}</TableHead>
                     <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Description','বিবরণ')}</TableHead>
                     <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Posted by','যিনি লিখেছেন')}</TableHead>
-                    <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
+                    <TableHead className="h-9 w-[116px] pr-2 text-right text-xs sm:w-[132px] lg:w-auto">{text('Amount','টাকা')}</TableHead>
                     <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Status','অবস্থা')}</TableHead>
                     <TableHead className="sticky right-0 z-10 h-9 w-12 min-w-12 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
                   </TableRow>
@@ -313,7 +313,7 @@ export function Accounts() {
                       <TableCell className="hidden py-2 font-medium text-teal-700 lg:table-cell">{source.reference}</TableCell>
                       <TableCell className="hidden max-w-[360px] py-2 lg:table-cell"><p className="truncate text-ink-600">{source.description || '—'}</p></TableCell>
                       <TableCell className="hidden py-2 text-ink-600 lg:table-cell">{source.postedBy}</TableCell>
-                      <TableCell data-accounts-amount="" className="py-2 pr-2 text-right font-semibold"><span className="whitespace-nowrap text-[12px] lg:text-[13px]">{taka(source.amount)}</span>
+                      <TableCell data-accounts-amount="" className="w-[116px] py-2 pr-2 text-right font-semibold sm:w-[132px] lg:w-auto"><span className="whitespace-nowrap text-[12px] lg:text-[13px]">{taka(source.amount)}</span>
                         <span data-accounts-mobile-status="" className="mt-0.5 block text-[10px] font-normal text-ink-500 lg:hidden">{text(source.recordStatus ?? 'Posted',source.recordStatus==='Deleted'?'মুছে ফেলা':'লেখা হয়েছে')}</span>
                       </TableCell>
                       <TableCell className="hidden py-2 lg:table-cell"><StatusBadge tone={source.recordStatus === 'Deleted' ? 'neutral' : 'success'} dot>{text(source.recordStatus ?? 'Posted',source.recordStatus==='Deleted'?'মুছে ফেলা':'লেখা হয়েছে')}</StatusBadge></TableCell>
