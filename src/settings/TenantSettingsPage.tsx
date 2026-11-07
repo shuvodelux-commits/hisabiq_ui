@@ -1091,7 +1091,96 @@ export function SettingsPageContent({
                 </>
               ) : (
                 <>
-                  {(section !== "invoices" ||
+                  {section === "sales" && (
+                    <SettingCard
+                      title="Sales & POS"
+                      titleBn="বিক্রি ও পিওএস"
+                      description="Checkout defaults and sale policy."
+                      actions={
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+                          <input
+                            type="checkbox"
+                            className="size-4 accent-teal-600"
+                            checked={personal.mode === "Advanced"}
+                            onChange={(event) => updatePersonal({ mode: event.target.checked ? "Advanced" : "Simple" })}
+                          />
+                          Show advanced options
+                        </label>
+                      }
+                    >
+                      <div data-settings-sales-core className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                        <Fields
+                          fields={(settingsFields.sales ?? []).filter(field => field.key === "defaultPayment")}
+                          value={draft} onChange={setDraft} disabled={!editable}
+                          language={personal.language} onReading={setReadingLogo}
+                        />
+                        <label className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            aria-label="Open print after each sale (not connected)"
+                            className="mt-1 size-4 accent-teal-600"
+                            checked={false}
+                            disabled
+                          />
+                          <span className="min-w-0">
+                            <span className="block text-[13px] font-medium text-ink">
+                              Open print after each sale
+                            </span>
+                            <span className="mt-1 block text-xs leading-relaxed text-ink-500">
+                              Not connected in this UI. Print remains a per-invoice action; no automatic browser print window is triggered.
+                            </span>
+                          </span>
+                        </label>
+                      </div>
+                      <div className="border-t border-ink-100 pt-4">
+                        <p className="mb-3 text-xs font-medium text-ink-600">
+                          Checkout fields & rounding
+                          <span lang="bn" className="ml-2 font-bn font-normal text-ink-400">পিওএসের তথ্য ও রাউন্ডিং</span>
+                        </p>
+                        <Fields
+                          fields={(settingsFields.sales ?? []).filter(field =>
+                            ["barcode", "customerPhone", "guardian", "address", "rounding"].includes(field.key)
+                          )}
+                          value={draft} onChange={setDraft} disabled={!editable}
+                          language={personal.language} onReading={setReadingLogo}
+                        />
+                      </div>
+                      {personal.mode === "Advanced" && (
+                        <div data-settings-sales-advanced className="space-y-4 border-t border-ink-100 pt-4">
+                          <p className="text-xs font-medium text-ink-600">
+                            Advanced sale policies
+                            <span lang="bn" className="ml-2 font-bn font-normal text-ink-400">বিক্রির বিশেষ নিয়ম</span>
+                          </p>
+                          <label className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              aria-label="Allow selling when stock is zero (not connected)"
+                              className="mt-1 size-4 accent-teal-600"
+                              checked={false}
+                              disabled
+                            />
+                            <span className="min-w-0">
+                              <span className="block text-[13px] font-medium text-ink">Allow selling when stock is zero</span>
+                              <span className="mt-1 block text-xs leading-relaxed text-ink-500">
+                                Not a global toggle in HisabIQ. The POS shortage workflow offers Own Stock, Negative Sale or Vendor when necessary.
+                              </span>
+                            </span>
+                          </label>
+                          <Fields
+                            fields={(settingsFields.sales ?? []).filter(field =>
+                              ["shortage", "priceOverride", "discountLimit", "returnDays"].includes(field.key)
+                            )}
+                            value={draft} onChange={setDraft} disabled={!editable}
+                            language={personal.language} onReading={setReadingLogo}
+                          />
+                          <p className="text-xs text-ink-500">
+                            The price, discount and return limits here are policy previews; they do not grant additional user permissions or change historical sales.
+                          </p>
+                        </div>
+                      )}
+                    </SettingCard>
+                  )}
+                  {(section !== "sales" && (section !== "invoices" ||
                     (activeSubsection === "invoice" &&
                       (settingsFields.invoices || []).some(
                         (f) =>
@@ -1099,7 +1188,7 @@ export function SettingsPageContent({
                           ["prefix", "copies", "showPurchaseCost"].includes(
                             f.key,
                           ),
-                      ))) && (
+                      )))) && (
                     <SettingCard title={info.label} titleBn={info.bn} description={info.description}>
                       <Fields
                         fields={(settingsFields[section] || []).filter(
@@ -1119,6 +1208,7 @@ export function SettingsPageContent({
                     </SettingCard>
                   )}
                   {personal.mode === "Advanced" &&
+                    section !== "sales" &&
                     (section !== "invoices" ||
                       activeSubsection === "invoice") &&
                     (settingsFields[section] || []).some((f) => f.advanced) && (
