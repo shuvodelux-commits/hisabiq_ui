@@ -20,6 +20,13 @@ async function capturePos(page,options={}) {
    for(const el of document.querySelectorAll('*')){const style=getComputedStyle(el);if(['auto','scroll'].includes(style.overflowY)&&el.scrollHeight>el.clientHeight)el.scrollTop=0;if(['auto','scroll'].includes(style.overflowX)&&el.scrollWidth>el.clientWidth)el.scrollLeft=0;}
   });
  }
+ await page.evaluate(async()=>{
+  await document.fonts.ready;
+  await Promise.all([...document.images].map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});})));
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ });
+ // Allow the existing authored popup/dialog entrance to settle before evidence.
+ await page.waitForTimeout(220);
  await assertPosHeader(page);
  const result=await page.screenshot(options);
  await assertPosHeader(page);

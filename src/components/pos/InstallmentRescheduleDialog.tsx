@@ -1,3 +1,4 @@
+import {posPresentationError} from './presentationCopy';
 import {useEffect,useMemo,useState} from 'react';
 import {CalendarClock} from 'lucide-react';
 import {Button} from '../Button';
@@ -68,7 +69,7 @@ export function InstallmentRescheduleDialog({open,agreement,receipts,events,onCl
   }catch(error){setMessage(error instanceof Error?error.message:'Schedule could not be revised.');setReview(false);}
  };
  return <Dialog open={open} onOpenChange={next=>!next&&onClose()}>
-  <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-2xl"
+  <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-2xl"
     aria-label={text('Edit installment schedule','কিস্তির সময়সূচি বদলান')}>
    <DialogHeader>
     <DialogTitle className="flex items-center gap-2"><CalendarClock className="size-4 text-teal-700"/>
@@ -111,7 +112,7 @@ export function InstallmentRescheduleDialog({open,agreement,receipts,events,onCl
       {text('Review: no new sale, cash movement or stock posting. Revision history will be saved in preview only.',
        'পর্যালোচনা: নতুন বিক্রি বা ক্যাশ/স্টক জমা হবে না। শুধু প্রিভিউতে সময়সূচি বদলাবে।')}
     </div>}
-    {message&&<p role="alert" className="text-xs text-danger">{message}</p>}
+    {message&&<p role="alert" className="text-xs text-danger">{posPresentationError(message,text)}</p>}
    </div>
    <DialogFooter>
     <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>

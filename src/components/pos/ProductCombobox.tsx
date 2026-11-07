@@ -28,6 +28,8 @@ type ProductComboboxProps = {
   disabled?: boolean;
   /** POS opts into active-result scrolling and IME-safe keyboard selection. */
   posKeyboardSafety?: boolean;
+  /** POS-only metadata translation; other picker consumers retain existing copy. */
+  localizeMetadata?: boolean;
 };
 
 type ListPosition = {
@@ -43,10 +45,11 @@ const GAP = 6;
 const DESIRED_WIDTH = 560;
 
 export const ProductCombobox = forwardRef<HTMLInputElement, ProductComboboxProps>(function ProductCombobox(
-{ onSelect, products: suppliedProducts, mode = 'sale', onCreate, ariaLabel, disabled = false, posKeyboardSafety = false },
+{ onSelect, products: suppliedProducts, mode = 'sale', onCreate, ariaLabel, disabled = false, posKeyboardSafety = false, localizeMetadata = false },
 ref)
 {
-  const {text} = useUiCopy();
+  const {text,language} = useUiCopy();
+  const metadata=(en:string,bn:string)=>localizeMetadata?text(en,bn):en;
   const reducedMotion = useReducedMotion();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -229,7 +232,7 @@ ref)
           exit={{ opacity: 0, scale: 0.98, y: position?.opensUp ? 2 : -2, pointerEvents: 'none' }}
           transition={{ duration: reducedMotion ? 0 : 0.14, ease: sababEase.out }}
           role="listbox"
-          aria-label={mode === 'purchase' ? 'Purchase product suggestions' : (ariaLabel ? ariaLabel + ' options' : 'POS product suggestions')}
+          aria-label={mode === 'purchase' ? 'Purchase product suggestions' : (ariaLabel ? ariaLabel + ' options' : metadata('POS product suggestions','বিক্রির পণ্যের তালিকা'))}
           className="fixed z-[110] overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-pop scrollbar-thin"
           style={{
             top: position?.top ?? 0,
@@ -274,7 +277,7 @@ ref)
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] font-medium text-ink">{p.name}</p>
                   <p className="truncate text-[11px] text-ink-500">
-                    <span className="font-bn">{p.nameBn}</span>{p.nameBn ? ' · ' : ''}{p.category}
+                    {(!localizeMetadata||language!=='English') && p.nameBn && <><span className="font-bn">{p.nameBn}</span> · </>}{p.category}
                   </p>
                 </div>
                 <div className="text-right">
@@ -285,13 +288,13 @@ ref)
                   </p>
                   <p className={`text-[11px] ${sellableStatus === 'low' || sellableStatus === 'out' ? 'text-danger' : 'text-ink-500'}`}>
                     {p.kind === 'Bundle'
-                      ? 'Package · '+bundleAvailable+' Set available'
+                      ? metadata('Package · '+bundleAvailable+' Set available','প্যাকেজ · '+bundleAvailable+' Set পাওয়া যায়')
                       : p.kind === 'Service'
-                      ? 'Service'
+                      ? metadata('Service','সেবা')
                       : p.expiry?.enabled
-                        ? `${sellableStatus === 'out' ? 'Out of sellable stock' : 'Sellable'} · ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}`
+                        ? `${sellableStatus === 'out' ? metadata('Out of sellable stock','বিক্রিযোগ্য স্টক নেই') : metadata('Sellable','বিক্রিযোগ্য')} · ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}`
                         : status === 'out'
-                          ? 'Out of stock'
+                          ? metadata('Out of stock','স্টক নেই')
                           : formatStock(p)}
                   </p>
                 </div>

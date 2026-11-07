@@ -36,6 +36,8 @@ type Totals = {
 
 type CheckoutPanelProps = {
   invoice: string;
+  /** Display-only source/business date supplied by POS. */
+  dateLabel?: string;
   totals: Totals;
   customer: Party | null;
   /** Net balance from the Customer ledger before this unsaved sale; positive = due, negative = advance. */
@@ -117,7 +119,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-ink">{props.invoice}</p>
-            <p className="text-[11px] text-ink-500">06 Oct 2026 · Counter 1</p>
+            <p className="text-[11px] text-ink-500">{props.dateLabel} · {text('POS preview','বিক্রির প্রিভিউ')}</p>
           </div>
           <button onClick={props.onClear} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-ink-500 hover:bg-danger-bg hover:text-danger">
             <Trash2 className="size-3.5" /> {word("clear")}
@@ -255,7 +257,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           </span>
           <p className="ml-auto text-right text-[29px] font-semibold leading-tight tracking-tight sm:text-[30px]">{taka(totals.total)}</p>
         </div>
-        <AmountInWordsDisplay amount={totals.total} variant="compact" />
+        <AmountInWordsDisplay amount={totals.total} variant="compact" language={language} label={text('In words','কথায়')} />
       </div>
 
       {props.installment?.mode==='Installment' && <div className="px-4 pt-4">
@@ -292,7 +294,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                   aria-label={text(`Payment account ${index+1}`,`পেমেন্টের হিসাব ${index+1}`)}
                   value={payment.account}
                   onChange={(event) => updatePayment(payment.id, { account: event.target.value })}
-                  options={posPaymentAccountsByMethod[payment.method]}
+                  options={posPaymentAccountsByMethod[payment.method].map(value=>({value,label:value==='Cash counter'?text('Cash counter','ক্যাশ কাউন্টার'):value==='Customer credit'?text('Customer credit','ক্রেতার অগ্রিম জমা'):value}))}
                 />
                 <button
                   type="button"

@@ -3,7 +3,7 @@ import {NumericInput} from '../NumericInput';
 import {AppSelect} from '../AppSelect';
 import {productUnitFactor} from '../../utils/unitChain';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { AnimatePresence, Reorder, useDragControls, useReducedMotion } from 'framer-motion';
 import { AlertTriangle, Eye, GripVertical, ScanLine, X } from 'lucide-react';
 import { ProductCombobox } from './ProductCombobox';
 import { CompoundQuantityInput } from '../transactions/CompoundQuantityInput';
@@ -59,6 +59,8 @@ function SortableCartRow({
   children: React.ReactNode;
 }) {
   const controls = useDragControls();
+  const reduceMotion=useReducedMotion();
+  const {text}=useUiCopy();
   return (
     <Reorder.Item
       as="div"
@@ -69,10 +71,11 @@ function SortableCartRow({
       data-testid="pos-cart-row" data-cart-row="sale" data-compound={productUnitFactor(line.product,line.unit)>1}
       data-line-key={line.key}
       className={`${grid} relative bg-card px-3 py-1.5`}
-      initial={{ opacity: 0 }}
+      initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.16 }}
+      exit={reduceMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+      transition={{ duration: reduceMotion ? 0 : 0.16, layout: {duration: reduceMotion ? 0 : 0.16} }}
+      data-cart-motion={reduceMotion ? 'reduced' : 'normal'}
       whileDrag={{ zIndex: 20, boxShadow: '0 4px 16px rgba(15, 23, 42, 0.13)' }}
     >
       <div className="flex items-center justify-end gap-1">
@@ -80,9 +83,9 @@ function SortableCartRow({
         <button
           type="button"
           data-testid="pos-drag-handle"
-          aria-label={`Reorder ${line.product.name}, position ${index + 1} of ${count}`}
+          aria-label={text(`Reorder ${line.product.name}, position ${index + 1} of ${count}`,`${line.product.name} এর ক্রম বদলান, ${count}টির মধ্যে ${index+1}`)}
           aria-keyshortcuts="ArrowUp ArrowDown"
-          title="Drag to reorder · use ↑/↓ keys"
+          title={text('Drag to reorder · use ↑/↓ keys','টেনে ক্রম বদলান · ↑/↓ ব্যবহার করুন')}
           onPointerDown={(event) => controls.start(event)}
           onKeyDown={(event) => {
             if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
@@ -102,7 +105,7 @@ function SortableCartRow({
 }
 
 export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReorder, onMove, searchRef }: CartTableProps) {
-  const { word, text } = useUiCopy();
+  const { word, text, language } = useUiCopy();
   const catalog=usePreviewCatalog();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [cartOverflows, setCartOverflows] = useState(false);
@@ -199,8 +202,8 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   <div className="min-w-0">
                     <p className="truncate text-[13.5px] font-medium text-ink">{l.product.name}</p>
                     <p data-table-helper="" title={`${l.product.nameBn ?? ''} · ${l.product.category} · ${formatStock(l.product)}`} className="truncate text-[11px] text-ink-500">
-                      {l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
-                      {l.product.category}{l.product.kind==='Bundle'?` · Package · ${bundleAvailable} Set available`:l.product.kind === 'Service' ? ` · ${word('service')}` : l.product.expiry?.enabled ? ` · ${word('sellable')} ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · ${word('stock')} ${formatStock(l.product)}`}
+                      {language!=='English' && l.product.nameBn && <span className="font-bn">{l.product.nameBn} · </span>}
+                      {l.product.category}{l.product.kind==='Bundle'?text(` · Package · ${bundleAvailable} Set available`,` · প্যাকেজ · ${bundleAvailable} Set পাওয়া যায়`):l.product.kind === 'Service' ? ` · ${word('service')}` : l.product.expiry?.enabled ? ` · ${word('sellable')} ${formatStock({ ...l.product, stock: productStockBreakdown(l.product, stockLots).sellable })}` : ` · ${word('stock')} ${formatStock(l.product)}`}
                     </p>
                     <div className="mt-0.5 flex flex-wrap items-center gap-1">
                       {l.product.serialTracking && l.product.serialTracking !== 'Off' && (
@@ -236,15 +239,15 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                             const totalQty=child.baseQty*Number(l.qty);
                             return <div key={child.productId} className="flex flex-wrap items-center gap-1.5 rounded-md bg-ink-50/60 px-2 py-1.5" data-testid="bundle-component-item">
                               <span className="min-w-0 flex-1">{item?.name??child.productId}: {totalQty} {item?.unit??''}</span>
-                              {needsSource&&<button type="button" aria-label={`Choose source for ${item?.name??child.productId} in ${l.product.name}`}
+                              {needsSource&&<button type="button" aria-label={text(`Choose source for ${item?.name??child.productId} in ${l.product.name}`,`${l.product.name} এর ${item?.name??child.productId} এর উৎস বাছুন`)}
                                 className="rounded bg-warning-bg px-2 py-1 font-medium text-warning" onClick={()=>setShortageComponent({lineKey:l.key,productId:child.productId})}>
-                                {source?.mode==='Vendor'?source.vendorName+(source.unitCost===null?' · Price pending':''):source?.mode==='Negative'?'Negative Sale':'Choose source'} · {row?.shortageBaseQty} {item?.unit}
+                                {source?.mode==='Vendor'?source.vendorName+(source.unitCost===null?text(' · Price pending',' · দাম পরে'):''):source?.mode==='Negative'?text('Negative Sale','নেগেটিভ বিক্রি'):text('Choose source','উৎস বাছুন')} · {row?.shortageBaseQty} {item?.unit}
                               </button>}
                               {(serialRequired||serialOptional)&&<button type="button"
-                                aria-label={`Serial numbers for ${item?.name??child.productId} in ${l.product.name}`}
+                                aria-label={text(`Serial numbers for ${item?.name??child.productId} in ${l.product.name}`,`${l.product.name} এর ${item?.name??child.productId} এর সিরিয়াল`)}
                                 className={'rounded px-2 py-1 font-medium '+(serialRequired&&selected.length!==Math.ceil(row?.ownBaseQty??totalQty)?'bg-warning-bg text-warning':'bg-teal-50 text-teal-700')}
                                 onClick={()=>setSerialComponent({lineKey:l.key,productId:child.productId})}>
-                                <ScanLine className="mr-1 inline size-3"/>Serials {selected.length}/{Math.ceil(row?.ownBaseQty??totalQty)}
+                                <ScanLine className="mr-1 inline size-3"/>{word('serials')} {selected.length}/{Math.ceil(row?.ownBaseQty??totalQty)}
                               </button>}
                             </div>;
                           })}
@@ -272,7 +275,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     </div>
                   </div>
                 </div>
-                <div data-cart-field="Quantity · পরিমাণ">{l.product.unitRelations && l.product.unitRelations.length>1 ?
+                <div data-cart-field={word('quantity')}>{l.product.unitRelations && l.product.unitRelations.length>1 ?
                   <MultiUnitQuantityInput readableValues product={l.product} quantities={saleLineQuantities(l)}
                     primaryRef={el=>{qtyRefs.current[l.key]=el;}}
                     onChange={unitQuantities=>onUpdate(l.key,{unitQuantities})}
@@ -286,7 +289,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                   onPrimaryEnter={()=>{if(factor>1){secondaryQtyRefs.current[l.key]?.focus();secondaryQtyRefs.current[l.key]?.select();}else searchRef.current?.focus();}}
                   onSecondaryBlur={()=>commitSecondary(l,false)}
                   onSecondaryEnter={()=>commitSecondary(l,true)}/>}</div>
-                <div data-cart-field="Price in · একক">{units.length > 1 ?
+                <div data-cart-field={word('priceIn')}>{units.length > 1 ?
                 units.length > 2 ? (
                   <AppSelect label={text('Sale unit for '+l.product.name,'বিক্রির একক: '+l.product.name)}
                     value={l.unit} options={units.map(value=>({value,label:unitSymbol(value)}))} onChange={(next)=>onUpdate(l.key,{unit:next})}/>
@@ -319,7 +322,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
 
                 <span className="px-2 text-sm text-ink-600" title={l.unit}>{unitSymbol(l.unit)}</span>
                 }</div>
-                <div data-cart-field="Price · দাম"><div data-pos-price-field className="relative flex min-w-0 items-center gap-1">
+                <div data-cart-field={word('price')}><div data-pos-price-field className="relative flex min-w-0 items-center gap-1">
                   <div className="relative min-w-0 flex-1">
                     <span className="pointer-events-none absolute left-2 top-1/2 z-10 -translate-y-1/2 text-xs text-ink-400">৳</span>
                     <NumericInput stepperCompact
@@ -350,7 +353,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
                     </div>
                   }
                 </div></div>
-                <span data-pos-line-total data-cart-field="Total · মোট" className="text-right text-sm font-semibold text-ink">
+                <span data-pos-line-total data-cart-field={word('total')} className="text-right text-sm font-semibold text-ink">
                   ৳{formatNumber(lineTotal, lineTotal % 1 ? 2 : 0)}
                 </span>
                 <button
@@ -368,7 +371,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
         </Reorder.Group>
         <div data-testid="pos-add-row" data-cart-add className={`${grid} border-t border-border bg-teal-50/35 px-3 py-2`}>
           <span className="pr-3 text-right text-sm text-teal-600">{lines.length + 1}.</span>
-          <ProductCombobox posKeyboardSafety ref={searchRef} products={catalog} onSelect={onAdd} />
+          <ProductCombobox localizeMetadata posKeyboardSafety ref={searchRef} products={catalog} onSelect={onAdd} />
           <span className="pr-2 text-right text-sm text-helper">{word("qty")}</span>
           <span className="px-2 text-sm text-helper">{word("unit")}</span>
           <span className="pr-2 text-right text-sm text-helper">{word("price")}</span>
@@ -417,7 +420,7 @@ export function CartTable({ lines, lastAdded, onAdd, onUpdate, onRemove, onReord
         return <StockShortageDialog line={componentLine} open availableBaseQty={available}
           shortageBaseQty={row.shortageBaseQty}
           componentContext={parent.product.name+' · '+product.name}
-          ownActionHint={sets>0?`Reduce package to ${sets} whole Set(s). Other cart lines keep their quantities.`:'No complete Set remains after other cart lines. Remove this package line.'}
+          ownActionHint={sets>0?text(`Reduce package to ${sets} whole Set(s). Other cart lines keep their quantities.`,`প্যাকেজ ${sets}টি পূর্ণ Set করুন। অন্য লাইনের পরিমাণ বদলাবে না।`):text('No complete Set remains after other cart lines. Remove this package line.','অন্য লাইন বাদ দিয়ে পূর্ণ Set নেই। এই প্যাকেজ লাইন সরান।')}
           onOpenChange={open=>{if(!open)setShortageComponent(null);}}
           onUseOwnStock={()=>{
             if(sets<=0)onRemove(parent.key);

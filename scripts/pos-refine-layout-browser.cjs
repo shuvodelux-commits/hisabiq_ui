@@ -5,6 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {pick,fillChain}=require('./product-form-browser-helpers.cjs');
 const {assertPosHeader,capturePos}=require('./pos-browser-capture.cjs');
+const label=process.env.POS_SHOT_LABEL||'round-3';
 const base=process.env.POS_BASE||'http://127.0.0.1:4173';
 const widths=[320,390,768,820,1024,1440];
 const evidence=[];
@@ -78,7 +79,7 @@ async function main(){
     assert.equal(paidDue.length,3,'actual paid/change/due rows');
     for(const value of paidDue)assert.ok(value.left>=value.parentLeft&&value.right<=value.parentRight+1,'complete paid/change/due values '+JSON.stringify(value));
     await assertPosHeader(page);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no page overflow');
-    if(language==='Bangla'&&[320,390,1440].includes(width))await capture(page,`round-2-fit-${width}-${theme}-checkout`);
+    if(language==='Bangla'&&[320,390,1440].includes(width))await capture(page,`${label}-fit-${width}-${theme}-checkout`);
     evidence.push({width,theme,language,price:fit,...amounts,button});
    }
    await context.close();
@@ -127,7 +128,7 @@ async function main(){
      if(units.length===4)assert.ok(symbols.includes('Pack'),'real four-character symbol');
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no page overflow');
      if(width>=768)assert.equal(await row.evaluate(el=>getComputedStyle(el).gridTemplateRows.trim().split(/\s+/).length),1,'tablet row remains single line');
-     if([320,390,768,1440].includes(width)){await field.scrollIntoViewIfNeeded();await capture(page,`round-2-${units.length}units-${width}-${theme}`);}
+     if([320,390,768,1440].includes(width)){await field.scrollIntoViewIfNeeded();await capture(page,`${label}-${units.length}units-${width}-${theme}`);}
      evidence.push({width,theme,unitCount:units.length,symbols,values,total});
     }
     // Selected-unit prices and a local override still produce the actual summed total.

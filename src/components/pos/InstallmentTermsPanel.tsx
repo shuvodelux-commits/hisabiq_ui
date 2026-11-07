@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {CalendarRange,Pencil} from 'lucide-react';
+import {FormSelect} from '../FormSelect';
 import {Button} from '../Button';
 import {NumericInput} from '../NumericInput';
 import {AppDateRangePicker} from '../AppDateRangePicker';
@@ -69,14 +70,12 @@ export function InstallmentTermsPanel({terms,invoiceTotalPaisa,paidPaisa}:{
         {text('Advanced price adjustment','দাম বাড়ানো / কমানো')}
       </summary>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <select aria-label={text('Adjustment type','দাম বদলের ধরন')}
+        <FormSelect aria-label={text('Adjustment type','দাম বদলের ধরন')}
           value={adjustMode} onChange={event=>setAdjustMode(event.target.value as 'amount'|'percent')}
-          className="h-9 rounded-md border border-input bg-card px-2 text-xs text-ink">
-          <option value="amount">৳</option><option value="percent">%</option>
-        </select>
+          className="w-20" options={[{value:'amount',label:'৳'},{value:'percent',label:'%'}]}/>
         <NumericInput aria-label={text('Price adjustment','দাম পরিবর্তন')} inputMode="decimal" min={-1000000}
           value={adjustValue} onChange={event=>setAdjustValue(event.target.value)}
-          placeholder={adjustMode==='amount'?'Amount (+/−)':'Percent (+/−)'}
+          placeholder={adjustMode==='amount'?text('Amount (+/−)','টাকা (+/−)'):text('Percent (+/−)','শতাংশ (+/−)')}
           className="h-9 w-[112px] flex-1 text-right"/>
         <Button size="sm" variant="outline" disabled={!adjustValue.trim()}
           onClick={()=>{if(terms.onPriceAdjustment?.(adjustMode,adjustValue))setAdjustValue('');}}>

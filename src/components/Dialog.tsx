@@ -1,5 +1,7 @@
 import {createContext,forwardRef,useContext,useEffect,useId,useLayoutEffect,useRef,useState,type HTMLAttributes,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
+import {X} from 'lucide-react';
+import {Button} from './Button';
 import {animate,useReducedMotion} from 'framer-motion';
 import {lockBodyScroll} from '../utils/bodyScrollLock';
 import {
@@ -25,7 +27,7 @@ export function Dialog({open,defaultOpen=false,onOpenChange,children}:{open?:boo
  return <ModalContext.Provider value={{open:active,close:()=>change(false),id,opener:opener.current}}><DesignDialog open={active} onOpenChange={change}>{children}</DesignDialog></ModalContext.Provider>;
 }
 
-export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivElement>&{showCloseButton?:boolean}>(function DialogContent({children,...props},forwarded){
+export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivElement>&{showCloseButton?:boolean;closeLabel?:string}>(function DialogContent({children,closeLabel,showCloseButton=true,...props},forwarded){
  const modal=useContext(ModalContext);
  const ref=useRef<HTMLDivElement|null>(null);
  const reduceMotion=useReducedMotion();
@@ -88,12 +90,12 @@ export const DialogContent=forwardRef<HTMLDivElement,HTMLAttributes<HTMLDivEleme
   return ()=>{cancelAnimationFrame(frame);document.removeEventListener('keydown',keydown);releaseScrollLock();if(previous?.isConnected)previous.focus({preventScroll:true});};
  },[modal?.open,modal?.id]);
  if(!modal?.open)return null;
- return createPortal(<DesignContent {...props} ref={(node:HTMLDivElement|null)=>{ref.current=node;if(typeof forwarded==='function')forwarded(node);else if(forwarded)forwarded.current=node;}}
+ return createPortal(<DesignContent {...props} showCloseButton={closeLabel ? false : showCloseButton} ref={(node:HTMLDivElement|null)=>{ref.current=node;if(typeof forwarded==='function')forwarded(node);else if(forwarded)forwarded.current=node;}}
   role="dialog" aria-modal="true" aria-labelledby={props['aria-label']?undefined:modal.id+'-title'}
   data-dialog-root={modal.id} data-dialog-id={modal.id}
   data-modal-motion={reduceMotion?'reduced':'magic-patterns'}
   data-dialog-entry="sabab" data-dialog-entry-duration={reduceMotion?'0':'180'}
-  tabIndex={-1}>{children}</DesignContent>,document.body);
+  tabIndex={-1}>{children}{closeLabel && showCloseButton && <Button type="button" variant="ghost" className="absolute right-2 top-2 size-9 p-0" aria-label={closeLabel} onClick={()=>modal?.close()}><X className="size-4" aria-hidden="true"/></Button>}</DesignContent>,document.body);
 });
 export const DialogTitle=forwardRef<HTMLHeadingElement,HTMLAttributes<HTMLHeadingElement>>(function DialogTitle(props,ref){const modal=useContext(ModalContext);return <DesignTitle {...props} id={props.id??modal?.id+'-title'} ref={ref}/>;});
 export const DialogDescription=forwardRef<HTMLParagraphElement,HTMLAttributes<HTMLParagraphElement>>(function DialogDescription(props,ref){const modal=useContext(ModalContext);return <DesignDescription {...props} id={props.id??modal?.id+'-description'} ref={ref}/>;});

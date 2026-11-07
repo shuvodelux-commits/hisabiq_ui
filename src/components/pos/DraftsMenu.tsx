@@ -61,7 +61,7 @@ export function DraftsMenu({ drafts, canSave, onSave, onResume, onDelete }: Draf
                       {d.items} {text('items · saved','টি পণ্য · রাখা হয়েছে')} {d.savedAt}
                     </p>
                   </button>
-                  <span className="text-[13px] font-semibold tabular-nums">{taka(d.total)}</span>
+                  <span className="text-[13px] font-semibold">{taka(d.total)}</span>
                   <button onClick={() => onDelete(d.id)} aria-label={text(`Delete ${d.label}`,`মুছুন: ${d.label}`)} className="rounded p-1 text-helper hover:bg-danger-bg hover:text-danger">
                     <Trash2 className="size-3.5" />
                   </button>

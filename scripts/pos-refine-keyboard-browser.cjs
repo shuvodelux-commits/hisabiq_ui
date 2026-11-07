@@ -5,6 +5,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {capturePos}=require('./pos-browser-capture.cjs');
 
+const label=process.env.POS_SHOT_LABEL||'round-3';
 async function main(){
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined,args:['--no-sandbox']});
  const failures=[];
@@ -35,7 +36,7 @@ async function main(){
     });
     if(process.env.POS_SHOTS_DIR && [320,390,1024,1440].includes(width)){
      fs.mkdirSync(process.env.POS_SHOTS_DIR,{recursive:true});
-     await capturePos(page,{path:process.env.POS_SHOTS_DIR+'/round-1-'+width+'-'+theme+'-search.png'});
+     await capturePos(page,{path:process.env.POS_SHOTS_DIR+'/'+label+'-'+width+'-'+theme+'-search.png'});
     }
     await search.press('Escape');
     assert.equal(await search.getAttribute('aria-expanded'),'false');assert.equal(await search.evaluate(el=>document.activeElement===el),true);

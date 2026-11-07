@@ -1,6 +1,8 @@
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
 import { useModuleSettingsAction } from '../settings/ModuleSettingsToolbarContext';
 import { uiText } from '../i18n/uiCopy';
+import {datePickerDayLabel} from '../i18n/datePickerCopy';
+import {posPresentationError} from '../components/pos/presentationCopy';
 import {useUiCopy} from '../i18n/useUiCopy';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -17,7 +19,7 @@ import { SaleTemplateDialog } from '../components/pos/SaleTemplateDialog';
 import { ProductThumb } from '../components/ProductThumb';
 import { ReceiptPreview, type ReceiptLine, type ReceiptBranding, type ReceiptPayment } from '../components/brand/ReceiptPreview';
 import { makePosPaymentRow, posPaymentAccountsByMethod, usePosCart, type CartLine, type PosPaymentRow } from '../hooks/usePosCart';
-import {addDays,addMonths,businessToday} from '../utils/dateRange';
+import {addDays,addMonths,businessToday,expenseDateIso} from '../utils/dateRange';
 import {generateInstallmentSchedule,type InstallmentScheduleRow} from '../installments/schedule';
 import {validateInstallmentDraft} from '../installments/validateDraft';
 import {allocateNegotiatedInvoiceLines,negotiateInstallmentTotal} from '../installments/pricing';
@@ -171,7 +173,7 @@ export function Pos() {
   const activeCustomer=cart.customer?partyState.parties.find(p=>p.id===cart.customer?.id&&p.roles.includes('Customer')&&p.status!=='Inactive'):undefined;
   const customerSettlement=activeCustomer?customerSettlementAsOf(partyState.sources,activeCustomer.id,businessToday()):null;
   const availableCredit=customerSettlement?.refundableCredit??0;
-  const {text}=useUiCopy();
+  const {text,showHelper}=useUiCopy();
   const previewCatalog=usePreviewCatalog();
   const navigate = useNavigate();
   const location = useLocation();
@@ -410,15 +412,15 @@ export function Pos() {
       const latest=getBundleVersion(line.product.id);
       if(!latest||latest.revision!==line.bundleRevision||
        JSON.stringify(latest.components)!==line.bundleRecipeSignature){
-        toast.error('Package recipe changed',{
-         description:line.product.name+': remove and add the package again to confirm the latest contents.'
+        toast.error(text('Package recipe changed','প্যাকেজের পণ্য বদলেছে'),{
+         description:text(`${line.product.name}: remove and add the package again to confirm the latest contents.`,`${line.product.name}: নতুন পণ্য যাচাই করতে প্যাকেজ সরিয়ে আবার যোগ করুন।`)
         });
         return null;
       }
     }
     const expanded=expandCartStockDemand(cart.lines,previewCatalog,(id,revision)=>getBundleVersion(id,revision));
     if(expanded.errors.length){
-      toast.error('Use whole Sets and valid quantities',{description:expanded.errors[0]});
+      toast.error(text('Use whole Sets and valid quantities','পূর্ণ Set ও সঠিক পরিমাণ দিন'),{description:expanded.errors[0]});
       return null;
     }
     const allLots=availableStockLots();
@@ -432,8 +434,8 @@ export function Pos() {
     const planned=planComponentFulfillment(expanded.demands,previewCatalog,allLots,
       {sources,serials,soldSerials});
     if(planned.errors.length){
-      toast.error('Review package components',{
-       description:planned.errors[0]+' · Choose shortage source or required serials inside the package.'
+      toast.error(text('Review package components','প্যাকেজের পণ্য যাচাই করুন'),{
+       description:planned.errors[0]+text(' · Choose shortage source or required serials inside the package.',' · প্যাকেজের ভেতরে ঘাটতির উৎস বা প্রয়োজনীয় সিরিয়াল বাছুন।')
       });
       return null;
     }
@@ -447,7 +449,7 @@ export function Pos() {
         phone:cart.customer?.phone??cart.customerDetails.phone,
         totalPaisa:installmentTotalPaisa,downPaymentPaisa:installmentDownPaisa,schedule:installmentRows
       });
-      if(issues.length){toast.error(issues[0]);return;}
+      if(issues.length){toast.error(posPresentationError(issues[0],text));return;}
     }
     setReviewSaleOpen(true);
   };
@@ -472,8 +474,8 @@ export function Pos() {
     const unresolvedShortageLine=cart.lines.find(line=>(allocated.find(a=>a.key===line.key)?.needsSourceBaseQty??0)>0);
     if (unresolvedShortageLine) {
       const shortage=allocated.find(a=>a.key===unresolvedShortageLine.key)?.needsSourceBaseQty??0;
-      toast.error('Choose stock shortage handling', {
-        description: `${unresolvedShortageLine.product.name}: resolve ${shortage} ${unresolvedShortageLine.product.unit} shortage before completing the sale.`
+      toast.error(text('Choose stock shortage handling','স্টক ঘাটতির ব্যবস্থা বাছুন'), {
+        description: text(`${unresolvedShortageLine.product.name}: resolve ${shortage} ${unresolvedShortageLine.product.unit} shortage before completing the sale.`,`${unresolvedShortageLine.product.name}: বিক্রি শেষ করার আগে ${shortage} ${unresolvedShortageLine.product.unit} ঘাটতির ব্যবস্থা করুন।`)
       });
       return;
     }
@@ -483,7 +485,7 @@ export function Pos() {
       return line.product.serialTracking === 'Required' && !Number.isInteger(baseQty);
     });
     if (fractionalRequiredLine) {
-      toast.error('Whole quantity required', { description: `${fractionalRequiredLine.product.name} uses Required serial tracking.` });
+      toast.error(text('Whole quantity required','পূর্ণ পরিমাণ প্রয়োজন'), { description: text(`${fractionalRequiredLine.product.name} uses Required serial tracking.`,`${fractionalRequiredLine.product.name} এর সিরিয়াল প্রয়োজন।`) });
       return;
     }
 
@@ -492,14 +494,14 @@ export function Pos() {
       .flatMap((invoiceItem) => invoiceItem.lines.flatMap((line) => line.serials ?? []));
     const reusedSoldSerial = cart.lines.flatMap((line) => line.serials).find((serial) => soldOutsideEditedInvoice.includes(serial));
     if (reusedSoldSerial) {
-      toast.error('Serial already sold', { description: reusedSoldSerial });
+      toast.error(text('Serial already sold','সিরিয়াল আগে বিক্রি হয়েছে'), { description: reusedSoldSerial });
       return;
     }
 
     const allSelectedSerials = cart.lines.flatMap((line) => line.serials);
     const duplicateSelected = duplicateSerials(allSelectedSerials);
     if (duplicateSelected.length) {
-      toast.error('Duplicate serial selected', { description: duplicateSelected[0] });
+      toast.error(text('Duplicate serial selected','একই সিরিয়াল আবার বাছা হয়েছে'), { description: duplicateSelected[0] });
       return;
     }
 
@@ -508,7 +510,7 @@ export function Pos() {
       return line.serials.length > Math.ceil(baseQty);
     });
     if (tooManySerialsLine) {
-      toast.error('Too many serials selected', { description: `${tooManySerialsLine.product.name}: reduce serials or increase quantity.` });
+      toast.error(text('Too many serials selected','প্রয়োজনের বেশি সিরিয়াল বাছা হয়েছে'), { description: text(`${tooManySerialsLine.product.name}: reduce serials or increase quantity.`,`${tooManySerialsLine.product.name}: সিরিয়াল কমান বা পরিমাণ বাড়ান।`) });
       return;
     }
 
@@ -519,7 +521,7 @@ export function Pos() {
     });
     if (missingSerialLine) {
       const required = requiredSerialCount(missingSerialLine.product,saleLineBaseQty(missingSerialLine));
-      toast.error('Serial numbers required', { description: `${missingSerialLine.product.name}: ${missingSerialLine.serials.length}/${required} selected` });
+      toast.error(text('Serial numbers required','সিরিয়াল নম্বর প্রয়োজন'), { description: text(`${missingSerialLine.product.name}: ${missingSerialLine.serials.length}/${required} selected`,`${missingSerialLine.product.name}: ${required}টির মধ্যে ${missingSerialLine.serials.length}টি বাছা হয়েছে`) });
       return;
     }
     const activePayments = cart.payments.filter((payment) => (parseFloat(payment.amount) || 0) > 0);
@@ -558,7 +560,7 @@ export function Pos() {
         setCompletedReceipts(listInstallmentReceipts(created.id));
         setCompletedLifecycle(listInstallmentLifecycleEvents(created.id));
       }catch(error){
-        toast.error(error instanceof Error?error.message:'Installment preview could not be saved.');
+        toast.error(error instanceof Error?error.message:text('Installment preview could not be saved.','কিস্তির প্রিভিউ রাখা যায়নি।'));
         return;
       }
     }else {setCompletedInstallment(null);setCompletedReceipts([]);setCompletedLifecycle([]);}
@@ -651,8 +653,8 @@ export function Pos() {
       dispatchVendorPreview({type:'simulate-pos-sale',operationId:'vendor-demo:'+completed.invoice,
        sale:prepared.sale,sources:prepared.sources});
       setDemoVendorInvoice(completed.invoice);
-      toast.success('Vendor source added to demo preview',{description:'Open Vendor Party to view Price pending. No real ledger, stock or cash posting.'});
-    }catch(error){toast.error(error instanceof Error?error.message:'Demo source could not be saved.');}
+      toast.success(text('Vendor source added to demo preview','ডেমো প্রিভিউতে ভেন্ডরের উৎস যোগ হয়েছে'),{description:text('Open Vendor Party to view Price pending. No real ledger, stock or cash posting.','দাম পরে নির্ধারণ দেখতে ভেন্ডর পার্টি খুলুন। আসল খাতা, স্টক বা ক্যাশে যোগ হয়নি।')});
+    }catch(error){toast.error(error instanceof Error?error.message:text('Demo source could not be saved.','ডেমোর উৎস রাখা যায়নি।'));}
   };
 
   const holdCurrent = () => {
@@ -760,18 +762,18 @@ export function Pos() {
     <div className="pos-screen mx-auto max-w-[1440px] min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-xl font-semibold tracking-tight">{pageTitle}</h1>
-          <span className="font-bn text-sm text-ink-500">{pageTitleBn}</span>
+          <h1 className="text-xl font-semibold tracking-tight">{text(pageTitle,pageTitleBn)}</h1>
+          {showHelper && <span className="font-bn text-sm text-ink-500">{pageTitleBn}</span>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {moduleSettingsAction}
           <div className="hidden items-center gap-3 rounded-lg border border-border bg-card px-3 py-1.5 text-[11.5px] text-ink-500 md:flex">
             <Keyboard className="size-3.5" aria-hidden="true" />
             {[
-            ['F2', 'Search'],
-            ['Enter', 'Next'],
-            ['F8', 'Paid'],
-            ['F9', 'Preview']].
+            ['F2', text('Search','খুঁজুন')],
+            ['Enter', text('Next','পরের ধাপ')],
+            ['F8', text('Paid','জমা')],
+            ['F9', text('Preview','প্রিভিউ')]].
             map(([k, l]) =>
             <span key={k} className="flex items-center gap-1">
                 <kbd className="rounded border border-ink-200 bg-ink-50 px-1 text-[10px] text-ink-600">{k}</kbd> {l}
@@ -810,15 +812,13 @@ export function Pos() {
       {handoffOrder && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-300 bg-teal-50 p-3 text-sm text-teal-900 dark:bg-teal-900/20 dark:text-teal-200">
           <div>
-            <p className="font-semibold">Prefilled from online order {handoffOrder.number} · POS preview only</p>
+            <p className="font-semibold">{text(`Prefilled from online order ${handoffOrder.number} · POS preview only`,`${handoffOrder.number} অনলাইন অর্ডার থেকে আনা · শুধু বিক্রির প্রিভিউ`)}</p>
             <p className="mt-1 text-xs">
-              Goods and quoted discount were copied. Delivery charge {orderTotals(handoffOrder).delivery}
-              and advance {orderTotals(handoffOrder).advance} are <strong>NOT automatically added</strong>
-              to POS item totals or payment rows. Verify each amount and inventory before completing a sale.
+              {text(`Goods and quoted discount were copied. Delivery charge ${orderTotals(handoffOrder).delivery} and advance ${orderTotals(handoffOrder).advance} are not automatically added to POS item totals or payment rows. Verify each amount and inventory before completing a sale.`,`পণ্য ও দেওয়া ছাড় আনা হয়েছে। ডেলিভারি খরচ ${orderTotals(handoffOrder).delivery} ও অগ্রিম ${orderTotals(handoffOrder).advance} স্বয়ংক্রিয়ভাবে পণ্য বা পেমেন্টে যোগ হয়নি। বিক্রি শেষ করার আগে প্রতিটি টাকা ও স্টক যাচাই করুন।`)}
             </p>
-            <p className="mt-1 text-xs">No Sales invoice, stock deduction or Party ledger posting is linked by this handoff.</p>
+            <p className="mt-1 text-xs">{text('No Sales invoice, stock deduction or Party ledger posting is linked by this handoff.','এতে বিক্রির ইনভয়েস, স্টক কমা বা পার্টির খাতায় যোগের সম্পর্ক তৈরি হয়নি।')}</p>
           </div>
-          <Button size="sm" variant="outline" onClick={()=>navigate('/app/online-sales')}>Back to online orders</Button>
+          <Button size="sm" variant="outline" onClick={()=>navigate('/app/online-sales')}>{text('Back to online orders','অনলাইন অর্ডারে ফিরুন')}</Button>
         </div>
       )}
       {sourceInvoice && (editing || duplicating) && (
@@ -828,14 +828,14 @@ export function Pos() {
               {editing ? <Pencil className="size-3.5" /> : <Copy className="size-3.5" />}
             </span>
             <div>
-              <p className="font-medium">{editing ? `Editing ${sourceInvoice.invoice}` : `Duplicating ${sourceInvoice.invoice}`}</p>
+              <p className="font-medium">{editing ? text(`Editing ${sourceInvoice.invoice}`,`${sourceInvoice.invoice} সম্পাদনা`) : text(`Duplicating ${sourceInvoice.invoice}`,`${sourceInvoice.invoice} কপি`)}</p>
               <p className="text-[11px] text-teal-700">
-                {sourceInvoice.party} · {sourceInvoice.items} lines · {editing ? 'saving updates the original invoice' : 'saving creates a new invoice'}
+                {sourceInvoice.party} · {text(`${sourceInvoice.items} lines`,`${sourceInvoice.items}টি লাইন`)} · {editing ? text('saving updates the original invoice','রাখলে মূল ইনভয়েস সংশোধন হবে') : text('saving creates a new invoice','রাখলে নতুন ইনভয়েস হবে')}
               </p>
             </div>
           </div>
           <Button variant="outline" size="sm" className="bg-card" onClick={() => navigate('/app/sales')}>
-            <ArrowLeft className="size-4" /> Back to sales
+            <ArrowLeft className="size-4" /> {text('Back to sales','বিক্রিতে ফিরুন')}
           </Button>
         </div>
       )}
@@ -848,15 +848,15 @@ export function Pos() {
             </span>
             <div>
               <p className="font-medium">
-                {duplicatingDraft ? `Duplicating ${sourceDraft.label}` : editingDraft ? `Editing ${sourceDraft.label}` : `Continuing ${sourceDraft.label}`}
+                {duplicatingDraft ? text(`Duplicating ${sourceDraft.label}`,`${sourceDraft.label} কপি`) : editingDraft ? text(`Editing ${sourceDraft.label}`,`${sourceDraft.label} সম্পাদনা`) : text(`Continuing ${sourceDraft.label}`,`${sourceDraft.label} চালিয়ে যান`)}
               </p>
               <p className="text-[11px] text-teal-700">
-                {sourceDraft.customer ?? 'Walk-in customer'} · {sourceDraft.items} items · saved {sourceDraft.savedAt}
+                {sourceDraft.customer ?? text('Walk-in customer','সাধারণ ক্রেতা')} · {text(`${sourceDraft.items} items`,`${sourceDraft.items}টি পণ্য`)} · {text('saved','রাখা হয়েছে')} {sourceDraft.savedAt}
               </p>
             </div>
           </div>
           <Button variant="outline" size="sm" className="bg-card" onClick={() => navigate('/app/sales')}>
-            <ArrowLeft className="size-4" /> Back to sales
+            <ArrowLeft className="size-4" /> {text('Back to sales','বিক্রিতে ফিরুন')}
           </Button>
         </div>
       )}
@@ -868,14 +868,14 @@ export function Pos() {
               <FileText className="size-3.5" />
             </span>
             <div>
-              <p className="font-medium">Using template · {sourceTemplate.name}</p>
+              <p className="font-medium">{text('Using template','টেমপ্লেট ব্যবহার')} · {sourceTemplate.name}</p>
               <p className="text-[11px] text-teal-700">
-                {sourceTemplate.customer ?? 'Any customer'} · {sourceTemplate.items} items · last used {sourceTemplate.lastUsed}
+                {sourceTemplate.customer ?? text('Any customer','যেকোনো ক্রেতা')} · {text(`${sourceTemplate.items} items`,`${sourceTemplate.items}টি পণ্য`)} · {text('last used','শেষ ব্যবহার')} {sourceTemplate.lastUsed}
               </p>
             </div>
           </div>
           <Button variant="outline" size="sm" className="bg-card" onClick={() => navigate('/app/sales')}>
-            <ArrowLeft className="size-4" /> Back to sales
+            <ArrowLeft className="size-4" /> {text('Back to sales','বিক্রিতে ফিরুন')}
           </Button>
         </div>
       )}
@@ -896,9 +896,9 @@ export function Pos() {
           <section aria-labelledby="quick-items">
             <div className="mb-2 flex items-center justify-between">
               <h2 id="quick-items" className="text-sm font-semibold text-ink">
-                Quick items <span className="font-bn font-normal text-ink-500">· দ্রুত যোগ</span>
+                {text('Quick items','দ্রুত যোগ')}{showHelper && <span className="font-bn font-normal text-ink-500"> · দ্রুত যোগ</span>}
               </h2>
-              <span className="text-xs text-ink-500">Tap to add · touch friendly</span>
+              <span className="text-xs text-ink-500">{text('Tap to add','যোগ করতে চাপুন')}</span>
             </div>
             <div className="grid grid-cols-1 gap-2 min-[375px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {quickItems.map((p) =>
@@ -929,6 +929,9 @@ export function Pos() {
 
         <CheckoutPanel
           invoice={invoice}
+          dateLabel={editing&&sourceInvoice
+            ? (expenseDateIso(sourceInvoice.date) ? datePickerDayLabel(personal.language,expenseDateIso(sourceInvoice.date)) : sourceInvoice.date)
+            : datePickerDayLabel(personal.language,businessToday())}
           totals={cart.totals}
           customer={cart.customer}
           onCustomer={cart.setCustomer}
@@ -952,13 +955,13 @@ export function Pos() {
             mode:installmentMode,onModeChange:setInstallmentMode,
             count:installmentCount,onCountChange:(count:number)=>{
               if(scheduleHasManualEdits){
-                toast.info('Open the installment breakdown to change a custom schedule.');
+                toast.info(text('Open the installment breakdown to change a custom schedule.','আলাদা কিস্তির হিসাব বদলাতে কিস্তির তালিকা খুলুন।'));
                 setInstallmentBreakdownOpen(true);
               }else setInstallmentCount(count);
             },
             firstDueDate:firstInstallmentDue,onFirstDueDateChange:(date:string)=>{
               if(scheduleHasManualEdits){
-                toast.info('Change the dates in the custom installment breakdown.');
+                toast.info(text('Change the dates in the custom installment breakdown.','আলাদা কিস্তির তালিকায় তারিখ বদলান।'));
                 setInstallmentBreakdownOpen(true);
               }else setFirstInstallmentDue(date);
             },
@@ -969,7 +972,7 @@ export function Pos() {
               const quantity=line.unitQuantities ? Number(line.unitQuantities[line.unit]||0)
                 : (Number(line.qty)||0)+(factor>1?(Number(line.secondaryQty)||0)/factor:0);
               if(!Number.isFinite(quantity)||quantity<=0){
-                toast.error('Enter a valid product quantity before adjusting the selling price.');
+                toast.error(text('Enter a valid product quantity before adjusting the selling price.','দাম বদলানোর আগে পণ্যের সঠিক পরিমাণ দিন।'));
                 return false;
               }
               try{
@@ -980,13 +983,13 @@ export function Pos() {
                 if(!Number.isFinite(unitPrice)||unitPrice<0||
                   Math.round((line.unitQuantities?saleLineTotal({...line,price:String(unitPrice)}):
                     compoundLineTotal(line.qty,line.secondaryQty,factor,unitPrice))*100)!==targetPaisa){
-                  toast.error('This amount cannot be allocated exactly at the selected quantity. Edit the cart unit price instead.');
+                  toast.error(text('This amount cannot be allocated exactly at the selected quantity. Edit the cart unit price instead.','এই পরিমাণে টাকা ঠিকভাবে ভাগ হয় না। কার্টে এককের দাম বদলান।'));
                   return false;
                 }
                 cart.updateLine(line.key,{price:String(unitPrice)});
                 return true;
               }catch(error){
-                toast.error(error instanceof Error?error.message:'Enter a valid price adjustment.');
+                toast.error(error instanceof Error?error.message:text('Enter a valid price adjustment.','দাম বদলের সঠিক টাকা দিন।'));
                 return false;
               }
             }:undefined
@@ -997,7 +1000,7 @@ export function Pos() {
 
       {templateEditorOpen && <SaleTemplateDialog template={null} onClose={()=>setTemplateEditorOpen(false)} />}
       <Dialog open={Boolean(pendingTemplate)} onOpenChange={open=>{if(!open)setPendingTemplate(null);}}>
-        <DialogContent className="w-[calc(100vw-1rem)] sm:max-w-md">
+        <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="w-[calc(100vw-1rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{text('Replace this sale with a template?', 'নমুনা দিয়ে এই বিক্রি বদলাবেন?')}</DialogTitle>
             <DialogDescription>
@@ -1028,32 +1031,32 @@ export function Pos() {
           setInstallmentCount(rows.length);
           if(rows[0])setFirstInstallmentDue(rows[0].dueDate);
         }}/>
-      <TransactionReviewDialog open={reviewSaleOpen} onClose={() => setReviewSaleOpen(false)}
+      <TransactionReviewDialog amountLanguage={personal.language} closeLabel={text('Close','বন্ধ করুন')} open={reviewSaleOpen} onClose={() => setReviewSaleOpen(false)}
         onConfirm={() => {setReviewSaleOpen(false);complete();}}
-        title={editing ? 'Review sale update' : 'Review sale'} amount={cart.totals.total}
-        confirmLabel={editing ? 'Confirm sale preview update' : 'Confirm sale preview'}
+        title={editing ? text('Review sale update','বিক্রির সংশোধন যাচাই') : text('Review sale','বিক্রির হিসাব যাচাই')} amount={cart.totals.total}
+        confirmLabel={editing ? text('Confirm sale preview update','বিক্রির সংশোধন নিশ্চিত করুন') : text('Confirm sale preview','বিক্রির প্রিভিউ নিশ্চিত করুন')}
         details={[
-          {label:'Customer',value:cart.customer?.name || cart.customerDetails.name || 'Walk-in customer'},
-          {label:'Products',value:String(cart.lines.length)+' lines'},
-          {label:'Paid',value:taka(cart.totals.paidNum)},
-          {label:'Due',value:taka(cart.totals.due)},
+          {label:text('Customer','ক্রেতা'),value:cart.customer?.name || cart.customerDetails.name || text('Walk-in customer','সাধারণ ক্রেতা')},
+          {label:text('Products','পণ্য'),value:text(`${cart.lines.length} lines`,`${cart.lines.length}টি লাইন`)},
+          {label:text('Paid','জমা'),value:taka(cart.totals.paidNum)},
+          {label:text('Due','বাকি'),value:taka(cart.totals.due)},
           ...(installmentMode==='Installment'?[
-            {label:'Installments',value:String(installmentRows.length)},
-            {label:'First due',value:installmentRows[0]?.dueDate??'—'},
-            {label:'Future scheduled',value:taka(installmentRemainingPaisa/100)}
+            {label:text('Installments','কিস্তি'),value:String(installmentRows.length)},
+            {label:text('First due','প্রথম কিস্তির তারিখ'),value:installmentRows[0]?.dueDate??'—'},
+            {label:text('Future scheduled','পরের কিস্তিতে'),value:taka(installmentRemainingPaisa/100)}
           ]:[]),
           ...cart.payments.filter(row=>Number(row.amount)>0).map((row,index)=>({label:text(`Payment source ${index+1}`,`পেমেন্টের মাধ্যম ${index+1}`),value:`${text(row.method,row.method==='Cash'?'ক্যাশ':row.method==='Bank'?'ব্যাংক':row.method==='Customer Credit'?'ক্রেতার অগ্রিম জমা':row.method)} · ${row.account} · ${taka(Number(row.amount))}`})),
           ...(cart.totals.change>0?[{label:text('Change returned','ফেরত টাকা'),value:taka(cart.totals.change)}]:[])
         ]}/>
       <Dialog open={!!completed} onOpenChange={(open) => {if(!open)closeCompletedSale();}}>
-        <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
+        <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="max-h-[92dvh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="size-5 text-teal-600" /> {editing ? 'Sale update preview' : 'Sale preview · Not posted'}
+              <CheckCircle2 className="size-5 text-teal-600" /> {editing ? text('Sale update preview','বিক্রির সংশোধন প্রিভিউ') : text('Sale preview · Not posted','বিক্রির প্রিভিউ · খাতায় যোগ হয়নি')}
             </DialogTitle>
             <DialogDescription>
               {completed?.invoice} · {taka(completed?.total ?? 0)}
-              {completed && completed.due > 0 ? ` · Due ${taka(completed.due)} (not posted to ledger)` : ' · fully paid in preview'}
+              {completed && completed.due > 0 ? text(` · Due ${taka(completed.due)} (not posted to ledger)`,` · বাকি ${taka(completed.due)} (খাতায় যোগ হয়নি)`) : text(' · fully paid in preview',' · প্রিভিউতে পুরো টাকা জমা')}
             </DialogDescription>
           </DialogHeader>
           <div role="region" aria-label={text('Sale receipt preview','বিক্রির রসিদের প্রিভিউ')} tabIndex={0} className="max-h-[52vh] overflow-auto rounded-lg bg-ink-50 py-4 scrollbar-thin">
@@ -1070,22 +1073,22 @@ export function Pos() {
             {completed?.lines.some(l=>l.stockSource?.mode==='Vendor')&&
               <Button variant="outline" onClick={simulateVendorSources}
                 disabled={!!demoVendorInvoice||editing}
-                title={editing?'Historical source updates are not enabled in the UI preview':
-                  demoVendorInvoice?'Demo source already recorded':'Simulate source quantity for Vendor workspace; no backend posting'}>
-                {demoVendorInvoice?'Vendor source in demo':'Simulate Vendor source'}
+                title={editing?text('Historical source updates are not enabled in the UI preview','প্রিভিউতে পুরোনো উৎস বদলানো যাবে না'):
+                  demoVendorInvoice?text('Demo source already recorded','ডেমোর উৎস আগে রাখা হয়েছে'):text('Simulate source quantity for Vendor workspace; no backend posting','ভেন্ডরের জায়গায় উৎসের পরিমাণের ডেমো দেখুন; সার্ভারে যোগ হবে না')}>
+                {demoVendorInvoice?text('Vendor source in demo','ডেমোতে ভেন্ডরের উৎস'):text('Simulate Vendor source','ভেন্ডরের উৎসের ডেমো দেখুন')}
               </Button>}
             <Button variant="outline" onClick={() => window.print()}>
-              <Printer className="size-4" /> Print receipt
+              <Printer className="size-4" /> {text('Print receipt','রসিদ প্রিন্ট')}
             </Button>
             <Button onClick={closeCompletedSale}>
               {editing||partyContext ? <ArrowLeft className="size-4" /> : <Plus className="size-4" />}
-              {partyContext?uiText(personal.language,'Back to party','পার্টিতে ফিরুন'):editing ? 'Back to sales' : 'New sale'}
+              {partyContext?uiText(personal.language,'Back to party','পার্টিতে ফিরুন'):editing ? text('Back to sales','বিক্রিতে ফিরুন') : text('New sale','নতুন বিক্রি')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog open={installmentHistoryOpen} onOpenChange={next=>!next&&setInstallmentHistoryOpen(false)}>
-        <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-lg"
+        <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-lg"
           aria-label={uiText(personal.language,'Installment previews','কিস্তির প্রিভিউ')}>
           <DialogHeader>
             <DialogTitle>{uiText(personal.language,'Installment previews','কিস্তির প্রিভিউ')}</DialogTitle>

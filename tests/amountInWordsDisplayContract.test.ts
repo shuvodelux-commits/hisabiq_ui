@@ -37,7 +37,7 @@ test('Fast Counter POS and Purchase use readable light words without changing Co
  const words=readFileSync('src/components/AmountInWordsDisplay.tsx','utf8');
  assert.match(pos,/data-pos-payable/);
  assert.match(pos,/data-pos-payable[^>]*bg-teal-50/);
- assert.match(pos,/<AmountInWordsDisplay amount=\{totals\.total\} variant="compact" \/>/);
+ assert.match(pos,/<AmountInWordsDisplay amount=\{totals\.total\} variant="compact" language=\{language\} label=\{text\('In words','কথায়'\)\} \/>/);
  assert.doesNotMatch(pos,/bg-inverse|variant="inverse"/);
  assert.match(words,/bg-teal-50\/70/,'default words panel keeps the approved mint tone');
  assert.match(words,/compact:[\s\S]*text-\[14px\]/,'POS compact words stay readable');
