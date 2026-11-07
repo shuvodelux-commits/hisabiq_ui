@@ -1,3 +1,4 @@
+import type {InputHTMLAttributes} from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '../Button';
 import { FormSelect } from '../FormSelect';
@@ -14,7 +15,7 @@ export function FinancePaymentSplitEditor({
   accounts,
   rows,
   onChange,
-  totalAmount, onCreateAccount, preserveInactiveSelected = false
+  totalAmount, onCreateAccount, preserveInactiveSelected = false, amountInputProps
 }: {
   accounts: FinanceAccount[];
   rows: FinancePaymentDraft[];
@@ -23,6 +24,8 @@ export function FinancePaymentSplitEditor({
   onCreateAccount?: (rowId:string, method:FinancePaymentDraft['method']) => void;
   /** Used in historical correction forms to show the source already saved on the record. */
   preserveInactiveSelected?: boolean;
+  /** Optional input semantics for contextual consumers; existing editor defaults stay unchanged. */
+  amountInputProps?: (row:FinancePaymentDraft,index:number) => Pick<InputHTMLAttributes<HTMLInputElement>, 'id'|'aria-label'|'aria-labelledby'|'aria-describedby'|'aria-invalid'>;
 }) {
   const {text,language,showHelper}=useUiCopy();
   const normalized = normalizeFinancePaymentSplits(rows, accounts, totalAmount);
@@ -48,7 +51,7 @@ export function FinancePaymentSplitEditor({
         <Button variant="outline" size="sm" onClick={add}><Plus className="size-3.5" /> {text('Add','যোগ করুন')}</Button>
       </div>
       <div className="space-y-2 p-3">
-        {rows.map((row) => {
+        {rows.map((row,index) => {
           const available = accountsForFinanceMethod(accounts, row.method);
           const inactiveSelected = preserveInactiveSelected
             ? accounts.find((item) => item.id === row.accountId && item.status === 'Inactive')
@@ -85,6 +88,7 @@ export function FinancePaymentSplitEditor({
               {onCreateAccount && <Button variant="outline" size="sm" onClick={() => onCreateAccount(row.id, row.method)}>{text('Add account','হিসাব যোগ করুন')}</Button>}
               </div>
               <Input
+                {...amountInputProps?.(row,index)}
                 className="text-right"
                 inputMode="decimal"
                 value={row.amount}
