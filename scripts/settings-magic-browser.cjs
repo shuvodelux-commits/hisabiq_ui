@@ -92,7 +92,7 @@ async function main() {
     await teamTable.waitFor();
     assert.deepEqual(
       await teamTable.locator('thead th').allTextContents().then(values => values.map(text => text.trim()).filter(Boolean)),
-      ['Team member', 'Role', 'Status'],
+      ['Team member', 'Role', 'Status', 'Actions'],
     );
     await page.getByRole('button', { name: 'Add team member', exact: true }).click();
     const employeeDialog = page.getByRole('dialog', { name: 'Add demo employee' });
