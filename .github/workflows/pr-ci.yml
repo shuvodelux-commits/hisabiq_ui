@@ -206,6 +206,13 @@ jobs:
         if: steps.scope.outputs.parties == 'true'
         run: npm run test:parties
 
+      - name: Vendor directory, responsive workspace and mobile picker
+        if: steps.scope.outputs.parties == 'true'
+        run: |
+          node scripts/vendor-module-browser.cjs
+          node scripts/vendor-party-layout-browser.cjs
+          node scripts/vendor-refine-browser.cjs
+
       - name: Finance counter smoke
         if: steps.scope.outputs.finance == 'true'
         run: npm run test:counter-ux

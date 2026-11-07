@@ -115,26 +115,26 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
   {key:'edit',label:'Edit Vendor · তথ্য বদলান',visible:true,run:onEditVendor,hint:text('Edit Vendor details','ভেন্ডরের তথ্য বদলান')}
  ] as const;
  const mobileSecondary=receivable>0?'receive':payable>0?'pay':'given';
- return <div className="min-w-0 rounded-xl border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
-  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-3 sm:p-4">
+ return <div className="min-w-0 rounded-lg border border-border bg-card shadow-card" role="region" aria-label="Selected Vendor work">
+  <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border p-2.5 sm:p-3">
    <div className="hidden min-w-0 flex-1 items-start gap-3 sm:flex">
-    <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={52}/>
+    <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={44}/>
     <div className="min-w-0">
-     <h2 className="truncate text-lg font-semibold text-ink">{party.name}
+     <h2 className="truncate text-base font-semibold text-ink sm:text-lg">{party.name}
       {party.nameBn&&<span className="ml-2 font-bn text-sm font-normal text-ink-500">{party.nameBn}</span>}</h2>
      <p className="mt-0.5 text-xs text-ink-500">{party.phone} · {party.area}</p>
      <span className="mt-1 inline-flex rounded-md bg-teal-50 px-1.5 py-0.5 text-[11px] font-medium text-teal-700 dark:bg-teal-900/20 dark:text-teal-200">Vendor · ভেন্ডর</span>
     </div>
    </div>
-   <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:shrink-0" aria-label="Vendor balances, kept separate">
-    <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
+   <div className="grid w-full grid-cols-2 gap-1.5 sm:w-auto sm:shrink-0" aria-label="Vendor balances, kept separate">
+    <div className="min-w-0 rounded-md bg-ink-50/70 px-2.5 py-2">
      <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('You owe','দিতে হবে')}{showHelper&&<span className="hidden sm:inline"> · দেনা</span>}
       <Tooltip label="Explain Vendor payable" align="start" triggerClassName="size-7"
        content={<span className="block text-sm leading-5">Goods taken from this vendor that still need payment. Regular purchase bills are separate.<span className="mt-1 block font-bn">ভেন্ডর থেকে নেওয়া পণ্যের বাকি টাকা। সাধারণ ক্রয়ের বিল আলাদা।</span></span>}/>
      </p>
      <p className={'whitespace-nowrap text-lg font-semibold '+(payable>0?'text-danger':'text-ink')}>{money(payable)}</p>
     </div>
-    <div className="min-w-[122px] rounded-lg bg-ink-50/70 px-3 py-2">
+    <div className="min-w-0 rounded-md bg-ink-50/70 px-2.5 py-2">
      <p className="flex items-center gap-1 text-[11px] text-ink-500">{text('Vendor owes','পাওনা')}{showHelper&&<span className="hidden sm:inline"> · পাওনা</span>}
       <Tooltip label="Explain Vendor receivable" align="end" triggerClassName="size-7"
        content={<span className="block text-sm leading-5">Money the vendor still owes for goods you gave them.<span className="mt-1 block font-bn">ভেন্ডরকে দেওয়া পণ্যের জন্য যে টাকা এখনো পাবেন।</span></span>}/>
@@ -143,16 +143,16 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
     </div>
    </div>
   </div>
-  <div className="hidden flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 sm:flex" role="group" aria-label="Vendor quick actions">
+  <div className="hidden flex-wrap items-center gap-1.5 border-b border-border px-3 py-2 sm:flex" role="group" aria-label="Vendor quick actions">
    {actions.filter(action=>action.visible).map(action=><Button type="button" key={action.key} size="sm"
     variant={action.key==='taken'?'default':'outline'} title={action.hint} onClick={action.run}>
     {action.key==='taken'&&<Plus className="size-4"/>}{action.key==='print'&&<Printer className="size-4"/>}{action.label}
    </Button>)}
   </div>
-  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-stretch gap-2 border-b border-border p-3 sm:hidden" role="group" aria-label="Vendor quick actions">
+  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-stretch gap-1.5 border-b border-border p-2.5 sm:hidden" role="group" aria-label="Vendor quick actions">
    {actions.filter(action=>action.visible&&(action.key==='taken'||action.key===mobileSecondary)).map(action=>
     <Button type="button" key={action.key} size="sm" variant={action.key==='taken'?'default':'outline'}
-     className="h-9 min-w-0 px-2 text-xs" title={action.hint} onClick={action.run}>
+     className="h-9 min-w-0 px-1.5 text-[11.5px]" title={action.hint} onClick={action.run}>
      {action.key==='taken'&&<Plus className="size-4"/>}{action.label}
     </Button>)}
    <Button type="button" size="sm" variant="outline" className="h-9 px-2" aria-label="More Vendor actions"

@@ -1,0 +1,7 @@
+# Vendors — UI refine loop (3 bounded rounds)
+
+Route: `#/app/vendors`. Scope: `src/pages/Vendors.tsx`, `src/components/vendor/VendorDirectory.tsx`, `src/components/vendor/VendorTabs.tsx` only; narrowly scoped tests/docs. Based on current GitHub main and approved HisabIQ blue/teal design, Party Ledger patterns, 36px controls and 0.375rem radius. Preserve vendor search, role assignment, selection and deep links, goods Taken/Given, unpriced memos, payments, purchase invoices, statement, correction, settlement, confirmation/unsaved protection, balances and preview-only data semantics. No accounting/business logic changes.
+
+C0 source findings: vendor directory search has no clear button, 32px desktop search conflicts with 36px control rule; desktop filter chips wrap into multiple rows in narrow 340px sidebar; desktop vendor quick actions can wrap and dominate vertical space; selected vendor summary and mobile picker use oversized radii and padding. Prioritize compactness, accessible touch/keyboard, bilingual labels and no overflow at 320/390/768/1024/1440 light/dark. Do not redesign workflows or change shared primitives globally.
+
+C1: refine directory search/filter, empty-state usability. C2: tighten selected vendor header and responsive quick actions. C3: keyboard/accessibility polish, focused test. C4: GitHub CI + main-vs-PR screenshot/official pinned Impeccable mechanical scan, ledger, human visual approval. Original independent Workflow/sub-agents unavailable here; no fabricated /40 score. Draft PR only, no merge/deploy.
