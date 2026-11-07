@@ -78,6 +78,14 @@ async function main() {
     await wizard.getByRole('button', { name: 'Continue' }).click();
     await wizard.getByRole('link', { name: /Open Business type/ }).waitFor();
     await wizard.getByRole('button', { name: 'Skip for now' }).click();
+    // Data page retains live tenant backup and import-preview safeguards under Magic's tabbed card.
+    await go('data');
+    await page.getByRole('heading', { name: /Data & backup/ }).last().waitFor();
+    await page.getByRole('tab', { name: /Backup & restore/ }).click();
+    await page.getByLabel('Restore settings backup', { exact: true }).waitFor();
+    await page.getByRole('tab', { name: /Record exports & import preview/ }).click();
+    await page.getByLabel('Product CSV preview', { exact: true }).waitFor();
+    await page.getByRole('tab', { name: /Backup & restore/ }).click();
     for (const width of [320,390,768,1024,1440]) {
       await page.setViewportSize({ width, height: 900 });
       await go('');
