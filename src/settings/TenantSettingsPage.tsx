@@ -1110,6 +1110,7 @@ export function SettingsPageContent({
                       <div hidden={activeSubsection !== "invoice"}>
                         <DocumentDesignSettings
                           value={draft as SettingsSections["invoices"]}
+                          saved={state.sections.invoices}
                           business={state.sections.business}
                           disabled={!editable}
                           onChange={setDraft}
