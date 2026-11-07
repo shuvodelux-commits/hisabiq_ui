@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Input } from '../../components/Input';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Clock, Search, Wand2 } from 'lucide-react';
 import { SetupWizard } from './SetupWizard';
@@ -86,7 +87,7 @@ export function SettingsHome({ urlFor }: Props) {
       <section aria-label="Search settings" className="rounded-xl border border-ink-100 bg-card p-4 shadow-card">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-          <input
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="What do you want to change? Try “logo”, “রসিদ”, “VAT”, “PIN”…"
