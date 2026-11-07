@@ -55,6 +55,25 @@ async function main() {
     await page.reload();
     await page.getByLabel('Business name', { exact: true }).waitFor();
     assert.equal(await page.getByLabel('Business name', { exact: true }).inputValue(), 'Magic Settings Regression Shop');
+    // Magic Business Profile two-column form retains HisabIQ business-only settings and VAT.
+    const businessCore = page.locator('[data-settings-business-core]');
+    await businessCore.waitFor();
+    await businessCore.getByLabel('Phone number', { exact: true }).waitFor();
+    await businessCore.getByLabel('Business address', { exact: true }).waitFor();
+    const currency = businessCore.getByLabel('Currency', { exact: true });
+    assert.equal(await currency.inputValue(), 'BDT — Bangladesh Taka (৳)');
+    assert.equal(await currency.getAttribute('readonly'), '', 'Accounting currency remains fixed to BDT');
+    await page.getByLabel('Bangla business name', { exact: true }).waitFor();
+    await page.getByRole('tab', { name: /Other contacts/ }).click();
+    await page.getByLabel('Business email', { exact: true }).waitFor();
+    await page.getByRole('tab', { name: /Logo & branding/ }).click();
+    await page.locator('input[type="file"][aria-label="Business logo"]').waitFor();
+    await page.getByRole('tab', { name: /Regional & currency/ }).click();
+    await page.getByLabel('Accounting currency', { exact: true }).waitFor();
+    await page.getByRole('tab', { name: /Tax & VAT/ }).click();
+    await page.getByRole('switch', { name: 'Enable VAT configuration' }).waitFor();
+    await page.getByRole('tab', { name: /General/ }).click();
+    await businessCore.waitFor();
     const advanced = page.getByRole('checkbox', { name: 'Show advanced options' });
     await advanced.check();
     assert.equal(await advanced.isChecked(), true, 'Advanced controls remain accessible');
