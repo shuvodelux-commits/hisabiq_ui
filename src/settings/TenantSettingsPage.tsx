@@ -1,4 +1,11 @@
 import { SettingsTabs } from "./SettingsTabs";
+import { SettingsNav } from './magic/SettingsNav';
+import { SettingsHome } from './magic/SettingsHome';
+import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/GeneralSettingsSection';
+import { KhataPreview as MagicKhataPreview } from './magic/KhataPreview';
+import { SaveBar } from './magic/SaveBar';
+import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
+import { download as downloadSettings } from './ui';
 import { SettingsDirectory } from "./SettingsDirectory";
 import { settingsSubsections, businessFieldGroup } from "./subsections";
 import { listenSettingsPop } from "./navigationGuard";
@@ -29,7 +36,6 @@ import {
   SlidersHorizontal,
   Database,
   Save,
-  RotateCcw,
   Settings2,
   CheckCircle2,
   ImagePlus,
@@ -180,6 +186,7 @@ function Fields({
   disabled,
   language,
   onReading,
+  columns = 2,
 }: {
   fields: SettingField[];
   value: Draft;
@@ -187,10 +194,11 @@ function Fields({
   disabled: boolean;
   language: string;
   onReading: (v: boolean) => void;
+  columns?: 1 | 2;
 }) {
   const data = value as unknown as Record<string, unknown>;
   return (
-    <div className="grid gap-x-6 gap-y-5 md:[grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))]">
+    <div className={columns === 1 ? "grid gap-x-6 gap-y-5 grid-cols-1" : "grid gap-x-6 gap-y-5 sm:grid-cols-2"}>
       {fields.map((field) => {
         const v = data[field.key];
         const update = (next: unknown) =>
@@ -201,7 +209,7 @@ function Fields({
             data-field-key={field.key}
             className={
               field.kind === "textarea" || field.kind === "logo"
-                ? "md:col-span-full"
+                ? "sm:col-span-full"
                 : ""
             }
           >
@@ -294,7 +302,8 @@ function Fields({
 export function SettingsPageContent({
   sectionOverride,
   embedded = false,
-}: { sectionOverride?: SettingsSection; embedded?: boolean } = {}) {
+  hideHeader = false,
+}: { sectionOverride?: SettingsSection; embedded?: boolean; hideHeader?: boolean } = {}) {
   const { section: routeSection } = useParams();
   const navigate = useNavigate();
   const routeState = useLocation().state as {
@@ -542,7 +551,36 @@ export function SettingsPageContent({
     Icon = icons[section];
   return (
     <div data-settings-dirty={dirty} className="erp-settings min-w-0 flex-1 space-y-5">
-      <header className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
+      {hideHeader && (
+        <section className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-100 bg-card px-4 py-3 shadow-card">
+          <div className="min-w-0">
+            <h2 data-testid="settings-title" className="text-sm font-semibold text-ink">
+              {personal.language === "Bangla" ? info.bn : info.label}
+              {personal.language === "English + Bangla" && <span lang="bn" className="ml-2 font-bn text-[11px] font-normal text-ink-400">{info.bn}</span>}
+            </h2>
+            <p className="mt-0.5 text-xs text-ink-500">{info.description}</p>
+          </div>
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+              <input type="checkbox" className="size-4 accent-teal-600" checked={personal.mode === "Advanced"} onChange={(event) => updatePersonal({ mode: event.target.checked ? "Advanced" : "Simple" })}/>
+              Show advanced options
+            </label>
+            <label className="min-w-[155px] space-y-1 text-[11px] text-ink-600">
+              <span className="block">Preview employee access</span>
+              <AppSelect
+                label="Demo employee access"
+                value={actorId}
+                onChange={(id) => requestChange(() => setActorId(id))}
+                options={state.sections.team.employees.map((e) => ({
+                  value: e.id,
+                  label: e.name + (!e.active ? " · Disabled" : ""),
+                }))}
+              />
+            </label>
+          </div>
+        </section>
+      )}
+      {!hideHeader && <header className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Icon aria-hidden="true" className="size-5 text-primary lg:hidden" />
@@ -675,7 +713,7 @@ export function SettingsPageContent({
             ))}
           </fieldset>
         </div>
-      </header>
+      </header>}
       <div className={embedded ? "min-w-0" : "grid min-w-0 items-start gap-4 lg:grid-cols-[280px_minmax(0,1fr)]"}>
         {!embedded && <SettingsDirectory
           items={Object.entries(sectionNames).map(([id, item])=>({ id, ...item }))}
@@ -978,11 +1016,78 @@ export function SettingsPageContent({
                           disabled={!editable}
                           onChange={(tax) => setDraft((previous) => ({ ...previous, tax }))}
                         />
+                      ) : group.id === "general" ? (
+                        <SettingCard
+                          title="Business profile"
+                          titleBn="ব্যবসার পরিচিতি"
+                          description="Name, phone and address used on invoices."
+                        >
+                          <div data-settings-business-core>
+                            <Fields
+                              fields={(settingsFields.business ?? []).filter(field =>
+                                ["name", "phone", "address"].includes(field.key)
+                              )}
+                              value={draft}
+                              onChange={setDraft}
+                              disabled={!editable}
+                              language={personal.language}
+                              onReading={setReadingLogo}
+                            />
+                            <div className="mt-5 sm:w-1/2">
+                              <SettingsField
+                                label="Currency"
+                                bn="মুদ্রা"
+                                language={personal.language}
+                                hint="Bangladesh Taka (৳). Accounting currency is fixed to BDT; formatting preferences are under Regional & currency."
+                              >
+                                {(id, descriptionId) => (
+                                  <Input
+                                    id={id}
+                                    aria-label="Currency"
+                                    aria-describedby={descriptionId}
+                                    value="BDT — Bangladesh Taka (৳)"
+                                    readOnly
+                                  />
+                                )}
+                              </SettingsField>
+                            </div>
+                          </div>
+                          <div className="border-t border-ink-100 pt-4">
+                            <p className="mb-3 text-xs font-medium text-ink-500">
+                              Additional shop details <span lang="bn" className="font-bn font-normal text-ink-400">দোকানের অতিরিক্ত তথ্য</span>
+                            </p>
+                            <Fields
+                              fields={(settingsFields.business ?? []).filter(field =>
+                                ["nameBn", "registration"].includes(field.key) &&
+                                (!field.advanced || personal.mode === "Advanced")
+                              )}
+                              value={draft}
+                              onChange={setDraft}
+                              disabled={!editable}
+                              language={personal.language}
+                              onReading={setReadingLogo}
+                            />
+                          </div>
+                        </SettingCard>
                       ) : (
-                        <SettingCard title={personal.language === "Bangla" ? group.bn : group.label}>
+                        <SettingCard
+                          title={group.label}
+                          titleBn={group.bn}
+                          description={group.id === "contact"
+                            ? "Additional business contact details used where supported."
+                            : "Use your existing business logo on receipts and invoices."}
+                        >
                           <Fields
-                            fields={(settingsFields.business ?? []).filter(field => businessFieldGroup(field.key) === group.id && (!field.advanced || personal.mode === "Advanced"))}
-                            value={draft} onChange={setDraft} disabled={!editable} language={personal.language} onReading={setReadingLogo}/>
+                            fields={(settingsFields.business ?? []).filter(field =>
+                              businessFieldGroup(field.key) === group.id &&
+                              (!field.advanced || personal.mode === "Advanced")
+                            )}
+                            value={draft}
+                            onChange={setDraft}
+                            disabled={!editable}
+                            language={personal.language}
+                            onReading={setReadingLogo}
+                          />
                         </SettingCard>
                       )}
                     </div>
@@ -990,7 +1095,97 @@ export function SettingsPageContent({
                 </>
               ) : (
                 <>
-                  {(section !== "invoices" ||
+                  {section === "sales" && (
+                    <SettingCard
+                      title="Sales & POS"
+                      titleBn="বিক্রি ও পিওএস"
+                      description="Checkout defaults and sale policy."
+                      actions={
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+                          <input
+                            type="checkbox"
+                            className="size-4 accent-teal-600"
+                            checked={personal.mode === "Advanced"}
+                            onChange={(event) => updatePersonal({ mode: event.target.checked ? "Advanced" : "Simple" })}
+                          />
+                          Show advanced options
+                        </label>
+                      }
+                    >
+                      <div data-settings-sales-core className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                        <Fields
+                          fields={(settingsFields.sales ?? []).filter(field => field.key === "defaultPayment")}
+                          columns={1}
+                          value={draft} onChange={setDraft} disabled={!editable}
+                          language={personal.language} onReading={setReadingLogo}
+                        />
+                        <label className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            aria-label="Open print after each sale (not connected)"
+                            className="mt-1 size-4 accent-teal-600"
+                            checked={false}
+                            disabled
+                          />
+                          <span className="min-w-0">
+                            <span className="block text-[13px] font-medium text-ink">
+                              Open print after each sale
+                            </span>
+                            <span className="mt-1 block text-xs leading-relaxed text-ink-500">
+                              Not connected in this UI. Print remains a per-invoice action; no automatic browser print window is triggered.
+                            </span>
+                          </span>
+                        </label>
+                      </div>
+                      <div className="border-t border-ink-100 pt-4">
+                        <p className="mb-3 text-xs font-medium text-ink-600">
+                          Checkout fields & rounding
+                          <span lang="bn" className="ml-2 font-bn font-normal text-ink-400">পিওএসের তথ্য ও রাউন্ডিং</span>
+                        </p>
+                        <Fields
+                          fields={(settingsFields.sales ?? []).filter(field =>
+                            ["barcode", "customerPhone", "guardian", "address", "rounding"].includes(field.key)
+                          )}
+                          value={draft} onChange={setDraft} disabled={!editable}
+                          language={personal.language} onReading={setReadingLogo}
+                        />
+                      </div>
+                      {personal.mode === "Advanced" && (
+                        <div data-settings-sales-advanced className="space-y-4 border-t border-ink-100 pt-4">
+                          <p className="text-xs font-medium text-ink-600">
+                            Advanced sale policies
+                            <span lang="bn" className="ml-2 font-bn font-normal text-ink-400">বিক্রির বিশেষ নিয়ম</span>
+                          </p>
+                          <label className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              aria-label="Allow selling when stock is zero (not connected)"
+                              className="mt-1 size-4 accent-teal-600"
+                              checked={false}
+                              disabled
+                            />
+                            <span className="min-w-0">
+                              <span className="block text-[13px] font-medium text-ink">Allow selling when stock is zero</span>
+                              <span className="mt-1 block text-xs leading-relaxed text-ink-500">
+                                Not a global toggle in HisabIQ. The POS shortage workflow offers Own Stock, Negative Sale or Vendor when necessary.
+                              </span>
+                            </span>
+                          </label>
+                          <Fields
+                            fields={(settingsFields.sales ?? []).filter(field =>
+                              ["shortage", "priceOverride", "discountLimit", "returnDays"].includes(field.key)
+                            )}
+                            value={draft} onChange={setDraft} disabled={!editable}
+                            language={personal.language} onReading={setReadingLogo}
+                          />
+                          <p className="text-xs text-ink-500">
+                            The price, discount and return limits here are policy previews; they do not grant additional user permissions or change historical sales.
+                          </p>
+                        </div>
+                      )}
+                    </SettingCard>
+                  )}
+                  {(section !== "sales" && (section !== "invoices" ||
                     (activeSubsection === "invoice" &&
                       (settingsFields.invoices || []).some(
                         (f) =>
@@ -998,8 +1193,8 @@ export function SettingsPageContent({
                           ["prefix", "copies", "showPurchaseCost"].includes(
                             f.key,
                           ),
-                      ))) && (
-                    <SettingCard title="Common settings">
+                      )))) && (
+                    <SettingCard title={info.label} titleBn={info.bn} description={info.description}>
                       <Fields
                         fields={(settingsFields[section] || []).filter(
                           (f) =>
@@ -1018,6 +1213,7 @@ export function SettingsPageContent({
                     </SettingCard>
                   )}
                   {personal.mode === "Advanced" &&
+                    section !== "sales" &&
                     (section !== "invoices" ||
                       activeSubsection === "invoice") &&
                     (settingsFields[section] || []).some((f) => f.advanced) && (
@@ -1076,6 +1272,7 @@ export function SettingsPageContent({
                       <div hidden={activeSubsection !== "invoice"}>
                         <DocumentDesignSettings
                           value={draft as SettingsSections["invoices"]}
+                          saved={state.sections.invoices}
                           business={state.sections.business}
                           disabled={!editable}
                           onChange={setDraft}
@@ -1197,53 +1394,26 @@ export function SettingsPageContent({
                   {notice}
                 </p>
               )}
-              <div className={section === 'team' && !embedded
-                ? 'sticky bottom-0 z-10 -mx-3 mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-3 py-3 sm:-mx-4 sm:px-4 lg:-mx-8 lg:px-8'
-                : 'sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-pop'}>
-                <div className="text-xs text-ink-500">
-                  {dirty
-                    ? "Unsaved changes"
-                    : section === "personal"
-                      ? "Saved on this device"
-                      : "Business-wide settings"}
-                  {section === "products" && (
-                    <span className="mt-1 block">
-                      New product defaults; existing products retain their
-                      values.
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={!editable}
-                    onClick={() => setResetOpen(true)}
-                  >
-                    <RotateCcw className="size-4" />
-                    Restore defaults
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!dirty}
-                    onClick={() => {
-                      load();
-                      setNotice("Draft discarded. Latest saved values loaded.");
-                    }}
-                  >
-                    Discard
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={!dirty || !editable || readingLogo}
-                  >
-                    <Save className="size-4" />
-                    Save changes
-                  </Button>
-                </div>
-              </div>
+              <SaveBar
+                dirty={dirty}
+                saving={readingLogo}
+                error={error || undefined}
+                status={section === "personal" ? "Saved on this device" : section === "products" ? "Business-wide defaults. Existing products keep their values." : "Business-wide settings"}
+                dirtyLabel="Unsaved changes"
+                onRestore={() => setResetOpen(true)}
+                restoreDisabled={!editable}
+                onDiscard={() => {
+                  load();
+                  setNotice("Draft discarded. Latest saved values loaded.");
+                }}
+                onSave={() => {
+                  if (!dirty || !editable || readingLogo) return;
+                  needsReview ? setReviewOpen(true) : commit();
+                }}
+                readOnly={!editable}
+                saveDisabled={readingLogo}
+                saveLabel="Save changes"
+              />
             </form>
           )}
         </div>
@@ -1366,7 +1536,107 @@ export function SettingsPageContent({
   );
 }
 
+/** Magic Patterns Settings shell; existing form data/permissions remain in SettingsPageContent. */
 export function TenantSettingsPage() {
   const { section } = useParams();
-  return <SettingsPageContent key={section || "business"} />;
+  const navigate = useNavigate();
+  const { state, actorId } = useTenantSettings();
+  const [magicDirty, setMagicDirty] = useState(false);
+  const [pendingMagicUrl, setPendingMagicUrl] = useState<string | null>(null);
+  const activeId: SettingsSectionId | null =
+    section === 'financialTerminology' ? 'names' :
+    section === 'money' ? 'finance' :
+    settingsSections.some(item => item.id === section) ? section as SettingsSectionId : null;
+  const isHome = !section;
+  const user = state.sections.team.employees.find(employee => employee.id === actorId);
+  const urlFor = (id: SettingsSectionId) => {
+    if (id === 'support') return '/app/support';
+    if (id === 'subscription') return '/app/subscription';
+    if (id === 'names') return '/app/settings/financialTerminology';
+    if (id === 'finance') return '/app/settings/money';
+    return `/app/settings/${id}`;
+  };
+  const previewOnly = section === 'sessions' || section === 'activity' || section === 'offline';
+  const reference = settingsSections.find(item => item.id === section);
+  const generalSourceSections: SettingsSectionId[] = [
+    'business', 'names', 'sales', 'products', 'purchases',
+    'finance', 'notifications', 'personal', 'security',
+  ];
+  const sourceForm = activeId && generalSourceSections.includes(activeId)
+    ? settingsSections.find(item => item.id === activeId)
+    : null;
+  const sourceSectionKey = activeId === 'names' ? 'financialTerminology' :
+    activeId === 'finance' ? 'money' : activeId;
+  const sourceCanEdit = activeId === 'personal' || activeId === 'security' ||
+    (sourceSectionKey !== null && canManage(state, actorId, sourceSectionKey as BusinessSection));
+  const onMagicNavigate = (url: string, event: React.MouseEvent) => {
+    if (!magicDirty) return;
+    event.preventDefault();
+    setPendingMagicUrl(url);
+  };
+  return (
+    <div className="erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5" data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold text-ink">
+            Settings <span className="font-bn text-sm font-normal text-ink-500">সেটিংস</span>
+          </h1>
+          <p className="text-[13px] text-ink-500">
+            {user?.name ?? 'HisabIQ user'} · Settings are stored for this business in the browser. Sign-in, PIN, SMS and billing require the HisabIQ server.
+          </p>
+        </div>
+        {canManage(state, actorId, 'export') && (
+          <Button onClick={() => downloadSettings('hisabiq-settings.json', JSON.stringify(state, null, 2))} title="Download settings JSON only; not a full ERP data backup">
+            <Save className="size-4" /> Settings backup
+          </Button>
+        )}
+      </div>
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
+        <SettingsNav activeId={isHome ? null : activeId} urlFor={urlFor} onNavigate={onMagicNavigate} />
+        <div className="min-w-0">
+          {isHome ? (
+            <SettingsHome urlFor={urlFor} />
+          ) : sourceForm ? (
+            <MagicGeneralSettingsSection
+              key={sourceForm.id}
+              section={sourceForm}
+              canEdit={Boolean(sourceCanEdit)}
+              onDirtyChange={setMagicDirty}
+              renderPreview={sourceForm.id === 'names'
+                ? (previewDraft) => <MagicKhataPreview draft={previewDraft} />
+                : undefined}
+            />
+          ) : previewOnly ? (
+            <section className="rounded-xl border border-border bg-card p-5 shadow-card">
+              <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
+              <p className="mt-2 text-[13px] text-ink-500">
+                The linked Magic Patterns prototype includes this screen, but its demo actions are not connected to secure sessions or offline device authorization here. No account or device changes were made.
+              </p>
+              <Link to="/app/settings/security" className="mt-3 inline-block text-[13px] font-medium text-teal-700 hover:underline">
+                View account &amp; security settings
+              </Link>
+            </section>
+          ) : (
+            <SettingsPageContent key={section} embedded hideHeader />
+          )}
+        </div>
+      </div>
+      <SettingsDialog
+        title="Leave without saving?"
+        description="These are UI preview changes. No production settings have been changed."
+        open={pendingMagicUrl !== null}
+        onClose={() => setPendingMagicUrl(null)}
+      >
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" onClick={() => setPendingMagicUrl(null)}>Keep editing</Button>
+          <Button onClick={() => {
+            const target = pendingMagicUrl;
+            setPendingMagicUrl(null);
+            setMagicDirty(false);
+            if (target) navigate(target);
+          }}>Discard preview and continue</Button>
+        </div>
+      </SettingsDialog>
+    </div>
+  );
 }

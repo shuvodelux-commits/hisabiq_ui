@@ -1,0 +1,221 @@
+import { useEffect, useState, type ReactNode } from 'react';
+import { Eye, Lock } from 'lucide-react';
+import { AppSelect } from '../../components/AppSelect';
+import { Input, SettingCard, SettingsField } from '../ui';
+import { SaveBar } from './SaveBar';
+import { sourceSettingsFields, type SettingField } from './sourceFields';
+import { useMagicSettingsState } from './settingsBridge';
+import type { SettingsSection } from './settingsSections';
+
+type Value = string | number | boolean;
+type Draft = Record<string, Value>;
+type Props = {
+  section: SettingsSection;
+  canEdit: boolean;
+  onDirtyChange: (dirty: boolean) => void;
+  footer?: ReactNode;
+  renderPreview?: (draft: Draft) => ReactNode;
+};
+
+/**
+ * Source-faithful Magic Patterns GeneralSettingsSection presentation.
+ *
+ * PHASE 1: This is a UI-local draft, NOT a tenant settings mutation.
+ * The real permission, data and save adapters belong in Phase 2.
+ * Retains every source field and interactive control, including those that do
+ * not have an equivalent in the old HisabIQ settings schema.
+ */
+export function GeneralSettingsSection({
+  section, canEdit, onDirtyChange, footer, renderPreview,
+}: Props) {
+  const bridge = useMagicSettingsState();
+  const all = sourceSettingsFields[section.id] ?? [];
+  const [advanced, setAdvanced] = useState(false);
+  const [draft, setDraft] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
+  const [baseline] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [feedback, setFeedback] = useState('');
+  const fields = all.filter(f => advanced || !f.advanced);
+  const hiddenCount = all.length - fields.length;
+  const changed = all.filter(f => draft[f.key] !== baseline[f.key]);
+  const dirty = changed.length > 0;
+
+  useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
+
+  const set = (key: string, value: Value) => {
+    setDraft(prev => ({ ...prev, [key]: value }));
+    setFeedback('');
+    if (errors[key]) setErrors(prev => ({ ...prev, [key]: '' }));
+  };
+  const restoreDefaults = () => {
+    setDraft(initialDraft(all, {}));
+    setErrors({});
+    setFeedback('Source defaults loaded into this preview. They have not changed business settings.');
+  };
+  const discard = () => {
+    setDraft({ ...baseline });
+    setErrors({});
+    setFeedback('Preview changes discarded; business settings were never changed.');
+  };
+  const reviewSave = () => {
+    const next: Record<string, string> = {};
+    for (const f of all) {
+      const v = draft[f.key];
+      if (f.kind === 'number' && (!Number.isFinite(Number(v)) ||
+        (f.min !== undefined && Number(v) < f.min) ||
+        (f.max !== undefined && Number(v) > f.max))) {
+        next[f.key] = `Enter a number from ${f.min ?? 0} to ${f.max ?? 'the allowed maximum'}.`;
+      }
+      if (f.key === 'businessName' && !String(v).trim()) next[f.key] = 'Enter the business name.';
+      if (f.key === 'phone' && !/^01[3-9]\d{8}$/.test(String(v).replace(/[\s-]/g, '')))
+        next[f.key] = 'Enter an 11-digit Bangladeshi mobile number.';
+      if (f.key === 'invoicePrefix' && !/^[A-Z0-9-]{2,12}$/.test(String(v)))
+        next[f.key] = 'Use 2–12 capital letters, numbers or hyphens.';
+    }
+    setErrors(next);
+    if (Object.keys(next).length) return;
+    // No fake "Saved" toast or browser-side fake persistence.
+    setFeedback('UI preview only. Saving to the business will be connected after the full Magic UI is approved. No settings were saved.');
+  };
+
+  const helper = (field: SettingField, error?: string) => (
+    <span className="mt-1 block text-xs leading-relaxed">
+      {field.bn && <span className="font-bn text-[11px] text-ink-400">{field.bn} · </span>}
+      <span className={error ? 'text-danger' : 'text-ink-500'} role={error ? 'alert' : undefined}>
+        {error || field.helper}
+      </span>
+      {field.seenIn && draft[field.key] !== baseline[field.key] && (
+        <span className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-teal-700">
+          <Eye className="size-3" aria-hidden="true" />
+          Where you'll see this: {field.seenIn} (after reconnection)
+        </span>
+      )}
+    </span>
+  );
+
+  const renderField = (field: SettingField) => {
+    const id = `magic-setting-${section.id}-${field.key}`;
+    const error = errors[field.key];
+    const disabled = !canEdit;
+    if (field.kind === 'checkbox') {
+      return (
+        <label key={field.key} htmlFor={id} className={`flex items-start gap-3 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${field.wide ? 'sm:col-span-2' : ''}`}>
+          <span className="flex h-5 shrink-0 items-center">
+            <input id={id} type="checkbox" className="size-4 rounded border-input accent-teal-600"
+              checked={Boolean(draft[field.key])} onChange={e => set(field.key, e.target.checked)}
+              disabled={disabled} />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[13px] font-medium text-ink">
+              {field.label}
+              {field.advanced && <span className="ml-1.5 rounded bg-ink-50 px-1 py-0.5 text-[10px] font-normal text-ink-500">Advanced</span>}
+            </span>
+            {helper(field, error)}
+          </span>
+        </label>
+      );
+    }
+    return (
+      <div key={field.key} className={field.wide ? 'sm:col-span-2' : ''}>
+        <SettingsField label={field.label} bn={field.bn ?? field.label} language="English">
+          {(generatedId, descriptionId) => field.kind === 'select' ? (
+            <AppSelect id={generatedId} describedBy={descriptionId} label={field.label}
+              value={String(draft[field.key] ?? '')}
+              onChange={v => set(field.key, v)} options={field.options ?? []} disabled={disabled} />
+          ) : field.kind === 'textarea' ? (
+            <textarea id={generatedId} aria-label={field.label} aria-describedby={descriptionId}
+              rows={3} className="block w-full rounded-md border border-input bg-card px-3 py-2 text-[13px] text-ink disabled:opacity-70"
+              value={String(draft[field.key] ?? '')} onChange={e => set(field.key, e.target.value)}
+              disabled={disabled} />
+          ) : (
+            <Input id={generatedId} aria-label={field.label} aria-describedby={descriptionId}
+              type={field.kind === 'number' ? 'number' : 'text'}
+              min={field.min} max={field.max}
+              value={String(draft[field.key] ?? '')}
+              onChange={e => set(field.key,
+                field.kind === 'number' ? (e.target.value === '' ? NaN : Number(e.target.value)) :
+                field.key === 'invoicePrefix' ? e.target.value.toUpperCase() : e.target.value)}
+              disabled={disabled} />
+          )}
+        </SettingsField>
+        {helper(field, error)}
+      </div>
+    );
+  };
+  const hasAdvanced = all.some(f => f.advanced);
+
+  return (
+    <div className="min-w-0 space-y-3" data-settings-magic-general={section.id}>
+      <div className={renderPreview ? 'grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]' : ''}>
+        <SettingCard
+          title={section.label}
+          titleBn={section.bn}
+          description={section.desc}
+          actions={hasAdvanced ? (
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+              <input type="checkbox" className="size-4 accent-teal-600"
+                checked={advanced} onChange={e => setAdvanced(e.target.checked)} />
+              Show advanced options
+            </label>
+          ) : undefined}
+        >
+          {!canEdit && (
+            <p className="flex items-center gap-2 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
+              <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+              Only an authorized business user can change these.
+            </p>
+          )}
+          <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">{fields.map(renderField)}</div>
+          {hiddenCount > 0 && (
+            <button type="button" onClick={() => setAdvanced(true)}
+              className="text-xs font-medium text-teal-700 hover:underline">
+              {hiddenCount} more option{hiddenCount === 1 ? '' : 's'} in Advanced
+            </button>
+          )}
+          {footer}
+        </SettingCard>
+        {renderPreview && <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">{renderPreview(draft)}</aside>}
+      </div>
+      <SaveBar
+        dirty={dirty} saving={false}
+        error={Object.keys(errors).length ? `Fix ${Object.keys(errors).length} field(s) before previewing.` : undefined}
+        status={feedback || 'UI preview · business settings are not changed.'}
+        dirtyLabel={feedback || `${changed.length} unsaved UI preview change(s) · not applied to business`}
+        onSave={reviewSave} onDiscard={discard} onRestore={restoreDefaults}
+        saveLabel="Save"
+        readOnly={!canEdit}
+      />
+      {feedback && <p role="status" className="text-xs text-ink-500">{feedback}</p>}
+    </div>
+  );
+}
+
+function initialDraft(fields: SettingField[], bridge: Record<string, unknown>): Draft {
+  const defaults: Record<string, Value> = {
+    businessName: 'Nawabpur Hardware House',
+    phone: '01711-234567',
+    address: 'Nawabpur Road, Dhaka',
+    currency: 'BDT',
+    invoicePrefix: 'INV',
+    language: 'English + Bangla',
+    dateFormat: 'DD/MM/YYYY',
+    lockMinutes: 30,
+    trustedDays: 90,
+    alertTime: '09:00',
+    smsSender: 'HisabIQ',
+    dueLabel: 'Baki',
+    receivedLabel: 'Joma',
+    advanceLabel: 'Advance',
+  };
+  return Object.fromEntries(fields.map(f => {
+    const live = bridge[f.key];
+    const fallback = defaults[f.key] ??
+      (f.kind === 'checkbox' ? false : f.kind === 'number' ? (f.min ?? 0) :
+        f.kind === 'select' ? (f.options?.[0] ?? '') : '');
+    const value = typeof live === 'string' || typeof live === 'number' || typeof live === 'boolean'
+      ? live : fallback;
+    // Select options must stay within the original Magic source list.
+    return [f.key, f.options?.length && !f.options.includes(String(value)) ? f.options[0] : value];
+  }));
+}

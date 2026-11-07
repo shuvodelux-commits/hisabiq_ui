@@ -75,11 +75,18 @@ async function main(){
    assert.equal(await accountingNav.locator('a[href="#/app/daybook"]').count(),1,'Daybook remains outside Accounts as a one-click module');
    if(width<1024)await accountingNav.getByRole('button',{name:'Close navigation'}).click();
    await page.goto(base+'/app/settings/business');
-   const settingsPaths=erpNavigation.find(g=>g.id==='settings').children.filter(c=>c.path.startsWith('/app/settings/')).map(c=>c.path.split('/').pop());
-   const settingButtons=width>=1024?page.locator('[data-settings-directory] [role="tab"]'):page.locator('[data-settings-section]:visible');
-   // Compact Settings tabs and desktop directory both use sectionNames.
+   // Magic Patterns replaces the former Settings tablist with grouped navigation links.
+   // Verify its source section order and live destinations consistently across widths.
+   const settingButtons=page.locator('[data-settings-directory] a[data-settings-section]:visible');
    await settingButtons.first().waitFor();
-   assert.deepEqual(await settingButtons.evaluateAll(nodes=>nodes.map(n=>n.dataset.settingsSection)),settingsPaths);
+   const order=await settingButtons.evaluateAll(nodes=>nodes.map(n=>n.dataset.settingsSection));
+   const expected=['business','names','sales','products','purchases','invoices','finance','notifications','interface','team','sessions','activity','data','offline','support','subscription','personal','security'];
+   assert.deepEqual(order,expected,'Magic Patterns Settings groups retain their exact source order');
+   for(const [id,route] of [['business','business'],['names','financialTerminology'],['finance','money'],['security','security']]){
+    assert.ok(order.includes(id), 'Missing Settings '+id);
+    const destination=await page.locator(`[data-settings-directory] a[data-settings-section="${id}"]`).getAttribute('href');
+    assert.equal(destination,'#/app/settings/'+route, 'Magic Settings '+id+' uses existing ERP route');
+   }
   }
   await page.setViewportSize({width:1440,height:1000});
   await page.goto(base+'/app/sales?tab=return');
