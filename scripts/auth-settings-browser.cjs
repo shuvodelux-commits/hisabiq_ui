@@ -44,7 +44,7 @@ async function main() {
     await section.waitFor();
     assert.equal(await lock.isChecked(), false, 'Preview PIN/lock settings must not persist as security credentials');
     assert.equal(await pin.isChecked(), false, 'No PIN enrollment happens in Phase 1');
-    assert.equal(await minutes.inputValue(), '1', 'Unsaved preview minutes reset to source minimum');
+    assert.equal(await minutes.inputValue(), '30', 'Unsaved preview minutes reset to the source default');
     const stored = await page.evaluate(() => JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]));
     assert.ok(!stored.includes('preview-secret-pin'), 'No PIN is stored');
     for (const [width, height] of [[390,844],[320,700],[900,1000],[1365,900]]) {
