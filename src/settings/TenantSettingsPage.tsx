@@ -1029,7 +1029,7 @@ export function SettingsPageContent({
                               language={personal.language}
                               onReading={setReadingLogo}
                             />
-                            <div className="mt-5 sm:max-w-[calc(50%-0.75rem)]">
+                            <div className="mt-5 sm:w-1/2">
                               <SettingsField
                                 label="Currency"
                                 bn="মুদ্রা"
