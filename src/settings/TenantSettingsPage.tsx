@@ -1566,7 +1566,7 @@ export function TenantSettingsPage() {
     : null;
   const sourceSectionKey = activeId === 'names' ? 'financialTerminology' :
     activeId === 'finance' ? 'money' : activeId;
-  const sourceCanEdit = activeId === 'personal' ||
+  const sourceCanEdit = activeId === 'personal' || activeId === 'security' ||
     (sourceSectionKey !== null && canManage(state, actorId, sourceSectionKey as BusinessSection));
   const onMagicNavigate = (url: string, event: React.MouseEvent) => {
     if (!magicDirty) return;
