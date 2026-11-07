@@ -223,6 +223,19 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Finance Loans responsive filters, actions and detail states
+        if: steps.scope.outputs.finance == 'true'
+        run: node scripts/finance-loans-refine-browser.cjs
+
+      - name: Upload Finance Loans interaction screenshots
+        if: always() && steps.scope.outputs.finance == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: finance-loans-refine-${{ github.sha }}
+          path: test-results/finance-loans-refine/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Calculator multiline, keyboard and viewport smoke
         if: steps.scope.outputs.shared == 'true'
         run: npm run test:calculator-scratchpad
