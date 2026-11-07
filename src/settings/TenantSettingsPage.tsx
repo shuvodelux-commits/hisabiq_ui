@@ -2,6 +2,7 @@ import { SettingsTabs } from "./SettingsTabs";
 import { SettingsNav } from './magic/SettingsNav';
 import { SettingsHome } from './magic/SettingsHome';
 import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/GeneralSettingsSection';
+import { KhataPreview as MagicKhataPreview } from './magic/KhataPreview';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1601,6 +1602,9 @@ export function TenantSettingsPage() {
               section={sourceForm}
               canEdit={Boolean(sourceCanEdit)}
               onDirtyChange={setMagicDirty}
+              renderPreview={sourceForm.id === 'names'
+                ? (previewDraft) => <MagicKhataPreview draft={previewDraft} />
+                : undefined}
             />
           ) : previewOnly ? (
             <section className="rounded-xl border border-border bg-card p-5 shadow-card">
