@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Eye, Lock } from 'lucide-react';
 import { AppSelect } from '../../components/AppSelect';
-import { Button, Input, SettingCard, SettingsField } from '../ui';
+import { Input, SettingCard, SettingsField } from '../ui';
 import { SaveBar } from './SaveBar';
 import { sourceSettingsFields, type SettingField } from './sourceFields';
 import { useMagicSettingsState } from './settingsBridge';
@@ -118,7 +118,7 @@ export function GeneralSettingsSection({
     }
     return (
       <div key={field.key} className={field.wide ? 'sm:col-span-2' : ''}>
-        <SettingsField label={field.label} language="English" hint={undefined}>
+        <SettingsField label={field.label} bn={field.bn ?? field.label} language="English">
           {(generatedId, descriptionId) => field.kind === 'select' ? (
             <AppSelect id={generatedId} describedBy={descriptionId} label={field.label}
               value={String(draft[field.key] ?? '')}
