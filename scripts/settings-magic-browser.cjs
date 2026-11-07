@@ -58,7 +58,7 @@ async function main() {
     // Magic Business Profile two-column form retains HisabIQ business-only settings and VAT.
     const businessCore = page.locator('[data-settings-business-core]');
     await businessCore.waitFor();
-    await businessCore.getByLabel('Phone number', { exact: true }).waitFor();
+    await businessCore.getByLabel('Business mobile', { exact: true }).waitFor();
     await businessCore.getByLabel('Business address', { exact: true }).waitFor();
     const currency = businessCore.getByLabel('Currency', { exact: true });
     assert.equal(await currency.inputValue(), 'BDT — Bangladesh Taka (৳)');
