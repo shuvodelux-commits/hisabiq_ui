@@ -1,0 +1,66 @@
+{
+  "assessment": "Assessment A · isolated",
+  "check": "C3",
+  "commit": "33911b2",
+  "method": "Original ui-refine-loop fresh independent design reviewer, official Impeccable Assessment A and craft floor, judged supplied actual PNGs and scoped source; no detector, audit, prior assessment, transcript or browser access.",
+  "scores": {
+    "specificity": 3,
+    "hierarchy": 3,
+    "typography": 3,
+    "color": 3,
+    "composition": 3
+  },
+  "designTotal": 15,
+  "vsBefore": "better",
+  "vsBeforeNote": "Routine desktop cart now fits totals/remove, phone product names read completely while product/total/remove remain in the first row; joined multi-unit fields and large checkout totals/CTA are legible; existing language/date inconsistency persists and the large desktop price input is still visibly clipped.",
+  "strengths": [
+    "The original compact three-row phone editor and one-line tablet/desktop cart remain recognizably HisabIQ; routine 1440px rows now include the total and remove action without the round-0 clipping.",
+    "Normal phone product identity is complete, with stock/Bangla context subordinate, and the single joined quantity shell displays all tested two-digit three/four-unit values without bulky separate cards.",
+    "Light/dark preserve hierarchy and semantic selected, warning, danger and disabled states. Large BDT line totals, checkout amount, warning and two-line phone CTA are complete; actual scrolled viewport shots retain the logo/header at the top."
+  ],
+  "problems": [
+    {
+      "id": "pos-large-price-input-clipped",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/index.css:899",
+      "evidence": "shots/round-2-large-1440-bn-light.png and shots/round-2-large-1440-bn-dark.png: 1440px desktop, first-row focused sale-price field visibly cuts through the entered 100000000 before the stepper; the full line total is readable, but the original editable price cannot be read in one view. Source CartTable.tsx:345 uses NumericInput stepperCompact inside a price field with currency prefix/cost eye, while this fixed column budgets insufficient inner text width. T2, T5, T6, brief readable large BDT values, craft-floor skill-ban-text-overflow. This is distinct from the now-readable payable/CTA.",
+      "fix": "Reserve enough POS-only price-column/input inner width for the tested nine-digit price plus currency prefix and active stepper/cost eye, allowing the existing cart scroll region to absorb exceptional width. Keep 36px controls, proportional 13px input role, ordinary two-unit rows fitting, and the existing phone three-row composition; verify 100000000 fully visible focused and blurred in both themes."
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P2",
+      "type": "confusing-copy",
+      "location": "src/pages/Pos.tsx:763",
+      "evidence": "shots/round-2-large-320-bn-light.png, shots/round-2-large-390-bn-dark.png and shots/round-2-large-1440-bn-light.png: Bangla preference localizes neighboring controls but New sale, Quick items, Tap to add and phone Qty/Unit/Price remain English; In words retains an unconditional English title. Every checkout shot still displays fixed 06 Oct 2026 · Counter 1 (CheckoutPanel.tsx:120). Source Pos.tsx:764,771-774,899-901 and index.css:308-310 bypass the language helper. T9 and design-guide §24; stored product/account names are not the problem.",
+      "fix": "Use the existing language-copy path for POS-owned headings, shortcut descriptions, quick-item helper and responsive field labels, and pass the selected language to amount words without changing shared defaults. Render invoice date/counter from the existing sale context or explicitly identify preview metadata; never invent transaction data. Preserve user-entered product/account names and accounting behavior."
+    }
+  ],
+  "openQuestions": [
+    "Opened product-search PNGs round-2-320-light-search.png, round-2-390-dark-search.png and round-2-1440-light-search.png show blank option text and empty thumbnail boxes, while ProductCombobox.tsx:273-295 contains names, price and stock markup. Is this a capture/font artifact or a live rendering failure? Supply a settled live popup capture and verify actual visible option text before certifying search; no unsupported source fix is proposed from this ambiguous evidence.",
+    "Supplied round-2 PNGs do not show opened customer/payment account/method/unit dropdowns, Templates/Drafts and their editors, invoice customer details expanded, Quick Add, cost-eye popover, shortage/vendor/serial dialogs, installment terms/schedule/calendar/history/lifecycle dialogs, source-edit/duplicate banners, confirmation, receipt/print or relevant empty/error/busy states. These were considered from scoped rendering source but cannot receive a pixel conformance certificate from closed-page evidence; use the coordinator workflow matrix and actual opened-state screenshots.",
+    "Unit screenshots show products named POS 3 unit readability and POS 4 unit readability. They prove readable joined control pixels after multiple additions, but images alone do not prove these products were created and added through the supported UI; retain the genuine three-unit workflow evidence separately.",
+    "Static screenshots establish logo/header position at capture time only. The inspected opened/scrolled viewport images place it at the viewport top; rely on the separate live header-position assertions for all capture states and do not restyle the shell."
+  ],
+  "reviewedEvidence": {
+    "requiredFullShots": [
+      "round-0-main-desktop-light.png",
+      "round-0-main-desktop-dark.png",
+      "round-0-main-mobile-light.png",
+      "round-0-main-mobile-dark.png",
+      "round-2-main-desktop-light.png",
+      "round-2-main-desktop-dark.png",
+      "round-2-main-mobile-light.png",
+      "round-2-main-mobile-dark.png"
+    ],
+    "comparisons": "All four cmp-round-2 sheets, desktop/mobile light/dark",
+    "crops": [
+      "round-2-main-desktop-light-s1.png",
+      "round-2-main-mobile-light-s1.png"
+    ],
+    "edgeCases": "All round-2 3units and 4units shots at 320/390/1440 light/dark; all round-2 large full-page shots at 320/390/1440 light/dark; representative actual large viewport, scrolled header and opened search images.",
+    "typography": "Inspected actual text pixels and authoritative index.css:784-809 table roles; legacy text-size utilities are overridden and are not reported as typography drift.",
+    "source": "Pos.tsx, CartTable, ProductCombobox, CheckoutPanel, CustomerPicker, DraftsMenu, SaleTemplatesMenu, SaleTemplateDialog, SerialPickerDialog, StockShortageDialog, InstallmentTermsPanel, InstallmentBreakdownDialog, InstallmentCustomerQuickAddDialog; rendering paths for installment agreement, adjustment, receive payment, reversal and reschedule; scoped index.css and NumericInput opt-in context."
+  },
+  "summary": "Round 2 improves the original POS by restoring readable routine totals/remove actions, complete phone identities, large checkout amounts and multi-unit entry without replacing its compact composition. One visible large desktop price-input clipping case and the established language/date-copy inconsistency remain; missing or ambiguous opened-state evidence must be resolved by the workflow review rather than speculative redesign."
+}

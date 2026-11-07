@@ -1,0 +1,113 @@
+{
+  "assessment": "B · isolated",
+  "check": "C3",
+  "head": "33911b252005dbb3c0a0045d6cd077bb95da6f1c",
+  "method": "Official Impeccable source detector plus audit.md. Read source, binding contracts and brief only; no browser, screenshots, prior reports or transcripts.",
+  "detectorRan": true,
+  "detectorCommand": "sh .claude/skills/impeccable/scripts/impeccable detect --json src/components/pos src/pages/Pos.tsx src/components/transactions/MultiUnitQuantityInput.tsx src/index.css",
+  "detectorExitCode": 2,
+  "detectorRaw": "c3-detector.json",
+  "detectorHits": 3,
+  "verifiedDetectorClusters": 0,
+  "falsePositives": [
+    {
+      "rule": "overused-font",
+      "locations": [
+        "src/index.css:3",
+        "src/index.css:5",
+        "src/index.css:38"
+      ],
+      "reason": "Approved Geist + Hind Siliguri are binding under T1 and design guide; the font-import warning is not a verified POS monospace usage issue."
+    },
+    {
+      "rule": "manual source typography suspicion",
+      "locations": [
+        "src/components/pos/CartTable.tsx:201",
+        "src/components/pos/CartTable.tsx:161",
+        "src/components/pos/DraftsMenu.tsx:74"
+      ],
+      "reason": "Legacy local cart sizes do not establish rendered size: index.css:784–809 overrides marked cart data/header/helper roles to 13/12/11 and proportional figures. No typography defect asserted from class strings alone."
+    }
+  ],
+  "scores": {
+    "accessibility": 2,
+    "performance": 3,
+    "responsive": 3,
+    "theming": 3,
+    "integrity": 2
+  },
+  "auditTotal": 13,
+  "scoreNotes": {
+    "accessibility": "Core keyboard/search, radio roving focus, named scroll region and shared dialog family are present. Hidden serial/shortage controls still have label, icon-name and validation gaps.",
+    "performance": "Product ranking is memoized and list bounded; no measured jank, bundle or runtime profile performed. Cart exit animates height and observer reconnects with line changes; no severe cost proven.",
+    "responsive": "Phone stacking, 768px single rows and internal cart scroll are implemented; multi-unit readability is scoped opt-in. Serial chip remove remains a 12px icon target without spacing compensation. No rendered reflow/touch verification by this isolated role.",
+    "theming": "Primary surfaces use existing tokens and shared portals; minor fixed rgba drag shadow remains at CartTable.tsx:76. No pixel contrast/dark-mode claim.",
+    "integrity": "Coherent existing POS family and protected calculators retained; several source gaps remain across preference-respecting copy and one native installment select."
+  },
+  "problems": [
+    {
+      "id": "pos-dialog-field-accessibility",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/pos/SerialPickerDialog.tsx:115",
+      "evidence": "T7/T9/T12; audit accessibility. Serial removal is a bare X SVG (size-3) button without accessible name, 12px target with no enclosing label or alternate named remove control. Paste textarea at :98–99 has only a disconnected p and serial examples as placeholder; scan at :85 has placeholder-only identification. Error at :118 has no live announcement or association. StockShortageDialog.tsx:142–149 similarly disconnects vendor cost label and input; invalid state lacks aria-invalid/error association. These are source facts, independent of theme/viewport.",
+      "fix": "Use translated accessible names for each remove-serial control, ordinary shared target sizing or a valid spaced hit area, connected visible field labels, and associated announced validation. Preserve every serial eligibility/count and shortage/cost handler."
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/pos/CheckoutPanel.tsx:258",
+      "evidence": "Stable ID retained; T9 and design guide §24. Checkout calls AmountInWordsDisplay without language or label, so its default Bangla output and bilingual label remain in English preference. :120 still displays hardcoded 06 Oct 2026 · Counter 1. SerialPickerDialog.tsx:49–121 and StockShortageDialog.tsx:92–180 do not consult the language hook for operational options/errors/actions; Bangla preference still receives English. InstallmentAgreementPreview.tsx:66 prints stored row.status directly; InstallmentTermsPanel.tsx:79 uses English-only adjustment placeholders. Pos.tsx:769–779 shortcuts and :827–879 edit/draft/template banners are literal English.",
+      "fix": "Apply the existing language preference to POS-owned labels/helpers/status/errors/tooltips/accessibility text, pass explicit language and translated label to amount words, and source or honestly label the displayed checkout context/date without changing transaction dates, calculations or stored identifiers."
+    },
+    {
+      "id": "pos-installment-native-select-drift",
+      "severity": "P2",
+      "type": "drift",
+      "location": "src/components/pos/InstallmentTermsPanel.tsx:72",
+      "evidence": "T1/T12, design guide §10/transaction contract: the advanced adjustment uses a page-local native select with custom field classes, although the same POS uses approved FormSelect/AppSelect for fixed enumerations. Global radius/height rules do not supply themed popup and keyboard/portal parity. No rendered dark failure claimed.",
+      "fix": "Reuse the approved fixed-option select family with the same amount/percent values and onChange. Preserve adjustment callback, permitted values and calculation semantics."
+    },
+    {
+      "id": "pos-cart-reduced-motion-bypassed",
+      "severity": "P2",
+      "type": "accessibility",
+      "location": "src/components/pos/CartTable.tsx:74",
+      "evidence": "T7; audit motion sensitivity. SortableCartRow exit animates height to 0 for 0.16s unconditionally; no useReducedMotion or parent MotionConfig in its render chain. ProductCombobox and other shared controls already supply reduced-motion alternatives. Source verification only; no temporal playback inspected.",
+      "fix": "Respect the existing user reduced-motion preference for cart entry/exit/layout feedback while retaining immediate state visibility and reorder behavior; do not remove normal motion globally."
+    }
+  ],
+  "claimsIndependentlyChecked": [
+    {
+      "claim": "amount and phone identity fixes",
+      "sourceAssessment": "Checkout completion copy can wrap and amount stays atomic at :371–378. CustomerPicker.tsx:53–66 now separates phone truncation from shrink-0 prior balance; full phone remains in DOM/title. Source supports intent; pixels and long-value fit need design/browser role."
+    },
+    {
+      "claim": "cart scroll access",
+      "sourceAssessment": "CartTable.tsx:107–121 uses ResizeObserver and :160–162 makes overflow region named, focusable and focused-outline visible. Keyboard scrolling is now supported structurally; browser behavior not re-run."
+    },
+    {
+      "claim": "genuine three/four-unit readability",
+      "sourceAssessment": "CartTable.tsx:276 opts into readableValues; MultiUnitQuantityInput.tsx:42 reserves per-value ch width with default false; index.css:951–955 retains joined overflow scroll. No unit conversion/price handler changes in the reviewed diff. Actual fixture and several-product interaction proof belongs to browser review."
+    },
+    {
+      "claim": "header capture fix",
+      "sourceAssessment": "scripts/pos-browser-capture.cjs resets page/nested scroll before fullPage capture and asserts headerTop plus visible HisabIQ logo before/after screenshot. Pos.tsx and shell layout unchanged by current branch. Capture helper can enforce asserted header position; this role did not view output."
+    }
+  ],
+  "positiveFindings": [
+    "Approved original React/shared-control family and tokens preserved.",
+    "Source diff leaves Pos.tsx and calculators untouched; unit numeric cleaning, quantity callbacks, shortage and serial handlers unchanged.",
+    "DraftsMenu and SaleTemplatesMenu delegate existing resume/delete/use callbacks, use language hook, and retain bounded list scroll.",
+    "Most installment editors already have translated labels, alerts, shared dialogs/tables/date pickers and honest preview disclaimers.",
+    "Product and customer IME guards are scoped; quantity Enter flow preserved."
+  ],
+  "semanticRisks": [],
+  "limitations": [
+    "Source audit only. No performance profiling, rendered contrast, text zoom, physical Android/touch, open-dialog focus or multiple-product interaction executed.",
+    "The fixed displayed 06 Oct date may mislead invoice context; correction must preserve source transaction semantics.",
+    "Legacy preview-only disclaimers remain source-accurate; no backend/stock/accounting change is requested or inferred."
+  ],
+  "openQuestions": []
+}
