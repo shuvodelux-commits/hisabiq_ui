@@ -76,7 +76,7 @@ async function main() {
     await wizard.waitFor();
     assert.equal(await wizard.getByRole('link', { name: /Open Shop details/ }).count(), 1);
     await wizard.getByRole('button', { name: 'Continue' }).click();
-    assert.equal(await wizard.getByRole('link', { name: /Open Business type/ }).count(), 1);
+    await wizard.getByRole('link', { name: /Open Business type/ }).waitFor();
     await wizard.getByRole('button', { name: 'Skip for now' }).click();
     for (const width of [320,390,768,1024,1440]) {
       await page.setViewportSize({ width, height: 900 });
