@@ -111,6 +111,32 @@ async function main() {
     await page.getByRole('searchbox', { name: 'Search employees' }).waitFor();
     await page.getByRole('button', { name: 'Compact list' }).click();
     await teamTable.waitFor();
+    // Magic invoice design gallery and live preview use actual HisabIQ document settings.
+    await go('invoices');
+    const invoiceGallery = page.getByRole('radiogroup', { name: 'Invoice design' });
+    await invoiceGallery.waitFor();
+    assert.equal(await invoiceGallery.getByRole('radio').count(), 6, 'Six Magic design thumbnails are visible');
+    assert.equal(await invoiceGallery.getByRole('radio', { name: /Modern/ }).isDisabled(), true, 'Unsupported print design cannot be selected');
+    const invoiceLive = page.locator('aside [data-invoice-template]').last();
+    await invoiceLive.waitFor();
+    await invoiceGallery.getByRole('radio', { name: /Classic/ }).click();
+    assert.equal(await invoiceLive.getAttribute('data-invoice-template'), 'Classic', 'Live preview follows template');
+    const invoicePaper = page.getByRole('radiogroup', { name: 'Paper size' });
+    await invoicePaper.getByRole('radio', { name: /80mm roll/ }).click();
+    const invoiceLanguage = page.getByRole('radiogroup', { name: 'Document language' });
+    await invoiceLanguage.getByRole('radio', { name: /সম্পূর্ণ বাংলা/ }).click();
+    await page.getByRole('radiogroup', { name: 'Compare invoice design' }).getByRole('radio', { name: 'Current' }).click();
+    assert.equal(await invoiceLive.getAttribute('data-invoice-template'), 'Standard', 'Current shows saved invoice template');
+    await page.getByRole('radiogroup', { name: 'Compare invoice design' }).getByRole('radio', { name: 'New' }).click();
+    assert.equal(await invoiceLive.getAttribute('data-invoice-template'), 'Classic', 'New shows draft invoice template');
+    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await page.getByRole('status').filter({ hasText: /Business settings saved|Changes are in memory only/ }).waitFor();
+    await page.reload();
+    await invoiceGallery.waitFor();
+    assert.equal(await page.locator('aside [data-invoice-template]').last().getAttribute('data-invoice-template'), 'Classic', 'Invoice design persists');
+    await page.getByRole('tab', { name: /Document numbering/ }).click();
+    await page.getByRole('tab', { name: /Ledger & report designs/ }).click();
+    await page.getByRole('tab', { name: /Invoice design/ }).click();
     for (const width of [320,390,768,1024,1440]) {
       await page.setViewportSize({ width, height: 900 });
       await go('');
