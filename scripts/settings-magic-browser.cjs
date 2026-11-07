@@ -1,6 +1,6 @@
-/* Magic Patterns Settings module replacement — targeted browser regression.
- * Checks source nav, real tenant settings persistence, dirty draft protection
- * and all five supported viewport widths. No prototype-only backend claims.
+/* Magic Patterns Settings UI replacement — targeted browser regression.
+ * Generic Settings routes use source-faithful UI-only drafts in Phase 1.
+ * Specialized pages retain prior tests until their own source port.
  */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
@@ -44,78 +44,55 @@ async function main() {
     await page.getByRole('textbox', { name: 'Search settings', exact: true }).fill('stock');
     assert.equal(await navigation.locator('a[data-settings-section]').count(), 1);
     await page.getByRole('textbox', { name: 'Search settings', exact: true }).fill('');
+    // Phase 1: copy the ORIGINAL Magic GeneralSettingsSection for every generic route.
+    // These are deliberately UI-local drafts, not production writes.
     await select('business');
-    await page.getByTestId('settings-title').waitFor();
-    await page.getByLabel('Business name', { exact: true }).fill('Magic Settings Regression Shop');
-    const save = page.getByRole('button', { name: 'Save changes', exact: true });
-    await save.click();
-    const review = page.getByRole('dialog', { name: 'Review settings changes' });
-    if (await review.isVisible()) await review.getByRole('button', { name: 'Confirm save' }).click();
-    await page.getByRole('status').filter({ hasText: /Business settings saved|Changes are in memory only/ }).waitFor();
+    const businessSource = page.locator('[data-settings-magic-general="business"]');
+    await businessSource.waitFor();
+    await page.getByLabel('Business name', { exact: true }).fill('Magic UI only shop');
+    await page.getByLabel('Business mobile', { exact: true }).waitFor();
+    await page.getByLabel('Business address', { exact: true }).waitFor();
+    await page.getByRole('combobox', { name: 'Currency' }).waitFor();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await businessSource.getByText(/Saving to the business will be connected/).first().waitFor();
     await page.reload();
-    await page.getByLabel('Business name', { exact: true }).waitFor();
-    assert.equal(await page.getByLabel('Business name', { exact: true }).inputValue(), 'Magic Settings Regression Shop');
-    // Magic Business Profile two-column form retains HisabIQ business-only settings and VAT.
-    const businessCore = page.locator('[data-settings-business-core]');
-    await businessCore.waitFor();
-    await businessCore.getByLabel('Business mobile', { exact: true }).waitFor();
-    await businessCore.getByLabel('Business address', { exact: true }).waitFor();
-    const currency = businessCore.getByLabel('Currency', { exact: true });
-    assert.equal(await currency.inputValue(), 'BDT — Bangladesh Taka (৳)');
-    assert.equal(await currency.getAttribute('readonly'), '', 'Accounting currency remains fixed to BDT');
-    await page.getByLabel('Bangla business name', { exact: true }).waitFor();
-    await page.getByRole('tab', { name: /Other contacts/ }).click();
-    await page.getByLabel('Business email', { exact: true }).waitFor();
-    await page.getByRole('tab', { name: /Logo & branding/ }).click();
-    await page.locator('input[type="file"][aria-label="Business logo"]').waitFor();
-    await page.getByRole('tab', { name: /Regional & currency/ }).click();
-    await page.getByLabel('Accounting currency', { exact: true }).waitFor();
-    await page.getByRole('tab', { name: /Tax & VAT/ }).click();
-    await page.getByRole('switch', { name: 'Enable VAT configuration' }).waitFor();
-    await page.getByRole('tab', { name: /General/ }).click();
-    await businessCore.waitFor();
-    const advanced = page.getByRole('checkbox', { name: 'Show advanced options' });
-    await advanced.check();
-    assert.equal(await advanced.isChecked(), true, 'Advanced controls remain accessible');
-    await advanced.uncheck();
-    assert.equal(await advanced.isChecked(), false);
-    await page.getByLabel('Business name', { exact: true }).fill('Unsaved navigation edit');
+    await businessSource.waitFor();
+    assert.notEqual(await page.getByLabel('Business name', { exact: true }).inputValue(), 'Magic UI only shop', 'Phase 1 does not pretend to persist business data');
+    await page.getByLabel('Business name', { exact: true }).fill('Unsaved preview change');
     await select('sales');
-    const discard = page.getByRole('dialog', { name: 'Discard unsaved changes?' });
-    await discard.waitFor();
-    await discard.getByRole('button', { name: 'Keep editing' }).click();
-    assert.equal(await page.getByLabel('Business name', { exact: true }).inputValue(), 'Unsaved navigation edit');
+    const leave = page.getByRole('dialog', { name: 'Leave without saving?' });
+    await leave.waitFor();
+    await leave.getByRole('button', { name: 'Keep editing' }).click();
+    assert.equal(await page.getByLabel('Business name', { exact: true }).inputValue(), 'Unsaved preview change');
     await select('sales');
-    await discard.getByRole('button', { name: 'Discard and continue' }).click();
+    await leave.getByRole('button', { name: 'Discard preview and continue' }).click();
     await page.waitForURL(/\/app\/settings\/sales/);
-    await page.getByText('Default payment method').first().waitFor();
-    // Magic Sales & POS card: original controls + honest unsupported switches, real tenant-backed policy fields.
-    const salesCore = page.locator('[data-settings-sales-core]');
-    await salesCore.waitFor();
-    const salesCard = page.locator('section').filter({ has: salesCore }).last();
-    await salesCard.getByRole('heading', { name: /Sales & POS/ }).waitFor();
-    assert.equal(await salesCore.getByRole('combobox', { name: 'Default payment method' }).count(), 1);
-    assert.equal(await salesCore.getByRole('checkbox', { name: 'Open print after each sale (not connected)' }).isDisabled(), true);
-    await salesCard.getByRole('combobox', { name: 'Invoice rounding' }).waitFor();
-    await salesCard.getByRole('switch', { name: 'Customer phone field' }).waitFor();
-    await salesCard.getByRole('checkbox', { name: 'Show advanced options' }).check();
-    const salesAdvanced = page.locator('[data-settings-sales-advanced]');
-    await salesAdvanced.waitFor();
-    assert.equal(await salesAdvanced.getByRole('checkbox', { name: 'Allow selling when stock is zero (not connected)' }).isDisabled(), true);
-    await salesAdvanced.getByRole('combobox', { name: 'Stock shortage choice' }).waitFor();
-    await salesAdvanced.getByRole('combobox', { name: 'Price override access' }).waitFor();
-    await salesAdvanced.getByLabel('Maximum discount (%)', { exact: true }).fill('10');
-    await salesAdvanced.getByLabel('Return window (days)', { exact: true }).waitFor();
-    await salesCore.getByRole('combobox', { name: 'Default payment method' }).click();
+    const salesSource = page.locator('[data-settings-magic-general="sales"]');
+    await salesSource.waitFor();
+    await page.getByRole('checkbox', { name: /Open print after each sale/ }).waitFor();
+    await page.getByRole('combobox', { name: 'Default payment method' }).click();
     await page.getByRole('option', { name: 'bKash', exact: true }).click();
-    assert.equal(await salesCore.getByRole('combobox', { name: 'Default payment method' }).getAttribute('data-value'), 'bKash');
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-    await page.getByRole('status').filter({ hasText: /Business settings saved|Changes are in memory only/ }).waitFor();
-    await page.reload();
-    await salesCore.waitFor();
-    assert.equal(await salesCore.getByRole('combobox', { name: 'Default payment method' }).getAttribute('data-value'), 'bKash', 'Sales default payment survives reload');
-    await salesCard.getByRole('checkbox', { name: 'Show advanced options' }).check();
-    assert.equal(await salesAdvanced.getByLabel('Maximum discount (%)', { exact: true }).inputValue(), '10', 'Sales discount preview saved without changing checkout permissions');
+    await salesSource.getByRole('checkbox', { name: 'Show advanced options' }).check();
+    await page.getByRole('checkbox', { name: /Allow selling when stock is zero/ }).check();
+    await page.getByRole('checkbox', { name: /Let staff change the price at checkout/ }).waitFor();
+    await page.getByLabel('Biggest discount staff can give (%)').fill('10');
+    await page.getByLabel('Accept returns within (days)').waitFor();
+    await page.getByRole('button', { name: 'Discard' }).click();
+    assert.equal(await page.getByRole('combobox', { name: 'Default payment method' }).getAttribute('data-value'), 'Cash', 'UI discard restores draft without tenant write');
+    const genericPages = [
+      ['financialTerminology', 'names', /What you call money owed/],
+      ['products', 'products', /Warn me when stock drops to/],
+      ['purchases', 'purchases', /Ask for supplier receipt photo/],
+      ['money', 'finance', /Cash goes to/],
+      ['notifications', 'notifications', /Send SMS to customers/],
+      ['personal', 'personal', /Interface language/],
+      ['security', 'security', /Lock the screen when idle/],
+    ];
+    for (const [route, id, label] of genericPages) {
+      await go(route);
+      await page.locator('[data-settings-magic-general="' + id + '"]').waitFor();
+      await page.getByText(label).first().waitFor();
+    }
     await go('');
     await page.getByRole('button', { name: 'Start guided setup' }).click();
     const wizard = page.getByRole('dialog', { name: 'Set up your shop' });
@@ -199,7 +176,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source nav, search, setup, tenant save, dirty-form protection, advanced controls, and 5 viewports passed.');
+    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, specialized pages and five viewports passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
