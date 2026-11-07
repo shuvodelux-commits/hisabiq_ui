@@ -41,9 +41,9 @@ async function main() {
     await search.fill('receipt');
     await page.locator('section[aria-label="Search settings"]').getByRole('link', {name:/Receipt design/}).first().waitFor();
     await search.fill('');
-    await page.getByLabel('Search settings', { exact: true }).fill('stock');
+    await page.getByRole('textbox', { name: 'Search settings', exact: true }).fill('stock');
     assert.equal(await navigation.locator('a[data-settings-section]').count(), 1);
-    await page.getByLabel('Search settings', { exact: true }).fill('');
+    await page.getByRole('textbox', { name: 'Search settings', exact: true }).fill('');
     await select('business');
     await page.getByTestId('settings-title').waitFor();
     await page.getByLabel('Business name', { exact: true }).fill('Magic Settings Regression Shop');
