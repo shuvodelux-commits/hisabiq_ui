@@ -1,6 +1,7 @@
 import { SettingsTabs } from "./SettingsTabs";
 import { SettingsNav } from './magic/SettingsNav';
 import { SettingsHome } from './magic/SettingsHome';
+import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/GeneralSettingsSection';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1537,7 +1538,10 @@ export function SettingsPageContent({
 /** Magic Patterns Settings shell; existing form data/permissions remain in SettingsPageContent. */
 export function TenantSettingsPage() {
   const { section } = useParams();
+  const navigate = useNavigate();
   const { state, actorId } = useTenantSettings();
+  const [magicDirty, setMagicDirty] = useState(false);
+  const [pendingMagicUrl, setPendingMagicUrl] = useState<string | null>(null);
   const activeId: SettingsSectionId | null =
     section === 'financialTerminology' ? 'names' :
     section === 'money' ? 'finance' :
@@ -1553,6 +1557,22 @@ export function TenantSettingsPage() {
   };
   const previewOnly = section === 'sessions' || section === 'activity' || section === 'offline';
   const reference = settingsSections.find(item => item.id === section);
+  const generalSourceSections: SettingsSectionId[] = [
+    'business', 'names', 'sales', 'products', 'purchases',
+    'finance', 'notifications', 'personal', 'security',
+  ];
+  const sourceForm = activeId && generalSourceSections.includes(activeId)
+    ? settingsSections.find(item => item.id === activeId)
+    : null;
+  const sourceSectionKey = activeId === 'names' ? 'financialTerminology' :
+    activeId === 'finance' ? 'money' : activeId;
+  const sourceCanEdit = activeId === 'personal' ||
+    (sourceSectionKey !== null && canManage(state, actorId, sourceSectionKey as BusinessSection));
+  const onMagicNavigate = (url: string, event: React.MouseEvent) => {
+    if (!magicDirty) return;
+    event.preventDefault();
+    setPendingMagicUrl(url);
+  };
   return (
     <div className="erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5" data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1571,10 +1591,17 @@ export function TenantSettingsPage() {
         )}
       </div>
       <div className="grid min-w-0 gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
-        <SettingsNav activeId={isHome ? null : activeId} urlFor={urlFor} onNavigate={() => { /* Existing dirty-form navigation guard intercepts links. */ }} />
+        <SettingsNav activeId={isHome ? null : activeId} urlFor={urlFor} onNavigate={onMagicNavigate} />
         <div className="min-w-0">
           {isHome ? (
             <SettingsHome urlFor={urlFor} />
+          ) : sourceForm ? (
+            <MagicGeneralSettingsSection
+              key={sourceForm.id}
+              section={sourceForm}
+              canEdit={Boolean(sourceCanEdit)}
+              onDirtyChange={setMagicDirty}
+            />
           ) : previewOnly ? (
             <section className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
@@ -1590,6 +1617,22 @@ export function TenantSettingsPage() {
           )}
         </div>
       </div>
+      <SettingsDialog
+        title="Leave without saving?"
+        description="These are UI preview changes. No production settings have been changed."
+        open={pendingMagicUrl !== null}
+        onClose={() => setPendingMagicUrl(null)}
+      >
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" onClick={() => setPendingMagicUrl(null)}>Keep editing</Button>
+          <Button onClick={() => {
+            const target = pendingMagicUrl;
+            setPendingMagicUrl(null);
+            setMagicDirty(false);
+            if (target) navigate(target);
+          }}>Discard preview and continue</Button>
+        </div>
+      </SettingsDialog>
     </div>
   );
 }
