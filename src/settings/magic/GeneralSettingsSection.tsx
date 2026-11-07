@@ -68,7 +68,7 @@ export function GeneralSettingsSection({
         next[f.key] = `Enter a number from ${f.min ?? 0} to ${f.max ?? 'the allowed maximum'}.`;
       }
       if (f.key === 'businessName' && !String(v).trim()) next[f.key] = 'Enter the business name.';
-      if (f.key === 'phone' && !/^01[3-9]\\d{8}$/.test(String(v).replace(/[\\s-]/g, '')))
+      if (f.key === 'phone' && !/^01[3-9]\d{8}$/.test(String(v).replace(/[\s-]/g, '')))
         next[f.key] = 'Enter an 11-digit Bangladeshi mobile number.';
       if (f.key === 'invoicePrefix' && !/^[A-Z0-9-]{2,12}$/.test(String(v)))
         next[f.key] = 'Use 2–12 capital letters, numbers or hyphens.';
