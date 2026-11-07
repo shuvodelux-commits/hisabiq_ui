@@ -108,7 +108,7 @@ async function main() {
     await page.getByRole('button', { name: 'Back to team' }).click();
     await teamTable.waitFor();
     await page.getByRole('button', { name: 'Filters & columns' }).click();
-    await page.getByRole('textbox', { name: 'Search employees' }).waitFor();
+    await page.getByRole('searchbox', { name: 'Search employees' }).waitFor();
     await page.getByRole('button', { name: 'Compact list' }).click();
     await teamTable.waitFor();
     for (const width of [320,390,768,1024,1440]) {
