@@ -86,6 +86,31 @@ async function main() {
     await page.getByRole('tab', { name: /Record exports & import preview/ }).click();
     await page.getByLabel('Product CSV preview', { exact: true }).waitFor();
     await page.getByRole('tab', { name: /Backup & restore/ }).click();
+    // Magic team table is the default, while RBAC role editing and advanced directory remain reachable.
+    await go('team');
+    const teamTable = page.locator('[data-settings-team-table]');
+    await teamTable.waitFor();
+    assert.deepEqual(
+      await teamTable.locator('thead th').allTextContents().then(values => values.map(text => text.trim()).filter(Boolean)),
+      ['Team member', 'Role', 'Status'],
+    );
+    await page.getByRole('button', { name: 'Add team member', exact: true }).click();
+    const employeeDialog = page.getByRole('dialog', { name: 'Add demo employee' });
+    await employeeDialog.waitFor();
+    await employeeDialog.getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('button', { name: 'Manage roles' }).click();
+    await page.getByRole('heading', { name: 'Roles & permissions' }).waitFor();
+    await page.getByRole('button', { name: 'Create role' }).click();
+    const roleDialog = page.getByRole('dialog', { name: 'Create role' });
+    await roleDialog.waitFor();
+    await roleDialog.getByLabel('Role name', { exact: true }).waitFor();
+    await roleDialog.getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('button', { name: 'Back to team' }).click();
+    await teamTable.waitFor();
+    await page.getByRole('button', { name: 'Filters & columns' }).click();
+    await page.getByRole('textbox', { name: 'Search employees' }).waitFor();
+    await page.getByRole('button', { name: 'Compact list' }).click();
+    await teamTable.waitFor();
     for (const width of [320,390,768,1024,1440]) {
       await page.setViewportSize({ width, height: 900 });
       await go('');
