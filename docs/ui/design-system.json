@@ -4017,6 +4017,22 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/GeneralSettingsSection.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "GeneralSettingsSection"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/KhataPreview.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "KhataPreview"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/SaveBar.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4476,7 +4492,8 @@
       "src/pages/Products.tsx",
       "src/pages/Purchases.tsx",
       "src/settings/AccountSecuritySettings.tsx",
-      "src/settings/EmployeeDirectory.tsx"
+      "src/settings/EmployeeDirectory.tsx",
+      "src/settings/magic/GeneralSettingsSection.tsx"
     ],
     "EyeOff": [
       "src/components/dashboard/WidgetFrame.tsx",
@@ -4646,7 +4663,8 @@
     ],
     "Lock": [
       "src/components/brand/ApplicationsSection.tsx",
-      "src/components/layout/CashSessionDialog.tsx"
+      "src/components/layout/CashSessionDialog.tsx",
+      "src/settings/magic/GeneralSettingsSection.tsx"
     ],
     "LockIcon": [
       "src/components/products/fields/KindToggle.tsx"
