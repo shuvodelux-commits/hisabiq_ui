@@ -65,12 +65,12 @@ function amountFor(quantity:number,unitCostBasePaisa:number):number {
   throw new Error('Vendor cost must convert into valid integer paisa.');
  return total;
 }
-function source(state:VendorPreviewState,vendorPartyId:string,kind:'sourcing'|'issue',input:VendorSourceInput):VendorSource {
+function source(state:VendorPreviewState,vendorPartyId:string,kind:'sourcing'|'issue',input:VendorSourceInput,allowUnpricedIssue=false):VendorSource {
  if(!input.id.trim()||state.sources.some(s=>s.id===input.id))throw new Error('Duplicate or missing source ID.');
  if(!input.productId.trim())throw new Error('Product is required.');
  const baseQty=qty(input.baseQty);
  if(!goodDate(input.date))throw new Error('Invalid source date.');
- if(kind==='issue'&&input.unitCostBasePaisa===null)throw new Error('Goods issued to Vendor need an agreed cost.');
+ if(kind==='issue'&&input.unitCostBasePaisa===null&&!allowUnpricedIssue)throw new Error('Goods issued to Vendor need an agreed cost.');
  const cost=input.unitCostBasePaisa;
  const sourceAmountPaisa=cost===null?null:amountFor(baseQty,cost);
  return {id:input.id,vendorPartyId,sourceKind:kind,productId:input.productId,
@@ -275,7 +275,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
    if(seen.has(input.id))throw new Error('Duplicate Vendor memo source ID.');
    seen.add(input.id);
    const linked=source({...next,sources:[...next.sources,...additions]},cmd.vendorPartyId,'issue',
-     {...input,memoId:cmd.memoId,reference:cmd.reference??cmd.memoId});
+     {...input,memoId:cmd.memoId,reference:cmd.reference??cmd.memoId},cmd.allowUnpriced===true);
    const balance=next.inventory[linked.productId]??0;
    if(balance<linked.baseQty)throw new Error('Insufficient owned stock to issue goods.');
    next.inventory[linked.productId]=balance-linked.baseQty;
@@ -336,7 +336,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
   if(!Number.isSafeInteger(cmd.unitCostBasePaisa)||cmd.unitCostBasePaisa<=0)
    throw new Error('Vendor cost must be a positive integer paisa amount.');
   const existing=state.sources.find(s=>s.id===cmd.sourceId&&s.status==='Active');
-  if(!existing||existing.vendorPartyId!==cmd.vendorPartyId||existing.sourceKind!=='sourcing')
+  if(!existing||existing.vendorPartyId!==cmd.vendorPartyId)
    throw new Error('Vendor source not found for this Vendor.');
   if(existing.unitCostBasePaisa!==null)throw new Error('Vendor source already priced; reversing a quote needs review.');
   if(cmd.date<existing.date)throw new Error('Price confirmation cannot predate borrowing.');
@@ -348,7 +348,7 @@ export function applyVendorCommand(state:VendorPreviewState,cmd:VendorPreviewCom
     unitCostBasePaisa:cmd.unitCostBasePaisa,sourceAmountPaisa:amount,
     pricedBaseQty:remaining,pricingStatus:'priced' as const});
   next.events.push({id:'vendor-event:'+cmd.operationId,vendorPartyId:cmd.vendorPartyId,
-   side:'payable',kind:'pricing',sourceId:existing.id,reference:existing.reference,
+   side:existing.sourceKind==='issue'?'receivable':'payable',kind:'pricing',sourceId:existing.id,reference:existing.reference,
    date:cmd.date,sequence:next.events.length+1,deltaPaisa:amount,operationId:cmd.operationId,
    description:'Price set · দাম ঠিক করা হয়েছে',status:'Active'});
   return finish(next,cmd);

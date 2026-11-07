@@ -416,8 +416,19 @@ async function main(){
   const showSababMotion=/^[ \\t]*UI-REFINE-STATE:[ \\t]*sabab-motion-daybook[ \\t]*$/m.test(process.env.UI_REFINE_PR_BODY||'');
   let before,after;
   try{
-    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showAuditFilters,showPosCombobox,showExpenses);
+    // Vendor V2 is additive: baseline comparison is the original Vendor workspace.
+    const baselineRoute=route==='#/app/vendors-v2'?'#/app/vendors':route;
+    before=await capture(browser,'before',process.env.UI_REFINE_BASE_URL||'http://127.0.0.1:4310',baselineRoute,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showAuditFilters,showPosCombobox,showExpenses);
     after=await capture(browser,'after',process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311',route,out,showSababNav,showFloatingPanel,showDaybookActionMenu,showExpenseDialog,showSalesFilter,showErpActions,showSababMotion,showPurchasesDaybook,showPartyLedger,showAuditFilters,showPosCombobox,showExpenses);
+    if(route==='#/app/vendors-v2'){
+      // Run the focused V2 browser workflow once after both default screenshot sets.
+      const log=execFileSync(process.execPath,[path.join(candidate,'scripts/vendor-v2-browser.cjs')],{
+        cwd:candidate,
+        env:{...process.env,VENDOR_V2_SHOTS_DIR:out},
+        encoding:'utf8',timeout:180000
+      });
+      await fsp.writeFile(path.join(out,'vendor-v2-playwright.log'),log);
+    }
     if(showExpenseDialog){
       const log=execFileSync(process.execPath,[path.join(candidate,'scripts/dialog-motion-browser.cjs')],{
         cwd:candidate,env:{...process.env,DIALOG_MOTION_URL:process.env.UI_REFINE_PR_URL||'http://127.0.0.1:4311'},

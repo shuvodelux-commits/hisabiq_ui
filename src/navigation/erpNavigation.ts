@@ -24,7 +24,10 @@ export const erpNavigation:readonly ErpNavGroup[]=[
   {id:'purchase-returns',label:'Purchase Returns',bn:'ক্রয় ফেরত',path:'/app/purchases?tab=return'},
   {id:'purchase-return-history',label:'Return history',bn:'ফেরতের ইতিহাস',path:'/app/purchases?tab=return-history'}
  ]},
- {id:'vendor',label:'Vendor',bn:'ভেন্ডর লেনদেন',icon:Store,landingPath:'/app/vendors'},
+ {id:'vendor',label:'Vendor',bn:'ভেন্ডর লেনদেন',icon:Store,landingPath:'/app/vendors',children:[
+  {id:'vendor-v1',label:'Vendor V1',bn:'পুরোনো ভেন্ডর',path:'/app/vendors'},
+  {id:'vendor-v2',label:'Vendor V2',bn:'নতুন ভেন্ডর',path:'/app/vendors-v2'}
+ ]},
  {id:'products',label:'Products & Stock',bn:'পণ্য ও মজুত',icon:Package,landingPath:'/app/products',children:[
   {id:'product-list',label:'Product List',bn:'পণ্যের তালিকা',path:'/app/products'},
   {id:'stock',label:'Stock lots',bn:'স্টক লট',path:'/app/products?view=lots'},
@@ -76,7 +79,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
 /** Verified in App.tsx of the source branch. Query-driven children share these same route paths. */
 export const erpRoutePaths=new Set([
  '/app/dashboard','/app/pos','/app/counter','/app/sales','/app/quotations','/app/online-sales',
- '/app/purchases','/app/purchases/new','/app/vendors','/app/products','/app/parties','/app/expenses',
+ '/app/purchases','/app/purchases/new','/app/vendors','/app/vendors-v2','/app/products','/app/parties','/app/expenses',
  '/app/finance','/app/accounts','/app/daybook','/app/reconciliation','/app/audit-ledger',
  '/app/warranty','/app/reports','/app/settings/business','/app/settings/team',
  '/app/settings/data','/app/settings/personal','/app/settings/security','/app/notifications','/app/subscription',
