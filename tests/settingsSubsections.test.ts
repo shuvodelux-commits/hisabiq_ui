@@ -10,8 +10,11 @@ test("business fields stay in a reachable sub-page, including Advanced and brand
   for (const field of settingsFields.business ?? [])
     assert.ok(ids.includes(businessFieldGroup(field.key)));
   assert.equal(businessFieldGroup("logo"), "branding");
-  assert.equal(businessFieldGroup("phone"), "contact");
+  assert.equal(businessFieldGroup("phone"), "general");
+  assert.equal(businessFieldGroup("address"), "general");
+  assert.equal(businessFieldGroup("email"), "contact");
   assert.equal(businessFieldGroup("website"), "contact");
+  assert.equal(businessFieldGroup("nameBn"), "general");
   assert.equal(businessFieldGroup("registration"), "general");
   assert.equal(businessFieldGroup("financialYear"), "regional");
   assert.ok(settingsSubsections.business.some(group=>group.id==="regional"));
