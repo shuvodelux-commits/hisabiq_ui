@@ -37,7 +37,7 @@ export function SettingsNav({ activeId, urlFor, onNavigate }: SettingsNavProps) 
           className="ref-control w-full rounded-lg border border-ink-200 bg-card pl-9 pr-3 text-[13px] text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
         />
       </div>
-      <nav aria-label="Settings" className="flex gap-1 overflow-x-auto rounded-xl border border-ink-100 bg-card p-2 scrollbar-thin lg:block">
+      <nav data-settings-directory aria-label="Settings" className="flex gap-1 overflow-x-auto rounded-xl border border-ink-100 bg-card p-2 scrollbar-thin lg:block">
         {list.length === 0 && <p className="px-3 py-2 text-xs text-ink-500">No settings match “{query}”.</p>}
         {settingsGroups.map((g) => {
           const items = list.filter((s) => s.group === g);
@@ -51,6 +51,7 @@ export function SettingsNav({ activeId, urlFor, onNavigate }: SettingsNavProps) 
                 const url = urlFor(s.id);
                 return (
                   <Link
+                    data-settings-section={s.id}
                     key={s.id}
                     to={url}
                     onClick={(e) => onNavigate(url, e)}
