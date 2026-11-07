@@ -184,6 +184,7 @@ function Fields({
   disabled,
   language,
   onReading,
+  columns = 2,
 }: {
   fields: SettingField[];
   value: Draft;
@@ -191,10 +192,11 @@ function Fields({
   disabled: boolean;
   language: string;
   onReading: (v: boolean) => void;
+  columns?: 1 | 2;
 }) {
   const data = value as unknown as Record<string, unknown>;
   return (
-    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+    <div className={columns === 1 ? "grid gap-x-6 gap-y-5 grid-cols-1" : "grid gap-x-6 gap-y-5 sm:grid-cols-2"}>
       {fields.map((field) => {
         const v = data[field.key];
         const update = (next: unknown) =>
@@ -1111,6 +1113,7 @@ export function SettingsPageContent({
                       <div data-settings-sales-core className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
                         <Fields
                           fields={(settingsFields.sales ?? []).filter(field => field.key === "defaultPayment")}
+                          columns={1}
                           value={draft} onChange={setDraft} disabled={!editable}
                           language={personal.language} onReading={setReadingLogo}
                         />
