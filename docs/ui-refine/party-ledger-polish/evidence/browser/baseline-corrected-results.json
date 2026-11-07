@@ -1,0 +1,1903 @@
+{
+  "label": "baseline-corrected",
+  "base": "http://127.0.0.1:4312",
+  "results": [
+    {
+      "name": "320-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "320-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "320-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "320-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "320-light statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "320-light payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "320-light supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "320-light opening balance large, negative and zero presentation",
+      "status": "failed",
+      "error": "large period amount remains one readable number rather than fragmented digit lines\n\n2 !== 1\n"
+    },
+    {
+      "name": "320-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "320-dark payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark opening balance large, negative and zero presentation",
+      "status": "failed",
+      "error": "large period amount remains one readable number rather than fragmented digit lines\n\n2 !== 1\n"
+    },
+    {
+      "name": "390-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "390-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "390-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "390-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "390-light statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "390-light payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "390-light supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "390-light opening balance large, negative and zero presentation",
+      "status": "failed",
+      "error": "large period amount remains one readable number rather than fragmented digit lines\n\n2 !== 1\n"
+    },
+    {
+      "name": "390-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "390-dark payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark opening balance large, negative and zero presentation",
+      "status": "failed",
+      "error": "large period amount remains one readable number rather than fragmented digit lines\n\n2 !== 1\n"
+    },
+    {
+      "name": "768-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "768-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "768-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "768-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "768-light statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "768-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "1024-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "1024-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "1440-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "1440-light payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light opening balance large, negative and zero presentation",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark statement CSV and print output",
+      "status": "failed",
+      "error": "printed statement includes transaction rows"
+    },
+    {
+      "name": "1440-dark payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark opening balance large, negative and zero presentation",
+      "status": "passed"
+    }
+  ],
+  "blocked": [
+    "Loading/network-error state has no genuine async Party Ledger data source in this in-memory preview. Not fabricated."
+  ],
+  "screenshotGeometry": [
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-payment-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-payment-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-correction-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-supplier-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-attachment.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-large-credit-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-light-zero-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-payment-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-payment-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-correction-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-supplier-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-attachment.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-large-credit-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-320-dark-zero-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-payment-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-payment-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-correction-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-supplier-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-attachment.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-large-credit-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-light-zero-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-payment-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-payment-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-correction-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-supplier-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-attachment.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-large-credit-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-390-dark-zero-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-light-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-light-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-light-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-light-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-light-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-light-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-light-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-light-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-dark-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-dark-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-dark-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-dark-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-dark-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-dark-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-dark-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-768-dark-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-dark-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-dark-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-dark-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-dark-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-dark-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-dark-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-dark-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-dark-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-payment-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-payment-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-correction-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-supplier-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-attachment.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-large-credit-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-light-zero-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-populated.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-expanded-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-empty.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-statement.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-payment-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-payment-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-correction-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-supplier-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-attachment.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-large-credit-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1440-dark-zero-balance.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    }
+  ],
+  "passed": 54,
+  "failed": 14
+}

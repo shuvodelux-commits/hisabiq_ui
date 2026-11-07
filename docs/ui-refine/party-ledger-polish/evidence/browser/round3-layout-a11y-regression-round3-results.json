@@ -1,0 +1,146 @@
+[
+  {
+    "name": "320-light payment focus, drafts, split mismatch",
+    "status": "passed"
+  },
+  {
+    "name": "320-light opening validation",
+    "status": "passed"
+  },
+  {
+    "name": "320-light finance validation and split names",
+    "status": "passed"
+  },
+  {
+    "name": "320-light refund, correction, reversal validation",
+    "status": "passed"
+  },
+  {
+    "name": "320-light statement local containment",
+    "status": "passed"
+  },
+  {
+    "name": "320-light shared Finance defaults",
+    "status": "passed"
+  },
+  {
+    "name": "320-dark payment focus, drafts, split mismatch",
+    "status": "passed"
+  },
+  {
+    "name": "320-dark opening validation",
+    "status": "passed"
+  },
+  {
+    "name": "320-dark finance validation and split names",
+    "status": "passed"
+  },
+  {
+    "name": "320-dark refund, correction, reversal validation",
+    "status": "passed"
+  },
+  {
+    "name": "320-dark statement local containment",
+    "status": "passed"
+  },
+  {
+    "name": "320-dark shared Finance defaults",
+    "status": "passed"
+  },
+  {
+    "name": "390-light payment focus, drafts, split mismatch",
+    "status": "passed"
+  },
+  {
+    "name": "390-light opening validation",
+    "status": "passed"
+  },
+  {
+    "name": "390-light finance validation and split names",
+    "status": "passed"
+  },
+  {
+    "name": "390-light refund, correction, reversal validation",
+    "status": "passed"
+  },
+  {
+    "name": "390-light statement local containment",
+    "status": "passed"
+  },
+  {
+    "name": "390-light shared Finance defaults",
+    "status": "passed"
+  },
+  {
+    "name": "390-dark payment focus, drafts, split mismatch",
+    "status": "passed"
+  },
+  {
+    "name": "390-dark opening validation",
+    "status": "passed"
+  },
+  {
+    "name": "390-dark finance validation and split names",
+    "status": "passed"
+  },
+  {
+    "name": "390-dark refund, correction, reversal validation",
+    "status": "passed"
+  },
+  {
+    "name": "390-dark statement local containment",
+    "status": "passed"
+  },
+  {
+    "name": "390-dark shared Finance defaults",
+    "status": "passed"
+  },
+  {
+    "name": "1440-light payment focus, drafts, split mismatch",
+    "status": "passed"
+  },
+  {
+    "name": "1440-light opening validation",
+    "status": "passed"
+  },
+  {
+    "name": "1440-light finance validation and split names",
+    "status": "passed"
+  },
+  {
+    "name": "1440-light refund, correction, reversal validation",
+    "status": "passed"
+  },
+  {
+    "name": "1440-light statement local containment",
+    "status": "passed"
+  },
+  {
+    "name": "1440-light shared Finance defaults",
+    "status": "passed"
+  },
+  {
+    "name": "1440-dark payment focus, drafts, split mismatch",
+    "status": "passed"
+  },
+  {
+    "name": "1440-dark opening validation",
+    "status": "passed"
+  },
+  {
+    "name": "1440-dark finance validation and split names",
+    "status": "passed"
+  },
+  {
+    "name": "1440-dark refund, correction, reversal validation",
+    "status": "passed"
+  },
+  {
+    "name": "1440-dark statement local containment",
+    "status": "passed"
+  },
+  {
+    "name": "1440-dark shared Finance defaults",
+    "status": "passed"
+  }
+]

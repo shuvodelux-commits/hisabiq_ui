@@ -1,0 +1,297 @@
+{
+  "label": "baseline-desktop-viewport",
+  "base": "http://127.0.0.1:4312",
+  "results": [
+    {
+      "name": "1440-light payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light customer and supplier credit refunds",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light owner lender borrower finance isolation",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark customer and supplier credit refunds",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark owner lender borrower finance isolation",
+      "status": "passed"
+    }
+  ],
+  "blocked": [
+    "Loading/network-error state has no genuine async Party Ledger data source in this in-memory preview. Not fabricated."
+  ],
+  "screenshotGeometry": [
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-payment-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-payment-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-correction-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-customer-refund-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-customer-refund-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-supplier-refund-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-supplier-refund-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-owner-credit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-lender-debit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-borrower-credit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-owner-debit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-lender-credit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-light-borrower-debit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-payment-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-payment-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-correction-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-customer-refund-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-customer-refund-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-supplier-refund-validation.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-supplier-refund-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-owner-credit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-lender-debit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-borrower-credit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-owner-debit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-lender-credit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-viewport-1440-dark-borrower-debit-review.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      }
+    }
+  ],
+  "passed": 6,
+  "failed": 0
+}

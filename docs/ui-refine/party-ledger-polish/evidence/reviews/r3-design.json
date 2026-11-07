@@ -1,0 +1,142 @@
+{
+  "assessment": "A · design review",
+  "round": 3,
+  "commit": "c7e641d813e87cca0b2ce633e4a31f4f5ba6d3e5",
+  "scores": {
+    "specificity": 4,
+    "hierarchy": 3,
+    "typography": 3,
+    "color": 3,
+    "composition": 3
+  },
+  "designTotal": 16,
+  "scoreEvidence": {
+    "specificity": "The compact Party directory/detail workspace, bilingual role and balance meaning, source badges and relationship-specific money actions are recognizably HisabIQ. Main shots retain its actual shell and product composition (T1/T2/T12).",
+    "hierarchy": "Name, current relationship balance and Receive payment lead; underline tabs and right-aligned ledger money scan cleanly. Accessible recovery in the connected financial dialogs remains incomplete (T2/T7).",
+    "typography": "Main figures, references and helpers keep the approved compact scale. Current narrow large-money evidence retains paisa and whole figures; source scopes proportional features to Party directory/detail surfaces. Small helpers remain visually dense but intentional under the binding guide (T5/T6).",
+    "color": "Both themes retain the semantic receivable/payable palette and quiet neutral chrome. The selected dark tab count is clearer than baseline; numerical contrast ratios were not measured by this image/source reviewer (T3).",
+    "composition": "Desktop and phone preserve header/logo at the top, content start and the existing workspace. Removing duplicate mobile note/opening prose improves rhythm; Reset now belongs beside Type and note actions have shared36px geometry. The320px statement preview still lets summary money extend past the viewport (T1/T4/T6/T8)."
+  },
+  "problems": [
+    {
+      "id": "party-dialog-validation-association",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyPaymentDialog.tsx:53",
+      "evidence": "T7/T9 and guide §§7/14/30. Current source53–57 sets an error string and returns; fields80/88/95 have no aria-invalid or aria-describedby, and error106 has no stable ID or focus target. The alert provides feedback but does not connect the affected amount/discount/reason/split fields or move focus after failed review. Independently checked the same pattern in PartyCreditRefundDialog.tsx:45–49/77/87/97, PartyFinanceDialog.tsx:49–61/84/105, PartyOpeningDialog.tsx:50–55/77/90 and PartyTransactionDialog.tsx:42/49–55/107. Theme/viewport: both themes, all viewport sizes, connected financial dialogs; this is verified source evidence, not a fresh runtime failure or a validation-state image claim.",
+      "fix": "Add Party-local invalid-field/summary presentation state, stable translated error descriptions and first-invalid-field or existing-summary focus after failed review/save. Route known field failures to their controls and unknown/domain failures to a focusable existing summary; expose split errors via a narrow optional shared API. Preserve exact validators, arithmetic, error meaning, payloads and draft values."
+    },
+    {
+      "id": "party-split-amount-name",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/finance/FinancePaymentSplitEditor.tsx:87",
+      "evidence": "T7/T12 and guide §§9/25/30. Current decimal Input87–93 has only value, onChange and numeric placeholder; it has no label, aria-label, aria-labelledby or ID, and the surrounding row is an unlabelled div. Input.tsx routes it into NumericInput, whose real input spreads those props without creating an accessible name. PartyPaymentDialog.tsx:97, PartyCreditRefundDialog.tsx:90, PartyFinanceDialog.tsx:94 and PartyTransactionDialog.tsx:103 directly consume this editor. Theme/viewport: both themes/all sizes; repeated split amount inputs in the connected Party forms. Source verifies the naming gap; no screen-reader runtime result is claimed.",
+      "fix": "Provide translated row-specific split-amount accessible names for all scoped Party consumers through a narrow opt-in presentation API, preserving other finance consumers defaults. Verify one and multiple rows, including correction, while retaining account/method values, normalization and submission behavior."
+    },
+    {
+      "id": "party-statement-mobile-summary-overflow",
+      "severity": "P2",
+      "type": "responsive",
+      "location": "src/components/parties/PartyStatementDialog.tsx:63",
+      "evidence": "T5/T6 and guide §§21/30. run/round2-browser/320-light-statement.png,320px light statement at its bottom: Period debit and Period credit labels are visible but their right-side values are outside the visible document edge; Closing balance reads only the leading “৳48,65…” at the right cut. The source document child63 has no min-w-0 containment; the summary96–99 sits outside the table overflow-x-auto78 and therefore should not require comparative-table scrolling to read its money. The supplied320px screenshot demonstrates the visible defect, but does not establish whether the whole dialog can be horizontally scrolled. The corresponding five-page PDFs are complete, so this is a screen-preview finding rather than a print regression.",
+      "fix": "Contain the on-screen statement/document children at phone width, keep horizontal scrolling inside the comparative table, and let opening/period/closing summaries wrap while exposing their full amounts and relationship labels at320px. Preserve the existing layout, all statement content, exact numbers and scoped print behavior. Recheck320/390 light/dark preview plus the existing full/multi-page PDFs."
+    }
+  ],
+  "vsBefore": "better",
+  "vsBeforeNote": "Header/logo/content start and desktop directory/detail hierarchy preserved; phone note/opening copy is shorter; dark selected counts clearer; Reset sits beside Type; note controls are shared36px; current print pages contain the ledger and final totals. No visible main-shot section regressed.",
+  "summary": "The current result keeps the approved compact HisabIQ composition and improves the real task surface without introducing decorative chrome. Design16/20; two source-confirmed financial-dialog accessibility issues remain, plus a bounded320px statement-preview containment defect, while supplied actual multi-page print output is complete.",
+  "strengths": [
+    "Logo and navigation remain at the top in all baseline/current main captures; the two-column desktop Party workspace is preserved.",
+    "The phone ledger keeps complete references, always-visible actions and readable money; duplicate note/opening prose is removed.",
+    "Current A4 print rasters show all ledger pages, repeated headings, complete row content and final period/closing totals in black on white across phone/desktop entry and both themes."
+  ],
+  "resolvedFromPriorIds": [
+    {
+      "id": "statement-print-clipping",
+      "status": "resolved in supplied actual print evidence",
+      "evidence": "round2-browser/{320,1440}-{light,dark}-print-{1..5}.png: opening0, original references including INV-000241/RCV-000101, safe preview note rows00–31, period debit84,950, period credit36,300 and closing৳48,650 Receivable are present across all5 pages; no clipped table/footer in the raster output."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "status": "source repair present; runtime not independently driven",
+      "evidence": "usePartyContentTabs.ts implements ArrowLeft/Right/Home/End, one tab stop, stable linked IDs, focus and reveal. Both detail renderers apply it and linked tabpanel markup; Notes capture320-dark-notes.png shows selected Notes revealed."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "status": "visually/source resolved",
+      "evidence": "round2-main desktop shots and round2-browser/320-light-reset.png/768-dark-reset.png show Reset beside All transactions, not Rows; both toolbar sources preserve onReset."
+    },
+    {
+      "id": "party-note-action-targets",
+      "status": "visually/source resolved",
+      "evidence": "round2-browser/1440-light-notes.png and320-dark-notes.png show separated edit/delete actions. Both renderers now reuse shared Button size=icon with gap2 and translated names."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "status": "source repair present",
+      "evidence": "Both directory and detail roots explicitly set fontFeatureSettings normal and fontVariantNumeric proportional-nums; invoice/payment money has no retained local tabular-nums. No independent computed-style claim."
+    }
+  ],
+  "openQuestions": [
+    "Verify320/390px statement dialog geometry after containment: table may scroll within its region, but header, summary money and footer controls should stay in the viewport. Supplied screenshot was scrolled to the document bottom and does not prove top/header or whole-dialog horizontal-scroll behavior.",
+    "Fresh validation-state images/focus tests are needed after the final bounded repair, including amount, reason, split mismatch and domain-error fallback; closed main shots cannot certify dialog recovery.",
+    "Authentic loading/network-error states are unavailable in the synchronous preview. Baseline breakpoint draft loss and direct-source/browserBack query loss are outside this presentation patch and are not reported as regressions."
+  ],
+  "inspection": {
+    "sourceEdited": false,
+    "browserUsed": false,
+    "currentDetectorOutputRead": false,
+    "imagesRead": [
+      "shots/round-0-main-desktop-light.png",
+      "shots/round-0-main-desktop-dark.png",
+      "shots/round-0-main-mobile-light.png",
+      "shots/round-0-main-mobile-dark.png",
+      "shots/round-0-main-desktop-light-s1.png",
+      "shots/round-0-main-mobile-light-s1.png",
+      "shots/round-2-main-desktop-light.png",
+      "shots/round-2-main-desktop-dark.png",
+      "shots/round-2-main-mobile-light.png",
+      "shots/round-2-main-mobile-dark.png",
+      "shots/round-2-main-desktop-light-s1.png",
+      "shots/round-2-main-mobile-light-s1.png",
+      "shots/cmp-round-2-main-desktop-light.png",
+      "shots/cmp-round-2-main-desktop-dark.png",
+      "shots/cmp-round-2-main-mobile-light.png",
+      "shots/cmp-round-2-main-mobile-dark.png",
+      "round1-green/320-light-large-money.png",
+      "round1-green/320-dark-large-money.png",
+      "round1-green/390-light-large-money.png",
+      "round1-green/390-dark-large-money.png",
+      "round2-browser/320-light-print-1.png",
+      "round2-browser/320-light-print-2.png",
+      "round2-browser/320-light-print-3.png",
+      "round2-browser/320-light-print-4.png",
+      "round2-browser/320-light-print-5.png",
+      "round2-browser/320-dark-print-1.png",
+      "round2-browser/320-dark-print-2.png",
+      "round2-browser/320-dark-print-3.png",
+      "round2-browser/320-dark-print-4.png",
+      "round2-browser/320-dark-print-5.png",
+      "round2-browser/1440-light-print-1.png",
+      "round2-browser/1440-light-print-2.png",
+      "round2-browser/1440-light-print-3.png",
+      "round2-browser/1440-light-print-4.png",
+      "round2-browser/1440-light-print-5.png",
+      "round2-browser/1440-dark-print-1.png",
+      "round2-browser/1440-dark-print-2.png",
+      "round2-browser/1440-dark-print-3.png",
+      "round2-browser/1440-dark-print-4.png",
+      "round2-browser/1440-dark-print-5.png",
+      "round2-browser/320-light-reset.png",
+      "round2-browser/768-dark-reset.png",
+      "round2-browser/1440-light-notes.png",
+      "round2-browser/320-dark-notes.png",
+      "round2-browser/320-light-statement.png",
+      "round2-browser/1440-dark-statement.png"
+    ],
+    "printInspection": "All20 existing print rasters inspected through four labelled contact sheets; no PDF rerender or browser run performed.",
+    "provenanceCaveat": "A shell read inadvertently emitted full prior merged r2-checker.json instead of stable IDs only. No standalone design/detector transcripts or current-round detector output were opened. Current findings were independently verified against supplied current images/source; this accidental prior-summary exposure should be disclosed when describing reviewer isolation.",
+    "limitations": "Image/source review only; no new contrast measurements, browser interactions, source edits or commits."
+  }
+}

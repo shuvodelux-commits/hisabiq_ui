@@ -1,0 +1,95 @@
+{
+  "label": "baseline-vendor-containment-red",
+  "base": "http://127.0.0.1:4312",
+  "results": [
+    {
+      "name": "320-light vendor memo settlement controls",
+      "status": "failed",
+      "error": "open dialog content stays within its horizontal scroll boundary: [{\"name\":\"Pay Vendor\",\"scrollWidth\":326,\"clientWidth\":288,\"rect\":{\"x\":16,\"y\":91.5,\"width\":288,\"height\":717,\"top\":91.5,\"right\":304,\"bottom\":808.5,\"left\":16}}]"
+    },
+    {
+      "name": "320-dark vendor memo settlement controls",
+      "status": "failed",
+      "error": "open dialog content stays within its horizontal scroll boundary: [{\"name\":\"Pay Vendor\",\"scrollWidth\":326,\"clientWidth\":288,\"rect\":{\"x\":16,\"y\":91.5,\"width\":288,\"height\":717,\"top\":91.5,\"right\":304,\"bottom\":808.5,\"left\":16}}]"
+    }
+  ],
+  "blocked": [
+    "Loading/network-error state has no genuine async Party Ledger data source in this in-memory preview. Not fabricated."
+  ],
+  "screenshotGeometry": [
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-vendor-containment-red-320-light-vendor-pay-vendor.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Pay Vendor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Pay Vendor",
+          "scrollWidth": 326,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 91.5,
+            "width": 288,
+            "height": 717,
+            "top": 91.5,
+            "right": 304,
+            "bottom": 808.5,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-vendor-containment-red-320-dark-vendor-pay-vendor.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Pay Vendor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Pay Vendor",
+          "scrollWidth": 326,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 91.5,
+            "width": 288,
+            "height": 717,
+            "top": 91.5,
+            "right": 304,
+            "bottom": 808.5,
+            "left": 16
+          }
+        }
+      ]
+    }
+  ],
+  "passed": 0,
+  "failed": 2
+}

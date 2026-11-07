@@ -1,0 +1,169 @@
+{
+  "assessment": "Assessment A · isolated design review",
+  "round": "C4 closing",
+  "commit": "d1de6a904755604f878d5578d8d63e59ce3728e8",
+  "scores": {
+    "specificity": 4,
+    "hierarchy": 4,
+    "typography": 3,
+    "color": 3,
+    "composition": 3
+  },
+  "designTotal": 17,
+  "scoreEvidence": {
+    "specificity": "The actual HisabIQ Party directory/detail composition, relationship-aware money language, bilingual helpers and audited source work remain product-specific. Existing brand, shell and shared component language are preserved (T1/T2/T12).",
+    "hierarchy": "Party identity, relationship balance and Receive payment lead at both widths; underline tabs and source references establish the next level. Current error/focus association and explicit review surfaces support the high-stakes task without adding competing chrome (T2/T7/T9).",
+    "typography": "Complete references and money remain readable with compact role scale and proportional digits. Phone Bangla footer labels fit without shrinking ordinary action text; long dialogs and helpers remain dense rather than exemplary typesetting (T4/T5).",
+    "color": "Light/dark retain semantic receivable, payable, warning and danger cues paired with text. Dark active count is clearer than baseline. This reviewer did not measure contrast and awards no contrast certification (T3).",
+    "composition": "Desktop directory/detail widths, top logo/navigation and content start remain intact; duplicate phone note/opening prose is removed, Reset is adjacent to transaction type, phone statement summary/footer fit. Long form vertical scrolling and the existing split-source stack retain some density; they are usable in supplied footer proofs and do not justify redesign (T1/T6/T8)."
+  },
+  "problems": [],
+  "vsBefore": "better",
+  "vsBeforeNote": "All main/crop/comparison images preserve brand/header/layout. Narrow statement summary money is now visible; financial dialogs retain full-width controls and readable wrapped review/footer content; no new scoped visual regression established.",
+  "verdict": "pass with explicit evidence limits",
+  "summary": "17/20. The final presentation preserves the approved Party workspace and resolves the carried scoped issues in source and supplied visual evidence. This is an independent image/source assessment, not a fresh interaction or production accounting certification.",
+  "resolvedFromPriorIds": [
+    {
+      "id": "party-dialog-validation-association",
+      "status": "source resolved; visible validation evidence consistent",
+      "evidence": "usePartyDialogError supplies stable error IDs, aria-invalid/aria-describedby for known fields, first invalid control focus and focusable alert fallback. Payment/refund/finance/opening/correction/reversal consumers map errors without changing validation payloads. Supplied error shots show visible field states and specific errors."
+    },
+    {
+      "id": "party-split-amount-name",
+      "status": "source resolved",
+      "evidence": "All four scoped Party split-editor consumers pass translated row-specific amount names and method context via the optional amountInputProps API. Existing shared defaults are retained."
+    },
+    {
+      "id": "party-statement-mobile-summary-overflow",
+      "status": "visually/source resolved",
+      "evidence": "320px light/dark statement-summary captures show period debit84,950, credit36,300 and complete ৳48,650 Receivable, plus reachable wrapped footer. Only the labelled keyboard-focusable comparative table scrolls horizontally; document min-w-0 containment and wrapping summaries are present."
+    },
+    {
+      "id": "statement-print-clipping",
+      "status": "resolved in inspected first/last actual PDF rasters",
+      "evidence": "320/1440 light/dark print pages1 and5 retain header, references, full descriptions, repeated final-page heading and final period/closing totals. Middle pages were not re-inspected in this closing assessment."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "status": "source resolved",
+      "evidence": "Shared Party hook implements ArrowLeft/Right/Home/End, roving tabIndex, stable tab/panel IDs, focus and scroll reveal. Both detail roots consume it; no new browser interaction driven by this reviewer."
+    },
+    {
+      "id": "party-directory-keyboard",
+      "status": "source resolved",
+      "evidence": "Directory hook provides search ArrowDown, option movement/Home/End and roving option focus; directory supplies listbox/option semantics and visible focus."
+    },
+    {
+      "id": "party-tab-count-dark-contrast",
+      "status": "visually improved",
+      "evidence": "Round0 versus final dark main captures show clearer active count; no numerical contrast measurement claimed."
+    },
+    {
+      "id": "ledger-mobile-duplicate-description",
+      "status": "visually resolved",
+      "evidence": "Final mobile full shots/crop remove duplicate note and opening prose while retaining actual content."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "status": "visually/source resolved",
+      "evidence": "Final desktop main/crop place Reset immediately after transaction type before Rows; responsive source groups Reset with transaction type."
+    },
+    {
+      "id": "party-note-action-targets",
+      "status": "source repair retained",
+      "evidence": "Both detail note action areas retain shared Button size=icon and separated edit/delete actions with translated names."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "status": "source resolved",
+      "evidence": "Directory/detail roots explicitly override legacy numeric feature settings with normal/proportional-nums."
+    },
+    {
+      "id": "party-balance-large-money-fit",
+      "status": "source repair retained; no new large-amount runtime claim",
+      "evidence": "BalanceCard uses bounded wrapping flex layout and complete formatted money; closing balance wraps its money. Baseline/final main money remains complete."
+    }
+  ],
+  "openQuestions": [],
+  "limitations": [
+    "Baseline draft loss when crossing1024px and direct-source/browserBack query loss remain existing explicit limits. Neither is claimed fixed or introduced by this patch.",
+    "Image/source review only: no browser use, source edits, commits, contrast measurement or screen-reader execution. Runtime verification belongs to separate evidence.",
+    "Some dialog captures show a transient preview toast or scroll position hiding title/footer. Dedicated supplier/refund/finance footer captures demonstrate bounded button text; this does not prove every on-screen-keyboard condition.",
+    "Actual PDF first/last rasters were inspected for each theme/entry width; PDF middle pages were not independently re-rendered or re-inspected here.",
+    "Authentic asynchronous loading/network failure and real accounting/banking effects cannot be certified from this local synchronous preview."
+  ],
+  "inspection": {
+    "sourceEdited": false,
+    "browserUsed": false,
+    "currentDetectorOutputRead": false,
+    "imagesRead": [
+      "shots/round-0-main-desktop-light.png",
+      "shots/round-0-main-desktop-dark.png",
+      "shots/round-0-main-mobile-light.png",
+      "shots/round-0-main-mobile-dark.png",
+      "shots/round-0-main-desktop-light-s1.png",
+      "shots/round-0-main-mobile-light-s1.png",
+      "shots/round-3-main-desktop-light.png",
+      "shots/round-3-main-desktop-dark.png",
+      "shots/round-3-main-mobile-light.png",
+      "shots/round-3-main-mobile-dark.png",
+      "shots/round-3-main-desktop-light-s1.png",
+      "shots/round-3-main-mobile-light-s1.png",
+      "shots/cmp-round-3-main-desktop-light.png",
+      "shots/cmp-round-3-main-desktop-dark.png",
+      "shots/cmp-round-3-main-mobile-light.png",
+      "shots/cmp-round-3-main-mobile-dark.png",
+      "round3-layout-final/320-light-Bangla-supplier-review.png",
+      "round3-layout-final/320-light-English-+-Bangla-payment-error.png",
+      "round3-layout-final/390-dark-English-+-Bangla-correction-review.png",
+      "round3-layout-final/320-dark-English-finance-error.png",
+      "round3-layout-final/390-dark-Bangla-reversal-error.png",
+      "round3-layout-final/320-light-Bangla-opening-save.png",
+      "round3-layout-final/390-dark-English-payment-review.png",
+      "round3-layout-final-unobscured/320-light-Bangla-refund-review-footer.png",
+      "round3-layout-final-unobscured/320-light-Bangla-supplier-review-footer.png",
+      "round3-layout-final-unobscured/320-light-Bangla-finance-review-footer.png",
+      "round3-layout-final-unobscured/320-light-Bangla-correction-review-footer.png",
+      "round3-layout-final-a11y/320-light-statement-summary.png",
+      "round3-layout-final-a11y/320-dark-statement-summary.png",
+      "round3-layout-final-a11y/390-light-statement-table-end.png",
+      "round3-layout-final-a11y/1440-dark-statement-summary.png",
+      "round3-layout-final-a11y/320-light-statement-table-start.png",
+      "round3-layout-print-regression/320-light-print-1.png",
+      "round3-layout-print-regression/320-light-print-5.png",
+      "round3-layout-print-regression/320-dark-print-1.png",
+      "round3-layout-print-regression/320-dark-print-5.png",
+      "round3-layout-print-regression/1440-light-print-1.png",
+      "round3-layout-print-regression/1440-light-print-5.png",
+      "round3-layout-print-regression/1440-dark-print-1.png",
+      "round3-layout-print-regression/1440-dark-print-5.png"
+    ],
+    "imagesReadCount": 40,
+    "priorInput": "Stable IDs extracted from r1/r2/r3 merged checkers; prior r3 design report also read. No current closing detector report was opened.",
+    "reading": [
+      "docs/design/taste.md",
+      "docs/ui-refine/party-ledger-polish/brief.md",
+      "docs/ui/HISABIQ-DESIGN-GUIDE.md",
+      "original checker-brief Design reviewer",
+      "Impeccable critique Assessment A",
+      "Impeccable craft-floor"
+    ],
+    "sourceRead": [
+      "PartyStatementDialog.tsx",
+      "PartyPaymentDialog.tsx",
+      "PartyCreditRefundDialog.tsx",
+      "PartyFinanceDialog.tsx",
+      "PartyOpeningDialog.tsx",
+      "PartyTransactionDialog.tsx",
+      "usePartyDialogError.ts",
+      "FinancePaymentSplitEditor.tsx",
+      "usePartyContentTabs.ts",
+      "usePartyDirectoryKeyboard.ts",
+      "PartyDirectory.tsx",
+      "PartyBalanceCard.tsx",
+      "PartyClosingBalance.tsx",
+      "PartyLedgerToolbarResponsive.tsx",
+      "targeted PartyDetail/Responsive and toolbar presentation excerpts"
+    ]
+  }
+}

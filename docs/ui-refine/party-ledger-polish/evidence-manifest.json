@@ -1,0 +1,1958 @@
+{
+  "baseline": "de33350ea48d7d0c1040b0895b227310cbd484a6",
+  "testedCode": "d1de6a904755604f878d5578d8d63e59ce3728e8",
+  "files": [
+    {
+      "file": "evidence/reviews/r1-design.json",
+      "source": "r1-design.json",
+      "sha256": "d01e79613d19367d5a6183f3fec7c58accb79b679ce8465efc4bf76c7704c02d"
+    },
+    {
+      "file": "evidence/reviews/r2-design.json",
+      "source": "r2-design.json",
+      "sha256": "b49ce745051e17c73fdcfe73f77f99ca57763104890a872ee61940048fa1d34d"
+    },
+    {
+      "file": "evidence/reviews/r3-design.json",
+      "source": "r3-design.json",
+      "sha256": "e31b33bedbee1e636a6157f6d938b3fe1f64a0d15bce85ebe10057f8db1015ea"
+    },
+    {
+      "file": "evidence/reviews/r1-detector.json",
+      "source": "r1-detector.json",
+      "sha256": "494c457d9e87355351bd20fa4bb2d4e03b0038d1b0ee38c45a8837ed23c9fb50"
+    },
+    {
+      "file": "evidence/reviews/r2-detector.json",
+      "source": "r2-detector.json",
+      "sha256": "310615bbf91ae45c968e4adc359915afe9d493f8ebe3f4dca4f12b322d57cb17"
+    },
+    {
+      "file": "evidence/reviews/r3-detector.json",
+      "source": "r3-detector.json",
+      "sha256": "982a9c998d8f8879a96dd9d6e27531de21cdf31491298ee269e4426f17f21c13"
+    },
+    {
+      "file": "evidence/reviews/round1-fixer-detector.json",
+      "source": "round1-fixer-detector.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "evidence/reviews/round2-fixer-detector.json",
+      "source": "round2-fixer-detector.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "evidence/reviews/round3-fixer-detector.json",
+      "source": "round3-fixer-detector.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "evidence/reviews/round3-layout-final-detector.json",
+      "source": "round3-layout-final-detector.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "evidence/reviews/r1-detector-raw.json",
+      "source": "r1-detector-raw.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "evidence/reviews/r2-detector-raw.json",
+      "source": "r2-detector-raw.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "evidence/reviews/r3-detector-raw.json",
+      "source": "r3-detector-raw.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "evidence/reviews/r1-checker.json",
+      "source": "r1-checker.json",
+      "sha256": "e6bb8d2ee7cfda60806bfd83085cee52bc5b4da8207d692e79c3babecc811078"
+    },
+    {
+      "file": "evidence/reviews/r2-checker.json",
+      "source": "r2-checker.json",
+      "sha256": "a7284f4e3d0048e910f63ff4803f8c97676561b8f48c3719fa9aa9ef328fa36b"
+    },
+    {
+      "file": "evidence/reviews/r3-checker.json",
+      "source": "r3-checker.json",
+      "sha256": "4792879511c2d249ddacfaa79e870a94043aa73b687ce0137a10e28dbc787bac"
+    },
+    {
+      "file": "evidence/reviews/r1-fixer.json",
+      "source": "r1-fixer.json",
+      "sha256": "c5cb6c13c0cbb627d5ce8ee9b36f9dd8b9eb04f8af4828ab2a8a78cba4262f03"
+    },
+    {
+      "file": "evidence/reviews/r2-fixer.json",
+      "source": "r2-fixer.json",
+      "sha256": "ac480504d4f243ff30ab33d6c4eb6f322e475d92764deede34a3d83eb39a88b2"
+    },
+    {
+      "file": "evidence/reviews/r3-fixer.json",
+      "source": "r3-fixer.json",
+      "sha256": "75ca0bc909c017cefdf287a19bb8d6536006549ab8915e78190303e697e7bf19"
+    },
+    {
+      "file": "evidence/reviews/closing-checker.json",
+      "source": "closing-checker.json",
+      "sha256": "e2e878cc806ffd201a29f2ffffad0be9b86e7deec746cfd3df019e221e9d639d"
+    },
+    {
+      "file": "evidence/reviews/closing-design.json",
+      "source": "closing-design.json",
+      "sha256": "70bd995474487a14853bf22e306ecfb59edb519ba6746ec114d014e5d3c01874"
+    },
+    {
+      "file": "evidence/reviews/closing-detector-raw.json",
+      "source": "closing-detector-raw.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "evidence/reviews/closing-detector.json",
+      "source": "closing-detector.json",
+      "sha256": "dfa0b22f3223b89cc298b342692b058634ffe1601608b23fadff28d2adad3f45"
+    },
+    {
+      "file": "evidence/reviews/finish-review.json",
+      "source": "finish-review.json",
+      "sha256": "550970eff7519c434d3f6e510f62aa0db589422bbd94dfd59d9d5c808608263f"
+    },
+    {
+      "file": "evidence/checks/baseline/0.log",
+      "source": "checks/baseline/0.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "evidence/checks/baseline/1.log",
+      "source": "checks/baseline/1.log",
+      "sha256": "86e3b7e4a9c60405371059519c12254fa1a9ecaaec3322e50296577c0c494ae5"
+    },
+    {
+      "file": "evidence/checks/baseline/2.log",
+      "source": "checks/baseline/2.log",
+      "sha256": "78b4c44fc67effd47c5daf037f3d00675d5afe29aad83d1a388a8fa808819cde"
+    },
+    {
+      "file": "evidence/checks/baseline/3.log",
+      "source": "checks/baseline/3.log",
+      "sha256": "f00d88d840e0468b33a67e6da70277ba74fea9f49e74b2256513ae3fbafc5efe"
+    },
+    {
+      "file": "evidence/checks/baseline/4.log",
+      "source": "checks/baseline/4.log",
+      "sha256": "f021c20103fe5d7a8f7047cf1d9ee33c7b6aec2b031dd60cd9c60fa9e9606d00"
+    },
+    {
+      "file": "evidence/checks/baseline/5.log",
+      "source": "checks/baseline/5.log",
+      "sha256": "33feed9f66093a49d31059a7918718f3f544c5027798545c2eb6244a126fd957"
+    },
+    {
+      "file": "evidence/checks/baseline/authored-lint.log",
+      "source": "checks/baseline/authored-lint.log",
+      "sha256": "29f491413c1aba8181136912cbb5c078e0c78fb9b95e4f329ca946cf9a9acea5"
+    },
+    {
+      "file": "evidence/checks/baseline/results.txt",
+      "source": "checks/baseline/results.txt",
+      "sha256": "face56a1adfe0eb54c58e45efe4185f5fbcc5c6c1654a0da89ff3ae10191b067"
+    },
+    {
+      "file": "evidence/checks/baseline-authored/0.log",
+      "source": "checks/baseline-authored/0.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "evidence/checks/baseline-authored/1.log",
+      "source": "checks/baseline-authored/1.log",
+      "sha256": "29f491413c1aba8181136912cbb5c078e0c78fb9b95e4f329ca946cf9a9acea5"
+    },
+    {
+      "file": "evidence/checks/baseline-authored/2.log",
+      "source": "checks/baseline-authored/2.log",
+      "sha256": "dcff4930e5a4b2b07aa1dfe67034c2e7ed5302c9249ba3178d2aa8a13308d10a"
+    },
+    {
+      "file": "evidence/checks/baseline-authored/3.log",
+      "source": "checks/baseline-authored/3.log",
+      "sha256": "3ea3460464484eede20b1e40a5874072bda3e6635951ba32d11b0a6a56677fb8"
+    },
+    {
+      "file": "evidence/checks/baseline-authored/4.log",
+      "source": "checks/baseline-authored/4.log",
+      "sha256": "e55008dbd263626e191c6ec073375c6c5cfc5d0aec6a4fc4405900c2b07b0804"
+    },
+    {
+      "file": "evidence/checks/baseline-authored/5.log",
+      "source": "checks/baseline-authored/5.log",
+      "sha256": "33feed9f66093a49d31059a7918718f3f544c5027798545c2eb6244a126fd957"
+    },
+    {
+      "file": "evidence/checks/baseline-authored/results.txt",
+      "source": "checks/baseline-authored/results.txt",
+      "sha256": "6abc7493e8421ad70a6c844304c6ed0173f74882dbd11084797c2b4215e2df33"
+    },
+    {
+      "file": "evidence/checks/round-1-final/0.log",
+      "source": "checks/round-1-final/0.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "evidence/checks/round-1-final/1.log",
+      "source": "checks/round-1-final/1.log",
+      "sha256": "1fef33f118cdfd0eaff274da507a4227d829a9b8208e335b98f5ca6ae51d2171"
+    },
+    {
+      "file": "evidence/checks/round-1-final/2.log",
+      "source": "checks/round-1-final/2.log",
+      "sha256": "2cf64586dc9898dc2d049ecf8d71a7c9f8016eb3004fa1730adb560c91a1b799"
+    },
+    {
+      "file": "evidence/checks/round-1-final/3.log",
+      "source": "checks/round-1-final/3.log",
+      "sha256": "a551e9ed401b967fd470cd49491ef10af2dcca5a3780719f02583a3e04608aa2"
+    },
+    {
+      "file": "evidence/checks/round-1-final/4.log",
+      "source": "checks/round-1-final/4.log",
+      "sha256": "53a2c5eb04c376bfbd8263115bc1f4474fdca121f194616f9d870969d0893650"
+    },
+    {
+      "file": "evidence/checks/round-1-final/5.log",
+      "source": "checks/round-1-final/5.log",
+      "sha256": "33feed9f66093a49d31059a7918718f3f544c5027798545c2eb6244a126fd957"
+    },
+    {
+      "file": "evidence/checks/round-1-final/results.txt",
+      "source": "checks/round-1-final/results.txt",
+      "sha256": "6abc7493e8421ad70a6c844304c6ed0173f74882dbd11084797c2b4215e2df33"
+    },
+    {
+      "file": "evidence/checks/round-2-final/0.log",
+      "source": "checks/round-2-final/0.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "evidence/checks/round-2-final/1.log",
+      "source": "checks/round-2-final/1.log",
+      "sha256": "1fef33f118cdfd0eaff274da507a4227d829a9b8208e335b98f5ca6ae51d2171"
+    },
+    {
+      "file": "evidence/checks/round-2-final/2.log",
+      "source": "checks/round-2-final/2.log",
+      "sha256": "ef90146cf4f17f96a9d7bf554ece973264abcfdf901f8b0336b17c9c66374efe"
+    },
+    {
+      "file": "evidence/checks/round-2-final/3.log",
+      "source": "checks/round-2-final/3.log",
+      "sha256": "3e88d2b1f4b6685857923d88ab40a5cac029bd82dc748b5b2a848ca333b2004a"
+    },
+    {
+      "file": "evidence/checks/round-2-final/4.log",
+      "source": "checks/round-2-final/4.log",
+      "sha256": "6fa93ecab380f4c6a839d779a8f54496dd31fd0a0e38a8b6ec06244d4c42c0ca"
+    },
+    {
+      "file": "evidence/checks/round-2-final/5.log",
+      "source": "checks/round-2-final/5.log",
+      "sha256": "33feed9f66093a49d31059a7918718f3f544c5027798545c2eb6244a126fd957"
+    },
+    {
+      "file": "evidence/checks/round-2-final/results.txt",
+      "source": "checks/round-2-final/results.txt",
+      "sha256": "6abc7493e8421ad70a6c844304c6ed0173f74882dbd11084797c2b4215e2df33"
+    },
+    {
+      "file": "evidence/checks/round-3-polish-final/0.log",
+      "source": "checks/round-3-polish-final/0.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "evidence/checks/round-3-polish-final/1.log",
+      "source": "checks/round-3-polish-final/1.log",
+      "sha256": "5862f7bac0e6d0457ccdf6961ac6d1b093dabd2ce45171cc91ddc193f482aa04"
+    },
+    {
+      "file": "evidence/checks/round-3-polish-final/2.log",
+      "source": "checks/round-3-polish-final/2.log",
+      "sha256": "73efb3cac23d7a7f2be4890c7aeddaa42b2e2c65592ad62493a4dbdd96288523"
+    },
+    {
+      "file": "evidence/checks/round-3-polish-final/3.log",
+      "source": "checks/round-3-polish-final/3.log",
+      "sha256": "40d9ef1bb388fdd8f4de220bc58d10fdffdbd0b5a96bcb75524426fbc68b1551"
+    },
+    {
+      "file": "evidence/checks/round-3-polish-final/4.log",
+      "source": "checks/round-3-polish-final/4.log",
+      "sha256": "7c4598d0435292b8e1a19cdf86950d08e6af1a3fd26fa9b8eebc23a8d8896f6a"
+    },
+    {
+      "file": "evidence/checks/round-3-polish-final/5.log",
+      "source": "checks/round-3-polish-final/5.log",
+      "sha256": "33feed9f66093a49d31059a7918718f3f544c5027798545c2eb6244a126fd957"
+    },
+    {
+      "file": "evidence/checks/round-3-polish-final/results.txt",
+      "source": "checks/round-3-polish-final/results.txt",
+      "sha256": "6abc7493e8421ad70a6c844304c6ed0173f74882dbd11084797c2b4215e2df33"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-final/0.log",
+      "source": "checks/round-3-layout-final/0.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-final/1.log",
+      "source": "checks/round-3-layout-final/1.log",
+      "sha256": "5862f7bac0e6d0457ccdf6961ac6d1b093dabd2ce45171cc91ddc193f482aa04"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-final/2.log",
+      "source": "checks/round-3-layout-final/2.log",
+      "sha256": "34814679c5f09f9b9633943d21819530d91072f3118a79ff681e054e7c731f3b"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-final/3.log",
+      "source": "checks/round-3-layout-final/3.log",
+      "sha256": "632c40bf3b107981357c2d22d2e459f1b671018263c321fff0451d3e642f12ee"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-final/4.log",
+      "source": "checks/round-3-layout-final/4.log",
+      "sha256": "371898828d3646e053551a8dda52c06c52aa0104e599749f0b91adea7598b0ce"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-final/5.log",
+      "source": "checks/round-3-layout-final/5.log",
+      "sha256": "33feed9f66093a49d31059a7918718f3f544c5027798545c2eb6244a126fd957"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-final/results.txt",
+      "source": "checks/round-3-layout-final/results.txt",
+      "sha256": "6abc7493e8421ad70a6c844304c6ed0173f74882dbd11084797c2b4215e2df33"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-complete/0.log",
+      "source": "checks/round-3-layout-complete/0.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-complete/1.log",
+      "source": "checks/round-3-layout-complete/1.log",
+      "sha256": "5862f7bac0e6d0457ccdf6961ac6d1b093dabd2ce45171cc91ddc193f482aa04"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-complete/2.log",
+      "source": "checks/round-3-layout-complete/2.log",
+      "sha256": "06fa86b16ec6e99a527e2f6f684c8ae7c27f594cd2f4e674e2799d1d3b6de513"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-complete/3.log",
+      "source": "checks/round-3-layout-complete/3.log",
+      "sha256": "f553ca2ebd7c942a2aea7ff3520ac5d0f1a9d80d57f44d29773f7d1d7806a3f4"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-complete/4.log",
+      "source": "checks/round-3-layout-complete/4.log",
+      "sha256": "276994400c67ee0fd619fa1cf3cf02573c2db1c92689eb10a8bae0c956497325"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-complete/5.log",
+      "source": "checks/round-3-layout-complete/5.log",
+      "sha256": "33feed9f66093a49d31059a7918718f3f544c5027798545c2eb6244a126fd957"
+    },
+    {
+      "file": "evidence/checks/round-3-layout-complete/results.txt",
+      "source": "checks/round-3-layout-complete/results.txt",
+      "sha256": "6abc7493e8421ad70a6c844304c6ed0173f74882dbd11084797c2b4215e2df33"
+    },
+    {
+      "file": "evidence/browser/baseline-corrected-results.json",
+      "source": "coverage/baseline-corrected-results.json",
+      "sha256": "3e1dbcfb30e6b174128c188b9106938a601016d2378c91705d9d138ae55de99a"
+    },
+    {
+      "file": "evidence/browser/baseline-desktop-viewport-results.json",
+      "source": "coverage/baseline-desktop-viewport-results.json",
+      "sha256": "50ee728be959074e5044bd1be9e9683408a9b5bbfce24406fb4dc9602466ea1d"
+    },
+    {
+      "file": "evidence/browser/baseline-desktop-focus-corrected-results.json",
+      "source": "coverage/baseline-desktop-focus-corrected-results.json",
+      "sha256": "e8b240084fdedf6811c5a2f3d5479dcaf08a8035b1ab4f59c120f251f2732996"
+    },
+    {
+      "file": "evidence/browser/baseline-real-resize-draft.json",
+      "source": "coverage/baseline-real-resize-draft.json",
+      "sha256": "0082232c791475738de46b574c9ea917fdea5753d7e0d03a5ef498f70ff12aa7"
+    },
+    {
+      "file": "evidence/browser/baseline-corrected-touch-results.json",
+      "source": "coverage/baseline-corrected-touch-results.json",
+      "sha256": "285884c674bbe2c994950c08cb010f104bf231e4528c0e1d8702e5826a9c03d4"
+    },
+    {
+      "file": "evidence/browser/baseline-dialog-containment-red-results.json",
+      "source": "coverage/baseline-dialog-containment-red-results.json",
+      "sha256": "46d229c79076ec1a0894dc968bf9d6c4375f3938b51c5fd9c535795f7a5d9cb5"
+    },
+    {
+      "file": "evidence/browser/baseline-vendor-containment-red-results.json",
+      "source": "coverage/baseline-vendor-containment-red-results.json",
+      "sha256": "be070f6cd225ffa5704df846a0f555111606397fe599d6836561b932422ff00d"
+    },
+    {
+      "file": "evidence/browser/final-real-resize-draft.json",
+      "source": "coverage/final-real-resize-draft.json",
+      "sha256": "ef5c2a076f797eca15c12091cce88c359e426a3d3a936444a3d32c7400021ecd"
+    },
+    {
+      "file": "evidence/browser/final-results.json",
+      "source": "coverage/final-results.json",
+      "sha256": "135da2ec57755fd8432f3649f9cb9fe86f8b07f430bfd2892f6aeebbc91b05f9"
+    },
+    {
+      "file": "evidence/browser/round3-layout-final-dialog-layout-results.json",
+      "source": "round3-layout-final/dialog-layout-results.json",
+      "sha256": "8caee6a8eefb52722be15d4c7b9bacbf9582ac858b53cef6104776d61642d44a"
+    },
+    {
+      "file": "evidence/browser/round3-layout-final-a11y-round3-results.json",
+      "source": "round3-layout-final-a11y/round3-results.json",
+      "sha256": "f62d32b788a5399b7a24b13f364a38d17d9432369d373cb34478a49e5d888344"
+    },
+    {
+      "file": "evidence/browser/round3-layout-browser-dialog-layout-results.json",
+      "source": "round3-layout-browser/dialog-layout-results.json",
+      "sha256": "32bcaf366423d9789a27bbdec80d6297059d160c6e679406b20e68bb8446ee85"
+    },
+    {
+      "file": "evidence/browser/round3-layout-a11y-regression-round3-results.json",
+      "source": "round3-layout-a11y-regression/round3-results.json",
+      "sha256": "f62d32b788a5399b7a24b13f364a38d17d9432369d373cb34478a49e5d888344"
+    },
+    {
+      "file": "evidence/browser/round3-layout-print-regression-round2-results.json",
+      "source": "round3-layout-print-regression/round2-results.json",
+      "sha256": "6bdf366065b0a5620546ebc65de56b54c046cba9054b8f454fb2de28d26e6239"
+    },
+    {
+      "file": "evidence/browser/round3-layout-footer-proofs-dialog-layout-results.json",
+      "source": "round3-layout-footer-proofs/dialog-layout-results.json",
+      "sha256": "790136cb6f16652cdf505daae1a0caee651fc9d5fff352378b892c3f7903c2de"
+    },
+    {
+      "file": "evidence/browser/round3-layout-red-dialog-layout-results.json",
+      "source": "round3-layout-red/dialog-layout-results.json",
+      "sha256": "ea18cdb716c1b4dfea03a4cf8052478f485cefb259b7469ab2e18cd33fba6532"
+    },
+    {
+      "file": "evidence/browser/round1-red-results.json",
+      "source": "round1-red/results.json",
+      "sha256": "18d471b9967198428f71aee039d16b5735f6c4917891a16a95c60a21fb6a5864"
+    },
+    {
+      "file": "evidence/browser/round1-recovery-green-results.json",
+      "source": "round1-recovery-green/results.json",
+      "sha256": "b56ccf022c7f94689a67178cd3b75851a930e552b0b076a45d2a0405064f93b1"
+    },
+    {
+      "file": "evidence/browser/round3-red-round3-results.json",
+      "source": "round3-red/round3-results.json",
+      "sha256": "4b5a42fe77a4f9f5dfa5adc5649e7fe07b059d949fee6f6fe55f42530fe2dae7"
+    },
+    {
+      "file": "evidence/browser/round3-browser-round3-results.json",
+      "source": "round3-browser/round3-results.json",
+      "sha256": "f62d32b788a5399b7a24b13f364a38d17d9432369d373cb34478a49e5d888344"
+    },
+    {
+      "file": "states/before-320-light-populated.png",
+      "source": "coverage/baseline-corrected-320-light-populated.png",
+      "sha256": "2b0b86a02d0f96075adb939c79a34361fda2a39a077fea257cce8f4ea48d31a1",
+      "side": "before",
+      "width": 320,
+      "theme": "light",
+      "state": "populated",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-light-populated.png",
+      "source": "coverage/final-320-light-populated.png",
+      "sha256": "b448c3e5da6164ca797d878f550745a9395b96f30ff54744507b6a264ace9909",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "populated",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-dark-populated.png",
+      "source": "coverage/baseline-corrected-320-dark-populated.png",
+      "sha256": "cc6259d68a595e36789ed129c8c668fb5feba45a1a9af0e983cd548ca252dbec",
+      "side": "before",
+      "width": 320,
+      "theme": "dark",
+      "state": "populated",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-dark-populated.png",
+      "source": "coverage/final-320-dark-populated.png",
+      "sha256": "9c767382ee4d9d2819f3183e7229e1de8370cd9b4881fe6cbeebd68d9a1d6e0b",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "populated",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-768-light-populated.png",
+      "source": "coverage/baseline-corrected-768-light-populated.png",
+      "sha256": "2100af9ef813d5ebbb18136f11dd19e7a3306b7dfbaa39de1e2eecddcca8a4b0",
+      "side": "before",
+      "width": 768,
+      "theme": "light",
+      "state": "populated",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-768-light-populated.png",
+      "source": "coverage/final-768-light-populated.png",
+      "sha256": "551ba36b898d7ac99d0e02f31bf3beb541bf44ad1867af11e1ae1261d8457406",
+      "side": "after",
+      "width": 768,
+      "theme": "light",
+      "state": "populated",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-768-dark-populated.png",
+      "source": "coverage/baseline-corrected-768-dark-populated.png",
+      "sha256": "e135f76b2a150191fe6cede34e74876b68455725231b8f37f3e0968d38515a44",
+      "side": "before",
+      "width": 768,
+      "theme": "dark",
+      "state": "populated",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-768-dark-populated.png",
+      "source": "coverage/final-768-dark-populated.png",
+      "sha256": "5fecb07f9151b449bf73c85800c2ae84f6dfd05519a90c47b7d57faea18a0e07",
+      "side": "after",
+      "width": 768,
+      "theme": "dark",
+      "state": "populated",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-1024-light-populated.png",
+      "source": "coverage/baseline-corrected-1024-light-populated.png",
+      "sha256": "5e1d53961bc0b4e5753f8e29d5b30744c7be038581396cf3650a26087618a604",
+      "side": "before",
+      "width": 1024,
+      "theme": "light",
+      "state": "populated",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-1024-light-populated.png",
+      "source": "coverage/final-1024-light-populated.png",
+      "sha256": "d4a5f923dbe505cd3d1880d5c04d049545900acd3cd4217a9ce9fefa255ae047",
+      "side": "after",
+      "width": 1024,
+      "theme": "light",
+      "state": "populated",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-1024-dark-populated.png",
+      "source": "coverage/baseline-corrected-1024-dark-populated.png",
+      "sha256": "9453aa311bdca8a60f0d9c6073e7dac2ae68b03ffeb33eae848c36013b2cfe82",
+      "side": "before",
+      "width": 1024,
+      "theme": "dark",
+      "state": "populated",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-1024-dark-populated.png",
+      "source": "coverage/final-1024-dark-populated.png",
+      "sha256": "fc23641d218e3205019a555b694e1e84a82f4787db37d506f4f1750fd2d10b56",
+      "side": "after",
+      "width": 1024,
+      "theme": "dark",
+      "state": "populated",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-light-expanded-filtered.png",
+      "source": "coverage/baseline-corrected-320-light-expanded-filtered.png",
+      "sha256": "e91e6873c69a1091303714eacf6e031467a9331a2cbb4199797f7e7d9a0e0308",
+      "side": "before",
+      "width": 320,
+      "theme": "light",
+      "state": "expanded-filtered",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-light-expanded-filtered.png",
+      "source": "coverage/final-320-light-expanded-filtered.png",
+      "sha256": "ed3d093d42e3fe0920e6d4cce9d556eb840a7b00b9b03cffe3deb49f68feb507",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "expanded-filtered",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-light-row-menu.png",
+      "source": "coverage/baseline-corrected-320-light-row-menu.png",
+      "sha256": "29296a07166b705ad83f2a0db338ea6bb9667cf589b215bb9113ad040d2fc3c7",
+      "side": "before",
+      "width": 320,
+      "theme": "light",
+      "state": "row-menu",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-light-row-menu.png",
+      "source": "coverage/final-320-light-row-menu.png",
+      "sha256": "72f683c3f2df4c93dfc1fd5023624dc918485bd5d1fd96ae3fc8c5dffb2c7884",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "row-menu",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-dark-expanded-filtered.png",
+      "source": "coverage/baseline-corrected-320-dark-expanded-filtered.png",
+      "sha256": "60345c5d3a3c91dae0b0da980d8e083cd2ab42a99f870b1b0eb618e5cb677a1b",
+      "side": "before",
+      "width": 320,
+      "theme": "dark",
+      "state": "expanded-filtered",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-dark-expanded-filtered.png",
+      "source": "coverage/final-320-dark-expanded-filtered.png",
+      "sha256": "99b8de3fa0620902664fcde2a84e64c602bc31623a1a4b8cbf641bc9c0fc29ea",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "expanded-filtered",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-dark-row-menu.png",
+      "source": "coverage/baseline-corrected-320-dark-row-menu.png",
+      "sha256": "c65769cb4bd525db8cc9194f4a66469dc4d89196901c087cbfcb9bcdcd6dbee3",
+      "side": "before",
+      "width": 320,
+      "theme": "dark",
+      "state": "row-menu",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-dark-row-menu.png",
+      "source": "coverage/final-320-dark-row-menu.png",
+      "sha256": "01c0f5c2b29c93fe8767752c21ccc668e5524003690d6885926398b45dffbe26",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "row-menu",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-expanded-filtered.png",
+      "source": "coverage/baseline-corrected-390-light-expanded-filtered.png",
+      "sha256": "f00ec0d55c1dacf62e26d5efcf2df21e2dabc9a0fb7149c38c0a9f3f8ec31a45",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "expanded-filtered",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-expanded-filtered.png",
+      "source": "coverage/final-390-light-expanded-filtered.png",
+      "sha256": "72e169aac643f17c52c43f7b35b4dc3312d79e11dd44660f899faa384cfaaf10",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "expanded-filtered",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-row-menu.png",
+      "source": "coverage/baseline-corrected-390-light-row-menu.png",
+      "sha256": "c8da464e9f22dca3285df4df6dff1f6e4925de09c0e698812bdd6f0f2d6c687c",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "row-menu",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-row-menu.png",
+      "source": "coverage/final-390-light-row-menu.png",
+      "sha256": "d476f885afb9d195fae43b160d56df95c1b8b58db0e587b10fcfae7ed3b399ba",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "row-menu",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-expanded-filtered.png",
+      "source": "coverage/baseline-corrected-390-dark-expanded-filtered.png",
+      "sha256": "6d1db5c61d85dd1ed2412ee408d222ec4eb5ae7c26362309cfc8c72f1d4fbc52",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "expanded-filtered",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-expanded-filtered.png",
+      "source": "coverage/final-390-dark-expanded-filtered.png",
+      "sha256": "c5135c7711dcbaa5bb57dab810703704e6e0a69cc307d2147762b4203b3ce78e",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "expanded-filtered",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-row-menu.png",
+      "source": "coverage/baseline-corrected-390-dark-row-menu.png",
+      "sha256": "4fdb4d82621d8310f45dbe653fd6b13bb59d703a100224c5a261322c8de6f717",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "row-menu",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-row-menu.png",
+      "source": "coverage/final-390-dark-row-menu.png",
+      "sha256": "a3892521e066d6127fbd9643e79d44c9633dae4956cd6e38603a4e6e8023c378",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "row-menu",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-768-light-expanded-filtered.png",
+      "source": "coverage/baseline-corrected-768-light-expanded-filtered.png",
+      "sha256": "119aba92ea868b3895f05f78d241d4b17cd4dd3465c092e7be14159a75c2c52c",
+      "side": "before",
+      "width": 768,
+      "theme": "light",
+      "state": "expanded-filtered",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-768-light-expanded-filtered.png",
+      "source": "coverage/final-768-light-expanded-filtered.png",
+      "sha256": "6f97483c223c34e0481d773ddc4c6a02fc8d297335e64b573bede4fe6c1802ed",
+      "side": "after",
+      "width": 768,
+      "theme": "light",
+      "state": "expanded-filtered",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-768-light-row-menu.png",
+      "source": "coverage/baseline-corrected-768-light-row-menu.png",
+      "sha256": "44a78099e2dde341a2a8fc6928b77aca997456f7f61ae11251c8891c5580b25b",
+      "side": "before",
+      "width": 768,
+      "theme": "light",
+      "state": "row-menu",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-768-light-row-menu.png",
+      "source": "coverage/final-768-light-row-menu.png",
+      "sha256": "1a1db9b19bb6ab8c7f95a6e975641ec1f3423272bae2ab2b16116bb4db7bdb39",
+      "side": "after",
+      "width": 768,
+      "theme": "light",
+      "state": "row-menu",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-768-dark-expanded-filtered.png",
+      "source": "coverage/baseline-corrected-768-dark-expanded-filtered.png",
+      "sha256": "a121a99f02762067fc526a5c80f3ad011cf3c0dc4a2cfb441fca9a7723e98194",
+      "side": "before",
+      "width": 768,
+      "theme": "dark",
+      "state": "expanded-filtered",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-768-dark-expanded-filtered.png",
+      "source": "coverage/final-768-dark-expanded-filtered.png",
+      "sha256": "649c200feb972b4cdf16a3a39956ea379886ce956b9a5e100b94d8a138ac2454",
+      "side": "after",
+      "width": 768,
+      "theme": "dark",
+      "state": "expanded-filtered",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-768-dark-row-menu.png",
+      "source": "coverage/baseline-corrected-768-dark-row-menu.png",
+      "sha256": "835972937236f9f41e623abe6c072cea1dc95777565458cd012e464a505623b4",
+      "side": "before",
+      "width": 768,
+      "theme": "dark",
+      "state": "row-menu",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-768-dark-row-menu.png",
+      "source": "coverage/final-768-dark-row-menu.png",
+      "sha256": "95cd445ef0254f4110e1dac4703542836a143578116357f0d7651e137a5eddec",
+      "side": "after",
+      "width": 768,
+      "theme": "dark",
+      "state": "row-menu",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-empty.png",
+      "source": "coverage/baseline-corrected-390-light-empty.png",
+      "sha256": "700119ea141ac469e68971d7fc02258be5b38d4a1cb86b65dd6495d207c898d1",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "empty",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-empty.png",
+      "source": "coverage/final-390-light-empty.png",
+      "sha256": "5fdc9658620c484a3c84585b4138fcf3edbd45afd5f980122966fae16cd17244",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "empty",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-calendar.png",
+      "source": "coverage/baseline-corrected-390-light-calendar.png",
+      "sha256": "5d1f836da663996f6187e2bfe2e238352e6855c16da20b68e4f5ea145ed348ca",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "calendar",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-calendar.png",
+      "source": "coverage/final-390-light-calendar.png",
+      "sha256": "765f2fb81c0ed74897c25e01430c75ef9d4f982dd10866b93381b527a95389ae",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "calendar",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-source-preview.png",
+      "source": "coverage/baseline-corrected-390-light-source-preview.png",
+      "sha256": "69565a4cfbe18ee375c1c1614dc519016b6f29e3afeda1718aba273e3b790a95",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "source-preview",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-source-preview.png",
+      "source": "coverage/final-390-light-source-preview.png",
+      "sha256": "a16fcc060a5bc7a03771ba6771484249823aefce56435cbccc00ad1f818d66b0",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "source-preview",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-statement.png",
+      "source": "coverage/baseline-corrected-390-light-statement.png",
+      "sha256": "c63f667b66c91bb3aaa564e2a12e0eb0bd77bd0c6cd9576257e57489506c0c07",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "statement",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-statement.png",
+      "source": "coverage/final-390-light-statement.png",
+      "sha256": "706edf538d0f3dde08894a5b07fcc1c877e872fba8743854375ee3c1b7886a0a",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "statement",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-large-credit-balance.png",
+      "source": "coverage/baseline-corrected-390-light-large-credit-balance.png",
+      "sha256": "53fdc32a8f6b27ed170cbdd5c33caa1fe0f518add493eecbaaa99fc4bbb8d1ec",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "large-credit-balance",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-large-credit-balance.png",
+      "source": "coverage/final-390-light-large-credit-balance.png",
+      "sha256": "9309ab9533075f60e04d1dc0a5ee65f09715a3417b4e4fc60b6704fe8010c5d9",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "large-credit-balance",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-zero-balance.png",
+      "source": "coverage/baseline-corrected-390-light-zero-balance.png",
+      "sha256": "16f9e94cc65ba0b2fadb9d5debd86dbff95c6b9e32affcb83a9ee343086fd335",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "zero-balance",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-zero-balance.png",
+      "source": "coverage/final-390-light-zero-balance.png",
+      "sha256": "1446be40023668d17c9d680984165da9b55ed6b5e57ce63bd880578998f3b23e",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "zero-balance",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-long-bilingual-note.png",
+      "source": "coverage/baseline-final-390-light-long-bilingual-note.png",
+      "sha256": "68aea21ab600ccd3707f589a3e66e75475e93193ff3178a0e2d02ceb2e5c8607",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "long-bilingual-note",
+      "revision": "de33350ea48d7d0c1040b0895b227310cbd484a6"
+    },
+    {
+      "file": "states/after-390-light-long-bilingual-note.png",
+      "source": "coverage/final-390-light-long-bilingual-note.png",
+      "sha256": "caa32546dc7643943f13288dda6a8b88fe2f4e6962a9f2a958ec087c6815b02c",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "long-bilingual-note",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-light-payment-validation.png",
+      "source": "coverage/baseline-corrected-320-light-payment-validation.png",
+      "sha256": "ddb32ca9b806c35a38dee62255a1e98b5f5ca7947e89fc8b1815640355dd2e9c",
+      "side": "before",
+      "width": 320,
+      "theme": "light",
+      "state": "payment-validation",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-light-payment-validation.png",
+      "source": "coverage/final-320-light-payment-validation.png",
+      "sha256": "72555d45a34da4f557d5c63a30511663209f558e874ef66d1ed3f8ad5fadd0f4",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "payment-validation",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-light-payment-review.png",
+      "source": "coverage/baseline-corrected-320-light-payment-review.png",
+      "sha256": "312f5771ceb7b51a98ecf67c27df8f1052f33fca78e44f4358770c5f89af9e46",
+      "side": "before",
+      "width": 320,
+      "theme": "light",
+      "state": "payment-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-light-payment-review.png",
+      "source": "coverage/final-320-light-payment-review.png",
+      "sha256": "a662c527777a50dc97a5e18c7319a8f75d6728e7bcdb0d3f2ca9ee2a031b4c44",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "payment-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-light-supplier-review.png",
+      "source": "coverage/baseline-corrected-320-light-supplier-review.png",
+      "sha256": "e416388ced442fb5bcd19c902647388fa9d9a02d4da9d90e69d7a2900f677b8d",
+      "side": "before",
+      "width": 320,
+      "theme": "light",
+      "state": "supplier-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-light-supplier-review.png",
+      "source": "coverage/final-320-light-supplier-review.png",
+      "sha256": "1917e4eb357e136e93354e8a9572257058846b6be2ffcb4f57044e39865c01f2",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "supplier-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-light-correction-review.png",
+      "source": "coverage/baseline-corrected-320-light-correction-review.png",
+      "sha256": "fe1d53e501e1edfdff190b14861f50e8d91c401ab9f0d2559c05f88232946bed",
+      "side": "before",
+      "width": 320,
+      "theme": "light",
+      "state": "correction-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-light-correction-review.png",
+      "source": "coverage/final-320-light-correction-review.png",
+      "sha256": "1af538759625ee81ebaa55272cc230bed73287c683204e52e99c82661a6c2140",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "correction-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-payment-validation.png",
+      "source": "coverage/baseline-corrected-390-light-payment-validation.png",
+      "sha256": "19280a9af6d3fbb3f61cdf5c82d5b9c9e3f1a99d098b243e5b9bd2dddb7b3f63",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "payment-validation",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-payment-validation.png",
+      "source": "coverage/final-390-light-payment-validation.png",
+      "sha256": "55e3b9533eae7b44562d16607b197333621d7472db92c8b8a87cf351aa22864c",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "payment-validation",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-payment-review.png",
+      "source": "coverage/baseline-corrected-390-light-payment-review.png",
+      "sha256": "7c6e217cd33b5bf8d2b45ea891f3c608a6b87e529476b871927419833ac5ce91",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "payment-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-payment-review.png",
+      "source": "coverage/final-390-light-payment-review.png",
+      "sha256": "029cd35829537215d083e038f8d9d45c61d148134ab01b3adad4ab76050eaf0e",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "payment-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-supplier-review.png",
+      "source": "coverage/baseline-corrected-390-light-supplier-review.png",
+      "sha256": "33d4dae2607ed27e4cd566bc0089324f127b2db07ae95928fb94ae5aaf848b6e",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "supplier-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-supplier-review.png",
+      "source": "coverage/final-390-light-supplier-review.png",
+      "sha256": "d925fa822f91717b333273caa2278c8df42628c75f521532b91eb8352c2e48d0",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "supplier-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-light-correction-review.png",
+      "source": "coverage/baseline-corrected-390-light-correction-review.png",
+      "sha256": "e54279b0c579779786bbd89e8f0cc3d591aed5693a2ea1d6ac587ea4f930b8bf",
+      "side": "before",
+      "width": 390,
+      "theme": "light",
+      "state": "correction-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-light-correction-review.png",
+      "source": "coverage/final-390-light-correction-review.png",
+      "sha256": "92c53c725d889a4a71c1746e336334c7ca9840d5910f6141960f8657f4a49d11",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "correction-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-payment-validation.png",
+      "source": "coverage/final-1440-light-payment-validation.png",
+      "sha256": "a91e3f5125c6b8372e46dd6b8cb55b9dbf824b1565377d52c9b5b365892fc761",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "payment-validation",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-payment-review.png",
+      "source": "coverage/final-1440-light-payment-review.png",
+      "sha256": "fa1680437c3893742d5f30c0ff366dddde536c8768b02ab476430789e421adea",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "payment-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-supplier-review.png",
+      "source": "coverage/final-1440-light-supplier-review.png",
+      "sha256": "7369f71b7c00c1dec8717c66c804101de637019b627b98b10674fbb811e0b628",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "supplier-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-attachment.png",
+      "source": "coverage/final-1440-light-attachment.png",
+      "sha256": "1c4fa2b0bf00585e0e26b3d46a3b6160747003443ab0f5db6e048d6e3f12bfc7",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "attachment",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-owner-credit-review.png",
+      "source": "coverage/final-1440-light-owner-credit-review.png",
+      "sha256": "40ec245f964244b250d97c9c5c184654b195a040a74483b5e5480657c08deb4f",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "owner-credit-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-lender-debit-review.png",
+      "source": "coverage/final-1440-light-lender-debit-review.png",
+      "sha256": "f9d27c25e7f51fc4fbb51dec9a3f638a0c00edd3fb547357c4b8e80c7e1ae876",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "lender-debit-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-borrower-credit-review.png",
+      "source": "coverage/final-1440-light-borrower-credit-review.png",
+      "sha256": "9cb665f72c429d2ad3111507d576a27eddc9eef0c2dbf999522855af3a3fc5cf",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "borrower-credit-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-customer-refund-review.png",
+      "source": "coverage/final-1440-light-customer-refund-review.png",
+      "sha256": "97a181d12c4700174ed93ee97f7a67aacd9636e88a2ae87d5eef3b4348ea47ea",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "customer-refund-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-light-vendor-pay-vendor.png",
+      "source": "coverage/final-1440-light-vendor-pay-vendor.png",
+      "sha256": "9c8c4fbf45ce1eff0c23947816e3f12b6dd3d76e1db76760f22171aa9f99cc53",
+      "side": "after",
+      "width": 1440,
+      "theme": "light",
+      "state": "vendor-pay-vendor",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-light-payment-error.png",
+      "source": "round3-layout-final-a11y/390-light-payment-error.png",
+      "sha256": "051d20af5400ad49518bd23946b62c3fc6be301bdaed4f89a3fd2f861d6258a1",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "payment-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-light-opening-error.png",
+      "source": "round3-layout-final-a11y/390-light-opening-error.png",
+      "sha256": "c72e12e628da0bfa369c9e2d06b83453382a2de77f6b45f79a68d2dc0372f43d",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "opening-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-light-finance-error.png",
+      "source": "round3-layout-final-a11y/390-light-finance-error.png",
+      "sha256": "e622966dc55bcf7d97e717d89d68783aa90444d95d75e922171ed32e34521091",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "finance-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-light-refund-error.png",
+      "source": "round3-layout-final-a11y/390-light-refund-error.png",
+      "sha256": "bc8ee5b206990cdfa510bf509562f173e906c1d6edc809e973cc7d7e18f5da26",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "refund-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-light-correction-error.png",
+      "source": "round3-layout-final-a11y/390-light-correction-error.png",
+      "sha256": "035ca662a3aebd4e15b5d05d4b683f9797731b2b1f19749294bf6e8e7eb3fd4b",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "correction-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-light-reversal-error.png",
+      "source": "round3-layout-final-a11y/390-light-reversal-error.png",
+      "sha256": "a83d99033b88235278b71817bd7fc9ef526ba4b0ffe8a7a1aa4c8e96bdf07b49",
+      "side": "after",
+      "width": 390,
+      "theme": "light",
+      "state": "reversal-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-empty.png",
+      "source": "coverage/baseline-corrected-390-dark-empty.png",
+      "sha256": "d0fbdc1b62001fa734a2d1f7a8caa71310d5eacbaa38888b88f37648839a74eb",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "empty",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-empty.png",
+      "source": "coverage/final-390-dark-empty.png",
+      "sha256": "81158d9eed46c02b04f750442d6f7b1ffb46f5b27215f7ddeed67f2a573d2855",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "empty",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-calendar.png",
+      "source": "coverage/baseline-corrected-390-dark-calendar.png",
+      "sha256": "3cda9aa54ee8359e889cb42b806dba7e8e5141389053053ca13857cbd39adee0",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "calendar",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-calendar.png",
+      "source": "coverage/final-390-dark-calendar.png",
+      "sha256": "409890171484d7856969eed2eca7d34e19361217c707dba2d3c00d246fb56070",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "calendar",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-source-preview.png",
+      "source": "coverage/baseline-corrected-390-dark-source-preview.png",
+      "sha256": "202d0245d376a37fbc12e419ae79c91139f460551efa250b278bea6abbf7962e",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "source-preview",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-source-preview.png",
+      "source": "coverage/final-390-dark-source-preview.png",
+      "sha256": "c2d16fdc999fb9ebabbe7206d6dc9af87696720648ae7db3124f6bc8407258ad",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "source-preview",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-statement.png",
+      "source": "coverage/baseline-corrected-390-dark-statement.png",
+      "sha256": "4ecbc743d641feab475c7fbc5c64e5ebb510232ef5e20052b3814da6c0ac83c7",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "statement",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-statement.png",
+      "source": "coverage/final-390-dark-statement.png",
+      "sha256": "2eb0626f24ed3c89aea0a0ab8d28e55b6caf2c3bf3d1d4b18dfe215b9e5bd44b",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "statement",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-large-credit-balance.png",
+      "source": "coverage/baseline-corrected-390-dark-large-credit-balance.png",
+      "sha256": "4b6e59ce0e850aeacf8d04579ee9dca5baa36fac5d900a33e2576cb5ad2e34c2",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "large-credit-balance",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-large-credit-balance.png",
+      "source": "coverage/final-390-dark-large-credit-balance.png",
+      "sha256": "1208001029655a709ab94d175b4fff11789f42f85cb64e2740b629dba231dea6",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "large-credit-balance",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-zero-balance.png",
+      "source": "coverage/baseline-corrected-390-dark-zero-balance.png",
+      "sha256": "5a6e2b8711486299e15406bc038cf05fe40c2ec9df903d469754f80c9ef37b13",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "zero-balance",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-zero-balance.png",
+      "source": "coverage/final-390-dark-zero-balance.png",
+      "sha256": "1bf493cf05188594f5fbbfbe01477f26bd4f8642bc5d874b111b14386cddb396",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "zero-balance",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-long-bilingual-note.png",
+      "source": "coverage/baseline-final-390-dark-long-bilingual-note.png",
+      "sha256": "37164db876e53d772d2fcc73bee2cc8b68506229ba43498f64ec4247c3a5962d",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "long-bilingual-note",
+      "revision": "de33350ea48d7d0c1040b0895b227310cbd484a6"
+    },
+    {
+      "file": "states/after-390-dark-long-bilingual-note.png",
+      "source": "coverage/final-390-dark-long-bilingual-note.png",
+      "sha256": "01b9ea3ae14c1f9d0cfc878e520d76faf7bc7437223739f3659d684cb104ab2d",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "long-bilingual-note",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-dark-payment-validation.png",
+      "source": "coverage/baseline-corrected-320-dark-payment-validation.png",
+      "sha256": "23b7472694f437719ae97639fb99a149c633e1130c254a9d0a9eba0c9ecd74ef",
+      "side": "before",
+      "width": 320,
+      "theme": "dark",
+      "state": "payment-validation",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-dark-payment-validation.png",
+      "source": "coverage/final-320-dark-payment-validation.png",
+      "sha256": "b81701fd9531a55479929eed706fc34b2f6aed791f09dbfc02df22cf29b03410",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "payment-validation",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-dark-payment-review.png",
+      "source": "coverage/baseline-corrected-320-dark-payment-review.png",
+      "sha256": "051fc1f3ebe53d4030822207f20723bc0192cdf7e8401315bb10b7abc5684da7",
+      "side": "before",
+      "width": 320,
+      "theme": "dark",
+      "state": "payment-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-dark-payment-review.png",
+      "source": "coverage/final-320-dark-payment-review.png",
+      "sha256": "af15f8f0e1f7a96ee67501fe651bd479289fc57ae902b75d8099c2a5147b325b",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "payment-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-dark-supplier-review.png",
+      "source": "coverage/baseline-corrected-320-dark-supplier-review.png",
+      "sha256": "b559d72e8dd4bf00864eb092802999a666ca413f34a8a2c82742cbffe0ec8bf3",
+      "side": "before",
+      "width": 320,
+      "theme": "dark",
+      "state": "supplier-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-dark-supplier-review.png",
+      "source": "coverage/final-320-dark-supplier-review.png",
+      "sha256": "aaba03e3d5aa4eeb358b4469671faddf43384e658dcbc640563c8607d9b53c08",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "supplier-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-dark-correction-review.png",
+      "source": "coverage/baseline-corrected-320-dark-correction-review.png",
+      "sha256": "631ec3c88e25a8077cef260aa9b2e142fe5f3c797e58aa255f807eaafd89a826",
+      "side": "before",
+      "width": 320,
+      "theme": "dark",
+      "state": "correction-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-320-dark-correction-review.png",
+      "source": "coverage/final-320-dark-correction-review.png",
+      "sha256": "e23e46669d4c5e1d8f64116e4ecef9936ad4c6259b7dd35bb25ed8ba2836827b",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "correction-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-payment-validation.png",
+      "source": "coverage/baseline-corrected-390-dark-payment-validation.png",
+      "sha256": "354bbcd5945a6bf4b3d8782dfbb011536ba39b194c52df8155d9cff01a73fa47",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "payment-validation",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-payment-validation.png",
+      "source": "coverage/final-390-dark-payment-validation.png",
+      "sha256": "4fd0b32ea64130037919cf818336a8695037a109db8928544a5d1e5dc27b67ff",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "payment-validation",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-payment-review.png",
+      "source": "coverage/baseline-corrected-390-dark-payment-review.png",
+      "sha256": "26224c025263dbf0138852a16168f289904f472e77f31209d5570d4984706ad4",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "payment-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-payment-review.png",
+      "source": "coverage/final-390-dark-payment-review.png",
+      "sha256": "ccf09843cce2e45559e72a1f44e1ab24c2c19748693935761455641b297b9538",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "payment-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-supplier-review.png",
+      "source": "coverage/baseline-corrected-390-dark-supplier-review.png",
+      "sha256": "5970474cab46a4288991078226c95c3b40be7412fa70b4a730cf1cac42c3215f",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "supplier-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-supplier-review.png",
+      "source": "coverage/final-390-dark-supplier-review.png",
+      "sha256": "c4480e1b3908a2823ce7d97523fe4e8af7129350e5dbcfd1f70280e02e8b2ae3",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "supplier-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-390-dark-correction-review.png",
+      "source": "coverage/baseline-corrected-390-dark-correction-review.png",
+      "sha256": "7f88a5f81a87375cef9f15f67d0857fda5accf501e4351f4e1e0e4d48e656da3",
+      "side": "before",
+      "width": 390,
+      "theme": "dark",
+      "state": "correction-review",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e (pristine UI identical to de33350; tooling-only difference)"
+    },
+    {
+      "file": "states/after-390-dark-correction-review.png",
+      "source": "coverage/final-390-dark-correction-review.png",
+      "sha256": "0c2725f7a6b9e7d36cf1a52fc3ffce1b66027d2c15c583e9ed34babc95e33d80",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "correction-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-payment-validation.png",
+      "source": "coverage/final-1440-dark-payment-validation.png",
+      "sha256": "ea013b391d7e707f1fe18425db126ab304c5b1d19e497b375a594ae7d69e4f33",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "payment-validation",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-payment-review.png",
+      "source": "coverage/final-1440-dark-payment-review.png",
+      "sha256": "a27717ba07dfb652e7460cd7bf9c691c2ea63e3444fd86eafd0551a98f45c571",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "payment-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-supplier-review.png",
+      "source": "coverage/final-1440-dark-supplier-review.png",
+      "sha256": "6ca9807fb09d37629b55682284bb2c3251024e802d8ed845d8e9bd9190cf402c",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "supplier-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-attachment.png",
+      "source": "coverage/final-1440-dark-attachment.png",
+      "sha256": "074c5af5c37ee2c23256830c9c232d1c1e59e4c44252f5bef24310546d436b27",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "attachment",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-owner-credit-review.png",
+      "source": "coverage/final-1440-dark-owner-credit-review.png",
+      "sha256": "96e540d0e9a7b77581ce3b5b07e3ce13149e185160f7448f4d423b67ee2b498e",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "owner-credit-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-lender-debit-review.png",
+      "source": "coverage/final-1440-dark-lender-debit-review.png",
+      "sha256": "18a1d26cc78d3c0faa1894757eda1cda51e67cfaa3aa198ac58d3076453e09ff",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "lender-debit-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-borrower-credit-review.png",
+      "source": "coverage/final-1440-dark-borrower-credit-review.png",
+      "sha256": "3940427c04adcd9e814548a8f97188432faae49ac069932f60be69260bb2c5f8",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "borrower-credit-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-customer-refund-review.png",
+      "source": "coverage/final-1440-dark-customer-refund-review.png",
+      "sha256": "a51187ef740a3725e7be8d47913190eb283574e6878ba0e77fb285fe576e192c",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "customer-refund-review",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-1440-dark-vendor-pay-vendor.png",
+      "source": "coverage/final-1440-dark-vendor-pay-vendor.png",
+      "sha256": "fe79ad42eca156e7870f8d38d29d1027f8dd542db44531256eef1976c004ac58",
+      "side": "after",
+      "width": 1440,
+      "theme": "dark",
+      "state": "vendor-pay-vendor",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-dark-payment-error.png",
+      "source": "round3-layout-final-a11y/390-dark-payment-error.png",
+      "sha256": "357cd9ecde41eb284149f06958a329eb767375c377f2e11ff34035a1555956d6",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "payment-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-dark-opening-error.png",
+      "source": "round3-layout-final-a11y/390-dark-opening-error.png",
+      "sha256": "e963d50420b76b1c47d11ccfedea92a0d3cdf1bc68b27dc2d67458da26f06eef",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "opening-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-dark-finance-error.png",
+      "source": "round3-layout-final-a11y/390-dark-finance-error.png",
+      "sha256": "9e246702679764ab310185a60ed88bbf426c6a24f51da260fdf37d8550b771bd",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "finance-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-dark-refund-error.png",
+      "source": "round3-layout-final-a11y/390-dark-refund-error.png",
+      "sha256": "8bc9cf930bd71e923192cf9a8ffc3dbce9f598a98ac33c1cded7188dfcef4aaa",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "refund-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-dark-correction-error.png",
+      "source": "round3-layout-final-a11y/390-dark-correction-error.png",
+      "sha256": "3c29cd26c52adc13fa0baa3f70137f5db07c4926c30ce133458349433b4c46f8",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "correction-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-390-dark-reversal-error.png",
+      "source": "round3-layout-final-a11y/390-dark-reversal-error.png",
+      "sha256": "df91da9c27bd846bea8fec9aa3b250ebb90cb1d6cef2249aeb46f3cb998425d0",
+      "side": "after",
+      "width": 390,
+      "theme": "dark",
+      "state": "reversal-error",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-light-vendor-pay-vendor.png",
+      "source": "coverage/baseline-vendor-containment-red-320-light-vendor-pay-vendor.png",
+      "sha256": "b6e2485927a42c016e6317165a3daeabf6322119285d10e152796cc1d73e4185",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e"
+    },
+    {
+      "file": "states/after-320-light-vendor-pay-vendor.png",
+      "source": "coverage/final-320-light-vendor-pay-vendor.png",
+      "sha256": "84d7d55eb1d8a95c625b18ec8cd30e1935191ef48b2742ae5fb6290a78b80fed",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "vendor-pay-vendor",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/before-320-dark-vendor-pay-vendor.png",
+      "source": "coverage/baseline-vendor-containment-red-320-dark-vendor-pay-vendor.png",
+      "sha256": "ea3133480e0e9374c2286cfc1a8fc6cbcbc58c30d2436ab3dcfa76974c4092c2",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e"
+    },
+    {
+      "file": "states/after-320-dark-vendor-pay-vendor.png",
+      "source": "coverage/final-320-dark-vendor-pay-vendor.png",
+      "sha256": "cbbb840ad3290ca85753e398d198b8171fd267bab1743ede4f5640f8ee05d40f",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "vendor-pay-vendor",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-light-English-payment-review-footer.png",
+      "source": "round3-layout-final/320-light-English-payment-review-footer.png",
+      "sha256": "9af4f8b82d235e3f9cd07e30d5db4c627221a426b93ee21b51f6551077039b35",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "payment-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-light-English-refund-review-footer.png",
+      "source": "round3-layout-final/320-light-English-refund-review-footer.png",
+      "sha256": "a3f18e9a8f166b2730dd921c115cfb53a7e252d8b7c41f804ab0b57937190651",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "refund-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-light-English-finance-review-footer.png",
+      "source": "round3-layout-final/320-light-English-finance-review-footer.png",
+      "sha256": "4f9dc44d262a1d6084bae44a1ff3ca3f3c11b4aaec85f822f0cc3d59b60d36dc",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "finance-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-light-English-correction-review-footer.png",
+      "source": "round3-layout-final/320-light-English-correction-review-footer.png",
+      "sha256": "7dce5595986936880270b991157a895efa64d4533aad448aaba3d6a962f3e3cb",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "correction-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-light-English-reversal-review-footer.png",
+      "source": "round3-layout-final/320-light-English-reversal-review-footer.png",
+      "sha256": "260fdd092e7cc11bd88426699b80ff2b25312a80c0520636c5c26f6f939830d4",
+      "side": "after",
+      "width": 320,
+      "theme": "light",
+      "state": "reversal-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-dark-Bangla-payment-review-footer.png",
+      "source": "round3-layout-final/320-dark-Bangla-payment-review-footer.png",
+      "sha256": "2bc95e11803058b867c2fafbea816920ce1948679714e4d3ec10d95a1d9bd99c",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "payment-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-dark-Bangla-refund-review-footer.png",
+      "source": "round3-layout-final/320-dark-Bangla-refund-review-footer.png",
+      "sha256": "db83b5cb6c83e1a93219b357861210f8afc206c9bb9cdf2476d8fc6e41329348",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "refund-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-dark-Bangla-finance-review-footer.png",
+      "source": "round3-layout-final/320-dark-Bangla-finance-review-footer.png",
+      "sha256": "9fd2d42f358e8bccc3e871e3ca68213f088ffda8f61dc86c196c1aa6869fe2ae",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "finance-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-dark-Bangla-correction-review-footer.png",
+      "source": "round3-layout-final/320-dark-Bangla-correction-review-footer.png",
+      "sha256": "5e0ce1c57086ab930dc9193a11074e7f422d20367d3d69f73643aaf6af1bdfea",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "correction-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "states/after-footer-320-dark-Bangla-reversal-review-footer.png",
+      "source": "round3-layout-final/320-dark-Bangla-reversal-review-footer.png",
+      "sha256": "8733ac29271b73779443f81f99a41f5b9bc7708b01b43bc8f61cb231d2ee6070",
+      "side": "after",
+      "width": 320,
+      "theme": "dark",
+      "state": "reversal-review-footer",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-320-light-statement.pdf",
+      "source": "coverage/final-320-light-statement.pdf",
+      "sha256": "5373c87f5b220e77b8f7db14ba3dae6070dfb64513ba641a37a1279affd5358f",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-320-dark-statement.pdf",
+      "source": "coverage/final-320-dark-statement.pdf",
+      "sha256": "57a8ecd4665f804e9c4d4778f235261deb45707bc2d698942f2a4bbd4d0f2705",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-390-light-statement.pdf",
+      "source": "coverage/final-390-light-statement.pdf",
+      "sha256": "2d4fa2c76cf2add19db92295ce1e9271b5ea25e803cec01812f2e77941cc7e5b",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-390-dark-statement.pdf",
+      "source": "coverage/final-390-dark-statement.pdf",
+      "sha256": "d1830b793afbe013f772a8ec22faa078807bb7faa4120e186c966cca804b153f",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-768-light-statement.pdf",
+      "source": "coverage/final-768-light-statement.pdf",
+      "sha256": "10b31c71e81f77bd5d25e35b0b8f0e28a406cc6d4a45f36ed09a37fce80a1606",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-768-dark-statement.pdf",
+      "source": "coverage/final-768-dark-statement.pdf",
+      "sha256": "95a7b1bcf3b16ebc95fb3bc1c9725d5461540318184a22fef0cb9cb648498c4e",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-820-light-statement.pdf",
+      "source": "coverage/final-820-light-statement.pdf",
+      "sha256": "c14e38c2c5a6f29aedf1ceacea3ccf5cb675f0331680941c02b8408b43d1fdbb",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-820-dark-statement.pdf",
+      "source": "coverage/final-820-dark-statement.pdf",
+      "sha256": "57f7454cc8fe334521337492cfd2a4da2bec015d919fd514665471c76f4388f2",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-1024-light-statement.pdf",
+      "source": "coverage/final-1024-light-statement.pdf",
+      "sha256": "d3b9b0bd3a6208fdca213c56f6672d594bb761d11722ec1af7333aa2590d92c8",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-1024-dark-statement.pdf",
+      "source": "coverage/final-1024-dark-statement.pdf",
+      "sha256": "1466c3387c8776821cd00716735ec18d9c1024ab2c68c2dec870cd73c13ff164",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-1440-light-statement.pdf",
+      "source": "coverage/final-1440-light-statement.pdf",
+      "sha256": "be793170b65a918baa5559a1cc9ec761bb1cde02605100847ec6dc58b9342486",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-1440-dark-statement.pdf",
+      "source": "coverage/final-1440-dark-statement.pdf",
+      "sha256": "d8f09dd5d022e88424235e51acc82fef122acabe880373a14f2131bcbae50986",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/before-1440-light-statement.pdf",
+      "source": "coverage/baseline-corrected-1440-light-statement.pdf",
+      "sha256": "537248f871e455814ed9bc4f25b286c5b0ae9f6d1466c209f5ae97999217fcc1",
+      "revision": "cce54dca4c58d36798bb7d8c7d96fcee662da13e"
+    },
+    {
+      "file": "output/final-1440-light.csv",
+      "source": "coverage/final-1440-light.csv",
+      "sha256": "a3594fd8ef87c6a2057b7a0eebf1b9a127ec6325c49944d4b1ad5d0f961b5631",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    },
+    {
+      "file": "output/final-390-dark.csv",
+      "source": "coverage/final-390-dark.csv",
+      "sha256": "a3594fd8ef87c6a2057b7a0eebf1b9a127ec6325c49944d4b1ad5d0f961b5631",
+      "revision": "d1de6a904755604f878d5578d8d63e59ce3728e8"
+    }
+  ]
+}

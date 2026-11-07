@@ -1,0 +1,95 @@
+{
+  "assessment": "B · isolated source detector and audit",
+  "round": 3,
+  "critic": "impeccable",
+  "commit": "c7e641d813e87cca0b2ce633e4a31f4f5ba6d3e5",
+  "detectorRan": true,
+  "detectorCommand": "sh .agents/skills/impeccable/scripts/impeccable detect --json src/components/parties src/pages/Parties.tsx",
+  "detectorExitCode": 0,
+  "detectorRaw": "r3-detector-raw.json",
+  "detectorFindings": [],
+  "detectorNote": "Official source detector returned []; no deterministic hits needed filtering. A clean mechanical scan does not certify accessible names, error recovery, runtime contrast or printed document completeness.",
+  "audit": {
+    "accessibility": 2,
+    "performance": 3,
+    "responsive": 3,
+    "theming": 3,
+    "integrity": 3
+  },
+  "auditTotal": 14,
+  "auditRating": "Good (source-only; address weak dimensions)",
+  "scoreNotes": {
+    "accessibility": "2/4: both presentations now use linked content tabs, roving focus and arrow/Home/End handlers; directory keyboard hook and shared note Buttons are present. Repeated missing split amount names and form error association/recovery remain significant source-verified gaps. No screen-reader or live keyboard testing was performed.",
+    "performance": "3/4: no new layout read/write loop, broad will-change, expensive visual effects or dependency addition found in the inspected Party changes. Existing paged ledger limits ordinary displayed rows, but directory calculations and attachment media were not profiled. No timing, bundle, paint or frame-rate result is claimed.",
+    "responsive": "3/4: explicit phone/tablet/desktop renderers, collapsed advanced filters, source-ordered search/date/filter controls and sticky table actions are present. Notes now use shared36px icon controls, and amount surfaces have wrapping safeguards. No live320–1440px, zoom, OS keyboard, synthesized touch or physical-device certification is made.",
+    "integrity": "3/4: the five round-two repairs are narrowly scoped presentation changes and source callbacks/domain validators are retained. Detector is clean. Repeated form accessibility omissions remain an implementation gap; no new finance posting, calculation, API, permission or state-model behavior was introduced in the reviewed round-two source diff.",
+    "theming": "3/4: inspected target uses the existing semantic/theme families and scoped print black/white rather than introducing a parallel palette. Token names alone do not establish contrast. Theme switching, portals, actual text/focus ratios and language parity remain runtime checks."
+  },
+  "integrityVerdict": {
+    "coherentProductSystem": true,
+    "result": "Pass for product-specific presentation coherence; fail for complete accessible form acceptance until the twoP1 findings are repaired.",
+    "evidence": "T1/T4/T11/T12: existing Party workspace, shared Button/Input/Dialog/AppSelect/payment editor and source handlers remain. The new tab hook and print rules are Party-local; unchanged validators and payload construction are visible in all five affected dialogs."
+  },
+  "problems": [
+    {
+      "id": "party-dialog-validation-association",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyPaymentDialog.tsx:53",
+      "evidence": "T7/T9 and guide §§7/14/30. Payment submit at53–57 sets only a bottom error string; amount80, discount88, reason95 and split consumer97 have no error IDs, aria-invalid, aria-describedby, or failed-submit focus. Alert106 announces feedback but is not focusable or associated with the affected controls. Refund45–49/77/87/97 repeats the gap; Finance51–61/84/105 does so after existing validators; Opening50–55/77/90 and correction/reversal42–56/85/90/98/107 likewise have no association or recovery focus. Source checked directly at the stated revision; no browser or assistive-technology outcome is inferred.",
+      "fix": "Preserve all current validators, their order/messages, calculations, payloads, submit/catch behavior and draft values. Add Party-local presentation error state, stable translated field/error associations and focus to the first deterministically invalid control after local review/save failure; use a focusable existing error summary for a submission/domain error that cannot safely identify a field. Expose narrow opt-in split-field props only where needed, with shared Finance defaults unchanged. Cover payment amount/discount/reason/splits, refund, finance, opening, and correction/reversal recovery."
+    },
+    {
+      "id": "party-split-amount-name",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyPaymentDialog.tsx:97",
+      "evidence": "T7/T12 and guide §§9/30. PartyPaymentDialog97, PartyCreditRefundDialog90, PartyFinanceDialog94–95 and PartyTransactionDialog94–95 consume FinancePaymentSplitEditor. Its Input at src/components/finance/FinancePaymentSplitEditor.tsx:87–93 has only value, decimal mode, class, change handler and numeric placeholder; the row59 is a div, with no connected label/id/aria-label/aria-labelledby. Input.tsx24–25 routes it to NumericInput; NumericInput.tsx48 forwards supplied props to the real input and only uses its inferred label on steppers59–61. Thus the actual split amount has no meaningful accessible name, including in source correction. No runtime accessible-tree assertion is claimed.",
+      "fix": "Add a narrowly optional presentation API to the shared split editor and opt in only from Party payment, refund, finance and correction consumers. Each amount must have a translated task/row-specific accessible name for one and multiple rows. Keep default markup/behavior for all other consumers, row values, method/account choices, normalization, parsers, validators and calculations unchanged. Coordinate error description/invalid state with the related validation finding."
+    }
+  ],
+  "resolvedFromPriorIds": [
+    {
+      "id": "statement-print-clipping",
+      "status": "source repair present; runtime/PDF acceptance belongs to independent browser evidence",
+      "evidence": "PartyStatementDialog40–58 now releases body/dialog clipping, sets static normal flow, hides controls, uses visible table overflow, repeated headers and row break avoidance. Dialog.tsx91–96 portals content directly to document.body, matching the scoped body-child selector. Existing renderer/CSV/window.print and financial data are retained. This auditor did not print a PDF."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "status": "source repair present; no live key journey claimed",
+      "evidence": "usePartyContentTabs8–23 implements ArrowLeft/Right/Home/End, one selected tab stop, focus and reveal. PartyDetail252–273 and Responsive399–420 spread stable tab IDs/aria-controls, preserve aria-selected and add linked active/hidden panels with visible focus treatment."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "status": "source repair present",
+      "evidence": "PartyLedgerToolbar38–45 and Responsive62–70 group the existing36px Reset immediately beside transaction type, leaving Rows outside the group and retaining onReset. No rendered geometry claim."
+    },
+    {
+      "id": "party-note-action-targets",
+      "status": "source repair present",
+      "evidence": "PartyDetail385–387 and Responsive544–546 use shared Button size=icon, gap-2 and existing labels/callbacks. index.css617–629 supplies36px height/width and shared focus behavior. No measured touch outcome claimed."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "status": "source repair present",
+      "evidence": "PartyDirectory26, Responsive31, PartyDetail153 and Responsive236 reset low-level fontFeatureSettings to normal and fontVariantNumeric to proportional-nums at the scoped presentation host. Explicit invoice/payment tabular-nums was removed. Portalled dialogs retain their own existing typography. Computed style/glyphs were not inspected."
+    }
+  ],
+  "summary": "Official detector completed with zero findings. Source inspection confirms the round-two print, tab, Reset, Notes target and proportional-figure repairs, with no newly verified scoped regression; two stableP1 accessible-form issues remain. The coarse source-only14/20 score does not certify runtime accessibility, performance, themes, responsive behavior or print output.",
+  "openQuestions": [
+    "After the narrow repair, exercise local failures and caught submission failures in payment/refund/finance/opening/correction/reversal; verify IDs, invalid state, correct focus target, preserved values, unchanged review/confirm semantics and translated output.",
+    "Inspect actual accessible names for single and multi-row split amounts in all four Party consumers, and prove that unrelated Finance/POS/Purchase consumers retain the default shared behavior.",
+    "Independent browser evidence must establish complete/multi-page PDFs, real tab keyboard selection/reveal, note target geometry, reset adjacency, computed proportional figures, both themes/languages, zoom and required responsive widths. This source audit neither reproduces nor replaces those results."
+  ],
+  "inspection": {
+    "sourceEdited": false,
+    "sourceCommitted": false,
+    "browserUsed": false,
+    "screenshotsRead": false,
+    "designReviewerOutputsRead": false,
+    "gatesRun": false,
+    "stableIdentitySource": "r2-checker.json",
+    "scope": "Official detector scanned allsrc/components/parties markup and src/pages/Parties.tsx; targeted source audit of round-two production diff, shared dependencies, dialogs, directory, adaptive layout, responsive ledger and toolbar.",
+    "limitations": "Source-only independent Assessment B. Parent-reported gates/browser results are context only, not independently certified. Existing cross-band draft loss and direct-source return-query loss are baseline workflow limitations and are not attributed to this refinement. Default lint inherited vendor errors were not rerun or recast as target defects."
+  }
+}

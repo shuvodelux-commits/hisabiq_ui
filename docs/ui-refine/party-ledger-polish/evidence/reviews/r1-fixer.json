@@ -1,0 +1,90 @@
+{
+  "round": 1,
+  "status": "committed",
+  "commit": "5407bbffb3b572ada674b009631b1b1a2819c087",
+  "interruption": "Original round-1 fixer reached green final gates before the session usage limit interrupted completion. Recovery inspected the unchanged production diff and gate logs, reran focused browser coverage, captured and read all after images, and made the single round commit. No additional production edits were made during recovery.",
+  "commands": [
+    "adapt",
+    "harden",
+    "distill",
+    "typeset",
+    "polish"
+  ],
+  "commandMethod": "Read and applied the matching pinned Impeccable reference playbooks to the existing bounded source changes; polish last. Context from run/context.txt and original ui-refine-loop/fixer brief preserved. No extra subagents spawned by recovery.",
+  "fixed": [
+    {
+      "id": "party-balance-large-money-fit",
+      "evidence": "Opt-in mobileHorizontal balance reflows meaning and exact amount; responsive ledger row/summary money also reflows. Browser 320/390 light/dark large-money checks and screenshots pass; T2/T5/T6."
+    },
+    {
+      "id": "party-directory-keyboard",
+      "evidence": "Shared Party-local search-to-results ArrowDown, arrows/Home/End, one roving listbox Tab stop, Enter selection, role pressed-button group and visible focus; desktop light/dark focused tests pass; T7."
+    },
+    {
+      "id": "party-tab-count-dark-contrast",
+      "evidence": "Removed reversed dark overrides in both renderers; runtime selected-count normal-text contrast >=4.5:1 at 320/390/1440 in both themes; T3."
+    },
+    {
+      "id": "ledger-mobile-duplicate-description",
+      "evidence": "Derive identity once, suppress secondary description only when identical; mobile 320/390 both themes checks and main/crop/comparison images show single note/opening identity; T8."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "evidence": "Removed tabular-nums from already-touched desktop directory; lower-ranked checker open question; T5."
+    }
+  ],
+  "skipped": [
+    {
+      "id": "statement-print-clipping",
+      "reason": "Retained for the next bounded round; requires actual PDF proof and scoped print change."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "reason": "Retained for next bounded round; counts fixed independently of tab behavior."
+    },
+    {
+      "id": "party-dialog-validation-association",
+      "reason": "Retained for subsequent bounded round; validators and payloads unchanged."
+    },
+    {
+      "id": "party-note-action-targets",
+      "reason": "Retained for subsequent bounded round."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "reason": "Lower-ranked checker open question retained for later bounded round."
+    }
+  ],
+  "outOfScope": [],
+  "defaultPreservation": "PartyBalanceCard mobileHorizontal=false default remains unchanged; non-opt-in markup order and classes preserved. Its brand specimen and desktop consumers keep default behavior. New responsive behavior is gated by the existing Party opt-in. No accounting/data callbacks, reducers or money formatters changed.",
+  "checks": {
+    "finalGates": "run/checks/round-1-final/results.txt: tsc 0; authored lint 0; UI contracts 0; tests 0 (851/851); build 0; design guide 0. Recovery read the logs and did not repeat unchanged full gates.",
+    "lintBaseline": "Unmodified default npm run lint has 58 pre-existing vendor/super-board third-party errors. Authored lint explicitly excludes vendor/super-board/**, with 0 errors/249 warnings. No lint config changed.",
+    "focusedBrowser": "Recovery rerun 16/16, exit 0; round1-recovery-green/results.json. Original red/green evidence remains round1-red and round1-green.",
+    "daybook": "Preserved round1-daybook.log: 12/12 passed.",
+    "detector": "Preserved round1-fixer-detector.json: [] (clean). No recovery production changes required another scan.",
+    "diff": "git diff --check passed.",
+    "screenshots": "Original shoot command exit 0; all 10 printed PNGs inspected individually, plus all four 320/390 light/dark large-money PNGs from recovery coverage. Header/logo/navigation and content start remain unchanged. Duplicate mobile text removed; dark counts readable; ordinary compact layout preserved.",
+    "limitations": "Physical devices, Safari, screen-reader output and expanded language/200% text zoom matrix were not newly tested by recovery. Statement printing, complete tab semantics and dialog validation remain intentionally open for the next rounds."
+  },
+  "afterShots": [
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-1-main-desktop-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-1-main-desktop-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-1-main-mobile-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-1-main-mobile-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-1-main-desktop-light-s1.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-1-main-mobile-light-s1.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-1-main-desktop-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-1-main-desktop-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-1-main-mobile-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-1-main-mobile-dark.png"
+  ],
+  "additionalImagesRead": [
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round1-recovery-green/320-light-large-money.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round1-recovery-green/320-dark-large-money.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round1-recovery-green/390-light-large-money.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round1-recovery-green/390-dark-large-money.png"
+  ],
+  "openQuestions": [],
+  "publication": "No push, PR, merge or deployment. Parent-owned comprehensive scripts/party-ledger-polish-browser.cjs remains untracked and unstaged."
+}

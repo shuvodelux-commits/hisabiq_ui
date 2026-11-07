@@ -1,0 +1,84 @@
+{
+  "assessment": "B · isolated source detector and audit",
+  "round": "C4 closing",
+  "critic": "impeccable",
+  "commit": "d1de6a904755604f878d5578d8d63e59ce3728e8",
+  "detectorRan": true,
+  "detectorCommand": "vendor/impeccable/skill/scripts/impeccable detect --json src/components/parties src/components/finance/FinancePaymentSplitEditor.tsx src/pages/Parties.tsx",
+  "detectorExitCode": 0,
+  "detectorRaw": "closing-detector-raw.json",
+  "detectorFindings": [],
+  "audit": {
+    "accessibility": 3,
+    "performance": 3,
+    "responsive": 3,
+    "theming": 3,
+    "integrity": 4
+  },
+  "auditTotal": 16,
+  "auditRating": "Good (source-only assessment)",
+  "scoreNotes": {
+    "accessibility": "Both directory presentations use a shared keyboard model and roving focus; content tabs have linked panels and arrow/Home/End support. All five edited financial dialogs now associate known invalid inputs with the alert and focus the field or focusable summary. Four Party split consumers provide translated row/method names. Score is source-only: no contrast measurement, assistive-technology or live keyboard claim.",
+    "performance": "No new dependency, broad will-change, layout read/write loop or expensive visual effect found. Existing directory and media costs were not profiled; no runtime timing or bundle claim.",
+    "responsive": "Party-local min-width-zero, explicit one-column-to-two-column form grids and wrapping footer buttons preserve existing shared control size and typography. Statement table scrolling has a labelled focusable region. Genuine breakpoint remount/draft loss remains a baseline limitation. No browser, touch, zoom or screenshot review performed.",
+    "theming": "Existing semantic/token classes retained. Statement print-only black/white rules are narrowly conditional on the Party statement dialog and match document output requirements. Runtime contrast and portal theme switching remain independent checks.",
+    "integrity": "Official detector returned []; scoped markup/error semantics and compatible optional shared amount props preserve actual product components. No domain, validator, payload, normalization, persistence, permission or posting changes found in baseline-to-head diff."
+  },
+  "integrityVerdict": {
+    "coherentProductSystem": true,
+    "result": "Pass for this bounded presentation/accessibility patch; baseline workflow limitations remain explicit.",
+    "evidence": "T1/T4/T11/T12: approved Party layout, shared Input/Button/Dialog/AppSelect and FinancePaymentSplitEditor reused. Diff contains only Party presentation/hooks, compatible split input semantics, docs and focused browser scripts."
+  },
+  "problems": [],
+  "resolvedFromPriorIds": [
+    {
+      "id": "party-dialog-validation-association",
+      "status": "Source repair verified",
+      "evidence": "usePartyDialogError.ts:5-22 uses stable IDs, aria-invalid/aria-describedby, field focus and focusable summary fallback. PartyPaymentDialog.tsx:55-63/109, PartyCreditRefundDialog.tsx:47-55/100, PartyFinanceDialog.tsx:52-66/111, PartyOpeningDialog.tsx:56/91, PartyTransactionDialog.tsx:44-59/110 retain existing validation and submit logic while selecting presentation targets."
+    },
+    {
+      "id": "party-split-amount-name",
+      "status": "Source repair verified",
+      "evidence": "FinancePaymentSplitEditor.tsx:27-28 exposes only optional id and ARIA semantic props; line91 spreads them before unchanged value/onChange/placeholder. PartyPaymentDialog.tsx:98-99, PartyCreditRefundDialog.tsx:92-93, PartyFinanceDialog.tsx:99-100 and PartyTransactionDialog.tsx:96-97 supply translated row/method-specific names and error association."
+    }
+  ],
+  "compatibilityChecks": [
+    {
+      "location": "src/components/finance/FinancePaymentSplitEditor.tsx:18-32,90-96",
+      "finding": "Optional amountInputProps defaults undefined; absent callback spreads no props. Normalization, account choices, parsing, controlled value and change callbacks remain unchanged. No shared CSS or primitive changed."
+    },
+    {
+      "location": "src/components/parties/PartyPaymentDialog.tsx:48-63; PartyCreditRefundDialog.tsx:41-56; PartyFinanceDialog.tsx:49-66; PartyOpeningDialog.tsx:49-56; PartyTransactionDialog.tsx:41-66",
+      "finding": "Existing validation predicates/order, review gate, arithmetic, domain calls and payload fields retained; added field tags only control error semantics and recovery focus."
+    },
+    {
+      "location": "src/components/parties/PartyPaymentDialog.tsx:110-112; PartyCreditRefundDialog.tsx:101; PartyFinanceDialog.tsx:112; PartyOpeningDialog.tsx:92; PartyTransactionDialog.tsx:111",
+      "finding": "Wrapping is local to each footer, with full-width bounds and normal whitespace. Supplier visible Bangla confirmation is concise; full role-specific aria-label remains. No font-size, line-height or control-height override introduced."
+    },
+    {
+      "location": "src/components/parties/PartyStatementDialog.tsx:40-58,78-82",
+      "finding": "Print overrides require the Party statement dialog; the shared portal is direct to body. Readable screen table scroll and normal print flow are kept distinct. This source audit does not certify PDF output."
+    }
+  ],
+  "knownBaselineLimitations": [
+    {
+      "id": "party-cross-band-draft-loss",
+      "location": "src/components/parties/PartyDetailAdaptive.tsx:14-16",
+      "evidence": "Crossing1024px conditionally swaps PartyDetail and PartyDetailResponsive, whose local dialog/draft state is separate. File unchanged from baseline. Actual baseline observation is documented in coverage-recovery.md; no new runtime observation made here.",
+      "scopeDecision": "Retain explicit disclosure; shared state architecture exceeds this bounded presentation patch."
+    },
+    {
+      "id": "party-direct-source-return-query",
+      "location": "src/pages/Parties.tsx:49-55,140-142",
+      "evidence": "Workspace restoration is restricted to party-pos-return state; direct source action navigates only the source route. Parties.tsx unchanged. Existing direct source→browserBack query loss remains distinct from New invoice→Back to party preservation.",
+      "scopeDecision": "Retain explicit disclosure; do not claim all source returns preserve query."
+    }
+  ],
+  "summary": "Official closing source detector is clean at final head d1de6a9. The two prior P1 form-accessibility source findings are repaired; no new source-level blocking issue was verified in the bounded diff.",
+  "openQuestions": [],
+  "limitations": [
+    "No screenshots, design-assessment outputs or browser surfaces were read. No screenshots, browser actions, application source edits or commits were produced.",
+    "Scores are independent source-audit judgments, not visual scores, WCAG certification or runtime performance results.",
+    "Untracked scripts/party-ledger-polish-browser.cjs existed during audit; it was not edited or assessed as shipped application source."
+  ]
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "name": "320-light payment focus, drafts, split mismatch",
+    "status": "failed",
+    "error": "expect(locator).toHaveAttribute(expected) failed\n\nLocator:  getByRole('dialog', { name: 'Party payment', exact: true }).getByRole('textbox', { name: 'Payment amount', exact: true })\nExpected: \"true\"\nReceived: \"\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.attribute.value\" with timeout 5000ms\n  - waiting for getByRole('dialog', { name: 'Party payment', exact: true }).getByRole('textbox', { name: 'Payment amount', exact: true })\n    14 × locator resolved to <input min=\"0\" value=\"\" type=\"text\" data-slot=\"input\" placeholder=\"0.00\" inputmode=\"decimal\" data-id=\"element-556\" aria-label=\"Payment amount\" class=\"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destruc…/>\n       - unexpected value \"null\"\n"
+  },
+  {
+    "name": "320-light opening validation",
+    "status": "failed",
+    "error": "expect(locator).toHaveAttribute(expected) failed\n\nLocator:  getByRole('dialog', { name: 'Party opening balance', exact: true }).getByRole('textbox', { name: 'Opening balance amount' })\nExpected: \"true\"\nReceived: \"\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.attribute.value\" with timeout 5000ms\n  - waiting for getByRole('dialog', { name: 'Party opening balance', exact: true }).getByRole('textbox', { name: 'Opening balance amount' })\n    14 × locator resolved to <input min=\"0\" value=\"\" type=\"text\" data-slot=\"input\" placeholder=\"0.00\" inputmode=\"decimal\" data-id=\"element-556\" aria-label=\"Opening balance amount\" class=\"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border…/>\n       - unexpected value \"null\"\n"
+  },
+  {
+    "name": "320-light finance validation and split names",
+    "status": "failed",
+    "error": "expect(locator).toHaveAttribute(expected) failed\n\nLocator:  getByRole('dialog', { name: 'Party finance transaction', exact: true }).getByRole('textbox', { name: 'Finance amount', exact: true })\nExpected: \"true\"\nReceived: \"\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.attribute.value\" with timeout 5000ms\n  - waiting for getByRole('dialog', { name: 'Party finance transaction', exact: true }).getByRole('textbox', { name: 'Finance amount', exact: true })\n    14 × locator resolved to <input min=\"0\" value=\"\" type=\"text\" data-slot=\"input\" placeholder=\"0.00\" inputmode=\"decimal\" data-id=\"element-556\" aria-label=\"Finance amount\" class=\"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destruc…/>\n       - unexpected value \"null\"\n"
+  },
+  {
+    "name": "320-light refund, correction, reversal validation",
+    "status": "failed",
+    "error": "expect(locator).toHaveAttribute(expected) failed\n\nLocator:  getByRole('dialog', { name: 'Party credit refund', exact: true }).getByRole('textbox', { name: 'Credit refund amount', exact: true })\nExpected: \"true\"\nReceived: \"\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.attribute.value\" with timeout 5000ms\n  - waiting for getByRole('dialog', { name: 'Party credit refund', exact: true }).getByRole('textbox', { name: 'Credit refund amount', exact: true })\n    14 × locator resolved to <input min=\"0\" value=\"\" type=\"text\" data-slot=\"input\" placeholder=\"0.00\" inputmode=\"decimal\" data-id=\"element-556\" aria-label=\"Credit refund amount\" class=\"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-d…/>\n       - unexpected value \"null\"\n"
+  },
+  {
+    "name": "320-light statement local containment",
+    "status": "failed",
+    "error": "only comparative table scrolls, dialog overflow 135"
+  }
+]
