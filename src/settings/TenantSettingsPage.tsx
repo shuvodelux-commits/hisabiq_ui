@@ -1,6 +1,7 @@
 import { SettingsTabs } from "./SettingsTabs";
 import { SettingsNav } from './magic/SettingsNav';
 import { SettingsHome } from './magic/SettingsHome';
+import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
 import { SettingsDirectory } from "./SettingsDirectory";
@@ -33,7 +34,6 @@ import {
   SlidersHorizontal,
   Database,
   Save,
-  RotateCcw,
   Settings2,
   CheckCircle2,
   ImagePlus,
@@ -194,7 +194,7 @@ function Fields({
 }) {
   const data = value as unknown as Record<string, unknown>;
   return (
-    <div className="grid gap-x-6 gap-y-5 md:[grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))]">
+    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
       {fields.map((field) => {
         const v = data[field.key];
         const update = (next: unknown) =>
@@ -1033,7 +1033,7 @@ export function SettingsPageContent({
                             f.key,
                           ),
                       ))) && (
-                    <SettingCard title="Common settings">
+                    <SettingCard title={info.label} titleBn={info.bn} description={info.description}>
                       <Fields
                         fields={(settingsFields[section] || []).filter(
                           (f) =>
@@ -1231,53 +1231,26 @@ export function SettingsPageContent({
                   {notice}
                 </p>
               )}
-              <div className={section === 'team' && !embedded
-                ? 'sticky bottom-0 z-10 -mx-3 mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-3 py-3 sm:-mx-4 sm:px-4 lg:-mx-8 lg:px-8'
-                : 'sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-pop'}>
-                <div className="text-xs text-ink-500">
-                  {dirty
-                    ? "Unsaved changes"
-                    : section === "personal"
-                      ? "Saved on this device"
-                      : "Business-wide settings"}
-                  {section === "products" && (
-                    <span className="mt-1 block">
-                      New product defaults; existing products retain their
-                      values.
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={!editable}
-                    onClick={() => setResetOpen(true)}
-                  >
-                    <RotateCcw className="size-4" />
-                    Restore defaults
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!dirty}
-                    onClick={() => {
-                      load();
-                      setNotice("Draft discarded. Latest saved values loaded.");
-                    }}
-                  >
-                    Discard
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={!dirty || !editable || readingLogo}
-                  >
-                    <Save className="size-4" />
-                    Save changes
-                  </Button>
-                </div>
-              </div>
+              <SaveBar
+                dirty={dirty}
+                saving={readingLogo}
+                error={error || undefined}
+                status={section === "personal" ? "Saved on this device" : section === "products" ? "Business-wide defaults. Existing products keep their values." : "Business-wide settings"}
+                dirtyLabel="Unsaved changes"
+                onRestore={() => setResetOpen(true)}
+                restoreDisabled={!editable}
+                onDiscard={() => {
+                  load();
+                  setNotice("Draft discarded. Latest saved values loaded.");
+                }}
+                onSave={() => {
+                  if (!dirty || !editable || readingLogo) return;
+                  needsReview ? setReviewOpen(true) : commit();
+                }}
+                readOnly={!editable}
+                saveDisabled={readingLogo}
+                saveLabel="Save changes"
+              />
             </form>
           )}
         </div>
