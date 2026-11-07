@@ -92,6 +92,13 @@ async function main() {
       await go(route);
       await page.locator('[data-settings-magic-general="' + id + '"]').waitFor();
       await page.getByText(label).first().waitFor();
+      if (id === 'names') {
+        const khata = page.locator('[aria-label="Khata preview"]');
+        await khata.waitFor();
+        await page.getByRole('combobox', { name: 'What you call money owed' }).click();
+        await page.getByRole('option', { name: 'Due', exact: true }).click();
+        await khata.getByText(/Total due/i).waitFor();
+      }
     }
     await go('');
     await page.getByRole('button', { name: 'Start guided setup' }).click();
