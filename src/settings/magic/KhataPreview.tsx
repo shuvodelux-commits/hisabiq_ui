@@ -29,7 +29,7 @@ export function KhataPreview({ draft }: { draft: KhataPreviewDraft }) {
         <p className="text-xs text-ink-500">Updates as you change the words.</p>
       </header>
       <div className="overflow-x-auto">
-        <table className="w-full text-[12px]">
+        <table data-erp-table className="w-full text-[12px]">
           <thead className="bg-ink-50">
             <tr>{cols.map((c) => <th key={c} className={`px-3 py-2 font-medium text-ink-500 ${c === 'Date' || c === 'Details' ? 'text-left' : 'text-right'}`}>{labels[c]}</th>)}</tr>
           </thead>
