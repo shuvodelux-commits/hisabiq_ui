@@ -1,4 +1,8 @@
 import { SettingsTabs } from "./SettingsTabs";
+import { SettingsNav } from './magic/SettingsNav';
+import { SettingsHome } from './magic/SettingsHome';
+import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
+import { download as downloadSettings } from './ui';
 import { SettingsDirectory } from "./SettingsDirectory";
 import { settingsSubsections, businessFieldGroup } from "./subsections";
 import { listenSettingsPop } from "./navigationGuard";
@@ -294,7 +298,8 @@ function Fields({
 export function SettingsPageContent({
   sectionOverride,
   embedded = false,
-}: { sectionOverride?: SettingsSection; embedded?: boolean } = {}) {
+  hideHeader = false,
+}: { sectionOverride?: SettingsSection; embedded?: boolean; hideHeader?: boolean } = {}) {
   const { section: routeSection } = useParams();
   const navigate = useNavigate();
   const routeState = useLocation().state as {
@@ -542,7 +547,7 @@ export function SettingsPageContent({
     Icon = icons[section];
   return (
     <div data-settings-dirty={dirty} className="erp-settings min-w-0 flex-1 space-y-5">
-      <header className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
+      {!hideHeader && <header className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Icon aria-hidden="true" className="size-5 text-primary lg:hidden" />
@@ -675,7 +680,7 @@ export function SettingsPageContent({
             ))}
           </fieldset>
         </div>
-      </header>
+      </header>}
       <div className={embedded ? "min-w-0" : "grid min-w-0 items-start gap-4 lg:grid-cols-[280px_minmax(0,1fr)]"}>
         {!embedded && <SettingsDirectory
           items={Object.entries(sectionNames).map(([id, item])=>({ id, ...item }))}
@@ -1366,7 +1371,62 @@ export function SettingsPageContent({
   );
 }
 
+/** Magic Patterns Settings shell; existing form data/permissions remain in SettingsPageContent. */
 export function TenantSettingsPage() {
   const { section } = useParams();
-  return <SettingsPageContent key={section || "business"} />;
+  const { state, actorId } = useTenantSettings();
+  const activeId: SettingsSectionId | null =
+    section === 'financialTerminology' ? 'names' :
+    section === 'money' ? 'finance' :
+    settingsSections.some(item => item.id === section) ? section as SettingsSectionId : null;
+  const isHome = !section;
+  const user = state.sections.team.employees.find(employee => employee.id === actorId);
+  const urlFor = (id: SettingsSectionId) => {
+    if (id === 'support') return '/app/support';
+    if (id === 'subscription') return '/app/subscription';
+    if (id === 'names') return '/app/settings/financialTerminology';
+    if (id === 'finance') return '/app/settings/money';
+    return `/app/settings/${id}`;
+  };
+  const previewOnly = section === 'sessions' || section === 'activity' || section === 'offline';
+  const reference = settingsSections.find(item => item.id === section);
+  return (
+    <div className="erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5" data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold text-ink">
+            Settings <span className="font-bn text-sm font-normal text-ink-500">সেটিংস</span>
+          </h1>
+          <p className="text-[13px] text-ink-500">
+            {user?.name ?? 'HisabIQ user'} · Settings are stored for this business in the browser. Sign-in, PIN, SMS and billing require the HisabIQ server.
+          </p>
+        </div>
+        {canManage(state, actorId, 'export') && (
+          <Button onClick={() => downloadSettings('hisabiq-settings.json', JSON.stringify(state, null, 2))} title="Download settings JSON only; not a full ERP data backup">
+            <Save className="size-4" /> Settings backup
+          </Button>
+        )}
+      </div>
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
+        <SettingsNav activeId={isHome ? null : activeId} urlFor={urlFor} onNavigate={() => { /* Existing dirty-form navigation guard intercepts links. */ }} />
+        <div className="min-w-0">
+          {isHome ? (
+            <SettingsHome urlFor={urlFor} />
+          ) : previewOnly ? (
+            <section className="rounded-xl border border-border bg-card p-5 shadow-card">
+              <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
+              <p className="mt-2 text-[13px] text-ink-500">
+                The linked Magic Patterns prototype includes this screen, but its demo actions are not connected to secure sessions or offline device authorization here. No account or device changes were made.
+              </p>
+              <Link to="/app/settings/security" className="mt-3 inline-block text-[13px] font-medium text-teal-700 hover:underline">
+                View account &amp; security settings
+              </Link>
+            </section>
+          ) : (
+            <SettingsPageContent key={section} embedded hideHeader />
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
