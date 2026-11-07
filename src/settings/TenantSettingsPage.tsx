@@ -547,6 +547,35 @@ export function SettingsPageContent({
     Icon = icons[section];
   return (
     <div data-settings-dirty={dirty} className="erp-settings min-w-0 flex-1 space-y-5">
+      {hideHeader && (
+        <section className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-100 bg-card px-4 py-3 shadow-card">
+          <div className="min-w-0">
+            <h2 data-testid="settings-title" className="text-sm font-semibold text-ink">
+              {personal.language === "Bangla" ? info.bn : info.label}
+              {personal.language === "English + Bangla" && <span lang="bn" className="ml-2 font-bn text-[11px] font-normal text-ink-400">{info.bn}</span>}
+            </h2>
+            <p className="mt-0.5 text-xs text-ink-500">{info.description}</p>
+          </div>
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+              <input type="checkbox" className="size-4 accent-teal-600" checked={personal.mode === "Advanced"} onChange={(event) => updatePersonal({ mode: event.target.checked ? "Advanced" : "Simple" })}/>
+              Show advanced options
+            </label>
+            <label className="min-w-[155px] space-y-1 text-[11px] text-ink-600">
+              <span className="block">Preview employee access</span>
+              <AppSelect
+                label="Demo employee access"
+                value={actorId}
+                onChange={(id) => requestChange(() => setActorId(id))}
+                options={state.sections.team.employees.map((e) => ({
+                  value: e.id,
+                  label: e.name + (!e.active ? " · Disabled" : ""),
+                }))}
+              />
+            </label>
+          </div>
+        </section>
+      )}
       {!hideHeader && <header className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
