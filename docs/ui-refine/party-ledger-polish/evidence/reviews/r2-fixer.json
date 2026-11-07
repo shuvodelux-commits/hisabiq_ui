@@ -1,0 +1,84 @@
+{
+  "round": 2,
+  "status": "committed",
+  "commit": "c7e641d813e87cca0b2ce633e4a31f4f5ba6d3e5",
+  "commands": [
+    "harden",
+    "layout",
+    "typeset",
+    "polish"
+  ],
+  "commandMethod": "Read taste first, AGENTS/design guide/contracts, original fixer brief/routing, pinned Impeccable Commands and harden/layout/typeset/polish references. Read craft-floor immediately before the first production edit. Applied existing Operate-mode UI authority; polish last. No interview substitution beyond the supplied fresh subagent brief; no additional agents spawned.",
+  "fixed": [
+    {
+      "id": "statement-print-clipping",
+      "evidence": "T2/T10/T11: PartyStatementDialog-scoped print CSS releases dialog fixed/transformed/scroll constraints, hides app siblings and controls, and uses normal paginated flow. Four actual A4 PDFs from320/1440px in light/dark each contain5pages, all32 UI-created long bilingual notes, baseline invoice, opening/period/closing values and no app chrome. First/last light/dark PDF rasters inspected."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "evidence": "T7: Party-local usePartyContentTabs supplies roving selected Tab stop, wrapping ArrowLeft/Right, Home/End, stable IDs, all linked panel targets including hidden inactive shells, and reveal-on-keyboard-focus. Both renderers retain handlers/state; runtime12viewport/theme cases verify keyboard selection, links and retained note draft."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "evidence": "T1/T4/T8: exact onReset action grouped immediately after Type in both toolbars. Responsive360–767px Type/Reset span first advanced row; Rows/Print share next. All6 widths in both themes verify adjacency, same-row geometry, actual clear behavior and no overflow."
+    },
+    {
+      "id": "party-note-action-targets",
+      "evidence": "T4/T7/T12: existing shared Button size=icon ghost replaces four raw note controls, keeps translated names and exact callbacks;8px separation. Runtime12cases verify36×36px, visible focus and real edit/save/delete confirmation flow."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "evidence": "T5: narrow Party directory/detail root font-feature-settings normal and font-variant-numeric proportional-nums reset inherited bodytnum; removed invoice/payment tabular-nums utilities. Runtime computed-style assertions cover desktop directory, responsive picker, invoice/payment money in both themes. Table-role normal numeric variant remains valid; no global font/shared default change."
+    }
+  ],
+  "skipped": [
+    {
+      "id": "party-dialog-validation-association",
+      "reason": "Deferred to fresh round3 fixer per checker/coordinator so Party-specific invalid-field recovery can be completed with split presentation opt-in."
+    },
+    {
+      "id": "party-split-amount-name",
+      "reason": "Deferred to round3 with validation; no shared Finance dependency changes this round."
+    }
+  ],
+  "outOfScope": [
+    {
+      "path": "scripts/party-ledger-round2-browser.cjs",
+      "reason": "Focused browser regression/evidence for this bounded Party UI batch; no product behavior change."
+    }
+  ],
+  "checks": "PASS: round-2-final all6 gates (tsc, authored lint excluding existing third-party vendor/super-board, UI contract,851/851tests, build, design guide). Official detector exit0 []. Original Daybook12/12; focused round2 browser12/12; round1regression16/16; diff check clean. Default lint pre-existing vendor baseline remains disclosed by parent.",
+  "checkPaths": [
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/checks/round-2-final/results.txt",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round2-fixer-detector.json",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round2-daybook.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round2-browser.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round2-round1-regression.log"
+  ],
+  "afterShots": [
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-2-main-desktop-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-2-main-desktop-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-2-main-mobile-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-2-main-mobile-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-2-main-desktop-light-s1.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-2-main-mobile-light-s1.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-2-main-desktop-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-2-main-desktop-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-2-main-mobile-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-2-main-mobile-dark.png"
+  ],
+  "visualReview": "All10 original current main/crop/comparison images read, including logo/nav/top. Desktop composition preserved; compact mobile first-round improvements retained. Expanded390px Type text stays complete beside Reset;320px note controls remain reachable without page overflow. Print first/last pages show repeated table headers, long content and final totals in both themes.",
+  "printEvidence": [
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round2-browser/1440-dark-statement.pdf",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round2-browser/1440-light-statement.pdf",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round2-browser/320-dark-statement.pdf",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round2-browser/320-light-statement.pdf"
+  ],
+  "openQuestions": [],
+  "notes": [
+    "Only Party files/local hook and focused test committed; scripts/party-ledger-polish-browser.cjs belongs to parent coverage and left unstaged.",
+    "All open-overlay evidence uses viewport screenshots and asserts dialog survival. Closed main screenshots use original shoot.mjs with documented system Chromium fallback.",
+    "No backend/domain/data/calculation/posting/permissions/POS/Settings/Reports/globalCSS/shared-component-default changes. No push/PR/merge/deploy.",
+    "Final amendment only strengthens integer/decimal screen-to-PDF total assertions; focused12/12 and script eslint pass after amendment. All10 shots represent identical final production source."
+  ]
+}

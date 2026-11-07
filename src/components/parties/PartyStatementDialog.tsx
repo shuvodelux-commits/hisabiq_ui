@@ -36,13 +36,33 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
   const rows=statementPrintRows(statement);
   return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
     <DialogContent role="dialog" aria-modal="true" aria-label={text("Party ledger statement","পক্ষের হিসাবের বিবরণ")}
-      className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+      data-party-statement-dialog="" className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+      <style>{`@media print {
+        body:has([data-party-statement-dialog]) { overflow: visible !important; height: auto !important; }
+        body:has([data-party-statement-dialog]) > :not([data-party-statement-dialog]) { display: none !important; }
+        [data-party-statement-dialog] {
+          display: block !important; position: static !important; inset: auto !important;
+          width: 100% !important; max-width: none !important; height: auto !important; max-height: none !important;
+          transform: none !important; translate: none !important; scale: none !important;
+          overflow: visible !important; padding: 0 !important; border: 0 !important; box-shadow: none !important;
+        }
+        [data-party-statement-dialog] > :not(#party-statement-print):not(style) { display: none !important; }
+        [data-party-statement-dialog] #party-statement-print {
+          position: static !important; inset: auto !important; overflow: visible !important;
+          color: black !important; background: white !important;
+        }
+        [data-party-statement-dialog] #party-statement-print * { color: black !important; background: transparent !important; }
+        [data-party-statement-dialog] #party-statement-print .overflow-x-auto { overflow: visible !important; }
+        [data-party-statement-dialog] #party-statement-print table { min-width: 0 !important; }
+        [data-party-statement-dialog] #party-statement-print thead { display: table-header-group; }
+        [data-party-statement-dialog] #party-statement-print tr { break-inside: avoid; }
+      }`}</style>
       <DialogHeader>
         <DialogTitle>{text('Party ledger statement','পক্ষের হিসাবের বিবরণ')}</DialogTitle>
         <DialogDescription>{text('Clean dated statement. Print using your browser or Save as PDF; no backend posting.','তারিখ অনুযায়ী হিসাব। প্রিন্ট বা পিডিএফ সেভ করুন। আসল সার্ভারের খাতায় কোনো লেখা হবে না।')}</DialogDescription>
       </DialogHeader>
-      <div id="party-statement-print" className="party-statement-print space-y-4 rounded-lg border border-border bg-card p-4 text-ink">
-        <div className="border-b border-border pb-3">
+      <div id="party-statement-print" className="party-statement-print min-w-0 max-w-full space-y-4 rounded-lg border border-border bg-card p-4 text-ink">
+        <div className="min-w-0 break-words border-b border-border pb-3">
           <style>{`@page{size:A4 ${profile.orientation.toLowerCase()};margin:${profile.margin}mm}`}</style>
           <h2 hidden={!profile.showBusiness} className="text-lg font-semibold">{language==="Bangla"?(state.sections.business.nameBn||state.sections.business.name):state.sections.business.name}</h2>
           <p className="text-xs text-ink-500">{docText('Unverified demo business identity — configure your tenant before sharing a statement.','এটি যাচাই না করা নমুনা ব্যবসার পরিচয়। বিবরণ শেয়ার করার আগে ব্যবসার তথ্য ঠিক করুন।')}</p>
@@ -55,9 +75,10 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
             </div>
           </div>
         </div>
-        <div className="flex justify-between text-sm"><span title={docText("Balance before the selected date range; dated opening entries appear in the table","বাছা সময়ের আগের জের; শুরুর লেনদেন তারিখসহ তালিকায় আছে")}>{docText('Opening balance (brought forward)','আগের জের')}</span><strong>৳{formatMoneyNumber(statement.openingBalance)}</strong></div>
-        <div className="overflow-x-auto">
-          <table data-erp-table="" className="w-full border-collapse text-xs">
+        <div className="flex min-w-0 flex-wrap justify-between gap-x-3 gap-y-1 text-sm"><span title={docText("Balance before the selected date range; dated opening entries appear in the table","বাছা সময়ের আগের জের; শুরুর লেনদেন তারিখসহ তালিকায় আছে")}>{docText('Opening balance (brought forward)','আগের জের')}</span><strong className="ml-auto min-w-0 break-words text-right">৳{formatMoneyNumber(statement.openingBalance)}</strong></div>
+        <div role="region" aria-label={text('Statement transactions','হিসাবের লেনদেন')} tabIndex={0}
+          className="min-w-0 max-w-full overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+          <table data-erp-table="" className="w-full min-w-[40rem] border-collapse text-xs">
             <thead><tr className="border-y border-border bg-ink-50 text-ink-700">
               <th className="p-2 text-left">{docText('Date','তারিখ')}</th><th className="p-2 text-left">{docText('Particulars','বিবরণ')}</th>
               {financial.columns.map(side=><th key={side} className="p-2 text-right">{financial.label(side)}</th>)}<th className="p-2 text-right">{docText('Balance','জের')}</th>
@@ -74,9 +95,9 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
             </tbody>
           </table>
         </div>
-        <div className="ml-auto max-w-sm space-y-1 border-t border-border pt-2 text-xs">
-          <div className="flex justify-between"><span>{docText('Period debit','এই সময়ের ডেবিট')}</span><strong>{formatMoneyNumber(statement.periodDebit)}</strong></div>
-          <div className="flex justify-between"><span>{docText('Period credit','এই সময়ের ক্রেডিট')}</span><strong>{formatMoneyNumber(statement.periodCredit)}</strong></div>
+        <div className="ml-auto min-w-0 max-w-sm space-y-1 [&>[data-testid=party-closing-balance]]:flex-wrap [&>[data-testid=party-closing-balance]>strong:last-child]:ml-auto border-t border-border pt-2 text-xs">
+          <div className="flex min-w-0 flex-wrap justify-between gap-x-3 gap-y-1"><span>{docText('Period debit','এই সময়ের ডেবিট')}</span><strong className="ml-auto min-w-0 break-words text-right">{formatMoneyNumber(statement.periodDebit)}</strong></div>
+          <div className="flex min-w-0 flex-wrap justify-between gap-x-3 gap-y-1"><span>{docText('Period credit','এই সময়ের ক্রেডিট')}</span><strong className="ml-auto min-w-0 break-words text-right">{formatMoneyNumber(statement.periodCredit)}</strong></div>
           <PartyClosingBalance balance={statement.closingBalance} relationship={statement.relationship} language={language} compact />
         </div>
         {profile.showSignatures&&<p className="mt-8 border-t border-border pt-3 text-xs">{docText('Signature','স্বাক্ষর')} __________________</p>}

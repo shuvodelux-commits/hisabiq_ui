@@ -1,0 +1,130 @@
+{
+  "round": 1,
+  "assessment": "Fresh merged checker, original ui-refine-loop independent-agent fallback",
+  "designTotal": 14,
+  "auditTotal": 14,
+  "total": 28,
+  "scoreBasis": "Independent A design 14/20 + independent B source-only audit 14/20 = 28/40. Scores are preserved without rescoring after subsequent coverage evidence; detector ran clean (exit 0, no findings).",
+  "problems": [
+    {
+      "id": "statement-print-clipping",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/parties/PartyStatementDialog.tsx:39",
+      "evidence": "coverage/baseline-1440-light-statement.pdf, light 1440, actual browser Print/Save as PDF: independent coverage reports the screen statement includes all rows but the generated two-page PDF repeats only business/party/date headers and omits ledger rows, opening, period and closing amounts. Checker independently ran pdftotext and confirmed those omissions. Source: PartyStatementDialog.tsx:39 retains max-height/overflow on its dialog, while src/index.css:76-90 fixes #party-statement-print at the origin and leaves its clipped dialog ancestry intact. T2/T10/T11; brief acceptance 5. Clipping mechanism needs focused confirmation; output failure itself is verified.",
+      "fix": "Keep the existing statement document, data, date/role scope, export and browser-print handler. Add only Party-statement-scoped print treatment that releases its dialog/ancestor clipping and allows document flow across pages, hides controls and retains all rows/opening/period/closing money. Validate actual A4 PDFs at desktop/phone, screen-vs-PDF references and amounts, and multi-page output; avoid global dialog/print redesign."
+    },
+    {
+      "id": "party-balance-large-money-fit",
+      "severity": "P1",
+      "type": "responsive",
+      "location": "src/components/parties/PartyBalanceCard.tsx:84",
+      "evidence": "coverage/baseline-390-light-large-credit-balance.png, light 390, safe UI-created Payee opening credit ৳12,34,56,78,90,123.45: the unbreakable auto-width amount consumes most of the balance card, squeezing Payee payable into two short lines and the English/Bangla helper into narrow multi-line fragments. The balance surface grows from a compact scan block into a tall panel, even though the full figure itself fits. The current grid minmax(0,1fr)_auto and amount whitespace-nowrap cause the label column to absorb all pressure. T2/T5/T6 and the complete-money/bilingual brief require both meaning and value to remain readable. The toast covers part of the lower summary in this evidence, so no separate lower-summary claim is made.",
+      "fix": "Keep the existing balance card, meaning, full formatted value and current workflow. Let its local label/value grid reflow when the amount needs the space, giving the complete amount an available full-width line rather than crushing the meaning/helper column. Verify negative/zero/large balances and long Bangla at 320/390, both themes, without compact notation or reduced font size."
+    },
+    {
+      "id": "party-directory-keyboard",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDirectory.tsx:58",
+      "evidence": "shots/round-0-main-desktop-light.png and shots/round-0-main-desktop-dark.png, light/dark 1440, left directory: this is the primary record-selection surface. Its listbox/options have no ArrowUp/ArrowDown/Home/End handling and the search cannot transfer focus with ArrowDown; every option is a separate default Tab stop. The role filters also declare tabs without a complete keyboard pattern. PartyDirectoryResponsive.tsx already has source-backed search/list arrow handlers that desktop lacks. T7 and the explicit fast-selection brief apply. Independent B corroborates the incomplete listbox model at PartyDirectory.tsx:58 and PartyDirectoryResponsive.tsx:81-86; coverage-baseline.log:1-2,285-286,334-335 records real 1440 light/dark search ArrowDown failing to focus Hossain Electric. P1 reflects the failed advertised composite keyboard selection behavior, not a claim that pointer selection or all keyboard access is impossible.",
+      "fix": "Reuse the existing responsive directory keyboard behavior in desktop and provide one coherent focus model for role filters/list options, without changing the directory layout or selection/accounting callbacks. Search-to-results, arrows, Enter and visible focus must work with the selected party retained. Role filters may become an equivalent labelled pressed-button group rather than navigation tabs; preserve their approved appearance and filtering."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDetail.tsx:249",
+      "evidence": "shots/round-0-main-desktop-light.png and shots/round-0-main-mobile-light-s1.png, light 1440/390, content tabs: the underline hierarchy is visually appropriate, but both PartyDetail.tsx:249-266 and PartyDetailResponsive.tsx:396-413 render five role=tab buttons with no roving tabIndex, arrow/Home/End handling, IDs, aria-controls or associated tabpanel. MotionTabList explicitly supplies presentation only. This fails T7 and the design guide section 30; source-verified keyboard/semantics defect, not inferred from the closed screenshot. Independent B corroborates the same missing semantics and keyboard handlers. P1 applies to the advertised tab composite failing the explicit T7/guide tab contract; this is source-verified, while dedicated runtime arrow/Home/End coverage is still required.",
+      "fix": "Keep the existing underline strip, labels, counts, selected state and panel contents. Add Party-local roving keyboard focus/selection and connected tab/panel IDs in both desktop and responsive renderers; ensure arrows reveal offscreen tabs and Tab enters the selected panel in a predictable order. Preserve drafts and handlers."
+    },
+    {
+      "id": "party-tab-count-dark-contrast",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDetail.tsx:262",
+      "evidence": "shots/round-0-main-desktop-dark.png and shots/round-0-main-mobile-dark.png, dark 1440/390, selected Ledger count: the 8 is visibly much dimmer than inactive counts and nearly disappears into its badge. Both detail renderers use dark:bg-teal-900/30 with dark:text-teal-200; runtime dark tokens reverse this scale (teal-900 is 182 240 233, teal-200 is 40 92 87), producing a dark figure on a lightened badge. T3 and craft-floor contrast require readable text rather than relying on token names. Checker visually confirms the active count is materially dimmer than inactive counts in both dark baseline images; no measured numeric contrast ratio is claimed.",
+      "fix": "Use the existing semantic accent foreground/background pair, or the already theme-aware base teal-50/teal-800 pair, for selected counts in both Party renderers. Verify actual normal-text contrast in document .dark and hisabiq-theme without changing global tokens."
+    },
+    {
+      "id": "ledger-mobile-duplicate-description",
+      "severity": "P2",
+      "type": "cluttered",
+      "location": "src/components/parties/LedgerTableResponsive.tsx:124",
+      "evidence": "shots/round-0-main-mobile-light.png, shots/round-0-main-mobile-dark.png and shots/round-0-main-mobile-light-s1.png, light/dark 390, Note and Opening rows: 'Promised to clear dues before Durga Puja. Call Mr. Habib.' appears once as the bold identity and again as the muted description; 'Opening balance' is similarly repeated. The fallback identity at line 125 already uses row.description, but line 133 only compares description to row.reference. This repeats real content and makes the note row noticeably taller. T8 requires subtracting duplicated text.",
+      "fix": "Derive the displayed identity once and omit the secondary description only when it duplicates that identity. Keep full note text, references, source badge, amounts, running balance, row actions and current mobile row structure."
+    },
+    {
+      "id": "party-dialog-validation-association",
+      "severity": "P2",
+      "type": "accessibility",
+      "evidence": "T7/T9 and design guide §§7/14: failed validation only sets one bottom role=alert and returns; amount, discount/reason and splits get no error id association/aria-invalid and focus stays on Review/Confirm. Refund (PartyCreditRefundDialog.tsx:43–49,77–88,97), finance (PartyFinanceDialog.tsx:51–60,84,105) and opening (PartyOpeningDialog.tsx:77–90) repeat this. Labels and live alert do exist; missing field association/focus is the verified gap. No accounting validation change is requested. Source-verified audit gap; this checker did not operate a browser or claim a new runtime reproduction.",
+      "fix": "Expose current validation errors on the existing affected inputs with aria-invalid and aria-describedby plus stable error ids; focus the relevant invalid input or existing error summary after failed review. Preserve existing validators and payloads.",
+      "location": "src/components/parties/PartyPaymentDialog.tsx:51"
+    },
+    {
+      "id": "party-note-action-targets",
+      "severity": "P2",
+      "type": "responsive",
+      "evidence": "T4/T7/T12: note Edit/Delete use raw buttons with 14px icons plus p-1, approximately 22px boxes, and only gap-1. Duplicate desktop code is PartyDetail.tsx:380–381. Shared 36px .hisabiq-button size rules in index.css:616 do not cover these raw buttons. This violates the product ordinary icon-action contract and makes adjacent routine actions harder to tap. The 4px spacing may satisfy WCAG target-spacing exception; no blanket WCAG 44px claim is made. Source-verified audit gap; this checker did not operate a browser or claim a new runtime reproduction.",
+      "fix": "Reuse shared Button size=icon with existing ghost/destructive semantic styling and translated accessible labels, retaining exact edit/delete callbacks and dialog focus behavior. Keep 36px contract; avoid a global default edit.",
+      "location": "src/components/parties/PartyDetailResponsive.tsx:539"
+    }
+  ],
+  "vsBefore": "baseline",
+  "vsBeforeNote": "Baseline: approved desktop directory/detail and mobile row composition retained; large-money card squeezes labels, mobile note/opening text repeats, dark selected counts are dim, desktop directory search ArrowDown fails, and actual statement PDF omits rows and totals.",
+  "summary": "Baseline combines independent design 14/20 and source audit 14/20 for 28/40, with eight ranked problems and no source changes. Preserve the approved compact layout and finance/source behavior; use the three bounded rounds for local money/readability and selection fixes first, then statement printing and complete tab/dialog accessibility, with actual interaction/PDF proof after each relevant fix.",
+  "openQuestions": [
+    "Expanded baseline coverage is still in progress. Investigate any extended-script failures as test/locator versus product defects before adding them to a future ledger; do not infer new defects or runtime passes from incomplete output.",
+    "Lower-ranked verified P2 ledger-reset-filter-grouping (PartyLedgerToolbar.tsx:40 and PartyLedgerToolbarResponsive.tsx:65) is omitted from the top-eight cap, not resolved: Reset follows page size rather than sitting immediately beside transaction type. Reconsider in round 2/3 after P1 fixes.",
+    "Lower-ranked verified P2 party-directory-proportional-money / PL-TYPE-DIRECTORY-FIGURES (PartyDirectory.tsx:83) is omitted from the top-eight cap, not resolved: remove local tabular-nums when that directory is touched; preserve proportional font and exact currency.",
+    "Validate complete negative/zero/large money and long English/Bangla at 320/390, both themes, plus 200% text zoom. The supplied large-credit screenshot has a toast over part of its lower summary, so no additional lower-summary clipping defect is asserted here.",
+    "Numeric normal-text contrast of the selected dark count has not been measured; verify the selected semantic token pair in both actual theme hosts. Dialog error association/focus and tabs remain source-verified risks pending focused runtime checks."
+  ],
+  "mergeNotes": [
+    "party-tabs-keyboard merges A with B PL-A11Y-TABS; directory role-filter semantics are assigned to party-directory-keyboard to avoid duplication.",
+    "party-directory-keyboard merges A with B PL-A11Y-DIRECTORY and actual coverage failures.",
+    "A proportional-figures issue and B PL-TYPE-DIRECTORY-FIGURES are the same lower-ranked issue; B type integrity is not a routing type, so use typography if promoted.",
+    "No prior stable problem IDs exist in the baseline ledger; retain the chosen IDs across later checks. No issue has yet survived three checks.",
+    "Print failure is newly supplied verified coverage evidence; its addition does not invent an independent score or detector finding."
+  ],
+  "boundedFixRecommendation": {
+    "round1": [
+      "party-balance-large-money-fit",
+      "party-directory-keyboard",
+      "ledger-mobile-duplicate-description",
+      "party-tab-count-dark-contrast"
+    ],
+    "round2": [
+      "statement-print-clipping",
+      "party-tabs-keyboard"
+    ],
+    "round3": [
+      "party-dialog-validation-association",
+      "party-note-action-targets"
+    ],
+    "note": "Suggested manageable batches, not permission to skip higher-priority work or evidence. Fixer may reorder to match actual dependencies; polish runs last in each round. Keep all changes Party-scoped and preserve approved layout, calculations, role isolation, callbacks and source/audit semantics."
+  },
+  "inspection": {
+    "sourceEdited": false,
+    "browserUsed": false,
+    "imagesRead": [
+      "shots/round-0-main-desktop-light.png",
+      "shots/round-0-main-desktop-dark.png",
+      "shots/round-0-main-mobile-light.png",
+      "shots/round-0-main-mobile-dark.png",
+      "shots/round-0-main-desktop-light-s1.png",
+      "shots/round-0-main-mobile-light-s1.png",
+      "coverage/baseline-390-light-large-credit-balance.png"
+    ],
+    "assessmentsRead": [
+      "r1-design.json",
+      "r1-detector.json"
+    ],
+    "ledgerRead": "ledger.md",
+    "additionalEvidenceRead": [
+      "coverage-baseline.log",
+      "coverage/baseline-1440-light-statement.pdf (pdftotext)"
+    ]
+  }
+}

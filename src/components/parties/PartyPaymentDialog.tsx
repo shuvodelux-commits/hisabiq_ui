@@ -1,3 +1,5 @@
+import {financeLabel} from '../../i18n/financeCopy';
+import {usePartyDialogError} from './usePartyDialogError';
 import { useEffect, useState } from 'react';
 import { Check, HandCoins } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../Dialog';
@@ -28,9 +30,9 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
   const [invoiceId,setInvoiceId]=useState('');
   const [splits,setSplits]=useState<FinancePaymentDraft[]>(initial);
   const [review,setReview]=useState(false);
-  const [error,setError]=useState('');
+  const {error,setError,inputErrorProps,errorSummaryProps}=usePartyDialogError();
   useEffect(()=>{if(open){setDate(businessToday());setAmount('');setDiscount('');setReason('');
-    setInvoiceId('');setSplits(initial());setReview(false);setError('');}},[open,party.id,relationship]);
+    setInvoiceId('');setSplits(initial());setReview(false);setError('');}},[open,party.id,relationship,setError]);
   let due=0,credit=0;
   try {
     const result=relationship==='Customer'
@@ -50,11 +52,11 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
     const payload:PartyPaymentPayload={partyId:party.id,relationship,date,amount:net,discount:rebate,
       reason:reason.trim(),invoiceId:invoiceId||undefined,splits:paymentSplits};
     if(!review){
-      if(net<=0||!Number.isFinite(net)){setError(text('Enter a payment amount.','কত টাকা দিচ্ছেন লিখুন।'));return;}
-      if(rebate&&(!reason.trim()||rebate>due)){setError(text('Discount requires a reason and cannot exceed due.','ছাড়ের কারণ লিখুন। ছাড় বাকি টাকার বেশি হতে পারবে না।'));return;}
+      if(net<=0||!Number.isFinite(net)){setError(text('Enter a payment amount.','কত টাকা দিচ্ছেন লিখুন।'),'amount');return;}
+      if(rebate&&(!reason.trim()||rebate>due)){setError(text('Discount requires a reason and cannot exceed due.','ছাড়ের কারণ লিখুন। ছাড় বাকি টাকার বেশি হতে পারবে না।'),!reason.trim()?'reason':'discount');return;}
       if(paymentSplits.some(row=>!Number.isFinite(row.amount)||row.amount<=0)||
         Math.abs(paymentSplits.reduce((sum,row)=>sum+row.amount,0)-net)>0.001){
-        setError(text('Payment rows must add up to the entered cash amount.','সব মাধ্যমের টাকার যোগফল মূল টাকার সমান হতে হবে।'));return;
+        setError(text('Payment rows must add up to the entered cash amount.','সব মাধ্যমের টাকার যোগফল মূল টাকার সমান হতে হবে।'),'splits');return;
       }
       setReview(true);return;
     }
@@ -66,18 +68,18 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
       <DialogHeader><DialogTitle>{text(action,relationship==='Customer'?'ক্রেতার টাকা নিন':'সরবরাহকারীকে টাকা দিন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">পেমেন্ট</span>}</DialogTitle>
         <DialogDescription>{text('Record a verified split payment in this browser preview. No bank transfer or real accounting posting occurs.','টাকার মাধ্যম মিলিয়ে নমুনা পেমেন্ট লিখুন। আসল ব্যাংক বা ERP খাতায় টাকা সরবে না।')}</DialogDescription>
       </DialogHeader>
-      <div className="space-y-4 text-sm">
+      <div className="min-w-0 space-y-4 text-sm">
         <div className="flex flex-wrap justify-between gap-2 rounded-lg bg-ink-50 p-3">
           <div><p className="text-xs text-ink-500">{text(relationship,relationship==='Customer'?'ক্রেতা':'সরবরাহকারী')} · {party.phone}</p><p className="font-semibold">{party.name}</p></div>
           <div className="text-right"><p className="text-xs text-ink-500">{relationship==='Customer'?text('Outstanding customer due','ক্রেতার কাছে বাকি পাওনা'):text('Outstanding supplier due','সরবরাহকারীকে বাকি দেনা')}</p><p className="font-semibold">{taka(due)}</p>
             {credit>0&&<p className="text-xs text-teal-700">{text('Refundable credit','ফেরতযোগ্য অগ্রিম')} {taka(credit)}</p>}</div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 [&>*]:min-w-0">
           <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Payment date','পেমেন্টের তারিখ')}
             <AppDatePicker label={text("Payment date","পেমেন্টের তারিখ")} value={date} onChange={value=>{setDate(value);setReview(false);}}/>
           </label>
           <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Amount received/paid','টাকার পরিমাণ')}
-            <div className="flex gap-1"><Input aria-label={text("Payment amount","পেমেন্টের টাকা")} inputMode="decimal" value={amount} onChange={event=>{
+            <div className="flex gap-1"><Input {...inputErrorProps('amount')} aria-label={text("Payment amount","পেমেন্টের টাকা")} inputMode="decimal" value={amount} onChange={event=>{
               const next=event.target.value;setAmount(next);setReview(false);
               if(splits.length===1)setSplits(previous=>previous.map(item=>({...item,amount:next})));
             }} placeholder="0.00"/>
@@ -85,16 +87,17 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
             </div>
           </label>
           <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Discount / adjustment','ছাড় / সমন্বয়')}
-            <Input aria-label={text("Payment discount","পেমেন্টে ছাড়")} value={discount} inputMode="decimal" onChange={event=>{setDiscount(event.target.value);setReview(false);}} placeholder="0"/>
+            <Input {...inputErrorProps('discount')} aria-label={text("Payment discount","পেমেন্টে ছাড়")} value={discount} inputMode="decimal" onChange={event=>{setDiscount(event.target.value);setReview(false);}} placeholder="0"/>
           </label>
           <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Invoice / bill allocation','কোন বিলের টাকা')}
             <AppSelect label={text("Invoice selection","বিল বাছুন")} value={invoiceId} options={invoiceOptions} onChange={value=>{setInvoiceId(value);setReview(false);}}/>
           </label>
         </div>
         {(rebate>0||reason)&&<label className="block space-y-1 text-xs font-medium text-ink-700" >{text('Reason / note','কারণ / মন্তব্য')}
-          <Input aria-label={text("Payment reason","পেমেন্টের কারণ")} value={reason} onChange={event=>{setReason(event.target.value);setReview(false);}} placeholder={text("Required when discount is applied","ছাড় দিলে কারণ আবশ্যক")}/>
+          <Input {...inputErrorProps('reason')} aria-label={text("Payment reason","পেমেন্টের কারণ")} value={reason} onChange={event=>{setReason(event.target.value);setReview(false);}} placeholder={text("Required when discount is applied","ছাড় দিলে কারণ আবশ্যক")}/>
         </label>}
-        <FinancePaymentSplitEditor accounts={financeAccounts} rows={splits} onChange={value=>{setSplits(value);setReview(false);}} totalAmount={net}/>
+        <FinancePaymentSplitEditor amountInputProps={(row,index)=>({...inputErrorProps('splits',index),
+          'aria-label':text(`Payment source ${index+1} amount`,`টাকার মাধ্যম ${index+1}-এর পরিমাণ`)+' · '+financeLabel(language,row.method)})} accounts={financeAccounts} rows={splits} onChange={value=>{setSplits(value);setReview(false);}} totalAmount={net}/>
         <AmountInWordsDisplay amount={net} />
         {review&&<div className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800" role="status">
           <p className="font-semibold">{text('Review before recording','লেখার আগে হিসাব যাচাই করুন')}</p>
@@ -103,10 +106,10 @@ export function PartyPaymentDialog({open,party,relationship,sources,onClose,onSu
           <AmountInWordsDisplay amount={net} />
           <p className="mt-1">{text('Confirm records one auditable preview source. No banking transaction will occur.','নিশ্চিত করলে নমুনা খাতায় একটি লেনদেন যোগ হবে। আসল ব্যাংকে টাকা সরবে না।')}</p>
         </div>}
-        {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
-        <div className="flex justify-end gap-2">
+        {error&&<p {...errorSummaryProps} role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
+        <div className="flex flex-wrap justify-end gap-2 [&>button]:max-w-full [&>button]:whitespace-normal">
           <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
-          <Button onClick={submit}>{review?<><Check className="size-4"/> {text('Confirm '+action.toLowerCase(),relationship==='Customer'?'ক্রেতার টাকা নেওয়া নিশ্চিত করুন':'সরবরাহকারীকে টাকা দেওয়া নিশ্চিত করুন')}</>:<><HandCoins className="size-4"/> {text('Review payment','পেমেন্ট যাচাই করুন')}</>}</Button>
+          <Button aria-label={review?text('Confirm '+action.toLowerCase(),relationship==='Customer'?'ক্রেতার টাকা নেওয়া নিশ্চিত করুন':'সরবরাহকারীকে টাকা দেওয়া নিশ্চিত করুন'):undefined} onClick={submit}>{review?<><Check className="size-4"/> {text('Confirm '+action.toLowerCase(),relationship==='Customer'?'ক্রেতার টাকা নেওয়া নিশ্চিত করুন':'টাকা দেওয়া নিশ্চিত করুন')}</>:<><HandCoins className="size-4"/> {text('Review payment','পেমেন্ট যাচাই করুন')}</>}</Button>
         </div>
       </div>
     </DialogContent>

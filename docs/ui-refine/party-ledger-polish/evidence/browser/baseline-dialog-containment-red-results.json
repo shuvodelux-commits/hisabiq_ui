@@ -1,0 +1,95 @@
+{
+  "label": "baseline-dialog-containment-red",
+  "base": "http://127.0.0.1:4312",
+  "results": [
+    {
+      "name": "320-light payment validation, review, correction and reversal",
+      "status": "failed",
+      "error": "open dialog content stays within its horizontal scroll boundary: [{\"name\":\"Party payment\",\"scrollWidth\":305,\"clientWidth\":288,\"rect\":{\"x\":16,\"y\":16,\"width\":288,\"height\":868,\"top\":16,\"right\":304,\"bottom\":884,\"left\":16}}]"
+    },
+    {
+      "name": "320-dark payment validation, review, correction and reversal",
+      "status": "failed",
+      "error": "open dialog content stays within its horizontal scroll boundary: [{\"name\":\"Party payment\",\"scrollWidth\":305,\"clientWidth\":288,\"rect\":{\"x\":16,\"y\":16,\"width\":288,\"height\":868,\"top\":16,\"right\":304,\"bottom\":884,\"left\":16}}]"
+    }
+  ],
+  "blocked": [
+    "Loading/network-error state has no genuine async Party Ledger data source in this in-memory preview. Not fabricated."
+  ],
+  "screenshotGeometry": [
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-dialog-containment-red-320-light-payment-validation.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 305,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-dialog-containment-red-320-dark-payment-validation.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 305,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    }
+  ],
+  "passed": 0,
+  "failed": 2
+}

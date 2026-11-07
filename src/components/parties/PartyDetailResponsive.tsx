@@ -1,3 +1,4 @@
+import { usePartyContentTabs } from './usePartyContentTabs';
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { PartyActionSheet } from './PartyActionSheet';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -154,6 +155,8 @@ export function PartyDetailResponsive({
   { id: 'attachments', label: text('Attachments','ফাইল'), count: attachments.length }];
 
 
+  const {tabId,panelId,tabProps}=usePartyContentTabs(tab,setTab,tabs);
+
   const openRoleFinance=(type?:FinanceTransactionType)=>{setFinanceStartType(type);setFinanceOpen(true);};
   const financeActions=partyFinanceActions(relationship);
   const currentBalance=balanceSummary.netBalance;
@@ -230,7 +233,7 @@ export function PartyDetailResponsive({
   };
 
   return (
-    <motion.div initial={reduceMotion ? false : {opacity:0,y:7}} animate={{opacity:1,y:0}}
+    <motion.div style={{fontFeatureSettings:'normal',fontVariantNumeric:'proportional-nums'}} initial={reduceMotion ? false : {opacity:0,y:7}} animate={{opacity:1,y:0}}
       transition={reduceMotion ? {duration:0} : {duration:0.22,ease:[0.32,0.72,0,1]}}
       className="min-w-0 rounded-xl border border-border bg-card shadow-card">
 
@@ -398,20 +401,23 @@ export function PartyDetailResponsive({
         <button
           key={t.id}
           role="tab"
+          {...tabProps(t.id)}
           aria-selected={tab === t.id}
           onClick={() => setTab(t.id)}
-          className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors ${
+          className={`flex shrink-0 items-center gap-1.5 px-2.5 py-2.5 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
           tab === t.id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`
           }>
           
             {t.label}
             {t.count !== undefined &&
-          <span data-testid="party-tab-count" className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold transition-colors ${tab===t.id ? 'bg-teal-50 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200' : 'bg-ink-50 text-ink-500'}`}>{t.count}</span>
+          <span data-testid="party-tab-count" className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold transition-colors ${tab===t.id ? 'bg-teal-50 text-teal-800' : 'bg-ink-50 text-ink-500'}`}>{t.count}</span>
           }
           <MotionTabIndicator active={tab === t.id} /></button>
         )}
       </MotionTabList>
 
+      {tabs.filter(item=>item.id!==tab).map(item=><div key={item.id} id={panelId(item.id)} role="tabpanel" aria-labelledby={tabId(item.id)} hidden />)}
+      <div id={panelId(tab)} role="tabpanel" aria-labelledby={tabId(tab)} tabIndex={0} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
       {(vendorProfile?(!vendorProfile.documents.length&&!vendorProfile.payments.length&&!notes.length):entries.length===0) && tab !== 'notes' && tab !== 'ledger' ?
       <div className="px-4 py-14 text-center">
           <Receipt className="mx-auto size-8 text-helper" />
@@ -482,7 +488,7 @@ export function PartyDetailResponsive({
                     <p className="font-medium text-ink">{e.ref ?? text('Entry','এন্ট্রি')} <span className="font-normal text-ink-400">· {e.date}</span></p>
                     <p className="truncate text-xs text-ink-500">{e.description}</p>
                   </div>
-                  <span className="font-semibold tabular-nums text-ink">{taka(e.debit || e.credit)}</span>
+                  <span className="font-semibold text-ink">{taka(e.debit || e.credit)}</span>
                 </li>
           )}
               {(tab === 'invoices' ? invoices : payments).length === 0 &&
@@ -535,9 +541,9 @@ export function PartyDetailResponsive({
           <li key={n.id} className="rounded-lg border border-warning/20 bg-warning-bg/50 px-3 py-2 text-[13px] text-ink-700">
                 <div className="flex items-start justify-between gap-2">
                   <span className="break-words">{n.description}</span>
-                  <span className="flex shrink-0 gap-1">
-                    <button type="button" aria-label={`${text('Edit note','নোট বদলান')} ${n.description}`} className="rounded p-1 text-ink-500 hover:bg-ink-100" onClick={()=>{setEditingNote(n);setEditText(n.description);}}><Pencil className="size-3.5"/></button>
-                    <button type="button" aria-label={`${text('Delete note','নোট মুছুন')} ${n.description}`} className="rounded p-1 text-danger hover:bg-danger-bg" onClick={()=>setDeleteNote(n)}><Trash2 className="size-3.5"/></button>
+                  <span className="flex shrink-0 gap-2">
+                    <Button type="button" size="icon" variant="ghost" aria-label={`${text('Edit note','নোট বদলান')} ${n.description}`} className="shrink-0 text-ink-500 hover:bg-ink-100" onClick={()=>{setEditingNote(n);setEditText(n.description);}}><Pencil className="size-4"/></Button>
+                    <Button type="button" size="icon" variant="ghost" aria-label={`${text('Delete note','নোট মুছুন')} ${n.description}`} className="shrink-0 text-danger hover:bg-danger-bg" onClick={()=>setDeleteNote(n)}><Trash2 className="size-4"/></Button>
                   </span>
                 </div>
                 <span className="mt-0.5 block text-[11px] text-ink-400">{n.date} · {text('Preview','প্রিভিউ')}</span>
@@ -547,6 +553,8 @@ export function PartyDetailResponsive({
           </ul>
         </div>
       }
+
+      </div>
 
       <PartyOpeningDialog open={openingOpen} onClose={()=>setOpeningOpen(false)}
         party={party} relationship={relationship} existing={existingOpening} onSubmit={onSetOpening}/>

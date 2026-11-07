@@ -1,0 +1,88 @@
+{
+  "designTotal": 14,
+  "scores": {
+    "specificity": 3,
+    "hierarchy": 3,
+    "typography": 3,
+    "color": 2,
+    "composition": 3
+  },
+  "problems": [
+    {
+      "id": "party-tabs-keyboard",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDetail.tsx:249",
+      "evidence": "shots/round-0-main-desktop-light.png and shots/round-0-main-mobile-light-s1.png, light 1440/390, content tabs: the underline hierarchy is visually appropriate, but both PartyDetail.tsx:249-266 and PartyDetailResponsive.tsx:396-413 render five role=tab buttons with no roving tabIndex, arrow/Home/End handling, IDs, aria-controls or associated tabpanel. MotionTabList explicitly supplies presentation only. This fails T7 and the design guide section 30; source-verified keyboard/semantics defect, not inferred from the closed screenshot.",
+      "fix": "Keep the existing underline strip, labels, counts, selected state and panel contents. Add Party-local roving keyboard focus/selection and connected tab/panel IDs in both desktop and responsive renderers; ensure arrows reveal offscreen tabs and Tab enters the selected panel in a predictable order. Preserve drafts and handlers."
+    },
+    {
+      "id": "party-directory-keyboard",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDirectory.tsx:58",
+      "evidence": "shots/round-0-main-desktop-light.png and shots/round-0-main-desktop-dark.png, light/dark 1440, left directory: this is the primary record-selection surface. Its listbox/options have no ArrowUp/ArrowDown/Home/End handling and the search cannot transfer focus with ArrowDown; every option is a separate default Tab stop. The role filters also declare tabs without a complete keyboard pattern. PartyDirectoryResponsive.tsx already has source-backed search/list arrow handlers that desktop lacks. T7 and the explicit fast-selection brief apply.",
+      "fix": "Reuse the existing responsive directory keyboard behavior in desktop and provide one coherent focus model for role filters/list options, without changing the directory layout or selection/accounting callbacks. Search-to-results, arrows, Enter and visible focus must work with the selected party retained."
+    },
+    {
+      "id": "party-tab-count-dark-contrast",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDetail.tsx:262",
+      "evidence": "shots/round-0-main-desktop-dark.png and shots/round-0-main-mobile-dark.png, dark 1440/390, selected Ledger count: the 8 is visibly much dimmer than inactive counts and nearly disappears into its badge. Both detail renderers use dark:bg-teal-900/30 with dark:text-teal-200; runtime dark tokens reverse this scale (teal-900 is 182 240 233, teal-200 is 40 92 87), producing a dark figure on a lightened badge. T3 and craft-floor contrast require readable text rather than relying on token names.",
+      "fix": "Use the existing semantic accent foreground/background pair, or the already theme-aware base teal-50/teal-800 pair, for selected counts in both Party renderers. Verify actual normal-text contrast in document .dark and hisabiq-theme without changing global tokens."
+    },
+    {
+      "id": "party-balance-large-money-fit",
+      "severity": "P1",
+      "type": "responsive",
+      "location": "src/components/parties/PartyBalanceCard.tsx:88",
+      "evidence": "coverage/baseline-390-light-large-credit-balance.png, light 390, safe UI-created Payee opening credit ৳12,34,56,78,90,123.45: the unbreakable auto-width amount consumes most of the balance card, squeezing Payee payable into two short lines and the English/Bangla helper into narrow multi-line fragments. The balance surface grows from a compact scan block into a tall panel, even though the full figure itself fits. The current grid minmax(0,1fr)_auto and amount whitespace-nowrap cause the label column to absorb all pressure. T2/T5/T6 and the complete-money/bilingual brief require both meaning and value to remain readable. The toast covers part of the lower summary in this evidence, so no separate lower-summary claim is made.",
+      "fix": "Keep the existing balance card, meaning, full formatted value and current workflow. Let its local label/value grid reflow when the amount needs the space, giving the complete amount an available full-width line rather than crushing the meaning/helper column. Verify negative/zero/large balances and long Bangla at 320/390, both themes, without compact notation or reduced font size."
+    },
+    {
+      "id": "ledger-mobile-duplicate-description",
+      "severity": "P2",
+      "type": "cluttered",
+      "location": "src/components/parties/LedgerTableResponsive.tsx:124",
+      "evidence": "shots/round-0-main-mobile-light.png, shots/round-0-main-mobile-dark.png and shots/round-0-main-mobile-light-s1.png, light/dark 390, Note and Opening rows: 'Promised to clear dues before Durga Puja. Call Mr. Habib.' appears once as the bold identity and again as the muted description; 'Opening balance' is similarly repeated. The fallback identity at line 125 already uses row.description, but line 133 only compares description to row.reference. This repeats real content and makes the note row noticeably taller. T8 requires subtracting duplicated text.",
+      "fix": "Derive the displayed identity once and omit the secondary description only when it duplicates that identity. Keep full note text, references, source badge, amounts, running balance, row actions and current mobile row structure."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "severity": "P2",
+      "type": "spacing-hierarchy",
+      "location": "src/components/parties/PartyLedgerToolbar.tsx:36",
+      "evidence": "shots/round-0-main-desktop-light.png and shots/round-0-main-desktop-light-s1.png, light 1440, ledger toolbar: Reset is grouped beside the '25' page-size control, with that control separating it from 'All transactions'. Responsive toolbar lines 62-73 repeats the same grouping. The approved responsive pattern explicitly places Reset immediately beside the final status/type filter; the present arrangement makes its scope read like pagination reset. T4/T8 and docs/ui/RESPONSIVE-FILTER-ACTION-PATTERN.md alignment rules apply.",
+      "fix": "Keep the existing toolbar controls and behavior, but group the 36px Reset immediately after the transaction-type filter in both renderers. Keep page-size control separate, retain bilingual title/ARIA labels and full reset effects, and preserve phone/tablet primary-control order."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "severity": "P2",
+      "type": "typography",
+      "location": "src/components/parties/PartyDirectory.tsx:83",
+      "evidence": "shots/round-0-main-desktop-light.png and shots/round-0-main-desktop-dark.png, light/dark 1440, directory balance column: the values explicitly request tabular-nums. The directory has no data-erp-table/data-erp-table-view ancestor, so the table's proportional-digit override does not cover it. This source-backed typography drift conflicts with T5 and the brief's proportional Geist money requirement even though these fixture amounts remain legible.",
+      "fix": "Remove the local tabular numeral override from directory money and retain proportional Geist/Hind Siliguri figures, existing right alignment, full formatted amounts, semantic labels and compact density. Check the invoice/payment secondary lists for the same scoped drift without changing global typography."
+    }
+  ],
+  "strengths": [
+    "The existing desktop directory/detail composition supports real ERP selection and source review, with a clear current party, meaningful balance and one prominent payment action.",
+    "The approved phone search/filter/date order, complete fixture references and visible row actions are retained; header/logo remain at the very top in all baseline full-page images.",
+    "Blue/teal Ink surfaces, bilingual context and neutral transaction amounts give the surface product-specific identity without decorative chrome."
+  ],
+  "inspection": {
+    "isolated": true,
+    "detectorOutputRead": false,
+    "images": [
+      "shots/round-0-main-desktop-light.png",
+      "shots/round-0-main-desktop-dark.png",
+      "shots/round-0-main-mobile-light.png",
+      "shots/round-0-main-mobile-dark.png",
+      "shots/round-0-main-desktop-light-s1.png",
+      "shots/round-0-main-mobile-light-s1.png",
+      "coverage/baseline-390-light-large-credit-balance.png"
+    ],
+    "limitations": "This assessment visually inspected all six provided baseline PNGs, including both crops, plus the coverage agent's authentic UI-created large-credit screenshot, and read Party desktop/responsive directory, toolbar, row, balance, detail, action and dialog presentation source. It did not drive a second browser while the coverage agent used the shared browser. Closed screenshots do not verify open dialogs or keyboard execution. Additional long-Bangla/320px amount states need coverage; they are not asserted as rendered failures here. No module redesign or shell-position change is proposed."
+  },
+  "openQuestions": []
+}

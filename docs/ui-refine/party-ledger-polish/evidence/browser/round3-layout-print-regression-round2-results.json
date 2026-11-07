@@ -1,0 +1,50 @@
+[
+  {
+    "tag": "320-light",
+    "status": "passed"
+  },
+  {
+    "tag": "320-dark",
+    "status": "passed"
+  },
+  {
+    "tag": "390-light",
+    "status": "passed"
+  },
+  {
+    "tag": "390-dark",
+    "status": "passed"
+  },
+  {
+    "tag": "768-light",
+    "status": "passed"
+  },
+  {
+    "tag": "768-dark",
+    "status": "passed"
+  },
+  {
+    "tag": "820-light",
+    "status": "passed"
+  },
+  {
+    "tag": "820-dark",
+    "status": "passed"
+  },
+  {
+    "tag": "1024-light",
+    "status": "passed"
+  },
+  {
+    "tag": "1024-dark",
+    "status": "passed"
+  },
+  {
+    "tag": "1440-light",
+    "status": "passed"
+  },
+  {
+    "tag": "1440-dark",
+    "status": "passed"
+  }
+]

@@ -1,0 +1,61 @@
+
+> magic-patterns-vite-template@0.0.1 check:ui-contract
+> node scripts/sync-design-guide.cjs --check && node scripts/check-ui-design-contract.cjs && node --test tests/uiDesignContractGuard.test.cjs && node --test tests/workflowActionSizing.test.cjs && node scripts/check-input-focus.cjs && node scripts/audit-erp-controls.cjs
+
+Verified guide v2.2: 32 chapters, 292 component files, 170 Lucide imports, 59 colors per theme.
+HisabIQ UI contract guard passed: canonical component references exist; no new standalone product-list selects.
+✔ standalone AppSelect product picker is forbidden on new screens (1.122871ms)
+✔ quotation and online order product selects are no longer allowed (0.384999ms)
+✔ small fixed dropdowns and non-product filters are not treated as transaction pickers (0.674865ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 167.081562
+✔ ordinary controls retain 36px and explicitly marked completion actions use 48px (1.441865ms)
+✔ major sale, purchase and return CTAs opt in; ordinary buttons need no change (1.657469ms)
+✔ browser field size survey expects marked completion actions at 48px (0.20634ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 173.717234
+ERP shared 36px size + focus source contract: PASS
+HisabIQ control inventory:  292 TSX files; detected 833 shared buttons, 254 native buttons, 672 input/select fields
+Flagged for visual review (not automatically invalid): 18
+┌──────────────────────────────────────┬───────┬────────┬────────┬────────┬───────┐
+│ (index)                              │ files │ shared │ native │ inputs │ flags │
+├──────────────────────────────────────┼───────┼────────┼────────┼────────┼───────┤
+│ ERP shared controls / utilities      │ 68    │ 59     │ 50     │ 45     │ 4     │
+│ Purchases / purchase returns         │ 8     │ 40     │ 14     │ 45     │ 4     │
+│ ERP shell / global navigation        │ 16    │ 9      │ 24     │ 7      │ 3     │
+│ Brand guide (outside ERP workspace)  │ 19    │ 45     │ 12     │ 34     │ 2     │
+│ POS / checkout                       │ 18    │ 54     │ 35     │ 36     │ 2     │
+│ ERP settings                         │ 21    │ 67     │ 6      │ 72     │ 1     │
+│ Finance / Counter                    │ 7     │ 73     │ 16     │ 71     │ 1     │
+│ Sales / returns / credit / drafts    │ 3     │ 35     │ 10     │ 28     │ 1     │
+│ Accounts / vouchers                  │ 9     │ 42     │ 11     │ 42     │ 0     │
+│ Audit ledger                         │ 6     │ 18     │ 2      │ 24     │ 0     │
+│ Dashboard                            │ 8     │ 6      │ 4      │ 0      │ 0     │
+│ Daybook                              │ 4     │ 12     │ 0      │ 5      │ 0     │
+│ ErpNotifications                     │ 1     │ 2      │ 1      │ 11     │ 0     │
+│ Expenses                             │ 1     │ 11     │ 3      │ 7      │ 0     │
+│ GlobalSearch                         │ 1     │ 0      │ 0      │ 0      │ 0     │
+│ OnlineSales                          │ 1     │ 22     │ 2      │ 30     │ 0     │
+│ Parties / customer & supplier ledger │ 32    │ 105    │ 13     │ 50     │ 0     │
+│ Product / party import               │ 5     │ 15     │ 0      │ 8      │ 0     │
+│ Products / bundles / inventory       │ 27    │ 44     │ 19     │ 51     │ 0     │
+│ Quotations                           │ 1     │ 19     │ 2      │ 7      │ 0     │
+│ Reconciliation                       │ 1     │ 11     │ 3      │ 7      │ 0     │
+│ Reports                              │ 1     │ 13     │ 3      │ 3      │ 0     │
+│ SaaS (outside ERP workspace)         │ 21    │ 88     │ 7      │ 50     │ 0     │
+│ Shared transaction cart / multi-unit │ 3     │ 0      │ 4      │ 5      │ 0     │
+│ Vendors                              │ 9     │ 27     │ 9      │ 14     │ 0     │
+│ Warranty                             │ 1     │ 16     │ 4      │ 20     │ 0     │
+└──────────────────────────────────────┴───────┴────────┴────────┴────────┴───────┘

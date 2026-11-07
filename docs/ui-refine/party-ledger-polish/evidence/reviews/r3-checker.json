@@ -1,0 +1,135 @@
+{
+  "assessment": "Checker · recovered round-three merge",
+  "round": 3,
+  "commit": "c7e641d813e87cca0b2ce633e4a31f4f5ba6d3e5",
+  "critic": "impeccable",
+  "designScores": {
+    "specificity": 4,
+    "hierarchy": 3,
+    "typography": 3,
+    "color": 3,
+    "composition": 3
+  },
+  "designTotal": 16,
+  "auditScores": {
+    "accessibility": 2,
+    "performance": 3,
+    "responsive": 3,
+    "theming": 3,
+    "integrity": 3
+  },
+  "auditTotal": 14,
+  "visualTotal": 30,
+  "scoreMaximum": 40,
+  "scoreProvenance": "16/20 design plus 14/20 audit are the saved independent reviewer scores, summed to 30/40; recovery checker did not invent or rescore them.",
+  "detectorRan": true,
+  "detectorExitCode": 0,
+  "detectorRaw": "r3-detector-raw.json",
+  "detectorFindings": [],
+  "problems": [
+    {
+      "id": "party-dialog-validation-association",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyPaymentDialog.tsx:53",
+      "evidence": "T7/T9 and guide §§7/14/30. Payment submit at53–57 sets only a bottom error string; amount80, discount88, reason95 and split consumer97 have no error IDs, aria-invalid, aria-describedby, or failed-submit focus. Alert106 announces feedback but is not focusable or associated with the affected controls. Refund45–49/77/87/97 repeats the gap; Finance51–61/84/105 does so after existing validators; Opening50–55/77/90 and correction/reversal42–56/85/90/98/107 likewise have no association or recovery focus. Source checked directly at the stated revision; no browser or assistive-technology outcome is inferred. Both independent round-three reports converge on this finding; recovery checker independently inspected the affected source at c7e641d.",
+      "fix": "Preserve all current validators, their order/messages, calculations, payloads, submit/catch behavior and draft values. Add Party-local presentation error state, stable translated field/error associations and focus to the first deterministically invalid control after local review/save failure; use a focusable existing error summary for a submission/domain error that cannot safely identify a field. Expose narrow opt-in split-field props only where needed, with shared Finance defaults unchanged. Cover payment amount/discount/reason/splits, refund, finance, opening, and correction/reversal recovery.",
+      "assessmentSources": [
+        "r3-design.json",
+        "r3-detector.json"
+      ]
+    },
+    {
+      "id": "party-split-amount-name",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/finance/FinancePaymentSplitEditor.tsx:87",
+      "evidence": "T7/T12 and guide §§9/30. PartyPaymentDialog97, PartyCreditRefundDialog90, PartyFinanceDialog94–95 and PartyTransactionDialog94–95 consume FinancePaymentSplitEditor. Its Input at src/components/finance/FinancePaymentSplitEditor.tsx:87–93 has only value, decimal mode, class, change handler and numeric placeholder; the row59 is a div, with no connected label/id/aria-label/aria-labelledby. Input.tsx24–25 routes it to NumericInput; NumericInput.tsx48 forwards supplied props to the real input and only uses its inferred label on steppers59–61. Thus the actual split amount has no meaningful accessible name, including in source correction. No runtime accessible-tree assertion is claimed. Both independent round-three reports converge on this finding; recovery checker independently inspected the affected source at c7e641d.",
+      "fix": "Add a narrowly optional presentation API to the shared split editor and opt in only from Party payment, refund, finance and correction consumers. Each amount must have a translated task/row-specific accessible name for one and multiple rows. Keep default markup/behavior for all other consumers, row values, method/account choices, normalization, parsers, validators and calculations unchanged. Coordinate error description/invalid state with the related validation finding.",
+      "assessmentSources": [
+        "r3-design.json",
+        "r3-detector.json"
+      ]
+    },
+    {
+      "id": "party-statement-mobile-summary-overflow",
+      "severity": "P2",
+      "type": "responsive",
+      "location": "src/components/parties/PartyStatementDialog.tsx:63",
+      "evidence": "T5/T6 and guide §§21/30. round2-browser/320-light-statement.png,320px light statement at its bottom: Period debit and Period credit labels are visible but their right-side values are outside the visible document edge; Closing balance reads only the leading “৳48,65…” at the right cut. The source document child63 has no min-w-0 containment; the summary96–99 sits outside the table overflow-x-auto78 and therefore should not require comparative-table scrolling to read its money. The supplied320px screenshot demonstrates the visible defect, but does not establish whether the whole dialog can be horizontally scrolled. The corresponding five-page PDFs are complete, so this is a screen-preview finding rather than a print regression. Recovery checker independently viewed the supplied 320px image and verified the uncontained document and summary source; the screenshot shows summary values extending beyond the visible right edge.",
+      "fix": "Contain the on-screen statement/document children at phone width, keep horizontal scrolling inside the comparative table, and let opening/period/closing summaries wrap while exposing their full amounts and relationship labels at320px. Preserve the existing layout, all statement content, exact numbers and scoped print behavior. Recheck320/390 light/dark preview plus the existing full/multi-page PDFs.",
+      "assessmentSources": [
+        "r3-design.json"
+      ]
+    }
+  ],
+  "vsBefore": "better",
+  "vsBeforeNote": "Desktop header/logo/content start and compact workspace preserved; phone note/opening duplication removed and page shorter; dark selected tab count clearer; Reset grouped beside transaction type. No visible main-shot section regressed; 320px statement preview summary remains clipped.",
+  "summary": "The saved independent assessments merge to 30/40, and the recovered checker confirms better main-screen presentation without changing the approved Party layout. Three bounded issues remain: two P1 accessibility gaps and one P2 statement-preview containment gap; party-dialog-validation-association has survived three checks (r1, r2, r3), while party-split-amount-name persists from r2.",
+  "openQuestions": [
+    "Final fixer must capture actual failed-review/save focus and error associations for amount, discount/reason, split mismatch and unknown/domain error fallback, including correction/reversal and opening balance; source-only assessment does not establish runtime recovery.",
+    "After containment, verify 320/390px light/dark statement preview including header, complete summary money and footer, comparative table scrolling, and existing multi-page PDF output.",
+    "Direct-source/browserBack query loss and cross-1024px dialog draft loss are documented baseline limitations outside this presentation patch, not new regressions; authentic loading/network-error states are unavailable in this synchronous preview."
+  ],
+  "resolvedFromPriorIds": [
+    {
+      "id": "statement-print-clipping",
+      "status": "resolved in supplied actual print evidence",
+      "evidence": "round2-browser/{320,1440}-{light,dark}-print-{1..5}.png: opening0, original references including INV-000241/RCV-000101, safe preview note rows00–31, period debit84,950, period credit36,300 and closing৳48,650 Receivable are present across all5 pages; no clipped table/footer in the raster output."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "status": "source repair present; runtime not independently driven",
+      "evidence": "usePartyContentTabs.ts implements ArrowLeft/Right/Home/End, one tab stop, stable linked IDs, focus and reveal. Both detail renderers apply it and linked tabpanel markup; Notes capture320-dark-notes.png shows selected Notes revealed."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "status": "visually/source resolved",
+      "evidence": "round2-main desktop shots and round2-browser/320-light-reset.png/768-dark-reset.png show Reset beside All transactions, not Rows; both toolbar sources preserve onReset."
+    },
+    {
+      "id": "party-note-action-targets",
+      "status": "visually/source resolved",
+      "evidence": "round2-browser/1440-light-notes.png and320-dark-notes.png show separated edit/delete actions. Both renderers now reuse shared Button size=icon with gap2 and translated names."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "status": "source repair present",
+      "evidence": "Both directory and detail roots explicitly set fontFeatureSettings normal and fontVariantNumeric proportional-nums; invoice/payment money has no retained local tabular-nums. No independent computed-style claim."
+    }
+  ],
+  "fixerScope": "Only these three findings. Preserve approved layout, exact validators/order/messages/payloads/draft values/calculations/accounting/posting/data/permissions. Shared FinancePaymentSplitEditor may receive a narrow optional presentation API opted into only by PartyPaymentDialog, PartyCreditRefundDialog, PartyFinanceDialog and PartyTransactionDialog; all other consumer defaults remain unchanged. Run polish last.",
+  "recovery": {
+    "reason": "Earlier round-three checker announced 30/40 but was interrupted before persisting its JSON. This file reconstructs the concrete handoff by merging the two saved inputs and independently inspecting comparison images and relevant source.",
+    "inputs": [
+      "r3-design.json",
+      "r3-detector.json",
+      "r3-detector-raw.json"
+    ],
+    "imagesIndependentlyViewed": [
+      "shots/cmp-round-2-main-desktop-light.png",
+      "shots/cmp-round-2-main-desktop-dark.png",
+      "shots/cmp-round-2-main-mobile-light.png",
+      "shots/cmp-round-2-main-mobile-dark.png",
+      "round2-browser/320-light-statement.png"
+    ],
+    "sourceInspected": [
+      "src/components/parties/PartyPaymentDialog.tsx",
+      "src/components/parties/PartyCreditRefundDialog.tsx",
+      "src/components/parties/PartyFinanceDialog.tsx",
+      "src/components/parties/PartyOpeningDialog.tsx",
+      "src/components/parties/PartyTransactionDialog.tsx",
+      "src/components/parties/PartyStatementDialog.tsx",
+      "src/components/finance/FinancePaymentSplitEditor.tsx"
+    ],
+    "stableIdsCheckedAgainst": [
+      "r1-checker.json",
+      "r2-checker.json"
+    ],
+    "sourceEdited": false,
+    "browserUsed": false,
+    "newRuntimeClaims": false,
+    "independenceCaveat": "A shell read inadvertently emitted full prior merged r2-checker.json instead of stable IDs only. No standalone design/detector transcripts or current-round detector output were opened. Current findings were independently verified against supplied current images/source; this accidental prior-summary exposure should be disclosed when describing reviewer isolation.",
+    "limitations": "Bounded recovery merge, not a repeated broad audit. Prior print/tab/Reset/note-target/proportional fixes retain the supplied reviewer evidence; recovery checker did not rerun their browser/PDF checks."
+  }
+}

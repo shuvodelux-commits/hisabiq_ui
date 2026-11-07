@@ -1,0 +1,87 @@
+{
+  "round": 2,
+  "assessment": "Assessment A · isolated",
+  "method": "Fresh independent Impeccable design reviewer using the original ui-refine-loop checker brief; no detector or other assessment output read. Prior checker supplied only stable problem IDs and locations.",
+  "revision": "5407bbf",
+  "scores": {"specificity": 3, "hierarchy": 3, "typography": 3, "color": 3, "composition": 3},
+  "designTotal": 15,
+  "scoreMaximum": 20,
+  "specificityVerdict": "The compact party directory, relationship-specific financial language, bilingual identity and exact ledger figures belong to the existing HisabIQ ERP. The approved visual world is intact and does not need redesign.",
+  "summary": "The current screen is modestly better than baseline: mobile note/opening repetition is removed, dark active counts are readable, and the recovery captures show complete large amounts at 320/390px. Print output and source-confirmed keyboard, error-recovery and note-action gaps still block the brief; preserve this composition while repairing them.",
+  "vsBefore": "better",
+  "vsBeforeNote": "Desktop hierarchy and shell positions preserved; mobile header slightly tighter, duplicate ledger prose removed, dark active count improved; long-money recovery proof fits; statement printing unchanged and broken in the available PDF.",
+  "strengths": [
+    "The desktop identity, role, balance and receive-payment action remain easy to scan in the original directory/detail arrangement (T1, T2).",
+    "Light and dark share layout and readable semantic receivable/payable treatment; the active Ledger count is now legible in dark mode (T3).",
+    "All 20 inspected PNGs preserve the logo and top navigation position for their viewport. The four 320/390 recovery captures show the full 12,34,56,78,90,123.45 amount in header, transaction, running balance, period summary and closing balance without hiding the row action (T5, T6)."
+  ],
+  "problems": [
+    {
+      "id": "statement-print-clipping",
+      "severity": "P0",
+      "type": "edge-cases",
+      "location": "src/components/parties/PartyStatementDialog.tsx:39",
+      "evidence": "Actual rendered document: /workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-1440-light-statement.pdf, both A4 pages contain only the business/party header; opening balance, transaction table and closing totals are absent. Page 1 was rasterized and inspected, and text extraction confirms header-only pages. Current PartyStatementDialog.tsx, shared Dialog.tsx and src/index.css have no diff from de33350. Dialog content remains constrained/scrollable, and src/index.css:81 fixes the print child inside the dialog's positioned/transformed ancestry. This is a baseline-rendered failure with unchanged current print code, not a newly captured current PDF. T10 and guide §28 require actual complete print output.",
+      "fix": "Make the existing statement print surface and its dialog ancestry participate in unclipped normal print flow through narrowly scoped print rules or the existing document pipeline. Remove the print-only constrained height/overflow/transform/fixed-position interaction; preserve profile orientation/margins, exact rows, opening/period/closing balances and Bengali fonts. Regenerate the real PDF from both themes and verify every expected row and total, including a multi-page statement. Do not change financial data or shared dialog behavior on screen."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDetail.tsx:249",
+      "evidence": "Source-confirmed at PartyDetail.tsx:249-266 and PartyDetailResponsive.tsx:396-413: role=tab buttons only set state on click; all remain ordinary Tab stops, with no ArrowLeft/ArrowRight/Home/End handling, IDs, aria-controls, or associated role=tabpanel. src/motion/MotionTabList.tsx explicitly provides presentation only and supplies none of that behavior. /workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-1-main-mobile-light.png and round-1-main-mobile-dark.png show the horizontally scrolling strip with Notes/Attachments beyond the initial view; screenshots establish placement only, not keyboard success. T7 and guide §20/30 explicitly require the complete tab pattern.",
+      "fix": "Add a small shared Party-local tab focus/selection helper for both presentations: one roving tab stop, left/right plus Home/End navigation, active item scroll into view, stable tab/panel IDs and aria relationships. Keep existing underline motion, counts, selected content and draft state. Verify keyboard traversal and focus in both layouts and themes."
+    },
+    {
+      "id": "party-dialog-validation-association",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyPaymentDialog.tsx:53",
+      "evidence": "Source-confirmed: payment validation at lines 53-57 only sets an error string; affected amount/discount/reason inputs at 80/88/95 have no aria-invalid, error description association, or submit-error focus. The sole role=alert at 106 announces text but does not identify the invalid field. The same pattern appears in PartyFinanceDialog.tsx:49-61/84/105, PartyCreditRefundDialog.tsx:45-49/97, PartyOpeningDialog.tsx:50-55/78/90, and PartyTransactionDialog.tsx:42/107. No current open validation-state image was supplied among the original round shots, so visual geometry and runtime focus are unverified; the missing attributes and handlers are directly verified in source. T7/T9 and guide §7/14 require associated errors and first-invalid focus.",
+      "fix": "Keep every validator and financial rule unchanged. Attach local field/error IDs and aria-invalid/aria-describedby, retain the announced summary, and focus the first invalid field for each existing error branch. Keep valid draft values and ensure the offending control/error can be reached with a phone keyboard. Extend a shared primitive only with an opt-in if necessary; do not change unrelated module behavior."
+    },
+    {
+      "id": "party-note-action-targets",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDetailResponsive.tsx:539",
+      "evidence": "Source-confirmed controls in PartyDetailResponsive.tsx:539-540 and PartyDetail.tsx:380-381 are raw buttons with a 14px glyph and p-1, yielding approximately 22px targets with only gap-1 between edit and destructive delete. They bypass the approved shared 36px icon Button and declare no local focus-visible treatment. The supplied round shots show Ledger rather than the Notes tab, so this is a verified implementation/size-contract gap, not a claim of a newly observed Notes screenshot. T4/T7 and guide §8/21 require ordinary icon controls at the shared 36px size with useful separation.",
+      "fix": "Use the actual shared Button with size=icon and ghost/appropriate semantic styling for both note actions, keeping existing accessible names, callbacks and confirmation dialogs. Reserve the compact action group at the row end, let prose wrap in a min-width-zero flex item, provide visible focus, and prove 320/390px note editing/deleting without overflow or accidental adjacent activation."
+    },
+    {
+      "id": "party-reset-filter-grouping",
+      "severity": "P2",
+      "type": "spacing-hierarchy",
+      "location": "src/components/parties/PartyLedgerToolbar.tsx:40",
+      "evidence": "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-1-main-desktop-light.png and round-1-main-desktop-dark.png, 1440px toolbar: Reset is grouped beside the page-size 25 selector, separated from All transactions. Source at PartyLedgerToolbar.tsx:38-46 confirms that grouping. PartyLedgerToolbarResponsive.tsx:62-74 likewise groups Reset with Rows, placing it on the following grid row at 320px. The owner-approved taste appendix and RESPONSIVE-FILTER-ACTION-PATTERN.md require Reset directly beside the final status/type filter. Current reset callback remains intact; this finding concerns grouping, not accounting/filter semantics.",
+      "fix": "Keep Search, Date, Type, Rows and Print in the same compact toolbar composition, but group the 36px Reset icon immediately with Transaction type at every breakpoint so wrapping cannot separate them. Preserve the exact existing reset callback, bilingual name, values and keyboard order; retain page-size handling separately. Verify expanded phone/tablet and desktop geometry in light/dark."
+    }
+  ],
+  "resolvedFromPriorIds": [
+    {"id": "party-balance-large-money-fit", "status": "visually resolved for supplied 320/390 light/dark recovery cases", "evidence": "round1-recovery-green/{320,390}-{light,dark}-large-money.png; complete large amount is visible throughout the screen."},
+    {"id": "party-directory-keyboard", "status": "source repair present; runtime behavior not independently exercised by this reviewer", "evidence": "Both directory presentations now call usePartyDirectoryKeyboard; it implements search ArrowDown, option Up/Down/Home/End and one roving tab stop. Do not claim browser success solely from this source review."},
+    {"id": "party-tab-count-dark-contrast", "status": "visually resolved in supplied dark desktop/mobile shots", "evidence": "round-1-main-desktop-dark.png and round-1-main-mobile-dark.png; selected count now uses dark semantic teal surface and legible foreground."},
+    {"id": "ledger-mobile-duplicate-description", "status": "visually resolved", "evidence": "Original before/after sheets and mobile light/dark shots show Note and Opening description once; LedgerTableResponsive.tsx:134 avoids duplicate identity text."}
+  ],
+  "openQuestions": [
+    "Current statement PDF has not been captured by this reviewer; baseline PDF plus unchanged print path establishes the remaining failure, and the next fix must supply a current complete PDF.",
+    "Notes, validation focus/association, keyboard tab traversal and expanded responsive Reset grouping require current open-state browser proof; the screenshot-only reviewer deliberately did not drive the coverage agent's browser.",
+    "The large-money recovery proof covers 320/390px and the supplied negative Payee case; it does not alone certify every role, long directory name/balance, zoom level or document layout."
+  ],
+  "evidenceCoverage": {
+    "browserUsed": false,
+    "detectorOutputRead": false,
+    "allOriginalRoundShotsRead": true,
+    "originalImages": [
+      "shots/round-0-main-desktop-light.png", "shots/round-0-main-desktop-dark.png", "shots/round-0-main-mobile-light.png", "shots/round-0-main-mobile-dark.png",
+      "shots/round-0-main-desktop-light-s1.png", "shots/round-0-main-mobile-light-s1.png",
+      "shots/round-1-main-desktop-light.png", "shots/round-1-main-desktop-dark.png", "shots/round-1-main-mobile-light.png", "shots/round-1-main-mobile-dark.png",
+      "shots/round-1-main-desktop-light-s1.png", "shots/round-1-main-mobile-light-s1.png",
+      "shots/cmp-round-1-main-desktop-light.png", "shots/cmp-round-1-main-desktop-dark.png", "shots/cmp-round-1-main-mobile-light.png", "shots/cmp-round-1-main-mobile-dark.png"
+    ],
+    "supplementalImages": ["round1-recovery-green/320-light-large-money.png", "round1-recovery-green/320-dark-large-money.png", "round1-recovery-green/390-light-large-money.png", "round1-recovery-green/390-dark-large-money.png"],
+    "printEvidence": "coverage/baseline-1440-light-statement.pdf; page 1 raster viewed and both pages text-extracted",
+    "shellCheck": "1440px: logo lockup remains at sidebar top, topbar at 56px and content title/panels at original offsets. 390px: logo/top controls and module strip remain above the same content start. 320px recovery: search wraps to its approved additional topbar row and content begins below the module strip. No observed shell displacement attributable to this round.",
+    "limitations": "This is Assessment A only. It does not provide detector/audit scores, claim live interaction passes, or certify checks run by other agents."
+  }
+}

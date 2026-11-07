@@ -1,0 +1,88 @@
+{
+  "round": 1,
+  "assessment": "B · isolated source-only detector and technical audit",
+  "detectorRan": true,
+  "detectorCommand": "sh .agents/skills/impeccable/scripts/impeccable detect --json src/components/parties src/pages/Parties.tsx",
+  "detectorExitCode": 0,
+  "detectorRaw": "r1-detector-raw.json",
+  "detectorFindings": [],
+  "auditTotal": 14,
+  "scores": {
+    "accessibility": 2,
+    "performance": 3,
+    "responsive": 3,
+    "theming": 3,
+    "integrity": 3
+  },
+  "scoreLimits": "Source-level scores only. No screenshots, design-review output, browser, rendered contrast, real touch, or performance trace were viewed. Runtime coverage belongs to the independent coverage agent.",
+  "integrityVerdict": "Coherent existing Party implementation using actual shared primitives and existing role-action handlers; no deterministic detector drift. Several inherited local accessibility/typography gaps remain.",
+  "problems": [
+    {
+      "id": "PL-A11Y-TABS",
+      "severity": "P2",
+      "type": "accessibility",
+      "file": "src/components/parties/PartyDetail.tsx",
+      "line": 249,
+      "evidence": "T7/T12 and design guide §§20/30: detail tabs declare tablist/tab/aria-selected but have no roving tabIndex, arrow/Home/End handler, ids, aria-controls or associated tabpanel. Same pattern at PartyDetailResponsive.tsx:396. MotionTabList.tsx explicitly supplies presentation only. Directory role filters repeat role=tab without tab keyboard semantics (PartyDirectory.tsx:36 and PartyDirectoryResponsive.tsx:60). Every tab is an ordinary Tab stop; arrow keys do not move between the advertised tabs. This is inherited source behavior, not a detector hit.",
+      "fix": "Add local ids/panel associations and complete roving keyboard behavior to content tabs in both detail variants. For role filters use a semantic labelled pressed-button group, or implement a complete tab pattern. Preserve handlers, labels, selections and layouts."
+    },
+    {
+      "id": "PL-A11Y-DIRECTORY",
+      "severity": "P2",
+      "type": "accessibility",
+      "file": "src/components/parties/PartyDirectory.tsx",
+      "line": 58,
+      "evidence": "T7 and design guide §30: desktop directory declares role=listbox with role=option buttons, but has no arrow/Home/End navigation or single active tab stop. Responsive directory adds arrows at lines 35–44, but still leaves every option tabbable. Screen readers announce a composite selection widget while focus behavior is an ordinary long button list. Inherited behavior; selection callbacks are real and must remain.",
+      "fix": "Use a complete local single-select listbox focus model, preserving Enter/Space selection and selected identity, or use ordinary list/button semantics with a current/pressed state. Keep existing responsive search-to-results behavior and focus return."
+    },
+    {
+      "id": "PL-A11Y-VALIDATION",
+      "severity": "P2",
+      "type": "accessibility",
+      "file": "src/components/parties/PartyPaymentDialog.tsx",
+      "line": 51,
+      "evidence": "T7/T9 and design guide §§7/14: failed validation only sets one bottom role=alert and returns; amount, discount/reason and splits get no error id association/aria-invalid and focus stays on Review/Confirm. Refund (PartyCreditRefundDialog.tsx:43–49,77–88,97), finance (PartyFinanceDialog.tsx:51–60,84,105) and opening (PartyOpeningDialog.tsx:77–90) repeat this. Labels and live alert do exist; missing field association/focus is the verified gap. No accounting validation change is requested.",
+      "fix": "Expose current validation errors on the existing affected inputs with aria-invalid and aria-describedby plus stable error ids; focus the relevant invalid input or existing error summary after failed review. Preserve existing validators and payloads."
+    },
+    {
+      "id": "PL-CONTROL-NOTE-ACTIONS",
+      "severity": "P2",
+      "type": "responsive",
+      "file": "src/components/parties/PartyDetailResponsive.tsx",
+      "line": 539,
+      "evidence": "T4/T7/T12: note Edit/Delete use raw buttons with 14px icons plus p-1, approximately 22px boxes, and only gap-1. Duplicate desktop code is PartyDetail.tsx:380–381. Shared 36px .hisabiq-button size rules in index.css:616 do not cover these raw buttons. This violates the product ordinary icon-action contract and makes adjacent routine actions harder to tap. The 4px spacing may satisfy WCAG target-spacing exception; no blanket WCAG 44px claim is made.",
+      "fix": "Reuse shared Button size=icon with existing ghost/destructive semantic styling and translated accessible labels, retaining exact edit/delete callbacks and dialog focus behavior. Keep 36px contract; avoid a global default edit."
+    },
+    {
+      "id": "PL-TYPE-DIRECTORY-FIGURES",
+      "severity": "P2",
+      "type": "integrity",
+      "file": "src/components/parties/PartyDirectory.tsx",
+      "line": 84,
+      "evidence": "T5 and design guide §5 require proportional money figures. Desktop balance applies tabular-nums outside any data-erp-table/data-erp-table-view marker, so index.css:783–795 table numeric reset does not protect it. Responsive counterpart does not have tabular-nums. Inherited source drift, not an official detector finding.",
+      "fix": "Remove local tabular-nums from the desktop directory balance; preserve currency formatting, semantic colors and exact amount."
+    }
+  ],
+  "falsePositives": [],
+  "intentionalOrOverriddenPatterns": [
+    "Detector raw output is []; there are no detector hits to suppress.",
+    "36px controls are the explicit owner contract; generic audit preference for 44px targets does not authorize enlargement.",
+    "teal-* and ink-* classes map to runtime theme channels in tailwind.config.js and src/theme.css; they are not hard-coded palette violations.",
+    "Legacy text-[11px]/text-[15px] on marked table rows is overridden by high-specificity 13/12/11 roles in src/index.css:783–810; do not report those class strings as rendered typography defects.",
+    "LedgerTableResponsive deliberately uses the inherited phone row composition below 768px and a scrollable table from 768px. Sticky-right row action cells preserve access; runtime bounds remain for the coverage agent.",
+    "Truncated ledger descriptions retain full description through the real view/source preview; directory identity opens the actual detail. Do not remove those behaviors or redesign layouts on a generic anti-truncation recommendation.",
+    "Statements generate a real CSV Blob/download and call the established print path. Customer/Supplier/payment/refund and Owner/Lender/Borrower role finance flows retain existing role mappings and source handlers.",
+    "Shared Table supplies keyboard scrolling only when overflow exists; source min-width alone is not proof of inaccessible table scrolling."
+  ],
+  "positiveFindings": [
+    "Search/date/filter/reset are controlled; mobile and tablet toggles intentionally preserve visible DOM order.",
+    "Existing shared Dialog, Input, Button, AppSelect, Table, FloatingPanel and ActionMenu are reused; role-action map is intact.",
+    "Money uses existing currency helpers and right-aligned cells; source previews expose full references/descriptions.",
+    "Mobile ledger transitions honor useReducedMotion. No expensive animation/layout-thrashing issue was verified.",
+    "Actions explicitly distinguish UI preview from real posting; unavailable SMS is intentionally disabled with reason."
+  ],
+  "openQuestions": [
+    "Coverage agent must validate large amounts/long Bangla and 200% text zoom, menu/dialog focus return, split fields and on-screen keyboard bounds, print output and light/dark contrast. No runtime success is inferred from this source audit."
+  ],
+  "knownCheckContext": "Coordinator reports full baseline lint fails only in newly initialized upstream vendor/super-board (58 errors); authored lint uses --ignore-pattern vendor/super-board/** and the original failure must be disclosed. This auditor did not rerun or alter that baseline."
+}

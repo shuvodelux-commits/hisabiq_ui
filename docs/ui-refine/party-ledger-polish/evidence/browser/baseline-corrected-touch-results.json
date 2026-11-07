@@ -1,0 +1,215 @@
+{
+  "label": "baseline-corrected-touch",
+  "base": "http://127.0.0.1:4312",
+  "results": [
+    {
+      "name": "1024-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark row actions and read-only details",
+      "status": "passed"
+    }
+  ],
+  "blocked": [
+    "Loading/network-error state has no genuine async Party Ledger data source in this in-memory preview. Not fabricated."
+  ],
+  "screenshotGeometry": [
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-light-populated.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-light-expanded-filtered.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-light-empty.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-light-row-menu.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-light-source-preview.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-dark-populated.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-dark-expanded-filtered.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-dark-empty.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-dark-row-menu.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-touch-1024-dark-source-preview.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    }
+  ],
+  "passed": 6,
+  "failed": 0
+}

@@ -1,0 +1,261 @@
+{
+  "label": "baseline-desktop-focus-corrected",
+  "base": "http://127.0.0.1:4312",
+  "results": [
+    {
+      "name": "1024-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark row actions and read-only details",
+      "status": "passed"
+    }
+  ],
+  "blocked": [
+    "Loading/network-error state has no genuine async Party Ledger data source in this in-memory preview. Not fabricated."
+  ],
+  "screenshotGeometry": [
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1024-light-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1024-light-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1024-light-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1024-light-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1024-dark-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1024-dark-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1024-dark-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1024-dark-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1440-light-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1440-light-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1440-light-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1440-light-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1440-dark-calendar.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1440-dark-date-filtered.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1440-dark-row-menu.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-desktop-focus-corrected-1440-dark-source-preview.png",
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ]
+    }
+  ],
+  "passed": 8,
+  "failed": 0
+}

@@ -97,3 +97,11 @@ Use the upstream design /20 + audit /20 score and problem ledger when the execut
 See `docs/ui/RESPONSIVE-FILTER-ACTION-PATTERN.md` for the module-by-module implementation checklist, including Playwright evidence at each breakpoint.
 
 - **Final filter-row polish (approved 2026-11-05):** Align the phone/tablet square Filter button's right edge with the table's always-visible rightmost `⋮` action. Put a small outlined `RotateCcw` Reset icon **beside All status**, not on its own row; keep its existing full reset behavior, bilingual tooltip/ARIA label and keyboard/touch accessibility. Validate with Playwright at all responsive widths. Apply to other modules in individually reviewed PRs, not a mass rewrite.
+
+### #/app/parties — Party Ledger polish (2026-11-07)
+
+- Goal: professional compactness, readable complete money/reference/bilingual content, faster selection/filtering and accessible touch/keyboard interactions.
+- Direction: preserve the approved existing Party workspace and desktop/mobile layout; precise presentation and accessibility fixes only.
+- Keep: calculations, role isolation, payments/refunds/finance/settlements, source/audit links, dates/filters/drafts/return context, printing/export, shared tokens, proportional fonts, 36px controls and universal radii.
+- Avoid: Party module redesign, backend/domain/data changes, unrelated module edits, invented fixture/posting claims, hidden money/actions, decorative chrome or larger controls.
+- Evidence: real baseline and final screenshots, original skill fresh independent agents, three bounded fix rounds, full checks and draft PR only.
