@@ -75,8 +75,8 @@ async function main() {
     await salesSource.getByRole('checkbox', { name: 'Show advanced options' }).check();
     await page.getByRole('checkbox', { name: /Allow selling when stock is zero/ }).check();
     await page.getByRole('checkbox', { name: /Let staff change the price at checkout/ }).waitFor();
-    await page.getByLabel('Biggest discount staff can give (%)').fill('10');
-    await page.getByLabel('Accept returns within (days)').waitFor();
+    await page.getByRole('spinbutton', { name: 'Biggest discount staff can give (%)' }).fill('10');
+    await page.getByRole('spinbutton', { name: 'Accept returns within (days)' }).waitFor();
     await page.getByRole('button', { name: 'Discard' }).click();
     assert.equal(await page.getByRole('combobox', { name: 'Default payment method' }).getAttribute('data-value'), 'Cash', 'UI discard restores draft without tenant write');
     const genericPages = [
