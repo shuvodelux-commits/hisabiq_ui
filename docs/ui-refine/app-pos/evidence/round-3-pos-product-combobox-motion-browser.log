@@ -1,0 +1,10 @@
+PASS POS/Purchase product popup 320 light normal
+PASS POS/Purchase product popup 320 dark normal
+PASS POS/Purchase product popup 390 light reduced
+PASS POS/Purchase product popup 390 dark reduced
+PASS POS/Purchase product popup 768 light normal
+PASS POS/Purchase product popup 768 dark normal
+PASS POS/Purchase product popup 1024 light reduced
+PASS POS/Purchase product popup 1024 dark reduced
+PASS POS/Purchase product popup 1440 light normal
+PASS POS/Purchase product popup 1440 dark normal

@@ -1,0 +1,96 @@
+{
+  "assessment": "A",
+  "method": "Impeccable critique Assessment A · isolated",
+  "head": "5bd2aa6",
+  "scores": {
+    "specificity": 3,
+    "hierarchy": 3,
+    "typography": 2,
+    "color": 3,
+    "composition": 2
+  },
+  "designTotal": 13,
+  "specificityVerdict": "The compact bilingual cart, joined quantity fields, taka summaries and contextual stock/serial data clearly belong to HisabIQ. Refinement retains the approved interface.",
+  "problems": [
+    {
+      "id": "pos-phone-product-identity-truncated",
+      "severity": "P1",
+      "type": "responsive",
+      "location": "src/index.css:337",
+      "evidence": "shots/round-1-main-mobile-light.png and shots/round-1-main-mobile-dark.png, 390px cart: PVC Pipe dimensions collapse to PVC Pipe 1 inch (2... and Wire Mesh identity to Wire Mesh Ne...; the Bangla identity is also ellipsized. shots/round-1-main-mobile-light-s1.png corroborates. src/components/pos/CartTable.tsx:186 provides only truncated text, with no full-name reveal. Violates T2/T5/T6 and guide §18.",
+      "fix": "Within the existing compact phone row, allow product name to wrap enough to show its identifying dimension/specification, or provide an accessible touch/keyboard full-name reveal. Preserve total/remove, 36px editors and desktop/tablet one-line behavior."
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P2",
+      "type": "confusing-copy",
+      "location": "src/pages/Pos.tsx:763",
+      "evidence": "shots/large-before-320-bn-light.png, large-before-390-bn-dark.png and large-before-1440-bn-light.png show Bangla controls beside English New sale, Quick items and Tap to add; phone Qty/Unit/Price remain English. src/pages/Pos.tsx:899/901 hardcodes quick-items copy; src/index.css:315-317 hardcodes field labels; src/components/pos/CheckoutPanel.tsx:258 omits language/label when rendering AmountInWordsDisplay. T9 and guide §24 require actual preference.",
+      "fix": "Use existing uiText/useUiCopy and translated data labels for POS title, helpers and phone field labels. Pass current language and appropriate label to AmountInWordsDisplay from CheckoutPanel, preserving defaults for other consumers. English hides Bangla helper, Bangla has Bangla primary, bilingual retains concise helper."
+    },
+    {
+      "id": "pos-cart-type-scale-drift",
+      "severity": "P2",
+      "type": "typography",
+      "location": "src/index.css:338",
+      "evidence": "shots/round-1-main-mobile-light-s1.png and round-1-main-mobile-dark.png, 390px: line totals and tiny field labels lack a consistent 13/12/11 role scale. Source confirms phone total 11.5px at src/index.css:338, generated label 10px at :309, cart heading 11px at CartTable.tsx:149, product name 13.5px at :186 and data total text-sm at :339. T5 and guide §05/§18 require 13px data, 12px heading, 11px helpers.",
+      "fix": "Normalize the POS cart's actual data/header/helper roles to the existing 13/12/11 tokens or explicit role values, including mobile totals and generated labels. Preserve compact geometry and regular 13px input typography; permit intrinsic wrapping rather than shrink text."
+    }
+  ],
+  "vsBefore": "better",
+  "vsBeforeNote": "1440 cart totals/remove and total heading are now visible in both themes; phone product truncation and copy/type drift remain; checkout grouping and theme treatment are preserved.",
+  "summary": "The 1440 cart's visible right edge is materially improved while retaining the approved compact composition. The strongest remaining visual issue is unreadable phone product identity, followed by language preference and role-scale drift.",
+  "openQuestions": [
+    "quantity-four-unit-width: no rendered four-unit example was supplied in this assessment; inspect a genuine supported three/four-unit product before asserting clipping. MultiUnitQuantityInput.tsx:26-50 has a shrinkable overflow-hidden assembly, which is a source risk only.",
+    "checkout-large-amount-fit: supplied 100000000 price / 40,00,04,190 total shots show the main payable and due values readable at 320/390/1440 in both themes. The 320 terminal CTA is crowded against its horizontal edges; verify button content bounds with large values in every language before claiming clipped checkout values.",
+    "The mid-document sticky header in large-before full-page shots is insufficient evidence of a runtime shell defect. Coordinator reports top=0 in live initial/scrolled/reset measurements; require viewport and full-page scroll-reset capture assertions in the next evidence pass.",
+    "1024 search shots show cart totals/remove outside the initial cart viewport. The current explicit tablet transaction-row contract allows internal horizontal scrolling while preserving one row, so this is not independently treated as a new design defect. Verify scroll region accessibility and action reachability during regression."
+  ],
+  "strengths": [
+    "1440 cart now exposes full routine line totals and remove actions at initial horizontal position.",
+    "Light/dark retain consistent semantic teal selection, neutral surfaces, red due and warning copy.",
+    "Open search shots at 320/390/1024/1440 show the active Cement option within the popup; the source scopes scrolling to the list and guards IME events."
+  ],
+  "verificationLimits": "Static screenshot/source Assessment A only. No detector findings, prior assessments, browser behavior claims, contrast measurements or Nielsen scores consumed.",
+  "priorIssueDisposition": {
+    "pos-cart-desktop-clipped-totals": "Visually resolved at1440 for shown routine values; tablet internal scroll remains allowed by explicit contract.",
+    "product-search-active-scroll": "Shown active option visible at all supplied widths; source contains list-only scrolling and IME guard, behavior requires regression.",
+    "cart-unit-radio-keyboard": "Source contains roving tabIndex and Arrow/Home/End handlers; not an open visual issue.",
+    "workflow-vendor-lint": "Outside visual Assessment A; no claim.",
+    "checkout-large-amount-fit": "Shown main checkout amounts fit; further edge-bound assertion requested.",
+    "quantity-four-unit-width": "Needs rendered reproduction."
+  },
+  "imagesInspected": [
+    "round-0-main-desktop-light.png",
+    "round-0-main-desktop-dark.png",
+    "round-0-main-mobile-light.png",
+    "round-0-main-mobile-dark.png",
+    "round-1-main-desktop-light.png",
+    "round-1-main-desktop-dark.png",
+    "round-1-main-mobile-light.png",
+    "round-1-main-mobile-dark.png",
+    "round-0-main-desktop-light-s1.png",
+    "round-0-main-mobile-light-s1.png",
+    "round-0-main-mobile-light-s2.png",
+    "round-1-main-desktop-light-s1.png",
+    "round-1-main-mobile-light-s1.png",
+    "cmp-round-1-main-desktop-light.png",
+    "cmp-round-1-main-desktop-dark.png",
+    "cmp-round-1-main-mobile-light.png",
+    "cmp-round-1-main-mobile-dark.png",
+    "round-1-320-light-search.png",
+    "round-1-320-dark-search.png",
+    "round-1-390-light-search.png",
+    "round-1-390-dark-search.png",
+    "round-1-1024-light-search.png",
+    "round-1-1024-dark-search.png",
+    "round-1-1440-light-search.png",
+    "round-1-1440-dark-search.png",
+    "large-before-320-bn-light.png",
+    "large-before-320-bn-dark.png",
+    "large-before-390-bn-light.png",
+    "large-before-390-bn-dark.png",
+    "large-before-1440-bn-light.png",
+    "large-before-1440-bn-dark.png"
+  ]
+}

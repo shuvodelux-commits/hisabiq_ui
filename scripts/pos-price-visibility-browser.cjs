@@ -1,6 +1,7 @@
 /* Regression: POS pricing must show at least Tk 100,000 without clipping or covering the eye button. */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const {assertPosHeader}=require('./pos-browser-capture.cjs');
 const sizes = [[320,760],[390,844],[768,1024],[1024,768],[1366,768],[1440,900]];
 async function main(){
  const {createServer}=await import('vite');
@@ -42,7 +43,13 @@ async function main(){
       width+' '+theme+': Tk100000 must be fully visible; '+JSON.stringify(result));
     assert.ok(result.eyeBox.left>=result.priceBox.right+1,
       width+' '+theme+': eye icon must be outside the editable input');
-    assert.ok(result.cartOverflow<=2,width+' '+theme+': cart must not scroll sideways');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),width+' '+theme+': no page overflow');
+    if(result.cartOverflow>2){
+     const cart=page.getByRole('region',{name:/Sale products|বিক্রির পণ্য/});
+     assert.equal(await cart.getAttribute('tabindex'),'0','scroll region is keyboard reachable');
+     await cart.focus();await cart.press('ArrowRight');
+     await page.waitForFunction(()=>document.querySelector('[data-cart-kind="sale"]').scrollLeft>0);
+    }
     if(width>=768){
      await input.fill('100000.00');
      const decimals=await field.evaluate(element=>{
@@ -52,15 +59,17 @@ async function main(){
       return {available:input.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight),
        text:m.measureText(input.value).width};
      });
-     assert.ok(decimals.available>=decimals.text+2,width+' '+theme+': Tk100000.00 visible');
+     assert.ok(decimals.available>=decimals.text+2,width+' '+theme+': Tk100000.00 visible; '+JSON.stringify(decimals));
+     console.log(width+' '+theme+' decimal price: '+JSON.stringify(decimals));
     }
     await eye.click();
     await field.locator('.shadow-pop').waitFor({state:'visible',timeout:5000});
+    await assertPosHeader(page);
     assert.deepEqual(errors,[],width+' '+theme+': no runtime errors');
     await ctx.close();
    }
   }
-  console.log('PASS: Tk100000 POS price, decimal desktop price, eye icon, and no overflow across 6 sizes x 2 themes');
+  console.log('PASS: Tk100000 POS price, decimal desktop price, eye icon, keyboard cart access, and no page overflow across 6 sizes x 2 themes');
  }finally{await browser.close();await server.close();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

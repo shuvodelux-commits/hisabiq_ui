@@ -1,0 +1,26 @@
+PASS light desktop routine totals and remove visible
+PASS light 320 keyboard result visible without page scrolling
+PASS light 390 keyboard result visible without page scrolling
+PASS light 768 keyboard result visible without page scrolling
+PASS light 820 keyboard result visible without page scrolling
+PASS light 1024 keyboard result visible without page scrolling
+PASS light 1440 keyboard result visible without page scrolling
+PASS light product composing Enter and browser keyCode229 preserve query/cart
+PASS light ordinary Enter product to quantity to search
+PASS light unit radio arrows and roving tab stop
+PASS light discount radio arrows and roving tab stop
+PASS light customer composition preserves search
+PASS dark desktop routine totals and remove visible
+PASS dark 320 keyboard result visible without page scrolling
+PASS dark 390 keyboard result visible without page scrolling
+PASS dark 768 keyboard result visible without page scrolling
+PASS dark 820 keyboard result visible without page scrolling
+PASS dark 1024 keyboard result visible without page scrolling
+PASS dark 1440 keyboard result visible without page scrolling
+PASS dark product composing Enter and browser keyCode229 preserve query/cart
+PASS dark ordinary Enter product to quantity to search
+PASS dark unit radio arrows and roving tab stop
+PASS dark discount radio arrows and roving tab stop
+PASS dark customer composition preserves search
+PASS active result remains visible after normal popup animation
+POS desktop fit, keyboard visibility, IME, radio navigation, Enter/Escape and touch passed.

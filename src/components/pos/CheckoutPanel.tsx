@@ -36,6 +36,8 @@ type Totals = {
 
 type CheckoutPanelProps = {
   invoice: string;
+  /** Display-only source/business date supplied by POS. */
+  dateLabel?: string;
   totals: Totals;
   customer: Party | null;
   /** Net balance from the Customer ledger before this unsaved sale; positive = due, negative = advance. */
@@ -117,7 +119,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-ink">{props.invoice}</p>
-            <p className="text-[11px] text-ink-500">06 Oct 2026 · Counter 1</p>
+            <p className="text-[11px] text-ink-500">{props.dateLabel} · {text('POS preview','বিক্রির প্রিভিউ')}</p>
           </div>
           <button onClick={props.onClear} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-ink-500 hover:bg-danger-bg hover:text-danger">
             <Trash2 className="size-3.5" /> {word("clear")}
@@ -126,7 +128,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
         <div className="flex min-w-0 items-center gap-2">
           <div className="min-w-0 flex-1">
-            <CustomerPicker value={customer} onChange={props.onCustomer} previousBalance={props.previousCustomerBalance} />
+            <CustomerPicker guardComposition value={customer} onChange={props.onCustomer} previousBalance={props.previousCustomerBalance} />
           </div>
           {props.onQuickAddCustomer && (
             <Button type="button" size="sm" variant="outline" onClick={props.onQuickAddCustomer}
@@ -214,11 +216,20 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           <span>{word("discount")}</span>
           <div className="flex items-center gap-1">
             <div className="flex h-9 rounded-md bg-ink-50 p-0.5" role="radiogroup" aria-label={word("discount")}>
-              {(['amount', 'percent'] as DiscountMode[]).map((mode) => (
+              {(['amount', 'percent'] as DiscountMode[]).map((mode, modeIndex, modes) => (
                 <button
                   key={mode}
                   role="radio"
                   aria-checked={discountMode === mode}
+                  tabIndex={discountMode === mode ? 0 : -1}
+                  onKeyDown={(event) => {
+                    const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+                    if (!step && event.key !== 'Home' && event.key !== 'End') return;
+                    event.preventDefault();
+                    const next = event.key === 'Home' ? 0 : event.key === 'End' ? modes.length - 1 : (modeIndex + step + modes.length) % modes.length;
+                    props.onDiscountMode(modes[next]);
+                    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next]?.focus();
+                  }}
                   onClick={() => props.onDiscountMode(mode)}
                   className={`w-7 rounded text-xs font-medium ${discountMode === mode ? 'bg-card text-ink shadow-card' : 'text-ink-500'}`}>
                   {mode === 'amount' ? '৳' : '%'}
@@ -246,7 +257,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           </span>
           <p className="ml-auto text-right text-[29px] font-semibold leading-tight tracking-tight sm:text-[30px]">{taka(totals.total)}</p>
         </div>
-        <AmountInWordsDisplay amount={totals.total} variant="compact" />
+        <AmountInWordsDisplay amount={totals.total} variant="compact" language={language} label={text('In words','কথায়')} />
       </div>
 
       {props.installment?.mode==='Installment' && <div className="px-4 pt-4">
@@ -283,7 +294,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                   aria-label={text(`Payment account ${index+1}`,`পেমেন্টের হিসাব ${index+1}`)}
                   value={payment.account}
                   onChange={(event) => updatePayment(payment.id, { account: event.target.value })}
-                  options={posPaymentAccountsByMethod[payment.method]}
+                  options={posPaymentAccountsByMethod[payment.method].map(value=>({value,label:value==='Cash counter'?text('Cash counter','ক্যাশ কাউন্টার'):value==='Customer credit'?text('Customer credit','ক্রেতার অগ্রিম জমা'):value}))}
                 />
                 <button
                   type="button"
@@ -359,9 +370,12 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           ref={props.completeRef}
           onClick={props.onComplete}
           disabled={totals.total === 0 || dueWithoutCustomer || Boolean(props.validationError) || (props.installment?.mode==='Installment' && !customer)}
-          className="h-12 w-full text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
-          {props.completeLabel ?? word('completeSale')} · {taka(totals.total)}
-          <kbd className="ml-1 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
+          className="h-12 w-full gap-2 px-3 text-[15px] font-semibold disabled:bg-ink-100 disabled:text-ink-600 disabled:opacity-100">
+          <span data-pos-complete-copy className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-1.5 leading-5">
+            <span>{props.completeLabel ?? word('completeSale')}</span>
+            <span className="whitespace-nowrap">{taka(totals.total)}</span>
+          </span>
+          <kbd className="shrink-0 rounded border border-primary-foreground/40 px-1.5 text-[10px] font-medium">F9</kbd>
         </Button>
       </div>
     </aside>

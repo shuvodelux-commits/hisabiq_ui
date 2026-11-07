@@ -1,0 +1,82 @@
+{
+  "sourceCommit": "a510661b84f638e281a12ad73989c59bde08eb0b",
+  "method": "Fresh original finish-reviewer verdict pass; pixels/code grade UI claims. Non-UI lint/test maintenance claims are outside visual grading. No detector/audit consumed.",
+  "grades": [
+    {
+      "id": "pos-cart-desktop-clipped-totals",
+      "grade": "partial",
+      "evidence": "round-3-main-desktop-light/dark.png exposes routine totals/remove, but round-3-3units/4units-1440-light/dark.png still places all totals/remove outside the initial horizontal viewport."
+    },
+    {
+      "id": "product-search-active-scroll",
+      "grade": "fixed",
+      "evidence": "ProductCombobox.tsx layout effect changes only popup list.scrollTop using active option offsetTop/offsetHeight; responsive 320/1024 search captures show bounded legible popup."
+    },
+    {
+      "id": "product-search-ime-submit",
+      "grade": "fixed",
+      "evidence": "ProductCombobox.tsx:162,200 returns during composingRef, native isComposing or keyCode229, before Enter and document Escape handling."
+    },
+    {
+      "id": "cart-unit-radio-keyboard",
+      "grade": "fixed",
+      "evidence": "CartTable.tsx:297-318 supplies radio role, roving tabIndex, checked state and Arrow/Home/End update plus focus."
+    },
+    {
+      "id": "checkout-large-amount-fit",
+      "grade": "fixed",
+      "evidence": "round-3-large-320-bn-light/dark.png and 1440 equivalents show complete 40,00,00,000 line totals and 40,00,04,190 payable/due/action amount; phone CTA wraps within its boundary."
+    },
+    {
+      "id": "pos-phone-product-identity-truncated",
+      "grade": "fixed",
+      "evidence": "round-3-main-mobile-light/dark.png shows full PVC Pipe and Wire Mesh Net 3 ft names wrapping; round-0 clips these main identities."
+    },
+    {
+      "id": "pos-cart-scroll-region-unlabelled",
+      "grade": "fixed",
+      "evidence": "CartTable.tsx:163-165 provides localized Sale products region, conditional overflow tab stop and visible focus outline."
+    },
+    {
+      "id": "pos-header-capture-scroll-guard",
+      "grade": "fixed",
+      "evidence": "Main and large fullpage captures retain header/logo at document top; scripts/pos-browser-capture.cjs resets document/inner scroll for fullPage and asserts headerTop\u22480 plus visible HisabIQ SVG before/after capture."
+    },
+    {
+      "id": "quantity-four-unit-width",
+      "grade": "fixed",
+      "evidence": "round-3-4units-320-light/dark.png shows four values12 plus Pack/Box/pcs/Ft simultaneously inside one joined field; 1440 equivalents retain all four values."
+    },
+    {
+      "id": "dialog-labels-and-errors",
+      "grade": "fixed",
+      "evidence": "SerialPickerDialog.tsx uses label htmlFor/id, aria-invalid/describedby and error alert; StockShortageDialog.tsx cost field links its label and specific error; serial/shortage light English and dark Bangla captures visibly show adjacent errors."
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "grade": "fixed",
+      "evidence": "round-3 workflow English versus Bangla serial/review/shortage captures and large Bangla checkout show localized controls, messages and amount words; presentationCopy.ts translates known domain error strings without changing them."
+    },
+    {
+      "id": "pos-source-date-display",
+      "grade": "fixed",
+      "evidence": "Pos.tsx:932 uses sourceInvoice.date while editing and businessToday otherwise; round-3-main shows7 Nov2026 POS preview instead of stale6 Oct2026 Counter1 metadata."
+    },
+    {
+      "id": "themed-installment-adjustment-select",
+      "grade": "fixed",
+      "evidence": "round-3-workflow-light-en-installment-adjustment-select.png and dark-bn equivalent show theme-matched \u09f3/% dropdown; InstallmentTermsPanel.tsx:73 reuses FormSelect."
+    },
+    {
+      "id": "reduced-cart-motion",
+      "grade": "fixed",
+      "evidence": "CartTable.tsx SortableCartRow uses useReducedMotion, initial=false, duration0 and non-collapsing opacity exit for reduced preference; ProductCombobox similarly disables entrance timing."
+    }
+  ],
+  "regressions": [],
+  "disposition": "Dense supported 3/4-unit desktop cart remains open: original complete-column claim is partial. Other reviewed UI claims are fixed; no verified introduced regression against round0.",
+  "limitations": [
+    "No live browser or physical device interaction repeated in this review; nonvisual grades are based on current source.",
+    "Print receipt stays a white bilingual document in both theme captures; retained print presentation is not treated as a theme regression."
+  ]
+}

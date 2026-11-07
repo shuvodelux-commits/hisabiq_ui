@@ -1,0 +1,179 @@
+{
+  "check": "C2",
+  "method": "impeccable",
+  "head": "5bd2aa6",
+  "briefHead": "9e6dcec (documentation only)",
+  "designScores": {
+    "specificity": 3,
+    "hierarchy": 3,
+    "typography": 2,
+    "color": 3,
+    "composition": 2
+  },
+  "designTotal": 13,
+  "auditScores": {
+    "accessibility": 3,
+    "performance": 3,
+    "responsive": 2,
+    "theming": 4,
+    "integrity": 3
+  },
+  "auditTotal": 15,
+  "visualScore": 28,
+  "visualScoreMaximum": 40,
+  "detectorRan": true,
+  "problems": [
+    {
+      "id": "checkout-large-amount-fit",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/pos/CartTable.tsx:339",
+      "evidence": "Coordinator rendered real first-product price 100000000; shots/large-before-320-bn-light.png and shots/large-before-1440-bn-light.png show the long line total crowded into remove. large-before.json measures line client82/scroll86 at320 and client72/scroll86 at1440 in both themes. At320 the terminal CTA client249/scroll250 and screenshot show action text against its edges; source CheckoutPanel.tsx:366\u2013373 concatenates label, amount and F9 without a safe layout. Main payable and due are readable in the supplied states; do not claim their clipping. T2/T5/T6 and explicit complete-large-value brief.",
+      "fix": "Give actual long line totals enough space or a deliberate readable fallback inside the existing cart, preserving separate reachable remove control, proportional digits and complete amount. Keep the terminal CTA48px with distinct readable label/amount/F9 regions and safe bounds at320. Preserve calculations and tablet one-row/internal-scroll contract. Verify full supported large price/line/payable/paid/due/CTA in all languages and widths before acceptance.",
+      "relatedIds": [
+        "pos-cart-large-line-total-overflow"
+      ],
+      "suggestedRound": 2,
+      "route": "harden",
+      "verificationStatus": "rendered line overflow and CTA edge overflow verified; main payable fits"
+    },
+    {
+      "id": "pos-phone-product-identity-truncated",
+      "severity": "P1",
+      "type": "responsive",
+      "location": "src/components/pos/CartTable.tsx:186",
+      "evidence": "Both 390px comparison sheets cmp-round-1-main-mobile-light.png and cmp-round-1-main-mobile-dark.png retain PVC Pipe 1 inch (2... and Wire Mesh Ne...; meaningful size/specification and Bangla helper remain unrecoverable. Both assessments confirm plain truncate paragraphs and no accessible full-name reveal. T2/T5/T6.",
+      "fix": "Recover complete identifying name and relevant stock through natural phone wrapping or accessible touch/keyboard reveal in the existing row. Preserve total/remove,36px editors and one-row tablet behavior; prove real long English/Bangla product names at320/390.",
+      "suggestedRound": 2,
+      "route": "adapt"
+    },
+    {
+      "id": "pos-cart-scroll-region-unlabelled",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/pos/CartTable.tsx:148",
+      "evidence": "Assessment B source verifies the intentional overflow-x-auto cart is an unnamed div without region semantics or tabIndex. index.css:898 supplies minimum one-row widths at768+. Guide section18 requires named keyboard-reachable comparative scroll region;T7. Fields remain tabbable, so this is not claimed as proven inability to complete a sale.",
+      "fix": "Name the existing scroll region using active language and make it keyboard focusable when it overflows. Verify keyboard scroll, visible focus, descendant order and touch reachability of full quantities/price/total/remove at768/820/1024; retain internal scrolling and no whole-page overflow.",
+      "suggestedRound": 2,
+      "route": "harden"
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P2",
+      "type": "confusing-copy",
+      "location": "src/components/pos/CheckoutPanel.tsx:258",
+      "evidence": "A+B agree active preference is bypassed by amount words defaults, page/quick-item labels and CSS Qty/Unit/Price. large-before-320-bn-light.png and large-before-1440-bn-light.png show English New sale/Quick items/Tap to add alongside Bangla controls. CheckoutPanel.tsx:120 also hardcodes 06 Oct2026 \u00b7 Counter1 despite current business date Nov6; this is POS-owned display integrity, not permission to change historical dates. Pos.tsx:20/197 already supplies businessToday and sourceInvoice context. T9/T10/T11.",
+      "fix": "Use existing uiText/useUiCopy for touched POS-owned strings and data labels; pass language/localized label to AmountInWordsDisplay only in POS. Respect English/Bangla/helper modes and entered product names. Display the actual applicable invoice/draft date through existing date helpers, retaining historical edit date and existing draft/new-sale semantics; never blindly replace every context with today or rewrite stored dates.",
+      "suggestedRound": 3,
+      "route": "clarify"
+    },
+    {
+      "id": "pos-header-capture-scroll-guard",
+      "severity": "P2",
+      "type": "edge-cases",
+      "location": "work/evidence.cjs:11",
+      "evidence": "Owner explicitly requires logo/top-bar verification in every screenshot. Supplemental earlier scrolled full-page capture put sticky header mid-document; header-position.json proves live top0 initial/scrolled/reset at320/390/768/1024/1440 in both themes. Corrected large-before capture now resets scroll and asserts top at work/amount-probe.cjs:12\u201314; original round0/1 main shots are valid atscroll0. General evidence.cjs:11/14 still captures without the shared assertion. This is tooling correction only, not a runtime navigation defect. T10 plus owner brief clarification.",
+      "fix": "Apply a consistent capture guard to all future evidence: assert logo/header visible at viewport top; reset document/inner scroll before main full-page shots; keep real viewport images for intentionally opened/scrolled states and assert sticky top there. Recheck geometry after screenshot-induced scrolling. Reuse the original shooting workflow via its harness; do not restyle navigation or fabricate screenshots.",
+      "suggestedRound": 2,
+      "route": "harden",
+      "scope": "capture/test tooling only"
+    },
+    {
+      "id": "pos-responsive-tests-obsolete-contract",
+      "severity": "P2",
+      "type": "edge-cases",
+      "location": "scripts/pos-responsive-cart-browser.cjs:62",
+      "evidence": "Source checks at62\u201378 derive table/stacked rows from cart width and forbid every cart scroll. scripts/pos-price-visibility-browser.cjs:51 likewise forbids internal sideways scroll. Current explicit guide/taste T6 requires one product row at viewport768+ with internal scroll if needed. These assertions contradict the approved contract; no new failing execution is claimed. They must not force stacking or clipped values merely to obtain green checks. T6/T10.",
+      "fix": "Update the focused regressions to use viewport tablet boundary, preserve no page overflow, one-row tablet fields, complete values and keyboard/touch access to rightmost actions through the existing internal scroll. Keep price/eye separation, conversions and phone assertions. Run the corrected tests plus required gates.",
+      "suggestedRound": 2,
+      "route": "harden",
+      "scope": "focused regression contract correction"
+    }
+  ],
+  "vsBefore": "better",
+  "vsBeforeNote": "Desktop1440: routine total heading/line totals/remove now visible in both themes; phone390: identity still truncates and geometry otherwise retained; checkout: hierarchy/themes preserved with verified large-value edge cases; header: live top position correct and supplemental capture artifact isolated.",
+  "summary": "C2 scores28/40 (design13/20 + audit15/20), improving routine desktop visibility while preserving the original compact POS. Six merged problems remain, with verified amount/identity/scroll-access work and evidence corrections for round2, copy/date polish for round3; no issue has survived three checks.",
+  "openQuestions": [
+    {
+      "id": "quantity-four-unit-width",
+      "location": "src/components/transactions/MultiUnitQuantityInput.tsx:26",
+      "question": "Source-only compression risk remains unverified. Add multiple products and a genuine supported three-unit product through actual UI; also render real four-unit multi-digit values and up-to-four-character symbols focused/unfocused at320/390/768/1024/1440, both themes. Existing six-width four-unit regression passed; do not change shared geometry speculatively. If a real issue reproduces, reuse this ledger ID and apply only a justified POS opt-in."
+    },
+    {
+      "id": "pos-full-workflow-coverage",
+      "location": "docs/ui-refine/app-pos/brief.md:23",
+      "question": "Owner now requires every POS-owned subsection/dropdown reviewed. Supply a workflow matrix naming each action, actual outcome and remaining limitations; include multiple product additions, real three-unit add, search/Quick Add, quantities/unit price/eye/remove/reorder, customer and invoice details, sale modes, discounts/rounding, split methods/accounts/payment controls, draft/edit/duplicate/templates/settings, serial/shortage/warranty/expiry when applicable, validation/preview/print. Never infer all actions work from static shots or fabricate posting."
+    }
+  ],
+  "rejectedFindings": [
+    {
+      "id": "pos-cart-type-scale-drift",
+      "reason": "Do not retain as verified defect: high-specificity index.css784\u2013809 enforces data13/header12/helper11 and overrides legacy text classes. Generated field labels use heading12 under that contract. Assessment A legacy declarations do not establish computed drift. Check computed roles or unmarked secondary helpers before any future typographic edit."
+    },
+    {
+      "id": "pos-shell-header-runtime-defect",
+      "reason": "Live top0 measurements atall five widths/both themes disprove the claimed runtime defect; retain capture guard only."
+    },
+    {
+      "id": "quantity-four-unit-width",
+      "reason": "Not retained as active defect without a genuine rendered multi-digit reproduction; stays required evidence question."
+    }
+  ],
+  "priorIssueDisposition": {
+    "pos-cart-desktop-clipped-totals": "Resolved for supplied routine1440 rows. New large-value line-cell issue merged into existing amount ID; no tablet no-scroll requirement.",
+    "product-search-active-scroll": "Resolved in shown states and coordinator focused regression; C2 source confirms scoped list scroll/IME safety.",
+    "cart-unit-radio-keyboard": "Resolved by roving arrows/Home/End and coordinator focused regression.",
+    "workflow-vendor-lint": "Resolved: narrow vendor boundary and coordinator full gate pass.",
+    "checkout-large-amount-fit": "Retained with actual amount geometry; correct prior speculative claim that main payable clips.",
+    "quantity-four-unit-width": "Evidence required, not verified defect.",
+    "pos-phone-product-identity-truncated": "Retained and rankedP1 because sole identifying dimensions are unrecoverable.",
+    "pos-copy-language-preference-bypassed": "Retained; include verified POS-owned hardcoded date as display-only integrity."
+  },
+  "suggestedRouteChain": [
+    "adapt",
+    "harden",
+    "polish"
+  ],
+  "roundPlan": [
+    {
+      "round": 2,
+      "goal": "Fix verified large-value readability, phone identity and keyboard scroll; correct evidence/test contracts and reproduce real3/4-unit cases.",
+      "problemIds": [
+        "checkout-large-amount-fit",
+        "pos-phone-product-identity-truncated",
+        "pos-cart-scroll-region-unlabelled",
+        "pos-header-capture-scroll-guard",
+        "pos-responsive-tests-obsolete-contract"
+      ],
+      "boundaries": "Existing POS layout/tokens/shared controls only; no navigation restyle, no business/calculation/date-storage edits; shared opt-ins only if reproduction justifies them. Preserve36px controls,48px CTA, joined horizontal quantities and tablet one-row/internal scrolling.",
+      "acceptance": "All five required gates and meaningful focused regressions; full long values/actions atall sizes, complete product identity, named keyboard scroll, actual multiple adds and genuine3/4-unit multi-digit evidence, guarded light/dark screenshots. Keep existing fast-counter24,templates8,reorder/print,multi6 coverage."
+    },
+    {
+      "round": 3,
+      "goal": "Honor language/date display context and remaining verified polish after fresh C3 assessments.",
+      "problemIds": [
+        "pos-copy-language-preference-bypassed"
+      ],
+      "boundaries": "POS-owned copy and context-aware display only; preserve historical facts, shared-consumer defaults and approved UI.",
+      "acceptance": "English/Bangla/helpers atresponsive widths; correct displayed date for new/draft/historical-edit contexts; every POS section/dropdown workflow matrix with honest limitations; fresh independent closing review and required gates."
+    }
+  ],
+  "gateEvidence": "Coordinator reports round1 TypeScript/lint/UI-contract+guide/unit851/build pass; fast-counter24,templates8,reorder/print,multi6 pass. Checker did not rerun browser or tests.",
+  "verificationLimits": "Checker merged independent A/B JSON, ledger, source and supplied images/metadata only. No browser or application edits. Stable UI head5bd2aa6;9e6dcec changes brief only. No source-only concern promoted to rendered clipping.",
+  "imagesInspected": [
+    "cmp-round-1-main-desktop-light.png",
+    "cmp-round-1-main-desktop-dark.png",
+    "cmp-round-1-main-mobile-light.png",
+    "cmp-round-1-main-mobile-dark.png",
+    "large-before-320-bn-light.png",
+    "large-before-1440-bn-light.png",
+    "large-before-320-bn-dark-viewport.png"
+  ],
+  "metadataInspected": [
+    "header-position.json",
+    "large-before.json",
+    "c2-design.json",
+    "c2-audit.json",
+    "ledger.md"
+  ]
+}

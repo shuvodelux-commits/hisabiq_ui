@@ -55,9 +55,12 @@ async function main(){
             const payable=checkout.locator('[data-pos-payable]');
             const words=payable.locator('[data-amount-words-variant="compact"]');
             await words.waitFor();
+            assert.equal(await words.locator('p[aria-live]').getAttribute('lang'),language==='Bangla'?'bn':'en',contextId+' primary words use selected language');
+            assert.equal(await words.locator('[lang="bn"]').count(),language==='English'?0:1,contextId+' Bangla words only when selected');
+            assert.match(await words.locator('p[aria-live]').innerText(),language==='Bangla'?/[\u0980-\u09ff]/:/[A-Za-z]/,contextId+' actual amount words use selected language');
             const style=await payable.evaluate(root=>{
               const price=root.querySelector('p');
-              const words=root.querySelector('[lang="bn"]');
+              const words=root.querySelector('[data-amount-words-variant] p[aria-live]');
               const box=root.getBoundingClientRect();
               return {price:parseFloat(getComputedStyle(price).fontSize),words:parseFloat(getComputedStyle(words).fontSize),
                 scroll:root.scrollWidth-root.clientWidth,left:box.left,right:box.right,viewport:innerWidth};
@@ -97,13 +100,13 @@ async function main(){
               };
               const words=root.querySelector('[data-amount-words-variant="compact"]');
               const label=words.querySelector('p');
-              const value=words.querySelector('[lang="bn"]');
+              const value=words.querySelector('p[aria-live]');
               return {label:ratio(label),value:ratio(value),
                 labelColor:getComputedStyle(label).color,wordsBackground:getComputedStyle(words).backgroundColor,
                 payableBorder:getComputedStyle(root).borderColor};
             });
             assert.ok(contrasts.label>=4.5,contextId+' words label contrast below AA: '+JSON.stringify(contrasts));
-            assert.ok(contrasts.value>=4.5,contextId+' Bangla amount contrast below AA: '+JSON.stringify(contrasts));
+            assert.ok(contrasts.value>=4.5,contextId+' amount contrast below AA: '+JSON.stringify(contrasts));
 
             await toggle.click();
             assert.equal(await toggle.getAttribute('aria-expanded'),'true',contextId+' customer details open');

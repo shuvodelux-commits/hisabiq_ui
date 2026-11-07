@@ -1,0 +1,67 @@
+PASS light English search empty/clear and multiple actual adds
+PASS light English serial required count, scan invalid, connected labels/error, select/remove/use
+PASS light English shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel
+PASS light English price/cost eye, keyboard reorder and remove
+PASS light English invoice customer details and quick-add cancel preserve cart
+PASS light English payment methods/accounts, split add/remove/remaining/exact, discount error and due customer
+PASS light English hold/resume preserves products and split amount
+PASS light English review confirmation and receipt preview only
+PASS light English edit source context and display date
+PASS light English duplicate source context and display date
+PASS light English no runtime errors
+PASS light Bangla search empty/clear and multiple actual adds
+PASS light Bangla serial required count, scan invalid, connected labels/error, select/remove/use
+PASS light Bangla shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel
+PASS light Bangla price/cost eye, keyboard reorder and remove
+PASS light Bangla invoice customer details and quick-add cancel preserve cart
+PASS light Bangla payment methods/accounts, split add/remove/remaining/exact, discount error and due customer
+PASS light Bangla hold/resume preserves products and split amount
+PASS light Bangla review confirmation and receipt preview only
+PASS light Bangla edit source context and display date
+PASS light Bangla duplicate source context and display date
+PASS light Bangla no runtime errors
+PASS light English + Bangla search empty/clear and multiple actual adds
+PASS light English + Bangla serial required count, scan invalid, connected labels/error, select/remove/use
+PASS light English + Bangla shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel
+PASS light English + Bangla price/cost eye, keyboard reorder and remove
+PASS light English + Bangla invoice customer details and quick-add cancel preserve cart
+PASS light English + Bangla payment methods/accounts, split add/remove/remaining/exact, discount error and due customer
+PASS light English + Bangla hold/resume preserves products and split amount
+PASS light English + Bangla review confirmation and receipt preview only
+PASS light English + Bangla edit source context and display date
+PASS light English + Bangla duplicate source context and display date
+PASS light English + Bangla no runtime errors
+PASS dark English search empty/clear and multiple actual adds
+PASS dark English serial required count, scan invalid, connected labels/error, select/remove/use
+PASS dark English shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel
+PASS dark English price/cost eye, keyboard reorder and remove
+PASS dark English invoice customer details and quick-add cancel preserve cart
+PASS dark English payment methods/accounts, split add/remove/remaining/exact, discount error and due customer
+PASS dark English hold/resume preserves products and split amount
+PASS dark English review confirmation and receipt preview only
+PASS dark English edit source context and display date
+PASS dark English duplicate source context and display date
+PASS dark English no runtime errors
+PASS dark Bangla search empty/clear and multiple actual adds
+PASS dark Bangla serial required count, scan invalid, connected labels/error, select/remove/use
+PASS dark Bangla shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel
+PASS dark Bangla price/cost eye, keyboard reorder and remove
+PASS dark Bangla invoice customer details and quick-add cancel preserve cart
+PASS dark Bangla payment methods/accounts, split add/remove/remaining/exact, discount error and due customer
+PASS dark Bangla hold/resume preserves products and split amount
+PASS dark Bangla review confirmation and receipt preview only
+PASS dark Bangla edit source context and display date
+PASS dark Bangla duplicate source context and display date
+PASS dark Bangla no runtime errors
+PASS dark English + Bangla search empty/clear and multiple actual adds
+PASS dark English + Bangla serial required count, scan invalid, connected labels/error, select/remove/use
+PASS dark English + Bangla shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel
+PASS dark English + Bangla price/cost eye, keyboard reorder and remove
+PASS dark English + Bangla invoice customer details and quick-add cancel preserve cart
+PASS dark English + Bangla payment methods/accounts, split add/remove/remaining/exact, discount error and due customer
+PASS dark English + Bangla hold/resume preserves products and split amount
+PASS dark English + Bangla review confirmation and receipt preview only
+PASS dark English + Bangla edit source context and display date
+PASS dark English + Bangla duplicate source context and display date
+PASS dark English + Bangla no runtime errors
+POS hidden workflow matrix passed 66 assertions/journeys

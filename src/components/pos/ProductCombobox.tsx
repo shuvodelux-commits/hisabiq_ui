@@ -26,6 +26,10 @@ type ProductComboboxProps = {
   onCreate?: (query: string) => void;
   ariaLabel?: string;
   disabled?: boolean;
+  /** POS opts into active-result scrolling and IME-safe keyboard selection. */
+  posKeyboardSafety?: boolean;
+  /** POS-only metadata translation; other picker consumers retain existing copy. */
+  localizeMetadata?: boolean;
 };
 
 type ListPosition = {
@@ -41,10 +45,11 @@ const GAP = 6;
 const DESIRED_WIDTH = 560;
 
 export const ProductCombobox = forwardRef<HTMLInputElement, ProductComboboxProps>(function ProductCombobox(
-{ onSelect, products: suppliedProducts, mode = 'sale', onCreate, ariaLabel, disabled = false },
+{ onSelect, products: suppliedProducts, mode = 'sale', onCreate, ariaLabel, disabled = false, posKeyboardSafety = false, localizeMetadata = false },
 ref)
 {
-  const {text} = useUiCopy();
+  const {text,language} = useUiCopy();
+  const metadata=(en:string,bn:string)=>localizeMetadata?text(en,bn):en;
   const reducedMotion = useReducedMotion();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -53,6 +58,7 @@ ref)
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const composingRef = useRef(false);
 
   const setInputRef = useCallback((node: HTMLInputElement | null) => {
     inputRef.current = node;
@@ -130,6 +136,19 @@ ref)
     return () => window.cancelAnimationFrame(frame);
   }, [open, results.length, updatePosition]);
 
+  useLayoutEffect(() => {
+    if (!posKeyboardSafety || !open || !position) return;
+    const list = listRef.current;
+    const option = list?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!list || !option) return;
+    // Scroll only the popup, never its page/ancestor scroll containers.
+    // Layout offsets stay stable while the existing popup scale animation runs.
+    const top = option.offsetTop;
+    const bottom = top + option.offsetHeight;
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
+  }, [active, open, position, results, posKeyboardSafety]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -140,6 +159,7 @@ ref)
     };
 
     const onKey = (event: KeyboardEvent) => {
+      if (posKeyboardSafety && (composingRef.current || event.isComposing || event.keyCode === 229)) return;
       if (event.key === 'Escape' && !event.defaultPrevented) {
         const dialogs = document.querySelectorAll('[data-dialog-root]');
         if (dialogs.length && dialogs[dialogs.length - 1] !== rootRef.current?.closest('[data-dialog-root]')) return;
@@ -166,7 +186,7 @@ ref)
       window.removeEventListener('resize', onViewportChange);
       window.removeEventListener('scroll', onViewportChange, true);
     };
-  }, [open, updatePosition]);
+  }, [open, updatePosition, posKeyboardSafety]);
 
   const choose = (p: Product) => {
     if (disabled) return;
@@ -177,6 +197,7 @@ ref)
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (posKeyboardSafety && (composingRef.current || e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229)) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setOpen(true);
@@ -211,7 +232,7 @@ ref)
           exit={{ opacity: 0, scale: 0.98, y: position?.opensUp ? 2 : -2, pointerEvents: 'none' }}
           transition={{ duration: reducedMotion ? 0 : 0.14, ease: sababEase.out }}
           role="listbox"
-          aria-label={mode === 'purchase' ? 'Purchase product suggestions' : (ariaLabel ? ariaLabel + ' options' : 'POS product suggestions')}
+          aria-label={mode === 'purchase' ? 'Purchase product suggestions' : (ariaLabel ? ariaLabel + ' options' : metadata('POS product suggestions','বিক্রির পণ্যের তালিকা'))}
           className="fixed z-[110] overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-pop scrollbar-thin"
           style={{
             top: position?.top ?? 0,
@@ -256,7 +277,7 @@ ref)
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] font-medium text-ink">{p.name}</p>
                   <p className="truncate text-[11px] text-ink-500">
-                    <span className="font-bn">{p.nameBn}</span>{p.nameBn ? ' · ' : ''}{p.category}
+                    {(!localizeMetadata||language!=='English') && p.nameBn && <><span className="font-bn">{p.nameBn}</span> · </>}{p.category}
                   </p>
                 </div>
                 <div className="text-right">
@@ -267,13 +288,13 @@ ref)
                   </p>
                   <p className={`text-[11px] ${sellableStatus === 'low' || sellableStatus === 'out' ? 'text-danger' : 'text-ink-500'}`}>
                     {p.kind === 'Bundle'
-                      ? 'Package · '+bundleAvailable+' Set available'
+                      ? metadata('Package · '+bundleAvailable+' Set available','প্যাকেজ · '+bundleAvailable+' Set পাওয়া যায়')
                       : p.kind === 'Service'
-                      ? 'Service'
+                      ? metadata('Service','সেবা')
                       : p.expiry?.enabled
-                        ? `${sellableStatus === 'out' ? 'Out of sellable stock' : 'Sellable'} · ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}`
+                        ? `${sellableStatus === 'out' ? metadata('Out of sellable stock','বিক্রিযোগ্য স্টক নেই') : metadata('Sellable','বিক্রিযোগ্য')} · ${formatStock({ ...p, stock: breakdown?.sellable ?? 0 })}`
                         : status === 'out'
-                          ? 'Out of stock'
+                          ? metadata('Out of stock','স্টক নেই')
                           : formatStock(p)}
                   </p>
                 </div>
@@ -308,6 +329,8 @@ ref)
         }}
         onFocus={() => setOpen(true)}
         onClick={() => setOpen(true)}
+        onCompositionStart={() => { composingRef.current = true; }}
+        onCompositionEnd={() => { composingRef.current = false; }}
         onKeyDown={onKeyDown}
         placeholder={text("Add product… name, SKU or বাংলা","পণ্য খুঁজুন বা যোগ করুন… নাম, SKU বা বাংলা")}
         className={`h-9 w-full rounded-lg border border-dashed border-teal-400 bg-teal-50/40 pl-8 text-sm text-ink placeholder:text-ink-500 focus:border-solid focus:border-teal-500 focus:bg-card focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${query ? 'pr-20' : 'pr-12'}`} />

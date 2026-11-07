@@ -1,3 +1,4 @@
+import {posPresentationError} from './presentationCopy';
 import {useEffect,useRef,useState} from 'react';
 import {RotateCcw} from 'lucide-react';
 import {Button} from '../Button';
@@ -44,7 +45,7 @@ export function InstallmentReceiptReversalDialog({open,agreement,receipt,receipt
   }
  };
  return <Dialog open={open} onOpenChange={next=>!next&&onClose()}>
-  <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-md"
+  <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-md"
     aria-label={text('Reverse installment receipt','কিস্তির জমা বাতিল')}>
    <DialogHeader>
     <DialogTitle className="flex items-center gap-2"><RotateCcw className="size-4 text-danger"/>
@@ -64,7 +65,7 @@ export function InstallmentReceiptReversalDialog({open,agreement,receipt,receipt
     {text('Review the compensating PREVIEW event. The original payment will stay visible.',
      'জমা বাতিলের প্রিভিউ যাচাই করুন। আগের জমা ইতিহাসে থাকবে।')}
    </p>}
-   {error&&<p role="alert" className="text-xs text-danger">{error}</p>}
+   {error&&<p role="alert" className="text-xs text-danger">{posPresentationError(error,text)}</p>}
    <DialogFooter>
     <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
     <Button disabled={reason.trim().length<3} onClick={confirm}>
