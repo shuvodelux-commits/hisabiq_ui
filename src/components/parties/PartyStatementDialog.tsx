@@ -36,7 +36,26 @@ export function PartyStatementDialog({open,onClose,party,statement}:Props){
   const rows=statementPrintRows(statement);
   return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
     <DialogContent role="dialog" aria-modal="true" aria-label={text("Party ledger statement","পক্ষের হিসাবের বিবরণ")}
-      className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+      data-party-statement-dialog="" className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+      <style>{`@media print {
+        body:has([data-party-statement-dialog]) { overflow: visible !important; height: auto !important; }
+        body:has([data-party-statement-dialog]) > :not([data-party-statement-dialog]) { display: none !important; }
+        [data-party-statement-dialog] {
+          display: block !important; position: static !important; inset: auto !important;
+          width: 100% !important; max-width: none !important; height: auto !important; max-height: none !important;
+          transform: none !important; translate: none !important; scale: none !important;
+          overflow: visible !important; padding: 0 !important; border: 0 !important; box-shadow: none !important;
+        }
+        [data-party-statement-dialog] > :not(#party-statement-print):not(style) { display: none !important; }
+        [data-party-statement-dialog] #party-statement-print {
+          position: static !important; inset: auto !important; overflow: visible !important;
+          color: black !important; background: white !important;
+        }
+        [data-party-statement-dialog] #party-statement-print * { color: black !important; background: transparent !important; }
+        [data-party-statement-dialog] #party-statement-print .overflow-x-auto { overflow: visible !important; }
+        [data-party-statement-dialog] #party-statement-print thead { display: table-header-group; }
+        [data-party-statement-dialog] #party-statement-print tr { break-inside: avoid; }
+      }`}</style>
       <DialogHeader>
         <DialogTitle>{text('Party ledger statement','পক্ষের হিসাবের বিবরণ')}</DialogTitle>
         <DialogDescription>{text('Clean dated statement. Print using your browser or Save as PDF; no backend posting.','তারিখ অনুযায়ী হিসাব। প্রিন্ট বা পিডিএফ সেভ করুন। আসল সার্ভারের খাতায় কোনো লেখা হবে না।')}</DialogDescription>

@@ -35,16 +35,16 @@ export function PartyLedgerToolbar({range,onRange,kind,onKind,query,onQuery,page
         placeholder={text("Search reference or note","নম্বর বা মন্তব্য খুঁজুন")} className="pl-8"/>
     </div>
     <AppDateRangePicker label={text("Party ledger date range","পক্ষের খাতার তারিখ")} value={range} onChange={onRange}/>
-    <AppSelect label={text("Transaction type","লেনদেনের ধরন")} value={kind} onChange={onKind}
+      <div className="flex min-w-0 items-center gap-2">
+        <AppSelect label={text("Transaction type","লেনদেনের ধরন")} value={kind} onChange={onKind}
       options={kinds.map(item=>({...item,label:text(item.label,bn[item.label]??item.label)}))}/>
-    <div className="flex min-w-0 items-center gap-2">
-      <AppSelect menuStyle="rows" label={text("Rows per page","প্রতি পাতায়")} value={String(pageSize)} options={['5','10','25','50','100']}
-        onChange={value=>onPageSize(Number(value))}/>
-      <Button size="icon" variant="outline" className="size-9 shrink-0 rounded-md text-ink-500"
+        <Button size="icon" variant="outline" className="size-9 shrink-0 rounded-md text-ink-500"
         aria-label={text('Clear filters','ফিল্টার মুছুন')} title={text('Clear filters','ফিল্টার মুছুন')} onClick={onReset}>
         <RotateCcw className="size-4" aria-hidden="true"/>
       </Button>
-    </div>
+      </div>
+      <AppSelect menuStyle="rows" label={text("Rows per page","প্রতি পাতায়")} value={String(pageSize)} options={['5','10','25','50','100']}
+        onChange={value=>onPageSize(Number(value))}/>
     <Button size="sm" variant="outline" onClick={onStatement}><Printer className="size-4"/> {text('Print statement','হিসাব প্রিন্ট')}</Button>
   </div>;
 }

@@ -23,7 +23,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
   const {text,language}=useUiCopy();
   const {listRef,tabStopId,onSearchKeyDown,onListKeyDown,onOptionFocus}=usePartyDirectoryKeyboard(parties,selectedId);
   return (
-    <div className="flex min-h-0 min-w-0 flex-col rounded-xl border border-border bg-card shadow-card">
+    <div style={{fontFeatureSettings:'normal',fontVariantNumeric:'proportional-nums'}} className="flex min-h-0 min-w-0 flex-col rounded-xl border border-border bg-card shadow-card">
       <div className="space-y-2 border-b border-border p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
