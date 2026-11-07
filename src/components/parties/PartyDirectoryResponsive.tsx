@@ -1,4 +1,4 @@
-import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { PartyAvatar } from '../PartyAvatar';
 import { Input } from '../Input';
@@ -8,6 +8,7 @@ import type { Party, PartyRole } from '../../types/erp';
 import { taka } from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {partyRoleLabel} from '../../i18n/partyCopy';
+import { usePartyDirectoryKeyboard } from './usePartyDirectoryKeyboard';
 
 type PartyDirectoryProps = {
   parties: Party[];
@@ -22,25 +23,10 @@ type PartyDirectoryProps = {
 
 export function PartyDirectoryResponsive({ parties, selectedId, onSelect, role, onRole, query, onQuery, picker=false }: PartyDirectoryProps) {
   const {text,language}=useUiCopy();
-  const listRef=useRef<HTMLUListElement>(null);
+  const {listRef,tabStopId,onSearchKeyDown,onListKeyDown,onOptionFocus}=usePartyDirectoryKeyboard(parties,selectedId);
   useEffect(()=>{
     if(picker)listRef.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({block:'nearest'});
   },[picker]);
-  const options=()=>Array.from(listRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]')??[]);
-  const onSearchKeyDown=(e:KeyboardEvent<HTMLInputElement>)=>{
-    if(e.key==='ArrowDown'){e.preventDefault();options()[0]?.focus();}
-  };
-  const onListKeyDown=(e:KeyboardEvent<HTMLUListElement>)=>{
-    const list=options();
-    const index=list.indexOf(document.activeElement as HTMLButtonElement);
-    let next=index;
-    if(e.key==='ArrowDown')next=Math.min(list.length-1,index+1);
-    else if(e.key==='ArrowUp')next=Math.max(0,index-1);
-    else if(e.key==='Home')next=0;
-    else if(e.key==='End')next=list.length-1;
-    else return;
-    e.preventDefault();list[next]?.focus();
-  };
   return (
     <div className={`flex min-h-0 min-w-0 flex-col bg-card ${picker ? 'flex-1 overflow-hidden' : 'rounded-xl border border-border shadow-card'}`}>
       <div className="space-y-2 border-b border-border p-3">
@@ -56,12 +42,12 @@ export function PartyDirectoryResponsive({ parties, selectedId, onSelect, role, 
             className={`${picker ? 'h-11' : 'h-10'} w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20`} />
           
         </div>
-        <div className={`flex gap-1 ${picker ? 'overflow-x-auto pb-1' : 'flex-wrap'}`} role="tablist" aria-label={text('Filter by role','সম্পর্ক অনুযায়ী বাছুন')}>
+        <div className={`flex gap-1 ${picker ? 'overflow-x-auto pb-1' : 'flex-wrap'}`} role="group" aria-label={text('Filter by role','সম্পর্ক অনুযায়ী বাছুন')}>
           {(['All', ...partyRoles] as (PartyRole | 'All')[]).map((r) =>
           <button
             key={r}
-            role="tab"
-            aria-selected={role === r}
+            type="button"
+            aria-pressed={role === r}
             onClick={() => onRole(r)}
             className={`${picker ? 'h-9 shrink-0' : 'h-7 shrink-0'} rounded-lg px-2.5 text-[13px] font-medium transition-colors ${
             role === r ? 'bg-inverse text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'}`
@@ -83,9 +69,10 @@ export function PartyDirectoryResponsive({ parties, selectedId, onSelect, role, 
           const active = p.id === selectedId;
           return (
             <li key={p.id} role="presentation">
-              <button role="option" aria-selected={active}
+              <button role="option" aria-selected={active} type="button"
+                tabIndex={p.id===tabStopId?0:-1} onFocus={()=>onOptionFocus(p.id)}
                 onClick={() => onSelect(p.id)}
-                className={`flex w-full min-w-0 items-center gap-3 border-l-2 px-3 text-left transition-colors ${picker ? 'min-h-16 py-3' : 'py-2.5'} ${
+                className={`flex w-full min-w-0 items-center gap-3 border-l-2 px-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${picker ? 'min-h-16 py-3' : 'py-2.5'} ${
                 active ? 'border-teal-600 bg-teal-50' : 'border-transparent hover:bg-ink-50'}`
                 }>
                 

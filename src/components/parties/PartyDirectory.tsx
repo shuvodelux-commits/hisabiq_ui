@@ -7,6 +7,7 @@ import type { Party, PartyRole } from '../../types/erp';
 import { taka } from '../../utils/currency';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {partyRoleLabel} from '../../i18n/partyCopy';
+import { usePartyDirectoryKeyboard } from './usePartyDirectoryKeyboard';
 
 type PartyDirectoryProps = {
   parties: Party[];
@@ -20,6 +21,7 @@ type PartyDirectoryProps = {
 
 export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, query, onQuery }: PartyDirectoryProps) {
   const {text,language}=useUiCopy();
+  const {listRef,tabStopId,onSearchKeyDown,onListKeyDown,onOptionFocus}=usePartyDirectoryKeyboard(parties,selectedId);
   return (
     <div className="flex min-h-0 min-w-0 flex-col rounded-xl border border-border bg-card shadow-card">
       <div className="space-y-2 border-b border-border p-3">
@@ -27,18 +29,19 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
           <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
           <Input
             value={query}
+            onKeyDown={onSearchKeyDown}
             onChange={(e) => onQuery(e.target.value)}
             placeholder={text('Search name or phone…','নাম বা ফোন দিয়ে খুঁজুন…')}
             aria-label={text('Search parties','পার্টি খুঁজুন')}
             className="h-8 w-full rounded-md border border-border pl-8 pr-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
           
         </div>
-        <div className="flex flex-wrap gap-1" role="tablist" aria-label={text('Filter by role','সম্পর্ক অনুযায়ী বাছুন')}>
+        <div className="flex flex-wrap gap-1" role="group" aria-label={text('Filter by role','সম্পর্ক অনুযায়ী বাছুন')}>
           {(['All', ...partyRoles] as (PartyRole | 'All')[]).map((r) =>
           <button
             key={r}
-            role="tab"
-            aria-selected={role === r}
+            type="button"
+            aria-pressed={role === r}
             onClick={() => onRole(r)}
             className={`h-6 rounded-md px-2 text-[11.5px] font-medium transition-colors ${
             role === r ? 'bg-inverse text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'}`
@@ -55,14 +58,15 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
         <span>{text('Balance','জের')}</span>
       </div>
 
-      <ul data-party-directory-list className="max-h-[calc(100vh-290px)] min-h-[320px] flex-1 overflow-auto scrollbar-thin" role="listbox" aria-label={text('Parties','পার্টি তালিকা')}>
+      <ul ref={listRef} onKeyDown={onListKeyDown} data-party-directory-list className="max-h-[calc(100vh-290px)] min-h-[320px] flex-1 overflow-auto scrollbar-thin" role="listbox" aria-label={text('Parties','পার্টি তালিকা')}>
         {parties.map((p) => {
           const active = p.id === selectedId;
           return (
             <li key={p.id} role="presentation">
-              <button role="option" aria-selected={active}
+              <button role="option" aria-selected={active} type="button"
+                tabIndex={p.id===tabStopId?0:-1} onFocus={()=>onOptionFocus(p.id)}
                 onClick={() => onSelect(p.id)}
-                className={`flex w-full items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors ${
+                className={`flex w-full items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
                 active ? 'border-teal-600 bg-teal-50/60' : 'border-transparent hover:bg-ink-50'}`
                 }>
                 
@@ -80,7 +84,7 @@ export function PartyDirectory({ parties, selectedId, onSelect, role, onRole, qu
                   {role==='All'&&p.roles.length>1?
                     <><p className="text-[12px] font-semibold text-ink-600">{text('Multiple ledgers','একাধিক খাতা')}</p>
                       <p className="text-[10.5px] text-ink-400">{text('Select relationship','কোন সম্পর্কের হিসাব দেখবেন?')}</p></>:
-                    <><p className={`text-[13px] font-semibold tabular-nums ${p.balance > 0 ? 'text-teal-700' : p.balance < 0 ? 'text-danger' : 'text-ink-400'}`}>
+                    <><p className={`text-[13px] font-semibold ${p.balance > 0 ? 'text-teal-700' : p.balance < 0 ? 'text-danger' : 'text-ink-400'}`}>
                       {p.balance === 0 ? '৳0' : taka(Math.abs(p.balance))}
                     </p>
                     <p className="text-[10.5px] text-ink-400">{p.balance > 0 ? text('Receivable','পাওনা') : p.balance < 0 ? text('Payable','দেনা') : text('Settled','হিসাব মিটেছে')}</p></>}

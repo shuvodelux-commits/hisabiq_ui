@@ -259,7 +259,7 @@ export function PartyDetail({
           
             {t.label}
             {t.count !== undefined &&
-          <span data-testid="party-tab-count" className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold transition-colors ${tab===t.id ? 'bg-teal-50 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200' : 'bg-ink-50 text-ink-500'}`}>{t.count}</span>
+          <span data-testid="party-tab-count" className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold transition-colors ${tab===t.id ? 'bg-teal-50 text-teal-800' : 'bg-ink-50 text-ink-500'}`}>{t.count}</span>
           }
           <MotionTabIndicator active={tab === t.id} /></button>
         )}

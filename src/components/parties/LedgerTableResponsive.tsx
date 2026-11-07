@@ -41,14 +41,14 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
   const reduceMotion = useReducedMotion();
   const balance = (value: number) => formatMoneyNumber(Math.abs(value)) + ' ' + (value>=0?'Dr':'Cr');
 
-  const summary = <div className="grid grid-cols-3 gap-x-2 gap-y-1 bg-ink-50/70 px-3 py-2 md:flex md:flex-wrap md:items-center md:justify-start md:gap-x-5 md:gap-y-1 md:px-4 md:py-2" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
+  const summary = <div className="flex flex-wrap gap-x-2 gap-y-1 bg-ink-50/70 px-3 py-2 md:items-center md:justify-start md:gap-x-5 md:px-4" aria-label={text('Ledger summary', 'খাতার সারসংক্ষেপ')}>
     {[
       [text('Opening balance', 'শুরুর জের'), balance(statement.openingBalance)],
       [text('Period debit', 'এই সময়ের ডেবিট'), formatMoneyNumber(statement.periodDebit)],
       [text('Period credit', 'এই সময়ের ক্রেডিট'), formatMoneyNumber(statement.periodCredit)]
-    ].map(([label, value]) => <div key={label} className="min-w-0 md:flex md:items-baseline md:gap-1.5">
+    ].map(([label, value]) => <div key={label} className="min-w-max flex-1 md:flex md:flex-none md:items-baseline md:gap-1.5">
       <p className="text-xs text-ink-500">{label}</p>
-      <strong className="block break-words text-[13px] font-semibold text-ink">{value}</strong>
+      <strong className="block whitespace-nowrap text-[13px] font-semibold text-ink">{value}</strong>
     </div>)}
   </div>;
 
@@ -104,6 +104,7 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
       <AnimatePresence initial={false} mode="popLayout">
       {visibleRows.map(row => {
         const amount = row.debit || row.credit;
+        const identity = row.reference || row.description || partyLedgerSourceLabel(language,row.source);
         const side = row.debit ? financial.label('debit') : row.credit ? financial.label('credit') : '';
         return <motion.li key={row.id} className="min-w-0 px-4 py-3.5"
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
@@ -113,24 +114,24 @@ export function LedgerTableResponsive({ statement, visibleRows, actionsForRow, o
           <button type="button" aria-label={text('View transaction','লেনদেন দেখুন') + ' ' + (row.reference || row.id)}
             onClick={() => onAction('view',row)}
             className="block w-full rounded-md text-left transition-colors hover:bg-ink-50/50 focus-visible:outline-2 focus-visible:outline-teal-500">
-          <div className="flex min-w-0 items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 items-center gap-1.5 text-xs text-ink-500">
+          <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-[1_1_160px]">
+              <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-xs text-ink-500">
                 <LedgerTypeIcon row={row} />
                 <PartyLedgerSourceBadge source={row.source} label={partyLedgerSourceLabel(language,row.source)} />
                 <span aria-hidden="true">·</span>
                 <span className="shrink-0">{row.date}</span>
               </div>
               <p className="mt-1 break-words text-[15px] font-semibold leading-tight text-ink">
-                {row.reference || row.description || partyLedgerSourceLabel(language,row.source)}
+                {identity}
               </p>
             </div>
-            {amount !== 0 && <div className="min-w-0 shrink-0 text-right">
+            {amount !== 0 && <div className="ml-auto min-w-0 max-w-full shrink-0 text-right">
               <div className="text-[15px]"><LedgerImpactAmount row={row} value={amount} language={language} /></div>
               <p data-table-helper="" className="mt-0.5 text-xs text-ink-500">{side}</p>
             </div>}
           </div>
-          {row.description && row.description !== row.reference && <p className="mt-1 line-clamp-2 break-words text-[13px] leading-snug text-ink-500">{row.description}</p>}
+          {row.description && row.description !== identity && <p className="mt-1 line-clamp-2 break-words text-[13px] leading-snug text-ink-500">{row.description}</p>}
           </button>
           <div className="mt-2.5 flex min-w-0 items-center justify-between gap-2">
             <p className="min-w-0 break-words text-xs text-ink-500"><span data-table-helper="">{text('Balance', 'জের')}</span> <strong data-testid="ledger-running-balance" className="font-semibold text-ink">{balance(row.runningBalance)}</strong></p>
