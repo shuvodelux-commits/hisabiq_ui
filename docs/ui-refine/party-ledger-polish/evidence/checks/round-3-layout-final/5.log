@@ -1,0 +1,5 @@
+
+> magic-patterns-vite-template@0.0.1 check:design-guide
+> node scripts/sync-design-guide.cjs --check
+
+Verified guide v2.2: 32 chapters, 292 component files, 170 Lucide imports, 59 colors per theme.
