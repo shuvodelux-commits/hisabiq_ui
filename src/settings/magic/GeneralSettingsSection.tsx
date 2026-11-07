@@ -32,7 +32,7 @@ export function GeneralSettingsSection({
   const all = sourceSettingsFields[section.id] ?? [];
   const [advanced, setAdvanced] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
-  const [baseline, setBaseline] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
+  const [baseline] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
   const fields = all.filter(f => advanced || !f.advanced);
