@@ -4017,6 +4017,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/SaveBar.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SaveBar"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/SettingsHome.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4629,6 +4637,9 @@
       "src/components/vendor/VendorPaymentsWorkspace.tsx",
       "src/components/vendor/VendorSourceWorkspace.tsx"
     ],
+    "Loader2": [
+      "src/settings/magic/SaveBar.tsx"
+    ],
     "LoaderCircle": [
       "src/components/FeedbackState.tsx",
       "src/components/brand/VisualComponentLibrary.tsx"
@@ -4926,7 +4937,7 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/magic/SaveBar.tsx"
     ],
     "Ruler": [
       "src/components/products/ProductSettings.tsx"
@@ -4937,7 +4948,8 @@
       "src/components/pos/DraftsMenu.tsx",
       "src/components/reports/BusinessReview.tsx",
       "src/pages/PurchaseEditor.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/SaveBar.tsx"
     ],
     "Scale": [
       "src/components/brand/PrimitivesSection.tsx",
