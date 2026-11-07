@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Input } from '../../components/Input';
 import { Search } from 'lucide-react';
 import { settingsGroups, settingsSections, type SettingsSectionId } from './settingsSections';
 
@@ -28,7 +29,7 @@ export function SettingsNav({ activeId, urlFor, onNavigate }: SettingsNavProps) 
       </Link>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-        <input
+        <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search settings"
