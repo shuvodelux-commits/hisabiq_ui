@@ -205,7 +205,7 @@ function Fields({
             data-field-key={field.key}
             className={
               field.kind === "textarea" || field.kind === "logo"
-                ? "md:col-span-full"
+                ? "sm:col-span-full"
                 : ""
             }
           >
@@ -1012,11 +1012,78 @@ export function SettingsPageContent({
                           disabled={!editable}
                           onChange={(tax) => setDraft((previous) => ({ ...previous, tax }))}
                         />
+                      ) : group.id === "general" ? (
+                        <SettingCard
+                          title="Business profile"
+                          titleBn="ব্যবসার পরিচিতি"
+                          description="Name, phone and address used on invoices."
+                        >
+                          <div data-settings-business-core>
+                            <Fields
+                              fields={(settingsFields.business ?? []).filter(field =>
+                                ["name", "phone", "address"].includes(field.key)
+                              )}
+                              value={draft}
+                              onChange={setDraft}
+                              disabled={!editable}
+                              language={personal.language}
+                              onReading={setReadingLogo}
+                            />
+                            <div className="mt-5 sm:max-w-[calc(50%-0.75rem)]">
+                              <SettingsField
+                                label="Currency"
+                                bn="মুদ্রা"
+                                language={personal.language}
+                                hint="Bangladesh Taka (৳). Accounting currency is fixed to BDT; formatting preferences are under Regional & currency."
+                              >
+                                {(id, descriptionId) => (
+                                  <Input
+                                    id={id}
+                                    aria-label="Currency"
+                                    aria-describedby={descriptionId}
+                                    value="BDT — Bangladesh Taka (৳)"
+                                    readOnly
+                                  />
+                                )}
+                              </SettingsField>
+                            </div>
+                          </div>
+                          <div className="border-t border-ink-100 pt-4">
+                            <p className="mb-3 text-xs font-medium text-ink-500">
+                              Additional shop details <span lang="bn" className="font-bn font-normal text-ink-400">দোকানের অতিরিক্ত তথ্য</span>
+                            </p>
+                            <Fields
+                              fields={(settingsFields.business ?? []).filter(field =>
+                                ["nameBn", "registration"].includes(field.key) &&
+                                (!field.advanced || personal.mode === "Advanced")
+                              )}
+                              value={draft}
+                              onChange={setDraft}
+                              disabled={!editable}
+                              language={personal.language}
+                              onReading={setReadingLogo}
+                            />
+                          </div>
+                        </SettingCard>
                       ) : (
-                        <SettingCard title={personal.language === "Bangla" ? group.bn : group.label}>
+                        <SettingCard
+                          title={group.label}
+                          titleBn={group.bn}
+                          description={group.id === "contact"
+                            ? "Additional business contact details used where supported."
+                            : "Use your existing business logo on receipts and invoices."}
+                        >
                           <Fields
-                            fields={(settingsFields.business ?? []).filter(field => businessFieldGroup(field.key) === group.id && (!field.advanced || personal.mode === "Advanced"))}
-                            value={draft} onChange={setDraft} disabled={!editable} language={personal.language} onReading={setReadingLogo}/>
+                            fields={(settingsFields.business ?? []).filter(field =>
+                              businessFieldGroup(field.key) === group.id &&
+                              (!field.advanced || personal.mode === "Advanced")
+                            )}
+                            value={draft}
+                            onChange={setDraft}
+                            disabled={!editable}
+                            language={personal.language}
+                            onReading={setReadingLogo}
+                          />
                         </SettingCard>
                       )}
                     </div>
