@@ -1,5 +1,5 @@
 /** Magic Patterns TeamSettings source UI (artifact 238f01b4), adapted only for local preview data. */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Lock, Plus } from 'lucide-react';
 import { AppSelect } from '../../components/AppSelect';
 import { SettingCard } from '../ui';
@@ -8,19 +8,19 @@ import { useTenantSettings } from '../TenantSettingsProvider';
 
 /** Phase 1 design data is local-only. Server-side authorization remains unchanged. */
 type Staff = { id: string; name: string; role: string; active: boolean };
-function Input({ value, onChange, placeholder = '' }: { value: string; onChange: (value: string) => void; placeholder?: string }) {
-  return <input value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder}
+function Input({ value, onChange, placeholder = '', inputRef, invalid, errorId }: { value: string; onChange: (value: string) => void; placeholder?: string; inputRef?: React.Ref<HTMLInputElement>; invalid?: boolean; errorId?: string }) {
+  return <input ref={inputRef} value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} aria-invalid={invalid || undefined} aria-describedby={errorId} aria-errormessage={invalid ? errorId : undefined}
     className="ref-control block h-9 w-full rounded-md border border-input bg-card px-3 text-[13px] text-ink outline-none focus-visible:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-500/20" />;
 }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="block min-w-0 text-[12px] font-medium text-ink-700">{label}
     <span className="mt-1.5 block font-normal">{children}</span></label>;
 }
-function Select({ value, onChange, options }: { value: string; onChange: (value: string) => void; options: string[] }) {
-  return <AppSelect label="Role" value={value} options={options} onChange={onChange} className="w-full" />;
+function Select({ value, onChange, options, describedBy }: { value: string; onChange: (value: string) => void; options: string[]; describedBy?: string }) {
+  return <AppSelect label="Role" value={value} options={options} onChange={onChange} describedBy={describedBy} className="w-full" />;
 }
-function Checkbox({ checked, onCheckedChange }: { checked: boolean; onCheckedChange: (checked: boolean) => void }) {
-  return <input type="checkbox" aria-label="Active" className="size-4 rounded border-input accent-teal-600"
+function Checkbox({ checked, onCheckedChange, inputRef, invalid, errorId }: { checked: boolean; onCheckedChange: (checked: boolean) => void; inputRef?: React.Ref<HTMLInputElement>; invalid?: boolean; errorId?: string }) {
+  return <input ref={inputRef} type="checkbox" aria-label="Active" aria-invalid={invalid || undefined} aria-describedby={errorId} aria-errormessage={invalid ? errorId : undefined} className="size-4 rounded border-input accent-teal-600"
     checked={checked} onChange={event => onCheckedChange(event.target.checked)} />;
 }
 function Tag({ children, color }: { children: React.ReactNode; color: 'success' | 'neutral' }) {
@@ -59,15 +59,29 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
   const [editor, setEditor] = useState<Staff | null>(null);
   const [error, setError] = useState('');
+  const [errorField, setErrorField] = useState<'name' | 'role' | 'active' | null>(null);
+  const errorId = useId();
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const activeInputRef = useRef<HTMLInputElement>(null);
+  const roleControlRef = useRef<HTMLDivElement>(null);
+  const clearError = () => { setError(''); setErrorField(null); };
+  const showError = (message: string, field: 'name' | 'role' | 'active') => {
+    setError(message);
+    setErrorField(field);
+    if (field === 'name') nameInputRef.current?.focus();
+    if (field === 'active') activeInputRef.current?.focus();
+    if (field === 'role') roleControlRef.current?.querySelector<HTMLElement>('[role="combobox"]')?.focus();
+  };
   const isNew = editor ? !staff.some((s) => s.id === editor.id) : false;
   const owners = staff.filter((s) => s.role === 'Owner' && s.active).length;
 
   const save = () => {
     if (!editor) return;
-    if (!editor.name.trim()) return setError('Enter a name.');
-    if (staff.some((s) => s.id !== editor.id && s.name.trim().toLowerCase() === editor.name.trim().toLowerCase())) return setError('Someone with this name already exists.');
+    if (!editor.name.trim()) return showError('Enter a name.', 'name');
+    if (staff.some((s) => s.id !== editor.id && s.name.trim().toLowerCase() === editor.name.trim().toLowerCase())) return showError('Someone with this name already exists.', 'name');
     const wasOwner = staff.find((s) => s.id === editor.id)?.role === 'Owner';
-    if (wasOwner && (editor.role !== 'Owner' || !editor.active) && owners <= 1) return setError('Keep at least one active owner.');
+    if (wasOwner && (editor.role !== 'Owner' || !editor.active) && owners <= 1)
+      return showError('Keep at least one active owner.', editor.role !== 'Owner' ? 'role' : 'active');
     setStaff(current => isNew
       ? [...current, { ...editor, name: editor.name.trim() }]
       : current.map(person => person.id === editor.id ? { ...editor, name: editor.name.trim() } : person));
@@ -87,7 +101,7 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
             <Button
               kind="primary"
               onClick={() => {
-                setError('');
+                clearError();
                 setEditor({ id: `preview-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: '', role: 'Sales', active: true });
               }}
             >
@@ -130,7 +144,7 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
                       <Button
                         kind="ghost"
                         onClick={() => {
-                          setError('');
+                          clearError();
                           setEditor({ ...s });
                         }}
                       >
@@ -170,24 +184,25 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
         >
           <div className="space-y-4">
             <Field label="Name">
-              <Input value={editor.name} onChange={(name) => setEditor({ ...editor, name })} placeholder="e.g. Sabbir Hossain" />
+              <Input value={editor.name} onChange={(name) => { clearError(); setEditor({ ...editor, name }); }} inputRef={nameInputRef} invalid={Boolean(error) && errorField === 'name'} errorId={errorField === 'name' ? errorId : undefined} placeholder="e.g. Sabbir Hossain" />
             </Field>
             <div>
-              <Field label="Role">
-                <Select value={editor.role} onChange={(role) => setEditor({ ...editor, role })} options={roles.map((r) => r.role)} />
-              </Field>
+              <div ref={roleControlRef} className="min-w-0 text-[12px] font-medium text-ink-700">
+                <span className="block">Role</span>
+                <span className="mt-1.5 block font-normal"><Select value={editor.role} onChange={(role) => { clearError(); setEditor({ ...editor, role }); }} describedBy={errorField === 'role' ? errorId : undefined} options={roles.map((r) => r.role)} /></span>
+              </div>
               <p className="mt-1 text-xs text-ink-500">{roles.find((r) => r.role === editor.role)?.can}</p>
             </div>
             <label className="flex cursor-pointer items-start gap-3">
               <span className="flex h-5 items-center">
-                <Checkbox checked={editor.active} onCheckedChange={(v: boolean) => setEditor({ ...editor, active: v })} />
+                <Checkbox checked={editor.active} inputRef={activeInputRef} invalid={Boolean(error) && errorField === 'active'} errorId={errorField === 'active' ? errorId : undefined} onCheckedChange={(v: boolean) => { clearError(); setEditor({ ...editor, active: v }); }} />
               </span>
               <span>
                 <span className="block text-[13px] font-medium text-ink">Active</span>
                 <span className="block text-xs text-ink-500">Disabled members can’t sign in. Their records stay.</span>
               </span>
             </label>
-            {error && <p role="alert" className="text-xs text-danger">{error}</p>}
+            {error && <p id={errorId} role="alert" className="text-xs text-danger">{error}</p>}
           </div>
         </Modal>
       )}
