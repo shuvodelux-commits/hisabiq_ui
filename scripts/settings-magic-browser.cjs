@@ -202,6 +202,54 @@ async function main() {
     await dataUI.waitFor();
     assert.equal(await page.getByRole('dialog', { name: 'Replace demo data with this backup?' }).count(), 0,
       'Backup preview must not persist across reload');
+    // Original Magic SessionsPage: source summary, all columns, search, risk filters,
+    // per-device controls, bulk/PIN protection and nonpersistent preview state.
+    await go('sessions');
+    const sessionsUI = page.locator('[data-settings-magic-sessions]');
+    await sessionsUI.waitFor();
+    await sessionsUI.getByText(/Sample sign-in records from 3 November 2026/).waitFor();
+    const sessionTable = sessionsUI.locator('[data-settings-sessions-table]');
+    assert.deepEqual(
+      await sessionTable.locator('thead th').allTextContents().then(values => values.map(text => text.trim())),
+      ['Person', 'Device', 'Where', 'Signed in', 'Last active', 'Action'],
+    );
+    await sessionsUI.getByText('Online now', { exact: true }).waitFor();
+    await sessionsUI.getByText('Signed-in devices', { exact: true }).waitFor();
+    await sessionsUI.getByText('New devices', { exact: true }).waitFor();
+    await sessionsUI.getByText('Unusual sign-ins', { exact: true }).waitFor();
+    await sessionsUI.getByRole('radio', { name: 'Unusual' }).click();
+    assert.equal(await sessionTable.locator('tbody tr').count(), 1, 'One unusual fixture is shown by the source filter');
+    await sessionsUI.getByRole('radio', { name: 'All', exact: true }).click();
+    await sessionsUI.getByRole('textbox', { name: 'Search devices' }).fill('Chattogram');
+    assert.equal(await sessionTable.locator('tbody tr').count(), 1, 'Search person, device and city');
+    await sessionsUI.getByRole('textbox', { name: 'Search devices' }).fill('');
+    await page.getByRole('button', { name: 'Actions for Owner phone' }).click();
+    await page.getByRole('menuitem', { name: 'Sign out this device' }).click();
+    const deviceDialog = page.getByRole('dialog', { name: 'Sign out this device?' });
+    await deviceDialog.waitFor();
+    await deviceDialog.getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('button', { name: 'Actions for Owner phone' }).click();
+    await page.getByRole('menuitem', { name: 'Sign out this device' }).click();
+    await deviceDialog.getByRole('button', { name: 'Sign out', exact: true }).click();
+    assert.equal(await sessionTable.getByText('Owner phone', { exact: true }).count(), 0,
+      'Sign-out removes only a demo row');
+    await sessionsUI.getByText('Sign-in safety', { exact: true }).waitFor();
+    await sessionsUI.getByRole('combobox', { name: 'Idle sign-out' }).click();
+    await page.getByRole('option', { name: '1 hour' }).click();
+    await sessionsUI.getByRole('button', { name: /Sign out everyone except me/ }).click();
+    const bulkDialog = page.getByRole('dialog', { name: 'Sign out everyone except you?' });
+    await bulkDialog.waitFor();
+    await bulkDialog.getByRole('textbox', { name: /Owner PIN/ }).fill('123');
+    await bulkDialog.getByRole('button', { name: 'Sign out everyone' }).click();
+    await bulkDialog.getByText(/Enter your 6-digit PIN/).waitFor();
+    await bulkDialog.getByRole('textbox', { name: /Owner PIN/ }).fill('123456');
+    await bulkDialog.getByRole('button', { name: 'Sign out everyone' }).click();
+    assert.equal(await sessionTable.locator('tbody tr').count(), 1,
+      'Demo bulk action preserves the source Current device only');
+    await page.reload();
+    await sessionsUI.waitFor();
+    assert.equal(await sessionTable.locator('tbody tr').count(), 8,
+      'Preview session actions reset on reload and never revoke real sessions');
     // Source TeamSettings is the route itself; legacy management and directory panels are absent.
     await go('team');
     const teamUI = page.locator('[data-settings-magic-team]');
@@ -292,6 +340,30 @@ async function main() {
         await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-data-' + width + '-dark.png'), fullPage: true });
         await page.evaluate(() => document.documentElement.classList.remove('dark'));
       }
+      await go('sessions');
+      const sessionsPage = page.locator('[data-settings-magic-sessions]');
+      await sessionsPage.waitFor();
+      const sessionsPageX = await page.evaluate(() => {
+        const y = scrollY;
+        window.scrollTo({left: 9999, top: y, behavior: 'instant'});
+        const x = scrollX;
+        window.scrollTo({left: 0, top: y, behavior: 'instant'});
+        return x;
+      });
+      assert.equal(sessionsPageX, 0, 'Logged-in devices page must not scroll sideways at ' + width);
+      const sessionScroll = await sessionsPage.locator('[data-settings-sessions-table]').evaluate(table => {
+        const pane = table.parentElement;
+        return {client: pane.clientWidth, content: pane.scrollWidth, mode: getComputedStyle(pane).overflowX};
+      });
+      assert.equal(sessionScroll.mode, 'auto', 'Source session table has an independent scroll area');
+      if (width < 760) assert.ok(sessionScroll.content > sessionScroll.client,
+        'Narrow Logged-in devices table scrolls internally at ' + width);
+      if (process.env.SETTINGS_SCREENSHOT_DIR) {
+        await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-sessions-' + width + '-light.png'), fullPage: true});
+        await page.evaluate(() => document.documentElement.classList.add('dark'));
+        await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-sessions-' + width + '-dark.png'), fullPage: true});
+        await page.evaluate(() => document.documentElement.classList.remove('dark'));
+      }
       await go('team');
       await page.locator('[data-settings-magic-team] [data-settings-team-table]').waitFor();
       const teamLayout = await page.evaluate(() => {
@@ -334,7 +406,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles and Data & backup source previews across five viewports passed.');
+    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles, Data & backup, and source Logged-in devices previews across five viewports passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
