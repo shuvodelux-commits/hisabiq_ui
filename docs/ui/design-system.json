@@ -4163,6 +4163,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/security/OfflinePage.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "OfflinePage"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/security/PinConfirmDialog.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4238,7 +4246,8 @@
       "src/components/pos/CheckoutPanel.tsx",
       "src/components/pos/StockShortageDialog.tsx",
       "src/components/purchases/PurchasePaymentPanel.tsx",
-      "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx"
+      "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
+      "src/settings/magic/security/OfflinePage.tsx"
     ],
     "ArrowDown": [
       "src/components/reports/ReportResults.tsx",
@@ -4476,7 +4485,8 @@
       "src/saas/OverviewPage.tsx",
       "src/settings/AccountSecuritySettings.tsx",
       "src/settings/TenantSettingsPage.tsx",
-      "src/settings/magic/SettingsHome.tsx"
+      "src/settings/magic/SettingsHome.tsx",
+      "src/settings/magic/security/OfflinePage.tsx"
     ],
     "CheckIcon": [
       "src/components/SearchSelect.tsx",
@@ -4554,6 +4564,9 @@
       "src/components/audit/AuditTimeline.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/AccountSecuritySettings.tsx"
+    ],
+    "CloudOff": [
+      "src/settings/magic/security/OfflinePage.tsx"
     ],
     "Columns3": [
       "src/components/reports/ReportToolbar.tsx",
@@ -4866,6 +4879,7 @@
     ],
     "Monitor": [
       "src/components/layout/ThemePicker.tsx",
+      "src/settings/magic/security/OfflinePage.tsx",
       "src/settings/magic/security/SessionsPage.tsx"
     ],
     "MonitorSmartphone": [
@@ -5100,7 +5114,8 @@
       "src/components/finance/CashSessionDetailsDialog.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/pages/Finance.tsx",
-      "src/pages/Reports.tsx"
+      "src/pages/Reports.tsx",
+      "src/settings/magic/security/OfflinePage.tsx"
     ],
     "RotateCcw": [
       "src/components/audit/AuditFilters.tsx",
@@ -5263,6 +5278,7 @@
     ],
     "Smartphone": [
       "src/features/auth/AuthFlowPage.tsx",
+      "src/settings/magic/security/OfflinePage.tsx",
       "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Sparkles": [
@@ -5286,6 +5302,7 @@
       "src/components/layout/ThemePicker.tsx"
     ],
     "Tablet": [
+      "src/settings/magic/security/OfflinePage.tsx",
       "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Tag": [
@@ -5404,6 +5421,7 @@
       "src/settings/magic/SettingsHome.tsx"
     ],
     "WifiOff": [
+      "src/settings/magic/security/OfflinePage.tsx",
       "src/settings/magic/settingsSections.ts"
     ],
     "Wrench": [
