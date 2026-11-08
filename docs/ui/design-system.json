@@ -4065,6 +4065,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/TeamSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "TeamSettings"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/interface/CapabilityRow.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4752,6 +4760,7 @@
       "src/components/brand/ApplicationsSection.tsx",
       "src/components/layout/CashSessionDialog.tsx",
       "src/settings/magic/GeneralSettingsSection.tsx",
+      "src/settings/magic/TeamSettings.tsx",
       "src/settings/magic/invoice/DesignGallery.tsx",
       "src/settings/magic/invoice/InvoiceStudio.tsx"
     ],
@@ -4949,7 +4958,8 @@
       "src/pages/Vendors.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/CommerceSettingsPanels.tsx",
-      "src/settings/TeamSettings.tsx"
+      "src/settings/TeamSettings.tsx",
+      "src/settings/magic/TeamSettings.tsx"
     ],
     "PlusCircle": [
       "src/components/accounts/OpeningBalanceDialog.tsx"
