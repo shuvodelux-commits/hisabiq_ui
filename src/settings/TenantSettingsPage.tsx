@@ -5,6 +5,7 @@ import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/G
 import { KhataPreview as MagicKhataPreview } from './magic/KhataPreview';
 import { InvoiceStudio as MagicInvoiceStudio } from './magic/invoice/InvoiceStudio';
 import { InterfaceSettings as MagicInterfaceSettings } from './magic/interface/InterfaceSettings';
+import { TeamSettings as MagicTeamSettings } from './magic/TeamSettings';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1546,6 +1547,7 @@ export function TenantSettingsPage() {
   const [magicDirty, setMagicDirty] = useState(false);
   const [invoiceStudioDirty, setInvoiceStudioDirty] = useState(false);
   const [interfaceMagicDirty, setInterfaceMagicDirty] = useState(false);
+  const [teamMagicDirty, setTeamMagicDirty] = useState(false);
   const [invoiceNumberDirty, setInvoiceNumberDirty] = useState(false);
   const [pendingMagicUrl, setPendingMagicUrl] = useState<string | null>(null);
   const activeId: SettingsSectionId | null =
@@ -1575,7 +1577,7 @@ export function TenantSettingsPage() {
   const sourceCanEdit = activeId === 'personal' || activeId === 'security' ||
     (sourceSectionKey !== null && canManage(state, actorId, sourceSectionKey as BusinessSection));
   const onMagicNavigate = (url: string, event: React.MouseEvent) => {
-    if (!magicDirty && !invoiceStudioDirty && !invoiceNumberDirty && !interfaceMagicDirty) return;
+    if (!magicDirty && !invoiceStudioDirty && !invoiceNumberDirty && !interfaceMagicDirty && !teamMagicDirty) return;
     event.preventDefault();
     setPendingMagicUrl(url);
   };
@@ -1634,6 +1636,11 @@ export function TenantSettingsPage() {
                 />
               </div>
             </div>
+          ) : activeId === 'team' ? (
+            <MagicTeamSettings
+              canEdit={canManage(state, actorId, 'team')}
+              onDirtyChange={setTeamMagicDirty}
+            />
           ) : previewOnly ? (
             <section className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
@@ -1664,6 +1671,7 @@ export function TenantSettingsPage() {
             setInvoiceStudioDirty(false);
             setInvoiceNumberDirty(false);
             setInterfaceMagicDirty(false);
+            setTeamMagicDirty(false);
             if (target) navigate(target);
           }}>Discard preview and continue</Button>
         </div>
