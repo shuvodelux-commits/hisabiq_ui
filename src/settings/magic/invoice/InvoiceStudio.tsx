@@ -150,7 +150,7 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
           <SettingCard title="What to show on the invoice" titleBn="চালানে কী দেখাবে" description="Turn off anything your customers don’t need. The preview updates as you click.">
             <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
               {contentToggles.map((t) => (
-                <div key={t.key} className="flex min-h-11 min-w-0 items-center justify-between gap-3 rounded-md px-1 hover:bg-ink-50">
+                <div key={t.key} className="flex min-h-9 min-w-0 items-center justify-between gap-3 rounded-md px-1 hover:bg-ink-50">
                   <label htmlFor={`settings-invoice-content-${t.key}`} className="min-w-0 cursor-pointer text-[13px] text-ink-700">
                     {t.label} <span className="font-bn text-[11px] text-ink-400">{t.bn}</span>
                   </label>
