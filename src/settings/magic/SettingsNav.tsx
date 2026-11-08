@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Input } from '../../components/Input';
 import { Search } from 'lucide-react';
@@ -14,8 +14,35 @@ type SettingsNavProps = {
 /** Left settings navigation — matches the repo's TenantSettingsPage aside (search + compact list). */
 export function SettingsNav({ activeId, urlFor, onNavigate }: SettingsNavProps) {
   const [query, setQuery] = useState('');
+  const directoryRef = useRef<HTMLElement | null>(null);
   const q = query.trim().toLowerCase();
   const list = settingsSections.filter((s) => !q || `${s.label} ${s.bn} ${s.desc}`.toLowerCase().includes(q));
+
+  // The Magic source uses a horizontal navigation strip below lg. A direct
+  // link to a later section otherwise leaves its selected item out of view.
+  // Scroll the strip itself, never the page or keyboard focus.
+  useLayoutEffect(() => {
+    const directory = directoryRef.current;
+    if (!directory || !activeId) return;
+    const revealActive = () => {
+      if (window.matchMedia('(min-width: 1024px)').matches) return;
+      const active = Array.from(directory.querySelectorAll<HTMLAnchorElement>('a[data-settings-section]'))
+        .find(link => link.dataset.settingsSection === activeId);
+      if (!active || directory.scrollWidth <= directory.clientWidth + 1) return;
+
+      const viewport = directory.getBoundingClientRect();
+      const item = active.getBoundingClientRect();
+      const inset = 8;
+      if (item.left < viewport.left + inset) {
+        directory.scrollLeft -= viewport.left + inset - item.left;
+      } else if (item.right > viewport.right - inset) {
+        directory.scrollLeft += item.right - (viewport.right - inset);
+      }
+    };
+    revealActive();
+    window.addEventListener('resize', revealActive, { passive: true });
+    return () => window.removeEventListener('resize', revealActive);
+  }, [activeId, query]);
 
   return (
     <aside className="min-w-0 space-y-3">
@@ -37,7 +64,7 @@ export function SettingsNav({ activeId, urlFor, onNavigate }: SettingsNavProps) 
           className="ref-control w-full rounded-lg border border-ink-200 bg-card pl-9 pr-3 text-[13px] text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
         />
       </div>
-      <nav data-settings-directory aria-label="Settings" className="flex gap-1 overflow-x-auto rounded-xl border border-ink-100 bg-card p-2 scrollbar-thin lg:block">
+      <nav ref={directoryRef} data-settings-directory aria-label="Settings" className="flex gap-1 overflow-x-auto rounded-xl border border-ink-100 bg-card p-2 scrollbar-thin lg:block">
         {list.length === 0 && <p className="px-3 py-2 text-xs text-ink-500">No settings match “{query}”.</p>}
         {settingsGroups.map((g) => {
           const items = list.filter((s) => s.group === g);
