@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Eye, Lock } from 'lucide-react';
+import { ChevronDown, Eye, Lock } from 'lucide-react';
+import { SettingsToggle } from './SettingsToggle';
 import { AppSelect } from '../../components/AppSelect';
 import { Input, SettingCard, SettingsField } from '../ui';
 import { SaveBar } from './SaveBar';
@@ -125,20 +126,22 @@ export function GeneralSettingsSection({
     const disabled = !canEdit;
     if (field.kind === 'checkbox') {
       return (
-        <label key={field.key} htmlFor={id} className={`flex items-start gap-3 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${field.wide ? 'sm:col-span-2' : ''}`}>
-          <span className="flex h-5 shrink-0 items-center">
-            <input id={id} type="checkbox" className="size-4 rounded border-input accent-teal-600"
-              checked={Boolean(draft[field.key])} onChange={e => set(field.key, e.target.checked)}
-              disabled={disabled} />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-[13px] font-medium text-ink">
+        <div key={field.key} className={`flex min-w-0 items-start justify-between gap-3 ${field.wide ? 'sm:col-span-2' : ''}`}>
+          <div className="min-w-0 pt-1">
+            <label htmlFor={id} className={`block text-[13px] font-medium text-ink ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
               {field.label}
               {field.advanced && <span className="ml-1.5 rounded bg-ink-50 px-1 py-0.5 text-[10px] font-normal text-ink-500">Advanced</span>}
-            </span>
+            </label>
             {helper(field, error)}
-          </span>
-        </label>
+          </div>
+          <SettingsToggle
+            id={id}
+            checked={Boolean(draft[field.key])}
+            onCheckedChange={value => set(field.key, value)}
+            disabled={disabled}
+            aria-label={field.label}
+          />
+        </div>
       );
     }
     return (
@@ -178,11 +181,16 @@ export function GeneralSettingsSection({
           titleBn={section.bn}
           description={section.desc}
           actions={hasAdvanced ? (
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
-              <input type="checkbox" className="size-4 accent-teal-600"
-                checked={advanced} onChange={e => setAdvanced(e.target.checked)} />
-              Show advanced options
-            </label>
+            <button
+              type="button"
+              data-settings-advanced-toggle
+              aria-expanded={advanced}
+              onClick={() => setAdvanced(value => !value)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-ink-600 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
+            >
+              {advanced ? 'Hide advanced options' : 'Show advanced options'}
+              <ChevronDown className={`size-3.5 transition-transform ${advanced ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
           ) : undefined}
         >
           {!canEdit && (
