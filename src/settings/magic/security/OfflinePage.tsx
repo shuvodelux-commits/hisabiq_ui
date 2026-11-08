@@ -1,3 +1,4 @@
+import { SettingsToggle } from '../SettingsToggle';
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { AlertTriangle, CheckCircle2, CloudOff, Monitor, RefreshCw, Smartphone, Tablet, WifiOff } from 'lucide-react';
@@ -187,10 +188,13 @@ export function OfflinePage({ canManage }: { canManage: boolean }) {
             Warn when invoice numbers left drop to
             <Input type="number" min={5} max={100} value={o.warnAt} onChange={(e) => sec.updateOffline({ warnAt: Math.max(5, Math.min(100, Number(e.target.value) || 5)) })} className={numInput} />
           </label>
-          <label className="flex items-start gap-2.5 text-[13px] text-ink-700">
-            <input type="checkbox" className="mt-0.5 size-4 accent-teal-600" checked={o.allowCredit} onChange={(e) => sec.updateOffline({ allowCredit: e.target.checked })} />
-            <span>Allow selling on credit (baki) offline<span className="ref-helper block">Cash, and bKash/Nagad marked as paid, are always allowed.</span></span>
-          </label>
+          <div className="flex min-w-0 items-start justify-between gap-3 text-[13px] text-ink-700">
+            <div className="min-w-0 pt-1">
+              <label htmlFor="settings-offline-credit" className="cursor-pointer font-medium">Allow selling on credit (baki) offline</label>
+              <span className="ref-helper block">Cash, and bKash/Nagad marked as paid, are always allowed.</span>
+            </div>
+            <SettingsToggle id="settings-offline-credit" aria-label="Allow selling on credit (baki) offline" checked={o.allowCredit} onCheckedChange={value => sec.updateOffline({ allowCredit: value })} />
+          </div>
           {o.allowCredit && (
             <label className="block text-[12px] font-medium text-ink-700">
               Credit limit per sale (৳)
