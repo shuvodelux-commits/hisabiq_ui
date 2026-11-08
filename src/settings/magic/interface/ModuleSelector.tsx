@@ -50,7 +50,7 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
         <ChevronDown className="size-4 shrink-0 text-ink-400" />
       </button>
       {open && (
-        <div className="absolute left-0 right-0 z-30 mt-1 rounded-lg border border-ink-100 bg-white p-1.5 shadow-pop">
+        <div className="absolute left-0 right-0 z-30 mt-1 rounded-lg border border-ink-100 bg-card p-1.5 shadow-pop">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
             <Input
@@ -74,7 +74,7 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
               }}
               placeholder="Search modules"
               aria-label="Search modules"
-              className="ref-control w-full rounded-md border border-ink-100 bg-white pl-8 pr-2 text-[13px]"
+              className="ref-control w-full rounded-md border border-ink-100 bg-card pl-8 pr-2 text-[13px]"
             />
           </div>
           <ul role="listbox" aria-label="Modules" className="mt-1 max-h-64 overflow-y-auto">
