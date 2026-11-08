@@ -140,7 +140,7 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
               ))}
               <label className={`ml-1 inline-flex items-center gap-2 text-[12px] text-ink-600 ${premium ? '' : 'opacity-50'}`}>
                 Custom
-                <input type="color" value={draft.accent} disabled={!canEdit || !premium} onChange={(e) => set({ accent: e.target.value })} className="h-8 w-10 cursor-pointer rounded border border-ink-200 bg-white p-0.5" />
+                <input type="color" value={draft.accent} disabled={!canEdit || !premium} onChange={(e) => set({ accent: e.target.value })} className="h-8 w-10 cursor-pointer rounded border border-ink-200 bg-card p-0.5" />
               </label>
             </div>
             {contrastRatio(draft.accent) < 4.5 && <p className="text-xs text-warning">This color is light — totals may be hard to read on paper. Pick a darker shade.</p>}
@@ -171,7 +171,7 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
         </div>
 
         <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">
-          <section className="rounded-xl border border-ink-100 bg-white shadow-card">
+          <section className="rounded-xl border border-ink-100 bg-card shadow-card">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 px-4 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-ink">Live preview</h2>
