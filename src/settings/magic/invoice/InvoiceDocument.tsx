@@ -180,7 +180,7 @@ export function InvoiceDocument({ design, paper, lang, accent, content, padOffse
           <p className="text-ink-500">{L('date')}: <span className="text-ink">{docDate(inv.date, lang)}</span></p>
         </div>
       </div>
-      <table className={`w-full border-collapse ${design === 'compact' ? 'mt-3 text-[10px]' : 'mt-5 text-[11px]'}`}>
+      <table data-erp-table className={`w-full border-collapse ${design === 'compact' ? 'mt-3 text-[10px]' : 'mt-5 text-[11px]'}`}>
         <thead>
           <tr style={design === 'bold' ? { background: accent, color: '#fff' } : design === 'modern' ? { color: accent } : undefined} className={headCls}>
             {(['item', 'qty', 'rate', 'amount'] as DocCopyKey[]).map((k, i) => (
