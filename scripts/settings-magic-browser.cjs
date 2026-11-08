@@ -609,6 +609,45 @@ async function main() {
       await navigation.locator('a[data-settings-section]').first().waitFor();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
       assert.equal(overflow, false, 'Settings home overflows at ' + width);
+      // Phase-1 visual evidence: cover the nine general-source routes and
+      // Invoice Studio at each viewport/theme, not only the five security pages.
+      // These are implementation screenshots, NEVER original Magic references.
+      if (process.env.SETTINGS_SCREENSHOT_DIR) {
+        fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
+        const sourceRoutes = [
+          ['home', '', '[data-settings-magic-patterns]'],
+          ['business', 'business', '[data-settings-magic-general="business"]'],
+          ['names', 'financialTerminology', '[data-settings-magic-general="names"]'],
+          ['sales', 'sales', '[data-settings-magic-general="sales"]'],
+          ['products', 'products', '[data-settings-magic-general="products"]'],
+          ['purchases', 'purchases', '[data-settings-magic-general="purchases"]'],
+          ['finance', 'money', '[data-settings-magic-general="finance"]'],
+          ['notifications', 'notifications', '[data-settings-magic-general="notifications"]'],
+          ['personal', 'personal', '[data-settings-magic-general="personal"]'],
+          ['security', 'security', '[data-settings-magic-general="security"]'],
+          ['invoices', 'invoices', '[data-settings-magic-invoice-studio]'],
+        ];
+        for (const [name, route, selector] of sourceRoutes) {
+          await go(route);
+          await page.locator(selector).waitFor({ state: 'visible' });
+          await page.evaluate(() => document.fonts.ready);
+          const pageX = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+          assert.equal(pageX, false, 'Source Settings route ' + name + ' overflows at ' + width);
+          for (const theme of ['light', 'dark']) {
+            await page.evaluate(mode => {
+              document.documentElement.classList.toggle('dark', mode === 'dark');
+            }, theme);
+            await page.screenshot({
+              path: path.join(process.env.SETTINGS_SCREENSHOT_DIR,
+                'settings-' + name + '-' + width + '-' + theme + '.png'),
+              fullPage: true, animations: 'disabled',
+            });
+          }
+          await page.evaluate(() => document.documentElement.classList.remove('dark'));
+        }
+        await go('');
+        await navigation.locator('a[data-settings-section]').first().waitFor();
+      }
       // An off-screen deep link must reveal the selected Magic navigation item
       // inside the horizontal strip without moving keyboard focus or the page.
       const activeNavVisible = async id => {
