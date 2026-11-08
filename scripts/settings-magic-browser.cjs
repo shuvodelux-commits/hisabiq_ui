@@ -103,14 +103,14 @@ async function main() {
     // Source GeneralSettingsSection's 'Before you save' dialog is preview-only
     // but retains the exact warning copy for invoice numbers, lock dates, and cost method.
     await go('invoices');
-    const numbering = page.locator('[data-settings-magic-general="invoices"]');
-    await numbering.waitFor();
-    const prefixField = numbering.getByRole('textbox', { name: 'Invoice number prefix' });
+    const riskNumbering = page.locator('[data-settings-magic-general="invoices"]');
+    await riskNumbering.waitFor();
+    const prefixField = riskNumbering.getByRole('textbox', { name: 'Invoice number prefix' });
     const originalPrefix = await prefixField.inputValue();
-    const numberingSave = numbering.getByRole('button', { name: 'Save', exact: true });
+    const numberingSave = riskNumbering.getByRole('button', { name: 'Save', exact: true });
     await prefixField.fill('A');
     await numberingSave.click();
-    await numbering.getByText(/Use 2–12 capital letters/).waitFor();
+    await riskNumbering.getByText(/Use 2–12 capital letters/).waitFor();
     assert.equal(await page.getByRole('dialog', { name: 'Before you save' }).count(), 0,
       'Invalid invoice prefixes do not open the source confirmation');
     await prefixField.fill('TEST26');
@@ -130,9 +130,9 @@ async function main() {
       'Closing the source risk modal restores focus to the Save trigger');
     await numberingSave.click();
     await warningDialog.getByRole('button', { name: 'Continue preview (no save)' }).click();
-    await numbering.getByRole('status').filter({ hasText: /No business settings, historical records or stock costs were saved or changed/ }).waitFor();
+    await riskNumbering.getByRole('status').filter({ hasText: /No business settings, historical records or stock costs were saved or changed/ }).waitFor();
     await page.reload();
-    await numbering.waitFor();
+    await riskNumbering.waitFor();
     assert.equal(await prefixField.inputValue(), originalPrefix,
       'Confirming the numbering warning does not persist or change invoice numbering');
 
