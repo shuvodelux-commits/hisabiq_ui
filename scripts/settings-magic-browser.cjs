@@ -218,10 +218,12 @@ async function main() {
     await sessionsUI.getByText('New devices', { exact: true }).waitFor();
     await sessionsUI.getByText('Unusual sign-ins', { exact: true }).waitFor();
     await sessionsUI.getByRole('radio', { name: 'Unusual' }).click();
-    assert.equal(await sessionTable.locator('tbody tr').count(), 1, 'One unusual fixture is shown by the source filter');
+    await page.waitForFunction(() => document.querySelectorAll('[data-settings-sessions-table] tbody tr').length === 1);
+    await sessionsUI.getByText('Showing 1 of 8 devices').waitFor();
     await sessionsUI.getByRole('radio', { name: 'All', exact: true }).click();
     await sessionsUI.getByRole('textbox', { name: 'Search devices' }).fill('Chattogram');
-    assert.equal(await sessionTable.locator('tbody tr').count(), 1, 'Search person, device and city');
+    await page.waitForFunction(() => document.querySelectorAll('[data-settings-sessions-table] tbody tr').length === 1);
+    await sessionsUI.getByText('Showing 1 of 8 devices').waitFor();
     await sessionsUI.getByRole('button', { name: 'Clear Search devices' }).click();
     assert.equal(await sessionsUI.getByRole('textbox', { name: 'Search devices' }).inputValue(), '', 'Search is cleared without changing the active filter');
     await page.getByRole('button', { name: 'Actions for Owner phone' }).click();
@@ -232,8 +234,7 @@ async function main() {
     await page.getByRole('button', { name: 'Actions for Owner phone' }).click();
     await page.getByRole('menuitem', { name: 'Sign out this device' }).click();
     await deviceDialog.getByRole('button', { name: 'Sign out', exact: true }).click();
-    assert.equal(await sessionTable.getByText('Owner phone', { exact: true }).count(), 0,
-      'Sign-out removes only a demo row');
+    await sessionTable.getByText('Owner phone', { exact: true }).waitFor({ state: 'detached' });
     await sessionsUI.getByText('Sign-in safety', { exact: true }).waitFor();
     await sessionsUI.getByRole('combobox', { name: 'Idle sign-out' }).click();
     await page.getByRole('option', { name: '1 hour' }).click();
@@ -245,8 +246,8 @@ async function main() {
     await bulkDialog.getByText(/Enter your 6-digit PIN/).waitFor();
     await bulkDialog.getByRole('textbox', { name: /Owner PIN/ }).fill('123456');
     await bulkDialog.getByRole('button', { name: 'Sign out everyone' }).click();
-    assert.equal(await sessionTable.locator('tbody tr').count(), 1,
-      'Demo bulk action preserves the source Current device only');
+    await page.waitForFunction(() => document.querySelectorAll('[data-settings-sessions-table] tbody tr').length === 1);
+    await sessionsUI.getByText('Showing 1 of 1 devices').waitFor();
     await page.reload();
     await sessionsUI.waitFor();
     assert.equal(await sessionTable.locator('tbody tr').count(), 8,
