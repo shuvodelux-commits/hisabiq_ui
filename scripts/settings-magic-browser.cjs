@@ -159,7 +159,7 @@ async function main() {
     const invoicePaper = studio.getByRole('radiogroup', { name: 'Paper size' });
     assert.equal(await invoicePaper.getByRole('radio').count(), 4, 'A4, 80mm, 58mm and Business Pad all visible');
     await invoicePaper.getByRole('radio', { name: /80mm roll/ }).click();
-    await studio.locator('article[aria-label="Receipt preview"]').waitFor();
+    await studio.locator('aside article[aria-label="Receipt preview"]').last().waitFor();
     const invoiceLanguage = studio.getByRole('radiogroup', { name: 'Document language' });
     await invoiceLanguage.getByRole('radio', { name: 'সম্পূর্ণ বাংলা' }).click();
     await studio.getByRole('button', { name: 'HisabIQ teal' }).waitFor();
@@ -167,15 +167,15 @@ async function main() {
     await studio.getByLabel('Thank-you line').fill('Thank you from Magic');
     const compare = studio.getByRole('radiogroup', { name: 'Compare' });
     await compare.getByRole('radio', { name: 'Current' }).click();
-    await studio.locator('article[aria-label="Invoice preview"]').waitFor();
+    await studio.locator('aside article[aria-label="Invoice preview"]').last().waitFor();
     await compare.getByRole('radio', { name: 'New' }).click();
-    await studio.locator('article[aria-label="Receipt preview"]').waitFor();
+    await studio.locator('aside article[aria-label="Receipt preview"]').last().waitFor();
     await studio.getByRole('button', { name: 'Save changes' }).click();
     await studio.getByText(/Invoice design has NOT been saved/).last().waitFor();
     await page.reload();
     await studio.waitFor();
     assert.equal(await invoiceGallery.getByRole('radio', { name: /Standard/ }).getAttribute('aria-checked'), 'true', 'Invoice Studio does not fake persistence in Phase 1');
-    await studio.locator('article[aria-label="Invoice preview"]').waitFor();
+    await studio.locator('aside article[aria-label="Invoice preview"]').last().waitFor();
     const numbering = page.locator('[data-settings-magic-general="invoices"]');
     await numbering.waitFor();
     await numbering.getByLabel('Invoice number prefix').waitFor();
