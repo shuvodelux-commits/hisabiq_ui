@@ -262,7 +262,7 @@ async function main() {
       await activityUI.getByText(title, { exact: true }).first().waitFor();
     }
     await activityUI.getByRole('textbox', { name: 'Search activity' }).fill('discount');
-    await activityUI.getByText(/Gave 15% discount/).waitFor();
+    await activityUI.getByText(/gave 15% discount/i).waitFor();
     await activityUI.getByText('Showing 1 of 18').waitFor();
     await activityUI.getByRole('button', { name: 'Clear Search activity' }).click();
     assert.equal(await activityUI.getByRole('textbox', { name: 'Search activity' }).inputValue(), '');
