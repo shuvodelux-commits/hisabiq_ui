@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { experienceModules } from './experienceCatalog';
+import { Input } from '../../../components/Input';
 
 type ModuleSelectorProps = {
   value: string;
@@ -52,7 +53,7 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
         <div className="absolute left-0 right-0 z-30 mt-1 rounded-lg border border-ink-100 bg-white p-1.5 shadow-pop">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-            <input
+            <Input
               autoFocus
               value={query}
               onChange={(e) => {
