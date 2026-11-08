@@ -6,6 +6,7 @@ import { KhataPreview as MagicKhataPreview } from './magic/KhataPreview';
 import { InvoiceStudio as MagicInvoiceStudio } from './magic/invoice/InvoiceStudio';
 import { InterfaceSettings as MagicInterfaceSettings } from './magic/interface/InterfaceSettings';
 import { TeamSettings as MagicTeamSettings } from './magic/TeamSettings';
+import { DataSettings as MagicDataSettings } from './magic/DataSettings';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1641,6 +1642,8 @@ export function TenantSettingsPage() {
               canEdit={canManage(state, actorId, 'team')}
               onDirtyChange={setTeamMagicDirty}
             />
+          ) : activeId === 'data' ? (
+            <MagicDataSettings canEdit={canManage(state, actorId, 'export') || canManage(state, actorId, 'import')} />
           ) : previewOnly ? (
             <section className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
