@@ -235,7 +235,7 @@ async function main() {
     await page.getByRole('menuitem', { name: 'Sign out this device' }).click();
     await deviceDialog.getByRole('button', { name: 'Sign out', exact: true }).click();
     await sessionTable.getByText('Owner phone', { exact: true }).waitFor({ state: 'detached' });
-    await sessionsUI.getByText('Sign-in safety', { exact: true }).waitFor();
+    await sessionsUI.getByRole('heading', { name: /Sign-in safety/ }).waitFor();
     await sessionsUI.getByRole('combobox', { name: 'Idle sign-out' }).click();
     await page.getByRole('option', { name: '1 hour' }).click();
     await sessionsUI.getByRole('button', { name: /Sign out everyone except me/ }).click();
