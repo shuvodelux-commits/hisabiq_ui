@@ -611,7 +611,7 @@ async function main() {
     const numbering = page.locator('[data-settings-magic-general="invoices"]');
     await numbering.waitFor();
     await numbering.getByLabel('Invoice number prefix').waitFor();
-    await numbering.getByRole('checkbox', { name: /Offer receipt printing/ }).waitFor();
+    await numbering.getByRole('switch', { name: /Offer receipt printing/ }).waitFor();
     // WCAG AA text contrast regression for source Magic Settings in both modes.
     // Theme token values are measured at their actual rendered element surfaces.
     const ratio = (fore, back) => {
