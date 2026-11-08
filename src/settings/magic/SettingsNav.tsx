@@ -83,11 +83,9 @@ export function SettingsNav({ activeId, urlFor, onNavigate }: SettingsNavProps) 
                     to={url}
                     onClick={(e) => onNavigate(url, e)}
                     aria-current={active ? 'page' : undefined}
-                    className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 lg:w-full ${
-                      s.nested ? 'lg:pl-9' : ''
-                    } ${active ? 'bg-accent font-medium text-ink' : 'text-ink-600 hover:bg-ink-50 hover:text-ink'}`}
+                    className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 lg:w-full ${active ? 'bg-accent font-medium text-ink' : 'text-ink-600 hover:bg-ink-50 hover:text-ink'}`}
                   >
-                    <Icon className={`size-4 shrink-0 ${active ? 'text-teal-700' : 'text-ink-400'} ${s.nested ? 'lg:hidden' : ''}`} aria-hidden="true" />
+                    <Icon className={`size-4 shrink-0 ${active ? 'text-teal-700' : 'text-ink-400'}`} aria-hidden="true" />
                     <span className="whitespace-nowrap lg:whitespace-normal">
                       {s.label}
                       <span className="hidden font-bn text-[10.5px] font-normal text-ink-400 lg:block">{s.bn}</span>
