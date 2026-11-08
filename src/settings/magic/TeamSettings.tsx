@@ -76,7 +76,7 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
   };
 
   return (
-    <div className="min-w-0 space-y-3" data-settings-magic-team>
+    <div className="min-w-0 max-w-full space-y-3 overflow-x-clip" data-settings-magic-team>
       <SettingCard
         title="Users & roles"
         titleBn="ব্যবহারকারী ও ভূমিকা"
@@ -105,7 +105,7 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
         )}
         <p className="mx-4 mt-3 text-[11px] text-ink-500">UI preview · changes here are not saved, and no invitation or account action will be sent.</p>
         {feedback && <p role="status" className="mx-4 mt-2 text-xs text-teal-700">{feedback}</p>}
-        <div className="overflow-x-auto">
+        <div className="min-w-0 max-w-full overflow-x-auto">
           <table data-erp-table data-settings-team-table className="w-full min-w-[520px] text-[13px]">
             <thead>
               <tr className="border-b border-ink-100">
