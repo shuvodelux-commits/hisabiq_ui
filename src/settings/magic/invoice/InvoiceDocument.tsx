@@ -78,7 +78,7 @@ export function InvoiceDocument({ design, paper, lang, accent, content, padOffse
   if (thermal) {
     const small = paper === '58mm';
     return (
-      <article style={{ width: widths[paper] }} className={`bg-white px-3 py-4 text-ink ${small ? 'text-[9.5px]' : 'text-[11px]'} ${fontCls} ${design === 'compact' ? 'leading-tight' : ''}`} aria-label="Receipt preview">
+      <article style={{ width: widths[paper] }} className={`theme-light bg-white px-3 py-4 text-ink ${small ? 'text-[9.5px]' : 'text-[11px]'} ${fontCls} ${design === 'compact' ? 'leading-tight' : ''}`} aria-label="Receipt preview">
         {design === 'bold' ? (
           <header style={{ background: accent }} className="-mx-3 -mt-4 mb-3 flex flex-col items-center gap-1 px-3 py-3 text-center text-white">
             <Logo size={small ? 26 : 32} />
@@ -163,7 +163,7 @@ export function InvoiceDocument({ design, paper, lang, accent, content, padOffse
   }
 
   return (
-    <article style={{ width: widths[paper], minHeight: Math.round(widths[paper] * 1.414) }} className={`relative flex flex-col bg-white p-8 text-[11px] text-ink ${fontCls}`} aria-label="Invoice preview">
+    <article style={{ width: widths[paper], minHeight: Math.round(widths[paper] * 1.414) }} className={`theme-light relative flex flex-col bg-white p-8 text-[11px] text-ink ${fontCls}`} aria-label="Invoice preview">
       {design === 'modern' && paper !== 'pad' && <span aria-hidden="true" style={{ background: accent }} className="absolute inset-y-0 left-0 w-1.5" />}
       {header}
       <div className={`flex items-start justify-between gap-4 ${design === 'compact' ? 'mt-3' : 'mt-6'}`}>
