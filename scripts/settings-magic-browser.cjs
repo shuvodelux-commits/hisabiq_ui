@@ -278,10 +278,11 @@ async function main() {
     await page.getByRole('option', { name: 'Sign-in' }).click();
     await activityUI.locator('ol li').first().waitFor();
     await activityUI.getByRole('button', { name: 'Reset', exact: true }).click();
-    await activityUI.getByRole('button', { name: 'Show details' }).first().click();
-    await activityUI.getByText('Before', { exact: true }).first().waitFor();
-    await activityUI.getByText('After', { exact: true }).first().waitFor();
-    await activityUI.getByRole('link', { name: /Open the record/ }).first().click();
+    const discountRow = activityUI.locator('ol li').filter({ hasText: /gave 15% discount/i }).first();
+    await discountRow.getByRole('button', { name: 'Show details' }).click();
+    await discountRow.getByText('Before', { exact: true }).waitFor();
+    await discountRow.getByText('After', { exact: true }).waitFor();
+    await discountRow.getByRole('link', { name: /Open the record/ }).click();
     await activityUI.getByRole('status').filter({ hasText: /This record link is a sample/ }).waitFor();
     assert.ok(page.url().includes('/app/settings/activity'), 'Synthetic record links cannot open real ERP records');
     await activityUI.getByRole('button', { name: 'Export', exact: true }).click();
