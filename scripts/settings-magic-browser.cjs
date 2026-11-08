@@ -238,12 +238,40 @@ async function main() {
     await sessionsUI.getByRole('heading', { name: /Sign-in safety/ }).waitFor();
     await sessionsUI.getByRole('combobox', { name: 'Idle sign-out' }).click();
     await page.getByRole('option', { name: '1 hour' }).click();
-    await sessionsUI.getByRole('button', { name: /Sign out everyone except me/ }).click();
+    const bulkTrigger = sessionsUI.getByRole('button', { name: /Sign out everyone except me/ });
+    await bulkTrigger.click();
     const bulkDialog = page.getByRole('dialog', { name: 'Sign out everyone except you?' });
     await bulkDialog.waitFor();
-    await bulkDialog.getByRole('textbox', { name: /Owner PIN/ }).fill('123');
-    await bulkDialog.getByRole('button', { name: 'Sign out everyone' }).click();
-    await bulkDialog.getByText(/Enter your 6-digit PIN/).waitFor();
+    const bulkPin = bulkDialog.getByRole('textbox', { name: /Owner PIN/ });
+    assert.equal(await bulkPin.evaluate(el => document.activeElement === el), true,
+      'Owner PIN receives initial modal focus');
+    const bulkConfirm = bulkDialog.getByRole('button', { name: 'Sign out everyone' });
+    await bulkConfirm.focus();
+    await page.keyboard.press('Tab');
+    assert.equal(await bulkDialog.getByRole('button', { name: 'Close' }).evaluate(el => document.activeElement === el), true,
+      'Tab wraps from the last dialog control to the first');
+    await page.keyboard.press('Shift+Tab');
+    assert.equal(await bulkConfirm.evaluate(el => document.activeElement === el), true,
+      'Shift+Tab wraps from the first control to the last');
+    await page.keyboard.press('Escape');
+    await bulkDialog.waitFor({ state: 'detached' });
+    assert.equal(await bulkTrigger.evaluate(el => document.activeElement === el), true,
+      'Escape returns focus to the original bulk-action trigger');
+    await bulkTrigger.press('Enter');
+    await bulkDialog.waitFor();
+    assert.equal(await bulkPin.evaluate(el => document.activeElement === el), true,
+      'Reopened dialog restores its PIN initial-focus behavior');
+    await bulkPin.fill('123');
+    await bulkConfirm.click();
+    await bulkDialog.getByRole('alert', { name: /Enter your 6-digit PIN/ }).waitFor();
+    assert.equal(await bulkPin.getAttribute('aria-invalid'), 'true', 'PIN marks the field invalid');
+    const describedBy = await bulkPin.getAttribute('aria-describedby');
+    const messageId = await bulkDialog.getByRole('alert', { name: /Enter your 6-digit PIN/ }).getAttribute('id');
+    assert.equal(describedBy, messageId, 'PIN validation is associated with its accessible description');
+    assert.equal(await bulkPin.getAttribute('aria-errormessage'), messageId,
+      'PIN validation also sets aria-errormessage');
+    assert.equal(await bulkPin.evaluate(el => document.activeElement === el), true,
+      'PIN retains focus after invalid confirmation');
     await bulkDialog.getByRole('textbox', { name: /Owner PIN/ }).fill('123456');
     await bulkDialog.getByRole('button', { name: 'Sign out everyone' }).click();
     await page.waitForFunction(() => document.querySelectorAll('[data-settings-sessions-table] tbody tr').length === 1);
@@ -368,8 +396,14 @@ async function main() {
     await page.reload();
     await teamUI.waitFor();
     assert.equal(await teamTable.getByText('UI Preview Employee').count(), 0, 'Team preview changes must not persist across reload');
-    await teamUI.getByRole('button', { name: 'Add team member', exact: true }).click();
-    await page.getByRole('dialog', { name: 'Add team member' }).getByRole('button', { name: 'Cancel' }).click();
+    const addTeamTrigger = teamUI.getByRole('button', { name: 'Add team member', exact: true });
+    await addTeamTrigger.click();
+    const addTeamModal = page.getByRole('dialog', { name: 'Add team member' });
+    await addTeamModal.waitFor();
+    await addTeamModal.getByRole('button', { name: 'Cancel' }).click();
+    await addTeamModal.waitFor({ state: 'detached' });
+    assert.equal(await addTeamTrigger.evaluate(el => document.activeElement === el), true,
+      'Team modal returns focus to Add team member after Cancel');
     // Magic Invoice Studio Phase 1: source gallery, document renderer and UI-local drafts.
     await go('invoices');
     const studio = page.locator('[data-settings-magic-invoice-studio]');
