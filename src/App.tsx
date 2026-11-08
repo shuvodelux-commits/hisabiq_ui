@@ -104,6 +104,7 @@ export function App() {
           <Route path="subscription" element={<TenantSubscription />} /><Route path="support" element={<TenantSupport />} /><Route path="support/:id" element={<TenantSupport detail />} />
           <Route path="settings" element={<TenantSettingsPage />} />
           <Route path="settings/:section" element={<TenantSettingsPage />} />
+          <Route path="settings/support/:id" element={<TenantSettingsPage />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="search" element={<GlobalSearch />} />
           <Route path="pos" element={<Pos />} />
