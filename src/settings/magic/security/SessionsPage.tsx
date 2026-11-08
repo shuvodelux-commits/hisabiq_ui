@@ -1,5 +1,5 @@
 /** Pinned Magic Patterns SessionsPage source UI, locally simulated for Phase 1. */
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Ban, LogOut, Monitor, Search, ShieldAlert, Smartphone, Tablet, UserCheck, Users } from 'lucide-react';
 import { toast } from 'sonner';
