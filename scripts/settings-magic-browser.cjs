@@ -252,6 +252,44 @@ async function main() {
     await sessionsUI.waitFor();
     assert.equal(await sessionTable.locator('tbody tr').count(), 8,
       'Preview session actions reset on reload and never revoke real sessions');
+    // Original Magic Staff activity: fixed preview audit, four summary cards, filters,
+    // expandable before/after rows, sample-only export and non-live record links.
+    await go('activity');
+    const activityUI = page.locator('[data-settings-magic-activity]');
+    await activityUI.waitFor();
+    await activityUI.getByText(/All activity entries are synthetic examples/).waitFor();
+    for (const title of ['Things done', 'Needs a look', 'Sales recorded', 'People active']) {
+      await activityUI.getByText(title, { exact: true }).first().waitFor();
+    }
+    await activityUI.getByRole('textbox', { name: 'Search activity' }).fill('discount');
+    await activityUI.getByText(/Gave 15% discount/).waitFor();
+    await activityUI.getByText('Showing 1 of 18').waitFor();
+    await activityUI.getByRole('button', { name: 'Clear Search activity' }).click();
+    assert.equal(await activityUI.getByRole('textbox', { name: 'Search activity' }).inputValue(), '');
+    await activityUI.getByRole('checkbox', { name: 'Needs a look only' }).check();
+    await activityUI.locator('ol li').first().waitFor();
+    const badged = await activityUI.locator('ol li').count();
+    assert.ok(badged > 0 && badged < 13, 'Needs a look filters source audit examples');
+    await activityUI.getByRole('checkbox', { name: 'Needs a look only' }).uncheck();
+    await activityUI.getByRole('combobox', { name: 'Person' }).click();
+    await page.getByRole('option', { name: /Sumi Akter/ }).click();
+    await activityUI.getByText(/Sumi Akter.*sales worth/).waitFor();
+    await activityUI.getByRole('combobox', { name: 'Area' }).click();
+    await page.getByRole('option', { name: 'Sign-in' }).click();
+    await activityUI.locator('ol li').first().waitFor();
+    await activityUI.getByRole('button', { name: 'Reset', exact: true }).click();
+    await activityUI.getByRole('button', { name: 'Show details' }).first().click();
+    await activityUI.getByText('Before', { exact: true }).first().waitFor();
+    await activityUI.getByText('After', { exact: true }).first().waitFor();
+    await activityUI.getByRole('link', { name: /Open the record/ }).first().click();
+    await activityUI.getByRole('status').filter({ hasText: /This record link is a sample/ }).waitFor();
+    assert.ok(page.url().includes('/app/settings/activity'), 'Synthetic record links cannot open real ERP records');
+    await activityUI.getByRole('button', { name: 'Export', exact: true }).click();
+    await activityUI.getByRole('status').filter({ hasText: /Sample activity CSV downloaded/ }).waitFor();
+    await activityUI.getByRole('button', { name: 'Print', exact: true }).waitFor();
+    await page.reload();
+    await activityUI.waitFor();
+    assert.equal(await activityUI.getByRole('status').count(), 0, 'Activity preview notifications do not persist');
     // Source TeamSettings is the route itself; legacy management and directory panels are absent.
     await go('team');
     const teamUI = page.locator('[data-settings-magic-team]');
@@ -366,6 +404,23 @@ async function main() {
         await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-sessions-' + width + '-dark.png'), fullPage: true});
         await page.evaluate(() => document.documentElement.classList.remove('dark'));
       }
+      await go('activity');
+      const activityPage = page.locator('[data-settings-magic-activity]');
+      await activityPage.waitFor();
+      const activityPageX = await page.evaluate(() => {
+        const y = scrollY;
+        window.scrollTo({ left: 9999, top: y, behavior: 'instant' });
+        const x = scrollX;
+        window.scrollTo({ left: 0, top: y, behavior: 'instant' });
+        return x;
+      });
+      assert.equal(activityPageX, 0, 'Magic Staff activity page must not scroll horizontally at ' + width);
+      if (process.env.SETTINGS_SCREENSHOT_DIR) {
+        await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-activity-' + width + '-light.png'), fullPage: true});
+        await page.evaluate(() => document.documentElement.classList.add('dark'));
+        await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-activity-' + width + '-dark.png'), fullPage: true});
+        await page.evaluate(() => document.documentElement.classList.remove('dark'));
+      }
       await go('team');
       await page.locator('[data-settings-magic-team] [data-settings-team-table]').waitFor();
       const teamLayout = await page.evaluate(() => {
@@ -408,7 +463,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles, Data & backup, and source Logged-in devices previews across five viewports passed.');
+    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles, Data & backup, and source Logged-in devices and Staff activity previews across five viewports passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
