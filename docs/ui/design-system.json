@@ -4155,6 +4155,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/security/ActivityPage.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "ActivityPage"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/security/PinConfirmDialog.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4491,7 +4499,8 @@
       "src/pages/Sales.tsx",
       "src/pages/Vendors.tsx",
       "src/settings/magic/interface/InterfaceSettings.tsx",
-      "src/settings/magic/interface/ModuleSelector.tsx"
+      "src/settings/magic/interface/ModuleSelector.tsx",
+      "src/settings/magic/security/ActivityPage.tsx"
     ],
     "ChevronDownIcon": [
       "src/components/SearchSelect.tsx",
@@ -4600,7 +4609,8 @@
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
       "src/settings/DataSettings.tsx",
       "src/settings/SettingsSqlBackup.tsx",
-      "src/settings/magic/DataSettings.tsx"
+      "src/settings/magic/DataSettings.tsx",
+      "src/settings/magic/security/ActivityPage.tsx"
     ],
     "Ellipsis": [
       "src/components/vendor/VendorTabs.tsx"
@@ -5065,6 +5075,7 @@
       "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsPage.tsx",
       "src/settings/magic/invoice/InvoiceStudio.tsx",
+      "src/settings/magic/security/ActivityPage.tsx",
       "src/settings/magic/settingsSections.ts"
     ],
     "Receipt": [
@@ -5111,7 +5122,8 @@
       "src/pages/Warranty.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/settings/magic/SaveBar.tsx",
-      "src/settings/magic/interface/InterfaceSettings.tsx"
+      "src/settings/magic/interface/InterfaceSettings.tsx",
+      "src/settings/magic/security/ActivityPage.tsx"
     ],
     "Ruler": [
       "src/components/products/ProductSettings.tsx"
@@ -5176,6 +5188,7 @@
       "src/settings/magic/SettingsHome.tsx",
       "src/settings/magic/SettingsNav.tsx",
       "src/settings/magic/interface/ModuleSelector.tsx",
+      "src/settings/magic/security/ActivityPage.tsx",
       "src/settings/magic/security/SessionsPage.tsx"
     ],
     "SearchCheck": [
