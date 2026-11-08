@@ -213,7 +213,7 @@ async function main() {
       await sessionTable.locator('thead th').allTextContents().then(values => values.map(text => text.trim())),
       ['Person', 'Device', 'Where', 'Signed in', 'Last active', 'Action'],
     );
-    await sessionsUI.getByText('Online now', { exact: true }).waitFor();
+    await sessionsUI.locator('div.grid').first().getByText('Online now', { exact: true }).waitFor();
     await sessionsUI.getByText('Signed-in devices', { exact: true }).waitFor();
     await sessionsUI.getByText('New devices', { exact: true }).waitFor();
     await sessionsUI.getByText('Unusual sign-ins', { exact: true }).waitFor();
