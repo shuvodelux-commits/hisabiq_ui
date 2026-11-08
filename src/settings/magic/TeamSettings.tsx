@@ -5,6 +5,7 @@ import { AppSelect } from '../../components/AppSelect';
 import { SettingCard } from '../ui';
 import { Button, Modal } from './invoice/Ui';
 import { useTenantSettings } from '../TenantSettingsProvider';
+import { SettingsToggle } from './SettingsToggle';
 
 /** Phase 1 design data is local-only. Server-side authorization remains unchanged. */
 type Staff = { id: string; name: string; role: string; active: boolean };
@@ -18,10 +19,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 function Select({ value, onChange, options, describedBy }: { value: string; onChange: (value: string) => void; options: string[]; describedBy?: string }) {
   return <AppSelect label="Role" value={value} options={options} onChange={onChange} describedBy={describedBy} className="w-full" />;
-}
-function Checkbox({ checked, onCheckedChange, inputRef, invalid, errorId }: { checked: boolean; onCheckedChange: (checked: boolean) => void; inputRef?: React.Ref<HTMLInputElement>; invalid?: boolean; errorId?: string }) {
-  return <input ref={inputRef} type="checkbox" aria-label="Active" aria-invalid={invalid || undefined} aria-describedby={errorId} aria-errormessage={invalid ? errorId : undefined} className="size-4 rounded border-input accent-teal-600"
-    checked={checked} onChange={event => onCheckedChange(event.target.checked)} />;
 }
 function Tag({ children, color }: { children: React.ReactNode; color: 'success' | 'neutral' }) {
   return <span data-table-badge className={'inline-flex rounded-md px-2 py-1 text-[11px] font-medium ' +
@@ -193,15 +190,22 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
               </div>
               <p className="mt-1 text-xs text-ink-500">{roles.find((r) => r.role === editor.role)?.can}</p>
             </div>
-            <label className="flex cursor-pointer items-start gap-3">
-              <span className="flex h-5 items-center">
-                <Checkbox checked={editor.active} inputRef={activeInputRef} invalid={Boolean(error) && errorField === 'active'} errorId={errorField === 'active' ? errorId : undefined} onCheckedChange={(v: boolean) => { clearError(); setEditor({ ...editor, active: v }); }} />
-              </span>
-              <span>
-                <span className="block text-[13px] font-medium text-ink">Active</span>
-                <span className="block text-xs text-ink-500">Disabled members can’t sign in. Their records stay.</span>
-              </span>
-            </label>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 pt-1">
+                <label htmlFor="settings-team-member-active" className="block cursor-pointer text-[13px] font-medium text-ink">Active</label>
+                <p className="text-xs text-ink-500">Disabled members can’t sign in. Their records stay.</p>
+              </div>
+              <SettingsToggle
+                id="settings-team-member-active"
+                ref={activeInputRef}
+                aria-label="Active"
+                aria-invalid={Boolean(error) && errorField === 'active' || undefined}
+                aria-describedby={errorField === 'active' ? errorId : undefined}
+                aria-errormessage={errorField === 'active' ? errorId : undefined}
+                checked={editor.active}
+                onCheckedChange={value => { clearError(); setEditor({ ...editor, active: value }); }}
+              />
+            </div>
             {error && <p id={errorId} role="alert" className="text-xs text-danger">{error}</p>}
           </div>
         </Modal>
