@@ -141,32 +141,45 @@ async function main() {
     await page.getByRole('searchbox', { name: 'Search employees' }).waitFor();
     await page.getByRole('button', { name: 'Compact list' }).click();
     await teamTable.waitFor();
-    // Magic invoice design gallery and live preview use actual HisabIQ document settings.
+    // Magic Invoice Studio Phase 1: source gallery, document renderer and UI-local drafts.
     await go('invoices');
-    const invoiceGallery = page.getByRole('radiogroup', { name: 'Invoice design' });
-    await invoiceGallery.waitFor();
-    assert.equal(await invoiceGallery.getByRole('radio').count(), 6, 'Six Magic design thumbnails are visible');
-    assert.equal(await invoiceGallery.getByRole('radio', { name: /Modern/ }).isDisabled(), true, 'Unsupported print design cannot be selected');
-    const invoiceLive = page.locator('aside [data-invoice-template]').last();
-    await invoiceLive.waitFor();
-    await invoiceGallery.getByRole('radio', { name: /Classic/ }).click();
-    assert.equal(await invoiceLive.getAttribute('data-invoice-template'), 'Classic', 'Live preview follows template');
-    const invoicePaper = page.getByRole('radiogroup', { name: 'Paper size' });
+    const studio = page.locator('[data-settings-magic-invoice-studio]');
+    await studio.waitFor();
+    const invoiceGallery = studio.getByRole('radiogroup', { name: 'Invoice design' });
+    assert.equal(await invoiceGallery.getByRole('radio').count(), 6, 'All six Magic template previews render');
+    await studio.getByRole('heading', { name: /Paper & language/ }).waitFor();
+    await studio.getByRole('heading', { name: /Brand color/ }).waitFor();
+    await studio.getByRole('heading', { name: /What to show on the invoice/ }).waitFor();
+    await studio.getByRole('heading', { name: /Live preview/ }).waitFor();
+    await invoiceGallery.getByRole('radio', { name: /Modern/ }).click();
+    const premiumDialog = page.getByRole('dialog', { name: 'Premium invoice designs' });
+    await premiumDialog.waitFor();
+    await premiumDialog.getByRole('button', { name: 'Keep current design' }).click();
+    await invoiceGallery.getByRole('radio', { name: /Standard/ }).waitFor();
+    const invoicePaper = studio.getByRole('radiogroup', { name: 'Paper size' });
+    assert.equal(await invoicePaper.getByRole('radio').count(), 4, 'A4, 80mm, 58mm and Business Pad all visible');
     await invoicePaper.getByRole('radio', { name: /80mm roll/ }).click();
-    const invoiceLanguage = page.getByRole('radiogroup', { name: 'Document language' });
-    await invoiceLanguage.getByRole('radio', { name: /সম্পূর্ণ বাংলা/ }).click();
-    await page.getByRole('radiogroup', { name: 'Compare invoice design' }).getByRole('radio', { name: 'Current' }).click();
-    assert.equal(await invoiceLive.getAttribute('data-invoice-template'), 'Standard', 'Current shows saved invoice template');
-    await page.getByRole('radiogroup', { name: 'Compare invoice design' }).getByRole('radio', { name: 'New' }).click();
-    assert.equal(await invoiceLive.getAttribute('data-invoice-template'), 'Classic', 'New shows draft invoice template');
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-    await page.getByRole('status').filter({ hasText: /Business settings saved|Changes are in memory only/ }).waitFor();
+    await studio.locator('article[aria-label="Receipt preview"]').waitFor();
+    const invoiceLanguage = studio.getByRole('radiogroup', { name: 'Document language' });
+    await invoiceLanguage.getByRole('radio', { name: 'সম্পূর্ণ বাংলা' }).click();
+    await studio.getByRole('button', { name: 'HisabIQ teal' }).waitFor();
+    assert.equal(await studio.locator('input[type="checkbox"]').count(), 15, 'All fifteen original invoice content toggles visible');
+    await studio.getByLabel('Thank-you line').fill('Thank you from Magic');
+    const compare = studio.getByRole('radiogroup', { name: 'Compare' });
+    await compare.getByRole('radio', { name: 'Current' }).click();
+    await studio.locator('article[aria-label="Invoice preview"]').waitFor();
+    await compare.getByRole('radio', { name: 'New' }).click();
+    await studio.locator('article[aria-label="Receipt preview"]').waitFor();
+    await studio.getByRole('button', { name: 'Save changes' }).click();
+    await studio.getByText(/Invoice design has NOT been saved/).last().waitFor();
     await page.reload();
-    await invoiceGallery.waitFor();
-    assert.equal(await page.locator('aside [data-invoice-template]').last().getAttribute('data-invoice-template'), 'Classic', 'Invoice design persists');
-    await page.getByRole('tab', { name: /Document numbering/ }).click();
-    await page.getByRole('tab', { name: /Ledger & report designs/ }).click();
-    await page.getByRole('tab', { name: /Invoice design/ }).click();
+    await studio.waitFor();
+    assert.equal(await invoiceGallery.getByRole('radio', { name: /Standard/ }).getAttribute('aria-checked'), 'true', 'Invoice Studio does not fake persistence in Phase 1');
+    await studio.locator('article[aria-label="Invoice preview"]').waitFor();
+    const numbering = page.locator('[data-settings-magic-general="invoices"]');
+    await numbering.waitFor();
+    await numbering.getByLabel('Invoice number prefix').waitFor();
+    await numbering.getByRole('checkbox', { name: /Offer receipt printing/ }).waitFor();
     for (const width of [320,390,768,1024,1440]) {
       await page.setViewportSize({ width, height: 900 });
       await go('');
@@ -183,7 +196,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, specialized pages and five viewports passed.');
+    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio, and five viewports passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
