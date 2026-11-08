@@ -36,6 +36,18 @@ async function main() {
       'finance', 'notifications', 'interface', 'team', 'sessions', 'activity',
       'data', 'offline', 'support', 'subscription', 'personal', 'security',
     ], 'Original Magic Patterns Settings navigation order');
+    for (const id of ['offline', 'support', 'subscription']) {
+      assert.equal(await navigation.locator('a[data-settings-section="' + id + '"]').getAttribute('href'),
+        '#/app/settings/' + id, id + ' stays in the Settings workspace');
+    }
+    // The two marked device tabs have the same icon and text start as siblings.
+    const navPosition = async id => navigation.locator('a[data-settings-section="' + id + '"] svg')
+      .evaluate(el => el.getBoundingClientRect().left);
+    const teamIconX = await navPosition('team');
+    for (const id of ['sessions', 'activity']) {
+      assert.ok(Math.abs((await navPosition(id)) - teamIconX) <= 1,
+        'Desktop Settings navigation icon should align: ' + id);
+    }
     assert.equal(await page.locator('section[aria-label="Setup tasks"] li').count(), 9);
     const search = page.getByLabel('Search settings by goal', { exact: true });
     await search.fill('receipt');
@@ -185,6 +197,15 @@ async function main() {
     await interfaceUI.waitFor();
     await interfaceUI.getByRole('heading', { name: /Interface & workflows/ }).waitFor();
     await interfaceUI.locator('[data-interface-preview-notice]').getByText(/UI preview/).waitFor();
+    const moduleTrigger = interfaceUI.getByRole('button', { name: 'Module', exact: true });
+    const applyToTrigger = interfaceUI.getByRole('combobox', { name: 'Apply to' });
+    const moduleBox = await moduleTrigger.boundingBox();
+    const applyBox = await applyToTrigger.boundingBox();
+    assert.ok(moduleBox && applyBox, 'Both Interface dropdown triggers are rendered');
+    assert.ok(Math.abs(moduleBox.height - 36) <= 1 && Math.abs(applyBox.height - 36) <= 1,
+      'Both Module and Apply to controls use the standard 36px height');
+    assert.ok(Math.abs(moduleBox.y - applyBox.y) <= 2,
+      'Interface dropdowns share the same vertical alignment');
     await interfaceUI.getByText(/Sample Plus plan/).first().waitFor();
     await interfaceUI.getByRole('heading', { name: /^Columns/ }).waitFor();
     await interfaceUI.getByRole('heading', { name: /^Links & actions/ }).waitFor();
@@ -233,6 +254,32 @@ async function main() {
     await interfaceUI.waitFor();
     await interfaceUI.getByText(/UI preview/).first().waitFor();
     assert.equal(await interfaceUI.getByRole('combobox', { name: 'Apply to' }).getAttribute('data-value'), 'user', 'Source interface preview does not persist scope or settings');
+    // Support and billing must render in the SAME Settings shell as Offline selling.
+    await go('support');
+    await page.locator('[data-settings-embedded-support]').waitFor();
+    await page.getByRole('heading', { name: /My support tickets/ }).waitFor();
+    assert.equal(await navigation.locator('a[data-settings-section="support"]').getAttribute('aria-current'), 'page');
+    assert.ok(page.url().includes('#/app/settings/support'), 'Support stays in Settings');
+    const supportLinks = page.locator('[data-settings-embedded-support] a[href^="#/app/settings/support/"]');
+    if (await supportLinks.count()) {
+      await supportLinks.first().click();
+      await page.waitForURL(/\/app\/settings\/support\//);
+      await page.locator('[data-settings-embedded-support]').waitFor();
+      assert.equal(await navigation.locator('a[data-settings-section="support"]').getAttribute('aria-current'), 'page',
+        'Support ticket detail keeps the Settings navigation visible');
+    }
+    await go('subscription');
+    await page.locator('[data-settings-embedded-subscription]').waitFor();
+    await page.getByRole('heading', { name: 'My subscription' }).waitFor();
+    assert.equal(await navigation.locator('a[data-settings-section="subscription"]').getAttribute('aria-current'), 'page');
+    await page.locator('[data-settings-embedded-subscription]').getByText('Current plan', { exact: true }).waitFor();
+    await page.locator('[data-settings-embedded-subscription]').getByText('Outstanding', { exact: true }).waitFor();
+    await page.getByRole('link', { name: 'Contact support' }).click();
+    await page.waitForURL(/\/app\/settings\/support/);
+    await page.locator('[data-settings-embedded-support]').waitFor();
+    await go('offline');
+    await page.locator('[data-settings-magic-offline]').waitFor();
+    assert.equal(await navigation.locator('a[data-settings-section="offline"]').getAttribute('aria-current'), 'page');
     await go('');
     await page.getByRole('button', { name: 'Start guided setup' }).click();
     const wizard = page.getByRole('dialog', { name: 'Set up your shop' });
@@ -626,6 +673,9 @@ async function main() {
           ['personal', 'personal', '[data-settings-magic-general="personal"]'],
           ['security', 'security', '[data-settings-magic-general="security"]'],
           ['invoices', 'invoices', '[data-settings-magic-invoice-studio]'],
+          ['interface', 'interface', '[data-settings-magic-interface]'],
+          ['support', 'support', '[data-settings-embedded-support]'],
+          ['subscription', 'subscription', '[data-settings-embedded-subscription]'],
         ];
         for (const [name, route, selector] of sourceRoutes) {
           await go(route);
@@ -642,6 +692,18 @@ async function main() {
                 'settings-' + name + '-' + width + '-' + theme + '.png'),
               fullPage: true, animations: 'disabled',
             });
+            if (name === 'interface') {
+              const trigger = page.locator('[data-settings-magic-interface] button[aria-label="Module"]');
+              await trigger.click();
+              await page.getByRole('listbox', { name: 'Modules' }).waitFor();
+              await page.screenshot({
+                path: path.join(process.env.SETTINGS_SCREENSHOT_DIR,
+                  'settings-interface-module-open-' + width + '-' + theme + '.png'),
+                fullPage: true, animations: 'disabled',
+              });
+              await page.getByRole('textbox', { name: 'Search modules' }).press('Escape');
+              await page.getByRole('listbox', { name: 'Modules' }).waitFor({ state: 'detached' });
+            }
           }
           await page.evaluate(() => document.documentElement.classList.remove('dark'));
         }
