@@ -58,7 +58,7 @@ export function InterfaceSettings({ onDirtyChange, canBusiness }: { onDirtyChang
 
   return (
     <div className="min-w-0 space-y-3" data-settings-magic-interface>
-      <section className="min-w-0 rounded-xl border border-ink-100 bg-white shadow-card" aria-labelledby="interface-title">
+      <section className="min-w-0 rounded-xl border border-ink-100 bg-card shadow-card" aria-labelledby="interface-title">
         <header className="space-y-3 border-b border-ink-100 px-4 py-3">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
