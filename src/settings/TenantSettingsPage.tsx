@@ -9,6 +9,7 @@ import { TeamSettings as MagicTeamSettings } from './magic/TeamSettings';
 import { DataSettings as MagicDataSettings } from './magic/DataSettings';
 import { SessionsPage as MagicSessionsPage } from './magic/security/SessionsPage';
 import { ActivityPage as MagicActivityPage } from './magic/security/ActivityPage';
+import { OfflinePage as MagicOfflinePage } from './magic/security/OfflinePage';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1566,8 +1567,7 @@ export function TenantSettingsPage() {
     if (id === 'finance') return '/app/settings/money';
     return `/app/settings/${id}`;
   };
-  const previewOnly = section === 'offline';
-  const reference = settingsSections.find(item => item.id === section);
+
   const generalSourceSections: SettingsSectionId[] = [
     'business', 'names', 'sales', 'products', 'purchases',
     'finance', 'notifications', 'personal', 'security',
@@ -1585,7 +1585,7 @@ export function TenantSettingsPage() {
     setPendingMagicUrl(url);
   };
   return (
-    <div className={`erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5 ${activeId === 'team' || activeId === 'sessions' || activeId === 'activity' ? 'overflow-x-hidden' : ''}`} data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
+    <div className={`erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5 ${['team','sessions','activity','offline'].includes(activeId ?? '') ? 'overflow-x-hidden' : ''}`} data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-xl font-semibold text-ink">
@@ -1650,16 +1650,8 @@ export function TenantSettingsPage() {
             <MagicSessionsPage canManage={canManage(state, actorId, 'team')} />
           ) : activeId === 'activity' ? (
             <MagicActivityPage canView={canManage(state, actorId, 'audit.event.view')} />
-          ) : previewOnly ? (
-            <section className="rounded-xl border border-border bg-card p-5 shadow-card">
-              <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
-              <p className="mt-2 text-[13px] text-ink-500">
-                The linked Magic Patterns prototype includes this screen, but its demo actions are not connected to secure sessions or offline device authorization here. No account or device changes were made.
-              </p>
-              <Link to="/app/settings/security" className="mt-3 inline-block text-[13px] font-medium text-teal-700 hover:underline">
-                View account &amp; security settings
-              </Link>
-            </section>
+          ) : activeId === 'offline' ? (
+            <MagicOfflinePage canManage={canManage(state, actorId, 'team')} />
           ) : (
             <SettingsPageContent key={section} embedded hideHeader />
           )}
