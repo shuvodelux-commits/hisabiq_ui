@@ -1,4 +1,5 @@
 import { SettingsTabs } from "./SettingsTabs";
+import { TenantSupport, TenantSubscription } from '../saas/TenantPortal';
 import { SettingsNav } from './magic/SettingsNav';
 import { SettingsHome } from './magic/SettingsHome';
 import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/GeneralSettingsSection';
@@ -1545,7 +1546,7 @@ export function SettingsPageContent({
 
 /** Magic Patterns Settings shell; existing form data/permissions remain in SettingsPageContent. */
 export function TenantSettingsPage() {
-  const { section } = useParams();
+  const { section, id: supportTicketId } = useParams();
   const navigate = useNavigate();
   const { state, actorId } = useTenantSettings();
   const [magicDirty, setMagicDirty] = useState(false);
@@ -1561,8 +1562,6 @@ export function TenantSettingsPage() {
   const isHome = !section;
   const user = state.sections.team.employees.find(employee => employee.id === actorId);
   const urlFor = (id: SettingsSectionId) => {
-    if (id === 'support') return '/app/support';
-    if (id === 'subscription') return '/app/subscription';
     if (id === 'names') return '/app/settings/financialTerminology';
     if (id === 'finance') return '/app/settings/money';
     return `/app/settings/${id}`;
@@ -1652,6 +1651,14 @@ export function TenantSettingsPage() {
             <MagicActivityPage canView={canManage(state, actorId, 'audit.event.view')} />
           ) : activeId === 'offline' ? (
             <MagicOfflinePage canManage={canManage(state, actorId, 'team')} />
+          ) : activeId === 'support' ? (
+            <div data-settings-embedded-support className="min-w-0">
+              <TenantSupport embedded detail={Boolean(supportTicketId)} />
+            </div>
+          ) : activeId === 'subscription' ? (
+            <div data-settings-embedded-subscription className="min-w-0">
+              <TenantSubscription embedded />
+            </div>
           ) : (
             <SettingsPageContent key={section} embedded hideHeader />
           )}
