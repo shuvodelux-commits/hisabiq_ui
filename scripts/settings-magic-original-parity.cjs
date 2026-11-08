@@ -60,7 +60,7 @@ function escapeHTML(text) {
   return String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-async function capturePage(browser,site,route,width,height,theme,out,filename) {
+async function capturePage(browser,site,route,width,height,theme,out,filename,sourceOrigin) {
   const context=await browser.newContext({
     viewport:{width,height},deviceScaleFactor:1,colorScheme:theme,
     reducedMotion:'reduce',isMobile:width<=390,hasTouch:width<=768
@@ -75,14 +75,11 @@ async function capturePage(browser,site,route,width,height,theme,out,filename) {
     const errors=[];
     page.on('pageerror',err=>errors.push(err.message));
     const target=site==='source'
-      ? new URL('/app/settings'+(route[1]?'/'+route[1]:''),process.env.MAGIC_SETTINGS_SOURCE_ORIGIN).href
+      ? new URL('/app/settings'+(route[1]?'/'+route[1]:''),sourceOrigin).href
       : process.env.SETTINGS_IMPLEMENTATION_URL.replace(/\/$/,'')+'/#/app/settings'+(route[1]?'/'+route[1]:'');
     const resp=await page.goto(target,{waitUntil:'domcontentloaded',timeout:45000});
     assert.ok(!resp || resp.ok(),'Reference preview returned HTTP '+(resp?.status()||'unknown')+' for '+route[0]);
     await page.locator('#root,main').first().waitFor({state:'visible',timeout:25000});
-    await page.evaluate(async()=>{
-      document.documentElement.classList.toggle('dark',window.__CAPTURE_THEME__==='dark');
-    });
     await page.evaluate(t=>{
       document.documentElement.classList.toggle('dark',t==='dark');
       document.documentElement.classList.toggle('light',t==='light');
@@ -144,7 +141,6 @@ async function run() {
   assert.equal(candidate.protocol,'http:','Candidate must use the local HTTP Vite server');
   const out=path.resolve(process.env.SETTINGS_PARITY_OUT || 'settings-original-reference');
   fs.mkdirSync(out,{recursive:true});
-  process.env.MAGIC_SETTINGS_SOURCE_ORIGIN=sourceOrigin;
   const {chromium}=require('playwright');
   const browser=await chromium.launch({args:['--no-sandbox']});
   const captures=[];
@@ -152,8 +148,8 @@ async function run() {
     for(const width of WIDTHS)for(const theme of THEMES)for(const route of ROUTES){
       const height=width===1024?768:width===768?1024:width===1440?900:844;
       const stub=route[0]+'-'+width+'-'+theme+'.png';
-      const source=await capturePage(browser,'source',route,width,height,theme,out,'source-'+stub);
-      const implementation=await capturePage(browser,'implementation',route,width,height,theme,out,'implementation-'+stub);
+      const source=await capturePage(browser,'source',route,width,height,theme,out,'source-'+stub,sourceOrigin);
+      const implementation=await capturePage(browser,'implementation',route,width,height,theme,out,'implementation-'+stub,sourceOrigin);
       captures.push({route:route[0],width,theme,source,implementation});
       console.log('Captured '+route[0]+' '+width+'px '+theme);
     }
