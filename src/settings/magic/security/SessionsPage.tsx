@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Ban, LogOut, Monitor, Search, ShieldAlert, Smartphone, Tablet, UserCheck, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { Input } from '../../../components/Input';
 import { Button, Modal, Segmented } from '../invoice/Ui';
 import { Select, Tag } from './SessionsUi';
 import { RowActions } from './RowActions';
@@ -78,7 +79,7 @@ export function SessionsPage({ canManage }: { canManage: boolean }) {
         <div className="flex flex-wrap items-center gap-2 border-b border-ink-100 p-3">
           <div className="relative min-w-0 w-full flex-1 sm:min-w-[200px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search person, device or city" aria-label="Search devices" className="ref-control h-9 w-full rounded-md border border-input bg-card pl-9 pr-3 text-[13px] text-ink outline-none focus-visible:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-500/20" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} onClear={() => setQuery('')} clearable placeholder="Search person, device or city" aria-label="Search devices" className="ref-control h-9 w-full rounded-md border border-input bg-card pl-9 pr-3 text-[13px] text-ink outline-none focus-visible:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-500/20" />
           </div>
           <div className="min-w-0 max-w-full overflow-x-auto"><Segmented label="Filter devices" value={filter} onChange={setFilter} options={[{ id: 'all', label: 'All' }, { id: 'online', label: 'Online now' }, { id: 'new', label: 'New' }, { id: 'unusual', label: 'Unusual' }]} /></div>
           <Button kind="danger" disabled={stats.total <= 1} onClick={() => setAllOut(true)}><LogOut className="size-4" />Sign out everyone except me</Button>
