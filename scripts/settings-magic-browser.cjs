@@ -386,7 +386,19 @@ async function main() {
     await activityUI.locator('ol li').first().waitFor();
     await activityUI.getByRole('button', { name: 'Reset', exact: true }).click();
     const discountRow = activityUI.locator('ol li').filter({ hasText: /gave 15% discount/i }).first();
-    await discountRow.getByRole('button', { name: 'Show details' }).click();
+    const activityExpand = discountRow.getByRole('button', { name: /Show details for/ });
+    assert.equal(await activityExpand.getAttribute('aria-expanded'), 'false',
+      'Activity disclosure announces its collapsed state');
+    const activityDetailsId = await activityExpand.getAttribute('aria-controls');
+    assert.ok(activityDetailsId, 'Activity disclosure points to its associated details');
+    await activityExpand.click();
+    const activityCollapse = discountRow.getByRole('button', { name: /Hide details for/ });
+    assert.equal(await activityCollapse.getAttribute('aria-expanded'), 'true',
+      'Activity disclosure announces expanded state and changed action');
+    assert.equal(await activityCollapse.getAttribute('aria-controls'), activityDetailsId,
+      'Expanded activity details keep a stable control relationship');
+    assert.equal(await discountRow.locator('[id]').filter({ hasText: 'Before' }).first().getAttribute('id'), activityDetailsId,
+      'The disclosure controls its actual expanded content');
     await discountRow.getByText('Before', { exact: true }).waitFor();
     await discountRow.getByText('After', { exact: true }).waitFor();
     await discountRow.getByRole('link', { name: /Open the record/ }).click();
@@ -479,6 +491,25 @@ async function main() {
     await addTeamTrigger.click();
     const addTeamModal = page.getByRole('dialog', { name: 'Add team member' });
     await addTeamModal.waitFor();
+    const teamName = addTeamModal.getByRole('textbox', { name: 'Name' });
+    await addTeamModal.getByRole('button', { name: 'Save', exact: true }).click();
+    const teamError = addTeamModal.getByRole('alert');
+    await teamError.getByText('Enter a name.').waitFor();
+    const teamErrorId = await teamError.getAttribute('id');
+    assert.ok(teamErrorId, 'Name validation alert has an ID');
+    assert.equal(await teamName.getAttribute('aria-invalid'), 'true',
+      'Empty team member name is exposed as invalid');
+    assert.equal(await teamName.getAttribute('aria-describedby'), teamErrorId,
+      'Team name is associated with its validation explanation');
+    assert.equal(await teamName.getAttribute('aria-errormessage'), teamErrorId,
+      'Team name exposes the error message to assistive technology');
+    assert.equal(await teamName.evaluate(el => document.activeElement === el), true,
+      'Team validation moves focus back to the offending input');
+    await teamName.fill('Accessible preview member');
+    assert.equal(await addTeamModal.getByRole('alert').count(), 0,
+      'Correcting the name clears the previous validation alert');
+    assert.equal(await teamName.getAttribute('aria-invalid'), null,
+      'Correcting the name clears the invalid state');
     await addTeamModal.getByRole('button', { name: 'Cancel' }).click();
     await addTeamModal.waitFor({ state: 'detached' });
     assert.equal(await addTeamTrigger.evaluate(el => document.activeElement === el), true,
