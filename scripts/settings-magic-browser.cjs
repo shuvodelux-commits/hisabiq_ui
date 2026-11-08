@@ -443,9 +443,9 @@ async function main() {
     assert.ok(ratio(offlineButtonPair.foreground, offlineButtonPair.surface) >= 4.5,
       'Enabled Magic outline action dark contrast >= 4.5:1: ' + JSON.stringify(offlineButtonPair));
     await go('invoices');
-    const invoicePaper = page.locator('article[aria-label="Invoice preview"]').first();
-    await invoicePaper.waitFor();
-    const paperPair = await invoicePaper.evaluate(el => ({
+    const contrastPaper = page.locator('article[aria-label="Invoice preview"]').first();
+    await contrastPaper.waitFor();
+    const paperPair = await contrastPaper.evaluate(el => ({
       foreground: getComputedStyle(el).color,
       surface: getComputedStyle(el).backgroundColor,
     }));
