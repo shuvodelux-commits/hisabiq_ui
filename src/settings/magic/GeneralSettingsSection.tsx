@@ -211,7 +211,6 @@ export function GeneralSettingsSection({
         saveLabel="Save"
         readOnly={!canEdit}
       />
-      {feedback && <p role="status" className="text-xs text-ink-500">{feedback}</p>}
       {reviewWarnings && (
         <Modal
           title="Before you save"
