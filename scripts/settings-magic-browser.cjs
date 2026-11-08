@@ -291,6 +291,61 @@ async function main() {
     await page.reload();
     await activityUI.waitFor();
     assert.equal(await activityUI.getByRole('status').count(), 0, 'Activity preview notifications do not persist');
+    // Pinned Magic Offline selling: exactly one synthetic offline device, trusted-device
+    // approval, preview sale and deferred handover, then sync/disable/reset.
+    await go('offline');
+    const offlineUI = page.locator('[data-settings-magic-offline]');
+    await offlineUI.waitFor();
+    await offlineUI.getByText(/This page cannot authorize a real device or save a sale/).waitFor();
+    await offlineUI.getByText(/Counter PC/).first().waitFor();
+    await offlineUI.getByRole('heading', { name: /Rules while offline/ }).waitFor();
+    await offlineUI.getByRole('heading', { name: /Sync history/ }).waitFor();
+    const offlineHistory = offlineUI.locator('[data-settings-offline-history]');
+    assert.equal(await offlineHistory.locator('tbody tr').count(), 3, 'Three source demo sync records');
+    const untrusted = offlineUI.locator('li').filter({ hasText: /iPhone 13/ }).first();
+    assert.equal(await untrusted.getByRole('button', { name: 'Make this the offline device' }).isDisabled(), true,
+      'Untrusted devices cannot become the demo offline device');
+    await offlineUI.getByRole('combobox', { name: 'Sync deadline' }).click();
+    await page.getByRole('option', { name: '12 hours' }).click();
+    assert.equal(await offlineUI.getByRole('combobox', { name: 'Sync deadline' }).getAttribute('data-value'), '12');
+    await offlineUI.getByRole('button', { name: 'Open product' }).click();
+    assert.ok(page.url().includes('/app/settings/offline'), 'Example stock item link never opens a real product');
+    await offlineUI.getByRole('button', { name: 'Go offline' }).click();
+    await offlineUI.getByRole('button', { name: 'Record a test offline sale' }).click();
+    await offlineUI.getByRole('button', { name: 'Turn off', exact: true }).click();
+    const offDialog = page.getByRole('dialog', { name: 'Turn off offline selling?' });
+    await offDialog.waitFor();
+    await offDialog.getByText(/Sync 1 sale first/).waitFor();
+    assert.equal(await offDialog.getByRole('button', { name: 'Turn off', exact: true }).count(), 0,
+      'A pending demo sale blocks disabling the offline device');
+    await offDialog.getByRole('button', { name: 'Close' }).click();
+    const target = offlineUI.locator('li').filter({ hasText: /Owner phone/ }).first();
+    await target.getByRole('button', { name: 'Make this the offline device' }).click();
+    const pinDialog = page.getByRole('dialog', { name: 'Change the offline device?' });
+    await pinDialog.waitFor();
+    await pinDialog.getByRole('textbox', { name: /Owner PIN/ }).fill('123');
+    await pinDialog.getByRole('button', { name: 'Make offline device' }).click();
+    await pinDialog.getByText(/Enter your 6-digit PIN/).waitFor();
+    await pinDialog.getByRole('textbox', { name: /Owner PIN/ }).fill('123456');
+    await pinDialog.getByRole('button', { name: 'Make offline device' }).click();
+    const pendingTransfer = offlineUI.getByRole('status').filter({ hasText: /Waiting to switch to Owner phone/ });
+    await pendingTransfer.waitFor();
+    await pendingTransfer.getByText(/still has 1 unsynced sale/).waitFor();
+    await pendingTransfer.getByRole('button', { name: 'Sync now' }).click();
+    await pendingTransfer.waitFor({ state: 'detached' });
+    await offlineUI.getByText(/Owner phone/).first().waitFor();
+    assert.equal(await offlineHistory.locator('tbody tr').count(), 4, 'Demo sync recorded in local history');
+    await offlineUI.getByRole('button', { name: 'Turn off', exact: true }).click();
+    await offDialog.waitFor();
+    await offDialog.getByRole('button', { name: 'Turn off', exact: true }).click();
+    await offlineUI.getByText('Offline selling is off', { exact: true }).waitFor();
+    await page.reload();
+    await offlineUI.waitFor();
+    await offlineUI.getByText(/Counter PC/).first().waitFor();
+    assert.equal(await offlineHistory.locator('tbody tr').count(), 3,
+      'Offline demo device, pending sales, policy and sync history reset on reload');
+    assert.equal(await offlineUI.getByRole('combobox', { name: 'Sync deadline' }).getAttribute('data-value'), '24',
+      'Changed sync policy was never stored for any business');
     // Source TeamSettings is the route itself; legacy management and directory panels are absent.
     await go('team');
     const teamUI = page.locator('[data-settings-magic-team]');
@@ -422,6 +477,29 @@ async function main() {
         await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-activity-' + width + '-dark.png'), fullPage: true});
         await page.evaluate(() => document.documentElement.classList.remove('dark'));
       }
+      await go('offline');
+      const offlinePage = page.locator('[data-settings-magic-offline]');
+      await offlinePage.waitFor();
+      const offlineLayout = await page.evaluate(() => {
+        const beforeY = scrollY;
+        window.scrollTo({ left: 9999, top: beforeY, behavior: 'instant' });
+        const x = scrollX;
+        window.scrollTo({ left: 0, top: beforeY, behavior: 'instant' });
+        const table = document.querySelector('[data-settings-offline-history]');
+        const parent = table?.parentElement;
+        return { x, client: parent?.clientWidth ?? 0, content: parent?.scrollWidth ?? 0,
+          mode: parent ? getComputedStyle(parent).overflowX : '' };
+      });
+      assert.equal(offlineLayout.x, 0, 'Whole Offline settings page must not scroll sideways at ' + width);
+      assert.equal(offlineLayout.mode, 'auto', 'Offline history table scrolls inside its section at ' + width);
+      if (width < 560) assert.ok(offlineLayout.content > offlineLayout.client,
+        'Offline history table supports independent horizontal scrolling at ' + width);
+      if (process.env.SETTINGS_SCREENSHOT_DIR) {
+        await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-offline-' + width + '-light.png'), fullPage: true});
+        await page.evaluate(() => document.documentElement.classList.add('dark'));
+        await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-offline-' + width + '-dark.png'), fullPage: true});
+        await page.evaluate(() => document.documentElement.classList.remove('dark'));
+      }
       await go('team');
       await page.locator('[data-settings-magic-team] [data-settings-team-table]').waitFor();
       const teamLayout = await page.evaluate(() => {
@@ -464,7 +542,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles, Data & backup, and source Logged-in devices and Staff activity previews across five viewports passed.');
+    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles, Data & backup, and source Logged-in devices, Staff activity and Offline selling previews across five viewports passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
