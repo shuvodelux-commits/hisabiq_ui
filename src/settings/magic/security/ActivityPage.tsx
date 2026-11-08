@@ -146,7 +146,7 @@ function ActivityRow({ entry: r, name, role, open, onToggle, onPerson, onOpenRec
           </p>
         </div>
         {hasDetail && (
-          <button type="button" onClick={onToggle} aria-expanded={open} aria-controls={detailsId} aria-label={open ? `Hide details for ${name}` : `Show details for ${name}`} className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">
+          <button type="button" onClick={onToggle} aria-expanded={open} aria-controls={open ? detailsId : undefined} aria-label={`${open ? 'Hide' : 'Show'} details for ${name}: ${r.summary}`} className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">
             <ChevronDown className={`size-4 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
         )}
