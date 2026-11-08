@@ -575,6 +575,40 @@ async function main() {
       await navigation.locator('a[data-settings-section]').first().waitFor();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
       assert.equal(overflow, false, 'Settings home overflows at ' + width);
+      // An off-screen deep link must reveal the selected Magic navigation item
+      // inside the horizontal strip without moving keyboard focus or the page.
+      const activeNavVisible = async id => {
+        await page.waitForFunction(section => {
+          const strip = document.querySelector('[data-settings-directory]');
+          const selected = strip?.querySelector('a[data-settings-section="' + section + '"]');
+          if (!strip || !selected || selected.getAttribute('aria-current') !== 'page') return false;
+          if (matchMedia('(min-width: 1024px)').matches) return true;
+          const container = strip.getBoundingClientRect();
+          const item = selected.getBoundingClientRect();
+          return item.left >= container.left + 3 && item.right <= container.right - 3;
+        }, id);
+      };
+      await go('offline');
+      await activeNavVisible('offline');
+      const mobileNav = page.locator('[data-settings-directory]');
+      if (width < 1024) {
+        assert.ok(await mobileNav.evaluate(el => el.scrollLeft > 0),
+          'Deep-linked Offline selling tab should scroll into view at ' + width);
+      }
+      await page.evaluate(() => { window.location.hash = '#/app/settings/security'; });
+      await page.waitForURL(/\/app\/settings\/security/);
+      await activeNavVisible('security');
+      const searchDirectory = page.getByRole('textbox', { name: 'Search settings', exact: true });
+      await searchDirectory.fill('offline');
+      assert.equal(await mobileNav.locator('a[data-settings-section]').count(), 1,
+        'Navigation search still filters the original source links');
+      await page.evaluate(() => { window.location.hash = '#/app/settings/offline'; });
+      await page.waitForURL(/\/app\/settings\/offline/);
+      await activeNavVisible('offline');
+      await searchDirectory.fill('');
+      await activeNavVisible('offline');
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false,
+        'Selected-item reveal must never cause whole-page horizontal overflow at ' + width);
       await go('business');
       await page.getByLabel('Business name', { exact: true }).waitFor();
       const formOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
