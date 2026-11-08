@@ -9,6 +9,7 @@ on:
       - 'docs/ui-refine/**'
       - '.claude/skills/ui-refine-loop/**'
       - 'scripts/ui-refine-chatgpt-shots.cjs'
+      - 'scripts/settings-magic-browser.cjs'
       - 'scripts/settings-magic-original-parity.cjs'
       - '.github/workflows/ui-refine-chatgpt.yml'
 
@@ -99,10 +100,10 @@ jobs:
           UI_REFINE_OUT: "${{ runner.temp }}/ui-refine-shots"
         run: node scripts/ui-refine-chatgpt-shots.cjs
 
-      # All specialized Settings source routes are already covered by the
-      # Playwright browser suite; capture their actual UI in the same artifact.
-      # The existing BEFORE/AFTER images above cover only UI-REFINE-ROUTE.
-      - name: Capture specialized Magic Settings routes in five viewports and themes
+      # Capture implementation evidence for Settings home, nine general routes,
+      # Invoice Studio and five specialized routes. GitHub base-vs-PR images
+      # are NOT the original Magic Patterns rendered reference.
+      - name: Capture Magic Settings route matrix in five viewports and themes
         working-directory: candidate
         env:
           SETTINGS_SCREENSHOT_DIR: "${{ runner.temp }}/ui-refine-shots/settings-specialized"
