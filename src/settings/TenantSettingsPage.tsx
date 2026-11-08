@@ -4,6 +4,7 @@ import { SettingsHome } from './magic/SettingsHome';
 import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/GeneralSettingsSection';
 import { KhataPreview as MagicKhataPreview } from './magic/KhataPreview';
 import { InvoiceStudio as MagicInvoiceStudio } from './magic/invoice/InvoiceStudio';
+import { InterfaceSettings as MagicInterfaceSettings } from './magic/interface/InterfaceSettings';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1544,6 +1545,7 @@ export function TenantSettingsPage() {
   const { state, actorId } = useTenantSettings();
   const [magicDirty, setMagicDirty] = useState(false);
   const [invoiceStudioDirty, setInvoiceStudioDirty] = useState(false);
+  const [interfaceMagicDirty, setInterfaceMagicDirty] = useState(false);
   const [invoiceNumberDirty, setInvoiceNumberDirty] = useState(false);
   const [pendingMagicUrl, setPendingMagicUrl] = useState<string | null>(null);
   const activeId: SettingsSectionId | null =
@@ -1573,7 +1575,7 @@ export function TenantSettingsPage() {
   const sourceCanEdit = activeId === 'personal' || activeId === 'security' ||
     (sourceSectionKey !== null && canManage(state, actorId, sourceSectionKey as BusinessSection));
   const onMagicNavigate = (url: string, event: React.MouseEvent) => {
-    if (!magicDirty && !invoiceStudioDirty && !invoiceNumberDirty) return;
+    if (!magicDirty && !invoiceStudioDirty && !invoiceNumberDirty && !interfaceMagicDirty) return;
     event.preventDefault();
     setPendingMagicUrl(url);
   };
@@ -1608,6 +1610,11 @@ export function TenantSettingsPage() {
               renderPreview={sourceForm.id === 'names'
                 ? (previewDraft) => <MagicKhataPreview draft={previewDraft} />
                 : undefined}
+            />
+          ) : activeId === 'interface' ? (
+            <MagicInterfaceSettings
+              onDirtyChange={setInterfaceMagicDirty}
+              canBusiness={canManage(state, actorId, 'interface')}
             />
           ) : activeId === 'invoices' ? (
             <div className="space-y-6" data-settings-magic-invoices-page>
@@ -1656,6 +1663,7 @@ export function TenantSettingsPage() {
             setMagicDirty(false);
             setInvoiceStudioDirty(false);
             setInvoiceNumberDirty(false);
+            setInterfaceMagicDirty(false);
             if (target) navigate(target);
           }}>Discard preview and continue</Button>
         </div>
