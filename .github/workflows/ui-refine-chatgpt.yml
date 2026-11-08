@@ -114,7 +114,8 @@ jobs:
       # Source uses BrowserRouter; candidate uses HashRouter. Neither app is
       # mutated. Unpublished /c/<editorId> links cannot be screenshotted here.
       - name: Compare published original Magic Settings with the PR (read-only; optional)
-        if: contains(github.event.pull_request.body, 'MAGIC-SOURCE-PREVIEW-URL: https://')
+        if: >-
+          contains(github.event.pull_request.body, 'MAGIC-SOURCE-PREVIEW-URL: https://')
         working-directory: candidate
         env:
           UI_REFINE_PR_BODY: "${{ github.event.pull_request.body }}"
