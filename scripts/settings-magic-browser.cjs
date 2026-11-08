@@ -100,6 +100,60 @@ async function main() {
         await khata.getByText(/Total due/i).waitFor();
       }
     }
+    // Full Magic Interface & workflows source: scope, searchable modules, grouped controls, advanced and preview.
+    await go('interface');
+    const interfaceUI = page.locator('[data-settings-magic-interface]');
+    await interfaceUI.waitFor();
+    await interfaceUI.getByRole('heading', { name: /Interface & workflows/ }).waitFor();
+    await interfaceUI.locator('[data-interface-preview-notice]').getByText(/UI preview/).waitFor();
+    await interfaceUI.getByText(/Sample Plus plan/).first().waitFor();
+    await interfaceUI.getByText('Columns', { exact: true }).first().waitFor();
+    await interfaceUI.getByText('Links & actions', { exact: true }).first().waitFor();
+    await interfaceUI.getByRole('button', { name: /More options/ }).click();
+    await interfaceUI.locator('[data-capability="sales.columns.profit"]').waitFor();
+    await interfaceUI.locator('[data-capability="sales.columns.paymentBreakdown"]').waitFor();
+    // Source selector supports module search and changes the visible capability set.
+    await interfaceUI.locator('button[aria-haspopup="listbox"]').click();
+    await interfaceUI.getByRole('textbox', { name: 'Search modules' }).fill('Products');
+    await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /Products & stock/ }).click();
+    await interfaceUI.locator('[data-capability="products.columns.stockValue"]').waitFor();
+    assert.equal(await interfaceUI.locator('[data-capability="sales.columns.paymentMethod"]').count(), 0);
+    await interfaceUI.locator('[data-capability="products.columns.stockValue"]').getByRole('switch').click();
+    await interfaceUI.getByText(/nothing was saved/i).first().waitFor();
+    await interfaceUI.getByRole('button', { name: 'Preview', exact: true }).click();
+    const previewTabs = interfaceUI.getByRole('tablist', { name: 'Preview size' });
+    await previewTabs.getByRole('tab', { name: 'Mobile' }).click();
+    await interfaceUI.getByText(/Other fields open with/).waitFor();
+    await previewTabs.getByRole('tab', { name: 'Desktop' }).click();
+    await interfaceUI.locator('table[data-erp-table]').waitFor();
+    await interfaceUI.getByText('Stock value', { exact: true }).first().waitFor();
+    // Unsaved edits are guarded when switching modules.
+    await interfaceUI.locator('button[aria-haspopup="listbox"]').click();
+    await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /^Sales/ }).click();
+    const moduleDiscard = page.getByRole('dialog', { name: 'Discard unsaved changes?' });
+    await moduleDiscard.waitFor();
+    await moduleDiscard.getByRole('button', { name: 'Keep editing' }).click();
+    await interfaceUI.locator('[data-capability="products.columns.stockValue"]').waitFor();
+    await interfaceUI.locator('button[aria-haspopup="listbox"]').click();
+    await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /^Sales/ }).click();
+    await moduleDiscard.getByRole('button', { name: 'Discard', exact: true }).click();
+    await interfaceUI.locator('[data-capability="sales.columns.paymentMethod"]').waitFor();
+    // Owner preview of Everyone scope includes source review dialog; nothing persists.
+    const applyTo = interfaceUI.getByRole('combobox', { name: 'Apply to' });
+    await applyTo.click();
+    await page.getByRole('option', { name: /Everyone \(UI preview\)/ }).click();
+    const companyPayment = interfaceUI.locator('[data-capability="sales.columns.paymentMethod"] input[type="checkbox"]');
+    await companyPayment.waitFor();
+    await companyPayment.click();
+    await interfaceUI.getByRole('button', { name: 'Review & save' }).click();
+    const defaultReview = page.getByRole('dialog', { name: 'Review business defaults (UI preview)' });
+    await defaultReview.waitFor();
+    await defaultReview.getByRole('button', { name: 'Continue preview (no save)' }).click();
+    await interfaceUI.getByRole('alert').filter({ hasText: /NOT saved for anyone/ }).waitFor();
+    await page.reload();
+    await interfaceUI.waitFor();
+    await interfaceUI.getByText(/UI preview/).first().waitFor();
+    assert.equal(await interfaceUI.getByRole('combobox', { name: 'Apply to' }).getAttribute('data-value'), 'user', 'Source interface preview does not persist scope or settings');
     await go('');
     await page.getByRole('button', { name: 'Start guided setup' }).click();
     const wizard = page.getByRole('dialog', { name: 'Set up your shop' });
@@ -196,7 +250,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio, and five viewports passed.');
+    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, and five viewports passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
