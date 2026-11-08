@@ -3,12 +3,23 @@ import { Eye, Lock } from 'lucide-react';
 import { AppSelect } from '../../components/AppSelect';
 import { Input, SettingCard, SettingsField } from '../ui';
 import { SaveBar } from './SaveBar';
+import { Button, Modal } from './invoice/Ui';
 import { sourceSettingsFields, type SettingField } from './sourceFields';
 import { useMagicSettingsState } from './settingsBridge';
 import type { SettingsSection } from './settingsSections';
 
 type Value = string | number | boolean;
 type Draft = Record<string, Value>;
+
+// Same plain-language accounting warnings as the pinned Magic Patterns source.
+// They describe the effects of a hypothetical save; Phase 1 never applies them.
+const riskyPreviewChanges: Record<string, (draft: Draft) => string> = {
+  lockDate: draft => draft.lockDate
+    ? `Nobody — including you — will be able to edit sales, purchases or payments dated on or before ${draft.lockDate}.`
+    : 'Old entries will be editable again.',
+  invoicePrefix: draft => `Old invoices keep their numbers. New invoices will start at ${draft.invoicePrefix}-000001.`,
+  costMethod: () => 'Stock you already have keeps its cost. Only new purchases use the new method, so profit reports may shift slightly.',
+};
 type Props = {
   section: SettingsSection;
   canEdit: boolean;
@@ -35,6 +46,7 @@ export function GeneralSettingsSection({
   const [baseline] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
+  const [reviewWarnings, setReviewWarnings] = useState<string[] | null>(null);
   const fields = all.filter(f => advanced || !f.advanced);
   const hiddenCount = all.length - fields.length;
   const changed = all.filter(f => draft[f.key] !== baseline[f.key]);
@@ -44,16 +56,19 @@ export function GeneralSettingsSection({
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
 
   const set = (key: string, value: Value) => {
+    setReviewWarnings(null);
     setDraft(prev => ({ ...prev, [key]: value }));
     setFeedback('');
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: '' }));
   };
   const restoreDefaults = () => {
+    setReviewWarnings(null);
     setDraft(initialDraft(all, {}));
     setErrors({});
     setFeedback('Source defaults loaded into this preview. They have not changed business settings.');
   };
   const discard = () => {
+    setReviewWarnings(null);
     setDraft({ ...baseline });
     setErrors({});
     setFeedback('Preview changes discarded; business settings were never changed.');
@@ -72,9 +87,19 @@ export function GeneralSettingsSection({
         next[f.key] = 'Enter an 11-digit Bangladeshi mobile number.';
       if (f.key === 'invoicePrefix' && !/^[A-Z0-9-]{2,12}$/.test(String(v)))
         next[f.key] = 'Use 2–12 capital letters, numbers or hyphens.';
+      if (f.key === 'lockDate' && v && !/^\d{4}-\d{2}-\d{2}$/.test(String(v)))
+        next[f.key] = 'Write the date as YYYY-MM-DD, e.g. 2026-10-31.';
     }
     setErrors(next);
     if (Object.keys(next).length) return;
+    const warnings = changed
+      .map(f => riskyPreviewChanges[f.key]?.(draft))
+      .filter((warning): warning is string => Boolean(warning));
+    if (warnings.length > 0) {
+      setFeedback('');
+      setReviewWarnings(warnings);
+      return;
+    }
     // No fake "Saved" toast or browser-side fake persistence.
     setFeedback('UI preview only. Saving to the business will be connected after the full Magic UI is approved. No settings were saved.');
   };
@@ -187,6 +212,30 @@ export function GeneralSettingsSection({
         readOnly={!canEdit}
       />
       {feedback && <p role="status" className="text-xs text-ink-500">{feedback}</p>}
+      {reviewWarnings && (
+        <Modal
+          title="Before you save"
+          onClose={() => setReviewWarnings(null)}
+          footer={
+            <>
+              <Button onClick={() => setReviewWarnings(null)}>Go back</Button>
+              <Button kind="primary" onClick={() => {
+                setReviewWarnings(null);
+                setFeedback('Preview confirmed. No business settings, historical records or stock costs were saved or changed.');
+              }}>Continue preview (no save)</Button>
+            </>
+          }
+        >
+          <div className="space-y-3 text-[13px]">
+            <p role="note" className="rounded-lg bg-teal-50 px-3 py-2 text-teal-800">
+              UI preview only. These are the original warnings for what saving would do. This confirmation will not apply any changes.
+            </p>
+            <ul data-settings-risk-warnings className="list-disc space-y-2 pl-5 text-ink-700">
+              {reviewWarnings.map(warning => <li key={warning}>{warning}</li>)}
+            </ul>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
