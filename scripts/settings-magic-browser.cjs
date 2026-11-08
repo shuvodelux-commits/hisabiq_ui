@@ -318,7 +318,7 @@ async function main() {
     await offDialog.getByText(/Sync 1 sale first/).waitFor();
     assert.equal(await offDialog.getByRole('button', { name: 'Turn off', exact: true }).count(), 0,
       'A pending demo sale blocks disabling the offline device');
-    await offDialog.getByRole('button', { name: 'Close' }).click();
+    await offDialog.locator('footer').getByRole('button', { name: 'Close', exact: true }).click();
     const target = offlineUI.locator('li').filter({ hasText: /Owner phone/ }).first();
     await target.getByRole('button', { name: 'Make this the offline device' }).click();
     const pinDialog = page.getByRole('dialog', { name: 'Change the offline device?' });
