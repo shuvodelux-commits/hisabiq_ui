@@ -4065,6 +4065,46 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/interface/CapabilityRow.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "CapabilityRow"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/InterfacePreview.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InterfacePreview"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/InterfaceSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InterfaceSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/InterfaceTabs.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "Tabs"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/ModuleSelector.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "ModuleSelector"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/invoice/DesignGallery.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4146,7 +4186,8 @@
       "src/components/parties/LedgerImpactAmount.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/pages/Daybook.tsx",
-      "src/pages/Finance.tsx"
+      "src/pages/Finance.tsx",
+      "src/settings/magic/interface/InterfacePreview.tsx"
     ],
     "ArrowDownRight": [
       "src/components/reports/ReportOverview.tsx",
@@ -4344,6 +4385,8 @@
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
+      "src/settings/magic/interface/CapabilityRow.tsx",
+      "src/settings/magic/interface/ModuleSelector.tsx",
       "src/settings/magic/invoice/DesignGallery.tsx"
     ],
     "CheckCircle2": [
@@ -4388,7 +4431,9 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Products.tsx",
       "src/pages/Sales.tsx",
-      "src/pages/Vendors.tsx"
+      "src/pages/Vendors.tsx",
+      "src/settings/magic/interface/InterfaceSettings.tsx",
+      "src/settings/magic/interface/ModuleSelector.tsx"
     ],
     "ChevronDownIcon": [
       "src/components/SearchSelect.tsx",
@@ -4531,13 +4576,15 @@
       "src/pages/Purchases.tsx",
       "src/settings/AccountSecuritySettings.tsx",
       "src/settings/EmployeeDirectory.tsx",
-      "src/settings/magic/GeneralSettingsSection.tsx"
+      "src/settings/magic/GeneralSettingsSection.tsx",
+      "src/settings/magic/interface/InterfaceSettings.tsx"
     ],
     "EyeOff": [
       "src/components/dashboard/WidgetFrame.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
-      "src/settings/AccountSecuritySettings.tsx"
+      "src/settings/AccountSecuritySettings.tsx",
+      "src/settings/magic/interface/InterfaceSettings.tsx"
     ],
     "FileClock": [
       "src/components/pos/DraftsMenu.tsx",
@@ -4642,7 +4689,8 @@
       "src/components/Tooltip.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
       "src/pages/Reports.tsx",
-      "src/reports/magicpatterns/components/reports/ReportBits.tsx"
+      "src/reports/magicpatterns/components/reports/ReportBits.tsx",
+      "src/settings/magic/interface/CapabilityRow.tsx"
     ],
     "Keyboard": [
       "src/pages/Pos.tsx",
@@ -4693,7 +4741,8 @@
       "src/components/vendor/VendorSourceWorkspace.tsx"
     ],
     "Loader2": [
-      "src/settings/magic/SaveBar.tsx"
+      "src/settings/magic/SaveBar.tsx",
+      "src/settings/magic/interface/CapabilityRow.tsx"
     ],
     "LoaderCircle": [
       "src/components/FeedbackState.tsx",
@@ -4996,7 +5045,8 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
-      "src/settings/magic/SaveBar.tsx"
+      "src/settings/magic/SaveBar.tsx",
+      "src/settings/magic/interface/InterfaceSettings.tsx"
     ],
     "Ruler": [
       "src/components/products/ProductSettings.tsx"
@@ -5059,7 +5109,8 @@
       "src/saas/components.tsx",
       "src/settings/SettingsDirectory.tsx",
       "src/settings/magic/SettingsHome.tsx",
-      "src/settings/magic/SettingsNav.tsx"
+      "src/settings/magic/SettingsNav.tsx",
+      "src/settings/magic/interface/ModuleSelector.tsx"
     ],
     "SearchCheck": [
       "src/components/reports/BusinessReview.tsx"
