@@ -96,6 +96,17 @@ jobs:
           UI_REFINE_OUT: "${{ runner.temp }}/ui-refine-shots"
         run: node scripts/ui-refine-chatgpt-shots.cjs
 
+      # All specialized Settings source routes are already covered by the
+      # Playwright browser suite; capture their actual UI in the same artifact.
+      # The existing BEFORE/AFTER images above cover only UI-REFINE-ROUTE.
+      - name: Capture specialized Magic Settings routes in five viewports and themes
+        working-directory: candidate
+        env:
+          SETTINGS_SCREENSHOT_DIR: "${{ runner.temp }}/ui-refine-shots/settings-specialized"
+        run: |
+          mkdir -p "$SETTINGS_SCREENSHOT_DIR"
+          npm run test:settings-library
+
       - name: Independent official Impeccable source detector (no AI API)
         working-directory: candidate
         shell: bash
