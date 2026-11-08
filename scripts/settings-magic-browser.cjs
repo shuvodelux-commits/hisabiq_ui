@@ -113,7 +113,7 @@ async function main() {
     await interfaceUI.locator('[data-capability="sales.columns.profit"]').waitFor();
     await interfaceUI.locator('[data-capability="sales.columns.paymentBreakdown"]').waitFor();
     // Source selector supports module search and changes the visible capability set.
-    await interfaceUI.locator('button[aria-haspopup="listbox"]').click();
+    await interfaceUI.locator('button[aria-haspopup="listbox"]').first().click();
     await interfaceUI.getByRole('textbox', { name: 'Search modules' }).fill('Products');
     await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /Products & stock/ }).click();
     await interfaceUI.locator('[data-capability="products.columns.stockValue"]').waitFor();
@@ -128,13 +128,13 @@ async function main() {
     await interfaceUI.locator('table[data-erp-table]').waitFor();
     await interfaceUI.getByText('Stock value', { exact: true }).first().waitFor();
     // Unsaved edits are guarded when switching modules.
-    await interfaceUI.locator('button[aria-haspopup="listbox"]').click();
+    await interfaceUI.locator('button[aria-haspopup="listbox"]').first().click();
     await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /^Sales/ }).click();
     const moduleDiscard = page.getByRole('dialog', { name: 'Discard unsaved changes?' });
     await moduleDiscard.waitFor();
     await moduleDiscard.getByRole('button', { name: 'Keep editing' }).click();
     await interfaceUI.locator('[data-capability="products.columns.stockValue"]').waitFor();
-    await interfaceUI.locator('button[aria-haspopup="listbox"]').click();
+    await interfaceUI.locator('button[aria-haspopup="listbox"]').first().click();
     await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /^Sales/ }).click();
     await moduleDiscard.getByRole('button', { name: 'Discard', exact: true }).click();
     await interfaceUI.locator('[data-capability="sales.columns.paymentMethod"]').waitFor();
