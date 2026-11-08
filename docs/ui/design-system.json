@@ -4155,6 +4155,47 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/security/PinConfirmDialog.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "PinConfirmDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/RowActions.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "RowActions"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/SessionsPage.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SessionsPage"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/SessionsUi.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "Select",
+        "Tag"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/StatTile.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "StatTile"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/ui.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4294,7 +4335,8 @@
       "src/settings/CommerceSettingsPanels.tsx"
     ],
     "Ban": [
-      "src/pages/Expenses.tsx"
+      "src/pages/Expenses.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Banknote": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -4788,7 +4830,8 @@
       "src/components/products/form/AdvancedStockPanel.tsx"
     ],
     "LogOut": [
-      "src/components/layout/TopBar.tsx"
+      "src/components/layout/TopBar.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Mail": [
       "src/features/auth/AuthFlowPage.tsx",
@@ -4812,7 +4855,8 @@
       "src/saas/SaasShell.tsx"
     ],
     "Monitor": [
-      "src/components/layout/ThemePicker.tsx"
+      "src/components/layout/ThemePicker.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "MonitorSmartphone": [
       "src/settings/AccountSecuritySettings.tsx",
@@ -4834,7 +4878,8 @@
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Products.tsx",
-      "src/pages/Warranty.tsx"
+      "src/pages/Warranty.tsx",
+      "src/settings/magic/security/RowActions.tsx"
     ],
     "Package": [
       "src/components/ProductThumb.tsx",
@@ -5130,7 +5175,8 @@
       "src/settings/SettingsDirectory.tsx",
       "src/settings/magic/SettingsHome.tsx",
       "src/settings/magic/SettingsNav.tsx",
-      "src/settings/magic/interface/ModuleSelector.tsx"
+      "src/settings/magic/interface/ModuleSelector.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "SearchCheck": [
       "src/components/reports/BusinessReview.tsx"
@@ -5160,6 +5206,9 @@
       "src/settings/ModuleSettingsEntry.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
+    "ShieldAlert": [
+      "src/settings/magic/security/SessionsPage.tsx"
+    ],
     "ShieldCheck": [
       "src/features/auth/AuthFlowPage.tsx",
       "src/navigation/erpNavigation.ts",
@@ -5171,6 +5220,7 @@
       "src/settings/TeamSettings.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/security/PinConfirmDialog.tsx",
       "src/settings/magic/settingsSections.ts"
     ],
     "ShieldCheckIcon": [
@@ -5199,7 +5249,8 @@
       "src/settings/magic/settingsSections.ts"
     ],
     "Smartphone": [
-      "src/features/auth/AuthFlowPage.tsx"
+      "src/features/auth/AuthFlowPage.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Sparkles": [
       "src/components/brand/VoiceSection.tsx",
@@ -5220,6 +5271,9 @@
     ],
     "Sun": [
       "src/components/layout/ThemePicker.tsx"
+    ],
+    "Tablet": [
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Tag": [
       "src/components/products/ProductInventoryDialogs.tsx"
@@ -5292,6 +5346,9 @@
     "User": [
       "src/components/layout/TopBar.tsx"
     ],
+    "UserCheck": [
+      "src/settings/magic/security/SessionsPage.tsx"
+    ],
     "UserRound": [
       "src/components/pos/CustomerPicker.tsx",
       "src/pages/Sales.tsx",
@@ -5311,6 +5368,7 @@
       "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
       "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/security/SessionsPage.tsx",
       "src/settings/magic/settingsSections.ts"
     ],
     "Wallet": [
