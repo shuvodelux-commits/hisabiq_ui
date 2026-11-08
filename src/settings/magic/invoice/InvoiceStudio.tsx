@@ -1,3 +1,4 @@
+import { SettingsToggle } from '../SettingsToggle';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -149,11 +150,18 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
           <SettingCard title="What to show on the invoice" titleBn="চালানে কী দেখাবে" description="Turn off anything your customers don’t need. The preview updates as you click.">
             <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
               {contentToggles.map((t) => (
-                <label key={t.key} className="flex min-h-9 cursor-pointer items-center gap-2.5 rounded-md px-1 text-[13px] text-ink-700 hover:bg-ink-50">
-                  <input type="checkbox" className="size-4 accent-teal-600" checked={draft.content[t.key]} disabled={!canEdit} onChange={(e) => set({ content: { ...draft.content, [t.key]: e.target.checked } })} />
-                  {t.label}
-                  <span className="font-bn text-[11px] text-ink-400">{t.bn}</span>
-                </label>
+                <div key={t.key} className="flex min-h-11 min-w-0 items-center justify-between gap-3 rounded-md px-1 hover:bg-ink-50">
+                  <label htmlFor={`settings-invoice-content-${t.key}`} className="min-w-0 cursor-pointer text-[13px] text-ink-700">
+                    {t.label} <span className="font-bn text-[11px] text-ink-400">{t.bn}</span>
+                  </label>
+                  <SettingsToggle
+                    id={`settings-invoice-content-${t.key}`}
+                    aria-label={t.label}
+                    checked={draft.content[t.key]}
+                    disabled={!canEdit}
+                    onCheckedChange={value => set({ content: { ...draft.content, [t.key]: value } })}
+                  />
+                </div>
               ))}
             </div>
             <label className="block text-[12px] font-medium text-ink-700">
