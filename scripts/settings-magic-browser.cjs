@@ -243,13 +243,24 @@ async function main() {
       await page.getByLabel('Business name', { exact: true }).waitFor();
       const formOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
       assert.equal(formOverflow, false, 'Settings form overflows at ' + width);
+      await go('team');
+      await page.locator('[data-settings-magic-team] [data-settings-team-table]').waitFor();
+      const teamOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+      assert.equal(teamOverflow, false, 'Source Users & roles page overflows at ' + width);
+      if (process.env.SETTINGS_SCREENSHOT_DIR) {
+        fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
+        await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-team-' + width + '-light.png'), fullPage: true });
+        await page.evaluate(() => document.documentElement.classList.add('dark'));
+        await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-team-' + width + '-dark.png'), fullPage: true });
+        await page.evaluate(() => document.documentElement.classList.remove('dark'));
+      }
     }
     assert.deepEqual(errors, [], 'Browser must have no uncaught page errors');
     if (process.env.SETTINGS_SCREENSHOT_DIR) {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, and five viewports passed.');
+    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles source presentation and five viewports passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
