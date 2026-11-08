@@ -409,6 +409,53 @@ async function main() {
     await numbering.waitFor();
     await numbering.getByLabel('Invoice number prefix').waitFor();
     await numbering.getByRole('checkbox', { name: /Offer receipt printing/ }).waitFor();
+    // WCAG AA text contrast regression for source Magic Settings in both modes.
+    // Theme token values are measured at their actual rendered element surfaces.
+    const ratio = (fore, back) => {
+      const channel = css => (css.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+      const luminance = cs => cs.reduce((acc, v, i) => {
+        const x = v / 255;
+        const linear = x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+        return acc + linear * [0.2126, 0.7152, 0.0722][i];
+      }, 0);
+      const x = luminance(channel(fore)), y = luminance(channel(back));
+      return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+    };
+    const pair = (element, background) => page.evaluate(([fg, bg]) => {
+      const fore = document.querySelector(fg), back = document.querySelector(bg);
+      return fore && back
+        ? { foreground: getComputedStyle(fore).color, surface: getComputedStyle(back).backgroundColor }
+        : null;
+    }, [element, background]);
+    await go('interface');
+    await page.evaluate(() => document.documentElement.classList.add('dark'));
+    await page.locator('#interface-title').waitFor();
+    const interfacePair = await pair('#interface-title', 'section[aria-labelledby="interface-title"]');
+    assert.ok(interfacePair && ratio(interfacePair.foreground, interfacePair.surface) >= 4.5,
+      'Interface & workflows dark title contrast >= 4.5:1: ' + JSON.stringify(interfacePair));
+    await go('offline');
+    const offlineSyncButton = page.locator('[data-settings-magic-offline] button.ref-button-outline').first();
+    await offlineSyncButton.waitFor();
+    const offlineButtonPair = await offlineSyncButton.evaluate(el => ({
+      foreground: getComputedStyle(el).color,
+      surface: getComputedStyle(el).backgroundColor,
+    }));
+    assert.ok(ratio(offlineButtonPair.foreground, offlineButtonPair.surface) >= 4.5,
+      'Enabled Magic outline action dark contrast >= 4.5:1: ' + JSON.stringify(offlineButtonPair));
+    await go('invoices');
+    const invoicePaper = page.locator('article[aria-label="Invoice preview"]').first();
+    await invoicePaper.waitFor();
+    const paperPair = await invoicePaper.evaluate(el => ({
+      foreground: getComputedStyle(el).color,
+      surface: getComputedStyle(el).backgroundColor,
+    }));
+    assert.ok(ratio(paperPair.foreground, paperPair.surface) >= 4.5,
+      'White invoice paper preview uses legible dark text in dark mode: ' + JSON.stringify(paperPair));
+    await page.evaluate(() => document.documentElement.classList.remove('dark'));
+    await go('interface');
+    const lightPair = await pair('#interface-title', 'section[aria-labelledby="interface-title"]');
+    assert.ok(lightPair && ratio(lightPair.foreground, lightPair.surface) >= 4.5,
+      'Interface & workflows light title contrast >= 4.5:1: ' + JSON.stringify(lightPair));
     for (const width of [320,390,768,1024,1440]) {
       await page.setViewportSize({ width, height: 900 });
       await go('');
