@@ -107,8 +107,8 @@ async function main() {
     await interfaceUI.getByRole('heading', { name: /Interface & workflows/ }).waitFor();
     await interfaceUI.locator('[data-interface-preview-notice]').getByText(/UI preview/).waitFor();
     await interfaceUI.getByText(/Sample Plus plan/).first().waitFor();
-    await interfaceUI.getByText('Columns', { exact: true }).first().waitFor();
-    await interfaceUI.getByText('Links & actions', { exact: true }).first().waitFor();
+    await interfaceUI.getByRole('heading', { name: /^Columns/ }).waitFor();
+    await interfaceUI.getByRole('heading', { name: /^Links & actions/ }).waitFor();
     await interfaceUI.getByRole('button', { name: /More options/ }).click();
     await interfaceUI.locator('[data-capability="sales.columns.profit"]').waitFor();
     await interfaceUI.locator('[data-capability="sales.columns.paymentBreakdown"]').waitFor();
