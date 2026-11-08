@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Check, Lock } from 'lucide-react';
 import { invoiceDesigns, type InvoiceDesignId } from './invoiceDesigns';
