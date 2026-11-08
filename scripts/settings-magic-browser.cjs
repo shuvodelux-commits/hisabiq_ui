@@ -100,6 +100,85 @@ async function main() {
         await khata.getByText(/Total due/i).waitFor();
       }
     }
+    // Source GeneralSettingsSection's 'Before you save' dialog is preview-only
+    // but retains the exact warning copy for invoice numbers, lock dates, and cost method.
+    await go('invoices');
+    const numbering = page.locator('[data-settings-magic-general="invoices"]');
+    await numbering.waitFor();
+    const prefixField = numbering.getByRole('textbox', { name: 'Invoice number prefix' });
+    const originalPrefix = await prefixField.inputValue();
+    const numberingSave = numbering.getByRole('button', { name: 'Save', exact: true });
+    await prefixField.fill('A');
+    await numberingSave.click();
+    await numbering.getByText(/Use 2–12 capital letters/).waitFor();
+    assert.equal(await page.getByRole('dialog', { name: 'Before you save' }).count(), 0,
+      'Invalid invoice prefixes do not open the source confirmation');
+    await prefixField.fill('TEST26');
+    await numberingSave.click();
+    const warningDialog = page.getByRole('dialog', { name: 'Before you save' });
+    await warningDialog.waitFor();
+    await warningDialog.locator('[data-settings-risk-warnings]').getByText(
+      'Old invoices keep their numbers. New invoices will start at TEST26-000001.',
+      { exact: true },
+    ).waitFor();
+    await warningDialog.getByText(/This confirmation will not apply any changes/).waitFor();
+    assert.equal(await warningDialog.getByRole('button', { name: 'Continue preview (no save)' }).count(), 1);
+    await warningDialog.getByRole('button', { name: 'Go back' }).click();
+    await warningDialog.waitFor({ state: 'detached' });
+    assert.equal(await prefixField.inputValue(), 'TEST26', 'Go back leaves the UI-only draft untouched');
+    assert.equal(await numberingSave.evaluate(el => document.activeElement === el), true,
+      'Closing the source risk modal restores focus to the Save trigger');
+    await numberingSave.click();
+    await warningDialog.getByRole('button', { name: 'Continue preview (no save)' }).click();
+    await numbering.getByRole('status').filter({ hasText: /No business settings, historical records or stock costs were saved or changed/ }).waitFor();
+    await page.reload();
+    await numbering.waitFor();
+    assert.equal(await prefixField.inputValue(), originalPrefix,
+      'Confirming the numbering warning does not persist or change invoice numbering');
+
+    await go('money');
+    const financePreview = page.locator('[data-settings-magic-general="finance"]');
+    await financePreview.waitFor();
+    await financePreview.getByRole('checkbox', { name: 'Show advanced options' }).check();
+    const lockDate = financePreview.getByRole('textbox', { name: 'Lock old entries before' });
+    await lockDate.fill('bad-date');
+    await financePreview.getByRole('button', { name: 'Save', exact: true }).click();
+    await financePreview.getByText(/Write the date as YYYY-MM-DD/).waitFor();
+    assert.equal(await page.getByRole('dialog', { name: 'Before you save' }).count(), 0,
+      'Bad lock dates fail validation before risk review');
+    await lockDate.fill('2026-10-31');
+    await financePreview.getByRole('button', { name: 'Save', exact: true }).click();
+    await warningDialog.waitFor();
+    await warningDialog.locator('[data-settings-risk-warnings]').getByText(
+      'Nobody — including you — will be able to edit sales, purchases or payments dated on or before 2026-10-31.',
+      { exact: true },
+    ).waitFor();
+    await warningDialog.getByRole('button', { name: 'Go back' }).click();
+    await warningDialog.waitFor({ state: 'detached' });
+
+    await go('products');
+    const costPreview = page.locator('[data-settings-magic-general="products"]');
+    await costPreview.waitFor();
+    await costPreview.getByRole('checkbox', { name: 'Show advanced options' }).check();
+    const costMethod = costPreview.getByRole('combobox', { name: 'How product cost is worked out' });
+    const initialCost = await costMethod.getAttribute('data-value');
+    const alternateCost = initialCost === 'FIFO' ? 'Average' : 'FIFO';
+    await costMethod.click();
+    await page.getByRole('option', { name: alternateCost, exact: true }).click();
+    await costPreview.getByRole('button', { name: 'Save', exact: true }).click();
+    await warningDialog.waitFor();
+    await warningDialog.locator('[data-settings-risk-warnings]').getByText(
+      'Stock you already have keeps its cost. Only new purchases use the new method, so profit reports may shift slightly.',
+      { exact: true },
+    ).waitFor();
+    await page.keyboard.press('Escape');
+    await warningDialog.waitFor({ state: 'detached' });
+    assert.equal(await costMethod.getAttribute('data-value'), alternateCost, 'Escape keeps the preview draft');
+    await page.reload();
+    await costPreview.waitFor();
+    await costPreview.getByRole('checkbox', { name: 'Show advanced options' }).check();
+    assert.equal(await costPreview.getByRole('combobox', { name: 'How product cost is worked out' }).getAttribute('data-value'),
+      initialCost, 'Cost method preview cannot change stock accounting or persist to the tenant');
     // Full Magic Interface & workflows source: scope, searchable modules, grouped controls, advanced and preview.
     await go('interface');
     const interfaceUI = page.locator('[data-settings-magic-interface]');
@@ -500,6 +579,32 @@ async function main() {
       await page.getByLabel('Business name', { exact: true }).waitFor();
       const formOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
       assert.equal(formOverflow, false, 'Settings form overflows at ' + width);
+      // Source risk-review modal is also readable and contained on small screens.
+      await go('money');
+      const financeGeneral = page.locator('[data-settings-magic-general="finance"]');
+      await financeGeneral.waitFor();
+      await financeGeneral.getByRole('checkbox', { name: 'Show advanced options' }).check();
+      await financeGeneral.getByRole('textbox', { name: 'Lock old entries before' }).fill('2026-10-31');
+      await financeGeneral.getByRole('button', { name: 'Save', exact: true }).click();
+      const riskDialog = page.getByRole('dialog', { name: 'Before you save' });
+      await riskDialog.waitFor();
+      const riskLayout = await riskDialog.evaluate(el => ({
+        width: el.getBoundingClientRect().width,
+        left: el.getBoundingClientRect().left,
+        right: el.getBoundingClientRect().right,
+      }));
+      assert.ok(riskLayout.left >= 0 && riskLayout.right <= width + 1,
+        'Source risk modal is within viewport at ' + width + ': ' + JSON.stringify(riskLayout));
+      if (process.env.SETTINGS_SCREENSHOT_DIR) {
+        await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR,
+          'settings-before-save-' + width + '-light.png'), fullPage: true});
+        await page.evaluate(() => document.documentElement.classList.add('dark'));
+        await page.screenshot({path: path.join(process.env.SETTINGS_SCREENSHOT_DIR,
+          'settings-before-save-' + width + '-dark.png'), fullPage: true});
+        await page.evaluate(() => document.documentElement.classList.remove('dark'));
+      }
+      await riskDialog.getByRole('button', { name: 'Go back' }).click();
+      await riskDialog.waitFor({ state: 'detached' });
       await go('data');
       const dataPage = page.locator('[data-settings-magic-data]');
       await dataPage.waitFor();
