@@ -1582,7 +1582,7 @@ export function TenantSettingsPage() {
     setPendingMagicUrl(url);
   };
   return (
-    <div className="erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5" data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
+    <div className={`erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5 ${activeId === 'team' ? 'overflow-x-hidden' : ''}`} data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-xl font-semibold text-ink">
