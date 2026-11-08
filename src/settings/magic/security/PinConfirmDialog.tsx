@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { Button, Modal } from '../invoice/Ui';
 
@@ -8,8 +8,15 @@ type Props = { title: string; message: React.ReactNode; confirmLabel: string; da
 export function PinConfirmDialog({ title, message, confirmLabel, danger, onConfirm, onClose }: Props) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const errorId = useId();
+  const helperId = useId();
   const submit = () => {
-    if (!/^\d{6}$/.test(pin)) return setError('Enter your 6-digit PIN.');
+    if (!/^\d{6}$/.test(pin)) {
+      setError('Enter your 6-digit PIN.');
+      inputRef.current?.focus();
+      return;
+    }
     onConfirm();
   };
   return (
@@ -28,17 +35,21 @@ export function PinConfirmDialog({ title, message, confirmLabel, danger, onConfi
         <label className="block text-[12px] font-medium text-ink-700">
           <span className="flex items-center gap-1.5"><ShieldCheck className="size-4 text-teal-700" aria-hidden="true" />Owner PIN</span>
           <input
+            ref={inputRef}
             autoFocus
+            data-modal-initial-focus
             inputMode="numeric"
             maxLength={6}
             value={pin}
             onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setError(''); }}
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
             aria-invalid={!!error}
+            aria-describedby={error ? errorId : helperId}
+            aria-errormessage={error ? errorId : undefined}
             className="ref-control mt-1.5 block h-9 w-40 rounded-md border border-input bg-card px-3 text-center text-[15px] tracking-[0.4em] text-ink outline-none focus-visible:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-500/20"
             placeholder="••••••"
           />
-          {error ? <span className="mt-1 block text-xs font-normal text-danger">{error}</span> : <span className="ref-helper mt-1 block font-normal">UI-only demo. Do not enter your real PIN; no identity is verified.</span>}
+          {error ? <span id={errorId} role="alert" className="mt-1 block text-xs font-normal text-danger">{error}</span> : <span id={helperId} className="ref-helper mt-1 block font-normal">UI-only demo. Do not enter your real PIN; no identity is verified.</span>}
         </label>
       </div>
     </Modal>
