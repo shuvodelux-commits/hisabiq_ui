@@ -118,7 +118,7 @@ async function main() {
     await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /Products & stock/ }).click();
     await interfaceUI.locator('[data-capability="products.columns.stockValue"]').waitFor();
     assert.equal(await interfaceUI.locator('[data-capability="sales.columns.paymentMethod"]').count(), 0);
-    await interfaceUI.locator('[data-capability="products.columns.stockValue"]').getByRole('switch').click();
+    await interfaceUI.locator('[data-capability="products.columns.stockValue"] label[data-slot="switch"]').click();
     await interfaceUI.getByText(/nothing was saved/i).first().waitFor();
     await interfaceUI.getByRole('button', { name: 'Preview', exact: true }).click();
     const previewTabs = interfaceUI.getByRole('tablist', { name: 'Preview size' });
