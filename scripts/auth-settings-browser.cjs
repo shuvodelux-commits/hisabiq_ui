@@ -23,8 +23,8 @@ async function main() {
     const section = page.locator('[data-settings-magic-general="security"]');
     await section.waitFor();
     await section.getByRole('heading', { name: /Account & security/ }).waitFor();
-    const lock = section.getByRole('checkbox', { name: /Lock the screen when idle/ });
-    const pin = section.getByRole('checkbox', { name: /Allow 6-digit PIN sign-in/ });
+    const lock = section.getByRole('switch', { name: /Lock the screen when idle/ });
+    const pin = section.getByRole('switch', { name: /Allow 6-digit PIN sign-in/ });
     const minutes = section.getByRole('spinbutton', { name: 'Lock after (minutes)' });
     const trusted = section.getByRole('spinbutton', { name: 'Trust a device for (days)' });
     assert.equal(await lock.isChecked(), false, 'Source default is a UI-only value');
