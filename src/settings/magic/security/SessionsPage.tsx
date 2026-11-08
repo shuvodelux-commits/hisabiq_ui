@@ -1,3 +1,4 @@
+import { SettingsToggle } from '../SettingsToggle';
 /** Pinned Magic Patterns SessionsPage source UI, locally simulated for Phase 1. */
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -175,10 +176,13 @@ export function SessionsPage({ canManage }: { canManage: boolean }) {
             </span>
             <span className="ref-helper mt-1 block font-normal">Staff sign in again with their PIN. Unsaved sales stay as drafts.</span>
           </div>
-          <label className="flex items-start gap-2.5 pt-5 text-[13px] text-ink-700">
-            <input type="checkbox" className="mt-0.5 size-4 accent-teal-600" checked={pinNew} onChange={(e) => { setPinNew(e.target.checked); previewToast('Saved'); }} />
-            <span>Ask for the owner’s PIN when someone signs in on a new device<span className="ref-helper block">Stops a staff password from working on an unknown phone.</span></span>
-          </label>
+          <div className="flex min-w-0 items-start justify-between gap-3 pt-4 text-[13px] text-ink-700">
+            <div className="min-w-0 pt-1">
+              <label htmlFor="settings-new-device-pin" className="cursor-pointer font-medium">Ask for the owner’s PIN when someone signs in on a new device</label>
+              <span className="ref-helper block">Stops a staff password from working on an unknown phone.</span>
+            </div>
+            <SettingsToggle id="settings-new-device-pin" aria-label="Ask for the owner’s PIN when someone signs in on a new device" checked={pinNew} onCheckedChange={value => { setPinNew(value); previewToast('PIN preference changed in UI preview'); }} />
+          </div>
         </div>
       </SettingCard>
 
