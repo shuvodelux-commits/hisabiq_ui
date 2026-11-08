@@ -86,7 +86,7 @@ export function SessionsPage({ canManage }: { canManage: boolean }) {
         </div>
         <p className="px-4 pt-3 text-xs text-ink-500">Showing {rows.length} of {sec.sessions.length} devices</p>
         <div className="max-w-full overflow-x-auto" style={{ contain: 'layout paint' }}>
-          <table data-settings-sessions-table className="w-full min-w-[760px] text-[13px]">
+          <table data-erp-table data-settings-sessions-table className="w-full min-w-[760px] text-[13px]">
             <thead>
               <tr className="text-left text-xs text-ink-500">
                 <th className="px-4 py-2 font-medium">Person</th>
