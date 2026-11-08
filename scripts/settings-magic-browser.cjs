@@ -1,6 +1,6 @@
 /* Magic Patterns Settings UI replacement — targeted browser regression.
  * Generic Settings routes use source-faithful UI-only drafts in Phase 1.
- * Specialized pages retain prior tests until their own source port.
+ * Specialized pages use exact Magic source when their own port is complete.
  */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
@@ -170,31 +170,30 @@ async function main() {
     await page.getByRole('tab', { name: /Record exports & import preview/ }).click();
     await page.getByLabel('Product CSV preview', { exact: true }).waitFor();
     await page.getByRole('tab', { name: /Backup & restore/ }).click();
-    // Magic team table is the default, while RBAC role editing and advanced directory remain reachable.
+    // Source TeamSettings is the route itself; legacy management and directory panels are absent.
     await go('team');
-    const teamTable = page.locator('[data-settings-team-table]');
-    await teamTable.waitFor();
+    const teamUI = page.locator('[data-settings-magic-team]');
+    await teamUI.waitFor();
+    const teamTable = teamUI.locator('[data-settings-team-table]');
     assert.deepEqual(
       await teamTable.locator('thead th').allTextContents().then(values => values.map(text => text.trim()).filter(Boolean)),
       ['Team member', 'Role', 'Status', 'Actions'],
     );
-    await page.getByRole('button', { name: 'Add team member', exact: true }).click();
-    const employeeDialog = page.getByRole('dialog', { name: 'Add demo employee' });
+    await teamUI.getByText(/UI preview · changes here are not saved/).waitFor();
+    assert.equal(await teamUI.getByRole('button', { name: 'Manage roles' }).count(), 0, 'Legacy role editor must not render');
+    assert.equal(await teamUI.getByRole('button', { name: 'Filters & columns' }).count(), 0, 'Legacy directory panel must not render');
+    await teamUI.getByRole('button', { name: 'Add team member', exact: true }).click();
+    const employeeDialog = page.getByRole('dialog', { name: 'Add team member' });
     await employeeDialog.waitFor();
-    await employeeDialog.getByRole('button', { name: 'Cancel' }).click();
-    await page.getByRole('button', { name: 'Manage roles' }).click();
-    await page.getByRole('heading', { name: 'Roles & permissions' }).waitFor();
-    await page.getByRole('button', { name: 'Create role' }).click();
-    const roleDialog = page.getByRole('dialog', { name: 'Create role' });
-    await roleDialog.waitFor();
-    await roleDialog.getByLabel('Role name', { exact: true }).waitFor();
-    await roleDialog.getByRole('button', { name: 'Cancel' }).click();
-    await page.getByRole('button', { name: 'Back to team' }).click();
-    await teamTable.waitFor();
-    await page.getByRole('button', { name: 'Filters & columns' }).click();
-    await page.getByRole('searchbox', { name: 'Search employees' }).waitFor();
-    await page.getByRole('button', { name: 'Compact list' }).click();
-    await teamTable.waitFor();
+    await employeeDialog.getByRole('textbox', { name: 'Name' }).fill('UI Preview Employee');
+    await employeeDialog.getByRole('button', { name: 'Save', exact: true }).click();
+    await teamTable.getByText('UI Preview Employee').waitFor();
+    await teamUI.getByText(/No team member, role, login or invitation was changed/).waitFor();
+    await page.reload();
+    await teamUI.waitFor();
+    assert.equal(await teamTable.getByText('UI Preview Employee').count(), 0, 'Team preview changes must not persist across reload');
+    await teamUI.getByRole('button', { name: 'Add team member', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Add team member' }).getByRole('button', { name: 'Cancel' }).click();
     // Magic Invoice Studio Phase 1: source gallery, document renderer and UI-local drafts.
     await go('invoices');
     const studio = page.locator('[data-settings-magic-invoice-studio]');
