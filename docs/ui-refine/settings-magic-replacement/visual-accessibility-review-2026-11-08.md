@@ -57,6 +57,17 @@ The next one-screen review task addressed the two confirmed accessibility blocke
 
 **Validation:** The code commit `b0c1117` passed all three GitHub workflows: PR Fast CI (including Settings browser tests), Authentication UI Preview, and UI refine screenshots. This removes the *identified implementation blockers* but does not certify WCAG conformance or exact Magic Patterns pixel parity. A human screen-reader test and matched reference screenshot comparison are still open.
 
+## Follow-up: team validation and activity disclosure semantics
+
+This scoped accessibility pass compared the Settings components with the repo's shared controls (`AppSelect`, `Input`, `SettingCard`, the shared `Modal`) and global `:focus-visible` theme. WCAG **2.2 AA** criteria **1.3.1**, **3.3.2** and **4.1.2** provide the external reference for label/error associations and accessible control state, not a claim of total conformance.
+
+- **Labels/errors:** `src/settings/magic/TeamSettings.tsx` now links a blank or duplicate team member name to its validation message with stable `aria-describedby` / `aria-errormessage`, sets `aria-invalid` and moves focus back to the actual name field. Correcting the field removes the error state. The sole-active-owner warning continues to use a live alert, and its offending role or Active control gets focus and the message association. Role's custom combobox is now explicitly labeled by its existing `AppSelect` semantics rather than incorrectly nesting a button inside a native `label`.
+- **Control names/state:** `src/settings/magic/security/ActivityPage.tsx` provides a meaningful event-specific disclosure name that changes from “Show details” to “Hide details”; `aria-expanded` and conditional `aria-controls` refer to mounted detail content. Decorative chevrons remain visually unchanged. The event timeline remains an ordered list.
+- **Keyboard/focus:** Existing shared dialog trap/return handling remains unchanged; this pass adds assertions for invalid team name focus. Activity disclosures remain native buttons (Enter and Space reachable).
+- **Regression tests:** `scripts/settings-magic-browser.cjs` asserts the team error text/ID relationship, invalid focus/reset, disclosure state/name and the visible detail relation. Screenshots preserve the pinned Magic Patterns layout and all actions remain local-only.
+
+**Seven-subject boundary:** Contrast was not remeasured beyond the earlier representative tests; target sizes, other icon text alternatives, all languages and reading orders were not newly audited in this pass. A human assistive-technology session (Bangla and English announcements, keyboard sequence, and dialog exit) remains necessary; these DOM assertions **do not** verify spoken screen-reader output. The other WCAG criteria were not checked here.
+
 ## Exit gates before Phase 1 approval
 
 - [x] Capture implementation-side light/dark evidence for all five specialized Settings pages at five viewports.
