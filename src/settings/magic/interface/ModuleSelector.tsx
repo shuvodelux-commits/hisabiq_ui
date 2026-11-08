@@ -39,10 +39,11 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
       <span className="mb-1 block text-[12px] font-medium text-ink-700">Module</span>
       <button
         type="button"
+        aria-label="Module"
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="ref-control flex w-full items-center justify-between gap-2 rounded-lg border border-ink-200 bg-card px-3 text-left text-[13px] text-ink"
+        className="ref-control flex h-9 min-h-9 w-full items-center justify-between gap-2 rounded-md border border-ink-200 bg-card px-3 text-left text-[13px] text-ink"
       >
         <span className="truncate">
           {current.label} <span className="font-bn text-[11px] text-ink-400">{current.labelBn}</span>
