@@ -8,6 +8,7 @@ import { InterfaceSettings as MagicInterfaceSettings } from './magic/interface/I
 import { TeamSettings as MagicTeamSettings } from './magic/TeamSettings';
 import { DataSettings as MagicDataSettings } from './magic/DataSettings';
 import { SessionsPage as MagicSessionsPage } from './magic/security/SessionsPage';
+import { ActivityPage as MagicActivityPage } from './magic/security/ActivityPage';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1565,7 +1566,7 @@ export function TenantSettingsPage() {
     if (id === 'finance') return '/app/settings/money';
     return `/app/settings/${id}`;
   };
-  const previewOnly = section === 'activity' || section === 'offline';
+  const previewOnly = section === 'offline';
   const reference = settingsSections.find(item => item.id === section);
   const generalSourceSections: SettingsSectionId[] = [
     'business', 'names', 'sales', 'products', 'purchases',
@@ -1584,7 +1585,7 @@ export function TenantSettingsPage() {
     setPendingMagicUrl(url);
   };
   return (
-    <div className={`erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5 ${activeId === 'team' || activeId === 'sessions' ? 'overflow-x-hidden' : ''}`} data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
+    <div className={`erp-settings mx-auto min-w-0 max-w-[1280px] space-y-5 ${activeId === 'team' || activeId === 'sessions' || activeId === 'activity' ? 'overflow-x-hidden' : ''}`} data-settings-magic-patterns="t6q3mxi6nhuak3qjvx8cwn">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-xl font-semibold text-ink">
@@ -1647,6 +1648,8 @@ export function TenantSettingsPage() {
             <MagicDataSettings canEdit={canManage(state, actorId, 'export') || canManage(state, actorId, 'import')} />
           ) : activeId === 'sessions' ? (
             <MagicSessionsPage canManage={canManage(state, actorId, 'team')} />
+          ) : activeId === 'activity' ? (
+            <MagicActivityPage canView={canManage(state, actorId, 'audit.event.view')} />
           ) : previewOnly ? (
             <section className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
