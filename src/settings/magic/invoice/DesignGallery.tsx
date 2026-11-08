@@ -28,7 +28,7 @@ export function DesignGallery({ value, premium, disabled, onPick }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: reduced ? 0 : i * 0.03 }}
             whileHover={reduced || disabled ? undefined : { y: -2 }}
-            className={`relative overflow-hidden rounded-xl border bg-white text-left transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 disabled:cursor-not-allowed ${
+            className={`relative overflow-hidden rounded-xl border bg-card text-left transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 disabled:cursor-not-allowed ${
               active ? 'border-teal-600 ring-2 ring-teal-500/20' : 'border-ink-100 hover:border-ink-200 hover:shadow-card'
             }`}
           >
