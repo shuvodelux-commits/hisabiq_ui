@@ -246,6 +246,20 @@ async function main() {
       await go('team');
       await page.locator('[data-settings-magic-team] [data-settings-team-table]').waitFor();
       const teamOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+      if (teamOverflow) {
+        const overflowDiagnostic = await page.evaluate(() => ({
+          viewport: innerWidth, doc: document.documentElement.scrollWidth, body: document.body.scrollWidth,
+          elements: [...document.querySelectorAll('body *')].map(el => {
+            const box = el.getBoundingClientRect();
+            const style = getComputedStyle(el);
+            return { tag: el.tagName, classes: typeof el.className === 'string' ? el.className.slice(0, 160) : '',
+              right: Math.round(box.right), left: Math.round(box.left), width: Math.round(box.width),
+              client: el.clientWidth, scroll: el.scrollWidth, overflowX: style.overflowX };
+          }).filter(item => item.width > 0 && item.right > innerWidth + 1 && item.left < innerWidth)
+            .sort((left, right) => right.right - left.right).slice(0, 30),
+        }));
+        console.error('TEAM MOBILE OVERFLOW DIAGNOSTIC: ' + JSON.stringify(overflowDiagnostic));
+      }
       assert.equal(teamOverflow, false, 'Source Users & roles page overflows at ' + width);
       if (process.env.SETTINGS_SCREENSHOT_DIR) {
         fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
