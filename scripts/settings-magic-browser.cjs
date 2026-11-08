@@ -245,22 +245,33 @@ async function main() {
       assert.equal(formOverflow, false, 'Settings form overflows at ' + width);
       await go('team');
       await page.locator('[data-settings-magic-team] [data-settings-team-table]').waitFor();
-      const teamOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
-      if (teamOverflow) {
-        const overflowDiagnostic = await page.evaluate(() => ({
-          viewport: innerWidth, doc: document.documentElement.scrollWidth, body: document.body.scrollWidth,
-          elements: [...document.querySelectorAll('body *')].map(el => {
-            const box = el.getBoundingClientRect();
-            const style = getComputedStyle(el);
-            return { tag: el.tagName, classes: typeof el.className === 'string' ? el.className.slice(0, 160) : '',
-              right: Math.round(box.right), left: Math.round(box.left), width: Math.round(box.width),
-              client: el.clientWidth, scroll: el.scrollWidth, overflowX: style.overflowX };
-          }).filter(item => item.width > 0 && item.right > innerWidth + 1 && item.left < innerWidth)
-            .sort((left, right) => right.right - left.right).slice(0, 30),
-        }));
-        console.error('TEAM MOBILE OVERFLOW DIAGNOSTIC: ' + JSON.stringify(overflowDiagnostic));
-      }
-      assert.equal(teamOverflow, false, 'Source Users & roles page overflows at ' + width);
+      const teamLayout = await page.evaluate(() => {
+        const table = document.querySelector('[data-settings-team-table]');
+        const scroller = table?.parentElement;
+        if (!scroller) return null;
+        const bounds = scroller.getBoundingClientRect();
+        const previousY = window.scrollY;
+        window.scrollTo({ left: 9999, top: previousY, behavior: 'instant' });
+        const pageScrollX = window.scrollX;
+        window.scrollTo({ left: 0, top: previousY, behavior: 'instant' });
+        return {
+          bodyWidth: document.body.scrollWidth,
+          pageScrollX,
+          scrollerLeft: bounds.left,
+          scrollerRight: bounds.right,
+          scrollerClient: scroller.clientWidth,
+          scrollerContent: scroller.scrollWidth,
+          overflowX: getComputedStyle(scroller).overflowX,
+        };
+      });
+      assert.ok(teamLayout, 'Source Users & roles table wrapper exists at ' + width);
+      assert.equal(teamLayout.bodyWidth > width + 1, false, 'Body overflows at ' + width);
+      assert.equal(teamLayout.pageScrollX, 0, 'Whole Settings page must not scroll sideways at ' + width);
+      assert.ok(teamLayout.scrollerLeft >= -1 && teamLayout.scrollerRight <= width + 1,
+        'Source team table wrapper escapes viewport at ' + width + ': ' + JSON.stringify(teamLayout));
+      assert.equal(teamLayout.overflowX, 'auto', 'Source team table has independent horizontal scroll');
+      if (width < 520) assert.ok(teamLayout.scrollerContent > teamLayout.scrollerClient,
+        'Wide team table must scroll inside its wrapper at ' + width);
       if (process.env.SETTINGS_SCREENSHOT_DIR) {
         fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
         await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-team-' + width + '-light.png'), fullPage: true });
