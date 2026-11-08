@@ -266,7 +266,7 @@ async function main() {
       });
       assert.ok(teamLayout, 'Source Users & roles table wrapper exists at ' + width);
       assert.equal(teamLayout.bodyWidth > width + 1, false, 'Body overflows at ' + width);
-      assert.equal(teamLayout.pageScrollX, 0, 'Whole Settings page must not scroll sideways at ' + width);
+      assert.equal(teamLayout.pageScrollX, 0, 'Whole Settings page must not scroll sideways at ' + width + ': ' + JSON.stringify(teamLayout));
       assert.ok(teamLayout.scrollerLeft >= -1 && teamLayout.scrollerRight <= width + 1,
         'Source team table wrapper escapes viewport at ' + width + ': ' + JSON.stringify(teamLayout));
       assert.equal(teamLayout.overflowX, 'auto', 'Source team table has independent horizontal scroll');
