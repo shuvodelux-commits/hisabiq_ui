@@ -389,10 +389,12 @@ async function main() {
     const activityExpand = discountRow.getByRole('button', { name: /Show details for/ });
     assert.equal(await activityExpand.getAttribute('aria-expanded'), 'false',
       'Activity disclosure announces its collapsed state');
-    const activityDetailsId = await activityExpand.getAttribute('aria-controls');
-    assert.ok(activityDetailsId, 'Activity disclosure points to its associated details');
+    assert.equal(await activityExpand.getAttribute('aria-controls'), null,
+      'Collapsed details are not referenced while removed from the DOM');
     await activityExpand.click();
     const activityCollapse = discountRow.getByRole('button', { name: /Hide details for/ });
+    const activityDetailsId = await activityCollapse.getAttribute('aria-controls');
+    assert.ok(activityDetailsId, 'Expanded activity disclosure points to its details');
     assert.equal(await activityCollapse.getAttribute('aria-expanded'), 'true',
       'Activity disclosure announces expanded state and changed action');
     assert.equal(await activityCollapse.getAttribute('aria-controls'), activityDetailsId,
