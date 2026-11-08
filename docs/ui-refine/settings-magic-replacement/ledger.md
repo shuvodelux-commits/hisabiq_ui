@@ -32,3 +32,19 @@
 - [ ] Obtain explicit owner visual approval before Phase 2 integration.
 
 **PR #272 remains draft, unmerged and undeployed. No Phase 2 API reconnection.**
+
+
+## Owner-marked Settings alignment and embedded navigation — 8 November 2026
+
+**Evidence input:** Four user-annotated Settings screenshots. This is a separate targeted GitHub-only ChatGPT-led review, not the native independent-agent `/ui-refine-loop` runtime. No invented model grades.
+
+| Check | Commit / evidence | Issue and result | Tests |
+| --- | --- | --- | --- |
+| C0 (annotated baseline) | User screenshots, `776d4a6` | **SET-01 P2** Module selector visibly shorter than Apply to; **SET-02 P2** desktop Logged-in devices / Staff activity omitted icons and had inconsistent indentation; **SET-03 P1** Support & changes and Plan & billing left the Settings shell; Offline already had a correct embedded route. | Evidence is the user's screenshots and source inspection, not a rendered original Magic reference. |
+| C1 (targeted fixes) | `65a67f6`, `e333a3e`, `6f9a92c`, `9496a3b`, `9cc5113`, `b7bffd5`, `ec7a7da` | **SET-01 fixed:** Module trigger is labeled and 36px; Apply to label spacing aligned. **SET-02 fixed:** icons and same left anchor on desktop. **SET-03 partial:** embedded existing Support and subscription content, routed the Settings tabs and ticket links inside the workspace. Old standalone links remain for compatibility. | First screenshot run [42501693373](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/42501693373) correctly failed on a support-ticket deep-link regression. |
+| C2 (regression repair) | `f5e94a3` | **SET-03 fixed:** `settings/:section/:id` preserves the Support section when a ticket is opened; the earlier static `settings/support/:id` route lost `section` and rendered Settings home. | [PR Fast CI 42502009609](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/42502009609) **passed**; [Auth UI Preview 42502009592](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/42502009592) **passed on retry** following an unrelated interrupted same-URL login navigation; [Playwright + Impeccable screenshot run 42502009625](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/42502009625) **passed**. |
+| C4 (limited human-in-chat screenshot review) | [Screenshot artifact 13626450523](https://github.com/shuvodelux-commits/hisabiq_ui/actions/runs/42502009625/artifacts/13626450523) | **SET-01, SET-02, SET-03 fixed** against the annotated request. Screenshots show aligned 36px selectors, restored Settings icons, open Module menu, and embedded Support / billing at 390px. | Playwright asserts 36px height, control Y alignment, matching icon X position, URL + active section, ticket drill-down, and zero document overflow on targeted routes at 320/390/768/1024/1440px in light/dark. |
+
+**C3:** Not performed; stop after the targeted defects were resolved and C4 evidence reviewed. No official isolated reviewer/fixer subagents or original Magic pixel-diff were run, so design/audit /40 scores remain **unscored**. This fixes the specifically annotated deviations only; it does **not** close original-source visual-parity gate P-04 or certify WCAG conformance.
+
+**Behavior and safety:** The existing SaaS demo portal's content and actions were reused by an `embedded` opt-in without changing backend/API, financial or live tenant code. The original `/app/support` and `/app/subscription` routes remain functional outside Settings. Settings sidebar navigation, Help/plan links and new support ticket detail paths stay in the Settings shell. Offline selling remains on its existing local-preview screen. No merge or deployment authorized.
