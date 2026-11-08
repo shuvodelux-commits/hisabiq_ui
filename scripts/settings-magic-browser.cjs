@@ -496,7 +496,8 @@ async function main() {
     const teamName = addTeamModal.getByRole('textbox', { name: 'Name' });
     await addTeamModal.getByRole('button', { name: 'Save', exact: true }).click();
     const teamError = addTeamModal.getByRole('alert');
-    await teamError.getByText('Enter a name.').waitFor();
+    await teamError.waitFor();
+    assert.match(await teamError.textContent(), /Enter a name\./, 'Blank team name is announced as an alert');
     const teamErrorId = await teamError.getAttribute('id');
     assert.ok(teamErrorId, 'Name validation alert has an ID');
     assert.equal(await teamName.getAttribute('aria-invalid'), 'true',
