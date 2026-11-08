@@ -222,7 +222,8 @@ async function main() {
     await sessionsUI.getByRole('radio', { name: 'All', exact: true }).click();
     await sessionsUI.getByRole('textbox', { name: 'Search devices' }).fill('Chattogram');
     assert.equal(await sessionTable.locator('tbody tr').count(), 1, 'Search person, device and city');
-    await sessionsUI.getByRole('textbox', { name: 'Search devices' }).fill('');
+    await sessionsUI.getByRole('button', { name: 'Clear Search devices' }).click();
+    assert.equal(await sessionsUI.getByRole('textbox', { name: 'Search devices' }).inputValue(), '', 'Search is cleared without changing the active filter');
     await page.getByRole('button', { name: 'Actions for Owner phone' }).click();
     await page.getByRole('menuitem', { name: 'Sign out this device' }).click();
     const deviceDialog = page.getByRole('dialog', { name: 'Sign out this device?' });
