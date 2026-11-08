@@ -33,9 +33,9 @@ The project's existing **36px shared control height**, global focus-visible ring
 | Subject | Evidence and disposition |
 | --- | --- |
 | **1. Contrast** | Confirmed V-01–V-03 failures on the first captured dark-mode build. Theme-aware corrective code has been committed and Playwright tests added for Interface title, active Offline outline action, and white Invoice preview text. Automated checks do **not** measure every pixel, label, or interactive state. |
-| **2. Focus** | Shared theme `:focus-visible` draws a 2px outline; most Magic controls also have local focus rings. **Outstanding:** the shared Magic `Modal` in `src/settings/magic/invoice/Ui.tsx` does not explicitly set initial focus or restore focus to the triggering element on close. Actual focus behavior should be exercised through keyboard-only Playwright tests. |
-| **3. Keyboard reach/order** | Buttons, links, checkboxes and inputs use keyboard-native controls. **Outstanding:** the same modal marks itself `aria-modal="true"` but its implementation contains no explicit Tab/Shift+Tab containment, so keyboard focus may escape to the page behind it. Confirm and remediate before accessibility approval (WCAG 2.2 2.1.1, 2.4.3). |
-| **4. Labels and errors** | Source search inputs have accessible names, the Offline numeric controls have wrapping labels, and Owner PIN has a wrapping label plus `aria-invalid`. **Outstanding:** the PIN validation message is not linked to the field with `aria-describedby`, and focus/error announcement after invalid submission remains unverified. |
+| **2. Focus** | Shared theme `:focus-visible` draws a 2px outline. **Fixed in the follow-up:** shared Magic `Modal` now focuses the explicit preferred control (Owner PIN when present, otherwise its first control) and restores focus to the original trigger after Escape or Cancel. Playwright verified both PIN and Team dialogs. Other modal variants still require a complete keyboard and screen-reader sweep. |
+| **3. Keyboard reach/order** | Buttons, links, checkboxes and inputs use native controls. **Fixed in the follow-up:** the topmost shared Magic modal traps Tab and Shift+Tab, redirects stray focus from behind the dialog, and closes on Escape unless a menu/listbox is active. The PIN dialog wrap and Escape-to-trigger behavior passed Playwright. Remaining non-Settings modals were not evaluated. |
+| **4. Labels and errors** | Source search and Offline numeric controls have accessible names. **Fixed in the follow-up:** Owner PIN now connects its validation text via stable `aria-describedby` and `aria-errormessage`, sets `aria-invalid`, announces an error with `role="alert"`, and retains focus on invalid submission. These DOM and focus states passed Playwright; spoken announcements in a real screen reader remain unverified. |
 | **5. Text alternatives** | Icon-only close and action-menu controls include an accessible name; source preview status badges carry explanatory text as well as color. Some individual icons and route labels rely on their adjacent visible text. The complete screen-reader announcement order remains untested. |
 | **6. Target size** | Most shared source buttons and fields are 36px high and primary workflow actions are 48px, above WCAG 2.2 AA 2.5.8's general 24px criterion. Some inline links and segmented controls have different geometry/exceptions; final rendered target-size sampling remains to be done. |
 | **7. Structure** | Activity uses an ordered list, device/sync history uses semantic tables, cards have headings and dialogs use a dialog role/name. Some short Bangla helper spans rely on font styling without an explicit `lang="bn"`; check the family convention and screen-reader pronunciation as a separate language review. |
@@ -47,13 +47,23 @@ The project's existing **36px shared control height**, global focus-visible ring
 - Local-only demo changes, PIN length validation, offline handover after simulated sync, activity filters, backups, and reload resets were tested; this **does not validate a production offline-sync or accounting implementation**.
 - No real tenant/session API was connected, no invoices were posted, and no PR was merged.
 
+## Follow-up: modal keyboard safety resolved (8 November 2026)
+
+The next one-screen review task addressed the two confirmed accessibility blockers without redesigning the source Magic Patterns dialogs:
+
+- `src/settings/magic/invoice/Ui.tsx`: capture the opener before auto-focused children mount; preserve preferred initial focus, contain Tab/Shift+Tab and stray focus within the topmost modal, handle Escape, and restore the activating control on unmount.
+- `src/settings/magic/security/PinConfirmDialog.tsx`: mark the PIN input as initial-focus target, associate stable helper/error IDs, announce invalid input through an alert, retain focus, and prevent duplicate Enter submission.
+- `scripts/settings-magic-browser.cjs`: add automated keyboard focus-wrap, Escape return, Cancel return, initial PIN focus, invalid/error relationship, and alert assertions.
+
+**Validation:** The code commit `b0c1117` passed all three GitHub workflows: PR Fast CI (including Settings browser tests), Authentication UI Preview, and UI refine screenshots. This removes the *identified implementation blockers* but does not certify WCAG conformance or exact Magic Patterns pixel parity. A human screen-reader test and matched reference screenshot comparison are still open.
+
 ## Exit gates before Phase 1 approval
 
 - [x] Capture implementation-side light/dark evidence for all five specialized Settings pages at five viewports.
 - [x] Implement semantic dark theme surfaces for known unreadable cards/buttons and paper preview.
 - [x] Add explicit foreground/background contrast tests for representative high-risk controls.
-- [ ] Validate the final commit's full CI and visually inspect its fresh screenshots.
-- [ ] Resolve or explicitly disposition modal focus containment/return and PIN error association.
+- [x] Validate the contrast-fix screenshots and the follow-up code commit `b0c1117` across PR Fast CI, Authentication UI Preview and UI refinement screenshots. All passed.
+- [x] Fix and test shared Magic modal initial/return focus, keyboard containment, Escape, and Owner PIN error association (code commit `b0c1117`).
 - [ ] Compare **matched** original Magic Patterns screenshots with implementation across source states, including modal and dropdown open states.
 - [ ] Have a human review low-literacy readability, Bangla typography, touch targets and horizontal-table discoverability.
 
