@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Check, Info, Loader2 } from 'lucide-react';
-import { Switch } from '../../ui';
+import { SettingsToggle } from '../SettingsToggle';
 
 import type { CapabilityDescriptor } from './experienceTypes';
 
 type CapabilityRowProps = {
   descriptor: CapabilityDescriptor;
-  /** switch = saves immediately (My preferences); checkbox = part of a form that needs Save (Business defaults) */
+  /** switch = immediate preview state; checkbox = staged business default awaiting review */
   mode: 'switch' | 'checkbox';
   checked: boolean;
   onChange: (v: boolean) => void;
@@ -36,33 +36,30 @@ export function CapabilityRow({ descriptor: d, mode, checked, onChange, source, 
 
   return (
     <div className="py-3" data-capability={d.key}>
-      {mode === 'checkbox' ? (
-        <label className={`flex items-start gap-3 ${off ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-          <span className="flex h-5 shrink-0 items-center">
-            <input type="checkbox" aria-label={d.label} className="size-4 accent-teal-600" checked={value} onChange={(e) => onChange(e.target.checked)} disabled={off} />
-          </span>
-          <span className="min-w-0">{text}</span>
-        </label>
-      ) : (
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">{text}</div>
-          <div className="flex h-5 shrink-0 items-center gap-2">
-            {saving ? (
-              <span className="flex items-center gap-1 text-[11px] text-ink-500">
-                <Loader2 className="size-3 animate-spin" aria-hidden="true" />
-                Saving…
-              </span>
-            ) : saved ? (
-              <span className="flex items-center gap-1 text-[11px] text-success">
-                <Check className="size-3" aria-hidden="true" />
-                Saved
-              </span>
-            ) : null}
-            <Switch checked={value} onCheckedChange={(v: boolean) => onChange(v)} disabled={off || saving} aria-label={d.label} />
-          </div>
+      <div className="flex items-start justify-between gap-4">
+        <label htmlFor={`settings-capability-${d.key}`} className={`min-w-0 pt-1 ${off ? 'cursor-not-allowed' : 'cursor-pointer'}`}>{text}</label>
+        <div className="flex shrink-0 items-center gap-2">
+          {mode === 'switch' && saving ? (
+            <span className="flex items-center gap-1 text-[11px] text-ink-500">
+              <Loader2 className="size-3 animate-spin" aria-hidden="true" />
+              Saving…
+            </span>
+          ) : mode === 'switch' && saved ? (
+            <span className="flex items-center gap-1 text-[11px] text-success">
+              <Check className="size-3" aria-hidden="true" />
+              Saved
+            </span>
+          ) : null}
+          <SettingsToggle
+            id={`settings-capability-${d.key}`}
+            checked={value}
+            onCheckedChange={onChange}
+            disabled={off || saving}
+            aria-label={d.label}
+          />
         </div>
-      )}
-      <div className={mode === 'checkbox' ? 'pl-7' : ''}>
+      </div>
+      <div>
         {off && <p className="mt-1 text-[11px] text-warning">Turn on “{blockedBy!.label}” first.</p>}
         <button
           type="button"
