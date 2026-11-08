@@ -9,7 +9,7 @@ function downloadCsv(name: string, rows: (string | number)[][]) {
   anchor.download = name;
   anchor.click();
 }
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown, Download, Printer, RotateCcw, Search } from 'lucide-react';
@@ -128,6 +128,7 @@ type RowProps = { entry: ActivityEntry; name: string; role: string; open: boolea
 
 function ActivityRow({ entry: r, name, role, open, onToggle, onPerson, onOpenRecord }: RowProps) {
   const reduced = useReducedMotion();
+  const detailsId = useId();
   const hasDetail = !!(r.before || r.after || r.link);
   return (
     <li className={r.level === 'alert' ? 'bg-danger-bg/40' : r.level === 'look' ? 'bg-warning-bg/30' : ''}>
@@ -145,14 +146,14 @@ function ActivityRow({ entry: r, name, role, open, onToggle, onPerson, onOpenRec
           </p>
         </div>
         {hasDetail && (
-          <button type="button" onClick={onToggle} aria-expanded={open} aria-label="Show details" className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">
+          <button type="button" onClick={onToggle} aria-expanded={open} aria-controls={detailsId} aria-label={open ? `Hide details for ${name}` : `Show details for ${name}`} className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-ink-500 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">
             <ChevronDown className={`size-4 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
         )}
       </div>
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div initial={reduced ? false : { height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={reduced ? undefined : { height: 0, opacity: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
+          <motion.div id={detailsId} initial={reduced ? false : { height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={reduced ? undefined : { height: 0, opacity: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
             <div className="mx-4 mb-3 ml-9 grid gap-2 rounded-lg border border-ink-100 bg-card p-3 text-xs sm:grid-cols-3">
               {r.before && <p><span className="text-ink-500">Before</span><br /><span className="text-ink">{r.before}</span></p>}
               {r.after && <p><span className="text-ink-500">After</span><br /><span className="font-medium text-ink">{r.after}</span></p>}
