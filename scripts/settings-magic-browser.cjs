@@ -162,14 +162,46 @@ async function main() {
     await wizard.getByRole('button', { name: 'Continue' }).click();
     await wizard.getByRole('link', { name: /Open Business type/ }).waitFor();
     await wizard.getByRole('button', { name: 'Skip for now' }).click();
-    // Data page retains live tenant backup and import-preview safeguards under Magic's tabbed card.
+    // Exact Magic Data & backup presentation; source demo flows are local and non-destructive.
     await go('data');
-    await page.getByRole('heading', { name: /Data & backup/ }).last().waitFor();
-    await page.getByRole('tab', { name: /Backup & restore/ }).click();
-    await page.getByLabel('Restore settings backup', { exact: true }).waitFor();
-    await page.getByRole('tab', { name: /Record exports & import preview/ }).click();
-    await page.getByLabel('Product CSV preview', { exact: true }).waitFor();
-    await page.getByRole('tab', { name: /Backup & restore/ }).click();
+    const dataUI = page.locator('[data-settings-magic-data]');
+    await dataUI.waitFor();
+    assert.deepEqual(
+      await dataUI.getByRole('tab').allTextContents().then(values => values.map(value => value.trim())),
+      ['Backup & restore', 'Reset demo'],
+    );
+    assert.equal(await page.getByLabel('Restore settings backup', { exact: true }).count(), 0,
+      'Legacy production restore input must not appear on Phase-1 Magic route');
+    assert.equal(await page.getByLabel('Product CSV preview', { exact: true }).count(), 0,
+      'Legacy CSV import panels must not appear on Phase-1 Magic route');
+    await dataUI.getByRole('button', { name: 'Download', exact: true }).click();
+    await dataUI.getByRole('status').filter({ hasText: /No backup file was created or downloaded/ }).waitFor();
+    await dataUI.getByRole('tab', { name: 'Reset demo' }).click();
+    await dataUI.getByRole('button', { name: 'Reset demo' }).click();
+    const resetDialog = page.getByRole('dialog', { name: 'Reset all demo data?' });
+    await resetDialog.waitFor();
+    await resetDialog.getByRole('button', { name: 'Cancel' }).click();
+    await dataUI.getByRole('button', { name: 'Reset demo' }).click();
+    await resetDialog.getByRole('button', { name: 'Reset', exact: true }).click();
+    await dataUI.getByRole('status').filter({ hasText: /No demo or business data was reset/ }).waitFor();
+    await dataUI.getByRole('tab', { name: 'Backup & restore' }).click();
+    await dataUI.getByLabel('Choose backup file').setInputFiles({
+      name: 'magic-preview-backup.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify({
+        sales: [{ id: 'preview-sale' }], expenses: [{ id: 'preview-expense' }],
+        vendorEntries: [], staff: [], settings: {},
+      })),
+    });
+    const restoreDialog = page.getByRole('dialog', { name: 'Replace demo data with this backup?' });
+    await restoreDialog.waitFor();
+    await restoreDialog.getByText(/1 sales and 1 expenses/).waitFor();
+    await restoreDialog.getByRole('button', { name: 'Replace data' }).click();
+    await dataUI.getByRole('status').filter({ hasText: /No demo or business data was restored/ }).waitFor();
+    await page.reload();
+    await dataUI.waitFor();
+    assert.equal(await page.getByRole('dialog', { name: 'Replace demo data with this backup?' }).count(), 0,
+      'Backup preview must not persist across reload');
     // Source TeamSettings is the route itself; legacy management and directory panels are absent.
     await go('team');
     const teamUI = page.locator('[data-settings-magic-team]');
@@ -243,6 +275,23 @@ async function main() {
       await page.getByLabel('Business name', { exact: true }).waitFor();
       const formOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
       assert.equal(formOverflow, false, 'Settings form overflows at ' + width);
+      await go('data');
+      const dataPage = page.locator('[data-settings-magic-data]');
+      await dataPage.waitFor();
+      const dataOverflow = await page.evaluate(() => {
+        const oldY = scrollY;
+        window.scrollTo({ left: 9999, top: oldY, behavior: 'instant' });
+        const x = scrollX;
+        window.scrollTo({ left: 0, top: oldY, behavior: 'instant' });
+        return x;
+      });
+      assert.equal(dataOverflow, 0, 'Magic Data & backup page must not scroll sideways at ' + width);
+      if (process.env.SETTINGS_SCREENSHOT_DIR) {
+        await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-data-' + width + '-light.png'), fullPage: true });
+        await page.evaluate(() => document.documentElement.classList.add('dark'));
+        await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-data-' + width + '-dark.png'), fullPage: true });
+        await page.evaluate(() => document.documentElement.classList.remove('dark'));
+      }
       await go('team');
       await page.locator('[data-settings-magic-team] [data-settings-team-table]').waitFor();
       const teamLayout = await page.evaluate(() => {
@@ -285,7 +334,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles source presentation and five viewports passed.');
+    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles and Data & backup source previews across five viewports passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
