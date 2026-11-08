@@ -68,7 +68,7 @@ export function InterfaceSettings({ onDirtyChange, canBusiness }: { onDirtyChang
               <p className="mt-0.5 text-xs text-ink-500">Your plan decides what is available. You decide what is shown.</p>
             </div>
             <Link
-              to="/app/subscription"
+              to="/app/settings/subscription"
               className="inline-flex items-center rounded-md bg-teal-50 px-2 py-1 text-[11px] font-medium text-teal-800 hover:bg-teal-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
             >
               Sample {plan.label} plan · {tierLabel[planTier(exp.planCode)]}
@@ -78,7 +78,7 @@ export function InterfaceSettings({ onDirtyChange, canBusiness }: { onDirtyChang
             <ModuleSelector value={s.moduleId} counts={counts} onChange={(id) => s.requestSwitch({ kind: 'module', value: id })} />
             {s.canBusiness && (
               <div className="w-full sm:w-64">
-                <label className="block text-[12px] font-medium text-ink-700">Apply to</label>
+                <label className="mb-1 block text-[12px] font-medium text-ink-700">Apply to</label>
                   <AppSelect label="Apply to"
                     value={s.scope.kind}
                     onChange={(v) => s.requestSwitch({ kind: 'scope', value: v })}
@@ -165,7 +165,7 @@ export function InterfaceSettings({ onDirtyChange, canBusiness }: { onDirtyChang
                   {planTier(exp.planCode) === 'BASIC'
                     ? 'Pro adds record links and quick actions. Plus adds item, payment and value details.'
                     : `Plus adds ${s.hiddenByPlan.length} more for ${mod.label}: ${s.hiddenByPlan.map((d) => d.label.toLowerCase()).join(', ')}.`}{' '}
-                  <Link to="/app/subscription" className="font-medium text-teal-700 hover:underline">Compare plans</Link>
+                  <Link to="/app/settings/subscription" className="font-medium text-teal-700 hover:underline">Compare plans</Link>
                 </p>
               )}
               {s.hiddenByRole.length > 0 && (
