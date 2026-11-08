@@ -7,6 +7,7 @@ import { InvoiceStudio as MagicInvoiceStudio } from './magic/invoice/InvoiceStud
 import { InterfaceSettings as MagicInterfaceSettings } from './magic/interface/InterfaceSettings';
 import { TeamSettings as MagicTeamSettings } from './magic/TeamSettings';
 import { DataSettings as MagicDataSettings } from './magic/DataSettings';
+import { SessionsPage as MagicSessionsPage } from './magic/security/SessionsPage';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1564,7 +1565,7 @@ export function TenantSettingsPage() {
     if (id === 'finance') return '/app/settings/money';
     return `/app/settings/${id}`;
   };
-  const previewOnly = section === 'sessions' || section === 'activity' || section === 'offline';
+  const previewOnly = section === 'activity' || section === 'offline';
   const reference = settingsSections.find(item => item.id === section);
   const generalSourceSections: SettingsSectionId[] = [
     'business', 'names', 'sales', 'products', 'purchases',
@@ -1644,6 +1645,8 @@ export function TenantSettingsPage() {
             />
           ) : activeId === 'data' ? (
             <MagicDataSettings canEdit={canManage(state, actorId, 'export') || canManage(state, actorId, 'import')} />
+          ) : activeId === 'sessions' ? (
+            <MagicSessionsPage canManage={canManage(state, actorId, 'team')} />
           ) : previewOnly ? (
             <section className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
