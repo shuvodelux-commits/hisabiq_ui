@@ -263,10 +263,10 @@ async function main() {
       'Reopened dialog restores its PIN initial-focus behavior');
     await bulkPin.fill('123');
     await bulkConfirm.click();
-    await bulkDialog.getByRole('alert', { name: /Enter your 6-digit PIN/ }).waitFor();
+    await bulkDialog.getByRole('alert').filter({ hasText: /Enter your 6-digit PIN/ }).waitFor();
     assert.equal(await bulkPin.getAttribute('aria-invalid'), 'true', 'PIN marks the field invalid');
     const describedBy = await bulkPin.getAttribute('aria-describedby');
-    const messageId = await bulkDialog.getByRole('alert', { name: /Enter your 6-digit PIN/ }).getAttribute('id');
+    const messageId = await bulkDialog.getByRole('alert').filter({ hasText: /Enter your 6-digit PIN/ }).getAttribute('id');
     assert.equal(describedBy, messageId, 'PIN validation is associated with its accessible description');
     assert.equal(await bulkPin.getAttribute('aria-errormessage'), messageId,
       'PIN validation also sets aria-errormessage');
