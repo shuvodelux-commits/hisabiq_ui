@@ -3,6 +3,7 @@ import { SettingsNav } from './magic/SettingsNav';
 import { SettingsHome } from './magic/SettingsHome';
 import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/GeneralSettingsSection';
 import { KhataPreview as MagicKhataPreview } from './magic/KhataPreview';
+import { InvoiceStudio as MagicInvoiceStudio } from './magic/invoice/InvoiceStudio';
 import { SaveBar } from './magic/SaveBar';
 import { settingsSections, type SettingsSectionId } from './magic/settingsSections';
 import { download as downloadSettings } from './ui';
@@ -1542,6 +1543,8 @@ export function TenantSettingsPage() {
   const navigate = useNavigate();
   const { state, actorId } = useTenantSettings();
   const [magicDirty, setMagicDirty] = useState(false);
+  const [invoiceStudioDirty, setInvoiceStudioDirty] = useState(false);
+  const [invoiceNumberDirty, setInvoiceNumberDirty] = useState(false);
   const [pendingMagicUrl, setPendingMagicUrl] = useState<string | null>(null);
   const activeId: SettingsSectionId | null =
     section === 'financialTerminology' ? 'names' :
@@ -1570,7 +1573,7 @@ export function TenantSettingsPage() {
   const sourceCanEdit = activeId === 'personal' || activeId === 'security' ||
     (sourceSectionKey !== null && canManage(state, actorId, sourceSectionKey as BusinessSection));
   const onMagicNavigate = (url: string, event: React.MouseEvent) => {
-    if (!magicDirty) return;
+    if (!magicDirty && !invoiceStudioDirty && !invoiceNumberDirty) return;
     event.preventDefault();
     setPendingMagicUrl(url);
   };
@@ -1606,6 +1609,24 @@ export function TenantSettingsPage() {
                 ? (previewDraft) => <MagicKhataPreview draft={previewDraft} />
                 : undefined}
             />
+          ) : activeId === 'invoices' ? (
+            <div className="space-y-6" data-settings-magic-invoices-page>
+              <MagicInvoiceStudio
+                canEdit={canManage(state, actorId, 'invoices')}
+                onDirtyChange={setInvoiceStudioDirty}
+              />
+              <div>
+                <h2 className="mb-2 text-sm font-semibold text-ink">
+                  Document numbering
+                  <span className="ml-2 font-bn text-[11px] font-normal text-ink-400">নম্বর</span>
+                </h2>
+                <MagicGeneralSettingsSection
+                  section={settingsSections.find(item => item.id === 'invoices')!}
+                  canEdit={canManage(state, actorId, 'invoices')}
+                  onDirtyChange={setInvoiceNumberDirty}
+                />
+              </div>
+            </div>
           ) : previewOnly ? (
             <section className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h2 className="text-[15px] font-semibold text-ink">{reference?.label}</h2>
@@ -1633,6 +1654,8 @@ export function TenantSettingsPage() {
             const target = pendingMagicUrl;
             setPendingMagicUrl(null);
             setMagicDirty(false);
+            setInvoiceStudioDirty(false);
+            setInvoiceNumberDirty(false);
             if (target) navigate(target);
           }}>Discard preview and continue</Button>
         </div>
