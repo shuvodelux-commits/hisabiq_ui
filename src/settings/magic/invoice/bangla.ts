@@ -1,4 +1,4 @@
-import { amountInWords } from './amountInWords';
+import { amountInWords as moneyWordsBn } from '../../../utils/amountInWords';
 
 export type DocLanguage = 'en' | 'mixed' | 'bn';
 
@@ -63,5 +63,5 @@ export function amountWordsEn(value: number): string {
 }
 
 export function docAmountWords(value: number, lang: DocLanguage): string {
-  return lang === 'bn' ? amountInWords(value) : amountWordsEn(value);
+  return lang === 'bn' ? moneyWordsBn(value) : amountWordsEn(value);
 }
