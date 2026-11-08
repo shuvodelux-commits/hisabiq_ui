@@ -4065,6 +4065,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/SettingsToggle.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsToggle"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/SetupWizard.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4508,6 +4516,7 @@
       "src/pages/Products.tsx",
       "src/pages/Sales.tsx",
       "src/pages/Vendors.tsx",
+      "src/settings/magic/GeneralSettingsSection.tsx",
       "src/settings/magic/interface/InterfaceSettings.tsx",
       "src/settings/magic/interface/ModuleSelector.tsx",
       "src/settings/magic/security/ActivityPage.tsx"
