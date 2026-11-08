@@ -4017,6 +4017,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/DataSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "DataSettings"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/GeneralSettingsSection.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4549,7 +4557,8 @@
       "src/reports/magicpatterns/components/reports/basic/StockReport.tsx",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
       "src/settings/DataSettings.tsx",
-      "src/settings/SettingsSqlBackup.tsx"
+      "src/settings/SettingsSqlBackup.tsx",
+      "src/settings/magic/DataSettings.tsx"
     ],
     "Ellipsis": [
       "src/components/vendor/VendorTabs.tsx"
@@ -4759,6 +4768,7 @@
     "Lock": [
       "src/components/brand/ApplicationsSection.tsx",
       "src/components/layout/CashSessionDialog.tsx",
+      "src/settings/magic/DataSettings.tsx",
       "src/settings/magic/GeneralSettingsSection.tsx",
       "src/settings/magic/TeamSettings.tsx",
       "src/settings/magic/invoice/DesignGallery.tsx",
@@ -5273,7 +5283,8 @@
       "src/pages/Parties.tsx",
       "src/pages/Products.tsx",
       "src/settings/DataSettings.tsx",
-      "src/settings/SettingsSqlBackup.tsx"
+      "src/settings/SettingsSqlBackup.tsx",
+      "src/settings/magic/DataSettings.tsx"
     ],
     "UploadCloud": [
       "src/components/import/ImportUploadStep.tsx"
