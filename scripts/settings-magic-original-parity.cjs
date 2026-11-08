@@ -99,6 +99,15 @@ async function capturePage(browser,site,route,width,height,theme,out,filename,so
       darkClass:document.documentElement.classList.contains('dark')
     }));
     assert.ok(details.visibleText.length>60,'Reference or candidate is blank/blocked on '+site+': '+target);
+    assert.ok(Math.abs(details.viewportWidth-width)<=1,
+      site+' browser effective viewport differs from requested '+width+'px: '+JSON.stringify(details));
+    assert.equal(details.darkClass,theme==='dark',
+      site+' light/dark capture is not using the requested theme');
+    const expectedPath='/app/settings'+(route[1]?'/'+route[1]:'');
+    if(site==='source')assert.equal(details.pagePath,expectedPath,
+      'Original BrowserRouter path does not match the Settings screen');
+    else assert.ok(details.pageHash.startsWith('#'+expectedPath),
+      'Implementation HashRouter path does not match the Settings screen');
     assert.ok(details.visibleText.toLowerCase().includes(route[2].toLowerCase().split(' ')[0])||details.visibleText.includes('Settings'),
       'Expected Settings screen not present: '+site+' '+route[0]+' '+JSON.stringify(details));
     assert.equal(errors.length,0,site+' JavaScript errors on '+route[0]+': '+errors.join('; '));
