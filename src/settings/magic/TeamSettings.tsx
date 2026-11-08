@@ -76,7 +76,7 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
   };
 
   return (
-    <div className="min-w-0 max-w-full space-y-3 overflow-x-clip" data-settings-magic-team>
+    <div className="min-w-0 max-w-full space-y-3 overflow-x-hidden" data-settings-magic-team>
       <SettingCard
         title="Users & roles"
         titleBn="ব্যবহারকারী ও ভূমিকা"
