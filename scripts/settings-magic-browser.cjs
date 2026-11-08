@@ -81,12 +81,21 @@ async function main() {
     await page.waitForURL(/\/app\/settings\/sales/);
     const salesSource = page.locator('[data-settings-magic-general="sales"]');
     await salesSource.waitFor();
-    await page.getByRole('checkbox', { name: /Open print after each sale/ }).waitFor();
+    const printToggle = salesSource.getByRole('switch', { name: /Open print after each sale/ });
+    await printToggle.waitFor();
+    assert.ok(await printToggle.isVisible(), 'On/Off switch is visible in Sales');
+    const switchBounds = await printToggle.boundingBox();
+    assert.ok(switchBounds && switchBounds.width >= 40 && switchBounds.height >= 34,
+      'Compact toggle has a 40px+ track with keyboard/touch target');
+    const initialPrint = await printToggle.isChecked();
+    await printToggle.focus();
+    await page.keyboard.press('Space');
+    assert.equal(await printToggle.isChecked(), !initialPrint, 'Space toggles the native switch');
     await page.getByRole('combobox', { name: 'Default payment method' }).click();
     await page.getByRole('option', { name: 'bKash', exact: true }).click();
-    await salesSource.getByRole('checkbox', { name: 'Show advanced options' }).check();
-    await page.getByRole('checkbox', { name: /Allow selling when stock is zero/ }).check();
-    await page.getByRole('checkbox', { name: /Let staff change the price at checkout/ }).waitFor();
+    await salesSource.getByRole('button', { name: 'Show advanced options' }).click();
+    await page.getByRole('switch', { name: /Allow selling when stock is zero/ }).check();
+    await page.getByRole('switch', { name: /Let staff change the price at checkout/ }).waitFor();
     await page.getByRole('spinbutton', { name: 'Biggest discount staff can give (%)' }).fill('10');
     await page.getByRole('spinbutton', { name: 'Accept returns within (days)' }).waitFor();
     await page.getByRole('button', { name: 'Discard' }).click();
@@ -151,7 +160,7 @@ async function main() {
     await go('money');
     const financePreview = page.locator('[data-settings-magic-general="finance"]');
     await financePreview.waitFor();
-    await financePreview.getByRole('checkbox', { name: 'Show advanced options' }).check();
+    await financePreview.getByRole('button', { name: 'Show advanced options' }).click();
     const lockDate = financePreview.getByRole('textbox', { name: 'Lock old entries before' });
     await lockDate.fill('bad-date');
     await financePreview.getByRole('button', { name: 'Save', exact: true }).click();
@@ -171,7 +180,7 @@ async function main() {
     await go('products');
     const costPreview = page.locator('[data-settings-magic-general="products"]');
     await costPreview.waitFor();
-    await costPreview.getByRole('checkbox', { name: 'Show advanced options' }).check();
+    await costPreview.getByRole('button', { name: 'Show advanced options' }).click();
     const costMethod = costPreview.getByRole('combobox', { name: 'How product cost is worked out' });
     const initialCost = await costMethod.getAttribute('data-value');
     const alternateCost = initialCost === 'FIFO' ? 'Average' : 'FIFO';
@@ -188,7 +197,7 @@ async function main() {
     assert.equal(await costMethod.getAttribute('data-value'), alternateCost, 'Escape keeps the preview draft');
     await page.reload();
     await costPreview.waitFor();
-    await costPreview.getByRole('checkbox', { name: 'Show advanced options' }).check();
+    await costPreview.getByRole('button', { name: 'Show advanced options' }).click();
     assert.equal(await costPreview.getByRole('combobox', { name: 'How product cost is worked out' }).getAttribute('data-value'),
       initialCost, 'Cost method preview cannot change stock accounting or persist to the tenant');
     // Full Magic Interface & workflows source: scope, searchable modules, grouped controls, advanced and preview.
@@ -218,7 +227,7 @@ async function main() {
     await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /Products & stock/ }).click();
     await interfaceUI.locator('[data-capability="products.columns.stockValue"]').waitFor();
     assert.equal(await interfaceUI.locator('[data-capability="sales.columns.paymentMethod"]').count(), 0);
-    await interfaceUI.locator('[data-capability="products.columns.stockValue"] label[data-slot="switch"]').click();
+    await interfaceUI.locator('[data-capability="products.columns.stockValue"] input[role="switch"]').click();
     await interfaceUI.getByText(/nothing was saved/i).first().waitFor();
     await interfaceUI.getByRole('button', { name: 'Preview', exact: true }).click();
     const previewTabs = interfaceUI.getByRole('tablist', { name: 'Preview size' });
@@ -242,7 +251,7 @@ async function main() {
     const applyTo = interfaceUI.getByRole('combobox', { name: 'Apply to' });
     await applyTo.click();
     await page.getByRole('option', { name: /Everyone \(UI preview\)/ }).click();
-    const companyPayment = interfaceUI.locator('[data-capability="sales.columns.paymentMethod"] input[type="checkbox"]');
+    const companyPayment = interfaceUI.locator('[data-capability="sales.columns.paymentMethod"] input[role="switch"]');
     await companyPayment.waitFor();
     await companyPayment.click();
     await interfaceUI.getByRole('button', { name: 'Review & save' }).click();
@@ -586,7 +595,7 @@ async function main() {
     const invoiceLanguage = studio.getByRole('radiogroup', { name: 'Document language' });
     await invoiceLanguage.getByRole('radio', { name: 'সম্পূর্ণ বাংলা' }).click();
     await studio.getByRole('button', { name: 'HisabIQ teal' }).waitFor();
-    assert.equal(await studio.locator('input[type="checkbox"]').count(), 15, 'All fifteen original invoice content toggles visible');
+    assert.equal(await studio.getByRole('switch').count(), 15, 'All fifteen invoice content options use switches');
     await studio.getByLabel('Thank-you line').fill('Thank you from Magic');
     const compare = studio.getByRole('radiogroup', { name: 'Compare' });
     await compare.getByRole('radio', { name: 'Current' }).click();
@@ -752,7 +761,7 @@ async function main() {
       await go('money');
       const financeGeneral = page.locator('[data-settings-magic-general="finance"]');
       await financeGeneral.waitFor();
-      await financeGeneral.getByRole('checkbox', { name: 'Show advanced options' }).check();
+      await financeGeneral.getByRole('button', { name: 'Show advanced options' }).click();
       await financeGeneral.getByRole('textbox', { name: 'Lock old entries before' }).fill('2026-10-31');
       await financeGeneral.getByRole('button', { name: 'Save', exact: true }).click();
       const riskDialog = page.getByRole('dialog', { name: 'Before you save' });
