@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, Lock, Plus } from 'lucide-react';
 import { Button } from '../../../prototype/Ui';
 import { useSaas } from '../../../contexts/SaasContext';

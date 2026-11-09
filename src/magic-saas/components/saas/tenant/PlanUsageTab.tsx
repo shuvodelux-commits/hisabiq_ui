@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Ban, Gift, Timer } from 'lucide-react';
 import { RowActions } from '../RowActions';
 import { toast } from 'sonner';

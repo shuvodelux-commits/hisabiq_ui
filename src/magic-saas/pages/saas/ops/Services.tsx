@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Tabs } from '../../../prototype/Ui';
 import { useSaas } from '../../../contexts/SaasContext';
 import { useFirstLoad } from '../../../hooks/saas/useFirstLoad';

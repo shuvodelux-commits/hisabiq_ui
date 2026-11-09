@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { MoreHorizontal, BoxIcon } from "lucide-react";
+import { MoreHorizontal, type LucideIcon } from "lucide-react";
 export type RowAction = {
   label: string;
   onSelect: () => void;
-  icon?: BoxIcon;
+  icon?: LucideIcon;
   tone?: 'neutral' | 'danger';
   disabled?: boolean;
   hint?: string;

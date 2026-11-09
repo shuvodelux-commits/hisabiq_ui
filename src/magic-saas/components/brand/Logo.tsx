@@ -1,5 +1,3 @@
-import React from 'react';
-
 export type LogoTone = 'color' | 'inverse' | 'mono-ink' | 'mono-white' | 'teal';
 
 type ToneColors = { tile: string; glyph: string; rule: string; dot: string };

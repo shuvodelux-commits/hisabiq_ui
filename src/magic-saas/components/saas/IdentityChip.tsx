@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
 import { useSaas } from '../../contexts/SaasContext';

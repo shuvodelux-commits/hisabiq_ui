@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSaas } from '../../../contexts/SaasContext';
 import { AuditTable } from '../AuditTable';
 import type { Tenant } from '../../../types/saas';

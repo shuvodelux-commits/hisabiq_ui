@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AlertTriangle, CheckCircle2, ImageIcon, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Field, Input, Modal, Textarea } from '../../../prototype/Ui';

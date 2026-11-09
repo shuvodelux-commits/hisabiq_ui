@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Field, Input, Select, Textarea } from '../../../prototype/Ui';
 import { Checkbox } from '../../Checkbox';

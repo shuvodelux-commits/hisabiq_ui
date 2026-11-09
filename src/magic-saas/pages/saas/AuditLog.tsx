@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSaas } from '../../contexts/SaasContext';
 import { AuditTable } from '../../components/saas/AuditTable';
 import { Denied, PageTitle } from '../../components/saas/SaasBits';

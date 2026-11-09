@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle, ChevronRight } from 'lucide-react';
 import { useSaas } from '../../../contexts/SaasContext';
 import { SettingCard } from '../../settings/SettingCard';

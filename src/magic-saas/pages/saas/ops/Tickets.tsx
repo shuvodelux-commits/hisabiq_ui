@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MessageSquare, Plus } from 'lucide-react';
 import { NewTicketDialog } from '../../../components/saas/ops/NewTicketDialog';

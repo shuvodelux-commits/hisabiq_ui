@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Badge, EmptyRow, orderMeta, th, td } from './SaasBits';
 import { Select } from '../../prototype/Ui';
 import { OrderDetailDialog } from './OrderDetailDialog';

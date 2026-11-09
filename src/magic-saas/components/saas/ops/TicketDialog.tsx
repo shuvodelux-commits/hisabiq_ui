@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button, Modal } from '../../../prototype/Ui';
 import { useSaas } from '../../../contexts/SaasContext';
 import { Badge } from '../SaasBits';

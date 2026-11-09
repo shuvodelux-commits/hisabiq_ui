@@ -1,4 +1,3 @@
-import React from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Download } from 'lucide-react';
 import { Button, downloadCsv } from '../../../prototype/Ui';

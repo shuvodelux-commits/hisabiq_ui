@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Ban, Download, Eye, Plus, ShieldCheck } from 'lucide-react';
 import { RowActions } from '../../../components/saas/RowActions';

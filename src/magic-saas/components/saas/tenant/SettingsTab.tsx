@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Lock, Pencil, Plus } from 'lucide-react';
 import { RowActions } from '../RowActions';
 import { toast } from 'sonner';

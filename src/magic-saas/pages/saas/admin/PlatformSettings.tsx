@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button, Field, Input, Select } from '../../../prototype/Ui';
 import { Switch } from '../../../components/Switch';

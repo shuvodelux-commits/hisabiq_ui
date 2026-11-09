@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Eye, Pencil, Plus, Trash2, UserCheck, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Field, Input, Modal, Select, Tabs } from '../../../prototype/Ui';

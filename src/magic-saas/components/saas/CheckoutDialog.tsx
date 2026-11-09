@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Field, Input, Modal, Select } from '../../prototype/Ui';

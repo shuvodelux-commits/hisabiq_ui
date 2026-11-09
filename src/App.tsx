@@ -12,13 +12,8 @@ import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
 
 const TenantSettingsPage = lazy(() => import('./settings/TenantSettingsPage').then(module => ({ default: module.TenantSettingsPage })));
-const InvoicesPage = lazy(() => import('./saas/billing/InvoicesPage').then(module => ({ default: module.InvoicesPage })));
-const PaymentsPage = lazy(() => import('./saas/billing/PaymentsPage').then(module => ({ default: module.PaymentsPage })));
-const ServicesPage = lazy(() => import('./saas/services/ServicesPage').then(module => ({ default: module.ServicesPage })));
-const TicketsPage = lazy(() => import('./saas/support/TicketsPage').then(module => ({ default: module.TicketsPage })));
 const TenantSubscription = lazy(() => import('./saas/TenantPortal').then(module => ({ default: module.TenantSubscription })));
 const TenantSupport = lazy(() => import('./saas/TenantPortal').then(module => ({ default: module.TenantSupport })));
-const TenantsPage = lazy(() => import('./saas/tenants/TenantsPage').then(module => ({ default: module.TenantsPage })));
 const BrandGuide = lazy(() => import('./pages/BrandGuide').then(module => ({ default: module.BrandGuide })));
 const LoginPreviewPage = lazy(() => import('./features/auth/LoginPreviewPage').then(module => ({ default: module.LoginPreviewPage })));
 const SignupPreviewPage = lazy(() => import('./features/auth/AuthFlowPage').then(module => ({ default: module.SignupPreviewPage })));

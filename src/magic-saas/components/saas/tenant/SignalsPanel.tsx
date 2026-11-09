@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../../../prototype/Ui';
