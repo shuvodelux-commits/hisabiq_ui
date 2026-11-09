@@ -114,7 +114,10 @@ async function main() {
     await page.getByRole('heading',{name:/Karim Traders/}).waitFor();
     // Supplier screenshot contract: compact horizontal owed-card plus just the three actions.
     const supplierCard=page.locator('[data-testid="party-balance-card"]:visible').first();
-    assert.equal(await supplierCard.evaluate(el=>getComputedStyle(el).display),'grid');
+    assert.deepEqual(await supplierCard.evaluate(el=>{
+      const style=getComputedStyle(el);
+      return {display:style.display,direction:style.flexDirection};
+    }),{display:'flex',direction:'row'},'Supplier amount stays horizontally aligned on narrow phones');
     assert.ok(await supplierCard.getByText('Supplier payable').isVisible());
     assert.ok(await supplierCard.getByText('You owe them',{exact:false}).isVisible());
     const supplierActions=page.getByTestId('party-mobile-actions');
