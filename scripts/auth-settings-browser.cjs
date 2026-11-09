@@ -22,7 +22,11 @@ async function main() {
     await section.getByText(/Authentication UI preview/).waitFor();
     const preview = section.getByRole('switch', { name: /Preview auto-lock after 30 minutes/ });
     assert.equal(await preview.isChecked(), true);
-    await preview.uncheck();
+    // The shared Switch visually wraps a screen-reader-only native input;
+    // keyboard Space is the accessible action and avoids clicking through its label.
+    await preview.focus();
+    await page.keyboard.press('Space');
+    assert.equal(await preview.isChecked(), false, 'Keyboard Space toggles the existing preview control');
     await section.getByText(/Preview: Off/).waitFor();
     await section.getByRole('button', { name: 'Preview setup' }).click();
     const modal = page.getByRole('dialog', { name: /Set a 6-digit PIN/ });
