@@ -77,9 +77,9 @@ export function MyWork() {
           {shownTiles.slice(0, 5).map((t) => {
             const active = kinds !== null && kinds.join() === t.kinds.join();
             return (
-              <button key={t.label} type="button" aria-pressed={active} onClick={() => setKinds(active ? null : t.kinds)} className={`rounded-xl border bg-white px-3 py-2.5 text-left shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 ${active ? 'border-teal-600' : 'border-ink-100 hover:border-ink-200'}`}>
+              <button key={t.label} type="button" aria-pressed={active} onClick={() => setKinds(active ? null : t.kinds)} className={`rounded-xl border bg-card px-3 py-2.5 text-left shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 ${active ? 'border-teal-600' : 'border-ink-100 hover:border-ink-200'}`}>
                 <span className="block text-[11px] text-ink-500">{t.label} <span className="font-bn">· {t.bn}</span></span>
-                <span className={`mt-0.5 block text-lg font-semibold tabular-nums ${t.count ? 'text-ink' : 'text-ink-300'}`}>{t.count}</span>
+                <span className={`mt-0.5 block text-lg font-semibold ${t.count ? 'text-ink' : 'text-ink-300'}`}>{t.count}</span>
               </button>
             );
           })}

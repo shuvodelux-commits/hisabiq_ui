@@ -11,6 +11,7 @@ Same Magic Patterns UI and workflows, cleaner and more reliable; compact and use
 - src/magic-saas/components/saas/GlobalSearch.tsx
 - src/magic-saas/components/saas/IdentityChip.tsx
 - src/magic-saas/pages/saas/home/MyWork.tsx
+- SaaS-only display primitives in src/magic-saas/prototype/Ui.tsx and components/saas/SaasBits.tsx strictly for the measured dark-mode contrast issue (outline buttons, panels, metric cards, denial surface). These are not ERP-global primitives.
 - Targeted Playwright regression/evidence only; shared application state and business commands protected.
 
 ## First-pass audit, baseline C0
