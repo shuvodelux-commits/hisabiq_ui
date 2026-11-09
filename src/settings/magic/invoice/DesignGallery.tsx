@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Check, Lock } from 'lucide-react';
 import { invoiceDesigns, type InvoiceDesignId } from './invoiceDesigns';
 import type { InvoiceDesignSettings } from './invoiceState';
+import { radioGroupKeyDown } from './Ui';
 import { InvoiceDocument } from './InvoiceDocument';
 
 type Props = { value: InvoiceDesignSettings; premium: boolean; disabled?: boolean; onPick: (id: InvoiceDesignId) => void };
@@ -12,7 +13,7 @@ const SCALE = 0.27;
 export function DesignGallery({ value, premium, disabled, onPick }: Props) {
   const reduced = useReducedMotion();
   return (
-    <div role="radiogroup" aria-label="Invoice design" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div role="radiogroup" aria-label="Invoice design" onKeyDown={radioGroupKeyDown} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {invoiceDesigns.map((d, i) => {
         const active = value.design === d.id;
         const locked = d.premium && !premium;
@@ -23,6 +24,7 @@ export function DesignGallery({ value, premium, disabled, onPick }: Props) {
             role="radio"
             aria-checked={active}
             disabled={disabled}
+            tabIndex={!disabled && (active || (!invoiceDesigns.some(design => design.id === value.design) && i === 0)) ? 0 : -1}
             onClick={() => onPick(d.id)}
             initial={reduced ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}

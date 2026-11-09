@@ -80,11 +80,27 @@ export function Modal({title,children,onClose,footer,wide=false}:{title:string;c
     </motion.section>
   </motion.div>}
 
-export function Segmented({options,value,onChange,label}:{options:{id:string;label:string}[];value:string;onChange:(id:string)=>void;label:string}){
+/** Shared keyboard behavior for the existing Settings radio-button families.
+ * Click keeps each caller's selection/locked-preview callback authoritative.
+ */
+export function radioGroupKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+  const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'];
+  if (!keys.includes(event.key)) return;
+  const radios = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button[role="radio"]:not(:disabled)'));
+  const index = radios.indexOf(event.target as HTMLButtonElement);
+  if (index < 0 || !radios.length) return;
+  event.preventDefault();
+  const next = event.key === 'Home' ? 0 : event.key === 'End' ? radios.length - 1
+    : (index + (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) + radios.length) % radios.length;
+  radios[next].focus();
+  radios[next].click();
+}
+
+export function Segmented({options,value,onChange,label,disabled=false}:{options:{id:string;label:string}[];value:string;onChange:(id:string)=>void;label:string;disabled?:boolean}){
   const reduced=useReducedMotion();const scope=React.useId();
-  return <LayoutGroup id={scope}><div role="radiogroup" aria-label={label} className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1">
-    {options.map(o=>{const active=o.id===value;return <button key={o.id} type="button" role="radio" aria-checked={active} onClick={()=>onChange(o.id)} className={'relative rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 '+(active?'text-white':'text-ink-500 hover:bg-ink-50 hover:text-ink')}>
+  const tabStop=options.some(o=>o.id===value)?value:options[0]?.id;
+  return <LayoutGroup id={scope}><div role="radiogroup" aria-label={label} aria-disabled={disabled || undefined} onKeyDown={radioGroupKeyDown} className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1">
+    {options.map(o=>{const active=o.id===value;return <button key={o.id} type="button" role="radio" aria-checked={active} disabled={disabled} tabIndex={!disabled&&o.id===tabStop?0:-1} onClick={()=>onChange(o.id)} className={'relative rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 disabled:cursor-not-allowed disabled:opacity-50 '+(active?'text-white':'text-ink-500 hover:bg-ink-50 hover:text-ink')}>
       {active&&<motion.span aria-hidden="true" layoutId={reduced?undefined:'segmented-active'} transition={{duration:0.2,ease:MOTION_EASE}} className="absolute inset-0 rounded-md bg-inverse"/>}
       <span className="relative">{o.label}</span></button>})}
   </div></LayoutGroup>}
-

@@ -35,7 +35,7 @@ export function InterfacePreview({ snapshot, moduleId }: { snapshot: ExperienceS
     <div className="rounded-lg border border-ink-100">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 pr-3">
         <Tabs tabIds={tabIds} panelIds={panelIds} label="Preview size" items={[{ id: 'desktop', label: 'Desktop' }, { id: 'tablet', label: 'Tablet' }, { id: 'mobile', label: 'Mobile' }]} value={vp} onChange={(v) => setVp(v as Viewport)} />
-        <span className="ref-helper">Sample row · not your data</span>
+        <span className="ref-helper px-3 pb-2 text-xs leading-4 sm:pb-0">Sample row · not your data</span>
       </div>
       <div role="tabpanel" id={panelIds[vp]} aria-labelledby={tabIds[vp]} tabIndex={0}>
         {vp === 'mobile' ? (
