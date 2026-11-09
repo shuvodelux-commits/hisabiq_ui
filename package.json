@@ -131,7 +131,8 @@
     "test:reports-analysis": "node scripts/reports-analysis-browser.cjs",
     "test:add-product-help": "node scripts/add-product-compact-help-browser.cjs",
     "test:add-product-inline-edit": "node scripts/add-product-inline-master-edit-browser.cjs",
-    "test:control-radius": "node scripts/control-radius-browser.cjs"
+    "test:control-radius": "node scripts/control-radius-browser.cjs",
+    "test:saas-magic": "node scripts/saas-magic-smoke.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

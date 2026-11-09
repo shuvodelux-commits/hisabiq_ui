@@ -1,9 +1,9 @@
 import './settings/navigationGuard';
 import { lazy } from 'react';
 import { PageBoundary } from './components/layout/PageBoundary';
+import { MagicSaasEntry } from './magic-saas/MagicSaasEntry';
 
 import {SaasProvider} from './saas/SaasProvider';
-import {SaasShell,Guard} from './saas/SaasShell';
 
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useTheme } from './contexts/ThemeContext';
@@ -12,28 +12,13 @@ import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
 
 const TenantSettingsPage = lazy(() => import('./settings/TenantSettingsPage').then(module => ({ default: module.TenantSettingsPage })));
-const PlansPage = lazy(() => import('./saas/billing/PlansPage').then(module => ({ default: module.PlansPage })));
-const SubscriptionsPage = lazy(() => import('./saas/billing/SubscriptionsPage').then(module => ({ default: module.SubscriptionsPage })));
 const InvoicesPage = lazy(() => import('./saas/billing/InvoicesPage').then(module => ({ default: module.InvoicesPage })));
-const InvoicePage = lazy(() => import('./saas/billing/InvoicesPage').then(module => ({ default: module.InvoicePage })));
 const PaymentsPage = lazy(() => import('./saas/billing/PaymentsPage').then(module => ({ default: module.PaymentsPage })));
-const PaymentReview = lazy(() => import('./saas/billing/PaymentsPage').then(module => ({ default: module.PaymentReview })));
-const SmsPage = lazy(() => import('./saas/messaging/SmsPage').then(module => ({ default: module.SmsPage })));
 const ServicesPage = lazy(() => import('./saas/services/ServicesPage').then(module => ({ default: module.ServicesPage })));
-const ServiceOrderPage = lazy(() => import('./saas/services/ServicesPage').then(module => ({ default: module.ServiceOrderPage })));
 const TicketsPage = lazy(() => import('./saas/support/TicketsPage').then(module => ({ default: module.TicketsPage })));
-const TicketPage = lazy(() => import('./saas/support/TicketsPage').then(module => ({ default: module.TicketPage })));
-const KnowledgePage = lazy(() => import('./saas/support/KnowledgePage').then(module => ({ default: module.KnowledgePage })));
 const TenantSubscription = lazy(() => import('./saas/TenantPortal').then(module => ({ default: module.TenantSubscription })));
 const TenantSupport = lazy(() => import('./saas/TenantPortal').then(module => ({ default: module.TenantSupport })));
-const AnnouncementsPage = lazy(() => import('./saas/admin/AnnouncementsPage').then(module => ({ default: module.AnnouncementsPage })));
-const SaasReports = lazy(() => import('./saas/admin/ReportsPage').then(module => ({ default: module.ReportsPage })));
-const AuditPage = lazy(() => import('./saas/admin/AuditPage').then(module => ({ default: module.AuditPage })));
-const SettingsPage = lazy(() => import('./saas/admin/SettingsPage').then(module => ({ default: module.SettingsPage })));
-const OverviewPage = lazy(() => import('./saas/OverviewPage').then(module => ({ default: module.OverviewPage })));
-const TeamPage = lazy(() => import('./saas/admin/TeamPage').then(module => ({ default: module.TeamPage })));
 const TenantsPage = lazy(() => import('./saas/tenants/TenantsPage').then(module => ({ default: module.TenantsPage })));
-const TenantPage = lazy(() => import('./saas/tenants/TenantsPage').then(module => ({ default: module.TenantPage })));
 const BrandGuide = lazy(() => import('./pages/BrandGuide').then(module => ({ default: module.BrandGuide })));
 const LoginPreviewPage = lazy(() => import('./features/auth/LoginPreviewPage').then(module => ({ default: module.LoginPreviewPage })));
 const SignupPreviewPage = lazy(() => import('./features/auth/AuthFlowPage').then(module => ({ default: module.SignupPreviewPage })));
@@ -60,6 +45,26 @@ const Accounts = lazy(() => import('./pages/Accounts').then(module => ({ default
 const AuditLedger = lazy(() => import('./pages/AuditLedger').then(module => ({ default: module.AuditLedger })));
 const GlobalSearch = lazy(() => import('./pages/GlobalSearch').then(module => ({ default: module.GlobalSearch })));
 
+const MagicMyWork = lazy(() => import('./magic-saas/pages/saas/home/MyWork').then(m => ({ default: m.MyWork })));
+const MagicBusinesses = lazy(() => import('./magic-saas/pages/saas/customers/Businesses').then(m => ({ default: m.Businesses })));
+const MagicTenantWorkspace = lazy(() => import('./magic-saas/pages/saas/TenantWorkspace').then(m => ({ default: m.TenantWorkspace })));
+const MagicSubscriptions = lazy(() => import('./magic-saas/pages/saas/revenue/Subscriptions').then(m => ({ default: m.Subscriptions })));
+const MagicInvoices = lazy(() => import('./magic-saas/pages/saas/revenue/Invoices').then(m => ({ default: m.Invoices })));
+const MagicPayments = lazy(() => import('./magic-saas/pages/saas/Payments').then(m => ({ default: m.Payments })));
+const MagicRefunds = lazy(() => import('./magic-saas/pages/saas/revenue/Refunds').then(m => ({ default: m.Refunds })));
+const MagicPackagesOffers = lazy(() => import('./magic-saas/pages/saas/PackagesOffers').then(m => ({ default: m.PackagesOffers })));
+const MagicTickets = lazy(() => import('./magic-saas/pages/saas/ops/Tickets').then(m => ({ default: m.Tickets })));
+const MagicSupportAccessQueue = lazy(() => import('./magic-saas/pages/saas/SupportAccessQueue').then(m => ({ default: m.SupportAccessQueue })));
+const MagicServices = lazy(() => import('./magic-saas/pages/saas/ops/Services').then(m => ({ default: m.Services })));
+const MagicSmsAdmin = lazy(() => import('./magic-saas/pages/saas/SmsAdmin').then(m => ({ default: m.SmsAdmin })));
+const MagicDataRequests = lazy(() => import('./magic-saas/pages/saas/ops/DataRequests').then(m => ({ default: m.DataRequests })));
+const MagicKnowledgeBase = lazy(() => import('./magic-saas/pages/saas/ops/KnowledgeBase').then(m => ({ default: m.KnowledgeBase })));
+const MagicTeam = lazy(() => import('./magic-saas/pages/saas/admin/Team').then(m => ({ default: m.Team })));
+const MagicAnnouncements = lazy(() => import('./magic-saas/pages/saas/admin/Announcements').then(m => ({ default: m.Announcements })));
+const MagicPlatformReports = lazy(() => import('./magic-saas/pages/saas/admin/PlatformReports').then(m => ({ default: m.PlatformReports })));
+const MagicAuditLog = lazy(() => import('./magic-saas/pages/saas/AuditLog').then(m => ({ default: m.AuditLog })));
+const MagicPlatformSettings = lazy(() => import('./magic-saas/pages/saas/admin/PlatformSettings').then(m => ({ default: m.PlatformSettings })));
+
 export function App() {
   const { resolvedTheme } = useTheme();
   return (
@@ -77,28 +82,31 @@ export function App() {
         <Route path="/recovery" element={<PageBoundary><RecoveryPreviewPage /></PageBoundary>} />
         <Route path="/forgot-password" element={<Navigate to="/recovery" replace />} />
         <Route path="/login/recovery" element={<Navigate to="/recovery" replace />} />
-        <Route path="/saas" element={<SaasShell />}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<OverviewPage />} />
-          <Route path="plans" element={<Guard permission="plans.view"><PlansPage /></Guard>} />
-          <Route path="subscriptions" element={<Guard permission="subscriptions.view"><SubscriptionsPage /></Guard>} />
-          <Route path="invoices" element={<Guard permission="billing.view"><InvoicesPage /></Guard>} />
-          <Route path="invoices/:id" element={<Guard permission="billing.view"><InvoicePage /></Guard>} />
-          <Route path="payments" element={<Guard permission="payments.view"><PaymentsPage /></Guard>} />
-          <Route path="payments/:id" element={<Guard permission="payments.view"><PaymentReview /></Guard>} />
-          <Route path="sms" element={<Guard permission="sms.view"><SmsPage /></Guard>} />
-          <Route path="services" element={<Guard permission="services.view"><ServicesPage /></Guard>} />
-          <Route path="services/:id" element={<Guard permission="services.view"><ServiceOrderPage /></Guard>} />
-          <Route path="support" element={<Guard permission="support.view"><TicketsPage /></Guard>} />
-          <Route path="support/:id" element={<Guard permission="support.view"><TicketPage /></Guard>} />
-          <Route path="knowledge" element={<Guard permission="knowledge.view"><KnowledgePage /></Guard>} />
-          <Route path="announcements" element={<Guard permission="announcements.view"><AnnouncementsPage /></Guard>} />
-          <Route path="reports" element={<Guard permission="reports.view"><SaasReports /></Guard>} />
-          <Route path="audit" element={<Guard permission="audit.view"><AuditPage /></Guard>} />
-          <Route path="settings" element={<Guard permission="settings.view"><SettingsPage /></Guard>} />
-          <Route path="team" element={<Guard permission="team.view"><TeamPage /></Guard>} />
-          <Route path="tenants" element={<Guard permission="tenants.view"><TenantsPage /></Guard>} />
-          <Route path="tenants/:id" element={<Guard permission="tenants.view"><TenantPage /></Guard>} />
+        <Route path="/saas" element={<MagicSaasEntry />}>
+          <Route index element={<Navigate to="home" replace />} />
+          <Route path="home" element={<MagicMyWork />} />
+          <Route path="tenants" element={<MagicBusinesses />} />
+          <Route path="tenants/:tenantId" element={<MagicTenantWorkspace />} />
+          <Route path="subscriptions" element={<MagicSubscriptions />} />
+          <Route path="invoices" element={<MagicInvoices />} />
+          <Route path="payments" element={<MagicPayments />} />
+          <Route path="refunds" element={<MagicRefunds />} />
+          <Route path="plans" element={<MagicPackagesOffers view="plans" />} />
+          <Route path="addons" element={<MagicPackagesOffers view="addons" />} />
+          <Route path="offers" element={<MagicPackagesOffers view="offers" />} />
+          <Route path="packages" element={<Navigate to="/saas/plans" replace />} />
+          <Route path="tickets" element={<MagicTickets />} />
+          <Route path="support" element={<MagicSupportAccessQueue />} />
+          <Route path="services" element={<MagicServices />} />
+          <Route path="sms" element={<MagicSmsAdmin />} />
+          <Route path="data-requests" element={<MagicDataRequests />} />
+          <Route path="knowledge" element={<MagicKnowledgeBase />} />
+          <Route path="team" element={<MagicTeam />} />
+          <Route path="announcements" element={<MagicAnnouncements />} />
+          <Route path="reports" element={<MagicPlatformReports />} />
+          <Route path="audit" element={<MagicAuditLog />} />
+          <Route path="settings" element={<MagicPlatformSettings />} />
+          <Route path="*" element={<Navigate to="/saas/home" replace />} />
         </Route>
         <Route path="/app" element={<AppShell />}>
           <Route index element={<Navigate to="dashboard" replace />} />
